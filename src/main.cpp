@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QQuickWindow>
+#include <QtGui/QGuiApplication>
+#include <QtQml/QQmlApplicationEngine>
+#include <QtQuick/QQuickWindow>
 
 int main(int argc, char *argv[])
 {

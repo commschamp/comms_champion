@@ -12,12 +12,20 @@ ApplicationWindow {
         anchors.fill: parent
         resizing : false
 
-        Rectangle {
-            id: column
-            width: 200
-            Layout.minimumWidth: 100
-            Layout.maximumWidth: 300
-            color: "lightsteelblue"
+        SplitView {
+            orientation: Qt.Vertical
+            width: parent.width / 2
+
+            Rectangle {
+                id: recvMsgs
+                color: "lightgray"
+                height: parent.height / 2
+            }
+
+            Rectangle {
+                id: sendMsgs
+                color: "lightgray"
+            }
         }
 
         SplitView {
@@ -25,15 +33,15 @@ ApplicationWindow {
             Layout.fillWidth: true
 
             Rectangle {
-                id: row1
-                height: 200
-                color: "lightblue"
-                Layout.minimumHeight: 1
+                id: msgDetails
+                color: "lightgray"
+                height: (parent.height * 2) / 3
             }
 
             Rectangle {
-                id: row2
+                id: protocolStackDetails
                 color: "lightgray"
+                anchors.topMargin: 10
             }
         }
     }

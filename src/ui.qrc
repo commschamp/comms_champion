@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>qml/MainWindow.qml</file>
+        <file>qml/LeftPane.qml</file>
+        <file>qml/RightPane.qml</file>
     </qresource>
 </RCC>

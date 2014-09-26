@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
     QObject *topLevel = engine.rootObjects().value(0);
     QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
     window->showMaximized();
+    QObject::connect(&engine, SIGNAL(quit()), &app, SLOT(quit())); // to make Qt.quit() to work.
 
     return app.exec();
 }

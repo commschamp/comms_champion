@@ -3,46 +3,34 @@ import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.0
 import QtQuick.Window 2.1
 
-
 ApplicationWindow {
+    id: mainWindow
     visibility: Window.Maximized
     visible: true
+    
+    /* menuBar: MenuBar {
+        Menu {
+            title: "File"
+             
+            MenuItem {
+                text: "Quit"
+                shortcut: "Ctrl+Q"
+                onTriggered: Qt.quit();
+            } 
+        }
+    } */
+    
 
     SplitView {
         anchors.fill: parent
         resizing : false
 
-        SplitView {
-            orientation: Qt.Vertical
+        LeftPane {
             width: parent.width / 2
-
-            Rectangle {
-                id: recvMsgs
-                color: "lightgray"
-                height: parent.height / 2
-            }
-
-            Rectangle {
-                id: sendMsgs
-                color: "lightgray"
-            }
         }
-
-        SplitView {
-            orientation: Qt.Vertical
+        
+        RightPane {
             Layout.fillWidth: true
-
-            Rectangle {
-                id: msgDetails
-                color: "lightgray"
-                height: (parent.height * 2) / 3
-            }
-
-            Rectangle {
-                id: protocolStackDetails
-                color: "lightgray"
-                anchors.topMargin: 10
-            }
         }
     }
 }

@@ -1,7 +1,10 @@
 <RCC>
     <qresource prefix="/">
+        <file>qml/GlobalConstants.qml</file>
         <file>qml/MainWindow.qml</file>
         <file>qml/LeftPane.qml</file>
         <file>qml/RightPane.qml</file>
+        <file>qml/RecvAreaToolBar.qml</file>
+        <file>qml/qmldir</file>
     </qresource>
 </RCC>

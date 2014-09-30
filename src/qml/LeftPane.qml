@@ -6,7 +6,7 @@ import "."
 
 SplitView {
     orientation: Qt.Vertical
-
+    
     Rectangle {
         id: recvArea
         color: GlobalConstants.background
@@ -15,9 +15,39 @@ SplitView {
         GroupBox {
             title: "Incoming Messages"
             anchors.fill: parent
-
-            RecvAreaToolBar {}
-            Rectangle {}
+            
+            state: GlobalConstants.waitingState
+            states: [
+                State {
+                    name: GlobalConstants.waitingState
+                    PropertyChanges { 
+                        target: recvAreaToolBar
+                        state: GlobalConstants.waitingState
+                    }
+                },
+                
+                State {
+                    name: GlobalConstants.runningState
+                    PropertyChanges { 
+                        target: recvAreaToolBar
+                        state: GlobalConstants.runningState
+                    }
+                }
+            ]
+            
+            RecvAreaToolBar {
+                id: recvAreaToolBar
+                onStartClicked: {
+                    state = GlobalConstants.runningState
+                }
+                
+                onStopClicked: {
+                    state = GlobalConstants.waitingState
+                }
+            }
+            
+            Rectangle {
+            }
         }
     }
 

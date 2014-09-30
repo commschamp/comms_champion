@@ -6,5 +6,8 @@
         <file>qml/RightPane.qml</file>
         <file>qml/RecvAreaToolBar.qml</file>
         <file>qml/qmldir</file>
+        <file>image/start.png</file>
+        <file>image/stop.png</file>
+        <file>image/save.png</file>
     </qresource>
 </RCC>

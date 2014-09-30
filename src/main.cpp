@@ -15,13 +15,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <QtGui/QGuiApplication>
+#include <QtWidgets/QApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQuick/QQuickWindow>
+#include <QtQuick/QQuickView>
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
     engine.load(QUrl("qrc:/qml/MainWindow.qml"));

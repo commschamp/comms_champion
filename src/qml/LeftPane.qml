@@ -46,7 +46,12 @@ SplitView {
                 }
             }
             
-            Rectangle {
+            MsgList {
+                anchors.top: recvAreaToolBar.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom:parent.bottom
+                id: msgList
             }
         }
     }

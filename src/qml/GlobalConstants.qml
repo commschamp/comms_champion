@@ -9,4 +9,5 @@ QtObject {
     property string startIconPathFromQml: "../image/start.png"
     property string stopIconPathFromQml: "../image/stop.png"
     property string saveIconPathFromQml: "../image/save.png"
+    property string configIconPathFromQml: "../image/config.png"
 }

@@ -5,9 +5,11 @@
         <file>qml/LeftPane.qml</file>
         <file>qml/RightPane.qml</file>
         <file>qml/RecvAreaToolBar.qml</file>
+        <file>qml/MsgList.qml</file>
         <file>qml/qmldir</file>
         <file>image/start.png</file>
         <file>image/stop.png</file>
         <file>image/save.png</file>
+        <file>image/config.png</file>
     </qresource>
 </RCC>

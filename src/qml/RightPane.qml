@@ -9,18 +9,22 @@ SplitView {
         id: msgDetails
         color: GlobalConstants.background
         height: (parent.height * 2) / 3
+        width: parent.width
         
         GroupBox {
             title: "Message Details"
             anchors.fill: parent
         
-            Rectangle {}
+            Rectangle {
+                anchors.fill: parent
+            }
         }
     }
 
     Rectangle {
         id: protocolStackDetails
         color: GlobalConstants.background
+        width: parent.width
         
         GroupBox {
             title: "Protocol Details"

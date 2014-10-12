@@ -3,6 +3,7 @@ import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
 import QtQuick.Layouts 1.1
 import "."
+import cc.MsgMgr 1.0
 
 Rectangle {
     id: recvArea
@@ -48,6 +49,13 @@ Rectangle {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom:parent.bottom
+        }
+        
+        Connections {
+            target: MsgMgr
+            onMsgReceived: {
+                console.log("Message received: " + msg)
+            }
         }
     }
 }

@@ -15,39 +15,41 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <QtWidgets/QApplication>
-#include <QtQml/QQmlApplicationEngine>
-#include <QtQuick/QQuickView>
 
-#include "MsgMgr.h"
+#pragma once
+
+#include <QtCore/QObject>
+
 #include "Message.h"
 
-namespace
+namespace cc
 {
 
-void qmlRegisterAll()
+class MsgMgr : public QObject
 {
-    cc::MsgMgr::qmlRegister();
-    cc::Message::qmlRegister();
+    Q_OBJECT
 
-    static_cast<void>(cc::MsgMgr::instance());
-}
+    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 
-}  // namespace
+    typedef QObject Base;
+public:
+    static MsgMgr* instance();
+    static void qmlRegister();
 
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
+    QString name() const;
+    void setName(const QString& name);
 
-    qmlRegisterAll();
 
-    QQmlApplicationEngine engine;
-    engine.load(QUrl("qrc:/qml/MainWindow.qml"));
-    QObject *topLevel = engine.rootObjects().value(0);
-    QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
-    window->showMaximized();
-    QObject::connect(&engine, SIGNAL(quit()), &app, SLOT(quit())); // to make Qt.quit() to work.
+public slots:
+    void timeout();
 
-    return app.exec();
-}
+signals:
+    void msgReceived(Message* msg);
+    void nameChanged();
 
+private:
+    MsgMgr(QObject* parent = nullptr);
+
+};
+
+}  // namespace cc

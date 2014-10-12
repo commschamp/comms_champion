@@ -15,39 +15,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <QtWidgets/QApplication>
-#include <QtQml/QQmlApplicationEngine>
-#include <QtQuick/QQuickView>
 
-#include "MsgMgr.h"
 #include "Message.h"
 
-namespace
+#include <QtQml/QtQml>
+
+namespace cc
 {
 
-void qmlRegisterAll()
+Message::Message(QObject* parent)
+  : Base(parent)
 {
-    cc::MsgMgr::qmlRegister();
-    cc::Message::qmlRegister();
-
-    static_cast<void>(cc::MsgMgr::instance());
 }
 
-}  // namespace
+Message::~Message() = default;
 
-int main(int argc, char *argv[])
+QString Message::name() const
 {
-    QApplication app(argc, argv);
-
-    qmlRegisterAll();
-
-    QQmlApplicationEngine engine;
-    engine.load(QUrl("qrc:/qml/MainWindow.qml"));
-    QObject *topLevel = engine.rootObjects().value(0);
-    QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
-    window->showMaximized();
-    QObject::connect(&engine, SIGNAL(quit()), &app, SLOT(quit())); // to make Qt.quit() to work.
-
-    return app.exec();
+    return nameImpl();
 }
+
+void Message::qmlRegister()
+{
+    qmlRegisterUncreatableType<Message>("cc.Message", 1, 0, "Message", "Message is an Abstract class");
+}
+
+}  // namespace cc
+
+
+
 

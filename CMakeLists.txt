@@ -11,6 +11,8 @@ execute_process (
 set (CMAKE_MODULE_PATH "${EXTERNALS_DIR}/cmake")         
 include (AllExtras)
 
+ext_add_cpp11_support()
+
 add_subdirectory (src)
 
 

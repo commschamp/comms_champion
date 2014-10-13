@@ -6,11 +6,11 @@ import "."
 import cc.MsgMgr 1.0
 
 Rectangle {
-    id: recvArea
     color: GlobalConstants.background
     height: parent.height / 2
     
     GroupBox {
+        id: recvArea
         title: "Incoming Messages"
         anchors.fill: parent
         
@@ -36,15 +36,16 @@ Rectangle {
         RecvAreaToolBar {
             id: recvAreaToolBar
             onStartClicked: {
-                state = GlobalConstants.runningState
+                recvArea.state = GlobalConstants.runningState
             }
             
             onStopClicked: {
-                state = GlobalConstants.waitingState
+                recvArea.state = GlobalConstants.waitingState
             }
         }
         
         MsgList {
+            id: msgList
             anchors.top: recvAreaToolBar.bottom
             anchors.left: parent.left
             anchors.right: parent.right
@@ -54,7 +55,10 @@ Rectangle {
         Connections {
             target: MsgMgr
             onMsgReceived: {
-                console.log("Message received: " + msg)
+                console.log("Message received: " + msg.name)
+                if (recvArea.state == GlobalConstants.runningState) {
+                    msgList.addMsg(msg)
+                }
             }
         }
     }

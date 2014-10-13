@@ -16,45 +16,25 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#pragma once
-
-#include <memory>
-#include <vector>
-
-#include <QtCore/QObject>
-
-#include "Message.h"
+#include "HeartbeatMsg.h"
 
 namespace cc
 {
 
-class MsgMgr : public QObject
+namespace
 {
-    Q_OBJECT
 
-    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+const char* HeartbeatName = "Heartbeat";
 
-    typedef QObject Base;
-public:
-    static MsgMgr* instance();
-    static void qmlRegister();
+}  // namespace
 
-    QString name() const;
-    void setName(const QString& name);
-
-
-public slots:
-    void timeout();
-
-signals:
-    void msgReceived(Message* msg);
-    void nameChanged();
-
-private:
-    MsgMgr(QObject* parent = nullptr);
-
-    typedef std::unique_ptr<Message> MsgPtr;
-    std::vector<MsgPtr> m_recvMsgs;
-};
+const char* HeartbeatMsg::nameImpl() const
+{
+    return HeartbeatName;
+}
 
 }  // namespace cc
+
+
+
+

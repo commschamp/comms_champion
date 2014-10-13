@@ -2,9 +2,19 @@ import QtQuick 2.1
 import QtQuick.Controls 1.1
 
 ScrollView {
+
+    function addMsg(msg) {
+        msgList.addMsg(msg)
+    }
+    
     ListView {
         id: msgList
         anchors.fill: parent
+        
+        function addMsg(msg) {
+            model.append({"msg": msg})
+            msgList.currentIndex = msgList.count - 1;            
+        }
         
         Component {
             id: listDelegate
@@ -14,7 +24,7 @@ ScrollView {
                 anchors.right: parent.right
                 height: 20
                 Row {
-                    Text { text: name + ": {...}" }
+                    Text { text: msg.name + ": {...}" }
                 }
                 
                 MouseArea {
@@ -27,18 +37,7 @@ ScrollView {
             }
         }
         
-        model: ListModel {
-            // TODO: remove
-            ListElement {
-                name: "Ack"
-            }
-            ListElement {
-                name: "Nack"
-            }
-            ListElement {
-                name: "Heartbeat"
-            }
-        }
+        model: ListModel {}
         
         delegate: listDelegate
         

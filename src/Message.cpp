@@ -23,11 +23,6 @@
 namespace cc
 {
 
-Message::Message(QObject* parent)
-  : Base(parent)
-{
-}
-
 Message::~Message() = default;
 
 QString Message::name() const

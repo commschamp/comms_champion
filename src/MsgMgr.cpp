@@ -18,11 +18,14 @@
 
 #include "MsgMgr.h"
 
+#include <cassert>
+
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QtQml>
 
-#include <cassert>
 #include <QtCore/QTimer>
+
+#include "HeartbeatMsg.h"
 
 namespace cc
 {
@@ -53,7 +56,9 @@ void MsgMgr::qmlRegister()
 
 void MsgMgr::timeout()
 {
-    emit msgReceived(nullptr);
+    MsgPtr msg(new HeartbeatMsg());
+    m_recvMsgs.push_back(std::move(msg));
+    emit msgReceived(m_recvMsgs.back().get());
 }
 
 QString MsgMgr::name() const

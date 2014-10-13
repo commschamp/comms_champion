@@ -26,12 +26,15 @@ namespace cc
 class Message : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(QString name READ name CONSTANT)
 
     typedef QObject Base;
 public:
-    Message(QObject* parent = nullptr);
+    Message() = default;
+    Message(const Message&) = default;
     virtual ~Message();
+
+    Message& operator=(const Message&) = default;
 
     QString name() const;
 

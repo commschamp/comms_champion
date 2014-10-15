@@ -81,3 +81,4 @@ MsgMgr::MsgMgr(QObject* parent)
 }
 
 }  // namespace cc
+

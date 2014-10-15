@@ -17,7 +17,7 @@
 
 #include <QtWidgets/QApplication>
 #include <QtQml/QQmlApplicationEngine>
-#include <QtQuick/QQuickView>
+#include <QtQuick/QQuickWindow>
 
 #include "MsgMgr.h"
 #include "Message.h"

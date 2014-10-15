@@ -18,9 +18,12 @@
 
 #pragma once
 
-#include "Message.h"
+#include "comms_champion/protocol/Message.h"
 
-namespace cc
+namespace comms_champion
+{
+
+namespace protocol
 {
 
 class HeartbeatMsg : public Message
@@ -39,6 +42,8 @@ protected:
 
 };
 
-}  // namespace cc
+}  // namespace protocol
+
+}  // namespace comms_champion
 
 

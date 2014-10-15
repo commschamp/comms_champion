@@ -3,7 +3,7 @@ import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
 import QtQuick.Layouts 1.1
 import "."
-import cc.MsgMgr 1.0
+import cc.protocol.MsgMgr 1.0
 
 Rectangle {
     color: GlobalConstants.background

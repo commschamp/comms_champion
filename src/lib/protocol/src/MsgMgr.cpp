@@ -16,7 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "MsgMgr.h"
+#include "comms_champion/protocol/MsgMgr.h"
 
 #include <cassert>
 
@@ -27,7 +27,10 @@
 
 #include "HeartbeatMsg.h"
 
-namespace cc
+namespace comms_champion
+{
+
+namespace protocol
 {
 
 namespace
@@ -45,13 +48,13 @@ QObject *getMsgMgr(QQmlEngine *engine, QJSEngine *scriptEngine)
 
 MsgMgr* MsgMgr::instance()
 {
-    static cc::MsgMgr* mgr = new cc::MsgMgr();
+    static MsgMgr* mgr = new MsgMgr();
     return mgr;
 }
 
 void MsgMgr::qmlRegister()
 {
-    qmlRegisterSingletonType<MsgMgr>("cc.MsgMgr", 1, 0, "MsgMgr", &getMsgMgr);
+    qmlRegisterSingletonType<MsgMgr>("cc.protocol.MsgMgr", 1, 0, "MsgMgr", &getMsgMgr);
 }
 
 void MsgMgr::timeout()
@@ -80,5 +83,7 @@ MsgMgr::MsgMgr(QObject* parent)
     timer->start(2000);
 }
 
-}  // namespace cc
+}  // namespace protocol
+
+}  // namespace comms_champion
 

@@ -1,1 +1,1 @@
-add_subdirectory (comms_champion)
+add_subdirectory (protocol)

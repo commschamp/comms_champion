@@ -16,24 +16,32 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "HeartbeatMsg.h"
+#include "comms_champion/protocol/Message.h"
 
-namespace cc
+#include <QtQml/QtQml>
+
+namespace comms_champion
 {
 
-namespace
+namespace protocol
 {
 
-const char* HeartbeatName = "Heartbeat";
+Message::~Message() = default;
 
-}  // namespace
-
-const char* HeartbeatMsg::nameImpl() const
+QString Message::name() const
 {
-    return HeartbeatName;
+    return nameImpl();
 }
 
-}  // namespace cc
+void Message::qmlRegister()
+{
+    qmlRegisterUncreatableType<Message>(
+        "cc.protocol.Message", 1, 0, "Message", "Message is an Abstract class");
+}
+
+}  // namespace protocol
+
+}  // namespace comms_champion
 
 
 

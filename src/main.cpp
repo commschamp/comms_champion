@@ -19,18 +19,17 @@
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQuick/QQuickWindow>
 
-#include "MsgMgr.h"
-#include "Message.h"
+#include "comms_champion/protocol.h"
 
 namespace
 {
 
+namespace ccp = comms_champion::protocol;
+
 void qmlRegisterAll()
 {
-    cc::MsgMgr::qmlRegister();
-    cc::Message::qmlRegister();
-
-    static_cast<void>(cc::MsgMgr::instance());
+    ccp::MsgMgr::qmlRegister();
+    ccp::Message::qmlRegister();
 }
 
 }  // namespace

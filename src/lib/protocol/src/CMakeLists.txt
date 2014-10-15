@@ -1,5 +1,8 @@
+set (HEADERS_DIR ${LOCAL_INC_DIR}/comms_champion/protocol) 
+######################################################################
+
 function (lib_comms_champion)
-    set (name ${COMMS_CHAMPION_LIB_NAME})
+    set (name ${PROTOCOL_LIB_NAME})
     set (src
         ${CMAKE_CURRENT_SOURCE_DIR}/MsgMgr.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Message.cpp
@@ -9,8 +12,8 @@ function (lib_comms_champion)
     qt_wrap_cpp(
         ${name}
         src
-        ${LOCAL_INC_DIR}/MsgMgr.h
-        ${LOCAL_INC_DIR}/Message.h            
+        ${HEADERS_DIR}/MsgMgr.h
+        ${HEADERS_DIR}/Message.h            
     )
     
     add_library (${name} SHARED ${src})

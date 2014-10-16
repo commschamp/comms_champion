@@ -8,6 +8,11 @@ include_directories (
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/protocol/include
 )
 
+set (INSTALL_DIR ${CMAKE_BINARY_DIR}/install)
+set (LIB_INSTALL_DIR ${INSTALL_DIR}/lib)
+set (BIN_INSTALL_DIR ${INSTALL_DIR}/bin)
+set (INC_INSTALL_DIR ${INSTALL_DIR}/include)
+
 set (PROTOCOL_LIB_NAME "cc_protocol")
 
 add_subdirectory (lib)

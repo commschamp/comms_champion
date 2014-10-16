@@ -14,6 +14,10 @@ function (bin_protocol_analyser)
         ${PROTOCOL_LIB_NAME} 
         Qt5::Qml Qt5::Quick Qt5::Widgets Qt5::Core
     )
+    
+    install (
+        TARGETS ${name}
+        DESTINATION ${BIN_INSTALL_DIR})
 endfunction ()
 
 ###########################################################

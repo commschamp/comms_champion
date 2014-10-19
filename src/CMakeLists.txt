@@ -12,8 +12,10 @@ set (INSTALL_DIR ${CMAKE_BINARY_DIR}/install)
 set (LIB_INSTALL_DIR ${INSTALL_DIR}/lib)
 set (BIN_INSTALL_DIR ${INSTALL_DIR}/bin)
 set (INC_INSTALL_DIR ${INSTALL_DIR}/include)
+set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/plugin)
 
 set (PROTOCOL_LIB_NAME "cc_protocol")
 
 add_subdirectory (lib)
 add_subdirectory (app)
+add_subdirectory (protocol)

@@ -18,8 +18,12 @@
 #include <QtWidgets/QApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQuick/QQuickWindow>
+#include <QtCore/QPluginLoader>
+#include <QtCore/QDir>
 
 #include "comms_champion/protocol.h"
+
+#include <iostream>
 
 namespace
 {
@@ -47,6 +51,23 @@ int main(int argc, char *argv[])
     window->showMaximized();
     QObject::connect(&engine, SIGNAL(quit()), &app, SLOT(quit())); // to make Qt.quit() to work.
 
+    QDir dir(app.applicationDirPath());
+    dir.cdUp();
+    if (!dir.cd("plugin")) {
+        std::cerr << "Failed to find plugin dir" << std::endl;
+        return -1;
+    }
+
+    app.addLibraryPath(dir.path());
+
+    QPluginLoader loader("demo");
+    auto* pluginObj = qobject_cast<ccp::Plugin*>(loader.instance());
+    if (pluginObj == nullptr) {
+        std::cerr << "Failed to load plugin: " << loader.errorString().toStdString() << std::endl;
+        return -1;
+    }
+
+    pluginObj->initialize();
     return app.exec();
 }
 

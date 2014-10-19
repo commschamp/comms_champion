@@ -18,8 +18,26 @@
 
 #pragma once
 
-#include "protocol/Message.h"
-#include "protocol/MsgMgr.h"
-#include "protocol/Plugin.h"
+#include <QtCore/QtPlugin>
 
+namespace comms_champion
+{
+
+namespace protocol
+{
+
+class Plugin
+{
+public:
+    virtual ~Plugin() {}
+
+    virtual void initialize() = 0;
+    virtual void finalize() = 0;
+};
+
+}  // namespace protocol
+
+}  // namespace comms_champion
+
+Q_DECLARE_INTERFACE(comms_champion::protocol::Plugin, "cc.protocol.Plugin")
 

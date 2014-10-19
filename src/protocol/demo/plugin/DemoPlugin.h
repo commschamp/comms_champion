@@ -18,8 +18,24 @@
 
 #pragma once
 
-#include "protocol/Message.h"
-#include "protocol/MsgMgr.h"
-#include "protocol/Plugin.h"
+#include <QtCore/QObject>
+#include <QtCore/QtPlugin>
+#include "comms_champion/protocol.h"
 
+namespace ccp = comms_champion::protocol;
 
+namespace demo
+{
+
+class DemoPlugin : public QObject, public ccp::Plugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "cc.protocol.DemoPlugin")
+    Q_INTERFACES(comms_champion::protocol::Plugin)
+
+public:
+    virtual void initialize() override;
+    virtual void finalize() override;
+};
+
+}  // namespace demo

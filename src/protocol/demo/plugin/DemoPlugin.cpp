@@ -16,10 +16,23 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#pragma once
+#include "DemoPlugin.h"
 
-#include "protocol/Message.h"
-#include "protocol/MsgMgr.h"
-#include "protocol/Plugin.h"
+#include <iostream>
 
+namespace demo
+{
+
+void DemoPlugin::initialize()
+{
+    std::cout << "Plugin initialized!!!" << std::endl;
+}
+
+void DemoPlugin::finalize()
+{
+    std::cout << "Plugin finalized!!!" << std::endl;
+}
+
+
+}  // namespace demo
 

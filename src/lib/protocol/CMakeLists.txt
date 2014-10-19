@@ -13,14 +13,14 @@ function (lib_protocol)
         ${SOURCES_DIR}/HeartbeatMsg.cpp
     )
     
-    qt_wrap_cpp(
-        ${name}
-        src
+    qt5_wrap_cpp(
+        moc
         ${HEADERS_DIR}/MsgMgr.h
         ${HEADERS_DIR}/Message.h            
+        ${HEADERS_DIR}/Plugin.h
     )
     
-    add_library (${name} SHARED ${src})
+    add_library (${name} SHARED ${src} ${moc})
     
     install (
         TARGETS ${name}

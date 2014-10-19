@@ -23,9 +23,6 @@
 namespace comms_champion
 {
 
-namespace protocol
-{
-
 class Plugin
 {
 public:
@@ -35,9 +32,7 @@ public:
     virtual void finalize() = 0;
 };
 
-}  // namespace protocol
-
 }  // namespace comms_champion
 
-Q_DECLARE_INTERFACE(comms_champion::protocol::Plugin, "cc.protocol.Plugin")
+Q_DECLARE_INTERFACE(comms_champion::Plugin, "cc.Plugin")
 

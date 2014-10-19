@@ -16,38 +16,28 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#pragma once
+#include "comms_champion/Message.h"
 
-#include <QtCore/QObject>
+#include <QtQml/QtQml>
 
 namespace comms_champion
 {
 
-namespace protocol
+Message::~Message() = default;
+
+QString Message::name() const
 {
+    return nameImpl();
+}
 
-class Message : public QObject
+void Message::qmlRegister()
 {
-    Q_OBJECT
-    Q_PROPERTY(QString name READ name CONSTANT)
-
-    typedef QObject Base;
-public:
-    Message() = default;
-    Message(const Message&) = default;
-    virtual ~Message();
-
-    Message& operator=(const Message&) = default;
-
-    QString name() const;
-
-    static void qmlRegister();
-
-protected:
-
-    virtual const char* nameImpl() const = 0;
-};
-
-}  // namespace protocol
+    qmlRegisterUncreatableType<Message>(
+        "cc.protocol.Message", 1, 0, "Message", "Message is an Abstract class");
+}
 
 }  // namespace comms_champion
+
+
+
+

@@ -18,8 +18,43 @@
 
 #pragma once
 
-#include "protocol/Message.h"
-#include "protocol/MsgMgr.h"
-#include "protocol/Plugin.h"
+#include <memory>
+#include <vector>
+
+#include <QtCore/QObject>
+
+#include "Message.h"
+
+namespace comms_champion
+{
+
+class MsgMgr : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+
+    typedef QObject Base;
+public:
+    static MsgMgr* instance();
+    static void qmlRegister();
+
+    QString name() const;
+    void setName(const QString& name);
 
 
+public slots:
+    void timeout();
+
+signals:
+    void msgReceived(Message* msg);
+    void nameChanged();
+
+private:
+    MsgMgr(QObject* parent = nullptr);
+
+    typedef std::unique_ptr<Message> MsgPtr;
+    std::vector<MsgPtr> m_recvMsgs;
+};
+
+}  // namespace comms_champion

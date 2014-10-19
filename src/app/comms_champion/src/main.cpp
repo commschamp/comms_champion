@@ -21,19 +21,19 @@
 #include <QtCore/QPluginLoader>
 #include <QtCore/QDir>
 
-#include "comms_champion/protocol.h"
+#include "comms_champion/comms_champion.h"
 
 #include <iostream>
 
 namespace
 {
 
-namespace ccp = comms_champion::protocol;
+namespace cc = comms_champion;
 
 void qmlRegisterAll()
 {
-    ccp::MsgMgr::qmlRegister();
-    ccp::Message::qmlRegister();
+    cc::MsgMgr::qmlRegister();
+    cc::Message::qmlRegister();
 }
 
 }  // namespace
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     app.addLibraryPath(dir.path());
 
     QPluginLoader loader("demo");
-    auto* pluginObj = qobject_cast<ccp::Plugin*>(loader.instance());
+    auto* pluginObj = qobject_cast<cc::Plugin*>(loader.instance());
     if (pluginObj == nullptr) {
         std::cerr << "Failed to load plugin: " << loader.errorString().toStdString() << std::endl;
         return -1;

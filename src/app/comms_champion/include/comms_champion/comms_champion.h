@@ -18,32 +18,8 @@
 
 #pragma once
 
-#include "comms_champion/protocol/Message.h"
-
-namespace comms_champion
-{
-
-namespace protocol
-{
-
-class HeartbeatMsg : public Message
-{
-    typedef Message Base;
-public:
-
-    HeartbeatMsg() = default;
-    HeartbeatMsg(const HeartbeatMsg&) = default;
-    ~HeartbeatMsg() = default;
-
-    HeartbeatMsg& operator=(const HeartbeatMsg&) = default;
-
-protected:
-    virtual const char* nameImpl() const override;
-
-};
-
-}  // namespace protocol
-
-}  // namespace comms_champion
+#include "Message.h"
+#include "MsgMgr.h"
+#include "Plugin.h"
 
 

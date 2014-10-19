@@ -21,9 +21,6 @@
 namespace comms_champion
 {
 
-namespace protocol
-{
-
 namespace
 {
 
@@ -35,8 +32,6 @@ const char* HeartbeatMsg::nameImpl() const
 {
     return HeartbeatName;
 }
-
-}  // namespace protocol
 
 }  // namespace comms_champion
 

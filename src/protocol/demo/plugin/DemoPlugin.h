@@ -20,18 +20,18 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QtPlugin>
-#include "comms_champion/protocol.h"
+#include "comms_champion/comms_champion.h"
 
-namespace ccp = comms_champion::protocol;
+namespace cc = comms_champion;
 
 namespace demo
 {
 
-class DemoPlugin : public QObject, public ccp::Plugin
+class DemoPlugin : public QObject, public cc::Plugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.protocol.DemoPlugin")
-    Q_INTERFACES(comms_champion::protocol::Plugin)
+    Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
+    Q_INTERFACES(comms_champion::Plugin)
 
 public:
     virtual void initialize() override;

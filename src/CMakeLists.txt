@@ -5,7 +5,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 
 include_directories (
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/protocol/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/comms_champion/include
 )
 
 set (INSTALL_DIR ${CMAKE_BINARY_DIR}/install)
@@ -14,8 +14,5 @@ set (BIN_INSTALL_DIR ${INSTALL_DIR}/bin)
 set (INC_INSTALL_DIR ${INSTALL_DIR}/include)
 set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/plugin)
 
-set (PROTOCOL_LIB_NAME "cc_protocol")
-
-add_subdirectory (lib)
 add_subdirectory (app)
 add_subdirectory (protocol)

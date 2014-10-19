@@ -18,48 +18,27 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
-#include <QtCore/QObject>
-
-#include "Message.h"
+#include "comms_champion/Message.h"
 
 namespace comms_champion
 {
 
-namespace protocol
+class HeartbeatMsg : public Message
 {
-
-class MsgMgr : public QObject
-{
-    Q_OBJECT
-
-    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
-
-    typedef QObject Base;
+    typedef Message Base;
 public:
-    static MsgMgr* instance();
-    static void qmlRegister();
 
-    QString name() const;
-    void setName(const QString& name);
+    HeartbeatMsg() = default;
+    HeartbeatMsg(const HeartbeatMsg&) = default;
+    ~HeartbeatMsg() = default;
 
+    HeartbeatMsg& operator=(const HeartbeatMsg&) = default;
 
-public slots:
-    void timeout();
+protected:
+    virtual const char* nameImpl() const override;
 
-signals:
-    void msgReceived(Message* msg);
-    void nameChanged();
-
-private:
-    MsgMgr(QObject* parent = nullptr);
-
-    typedef std::unique_ptr<Message> MsgPtr;
-    std::vector<MsgPtr> m_recvMsgs;
 };
 
-}  // namespace protocol
-
 }  // namespace comms_champion
+
+

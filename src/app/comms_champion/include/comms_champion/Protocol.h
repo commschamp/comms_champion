@@ -18,21 +18,31 @@
 
 #pragma once
 
-#include <QtCore/QtPlugin>
+#include <memory>
+#include <cstdint>
+#include <cstddef>
+
+#include "Message.h"
+#include "ErrorStatus.h"
 
 namespace comms_champion
 {
 
-class Plugin
+class Protocol
 {
 public:
-    virtual ~Plugin() {}
+    typedef std::unique_ptr<Message> MsgPtr;
+    typedef std::uint8_t* ReadIterType;
 
-    virtual void initialize() = 0;
-    virtual void finalize() = 0;
+    virtual ~Protocol() {}
+
+    virtual ErrorStatus read(
+        MsgPtr& msg,
+        ReadIterType& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr) = 0;
 };
 
 }  // namespace comms_champion
 
-Q_DECLARE_INTERFACE(comms_champion::Plugin, "cc.Plugin")
 

@@ -16,12 +16,25 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#pragma once
+#include "HeartbeatMsg.h"
 
-#include "Message.h"
-#include "MsgMgr.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "ProtocolPlugin.h"
+namespace demo
+{
+
+namespace
+{
+
+const char* HeartbeatName = "Heartbeat";
+
+}  // namespace
+
+const char* HeartbeatMsg::nameImpl() const
+{
+    return HeartbeatName;
+}
+
+}  // namespace demo
+
+
 
 

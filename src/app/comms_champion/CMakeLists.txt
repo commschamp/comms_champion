@@ -5,7 +5,6 @@ function (bin_comms_champion)
         src/main.cpp
         src/MsgMgr.cpp
         src/Message.cpp
-        src/HeartbeatMsg.cpp
     )
     
     set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/include/comms_champion)
@@ -13,7 +12,7 @@ function (bin_comms_champion)
         moc
         ${_inc_dir}/MsgMgr.h
         ${_inc_dir}/Message.h            
-        ${_inc_dir}/Plugin.h
+        ${_inc_dir}/ProtocolPlugin.h
     )
     
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)

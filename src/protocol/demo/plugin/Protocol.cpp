@@ -16,25 +16,26 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+#include "Protocol.h"
+
 #include "HeartbeatMsg.h"
 
-namespace comms_champion
+namespace demo
 {
 
-namespace
+namespace cc = comms_champion;
+
+Protocol::~Protocol() = default;
+
+cc::ErrorStatus Protocol::read(
+        MsgPtr& msg,
+        ReadIterType& iter,
+        std::size_t size,
+        std::size_t* missingSize)
 {
-
-const char* HeartbeatName = "Heartbeat";
-
-}  // namespace
-
-const char* HeartbeatMsg::nameImpl() const
-{
-    return HeartbeatName;
+    msg.reset(new HeartbeatMsg());
+    return cc::ErrorStatus::Success;
 }
 
-}  // namespace comms_champion
-
-
-
+}  // namespace demo
 

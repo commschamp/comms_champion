@@ -25,8 +25,6 @@
 
 #include <QtCore/QTimer>
 
-#include "HeartbeatMsg.h"
-
 namespace comms_champion
 {
 
@@ -56,9 +54,18 @@ void MsgMgr::qmlRegister()
 
 void MsgMgr::timeout()
 {
-    MsgPtr msg(new HeartbeatMsg());
-    m_recvMsgs.push_back(std::move(msg));
-    emit msgReceived(m_recvMsgs.back().get());
+    if (m_protStack.empty()) {
+        return;
+    }
+
+    auto& protocol = *m_protStack.back();
+    MsgPtr msg;
+    ReadIterType iter = nullptr;
+    auto result = protocol.read(msg, iter, 0);
+    if (msg) {
+        m_recvMsgs.push_back(std::move(msg));
+        emit msgReceived(m_recvMsgs.back().get());
+    }
 }
 
 QString MsgMgr::name() const
@@ -70,6 +77,11 @@ void MsgMgr::setName(const QString& name)
 {
     Q_UNUSED(name);
     emit nameChanged();
+}
+
+void MsgMgr::addProtocol(ProtocolPtr&& protocol)
+{
+    m_protStack.push_back(std::move(protocol));
 }
 
 MsgMgr::MsgMgr(QObject* parent)

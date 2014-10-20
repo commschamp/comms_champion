@@ -24,6 +24,8 @@
 #include <QtCore/QObject>
 
 #include "Message.h"
+#include "Protocol.h"
+#include "ProtocolPlugin.h"
 
 namespace comms_champion
 {
@@ -36,12 +38,15 @@ class MsgMgr : public QObject
 
     typedef QObject Base;
 public:
+    typedef ProtocolPlugin::ProtocolPtr ProtocolPtr;
+
     static MsgMgr* instance();
     static void qmlRegister();
 
     QString name() const;
     void setName(const QString& name);
 
+    void addProtocol(ProtocolPtr&& protocol);
 
 public slots:
     void timeout();
@@ -51,10 +56,14 @@ signals:
     void nameChanged();
 
 private:
-    MsgMgr(QObject* parent = nullptr);
+    typedef Protocol::MsgPtr MsgPtr;
+    typedef Protocol::ReadIterType ReadIterType;
 
-    typedef std::unique_ptr<Message> MsgPtr;
+    MsgMgr(QObject* parent = nullptr);
     std::vector<MsgPtr> m_recvMsgs;
+
+    typedef std::list<ProtocolPtr> ProtocolStack;
+    ProtocolStack m_protStack;
 };
 
 }  // namespace comms_champion

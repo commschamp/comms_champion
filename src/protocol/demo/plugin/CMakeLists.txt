@@ -3,6 +3,8 @@ function (plugin_demo)
     set (name "demo")
     set (src
         DemoPlugin.cpp
+        Protocol.cpp
+        HeartbeatMsg.cpp
     )
     
     set (hdr

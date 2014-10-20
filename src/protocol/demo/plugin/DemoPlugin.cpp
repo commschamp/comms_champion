@@ -17,6 +17,7 @@
 
 
 #include "DemoPlugin.h"
+#include "Protocol.h"
 
 #include <iostream>
 
@@ -33,6 +34,10 @@ void DemoPlugin::finalize()
     std::cout << "Plugin finalized!!!" << std::endl;
 }
 
+DemoPlugin::ProtocolPtr DemoPlugin::alloc()
+{
+    return ProtocolPtr(new Protocol());
+}
 
 }  // namespace demo
 

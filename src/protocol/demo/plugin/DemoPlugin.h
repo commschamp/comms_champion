@@ -27,15 +27,17 @@ namespace cc = comms_champion;
 namespace demo
 {
 
-class DemoPlugin : public QObject, public cc::Plugin
+class DemoPlugin : public QObject, public cc::ProtocolPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
-    Q_INTERFACES(comms_champion::Plugin)
+    Q_INTERFACES(comms_champion::ProtocolPlugin)
 
 public:
+
     virtual void initialize() override;
     virtual void finalize() override;
+    virtual ProtocolPtr alloc() override;
 };
 
 }  // namespace demo

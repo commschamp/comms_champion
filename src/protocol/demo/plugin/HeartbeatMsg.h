@@ -18,10 +18,27 @@
 
 #pragma once
 
-#include "Message.h"
-#include "MsgMgr.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "ProtocolPlugin.h"
+#include "comms_champion/Message.h"
+
+namespace demo
+{
+
+class HeartbeatMsg : public comms_champion::Message
+{
+    typedef comms_champion::Message Base;
+public:
+
+    HeartbeatMsg() = default;
+    HeartbeatMsg(const HeartbeatMsg&) = default;
+    ~HeartbeatMsg() = default;
+
+    HeartbeatMsg& operator=(const HeartbeatMsg&) = default;
+
+protected:
+    virtual const char* nameImpl() const override;
+
+};
+
+}  // namespace demo
 
 

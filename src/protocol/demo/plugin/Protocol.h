@@ -18,10 +18,25 @@
 
 #pragma once
 
-#include "Message.h"
-#include "MsgMgr.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "ProtocolPlugin.h"
+#include "comms_champion/Protocol.h"
+
+namespace demo
+{
+
+class Protocol : public comms_champion::Protocol
+{
+public:
+    Protocol() = default;
+    virtual ~Protocol();
+
+    virtual comms_champion::ErrorStatus read(
+        MsgPtr& msg,
+        ReadIterType& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr) override;
+};
+
+}  // namespace demo
+
 
 

@@ -61,13 +61,15 @@ int main(int argc, char *argv[])
     app.addLibraryPath(dir.path());
 
     QPluginLoader loader("demo");
-    auto* pluginObj = qobject_cast<cc::Plugin*>(loader.instance());
+    auto* pluginObj = qobject_cast<cc::ProtocolPlugin*>(loader.instance());
     if (pluginObj == nullptr) {
         std::cerr << "Failed to load plugin: " << loader.errorString().toStdString() << std::endl;
         return -1;
     }
 
     pluginObj->initialize();
+    auto* msgMgr = cc::MsgMgr::instance();
+    msgMgr->addProtocol(pluginObj->alloc());
     return app.exec();
 }
 

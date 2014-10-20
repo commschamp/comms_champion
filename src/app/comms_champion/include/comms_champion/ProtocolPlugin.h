@@ -18,27 +18,28 @@
 
 #pragma once
 
-#include "comms_champion/Message.h"
+#include <QtCore/QtPlugin>
+
+#include "Protocol.h"
 
 namespace comms_champion
 {
 
-class HeartbeatMsg : public Message
+class ProtocolPlugin
 {
-    typedef Message Base;
 public:
 
-    HeartbeatMsg() = default;
-    HeartbeatMsg(const HeartbeatMsg&) = default;
-    ~HeartbeatMsg() = default;
+    typedef std::unique_ptr<Protocol> ProtocolPtr;
 
-    HeartbeatMsg& operator=(const HeartbeatMsg&) = default;
+    virtual ~ProtocolPlugin() {}
 
-protected:
-    virtual const char* nameImpl() const override;
+    virtual void initialize() = 0;
+    virtual void finalize() = 0;
 
+    virtual ProtocolPtr alloc() = 0;
 };
 
 }  // namespace comms_champion
 
+Q_DECLARE_INTERFACE(comms_champion::ProtocolPlugin, "cc.ProtocolPlugin")
 

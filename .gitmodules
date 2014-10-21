@@ -1,3 +1,6 @@
 [submodule "external/cmake"]
 	path = external/cmake
 	url = https://github.com/arobenko/cmake_extra.git
+[submodule "external/cxxtest"]
+	path = external/cxxtest
+	url = git://github.com/CxxTest/cxxtest.git

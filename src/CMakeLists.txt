@@ -14,5 +14,6 @@ set (BIN_INSTALL_DIR ${INSTALL_DIR}/bin)
 set (INC_INSTALL_DIR ${INSTALL_DIR}/include)
 set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/plugin)
 
+add_subdirectory (lib)
 add_subdirectory (app)
 add_subdirectory (protocol)

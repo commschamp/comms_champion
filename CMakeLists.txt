@@ -11,6 +11,16 @@ execute_process (
 set (CMAKE_MODULE_PATH "${EXTERNALS_DIR}/cmake")         
 include (AllExtras)
 
+if (NOT NO_UNITTESTS)
+    set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
+    set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
+    
+    find_package (CxxTest)
+    if (CXXTEST_FOUND)
+        enable_testing ()
+    endif ()
+endif ()
+
 ext_add_cpp11_support()
 
 add_subdirectory (src)

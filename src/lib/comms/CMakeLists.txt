@@ -1,4 +1,4 @@
-#add_subdirectory (test)
+add_subdirectory (test)
 
 install (
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/comms

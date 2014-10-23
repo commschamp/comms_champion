@@ -5,6 +5,7 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 
 include_directories (
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/comms/include
     ${CMAKE_CURRENT_SOURCE_DIR}/app/comms_champion/include
 )
 

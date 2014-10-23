@@ -18,41 +18,7 @@
 
 #pragma once
 
-#include <tuple>
-
-namespace comms
-{
-
-namespace option
-{
-
-template <typename T, T TId>
-struct NumIdImpl
-{
-    static const auto Value = TId;
-};
-
-template <typename TActual>
-struct DispatchImpl
-{
-    typedef TActual MsgType;
-};
-
-template <typename TFields>
-struct FieldsImpl;
-
-template <typename... TFields>
-struct FieldsImpl<std::tuple<TFields...> >
-{
-    typedef std::tuple<TFields...> Fields;
-};
-
-struct NoFieldsImpl {};
-
-
-}  // namespace option
-
-
-}  // namespace comms
+#include "field/options.h"
+#include "field/BasicIntValue.h"
 
 

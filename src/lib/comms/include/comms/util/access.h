@@ -21,8 +21,6 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "traits.h"
-
 namespace comms
 {
 

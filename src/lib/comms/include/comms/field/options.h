@@ -18,40 +18,43 @@
 
 #pragma once
 
-#include <tuple>
-
 namespace comms
+{
+
+namespace field
 {
 
 namespace option
 {
 
-template <typename T, T TId>
-struct NumIdImpl
+template<long long int TMinValue, long long int TMaxValue>
+struct ValidRangeImpl
 {
-    static const auto Value = TId;
+    static const auto MinValue = TMinValue;
+    static const auto MaxValue = TMaxValue;
 };
 
-template <typename TActual>
-struct DispatchImpl
+template<std::size_t TLen>
+struct LengthLimitImpl
 {
-    typedef TActual MsgType;
+    static const std::size_t Value = TLen;
 };
 
-template <typename TFields>
-struct FieldsImpl;
-
-template <typename... TFields>
-struct FieldsImpl<std::tuple<TFields...> >
+template<long long int TOffset>
+struct SerOffsetImpl
 {
-    typedef std::tuple<TFields...> Fields;
+    static const auto Value = TOffset;
 };
 
-struct NoFieldsImpl {};
-
+template<long long int TVal>
+struct DefaultValueImpl
+{
+    static const auto Value = TVal;
+};
 
 }  // namespace option
 
+}  // namespace field
 
 }  // namespace comms
 

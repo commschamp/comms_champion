@@ -42,25 +42,24 @@ class MessageBase<TMessage> : public TMessage
 {
     typedef TMessage Base;
 protected:
-    template <typename... TParams>
-    MessageBase(TParams&& args) : Base(std::forward<TParams>(args)...) {}
+    using Base::TMessage;
 };
 
 template <typename TMessage,
-          typename TMessage::MsgIdType TId,
+          typename T,
+          T TId,
           typename... TRest>
-class MessageBase<TMessage, TId, TRest...> : public MessageBase<TMessage, TRest...>
+class MessageBase<TMessage, option::NumIdImpl<T, TId>, TRest...> : public MessageBase<TMessage, TRest...>
 {
     typedef MessageBase<TMessage, TRest...> Base;
     typedef typename Base::MsgIdReturnType MsgIdReturnType;
 
 protected:
-    template <typename... TParams>
-    MessageBase(TParams&& args) : Base(std::forward<TParams>(args)...) {}
+    using Base::MessageBase;
 
     virtual MsgIdReturnType getIdImpl() const override
     {
-        return TId;
+        return static_cast<typename Base::MsgIdType>(TId);
     }
 };
 
@@ -76,8 +75,7 @@ class MessageBase<TMessage, option::DispatchImpl<TActual>, TRest...> :
     typedef typename DispatchOption::MsgType MsgType;
 
 protected:
-    template <typename... TParams>
-    MessageBase(TParams&& args) : Base(std::forward<TParams>(args)...) {}
+    using Base::MessageBase;
 
 #ifndef COMMS_NO_DISPATCH
     virtual void dispatchImpl(Handler& handler) override
@@ -94,7 +92,7 @@ class MessageBase<TMessage, option::FieldsImpl<TFields>, TRest...> :
                                         public MessageBase<TMessage, TRest...>
 {
     typedef MessageBase<TMessage, TRest...> Base;
-    typedef option::FieldsImpl<TActual> FieldsOption;
+    typedef option::FieldsImpl<TFields> FieldsOption;
     typedef typename FieldsOption::Fields Fields;
 
 public:
@@ -115,10 +113,11 @@ public:
     }
 
 protected:
-    template <typename... TParams>
-    MessageBase(TParams&& args) : Base(std::forward<TParams>(args)...) {}
+    using Base::MessageBase;
 
 #ifndef COMMS_NO_READ
+    typedef typename Base::ReadIterator ReadIterator;
+
     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override
     {
         ErrorStatus status = ErrorStatus::Success;
@@ -129,6 +128,8 @@ protected:
 #endif // #ifndef COMMS_NO_READ
 
 #ifndef COMMS_NO_WRITE
+    typedef typename Base::WriteIterator WriteIterator;
+
     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const override
     {
         ErrorStatus status = ErrorStatus::Success;
@@ -145,6 +146,12 @@ protected:
     }
 #endif // #if !defined(COMMS_NO_READ) || !defined(COMMS_NO_WRITE) || !defined(COMMS_NO_LENGTH)
 
+#ifndef COMMS_NO_VALID
+    virtual bool validImpl() const override
+    {
+        return util::tupleAccumulate(fields_, true, FieldValidityRetriever());
+    }
+#endif // #ifndef COMMS_NO_WRITE
 
 private:
 
@@ -203,7 +210,6 @@ private:
         std::size_t& size_;
     };
 
-
     struct FieldLengthRetriever
     {
         template <typename TField>
@@ -212,6 +218,16 @@ private:
             return size + field.length();
         }
     };
+
+    struct FieldValidityRetriever
+    {
+        template <typename TField>
+        bool operator()(bool valid, const TField& field)
+        {
+            return valid && field.valid();
+        }
+    };
+
     /// @endcond
 
     Fields fields_;
@@ -225,8 +241,7 @@ class MessageBase<TMessage, option::NoFieldsImpl, TRest...> :
     typedef MessageBase<TMessage, option::FieldsImpl<std::tuple<> >, TRest...> Base;
 
 protected:
-    template <typename... TParams>
-    MessageBase(TParams&& args) : Base(std::forward<TParams>(args)...) {}
+    using Base::MessageBase;
 };
 
 

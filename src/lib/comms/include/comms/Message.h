@@ -30,6 +30,7 @@
 #include "ErrorStatus.h"
 #include "Assert.h"
 #include "traits.h"
+#include "Field.h"
 
 namespace comms
 {
@@ -72,6 +73,9 @@ public:
             MsgIdType,
             const MsgIdType&
         >::type MsgIdReturnType;
+
+    /// @brief Type of default base class for all the fields
+    typedef comms::Field<Traits> Field;
 
     /// @brief Destructor
     virtual ~Message() {};
@@ -172,6 +176,23 @@ public:
 
 #endif // #if !defined(COMMS_NO_READ) || !defined(COMMS_NO_WRITE) || !defined(COMMS_NO_LENGTH)
 
+#ifndef COMMS_NO_VALID
+
+    /// @brief Check whether message contents are valid.
+    /// @details This function must return an indication whether all internal
+    ///          fields are valid. It invokes validImpl() pure virtual function
+    ///          that must be implemented by the derived class.
+    ///          It is possible to suppress validity check functionality by
+    ///          defining COMMS_NO_VALID. In this case neither valid() nor
+    ///          validImpl() functions are going to be defined.
+    /// @return True in case all fields are valid, false otherwise.
+    bool valid() const
+    {
+        return this->validImpl();
+    }
+
+#endif // #ifndef COMMS_NO_VALID
+
 protected:
 
     /// @brief Pure virtual function to retrieve message ID.
@@ -213,6 +234,16 @@ protected:
     ///       Thread safety and Exception guarantee specified in length().
     virtual std::size_t lengthImpl() const = 0;
 #endif // #if !defined(COMMS_NO_READ) || !defined(COMMS_NO_WRITE) || !defined(COMMS_NO_LENGTH)
+
+#ifndef COMMS_NO_VALID
+    /// @brief Pure virtual function to be called to identify the validity of
+    ///        the message.
+    /// @details Must be implemented in the derived class
+    /// @return True in case the message is valid, false otherwise.
+    /// @note Must comply with all the preconditions, postconditions,
+    ///       Thread safety and Exception guarantee specified in write().
+    virtual bool validImpl() const = 0;
+#endif // #ifndef COMMS_NO_VALID
 
     /// @brief Write data into the output sequence.
     /// @details Use this function to write data to the stream buffer.

@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "field/options.h"
 #include "field/BasicIntValue.h"
-
+#include "field/BitmaskValue.h"
 

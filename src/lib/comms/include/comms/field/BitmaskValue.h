@@ -21,11 +21,10 @@
 
 #pragma once
 
-#include "util/SizeToType.h"
-
 #include "comms/Field.h"
 #include "BasicIntValue.h"
-#include "options.h"
+
+#include "details/BitmaskValueBase.h"
 
 namespace comms
 {
@@ -43,26 +42,40 @@ namespace field
 /// @tparam TLen Length of serialised data in bytes.
 /// @headerfile comms/field/BitmaskValue.h
 template <typename TField,
-          std::size_t TLen>
-class BitmaskValue : TField
+          std::size_t TLen,
+          typename... TOptions>
+class BitmaskValue : details::BitmaskValueBase<TField, TLen, TOptions...>
 {
+    typedef details::BitmaskValueBase<TField, TLen, TOptions...> Base;
+
 public:
+
+    /// @brief Type of the stored value
+    typedef typename Base::ValueType ValueType;
+
+    /// @brief Default value to be set in default constructor
+    static const auto DefaultValue = Base::DefaultValue;
+
+    /// @brief Length of serialised data
+    static const std::size_t SerialisedLen = Base::TLen;
+
+    /// @brief Reserved bits mask
+    static const auto ReservedMask = Base::ReservedMask;
+
+    /// @brief Valid value for reserved bits.
+    static const bool ReservedValue = Base::ReservedValue;
+
     /// @brief Definition of underlying BasicIntValue field type
     typedef
         BasicIntValue<
-            comms::Field<typename TField::Traits>,
-            typename util::SizeToType<TLen>::Type,
-            option::LengthLimitImpl<TLen>
+            TField,
+            ValueType,
+            option::LengthLimitImpl<TLen>,
+            option::DefaultValueImpl<DefaultValue>
         > IntValueField;
-
-    /// @brief Type of the stored value
-    typedef typename IntValueField::ValueType ValueType;
 
     /// @brief Serialised Type
     typedef typename IntValueField::SerialisedType SerialisedType;
-
-    /// @brief Length of serialised data
-    static const std::size_t SerialisedLen = TLen;
 
     /// @brief Default constructor.
     /// @brief Initial bitmask has all bits cleared (equals 0)
@@ -145,6 +158,14 @@ public:
         return intValue_.write(iter, size);
     }
 
+    constexpr bool valid() const
+    {
+        if (ReservedValue) {
+            return (getValue() & ReservedMask) == ReservedMask;
+        }
+        return (getValue() & ReservedMask) == 0;
+    }
+
     /// @brief Check whether all bits from provided mask are set.
     /// @param[in] mask Mask to check against
     /// @return true in case all the bits are set, false otherwise
@@ -185,33 +206,30 @@ private:
 
 /// @brief Equality comparison operator.
 /// @related BitmaskValue
-template <std::size_t TLen,
-          typename TTraits>
+template <typename TField, std::size_t TLen, typename... TOptions>
 bool operator==(
-    const BitmaskValue<TLen, TTraits>& field1,
-    const BitmaskValue<TLen, TTraits>& field2)
+    const BitmaskValue<TField, TLen, TOptions...>& field1,
+    const BitmaskValue<TField, TLen, TOptions...>& field2)
 {
     return field1.asIntValueField() == field2.asIntValueField();
 }
 
 /// @brief Non-equality comparison operator.
 /// @related BitmaskValue
-template <std::size_t TLen,
-          typename TTraits>
+template <typename TField, std::size_t TLen, typename... TOptions>
 bool operator!=(
-    const BitmaskValue<TLen, TTraits>& field1,
-    const BitmaskValue<TLen, TTraits>& field2)
+    const BitmaskValue<TField, TLen, TOptions...>& field1,
+    const BitmaskValue<TField, TLen, TOptions...>& field2)
 {
     return field1.asIntValueField() != field2.asIntValueField();
 }
 
 /// @brief Equivalence comparison operator.
 /// @related BitmaskValue
-template <std::size_t TLen,
-          typename TTraits>
+template <typename TField, std::size_t TLen, typename... TOptions>
 bool operator<(
-    const BitmaskValue<TLen, TTraits>& field1,
-    const BitmaskValue<TLen, TTraits>& field2)
+    const BitmaskValue<TField, TLen, TOptions...>& field1,
+    const BitmaskValue<TField, TLen, TOptions...>& field2)
 {
     return field1.asIntValueField() < field2.asIntValueField();
 }

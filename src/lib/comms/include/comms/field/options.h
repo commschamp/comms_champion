@@ -52,6 +52,14 @@ struct DefaultValueImpl
     static const auto Value = TVal;
 };
 
+template<long long unsigned TMask, bool TValue>
+struct ReservedBitsImpl
+{
+    static const auto Mask = TMask;
+    static const auto Value = TValue;
+};
+
+
 }  // namespace option
 
 }  // namespace field

@@ -46,10 +46,10 @@ protected:
 };
 
 template <typename TMessage,
-          typename T,
-          T TId,
+          long long int TId,
           typename... TRest>
-class MessageBase<TMessage, option::NumIdImpl<T, TId>, TRest...> : public MessageBase<TMessage, TRest...>
+class MessageBase<TMessage, option::NumIdImpl<TId>, TRest...> :
+                                public MessageBase<TMessage, TRest...>
 {
     typedef MessageBase<TMessage, TRest...> Base;
     typedef typename Base::MsgIdReturnType MsgIdReturnType;
@@ -116,9 +116,9 @@ protected:
     using Base::MessageBase;
 
 #ifndef COMMS_NO_READ
-    typedef typename Base::ReadIterator ReadIterator;
-
-    virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override
+    virtual ErrorStatus readImpl(
+        typename Base::ReadIterator& iter,
+        std::size_t size) override
     {
         ErrorStatus status = ErrorStatus::Success;
         std::size_t remainingSize = size;
@@ -128,9 +128,9 @@ protected:
 #endif // #ifndef COMMS_NO_READ
 
 #ifndef COMMS_NO_WRITE
-    typedef typename Base::WriteIterator WriteIterator;
-
-    virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const override
+    virtual ErrorStatus writeImpl(
+        typename Base::WriteIterator& iter,
+        std::size_t size) const override
     {
         ErrorStatus status = ErrorStatus::Success;
         std::size_t remainingSize = size;
@@ -158,6 +158,7 @@ private:
     /// @cond DOCUMENT_FIELD_READER_WRITER_SIZE_GETTER
     class FieldReader
     {
+        typedef typename TMessage::ReadIterator ReadIterator;
     public:
         FieldReader(ReadIterator& iter, ErrorStatus& status, std::size_t& size)
             : iter_(iter),
@@ -186,6 +187,7 @@ private:
     class FieldWriter
     {
     public:
+        typedef typename TMessage::WriteIterator WriteIterator;
         FieldWriter(WriteIterator& iter, ErrorStatus& status, std::size_t& size)
             : iter_(iter),
               status_(status),

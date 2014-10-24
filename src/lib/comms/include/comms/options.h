@@ -26,7 +26,7 @@ namespace comms
 namespace option
 {
 
-template <typename T, T TId>
+template <long long int TId>
 struct NumIdImpl
 {
     static const auto Value = TId;

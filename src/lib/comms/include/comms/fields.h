@@ -20,4 +20,5 @@
 
 #include "field/BasicIntValue.h"
 #include "field/BitmaskValue.h"
+#include "field/BasicEnumValue.h"
 

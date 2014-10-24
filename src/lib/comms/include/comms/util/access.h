@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <limits>
 
 namespace comms
 {

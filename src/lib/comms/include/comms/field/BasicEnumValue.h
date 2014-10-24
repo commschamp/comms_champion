@@ -18,11 +18,7 @@
 
 #pragma once
 
-#include <cstdint>
-#include <limits>
 #include <type_traits>
-
-#include "util/SizeToType.h"
 
 #include "BasicIntValue.h"
 
@@ -45,47 +41,55 @@ namespace field
 /// @tparam TLimit Maximal and invalid value. All other values below the TLimit
 ///         are considered to be valid.
 /// @headerfile comms/field/BasicEnumValue.h
-template <typename TField,
-          typename TEnum,
-          std::size_t TLen = sizeof(typename std::underlying_type<TEnum>::type),
-          TEnum TLimit = static_cast<TEnum>(std::numeric_limits<typename embxx::util::SizeToType<TLen>::Type>::max())>
-class BasicEnumValue
+template <typename TField, typename TEnum, typename... TOptions>
+class BasicEnumValue : public TField
 {
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
-
+    typedef TField Base;
 public:
-    /// @brief Definition of underlying BasicIntValue field type
-    typedef
-        BasicIntValue<
-            typename util::SizeToType<TLen>::Type,
-            TTraits,
-            TLen
-        > IntValueField;
 
     /// @brief Type of the stored value
     typedef TEnum ValueType;
 
+    /// @brief Underlying type
+    typedef typename std::underlying_type<ValueType>::type UnderlyingType;
+
+    /// @brief Definition of underlying BasicIntValue field type
+    typedef
+        BasicIntValue<
+            Base,
+            UnderlyingType,
+            TOptions...
+        > IntValueField;
+
+
     /// @brief Serialised Type
     typedef typename IntValueField::SerialisedType SerialisedType;
 
-    /// @brief Field traits
-    typedef TTraits Traits;
-
-    /// @brief Data endianness
-    typedef typename Traits::Endianness Endianness;
+    /// @brief Default initialisation value
+    static const auto DefaultValue =
+                        static_cast<ValueType>(IntValueField::DefaultValue);
 
     /// @brief Length of serialised data
-    static const std::size_t SerialisedLen = TLen;
+    static const std::size_t SerialisedLen = IntValueField::SerialisedLen;
 
-    /// @brief Limit of valid values
-    static const ValueType LimitValue = TLimit;
+    /// @brief Minimal Valid Value
+    static const auto MinValidValue =
+                        static_cast<ValueType>(IntValueField::MinValidValue);
+
+    /// @brief Maximal Valid Value
+    static const auto MaxValidValue =
+                        static_cast<ValueType>(IntValueField::MaxValidValue);
 
     /// @brief Default constructor.
     /// @brief Initial value is equal to LimitValue
-    BasicEnumValue();
+    BasicEnumValue() = default;
 
     /// @brief Constructor
-    explicit BasicEnumValue(ValueType value);
+    explicit BasicEnumValue(ValueType value)
+      : intValue_(static_cast<UnderlyingType>(value))
+    {
+    }
 
     /// @brief Copy constructor is default
     BasicEnumValue(const BasicEnumValue&) = default;
@@ -97,39 +101,72 @@ public:
     BasicEnumValue& operator=(const BasicEnumValue&) = default;
 
     /// @brief Retrieve underlying BasicIntValue field.
-    const IntValueField asIntValueField() const;
+    constexpr const IntValueField asIntValueField() const
+    {
+        return intValue_;
+    }
 
     /// @copydoc BasicIntValue::getValue()
-    const ValueType getValue() const;
+    constexpr const ValueType getValue() const
+    {
+        return static_cast<ValueType>(intValue_.getValue());
+    }
 
     /// @copydoc BasicIntValue::setValue()
-    void setValue(ValueType value);
+    void setValue(ValueType value)
+    {
+        intValue_.setValue(static_cast<UnderlyingType>(value));
+    }
 
     /// @copydoc BasicIntValue::getSerialisedValue()
-    const SerialisedType getSerialisedValue() const;
+    const SerialisedType getSerialisedValue() const
+    {
+        return intValue_.getSerialisedValue();
+    }
 
     /// @copydoc BasicIntValue::setSerialisedValue()
-    void setSerialisedValue(SerialisedType value);
+    void setSerialisedValue(SerialisedType value)
+    {
+        intValue_.setSerialisedValue(value);
+    }
 
     /// @copydoc BasicIntValue::toSerialised()
-    static constexpr const SerialisedType toSerialised(ValueType value);
+    static constexpr const SerialisedType toSerialised(ValueType value)
+    {
+        return IntValueField::toSerialised(static_cast<UnderlyingType>(value));
+    }
 
     /// @copydoc BasicIntValue::fromSerialised()
-    static constexpr const ValueType fromSerialised(SerialisedType value);
+    static constexpr const ValueType fromSerialised(SerialisedType value)
+    {
+        return static_cast<ValueType>(IntValueField::fromSerialised(value));
+    }
 
     /// @copydoc BasicIntValue::length()
-    static constexpr std::size_t length();
+    static constexpr std::size_t length()
+    {
+        return IntValueField::length();
+    }
 
     /// @copydoc BasicIntValue::read()
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size);
+    ErrorStatus read(TIter& iter, std::size_t size)
+    {
+        return intValue_.read(iter, size);
+    }
 
     /// @copydoc BasicIntValue::write()
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const;
+    ErrorStatus write(TIter& iter, std::size_t size) const
+    {
+        return intValue_.write(iter, size);
+    }
 
     /// @brief Check whether value is in range [0, ValueLimit).
-    bool isValid() const;
+    bool valid() const
+    {
+        return intValue_.valid();
+    }
 
 private:
     IntValueField intValue_;
@@ -139,176 +176,35 @@ private:
 
 /// @brief Equality comparison operator.
 /// @related BasicEnumValue
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
+template <typename... TArgs>
 bool operator==(
-    const BasicEnumValue<TEnum, TTraits, TLen, TLimit>& field1,
-    const BasicEnumValue<TEnum, TTraits, TLen, TLimit>& field2)
+    const BasicEnumValue<TArgs...>& field1,
+    const BasicEnumValue<TArgs...>& field2)
 {
     return field1.asIntValueField() == field2.asIntValueField();
 }
 
 /// @brief Non-equality comparison operator.
 /// @related BasicEnumValue
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
+template <typename... TArgs>
 bool operator!=(
-    const BasicEnumValue<TEnum, TTraits, TLen, TLimit>& field1,
-    const BasicEnumValue<TEnum, TTraits, TLen, TLimit>& field2)
+    const BasicEnumValue<TArgs...>& field1,
+    const BasicEnumValue<TArgs...>& field2)
 {
     return field1.asIntValueField() != field2.asIntValueField();
 }
 
 /// @brief Equivalence comparison operator.
 /// @related BasicEnumValue
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
+template <typename... TArgs>
 bool operator<(
-    const BasicEnumValue<TEnum, TTraits, TLen, TLimit>& field1,
-    const BasicEnumValue<TEnum, TTraits, TLen, TLimit>& field2)
+    const BasicEnumValue<TArgs...>& field1,
+    const BasicEnumValue<TArgs...>& field2)
 {
     return field1.asIntValueField() < field2.asIntValueField();
 }
 
 /// @}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-BasicEnumValue<TEnum, TTraits, TLen, TLimit>::BasicEnumValue()
-    : intValue_(static_cast<typename IntValueField::ValueType>(TLimit))
-{
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-BasicEnumValue<TEnum, TTraits, TLen, TLimit>::BasicEnumValue(ValueType value)
-    : intValue_(static_cast<typename IntValueField::ValueType>(value))
-{
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-const typename BasicEnumValue<TEnum, TTraits, TLen, TLimit>::IntValueField
-BasicEnumValue<TEnum, TTraits, TLen, TLimit>::asIntValueField() const
-{
-    return intValue_;
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-const typename BasicEnumValue<TEnum, TTraits, TLen, TLimit>::ValueType
-BasicEnumValue<TEnum, TTraits, TLen, TLimit>::getValue() const
-{
-    return static_cast<ValueType>(intValue_.getValue());
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-void BasicEnumValue<TEnum, TTraits, TLen, TLimit>::setValue(ValueType value)
-{
-    intValue_.setValue(static_cast<typename IntValueField::ValueType>(value));
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-const typename BasicEnumValue<TEnum, TTraits, TLen, TLimit>::SerialisedType
-BasicEnumValue<TEnum, TTraits, TLen, TLimit>::getSerialisedValue() const
-{
-    return intValue_.getSerialisedValue();
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-void BasicEnumValue<TEnum, TTraits, TLen, TLimit>::setSerialisedValue(
-    SerialisedType value)
-{
-    intValue_.setSerialisedValue(value);
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-constexpr
-const typename BasicEnumValue<TEnum, TTraits, TLen, TLimit>::SerialisedType
-BasicEnumValue<TEnum, TTraits, TLen, TLimit>::toSerialised(ValueType value)
-{
-    return IntValueField::toSerialised(
-        static_cast<typename IntValueField::ValueType>(value));
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-constexpr
-const typename BasicEnumValue<TEnum, TTraits, TLen, TLimit>::ValueType
-BasicEnumValue<TEnum, TTraits, TLen, TLimit>::fromSerialised(SerialisedType value)
-{
-    return static_cast<ValueType>(IntValueField::fromSerialised(value));
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-constexpr std::size_t BasicEnumValue<TEnum, TTraits, TLen, TLimit>::length()
-{
-    return IntValueField::length();
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-template <typename TIter>
-ErrorStatus BasicEnumValue<TEnum, TTraits, TLen, TLimit>::read(
-    TIter& iter,
-    std::size_t size)
-{
-    return intValue_.read(iter, size);
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-template <typename TIter>
-ErrorStatus BasicEnumValue<TEnum, TTraits, TLen, TLimit>::write(
-    TIter& iter,
-    std::size_t size) const
-{
-    return intValue_.write(iter, size);
-}
-
-template <typename TEnum,
-          typename TTraits,
-          std::size_t TLen,
-          TEnum TLimit>
-bool BasicEnumValue<TEnum, TTraits, TLen, TLimit>::isValid() const
-{
-    return (getValue() < LimitValue);
-}
 
 }  // namespace field
 

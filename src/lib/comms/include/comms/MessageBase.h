@@ -61,6 +61,16 @@ protected:
     {
         return static_cast<typename Base::MsgIdType>(TId);
     }
+
+#ifndef COMMS_NO_DISPATCH
+
+    virtual void dispatchImpl(typename Base::Handler& handler) override
+    {
+        handler.handle(static_cast<TMessage&>(*this));
+    }
+
+#endif // #ifndef COMMS_NO_DISPATCH
+
 };
 
 template <typename TMessage,
@@ -70,7 +80,6 @@ class MessageBase<TMessage, option::DispatchImpl<TActual>, TRest...> :
                                         public MessageBase<TMessage, TRest...>
 {
     typedef MessageBase<TMessage, TRest...> Base;
-    typedef typename Base::Handler Handler;
     typedef option::DispatchImpl<TActual> DispatchOption;
     typedef typename DispatchOption::MsgType MsgType;
 
@@ -78,7 +87,7 @@ protected:
     using Base::MessageBase;
 
 #ifndef COMMS_NO_DISPATCH
-    virtual void dispatchImpl(Handler& handler) override
+    virtual void dispatchImpl(typename Base::Handler& handler) override
     {
         handler.handle(static_cast<MsgType&>(*this));
     }

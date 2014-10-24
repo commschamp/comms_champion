@@ -57,16 +57,14 @@ using FieldsMessage1 =
     >;
 
 template <typename TMessage>
-using Message1Base =
-    comms::MessageBase<
-        TMessage,
-        comms::option::NumIdImpl<MessageType1>,
-        comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> > >;
-
-template <typename TMessage>
-class Message1 : public Message1Base<TMessage>
+class Message1 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::NumIdImpl<MessageType1>,
+            comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
+            comms::option::DispatchImpl<Message1<TMessage> >
+        >
 {
-    typedef Message1Base<TMessage> Base;
 public:
 
     Message1() = default;
@@ -91,15 +89,13 @@ bool operator==(
 }
 
 template <typename TMessage>
-using Message2Base =
+class Message2 : public
     comms::MessageBase<
         TMessage,
         comms::option::NumIdImpl<MessageType2>,
-        comms::option::NoFieldsImpl
-    >;
-
-template <typename TMessage>
-class Message2 : public Message2Base<TMessage>
+        comms::option::NoFieldsImpl,
+        comms::option::DispatchImpl<Message2<TMessage> >
+    >
 {
 public:
     virtual ~Message2() = default;
@@ -135,15 +131,13 @@ using Message3Fields =
     >;
 
 template <typename TMessage>
-using Message3Base =
+class Message3 : public
     comms::MessageBase<
         TMessage,
         comms::option::NumIdImpl<MessageType3>,
-        comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >
-    >;
-
-template <typename TMessage>
-class Message3 : public Message3Base<TMessage>
+        comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
+        comms::option::DispatchImpl<Message3<TMessage> >
+    >
 {
 public:
     Message3() = default;
@@ -166,5 +160,4 @@ bool operator==(
 {
     return msg1.getFields() == msg2.getFields();
 }
-
 

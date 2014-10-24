@@ -31,6 +31,7 @@
 #include "Assert.h"
 #include "traits.h"
 #include "Field.h"
+#include "EmptyHandler.h"
 
 namespace comms
 {
@@ -51,7 +52,7 @@ namespace comms
 ///         @li Type WriteIterator. Can be any type of output iterator. It will
 ///             be used to serialise message contents to provided data sequence.
 /// @headerfile comms/Message.h
-template <typename TTraits>
+template <typename TTraits, typename THandler = EmptyHandler>
 class Message
 {
 public:
@@ -193,6 +194,26 @@ public:
 
 #endif // #ifndef COMMS_NO_VALID
 
+#ifndef COMMS_NO_DISPATCH
+    /// @brief Message handler type
+    typedef THandler Handler;
+
+    /// @brief Dispatch message to its handler
+    /// @details Calls to pure virtual function dispatchImpl() which must
+    ///          be implemented in one of the derived classes. The message
+    ///          should be dispatched to the handler using
+    ///          appropriate "handle(...) member function of
+    ///          the latter.
+    ///          It is possible to suppress dispatch functionality by defining
+    ///          COMMS_NO_DISPATCH. In this case neither dispatch() nor
+    ///          dispatchImpl() functions are going to be defined.
+    /// @param[in] handler Reference to the handler object
+    void dispatch(Handler& handler)
+    {
+        this->dispatchImpl(handler);
+    }
+#endif // #ifndef COMMS_NO_DISPATCH
+
 protected:
 
     /// @brief Pure virtual function to retrieve message ID.
@@ -244,6 +265,20 @@ protected:
     ///       Thread safety and Exception guarantee specified in write().
     virtual bool validImpl() const = 0;
 #endif // #ifndef COMMS_NO_VALID
+
+#ifndef COMMS_NO_DISPATCH
+
+    /// @brief Pure virtual function to be called to dispatch message to its
+    ///        handler.
+    /// @details Must be implemented in the derived class. The implementation
+    ///          is basically:
+    ///          @code
+    ///          handler.handle(*this);
+    ///          @endcode
+    /// @param[in] handler Reference to the handler object
+    virtual void dispatchImpl(Handler& handler) = 0;
+
+#endif // #ifndef COMMS_NO_DISPATCH
 
     /// @brief Write data into the output sequence.
     /// @details Use this function to write data to the stream buffer.
@@ -325,56 +360,6 @@ protected:
             "Cannot get more bytes than type contains");
         return util::readData<T, TSize>(iter, Endianness());
     }
-};
-
-/// @brief Extension to the abstract Message class to provide a dispatch
-///        functionality.
-/// @details This class provides a functio to dispatch current message to its
-///          handler.
-/// @tparam TTraits Various behavioural traits relevant for the message. See
-///         documentation for the Message class for details.
-/// @tparam THandler Dispatch handler class, may be forward declared
-/// @headerfile comms/Message.h
-template <typename TTraits, typename THandler>
-class DispatchableMessage : public Message<TTraits>
-{
-public:
-
-    /// @brieaf Handler class
-    typedef THandler Handler;
-
-    /// @brief Destructor
-    virtual ~DispatchableMessage() {}
-
-#ifndef COMMS_NO_DISPATCH
-    /// @brief Dispatch message to its handler
-    /// @details Calls to pure virtual function dispatchImpl() which must
-    ///          be implemented in one of the derived classes. The message
-    ///          should be dispatched to the handler using
-    ///          appropriate "handle(...) member function of
-    ///          the latter.
-    ///          It is possible to suppress dispatch functionality by defining
-    ///          COMMS_NO_DISPATCH. In this case neither dispatch() nor
-    ///          dispatchImpl() functions are going to be defined.
-    /// @param[in] handler Reference to the handler object
-    void dispatch(Handler& handler)
-    {
-        this->dispatchImpl(handler);
-    }
-
-protected:
-
-    /// @brief Pure virtual function to be called to dispatch message to its
-    ///        handler.
-    /// @details Must be implemented in the derived class. The implementation
-    ///          is basically:
-    ///          @code
-    ///          handler.handle(*this);
-    ///          @endcode
-    /// @param[in] handler Reference to the handler object
-    virtual void dispatchImpl(Handler& handler) = 0;
-
-#endif // #ifndef COMMS_NO_DISPATCH
 };
 
 }  // namespace comms

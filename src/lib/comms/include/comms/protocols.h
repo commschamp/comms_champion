@@ -18,10 +18,6 @@
 
 #pragma once
 
-#include "ErrorStatus.h"
-#include "Assert.h"
-#include "Message.h"
-#include "MessageBase.h"
-#include "fields.h"
-#include "protocols.h"
+#include "protocol/MsgDataLayer.h"
+
 

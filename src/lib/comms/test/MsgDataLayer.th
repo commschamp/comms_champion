@@ -1,0 +1,260 @@
+//
+// Copyright 2014 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#include <cstdint>
+#include <cstddef>
+#include <iostream>
+#include <algorithm>
+#include <iterator>
+#include <memory>
+
+#include "comms/comms.h"
+#include "cxxtest/TestSuite.h"
+#include "CommsTestCommon.h"
+
+class MsgDataLayerTestSuite : public CxxTest::TestSuite
+{
+public:
+    void test1();
+    void test2();
+    void test3();
+    void test4();
+
+private:
+
+    template <typename TMessage>
+    TMessage internalReadWriteTest(
+        const char* const buf,
+        std::size_t bufSize,
+        comms::ErrorStatus expectedErrStatus = comms::ErrorStatus::Success);
+
+    template <typename TMessage>
+    TMessage internalReadWriteToVectorTest(
+        const char* const buf,
+        std::size_t bufSize,
+        comms::ErrorStatus expectedErrStatus = comms::ErrorStatus::Success);
+
+    template <typename TMessage>
+    void internalWriteReadTest(
+        const TMessage& msg,
+        char* const buf,
+        std::size_t bufSize,
+        const char* expectedBuf,
+        comms::ErrorStatus expectedErrStatus = comms::ErrorStatus::Success);
+
+    struct CommonTraits {
+        typedef MessageType MsgIdType;
+        typedef const char* ReadIterator;
+        typedef char* WriteIterator;
+    };
+
+    struct BackInserterCommonTraits {
+        typedef MessageType MsgIdType;
+        typedef const char* ReadIterator;
+        typedef std::back_insert_iterator<std::vector<char> > WriteIterator;
+    };
+
+    struct BigEndianTraits : public CommonTraits
+    {
+        typedef comms::traits::endian::Big Endianness;
+    };
+
+    struct BackInserterBigEndianTraits : public BackInserterCommonTraits
+    {
+        typedef comms::traits::endian::Big Endianness;
+    };
+
+    struct LittleEndianTraits : public CommonTraits
+    {
+        typedef comms::traits::endian::Little Endianness;
+    };
+
+    struct BackInserterLittleEndianTraits : public BackInserterCommonTraits
+    {
+        typedef comms::traits::endian::Little Endianness;
+    };
+
+    typedef comms::Message<BigEndianTraits> BeMessageBase;
+    typedef comms::Message<BackInserterBigEndianTraits> BackInsertBeMessageBase;
+    typedef comms::Message<LittleEndianTraits> LeMessageBase;
+    typedef comms::Message<BackInserterLittleEndianTraits> BackInsertLeMessageBase;
+
+    typedef Message1<BeMessageBase> BeMsg1;
+    typedef Message1<BackInsertBeMessageBase> BackInsertBeMsg1;
+    typedef Message1<LeMessageBase> LeMsg1;
+    typedef Message1<BackInsertLeMessageBase> BackInsertLeMsg1;
+
+    typedef Message2<BeMessageBase> BeMsg2;
+    typedef Message2<LeMessageBase> LeMsg2;
+
+    typedef Message3<BeMessageBase> BeMsg3;
+    typedef Message3<LeMessageBase> LeMsg3;
+
+    template <typename TMessage>
+    using ProtocolStack = comms::protocol::MsgDataLayer<TMessage>;
+};
+
+void MsgDataLayerTestSuite::test1()
+{
+    static const char Buf[] = {
+        0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    auto msg = internalReadWriteTest<BeMsg1>(Buf, BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).getValue(), 0x0102);
+    auto msg2 = internalReadWriteToVectorTest<BackInsertBeMsg1>(Buf, BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).getValue(), 0x0102);
+}
+
+void MsgDataLayerTestSuite::test2()
+{
+    BeMsg1 msg;
+    std::get<0>(msg.getFields()).setValue(0x0203);
+
+    static const char ExpectedBuf[] = {
+        0x02, 0x03
+    };
+
+    static const std::size_t BufSize =
+        std::extent<decltype(ExpectedBuf)>::value;
+    char buf[BufSize] = {0};
+
+    internalWriteReadTest(msg, buf, BufSize, &ExpectedBuf[0]);
+}
+
+void MsgDataLayerTestSuite::test3()
+{
+    const char buf[] = {
+        0
+    };
+
+    auto msg = internalReadWriteTest<BeMsg2>(buf, 0);
+    static_cast<void>(msg);
+}
+
+void MsgDataLayerTestSuite::test4()
+{
+    LeMsg1 msg;
+    std::get<0>(msg.getFields()).setValue(0x0203);
+
+    char buf[1] = {0};
+    const std::size_t bufSize = std::extent<decltype(buf)>::value;
+
+    internalWriteReadTest(msg, buf, bufSize, nullptr, comms::ErrorStatus::BufferOverflow);
+}
+
+template <typename TMessage>
+TMessage MsgDataLayerTestSuite::internalReadWriteTest(
+    const char* const buf,
+    std::size_t bufSize,
+    comms::ErrorStatus expectedErrStatus)
+{
+    typedef TMessage Message;
+
+    typedef typename std::conditional<
+            std::is_base_of<BeMessageBase, Message>::value,
+            ProtocolStack<BeMessageBase>,
+            ProtocolStack<LeMessageBase>
+        >::type ProtStack;
+
+    ProtStack stack;
+    auto readIter = buf;
+    std::unique_ptr<Message> msg(new Message);
+    auto es = stack.read(msg, readIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedErrStatus);
+
+    if (es == comms::ErrorStatus::Success) {
+        auto diff = static_cast<std::size_t>(std::distance(buf, readIter));
+        std::unique_ptr<char[]> outDataBuf(new char[diff]);
+        auto writeIter = &outDataBuf[0];
+        auto writeES = stack.write(*msg, writeIter, diff);
+        TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
+        TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
+    }
+
+    return *msg;
+}
+
+template <typename TMessage>
+TMessage MsgDataLayerTestSuite::internalReadWriteToVectorTest(
+    const char* const buf,
+    std::size_t bufSize,
+    comms::ErrorStatus expectedErrStatus)
+{
+    typedef TMessage Message;
+
+    typedef typename std::conditional<
+            std::is_base_of<BackInsertBeMessageBase, Message>::value,
+            ProtocolStack<BackInsertBeMessageBase>,
+            ProtocolStack<BackInsertLeMessageBase>
+        >::type ProtStack;
+
+    ProtStack stack;
+    auto readIter = buf;
+    std::unique_ptr<Message> msg(new Message);
+    auto es = stack.read(msg, readIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedErrStatus);
+
+    if (es == comms::ErrorStatus::Success) {
+        auto diff = static_cast<std::size_t>(std::distance(buf, readIter));
+        std::vector<char> outDataBuf;
+        auto writeIter = std::back_inserter(outDataBuf);
+        auto writeES = stack.write(*msg, writeIter, diff);
+        TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(diff, outDataBuf.size());
+        TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
+    }
+
+    return *msg;
+}
+
+
+template <typename TMessage>
+void MsgDataLayerTestSuite::internalWriteReadTest(
+    const TMessage& msg,
+    char* const buf,
+    std::size_t bufSize,
+    const char* expectedBuf,
+    comms::ErrorStatus expectedErrStatus)
+{
+    typedef TMessage Message;
+
+    typedef typename std::conditional<
+            std::is_base_of<BeMessageBase, Message>::value,
+            ProtocolStack<BeMessageBase>,
+            ProtocolStack<LeMessageBase>
+        >::type ProtStack;
+
+    ProtStack stack;
+    auto writeIter = buf;
+    auto es = stack.write(msg, writeIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedErrStatus);
+
+    if (es == comms::ErrorStatus::Success) {
+        auto diff = static_cast<std::size_t>(std::distance(buf, writeIter));
+        TS_ASSERT(expectedBuf != 0);
+        TS_ASSERT(std::equal(expectedBuf, expectedBuf + diff, buf));
+
+        std::unique_ptr<Message> readMsgPtr(new Message);
+        auto readIter = static_cast<const char*>(buf);
+        auto readES = stack.read(readMsgPtr, readIter, diff);
+        TS_ASSERT_EQUALS(readES, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(msg, *readMsgPtr);
+    }
+}

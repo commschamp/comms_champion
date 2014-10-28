@@ -180,8 +180,9 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        GASSERT(length() <= size);
-        static_cast<void>(size);
+        if (size < length()) {
+            return ErrorStatus::BufferOverflow;
+        }
 
         Base::template writeData<SerialisedLen>(getSerialisedValue(), iter);
         return ErrorStatus::Success;
@@ -233,6 +234,24 @@ private:
     ValueType value_;
 };
 
+namespace details
+{
+
+template <typename T>
+struct IsBasicIntValue
+{
+    static const bool Value = false;
+};
+
+template <typename... TArgs>
+struct IsBasicIntValue<comms::field::BasicIntValue<TArgs...> >
+{
+    static const bool Value = true;
+};
+
+
+}  // namespace details
+
 
 // Implementation
 
@@ -270,6 +289,12 @@ bool operator<(
     const BasicIntValue<TField, T, TRest...>& field2)
 {
     return field1.getValue() < field2.getValue();
+}
+
+template <typename T>
+constexpr bool isBasicIntValue()
+{
+    return details::IsBasicIntValue<T>::Value;
 }
 
 /// @}

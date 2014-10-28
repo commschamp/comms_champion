@@ -18,8 +18,21 @@
 
 #pragma once
 
-#include "protocol/MsgDataLayer.h"
-#include "protocol/MsgIdLayer.h"
-#include "protocol/MsgSizeLayer.h"
+namespace comms
+{
+
+namespace protocol
+{
+
+namespace option
+{
+
+struct InPlaceAllocation {};
+
+}  // namespace option
+
+}  // namespace protocol
+
+}  // namespace comms
 
 

@@ -52,12 +52,12 @@ class MessageBase<TMessage, option::NumIdImpl<TId>, TRest...> :
                                 public MessageBase<TMessage, TRest...>
 {
     typedef MessageBase<TMessage, TRest...> Base;
-    typedef typename Base::MsgIdReturnType MsgIdReturnType;
+    typedef typename Base::MsgParamType MsgParamType;
 
 protected:
     using Base::MessageBase;
 
-    virtual MsgIdReturnType getIdImpl() const override
+    virtual MsgParamType getIdImpl() const override
     {
         return static_cast<typename Base::MsgIdType>(TId);
     }

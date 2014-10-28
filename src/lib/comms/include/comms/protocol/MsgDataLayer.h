@@ -35,6 +35,7 @@ public:
 
     typedef void MsgPtr;
 
+    typedef TMessage Message;
     typedef typename TMessage::ReadIterator ReadIterator;
     typedef typename TMessage::WriteIterator WriteIterator;
 

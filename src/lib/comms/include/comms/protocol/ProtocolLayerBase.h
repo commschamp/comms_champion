@@ -19,9 +19,18 @@
 #pragma once
 
 #include <tuple>
+#include <utility>
+#include <algorithm>
 
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "comms/Assert.h"
+
+namespace comms
+{
+
+namespace protocol
+{
 
 template <typename TField, typename TNextLayer>
 class ProtocolLayerBase
@@ -41,9 +50,23 @@ public:
 
     typedef typename NextLayer::MsgPtr MsgPtr;
 
+    typedef typename NextLayer::Message Message;
+
     typedef typename NextLayer::ReadIterator ReadIterator;
 
     typedef typename NextLayer::WriteIterator WriteIterator;
+
+    ProtocolLayerBase() = default;
+    ProtocolLayerBase(const ProtocolLayerBase&) = default;
+
+    template <typename... TArgs>
+    ProtocolLayerBase(TArgs&&... args)
+      : nextLayer_(std::forward<TArgs>(args)...)
+    {
+    }
+
+    ~ProtocolLayerBase() = default;
+    ProtocolLayerBase& operator=(const ProtocolLayerBase&) = default;
 
     NextLayer& nextLayer()
     {
@@ -55,50 +78,40 @@ public:
         return nextLayer_;
     }
 
-    const Field& field() const
-    {
-        return field_;
-    }
-
-    template <typename TFields>
-    void getAllFields(TFields& fields)
-    {
-        getAllFieldsFromIdx<0>(fields);
-    }
-
-    template <std::size_t TIdx, typename TFields>
-    void getAllFieldsFromIdx(TFields& fields)
-    {
-        static_assert(TIdx < std::tuple_size<TFields>::value,
-            "Tuple of fields is too small.");
-
-        std::get<TIdx>(fields) = field_;
-        nextLayer_.getAllFieldsFromIdx<TIdx + 1>(fields);
-    }
-
     constexpr std::size_t length() const
     {
-        return field_.length() + nextLayer_.length();
+        return Field().length() + nextLayer_.length();
     }
 
     template <typename TMsg>
     constexpr std::size_t length(const TMsg& msg) const
     {
-        return field_.length() + nextLayer_.length(msg);
+        return Field().length() + nextLayer_.length(msg);
     }
 
     template <typename TIter>
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
-        auto length = field_.length();
-        std::advance(iter, length);
-        return nextLayer_.update(iter, size - length);
+        auto len = length();
+        std::advance(iter, len);
+        return nextLayer_.update(iter, size - len);
+    }
+
+protected:
+    void updateMissingSize(std::size_t size, std::size_t* missingSize)
+    {
+        if (missingSize != nullptr) {
+            GASSERT(size <= length());
+            *missingSize = std::max(std::size_t(1U), length() - size);
+        }
     }
 
 private:
 
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");
-    Field field_;
     NextLayer nextLayer_;
 };
 
+}  // namespace protocol
+
+}  // namespace comms

@@ -52,6 +52,10 @@ public:
 
     typedef typename NextLayer::Message Message;
 
+    typedef typename Message::MsgIdType MsgIdType;
+
+    typedef typename Message::MsgIdParamType MsgIdParamType;
+
     typedef typename NextLayer::ReadIterator ReadIterator;
 
     typedef typename NextLayer::WriteIterator WriteIterator;
@@ -95,6 +99,11 @@ public:
         auto len = length();
         std::advance(iter, len);
         return nextLayer_.update(iter, size - len);
+    }
+
+    MsgPtr createMsg(MsgIdParamType id)
+    {
+        return nextLayer_.createMsg(id);
     }
 
 protected:

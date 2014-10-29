@@ -19,6 +19,7 @@
 #pragma once
 
 #include <tuple>
+#include "comms/util/Tuple.h"
 
 namespace comms
 {
@@ -67,12 +68,47 @@ public:
         return result;
     }
 
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
+    static ErrorStatus readFieldsCached(
+        TAllFields& allFields,
+        TMsgPtr& msgPtr,
+        ReadIterator& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be tuple.");
+
+        static_assert(TIdx == std::tuple_size<TAllFields>::value,
+                    "All fields must be read when MsgDataLayer is reached");
+
+        static_cast<void>(allFields);
+        return read(msgPtr, iter, size, missingSize);
+    }
+
     static ErrorStatus write(
         const TMessage& msg,
         WriteIterator& iter,
         std::size_t size)
     {
         return msg.write(iter, size);
+    }
+
+    template <std::size_t TIdx, typename TAllFields>
+    static ErrorStatus writeFieldsCached(
+        TAllFields& allFields,
+        const TMessage& msg,
+        WriteIterator& iter,
+        std::size_t size)
+    {
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be tuple.");
+
+        static_assert(TIdx == std::tuple_size<TAllFields>::value,
+                    "All fields must be written when MsgDataLayer is reached");
+
+        static_cast<void>(allFields);
+        return write(msg, iter, size);
     }
 
     template <typename TIter>
@@ -91,6 +127,7 @@ public:
     {
         return msg.length();
     }
+
 };
 
 }  // namespace protocol

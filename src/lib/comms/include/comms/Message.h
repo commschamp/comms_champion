@@ -75,7 +75,7 @@ public:
             std::is_integral<MsgIdType>::value || std::is_enum<MsgIdType>::value,
             MsgIdType,
             const MsgIdType&
-        >::type MsgParamType;
+        >::type MsgIdParamType;
 
     /// @brief Type of default base class for all the fields
     typedef comms::Field<Traits> Field;
@@ -84,7 +84,7 @@ public:
     virtual ~Message() {};
 
     /// @brief Retrieve ID of the message
-    MsgParamType getId() const
+    MsgIdParamType getId() const
     {
         return this->getIdImpl();
     }
@@ -220,7 +220,7 @@ protected:
 
     /// @brief Pure virtual function to retrieve message ID.
     /// @details Must be implemented in the derived class.
-    virtual MsgParamType getIdImpl() const = 0;
+    virtual MsgIdParamType getIdImpl() const = 0;
 
 #ifndef COMMS_NO_READ
     /// @brief Pure virtual function to be called to update contents of the

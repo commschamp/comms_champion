@@ -32,6 +32,8 @@ public:
     void test3();
     void test4();
     void test5();
+    void test6();
+    void test7();
 
 private:
 
@@ -220,5 +222,48 @@ void MsgIdLayerTestSuite::test5()
 
     InPlaceProtocolStack<BeField3, BeMsgBase> inPlaceStack;
     commonWriteReadMsgTest(inPlaceStack, msg, buf, BufSize, nullptr, comms::ErrorStatus::BufferOverflow);
+}
+
+void MsgIdLayerTestSuite::test6()
+{
+    ProtocolStack<BeField2, BeMsgBase> stack;
+
+    auto msgPtr = stack.createMsg(MessageType3);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType3);
+    TS_ASSERT(!msgPtr->valid());
+    auto* msg3 = dynamic_cast<BeMsg3*>(msgPtr.get());
+    assert(msg3 != nullptr);
+}
+
+void MsgIdLayerTestSuite::test7()
+{
+    static const char Buf[] = {
+        MessageType1, 0x0, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef ProtocolStack<LeField2, LeMsgBase> ProtStack;
+    ProtStack::AllFields fields;
+    ProtStack stack;
+
+    auto msgPtr = commonReadWriteMsgTest(stack, fields, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<LeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).getValue(), 0x0201);
+
+    typedef InPlaceProtocolStack<LeField2, LeMsgBase> InPlaceProtStack;
+    InPlaceProtStack::AllFields fields2;
+    InPlaceProtStack inPlaceStack;
+    auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, fields2, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr2);
+    TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
+    auto& msg2 = dynamic_cast<LeMsg1&>(*msgPtr2);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).getValue(), 0x0201);
+
+    TS_ASSERT_EQUALS(msg1, msg2);
+    TS_ASSERT_EQUALS(fields, fields2);
 }
 

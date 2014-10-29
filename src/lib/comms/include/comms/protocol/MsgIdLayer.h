@@ -24,6 +24,7 @@
 #include <tuple>
 #include <algorithm>
 #include <utility>
+#include <tuple>
 
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
@@ -161,7 +162,7 @@ public:
     typedef typename Base::Message Message;
 
     /// @brief Type of message ID
-    typedef typename Message::MsgParamType MsgParamType;
+    typedef typename Message::MsgIdParamType MsgIdParamType;
 
     typedef typename Message::MsgIdType MsgIdType;
 
@@ -172,6 +173,8 @@ public:
     typedef typename Base::WriteIterator WriteIterator;
 
     typedef typename Base::Field Field;
+
+    typedef typename Base::NextLayer NextLayer;
 
     static_assert(
         comms::field::isBasicIntValue<Field>() || comms::field::isBasicEnumValue<Field>(),
@@ -238,42 +241,31 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        GASSERT(!msgPtr);
         Field field;
-        auto es = field.read(iter, size);
-        if (es == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(size, missingSize);
-        }
-
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        auto id = field.getValue();
-
-        auto factoryIter = std::lower_bound(factories_.begin(), factories_.end(), id,
-            [](Factory* factory, MsgParamType id) -> bool
-            {
-                return factory->getId() < id;
-            });
-
-        if ((factoryIter == factories_.end()) || ((*factoryIter)->getId() != id)) {
-            return ErrorStatus::InvalidMsgId;
-        }
-
-        msgPtr = (*factoryIter)->create(*this);
-
-        if (!msgPtr) {
-            return ErrorStatus::MsgAllocFaulure;
-        }
-
-        es = Base::nextLayer().read(msgPtr, iter, size - field.length(), missingSize);
-        if (es != ErrorStatus::Success) {
-            msgPtr.reset();
-        }
-
-        return es;
+        return readInternal(field, msgPtr, iter, size, missingSize, NextLayerReader());
     }
+
+    template <std::size_t TIdx, typename TAllFields>
+    ErrorStatus readFieldsCached(
+        TAllFields& allFields,
+        MsgPtr& msgPtr,
+        ReadIterator& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be a tuple");
+        auto& field = std::get<TIdx>(allFields);
+        return
+            readInternal(
+                field,
+                msgPtr,
+                iter,
+                size,
+                missingSize,
+                NextLayerCachedFieldsReader<TIdx, TAllFields>(allFields));
+    }
+
 
     /// @brief Serialise message into output data sequence.
     /// @details The function will write ID of the message to the data
@@ -296,17 +288,120 @@ public:
         std::size_t size) const
     {
         Field field(msg.getId());
-        auto es = field.write(iter, size);
-        if (es != ErrorStatus::Success) {
-            return es;
+        return writeInternal(field, msg, iter, size, NextLayerWriter());
+    }
+
+    template <std::size_t TIdx, typename TAllFields>
+    ErrorStatus writeFieldsCached(
+        TAllFields& allFields,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size) const
+    {
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be a tuple");
+        auto& field = std::get<TIdx>(allFields);
+        field.setValue(msg.getId());
+        return
+            writeInternal(
+                field,
+                msg,
+                iter,
+                size,
+                NextLayerCachedFieldsWriter<TIdx, TAllFields>(allFields));
+    }
+
+    MsgPtr createMsg(MsgIdParamType id)
+    {
+        auto factoryIter = findFactory(id);
+
+        if ((factoryIter == factories_.end()) || ((*factoryIter)->getId() != id)) {
+            return MsgPtr();
         }
 
-        GASSERT(field.length() <= size);
-
-        return Base::nextLayer().write(msg, iter, size - field.length());
+        return (*factoryIter)->create(*this);
     }
 
 private:
+
+    class NextLayerReader
+    {
+    public:
+
+        ErrorStatus read(
+            NextLayer& nextLayer,
+            MsgPtr& msg,
+            ReadIterator& iter,
+            std::size_t size,
+            std::size_t* missingSize)
+        {
+            return nextLayer.read(msg, iter, size, missingSize);
+        }
+    };
+
+    template <std::size_t TIdx, typename TAllFields>
+    class NextLayerCachedFieldsReader
+    {
+    public:
+        NextLayerCachedFieldsReader(
+            TAllFields& allFields)
+          : allFields_(allFields)
+        {
+        }
+
+        ErrorStatus read(
+            NextLayer& nextLayer,
+            MsgPtr& msg,
+            ReadIterator& iter,
+            std::size_t size,
+            std::size_t* missingSize)
+        {
+            return nextLayer.readFieldsCached<TIdx + 1>(allFields_, msg, iter, size, missingSize);
+        }
+
+    private:
+        TAllFields& allFields_;
+    };
+
+
+
+    class NextLayerWriter
+    {
+    public:
+
+        ErrorStatus write(
+            const NextLayer& nextLayer,
+            const Message& msg,
+            WriteIterator& iter,
+            std::size_t size) const
+        {
+            return nextLayer.write(msg, iter, size);
+        }
+    };
+
+    template <std::size_t TIdx, typename TAllFields>
+    class NextLayerCachedFieldsWriter
+    {
+    public:
+        NextLayerCachedFieldsWriter(
+            TAllFields& allFields)
+          : allFields_(allFields)
+        {
+        }
+
+        ErrorStatus write(
+            const NextLayer& nextLayer,
+            const Message& msg,
+            WriteIterator& iter,
+            std::size_t size) const
+        {
+            return nextLayer.writeFieldsCached<TIdx + 1>(allFields_, msg, iter, size);
+        }
+
+    private:
+        TAllFields& allFields_;
+    };
+
 
     /// @cond DOCUMENT_MSG_ID_PROTOCOL_LAYER_FACTORY
     class Factory
@@ -315,7 +410,7 @@ private:
 
         virtual ~Factory() {};
 
-        MsgParamType getId() const
+        MsgIdParamType getId() const
         {
             return this->getIdImpl();
         }
@@ -326,7 +421,7 @@ private:
         }
 
     protected:
-        virtual MsgParamType getIdImpl() const = 0;
+        virtual MsgIdParamType getIdImpl() const = 0;
         virtual MsgPtr createImpl(MsgIdLayer& layer) const = 0;
     };
 
@@ -337,9 +432,9 @@ private:
         typedef TMessage Message;
         static const auto MsgId = Message::MsgId;
     protected:
-        virtual MsgParamType getIdImpl() const
+        virtual MsgIdParamType getIdImpl() const
         {
-            return static_cast<MsgParamType>(MsgId);
+            return static_cast<MsgIdParamType>(MsgId);
         }
 
         virtual MsgPtr createImpl(MsgIdLayer& layer) const
@@ -360,7 +455,7 @@ private:
     protected:
         GenericMsgFactory() : id_(Message().getId()) {}
 
-        virtual MsgParamType getIdImpl() const
+        virtual MsgIdParamType getIdImpl() const
         {
             return id_;
         }
@@ -388,6 +483,72 @@ private:
     /// @endcond
 
     typedef std::array<Factory*, std::tuple_size<AllMessages>::value> Factories;
+
+    typename Factories::iterator findFactory(MsgIdParamType id)
+    {
+        return std::lower_bound(factories_.begin(), factories_.end(), id,
+            [](Factory* factory, MsgIdParamType id) -> bool
+            {
+                return factory->getId() < id;
+            });
+    }
+
+    template <typename TReader>
+    ErrorStatus readInternal(
+        Field& field,
+        MsgPtr& msgPtr,
+        ReadIterator& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TReader&& reader)
+    {
+        GASSERT(!msgPtr);
+        auto es = field.read(iter, size);
+        if (es == ErrorStatus::NotEnoughData) {
+            Base::updateMissingSize(size, missingSize);
+        }
+
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        auto id = field.getValue();
+
+        auto factoryIter = findFactory(id);
+        if ((factoryIter == factories_.end()) || ((*factoryIter)->getId() != id)) {
+            return ErrorStatus::InvalidMsgId;
+        }
+
+        msgPtr = (*factoryIter)->create(*this);
+
+        if (!msgPtr) {
+            return ErrorStatus::MsgAllocFaulure;
+        }
+
+        es = reader.read(Base::nextLayer(), msgPtr, iter, size - field.length(), missingSize);
+        if (es != ErrorStatus::Success) {
+            msgPtr.reset();
+        }
+
+        return es;
+    }
+
+    template <typename TWriter>
+    ErrorStatus writeInternal(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter) const
+    {
+        auto es = field.write(iter, size);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        GASSERT(field.length() <= size);
+        return nextLayerWriter.write(Base::nextLayer(), msg, iter, size - field.length());
+    }
 
     Factories factories_;
 };

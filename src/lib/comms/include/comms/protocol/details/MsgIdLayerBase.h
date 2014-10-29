@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <memory>
 #include "comms/protocol/ProtocolLayerBase.h"
 #include "comms/protocol/options.h"
 #include "comms/util/Tuple.h"

@@ -63,6 +63,8 @@ public:
     /// @brief Type used for message ID
     typedef typename Traits::MsgIdType MsgIdType;
 
+    static const bool HasStaticMsgId = false;
+
     /// Actual Endianness defined in provided Traits class
     typedef typename Traits::Endianness Endianness;
 

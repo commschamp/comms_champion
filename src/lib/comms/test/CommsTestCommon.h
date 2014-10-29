@@ -161,3 +161,71 @@ bool operator==(
     return msg1.getFields() == msg2.getFields();
 }
 
+template <typename TMessage>
+using AllMessages =
+    std::tuple<
+        Message1<TMessage>,
+        Message2<TMessage>,
+        Message3<TMessage>
+    >;
+
+
+template <typename TProtStack>
+typename TProtStack::MsgPtr commonReadWriteMsgTest(
+    TProtStack& stack,
+    const char* const buf,
+    std::size_t bufSize,
+    comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
+{
+    typedef typename TProtStack::MsgPtr MsgPtr;
+
+    MsgPtr msg;
+    auto readIter = buf;
+    auto es = stack.read(msg, readIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedEs);
+    if (es != comms::ErrorStatus::Success) {
+        return std::move(msg);
+    }
+
+    TS_ASSERT(msg);
+
+    auto actualBufSize = static_cast<std::size_t>(std::distance(buf, readIter));
+    TS_ASSERT_EQUALS(actualBufSize, stack.length(*msg));
+    std::unique_ptr<char []> outCheckBuf(new char[actualBufSize]);
+    auto writeIter = &outCheckBuf[0];
+    es = stack.write(*msg, writeIter, actualBufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT(std::equal(buf, buf + actualBufSize, &outCheckBuf[0]));
+    return std::move(msg);
+}
+
+template <typename TProtStack, typename TMessage>
+void commonWriteReadMsgTest(
+    TProtStack& stack,
+    TMessage msg,
+    char* buf,
+    std::size_t bufSize,
+    const char* expectedBuf,
+    comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
+{
+    auto writeIter = buf;
+    auto es = stack.write(msg, writeIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedEs);
+    if (es != comms::ErrorStatus::Success) {
+        return;
+    }
+
+    assert(expectedBuf != nullptr);
+    TS_ASSERT(std::equal(buf, buf + bufSize, &expectedBuf[0]));
+
+    typedef typename TProtStack::MsgPtr MsgPtr;
+    MsgPtr msgPtr;
+    auto readIter = expectedBuf;
+    es = stack.read(msgPtr, readIter, bufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), msg.getId());
+    auto* castedMsg = dynamic_cast<TMessage*>(msgPtr.get());
+    TS_ASSERT(castedMsg != nullptr);
+    TS_ASSERT_EQUALS(*castedMsg, msg);
+}

@@ -234,25 +234,6 @@ private:
     ValueType value_;
 };
 
-namespace details
-{
-
-template <typename T>
-struct IsBasicIntValue
-{
-    static const bool Value = false;
-};
-
-template <typename... TArgs>
-struct IsBasicIntValue<comms::field::BasicIntValue<TArgs...> >
-{
-    static const bool Value = true;
-};
-
-
-}  // namespace details
-
-
 // Implementation
 
 /// @brief Equality comparison operator.
@@ -290,6 +271,23 @@ bool operator<(
 {
     return field1.getValue() < field2.getValue();
 }
+
+namespace details
+{
+
+template <typename T>
+struct IsBasicIntValue
+{
+    static const bool Value = false;
+};
+
+template <typename... TArgs>
+struct IsBasicIntValue<comms::field::BasicIntValue<TArgs...> >
+{
+    static const bool Value = true;
+};
+
+}  // namespace details
 
 template <typename T>
 constexpr bool isBasicIntValue()

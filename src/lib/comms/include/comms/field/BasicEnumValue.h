@@ -204,6 +204,30 @@ bool operator<(
     return field1.asIntValueField() < field2.asIntValueField();
 }
 
+namespace details
+{
+
+template <typename T>
+struct IsBasicEnumValue
+{
+    static const bool Value = false;
+};
+
+template <typename... TArgs>
+struct IsBasicEnumValue<comms::field::BasicEnumValue<TArgs...> >
+{
+    static const bool Value = true;
+};
+
+}  // namespace details
+
+template <typename T>
+constexpr bool isBasicEnumValue()
+{
+    return details::IsBasicEnumValue<T>::Value;
+}
+
+
 /// @}
 
 }  // namespace field

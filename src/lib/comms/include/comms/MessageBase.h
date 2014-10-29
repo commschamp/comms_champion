@@ -53,24 +53,17 @@ class MessageBase<TMessage, option::NumIdImpl<TId>, TRest...> :
 {
     typedef MessageBase<TMessage, TRest...> Base;
     typedef typename Base::MsgParamType MsgParamType;
+public:
+    static const bool HasStaticMsgId = true;
+    static const auto MsgId = static_cast<typename Base::MsgIdType>(TId);
 
 protected:
     using Base::MessageBase;
 
     virtual MsgParamType getIdImpl() const override
     {
-        return static_cast<typename Base::MsgIdType>(TId);
+        return MsgId;
     }
-
-#ifndef COMMS_NO_DISPATCH
-
-    virtual void dispatchImpl(typename Base::Handler& handler) override
-    {
-        handler.handle(static_cast<TMessage&>(*this));
-    }
-
-#endif // #ifndef COMMS_NO_DISPATCH
-
 };
 
 template <typename TMessage,

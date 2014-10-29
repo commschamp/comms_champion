@@ -29,6 +29,7 @@
 #include "comms/util/Tuple.h"
 #include "ProtocolLayerBase.h"
 #include "details/MsgIdLayerBase.h"
+#include "comms/fields.h"
 
 namespace comms
 {
@@ -172,8 +173,9 @@ public:
 
     typedef typename Base::Field Field;
 
-    static_assert(comms::field::isBasicIntValue<Field>(),
-        "Field must be of BasicIntValue type");
+    static_assert(
+        comms::field::isBasicIntValue<Field>() || comms::field::isBasicEnumValue<Field>(),
+        "Field must be of BasicIntValue or BasicEnumValue types");
 
     template <typename... TArgs>
     explicit MsgIdLayer(TArgs&&... args)
@@ -378,7 +380,7 @@ private:
     template <typename TMessage>
     using MsgFactory =
         typename std::conditional<
-            std::is_arithmetic<MsgIdType>::value || std::is_enum<MsgIdType>::value,
+            TMessage::HasStaticMsgId,
             NumIdMsgFactory<TMessage>,
             GenericMsgFactory<TMessage>
         >::type;

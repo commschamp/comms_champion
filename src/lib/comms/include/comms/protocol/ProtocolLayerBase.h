@@ -107,12 +107,131 @@ public:
     }
 
 protected:
+
+    class NextLayerReader
+    {
+    public:
+        explicit NextLayerReader(NextLayer& nextLayer)
+          : nextLayer_(nextLayer)
+        {
+        }
+
+        template <typename TMsgPtr>
+        ErrorStatus read(
+            TMsgPtr& msg,
+            ReadIterator& iter,
+            std::size_t size,
+            std::size_t* missingSize)
+        {
+            return nextLayer_.read(msg, iter, size, missingSize);
+        }
+    private:
+        NextLayer& nextLayer_;
+    };
+
+    template <std::size_t TIdx, typename TAllFields>
+    class NextLayerCachedFieldsReader
+    {
+    public:
+        NextLayerCachedFieldsReader(
+            NextLayer& nextLayer,
+            TAllFields& allFields)
+          : nextLayer_(nextLayer),
+            allFields_(allFields)
+        {
+        }
+
+        template<typename TMsgPtr>
+        ErrorStatus read(
+            TMsgPtr& msg,
+            ReadIterator& iter,
+            std::size_t size,
+            std::size_t* missingSize)
+        {
+            return nextLayer_.template readFieldsCached<TIdx + 1>(allFields_, msg, iter, size, missingSize);
+        }
+
+    private:
+        NextLayer& nextLayer_;
+        TAllFields& allFields_;
+    };
+
+    class NextLayerWriter
+    {
+    public:
+
+        explicit NextLayerWriter(const NextLayer& nextLayer)
+          : nextLayer_(nextLayer)
+        {
+        }
+
+        ErrorStatus write(
+            const Message& msg,
+            WriteIterator& iter,
+            std::size_t size) const
+        {
+            return nextLayer_.write(msg, iter, size);
+        }
+
+    private:
+        const NextLayer& nextLayer_;
+    };
+
+    template <std::size_t TIdx, typename TAllFields>
+    class NextLayerCachedFieldsWriter
+    {
+    public:
+        NextLayerCachedFieldsWriter(
+            const NextLayer nextLayer,
+            TAllFields& allFields)
+          : nextLayer_(nextLayer),
+            allFields_(allFields)
+        {
+        }
+
+        ErrorStatus write(
+            const Message& msg,
+            WriteIterator& iter,
+            std::size_t size) const
+        {
+            return nextLayer_.template writeFieldsCached<TIdx + 1>(allFields_, msg, iter, size);
+        }
+
+    private:
+        const NextLayer& nextLayer_;
+        TAllFields& allFields_;
+    };
+
     void updateMissingSize(std::size_t size, std::size_t* missingSize)
     {
         if (missingSize != nullptr) {
             GASSERT(size <= length());
             *missingSize = std::max(std::size_t(1U), length() - size);
         }
+    }
+
+    NextLayerReader createNextLayerReader()
+    {
+        return NextLayerReader(nextLayer_);
+    }
+
+    template <std::size_t TIdx, typename TAllFields>
+    NextLayerCachedFieldsReader<TIdx, TAllFields>
+    createNextLayerCachedFieldsReader(TAllFields& fields)
+    {
+        return NextLayerCachedFieldsReader<TIdx, TAllFields>(nextLayer_, fields);
+    }
+
+    NextLayerWriter createNextLayerWriter() const
+    {
+        return NextLayerWriter(nextLayer_);
+    }
+
+    template <std::size_t TIdx, typename TAllFields>
+    NextLayerCachedFieldsWriter<TIdx, TAllFields>
+    createNextLayerCachedFieldsWriter(TAllFields& fields) const
+    {
+        return NextLayerCachedFieldsWriter<TIdx, TAllFields>(nextLayer_, fields);
     }
 
 private:

@@ -37,6 +37,7 @@ public:
     void test8();
     void test9();
     void test10();
+    void test11();
 
 private:
 
@@ -392,3 +393,32 @@ void MsgSizeLayerTestSuite::test10()
     TS_ASSERT(msgPtr3);
     TS_ASSERT_EQUALS(msgPtr3->getId(), MessageType3);
 }
+
+void MsgSizeLayerTestSuite::test11()
+{
+    static const char Buf[] = {
+        0x0, 0xb, MessageType3, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeSizeField20, BeIdField1, BeMsgBase>;
+    ProtStack stack;
+
+    using AllFields = ProtStack::AllFields;
+    AllFields fields;
+
+    auto msgPtr = commonReadWriteMsgTest(stack, fields, Buf, BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType3);
+
+    TS_ASSERT_EQUALS(std::get<0>(fields).getValue(), 0x0b);
+    TS_ASSERT_EQUALS(std::get<1>(fields).getValue(), MessageType3);
+
+    auto& msg = dynamic_cast<BeMsg3&>(*msgPtr);
+    auto& msgFields = msg.getFields();
+    TS_ASSERT_EQUALS(std::get<0>(msgFields).getValue(), 0x01020304);
+    TS_ASSERT_EQUALS(std::get<1>(msgFields).getValue(), 0x05);
+    TS_ASSERT_EQUALS(std::get<2>(msgFields).getValue(), 0x0607);
+    TS_ASSERT_EQUALS(std::get<3>(msgFields).getValue(), 0x08090a);
+}
+

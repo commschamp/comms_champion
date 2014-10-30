@@ -242,7 +242,7 @@ public:
         std::size_t* missingSize = nullptr)
     {
         Field field;
-        return readInternal(field, msgPtr, iter, size, missingSize, NextLayerReader());
+        return readInternal(field, msgPtr, iter, size, missingSize, Base::createNextLayerReader());
     }
 
     template <std::size_t TIdx, typename TAllFields>
@@ -263,9 +263,8 @@ public:
                 iter,
                 size,
                 missingSize,
-                NextLayerCachedFieldsReader<TIdx, TAllFields>(allFields));
+                Base::template createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
-
 
     /// @brief Serialise message into output data sequence.
     /// @details The function will write ID of the message to the data
@@ -288,7 +287,7 @@ public:
         std::size_t size) const
     {
         Field field(msg.getId());
-        return writeInternal(field, msg, iter, size, NextLayerWriter());
+        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
     }
 
     template <std::size_t TIdx, typename TAllFields>
@@ -308,7 +307,7 @@ public:
                 msg,
                 iter,
                 size,
-                NextLayerCachedFieldsWriter<TIdx, TAllFields>(allFields));
+                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
     }
 
     MsgPtr createMsg(MsgIdParamType id)
@@ -323,85 +322,6 @@ public:
     }
 
 private:
-
-    class NextLayerReader
-    {
-    public:
-
-        ErrorStatus read(
-            NextLayer& nextLayer,
-            MsgPtr& msg,
-            ReadIterator& iter,
-            std::size_t size,
-            std::size_t* missingSize)
-        {
-            return nextLayer.read(msg, iter, size, missingSize);
-        }
-    };
-
-    template <std::size_t TIdx, typename TAllFields>
-    class NextLayerCachedFieldsReader
-    {
-    public:
-        NextLayerCachedFieldsReader(
-            TAllFields& allFields)
-          : allFields_(allFields)
-        {
-        }
-
-        ErrorStatus read(
-            NextLayer& nextLayer,
-            MsgPtr& msg,
-            ReadIterator& iter,
-            std::size_t size,
-            std::size_t* missingSize)
-        {
-            return nextLayer.readFieldsCached<TIdx + 1>(allFields_, msg, iter, size, missingSize);
-        }
-
-    private:
-        TAllFields& allFields_;
-    };
-
-
-
-    class NextLayerWriter
-    {
-    public:
-
-        ErrorStatus write(
-            const NextLayer& nextLayer,
-            const Message& msg,
-            WriteIterator& iter,
-            std::size_t size) const
-        {
-            return nextLayer.write(msg, iter, size);
-        }
-    };
-
-    template <std::size_t TIdx, typename TAllFields>
-    class NextLayerCachedFieldsWriter
-    {
-    public:
-        NextLayerCachedFieldsWriter(
-            TAllFields& allFields)
-          : allFields_(allFields)
-        {
-        }
-
-        ErrorStatus write(
-            const NextLayer& nextLayer,
-            const Message& msg,
-            WriteIterator& iter,
-            std::size_t size) const
-        {
-            return nextLayer.writeFieldsCached<TIdx + 1>(allFields_, msg, iter, size);
-        }
-
-    private:
-        TAllFields& allFields_;
-    };
-
 
     /// @cond DOCUMENT_MSG_ID_PROTOCOL_LAYER_FACTORY
     class Factory
@@ -525,7 +445,7 @@ private:
             return ErrorStatus::MsgAllocFaulure;
         }
 
-        es = reader.read(Base::nextLayer(), msgPtr, iter, size - field.length(), missingSize);
+        es = reader.read(msgPtr, iter, size - field.length(), missingSize);
         if (es != ErrorStatus::Success) {
             msgPtr.reset();
         }
@@ -547,7 +467,7 @@ private:
         }
 
         GASSERT(field.length() <= size);
-        return nextLayerWriter.write(Base::nextLayer(), msg, iter, size - field.length());
+        return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
     Factories factories_;

@@ -114,37 +114,35 @@ public:
         std::size_t* missingSize = nullptr)
     {
         Field field;
-        auto es = field.read(iter, size);
-        if (es == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(size, missingSize);
-        }
+        return
+            readInternal(
+                field,
+                msgPtr,
+                iter,
+                size,
+                missingSize,
+                Base::createNextLayerReader());
+    }
 
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        static const auto Offset = static_cast<std::size_t>(Field::Offset);
-        auto serialisedValue = static_cast<std::size_t>(field.getSerialisedValue());
-        if ((0 < Offset) && (serialisedValue < Field::Offset)) {
-            return ErrorStatus::ProtocolError;
-        }
-
-        auto actualRemainingSize = (size - Field::length());
-        auto requiredRemainingSize = static_cast<std::size_t>(field.getValue());
-
-        if (actualRemainingSize < requiredRemainingSize) {
-            if (missingSize != nullptr) {
-                *missingSize = requiredRemainingSize - actualRemainingSize;
-            }
-            return ErrorStatus::NotEnoughData;
-        }
-
-        // not passing missingSize farther on purpose
-        es = Base::nextLayer().read(msgPtr, iter, requiredRemainingSize);
-        if (es == ErrorStatus::NotEnoughData) {
-            return ErrorStatus::ProtocolError;
-        }
-        return es;
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
+    ErrorStatus readFieldsCached(
+        TAllFields& allFields,
+        TMsgPtr& msgPtr,
+        ReadIterator& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be a tuple");
+        auto& field = std::get<TIdx>(allFields);
+        return
+            readInternal(
+                field,
+                msgPtr,
+                iter,
+                size,
+                missingSize,
+                Base::template createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
 
     /// @brief Serialise message into the output data sequence.
@@ -176,7 +174,31 @@ public:
             std::size_t size) const
     {
         typedef typename std::iterator_traits<WriteIterator>::iterator_category IterType;
-        return write(msg, iter, size, IterType());
+        Field field(static_cast<typename Field::ValueType>(0));
+        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), IterType());
+    }
+
+    template <std::size_t TIdx, typename TAllFields>
+    ErrorStatus writeFieldsCached(
+        TAllFields& allFields,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size) const
+    {
+        typedef typename std::iterator_traits<WriteIterator>::iterator_category IterType;
+
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be a tuple");
+        auto& field = std::get<TIdx>(allFields);
+        field.setValue(msg.getId());
+        return
+            writeInternal(
+                field,
+                msg,
+                iter,
+                size,
+                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
+                IterType());
     }
 
     /// @brief Update the recently written output data sequence.
@@ -202,44 +224,92 @@ public:
 
 private:
 
-    ErrorStatus write(
-                const Message& msg,
-                WriteIterator& iter,
-                std::size_t size,
-                const std::random_access_iterator_tag& tag) const
+    template <typename TMsgPtr, typename TReader>
+    ErrorStatus readInternal(
+        Field& field,
+        TMsgPtr& msgPtr,
+        ReadIterator& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TReader&& reader)
     {
-        return writeRandomAccessIter(msg, iter, size);
+        auto es = field.read(iter, size);
+        if (es == ErrorStatus::NotEnoughData) {
+            Base::updateMissingSize(size, missingSize);
+        }
+
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        static const auto Offset = static_cast<std::size_t>(Field::Offset);
+        auto serialisedValue = static_cast<std::size_t>(field.getSerialisedValue());
+        if ((0 < Offset) && (serialisedValue < Field::Offset)) {
+            return ErrorStatus::ProtocolError;
+        }
+
+        auto actualRemainingSize = (size - Field::length());
+        auto requiredRemainingSize = static_cast<std::size_t>(field.getValue());
+
+        if (actualRemainingSize < requiredRemainingSize) {
+            if (missingSize != nullptr) {
+                *missingSize = requiredRemainingSize - actualRemainingSize;
+            }
+            return ErrorStatus::NotEnoughData;
+        }
+
+        // not passing missingSize farther on purpose
+        es = reader.read(msgPtr, iter, requiredRemainingSize, nullptr);
+        if (es == ErrorStatus::NotEnoughData) {
+            return ErrorStatus::ProtocolError;
+        }
+        return es;
     }
 
-    ErrorStatus write(
-                    const Message& msg,
-                    WriteIterator& iter,
-                    std::size_t size,
-                    const std::output_iterator_tag& tag) const
+    template <typename TWriter>
+    ErrorStatus writeInternal(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter,
+        const std::random_access_iterator_tag& tag) const
     {
-        return writeOutputIter(msg, iter, size);
+        return writeRandomAccessIter(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
+    template <typename TWriter>
+    ErrorStatus writeInternal(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter,
+        std::output_iterator_tag) const
+    {
+        return writeOutputIter(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
+    }
+
+    template <typename TWriter>
     ErrorStatus writeRandomAccessIter(
-                const Message& msg,
-                WriteIterator& iter,
-                std::size_t size) const
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter) const
     {
         WriteIterator firstIter(iter);
-
-        typedef typename Field::ValueType ValueType;
-        Field field(static_cast<ValueType>(0));
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
 
         GASSERT(field.length() <= size);
-        es = Base::nextLayer().write(msg, iter, size - field.length());
+        es = nextLayerWriter.write(msg, iter, size - field.length());
         if (es == ErrorStatus::Success)
         {
             field.setValue(
-                static_cast<ValueType>(
+                static_cast<typename Field::ValueType>(
                     std::distance(firstIter, iter) - field.length()));
 
             es = field.write(firstIter, field.length());
@@ -248,13 +318,14 @@ private:
         return es;
     }
 
+    template <typename TWriter>
     ErrorStatus writeOutputIter(
-                    const Message& msg,
-                    WriteIterator& iter,
-                    std::size_t size) const
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter) const
     {
-        typedef typename Field::ValueType ValueType;
-        Field field(static_cast<ValueType>(0));
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
@@ -269,12 +340,7 @@ private:
 
         return ErrorStatus::UpdateRequired;
     }
-
-
 };
-
-// Implementation
-
 
 
 }  // namespace protocol

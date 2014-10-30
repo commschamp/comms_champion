@@ -251,8 +251,7 @@ private:
     ErrorStatus writeOutputIter(
                     const Message& msg,
                     WriteIterator& iter,
-                    std::size_t size,
-                    const std::output_iterator_tag& tag) const
+                    std::size_t size) const
     {
         typedef typename Field::ValueType ValueType;
         Field field(static_cast<ValueType>(0));

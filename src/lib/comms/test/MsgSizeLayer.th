@@ -1,0 +1,394 @@
+//
+// Copyright 2014 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#include <cstdint>
+#include <cstddef>
+#include <algorithm>
+#include <iterator>
+
+#include "comms/comms.h"
+#include "cxxtest/TestSuite.h"
+#include "CommsTestCommon.h"
+
+class MsgSizeLayerTestSuite : public CxxTest::TestSuite
+{
+public:
+    void test1();
+    void test2();
+    void test3();
+    void test4();
+    void test5();
+    void test6();
+    void test7();
+    void test8();
+    void test9();
+    void test10();
+
+private:
+
+    struct CommonTraits
+    {
+        typedef MessageType MsgIdType;
+        typedef const char* ReadIterator;
+        typedef char* WriteIterator;
+    };
+
+    struct BackInsertTraits
+    {
+        typedef MessageType MsgIdType;
+        typedef const char* ReadIterator;
+        typedef std::back_insert_iterator<std::vector<char> > WriteIterator;
+    };
+
+    struct BeTraits : public CommonTraits
+    {
+        typedef comms::traits::endian::Big Endianness;
+    };
+
+    struct LeTraits : public CommonTraits
+    {
+        typedef comms::traits::endian::Little Endianness;
+    };
+
+    struct BeBackInsertTraits : public BackInsertTraits
+    {
+        typedef comms::traits::endian::Big Endianness;
+    };
+
+    typedef TestMessageBase<BeTraits> BeMsgBase;
+    typedef TestMessageBase<LeTraits> LeMsgBase;
+    typedef TestMessageBase<BeBackInsertTraits> BeBackInsertMsgBase;
+
+    typedef typename BeMsgBase::Field BeField;
+    typedef typename LeMsgBase::Field LeField;
+    typedef typename BeBackInsertMsgBase::Field BeBackInsertField;
+
+    typedef Message1<BeMsgBase> BeMsg1;
+    typedef Message1<LeMsgBase> LeMsg1;
+    typedef Message1<BeBackInsertMsgBase> BeBackInsertMsg1;
+    typedef Message2<BeMsgBase> BeMsg2;
+    typedef Message2<LeMsgBase> LeMsg2;
+    typedef Message3<BeMsgBase> BeMsg3;
+    typedef Message3<LeMsgBase> LeMsg3;
+    typedef Message3<BeBackInsertMsgBase> BeBackInsertMsg3;
+
+
+    template <typename TField, std::size_t TSize, std::size_t TOffset = 0>
+    using SizeField =
+        comms::field::BasicIntValue<
+            TField,
+            unsigned,
+            comms::field::option::LengthLimitImpl<TSize>,
+            comms::field::option::SerOffsetImpl<TOffset>
+        >;
+
+    template <typename TField>
+    using SizeField20 = SizeField<TField, 2, 0>;
+    using BeSizeField20 = SizeField20<BeField>;
+    using LeSizeField20 = SizeField20<LeField>;
+    using BeBackInsertSizeField20 = SizeField20<BeBackInsertField>;
+
+    template <typename TField>
+    using SizeField30 = SizeField<TField, 3, 0>;
+    using BeSizeField30 = SizeField30<BeField>;
+    using LeSizeField30 = SizeField30<LeField>;
+
+    template <typename TField>
+    using SizeField22 = SizeField<TField, 2, 2>;
+    using BeSizeField22 = SizeField22<BeField>;
+    using LeSizeField22 = SizeField22<LeField>;
+
+    template <typename TField, std::size_t TLen>
+    using IdField =
+        comms::field::BasicEnumValue<
+            TField,
+            MessageType,
+            comms::field::option::LengthLimitImpl<TLen>
+        >;
+
+    template <typename TField>
+    using IdField1 = IdField<TField, 1>;
+    using BeIdField1 = IdField1<BeField>;
+    using LeIdField1 = IdField1<LeField>;
+    using BeBackInsertIdField1 = IdField1<BeBackInsertField>;
+
+    template <typename TField>
+    using IdField2 = IdField<TField, 2>;
+    using BeIdField2 = IdField2<BeField>;
+    using LeIdField2 = IdField2<LeField>;
+
+//    struct Traits1 {
+//        typedef embxx::comms::traits::endian::Big Endianness;
+//        typedef const char* ReadIterator;
+//        typedef char* WriteIterator;
+//        static const std::size_t MsgIdLen = 1;
+//        static const std::size_t MsgSizeLen = 2;
+//        static const std::size_t ExtraSizeValue = 0;
+//    };
+//
+//    struct Traits2 {
+//        typedef embxx::comms::traits::endian::Little Endianness;
+//        typedef const char* ReadIterator;
+//        typedef char* WriteIterator;
+//        static const std::size_t MsgIdLen = 2;
+//        static const std::size_t MsgSizeLen = 3;
+//        static const std::size_t ExtraSizeValue = 0;
+//    };
+//
+//    struct Traits3 {
+//        typedef embxx::comms::traits::endian::Big Endianness;
+//        typedef const char* ReadIterator;
+//        typedef char* WriteIterator;
+//        static const std::size_t MsgIdLen = 1;
+//        static const std::size_t MsgSizeLen = 2;
+//        static const std::size_t ExtraSizeValue = MsgSizeLen;
+//    };
+//
+//    struct Traits4 {
+//        typedef embxx::comms::traits::endian::Big Endianness;
+//        typedef const char* ReadIterator;
+//        typedef std::back_insert_iterator<std::vector<char> > WriteIterator;
+//        static const std::size_t MsgIdLen = 1;
+//        static const std::size_t MsgSizeLen = 2;
+//        static const std::size_t ExtraSizeValue = 0;
+//    };
+//
+
+    template <typename TSizeField, typename TIdField, typename TMessage>
+    using ProtocolStack =
+        comms::protocol::MsgSizeLayer<
+            TSizeField,
+            comms::protocol::MsgIdLayer<
+                TIdField,
+                AllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<TMessage>
+            >
+        >;
+
+    template <typename TIdField, typename TSizeField, typename TMessage>
+    using RevProtocolStack =
+        comms::protocol::MsgIdLayer<
+            TIdField,
+            AllMessages<TMessage>,
+            comms::protocol::MsgSizeLayer<
+                TSizeField,
+                comms::protocol::MsgDataLayer<TMessage>
+            >
+        >;
+
+    template <typename TSizeField, typename TIdField, typename TMessage>
+    using InPlaceProtocolStack =
+        comms::protocol::MsgSizeLayer<
+            TSizeField,
+            comms::protocol::MsgIdLayer<
+                TIdField,
+                AllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<TMessage>,
+                comms::protocol::option::InPlaceAllocation
+            >
+        >;
+};
+
+void MsgSizeLayerTestSuite::test1()
+{
+    static const char Buf[] = {
+        0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    ProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).getValue(), 0x0102);
+
+    InPlaceProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> inPlaceStack;
+    auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr2);
+    TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
+    auto& msg2 = dynamic_cast<BeMsg1&>(*msgPtr2);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).getValue(), 0x0102);
+
+    TS_ASSERT_EQUALS(msg1, msg2);
+
+    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFaulure);
+    TS_ASSERT(!msgPtr3);
+}
+
+void MsgSizeLayerTestSuite::test2()
+{
+    LeMsg1 msg;
+    std::get<0>(msg.getFields()).setValue(0x0304);
+
+    static const char ExpectedBuf[] = {
+        0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
+    char buf[BufSize] = {0};
+
+    ProtocolStack<LeSizeField30, LeIdField2, LeMsgBase> stack;
+    commonWriteReadMsgTest(stack, msg, buf, BufSize, &ExpectedBuf[0]);
+
+    InPlaceProtocolStack<LeSizeField30, LeIdField2, LeMsgBase> inPlaceStack;
+    commonWriteReadMsgTest(inPlaceStack, msg, buf, BufSize, &ExpectedBuf[0]);
+}
+
+
+void MsgSizeLayerTestSuite::test3()
+{
+    static const char Buf[] = {
+        0x0, 0x2, MessageType1, 0x00, 0x00
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    ProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::ProtocolError);
+    TS_ASSERT(!msgPtr);
+
+    InPlaceProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> inPlaceStack;
+    auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::ProtocolError);
+    TS_ASSERT(!msgPtr2);
+}
+
+void MsgSizeLayerTestSuite::test4()
+{
+    static const char Buf[] = {
+        0x0
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    ProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT(!msgPtr);
+
+    InPlaceProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> inPlaceStack;
+    auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT(!msgPtr2);
+}
+
+void MsgSizeLayerTestSuite::test5()
+{
+    LeMsg1 msg;
+    std::get<0>(msg.getFields()).setValue(0x0203);
+
+    char buf[2] = {0};
+    static const std::size_t BufSize = std::extent<decltype(buf)>::value;
+
+    ProtocolStack<LeSizeField30, LeIdField2, LeMsgBase> stack;
+    commonWriteReadMsgTest(stack, msg, buf, BufSize, nullptr, comms::ErrorStatus::BufferOverflow);
+
+    InPlaceProtocolStack<LeSizeField30, LeIdField2, LeMsgBase> inPlaceStack;
+    commonWriteReadMsgTest(inPlaceStack, msg, buf, BufSize, nullptr, comms::ErrorStatus::BufferOverflow);
+}
+
+void MsgSizeLayerTestSuite::test6()
+{
+    static const char Buf[] = {
+        MessageType1, 0x0, 0x2, 0x01, 0x02, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    RevProtocolStack<BeIdField1, BeSizeField20, BeMsgBase> stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg = dynamic_cast<BeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).getValue(), 0x0102);
+}
+
+void MsgSizeLayerTestSuite::test7()
+{
+    static const char Buf[] = {
+        MessageType1, 0x0, 0x4, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    RevProtocolStack<BeIdField1, BeSizeField22, BeMsgBase> stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg = dynamic_cast<BeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).getValue(), 0x0102);
+}
+
+void MsgSizeLayerTestSuite::test8()
+{
+    static const char Buf[] = {
+        0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    ProtocolStack<BeBackInsertSizeField20, BeBackInsertIdField1, BeBackInsertMsgBase> stack;
+    auto msgPtr = vectorBackInsertReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<BeBackInsertMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).getValue(), 0x0102);
+
+    InPlaceProtocolStack<BeBackInsertSizeField20, BeBackInsertIdField1, BeBackInsertMsgBase> inPlaceStack;
+    auto msgPtr2 = vectorBackInsertReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr2);
+    TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
+    auto& msg2 = dynamic_cast<BeBackInsertMsg1&>(*msgPtr2);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).getValue(), 0x0102);
+
+    TS_ASSERT_EQUALS(msg1, msg2);
+
+    auto msgPtr3 = vectorBackInsertReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFaulure);
+    TS_ASSERT(!msgPtr3);
+}
+
+void MsgSizeLayerTestSuite::test9()
+{
+    BeBackInsertMsg3 msg;
+    TS_ASSERT(!msg.valid());
+    auto& fields = msg.getFields();
+    std::get<0>(fields).setValue(0x01020304);
+    std::get<1>(fields).setValue(0x05);
+    std::get<2>(fields).setValue(0x0607);
+    std::get<3>(fields).setValue(0x08090a);
+
+    static const char ExpectedBuf[] = {
+        0x0, 0xb, MessageType3, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa
+    };
+    static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
+
+    ProtocolStack<BeBackInsertSizeField20, BeBackInsertIdField1, BeBackInsertMsgBase> stack;
+    vectorBackInsertWriteReadMsgTest(stack, msg, ExpectedBuf, BufSize);
+}
+
+void MsgSizeLayerTestSuite::test10()
+{
+    RevProtocolStack<BeIdField1, BeSizeField22, BeMsgBase> stack;
+    auto msgPtr1 = stack.createMsg(MessageType1);
+    TS_ASSERT(msgPtr1);
+    TS_ASSERT_EQUALS(msgPtr1->getId(), MessageType1);
+    auto msgPtr2 = stack.createMsg(MessageType2);
+    TS_ASSERT(msgPtr2);
+    TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType2);
+    auto msgPtr3 = stack.createMsg(MessageType3);
+    TS_ASSERT(msgPtr3);
+    TS_ASSERT_EQUALS(msgPtr3->getId(), MessageType3);
+}

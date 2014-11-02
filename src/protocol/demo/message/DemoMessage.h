@@ -16,25 +16,36 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "HeartbeatMsg.h"
+#pragma once
+
+#include "comms/comms.h"
 
 namespace demo
 {
 
-namespace
+namespace message
 {
 
-const char* HeartbeatName = "Heartbeat";
-
-}  // namespace
-
-const char* HeartbeatMsg::nameImpl() const
+enum MsgId
 {
-    return HeartbeatName;
-}
+    MsgId_Heartbeat
+};
+
+struct DemoDefaultTraits
+{
+    typedef MsgId MsgIdType;
+    typedef comms::traits::endian::Big Endianness;
+    typedef const char* ReadIterator;
+    typedef char* WriteIterator;
+};
+
+template <typename TTraits = DemoDefaultTraits>
+using DemoMessageT = comms::Message<TTraits>;
+
+using DemoMessage = DemoMessageT<DemoDefaultTraits>;
+
+}  // namespace message
 
 }  // namespace demo
-
-
 
 

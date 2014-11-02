@@ -16,13 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#pragma once
-
-#include <QtCore/QObject>
-#include <QtCore/QtPlugin>
-#include "comms_champion/comms_champion.h"
-
-namespace cc = comms_champion;
+#include "CCHeartbeat.h"
 
 namespace demo
 {
@@ -30,19 +24,28 @@ namespace demo
 namespace plugin
 {
 
-class DemoPlugin : public QObject, public cc::ProtocolPlugin
+namespace message
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
-    Q_INTERFACES(comms_champion::ProtocolPlugin)
 
-public:
+namespace
+{
 
-    virtual void initialize() override;
-    virtual void finalize() override;
-    virtual ProtocolPtr alloc() override;
-};
+const char* HeartbeatName = "Heartbeat";
+
+}  // namespace
+
+const char* CCHeartbeat::nameImpl() const
+{
+    return HeartbeatName;
+}
+
+}  // namespace message
 
 }  // namespace plugin
 
+
 }  // namespace demo
+
+
+
+

@@ -12,7 +12,6 @@ function (bin_comms_champion)
         moc
         ${_inc_dir}/MsgMgr.h
         ${_inc_dir}/Message.h            
-        ${_inc_dir}/ProtocolPlugin.h
     )
     
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)

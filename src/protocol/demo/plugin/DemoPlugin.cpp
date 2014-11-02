@@ -24,6 +24,9 @@
 namespace demo
 {
 
+namespace plugin
+{
+
 void DemoPlugin::initialize()
 {
     std::cout << "Plugin initialized!!!" << std::endl;
@@ -38,6 +41,8 @@ DemoPlugin::ProtocolPtr DemoPlugin::alloc()
 {
     return ProtocolPtr(new Protocol());
 }
+
+}  // namespace plugin
 
 }  // namespace demo
 

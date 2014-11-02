@@ -95,15 +95,16 @@ class MessageBase<TMessage, option::FieldsImpl<TFields>, TRest...> :
 {
     typedef MessageBase<TMessage, TRest...> Base;
     typedef option::FieldsImpl<TFields> FieldsOption;
-    typedef typename FieldsOption::Fields Fields;
 
 public:
-    Fields& getFields()
+    typedef typename FieldsOption::Fields AllFields;
+
+    AllFields& getFields()
     {
         return fields_;
     }
 
-    const Fields& getFields() const
+    const AllFields& getFields() const
     {
         return fields_;
     }
@@ -234,7 +235,7 @@ private:
 
     /// @endcond
 
-    Fields fields_;
+    AllFields fields_;
 };
 
 template <typename TMessage,

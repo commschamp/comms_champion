@@ -18,11 +18,9 @@
 
 #pragma once
 
-#include <QtCore/QObject>
-#include <QtCore/QtPlugin>
-#include "comms_champion/comms_champion.h"
-
-namespace cc = comms_champion;
+#include "CCDemoMessage.h"
+#include "comms/comms.h"
+#include "message/Heartbeat.h"
 
 namespace demo
 {
@@ -30,19 +28,29 @@ namespace demo
 namespace plugin
 {
 
-class DemoPlugin : public QObject, public cc::ProtocolPlugin
+namespace message
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
-    Q_INTERFACES(comms_champion::ProtocolPlugin)
 
+class CCHeartbeat : public demo::message::Heartbeat<CCDemoMessage>
+{
+    using Base = demo::message::Heartbeat<CCDemoMessage>;
 public:
 
-    virtual void initialize() override;
-    virtual void finalize() override;
-    virtual ProtocolPtr alloc() override;
+    CCHeartbeat() = default;
+    CCHeartbeat(const CCHeartbeat&) = default;
+    virtual ~CCHeartbeat() = default;
+
+    CCHeartbeat& operator=(const CCHeartbeat&) = default;
+
+protected:
+    virtual const char* nameImpl() const override;
+
 };
+
+}  // namespace message
 
 }  // namespace plugin
 
 }  // namespace demo
+
+

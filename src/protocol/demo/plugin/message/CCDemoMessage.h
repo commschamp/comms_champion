@@ -18,11 +18,8 @@
 
 #pragma once
 
-#include <QtCore/QObject>
-#include <QtCore/QtPlugin>
-#include "comms_champion/comms_champion.h"
-
-namespace cc = comms_champion;
+#include "comms_champion/Message.h"
+#include "message/DemoMessage.h"
 
 namespace demo
 {
@@ -30,19 +27,23 @@ namespace demo
 namespace plugin
 {
 
-class DemoPlugin : public QObject, public cc::ProtocolPlugin
+namespace message
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
-    Q_INTERFACES(comms_champion::ProtocolPlugin)
 
+class CCDemoMessage : public comms_champion::Message,
+                      public demo::message::DemoMessage
+{
 public:
+    CCDemoMessage() = default;
+    CCDemoMessage(const CCDemoMessage&) = default;
+    virtual ~CCDemoMessage() = default;
 
-    virtual void initialize() override;
-    virtual void finalize() override;
-    virtual ProtocolPtr alloc() override;
+    CCDemoMessage& operator=(const CCDemoMessage&) = default;
 };
+
+}  // namespace message
 
 }  // namespace plugin
 
 }  // namespace demo
+

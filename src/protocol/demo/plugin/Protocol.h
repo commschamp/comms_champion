@@ -23,6 +23,9 @@
 namespace demo
 {
 
+namespace plugin
+{
+
 class Protocol : public comms_champion::Protocol
 {
 public:
@@ -35,6 +38,8 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr) override;
 };
+
+}  // namespace plugin
 
 }  // namespace demo
 

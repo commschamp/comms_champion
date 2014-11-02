@@ -4,7 +4,7 @@ function (plugin_demo)
     set (src
         DemoPlugin.cpp
         Protocol.cpp
-        HeartbeatMsg.cpp
+        message/CCHeartbeat.cpp
     )
     
     set (hdr

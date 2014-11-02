@@ -18,9 +18,12 @@
 
 #include "Protocol.h"
 
-#include "HeartbeatMsg.h"
+#include "message/CCHeartbeat.h"
 
 namespace demo
+{
+
+namespace plugin
 {
 
 namespace cc = comms_champion;
@@ -33,9 +36,11 @@ cc::ErrorStatus Protocol::read(
         std::size_t size,
         std::size_t* missingSize)
 {
-    msg.reset(new HeartbeatMsg());
+    msg.reset(new message::CCHeartbeat());
     return cc::ErrorStatus::Success;
 }
+
+}  // namespace plugin
 
 }  // namespace demo
 

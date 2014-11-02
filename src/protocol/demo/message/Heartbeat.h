@@ -18,26 +18,38 @@
 
 #pragma once
 
-#include "comms_champion/Message.h"
+#include <tuple>
+
+#include "DemoMessage.h"
 
 namespace demo
 {
 
-class HeartbeatMsg : public comms_champion::Message
+namespace message
 {
-    typedef comms_champion::Message Base;
-public:
 
-    HeartbeatMsg() = default;
-    HeartbeatMsg(const HeartbeatMsg&) = default;
-    ~HeartbeatMsg() = default;
+template <typename TFieldBase>
+using HeatbeatFields =
+    std::tuple<
+        comms::field::BasicIntValue<
+            TFieldBase,
+            unsigned,
+            comms::field::option::
+            LengthLimitImpl<2> >
+    >;
 
-    HeartbeatMsg& operator=(const HeartbeatMsg&) = default;
-
-protected:
-    virtual const char* nameImpl() const override;
-
+template <typename TMsgBase = DemoMessage>
+class Heartbeat : public
+    comms::MessageBase<
+        TMsgBase,
+        comms::option::NumIdImpl<MsgId_Heartbeat>,
+        comms::option::FieldsImpl<HeatbeatFields<typename TMsgBase::Field> >,
+        comms::option::DispatchImpl<Heartbeat<TMsgBase> >
+    >
+{
 };
+
+}  // namespace message
 
 }  // namespace demo
 

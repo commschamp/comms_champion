@@ -18,9 +18,9 @@
 
 #pragma once
 
-#include "CCDemoMessage.h"
 #include "comms/comms.h"
-#include "message/Heartbeat.h"
+#include "plugin/CCDemoMessage.h"
+#include "protocol/message/Heartbeat.h"
 
 namespace demo
 {
@@ -31,9 +31,9 @@ namespace plugin
 namespace message
 {
 
-class CCHeartbeat : public demo::message::Heartbeat<CCDemoMessage>
+class CCHeartbeat : public demo::message::Heartbeat<demo::plugin::CCDemoMessage>
 {
-    using Base = demo::message::Heartbeat<CCDemoMessage>;
+    using Base = demo::message::Heartbeat<demo::plugin::CCDemoMessage>;
 public:
 
     CCHeartbeat() = default;

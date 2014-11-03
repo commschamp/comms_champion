@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include "comms/comms.h"
 
 namespace demo
@@ -35,8 +36,8 @@ struct DemoDefaultTraits
 {
     typedef MsgId MsgIdType;
     typedef comms::traits::endian::Big Endianness;
-    typedef const char* ReadIterator;
-    typedef char* WriteIterator;
+    typedef const std::uint8_t* ReadIterator;
+    typedef std::uint8_t* WriteIterator;
 };
 
 template <typename TTraits = DemoDefaultTraits>

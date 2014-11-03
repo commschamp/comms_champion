@@ -32,7 +32,7 @@ class Protocol
 {
 public:
     typedef std::unique_ptr<Message> MsgPtr;
-    typedef std::uint8_t* ReadIterType;
+    typedef const std::uint8_t* ReadIterType;
 
     virtual ~Protocol() {}
 

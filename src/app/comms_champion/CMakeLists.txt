@@ -3,6 +3,7 @@ function (bin_comms_champion)
 
     set (src
         src/main.cpp
+        src/ErrorStatus.cpp
         src/MsgMgr.cpp
         src/Message.cpp
     )

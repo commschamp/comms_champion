@@ -18,34 +18,30 @@
 
 #pragma once
 
-#include "comms_champion/Protocol.h"
-#include "ProtocolStack.h"
+#include "comms/comms.h"
+#include "protocol/DemoMessage.h"
 
 namespace demo
 {
 
-namespace plugin
+namespace protocol
 {
 
-class Protocol : public comms_champion::Protocol
-{
-public:
-    Protocol() = default;
-    virtual ~Protocol();
+template <typename TMsgBase, typename TAllMessages>
+using Stack = comms::protocol::MsgSizeLayer<
+        comms::field::BasicIntValue<typename TMsgBase::Field, std::uint16_t>,
+        comms::protocol::MsgIdLayer<
+            comms::field::BasicEnumValue<
+                typename TMsgBase::Field,
+                demo::message::MsgId,
+                comms::field::option::LengthLimitImpl<1> >,
+            TAllMessages,
+            comms::protocol::MsgDataLayer<TMsgBase>
+        >
+    >;
 
-    virtual comms_champion::ErrorStatus read(
-        MsgPtr& msg,
-        ReadIterType& iter,
-        std::size_t size,
-        std::size_t* missingSize = nullptr) override;
-
-private:
-    ProtocolStack m_protStack;
-};
-
-}  // namespace plugin
+}  // namespace protocol
 
 }  // namespace demo
-
 
 

@@ -16,12 +16,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include <cassert>
-#include <iostream>
-#include "Protocol.h"
+#pragma once
 
-#include "message/CCHeartbeat.h"
-#include "comms_champion/ErrorStatus.h"
+#include "protocol/Stack.h"
+#include "AllMessages.h"
+#include "CCDemoMessage.h"
 
 namespace demo
 {
@@ -29,30 +28,9 @@ namespace demo
 namespace plugin
 {
 
-namespace cc = comms_champion;
-
-Protocol::~Protocol() = default;
-
-cc::ErrorStatus Protocol::read(
-        MsgPtr& msg,
-        ReadIterType& iter,
-        std::size_t size,
-        std::size_t* missingSize)
-{
-    using ProtocolMsgPtr = ProtocolStack::MsgPtr;
-    ProtocolMsgPtr msgPtr;
-    auto es = m_protStack.read(msgPtr, iter, size, missingSize);
-    if (es != comms::ErrorStatus::Success) {
-        std::cout << "Error status: " << (int)es << std::endl;
-        return comms_champion::transformErrorStatus(es);
-    }
-
-    assert(msgPtr);
-    msg.reset(msgPtr.release());
-    return cc::ErrorStatus::Success;
-}
+using ProtocolStack =
+    demo::protocol::Stack<CCDemoMessage, AllMessages>;
 
 }  // namespace plugin
 
 }  // namespace demo
-

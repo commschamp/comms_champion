@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "comms/ErrorStatus.h"
+
 namespace comms_champion
 {
 
@@ -35,6 +37,8 @@ enum class ErrorStatus {
     MsgAllocFaulure, ///<Used to indicate that message allocation has failed.
     NumOfErrorStatuses ///< Number of supported error statuses, must be last.
 };
+
+ErrorStatus transformErrorStatus(comms::ErrorStatus value);
 
 }  // namespace comms
 

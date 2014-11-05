@@ -34,8 +34,6 @@ class MsgMgr : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
-
     typedef QObject Base;
 public:
     typedef ProtocolPlugin::ProtocolPtr ProtocolPtr;
@@ -43,17 +41,13 @@ public:
     static MsgMgr* instance();
     static MsgMgr& instanceRef();
 
-    QString name() const;
-    void setName(const QString& name);
-
     void addProtocol(ProtocolPtr&& protocol);
 
 public slots:
     void timeout();
 
 signals:
-    void msgReceived(Message* msg);
-    void nameChanged();
+    void sigMsgReceived(Message* msg);
 
 private:
     typedef Protocol::MsgPtr MsgPtr;

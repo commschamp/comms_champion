@@ -53,19 +53,8 @@ void MsgMgr::timeout()
     auto result = protocol.read(msg, iter, BufSize);
     if (msg) {
         m_recvMsgs.push_back(std::move(msg));
-        emit msgReceived(m_recvMsgs.back().get());
+        emit sigMsgReceived(m_recvMsgs.back().get());
     }
-}
-
-QString MsgMgr::name() const
-{
-    return "Hello";
-}
-
-void MsgMgr::setName(const QString& name)
-{
-    Q_UNUSED(name);
-    emit nameChanged();
 }
 
 void MsgMgr::addProtocol(ProtocolPtr&& protocol)

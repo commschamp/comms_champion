@@ -19,6 +19,7 @@
 #pragma once
 
 #include <QtCore/QObject>
+#include <QtCore/QString>
 
 #include "comms_champion/Message.h"
 
@@ -31,6 +32,8 @@ namespace comms_champion
 class GuiAppMgr : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString recvState READ recvState CONSTANT)
+    Q_PROPERTY(QString sendState READ sendState CONSTANT)
 
     typedef QObject Base;
 public:
@@ -40,16 +43,32 @@ public:
 
     Q_INVOKABLE void recvStartClicked();
     Q_INVOKABLE void recvStopClicked();
+    Q_INVOKABLE void recvSaveClicked();
+
+    Q_INVOKABLE void sendStartClicked();
+    Q_INVOKABLE void sendStartAllClicked();
+    Q_INVOKABLE void sendStopClicked();
+    Q_INVOKABLE void sendSaveClicked();
+
+    const QString& recvState() const;
+    const QString& sendState() const;
 
 signals:
     void sigAddRecvMsg(Message* msg);
-    void sigSetRecvState(const std::string& state);
+    void sigSetRecvState(const QString& state);
+    void sigSetSendState(const QString& state);
 
 private:
     GuiAppMgr(QObject* parent = nullptr);
+    void emitRecvStateUpdate();
+    void emitSendStateUpdate();
 
 private slots:
     void msgReceived(Message* msg);
+
+private /*data*/:
+    QString m_recvState;
+    QString m_sendState;
 
 };
 

@@ -3,15 +3,11 @@ import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
 import QtQuick.Layouts 1.1
 import cc.GlobalConstants 1.0
+import cc.GuiAppMgr 1.0
 
 ToolBar {
     id: thisToolbar
-    signal startClicked
-    signal startAllClicked
-    signal stopClicked
-    signal saveClicked
-    
-    state: GlobalConstants.waitingState
+    state: GuiAppMgr.sendState
     
     states: [
         State {
@@ -88,13 +84,13 @@ ToolBar {
             id: startStopButton
             onClicked: {
                 if (thisToolbar.state == GlobalConstants.waitingState) {
-                    thisToolbar.startClicked()
+                    GuiAppMgr.sendStartClicked()
                 }
                 else {
                     console.assert(
                         thisToolbar.state == GlobalConstants.sendingState, 
                         "Unknown state" + thisToolbar.state);
-                    thisToolbar.stopClicked()
+                    GuiAppMgr.sendStopClicked()
                 }
             }
         }
@@ -103,13 +99,13 @@ ToolBar {
             id: startStopAllButton
             onClicked: {
                 if (thisToolbar.state == GlobalConstants.waitingState) {
-                    thisToolbar.startAllClicked()
+                    GuiAppMgr.sendStartAllClicked()
                 }
                 else {
                     console.assert(
                         thisToolbar.state == GlobalConstants.sendingAllState, 
                         "Unknown state" + thisToolbar.state);
-                    thisToolbar.stopClicked()
+                    GuiAppMgr.sendStopClicked()
                 }
             }
         }
@@ -120,8 +116,16 @@ ToolBar {
             iconSource: GlobalConstants.saveIconPathFromQml
             
             onClicked: {
-                thisToolbar.saveClicked()
+                GuiAppMgr.sendSaveClicked()
             }
         }
     }
+    
+    Connections {
+        target: GuiAppMgr
+        onSigSetSendState: {
+            thisToolbar.state = state
+        }
+    }
+
 }

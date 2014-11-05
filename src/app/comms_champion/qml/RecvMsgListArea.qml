@@ -17,34 +17,10 @@ Rectangle {
         title: "Incoming Messages"
         anchors.fill: parent
         
-        state: GlobalConstants.waitingState
-        states: [
-            State {
-                name: GlobalConstants.waitingState
-                PropertyChanges { 
-                    target: recvAreaToolBar
-                    state: GlobalConstants.waitingState
-                }
-            },
-            
-            State {
-                name: GlobalConstants.runningState
-                PropertyChanges { 
-                    target: recvAreaToolBar
-                    state: GlobalConstants.runningState
-                }
-            }
-        ]
+        state: GuiAppMgr.recvState
         
         RecvAreaToolBar {
             id: recvAreaToolBar
-            onStartClicked: {
-                recvArea.state = GlobalConstants.runningState
-            }
-            
-            onStopClicked: {
-                recvArea.state = GlobalConstants.waitingState
-            }
         }
         
         MsgList {
@@ -68,5 +44,13 @@ Rectangle {
                 }
             }
         }
+        
+        Connections {
+            target: GuiAppMgr
+            onSigSetRecvState: {
+                recvArea.state = state
+            }
+    }
+
     }
 }

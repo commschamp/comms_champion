@@ -3,14 +3,11 @@ import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
 import QtQuick.Layouts 1.1
 import cc.GlobalConstants 1.0
+import cc.GuiAppMgr 1.0
 
 ToolBar {
     id: thisToolbar
-    signal startClicked
-    signal stopClicked
-    signal saveClicked
-    
-    state: GlobalConstants.waitingState
+    state: GuiAppMgr.recvState
     
     states: [
         State {
@@ -53,13 +50,13 @@ ToolBar {
             id: startStopButton
             onClicked: {
                 if (thisToolbar.state == GlobalConstants.waitingState) {
-                    thisToolbar.startClicked()
+                    GuiAppMgr.recvStartClicked()
                 }
                 else {
                     console.assert(
                         thisToolbar.state == GlobalConstants.runningState, 
                         "Unknown state" + thisToolbar.state);
-                    thisToolbar.stopClicked()
+                    GuiAppMgr.recvStopClicked()
                 }
             }
         }
@@ -74,4 +71,12 @@ ToolBar {
             }
         }
     }
+    
+    Connections {
+        target: GuiAppMgr
+        onSigSetRecvState: {
+            thisToolbar.state = state
+        }
+    }
+
 }

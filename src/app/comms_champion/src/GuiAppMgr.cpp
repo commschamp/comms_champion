@@ -23,6 +23,8 @@
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QtQml>
 
+#include "GlobalConstants.h"
+
 
 namespace comms_champion
 {
@@ -54,18 +56,70 @@ void GuiAppMgr::qmlRegister()
 
 void GuiAppMgr::recvStartClicked()
 {
-
+    m_recvState = GlobalConstants::runningState();
+    emitRecvStateUpdate();
 }
 
 void GuiAppMgr::recvStopClicked()
 {
+    m_recvState = GlobalConstants::waitingState();
+    emitRecvStateUpdate();
+}
+
+void GuiAppMgr::recvSaveClicked()
+{
 
 }
 
-GuiAppMgr::GuiAppMgr(QObject* parent)
-  : Base(parent)
+void GuiAppMgr::sendStartClicked()
 {
-    connect(MsgMgr::instance(), SIGNAL(msgReceived(Message*)), this, SLOT(msgReceived(Message*)));
+    m_sendState = GlobalConstants::sendingState();
+    emitSendStateUpdate();
+}
+
+void GuiAppMgr::sendStartAllClicked()
+{
+    m_sendState = GlobalConstants::sendingAllState();
+    emitSendStateUpdate();
+}
+
+void GuiAppMgr::sendStopClicked()
+{
+    m_sendState = GlobalConstants::waitingState();
+    emitSendStateUpdate();
+}
+
+void GuiAppMgr::sendSaveClicked()
+{
+
+}
+
+const QString& GuiAppMgr::recvState() const
+{
+    return m_recvState;
+}
+
+const QString& GuiAppMgr::sendState() const
+{
+    return m_recvState;
+}
+
+GuiAppMgr::GuiAppMgr(QObject* parent)
+  : Base(parent),
+    m_recvState(GlobalConstants::waitingState()),
+    m_sendState(GlobalConstants::waitingState())
+{
+    connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(Message*)), this, SLOT(msgReceived(Message*)));
+}
+
+void GuiAppMgr::emitRecvStateUpdate()
+{
+    emit sigSetRecvState(m_recvState);
+}
+
+void GuiAppMgr::emitSendStateUpdate()
+{
+    emit sigSetSendState(m_sendState);
 }
 
 void GuiAppMgr::msgReceived(Message* msg)

@@ -16,40 +16,24 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "comms_champion/MsgMgr.h"
+#include "MsgMgr.h"
 
 #include <cassert>
-
-#include <QtQml/QQmlApplicationEngine>
-#include <QtQml/QtQml>
 
 #include <QtCore/QTimer>
 
 namespace comms_champion
 {
 
-namespace
-{
-
-QObject *getMsgMgr(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
-
-    return MsgMgr::instance();
-}
-
-}  // namespace
-
 MsgMgr* MsgMgr::instance()
 {
-    static MsgMgr* mgr = new MsgMgr();
-    return mgr;
+    return &(instanceRef());
 }
 
-void MsgMgr::qmlRegister()
+MsgMgr& MsgMgr::instanceRef()
 {
-    qmlRegisterSingletonType<MsgMgr>("cc.protocol.MsgMgr", 1, 0, "MsgMgr", &getMsgMgr);
+    static MsgMgr mgr;
+    return mgr;
 }
 
 void MsgMgr::timeout()

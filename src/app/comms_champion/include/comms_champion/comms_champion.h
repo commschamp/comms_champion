@@ -19,7 +19,6 @@
 #pragma once
 
 #include "Message.h"
-#include "MsgMgr.h"
 #include "ErrorStatus.h"
 #include "Protocol.h"
 #include "ProtocolPlugin.h"

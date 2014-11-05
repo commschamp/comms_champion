@@ -2,6 +2,8 @@ import QtQuick 2.1
 import QtQuick.Controls 1.1
 
 ScrollView {
+    id: listView
+    signal msgClicked(int index)
 
     function addMsg(msg) {
         msgList.addMsg(msg)
@@ -32,6 +34,7 @@ ScrollView {
                   
                     onClicked:{
                         msgList.currentIndex = index;
+                        listView.msgClicked(index);
                     }
                 }
             }

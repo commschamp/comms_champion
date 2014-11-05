@@ -22,6 +22,8 @@
 #include <QtCore/QDir>
 
 #include "comms_champion/comms_champion.h"
+#include "GuiAppMgr.h"
+#include "GlobalConstants.h"
 
 #include <iostream>
 
@@ -32,8 +34,9 @@ namespace cc = comms_champion;
 
 void qmlRegisterAll()
 {
-    cc::MsgMgr::qmlRegister();
+    cc::GuiAppMgr::qmlRegister();
     cc::Message::qmlRegister();
+    cc::GlobalConstants::qmlRegister();
 }
 
 }  // namespace

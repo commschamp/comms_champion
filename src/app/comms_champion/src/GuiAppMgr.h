@@ -18,52 +18,41 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include <QtCore/QObject>
 
-#include "Message.h"
-#include "Protocol.h"
-#include "ProtocolPlugin.h"
+#include "comms_champion/Message.h"
+
+#include "MsgMgr.h"
+
 
 namespace comms_champion
 {
 
-class MsgMgr : public QObject
+class GuiAppMgr : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
-
     typedef QObject Base;
 public:
-    typedef ProtocolPlugin::ProtocolPtr ProtocolPtr;
 
-    static MsgMgr* instance();
+    static GuiAppMgr* instance();
     static void qmlRegister();
 
-    QString name() const;
-    void setName(const QString& name);
-
-    void addProtocol(ProtocolPtr&& protocol);
-
-public slots:
-    void timeout();
+    Q_INVOKABLE void recvStartClicked();
+    Q_INVOKABLE void recvStopClicked();
 
 signals:
-    void msgReceived(Message* msg);
-    void nameChanged();
+    void sigAddRecvMsg(Message* msg);
+    void sigSetRecvState(const std::string& state);
 
 private:
-    typedef Protocol::MsgPtr MsgPtr;
-    typedef Protocol::ReadIterType ReadIterType;
+    GuiAppMgr(QObject* parent = nullptr);
 
-    MsgMgr(QObject* parent = nullptr);
-    std::vector<MsgPtr> m_recvMsgs;
+private slots:
+    void msgReceived(Message* msg);
 
-    typedef std::list<ProtocolPtr> ProtocolStack;
-    ProtocolStack m_protStack;
 };
 
 }  // namespace comms_champion
+
+

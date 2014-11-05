@@ -5,13 +5,17 @@ function (bin_comms_champion)
         src/main.cpp
         src/ErrorStatus.cpp
         src/MsgMgr.cpp
+        src/GuiAppMgr.cpp
         src/Message.cpp
+        src/GlobalConstants.cpp
     )
     
     set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/include/comms_champion)
     qt5_wrap_cpp(
         moc
-        ${_inc_dir}/MsgMgr.h
+        src/GuiAppMgr.h
+        src/MsgMgr.h
+        src/GlobalConstants.h
         ${_inc_dir}/Message.h            
     )
     

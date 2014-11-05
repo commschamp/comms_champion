@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/GlobalConstants.qml</file>
         <file>qml/MainWindow.qml</file>
         <file>qml/LeftPane.qml</file>
         <file>qml/RightPane.qml</file>
@@ -9,7 +8,6 @@
         <file>qml/MsgList.qml</file>
         <file>qml/RecvMsgListArea.qml</file>
         <file>qml/SendMsgListArea.qml</file>
-        <file>qml/qmldir</file>
         <file>image/start.png</file>
         <file>image/start_all.png</file>
         <file>image/stop.png</file>

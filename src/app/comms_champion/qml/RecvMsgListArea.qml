@@ -2,10 +2,13 @@ import QtQuick 2.1
 import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
 import QtQuick.Layouts 1.1
-import "."
-import cc.protocol.MsgMgr 1.0
+import cc.GuiAppMgr 1.0
+import cc.GlobalConstants 1.0
 
 Rectangle {
+    id: recvAreaRect
+    signal msgClicked(int index)
+    
     color: GlobalConstants.background
     height: parent.height / 2
     
@@ -50,11 +53,15 @@ Rectangle {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom:parent.bottom
+            
+            onMsgClicked: {
+                recvAreaRect.msgClicked(index);
+            }
         }
         
         Connections {
-            target: MsgMgr
-            onMsgReceived: {
+            target: GuiAppMgr
+            onSigAddRecvMsg: {
                 console.log("Message received: " + msg.name)
                 if (recvArea.state == GlobalConstants.runningState) {
                     msgList.addMsg(msg)

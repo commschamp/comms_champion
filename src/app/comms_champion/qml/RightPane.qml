@@ -1,6 +1,8 @@
 import QtQuick 2.1
 import QtQuick.Controls 1.1
 import cc.GlobalConstants 1.0
+import cc.WidgetProxy 1.0
+import cc.GuiAppMgr 1.0
 
 SplitView {
     orientation: Qt.Vertical
@@ -15,8 +17,21 @@ SplitView {
             title: "Message Details"
             anchors.fill: parent
         
-            Rectangle {
+            /*Rectangle {
                 anchors.fill: parent
+                color: GlobalConstants.background
+            }*/
+            
+            WidgetProxy {
+                id: msgDetailsWidget
+                anchors.fill: parent
+                
+                Connections {
+                    target: GuiAppMgr
+                    onSigDisplayMsgDetailsWidget: {
+                        msgDetailsWidget.updateWidget(widget)
+                    }
+                }
             }
         }
     }

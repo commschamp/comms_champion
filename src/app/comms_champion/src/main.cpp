@@ -24,6 +24,7 @@
 #include "comms_champion/comms_champion.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
+#include "WidgetProxy.h"
 
 #include <iostream>
 
@@ -37,6 +38,7 @@ void qmlRegisterAll()
     cc::GuiAppMgr::qmlRegister();
     cc::Message::qmlRegister();
     cc::GlobalConstants::qmlRegister();
+    cc::WidgetProxy::qmlRegister();
 }
 
 }  // namespace

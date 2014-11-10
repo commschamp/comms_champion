@@ -20,6 +20,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtWidgets/QWidget>
 
 #include "comms_champion/Message.h"
 
@@ -57,6 +58,7 @@ signals:
     void sigAddRecvMsg(Message* msg);
     void sigSetRecvState(const QString& state);
     void sigSetSendState(const QString& state);
+    void sigDisplayMsgDetailsWidget(QWidget* widget);
 
 private:
     GuiAppMgr(QObject* parent = nullptr);

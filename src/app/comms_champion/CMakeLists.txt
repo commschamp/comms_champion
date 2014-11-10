@@ -8,6 +8,7 @@ function (bin_comms_champion)
         src/GuiAppMgr.cpp
         src/Message.cpp
         src/GlobalConstants.cpp
+        src/WidgetProxy.cpp
     )
     
     set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/include/comms_champion)
@@ -16,6 +17,7 @@ function (bin_comms_champion)
         src/GuiAppMgr.h
         src/MsgMgr.h
         src/GlobalConstants.h
+        src/WidgetProxy.h
         ${_inc_dir}/Message.h            
     )
     

@@ -22,6 +22,7 @@
 
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QtQml>
+#include <QtWidgets/QLabel>
 
 #include "GlobalConstants.h"
 
@@ -125,6 +126,7 @@ void GuiAppMgr::emitSendStateUpdate()
 void GuiAppMgr::msgReceived(Message* msg)
 {
     emit sigAddRecvMsg(msg);
+//    emit sigDisplayMsgDetailsWidget(label);
 }
 
 }  // namespace comms_champion

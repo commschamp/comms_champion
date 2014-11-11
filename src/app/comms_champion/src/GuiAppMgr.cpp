@@ -24,6 +24,7 @@
 #include <QtQml/QtQml>
 #include <QtWidgets/QLabel>
 
+#include "comms_champion/DefaultMessageDisplayHandler.h"
 #include "GlobalConstants.h"
 
 
@@ -108,7 +109,8 @@ const QString& GuiAppMgr::sendState() const
 GuiAppMgr::GuiAppMgr(QObject* parent)
   : Base(parent),
     m_recvState(GlobalConstants::waitingState()),
-    m_sendState(GlobalConstants::waitingState())
+    m_sendState(GlobalConstants::waitingState()),
+    m_msgDisplayHandler(new DefaultMessageDisplayHandler)
 {
     connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(Message*)), this, SLOT(msgReceived(Message*)));
 }
@@ -126,7 +128,8 @@ void GuiAppMgr::emitSendStateUpdate()
 void GuiAppMgr::msgReceived(Message* msg)
 {
     emit sigAddRecvMsg(msg);
-//    emit sigDisplayMsgDetailsWidget(label);
+    m_msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
+    emit sigDisplayMsgDetailsWidget(m_msgWidget.get());
 }
 
 }  // namespace comms_champion

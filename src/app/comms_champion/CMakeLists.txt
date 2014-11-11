@@ -9,6 +9,7 @@ function (bin_comms_champion)
         src/Message.cpp
         src/GlobalConstants.cpp
         src/WidgetProxy.cpp
+        src/DefaultMessageDisplayHandler.cpp
     )
     
     set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/include/comms_champion)

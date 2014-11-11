@@ -18,14 +18,16 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtWidgets/QWidget>
 
 #include "comms_champion/Message.h"
+#include "comms_champion/MessageDisplayHandler.h"
 
 #include "MsgMgr.h"
-
 
 namespace comms_champion
 {
@@ -69,9 +71,13 @@ private slots:
     void msgReceived(Message* msg);
 
 private /*data*/:
+    using MsgDisplayHandlerPtr = std::unique_ptr<MessageDisplayHandler>;
+    using MsgWidgetPtr = MessageDisplayHandler::QWidgetPtr;
+
     QString m_recvState;
     QString m_sendState;
-
+    MsgDisplayHandlerPtr m_msgDisplayHandler;
+    MsgWidgetPtr m_msgWidget;
 };
 
 }  // namespace comms_champion

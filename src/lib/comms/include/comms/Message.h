@@ -214,6 +214,11 @@ public:
     {
         this->dispatchImpl(handler);
     }
+
+    void dispatch(Handler& handler) const
+    {
+        this->dispatchImpl(handler);
+    }
 #endif // #ifndef COMMS_NO_DISPATCH
 
 protected:
@@ -279,6 +284,7 @@ protected:
     ///          @endcode
     /// @param[in] handler Reference to the handler object
     virtual void dispatchImpl(Handler& handler) = 0;
+    virtual void dispatchImpl(Handler& handler) const = 0;
 
 #endif // #ifndef COMMS_NO_DISPATCH
 

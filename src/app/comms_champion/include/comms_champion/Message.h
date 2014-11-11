@@ -23,6 +23,7 @@
 namespace comms_champion
 {
 
+class MessageDisplayHandler;
 class Message : public QObject
 {
     Q_OBJECT
@@ -37,12 +38,14 @@ public:
     Message& operator=(const Message&) = default;
 
     QString name() const;
+    void display(MessageDisplayHandler& handler) const;
 
     static void qmlRegister();
 
 protected:
 
     virtual const char* nameImpl() const = 0;
+    virtual void displayImpl(MessageDisplayHandler& handler) const = 0;
 };
 
 }  // namespace comms_champion

@@ -18,19 +18,28 @@
 
 #pragma once
 
+#include <memory>
+
+#include <QtWidgets/QWidget>
+
+
 namespace comms_champion
 {
 
 class MessageDisplayHandler
 {
 public:
-    template <typename TMessage>
-    void handle(TMessage& msg)
+    virtual ~MessageDisplayHandler() {}
+
+    using QWidgetPtr = std::unique_ptr<QWidget>;
+
+    QWidgetPtr createMsgWidget(const Message& msg)
     {
-        auto& fields = msg.getFields();
-        // TODO: foreach field add to display widget
-        static_cast<void>(fields);
+        return createMsgWidgetImpl(msg);
     }
+
+protected:
+    virtual QWidgetPtr createMsgWidgetImpl(const Message& msg) = 0;
 };
 
 }  // namespace comms_champion

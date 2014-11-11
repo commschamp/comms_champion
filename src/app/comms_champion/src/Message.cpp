@@ -30,6 +30,11 @@ QString Message::name() const
     return nameImpl();
 }
 
+void Message::display(MessageDisplayHandler& handler) const
+{
+    displayImpl(handler);
+}
+
 void Message::qmlRegister()
 {
     qmlRegisterUncreatableType<Message>(

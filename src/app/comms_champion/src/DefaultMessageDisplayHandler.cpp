@@ -15,29 +15,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "comms_champion/DefaultMessageDisplayHandler.h"
 
-#pragma once
-
-#include "comms_champion/MessageBase.h"
-#include "protocol/DemoMessage.h"
-
-namespace demo
+namespace comms_champion
 {
 
-namespace plugin
+DefaultMessageDisplayHandler::QWidgetPtr
+DefaultMessageDisplayHandler::createMsgWidgetImpl(
+    const Message& msg)
 {
+    m_widget.reset(new QWidget());
+    m_layout = new LayoutType();
+    m_widget->setLayout(m_layout);
+    msg.display(*this);
 
-class CCDemoMessage : public comms_champion::MessageBase<demo::message::DemoDefaultTraits>
-{
-public:
-    CCDemoMessage() = default;
-    CCDemoMessage(const CCDemoMessage&) = default;
-    virtual ~CCDemoMessage() = default;
+    m_layout = nullptr;
+    return std::move(m_widget);
+}
 
-    CCDemoMessage& operator=(const CCDemoMessage&) = default;
-};
+}  // namespace comms_champion
 
-}  // namespace plugin
-
-}  // namespace demo
 

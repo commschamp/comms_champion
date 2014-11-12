@@ -72,7 +72,7 @@ private slots:
 
 private /*data*/:
     using MsgDisplayHandlerPtr = std::unique_ptr<MessageDisplayHandler>;
-    using MsgWidgetPtr = MessageDisplayHandler::QWidgetPtr;
+    using MsgWidgetPtr = MessageDisplayHandler::MsgWidgetPtr;
 
     QString m_recvState;
     QString m_sendState;

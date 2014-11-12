@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include <QtWidgets/QWidget>
+#include "MessageWidget.h"
 
 
 namespace comms_champion
@@ -31,15 +31,15 @@ class MessageDisplayHandler
 public:
     virtual ~MessageDisplayHandler() {}
 
-    using QWidgetPtr = std::unique_ptr<QWidget>;
+    using MsgWidgetPtr = std::unique_ptr<MessageWidget>;
 
-    QWidgetPtr createMsgWidget(const Message& msg)
+    MsgWidgetPtr createMsgWidget(const Message& msg)
     {
         return createMsgWidgetImpl(msg);
     }
 
 protected:
-    virtual QWidgetPtr createMsgWidgetImpl(const Message& msg) = 0;
+    virtual MsgWidgetPtr createMsgWidgetImpl(const Message& msg) = 0;
 };
 
 }  // namespace comms_champion

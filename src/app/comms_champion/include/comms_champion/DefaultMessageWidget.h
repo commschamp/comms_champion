@@ -15,19 +15,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "comms_champion/DefaultMessageDisplayHandler.h"
+
+#pragma once
+
+#include <QtWidgets/QVBoxLayout>
+#include "MessageWidget.h"
+#include "FieldWidget.h"
 
 namespace comms_champion
 {
 
-DefaultMessageDisplayHandler::MsgWidgetPtr
-DefaultMessageDisplayHandler::createMsgWidgetImpl(
-    const Message& msg)
+class DefaultMessageWidget : public MessageWidget
 {
-    m_widget.reset(new DefaultMessageWidget());
-    msg.display(*this);
-    return MsgWidgetPtr(m_widget.release());
-}
+    Q_OBJECT
+    using Base = MessageWidget;
+public:
+    DefaultMessageWidget(QWidget* parent = nullptr);
+    ~DefaultMessageWidget() = default;
+
+    void addFieldWidget(FieldWidget* field);
+
+protected:
+    virtual void refreshImpl() override;
+    virtual void setEditEnabledImpl(bool enabled) override;
+
+signals:
+    void sigRefreshFields();
+    void sigSetEditEnabled(bool enabled);
+
+private:
+    using LayoutType = QVBoxLayout;
+    LayoutType* m_layout;
+};
 
 }  // namespace comms_champion
 

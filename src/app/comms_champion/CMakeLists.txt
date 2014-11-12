@@ -10,6 +10,9 @@ function (bin_comms_champion)
         src/GlobalConstants.cpp
         src/WidgetProxy.cpp
         src/DefaultMessageDisplayHandler.cpp
+        src/FieldWidget.cpp
+        src/MessageWidget.cpp
+        src/DefaultMessageWidget.cpp
     )
     
     set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/include/comms_champion)
@@ -19,12 +22,20 @@ function (bin_comms_champion)
         src/MsgMgr.h
         src/GlobalConstants.h
         src/WidgetProxy.h
-        ${_inc_dir}/Message.h            
+        ${_inc_dir}/Message.h      
+        ${_inc_dir}/FieldWidget.h      
+        ${_inc_dir}/MessageWidget.h
+        ${_inc_dir}/DefaultMessageWidget.h
+    )
+    
+    qt5_wrap_ui(
+        ui
+        ui/BasicIntValueFieldWidget.ui
     )
     
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)
 
-    add_executable(${name} ${src} ${moc} ${resources})
+    add_executable(${name} ${src} ${moc} ${ui} ${resources})
     
     target_link_libraries(
         ${name}
@@ -44,5 +55,7 @@ function (bin_comms_champion)
 endfunction ()
 
 ###########################################################
+
+include_directories (${CMAKE_CURRENT_BINARY_DIR})
 
 bin_comms_champion()

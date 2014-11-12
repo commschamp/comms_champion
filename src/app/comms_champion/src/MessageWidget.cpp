@@ -15,20 +15,41 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "comms_champion/DefaultMessageDisplayHandler.h"
+
+#include "comms_champion/MessageWidget.h"
 
 namespace comms_champion
 {
 
-DefaultMessageDisplayHandler::MsgWidgetPtr
-DefaultMessageDisplayHandler::createMsgWidgetImpl(
-    const Message& msg)
+MessageWidget::MessageWidget(QWidget* parent)
+  : Base(parent)
 {
-    m_widget.reset(new DefaultMessageWidget());
-    msg.display(*this);
-    return MsgWidgetPtr(m_widget.release());
+}
+
+void MessageWidget::refresh()
+{
+    refreshImpl();
+}
+
+void MessageWidget::setEditEnabled(bool enabled)
+{
+    setEditEnabledImpl(enabled);
+}
+
+void MessageWidget::enableEdit()
+{
+    setEditEnabled(true);
+}
+
+void MessageWidget::disableEdit()
+{
+    setEditEnabled(false);
+}
+
+void MessageWidget::emitMsgUpdated()
+{
+    emit sigMsgUpdated();
 }
 
 }  // namespace comms_champion
-
 

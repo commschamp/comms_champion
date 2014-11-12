@@ -23,8 +23,9 @@
 
 #include "comms/comms.h"
 
-#include "Message.h"
-#include "MessageDisplayHandler.h"
+#include "comms_champion/Message.h"
+#include "comms_champion/MessageDisplayHandler.h"
+#include "comms_champion/DefaultMessageWidget.h"
 
 namespace comms_champion
 {
@@ -40,13 +41,25 @@ public:
     }
 
 protected:
-    virtual QWidgetPtr createMsgWidgetImpl(const Message& msg) override;
 
-    template <typename... TArgs>
-    void displayField(const comms::field::BasicIntValue<TArgs...>& field)
+    using FieldWidgetPtr = std::unique_ptr<FieldWidget>;
+
+    virtual MsgWidgetPtr createMsgWidgetImpl(const Message& msg) override;
+
+    template <typename TField>
+    void displayField(const TField& field)
     {
-        static_cast<void>(field);
-        assert(!"Must display field");
+        auto fieldWidget = createFieldWidget<TField>(field);
+        m_widget->addFieldWidget(fieldWidget.release());
+    }
+
+    template <typename TField, typename... TArgs>
+    FieldWidgetPtr createFieldWidget(
+        const comms::field::BasicIntValue<TArgs...>& field)
+    {
+        auto& castedField = static_cast<const TField&>(field);
+        assert(!"Must create widget");
+        return FieldWidgetPtr();
     }
 
 private:
@@ -79,9 +92,8 @@ private:
         return FieldsDisplayDispatcher<THandler>(handler);
     }
 
-    using LayoutType = QVBoxLayout;
-    QWidgetPtr m_widget;
-    LayoutType* m_layout;
+    using DefaultMsgWidgetPtr = std::unique_ptr<DefaultMessageWidget>;
+    DefaultMsgWidgetPtr m_widget;
 };
 
 }  // namespace comms_champion

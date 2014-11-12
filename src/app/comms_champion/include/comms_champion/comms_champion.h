@@ -23,5 +23,5 @@
 #include "ErrorStatus.h"
 #include "Protocol.h"
 #include "ProtocolPlugin.h"
-
+#include "MessageWidget.h"
 

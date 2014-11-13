@@ -33,13 +33,13 @@ public:
 
     using MsgWidgetPtr = std::unique_ptr<MessageWidget>;
 
-    MsgWidgetPtr createMsgWidget(const Message& msg)
+    MsgWidgetPtr createMsgWidget(Message& msg)
     {
         return createMsgWidgetImpl(msg);
     }
 
 protected:
-    virtual MsgWidgetPtr createMsgWidgetImpl(const Message& msg) = 0;
+    virtual MsgWidgetPtr createMsgWidgetImpl(Message& msg) = 0;
 };
 
 }  // namespace comms_champion

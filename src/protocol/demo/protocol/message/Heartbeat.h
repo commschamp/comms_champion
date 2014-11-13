@@ -19,6 +19,7 @@
 #pragma once
 
 #include <tuple>
+#include <cstdint>
 
 #include "protocol/DemoMessage.h"
 
@@ -33,9 +34,7 @@ using HeatbeatFields =
     std::tuple<
         comms::field::BasicIntValue<
             TFieldBase,
-            unsigned,
-            comms::field::option::
-            LengthLimitImpl<2> >
+            std::uint16_t>
     >;
 
 template <typename TMsgBase = DemoMessage>
@@ -47,6 +46,11 @@ class Heartbeat : public
         comms::option::DispatchImpl<Heartbeat<TMsgBase> >
     >
 {
+public:
+    enum FieldId {
+        FieldId_Counter,
+        FieldId_NumOfFields
+    };
 };
 
 }  // namespace message

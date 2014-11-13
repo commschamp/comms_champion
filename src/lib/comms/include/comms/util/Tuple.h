@@ -160,6 +160,52 @@ void tupleForEach(TTuple&& tuple, TFunc&& func)
 //----------------------------------------
 
 template <std::size_t TIdx>
+class TupleForEachWithIdxHelper
+{
+
+public:
+    template <typename TTuple, typename TFunc>
+    static void exec(TTuple&& tuple, TFunc&& func)
+    {
+        typedef typename std::decay<TTuple>::type Tuple;
+        static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
+        static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+        static_assert(TIdx <= TupleSize, "Incorrect TIdx");
+
+        static const std::size_t Idx = TupleSize - TIdx;
+        func(std::get<Idx>(std::forward<TTuple>(tuple)), Idx);
+        TupleForEachWithIdxHelper<TIdx - 1>::exec(
+            std::forward<TTuple>(tuple),
+            std::forward<TFunc>(func));
+    }
+};
+
+template <>
+class TupleForEachWithIdxHelper<0>
+{
+
+public:
+    template <typename TTuple, typename TFunc>
+    static void exec(TTuple&& tuple, TFunc&& func)
+    {
+        static_cast<void>(tuple);
+        static_cast<void>(func);
+    }
+};
+
+template <typename TTuple, typename TFunc>
+void tupleForEachWithIdx(TTuple&& tuple, TFunc&& func)
+{
+    typedef typename std::decay<TTuple>::type Tuple;
+    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+
+    TupleForEachWithIdxHelper<TupleSize>::exec(
+        std::forward<TTuple>(tuple),
+        std::forward<TFunc>(func));
+}
+//----------------------------------------
+
+template <std::size_t TIdx>
 class TupleAccumulateHelper
 {
 

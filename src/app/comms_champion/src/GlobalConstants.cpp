@@ -127,6 +127,18 @@ const QString& GlobalConstants::configIconPathFromQml()
     return str;
 }
 
+const char* GlobalConstants::indexPropertyName()
+{
+    static const char* str = "index";
+    return str;
+}
+
+const char* GlobalConstants::namePropertyName()
+{
+    static const char* str = "name";
+    return str;
+}
+
 GlobalConstants::GlobalConstants(QObject* parent)
   : Base(parent)
 {

@@ -27,6 +27,8 @@
 #include "comms_champion/MessageDisplayHandler.h"
 #include "comms_champion/DefaultMessageWidget.h"
 
+#include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
+
 namespace comms_champion
 {
 
@@ -37,29 +39,30 @@ public:
     void handle(TMessage& msg)
     {
         auto& fields = msg.getFields();
-        comms::util::tupleForEach(fields, makeFieldsDisplayDispatcher(*this));
+        comms::util::tupleForEachWithIdx(fields, makeFieldsDisplayDispatcher(*this));
     }
 
 protected:
 
     using FieldWidgetPtr = std::unique_ptr<FieldWidget>;
 
-    virtual MsgWidgetPtr createMsgWidgetImpl(const Message& msg) override;
+    virtual MsgWidgetPtr createMsgWidgetImpl(Message& msg) override;
 
     template <typename TField>
-    void displayField(const TField& field)
+    void displayField(TField& field, std::size_t idx)
     {
         auto fieldWidget = createFieldWidget<TField>(field);
+        updateFieldIdxProperty(*fieldWidget, idx);
         m_widget->addFieldWidget(fieldWidget.release());
     }
 
     template <typename TField, typename... TArgs>
     FieldWidgetPtr createFieldWidget(
-        const comms::field::BasicIntValue<TArgs...>& field)
+        comms::field::BasicIntValue<TArgs...>& field)
     {
         auto& castedField = static_cast<const TField&>(field);
-        assert(!"Must create widget");
-        return FieldWidgetPtr();
+        return createBasicIntValueFieldWidget(
+            field_wrapper::makeBasicIntValueWrapper(castedField));
     }
 
 private:
@@ -74,9 +77,9 @@ private:
         }
 
         template <typename TField>
-        void operator()(TField&& field)
+        void operator()(TField&& field, std::size_t idx)
         {
-            m_handler.displayField(std::forward<TField>(field));
+            m_handler.displayField(std::forward<TField>(field), idx);
         }
 
     private:
@@ -91,6 +94,11 @@ private:
     {
         return FieldsDisplayDispatcher<THandler>(handler);
     }
+
+    FieldWidgetPtr createBasicIntValueFieldWidget(
+        field_wrapper::BasicIntValueWrapperPtr&& fieldWrapper);
+
+    static void updateFieldIdxProperty(FieldWidget& field, std::size_t idx);
 
     using DefaultMsgWidgetPtr = std::unique_ptr<DefaultMessageWidget>;
     DefaultMsgWidgetPtr m_widget;

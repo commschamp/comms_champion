@@ -37,6 +37,8 @@ class GlobalConstants : public QObject
     Q_PROPERTY(QString stopIconPathFromQml READ stopIconPathFromQml CONSTANT)
     Q_PROPERTY(QString saveIconPathFromQml READ saveIconPathFromQml CONSTANT)
     Q_PROPERTY(QString configIconPathFromQml READ configIconPathFromQml CONSTANT)
+    Q_PROPERTY(const char* indexPropertyName READ indexPropertyName CONSTANT)
+    Q_PROPERTY(const char* namePropertyName READ namePropertyName CONSTANT)
 
     typedef QObject Base;
 public:
@@ -66,6 +68,9 @@ public:
     static const QString& stopIconPathFromQml();
     static const QString& saveIconPathFromQml();
     static const QString& configIconPathFromQml();
+
+    static const char* indexPropertyName();
+    static const char* namePropertyName();
 
 private:
     GlobalConstants(QObject* parent = nullptr);

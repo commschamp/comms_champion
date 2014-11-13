@@ -18,6 +18,9 @@
 
 #include "CCHeartbeat.h"
 
+#include <type_traits>
+#include <cassert>
+
 namespace demo
 {
 
@@ -32,11 +35,28 @@ namespace
 
 const char* HeartbeatName = "Heartbeat";
 
+const char* FieldNames[] = {
+    "Counter"
+};
+
+static_assert(std::extent<decltype(FieldNames)>::value == CCHeartbeat::FieldId_NumOfFields,
+    "CCHeartbeat::FieldId enum has changed");
+
 }  // namespace
 
 const char* CCHeartbeat::nameImpl() const
 {
     return HeartbeatName;
+}
+
+const char* CCHeartbeat::fieldNameImpl(uint idx) const
+{
+    if (FieldId_NumOfFields <= idx) {
+        assert(idx < FieldId_NumOfFields);
+        return nullptr;
+    }
+
+    return FieldNames[idx];
 }
 
 }  // namespace message

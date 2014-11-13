@@ -25,12 +25,17 @@ namespace comms_champion
 
 Message::~Message() = default;
 
-QString Message::name() const
+const char* Message::name() const
 {
     return nameImpl();
 }
 
-void Message::display(MessageDisplayHandler& handler) const
+const char* Message::fieldName(uint idx) const
+{
+    return fieldNameImpl(idx);
+}
+
+void Message::display(MessageDisplayHandler& handler)
 {
     displayImpl(handler);
 }

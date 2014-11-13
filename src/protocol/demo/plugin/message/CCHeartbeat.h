@@ -44,6 +44,7 @@ public:
 
 protected:
     virtual const char* nameImpl() const override;
+    virtual const char* fieldNameImpl(uint idx) const override;
 
 };
 

@@ -17,16 +17,37 @@
 
 #include "comms_champion/DefaultMessageDisplayHandler.h"
 
+#include <QtCore/QVariant>
+
+#include "GlobalConstants.h"
+
 namespace comms_champion
 {
 
 DefaultMessageDisplayHandler::MsgWidgetPtr
 DefaultMessageDisplayHandler::createMsgWidgetImpl(
-    const Message& msg)
+    Message& msg)
 {
-    m_widget.reset(new DefaultMessageWidget());
+    m_widget.reset(new DefaultMessageWidget(msg));
     msg.display(*this);
     return MsgWidgetPtr(m_widget.release());
+}
+
+DefaultMessageDisplayHandler::FieldWidgetPtr
+DefaultMessageDisplayHandler::createBasicIntValueFieldWidget(
+    field_wrapper::BasicIntValueWrapperPtr&& fieldWrapper)
+{
+    assert(!"Not implemented yet");
+    return FieldWidgetPtr();
+}
+
+void DefaultMessageDisplayHandler::updateFieldIdxProperty(
+    FieldWidget& field,
+    std::size_t idx)
+{
+    field.setProperty(
+        GlobalConstants::indexPropertyName(),
+        static_cast<uint>(idx));
 }
 
 }  // namespace comms_champion

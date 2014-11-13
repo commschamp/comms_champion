@@ -21,6 +21,7 @@
 #include <QtWidgets/QVBoxLayout>
 #include "MessageWidget.h"
 #include "FieldWidget.h"
+#include "Message.h"
 
 namespace comms_champion
 {
@@ -30,7 +31,7 @@ class DefaultMessageWidget : public MessageWidget
     Q_OBJECT
     using Base = MessageWidget;
 public:
-    DefaultMessageWidget(QWidget* parent = nullptr);
+    DefaultMessageWidget(Message& msg, QWidget* parent = nullptr);
     ~DefaultMessageWidget() = default;
 
     void addFieldWidget(FieldWidget* field);
@@ -45,6 +46,7 @@ signals:
 
 private:
     using LayoutType = QVBoxLayout;
+    Message& m_msg;
     LayoutType* m_layout;
 };
 

@@ -39,7 +39,7 @@ public:
     MessageBase& operator=(const MessageBase&) = default;
     MessageBase& operator=(MessageBase&&) = default;
 protected:
-    virtual void displayImpl(MessageDisplayHandler& handler) const override
+    virtual void displayImpl(MessageDisplayHandler& handler) override
     {
         auto* castedHandler = dynamic_cast<THandler*>(&handler);
         if (castedHandler != nullptr) {

@@ -84,11 +84,6 @@ protected:
     {
         handler.handle(static_cast<MsgType&>(*this));
     }
-
-    virtual void dispatchImpl(typename Base::Handler& handler) const override
-    {
-        handler.handle(static_cast<const MsgType&>(*this));
-    }
 #endif // #ifndef COMMS_NO_DISPATCH
 };
 

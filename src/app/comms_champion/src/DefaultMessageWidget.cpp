@@ -18,15 +18,22 @@
 #include "comms_champion/DefaultMessageWidget.h"
 
 #include <memory>
+#include <cassert>
 
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QFrame>
+#include <QtCore/QVariant>
+
+#include "GlobalConstants.h"
 
 namespace comms_champion
 {
 
-DefaultMessageWidget::DefaultMessageWidget(QWidget* parent)
+DefaultMessageWidget::DefaultMessageWidget(
+    Message& msg,
+    QWidget* parent)
   : Base(parent),
+    m_msg(msg),
     m_layout(new LayoutType())
 {
     setLayout(m_layout);
@@ -37,14 +44,22 @@ DefaultMessageWidget::DefaultMessageWidget(QWidget* parent)
 
 void DefaultMessageWidget::addFieldWidget(FieldWidget* field)
 {
-    std::unique_ptr<FieldWidget> fieldPtr(field);
+    bool propertyOk = false;
+    auto idx = field->property(GlobalConstants::indexPropertyName()).toUInt(&propertyOk);
+    static_cast<void>(propertyOk);
+    assert(propertyOk);
+    auto* name = m_msg.fieldName(idx);
+    if (name != nullptr) {
+        field->setProperty(GlobalConstants::namePropertyName(), name);
+    }
+
     if (!m_layout->isEmpty()) {
-        std::unique_ptr<QFrame> line(new QFrame(this));
+        auto* line = new QFrame(this);
         line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
-        m_layout->insertWidget(m_layout->count() - 1, line.release());
+        m_layout->insertWidget(m_layout->count() - 1, line);
     }
-    m_layout->insertWidget(m_layout->count() - 1, fieldPtr.release());
+    m_layout->insertWidget(m_layout->count() - 1, field);
     connect(this, SIGNAL(sigRefreshFields()), field, SLOT(refresh()));
     connect(this, SIGNAL(sigSetEditEnabled(bool)), field, SLOT(setEditEnabled(bool)));
     connect(field, SIGNAL(sigFieldUpdated), this, SIGNAL(sigMsgUpdated()));

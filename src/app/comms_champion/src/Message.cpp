@@ -30,9 +30,9 @@ const char* Message::name() const
     return nameImpl();
 }
 
-const char* Message::fieldName(uint idx) const
+void Message::updateFieldProperties(QWidget& fieldWidget, uint idx) const
 {
-    return fieldNameImpl(idx);
+    updateFieldPropertiesImpl(fieldWidget, idx);
 }
 
 void Message::display(MessageDisplayHandler& handler)

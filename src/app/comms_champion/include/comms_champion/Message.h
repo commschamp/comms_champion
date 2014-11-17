@@ -38,7 +38,7 @@ public:
     Message& operator=(const Message&) = default;
 
     const char* name() const;
-    const char* fieldName(uint idx) const;
+    void updateFieldProperties(QWidget& fieldWidget, uint idx) const;
     void display(MessageDisplayHandler& handler);
 
     static void qmlRegister();
@@ -46,7 +46,7 @@ public:
 protected:
 
     virtual const char* nameImpl() const = 0;
-    virtual const char* fieldNameImpl(uint idx) const = 0;
+    virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const = 0;
     virtual void displayImpl(MessageDisplayHandler& handler) = 0;
 };
 

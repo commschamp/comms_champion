@@ -33,12 +33,32 @@ void FieldWidget::refresh()
 
 void FieldWidget::setEditEnabled(bool enabled)
 {
+    m_editEnabled = enabled;
     setEditEnabledImpl(enabled);
+}
+
+void FieldWidget::propertiesUpdated()
+{
+    propertiesUpdatedImpl();
 }
 
 void FieldWidget::emitFieldUpdated()
 {
     emit sigFieldUpdated();
+}
+
+bool FieldWidget::isEditEnabled() const
+{
+    return m_editEnabled;
+}
+
+void FieldWidget::setEditEnabledImpl(bool enabled)
+{
+    static_cast<void>(enabled);
+}
+
+void FieldWidget::propertiesUpdatedImpl()
+{
 }
 
 }  // namespace comms_champion

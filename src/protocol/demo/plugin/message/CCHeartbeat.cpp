@@ -21,6 +21,8 @@
 #include <type_traits>
 #include <cassert>
 
+#include <QtCore/QVariant>
+
 namespace demo
 {
 
@@ -49,14 +51,14 @@ const char* CCHeartbeat::nameImpl() const
     return HeartbeatName;
 }
 
-const char* CCHeartbeat::fieldNameImpl(uint idx) const
+void CCHeartbeat::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
 {
     if (FieldId_NumOfFields <= idx) {
         assert(idx < FieldId_NumOfFields);
-        return nullptr;
+        return;
     }
 
-    return FieldNames[idx];
+    fieldWidget.setProperty("name", FieldNames[idx]);
 }
 
 }  // namespace message

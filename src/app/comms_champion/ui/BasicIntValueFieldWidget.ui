@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>BasicIntValeFieldWidget</class>
+ <widget class="QWidget" name="BasicIntValeFieldWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -70,7 +70,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="m_serValueLineEdit"/>
      </item>
      <item>
       <widget class="QLabel" name="m_serBackLabel">

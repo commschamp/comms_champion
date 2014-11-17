@@ -13,6 +13,7 @@ function (bin_comms_champion)
         src/FieldWidget.cpp
         src/MessageWidget.cpp
         src/DefaultMessageWidget.cpp
+        src/widget/BasicIntValueFieldWidget.cpp
     )
     
     set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/include/comms_champion)
@@ -22,6 +23,7 @@ function (bin_comms_champion)
         src/MsgMgr.h
         src/GlobalConstants.h
         src/WidgetProxy.h
+        src/widget/BasicIntValueFieldWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      
         ${_inc_dir}/MessageWidget.h
@@ -56,6 +58,9 @@ endfunction ()
 
 ###########################################################
 
-include_directories (${CMAKE_CURRENT_BINARY_DIR})
+include_directories (
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 bin_comms_champion()

@@ -18,38 +18,42 @@
 
 #pragma once
 
-#include <QtWidgets/QVBoxLayout>
-#include "MessageWidget.h"
-#include "FieldWidget.h"
-#include "Message.h"
+#include "comms_champion/FieldWidget.h"
+#include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
+
+#include "ui_BasicIntValueFieldWidget.h"
 
 namespace comms_champion
 {
 
-class DefaultMessageWidget : public MessageWidget
+class BasicIntValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
-    using Base = MessageWidget;
+    typedef FieldWidget Base;
 public:
-    DefaultMessageWidget(Message& msg, QWidget* parent = nullptr);
-    ~DefaultMessageWidget() = default;
+    explicit BasicIntValueFieldWidget(
+        field_wrapper::BasicIntValueWrapperPtr&& wrapper,
+        QWidget* parent = nullptr);
 
-    void addFieldWidget(FieldWidget* field);
+    ~BasicIntValueFieldWidget();
 
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
+    virtual void propertiesUpdatedImpl() override;
 
-signals:
-    void sigRefreshFields();
-    void sigSetEditEnabled(bool enabled);
+private slots:
+    void serialisedValueUpdated(const QString& value);
+    void valueUpdated(int value);
 
 private:
-    using LayoutType = QVBoxLayout;
-    Message& m_msg;
-    LayoutType* m_layout;
-    uint m_curFieldIdx = 0;
+    void readPropertiesAndUpdateUi();
+
+    Ui::BasicIntValeFieldWidget m_ui;
+    field_wrapper::BasicIntValueWrapperPtr m_wrapper;
+    QString m_defaultStyleSheet;
 };
+
 
 }  // namespace comms_champion
 

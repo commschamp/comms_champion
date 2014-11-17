@@ -34,15 +34,21 @@ public:
 public slots:
     void refresh();
     void setEditEnabled(bool enabled);
+    void propertiesUpdated();
 
 signals:
     void sigFieldUpdated();
 
 protected:
     void emitFieldUpdated();
+    bool isEditEnabled() const;
 
     virtual void refreshImpl() = 0;
-    virtual void setEditEnabledImpl(bool enabled) = 0;
+    virtual void setEditEnabledImpl(bool enabled);
+    virtual void propertiesUpdatedImpl();
+
+private:
+    bool m_editEnabled = true;
 };
 
 }  // namespace comms_champion

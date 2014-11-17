@@ -44,14 +44,10 @@ DefaultMessageWidget::DefaultMessageWidget(
 
 void DefaultMessageWidget::addFieldWidget(FieldWidget* field)
 {
-    bool propertyOk = false;
-    auto idx = field->property(GlobalConstants::indexPropertyName()).toUInt(&propertyOk);
-    static_cast<void>(propertyOk);
-    assert(propertyOk);
-    auto* name = m_msg.fieldName(idx);
-    if (name != nullptr) {
-        field->setProperty(GlobalConstants::namePropertyName(), name);
-    }
+    assert(field != nullptr);
+    m_msg.updateFieldProperties(*field, m_curFieldIdx);
+    field->propertiesUpdated();
+    ++m_curFieldIdx;
 
     if (!m_layout->isEmpty()) {
         auto* line = new QFrame(this);
@@ -62,7 +58,7 @@ void DefaultMessageWidget::addFieldWidget(FieldWidget* field)
     m_layout->insertWidget(m_layout->count() - 1, field);
     connect(this, SIGNAL(sigRefreshFields()), field, SLOT(refresh()));
     connect(this, SIGNAL(sigSetEditEnabled(bool)), field, SLOT(setEditEnabled(bool)));
-    connect(field, SIGNAL(sigFieldUpdated), this, SIGNAL(sigMsgUpdated()));
+    connect(field, SIGNAL(sigFieldUpdated()), this, SIGNAL(sigMsgUpdated()));
 }
 
 void DefaultMessageWidget::refreshImpl()

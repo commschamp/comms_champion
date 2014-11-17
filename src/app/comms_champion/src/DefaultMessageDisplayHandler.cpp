@@ -21,6 +21,8 @@
 
 #include "GlobalConstants.h"
 
+#include "widget/BasicIntValueFieldWidget.h"
+
 namespace comms_champion
 {
 
@@ -37,8 +39,9 @@ DefaultMessageDisplayHandler::FieldWidgetPtr
 DefaultMessageDisplayHandler::createBasicIntValueFieldWidget(
     field_wrapper::BasicIntValueWrapperPtr&& fieldWrapper)
 {
-    assert(!"Not implemented yet");
-    return FieldWidgetPtr();
+    return
+        FieldWidgetPtr(
+            new BasicIntValueFieldWidget(std::move(fieldWrapper)));
 }
 
 void DefaultMessageDisplayHandler::updateFieldIdxProperty(

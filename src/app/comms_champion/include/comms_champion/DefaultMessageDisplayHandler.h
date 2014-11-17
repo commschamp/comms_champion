@@ -39,7 +39,7 @@ public:
     void handle(TMessage& msg)
     {
         auto& fields = msg.getFields();
-        comms::util::tupleForEachWithIdx(fields, makeFieldsDisplayDispatcher(*this));
+        comms::util::tupleForEach(fields, makeFieldsDisplayDispatcher(*this));
     }
 
 protected:
@@ -49,10 +49,9 @@ protected:
     virtual MsgWidgetPtr createMsgWidgetImpl(Message& msg) override;
 
     template <typename TField>
-    void displayField(TField& field, std::size_t idx)
+    void displayField(TField& field)
     {
         auto fieldWidget = createFieldWidget<TField>(field);
-        updateFieldIdxProperty(*fieldWidget, idx);
         m_widget->addFieldWidget(fieldWidget.release());
     }
 
@@ -77,9 +76,9 @@ private:
         }
 
         template <typename TField>
-        void operator()(TField&& field, std::size_t idx)
+        void operator()(TField&& field)
         {
-            m_handler.displayField(std::forward<TField>(field), idx);
+            m_handler.displayField(std::forward<TField>(field));
         }
 
     private:

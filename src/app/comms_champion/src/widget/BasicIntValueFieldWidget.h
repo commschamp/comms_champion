@@ -51,7 +51,6 @@ private:
 
     Ui::BasicIntValeFieldWidget m_ui;
     field_wrapper::BasicIntValueWrapperPtr m_wrapper;
-    QString m_defaultStyleSheet;
 };
 
 

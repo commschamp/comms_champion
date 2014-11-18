@@ -41,8 +41,6 @@ BasicIntValueFieldWidget::BasicIntValueFieldWidget(
 
     m_ui.m_valueSpinBox->setRange(m_wrapper->minValue(), m_wrapper->maxValue());
 
-    m_defaultStyleSheet = m_ui.m_nameLabel->styleSheet();
-
     connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(int)),
             this, SLOT(valueUpdated(int)));
 
@@ -61,17 +59,10 @@ void BasicIntValueFieldWidget::refreshImpl()
         QString("%1").arg(m_wrapper->serialisedValue(), m_wrapper->width(), 16, QChar('0'));
     m_ui.m_serValueLineEdit->setText(serValueStr);
     m_ui.m_valueSpinBox->setValue(m_wrapper->value());
-    static const QString InvalidLabelStyleSheet("QLabel { color: red }");
-    if (m_wrapper->valid()) {
-        m_ui.m_nameLabel->setStyleSheet(m_defaultStyleSheet);
-        m_ui.m_serFrontLabel->setStyleSheet(m_defaultStyleSheet);
-        m_ui.m_serBackLabel->setStyleSheet(m_defaultStyleSheet);
-    }
-    else {
-        m_ui.m_nameLabel->setStyleSheet(InvalidLabelStyleSheet);
-        m_ui.m_serFrontLabel->setStyleSheet(InvalidLabelStyleSheet);
-        m_ui.m_serBackLabel->setStyleSheet(InvalidLabelStyleSheet);
-    }
+    bool valid = m_wrapper->valid();
+    setValidityStyleSheet(*m_ui.m_nameLabel, valid);
+    setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
+    setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
 void BasicIntValueFieldWidget::setEditEnabledImpl(bool enabled)

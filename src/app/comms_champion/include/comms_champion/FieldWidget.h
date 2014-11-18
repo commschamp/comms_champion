@@ -42,6 +42,7 @@ signals:
 protected:
     void emitFieldUpdated();
     bool isEditEnabled() const;
+    static void setValidityStyleSheet(QWidget& widget, bool valid);
 
     virtual void refreshImpl() = 0;
     virtual void setEditEnabledImpl(bool enabled);

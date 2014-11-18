@@ -52,6 +52,18 @@ bool FieldWidget::isEditEnabled() const
     return m_editEnabled;
 }
 
+void FieldWidget::setValidityStyleSheet(QWidget& widget, bool valid)
+{
+    static const auto DefaultStylesheet = QWidget().styleSheet();
+    static const QString InvalidStylesheet("QLabel { color: red }");
+    auto* stylesheet = &DefaultStylesheet;
+    if (!valid) {
+        stylesheet = &InvalidStylesheet;
+    }
+
+    widget.setStyleSheet(*stylesheet);
+}
+
 void FieldWidget::setEditEnabledImpl(bool enabled)
 {
     static_cast<void>(enabled);

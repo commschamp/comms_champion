@@ -26,6 +26,8 @@
 #include "GlobalConstants.h"
 #include "WidgetProxy.h"
 
+#include "widget/MainWindowWidget.h"
+
 #include <iostream>
 
 namespace
@@ -49,12 +51,15 @@ int main(int argc, char *argv[])
 
     qmlRegisterAll();
 
-    QQmlApplicationEngine engine;
-    engine.load(QUrl("qrc:/qml/MainWindow.qml"));
-    QObject *topLevel = engine.rootObjects().value(0);
-    QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
-    window->showMaximized();
-    QObject::connect(&engine, SIGNAL(quit()), &app, SLOT(quit())); // to make Qt.quit() to work.
+//    QQmlApplicationEngine engine;
+//    engine.load(QUrl("qrc:/qml/MainWindow.qml"));
+//    QObject *topLevel = engine.rootObjects().value(0);
+//    QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
+//    QObject::connect(&engine, SIGNAL(quit()), &app, SLOT(quit())); // to make Qt.quit() to work.
+//    window->showMaximized();
+
+    cc::MainWindowWidget window;
+    window.showMaximized();
 
     QDir dir(app.applicationDirPath());
     dir.cdUp();

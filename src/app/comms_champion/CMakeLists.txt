@@ -13,6 +13,9 @@ function (bin_comms_champion)
         src/FieldWidget.cpp
         src/MessageWidget.cpp
         src/DefaultMessageWidget.cpp
+        src/widget/MainWindowWidget.cpp
+        src/widget/LeftPaneWidget.cpp
+        src/widget/RightPaneWidget.cpp
         src/widget/BasicIntValueFieldWidget.cpp
     )
     
@@ -32,6 +35,7 @@ function (bin_comms_champion)
     
     qt5_wrap_ui(
         ui
+        ui/MainWindowWidget.ui
         ui/BasicIntValueFieldWidget.ui
     )
     

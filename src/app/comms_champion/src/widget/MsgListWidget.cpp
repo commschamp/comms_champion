@@ -15,21 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "LeftPaneWidget.h"
-
-#include <QtWidgets/QLabel>
-
-#include "RecvMsgListWidget.h"
+#include "MsgListWidget.h"
 
 namespace comms_champion
 {
 
-LeftPaneWidget::LeftPaneWidget(QWidget* parent)
-  : Base(parent)
+MsgListWidget::MsgListWidget(const QString& listName, QWidget* parent)
 {
-    setOrientation(Qt::Vertical);
-    addWidget(new RecvMsgListWidget());
-    addWidget(new QLabel("Left Down"));
+    m_ui.setupUi(this);
+    m_ui.m_groupBox->setTitle(listName);
 }
 
 }  // namespace comms_champion

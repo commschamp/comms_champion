@@ -44,6 +44,12 @@ public:
     static GuiAppMgr* instance();
     static void qmlRegister();
 
+    const QString& recvState() const;
+    const QString& sendState() const;
+
+public slots:
+    Q_INVOKABLE void configClicked();
+
     Q_INVOKABLE void recvStartClicked();
     Q_INVOKABLE void recvStopClicked();
     Q_INVOKABLE void recvSaveClicked();
@@ -53,8 +59,6 @@ public:
     Q_INVOKABLE void sendStopClicked();
     Q_INVOKABLE void sendSaveClicked();
 
-    const QString& recvState() const;
-    const QString& sendState() const;
 
 signals:
     void sigAddRecvMsg(Message* msg);

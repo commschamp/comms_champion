@@ -16,6 +16,9 @@ function (bin_comms_champion)
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp
         src/widget/RightPaneWidget.cpp
+        src/widget/RecvAreaToolBar.cpp
+        src/widget/MsgListWidget.cpp
+        src/widget/RecvMsgListWidget.cpp
         src/widget/BasicIntValueFieldWidget.cpp
     )
     
@@ -36,6 +39,7 @@ function (bin_comms_champion)
     qt5_wrap_ui(
         ui
         ui/MainWindowWidget.ui
+        ui/MsgListWidget.ui
         ui/BasicIntValueFieldWidget.ui
     )
     

@@ -15,14 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "MainWindowWidget.h"
+#include "RecvAreaToolBar.h"
 
-#include <QtWidgets/QSplitter>
-#include <QtWidgets/QToolBar>
+#include <QtCore/QObject>
+#include <QtWidgets/QAction>
 #include <QtGui/QIcon>
 
-#include "LeftPaneWidget.h"
-#include "RightPaneWidget.h"
 #include "GuiAppMgr.h"
 
 namespace comms_champion
@@ -31,30 +29,33 @@ namespace comms_champion
 namespace
 {
 
-void createConfigButton(QToolBar& bar)
+const QIcon& startIcon()
 {
-    auto* config = bar.addAction(QIcon(":/image/config.png"), "Settings");
-    QObject::connect(config, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(configClicked()));
+    static const QIcon Icon(":/image/start.png");
+    return Icon;
+}
+
+const QIcon& stopIcon()
+{
+    static const QIcon Icon(":/image/stop.png");
+    return Icon;
+}
+
+void createStartButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(startIcon(), "Start");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(recvStartClicked()));
+
 }
 
 }  // namespace
 
-MainWindowWidget::MainWindowWidget(QWidget* parent)
+RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
   : Base(parent)
 {
-    m_ui.setupUi(this);
-
-    auto* toolbar = new QToolBar();
-    createConfigButton(*toolbar);
-    addToolBar(toolbar);
-
-    auto* splitter = new QSplitter();
-    splitter->addWidget(new LeftPaneWidget());
-    splitter->addWidget(new RightPaneWidget());
-    splitter->setStretchFactor(0, 1);
-    splitter->setStretchFactor(1, 1);
-    setCentralWidget(splitter);
+    createStartButton(*this);
 }
 
 }  // namespace comms_champion
+

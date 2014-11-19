@@ -55,15 +55,21 @@ void GuiAppMgr::qmlRegister()
     qmlRegisterSingletonType<GuiAppMgr>("cc.GuiAppMgr", 1, 0, "GuiAppMgr", &getGuiAppMgr);
 }
 
+void GuiAppMgr::configClicked()
+{
+    assert(!"Config clicked");
+}
 
 void GuiAppMgr::recvStartClicked()
 {
+    assert(!"Recv start clicked");
     m_recvState = GlobalConstants::runningState();
     emitRecvStateUpdate();
 }
 
 void GuiAppMgr::recvStopClicked()
 {
+    assert(!"Recv stop clicked");
     m_recvState = GlobalConstants::waitingState();
     emitRecvStateUpdate();
 }

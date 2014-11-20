@@ -17,8 +17,10 @@ function (bin_comms_champion)
         src/widget/LeftPaneWidget.cpp
         src/widget/RightPaneWidget.cpp
         src/widget/RecvAreaToolBar.cpp
+        src/widget/SendAreaToolBar.cpp
         src/widget/MsgListWidget.cpp
         src/widget/RecvMsgListWidget.cpp
+        src/widget/SendMsgListWidget.cpp
         src/widget/BasicIntValueFieldWidget.cpp
     )
     

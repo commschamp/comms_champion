@@ -52,8 +52,6 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     auto* splitter = new QSplitter();
     splitter->addWidget(new LeftPaneWidget());
     splitter->addWidget(new RightPaneWidget());
-    splitter->setStretchFactor(0, 1);
-    splitter->setStretchFactor(1, 1);
     setCentralWidget(splitter);
 }
 

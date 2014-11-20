@@ -76,30 +76,33 @@ void GuiAppMgr::recvStopClicked()
 
 void GuiAppMgr::recvSaveClicked()
 {
-
+    assert(!"Recv save clicked");
 }
 
 void GuiAppMgr::sendStartClicked()
 {
+    assert(!"Send start clicked");
     m_sendState = GlobalConstants::sendingState();
     emitSendStateUpdate();
 }
 
 void GuiAppMgr::sendStartAllClicked()
 {
+    assert(!"Send start all clicked");
     m_sendState = GlobalConstants::sendingAllState();
     emitSendStateUpdate();
 }
 
 void GuiAppMgr::sendStopClicked()
 {
+    assert(!"Send stop clicked");
     m_sendState = GlobalConstants::waitingState();
     emitSendStateUpdate();
 }
 
 void GuiAppMgr::sendSaveClicked()
 {
-
+    assert(!"Send save clicked");
 }
 
 const QString& GuiAppMgr::recvState() const

@@ -15,23 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "LeftPaneWidget.h"
 
-#include <QtWidgets/QLabel>
+#pragma once
 
-#include "RecvMsgListWidget.h"
-#include "SendMsgListWidget.h"
+#include <QtWidgets/QToolBar>
 
 namespace comms_champion
 {
 
-LeftPaneWidget::LeftPaneWidget(QWidget* parent)
-  : Base(parent)
+class SendAreaToolBar : public QToolBar
 {
-    setOrientation(Qt::Vertical);
-    addWidget(new RecvMsgListWidget());
-    addWidget(new SendMsgListWidget());
-}
+    using Base = QToolBar;
+public:
+    SendAreaToolBar(QWidget* parent = nullptr);
+};
 
 }  // namespace comms_champion
 

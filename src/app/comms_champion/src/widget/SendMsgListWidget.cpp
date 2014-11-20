@@ -15,24 +15,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "LeftPaneWidget.h"
-
-#include <QtWidgets/QLabel>
-
-#include "RecvMsgListWidget.h"
 #include "SendMsgListWidget.h"
+
+#include <QtWidgets/QVBoxLayout>
+
+#include "MsgListWidget.h"
+#include "SendAreaToolBar.h"
 
 namespace comms_champion
 {
 
-LeftPaneWidget::LeftPaneWidget(QWidget* parent)
+SendMsgListWidget::SendMsgListWidget(QWidget* parent)
   : Base(parent)
 {
-    setOrientation(Qt::Vertical);
-    addWidget(new RecvMsgListWidget());
-    addWidget(new SendMsgListWidget());
+    auto* layout = new QVBoxLayout();
+    layout->addWidget(new SendAreaToolBar());
+    layout->addWidget(new MsgListWidget("Messages to Send"));
+    setLayout(layout);
 }
 
-}  // namespace comms_champion
-
-
+} // namespace comms_champion

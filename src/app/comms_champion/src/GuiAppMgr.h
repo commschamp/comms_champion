@@ -35,17 +35,30 @@ namespace comms_champion
 class GuiAppMgr : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString recvState READ recvState CONSTANT)
-    Q_PROPERTY(QString sendState READ sendState CONSTANT)
+//    Q_PROPERTY(QString recvState READ recvState CONSTANT)
+//    Q_PROPERTY(QString sendState READ sendState CONSTANT)
 
     typedef QObject Base;
 public:
 
+    enum class RecvState {
+        Idle,
+        Running,
+        NumOfStates
+    };
+
+    enum SendState {
+        Idle,
+        SendingSingle,
+        SendingAll,
+        NumOfStates
+    };
+
     static GuiAppMgr* instance();
     static void qmlRegister();
 
-    const QString& recvState() const;
-    const QString& sendState() const;
+    RecvState recvState() const;
+    SendState sendState() const;
 
 public slots:
     Q_INVOKABLE void configClicked();
@@ -63,7 +76,9 @@ public slots:
 signals:
     void sigAddRecvMsg(Message* msg);
     void sigSetRecvState(const QString& state);
+    void sigSetRecvState(int state);
     void sigSetSendState(const QString& state);
+    void sigSetSendState(int state);
     void sigDisplayMsgDetailsWidget(QWidget* widget);
 
 private:
@@ -78,8 +93,8 @@ private /*data*/:
     using MsgDisplayHandlerPtr = std::unique_ptr<MessageDisplayHandler>;
     using MsgWidgetPtr = MessageDisplayHandler::MsgWidgetPtr;
 
-    QString m_recvState;
-    QString m_sendState;
+    RecvState m_recvState;
+    SendState m_sendState;
     MsgDisplayHandlerPtr m_msgDisplayHandler;
     MsgWidgetPtr m_msgWidget;
 };

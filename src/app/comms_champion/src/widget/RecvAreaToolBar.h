@@ -18,7 +18,12 @@
 
 #pragma once
 
+#include <functional>
+#include <array>
+
 #include <QtWidgets/QToolBar>
+
+#include "GuiAppMgr.h"
 
 class QAction;
 
@@ -27,13 +32,29 @@ namespace comms_champion
 
 class RecvAreaToolBar : public QToolBar
 {
+    Q_OBJECT
     using Base = QToolBar;
 public:
+    typedef GuiAppMgr::RecvState State;
+
     RecvAreaToolBar(QWidget* parent = nullptr);
 
+public slots:
+    void recvStateChanged(int state);
+
 private:
-    QAction* m_startStopAction;
-    QAction* m_saveAction;
+
+    using StateChangeHandler = std::function<void ()>;
+    using StateChangeHandlersMap =
+        std::array<StateChangeHandler, static_cast<unsigned>(State::NumOfStates)>;
+
+    void toIdleState();
+    void toRunningState();
+
+    QAction* m_startStopAction = nullptr;
+    QAction* m_saveAction = nullptr;
+    State m_state = State::Idle;
+    StateChangeHandlersMap m_stateChangeHandlers;
 };
 
 }  // namespace comms_champion

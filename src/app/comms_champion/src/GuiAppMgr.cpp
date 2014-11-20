@@ -62,15 +62,13 @@ void GuiAppMgr::configClicked()
 
 void GuiAppMgr::recvStartClicked()
 {
-    assert(!"Recv start clicked");
-    m_recvState = GlobalConstants::runningState();
+    m_recvState = RecvState::Running;
     emitRecvStateUpdate();
 }
 
 void GuiAppMgr::recvStopClicked()
 {
-    assert(!"Recv stop clicked");
-    m_recvState = GlobalConstants::waitingState();
+    m_recvState = RecvState::Idle;
     emitRecvStateUpdate();
 }
 
@@ -82,21 +80,21 @@ void GuiAppMgr::recvSaveClicked()
 void GuiAppMgr::sendStartClicked()
 {
     assert(!"Send start clicked");
-    m_sendState = GlobalConstants::sendingState();
+    m_sendState = SendState::SendingSingle;
     emitSendStateUpdate();
 }
 
 void GuiAppMgr::sendStartAllClicked()
 {
     assert(!"Send start all clicked");
-    m_sendState = GlobalConstants::sendingAllState();
+    m_sendState = SendState::SendingAll;
     emitSendStateUpdate();
 }
 
 void GuiAppMgr::sendStopClicked()
 {
     assert(!"Send stop clicked");
-    m_sendState = GlobalConstants::waitingState();
+    m_sendState = SendState::Idle;
     emitSendStateUpdate();
 }
 
@@ -105,20 +103,20 @@ void GuiAppMgr::sendSaveClicked()
     assert(!"Send save clicked");
 }
 
-const QString& GuiAppMgr::recvState() const
+GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
     return m_recvState;
 }
 
-const QString& GuiAppMgr::sendState() const
+GuiAppMgr::SendState GuiAppMgr::sendState() const
 {
-    return m_recvState;
+    return m_sendState;
 }
 
 GuiAppMgr::GuiAppMgr(QObject* parent)
   : Base(parent),
-    m_recvState(GlobalConstants::waitingState()),
-    m_sendState(GlobalConstants::waitingState()),
+    m_recvState(RecvState::Idle),
+    m_sendState(SendState::Idle),
     m_msgDisplayHandler(new DefaultMessageDisplayHandler)
 {
     connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(Message*)), this, SLOT(msgReceived(Message*)));
@@ -126,12 +124,12 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
 
 void GuiAppMgr::emitRecvStateUpdate()
 {
-    emit sigSetRecvState(m_recvState);
+    emit sigSetRecvState(static_cast<int>(m_recvState));
 }
 
 void GuiAppMgr::emitSendStateUpdate()
 {
-    emit sigSetSendState(m_sendState);
+    emit sigSetSendState(static_cast<int>(m_sendState));
 }
 
 void GuiAppMgr::msgReceived(Message* msg)

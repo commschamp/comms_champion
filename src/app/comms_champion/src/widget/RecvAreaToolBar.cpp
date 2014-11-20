@@ -17,11 +17,11 @@
 
 #include "RecvAreaToolBar.h"
 
+#include <cassert>
+
 #include <QtCore/QObject>
 #include <QtWidgets/QAction>
 #include <QtGui/QIcon>
-
-#include "GuiAppMgr.h"
 
 namespace comms_champion
 {
@@ -48,13 +48,37 @@ const QIcon& saveIcon()
 }
 
 const QString StartTooltip("Start Reception");
+const QString StopTooltip("Stop Reception");
 const QString SaveTooltip("Save Messages");
+
+void connectStartButton(QAction* action)
+{
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(recvStartClicked()));
+}
+
+void disconnectStartButton(QAction* action)
+{
+    QObject::disconnect(action, SIGNAL(triggered()),
+                        GuiAppMgr::instance(), SLOT(recvStartClicked()));
+}
+
+void connectStopButton(QAction* action)
+{
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(recvStopClicked()));
+}
+
+void disconnectStopButton(QAction* action)
+{
+    QObject::disconnect(action, SIGNAL(triggered()),
+                        GuiAppMgr::instance(), SLOT(recvStopClicked()));
+}
 
 QAction* createStartButton(QToolBar& bar)
 {
     auto* action = bar.addAction(startIcon(), StartTooltip);
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(recvStartClicked()));
+    connectStartButton(action);
     return action;
 }
 
@@ -74,6 +98,60 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
 {
     m_startStopAction = createStartButton(*this);
     m_saveAction = createSaveButton(*this);
+
+    connect(GuiAppMgr::instance(), SIGNAL(sigSetRecvState(int)),
+            this, SLOT(recvStateChanged(int)));
+
+    m_stateChangeHandlers[static_cast<int>(State::Idle)] =
+        std::bind(&RecvAreaToolBar::toIdleState, this);
+
+    m_stateChangeHandlers[static_cast<int>(State::Running)] =
+        std::bind(&RecvAreaToolBar::toRunningState, this);
+
+    recvStateChanged(static_cast<int>(GuiAppMgr::instance()->recvState()));
+}
+
+void RecvAreaToolBar::recvStateChanged(int state)
+{
+    if ((static_cast<int>(m_stateChangeHandlers.size()) <= state) ||
+        (!m_stateChangeHandlers[state])) {
+        assert(!"Invalid recv state reported");
+        return;
+    }
+
+    m_stateChangeHandlers[state]();
+}
+
+void RecvAreaToolBar::toIdleState()
+{
+    if (m_state == State::Idle) {
+        return;
+    }
+
+    disconnectStopButton(m_startStopAction);
+    m_startStopAction->setIcon(startIcon());
+    m_startStopAction->setText(StartTooltip);
+    connectStartButton(m_startStopAction);
+
+    m_saveAction->setEnabled(true);
+
+    m_state = State::Idle;
+}
+
+void RecvAreaToolBar::toRunningState()
+{
+    if (m_state == State::Running) {
+        return;
+    }
+
+    disconnectStartButton(m_startStopAction);
+    m_startStopAction->setIcon(stopIcon());
+    m_startStopAction->setText(StopTooltip);
+    connectStopButton(m_startStopAction);
+
+    m_saveAction->setEnabled(false);
+
+    m_state = State::Running;
 }
 
 }  // namespace comms_champion

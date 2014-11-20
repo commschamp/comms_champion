@@ -27,6 +27,7 @@
 #include "comms_champion/DefaultMessageDisplayHandler.h"
 #include "GlobalConstants.h"
 
+#include <iostream>
 
 namespace comms_champion
 {
@@ -62,12 +63,14 @@ void GuiAppMgr::configClicked()
 
 void GuiAppMgr::recvStartClicked()
 {
+    MsgMgr::instanceRef().setRecvEnabled(true);
     m_recvState = RecvState::Running;
     emitRecvStateUpdate();
 }
 
 void GuiAppMgr::recvStopClicked()
 {
+    MsgMgr::instanceRef().setRecvEnabled(false);
     m_recvState = RecvState::Idle;
     emitRecvStateUpdate();
 }
@@ -134,6 +137,7 @@ void GuiAppMgr::emitSendStateUpdate()
 
 void GuiAppMgr::msgReceived(Message* msg)
 {
+    std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
     emit sigAddRecvMsg(msg);
     m_msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
     emit sigDisplayMsgDetailsWidget(m_msgWidget.get());

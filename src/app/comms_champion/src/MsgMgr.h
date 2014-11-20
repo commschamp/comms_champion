@@ -42,6 +42,7 @@ public:
     static MsgMgr& instanceRef();
 
     void addProtocol(ProtocolPtr&& protocol);
+    void setRecvEnabled(bool enabled);
 
 public slots:
     void timeout();
@@ -55,6 +56,7 @@ private:
 
     MsgMgr(QObject* parent = nullptr);
     std::vector<MsgPtr> m_recvMsgs;
+    bool m_recvEnabled = false;
 
     typedef std::list<ProtocolPtr> ProtocolStack;
     ProtocolStack m_protStack;

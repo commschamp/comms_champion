@@ -26,15 +26,20 @@
 namespace comms_champion
 {
 
+class Message;
 
 class MsgListWidget : public QWidget
 {
+    Q_OBJECT
     using Base = QWidget;
 public:
     MsgListWidget(
         const QString& listName,
         QWidget* toolbar,
         QWidget* parent = nullptr);
+
+protected slots:
+    void addMessage(Message* msg);
 
 private:
     Ui::MsgListWidget m_ui;

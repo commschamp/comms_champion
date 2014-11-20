@@ -38,7 +38,8 @@ MsgMgr& MsgMgr::instanceRef()
 
 void MsgMgr::timeout()
 {
-    if (m_protStack.empty()) {
+    if ((m_protStack.empty()) ||
+        (!m_recvEnabled)) {
         return;
     }
 
@@ -60,6 +61,11 @@ void MsgMgr::timeout()
 void MsgMgr::addProtocol(ProtocolPtr&& protocol)
 {
     m_protStack.push_back(std::move(protocol));
+}
+
+void MsgMgr::setRecvEnabled(bool enabled)
+{
+    m_recvEnabled = enabled;
 }
 
 MsgMgr::MsgMgr(QObject* parent)

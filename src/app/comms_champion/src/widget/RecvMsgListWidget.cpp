@@ -17,9 +17,12 @@
 
 #include "RecvMsgListWidget.h"
 
+#include <cassert>
+
 #include <QtWidgets/QVBoxLayout>
 
 #include "RecvAreaToolBar.h"
+#include "GuiAppMgr.h"
 
 namespace comms_champion
 {
@@ -27,6 +30,8 @@ namespace comms_champion
 RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
   : Base("Received Messages", new RecvAreaToolBar(), parent)
 {
+    connect(GuiAppMgr::instance(), SIGNAL(sigAddRecvMsg(Message*)),
+            this, SLOT(addMessage(Message*)));
 }
 
 } // namespace comms_champion

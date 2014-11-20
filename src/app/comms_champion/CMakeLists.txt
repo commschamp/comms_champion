@@ -32,6 +32,7 @@ function (bin_comms_champion)
         src/GlobalConstants.h
         src/WidgetProxy.h
         src/widget/RecvAreaToolBar.h
+        src/widget/MsgListWidget.h
         src/widget/BasicIntValueFieldWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      

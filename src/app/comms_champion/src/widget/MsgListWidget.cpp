@@ -17,6 +17,10 @@
 
 #include "MsgListWidget.h"
 
+#include <cassert>
+
+#include "comms_champion/Message.h"
+
 namespace comms_champion
 {
 
@@ -28,6 +32,12 @@ MsgListWidget::MsgListWidget(
     m_ui.setupUi(this);
     m_ui.m_groupBoxLayout->insertWidget(0, toolbar);
     m_ui.m_groupBox->setTitle(listName);
+}
+
+void MsgListWidget::addMessage(Message* msg)
+{
+    assert(msg != nullptr);
+    m_ui.m_listWidget->addItem(msg->name());
 }
 
 }  // namespace comms_champion

@@ -20,9 +20,13 @@
 namespace comms_champion
 {
 
-MsgListWidget::MsgListWidget(const QString& listName, QWidget* parent)
+MsgListWidget::MsgListWidget(
+    const QString& listName,
+    QWidget* toolbar,
+    QWidget* parent)
 {
     m_ui.setupUi(this);
+    m_ui.m_groupBoxLayout->insertWidget(0, toolbar);
     m_ui.m_groupBox->setTitle(listName);
 }
 

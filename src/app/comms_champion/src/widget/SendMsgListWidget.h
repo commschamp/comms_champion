@@ -17,14 +17,14 @@
 
 #pragma once
 
-#include <QtWidgets/QWidget>
+#include "MsgListWidget.h"
 
 namespace comms_champion
 {
 
-class SendMsgListWidget: public QWidget
+class SendMsgListWidget: public MsgListWidget
 {
-    using Base = QWidget;
+    using Base = MsgListWidget;
 public:
     SendMsgListWidget(QWidget* parent = nullptr);
 };

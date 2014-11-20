@@ -19,19 +19,14 @@
 
 #include <QtWidgets/QVBoxLayout>
 
-#include "MsgListWidget.h"
 #include "SendAreaToolBar.h"
 
 namespace comms_champion
 {
 
 SendMsgListWidget::SendMsgListWidget(QWidget* parent)
-  : Base(parent)
+  : Base("Messages to Send", new SendAreaToolBar(), parent)
 {
-    auto* layout = new QVBoxLayout();
-    layout->addWidget(new SendAreaToolBar());
-    layout->addWidget(new MsgListWidget("Messages to Send"));
-    setLayout(layout);
 }
 
 } // namespace comms_champion

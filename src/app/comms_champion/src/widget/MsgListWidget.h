@@ -31,7 +31,10 @@ class MsgListWidget : public QWidget
 {
     using Base = QWidget;
 public:
-    MsgListWidget(const QString& listName, QWidget* parent = nullptr);
+    MsgListWidget(
+        const QString& listName,
+        QWidget* toolbar,
+        QWidget* parent = nullptr);
 
 private:
     Ui::MsgListWidget m_ui;

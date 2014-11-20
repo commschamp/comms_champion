@@ -41,12 +41,30 @@ const QIcon& stopIcon()
     return Icon;
 }
 
-void createStartButton(QToolBar& bar)
+const QIcon& saveIcon()
 {
-    auto* action = bar.addAction(startIcon(), "Start");
+    static const QIcon Icon(":/image/save.png");
+    return Icon;
+}
+
+const QString StartTooltip("Start Reception");
+const QString SaveTooltip("Save Messages");
+
+QAction* createStartButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(startIcon(), StartTooltip);
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvStartClicked()));
+    return action;
+}
 
+QAction* createSaveButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(saveIcon(), SaveTooltip);
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(recvSaveClicked()));
+
+    return action;
 }
 
 }  // namespace
@@ -54,7 +72,8 @@ void createStartButton(QToolBar& bar)
 RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
   : Base(parent)
 {
-    createStartButton(*this);
+    m_startStopAction = createStartButton(*this);
+    m_saveAction = createSaveButton(*this);
 }
 
 }  // namespace comms_champion

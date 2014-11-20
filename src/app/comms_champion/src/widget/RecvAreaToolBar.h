@@ -20,6 +20,8 @@
 
 #include <QtWidgets/QToolBar>
 
+class QAction;
+
 namespace comms_champion
 {
 
@@ -28,6 +30,10 @@ class RecvAreaToolBar : public QToolBar
     using Base = QToolBar;
 public:
     RecvAreaToolBar(QWidget* parent = nullptr);
+
+private:
+    QAction* m_startStopAction;
+    QAction* m_saveAction;
 };
 
 }  // namespace comms_champion

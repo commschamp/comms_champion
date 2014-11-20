@@ -19,19 +19,14 @@
 
 #include <QtWidgets/QVBoxLayout>
 
-#include "MsgListWidget.h"
 #include "RecvAreaToolBar.h"
 
 namespace comms_champion
 {
 
 RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
-  : Base(parent)
+  : Base("Received Messages", new RecvAreaToolBar(), parent)
 {
-    auto* layout = new QVBoxLayout();
-    layout->addWidget(new RecvAreaToolBar());
-    layout->addWidget(new MsgListWidget("Received Messages"));
-    setLayout(layout);
 }
 
 } // namespace comms_champion

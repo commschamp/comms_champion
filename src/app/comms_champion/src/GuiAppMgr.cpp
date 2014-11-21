@@ -140,7 +140,8 @@ void GuiAppMgr::msgReceived(Message* msg)
     std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
     emit sigAddRecvMsg(msg);
     m_msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
-    emit sigDisplayMsgDetailsWidget(m_msgWidget.get());
+    m_msgWidget->setEditEnabled(false);
+    emit sigDisplayMsgDetailsWidget(m_msgWidget.release());
 }
 
 }  // namespace comms_champion

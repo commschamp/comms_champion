@@ -50,8 +50,13 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     addToolBar(toolbar);
 
     auto* splitter = new QSplitter();
-    splitter->addWidget(new LeftPaneWidget());
-    splitter->addWidget(new RightPaneWidget());
+    auto* leftPane = new LeftPaneWidget();
+    auto* rightPane = new RightPaneWidget();
+    rightPane->resize(leftPane->width() / 2, rightPane->height());
+    splitter->addWidget(leftPane);
+    splitter->addWidget(rightPane);
+    splitter->setStretchFactor(0, 1);
+    splitter->setStretchFactor(1, 1);
     setCentralWidget(splitter);
 }
 

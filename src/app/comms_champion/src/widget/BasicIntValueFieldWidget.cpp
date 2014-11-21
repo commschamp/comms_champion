@@ -67,8 +67,9 @@ void BasicIntValueFieldWidget::refreshImpl()
 
 void BasicIntValueFieldWidget::setEditEnabledImpl(bool enabled)
 {
-    m_ui.m_valueSpinBox->setReadOnly(enabled);
-    m_ui.m_serValueLineEdit->setReadOnly(enabled);
+    bool readonly = !enabled;
+    m_ui.m_valueSpinBox->setReadOnly(readonly);
+    m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
 void BasicIntValueFieldWidget::propertiesUpdatedImpl()

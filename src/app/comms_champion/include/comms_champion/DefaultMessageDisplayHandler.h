@@ -59,7 +59,7 @@ protected:
     FieldWidgetPtr createFieldWidget(
         comms::field::BasicIntValue<TArgs...>& field)
     {
-        auto& castedField = static_cast<const TField&>(field);
+        auto& castedField = static_cast<TField&>(field);
         return createBasicIntValueFieldWidget(
             field_wrapper::makeBasicIntValueWrapper(castedField));
     }

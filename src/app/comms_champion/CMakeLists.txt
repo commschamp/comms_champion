@@ -11,8 +11,6 @@ function (bin_comms_champion)
         src/WidgetProxy.cpp
         src/DefaultMessageDisplayHandler.cpp
         src/FieldWidget.cpp
-        src/MessageWidget.cpp
-        src/DefaultMessageWidget.cpp
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp
         src/widget/RightPaneWidget.cpp
@@ -21,6 +19,9 @@ function (bin_comms_champion)
         src/widget/MsgListWidget.cpp
         src/widget/RecvMsgListWidget.cpp
         src/widget/SendMsgListWidget.cpp
+        src/widget/MessageWidget.cpp
+        src/widget/MsgDetailsWidget.cpp
+        src/widget/DefaultMessageWidget.cpp
         src/widget/BasicIntValueFieldWidget.cpp
     )
     
@@ -34,6 +35,7 @@ function (bin_comms_champion)
         src/widget/RecvAreaToolBar.h
         src/widget/MsgListWidget.h
         src/widget/BasicIntValueFieldWidget.h
+        src/widget/MsgDetailsWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      
         ${_inc_dir}/MessageWidget.h
@@ -44,6 +46,7 @@ function (bin_comms_champion)
         ui
         ui/MainWindowWidget.ui
         ui/MsgListWidget.ui
+        ui/MsgDetailsWidget.ui
         ui/BasicIntValueFieldWidget.ui
     )
     

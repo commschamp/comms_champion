@@ -15,23 +15,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "RightPaneWidget.h"
+#pragma once
 
-#include <QtWidgets/QLabel>
+#include <QtWidgets/QWidget>
 
-#include "MsgDetailsWidget.h"
+#include "ui_MsgDetailsWidget.h"
 
 namespace comms_champion
 {
 
-RightPaneWidget::RightPaneWidget(QWidget* parent)
-  : Base(parent)
+class MsgDetailsWidget: public QWidget
 {
-    setOrientation(Qt::Vertical);
-    addWidget(new MsgDetailsWidget());
-    addWidget(new QLabel("Right Down"));
-}
+    Q_OBJECT
+    using Base = QWidget;
+public:
+    MsgDetailsWidget(QWidget* parent = nullptr);
 
-}  // namespace comms_champion
+private slots:
+    void displayMsgDetailsWidget(QWidget* widget);
 
+private:
+    Ui::MsgDetailsWidget m_ui;
+};
 
+} /* namespace comms_champion */

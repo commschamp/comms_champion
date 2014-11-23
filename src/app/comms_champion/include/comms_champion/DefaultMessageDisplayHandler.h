@@ -19,6 +19,7 @@
 #pragma once
 
 #include <cassert>
+#include <type_traits>
 #include <QtWidgets/QVBoxLayout>
 
 #include "comms/comms.h"
@@ -35,6 +36,9 @@ namespace comms_champion
 class DefaultMessageDisplayHandler : public MessageDisplayHandler
 {
 public:
+    struct BasicIntValueTag {};
+    struct UnknownValueTag {};
+
     template <typename TMessage>
     void handle(TMessage& msg)
     {
@@ -47,22 +51,6 @@ protected:
     using FieldWidgetPtr = std::unique_ptr<FieldWidget>;
 
     virtual MsgWidgetPtr createMsgWidgetImpl(Message& msg) override;
-
-    template <typename TField>
-    void displayField(TField& field)
-    {
-        auto fieldWidget = createFieldWidget<TField>(field);
-        m_widget->addFieldWidget(fieldWidget.release());
-    }
-
-    template <typename TField, typename... TArgs>
-    FieldWidgetPtr createFieldWidget(
-        comms::field::BasicIntValue<TArgs...>& field)
-    {
-        auto& castedField = static_cast<TField&>(field);
-        return createBasicIntValueFieldWidget(
-            field_wrapper::makeBasicIntValueWrapper(castedField));
-    }
 
 private:
 
@@ -78,7 +66,16 @@ private:
         template <typename TField>
         void operator()(TField&& field)
         {
-            m_handler.displayField(std::forward<TField>(field));
+            using FieldType = typename std::decay<TField>::type;
+            using Tag =
+                typename std::conditional<
+                    comms::field::isBasicIntValue<FieldType>(),
+                    BasicIntValueTag,
+                    UnknownValueTag
+                >::type;
+            auto fieldWidget =
+                m_handler.createFieldWidget(std::forward<TField>(field), Tag());
+            m_handler.m_widget->addFieldWidget(fieldWidget.release());
         }
 
     private:
@@ -92,6 +89,19 @@ private:
     FieldsDisplayDispatcher<THandler> makeFieldsDisplayDispatcher(THandler& handler)
     {
         return FieldsDisplayDispatcher<THandler>(handler);
+    }
+
+    template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, BasicIntValueTag)
+    {
+        return createBasicIntValueFieldWidget(
+            field_wrapper::makeBasicIntValueWrapper(field));
+    }
+
+    template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, UnknownValueTag)
+    {
+        assert(!"Displaying unknown field is not implemented yet");
     }
 
     FieldWidgetPtr createBasicIntValueFieldWidget(

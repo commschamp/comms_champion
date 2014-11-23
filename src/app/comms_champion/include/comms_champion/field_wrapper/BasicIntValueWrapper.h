@@ -98,9 +98,10 @@ class BasicIntValueWrapperT : public BasicIntValueWrapper
 {
     using Base = BasicIntValueWrapper;
     using Field = TField;
+    static_assert(comms::field::isBasicIntValue<Field>(), "Mut be of BasicIntValueField type");
+
     using ValueType = typename Field::ValueType;
     using IntType = typename Base::IntType;
-
     static_assert(sizeof(ValueType) <= sizeof(IntType), "This wrapper cannot handle provided field.");
     static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(IntType)),
         "This wrapper cannot handle provided field.");

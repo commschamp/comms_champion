@@ -128,8 +128,8 @@ using Message3Fields =
             comms::field::option::LengthLimitImpl<1>,
             comms::field::option::ValidRangeImpl<-200, 200>,
             comms::field::option::DefaultValueImpl<255> >, // invalid upon creation
-        comms::field::BitmaskValue<TField, 2>,
-        comms::field::BitmaskValue<TField, 3>
+        comms::field::BitmaskValue<TField, comms::field::option::LengthLimitImpl<2> >,
+        comms::field::BitmaskValue<TField, comms::field::option::LengthLimitImpl<3> >
     >;
 
 template <typename TMessage>

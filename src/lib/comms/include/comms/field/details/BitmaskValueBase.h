@@ -30,29 +30,28 @@ namespace field
 namespace details
 {
 
-template <typename TField, std::size_t TLen, typename... TOptions>
+template <typename TField, typename... TOptions>
 class BitmaskValueBase;
 
-template <typename TField, std::size_t TLen>
-class BitmaskValueBase<TField, TLen> : public TField
+template <typename TField>
+class BitmaskValueBase<TField> : public TField
 {
 protected:
-    typedef typename util::SizeToType<TLen>::Type ValueType;
+    typedef long long unsigned ValueType;
 
     static const auto DefaultValue = static_cast<ValueType>(0);
-    static const std::size_t SerialisedLen = TLen;
+    static const std::size_t SerialisedLen = sizeof(ValueType);
     static const auto ReservedMask = static_cast<ValueType>(0);
     static const bool ReservedValue = false;
 };
 
-template <typename TField, std::size_t TLen, long long int TValue, typename... TOptions>
+template <typename TField, long long int TValue, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    TLen,
     comms::field::option::DefaultValueImpl<TValue>,
-    TOptions...> : public BitmaskValueBase<TField, TLen, TOptions...>
+    TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
-    typedef BitmaskValueBase<TField, TLen, TOptions...> Base;
+    typedef BitmaskValueBase<TField, TOptions...> Base;
 
 protected:
     using Base::BitmaskValueBase;
@@ -60,14 +59,13 @@ protected:
     static const auto DefaultValue = static_cast<decltype(Base::DefaultValue)>(TValue);
 };
 
-template <typename TField, std::size_t TLen, long long unsigned TMask, bool TValue, typename... TOptions>
+template <typename TField, long long unsigned TMask, bool TValue, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    TLen,
     comms::field::option::ReservedBitsImpl<TMask, TValue>,
-    TOptions...> : public BitmaskValueBase<TField, TLen, TOptions...>
+    TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
-    typedef BitmaskValueBase<TField, TLen, TOptions...> Base;
+    typedef BitmaskValueBase<TField, TOptions...> Base;
 
 protected:
     using Base::BitmaskValueBase;
@@ -76,6 +74,24 @@ protected:
     static const auto ReservedValue = static_cast<decltype(Base::ReservedValue)>(TValue);
 };
 
+template <typename TField, std::size_t TLen, typename... TOptions>
+class BitmaskValueBase<
+    TField,
+    comms::field::option::LengthLimitImpl<TLen>,
+    TOptions...> : public BitmaskValueBase<TField, TOptions...>
+{
+
+    typedef BitmaskValueBase<TField, TOptions...> Base;
+
+protected:
+    using Base::BitmaskValueBase;
+
+    using ValueType = typename comms::util::SizeToType<TLen, false>::Type;
+
+    static const auto DefaultValue = static_cast<ValueType>(Base::DefaultValue);
+    static const std::size_t SerialisedLen = TLen;
+    static const auto ReservedMask = static_cast<ValueType>(Base::ReservedMask);
+};
 
 }  // namespace details
 

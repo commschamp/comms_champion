@@ -270,7 +270,7 @@ void FieldsTestSuite::test10()
 {
     typedef comms::field::BitmaskValue<
         comms::Field<BigEndianTraits>,
-        2
+        comms::field::option::LengthLimitImpl<2>
     > Field;
 
     Field field;
@@ -302,7 +302,7 @@ void FieldsTestSuite::test11()
 {
     typedef comms::field::BitmaskValue<
         comms::Field<LittleEndianTraits>,
-        3,
+        comms::field::option::LengthLimitImpl<3>,
         cfo::DefaultValueImpl<0xffffff>,
         cfo::ReservedBitsImpl<0xff0000, 0>
     > Field;

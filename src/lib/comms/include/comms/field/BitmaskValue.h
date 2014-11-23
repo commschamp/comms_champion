@@ -42,11 +42,10 @@ namespace field
 /// @tparam TLen Length of serialised data in bytes.
 /// @headerfile comms/field/BitmaskValue.h
 template <typename TField,
-          std::size_t TLen,
           typename... TOptions>
-class BitmaskValue : details::BitmaskValueBase<TField, TLen, TOptions...>
+class BitmaskValue : details::BitmaskValueBase<TField, TOptions...>
 {
-    typedef details::BitmaskValueBase<TField, TLen, TOptions...> Base;
+    typedef details::BitmaskValueBase<TField, TOptions...> Base;
 
 public:
 
@@ -57,7 +56,7 @@ public:
     static const auto DefaultValue = Base::DefaultValue;
 
     /// @brief Length of serialised data
-    static const std::size_t SerialisedLen = Base::TLen;
+    static const std::size_t SerialisedLen = Base::SerialisedLen;
 
     /// @brief Reserved bits mask
     static const auto ReservedMask = Base::ReservedMask;
@@ -70,7 +69,7 @@ public:
         BasicIntValue<
             TField,
             ValueType,
-            option::LengthLimitImpl<TLen>,
+            option::LengthLimitImpl<SerialisedLen>,
             option::DefaultValueImpl<DefaultValue>
         > IntValueField;
 
@@ -206,33 +205,57 @@ private:
 
 /// @brief Equality comparison operator.
 /// @related BitmaskValue
-template <typename TField, std::size_t TLen, typename... TOptions>
+template <typename... TArgs>
 bool operator==(
-    const BitmaskValue<TField, TLen, TOptions...>& field1,
-    const BitmaskValue<TField, TLen, TOptions...>& field2)
+    const BitmaskValue<TArgs...>& field1,
+    const BitmaskValue<TArgs...>& field2)
 {
     return field1.asIntValueField() == field2.asIntValueField();
 }
 
 /// @brief Non-equality comparison operator.
 /// @related BitmaskValue
-template <typename TField, std::size_t TLen, typename... TOptions>
+template <typename... TArgs>
 bool operator!=(
-    const BitmaskValue<TField, TLen, TOptions...>& field1,
-    const BitmaskValue<TField, TLen, TOptions...>& field2)
+    const BitmaskValue<TArgs...>& field1,
+    const BitmaskValue<TArgs...>& field2)
 {
     return field1.asIntValueField() != field2.asIntValueField();
 }
 
 /// @brief Equivalence comparison operator.
 /// @related BitmaskValue
-template <typename TField, std::size_t TLen, typename... TOptions>
+template <typename... TArgs>
 bool operator<(
-    const BitmaskValue<TField, TLen, TOptions...>& field1,
-    const BitmaskValue<TField, TLen, TOptions...>& field2)
+    const BitmaskValue<TArgs...>& field1,
+    const BitmaskValue<TArgs...>& field2)
 {
     return field1.asIntValueField() < field2.asIntValueField();
 }
+
+namespace details
+{
+
+template <typename T>
+struct IsBitmaskValue
+{
+    static const bool Value = false;
+};
+
+template <typename... TArgs>
+struct IsBitmaskValue<comms::field::BitmaskValue<TArgs...> >
+{
+    static const bool Value = true;
+};
+
+}  // namespace details
+
+template <typename T>
+constexpr bool isBitmaskValue()
+{
+    return details::IsBitmaskValue<T>::Value;
+}
+
 
 /// @}
 

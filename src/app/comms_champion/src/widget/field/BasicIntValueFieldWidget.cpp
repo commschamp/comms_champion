@@ -57,8 +57,15 @@ void BasicIntValueFieldWidget::refreshImpl()
 {
     auto serValueStr =
         QString("%1").arg(m_wrapper->serialisedValue(), m_wrapper->width(), 16, QChar('0'));
-    m_ui.m_serValueLineEdit->setText(serValueStr);
-    m_ui.m_valueSpinBox->setValue(m_wrapper->value());
+    if (m_ui.m_serValueLineEdit->text() != serValueStr) {
+        m_ui.m_serValueLineEdit->setText(serValueStr);
+    }
+
+    auto value = m_wrapper->value();
+    if (m_ui.m_valueSpinBox->value() != value) {
+        m_ui.m_valueSpinBox->setValue(value);
+    }
+
     bool valid = m_wrapper->valid();
     setValidityStyleSheet(*m_ui.m_nameLabel, valid);
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
@@ -88,6 +95,7 @@ void BasicIntValueFieldWidget::serialisedValueUpdated(const QString& value)
         return;
     }
     m_wrapper->setSerialisedValue(serValue);
+    emitFieldUpdated();
     refresh();
 }
 
@@ -99,6 +107,7 @@ void BasicIntValueFieldWidget::valueUpdated(int value)
 
     assert(isEditEnabled());
     m_wrapper->setValue(value);
+    emitFieldUpdated();
     refresh();
 }
 

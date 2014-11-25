@@ -33,12 +33,6 @@ UnknownValueFieldWidget::UnknownValueFieldWidget(
 {
     m_ui.setupUi(this);
 
-//    auto maskWidth = static_cast<std::size_t>(m_wrapper->length() * 2);
-//    std::string mask;
-//    mask.reserve(maskWidth);
-//    std::fill_n(std::back_inserter(mask), maskWidth, 'H');
-//    m_ui.m_serValueLineEdit->setInputMask(mask.c_str());
-
     connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
@@ -56,25 +50,25 @@ void UnknownValueFieldWidget::refreshImpl()
         serValueStr.append(QString("%1").arg(byte, 2, 16, QChar('0')));
     }
 
+    QString altSerValueStr(serValueStr);
+    if ((!serValueStr.isEmpty()) &&
+        (serValueStr[0] == '0')) {
+        altSerValueStr = QString(serValueStr.data() + 1);
+    }
+
     auto curText = m_ui.m_serValueLineEdit->text();
-    if ((curText.isEmpty()) ||
-        (curText.size() != (m_wrapper->width() - 1)) ||
-        (serValueStr[0] != '0') ||
-        curText != QString(serValueStr.data() + 1)) {
+    if ((curText != serValueStr) &&
+        (curText != altSerValueStr)) {
 
         auto maskWidth = static_cast<std::size_t>(m_wrapper->width());
         std::string mask;
         mask.reserve(maskWidth);
         std::fill_n(std::back_inserter(mask), maskWidth + 1, 'H');
         m_ui.m_serValueLineEdit->setInputMask(mask.c_str());
-
         m_ui.m_serValueLineEdit->setText(serValueStr);
     }
 
-    bool valid = m_wrapper->valid();
-    setValidityStyleSheet(*m_ui.m_nameLabel, valid);
-    setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
-    setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+    setFieldValid(m_wrapper->valid());
 }
 
 void UnknownValueFieldWidget::setEditEnabledImpl(bool enabled)
@@ -92,11 +86,11 @@ void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     assert(isEditEnabled());
 
-    QString valueCopy;
-    if ((value.size() & 0x1) != 0) {
-        valueCopy.append('0');
+    QString valueCopy(value);
+    if ((valueCopy.size() & 0x1) != 0) {
+        valueCopy.resize(valueCopy.size() - 1);
     }
-    valueCopy.append(value);
+
     assert((valueCopy.size() & 0x1) == 0);
     auto numOfDigits = valueCopy.size() / 2;
 
@@ -115,8 +109,13 @@ void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
         serValue.push_back(static_cast<SerializedType::value_type>(byteValue));
     }
 
-    m_wrapper->setSerialisedValue(serValue);
-    refresh();
+    if (m_wrapper->setSerialisedValue(serValue)) {
+        refresh();
+        emitFieldUpdated();
+    }
+    else {
+        setFieldValid(false);
+    }
 }
 
 void UnknownValueFieldWidget::readPropertiesAndUpdateUi()
@@ -125,6 +124,13 @@ void UnknownValueFieldWidget::readPropertiesAndUpdateUi()
     if (nameProperty.isValid()) {
         m_ui.m_nameLabel->setText(nameProperty.toString() + ':');
     }
+}
+
+void UnknownValueFieldWidget::setFieldValid(bool valid)
+{
+    setValidityStyleSheet(*m_ui.m_nameLabel, valid);
+    setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
+    setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
 }  // namespace comms_champion

@@ -47,6 +47,7 @@ private slots:
 
 private:
     void readPropertiesAndUpdateUi();
+    void setFieldValid(bool valid);
 
     Ui::UnknownValueFieldWidget m_ui;
     field_wrapper::UnknownValueWrapperPtr m_wrapper;

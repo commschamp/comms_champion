@@ -5,6 +5,7 @@ function (plugin_demo)
         DemoPlugin.cpp
         Protocol.cpp
         message/CCHeartbeat.cpp
+        message/CCStatus.cpp
     )
     
     set (hdr

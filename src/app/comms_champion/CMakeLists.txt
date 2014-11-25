@@ -22,7 +22,8 @@ function (bin_comms_champion)
         src/widget/MessageWidget.cpp
         src/widget/MsgDetailsWidget.cpp
         src/widget/DefaultMessageWidget.cpp
-        src/widget/BasicIntValueFieldWidget.cpp
+        src/widget/field/BasicIntValueFieldWidget.cpp
+        src/widget/field/UnknownValueFieldWidget.cpp
     )
     
     set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/include/comms_champion)
@@ -34,8 +35,9 @@ function (bin_comms_champion)
         src/WidgetProxy.h
         src/widget/RecvAreaToolBar.h
         src/widget/MsgListWidget.h
-        src/widget/BasicIntValueFieldWidget.h
         src/widget/MsgDetailsWidget.h
+        src/widget/field/BasicIntValueFieldWidget.h
+        src/widget/field/UnknownValueFieldWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      
         ${_inc_dir}/MessageWidget.h
@@ -48,6 +50,7 @@ function (bin_comms_champion)
         ui/MsgListWidget.ui
         ui/MsgDetailsWidget.ui
         ui/BasicIntValueFieldWidget.ui
+        ui/UnknownValueFieldWidget.ui
     )
     
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)

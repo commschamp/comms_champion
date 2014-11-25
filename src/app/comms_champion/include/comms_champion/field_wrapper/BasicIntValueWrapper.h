@@ -177,7 +177,7 @@ private:
     void setValueImplInternal(IntType value, ReadOnly)
     {
         static_cast<void>(value);
-        assert(!"Attempt to update writable field");
+        assert(!"Attempt to update readonly field");
     }
 
     void setSerialisedValueImplInternal(IntType value, Writable)

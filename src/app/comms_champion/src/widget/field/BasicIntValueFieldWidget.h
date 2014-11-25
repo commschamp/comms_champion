@@ -49,7 +49,7 @@ private slots:
 private:
     void readPropertiesAndUpdateUi();
 
-    Ui::BasicIntValeFieldWidget m_ui;
+    Ui::BasicIntValueFieldWidget m_ui;
     field_wrapper::BasicIntValueWrapperPtr m_wrapper;
 };
 

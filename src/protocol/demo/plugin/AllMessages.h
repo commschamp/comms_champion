@@ -20,6 +20,7 @@
 
 #include <tuple>
 #include "message/CCHeartbeat.h"
+#include "message/CCStatus.h"
 
 namespace demo
 {
@@ -29,7 +30,8 @@ namespace plugin
 
 using AllMessages =
     std::tuple<
-        message::CCHeartbeat
+        message::CCHeartbeat,
+        message::CCStatus
     >;
 
 }  // namespace plugin

@@ -21,7 +21,8 @@
 
 #include "GlobalConstants.h"
 
-#include "widget/BasicIntValueFieldWidget.h"
+#include "widget/field/BasicIntValueFieldWidget.h"
+#include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
 {
@@ -42,6 +43,15 @@ DefaultMessageDisplayHandler::createBasicIntValueFieldWidget(
     return
         FieldWidgetPtr(
             new BasicIntValueFieldWidget(std::move(fieldWrapper)));
+}
+
+DefaultMessageDisplayHandler::FieldWidgetPtr
+DefaultMessageDisplayHandler::createUnknownValueFieldWidget(
+    field_wrapper::UnknownValueWrapperPtr&& fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new UnknownValueFieldWidget(std::move(fieldWrapper)));
 }
 
 void DefaultMessageDisplayHandler::updateFieldIdxProperty(

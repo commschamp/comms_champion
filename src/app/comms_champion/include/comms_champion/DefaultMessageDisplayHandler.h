@@ -29,6 +29,7 @@
 #include "comms_champion/DefaultMessageWidget.h"
 
 #include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
+#include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
 {
@@ -101,11 +102,16 @@ private:
     template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, UnknownValueTag)
     {
-        assert(!"Displaying unknown field is not implemented yet");
+        return createUnknownValueFieldWidget(
+            field_wrapper::makeUnknownValueWrapper(field));
     }
 
     FieldWidgetPtr createBasicIntValueFieldWidget(
         field_wrapper::BasicIntValueWrapperPtr&& fieldWrapper);
+
+    FieldWidgetPtr createUnknownValueFieldWidget(
+        field_wrapper::UnknownValueWrapperPtr&& fieldWrapper);
+
 
     static void updateFieldIdxProperty(FieldWidget& field, std::size_t idx);
 

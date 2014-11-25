@@ -18,35 +18,39 @@
 
 #pragma once
 
-#include <cstdint>
 #include "comms/comms.h"
+#include "plugin/CCDemoMessage.h"
+#include "protocol/message/Status.h"
 
 namespace demo
+{
+
+namespace plugin
 {
 
 namespace message
 {
 
-enum MsgId
+class CCStatus : public demo::message::Status<demo::plugin::CCDemoMessage>
 {
-    MsgId_Heartbeat,
-    MsgId_Status,
+    using Base = demo::message::Status<demo::plugin::CCDemoMessage>;
+public:
+
+    CCStatus() = default;
+    CCStatus(const CCStatus&) = default;
+    virtual ~CCStatus() = default;
+
+    CCStatus& operator=(const CCStatus&) = default;
+
+protected:
+    virtual const char* nameImpl() const override;
+    virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
+
 };
-
-struct DemoDefaultTraits
-{
-    typedef MsgId MsgIdType;
-    typedef comms::traits::endian::Big Endianness;
-    typedef const std::uint8_t* ReadIterator;
-    typedef std::uint8_t* WriteIterator;
-};
-
-template <typename TTraits = DemoDefaultTraits>
-using DemoMessageT = comms::Message<TTraits>;
-
-using DemoMessage = DemoMessageT<DemoDefaultTraits>;
 
 }  // namespace message
+
+}  // namespace plugin
 
 }  // namespace demo
 

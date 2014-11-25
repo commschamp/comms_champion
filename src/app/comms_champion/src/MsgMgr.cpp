@@ -44,17 +44,20 @@ void MsgMgr::timeout()
     }
 
     static const std::uint8_t Buf[] = {
-        0x0, 0x3, 0x0, 0x01, 0x02
+        0x0, 0x3, 0x0, 0x01, 0x02,
+        0x0, 0x4, 0x1, 0x01, 0x00, 0x13
     };
     static const auto BufSize = std::extent<decltype(Buf)>::value;
 
     auto& protocol = *m_protStack.back();
     MsgPtr msg;
     ReadIterType iter = &Buf[0];
-    auto result = protocol.read(msg, iter, BufSize);
-    if (msg) {
-        m_recvMsgs.push_back(std::move(msg));
-        emit sigMsgReceived(m_recvMsgs.back().get());
+    while (iter != &Buf[BufSize]) {
+        auto result = protocol.read(msg, iter, BufSize);
+        if (msg) {
+            m_recvMsgs.push_back(std::move(msg));
+            emit sigMsgReceived(m_recvMsgs.back().get());
+        }
     }
 }
 

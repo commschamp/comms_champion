@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BasicIntValeFieldWidget</class>
- <widget class="QWidget" name="BasicIntValeFieldWidget">
+ <class>BasicIntValueFieldWidget</class>
+ <widget class="QWidget" name="BasicIntValueFieldWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>BasicIntValueField</string>
+   <string>Basic Int Value Field</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0,1">
    <property name="leftMargin">

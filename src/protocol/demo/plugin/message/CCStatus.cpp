@@ -16,38 +16,59 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#pragma once
+#include "CCStatus.h"
 
-#include <cstdint>
-#include "comms/comms.h"
+#include <type_traits>
+#include <cassert>
+
+#include <QtCore/QVariant>
 
 namespace demo
+{
+
+namespace plugin
 {
 
 namespace message
 {
 
-enum MsgId
+namespace
 {
-    MsgId_Heartbeat,
-    MsgId_Status,
+
+const char* Name = "Status";
+
+const char* FieldNames[] = {
+    "Execution Status",
+    "Features"
 };
 
-struct DemoDefaultTraits
+static_assert(std::extent<decltype(FieldNames)>::value == CCStatus::FieldId_NumOfFields,
+    "CCStatus::FieldId enum has changed");
+
+}  // namespace
+
+const char* CCStatus::nameImpl() const
 {
-    typedef MsgId MsgIdType;
-    typedef comms::traits::endian::Big Endianness;
-    typedef const std::uint8_t* ReadIterator;
-    typedef std::uint8_t* WriteIterator;
-};
+    return Name;
+}
 
-template <typename TTraits = DemoDefaultTraits>
-using DemoMessageT = comms::Message<TTraits>;
+void CCStatus::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
+{
+    if (FieldId_NumOfFields <= idx) {
+        assert(idx < FieldId_NumOfFields);
+        return;
+    }
 
-using DemoMessage = DemoMessageT<DemoDefaultTraits>;
+    fieldWidget.setProperty("name", FieldNames[idx]);
+}
 
 }  // namespace message
 
+}  // namespace plugin
+
+
 }  // namespace demo
+
+
 
 

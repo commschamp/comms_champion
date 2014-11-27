@@ -37,6 +37,7 @@ class MsgMgr : public QObject
     typedef QObject Base;
 public:
     typedef ProtocolPlugin::ProtocolPtr ProtocolPtr;
+    typedef unsigned long long MsgNumberType;
 
     static MsgMgr* instance();
     static MsgMgr& instanceRef();
@@ -55,11 +56,13 @@ private:
     typedef Protocol::ReadIterType ReadIterType;
 
     MsgMgr(QObject* parent = nullptr);
+
     std::vector<MsgPtr> m_recvMsgs;
     bool m_recvEnabled = false;
 
     typedef std::list<ProtocolPtr> ProtocolStack;
     ProtocolStack m_protStack;
+    MsgNumberType m_nextMsgNum = 1;
 };
 
 }  // namespace comms_champion

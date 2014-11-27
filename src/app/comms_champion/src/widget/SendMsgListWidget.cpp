@@ -27,6 +27,7 @@ namespace comms_champion
 SendMsgListWidget::SendMsgListWidget(QWidget* parent)
   : Base("Messages to Send", new SendAreaToolBar(), parent)
 {
+    selectOnAdd(true);
 }
 
 } // namespace comms_champion

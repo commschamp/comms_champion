@@ -106,9 +106,25 @@ void GuiAppMgr::sendSaveClicked()
     assert(!"Send save clicked");
 }
 
+void GuiAppMgr::recvMsgClicked(Message* msg)
+{
+    msgClicked(msg);
+    bool selectOnAddEnabled = false;
+    if (m_clickedMsg == nullptr) {
+        selectOnAddEnabled = true;
+        emit sigRecvMsgListClearSelection();
+    }
+    emit sigRecvMsgListSelectOnAddEnabled(selectOnAddEnabled);
+}
+
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
     return m_recvState;
+}
+
+bool GuiAppMgr::recvMsgListSelectOnAddEnabled()
+{
+    return m_recvListSelectOnAdd;
 }
 
 GuiAppMgr::SendState GuiAppMgr::sendState() const
@@ -139,9 +155,33 @@ void GuiAppMgr::msgReceived(Message* msg)
 {
     std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
     emit sigAddRecvMsg(msg);
+    displayMessageIfNotClicked(msg);
+}
+
+void GuiAppMgr::msgClicked(Message* msg)
+{
+    if (m_clickedMsg == msg) {
+        m_clickedMsg = nullptr;
+        // TODO: display dummy widget
+        return;
+    }
+
+    m_clickedMsg = msg;
+    displayMessage(msg);
+}
+
+void GuiAppMgr::displayMessage(Message* msg)
+{
     m_msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
     m_msgWidget->setEditEnabled(false);
     emit sigDisplayMsgDetailsWidget(m_msgWidget.release());
+}
+
+void GuiAppMgr::displayMessageIfNotClicked(Message* msg)
+{
+    if (m_clickedMsg == nullptr) {
+        displayMessage(msg);
+    }
 }
 
 }  // namespace comms_champion

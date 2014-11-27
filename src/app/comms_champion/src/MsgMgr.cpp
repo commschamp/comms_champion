@@ -21,6 +21,9 @@
 #include <cassert>
 
 #include <QtCore/QTimer>
+#include <QtCore/QVariant>
+
+#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -55,6 +58,9 @@ void MsgMgr::timeout()
     while (iter != &Buf[BufSize]) {
         auto result = protocol.read(msg, iter, BufSize);
         if (msg) {
+            msg->setProperty(
+                GlobalConstants::msgNumberPropertyName(), QVariant(m_nextMsgNum));
+            ++m_nextMsgNum;
             m_recvMsgs.push_back(std::move(msg));
             emit sigMsgReceived(m_recvMsgs.back().get());
         }

@@ -71,6 +71,8 @@ public:
 
     static const char* indexPropertyName();
     static const char* namePropertyName();
+    static const char* msgNumberPropertyName();
+    static const char* msgObjPropertyName();
 
 private:
     GlobalConstants(QObject* parent = nullptr);

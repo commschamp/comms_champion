@@ -30,8 +30,22 @@ namespace comms_champion
 RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
   : Base("Received Messages", new RecvAreaToolBar(), parent)
 {
-    connect(GuiAppMgr::instance(), SIGNAL(sigAddRecvMsg(Message*)),
+    auto* guiMgr = GuiAppMgr::instance();
+    assert(guiMgr != nullptr);
+
+    selectOnAdd(guiMgr->recvMsgListSelectOnAddEnabled());
+
+    connect(guiMgr, SIGNAL(sigAddRecvMsg(Message*)),
             this, SLOT(addMessage(Message*)));
+    connect(guiMgr, SIGNAL(sigRecvMsgListSelectOnAddEnabled(bool)),
+            this, SLOT(selectOnAdd(bool)));
+    connect(guiMgr, SIGNAL(sigRecvMsgListClearSelection()),
+            this, SLOT(clearSelection()));
+}
+
+void RecvMsgListWidget::msgClickedImpl(Message* msg)
+{
+   GuiAppMgr::instance()->recvMsgClicked(msg);
 }
 
 } // namespace comms_champion

@@ -139,6 +139,18 @@ const char* GlobalConstants::namePropertyName()
     return str;
 }
 
+const char* GlobalConstants::msgNumberPropertyName()
+{
+    static const char* str = "msg_num";
+    return str;
+}
+
+const char* GlobalConstants::msgObjPropertyName()
+{
+    static const char* str = "msg_obj";
+    return str;
+}
+
 GlobalConstants::GlobalConstants(QObject* parent)
   : Base(parent)
 {

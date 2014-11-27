@@ -58,6 +58,8 @@ public:
     static void qmlRegister();
 
     RecvState recvState() const;
+    bool recvMsgListSelectOnAddEnabled();
+
     SendState sendState() const;
 
 public slots:
@@ -72,14 +74,15 @@ public slots:
     Q_INVOKABLE void sendStopClicked();
     Q_INVOKABLE void sendSaveClicked();
 
+    void recvMsgClicked(Message* msg);
 
 signals:
     void sigAddRecvMsg(Message* msg);
-    void sigSetRecvState(const QString& state);
     void sigSetRecvState(int state);
-    void sigSetSendState(const QString& state);
     void sigSetSendState(int state);
     void sigDisplayMsgDetailsWidget(QWidget* widget);
+    void sigRecvMsgListSelectOnAddEnabled(bool enabled);
+    void sigRecvMsgListClearSelection();
 
 private:
     GuiAppMgr(QObject* parent = nullptr);
@@ -93,10 +96,18 @@ private /*data*/:
     using MsgDisplayHandlerPtr = std::unique_ptr<MessageDisplayHandler>;
     using MsgWidgetPtr = MessageDisplayHandler::MsgWidgetPtr;
 
+    void msgClicked(Message* msg);
+    void displayMessage(Message* msg);
+    void displayMessageIfNotClicked(Message* msg);
+
     RecvState m_recvState;
+    bool m_recvListSelectOnAdd = true;
+
     SendState m_sendState;
+
     MsgDisplayHandlerPtr m_msgDisplayHandler;
     MsgWidgetPtr m_msgWidget;
+    Message* m_clickedMsg = nullptr;
 };
 
 }  // namespace comms_champion

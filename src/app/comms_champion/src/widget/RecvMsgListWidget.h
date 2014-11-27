@@ -27,6 +27,9 @@ class RecvMsgListWidget: public MsgListWidget
     using Base = MsgListWidget;
 public:
     RecvMsgListWidget(QWidget* parent = nullptr);
+
+protected:
+    virtual void msgClickedImpl(Message* msg) override;
 };
 
 } /* namespace comms_champion */

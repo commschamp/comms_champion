@@ -40,9 +40,22 @@ public:
 
 protected slots:
     void addMessage(Message* msg);
+    void selectOnAdd(bool enabled);
+    void clearSelection();
+
+protected:
+    virtual void msgClickedImpl(Message* msg);
+    virtual void msgDoubleClickedImpl(Message* msg);
+
+private slots:
+    void itemClicked(QListWidgetItem* item);
+    void itemDoubleClicked(QListWidgetItem* item);
 
 private:
+    Message* getMsgFromItem(QListWidgetItem* item);
+
     Ui::MsgListWidget m_ui;
+    bool m_selectOnAdd = false;
 };
 
 }  // namespace comms_champion

@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <limits>
 #include "comms/Field.h"
 #include "BasicIntValue.h"
 
@@ -63,6 +64,8 @@ public:
 
     /// @brief Valid value for reserved bits.
     static const bool ReservedValue = Base::ReservedValue;
+
+    static const bool BitOrderMsbFirst = Base::BitOrderMsbFirst;
 
     /// @brief Definition of underlying BasicIntValue field type
     typedef
@@ -197,7 +200,48 @@ public:
         setValue(getValue() & (~mask));
     }
 
+    const bool getBitValue(unsigned bitNum) const
+    {
+        return hasAllBitsSet(calcMask(bitNum, BitOrderTag()));
+    }
+
+    void setBitValue(unsigned bitNum, bool value)
+    {
+        auto mask = calcMask(bitNum, BitOrderTag());
+        if (value) {
+            setBits(mask);
+        }
+        else {
+            clearBits(mask);
+        }
+    }
+
 private:
+    struct BitOrderMsbFirstTag {};
+    struct BitOrderLsbFirstTag {};
+    using BitOrderTag = typename
+        std::conditional<
+            BitOrderMsbFirst,
+            BitOrderMsbFirstTag,
+            BitOrderLsbFirstTag
+        >::type;
+
+
+    static ValueType calcMask(unsigned bitNum, BitOrderMsbFirstTag)
+    {
+        GASSERT(bitNum < std::numeric_limits<ValueType>::digits);
+        auto shift = (std::numeric_limits<ValueType>::digits - 1) - bitNum;
+        auto mask = static_cast<ValueType>(1) << shift;
+        return mask;
+    }
+
+    static ValueType calcMask(unsigned bitNum, BitOrderLsbFirstTag)
+    {
+        GASSERT(bitNum < std::numeric_limits<ValueType>::digits);
+        auto mask = static_cast<ValueType>(1) << bitNum;
+        return mask;
+    }
+
     IntValueField intValue_;
 };
 

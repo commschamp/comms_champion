@@ -53,11 +53,13 @@ struct DefaultValueImpl
 };
 
 template<long long unsigned TMask, bool TValue>
-struct ReservedBitsImpl
+struct BitmaskReservedBitsImpl
 {
     static const auto Mask = TMask;
     static const auto Value = TValue;
 };
+
+struct BitmaskBitOrderLsbFirstImpl {};
 
 
 }  // namespace option

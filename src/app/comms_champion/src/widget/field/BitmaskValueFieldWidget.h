@@ -19,25 +19,25 @@
 #pragma once
 
 #include "comms_champion/FieldWidget.h"
-#include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
+#include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 
-#include "ui_BasicIntValueFieldWidget.h"
+#include "ui_BitmaskValueFieldWidget.h"
 
 namespace comms_champion
 {
 
-class BasicIntValueFieldWidget : public FieldWidget
+class BitmaskValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
     typedef FieldWidget Base;
 public:
-    using WrapperPtr = field_wrapper::BasicIntValueWrapperPtr;
+    using WrapperPtr = field_wrapper::BitmaskValueWrapperPtr;
 
-    explicit BasicIntValueFieldWidget(
+    explicit BitmaskValueFieldWidget(
         WrapperPtr&& wrapper,
         QWidget* parent = nullptr);
 
-    ~BasicIntValueFieldWidget();
+    ~BitmaskValueFieldWidget();
 
 protected:
     virtual void refreshImpl() override;
@@ -46,7 +46,6 @@ protected:
 
 private slots:
     void serialisedValueUpdated(const QString& value);
-    void valueUpdated(int value);
 
 private:
     using WrapperType = typename WrapperPtr::element_type;
@@ -54,7 +53,7 @@ private:
 
     void readPropertiesAndUpdateUi();
 
-    Ui::BasicIntValueFieldWidget m_ui;
+    Ui::BitmaskValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
 };
 

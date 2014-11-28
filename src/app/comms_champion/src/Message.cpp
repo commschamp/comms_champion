@@ -18,7 +18,11 @@
 
 #include "comms_champion/Message.h"
 
+#include <QtCore/QVariant>
+#include <QtWidgets/QWidget>
 #include <QtQml/QtQml>
+
+#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -44,6 +48,11 @@ void Message::qmlRegister()
 {
     qmlRegisterUncreatableType<Message>(
         "cc.protocol.Message", 1, 0, "Message", "Message is an Abstract class");
+}
+
+void Message::setNameProperty(QWidget& widget, const QString& value)
+{
+    widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));
 }
 
 }  // namespace comms_champion

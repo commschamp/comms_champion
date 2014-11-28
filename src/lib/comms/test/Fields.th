@@ -304,7 +304,7 @@ void FieldsTestSuite::test11()
         comms::Field<LittleEndianTraits>,
         comms::field::option::LengthLimitImpl<3>,
         cfo::DefaultValueImpl<0xffffff>,
-        cfo::ReservedBitsImpl<0xff0000, 0>
+        cfo::BitmaskReservedBitsImpl<0xff0000, 0>
     > Field;
 
     Field field;

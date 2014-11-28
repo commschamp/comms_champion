@@ -20,6 +20,9 @@
 
 #include <QtWidgets/QWidget>
 
+class QLineEdit;
+class QLabel;
+
 namespace comms_champion
 {
 
@@ -42,13 +45,33 @@ signals:
 protected:
     void emitFieldUpdated();
     bool isEditEnabled() const;
+    void updateNameLabel(QLabel& label);
+
     static void setValidityStyleSheet(QWidget& widget, bool valid);
+    static void setSerialisedInputMask(QLineEdit& line, int width);
+
+    template <typename TSerValue>
+    static void updateNumericSerialisedValue(
+        QLineEdit& line,
+        TSerValue value,
+        int width)
+    {
+        updateNumericSerialisedValueInternal(
+            line,
+            static_cast<unsigned long long>(value),
+            width);
+    }
 
     virtual void refreshImpl() = 0;
     virtual void setEditEnabledImpl(bool enabled);
     virtual void propertiesUpdatedImpl();
 
 private:
+    static void updateNumericSerialisedValueInternal(
+        QLineEdit& line,
+        unsigned long long value,
+        int width);
+
     bool m_editEnabled = true;
 };
 

@@ -59,7 +59,7 @@ void CCStatus::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
         return;
     }
 
-    fieldWidget.setProperty("name", FieldNames[idx]);
+    setNameProperty(fieldWidget, FieldNames[idx]);
 }
 
 }  // namespace message

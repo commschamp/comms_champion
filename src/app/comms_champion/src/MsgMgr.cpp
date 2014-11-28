@@ -59,7 +59,8 @@ void MsgMgr::timeout()
         auto result = protocol.read(msg, iter, BufSize);
         if (msg) {
             msg->setProperty(
-                GlobalConstants::msgNumberPropertyName(), QVariant(m_nextMsgNum));
+                GlobalConstants::msgNumberPropertyName(),
+                QVariant::fromValue(m_nextMsgNum));
             ++m_nextMsgNum;
             m_recvMsgs.push_back(std::move(msg));
             emit sigMsgReceived(m_recvMsgs.back().get());

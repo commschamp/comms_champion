@@ -29,16 +29,58 @@
 #include "comms_champion/DefaultMessageWidget.h"
 
 #include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
+#include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
 {
 
+namespace details
+{
+
+struct BasicIntValueTag {};
+struct BitmaskValueTag {};
+struct UnknownValueTag {};
+
+template <typename TField>
+struct TagOf
+{
+    static_assert(!comms::field::isBasicIntValue<TField>(),
+        "BasicIntValue is perceived as unknown type");
+    static_assert(!comms::field::isBitmaskValue<TField>(),
+        "BasicValue is perceived as unknown type");
+    typedef UnknownValueTag Type;
+};
+
+template <typename... TArgs>
+struct TagOf<comms::field::BasicIntValue<TArgs...> >
+{
+    static_assert(
+        comms::field::isBasicIntValue<comms::field::BasicIntValue<TArgs...> >(),
+        "isBasicIntValue is supposed to return true");
+
+    typedef BasicIntValueTag Type;
+};
+
+template <typename... TArgs>
+struct TagOf<comms::field::BitmaskValue<TArgs...> >
+{
+    static_assert(
+        comms::field::isBitmaskValue<comms::field::BitmaskValue<TArgs...> >(),
+        "isBitmaskValue is supposed to return true");
+
+    typedef BitmaskValueTag Type;
+};
+
+
+template <typename TField>
+using TagOfT = typename TagOf<TField>::Type;
+
+}  // namespace details
+
 class DefaultMessageDisplayHandler : public MessageDisplayHandler
 {
 public:
-    struct BasicIntValueTag {};
-    struct UnknownValueTag {};
 
     template <typename TMessage>
     void handle(TMessage& msg)
@@ -55,6 +97,10 @@ protected:
 
 private:
 
+    using BasicIntValueTag = details::BasicIntValueTag;
+    using BitmaskValueTag = details::BitmaskValueTag;
+    using UnknownValueTag = details::UnknownValueTag;
+
     template <typename THandler>
     class FieldsDisplayDispatcher
     {
@@ -68,12 +114,8 @@ private:
         void operator()(TField&& field)
         {
             using FieldType = typename std::decay<TField>::type;
-            using Tag =
-                typename std::conditional<
-                    comms::field::isBasicIntValue<FieldType>(),
-                    BasicIntValueTag,
-                    UnknownValueTag
-                >::type;
+            using Tag = details::TagOfT<FieldType>;
+
             auto fieldWidget =
                 m_handler.createFieldWidget(std::forward<TField>(field), Tag());
             m_handler.m_widget->addFieldWidget(fieldWidget.release());
@@ -100,6 +142,13 @@ private:
     }
 
     template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, BitmaskValueTag)
+    {
+        return createBitmaskValueFieldWidget(
+            field_wrapper::makeBitmaskValueWrapper(field));
+    }
+
+    template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -108,6 +157,9 @@ private:
 
     FieldWidgetPtr createBasicIntValueFieldWidget(
         field_wrapper::BasicIntValueWrapperPtr&& fieldWrapper);
+
+    FieldWidgetPtr createBitmaskValueFieldWidget(
+        field_wrapper::BitmaskValueWrapperPtr&& fieldWrapper);
 
     FieldWidgetPtr createUnknownValueFieldWidget(
         field_wrapper::UnknownValueWrapperPtr&& fieldWrapper);

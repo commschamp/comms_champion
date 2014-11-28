@@ -58,7 +58,7 @@ void CCHeartbeat::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) cons
         return;
     }
 
-    fieldWidget.setProperty("name", FieldNames[idx]);
+    setNameProperty(fieldWidget, FieldNames[idx]);
 }
 
 }  // namespace message

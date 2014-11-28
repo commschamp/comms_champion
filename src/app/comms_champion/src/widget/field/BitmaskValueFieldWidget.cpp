@@ -15,17 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "BasicIntValueFieldWidget.h"
+#include "BitmaskValueFieldWidget.h"
 
 #include <algorithm>
 #include <cassert>
+#include <type_traits>
 
 #include "GlobalConstants.h"
 
 namespace comms_champion
 {
 
-BasicIntValueFieldWidget::BasicIntValueFieldWidget(
+BitmaskValueFieldWidget::BitmaskValueFieldWidget(
     WrapperPtr&& wrapper,
     QWidget* parent)
   : Base(parent),
@@ -36,11 +37,6 @@ BasicIntValueFieldWidget::BasicIntValueFieldWidget(
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
 
-    m_ui.m_valueSpinBox->setRange(m_wrapper->minValue(), m_wrapper->maxValue());
-
-    connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(int)),
-            this, SLOT(valueUpdated(int)));
-
     connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
@@ -48,9 +44,9 @@ BasicIntValueFieldWidget::BasicIntValueFieldWidget(
     readPropertiesAndUpdateUi();
 }
 
-BasicIntValueFieldWidget::~BasicIntValueFieldWidget() = default;
+BitmaskValueFieldWidget::~BitmaskValueFieldWidget() = default;
 
-void BasicIntValueFieldWidget::refreshImpl()
+void BitmaskValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateNumericSerialisedValue(
@@ -58,36 +54,29 @@ void BasicIntValueFieldWidget::refreshImpl()
         m_wrapper->serialisedValue(),
         m_wrapper->width());
 
-    auto value = m_wrapper->value();
-    if (m_ui.m_valueSpinBox->value() != value) {
-        m_ui.m_valueSpinBox->setValue(value);
-    }
-
     bool valid = m_wrapper->valid();
-    setValidityStyleSheet(*m_ui.m_nameLabel, valid);
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void BasicIntValueFieldWidget::setEditEnabledImpl(bool enabled)
+void BitmaskValueFieldWidget::setEditEnabledImpl(bool enabled)
 {
     bool readonly = !enabled;
-    m_ui.m_valueSpinBox->setReadOnly(readonly);
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void BasicIntValueFieldWidget::propertiesUpdatedImpl()
+void BitmaskValueFieldWidget::propertiesUpdatedImpl()
 {
     readPropertiesAndUpdateUi();
 }
 
-void BasicIntValueFieldWidget::serialisedValueUpdated(const QString& value)
+void BitmaskValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
-    static_assert(std::is_same<int, UnderlyingType>::value,
+    static_assert(std::is_same<unsigned long long, UnderlyingType>::value,
         "Underlying type assumption is wrong");
 
     bool ok = false;
-    UnderlyingType serValue = value.toInt(&ok, 16);
+    UnderlyingType serValue = value.toULongLong(&ok, 16);
     assert(ok);
     static_cast<void>(ok);
     if (serValue == m_wrapper->serialisedValue()) {
@@ -98,19 +87,7 @@ void BasicIntValueFieldWidget::serialisedValueUpdated(const QString& value)
     refresh();
 }
 
-void BasicIntValueFieldWidget::valueUpdated(int value)
-{
-    if (value == m_wrapper->value()) {
-        return;
-    }
-
-    assert(isEditEnabled());
-    m_wrapper->setValue(value);
-    emitFieldUpdated();
-    refresh();
-}
-
-void BasicIntValueFieldWidget::readPropertiesAndUpdateUi()
+void BitmaskValueFieldWidget::readPropertiesAndUpdateUi()
 {
     assert(m_ui.m_nameLabel != nullptr);
     updateNameLabel(*m_ui.m_nameLabel);

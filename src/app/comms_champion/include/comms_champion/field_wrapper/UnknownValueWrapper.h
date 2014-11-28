@@ -24,13 +24,15 @@
 
 #include "comms/comms.h"
 
+#include "FieldWrapper.h"
+
 namespace comms_champion
 {
 
 namespace field_wrapper
 {
 
-class UnknownValueWrapper
+class UnknownValueWrapper : public FieldWrapper
 {
 public:
     typedef std::vector<std::uint8_t> SerializedType;
@@ -47,37 +49,21 @@ public:
         return setSerialisedValueImpl(value);
     }
 
-    std::size_t length() const
-    {
-        return lengthImpl();
-    }
-
-    int width() const
-    {
-        return static_cast<int>(length()) * 2;
-    }
-
-    bool valid() const
-    {
-        return validImpl();
-    }
-
-private:
+protected:
     virtual SerializedType serialisedValueImpl() const = 0;
     virtual bool setSerialisedValueImpl(const SerializedType& value) = 0;
-    virtual std::size_t lengthImpl() const = 0;
-    virtual bool validImpl() const = 0;
 };
 
 template <typename TField>
-class UnknownValueWrapperT : public UnknownValueWrapper
+class UnknownValueWrapperT : public FieldWrapperT<UnknownValueWrapper, TField>
 {
-    using Base = UnknownValueWrapper;
+    using Base = FieldWrapperT<UnknownValueWrapper, TField>;
     using Field = TField;
+    using SerializedType = typename Base::SerializedType;
 
 public:
     UnknownValueWrapperT(Field& field)
-      : m_field(field)
+      : Base(field)
     {
     }
 
@@ -88,27 +74,20 @@ public:
     UnknownValueWrapperT& operator=(const UnknownValueWrapperT&) = delete;
 
 protected:
+
     virtual SerializedType serialisedValueImpl() const override
     {
+        auto& field = Base::field();
         SerializedType value;
-        value.reserve(m_field.length());
+        value.reserve(field.length());
         auto iter = std::back_inserter(value);
-        m_field.write(iter, value.max_size());
+        field.write(iter, value.max_size());
         return value;
     }
 
     virtual bool setSerialisedValueImpl(const SerializedType& value) override
     {
         return setSerialisedValueImplInternal(value, UpdateTag());
-    }
-
-    virtual std::size_t lengthImpl() const {
-        return m_field.length();
-    }
-
-    virtual bool validImpl() const override
-    {
-        return m_field.valid();
     }
 
 private:
@@ -129,7 +108,7 @@ private:
         }
 
         const std::uint8_t* iter = &value[0];
-        auto result = m_field.read(iter, value.size());
+        auto result = Base::field().read(iter, value.size());
         return result == comms::ErrorStatus::Success;
     }
 
@@ -139,8 +118,6 @@ private:
         assert(!"Attempt to update readonly field");
         return false;
     }
-
-    Field& m_field;
 };
 
 using UnknownValueWrapperPtr = std::unique_ptr<UnknownValueWrapper>;

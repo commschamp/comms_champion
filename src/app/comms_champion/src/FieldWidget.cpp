@@ -18,6 +18,15 @@
 
 #include "comms_champion/FieldWidget.h"
 
+#include <string>
+#include <algorithm>
+#include <iterator>
+
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QLabel>
+
+#include "GlobalConstants.h"
+
 namespace comms_champion
 {
 
@@ -64,6 +73,23 @@ void FieldWidget::setValidityStyleSheet(QWidget& widget, bool valid)
     widget.setStyleSheet(*stylesheet);
 }
 
+void FieldWidget::setSerialisedInputMask(QLineEdit& line, int width)
+{
+    auto maskWidth = static_cast<std::size_t>(width);
+    std::string mask;
+    mask.reserve(maskWidth);
+    std::fill_n(std::back_inserter(mask), maskWidth, 'H');
+    line.setInputMask(mask.c_str());
+}
+
+void FieldWidget::updateNameLabel(QLabel& label)
+{
+    auto nameProperty = property(GlobalConstants::namePropertyName());
+    if (nameProperty.isValid()) {
+        label.setText(nameProperty.toString() + ':');
+    }
+}
+
 void FieldWidget::setEditEnabledImpl(bool enabled)
 {
     static_cast<void>(enabled);
@@ -71,6 +97,18 @@ void FieldWidget::setEditEnabledImpl(bool enabled)
 
 void FieldWidget::propertiesUpdatedImpl()
 {
+}
+
+void FieldWidget::updateNumericSerialisedValueInternal(
+    QLineEdit& line,
+    unsigned long long value,
+    int width)
+{
+    auto serValueStr =
+        QString("%1").arg(value, width, 16, QChar('0'));
+    if (line.text() != serValueStr) {
+        line.setText(serValueStr);
+    }
 }
 
 }  // namespace comms_champion

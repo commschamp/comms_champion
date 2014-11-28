@@ -60,11 +60,8 @@ void UnknownValueFieldWidget::refreshImpl()
     if ((curText != serValueStr) &&
         (curText != altSerValueStr)) {
 
-        auto maskWidth = static_cast<std::size_t>(m_wrapper->width());
-        std::string mask;
-        mask.reserve(maskWidth);
-        std::fill_n(std::back_inserter(mask), maskWidth + 1, 'H');
-        m_ui.m_serValueLineEdit->setInputMask(mask.c_str());
+        assert(m_ui.m_serValueLineEdit != nullptr);
+        setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
         m_ui.m_serValueLineEdit->setText(serValueStr);
     }
 

@@ -71,6 +71,7 @@ public:
 
     static const char* indexPropertyName();
     static const char* namePropertyName();
+    static QString indexedNamePropertyName(unsigned idx);
     static const char* msgNumberPropertyName();
     static const char* msgObjPropertyName();
 

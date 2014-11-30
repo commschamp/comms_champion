@@ -65,7 +65,7 @@ public:
     /// @brief Valid value for reserved bits.
     static const bool ReservedValue = Base::ReservedValue;
 
-    static const bool BitOrderMsbFirst = Base::BitOrderMsbFirst;
+    static const bool BitZeroIsMsb = Base::BitZeroIsMsb;
 
     /// @brief Definition of underlying BasicIntValue field type
     typedef
@@ -217,17 +217,17 @@ public:
     }
 
 private:
-    struct BitOrderMsbFirstTag {};
-    struct BitOrderLsbFirstTag {};
+    struct BitZeroIsMsbTag {};
+    struct BitZeroIsLsbTag {};
     using BitOrderTag = typename
         std::conditional<
-            BitOrderMsbFirst,
-            BitOrderMsbFirstTag,
-            BitOrderLsbFirstTag
+            BitZeroIsMsb,
+            BitZeroIsMsbTag,
+            BitZeroIsLsbTag
         >::type;
 
 
-    static ValueType calcMask(unsigned bitNum, BitOrderMsbFirstTag)
+    static ValueType calcMask(unsigned bitNum, BitZeroIsMsbTag)
     {
         GASSERT(bitNum < std::numeric_limits<ValueType>::digits);
         auto shift = (std::numeric_limits<ValueType>::digits - 1) - bitNum;
@@ -235,7 +235,7 @@ private:
         return mask;
     }
 
-    static ValueType calcMask(unsigned bitNum, BitOrderLsbFirstTag)
+    static ValueType calcMask(unsigned bitNum, BitZeroIsLsbTag)
     {
         GASSERT(bitNum < std::numeric_limits<ValueType>::digits);
         auto mask = static_cast<ValueType>(1) << bitNum;

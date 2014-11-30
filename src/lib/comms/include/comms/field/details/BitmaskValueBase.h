@@ -43,7 +43,7 @@ protected:
     static const std::size_t SerialisedLen = sizeof(ValueType);
     static const auto ReservedMask = static_cast<ValueType>(0);
     static const bool ReservedValue = false;
-    static const bool BitOrderMsbFirst = true;
+    static const bool BitZeroIsMsb = true;
 };
 
 template <typename TField, long long int TValue, typename... TOptions>
@@ -97,7 +97,7 @@ protected:
 template <typename TField, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    comms::field::option::BitmaskBitOrderLsbFirstImpl,
+    comms::field::option::BitmaskBitZeroIsLsbImpl,
     TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
     typedef BitmaskValueBase<TField, TOptions...> Base;
@@ -105,7 +105,7 @@ class BitmaskValueBase<
 protected:
     using Base::BitmaskValueBase;
 
-    static const bool BitOrderMsbFirst = false;
+    static const bool BitZeroIsMsb = false;
 };
 
 }  // namespace details

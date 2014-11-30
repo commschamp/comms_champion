@@ -21,6 +21,8 @@
 #include <cassert>
 #include <type_traits>
 
+#include <QtWidgets/QCheckBox>
+
 #include "GlobalConstants.h"
 
 namespace comms_champion
@@ -30,7 +32,8 @@ BitmaskValueFieldWidget::BitmaskValueFieldWidget(
     WrapperPtr&& wrapper,
     QWidget* parent)
   : Base(parent),
-    m_wrapper(std::move(wrapper))
+    m_wrapper(std::move(wrapper)),
+    m_checkboxes(m_wrapper->bitIdxLimit())
 {
     m_ui.setupUi(this);
 
@@ -39,9 +42,6 @@ BitmaskValueFieldWidget::BitmaskValueFieldWidget(
 
     connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
-
-    refresh();
-    readPropertiesAndUpdateUi();
 }
 
 BitmaskValueFieldWidget::~BitmaskValueFieldWidget() = default;
@@ -53,6 +53,25 @@ void BitmaskValueFieldWidget::refreshImpl()
         *m_ui.m_serValueLineEdit,
         m_wrapper->serialisedValue(),
         m_wrapper->width());
+
+    auto bitIdxLimit = m_wrapper->bitIdxLimit();
+    assert(bitIdxLimit == m_checkboxes.size());
+    for (auto idx = 0; idx < bitIdxLimit; ++idx) {
+        auto* checkbox = m_checkboxes[idx];
+        if (checkbox == nullptr) {
+            continue;
+        }
+
+        bool showedBitValue = checkbox->checkState() != 0;
+        bool actualBitValue = m_wrapper->bitValue(idx);
+        if (showedBitValue != actualBitValue) {
+            Qt::CheckState state = Qt::Unchecked;
+            if (actualBitValue) {
+                state = Qt::Checked;
+            }
+            checkbox->setCheckState(state);
+        }
+    }
 
     bool valid = m_wrapper->valid();
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
@@ -68,10 +87,12 @@ void BitmaskValueFieldWidget::setEditEnabledImpl(bool enabled)
 void BitmaskValueFieldWidget::propertiesUpdatedImpl()
 {
     readPropertiesAndUpdateUi();
+    refresh();
 }
 
 void BitmaskValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
+    assert(isEditEnabled());
     static_assert(std::is_same<unsigned long long, UnderlyingType>::value,
         "Underlying type assumption is wrong");
 
@@ -87,10 +108,52 @@ void BitmaskValueFieldWidget::serialisedValueUpdated(const QString& value)
     refresh();
 }
 
+void BitmaskValueFieldWidget::checkBoxUpdated(int value)
+{
+    if (isEditEnabled()) {
+        auto* checkbox = sender();
+        auto iter = std::find(m_checkboxes.begin(), m_checkboxes.end(), checkbox);
+        if (iter == m_checkboxes.end()) {
+            assert(!"Should not happen");
+            return;
+        }
+        auto idx = static_cast<unsigned>(std::distance(m_checkboxes.begin(), iter));
+        m_wrapper->setBitValue(idx, value != 0);
+    }
+
+    refresh();
+}
+
 void BitmaskValueFieldWidget::readPropertiesAndUpdateUi()
 {
     assert(m_ui.m_nameLabel != nullptr);
     updateNameLabel(*m_ui.m_nameLabel);
+    for (auto& checkbox : m_checkboxes) {
+        if (checkbox != nullptr) {
+            m_ui.m_checkboxesLayout->removeWidget(checkbox);
+            checkbox = nullptr;
+        }
+    }
+    createCheckboxes();
+}
+
+void BitmaskValueFieldWidget::createCheckboxes()
+{
+    auto bitIdxLimit = m_wrapper->bitIdxLimit();
+    assert(m_checkboxes.size() == bitIdxLimit);
+    for (unsigned idx = 0; idx < bitIdxLimit; ++idx) {
+
+        auto indexedName = property(GlobalConstants::indexedNamePropertyName(idx).toUtf8().data());
+        if ((indexedName.isValid()) &&
+            (indexedName.canConvert<QString>())) {
+            auto* checkbox = new QCheckBox(indexedName.value<QString>());
+            m_ui.m_checkboxesLayout->addWidget(checkbox);
+            m_checkboxes[idx] = checkbox;
+
+            connect(checkbox, SIGNAL(stateChanged(int)),
+                    this, SLOT(checkBoxUpdated(int)));
+        }
+    }
 }
 
 }  // namespace comms_champion

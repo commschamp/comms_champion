@@ -18,6 +18,8 @@
 
 #include "comms_champion/Message.h"
 
+#include <cassert>
+
 #include <QtCore/QVariant>
 #include <QtWidgets/QWidget>
 #include <QtQml/QtQml>
@@ -54,6 +56,17 @@ void Message::setNameProperty(QWidget& widget, const QString& value)
 {
     widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));
 }
+
+void Message::setIndexedNameProperty(
+    QWidget& widget,
+    unsigned idx,
+    const QString& value)
+{
+    widget.setProperty(
+        GlobalConstants::indexedNamePropertyName(idx).toUtf8().data(),
+        QVariant(value));
+}
+
 
 }  // namespace comms_champion
 

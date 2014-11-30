@@ -59,7 +59,7 @@ struct BitmaskReservedBitsImpl
     static const auto Value = TValue;
 };
 
-struct BitmaskBitOrderLsbFirstImpl {};
+struct BitmaskBitZeroIsLsbImpl {};
 
 
 }  // namespace option

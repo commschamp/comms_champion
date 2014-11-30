@@ -50,6 +50,10 @@ protected:
     virtual void displayImpl(MessageDisplayHandler& handler) = 0;
 
     static void setNameProperty(QWidget& widget, const QString& value);
+    static void setIndexedNameProperty(
+        QWidget& widget,
+        unsigned idx,
+        const QString& value);
 
 };
 

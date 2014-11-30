@@ -18,11 +18,14 @@
 
 #pragma once
 
+#include <vector>
+
 #include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 
 #include "ui_BitmaskValueFieldWidget.h"
 
+class QCheckBox;
 namespace comms_champion
 {
 
@@ -46,15 +49,18 @@ protected:
 
 private slots:
     void serialisedValueUpdated(const QString& value);
+    void checkBoxUpdated(int value);
 
 private:
     using WrapperType = typename WrapperPtr::element_type;
     using UnderlyingType = typename WrapperType::UnderlyingType;
 
     void readPropertiesAndUpdateUi();
+    void createCheckboxes();
 
     Ui::BitmaskValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
+    std::vector<QCheckBox*> m_checkboxes;
 };
 
 

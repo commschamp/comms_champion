@@ -60,6 +60,13 @@ void CCStatus::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
     }
 
     setNameProperty(fieldWidget, FieldNames[idx]);
+
+    if (idx == FieldId_Features) {
+        setIndexedNameProperty(fieldWidget, 0, "Feature1");
+        setIndexedNameProperty(fieldWidget, 1, "Feature2");
+        setIndexedNameProperty(fieldWidget, 2, "Feature3");
+        setIndexedNameProperty(fieldWidget, 3, "Feature4");
+    }
 }
 
 }  // namespace message

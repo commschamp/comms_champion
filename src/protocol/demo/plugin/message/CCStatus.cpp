@@ -61,7 +61,13 @@ void CCStatus::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
 
     setNameProperty(fieldWidget, FieldNames[idx]);
 
-    if (idx == FieldId_Features) {
+    if (idx == FieldId_ExecutionStatus) {
+        setIndexedNameProperty(fieldWidget, demo::message::ExecutionStatus_Idle, "Idle");
+        setIndexedNameProperty(fieldWidget, demo::message::ExecutionStatus_Running, "Running");
+        setIndexedNameProperty(fieldWidget, demo::message::ExecutionStatus_Complete, "Complete");
+        setIndexedNameProperty(fieldWidget, demo::message::ExecutionStatus_Error, "Error");
+    }
+    else if (idx == FieldId_Features) {
         setIndexedNameProperty(fieldWidget, 0, "Feature1");
         setIndexedNameProperty(fieldWidget, 1, "Feature2");
         setIndexedNameProperty(fieldWidget, 2, "Feature3");

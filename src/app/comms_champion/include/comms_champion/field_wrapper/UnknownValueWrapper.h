@@ -127,7 +127,7 @@ UnknownValueWrapperPtr
 makeUnknownValueWrapper(TField& field)
 {
     return
-        std::unique_ptr<UnknownValueWrapper>(
+        UnknownValueWrapperPtr(
             new UnknownValueWrapperT<TField>(field));
 }
 

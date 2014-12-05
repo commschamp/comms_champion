@@ -103,7 +103,7 @@ BitmaskValueWrapperPtr
 makeBitmaskValueWrapper(TField& field)
 {
     return
-        std::unique_ptr<BitmaskValueWrapper>(
+        BitmaskValueWrapperPtr(
             new BitmaskValueWrapperT<TField>(field));
 }
 

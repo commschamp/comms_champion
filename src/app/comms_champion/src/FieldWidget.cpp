@@ -30,6 +30,25 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+void updateValidityStyle(
+    QWidget& widget,
+    bool valid,
+    const QString& invalidStylesheet)
+{
+    static const auto DefaultStylesheet = QWidget().styleSheet();
+    auto* stylesheet = &DefaultStylesheet;
+    if (!valid) {
+        stylesheet = &invalidStylesheet;
+    }
+
+    widget.setStyleSheet(*stylesheet);
+}
+
+}  // namespace
+
 FieldWidget::FieldWidget(QWidget* parent)
   : Base(parent)
 {
@@ -61,16 +80,16 @@ bool FieldWidget::isEditEnabled() const
     return m_editEnabled;
 }
 
-void FieldWidget::setValidityStyleSheet(QWidget& widget, bool valid)
+void FieldWidget::setValidityStyleSheet(QLabel& widget, bool valid)
 {
-    static const auto DefaultStylesheet = QWidget().styleSheet();
     static const QString InvalidStylesheet("QLabel { color: red }");
-    auto* stylesheet = &DefaultStylesheet;
-    if (!valid) {
-        stylesheet = &InvalidStylesheet;
-    }
+    updateValidityStyle(widget, valid, InvalidStylesheet);
+}
 
-    widget.setStyleSheet(*stylesheet);
+void FieldWidget::setValidityStyleSheet(QLineEdit& widget, bool valid)
+{
+    static const QString InvalidStylesheet("QLineEdit { color: red }");
+    updateValidityStyle(widget, valid, InvalidStylesheet);
 }
 
 void FieldWidget::setSerialisedInputMask(QLineEdit& line, int width)

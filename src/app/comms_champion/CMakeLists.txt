@@ -24,6 +24,7 @@ function (bin_comms_champion)
         src/widget/DefaultMessageWidget.cpp
         src/widget/field/BasicIntValueFieldWidget.cpp
         src/widget/field/BitmaskValueFieldWidget.cpp
+        src/widget/field/BasicEnumValueFieldWidget.cpp
         src/widget/field/UnknownValueFieldWidget.cpp
     )
     
@@ -39,6 +40,7 @@ function (bin_comms_champion)
         src/widget/MsgDetailsWidget.h
         src/widget/field/BasicIntValueFieldWidget.h
         src/widget/field/BitmaskValueFieldWidget.h
+        src/widget/field/BasicEnumValueFieldWidget.h
         src/widget/field/UnknownValueFieldWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      
@@ -53,6 +55,7 @@ function (bin_comms_champion)
         ui/MsgDetailsWidget.ui
         ui/BasicIntValueFieldWidget.ui
         ui/BitmaskValueFieldWidget.ui
+        ui/BasicEnumValueFieldWidget.ui
         ui/UnknownValueFieldWidget.ui
     )
     

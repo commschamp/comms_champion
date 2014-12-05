@@ -66,6 +66,7 @@ void BasicIntValueFieldWidget::refreshImpl()
     bool valid = m_wrapper->valid();
     setValidityStyleSheet(*m_ui.m_nameLabel, valid);
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
+    setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 

@@ -47,7 +47,8 @@ protected:
     bool isEditEnabled() const;
     void updateNameLabel(QLabel& label);
 
-    static void setValidityStyleSheet(QWidget& widget, bool valid);
+    static void setValidityStyleSheet(QLabel& widget, bool valid);
+    static void setValidityStyleSheet(QLineEdit& widget, bool valid);
     static void setSerialisedInputMask(QLineEdit& line, int width);
 
     template <typename TSerValue>

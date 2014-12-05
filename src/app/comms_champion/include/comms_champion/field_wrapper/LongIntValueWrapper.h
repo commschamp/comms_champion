@@ -31,12 +31,12 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-using BasicIntValueWrapper = NumericValueWrapper<int>;
+using LongIntValueWrapper = NumericValueWrapper<long long int>;
 
 template <typename TField>
-class BasicIntValueWrapperT : public NumericValueWrapperT<BasicIntValueWrapper, TField>
+class LongIntValueWrapperT : public NumericValueWrapperT<LongIntValueWrapper, TField>
 {
-    using Base = NumericValueWrapperT<BasicIntValueWrapper, TField>;
+    using Base = NumericValueWrapperT<LongIntValueWrapper, TField>;
     using Field = TField;
     static_assert(comms::field::isBasicIntValue<Field>(), "Must be of BasicIntValueField type");
 
@@ -47,27 +47,27 @@ class BasicIntValueWrapperT : public NumericValueWrapperT<BasicIntValueWrapper, 
         "This wrapper cannot handle provided field.");
 
 public:
-    BasicIntValueWrapperT(Field& field)
+    LongIntValueWrapperT(Field& field)
       : Base(field)
     {
     }
 
-    BasicIntValueWrapperT(const BasicIntValueWrapperT&) = default;
-    BasicIntValueWrapperT(BasicIntValueWrapperT&&) = default;
-    virtual ~BasicIntValueWrapperT() = default;
+    LongIntValueWrapperT(const LongIntValueWrapperT&) = default;
+    LongIntValueWrapperT(LongIntValueWrapperT&&) = default;
+    virtual ~LongIntValueWrapperT() = default;
 
-    BasicIntValueWrapperT& operator=(const BasicIntValueWrapperT&) = delete;
+    LongIntValueWrapperT& operator=(const LongIntValueWrapperT&) = delete;
 };
 
-using BasicIntValueWrapperPtr = std::unique_ptr<BasicIntValueWrapper>;
+using LongIntValueWrapperPtr = std::unique_ptr<LongIntValueWrapper>;
 
 template <typename TField>
-BasicIntValueWrapperPtr
-makeBasicIntValueWrapper(TField& field)
+LongIntValueWrapperPtr
+makeLongIntValueWrapper(TField& field)
 {
     return
-        BasicIntValueWrapperPtr(
-            new BasicIntValueWrapperT<TField>(field));
+        LongIntValueWrapperPtr(
+            new LongIntValueWrapperT<TField>(field));
 }
 
 }  // namespace field_wrapper

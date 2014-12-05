@@ -30,6 +30,7 @@
 
 #include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
+#include "comms_champion/field_wrapper/BasicEnumValueWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -40,6 +41,7 @@ namespace details
 
 struct BasicIntValueTag {};
 struct BitmaskValueTag {};
+struct BasicEnumValueTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -72,6 +74,15 @@ struct TagOf<comms::field::BitmaskValue<TArgs...> >
     typedef BitmaskValueTag Type;
 };
 
+template <typename... TArgs>
+struct TagOf<comms::field::BasicEnumValue<TArgs...> >
+{
+    static_assert(
+        comms::field::isBasicEnumValue<comms::field::BasicEnumValue<TArgs...> >(),
+        "isBasicEnumValue is supposed to return true");
+
+    typedef BasicEnumValueTag Type;
+};
 
 template <typename TField>
 using TagOfT = typename TagOf<TField>::Type;
@@ -99,6 +110,7 @@ private:
 
     using BasicIntValueTag = details::BasicIntValueTag;
     using BitmaskValueTag = details::BitmaskValueTag;
+    using BasicEnumValueTag = details::BasicEnumValueTag;
     using UnknownValueTag = details::UnknownValueTag;
 
     template <typename THandler>
@@ -149,6 +161,13 @@ private:
     }
 
     template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, BasicEnumValueTag)
+    {
+        return createBasicEnumValueFieldWidget(
+            field_wrapper::makeBasicEnumValueWrapper(field));
+    }
+
+    template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -160,6 +179,9 @@ private:
 
     FieldWidgetPtr createBitmaskValueFieldWidget(
         field_wrapper::BitmaskValueWrapperPtr&& fieldWrapper);
+
+    FieldWidgetPtr createBasicEnumValueFieldWidget(
+        field_wrapper::BasicEnumValueWrapperPtr&& fieldWrapper);
 
     FieldWidgetPtr createUnknownValueFieldWidget(
         field_wrapper::UnknownValueWrapperPtr&& fieldWrapper);

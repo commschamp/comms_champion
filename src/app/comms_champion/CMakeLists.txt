@@ -7,6 +7,7 @@ function (bin_comms_champion)
         src/MsgMgr.cpp
         src/GuiAppMgr.cpp
         src/Message.cpp
+        src/MessageInfo.cpp
         src/GlobalConstants.cpp
         src/WidgetProxy.cpp
         src/DefaultMessageDisplayHandler.cpp

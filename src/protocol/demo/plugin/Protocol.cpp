@@ -17,11 +17,14 @@
 
 
 #include <cassert>
-#include <iostream>
+#include <algorithm>
+#include <iterator>
 #include "Protocol.h"
 
 #include "message/CCHeartbeat.h"
 #include "comms_champion/ErrorStatus.h"
+
+#include "comms/util/ScopeGuard.h"
 
 namespace demo
 {
@@ -43,13 +46,88 @@ cc::ErrorStatus Protocol::read(
     ProtocolMsgPtr msgPtr;
     auto es = m_protStack.read(msgPtr, iter, size, missingSize);
     if (es != comms::ErrorStatus::Success) {
-        std::cout << "Error status: " << (int)es << std::endl;
         return comms_champion::transformErrorStatus(es);
     }
 
     assert(msgPtr);
     msg.reset(msgPtr.release());
     return cc::ErrorStatus::Success;
+}
+
+Protocol::MessagesList Protocol::readImpl(
+    ReadIterType iter,
+    std::size_t size,
+    std::size_t* missingSize)
+{
+    MessagesList allInfos;
+    m_data.reserve(m_data.size() + size);
+    std::copy_n(iter, size, std::back_inserter(m_data));
+
+    using ReadIterator = ProtocolStack::ReadIterator;
+    ReadIterator readIter = &m_data[0];
+
+    auto eraseGuard =
+        comms::util::makeScopeGuard(
+            [this, &readIter]()
+            {
+                auto dist = std::distance(ReadIterator(&m_data[0]), readIter);
+                m_data.erase(m_data.begin(), m_data.begin() + dist);
+            });
+
+    while (true) {
+        using AllFields = ProtocolStack::AllFields;
+        using ProtocolMsgPtr = ProtocolStack::MsgPtr;
+
+        AllFields fields;
+        ProtocolMsgPtr msgPtr;
+
+        auto readIterTmp = readIter;
+
+        auto es = m_protStack.readFieldsCached<0>(
+                    fields, msgPtr, readIterTmp, m_data.size(), missingSize);
+        if (es == comms::ErrorStatus::NotEnoughData) {
+            break;
+        }
+
+        using MessageInfoMsgPtr = comms_champion::MessageInfo::MessagePtr;
+        if (es == comms::ErrorStatus::Success) {
+            auto msgInfo = comms_champion::makeMessageInfo();
+            msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
+            assert(msgInfo->getAppMessage());
+            // TODO: setTransportMessage
+            allInfos.push_back(std::move(msgInfo));
+            readIter = readIterTmp;
+            continue;
+        }
+
+        if (es == comms::ErrorStatus::InvalidMsgData) {
+            readIter = readIterTmp;
+            // TODO: setTransportMessage
+            continue;
+        }
+
+        if (es == comms::ErrorStatus::MsgAllocFaulure) {
+            assert(!"Mustn't happen");
+            break;
+        }
+
+        // Protocol error:
+        ++readIter;
+        while (readIter != &m_data[m_data.size()]) {
+            auto readIterTmp = readIter;
+            auto diff = static_cast<std::size_t>(std::distance(ReadIterator(&m_data[0]), readIterTmp));
+            es = m_protStack.read(msgPtr, readIterTmp, m_data.size() - diff);
+            if ((es != comms::ErrorStatus::ProtocolError) &&
+                (es != comms::ErrorStatus::InvalidMsgId)) {
+                // TODO: setData
+                readIter = readIterTmp;
+                break;
+            }
+            ++readIter;
+        }
+    }
+
+    return allInfos;
 }
 
 }  // namespace plugin

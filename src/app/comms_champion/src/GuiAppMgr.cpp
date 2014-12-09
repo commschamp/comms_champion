@@ -106,11 +106,11 @@ void GuiAppMgr::sendSaveClicked()
     assert(!"Send save clicked");
 }
 
-void GuiAppMgr::recvMsgClicked(Message* msg)
+void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
 {
-    msgClicked(msg);
+    msgClicked(msgInfo);
     bool selectOnAddEnabled = false;
-    if (m_clickedMsg == nullptr) {
+    if (!m_clickedMsg) {
         selectOnAddEnabled = true;
         emit sigRecvMsgListClearSelection();
     }
@@ -138,7 +138,8 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
     m_sendState(SendState::Idle),
     m_msgDisplayHandler(new DefaultMessageDisplayHandler)
 {
-    connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(Message*)), this, SLOT(msgReceived(Message*)));
+    connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(MessageInfoPtr)),
+            this, SLOT(msgReceived(MessageInfoPtr)));
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -151,36 +152,45 @@ void GuiAppMgr::emitSendStateUpdate()
     emit sigSetSendState(static_cast<int>(m_sendState));
 }
 
-void GuiAppMgr::msgReceived(Message* msg)
+void GuiAppMgr::msgReceived(MessageInfoPtr msgInfo)
 {
+    assert(msgInfo);
+#ifndef NDEBUG
+    auto msg = msgInfo->getAppMessage();
+    assert(msg);
     std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
-    emit sigAddRecvMsg(msg);
-    displayMessageIfNotClicked(msg);
+#endif
+    emit sigAddRecvMsg(msgInfo);
+    displayMessageIfNotClicked(msgInfo);
 }
 
-void GuiAppMgr::msgClicked(Message* msg)
+void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo)
 {
-    if (m_clickedMsg == msg) {
-        m_clickedMsg = nullptr;
+    assert(msgInfo);
+    if (m_clickedMsg == msgInfo) {
+        m_clickedMsg.reset();
         // TODO: display dummy widget
         return;
     }
 
-    m_clickedMsg = msg;
-    displayMessage(msg);
+    m_clickedMsg = msgInfo;
+    displayMessage(msgInfo);
 }
 
-void GuiAppMgr::displayMessage(Message* msg)
+void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)
 {
+    assert(msgInfo);
+    auto msg = msgInfo->getAppMessage();
+    assert(msg);
     m_msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
     m_msgWidget->setEditEnabled(false);
     emit sigDisplayMsgDetailsWidget(m_msgWidget.release());
 }
 
-void GuiAppMgr::displayMessageIfNotClicked(Message* msg)
+void GuiAppMgr::displayMessageIfNotClicked(MessageInfoPtr msgInfo)
 {
-    if (m_clickedMsg == nullptr) {
-        displayMessage(msg);
+    if (!m_clickedMsg) {
+        displayMessage(msgInfo);
     }
 }
 

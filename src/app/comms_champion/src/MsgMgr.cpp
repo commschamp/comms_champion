@@ -53,18 +53,15 @@ void MsgMgr::timeout()
     static const auto BufSize = std::extent<decltype(Buf)>::value;
 
     auto& protocol = *m_protStack.back();
-    MsgPtr msg;
-    ReadIterType iter = &Buf[0];
-    while (iter != &Buf[BufSize]) {
-        auto result = protocol.read(msg, iter, BufSize);
-        if (msg) {
-            msg->setProperty(
-                GlobalConstants::msgNumberPropertyName(),
-                QVariant::fromValue(m_nextMsgNum));
-            ++m_nextMsgNum;
-            m_recvMsgs.push_back(std::move(msg));
-            emit sigMsgReceived(m_recvMsgs.back().get());
-        }
+    auto allMsgs = protocol.read(&Buf[0], BufSize);
+    for (auto& msgInfo : allMsgs) {
+        assert(msgInfo->getAppMessage());
+        msgInfo->setExtraProperty(
+            GlobalConstants::msgNumberPropertyName(),
+            QVariant::fromValue(m_nextMsgNum));
+        ++m_nextMsgNum;
+        m_recvMsgs.push_back(std::move(msgInfo));
+        emit sigMsgReceived(m_recvMsgs.back());
     }
 }
 

@@ -41,14 +41,15 @@ MsgListWidget::MsgListWidget(
             this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 }
 
-void MsgListWidget::addMessage(Message* msg)
+void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
 {
-    assert(msg != nullptr);
+    auto msg = msgInfo->getAppMessage();
+    assert(msg);
     m_ui.m_listWidget->addItem(msg->name());
     auto* item = m_ui.m_listWidget->item(m_ui.m_listWidget->count() - 1);
     item->setData(
         Qt::UserRole,
-        QVariant::fromValue(msg));
+        QVariant::fromValue(msgInfo));
 
     if (m_selectOnAdd) {
         item->setSelected(true);
@@ -66,14 +67,14 @@ void MsgListWidget::clearSelection()
     m_ui.m_listWidget->clearSelection();
 }
 
-void MsgListWidget::msgClickedImpl(Message* msg)
+void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
-    static_cast<void>(msg);
+    static_cast<void>(msgInfo);
 }
 
-void MsgListWidget::msgDoubleClickedImpl(Message* msg)
+void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
 {
-    static_cast<void>(msg);
+    static_cast<void>(msgInfo);
 }
 
 void MsgListWidget::itemClicked(QListWidgetItem* item)
@@ -86,11 +87,11 @@ void MsgListWidget::itemDoubleClicked(QListWidgetItem* item)
     msgDoubleClickedImpl(getMsgFromItem(item));
 }
 
-Message* MsgListWidget::getMsgFromItem(QListWidgetItem* item)
+MessageInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item)
 {
     auto var = item->data(Qt::UserRole);
-    assert(var.canConvert<Message*>());
-    return var.value<Message*>();
+    assert(var.canConvert<MessageInfoPtr>());
+    return var.value<MessageInfoPtr>();
 }
 
 }  // namespace comms_champion

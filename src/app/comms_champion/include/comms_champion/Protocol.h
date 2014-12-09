@@ -21,9 +21,11 @@
 #include <memory>
 #include <cstdint>
 #include <cstddef>
+#include <list>
 
 #include "Message.h"
 #include "ErrorStatus.h"
+#include "MessageInfo.h"
 
 namespace comms_champion
 {
@@ -33,6 +35,14 @@ class Protocol
 public:
     typedef std::unique_ptr<Message> MsgPtr;
     typedef const std::uint8_t* ReadIterType;
+    typedef std::list<MessageInfoPtr> MessagesList;
+
+    enum class ReadStatus
+    {
+        Success,
+        NeedMoreData,
+        ProtocolError
+    };
 
     virtual ~Protocol() {}
 
@@ -41,6 +51,20 @@ public:
         ReadIterType& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr) = 0;
+
+    MessagesList read(
+        ReadIterType iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        return readImpl(iter, size, missingSize);
+    }
+
+protected:
+    virtual MessagesList readImpl(
+        ReadIterType iter,
+        std::size_t size,
+        std::size_t* missingSize) = 0;
 };
 
 }  // namespace comms_champion

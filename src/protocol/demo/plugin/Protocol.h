@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <vector>
 #include "comms_champion/Protocol.h"
 #include "ProtocolStack.h"
 
@@ -39,8 +40,15 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr) override;
 
+protected:
+    virtual MessagesList readImpl(
+            ReadIterType iter,
+            std::size_t size,
+            std::size_t* missingSize) override;
+
 private:
     ProtocolStack m_protStack;
+    std::vector<std::uint8_t> m_data;
 };
 
 }  // namespace plugin

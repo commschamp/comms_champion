@@ -18,20 +18,18 @@
 
 #pragma once
 
-#include <QtWidgets/QSplitter>
+#include <QtWidgets/QWidget>
 
 namespace comms_champion
 {
 
-class RightPaneWidget : public QSplitter
+class RightPaneWidget : public QWidget
 {
-    using Base = QSplitter;
+    using Base = QWidget;
 public:
     RightPaneWidget(QWidget* parent = nullptr);
 };
 
 }  // namespace comms_champion
-
-
 
 

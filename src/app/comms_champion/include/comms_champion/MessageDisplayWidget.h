@@ -15,31 +15,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#pragma once
 
-#include <memory>
+#pragma once
 
 #include <QtWidgets/QWidget>
 
-#include "comms_champion/ProtocolsInfo.h"
-#include "comms_champion/MessageDisplayHandler.h"
-#include "ui_MsgDetailsWidget.h"
+#include "ProtocolsInfo.h"
 
 namespace comms_champion
 {
 
-class MsgDetailsWidget: public QWidget
+class MessageDisplayWidget : public QWidget
 {
+    Q_OBJECT
     using Base = QWidget;
 public:
-    MsgDetailsWidget(QWidget* parent = nullptr);
+    MessageDisplayWidget(QWidget* parent = nullptr)
+      : Base(parent)
+    {
+    }
 
-    void displayMessage(ProtocolsInfoPtr protocolsInfo);
+public slots:
+    void displayMessage(ProtocolsInfoPtr protocolsInfo)
+    {
+        displayMessageImpl(protocolsInfo);
+    }
 
-private:
-    typedef std::unique_ptr<MessageDisplayHandler> MsgDisplayHandlerPtr;
-    Ui::MsgDetailsWidget m_ui;
-    MsgDisplayHandlerPtr m_msgDisplayHandler;
+protected:
+    virtual void displayMessageImpl(ProtocolsInfoPtr protocolsInfo) = 0;
 };
 
-} /* namespace comms_champion */
+}  // namespace comms_champion
+
+

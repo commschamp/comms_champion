@@ -15,6 +15,7 @@ function (bin_comms_champion)
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp
         src/widget/RightPaneWidget.cpp
+        src/widget/DefaultMessageDisplayWidget.cpp
         src/widget/RecvAreaToolBar.cpp
         src/widget/SendAreaToolBar.cpp
         src/widget/MsgListWidget.cpp
@@ -39,7 +40,6 @@ function (bin_comms_champion)
         src/WidgetProxy.h
         src/widget/RecvAreaToolBar.h
         src/widget/MsgListWidget.h
-        src/widget/MsgDetailsWidget.h
         src/widget/ProtocolsStackWidget.h
         src/widget/field/BasicIntValueFieldWidget.h
         src/widget/field/BitmaskValueFieldWidget.h
@@ -49,6 +49,7 @@ function (bin_comms_champion)
         ${_inc_dir}/FieldWidget.h      
         ${_inc_dir}/MessageWidget.h
         ${_inc_dir}/DefaultMessageWidget.h
+        ${_inc_dir}/MessageDisplayWidget.h
     )
     
     qt5_wrap_ui(

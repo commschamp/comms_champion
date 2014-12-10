@@ -17,23 +17,31 @@
 
 #include "MsgDetailsWidget.h"
 
+#include <cassert>
+
+#include "comms_champion/DefaultMessageDisplayHandler.h"
 #include "GuiAppMgr.h"
 
 namespace comms_champion
 {
 
 MsgDetailsWidget::MsgDetailsWidget(QWidget* parent)
-  : Base(parent)
+  : Base(parent),
+    m_msgDisplayHandler(new DefaultMessageDisplayHandler())
 {
     m_ui.setupUi(this);
-
-    connect(GuiAppMgr::instance(), SIGNAL(sigDisplayMsgDetailsWidget(QWidget*)),
-            this, SLOT(displayMsgDetailsWidget(QWidget*)));
 }
 
-void MsgDetailsWidget::displayMsgDetailsWidget(QWidget* widget)
+void MsgDetailsWidget::displayMessage(ProtocolsInfoPtr protocolsInfo)
 {
-    m_ui.m_scrollArea->setWidget(widget);
+    assert(protocolsInfo);
+    auto msgInfo = protocolsInfo->back();
+    assert(msgInfo);
+    auto msg = msgInfo->getAppMessage();
+    assert(msg);
+    auto msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
+    msgWidget->setEditEnabled(false);
+    m_ui.m_scrollArea->setWidget(msgWidget.release());
 }
 
 } /* namespace comms_champion */

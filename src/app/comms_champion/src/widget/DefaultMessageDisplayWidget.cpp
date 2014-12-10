@@ -15,25 +15,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "RightPaneWidget.h"
+#include "DefaultMessageDisplayWidget.h"
 
 #include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QSplitter>
 
-#include "DefaultMessageDisplayWidget.h"
-#include "GuiAppMgr.h"
+#include "MsgDetailsWidget.h"
+#include "ProtocolsStackWidget.h"
 
 namespace comms_champion
 {
 
-RightPaneWidget::RightPaneWidget(QWidget* parent)
-  : Base(parent)
+DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
+  : Base(parent),
+    m_msgDetailsWidget(new MsgDetailsWidget()),
+    m_protocolsDetailsWidget(new ProtocolsStackWidget())
 {
-    auto* msgDisplayWidget = new DefaultMessageDisplayWidget();
-    connect(GuiAppMgr::instance(), SIGNAL(sigDisplayMsg(ProtocolsInfoPtr)),
-            msgDisplayWidget, SLOT(displayMessage(ProtocolsInfoPtr)));
+    auto* splitter = new QSplitter;
+    splitter->setOrientation(Qt::Vertical);
+    splitter->addWidget(m_msgDetailsWidget);
+    splitter->addWidget(m_protocolsDetailsWidget);
+
     auto* layout = new QVBoxLayout();
-    layout->addWidget(msgDisplayWidget);
+    layout->addWidget(splitter);
+
     setLayout(layout);
+}
+
+void DefaultMessageDisplayWidget::displayMessageImpl(
+    ProtocolsInfoPtr protocolsInfo)
+{
+    m_msgDetailsWidget->displayMessage(protocolsInfo);
+    static_cast<void>(protocolsInfo);
 }
 
 }  // namespace comms_champion

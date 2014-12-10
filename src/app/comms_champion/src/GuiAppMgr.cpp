@@ -135,8 +135,7 @@ GuiAppMgr::SendState GuiAppMgr::sendState() const
 GuiAppMgr::GuiAppMgr(QObject* parent)
   : Base(parent),
     m_recvState(RecvState::Idle),
-    m_sendState(SendState::Idle),
-    m_msgDisplayHandler(new DefaultMessageDisplayHandler)
+    m_sendState(SendState::Idle)
 {
     connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(ProtocolsInfoPtr)),
             this, SLOT(msgReceived(ProtocolsInfoPtr)));
@@ -181,14 +180,7 @@ void GuiAppMgr::msgClicked(ProtocolsInfoPtr protocolsInfo)
 
 void GuiAppMgr::displayMessage(ProtocolsInfoPtr protocolsInfo)
 {
-    assert(protocolsInfo);
-    auto msgInfo = protocolsInfo->back();
-    assert(msgInfo);
-    auto msg = msgInfo->getAppMessage();
-    assert(msg);
-    m_msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
-    m_msgWidget->setEditEnabled(false);
-    emit sigDisplayMsgDetailsWidget(m_msgWidget.release());
+    emit sigDisplayMsg(protocolsInfo);
 }
 
 void GuiAppMgr::displayMessageIfNotClicked(ProtocolsInfoPtr protocolsInfo)

@@ -25,7 +25,6 @@
 #include <QtWidgets/QWidget>
 
 #include "comms_champion/Message.h"
-#include "comms_champion/MessageDisplayHandler.h"
 
 #include "MsgMgr.h"
 
@@ -83,6 +82,7 @@ signals:
     void sigDisplayMsgDetailsWidget(QWidget* widget);
     void sigRecvMsgListSelectOnAddEnabled(bool enabled);
     void sigRecvMsgListClearSelection();
+    void sigDisplayMsg(ProtocolsInfoPtr msgInfo);
 
 private:
     GuiAppMgr(QObject* parent = nullptr);
@@ -94,7 +94,6 @@ private slots:
 
 private /*data*/:
     using MsgDisplayHandlerPtr = std::unique_ptr<MessageDisplayHandler>;
-    using MsgWidgetPtr = MessageDisplayHandler::MsgWidgetPtr;
 
     void msgClicked(ProtocolsInfoPtr protocolsInfo);
     void displayMessage(ProtocolsInfoPtr protocolsInfo);
@@ -104,9 +103,6 @@ private /*data*/:
     bool m_recvListSelectOnAdd = true;
 
     SendState m_sendState;
-
-    MsgDisplayHandlerPtr m_msgDisplayHandler;
-    MsgWidgetPtr m_msgWidget;
     ProtocolsInfoPtr m_clickedMsg;
 };
 

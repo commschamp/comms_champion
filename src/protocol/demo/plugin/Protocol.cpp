@@ -36,22 +36,10 @@ namespace cc = comms_champion;
 
 Protocol::~Protocol() = default;
 
-cc::ErrorStatus Protocol::read(
-        MsgPtr& msg,
-        ReadIterType& iter,
-        std::size_t size,
-        std::size_t* missingSize)
+const std::string& Protocol::nameImpl() const
 {
-    using ProtocolMsgPtr = ProtocolStack::MsgPtr;
-    ProtocolMsgPtr msgPtr;
-    auto es = m_protStack.read(msgPtr, iter, size, missingSize);
-    if (es != comms::ErrorStatus::Success) {
-        return comms_champion::transformErrorStatus(es);
-    }
-
-    assert(msgPtr);
-    msg.reset(msgPtr.release());
-    return cc::ErrorStatus::Success;
+    static std::string Name("Demo");
+    return Name;
 }
 
 Protocol::MessagesList Protocol::readImpl(
@@ -66,11 +54,24 @@ Protocol::MessagesList Protocol::readImpl(
     using ReadIterator = ProtocolStack::ReadIterator;
     ReadIterator readIter = &m_data[0];
 
+    auto remainingSizeCalc =
+        [this](ReadIterator iter) -> std::size_t
+        {
+            ReadIterator const dataBegin = &m_data[0];
+            auto consumed =
+                static_cast<std::size_t>(
+                    std::distance(dataBegin, iter));
+            assert(consumed <= m_data.size());
+            return m_data.size() - consumed;
+        };
+
     auto eraseGuard =
         comms::util::makeScopeGuard(
             [this, &readIter]()
             {
-                auto dist = std::distance(ReadIterator(&m_data[0]), readIter);
+                ReadIterator const dataBegin = &m_data[0];
+                auto dist = std::distance(dataBegin, readIter);
+                assert(static_cast<std::size_t>(dist) <= m_data.size());
                 m_data.erase(m_data.begin(), m_data.begin() + dist);
             });
 
@@ -82,16 +83,24 @@ Protocol::MessagesList Protocol::readImpl(
         ProtocolMsgPtr msgPtr;
 
         auto readIterTmp = readIter;
+        auto dist = std::distance(ReadIterator(&m_data[0]), readIter);
+        auto remainingSize = m_data.size() - static_cast<std::size_t>(dist);
 
-        auto es = m_protStack.readFieldsCached<0>(
-                    fields, msgPtr, readIterTmp, m_data.size(), missingSize);
+        auto es =
+            m_protStack.readFieldsCached<0>(
+                fields,
+                msgPtr,
+                readIterTmp,
+                remainingSizeCalc(readIterTmp),
+                missingSize);
+
         if (es == comms::ErrorStatus::NotEnoughData) {
             break;
         }
 
-        using MessageInfoMsgPtr = comms_champion::MessageInfo::MessagePtr;
+        using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
         if (es == comms::ErrorStatus::Success) {
-            auto msgInfo = comms_champion::makeMessageInfo();
+            auto msgInfo = cc::makeMessageInfo();
             msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
             assert(msgInfo->getAppMessage());
             // TODO: setTransportMessage
@@ -115,8 +124,7 @@ Protocol::MessagesList Protocol::readImpl(
         ++readIter;
         while (readIter != &m_data[m_data.size()]) {
             auto readIterTmp = readIter;
-            auto diff = static_cast<std::size_t>(std::distance(ReadIterator(&m_data[0]), readIterTmp));
-            es = m_protStack.read(msgPtr, readIterTmp, m_data.size() - diff);
+            es = m_protStack.read(msgPtr, readIterTmp, remainingSizeCalc(readIterTmp));
             if ((es != comms::ErrorStatus::ProtocolError) &&
                 (es != comms::ErrorStatus::InvalidMsgId)) {
                 // TODO: setData

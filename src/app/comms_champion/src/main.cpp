@@ -43,6 +43,12 @@ void qmlRegisterAll()
     cc::WidgetProxy::qmlRegister();
 }
 
+void metaTypesRegisterAll()
+{
+    qRegisterMetaType<cc::ProtocolsInfoPtr>();
+    qRegisterMetaType<cc::MessageInfoPtr>();
+}
+
 }  // namespace
 
 int main(int argc, char *argv[])

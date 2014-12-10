@@ -17,9 +17,8 @@
 
 #include "RightPaneWidget.h"
 
-#include <QtWidgets/QLabel>
-
 #include "MsgDetailsWidget.h"
+#include "ProtocolsStackWidget.h"
 
 namespace comms_champion
 {
@@ -29,7 +28,7 @@ RightPaneWidget::RightPaneWidget(QWidget* parent)
 {
     setOrientation(Qt::Vertical);
     addWidget(new MsgDetailsWidget());
-    addWidget(new QLabel("Right Down"));
+    addWidget(new ProtocolsStackWidget());
 }
 
 }  // namespace comms_champion

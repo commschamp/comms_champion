@@ -21,7 +21,7 @@
 #include <QtWidgets/QWidget>
 #include <QtCore/QString>
 
-#include "comms_champion/MessageInfo.h"
+#include "comms_champion/ProtocolsInfo.h"
 
 #include "ui_MsgListWidget.h"
 
@@ -41,20 +41,20 @@ public:
         QWidget* parent = nullptr);
 
 protected slots:
-    void addMessage(MessageInfoPtr msg);
+    void addMessage(ProtocolsInfoPtr protocolsInfo);
     void selectOnAdd(bool enabled);
     void clearSelection();
 
 protected:
-    virtual void msgClickedImpl(MessageInfoPtr msg);
-    virtual void msgDoubleClickedImpl(MessageInfoPtr msg);
+    virtual void msgClickedImpl(ProtocolsInfoPtr protocolsInfo);
+    virtual void msgDoubleClickedImpl(ProtocolsInfoPtr protocolsInfo);
 
 private slots:
     void itemClicked(QListWidgetItem* item);
     void itemDoubleClicked(QListWidgetItem* item);
 
 private:
-    MessageInfoPtr getMsgFromItem(QListWidgetItem* item);
+    ProtocolsInfoPtr getMsgFromItem(QListWidgetItem* item);
 
     Ui::MsgListWidget m_ui;
     bool m_selectOnAdd = false;

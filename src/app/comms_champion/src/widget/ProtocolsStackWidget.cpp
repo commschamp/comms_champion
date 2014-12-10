@@ -15,15 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "ProtocolsStackWidget.h"
 
-#pragma once
+namespace comms_champion
+{
 
-#include "Message.h"
-#include "MessageBase.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "ProtocolPlugin.h"
-#include "MessageWidget.h"
-#include "MessageInfo.h"
-#include "ProtocolsInfo.h"
+ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parent)
+  : Base(parent)
+{
+    m_ui.setupUi(this);
+}
+
+ProtocolsStackWidget::~ProtocolsStackWidget() = default;
+
+}  // namespace comms_champion
+
 

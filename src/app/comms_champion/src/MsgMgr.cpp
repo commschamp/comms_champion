@@ -60,7 +60,9 @@ void MsgMgr::timeout()
             GlobalConstants::msgNumberPropertyName(),
             QVariant::fromValue(m_nextMsgNum));
         ++m_nextMsgNum;
-        m_recvMsgs.push_back(std::move(msgInfo));
+        auto protInfo = makeProtocolsInfo();
+        protInfo->push_back(std::move(msgInfo));
+        m_recvMsgs.push_back(std::move(protInfo));
         emit sigMsgReceived(m_recvMsgs.back());
     }
 }

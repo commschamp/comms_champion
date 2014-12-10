@@ -18,12 +18,25 @@
 
 #pragma once
 
-#include "Message.h"
-#include "MessageBase.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "ProtocolPlugin.h"
-#include "MessageWidget.h"
+#include <vector>
+#include <memory>
 #include "MessageInfo.h"
-#include "ProtocolsInfo.h"
+
+namespace comms_champion
+{
+
+typedef std::vector<MessageInfoPtr> ProtocolsInfo;
+typedef std::shared_ptr<ProtocolsInfo> ProtocolsInfoPtr;
+
+inline
+ProtocolsInfoPtr makeProtocolsInfo()
+{
+    return ProtocolsInfoPtr(new ProtocolsInfo());
+}
+
+}  // namespace comms_champion
+
+Q_DECLARE_METATYPE(comms_champion::ProtocolsInfoPtr);
+
+
 

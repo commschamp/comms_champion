@@ -18,12 +18,25 @@
 
 #pragma once
 
-#include "Message.h"
-#include "MessageBase.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "ProtocolPlugin.h"
-#include "MessageWidget.h"
-#include "MessageInfo.h"
-#include "ProtocolsInfo.h"
+#include <QtWidgets/QWidget>
+
+#include "ui_ProtocolsStackWidget.h"
+
+namespace comms_champion
+{
+
+class ProtocolsStackWidget : public QWidget
+{
+    Q_OBJECT
+    using Base = QWidget;
+public:
+    ProtocolsStackWidget(QWidget* parent = nullptr);
+    ~ProtocolsStackWidget();
+
+private:
+    Ui::ProtocolsStackWidget m_ui;
+};
+
+}  // namespace comms_champion
+
 

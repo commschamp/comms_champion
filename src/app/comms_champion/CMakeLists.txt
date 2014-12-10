@@ -23,6 +23,7 @@ function (bin_comms_champion)
         src/widget/MessageWidget.cpp
         src/widget/MsgDetailsWidget.cpp
         src/widget/DefaultMessageWidget.cpp
+        src/widget/ProtocolsStackWidget.cpp
         src/widget/field/BasicIntValueFieldWidget.cpp
         src/widget/field/BitmaskValueFieldWidget.cpp
         src/widget/field/BasicEnumValueFieldWidget.cpp
@@ -39,6 +40,7 @@ function (bin_comms_champion)
         src/widget/RecvAreaToolBar.h
         src/widget/MsgListWidget.h
         src/widget/MsgDetailsWidget.h
+        src/widget/ProtocolsStackWidget.h
         src/widget/field/BasicIntValueFieldWidget.h
         src/widget/field/BitmaskValueFieldWidget.h
         src/widget/field/BasicEnumValueFieldWidget.h
@@ -54,6 +56,7 @@ function (bin_comms_champion)
         ui/MainWindowWidget.ui
         ui/MsgListWidget.ui
         ui/MsgDetailsWidget.ui
+        ui/ProtocolsStackWidget.ui
         ui/BasicIntValueFieldWidget.ui
         ui/BitmaskValueFieldWidget.ui
         ui/BasicEnumValueFieldWidget.ui

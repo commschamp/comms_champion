@@ -27,6 +27,7 @@
 #include "comms_champion/Protocol.h"
 #include "comms_champion/ProtocolPlugin.h"
 #include "comms_champion/MessageInfo.h"
+#include "comms_champion/ProtocolsInfo.h"
 
 namespace comms_champion
 {
@@ -50,15 +51,14 @@ public slots:
     void timeout();
 
 signals:
-    void sigMsgReceived(MessageInfoPtr msgInfo);
+    void sigMsgReceived(ProtocolsInfoPtr msgInfo);
 
 private:
-    typedef Protocol::MsgPtr MsgPtr;
     typedef Protocol::ReadIterType ReadIterType;
 
     MsgMgr(QObject* parent = nullptr);
 
-    std::vector<MessageInfoPtr> m_recvMsgs;
+    std::vector<ProtocolsInfoPtr> m_recvMsgs;
     bool m_recvEnabled = false;
 
     typedef std::list<ProtocolPtr> ProtocolStack;

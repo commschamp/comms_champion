@@ -106,7 +106,7 @@ void GuiAppMgr::sendSaveClicked()
     assert(!"Send save clicked");
 }
 
-void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
+void GuiAppMgr::recvMsgClicked(ProtocolsInfoPtr msgInfo)
 {
     msgClicked(msgInfo);
     bool selectOnAddEnabled = false;
@@ -138,8 +138,8 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
     m_sendState(SendState::Idle),
     m_msgDisplayHandler(new DefaultMessageDisplayHandler)
 {
-    connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(MessageInfoPtr)),
-            this, SLOT(msgReceived(MessageInfoPtr)));
+    connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(ProtocolsInfoPtr)),
+            this, SLOT(msgReceived(ProtocolsInfoPtr)));
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -152,33 +152,37 @@ void GuiAppMgr::emitSendStateUpdate()
     emit sigSetSendState(static_cast<int>(m_sendState));
 }
 
-void GuiAppMgr::msgReceived(MessageInfoPtr msgInfo)
+void GuiAppMgr::msgReceived(ProtocolsInfoPtr protocolsInfo)
 {
-    assert(msgInfo);
+    assert(protocolsInfo);
 #ifndef NDEBUG
+    auto msgInfo = protocolsInfo->back();
+    assert(msgInfo);
     auto msg = msgInfo->getAppMessage();
     assert(msg);
     std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
 #endif
-    emit sigAddRecvMsg(msgInfo);
-    displayMessageIfNotClicked(msgInfo);
+    emit sigAddRecvMsg(protocolsInfo);
+    displayMessageIfNotClicked(protocolsInfo);
 }
 
-void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo)
+void GuiAppMgr::msgClicked(ProtocolsInfoPtr protocolsInfo)
 {
-    assert(msgInfo);
-    if (m_clickedMsg == msgInfo) {
+    assert(protocolsInfo);
+    if (m_clickedMsg == protocolsInfo) {
         m_clickedMsg.reset();
         // TODO: display dummy widget
         return;
     }
 
-    m_clickedMsg = msgInfo;
-    displayMessage(msgInfo);
+    m_clickedMsg = protocolsInfo;
+    displayMessage(protocolsInfo);
 }
 
-void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)
+void GuiAppMgr::displayMessage(ProtocolsInfoPtr protocolsInfo)
 {
+    assert(protocolsInfo);
+    auto msgInfo = protocolsInfo->back();
     assert(msgInfo);
     auto msg = msgInfo->getAppMessage();
     assert(msg);
@@ -187,10 +191,10 @@ void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)
     emit sigDisplayMsgDetailsWidget(m_msgWidget.release());
 }
 
-void GuiAppMgr::displayMessageIfNotClicked(MessageInfoPtr msgInfo)
+void GuiAppMgr::displayMessageIfNotClicked(ProtocolsInfoPtr protocolsInfo)
 {
     if (!m_clickedMsg) {
-        displayMessage(msgInfo);
+        displayMessage(protocolsInfo);
     }
 }
 

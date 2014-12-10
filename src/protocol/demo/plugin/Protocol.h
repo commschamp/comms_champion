@@ -34,13 +34,9 @@ public:
     Protocol() = default;
     virtual ~Protocol();
 
-    virtual comms_champion::ErrorStatus read(
-        MsgPtr& msg,
-        ReadIterType& iter,
-        std::size_t size,
-        std::size_t* missingSize = nullptr) override;
-
 protected:
+    virtual const std::string& nameImpl() const override;
+
     virtual MessagesList readImpl(
             ReadIterType iter,
             std::size_t size,

@@ -31,6 +31,9 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
     m_msgDetailsWidget(new MsgDetailsWidget()),
     m_protocolsDetailsWidget(new ProtocolsStackWidget())
 {
+    connect(m_protocolsDetailsWidget, SIGNAL(sigMessageSelected(MessageInfo::MessagePtr)),
+            m_msgDetailsWidget, SLOT(displayMessage(MessageInfo::MessagePtr)));
+
     auto* splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
     splitter->addWidget(m_msgDetailsWidget);
@@ -45,8 +48,7 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
 void DefaultMessageDisplayWidget::displayMessageImpl(
     ProtocolsInfoPtr protocolsInfo)
 {
-    m_msgDetailsWidget->displayMessage(protocolsInfo);
-    static_cast<void>(protocolsInfo);
+    m_protocolsDetailsWidget->displayMessage(protocolsInfo);
 }
 
 }  // namespace comms_champion

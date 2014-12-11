@@ -21,7 +21,7 @@
 
 #include <QtWidgets/QWidget>
 
-#include "comms_champion/ProtocolsInfo.h"
+#include "comms_champion/MessageInfo.h"
 #include "comms_champion/MessageDisplayHandler.h"
 #include "ui_MsgDetailsWidget.h"
 
@@ -30,11 +30,13 @@ namespace comms_champion
 
 class MsgDetailsWidget: public QWidget
 {
+    Q_OBJECT
     using Base = QWidget;
 public:
     MsgDetailsWidget(QWidget* parent = nullptr);
 
-    void displayMessage(ProtocolsInfoPtr protocolsInfo);
+public slots:
+    void displayMessage(MessageInfo::MessagePtr msg);
 
 private:
     typedef std::unique_ptr<MessageDisplayHandler> MsgDisplayHandlerPtr;

@@ -21,18 +21,23 @@
 #include <algorithm>
 #include <cassert>
 
+#include "comms_champion/StdMeta.h"
+
 namespace comms_champion
 {
 
 namespace
 {
 
+const std::string EmptyStr;
 const std::string AppMsgProperty("AppMsg");
 const std::string TransportMsgProperty("TransportMsg");
+const std::string ProtocolNameProperty("ProtName");
 
 const std::string* ReservedProperties[] = {
     &AppMsgProperty,
-    &TransportMsgProperty
+    &TransportMsgProperty,
+    &ProtocolNameProperty
 };
 
 bool isReservedProperty(const std::string& property)
@@ -67,6 +72,40 @@ MessageInfo::MessagePtr MessageInfo::getTransportMessage() const
 void MessageInfo::setTrasportMessage(MessagePtr msg)
 {
     setMessage(TransportMsgProperty, std::move(msg));
+}
+
+std::string MessageInfo::getProtocolName() const
+{
+    auto iter = m_map.find(ProtocolNameProperty);
+    if (iter == m_map.end()) {
+        return std::string();
+    }
+
+    auto var = iter->second;
+    assert(var.isValid());
+    assert(var.canConvert<std::string>());
+    return var.value<std::string>();
+}
+
+void MessageInfo::setProtocolName(const std::string& value)
+{
+    auto iter = m_map.find(ProtocolNameProperty);
+    if (iter != m_map.end()) {
+        if (value.empty()) {
+            m_map.erase(iter);
+            return;
+        }
+
+        iter->second = QVariant::fromValue(value);
+        return;
+    }
+
+    if (value.empty()) {
+        return;
+    }
+
+    m_map.insert(std::make_pair(ProtocolNameProperty, QVariant::fromValue(value)));
+
 }
 
 QVariant MessageInfo::getExtraProperty(const std::string& property)

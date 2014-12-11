@@ -48,6 +48,9 @@ public:
     MessagePtr getTransportMessage() const;
     void setTrasportMessage(MessagePtr msg);
 
+    std::string getProtocolName() const;
+    void setProtocolName(const std::string& value);
+
     QVariant getExtraProperty(const std::string& property);
     bool setExtraProperty(const std::string& property, QVariant&& value);
 

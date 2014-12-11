@@ -18,38 +18,7 @@
 
 #pragma once
 
-#include <QtWidgets/QWidget>
+#include <string>
+#include <QtCore/QMetaType>
 
-#include "comms_champion/ProtocolsInfo.h"
-
-#include "ui_ProtocolsStackWidget.h"
-
-namespace comms_champion
-{
-
-class ProtocolsStackWidget : public QWidget
-{
-    Q_OBJECT
-    using Base = QWidget;
-public:
-    ProtocolsStackWidget(QWidget* parent = nullptr);
-    ~ProtocolsStackWidget();
-
-    void displayMessage(ProtocolsInfoPtr protocolsInfo);
-
-signals:
-    void sigMessageSelected(MessageInfo::MessagePtr msgInfo);
-
-
-private slots:
-    void itemClicked(QTreeWidgetItem* item, int column);
-
-private:
-    void reportMessageSelected(QTreeWidgetItem* item);
-
-    Ui::ProtocolsStackWidget m_ui;
-};
-
-}  // namespace comms_champion
-
-
+Q_DECLARE_METATYPE(std::string);

@@ -24,6 +24,7 @@ namespace comms_champion
 {
 
 class MsgDetailsWidget;
+class ProtocolsStackWidget;
 class DefaultMessageDisplayWidget : public MessageDisplayWidget
 {
     using Base = MessageDisplayWidget;
@@ -35,7 +36,7 @@ protected:
 
 private:
     MsgDetailsWidget* m_msgDetailsWidget = nullptr;
-    QWidget* m_protocolsDetailsWidget = nullptr;
+    ProtocolsStackWidget* m_protocolsDetailsWidget = nullptr;
 };
 
 }  // namespace comms_champion

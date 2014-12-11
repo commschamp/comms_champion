@@ -40,6 +40,7 @@ function (bin_comms_champion)
         src/WidgetProxy.h
         src/widget/RecvAreaToolBar.h
         src/widget/MsgListWidget.h
+        src/widget/MsgDetailsWidget.h
         src/widget/ProtocolsStackWidget.h
         src/widget/field/BasicIntValueFieldWidget.h
         src/widget/field/BitmaskValueFieldWidget.h

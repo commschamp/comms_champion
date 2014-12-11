@@ -60,6 +60,9 @@ void MsgMgr::timeout()
             GlobalConstants::msgNumberPropertyName(),
             QVariant::fromValue(m_nextMsgNum));
         ++m_nextMsgNum;
+
+        msgInfo->setProtocolName(protocol.name());
+
         auto protInfo = makeProtocolsInfo();
         protInfo->push_back(std::move(msgInfo));
         m_recvMsgs.push_back(std::move(protInfo));

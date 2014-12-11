@@ -17,6 +17,8 @@
 
 #include "ProtocolsStackWidget.h"
 
+#include <cassert>
+
 namespace comms_champion
 {
 
@@ -24,9 +26,65 @@ ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parent)
   : Base(parent)
 {
     m_ui.setupUi(this);
+
+    connect(m_ui.m_protocolsTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)),
+            this, SLOT(itemClicked(QTreeWidgetItem*, int)));
 }
 
 ProtocolsStackWidget::~ProtocolsStackWidget() = default;
+
+void ProtocolsStackWidget::displayMessage(ProtocolsInfoPtr protocolsInfo)
+{
+    m_ui.m_protocolsTreeWidget->clear();
+    for (auto& msgInfo : *protocolsInfo) {
+        QStringList colValues(QString(msgInfo->getProtocolName().c_str()));
+        auto* topLevelItem = new QTreeWidgetItem(colValues);
+
+        auto appMsg = msgInfo->getAppMessage();
+        if (appMsg) {
+            QStringList appMsgColValues(QString("Application"));
+            auto* appMsgItem = new QTreeWidgetItem(appMsgColValues);
+            appMsgItem->setData(0, Qt::UserRole, QVariant::fromValue(appMsg));
+            topLevelItem->addChild(appMsgItem);
+        }
+
+        m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
+    }
+
+    auto* topProtocolItem = m_ui.m_protocolsTreeWidget->topLevelItem(0);
+    assert(topProtocolItem != nullptr);
+    auto* firstMsgItem = topProtocolItem->child(0);
+    if (firstMsgItem != 0) {
+        m_ui.m_protocolsTreeWidget->setCurrentItem(firstMsgItem);
+        reportMessageSelected(firstMsgItem);
+    }
+}
+
+void ProtocolsStackWidget::itemClicked(QTreeWidgetItem* item, int column)
+{
+    static_cast<void>(column);
+
+    auto msgPtrVar = item->data(0, Qt::UserRole);
+    if (!msgPtrVar.isValid()) {
+        // Top level item
+        item = item->child(0);
+        assert(item != nullptr);
+        msgPtrVar = item->data(0, Qt::UserRole);
+        m_ui.m_protocolsTreeWidget->setCurrentItem(item);
+    }
+
+    assert(msgPtrVar.isValid());
+    reportMessageSelected(item);
+}
+
+void ProtocolsStackWidget::reportMessageSelected(QTreeWidgetItem* item)
+{
+    auto msgPtrVar = item->data(0, Qt::UserRole);
+    assert(msgPtrVar.isValid());
+    assert(msgPtrVar.canConvert<MessageInfo::MessagePtr>());
+    auto msgPtr = msgPtrVar.value<MessageInfo::MessagePtr>();
+    emit sigMessageSelected(msgPtr);
+}
 
 }  // namespace comms_champion
 

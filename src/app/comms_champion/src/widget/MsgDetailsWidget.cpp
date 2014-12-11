@@ -32,12 +32,8 @@ MsgDetailsWidget::MsgDetailsWidget(QWidget* parent)
     m_ui.setupUi(this);
 }
 
-void MsgDetailsWidget::displayMessage(ProtocolsInfoPtr protocolsInfo)
+void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
 {
-    assert(protocolsInfo);
-    auto msgInfo = protocolsInfo->back();
-    assert(msgInfo);
-    auto msg = msgInfo->getAppMessage();
     assert(msg);
     auto msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
     msgWidget->setEditEnabled(false);

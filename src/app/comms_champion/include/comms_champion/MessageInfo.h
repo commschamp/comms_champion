@@ -46,7 +46,7 @@ public:
     void setAppMessage(MessagePtr msg);
 
     MessagePtr getTransportMessage() const;
-    void setTrasportMessage(MessagePtr msg);
+    void setTransportMessage(MessagePtr msg);
 
     std::string getProtocolName() const;
     void setProtocolName(const std::string& value);

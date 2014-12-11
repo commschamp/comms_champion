@@ -19,29 +19,37 @@
 #pragma once
 
 #include "comms/comms.h"
-#include "protocol/DemoMessage.h"
+#include "CCDemoMessage.h"
+#include "ProtocolStack.h"
 
 namespace demo
 {
 
-namespace protocol
+namespace plugin
 {
 
-template <typename TMsgBase, typename TAllMessages>
-using Stack = comms::protocol::MsgSizeLayer<
-        comms::field::BasicIntValue<typename TMsgBase::Field, std::uint16_t>,
-        comms::protocol::MsgIdLayer<
-            comms::field::BasicEnumValue<
-                typename TMsgBase::Field,
-                demo::message::MsgId,
-                comms::field::option::LengthLimitImpl<1>,
-                comms::field::option::ValidRangeImpl<0, demo::message::MsgId_NumOfMessages - 1>>,
-            TAllMessages,
-            comms::protocol::MsgDataLayer<TMsgBase>
-        >
-    >;
+class CCTransportMessage : public
+    comms::MessageBase<
+        CCDemoMessage,
+        comms::option::NoIdImpl,
+        comms::option::FieldsImpl<ProtocolStack::AllFields>,
+        comms::option::DispatchImpl<CCTransportMessage>
+    >
+{
+public:
+    CCTransportMessage() = default;
+    CCTransportMessage(const CCTransportMessage&) = default;
+    virtual ~CCTransportMessage() = default;
 
-}  // namespace protocol
+    CCTransportMessage& operator=(const CCTransportMessage&) = default;
+
+protected:
+    virtual const char* nameImpl() const override;
+    virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
+};
+
+
+}  // namespace plugin
 
 }  // namespace demo
 

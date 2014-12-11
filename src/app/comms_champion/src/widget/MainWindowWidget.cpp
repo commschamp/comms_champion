@@ -20,6 +20,8 @@
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QToolBar>
 #include <QtGui/QIcon>
+#include <QtWidgets/QShortcut>
+#include <QtGui/QKeySequence>
 
 #include "LeftPaneWidget.h"
 #include "RightPaneWidget.h"
@@ -58,6 +60,8 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 1);
     setCentralWidget(splitter);
+
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(close()));
 }
 
 }  // namespace comms_champion

@@ -49,6 +49,7 @@ struct FieldsImpl<std::tuple<TFields...> >
 
 struct NoFieldsImpl {};
 
+struct NoIdImpl {};
 
 }  // namespace option
 

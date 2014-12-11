@@ -249,6 +249,26 @@ protected:
     using Base::MessageBase;
 };
 
+template <typename TMessage,
+          typename... TRest>
+class MessageBase<TMessage, option::NoIdImpl, TRest...> :
+                                public MessageBase<TMessage, TRest...>
+{
+    typedef MessageBase<TMessage, TRest...> Base;
+    typedef typename Base::MsgIdParamType MsgIdParamType;
+public:
+    static const bool HasStaticMsgId = true;
+    static const auto MsgId = typename Base::MsgIdType();
+
+protected:
+    using Base::MessageBase;
+
+    virtual MsgIdParamType getIdImpl() const override
+    {
+        GASSERT(!"The message id is not supposed to be retrieved");
+        return MsgId;
+    }
+};
 
 
 }  // namespace comms

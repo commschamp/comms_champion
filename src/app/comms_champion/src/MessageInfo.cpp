@@ -69,7 +69,7 @@ MessageInfo::MessagePtr MessageInfo::getTransportMessage() const
     return getMessage(TransportMsgProperty);
 }
 
-void MessageInfo::setTrasportMessage(MessagePtr msg)
+void MessageInfo::setTransportMessage(MessagePtr msg)
 {
     setMessage(TransportMsgProperty, std::move(msg));
 }

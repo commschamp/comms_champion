@@ -40,13 +40,20 @@ void ProtocolsStackWidget::displayMessage(ProtocolsInfoPtr protocolsInfo)
         QStringList colValues(QString(msgInfo->getProtocolName().c_str()));
         auto* topLevelItem = new QTreeWidgetItem(colValues);
 
-        auto appMsg = msgInfo->getAppMessage();
-        if (appMsg) {
-            QStringList appMsgColValues(QString("Application"));
-            auto* appMsgItem = new QTreeWidgetItem(appMsgColValues);
-            appMsgItem->setData(0, Qt::UserRole, QVariant::fromValue(appMsg));
-            topLevelItem->addChild(appMsgItem);
-        }
+        auto addMsgFunc =
+            [&msgInfo, topLevelItem](MessageInfo::MessagePtr msg, const char* name)
+            {
+                if (msg) {
+                    QString nameStr(name);
+                    QStringList msgColValues(nameStr);
+                    auto* msgItem = new QTreeWidgetItem(msgColValues);
+                    msgItem->setData(0, Qt::UserRole, QVariant::fromValue(msg));
+                    topLevelItem->addChild(msgItem);
+                }
+            };
+
+        addMsgFunc(msgInfo->getAppMessage(), "Application");
+        addMsgFunc(msgInfo->getTransportMessage(), "Transport");
 
         m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
     }

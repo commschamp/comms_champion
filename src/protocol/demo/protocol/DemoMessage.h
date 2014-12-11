@@ -31,6 +31,7 @@ enum MsgId
 {
     MsgId_Heartbeat,
     MsgId_Status,
+    MsgId_NumOfMessages
 };
 
 struct DemoDefaultTraits

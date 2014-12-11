@@ -79,6 +79,55 @@ protected:
         static_cast<decltype(Base::MaxValidValue)>(TMaxValue);
 };
 
+namespace details
+{
+
+template <long long int TVal1, long long int TVal2, bool TLess>
+struct MinValueHelper;
+
+template <long long int TVal1, long long int TVal2>
+struct MinValueHelper<TVal1, TVal2, true>
+{
+    static const long long int Value = TVal1;
+};
+
+template <long long int TVal1, long long int TVal2>
+struct MinValueHelper<TVal1, TVal2, false>
+{
+    static const long long int Value = TVal2;
+};
+
+template <long long int TVal1, long long int TVal2>
+struct MinValue
+{
+    static const long long int Value =
+        MinValueHelper<TVal1, TVal2, (TVal1 < TVal2)>::Value;
+};
+
+template <long long int TVal1, long long int TVal2, bool TLess>
+struct MaxValueHelper;
+
+template <long long int TVal1, long long int TVal2>
+struct MaxValueHelper<TVal1, TVal2, true>
+{
+    static const long long int Value = TVal2;
+};
+
+template <long long int TVal1, long long int TVal2>
+struct MaxValueHelper<TVal1, TVal2, false>
+{
+    static const long long int Value = TVal1;
+};
+
+template <long long int TVal1, long long int TVal2>
+struct MaxValue
+{
+    static const long long int Value =
+        MaxValueHelper<TVal1, TVal2, (TVal1 < TVal2)>::Value;
+};
+
+}  // namespace details
+
 template <typename TField, typename T, std::size_t TLen, typename... TOptions>
 class BasicIntValueBase<
     TField,
@@ -94,6 +143,20 @@ protected:
     using Base::BasicIntValueBase;
 
     typedef typename util::SizeToType<TLen, std::is_signed<T>::value>::Type SerialisedType;
+
+    static const auto MinValidValue =
+        static_cast<decltype(Base::MinValidValue)>(
+            details::MaxValue<
+                static_cast<long long int>(std::numeric_limits<SerialisedType>::min()) - Base::Offset,
+                static_cast<long long int>(Base::MinValidValue)
+            >::Value);
+
+    static const auto MaxValidValue =
+        static_cast<decltype(Base::MaxValidValue)>(
+            details::MinValue<
+                static_cast<long long int>(std::numeric_limits<SerialisedType>::max()) - Base::Offset,
+                static_cast<long long int>(Base::MaxValidValue)
+            >::Value);
 
     static const std::size_t SerialisedLen = TLen;
 };

@@ -26,6 +26,8 @@
 
 #include "comms/util/ScopeGuard.h"
 
+#include "CCTransportMessage.h"
+
 namespace demo
 {
 
@@ -99,11 +101,19 @@ Protocol::MessagesList Protocol::readImpl(
         }
 
         using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
+        auto msgInfo = cc::makeMessageInfo();
+        auto setTransportMsgFunc =
+            [&fields, &msgInfo]()
+            {
+                std::unique_ptr<CCTransportMessage> transportMsgPtr(new CCTransportMessage());
+                transportMsgPtr->setFields(fields);
+                msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+            };
+
         if (es == comms::ErrorStatus::Success) {
-            auto msgInfo = cc::makeMessageInfo();
             msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
             assert(msgInfo->getAppMessage());
-            // TODO: setTransportMessage
+            setTransportMsgFunc();
             allInfos.push_back(std::move(msgInfo));
             readIter = readIterTmp;
             continue;
@@ -111,7 +121,7 @@ Protocol::MessagesList Protocol::readImpl(
 
         if (es == comms::ErrorStatus::InvalidMsgData) {
             readIter = readIterTmp;
-            // TODO: setTransportMessage
+            setTransportMsgFunc();
             continue;
         }
 

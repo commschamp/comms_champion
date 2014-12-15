@@ -238,36 +238,30 @@ private:
 
 /// @brief Equality comparison operator.
 /// @related BasicIntValue
-template <typename TField,
-          typename T,
-          typename... TRest>
+template <typename... TArgs>
 bool operator==(
-    const BasicIntValue<TField, T, TRest...>& field1,
-    const BasicIntValue<TField, T, TRest...>& field2)
+    const BasicIntValue<TArgs...>& field1,
+    const BasicIntValue<TArgs...>& field2)
 {
     return field1.getValue() == field2.getValue();
 }
 
 /// @brief Non-equality comparison operator.
 /// @related BasicIntValue
-template <typename TField,
-          typename T,
-          typename... TRest>
+template <typename... TArgs>
 bool operator!=(
-    const BasicIntValue<TField, T, TRest...>& field1,
-    const BasicIntValue<TField, T, TRest...>& field2)
+    const BasicIntValue<TArgs...>& field1,
+    const BasicIntValue<TArgs...>& field2)
 {
     return field1.getValue() != field2.getValue();
 }
 
 /// @brief Equivalence comparison operator.
 /// @related BasicIntValue
-template <typename TField,
-          typename T,
-          typename... TRest>
+template <typename... TArgs>
 bool operator<(
-    const BasicIntValue<TField, T, TRest...>& field1,
-    const BasicIntValue<TField, T, TRest...>& field2)
+    const BasicIntValue<TArgs...>& field1,
+    const BasicIntValue<TArgs...>& field2)
 {
     return field1.getValue() < field2.getValue();
 }

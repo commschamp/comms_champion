@@ -256,6 +256,10 @@ public:
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be a tuple");
         auto& field = std::get<TIdx>(allFields);
+        typedef typename std::decay<decltype(field)>::type FieldType;
+        static_assert(
+            std::is_same<Field, FieldType>::value,
+            "Field has wrong type");
         return
             readInternal(
                 field,
@@ -300,6 +304,11 @@ public:
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be a tuple");
         auto& field = std::get<TIdx>(allFields);
+        typedef typename std::decay<decltype(field)>::type FieldType;
+        static_assert(
+            std::is_same<Field, FieldType>::value,
+            "Field has wrong type");
+
         field.setValue(msg.getId());
         return
             writeInternal(

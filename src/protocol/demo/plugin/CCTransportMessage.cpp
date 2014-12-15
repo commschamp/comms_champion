@@ -36,12 +36,14 @@ enum FieldIdx
 {
     FieldIdx_Size,
     FieldIdx_MsgId,
+    FieldIdx_Data,
     FieldId_NumOfFields
 };
 
 const char* FieldNames[] = {
     "Size",
-    "ID"
+    "ID",
+    "Data"
 };
 
 static_assert(

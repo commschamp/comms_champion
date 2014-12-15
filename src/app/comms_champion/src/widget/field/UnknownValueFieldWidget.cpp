@@ -46,6 +46,7 @@ void UnknownValueFieldWidget::refreshImpl()
 {
     QString serValueStr;
     auto serValue = m_wrapper->serialisedValue();
+
     for (auto byte : serValue) {
         serValueStr.append(QString("%1").arg(byte, 2, 16, QChar('0')));
     }
@@ -63,6 +64,7 @@ void UnknownValueFieldWidget::refreshImpl()
         assert(m_ui.m_serValueLineEdit != nullptr);
         setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
         m_ui.m_serValueLineEdit->setText(serValueStr);
+
     }
 
     setFieldValid(m_wrapper->valid());

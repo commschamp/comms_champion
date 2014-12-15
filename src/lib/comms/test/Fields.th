@@ -43,6 +43,8 @@ public:
     void test11();
     void test12();
     void test13();
+    void test14();
+    void test15();
 
 private:
     struct BigEndianTraits
@@ -397,6 +399,59 @@ void FieldsTestSuite::test13()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test14()
+{
+    typedef comms::field::VarSizeArray<
+        comms::Field<BigEndianTraits>,
+        comms::field::BasicIntValue<
+            comms::Field<BigEndianTraits>,
+            std::uint8_t
+        >
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+
+    static const char Buf[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), BufSize);
+    TS_ASSERT(field.valid());
+}
+
+void FieldsTestSuite::test15()
+{
+    typedef comms::field::VarSizeArray<
+        comms::Field<BigEndianTraits>,
+        comms::field::BasicIntValue<
+            comms::Field<BigEndianTraits>,
+            std::uint8_t
+        >,
+        comms::field::option::FixedSizeStorage<32>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+
+    static const char Buf[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), BufSize);
+    TS_ASSERT(field.valid());
+//
+//    static const char Buf2[] = {
+//        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc
+//    };
+//    static const std::size_t BufSize2 = std::extent<decltype(Buf)>::value;
+//    field = readWriteField<Field>(Buf2, BufSize2);
+//    TS_ASSERT_EQUALS(field.length(), BufSize2);
+//    TS_ASSERT(field.valid());
 }
 
 template <typename TField>

@@ -61,6 +61,12 @@ struct BitmaskReservedBitsImpl
 
 struct BitmaskBitZeroIsLsbImpl {};
 
+template <std::size_t TSize>
+struct FixedSizeStorage
+{
+    static const std::size_t Value = TSize;
+};
+
 
 }  // namespace option
 

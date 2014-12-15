@@ -21,12 +21,11 @@
 #include <iterator>
 #include "Protocol.h"
 
-#include "message/CCHeartbeat.h"
 #include "comms_champion/ErrorStatus.h"
-
 #include "comms/util/ScopeGuard.h"
 
-#include "CCTransportMessage.h"
+#include "message/CCTransportMessage.h"
+#include "message/CCRawDataMessage.h"
 
 namespace demo
 {
@@ -54,7 +53,7 @@ Protocol::MessagesList Protocol::readImpl(
     std::copy_n(iter, size, std::back_inserter(m_data));
 
     using ReadIterator = ProtocolStack::ReadIterator;
-    ReadIterator readIter = &m_data[0];
+    ReadIterator readIterBeg = &m_data[0];
 
     auto remainingSizeCalc =
         [this](ReadIterator iter) -> std::size_t
@@ -69,11 +68,10 @@ Protocol::MessagesList Protocol::readImpl(
 
     auto eraseGuard =
         comms::util::makeScopeGuard(
-            [this, &readIter]()
+            [this, &readIterBeg, &remainingSizeCalc]()
             {
-                ReadIterator const dataBegin = &m_data[0];
-                auto dist = std::distance(dataBegin, readIter);
-                assert(static_cast<std::size_t>(dist) <= m_data.size());
+                auto dist = remainingSizeCalc(readIterBeg);
+                assert(dist <= m_data.size());
                 m_data.erase(m_data.begin(), m_data.begin() + dist);
             });
 
@@ -84,16 +82,13 @@ Protocol::MessagesList Protocol::readImpl(
         AllFields fields;
         ProtocolMsgPtr msgPtr;
 
-        auto readIterTmp = readIter;
-        auto dist = std::distance(ReadIterator(&m_data[0]), readIter);
-        auto remainingSize = m_data.size() - static_cast<std::size_t>(dist);
-
+        auto readIterCur = readIterBeg;
         auto es =
             m_protStack.readFieldsCached<0>(
                 fields,
                 msgPtr,
-                readIterTmp,
-                remainingSizeCalc(readIterTmp),
+                readIterCur,
+                remainingSizeCalc(readIterCur),
                 missingSize);
 
         if (es == comms::ErrorStatus::NotEnoughData) {
@@ -102,46 +97,81 @@ Protocol::MessagesList Protocol::readImpl(
 
         using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
         auto msgInfo = cc::makeMessageInfo();
-        auto setTransportMsgFunc =
-            [&fields, &msgInfo]()
-            {
-                std::unique_ptr<CCTransportMessage> transportMsgPtr(new CCTransportMessage());
-                transportMsgPtr->setFields(fields);
-                msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
-            };
+
+        auto advanceReadIterGuard
+            = comms::util::makeScopeGuard(
+                [&readIterBeg, &readIterCur]()
+                {
+                    readIterBeg = readIterCur;
+                });
+
+        auto addMsgInfoGuard =
+            comms::util::makeScopeGuard(
+                [&allInfos, &msgInfo]()
+                {
+                    allInfos.push_back(std::move(msgInfo));
+                });
+
+        auto setTransportMsgGuard =
+            comms::util::makeScopeGuard(
+                [&fields, &msgInfo]()
+                {
+                    std::unique_ptr<message::CCTransportMessage> transportMsgPtr(
+                                        new message::CCTransportMessage());
+                    transportMsgPtr->setFields(fields);
+                    msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+                });
+
+        auto setRawDataMsgGuard =
+            comms::util::makeScopeGuard(
+                [readIterBeg, &readIterCur, msgInfo]()
+                {
+                    auto readIterBegTmp = readIterBeg;
+                    // readIterBeg is captured by value on purpose
+                    std::unique_ptr<message::CCRawDataMessage> rawDataMsgPtr(
+                                        new message::CCRawDataMessage());
+                    auto dataSize = static_cast<std::size_t>(
+                                    std::distance(readIterBegTmp, readIterCur));
+                    auto es = rawDataMsgPtr->read(readIterBegTmp, dataSize);
+                    static_cast<void>(es);
+                    assert(es == comms::ErrorStatus::Success);
+                    msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+                });
 
         if (es == comms::ErrorStatus::Success) {
+            assert(msgPtr);
             msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
             assert(msgInfo->getAppMessage());
-            setTransportMsgFunc();
-            allInfos.push_back(std::move(msgInfo));
-            readIter = readIterTmp;
             continue;
         }
 
         if (es == comms::ErrorStatus::InvalidMsgData) {
-            readIter = readIterTmp;
-            setTransportMsgFunc();
             continue;
         }
 
         if (es == comms::ErrorStatus::MsgAllocFaulure) {
             assert(!"Mustn't happen");
+            setRawDataMsgGuard.release();
+            setTransportMsgGuard.release();
+            addMsgInfoGuard.release();
             break;
         }
 
-        // Protocol error:
-        ++readIter;
-        while (readIter != &m_data[m_data.size()]) {
-            auto readIterTmp = readIter;
-            es = m_protStack.read(msgPtr, readIterTmp, remainingSizeCalc(readIterTmp));
-            if ((es != comms::ErrorStatus::ProtocolError) &&
-                (es != comms::ErrorStatus::InvalidMsgId)) {
-                // TODO: setData
-                readIter = readIterTmp;
+        // Protocol error, no transport message,
+        setTransportMsgGuard.release();
+
+        while (true) {
+            ++readIterBeg;
+            if (&m_data[m_data.size()] <= readIterBeg) {
                 break;
             }
-            ++readIter;
+
+            readIterCur = readIterBeg;
+            es = m_protStack.read(msgPtr, readIterCur, remainingSizeCalc(readIterCur));
+            if ((es != comms::ErrorStatus::ProtocolError) &&
+                (es != comms::ErrorStatus::InvalidMsgId)) {
+                break;
+            }
         }
     }
 

@@ -19,8 +19,8 @@
 #pragma once
 
 #include "comms/comms.h"
-#include "plugin/CCDemoMessage.h"
 #include "protocol/message/Status.h"
+#include "CCDemoMessage.h"
 
 namespace demo
 {

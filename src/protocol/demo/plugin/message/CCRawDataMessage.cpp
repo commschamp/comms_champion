@@ -15,13 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-#include "CCTransportMessage.h"
-
-#include <cassert>
-#include <type_traits>
-
-#include "protocol/DemoMessage.h"
+#include "CCRawDataMessage.h"
 
 namespace demo
 {
@@ -29,53 +23,51 @@ namespace demo
 namespace plugin
 {
 
+namespace message
+{
+
 namespace
 {
 
 enum FieldIdx
 {
-    FieldIdx_Size,
-    FieldIdx_MsgId,
     FieldIdx_Data,
-    FieldId_NumOfFields
+    FieldIdx_NumOfFields
 };
 
 const char* FieldNames[] = {
-    "Size",
-    "ID",
     "Data"
 };
 
 static_assert(
-    std::extent<decltype(FieldNames)>::value == FieldId_NumOfFields,
+    std::extent<decltype(FieldNames)>::value == FieldIdx_NumOfFields,
     "FieldNames array must be updated.");
 
 }  // namespace
 
-const char* CCTransportMessage::nameImpl() const
+
+const char* CCRawDataMessage::nameImpl() const
 {
-    static const char* Str = "Demo Protocol Transport Message";
+    static const char* Str = "Raw Data Message";
     return Str;
 }
 
-void CCTransportMessage::updateFieldPropertiesImpl(
+void CCRawDataMessage::updateFieldPropertiesImpl(
     QWidget& fieldWidget,
     uint idx) const
 {
-    if (FieldId_NumOfFields <= idx) {
-        assert(idx < FieldId_NumOfFields);
+    if (FieldIdx_NumOfFields <= idx) {
+        assert(idx < FieldIdx_NumOfFields);
         return;
     }
 
     setNameProperty(fieldWidget, FieldNames[idx]);
-
-    if (idx == FieldIdx_MsgId) {
-        setIndexedNameProperty(fieldWidget, demo::message::MsgId_Heartbeat, "Heartbeat");
-        setIndexedNameProperty(fieldWidget, demo::message::MsgId_Status, "Status");
-    }
 }
+
+}  // namespace message
 
 }  // namespace plugin
 
 }  // namespace demo
+
 

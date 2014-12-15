@@ -54,6 +54,7 @@ void ProtocolsStackWidget::displayMessage(ProtocolsInfoPtr protocolsInfo)
 
         addMsgFunc(msgInfo->getAppMessage(), "Application");
         addMsgFunc(msgInfo->getTransportMessage(), "Transport");
+        addMsgFunc(msgInfo->getRawDataMessage(), "Raw Data");
 
         m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
     }

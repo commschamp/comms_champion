@@ -32,11 +32,13 @@ namespace
 const std::string EmptyStr;
 const std::string AppMsgProperty("AppMsg");
 const std::string TransportMsgProperty("TransportMsg");
+const std::string RawDataMsgProperty("RawDataMsg");
 const std::string ProtocolNameProperty("ProtName");
 
 const std::string* ReservedProperties[] = {
     &AppMsgProperty,
     &TransportMsgProperty,
+    &RawDataMsgProperty,
     &ProtocolNameProperty
 };
 
@@ -72,6 +74,16 @@ MessageInfo::MessagePtr MessageInfo::getTransportMessage() const
 void MessageInfo::setTransportMessage(MessagePtr msg)
 {
     setMessage(TransportMsgProperty, std::move(msg));
+}
+
+MessageInfo::MessagePtr MessageInfo::getRawDataMessage() const
+{
+    return getMessage(RawDataMsgProperty);
+}
+
+void MessageInfo::setRawDataMessage(MessagePtr msg)
+{
+    setMessage(RawDataMsgProperty, std::move(msg));
 }
 
 std::string MessageInfo::getProtocolName() const

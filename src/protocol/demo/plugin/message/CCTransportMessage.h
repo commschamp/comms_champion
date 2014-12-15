@@ -20,12 +20,15 @@
 
 #include "comms/comms.h"
 #include "CCDemoMessage.h"
-#include "ProtocolStack.h"
+#include "plugin/ProtocolStack.h"
 
 namespace demo
 {
 
 namespace plugin
+{
+
+namespace message
 {
 
 class CCTransportMessage : public
@@ -48,6 +51,7 @@ protected:
     virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
 };
 
+}  // namespace message
 
 }  // namespace plugin
 

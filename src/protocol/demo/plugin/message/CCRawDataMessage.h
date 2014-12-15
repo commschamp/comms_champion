@@ -18,8 +18,8 @@
 
 #pragma once
 
+#include <tuple>
 #include "comms/comms.h"
-#include "protocol/message/Heartbeat.h"
 #include "CCDemoMessage.h"
 
 namespace demo
@@ -31,21 +31,31 @@ namespace plugin
 namespace message
 {
 
-class CCHeartbeat : public demo::message::Heartbeat<demo::plugin::CCDemoMessage>
+typedef std::tuple<
+    comms::field::VarSizeArray<
+    CCDemoMessage::Field,
+        comms::field::BasicIntValue<CCDemoMessage::Field, std::uint8_t>
+    >
+> RawDataMessageFields;
+
+class CCRawDataMessage : public
+    comms::MessageBase<
+        CCDemoMessage,
+        comms::option::NoIdImpl,
+        comms::option::FieldsImpl<RawDataMessageFields>,
+        comms::option::DispatchImpl<CCRawDataMessage>
+    >
 {
-    using Base = demo::message::Heartbeat<demo::plugin::CCDemoMessage>;
 public:
+    CCRawDataMessage() = default;
+    CCRawDataMessage(const CCRawDataMessage&) = default;
+    virtual ~CCRawDataMessage() = default;
 
-    CCHeartbeat() = default;
-    CCHeartbeat(const CCHeartbeat&) = default;
-    virtual ~CCHeartbeat() = default;
-
-    CCHeartbeat& operator=(const CCHeartbeat&) = default;
+    CCRawDataMessage& operator=(const CCRawDataMessage&) = default;
 
 protected:
     virtual const char* nameImpl() const override;
     virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
-
 };
 
 }  // namespace message

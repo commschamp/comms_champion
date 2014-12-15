@@ -20,7 +20,7 @@
 
 #include "protocol/Stack.h"
 #include "AllMessages.h"
-#include "CCDemoMessage.h"
+#include "message/CCDemoMessage.h"
 
 namespace demo
 {

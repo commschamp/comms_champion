@@ -18,25 +18,26 @@
 
 #pragma once
 
-#include <QtCore/QtPlugin>
-
+#include "Plugin.h"
 #include "Protocol.h"
 
 namespace comms_champion
 {
 
-class ProtocolPlugin
+class ProtocolPlugin : public Plugin
 {
 public:
 
     typedef std::unique_ptr<Protocol> ProtocolPtr;
 
-    virtual ~ProtocolPlugin() {}
+    ProtocolPtr alloc()
+    {
+        return allocImpl();
+    }
 
-    virtual void initialize() = 0;
-    virtual void finalize() = 0;
+protected:
 
-    virtual ProtocolPtr alloc() = 0;
+    virtual ProtocolPtr allocImpl() = 0;
 };
 
 }  // namespace comms_champion

@@ -16,39 +16,44 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "DemoPlugin.h"
-#include "Protocol.h"
+#pragma once
 
-#include <iostream>
+#include <string>
 
-namespace demo
+#include <QtCore/QtPlugin>
+
+namespace comms_champion
 {
 
-namespace plugin
+class Plugin
 {
+public:
+    virtual ~Plugin() = default;
 
-void DemoPlugin::initializeImpl()
-{
-    std::cout << "Plugin initialized!!!" << std::endl;
-}
+    void initialize()
+    {
+        initializeImpl();
+    }
 
-void DemoPlugin::finalizeImpl()
-{
-    std::cout << "Plugin finalized!!!" << std::endl;
-}
+    void finalize()
+    {
+        finalizeImpl();
+    }
 
-void DemoPlugin::configureImpl(const std::string& config)
-{
-    static_cast<void>(config);
-    std::cout << "Plugin configured!!!" << std::endl;
-}
+    void configure(const std::string& config = std::string())
+    {
+        configureImpl(config);
+    }
 
-DemoPlugin::ProtocolPtr DemoPlugin::allocImpl()
-{
-    return ProtocolPtr(new Protocol());
-}
 
-}  // namespace plugin
+protected:
+    virtual void initializeImpl() = 0;
+    virtual void finalizeImpl() = 0;
+    virtual void configureImpl(const std::string& config) = 0;
+};
 
-}  // namespace demo
+}  // namespace comms_champion
+
+Q_DECLARE_INTERFACE(comms_champion::Plugin, "cc.Plugin")
+
 

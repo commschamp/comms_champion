@@ -84,8 +84,11 @@ int main(int argc, char *argv[])
     }
 
     pluginObj->initialize();
+    pluginObj->configure();
     auto* msgMgr = cc::MsgMgr::instance();
     msgMgr->addProtocol(pluginObj->alloc());
-    return app.exec();
+    auto retval = app.exec();
+    pluginObj->finalize();
+    return retval;
 }
 

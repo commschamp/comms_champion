@@ -36,11 +36,12 @@ class DemoPlugin : public QObject, public cc::ProtocolPlugin
     Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
     Q_INTERFACES(comms_champion::ProtocolPlugin)
 
-public:
+protected:
 
-    virtual void initialize() override;
-    virtual void finalize() override;
-    virtual ProtocolPtr alloc() override;
+    virtual void initializeImpl() override;
+    virtual void finalizeImpl() override;
+    virtual void configureImpl(const std::string& config) override;
+    virtual ProtocolPtr allocImpl() override;
 };
 
 }  // namespace plugin

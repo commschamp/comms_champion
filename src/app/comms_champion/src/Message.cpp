@@ -22,7 +22,6 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QWidget>
-#include <QtQml/QtQml>
 
 #include "GlobalConstants.h"
 
@@ -46,12 +45,6 @@ void Message::display(MessageDisplayHandler& handler)
     displayImpl(handler);
 }
 
-void Message::qmlRegister()
-{
-    qmlRegisterUncreatableType<Message>(
-        "cc.protocol.Message", 1, 0, "Message", "Message is an Abstract class");
-}
-
 void Message::setNameProperty(QWidget& widget, const QString& value)
 {
     widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));
@@ -69,7 +62,4 @@ void Message::setIndexedNameProperty(
 
 
 }  // namespace comms_champion
-
-
-
 

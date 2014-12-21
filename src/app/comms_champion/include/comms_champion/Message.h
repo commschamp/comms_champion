@@ -27,7 +27,6 @@ class MessageDisplayHandler;
 class Message : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString name READ name CONSTANT)
 
     typedef QObject Base;
 public:
@@ -40,8 +39,6 @@ public:
     const char* name() const;
     void updateFieldProperties(QWidget& fieldWidget, uint idx) const;
     void display(MessageDisplayHandler& handler);
-
-    static void qmlRegister();
 
 protected:
 

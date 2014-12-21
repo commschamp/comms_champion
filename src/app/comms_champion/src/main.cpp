@@ -18,15 +18,12 @@
 #include <iostream>
 
 #include <QtWidgets/QApplication>
-#include <QtQml/QQmlApplicationEngine>
-#include <QtQuick/QQuickWindow>
 #include <QtCore/QPluginLoader>
 #include <QtCore/QDir>
 
 #include "comms_champion/comms_champion.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
-#include "WidgetProxy.h"
 #include "DummySocket.h"
 
 #include "widget/MainWindowWidget.h"
@@ -36,14 +33,6 @@ namespace
 {
 
 namespace cc = comms_champion;
-
-void qmlRegisterAll()
-{
-    cc::GuiAppMgr::qmlRegister();
-    cc::Message::qmlRegister();
-    cc::GlobalConstants::qmlRegister();
-    cc::WidgetProxy::qmlRegister();
-}
 
 void metaTypesRegisterAll()
 {
@@ -56,15 +45,6 @@ void metaTypesRegisterAll()
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-
-    qmlRegisterAll();
-
-//    QQmlApplicationEngine engine;
-//    engine.load(QUrl("qrc:/qml/MainWindow.qml"));
-//    QObject *topLevel = engine.rootObjects().value(0);
-//    QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
-//    QObject::connect(&engine, SIGNAL(quit()), &app, SLOT(quit())); // to make Qt.quit() to work.
-//    window->showMaximized();
 
     cc::MainWindowWidget window;
     window.showMaximized();

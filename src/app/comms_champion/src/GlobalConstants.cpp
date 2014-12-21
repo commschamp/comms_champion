@@ -17,114 +17,16 @@
 
 #include "GlobalConstants.h"
 
-#include <QtQml/QQmlApplicationEngine>
-#include <QtQml/QtQml>
+#include <memory>
 
 
 namespace comms_champion
 {
 
-namespace
-{
-
-QObject *getGlobalConstants(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
-
-    return GlobalConstants::instance();
-}
-
-}  // namespace
-
 GlobalConstants* GlobalConstants::instance()
 {
-    static GlobalConstants* obj = new GlobalConstants();
-    return obj;
-}
-
-void GlobalConstants::qmlRegister()
-{
-    qmlRegisterSingletonType<GlobalConstants>("cc.GlobalConstants", 1, 0, "GlobalConstants", &getGlobalConstants);
-}
-
-const QString& GlobalConstants::background()
-{
-    static const QString str("lightgray");
-    return str;
-}
-
-const QString& GlobalConstants::mapState(State value)
-{
-    static const QString UnknownStr("UNKNOWN");
-    static const QString WaitingStr("WAITING");
-    static const QString RunningStr("RUNNING");
-    static const QString SendingStr("SENDING");
-    static const QString SendingAllStr("SENDING_ALL");
-    static const QString* Map[] = {
-        &WaitingStr,
-        &RunningStr,
-        &SendingStr,
-        &SendingAllStr
-    };
-
-    static_assert(std::extent<decltype(Map)>::value == static_cast<int>(State::NumOfStates),
-        "State enum has changed");
-
-    if (State::NumOfStates <= value) {
-        return UnknownStr;
-    }
-    return *Map[static_cast<int>(value)];
-}
-
-const QString& GlobalConstants::waitingState()
-{
-    return mapState(State::Waiting);
-}
-
-const QString& GlobalConstants::runningState()
-{
-    return mapState(State::Running);
-}
-
-const QString& GlobalConstants::sendingState()
-{
-    return mapState(State::Sending);
-}
-
-const QString& GlobalConstants::sendingAllState()
-{
-    return mapState(State::SendingAll);
-}
-
-const QString& GlobalConstants::startIconPathFromQml()
-{
-    static const QString str("../image/start.png");
-    return str;
-}
-
-const QString& GlobalConstants::startAllIconPathFromQml()
-{
-    static const QString str("../image/start_all.png");
-    return str;
-}
-
-const QString& GlobalConstants::stopIconPathFromQml()
-{
-    static const QString str("../image/stop.png");
-    return str;
-}
-
-const QString& GlobalConstants::saveIconPathFromQml()
-{
-    static const QString str("../image/save.png");
-    return str;
-}
-
-const QString& GlobalConstants::configIconPathFromQml()
-{
-    static const QString str("../image/config.png");
-    return str;
+    static std::unique_ptr<GlobalConstants> obj(new GlobalConstants());
+    return obj.get();
 }
 
 const char* GlobalConstants::indexPropertyName()
@@ -155,11 +57,6 @@ const char* GlobalConstants::msgObjPropertyName()
 {
     static const char* str = "msg_obj";
     return str;
-}
-
-GlobalConstants::GlobalConstants(QObject* parent)
-  : Base(parent)
-{
 }
 
 }  // namespace comms_champion

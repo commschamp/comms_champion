@@ -19,28 +19,12 @@
 #pragma once
 
 #include <QtCore/QString>
-#include <QtCore/QObject>
 
 namespace comms_champion
 {
 
-class GlobalConstants : public QObject
+class GlobalConstants
 {
-    Q_OBJECT
-    Q_PROPERTY(QString background READ background CONSTANT)
-    Q_PROPERTY(QString waitingState READ waitingState CONSTANT)
-    Q_PROPERTY(QString runningState READ runningState CONSTANT)
-    Q_PROPERTY(QString sendingState READ sendingState CONSTANT)
-    Q_PROPERTY(QString sendingAllState READ sendingAllState CONSTANT)
-    Q_PROPERTY(QString startIconPathFromQml READ startIconPathFromQml CONSTANT)
-    Q_PROPERTY(QString startAllIconPathFromQml READ startAllIconPathFromQml CONSTANT)
-    Q_PROPERTY(QString stopIconPathFromQml READ stopIconPathFromQml CONSTANT)
-    Q_PROPERTY(QString saveIconPathFromQml READ saveIconPathFromQml CONSTANT)
-    Q_PROPERTY(QString configIconPathFromQml READ configIconPathFromQml CONSTANT)
-    Q_PROPERTY(const char* indexPropertyName READ indexPropertyName CONSTANT)
-    Q_PROPERTY(const char* namePropertyName READ namePropertyName CONSTANT)
-
-    typedef QObject Base;
 public:
 
     enum class State
@@ -53,21 +37,6 @@ public:
     };
 
     static GlobalConstants* instance();
-    static void qmlRegister();
-
-    static const QString& background();
-
-    static const QString& mapState(State value);
-    static const QString& waitingState();
-    static const QString& runningState();
-    static const QString& sendingState();
-    static const QString& sendingAllState();
-
-    static const QString& startIconPathFromQml();
-    static const QString& startAllIconPathFromQml();
-    static const QString& stopIconPathFromQml();
-    static const QString& saveIconPathFromQml();
-    static const QString& configIconPathFromQml();
 
     static const char* indexPropertyName();
     static const char* namePropertyName();
@@ -76,7 +45,7 @@ public:
     static const char* msgObjPropertyName();
 
 private:
-    GlobalConstants(QObject* parent = nullptr);
+    GlobalConstants() = default;
 };
 
 } // namespace comms_champion

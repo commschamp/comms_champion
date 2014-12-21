@@ -9,7 +9,6 @@ function (bin_comms_champion)
         src/Message.cpp
         src/MessageInfo.cpp
         src/GlobalConstants.cpp
-        src/WidgetProxy.cpp
         src/DefaultMessageDisplayHandler.cpp
         src/FieldWidget.cpp
         src/DummySocket.cpp
@@ -37,8 +36,6 @@ function (bin_comms_champion)
         moc
         src/GuiAppMgr.h
         src/MsgMgr.h
-        src/GlobalConstants.h
-        src/WidgetProxy.h
         src/DummySocket.h
         src/widget/RecvAreaToolBar.h
         src/widget/MsgListWidget.h

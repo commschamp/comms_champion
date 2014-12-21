@@ -34,9 +34,6 @@ namespace comms_champion
 class GuiAppMgr : public QObject
 {
     Q_OBJECT
-//    Q_PROPERTY(QString recvState READ recvState CONSTANT)
-//    Q_PROPERTY(QString sendState READ sendState CONSTANT)
-
     typedef QObject Base;
 public:
 
@@ -54,7 +51,6 @@ public:
     };
 
     static GuiAppMgr* instance();
-    static void qmlRegister();
 
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();

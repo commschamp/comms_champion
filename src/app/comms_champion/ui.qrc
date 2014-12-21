@@ -1,13 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/MainWindow.qml</file>
-        <file>qml/LeftPane.qml</file>
-        <file>qml/RightPane.qml</file>
-        <file>qml/RecvAreaToolBar.qml</file>
-        <file>qml/SendAreaToolBar.qml</file>
-        <file>qml/MsgList.qml</file>
-        <file>qml/RecvMsgListArea.qml</file>
-        <file>qml/SendMsgListArea.qml</file>
         <file>image/start.png</file>
         <file>image/start_all.png</file>
         <file>image/stop.png</file>

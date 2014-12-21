@@ -19,6 +19,7 @@
 #include "GuiAppMgr.h"
 
 #include <cassert>
+#include <memory>
 
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QtQml>
@@ -32,28 +33,10 @@
 namespace comms_champion
 {
 
-namespace
-{
-
-QObject *getGuiAppMgr(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
-
-    return GuiAppMgr::instance();
-}
-
-}  // namespace
-
 GuiAppMgr* GuiAppMgr::instance()
 {
-    static GuiAppMgr* mgr = new GuiAppMgr();
-    return mgr;
-}
-
-void GuiAppMgr::qmlRegister()
-{
-    qmlRegisterSingletonType<GuiAppMgr>("cc.GuiAppMgr", 1, 0, "GuiAppMgr", &getGuiAppMgr);
+    static std::unique_ptr<GuiAppMgr> mgr(new GuiAppMgr());
+    return mgr.get();
 }
 
 void GuiAppMgr::configClicked()

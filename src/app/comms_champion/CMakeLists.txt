@@ -12,6 +12,7 @@ function (bin_comms_champion)
         src/WidgetProxy.cpp
         src/DefaultMessageDisplayHandler.cpp
         src/FieldWidget.cpp
+        src/DummySocket.cpp
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp
         src/widget/RightPaneWidget.cpp
@@ -38,6 +39,7 @@ function (bin_comms_champion)
         src/MsgMgr.h
         src/GlobalConstants.h
         src/WidgetProxy.h
+        src/DummySocket.h
         src/widget/RecvAreaToolBar.h
         src/widget/MsgListWidget.h
         src/widget/MsgDetailsWidget.h
@@ -51,6 +53,7 @@ function (bin_comms_champion)
         ${_inc_dir}/MessageWidget.h
         ${_inc_dir}/DefaultMessageWidget.h
         ${_inc_dir}/MessageDisplayWidget.h
+        ${_inc_dir}/Socket.h
     )
     
     qt5_wrap_ui(

@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <iostream>
+
 #include <QtWidgets/QApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQuick/QQuickWindow>
@@ -25,10 +27,10 @@
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
 #include "WidgetProxy.h"
+#include "DummySocket.h"
 
 #include "widget/MainWindowWidget.h"
 
-#include <iostream>
 
 namespace
 {
@@ -87,6 +89,7 @@ int main(int argc, char *argv[])
     pluginObj->configure();
     auto* msgMgr = cc::MsgMgr::instance();
     msgMgr->addProtocol(pluginObj->alloc());
+    msgMgr->addSocket(cc::makeDummySocket());
     auto retval = app.exec();
     pluginObj->finalize();
     return retval;

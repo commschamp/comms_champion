@@ -20,7 +20,6 @@
 
 #include <cassert>
 
-#include <QtCore/QTimer>
 #include <QtCore/QVariant>
 
 #include "GlobalConstants.h"
@@ -39,21 +38,47 @@ MsgMgr& MsgMgr::instanceRef()
     return mgr;
 }
 
-void MsgMgr::timeout()
+void MsgMgr::addSocket(SocketPtr&& socket)
+{
+    m_socket = std::move(socket);
+    connect(
+        m_socket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+        this, SLOT(socketDataReceived(DataInfoPtr)));
+}
+
+void MsgMgr::addProtocol(ProtocolPtr&& protocol)
+{
+    m_protStack.push_back(std::move(protocol));
+}
+
+void MsgMgr::setRecvEnabled(bool enabled)
+{
+    m_recvEnabled = enabled;
+    if (!m_socket) {
+        return;
+    }
+
+    if (enabled) {
+        m_socket->start();
+    }
+    else {
+        m_socket->stop();
+    }
+}
+
+void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
     if ((m_protStack.empty()) ||
         (!m_recvEnabled)) {
         return;
     }
 
-    static const std::uint8_t Buf[] = {
-        0x0, 0x3, 0x0, 0x01, 0x02
-        ,0x0, 0x4, 0x1, 0x01, 0x00, 0x13
-    };
-    static const auto BufSize = std::extent<decltype(Buf)>::value;
+    auto* buf = &dataInfoPtr->m_data[0];
+    const auto bufSize = dataInfoPtr->m_data.size();
 
+    // TODO: process all protocols
     auto& protocol = *m_protStack.back();
-    auto allMsgs = protocol.read(&Buf[0], BufSize);
+    auto allMsgs = protocol.read(&buf[0], bufSize);
     for (auto& msgInfo : allMsgs) {
         assert(msgInfo->getAppMessage());
         msgInfo->setExtraProperty(
@@ -70,22 +95,9 @@ void MsgMgr::timeout()
     }
 }
 
-void MsgMgr::addProtocol(ProtocolPtr&& protocol)
-{
-    m_protStack.push_back(std::move(protocol));
-}
-
-void MsgMgr::setRecvEnabled(bool enabled)
-{
-    m_recvEnabled = enabled;
-}
-
 MsgMgr::MsgMgr(QObject* parent)
   : Base(parent)
 {
-    auto* timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(timeout()));
-    timer->start(2000);
 }
 
 }  // namespace comms_champion

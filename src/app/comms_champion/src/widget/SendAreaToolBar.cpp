@@ -47,6 +47,24 @@ const QIcon& stopIcon()
     return Icon;
 }
 
+const QIcon& addIcon()
+{
+    static const QIcon Icon(":/image/add.png");
+    return Icon;
+}
+
+const QIcon& editIcon()
+{
+    static const QIcon Icon(":/image/edit.png");
+    return Icon;
+}
+
+const QIcon& deleteIcon()
+{
+    static const QIcon Icon(":/image/delete.png");
+    return Icon;
+}
+
 void createStartButton(QToolBar& bar)
 {
     auto* action = bar.addAction(startIcon(), "Send Selected");
@@ -63,6 +81,27 @@ void createStartAllButton(QToolBar& bar)
 
 }
 
+void createAddButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(addIcon(), "Add New Message");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendAddClicked()));
+}
+
+void createEditButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(editIcon(), "Edit Selected Message");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendEditClicked()));
+}
+
+void createDeleteButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(deleteIcon(), "Delete Selected Message");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendDeleteClicked()));
+}
+
 }  // namespace
 
 SendAreaToolBar::SendAreaToolBar(QWidget* parent)
@@ -70,6 +109,9 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
 {
     createStartButton(*this);
     createStartAllButton(*this);
+    createAddButton(*this);
+    createEditButton(*this);
+    createDeleteButton(*this);
 }
 
 }  // namespace comms_champion

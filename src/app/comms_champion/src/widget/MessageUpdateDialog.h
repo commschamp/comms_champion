@@ -18,25 +18,24 @@
 
 #pragma once
 
-#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QDialog>
 
-#include "ui_MainWindowWidget.h"
+#include "ui_MessageUpdateDialog.h"
+
 
 namespace comms_champion
 {
 
-class MainWindowWidget : public QMainWindow
+class MessageUpdateDialog : public QDialog
 {
     Q_OBJECT
-    using Base = QMainWindow;
+    using Base = QDialog;
 public:
-    MainWindowWidget(QWidget* parent = nullptr);
-
-private slots:
-    void newSendMsgDialog();
+    MessageUpdateDialog(QWidget* parent = nullptr);
 
 private:
-    Ui::MainWindowWidget m_ui;
+    Ui::MessageUpdateDialog m_ui;
 };
 
 }  // namespace comms_champion
+

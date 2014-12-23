@@ -16,27 +16,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#pragma once
-
-#include <QtWidgets/QMainWindow>
-
-#include "ui_MainWindowWidget.h"
+#include "MessageUpdateDialog.h"
 
 namespace comms_champion
 {
 
-class MainWindowWidget : public QMainWindow
+MessageUpdateDialog::MessageUpdateDialog(QWidget* parent)
+  : Base(parent)
 {
-    Q_OBJECT
-    using Base = QMainWindow;
-public:
-    MainWindowWidget(QWidget* parent = nullptr);
-
-private slots:
-    void newSendMsgDialog();
-
-private:
-    Ui::MainWindowWidget m_ui;
-};
+    m_ui.setupUi(this);
+}
 
 }  // namespace comms_champion
+

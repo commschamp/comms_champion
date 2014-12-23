@@ -58,16 +58,19 @@ public:
     SendState sendState() const;
 
 public slots:
-    Q_INVOKABLE void configClicked();
+    void configClicked();
 
-    Q_INVOKABLE void recvStartClicked();
-    Q_INVOKABLE void recvStopClicked();
-    Q_INVOKABLE void recvSaveClicked();
+    void recvStartClicked();
+    void recvStopClicked();
+    void recvSaveClicked();
 
-    Q_INVOKABLE void sendStartClicked();
-    Q_INVOKABLE void sendStartAllClicked();
-    Q_INVOKABLE void sendStopClicked();
-    Q_INVOKABLE void sendSaveClicked();
+    void sendStartClicked();
+    void sendStartAllClicked();
+    void sendStopClicked();
+    void sendSaveClicked();
+    void sendAddClicked();
+    void sendEditClicked();
+    void sendDeleteClicked();
 
     void recvMsgClicked(ProtocolsInfoPtr msgInfo);
 
@@ -79,6 +82,7 @@ signals:
     void sigRecvMsgListSelectOnAddEnabled(bool enabled);
     void sigRecvMsgListClearSelection();
     void sigDisplayMsg(ProtocolsInfoPtr msgInfo);
+    void sigNewSendMsgDialog();
 
 private:
     GuiAppMgr(QObject* parent = nullptr);
@@ -89,7 +93,6 @@ private slots:
     void msgReceived(ProtocolsInfoPtr protocolsInfo);
 
 private /*data*/:
-    using MsgDisplayHandlerPtr = std::unique_ptr<MessageDisplayHandler>;
 
     void msgClicked(ProtocolsInfoPtr protocolsInfo);
     void displayMessage(ProtocolsInfoPtr protocolsInfo);

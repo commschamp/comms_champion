@@ -17,6 +17,8 @@
 
 #include "MainWindowWidget.h"
 
+#include <cassert>
+
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QToolBar>
 #include <QtGui/QIcon>
@@ -25,6 +27,7 @@
 
 #include "LeftPaneWidget.h"
 #include "RightPaneWidget.h"
+#include "MessageUpdateDialog.h"
 #include "GuiAppMgr.h"
 
 namespace comms_champion
@@ -62,6 +65,16 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     setCentralWidget(splitter);
 
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(close()));
+
+    connect(
+        GuiAppMgr::instance(), SIGNAL(sigNewSendMsgDialog()),
+        this, SLOT(newSendMsgDialog()));
+}
+
+void MainWindowWidget::newSendMsgDialog()
+{
+    MessageUpdateDialog dialog(this);
+    dialog.exec();
 }
 
 }  // namespace comms_champion

@@ -89,6 +89,21 @@ void GuiAppMgr::sendSaveClicked()
     assert(!"Send save clicked");
 }
 
+void GuiAppMgr::sendAddClicked()
+{
+    emit sigNewSendMsgDialog();
+}
+
+void GuiAppMgr::sendEditClicked()
+{
+    assert(!"Send edit clicked");
+}
+
+void GuiAppMgr::sendDeleteClicked()
+{
+    assert(!"Send delete clicked");
+}
+
 void GuiAppMgr::recvMsgClicked(ProtocolsInfoPtr msgInfo)
 {
     msgClicked(msgInfo);

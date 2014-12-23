@@ -52,13 +52,21 @@ public:
         return readImpl(iter, size, missingSize);
     }
 
+    MessagesList createAllMessages()
+    {
+        return createAllMessagesImpl();
+    }
+
 protected:
     virtual const std::string& nameImpl() const = 0;
+
 
     virtual MessagesList readImpl(
         ReadIterType iter,
         std::size_t size,
         std::size_t* missingSize) = 0;
+
+    virtual MessagesList createAllMessagesImpl() = 0;
 };
 
 }  // namespace comms_champion

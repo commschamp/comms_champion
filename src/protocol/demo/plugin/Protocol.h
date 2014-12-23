@@ -42,6 +42,8 @@ protected:
             std::size_t size,
             std::size_t* missingSize) override;
 
+    virtual MessagesList createAllMessagesImpl() override;
+
 private:
     ProtocolStack m_protStack;
     std::vector<std::uint8_t> m_data;

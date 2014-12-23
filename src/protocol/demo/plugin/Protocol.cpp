@@ -178,6 +178,59 @@ Protocol::MessagesList Protocol::readImpl(
     return allInfos;
 }
 
+Protocol::MessagesList Protocol::createAllMessagesImpl()
+{
+    static const demo::message::MsgId allIds[] = {
+        demo::message::MsgId_Heartbeat,
+        demo::message::MsgId_Status,
+    };
+
+    MessagesList allInfos;
+
+    using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
+    for (auto id : allIds) {
+        auto msgInfo = cc::makeMessageInfo();
+        auto msgPtr = m_protStack.createMsg(id);
+        assert(msgPtr);
+
+        using AllFields = ProtocolStack::AllFields;
+        AllFields fields;
+        std::vector<std::uint8_t> data;
+        auto writeIter = std::back_inserter(data);
+        auto es =
+            m_protStack.writeFieldsCached<0>(
+                fields,
+                *msgPtr,
+                writeIter,
+                data.max_size());
+        if (es == comms::ErrorStatus::UpdateRequired) {
+            auto updateIter = &data[0];
+            es = m_protStack.update(updateIter, m_data.size());
+        }
+
+        assert(es == comms::ErrorStatus::Success);
+        static_cast<void>(es);
+
+        std::unique_ptr<message::CCTransportMessage> transportMsgPtr(
+                            new message::CCTransportMessage());
+        transportMsgPtr->setFields(fields);
+
+        std::unique_ptr<message::CCRawDataMessage> rawDataMsgPtr(
+                            new message::CCRawDataMessage());
+        message::CCRawDataMessage::ReadIterator rawDataReadIter = &data[0];
+        es = rawDataMsgPtr->read(rawDataReadIter, data.size());
+        static_cast<void>(es);
+        assert(es == comms::ErrorStatus::Success);
+
+        msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
+        msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+        msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+
+        allInfos.push_back(std::move(msgInfo));
+    }
+    return allInfos;
+}
+
 }  // namespace plugin
 
 }  // namespace demo

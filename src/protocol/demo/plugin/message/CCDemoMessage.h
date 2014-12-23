@@ -18,6 +18,9 @@
 
 #pragma once
 
+#include <vector>
+#include <iterator>
+
 #include "comms_champion/MessageBase.h"
 #include "protocol/DemoMessage.h"
 
@@ -27,7 +30,15 @@ namespace demo
 namespace plugin
 {
 
-class CCDemoMessage : public comms_champion::MessageBase<demo::message::DemoDefaultTraits>
+struct CCDemoDefaultTraits
+{
+    typedef demo::message::MsgId MsgIdType;
+    typedef comms::traits::endian::Big Endianness;
+    typedef const std::uint8_t* ReadIterator;
+    typedef std::back_insert_iterator<std::vector<std::uint8_t> > WriteIterator;
+};
+
+class CCDemoMessage : public comms_champion::MessageBase<CCDemoDefaultTraits>
 {
 public:
     CCDemoMessage() = default;

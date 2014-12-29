@@ -59,12 +59,15 @@ private slots:
 
 
 private:
+    typedef std::list<SocketPtr> SocketsList;
+
     MsgMgr(QObject* parent = nullptr);
 
     std::vector<ProtocolsInfoPtr> m_recvMsgs;
     bool m_recvEnabled = false;
 
-    SocketPtr m_socket;
+    SocketsList m_sockets;
+//    SocketPtr m_socket;
     ProtocolsStack m_protStack;
     MsgNumberType m_nextMsgNum = 1;
 };

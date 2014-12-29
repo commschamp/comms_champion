@@ -40,10 +40,27 @@ MsgMgr& MsgMgr::instanceRef()
 
 void MsgMgr::addSocket(SocketPtr&& socket)
 {
-    m_socket = std::move(socket);
+    if (!m_sockets.empty()) {
+        auto& lastSocket = m_sockets.back();
+
+        disconnect(
+            lastSocket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+            this, SLOT(socketDataReceived(DataInfoPtr)));
+
+        connect(
+            lastSocket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+            socket.get(), SLOT(feedInData(DataInfoPtr)));
+
+        connect(
+            socket.get(), SIGNAL(sigDataToSend(DataInfoPtr)),
+            lastSocket.get(), SLOT(sendData(DataInfoPtr)));
+    }
+
     connect(
-        m_socket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+        socket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
         this, SLOT(socketDataReceived(DataInfoPtr)));
+
+    m_sockets.push_back(std::move(socket));
 }
 
 void MsgMgr::addProtocol(ProtocolPtr&& protocol)
@@ -54,15 +71,19 @@ void MsgMgr::addProtocol(ProtocolPtr&& protocol)
 void MsgMgr::setRecvEnabled(bool enabled)
 {
     m_recvEnabled = enabled;
-    if (!m_socket) {
+    if (m_sockets.empty()) {
         return;
     }
 
     if (enabled) {
-        m_socket->start();
+        for (auto& s : m_sockets) {
+            s->start();
+        }
     }
     else {
-        m_socket->stop();
+        for (auto& s : m_sockets) {
+            s->stop();
+        }
     }
 }
 

@@ -42,10 +42,16 @@ void DummySocket::stopImpl()
     m_running = false;
 }
 
-void DummySocket::sendDataImpl(DataToSendPtr dataPtr)
+void DummySocket::sendDataImpl(DataInfoPtr dataPtr)
 {
     static_cast<void>(dataPtr);
     assert(!"Send data is called");
+}
+
+void DummySocket::feedInDataImpl(DataInfoPtr dataPtr)
+{
+    static_cast<void>(dataPtr);
+    assert(!"Feed in data is called");
 }
 
 void DummySocket::timeout()

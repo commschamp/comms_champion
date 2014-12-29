@@ -34,18 +34,6 @@ class Socket : public QObject
     Q_OBJECT
 
 public:
-
-    typedef DataInfo::DataSeq DataSeq;
-    typedef DataInfo::PropertiesMap PropertiesMap;
-
-    struct DataToSend
-    {
-        DataSeq m_data;
-        PropertiesMap m_extraProperties;
-    };
-
-    typedef std::shared_ptr<DataToSend> DataToSendPtr;
-
     Socket() = default;
     virtual ~Socket() {}
 
@@ -59,23 +47,38 @@ public:
         stopImpl();
     }
 
-    void sendData(DataToSendPtr dataPtr)
+public slots:
+
+    void sendData(DataInfoPtr dataPtr)
     {
         sendDataImpl(std::move(dataPtr));
     }
 
+
+    void feedInData(DataInfoPtr dataPtr)
+    {
+        feedInDataImpl(std::move(dataPtr));
+    }
+
 signals:
     void sigDataReceived(DataInfoPtr dataPtr);
+    void sigDataToSend(DataInfoPtr dataPtr);
 
 protected:
 
     virtual bool startImpl() = 0;
     virtual void stopImpl() = 0;
-    virtual void sendDataImpl(DataToSendPtr dataPtr) = 0;
+    virtual void sendDataImpl(DataInfoPtr dataPtr) = 0;
+    virtual void feedInDataImpl(DataInfoPtr dataPtr) = 0;
 
     void reportDataReceived(DataInfoPtr dataPtr)
     {
         emit sigDataReceived(std::move(dataPtr));
+    }
+
+    void reportDataToSend(DataInfoPtr dataPtr)
+    {
+        emit sigDataToSend(std::move(dataPtr));
     }
 };
 

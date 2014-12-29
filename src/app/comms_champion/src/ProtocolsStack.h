@@ -18,32 +18,29 @@
 
 #pragma once
 
-#include <QtCore/QObject>
-#include <QtCore/QtPlugin>
-#include "comms_champion/comms_champion.h"
+#include <list>
 
-namespace cc = comms_champion;
+#include "comms_champion/Protocol.h"
+#include "comms_champion/ProtocolsInfo.h"
+#include "comms_champion/DataInfo.h"
 
-namespace demo
+namespace comms_champion
 {
 
-namespace plugin
+class ProtocolsStack
 {
+public:
+    typedef std::list<ProtocolsInfoPtr> ProtocolsInfoPtrList;
+    ProtocolsStack() = default;
 
-class DemoPlugin : public QObject, public cc::ProtocolPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
-    Q_INTERFACES(comms_champion::ProtocolPlugin)
+    void addProtocol(ProtocolPtr&& protocol);
+    ProtocolsInfoPtrList processSocketData(DataInfoPtr dataInfoPtr);
 
-protected:
-
-    virtual void initializeImpl() override;
-    virtual void finalizeImpl() override;
-    virtual void configureImpl(const std::string& config) override;
-    virtual comms_champion::ProtocolPtr allocImpl() override;
+private:
+    typedef std::list<ProtocolPtr> ProtocolStack;
+    ProtocolStack m_protocols;
 };
 
-}  // namespace plugin
+}  // namespace comms_champion
 
-}  // namespace demo
+

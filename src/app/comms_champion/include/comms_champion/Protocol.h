@@ -27,6 +27,7 @@
 #include "Message.h"
 #include "ErrorStatus.h"
 #include "MessageInfo.h"
+#include "DataInfo.h"
 
 namespace comms_champion
 {
@@ -34,7 +35,6 @@ namespace comms_champion
 class Protocol
 {
 public:
-    typedef const std::uint8_t* ReadIterType;
     typedef std::list<MessageInfoPtr> MessagesList;
 
     virtual ~Protocol() {}
@@ -45,11 +45,9 @@ public:
     }
 
     MessagesList read(
-        ReadIterType iter,
-        std::size_t size,
-        std::size_t* missingSize = nullptr)
+        DataInfoPtr dataInfo)
     {
-        return readImpl(iter, size, missingSize);
+        return readImpl(std::move(dataInfo));
     }
 
     MessagesList createAllMessages()
@@ -62,12 +60,12 @@ protected:
 
 
     virtual MessagesList readImpl(
-        ReadIterType iter,
-        std::size_t size,
-        std::size_t* missingSize) = 0;
+        DataInfoPtr dataInfo) = 0;
 
     virtual MessagesList createAllMessagesImpl() = 0;
 };
+
+typedef std::unique_ptr<Protocol> ProtocolPtr;
 
 }  // namespace comms_champion
 

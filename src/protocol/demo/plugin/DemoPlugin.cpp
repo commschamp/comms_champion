@@ -43,9 +43,9 @@ void DemoPlugin::configureImpl(const std::string& config)
     std::cout << "Plugin configured!!!" << std::endl;
 }
 
-DemoPlugin::ProtocolPtr DemoPlugin::allocImpl()
+cc::ProtocolPtr DemoPlugin::allocImpl()
 {
-    return ProtocolPtr(new Protocol());
+    return cc::ProtocolPtr(new Protocol());
 }
 
 }  // namespace plugin

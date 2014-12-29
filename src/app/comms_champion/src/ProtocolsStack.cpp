@@ -15,30 +15,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-#pragma once
-
-#include "Plugin.h"
-#include "Protocol.h"
+#include "ProtocolsStack.h"
 
 namespace comms_champion
 {
 
-class ProtocolPlugin : public Plugin
+void ProtocolsStack::addProtocol(ProtocolPtr&& protocol)
 {
-public:
+    m_protocols.push_back(std::move(protocol));
+}
 
-    ProtocolPtr alloc()
-    {
-        return allocImpl();
+ProtocolsStack::ProtocolsInfoPtrList ProtocolsStack::processSocketData(
+    DataInfoPtr dataInfoPtr)
+{
+    ProtocolsInfoPtrList allProtocolsInfos;
+
+    if (m_protocols.empty()) {
+        return allProtocolsInfos;
     }
 
-protected:
+    // TODO: process all protocols
+    auto& protocol = *m_protocols.back();
+    auto allMsgs = protocol.read(std::move(dataInfoPtr));
+    for (auto& msgInfo : allMsgs) {
 
-    virtual ProtocolPtr allocImpl() = 0;
-};
+        msgInfo->setProtocolName(protocol.name());
+
+        auto protInfo = makeProtocolsInfo();
+        protInfo->push_back(std::move(msgInfo));
+        allProtocolsInfos.push_back(std::move(protInfo));
+    }
+
+    return allProtocolsInfos;
+}
 
 }  // namespace comms_champion
 
-Q_DECLARE_INTERFACE(comms_champion::ProtocolPlugin, "cc.ProtocolPlugin")
 

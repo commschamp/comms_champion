@@ -44,10 +44,12 @@ const std::string& Protocol::nameImpl() const
 }
 
 Protocol::MessagesList Protocol::readImpl(
-    ReadIterType iter,
-    std::size_t size,
-    std::size_t* missingSize)
+    cc::DataInfoPtr dataInfoPtr)
 {
+    assert(dataInfoPtr);
+    const std::uint8_t* iter = &dataInfoPtr->m_data[0];
+    auto size = dataInfoPtr->m_data.size();
+
     MessagesList allInfos;
     m_data.reserve(m_data.size() + size);
     std::copy_n(iter, size, std::back_inserter(m_data));
@@ -88,8 +90,7 @@ Protocol::MessagesList Protocol::readImpl(
                 fields,
                 msgPtr,
                 readIterCur,
-                remainingSizeCalc(readIterCur),
-                missingSize);
+                remainingSizeCalc(readIterCur));
 
         if (es == comms::ErrorStatus::NotEnoughData) {
             break;

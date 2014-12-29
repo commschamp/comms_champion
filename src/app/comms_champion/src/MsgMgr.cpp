@@ -48,7 +48,7 @@ void MsgMgr::addSocket(SocketPtr&& socket)
 
 void MsgMgr::addProtocol(ProtocolPtr&& protocol)
 {
-    m_protStack.push_back(std::move(protocol));
+    m_protStack.addProtocol(std::move(protocol));
 }
 
 void MsgMgr::setRecvEnabled(bool enabled)
@@ -68,31 +68,28 @@ void MsgMgr::setRecvEnabled(bool enabled)
 
 void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
-    if ((m_protStack.empty()) ||
-        (!m_recvEnabled)) {
+    if (!m_recvEnabled) {
         return;
     }
 
-    auto* buf = &dataInfoPtr->m_data[0];
-    const auto bufSize = dataInfoPtr->m_data.size();
+    auto protInfosList = m_protStack.processSocketData(std::move(dataInfoPtr));
+    if (protInfosList.empty()) {
+        return;
+    }
 
-    // TODO: process all protocols
-    auto& protocol = *m_protStack.back();
-    auto allMsgs = protocol.read(&buf[0], bufSize);
-    for (auto& msgInfo : allMsgs) {
+    for (auto& protInfo : protInfosList) {
+        auto& msgInfo = protInfo->back();
         assert(msgInfo->getAppMessage());
+        // TODO: find better place for this property
         msgInfo->setExtraProperty(
             GlobalConstants::msgNumberPropertyName(),
             QVariant::fromValue(m_nextMsgNum));
         ++m_nextMsgNum;
-
-        msgInfo->setProtocolName(protocol.name());
-
-        auto protInfo = makeProtocolsInfo();
-        protInfo->push_back(std::move(msgInfo));
-        m_recvMsgs.push_back(std::move(protInfo));
-        emit sigMsgReceived(m_recvMsgs.back());
+        emit sigMsgReceived(protInfo);
     }
+
+    m_recvMsgs.reserve(m_recvMsgs.size() + protInfosList.size());
+    std::move(protInfosList.begin(), protInfosList.end(), std::back_inserter(m_recvMsgs));
 }
 
 MsgMgr::MsgMgr(QObject* parent)

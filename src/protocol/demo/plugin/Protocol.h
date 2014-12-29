@@ -38,9 +38,7 @@ protected:
     virtual const std::string& nameImpl() const override;
 
     virtual MessagesList readImpl(
-            ReadIterType iter,
-            std::size_t size,
-            std::size_t* missingSize) override;
+            comms_champion::DataInfoPtr dataInfoPtr) override;
 
     virtual MessagesList createAllMessagesImpl() override;
 

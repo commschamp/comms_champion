@@ -30,6 +30,8 @@
 #include "comms_champion/ProtocolsInfo.h"
 #include "comms_champion/Socket.h"
 
+#include "ProtocolsStack.h"
+
 namespace comms_champion
 {
 
@@ -39,7 +41,6 @@ class MsgMgr : public QObject
 
     typedef QObject Base;
 public:
-    typedef ProtocolPlugin::ProtocolPtr ProtocolPtr;
     typedef unsigned long long MsgNumberType;
 
     static MsgMgr* instance();
@@ -58,16 +59,13 @@ private slots:
 
 
 private:
-    typedef Protocol::ReadIterType ReadIterType;
-
     MsgMgr(QObject* parent = nullptr);
 
     std::vector<ProtocolsInfoPtr> m_recvMsgs;
     bool m_recvEnabled = false;
 
-    typedef std::list<ProtocolPtr> ProtocolStack;
     SocketPtr m_socket;
-    ProtocolStack m_protStack;
+    ProtocolsStack m_protStack;
     MsgNumberType m_nextMsgNum = 1;
 };
 

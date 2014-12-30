@@ -104,7 +104,7 @@ void GuiAppMgr::sendDeleteClicked()
     assert(!"Send delete clicked");
 }
 
-void GuiAppMgr::recvMsgClicked(ProtocolsInfoPtr msgInfo)
+void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
 {
     msgClicked(msgInfo);
     bool selectOnAddEnabled = false;
@@ -135,8 +135,8 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
     m_recvState(RecvState::Idle),
     m_sendState(SendState::Idle)
 {
-    connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(ProtocolsInfoPtr)),
-            this, SLOT(msgReceived(ProtocolsInfoPtr)));
+    connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(MessageInfoPtr)),
+            this, SLOT(msgReceived(MessageInfoPtr)));
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -149,42 +149,40 @@ void GuiAppMgr::emitSendStateUpdate()
     emit sigSetSendState(static_cast<int>(m_sendState));
 }
 
-void GuiAppMgr::msgReceived(ProtocolsInfoPtr protocolsInfo)
+void GuiAppMgr::msgReceived(MessageInfoPtr msgInfo)
 {
-    assert(protocolsInfo);
 #ifndef NDEBUG
-    auto msgInfo = protocolsInfo->back();
     assert(msgInfo);
     auto msg = msgInfo->getAppMessage();
     assert(msg);
     std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
 #endif
-    emit sigAddRecvMsg(protocolsInfo);
-    displayMessageIfNotClicked(protocolsInfo);
+    emit sigAddRecvMsg(msgInfo);
+    displayMessageIfNotClicked(msgInfo);
 }
 
-void GuiAppMgr::msgClicked(ProtocolsInfoPtr protocolsInfo)
+void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo)
 {
-    assert(protocolsInfo);
-    if (m_clickedMsg == protocolsInfo) {
+    assert(msgInfo);
+    if (m_clickedMsg == msgInfo) {
         m_clickedMsg.reset();
         // TODO: display dummy widget
         return;
     }
 
-    m_clickedMsg = protocolsInfo;
-    displayMessage(protocolsInfo);
+    m_clickedMsg = msgInfo;
+    displayMessage(m_clickedMsg);
 }
 
-void GuiAppMgr::displayMessage(ProtocolsInfoPtr protocolsInfo)
+void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)
 {
-    emit sigDisplayMsg(protocolsInfo);
+    emit sigDisplayMsg(msgInfo);
 }
 
-void GuiAppMgr::displayMessageIfNotClicked(ProtocolsInfoPtr protocolsInfo)
+void GuiAppMgr::displayMessageIfNotClicked(MessageInfoPtr msgInfo)
 {
     if (!m_clickedMsg) {
-        displayMessage(protocolsInfo);
+        displayMessage(msgInfo);
     }
 }
 

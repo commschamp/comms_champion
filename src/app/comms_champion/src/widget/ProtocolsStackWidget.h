@@ -20,7 +20,7 @@
 
 #include <QtWidgets/QWidget>
 
-#include "comms_champion/ProtocolsInfo.h"
+#include "comms_champion/MessageInfo.h"
 
 #include "ui_ProtocolsStackWidget.h"
 
@@ -35,7 +35,7 @@ public:
     ProtocolsStackWidget(QWidget* parent = nullptr);
     ~ProtocolsStackWidget();
 
-    void displayMessage(ProtocolsInfoPtr protocolsInfo);
+    void displayMessage(MessageInfoPtr msgInfo);
 
 signals:
     void sigMessageSelected(MessageInfo::MessagePtr msgInfo);

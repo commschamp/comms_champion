@@ -72,16 +72,16 @@ public slots:
     void sendEditClicked();
     void sendDeleteClicked();
 
-    void recvMsgClicked(ProtocolsInfoPtr msgInfo);
+    void recvMsgClicked(MessageInfoPtr msgInfo);
 
 signals:
-    void sigAddRecvMsg(ProtocolsInfoPtr msgInfo);
+    void sigAddRecvMsg(MessageInfoPtr msgInfo);
     void sigSetRecvState(int state);
     void sigSetSendState(int state);
     void sigDisplayMsgDetailsWidget(QWidget* widget);
     void sigRecvMsgListSelectOnAddEnabled(bool enabled);
     void sigRecvMsgListClearSelection();
-    void sigDisplayMsg(ProtocolsInfoPtr msgInfo);
+    void sigDisplayMsg(MessageInfoPtr msgInfo);
     void sigNewSendMsgDialog();
 
 private:
@@ -90,19 +90,19 @@ private:
     void emitSendStateUpdate();
 
 private slots:
-    void msgReceived(ProtocolsInfoPtr protocolsInfo);
+    void msgReceived(MessageInfoPtr msgInfo);
 
 private /*data*/:
 
-    void msgClicked(ProtocolsInfoPtr protocolsInfo);
-    void displayMessage(ProtocolsInfoPtr protocolsInfo);
-    void displayMessageIfNotClicked(ProtocolsInfoPtr protocolsInfo);
+    void msgClicked(MessageInfoPtr msgInfo);
+    void displayMessage(MessageInfoPtr msgInfo);
+    void displayMessageIfNotClicked(MessageInfoPtr msgInfo);
 
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;
 
     SendState m_sendState;
-    ProtocolsInfoPtr m_clickedMsg;
+    MessageInfoPtr m_clickedMsg;
 };
 
 }  // namespace comms_champion

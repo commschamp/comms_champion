@@ -29,8 +29,8 @@ RightPaneWidget::RightPaneWidget(QWidget* parent)
   : Base(parent)
 {
     auto* msgDisplayWidget = new DefaultMessageDisplayWidget();
-    connect(GuiAppMgr::instance(), SIGNAL(sigDisplayMsg(ProtocolsInfoPtr)),
-            msgDisplayWidget, SLOT(displayMessage(ProtocolsInfoPtr)));
+    connect(GuiAppMgr::instance(), SIGNAL(sigDisplayMsg(MessageInfoPtr)),
+            msgDisplayWidget, SLOT(displayMessage(MessageInfoPtr)));
     auto* layout = new QVBoxLayout();
     layout->addWidget(msgDisplayWidget);
     setLayout(layout);

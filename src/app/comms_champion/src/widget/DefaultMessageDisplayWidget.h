@@ -32,7 +32,7 @@ public:
     DefaultMessageDisplayWidget(QWidget* parent = nullptr);
 
 protected:
-    virtual void displayMessageImpl(ProtocolsInfoPtr protocolsInfo) override;
+    virtual void displayMessageImpl(MessageInfoPtr msgInfo) override;
 
 private:
     MsgDetailsWidget* m_msgDetailsWidget = nullptr;

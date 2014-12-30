@@ -29,7 +29,7 @@ public:
     RecvMsgListWidget(QWidget* parent = nullptr);
 
 protected:
-    virtual void msgClickedImpl(ProtocolsInfoPtr protocolsInfo) override;
+    virtual void msgClickedImpl(MessageInfoPtr msgInfo) override;
 };
 
 } /* namespace comms_champion */

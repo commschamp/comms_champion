@@ -20,7 +20,7 @@
 
 #include <QtWidgets/QWidget>
 
-#include "ProtocolsInfo.h"
+#include "MessageInfo.h"
 
 namespace comms_champion
 {
@@ -36,13 +36,15 @@ public:
     }
 
 public slots:
-    void displayMessage(ProtocolsInfoPtr protocolsInfo)
+
+    void displayMessage(MessageInfoPtr msgInfo)
     {
-        displayMessageImpl(protocolsInfo);
+        displayMessageImpl(msgInfo);
     }
 
+
 protected:
-    virtual void displayMessageImpl(ProtocolsInfoPtr protocolsInfo) = 0;
+    virtual void displayMessageImpl(MessageInfoPtr msgInfo) = 0;
 };
 
 }  // namespace comms_champion

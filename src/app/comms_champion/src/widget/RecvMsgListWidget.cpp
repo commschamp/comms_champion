@@ -35,17 +35,17 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
 
     selectOnAdd(guiMgr->recvMsgListSelectOnAddEnabled());
 
-    connect(guiMgr, SIGNAL(sigAddRecvMsg(ProtocolsInfoPtr)),
-            this, SLOT(addMessage(ProtocolsInfoPtr)));
+    connect(guiMgr, SIGNAL(sigAddRecvMsg(MessageInfoPtr)),
+            this, SLOT(addMessage(MessageInfoPtr)));
     connect(guiMgr, SIGNAL(sigRecvMsgListSelectOnAddEnabled(bool)),
             this, SLOT(selectOnAdd(bool)));
     connect(guiMgr, SIGNAL(sigRecvMsgListClearSelection()),
             this, SLOT(clearSelection()));
 }
 
-void RecvMsgListWidget::msgClickedImpl(ProtocolsInfoPtr protocolsInfo)
+void RecvMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
-   GuiAppMgr::instance()->recvMsgClicked(protocolsInfo);
+   GuiAppMgr::instance()->recvMsgClicked(msgInfo);
 }
 
 } // namespace comms_champion

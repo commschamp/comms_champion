@@ -63,9 +63,9 @@ void MsgMgr::addSocket(SocketPtr&& socket)
     m_sockets.push_back(std::move(socket));
 }
 
-void MsgMgr::addProtocol(ProtocolPtr&& protocol)
+void MsgMgr::setProtocol(ProtocolPtr&& protocol)
 {
-    m_protStack.addProtocol(std::move(protocol));
+    m_protocol = std::move(protocol);
 }
 
 void MsgMgr::setRecvEnabled(bool enabled)
@@ -89,28 +89,28 @@ void MsgMgr::setRecvEnabled(bool enabled)
 
 void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
-    if (!m_recvEnabled) {
+    if ((!m_recvEnabled) || !(m_protocol)) {
         return;
     }
 
-    auto protInfosList = m_protStack.processSocketData(std::move(dataInfoPtr));
-    if (protInfosList.empty()) {
+    auto msgsList = m_protocol->read(dataInfoPtr);
+    if (msgsList.empty()) {
         return;
     }
 
-    for (auto& protInfo : protInfosList) {
-        auto& msgInfo = protInfo->back();
+    for (auto& msgInfo : msgsList) {
         assert(msgInfo->getAppMessage());
-        // TODO: find better place for this property
+        msgInfo->setProtocolName(m_protocol->name());
+
         msgInfo->setExtraProperty(
             GlobalConstants::msgNumberPropertyName(),
             QVariant::fromValue(m_nextMsgNum));
         ++m_nextMsgNum;
-        emit sigMsgReceived(protInfo);
+        emit sigMsgReceived(msgInfo);
     }
 
-    m_recvMsgs.reserve(m_recvMsgs.size() + protInfosList.size());
-    std::move(protInfosList.begin(), protInfosList.end(), std::back_inserter(m_recvMsgs));
+    m_recvMsgs.reserve(m_recvMsgs.size() + msgsList.size());
+     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_recvMsgs));
 }
 
 MsgMgr::MsgMgr(QObject* parent)

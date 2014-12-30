@@ -25,5 +25,4 @@
 #include "ProtocolPlugin.h"
 #include "MessageWidget.h"
 #include "MessageInfo.h"
-#include "ProtocolsInfo.h"
 

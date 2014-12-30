@@ -41,10 +41,8 @@ MsgListWidget::MsgListWidget(
             this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 }
 
-void MsgListWidget::addMessage(ProtocolsInfoPtr protocolsInfo)
+void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
 {
-    assert(protocolsInfo);
-    auto msgInfo = protocolsInfo->back();
     assert(msgInfo);
     auto msg = msgInfo->getAppMessage();
     assert(msg);
@@ -52,7 +50,7 @@ void MsgListWidget::addMessage(ProtocolsInfoPtr protocolsInfo)
     auto* item = m_ui.m_listWidget->item(m_ui.m_listWidget->count() - 1);
     item->setData(
         Qt::UserRole,
-        QVariant::fromValue(protocolsInfo));
+        QVariant::fromValue(msgInfo));
 
     if (m_selectOnAdd) {
         item->setSelected(true);
@@ -70,14 +68,14 @@ void MsgListWidget::clearSelection()
     m_ui.m_listWidget->clearSelection();
 }
 
-void MsgListWidget::msgClickedImpl(ProtocolsInfoPtr protocolsInfo)
+void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
-    static_cast<void>(protocolsInfo);
+    static_cast<void>(msgInfo);
 }
 
-void MsgListWidget::msgDoubleClickedImpl(ProtocolsInfoPtr protocolsInfo)
+void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
 {
-    static_cast<void>(protocolsInfo);
+    static_cast<void>(msgInfo);
 }
 
 void MsgListWidget::itemClicked(QListWidgetItem* item)
@@ -90,11 +88,11 @@ void MsgListWidget::itemDoubleClicked(QListWidgetItem* item)
     msgDoubleClickedImpl(getMsgFromItem(item));
 }
 
-ProtocolsInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item)
+MessageInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item)
 {
     auto var = item->data(Qt::UserRole);
-    assert(var.canConvert<ProtocolsInfoPtr>());
-    return var.value<ProtocolsInfoPtr>();
+    assert(var.canConvert<MessageInfoPtr>());
+    return var.value<MessageInfoPtr>();
 }
 
 }  // namespace comms_champion

@@ -4,7 +4,6 @@ function (bin_comms_champion)
     set (src
         src/main.cpp
         src/ErrorStatus.cpp
-        src/ProtocolsStack.cpp
         src/MsgMgr.cpp
         src/GuiAppMgr.cpp
         src/Message.cpp

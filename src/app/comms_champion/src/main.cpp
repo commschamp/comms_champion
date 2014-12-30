@@ -36,7 +36,6 @@ namespace cc = comms_champion;
 
 void metaTypesRegisterAll()
 {
-    qRegisterMetaType<cc::ProtocolsInfoPtr>();
     qRegisterMetaType<cc::MessageInfoPtr>();
 }
 
@@ -68,7 +67,7 @@ int main(int argc, char *argv[])
     pluginObj->initialize();
     pluginObj->configure();
     auto* msgMgr = cc::MsgMgr::instance();
-    msgMgr->addProtocol(pluginObj->alloc());
+    msgMgr->setProtocol(pluginObj->alloc());
     msgMgr->addSocket(cc::makeDummySocket());
     auto retval = app.exec();
     pluginObj->finalize();

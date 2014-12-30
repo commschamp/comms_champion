@@ -33,31 +33,29 @@ ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parent)
 
 ProtocolsStackWidget::~ProtocolsStackWidget() = default;
 
-void ProtocolsStackWidget::displayMessage(ProtocolsInfoPtr protocolsInfo)
+void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo)
 {
     m_ui.m_protocolsTreeWidget->clear();
-    for (auto& msgInfo : *protocolsInfo) {
-        QStringList colValues(QString(msgInfo->getProtocolName().c_str()));
-        auto* topLevelItem = new QTreeWidgetItem(colValues);
+    QStringList colValues(QString(msgInfo->getProtocolName().c_str()));
+    auto* topLevelItem = new QTreeWidgetItem(colValues);
 
-        auto addMsgFunc =
-            [&msgInfo, topLevelItem](MessageInfo::MessagePtr msg, const char* name)
-            {
-                if (msg) {
-                    QString nameStr(name);
-                    QStringList msgColValues(nameStr);
-                    auto* msgItem = new QTreeWidgetItem(msgColValues);
-                    msgItem->setData(0, Qt::UserRole, QVariant::fromValue(msg));
-                    topLevelItem->addChild(msgItem);
-                }
-            };
+    auto addMsgFunc =
+        [&msgInfo, topLevelItem](MessageInfo::MessagePtr msg, const char* name)
+        {
+            if (msg) {
+                QString nameStr(name);
+                QStringList msgColValues(nameStr);
+                auto* msgItem = new QTreeWidgetItem(msgColValues);
+                msgItem->setData(0, Qt::UserRole, QVariant::fromValue(msg));
+                topLevelItem->addChild(msgItem);
+            }
+        };
 
-        addMsgFunc(msgInfo->getAppMessage(), "Application");
-        addMsgFunc(msgInfo->getTransportMessage(), "Transport");
-        addMsgFunc(msgInfo->getRawDataMessage(), "Raw Data");
+    addMsgFunc(msgInfo->getAppMessage(), "Application");
+    addMsgFunc(msgInfo->getTransportMessage(), "Transport");
+    addMsgFunc(msgInfo->getRawDataMessage(), "Raw Data");
 
-        m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
-    }
+    m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
 
     auto* topProtocolItem = m_ui.m_protocolsTreeWidget->topLevelItem(0);
     assert(topProtocolItem != nullptr);

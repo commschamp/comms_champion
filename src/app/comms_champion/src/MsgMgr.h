@@ -27,10 +27,7 @@
 #include "comms_champion/Protocol.h"
 #include "comms_champion/ProtocolPlugin.h"
 #include "comms_champion/MessageInfo.h"
-#include "comms_champion/ProtocolsInfo.h"
 #include "comms_champion/Socket.h"
-
-#include "ProtocolsStack.h"
 
 namespace comms_champion
 {
@@ -47,12 +44,11 @@ public:
     static MsgMgr& instanceRef();
 
     void addSocket(SocketPtr&& socket);
-    void addProtocol(ProtocolPtr&& protocol);
+    void setProtocol(ProtocolPtr&& protocol);
     void setRecvEnabled(bool enabled);
 
 signals:
-    void sigMsgReceived(ProtocolsInfoPtr msgInfo);
-
+    void sigMsgReceived(MessageInfoPtr msgInfo);
 
 private slots:
     void socketDataReceived(DataInfoPtr dataInfoPtr);
@@ -63,12 +59,11 @@ private:
 
     MsgMgr(QObject* parent = nullptr);
 
-    std::vector<ProtocolsInfoPtr> m_recvMsgs;
+    std::vector<MessageInfoPtr> m_recvMsgs;
     bool m_recvEnabled = false;
 
     SocketsList m_sockets;
-//    SocketPtr m_socket;
-    ProtocolsStack m_protStack;
+    ProtocolPtr m_protocol;
     MsgNumberType m_nextMsgNum = 1;
 };
 

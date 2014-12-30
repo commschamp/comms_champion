@@ -46,10 +46,11 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
 }
 
 void DefaultMessageDisplayWidget::displayMessageImpl(
-    ProtocolsInfoPtr protocolsInfo)
+    MessageInfoPtr msgInfo)
 {
-    m_protocolsDetailsWidget->displayMessage(protocolsInfo);
+    m_protocolsDetailsWidget->displayMessage(msgInfo);
 }
+
 
 }  // namespace comms_champion
 

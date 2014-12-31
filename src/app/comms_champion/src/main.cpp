@@ -37,6 +37,7 @@ namespace cc = comms_champion;
 void metaTypesRegisterAll()
 {
     qRegisterMetaType<cc::MessageInfoPtr>();
+    qRegisterMetaType<cc::ProtocolPtr>();
 }
 
 }  // namespace

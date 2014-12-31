@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 
+#include <QtCore/QMetaType>
 #include <QtCore/QVariant>
 
 #include "Message.h"

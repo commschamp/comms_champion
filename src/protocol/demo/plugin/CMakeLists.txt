@@ -4,6 +4,7 @@ function (plugin_demo)
     set (src
         DemoPlugin.cpp
         Protocol.cpp
+        message/CCDemoMessage.cpp
         message/CCTransportMessage.cpp
         message/CCRawDataMessage.cpp
         message/CCHeartbeat.cpp

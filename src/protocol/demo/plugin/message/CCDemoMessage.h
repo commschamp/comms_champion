@@ -46,6 +46,9 @@ public:
     virtual ~CCDemoMessage() = default;
 
     CCDemoMessage& operator=(const CCDemoMessage&) = default;
+
+protected:
+    virtual QString idAsStringImpl() const override;
 };
 
 }  // namespace plugin

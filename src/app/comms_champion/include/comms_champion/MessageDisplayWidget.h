@@ -42,9 +42,15 @@ public slots:
         displayMessageImpl(msgInfo);
     }
 
+    void setEditEnabled(bool enabled)
+    {
+        setEditEnabledImpl(enabled);
+    }
+
 
 protected:
     virtual void displayMessageImpl(MessageInfoPtr msgInfo) = 0;
+    virtual void setEditEnabledImpl(bool enabled) = 0;
 };
 
 }  // namespace comms_champion

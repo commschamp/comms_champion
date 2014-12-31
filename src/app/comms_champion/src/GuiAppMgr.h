@@ -82,7 +82,7 @@ signals:
     void sigRecvMsgListSelectOnAddEnabled(bool enabled);
     void sigRecvMsgListClearSelection();
     void sigDisplayMsg(MessageInfoPtr msgInfo);
-    void sigNewSendMsgDialog();
+    void sigNewSendMsgDialog(ProtocolPtr protocol);
 
 private:
     GuiAppMgr(QObject* parent = nullptr);

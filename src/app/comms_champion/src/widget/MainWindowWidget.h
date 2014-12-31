@@ -20,6 +20,8 @@
 
 #include <QtWidgets/QMainWindow>
 
+#include "comms_champion/Protocol.h"
+
 #include "ui_MainWindowWidget.h"
 
 namespace comms_champion
@@ -33,7 +35,7 @@ public:
     MainWindowWidget(QWidget* parent = nullptr);
 
 private slots:
-    void newSendMsgDialog();
+    void newSendMsgDialog(ProtocolPtr protocol);
 
 private:
     Ui::MainWindowWidget m_ui;

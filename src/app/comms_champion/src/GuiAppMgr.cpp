@@ -91,7 +91,7 @@ void GuiAppMgr::sendSaveClicked()
 
 void GuiAppMgr::sendAddClicked()
 {
-    emit sigNewSendMsgDialog();
+    emit sigNewSendMsgDialog(MsgMgr::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendEditClicked()

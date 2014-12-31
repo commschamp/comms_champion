@@ -36,12 +36,14 @@ public:
     MsgDetailsWidget(QWidget* parent = nullptr);
 
 public slots:
+    void setEditEnabled(bool enabled);
     void displayMessage(MessageInfo::MessagePtr msg);
 
 private:
     typedef std::unique_ptr<MessageDisplayHandler> MsgDisplayHandlerPtr;
     Ui::MsgDetailsWidget m_ui;
     MsgDisplayHandlerPtr m_msgDisplayHandler;
+    bool m_editEnabled = true;
 };
 
 } /* namespace comms_champion */

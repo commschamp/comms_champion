@@ -33,6 +33,7 @@ public:
 
 protected:
     virtual void displayMessageImpl(MessageInfoPtr msgInfo) override;
+    virtual void setEditEnabledImpl(bool enabled) override;
 
 private:
     MsgDetailsWidget* m_msgDetailsWidget = nullptr;

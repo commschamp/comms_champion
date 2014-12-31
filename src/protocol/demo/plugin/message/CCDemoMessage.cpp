@@ -15,34 +15,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "MsgDetailsWidget.h"
 
-#include <cassert>
+#include "CCDemoMessage.h"
 
-#include "comms_champion/DefaultMessageDisplayHandler.h"
-#include "GuiAppMgr.h"
+#include <string>
 
-namespace comms_champion
+namespace demo
 {
 
-MsgDetailsWidget::MsgDetailsWidget(QWidget* parent)
-  : Base(parent),
-    m_msgDisplayHandler(new DefaultMessageDisplayHandler())
+namespace plugin
 {
-    m_ui.setupUi(this);
+
+QString CCDemoMessage::idAsStringImpl() const
+{
+    return QString("0x%1").arg((int)getId(), 2, 16, QChar('0'));
 }
 
-void MsgDetailsWidget::setEditEnabled(bool enabled)
-{
-    m_editEnabled = enabled;
-}
+}  // namespace plugin
 
-void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
-{
-    assert(msg);
-    auto msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
-    msgWidget->setEditEnabled(m_editEnabled);
-    m_ui.m_scrollArea->setWidget(msgWidget.release());
-}
-
-} /* namespace comms_champion */
+}  // namespace demo

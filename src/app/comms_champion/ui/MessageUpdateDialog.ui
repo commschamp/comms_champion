@@ -7,15 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>745</width>
-    <height>304</height>
+    <height>591</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Message Update Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_5">
+  <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,0">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_9">
+    <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="1,0,2">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
@@ -56,8 +56,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>274</width>
-            <height>210</height>
+            <width>233</width>
+            <height>497</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">

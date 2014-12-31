@@ -45,6 +45,11 @@ void Message::display(MessageDisplayHandler& handler)
     displayImpl(handler);
 }
 
+QString Message::idAsString() const
+{
+    return idAsStringImpl();
+}
+
 void Message::setNameProperty(QWidget& widget, const QString& value)
 {
     widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));

@@ -98,6 +98,7 @@ Protocol::MessagesList Protocol::readImpl(
 
         using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
         auto msgInfo = cc::makeMessageInfo();
+        msgInfo->setProtocolName(name());
 
         auto advanceReadIterGuard
             = comms::util::makeScopeGuard(
@@ -181,15 +182,11 @@ Protocol::MessagesList Protocol::readImpl(
 
 Protocol::MessagesList Protocol::createAllMessagesImpl()
 {
-    static const demo::message::MsgId allIds[] = {
-        demo::message::MsgId_Heartbeat,
-        demo::message::MsgId_Status,
-    };
-
     MessagesList allInfos;
 
     using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
-    for (auto id : allIds) {
+    for (auto idx = 0; idx < demo::message::MsgId_NumOfMessages; ++idx) {
+        auto id = static_cast<demo::message::MsgId>(idx);
         auto msgInfo = cc::makeMessageInfo();
         auto msgPtr = m_protStack.createMsg(id);
         assert(msgPtr);
@@ -197,6 +194,7 @@ Protocol::MessagesList Protocol::createAllMessagesImpl()
         using AllFields = ProtocolStack::AllFields;
         AllFields fields;
         std::vector<std::uint8_t> data;
+
         auto writeIter = std::back_inserter(data);
         auto es =
             m_protStack.writeFieldsCached<0>(
@@ -206,7 +204,7 @@ Protocol::MessagesList Protocol::createAllMessagesImpl()
                 data.max_size());
         if (es == comms::ErrorStatus::UpdateRequired) {
             auto updateIter = &data[0];
-            es = m_protStack.update(updateIter, m_data.size());
+            es = m_protStack.update(updateIter, data.size());
         }
 
         assert(es == comms::ErrorStatus::Success);
@@ -223,6 +221,7 @@ Protocol::MessagesList Protocol::createAllMessagesImpl()
         static_cast<void>(es);
         assert(es == comms::ErrorStatus::Success);
 
+        msgInfo->setProtocolName(name());
         msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
         msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
         msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));

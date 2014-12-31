@@ -20,6 +20,9 @@
 
 #include <QtWidgets/QDialog>
 
+#include "comms_champion/Protocol.h"
+#include "comms_champion/MessageDisplayWidget.h"
+
 #include "ui_MessageUpdateDialog.h"
 
 
@@ -31,9 +34,22 @@ class MessageUpdateDialog : public QDialog
     Q_OBJECT
     using Base = QDialog;
 public:
-    MessageUpdateDialog(QWidget* parent = nullptr);
+    MessageUpdateDialog(
+        MessageInfoPtr& msgInfo,
+        ProtocolPtr protocol,
+        QWidget* parent = nullptr);
+
+private slots:
+    void itemClicked(QListWidgetItem* item);
 
 private:
+    void refreshDisplayedList();
+    MessageInfoPtr getMsgFromItem(QListWidgetItem* item);
+
+    MessageInfoPtr& m_msgInfo;
+    ProtocolPtr m_protocol;
+    Protocol::MessagesList m_allMsgs;
+    MessageDisplayWidget* m_msgDisplayWidget = nullptr;
     Ui::MessageUpdateDialog m_ui;
 };
 

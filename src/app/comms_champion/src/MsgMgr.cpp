@@ -38,7 +38,7 @@ MsgMgr& MsgMgr::instanceRef()
     return mgr;
 }
 
-void MsgMgr::addSocket(SocketPtr&& socket)
+void MsgMgr::addSocket(SocketPtr socket)
 {
     if (!m_sockets.empty()) {
         auto& lastSocket = m_sockets.back();
@@ -63,9 +63,14 @@ void MsgMgr::addSocket(SocketPtr&& socket)
     m_sockets.push_back(std::move(socket));
 }
 
-void MsgMgr::setProtocol(ProtocolPtr&& protocol)
+void MsgMgr::setProtocol(ProtocolPtr protocol)
 {
     m_protocol = std::move(protocol);
+}
+
+ProtocolPtr MsgMgr::getProtocol() const
+{
+    return m_protocol;
 }
 
 void MsgMgr::setRecvEnabled(bool enabled)
@@ -100,7 +105,6 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
 
     for (auto& msgInfo : msgsList) {
         assert(msgInfo->getAppMessage());
-        msgInfo->setProtocolName(m_protocol->name());
 
         msgInfo->setExtraProperty(
             GlobalConstants::msgNumberPropertyName(),

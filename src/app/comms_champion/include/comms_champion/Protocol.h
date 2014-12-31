@@ -24,6 +24,8 @@
 #include <list>
 #include <string>
 
+#include <QtCore/QMetaType>
+
 #include "Message.h"
 #include "ErrorStatus.h"
 #include "MessageInfo.h"
@@ -65,8 +67,8 @@ protected:
     virtual MessagesList createAllMessagesImpl() = 0;
 };
 
-typedef std::unique_ptr<Protocol> ProtocolPtr;
+typedef std::shared_ptr<Protocol> ProtocolPtr;
 
 }  // namespace comms_champion
 
-
+Q_DECLARE_METATYPE(comms_champion::ProtocolPtr);

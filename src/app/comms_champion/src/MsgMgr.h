@@ -43,8 +43,9 @@ public:
     static MsgMgr* instance();
     static MsgMgr& instanceRef();
 
-    void addSocket(SocketPtr&& socket);
-    void setProtocol(ProtocolPtr&& protocol);
+    void addSocket(SocketPtr socket);
+    void setProtocol(ProtocolPtr protocol);
+    ProtocolPtr getProtocol() const;
     void setRecvEnabled(bool enabled);
 
 signals:

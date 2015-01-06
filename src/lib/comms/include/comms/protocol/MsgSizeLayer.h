@@ -180,7 +180,7 @@ public:
             std::size_t size) const
     {
         typedef typename std::iterator_traits<WriteIterator>::iterator_category IterType;
-        Field field(static_cast<typename Field::ValueType>(0));
+        Field field;
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), IterType());
     }
 
@@ -202,8 +202,6 @@ public:
             std::is_same<Field, FieldType>::value,
             "Field has wrong type");
 
-
-        field.setValue(msg.length());
         return
             writeInternal(
                 field,
@@ -221,18 +219,34 @@ public:
         TUpdateIter& iter,
         std::size_t size) const
     {
-        if (size < Field::length()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
         typedef typename Field::ValueType ValueType;
         Field field(static_cast<ValueType>(size - Field::length()));
-        auto es = field.write(iter, size);
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
+        return updateInternal(field, iter, size, Base::createNextLayerUpdater());
+    }
 
-        return Base::nextLayer().update(iter, size - Field::length());
+    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    ErrorStatus updateFieldsCached(
+        TAllFields& allFields,
+        TUpdateIter& iter,
+        std::size_t size) const
+    {
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be a tuple");
+        auto& field = std::get<TIdx>(allFields);
+
+        typedef typename std::decay<decltype(field)>::type FieldType;
+        static_assert(
+            std::is_same<Field, FieldType>::value,
+            "Field has wrong type");
+
+
+        field.setValue(static_cast<typename Field::ValueType>(size - Field::length()));
+        return
+            updateInternal(
+                field,
+                iter,
+                size,
+                Base::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
     }
 
 private:
@@ -345,13 +359,33 @@ private:
         }
 
         GASSERT(field.length() <= size);
-        es = Base::nextLayer().write(msg, iter, size - field.length());
+        es = nextLayerWriter.write(msg, iter, size - field.length());
         if (es != ErrorStatus::Success)
         {
             return es;
         }
 
         return ErrorStatus::UpdateRequired;
+    }
+
+    template <typename TUpdateIter, typename TUpdater>
+    ErrorStatus updateInternal(
+        Field& field,
+        TUpdateIter& iter,
+        std::size_t size,
+        TUpdater&& nextLayerUpdater) const
+    {
+        if (size < Field::length()) {
+            return ErrorStatus::BufferOverflow;
+        }
+
+        typedef typename Field::ValueType ValueType;
+        auto es = field.write(iter, Field::length());
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        return nextLayerUpdater.update(iter, size - Field::length());
     }
 };
 

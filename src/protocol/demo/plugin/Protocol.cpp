@@ -204,7 +204,7 @@ Protocol::MessagesList Protocol::createAllMessagesImpl()
                 data.max_size());
         if (es == comms::ErrorStatus::UpdateRequired) {
             auto updateIter = &data[0];
-            es = m_protStack.update(updateIter, data.size());
+            es = m_protStack.updateFieldsCached<0>(fields, updateIter, data.size());
         }
 
         assert(es == comms::ErrorStatus::Success);

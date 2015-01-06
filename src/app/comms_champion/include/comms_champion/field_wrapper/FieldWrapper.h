@@ -90,7 +90,7 @@ protected:
 
 
 private:
-    Field m_field;
+    Field& m_field;
 };
 
 }  // namespace field_wrapper

@@ -135,6 +135,23 @@ public:
         return comms::ErrorStatus::Success;
     }
 
+    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    ErrorStatus updateFieldsCached(
+        TAllFields& allFields,
+        TUpdateIter& iter,
+        std::size_t size) const
+    {
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be tuple.");
+
+        static_assert((TIdx + 1) == std::tuple_size<TAllFields>::value,
+                    "All fields must be written when MsgDataLayer is reached");
+
+        static_cast<void>(allFields);
+        std::advance(iter, size);
+        return comms::ErrorStatus::Success;
+    }
+
     static constexpr std::size_t length()
     {
         return 0U;

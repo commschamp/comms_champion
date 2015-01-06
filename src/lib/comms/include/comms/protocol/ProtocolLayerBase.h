@@ -96,9 +96,20 @@ public:
     template <typename TIter>
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
-        auto len = length();
+        auto len = Field().length();
         std::advance(iter, len);
         return nextLayer_.update(iter, size - len);
+    }
+
+    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    ErrorStatus updateFieldsCached(
+        TAllFields& allFields,
+        TUpdateIter& iter,
+        std::size_t size) const
+    {
+        auto len = Field().length();
+        std::advance(iter, len);
+        return nextLayer_.updateFieldsCached<TIdx + 1>(allFields, iter, size - len);
     }
 
     MsgPtr createMsg(MsgIdParamType id)
@@ -202,6 +213,53 @@ protected:
         TAllFields& allFields_;
     };
 
+    class NextLayerUpdater
+    {
+    public:
+
+        explicit NextLayerUpdater(const NextLayer& nextLayer)
+          : nextLayer_(nextLayer)
+        {
+        }
+
+        template <typename TUpdateIter>
+        ErrorStatus update(
+            TUpdateIter& iter,
+            std::size_t size) const
+        {
+            return nextLayer_.update(iter, size);
+        }
+
+    private:
+        const NextLayer& nextLayer_;
+    };
+
+    template <std::size_t TIdx, typename TAllFields>
+    class NextLayerCachedFieldsUpdater
+    {
+    public:
+        NextLayerCachedFieldsUpdater(
+            const NextLayer nextLayer,
+            TAllFields& allFields)
+          : nextLayer_(nextLayer),
+            allFields_(allFields)
+        {
+        }
+
+        template <typename TUpdateIter>
+        ErrorStatus update(
+            TUpdateIter& iter,
+            std::size_t size) const
+        {
+            return nextLayer_.template updateFieldsCached<TIdx + 1>(allFields_, iter, size);
+        }
+
+    private:
+        const NextLayer& nextLayer_;
+        TAllFields& allFields_;
+    };
+
+
     void updateMissingSize(std::size_t size, std::size_t* missingSize)
     {
         if (missingSize != nullptr) {
@@ -233,6 +291,19 @@ protected:
     {
         return NextLayerCachedFieldsWriter<TIdx, TAllFields>(nextLayer_, fields);
     }
+
+    NextLayerUpdater createNextLayerUpdater() const
+    {
+        return NextLayerUpdater(nextLayer_);
+    }
+
+    template <std::size_t TIdx, typename TAllFields>
+    NextLayerCachedFieldsUpdater<TIdx, TAllFields>
+    createNextLayerCachedFieldsUpdater(TAllFields& fields) const
+    {
+        return NextLayerCachedFieldsUpdater<TIdx, TAllFields>(nextLayer_, fields);
+    }
+
 
 private:
 

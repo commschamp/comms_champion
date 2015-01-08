@@ -42,6 +42,8 @@ protected:
 
     virtual MessagesList createAllMessagesImpl() override;
 
+    virtual void updateMessageInfoImpl(comms_champion::MessageInfo& msgInfo) override;
+
 private:
     ProtocolStack m_protStack;
     std::vector<std::uint8_t> m_data;

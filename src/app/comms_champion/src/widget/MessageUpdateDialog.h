@@ -40,7 +40,9 @@ public:
         QWidget* parent = nullptr);
 
 private slots:
+    void msgUpdated();
     void itemClicked(QListWidgetItem* item);
+    void displayMessagePostponed(comms_champion::MessageInfoPtr msgInfo);
 
 private:
     void refreshDisplayedList();

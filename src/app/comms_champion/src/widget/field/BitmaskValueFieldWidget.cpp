@@ -105,12 +105,13 @@ void BitmaskValueFieldWidget::serialisedValueUpdated(const QString& value)
         return;
     }
     m_wrapper->setSerialisedValue(serValue);
-    emitFieldUpdated();
     refresh();
+    emitFieldUpdated();
 }
 
 void BitmaskValueFieldWidget::checkBoxUpdated(int value)
 {
+    bool updated = false;
     if (isEditEnabled()) {
         auto* checkbox = sender();
         auto iter = std::find(m_checkboxes.begin(), m_checkboxes.end(), checkbox);
@@ -120,9 +121,13 @@ void BitmaskValueFieldWidget::checkBoxUpdated(int value)
         }
         auto idx = static_cast<unsigned>(std::distance(m_checkboxes.begin(), iter));
         m_wrapper->setBitValue(idx, value != 0);
+        updated = true;
     }
 
     refresh();
+    if (updated) {
+        emitFieldUpdated();
+    }
 }
 
 void BitmaskValueFieldWidget::readPropertiesAndUpdateUi()

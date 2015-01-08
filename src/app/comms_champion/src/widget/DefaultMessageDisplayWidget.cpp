@@ -31,8 +31,13 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
     m_msgDetailsWidget(new MsgDetailsWidget()),
     m_protocolsDetailsWidget(new ProtocolsStackWidget())
 {
-    connect(m_protocolsDetailsWidget, SIGNAL(sigMessageSelected(MessageInfo::MessagePtr)),
-            m_msgDetailsWidget, SLOT(displayMessage(MessageInfo::MessagePtr)));
+    connect(
+        m_protocolsDetailsWidget, SIGNAL(sigMessageSelected(MessageInfo::MessagePtr)),
+        m_msgDetailsWidget, SLOT(displayMessage(MessageInfo::MessagePtr)));
+
+    connect(
+        m_msgDetailsWidget, SIGNAL(sigMsgUpdated()),
+        this, SIGNAL(sigMsgUpdated()));
 
     auto* splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
@@ -48,14 +53,13 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
 void DefaultMessageDisplayWidget::displayMessageImpl(
     MessageInfoPtr msgInfo)
 {
-    m_protocolsDetailsWidget->displayMessage(msgInfo);
+    m_protocolsDetailsWidget->displayMessage(std::move(msgInfo));
 }
 
 void DefaultMessageDisplayWidget::setEditEnabledImpl(bool enabled)
 {
     m_msgDetailsWidget->setEditEnabled(enabled);
 }
-
 
 }  // namespace comms_champion
 

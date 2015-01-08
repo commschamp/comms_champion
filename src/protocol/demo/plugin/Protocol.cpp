@@ -191,44 +191,53 @@ Protocol::MessagesList Protocol::createAllMessagesImpl()
         auto msgPtr = m_protStack.createMsg(id);
         assert(msgPtr);
 
-        using AllFields = ProtocolStack::AllFields;
-        AllFields fields;
-        std::vector<std::uint8_t> data;
-
-        auto writeIter = std::back_inserter(data);
-        auto es =
-            m_protStack.writeFieldsCached<0>(
-                fields,
-                *msgPtr,
-                writeIter,
-                data.max_size());
-        if (es == comms::ErrorStatus::UpdateRequired) {
-            auto updateIter = &data[0];
-            es = m_protStack.updateFieldsCached<0>(fields, updateIter, data.size());
-        }
-
-        assert(es == comms::ErrorStatus::Success);
-        static_cast<void>(es);
-
-        std::unique_ptr<message::CCTransportMessage> transportMsgPtr(
-                            new message::CCTransportMessage());
-        transportMsgPtr->setFields(fields);
-
-        std::unique_ptr<message::CCRawDataMessage> rawDataMsgPtr(
-                            new message::CCRawDataMessage());
-        message::CCRawDataMessage::ReadIterator rawDataReadIter = &data[0];
-        es = rawDataMsgPtr->read(rawDataReadIter, data.size());
-        static_cast<void>(es);
-        assert(es == comms::ErrorStatus::Success);
-
         msgInfo->setProtocolName(name());
         msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
-        msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
-        msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+        updateMessageInfo(*msgInfo);
 
         allInfos.push_back(std::move(msgInfo));
     }
     return allInfos;
+}
+
+void Protocol::updateMessageInfoImpl(comms_champion::MessageInfo& msgInfo)
+{
+    auto msgPtr = msgInfo.getAppMessage();
+    assert(msgPtr);
+
+    using AllFields = ProtocolStack::AllFields;
+    AllFields fields;
+    std::vector<std::uint8_t> data;
+
+    auto writeIter = std::back_inserter(data);
+    auto es =
+        m_protStack.writeFieldsCached<0>(
+            fields,
+            static_cast<const CCDemoMessage&>(*msgPtr),
+            writeIter,
+            data.max_size());
+    if (es == comms::ErrorStatus::UpdateRequired) {
+        auto updateIter = &data[0];
+        es = m_protStack.updateFieldsCached<0>(fields, updateIter, data.size());
+    }
+
+    assert(es == comms::ErrorStatus::Success);
+    static_cast<void>(es);
+
+    std::unique_ptr<message::CCTransportMessage> transportMsgPtr(
+                        new message::CCTransportMessage());
+    transportMsgPtr->setFields(fields);
+
+    std::unique_ptr<message::CCRawDataMessage> rawDataMsgPtr(
+                        new message::CCRawDataMessage());
+    message::CCRawDataMessage::ReadIterator rawDataReadIter = &data[0];
+    es = rawDataMsgPtr->read(rawDataReadIter, data.size());
+    static_cast<void>(es);
+    assert(es == comms::ErrorStatus::Success);
+
+    using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
+    msgInfo.setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+    msgInfo.setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
 }
 
 }  // namespace plugin

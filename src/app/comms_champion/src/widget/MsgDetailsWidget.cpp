@@ -41,7 +41,13 @@ void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
 {
     assert(msg);
     auto msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
+    assert(msgWidget);
     msgWidget->setEditEnabled(m_editEnabled);
+
+    connect(
+        msgWidget.get(), SIGNAL(sigMsgUpdated()),
+        this, SIGNAL(sigMsgUpdated()));
+
     m_ui.m_scrollArea->setWidget(msgWidget.release());
 }
 

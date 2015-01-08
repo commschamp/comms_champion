@@ -39,6 +39,9 @@ public slots:
     void setEditEnabled(bool enabled);
     void displayMessage(MessageInfo::MessagePtr msg);
 
+signals:
+    void sigMsgUpdated();
+
 private:
     typedef std::unique_ptr<MessageDisplayHandler> MsgDisplayHandlerPtr;
     Ui::MsgDetailsWidget m_ui;

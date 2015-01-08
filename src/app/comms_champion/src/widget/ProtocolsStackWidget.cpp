@@ -35,6 +35,7 @@ ProtocolsStackWidget::~ProtocolsStackWidget() = default;
 
 void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo)
 {
+    assert(msgInfo);
     m_ui.m_protocolsTreeWidget->clear();
     QStringList colValues(QString(msgInfo->getProtocolName().c_str()));
     auto* topLevelItem = new QTreeWidgetItem(colValues);

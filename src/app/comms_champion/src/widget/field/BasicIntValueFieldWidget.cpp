@@ -95,8 +95,8 @@ void BasicIntValueFieldWidget::serialisedValueUpdated(const QString& value)
         return;
     }
     m_wrapper->setSerialisedValue(serValue);
-    emitFieldUpdated();
     refresh();
+    emitFieldUpdated();
 }
 
 void BasicIntValueFieldWidget::valueUpdated(int value)
@@ -107,8 +107,8 @@ void BasicIntValueFieldWidget::valueUpdated(int value)
 
     assert(isEditEnabled());
     m_wrapper->setValue(value);
-    emitFieldUpdated();
     refresh();
+    emitFieldUpdated();
 }
 
 void BasicIntValueFieldWidget::readPropertiesAndUpdateUi()

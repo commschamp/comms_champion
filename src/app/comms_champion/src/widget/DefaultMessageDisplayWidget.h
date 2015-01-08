@@ -36,6 +36,7 @@ protected:
     virtual void setEditEnabledImpl(bool enabled) override;
 
 private:
+    MessageInfoPtr m_currMsg;
     MsgDetailsWidget* m_msgDetailsWidget = nullptr;
     ProtocolsStackWidget* m_protocolsDetailsWidget = nullptr;
 };

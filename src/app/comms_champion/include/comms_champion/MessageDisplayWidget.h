@@ -47,6 +47,8 @@ public slots:
         setEditEnabledImpl(enabled);
     }
 
+signals:
+    void sigMsgUpdated();
 
 protected:
     virtual void displayMessageImpl(MessageInfoPtr msgInfo) = 0;

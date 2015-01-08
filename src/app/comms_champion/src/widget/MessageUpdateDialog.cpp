@@ -44,8 +44,35 @@ MessageUpdateDialog::MessageUpdateDialog(
 
     refreshDisplayedList();
 
-    connect(m_ui.m_msgListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
-            this, SLOT(itemClicked(QListWidgetItem*)));
+    connect(
+        m_msgDisplayWidget, SIGNAL(sigMsgUpdated()),
+        this, SLOT(msgUpdated()));
+
+    connect(
+        m_ui.m_msgListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
+        this, SLOT(itemClicked(QListWidgetItem*)));
+}
+
+void MessageUpdateDialog::msgUpdated()
+{
+    auto* item = m_ui.m_msgListWidget->currentItem();
+    auto msgInfoVar = item->data(Qt::UserRole);
+    assert(msgInfoVar.isValid());
+    assert(msgInfoVar.canConvert<MessageInfoPtr>());
+    auto msgInfo = msgInfoVar.value<MessageInfoPtr>();
+
+    assert(m_protocol);
+    assert(msgInfo);
+    m_protocol->updateMessageInfo(*msgInfo);
+    assert(m_msgDisplayWidget);
+
+    // Direct invocation of m_msgDisplayWidget->displayMessage(std::move(msgInfo))
+    // in place here causes SIGSEGV. No idea why.
+    QMetaObject::invokeMethod(
+        this,
+        "displayMessagePostponed",
+        Qt::QueuedConnection,
+        Q_ARG(comms_champion::MessageInfoPtr, std::move(msgInfo)));
 }
 
 void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
@@ -77,6 +104,11 @@ MessageInfoPtr MessageUpdateDialog::getMsgFromItem(QListWidgetItem* item)
     auto var = item->data(Qt::UserRole);
     assert(var.canConvert<MessageInfoPtr>());
     return var.value<MessageInfoPtr>();
+}
+
+void MessageUpdateDialog::displayMessagePostponed(MessageInfoPtr msgInfo)
+{
+    m_msgDisplayWidget->displayMessage(std::move(msgInfo));
 }
 
 }  // namespace comms_champion

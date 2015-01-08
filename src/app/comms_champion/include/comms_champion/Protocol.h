@@ -57,6 +57,11 @@ public:
         return createAllMessagesImpl();
     }
 
+    void updateMessageInfo(MessageInfo& msgInfo)
+    {
+        updateMessageInfoImpl(msgInfo);
+    }
+
 protected:
     virtual const std::string& nameImpl() const = 0;
 
@@ -65,6 +70,8 @@ protected:
         DataInfoPtr dataInfo) = 0;
 
     virtual MessagesList createAllMessagesImpl() = 0;
+
+    virtual void updateMessageInfoImpl(MessageInfo& msgInfo) = 0;
 };
 
 typedef std::shared_ptr<Protocol> ProtocolPtr;

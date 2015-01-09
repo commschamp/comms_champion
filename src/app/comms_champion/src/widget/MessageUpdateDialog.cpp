@@ -27,6 +27,18 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+QString getMessageNameForList(MessageInfoPtr msgInfo)
+{
+    auto msgPtr = msgInfo->getAppMessage();
+    auto* name = msgPtr->name();
+    return QString("(%1) %2").arg(msgPtr->idAsString()).arg(msgPtr->name());
+}
+
+}  // namespace
+
 MessageUpdateDialog::MessageUpdateDialog(
     MessageInfoPtr& msgInfo,
     ProtocolPtr protocol,
@@ -42,7 +54,7 @@ MessageUpdateDialog::MessageUpdateDialog(
     m_ui.m_msgDetailsWidget->setLayout(new QVBoxLayout());
     m_ui.m_msgDetailsWidget->layout()->addWidget(m_msgDisplayWidget);
 
-    refreshDisplayedList();
+    refreshDisplayedList(m_ui.m_searchLineEdit->text());
 
     connect(
         m_msgDisplayWidget, SIGNAL(sigMsgUpdated()),
@@ -51,6 +63,14 @@ MessageUpdateDialog::MessageUpdateDialog(
     connect(
         m_ui.m_msgListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
         this, SLOT(itemClicked(QListWidgetItem*)));
+
+    connect(
+        m_ui.m_searchLineEdit, SIGNAL(textChanged(const QString&)),
+        this, SLOT(refreshDisplayedList(const QString&)));
+
+    connect(
+        m_ui.m_clearSearchToolButton, SIGNAL(clicked()),
+        m_ui.m_searchLineEdit, SLOT(clear()));
 }
 
 void MessageUpdateDialog::msgUpdated()
@@ -83,19 +103,19 @@ void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
     m_msgDisplayWidget->displayMessage(std::move(msgInfo));
 }
 
-void MessageUpdateDialog::refreshDisplayedList()
+void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)
 {
-    // TODO: filter messages
-    auto msgsToDisplay = m_allMsgs;
-    for (auto& msgInfo : msgsToDisplay) {
-        auto msgPtr = msgInfo->getAppMessage();
-        auto* name = msgPtr->name();
-        auto itemStr = QString("(%1) %2").arg(msgPtr->idAsString()).arg(msgPtr->name());
-        m_ui.m_msgListWidget->addItem(itemStr);
-        auto* item = m_ui.m_msgListWidget->item(m_ui.m_msgListWidget->count() - 1);
-        item->setData(
-            Qt::UserRole,
-            QVariant::fromValue(msgInfo));
+    m_ui.m_msgListWidget->clear();
+
+    for (auto& msgInfo : m_allMsgs) {
+        auto msgName = getMessageNameForList(msgInfo);
+        if (searchText.isEmpty() || msgName.contains(searchText)) {
+            m_ui.m_msgListWidget->addItem(msgName);
+            auto* item = m_ui.m_msgListWidget->item(m_ui.m_msgListWidget->count() - 1);
+            item->setData(
+                Qt::UserRole,
+                QVariant::fromValue(msgInfo));
+        }
     }
 }
 

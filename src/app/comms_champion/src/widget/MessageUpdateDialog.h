@@ -43,9 +43,9 @@ private slots:
     void msgUpdated();
     void itemClicked(QListWidgetItem* item);
     void displayMessagePostponed(comms_champion::MessageInfoPtr msgInfo);
+    void refreshDisplayedList(const QString& searchText);
 
 private:
-    void refreshDisplayedList();
     MessageInfoPtr getMsgFromItem(QListWidgetItem* item);
 
     MessageInfoPtr& m_msgInfo;

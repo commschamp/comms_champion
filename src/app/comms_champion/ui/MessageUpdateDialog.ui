@@ -28,10 +28,10 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit"/>
+          <widget class="QLineEdit" name="m_searchLineEdit"/>
          </item>
          <item>
-          <widget class="QToolButton" name="toolButton">
+          <widget class="QToolButton" name="m_clearSearchToolButton">
            <property name="toolTip">
             <string>Search</string>
            </property>

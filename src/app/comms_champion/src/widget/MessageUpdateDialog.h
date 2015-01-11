@@ -44,6 +44,12 @@ private slots:
     void itemClicked(QListWidgetItem* item);
     void displayMessagePostponed(comms_champion::MessageInfoPtr msgInfo);
     void refreshDisplayedList(const QString& searchText);
+    void refreshDelayInfo(int checkboxValue);
+    void delayUpdated(int value);
+    void refreshRepeatInfo(int checkboxValue);
+    void repeatDurationUpdated(int value);
+    void repeatCountUpdated(int value);
+    void indefinitelyUpdated(int checkboxValue);
 
 private:
     MessageInfoPtr getMsgFromItem(QListWidgetItem* item);
@@ -53,6 +59,15 @@ private:
     Protocol::MessagesList m_allMsgs;
     MessageDisplayWidget* m_msgDisplayWidget = nullptr;
     Ui::MessageUpdateDialog m_ui;
+    int m_prevDelay = DisabledDelayValue + 1;
+    int m_prevRepeatDuration = DisabledRepeatDuration + 1;
+    int m_prevRepeatCount = DisabledRepeatCount;
+    Qt::CheckState m_sendIndefinitelyState = DisabledSendIndefinitelyState;
+
+    static const int DisabledDelayValue = 0;
+    static const int DisabledRepeatDuration = 0;
+    static const int DisabledRepeatCount = 1;
+    static const Qt::CheckState DisabledSendIndefinitelyState = Qt::Unchecked;
 };
 
 }  // namespace comms_champion

@@ -19,6 +19,8 @@
 #include "MessageUpdateDialog.h"
 
 #include <cassert>
+#include <limits>
+#include <type_traits>
 
 #include <QtWidgets/QVBoxLayout>
 
@@ -37,6 +39,35 @@ QString getMessageNameForList(MessageInfoPtr msgInfo)
     return QString("(%1) %2").arg(msgPtr->idAsString()).arg(msgPtr->name());
 }
 
+enum class Duration
+{
+    Milliseconds,
+    Seconds,
+    Minutes,
+    Hours,
+    Days,
+    NumOfDurations
+};
+
+void fillDurationComboBox(QComboBox& box)
+{
+    static const QString Strings[] = {
+        "millisecond(s)",
+        "second(s)",
+        "minute(s)",
+        "hour(s)",
+        "day(s)"
+    };
+
+    static_assert(
+        std::extent<decltype(Strings)>::value == (std::size_t)Duration::NumOfDurations,
+        "Incorrect mapping of strings.");
+
+    for (auto s : Strings) {
+        box.addItem(s);
+    }
+}
+
 }  // namespace
 
 MessageUpdateDialog::MessageUpdateDialog(
@@ -50,11 +81,22 @@ MessageUpdateDialog::MessageUpdateDialog(
     m_msgDisplayWidget(new DefaultMessageDisplayWidget())
 {
     m_ui.setupUi(this);
+    assert(m_ui.m_delayUnitsComboBox != nullptr);
+    fillDurationComboBox(*m_ui.m_delayUnitsComboBox);
+    assert(m_ui.m_repeatUnitsComboBox != nullptr);
+    fillDurationComboBox(*m_ui.m_repeatUnitsComboBox);
+
     assert(m_ui.m_msgDetailsWidget);
     m_ui.m_msgDetailsWidget->setLayout(new QVBoxLayout());
     m_ui.m_msgDetailsWidget->layout()->addWidget(m_msgDisplayWidget);
 
+    m_ui.m_delaySpinBox->setRange(0, std::numeric_limits<int>::max());
+    m_ui.m_repeatSpinBox->setRange(0, std::numeric_limits<int>::max());
+    m_ui.m_repeatCountSpinBox->setRange(0, std::numeric_limits<int>::max());
+
     refreshDisplayedList(m_ui.m_searchLineEdit->text());
+    refreshDelayInfo(m_ui.m_delayCheckBox->checkState());
+    refreshRepeatInfo(m_ui.m_repeatCheckBox->checkState());
 
     connect(
         m_msgDisplayWidget, SIGNAL(sigMsgUpdated()),
@@ -71,6 +113,30 @@ MessageUpdateDialog::MessageUpdateDialog(
     connect(
         m_ui.m_clearSearchToolButton, SIGNAL(clicked()),
         m_ui.m_searchLineEdit, SLOT(clear()));
+
+    connect(
+        m_ui.m_delayCheckBox, SIGNAL(stateChanged(int)),
+        this, SLOT(refreshDelayInfo(int)));
+
+    connect(
+        m_ui.m_delaySpinBox, SIGNAL(valueChanged(int)),
+        this, SLOT(delayUpdated(int)));
+
+    connect(
+        m_ui.m_repeatCheckBox, SIGNAL(stateChanged(int)),
+        this, SLOT(refreshRepeatInfo(int)));
+
+    connect(
+        m_ui.m_repeatSpinBox, SIGNAL(valueChanged(int)),
+        this, SLOT(repeatDurationUpdated(int)));
+
+    connect(
+        m_ui.m_repeatCountSpinBox, SIGNAL(valueChanged(int)),
+        this, SLOT(repeatCountUpdated(int)));
+
+    connect(
+        m_ui.m_indefinitelyCheckBox, SIGNAL(stateChanged(int)),
+        this, SLOT(indefinitelyUpdated(int)));
 }
 
 void MessageUpdateDialog::msgUpdated()
@@ -103,6 +169,11 @@ void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
     m_msgDisplayWidget->displayMessage(std::move(msgInfo));
 }
 
+void MessageUpdateDialog::displayMessagePostponed(MessageInfoPtr msgInfo)
+{
+    m_msgDisplayWidget->displayMessage(std::move(msgInfo));
+}
+
 void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)
 {
     m_ui.m_msgListWidget->clear();
@@ -119,6 +190,95 @@ void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)
     }
 }
 
+void MessageUpdateDialog::refreshDelayInfo(int checkboxValue)
+{
+    bool checked = checkboxValue != Qt::Unchecked;
+    if (!checked) {
+        m_ui.m_delaySpinBox->setMinimum(0);
+        m_ui.m_delaySpinBox->setValue(DisabledDelayValue);
+        m_ui.m_delaySpinBox->setEnabled(false);
+
+        m_ui.m_delayUnitsComboBox->setEnabled(false);
+        return;
+    }
+
+    m_ui.m_delaySpinBox->setValue(m_prevDelay);
+    m_ui.m_delaySpinBox->setMinimum(1);
+    m_ui.m_delaySpinBox->setEnabled(true);
+
+    m_ui.m_delayUnitsComboBox->setEnabled(true);
+}
+
+void MessageUpdateDialog::delayUpdated(int value)
+{
+    if (m_ui.m_delayCheckBox->checkState() == Qt::Checked) {
+        m_prevDelay = value;
+    }
+}
+
+void MessageUpdateDialog::refreshRepeatInfo(int checkboxValue)
+{
+    bool checked = checkboxValue != Qt::Unchecked;
+    if (!checked) {
+        m_ui.m_repeatSpinBox->setMinimum(0);
+        m_ui.m_repeatSpinBox->setValue(DisabledRepeatDuration);
+        m_ui.m_repeatSpinBox->setEnabled(false);
+
+        m_ui.m_repeatUnitsComboBox->setEnabled(false);
+
+        m_ui.m_repeatCountSpinBox->setValue(DisabledRepeatCount);
+        m_ui.m_repeatCountSpinBox->setEnabled(false);
+
+        m_ui.m_indefinitelyCheckBox->setCheckState(DisabledSendIndefinitelyState);
+        m_ui.m_indefinitelyCheckBox->setEnabled(false);
+        return;
+    }
+
+    m_ui.m_repeatSpinBox->setValue(m_prevRepeatDuration);
+    m_ui.m_repeatSpinBox->setMinimum(1);
+    m_ui.m_repeatSpinBox->setEnabled(true);
+
+    m_ui.m_repeatUnitsComboBox->setEnabled(true);
+
+    m_ui.m_indefinitelyCheckBox->setCheckState(m_sendIndefinitelyState);
+    m_ui.m_indefinitelyCheckBox->setEnabled(true);
+
+    if (m_sendIndefinitelyState == Qt::Unchecked) {
+        m_ui.m_repeatCountSpinBox->setValue(m_prevRepeatCount);
+        m_ui.m_repeatCountSpinBox->setMinimum(1);
+        m_ui.m_repeatCountSpinBox->setEnabled(true);
+    }
+    else {
+        m_ui.m_repeatCountSpinBox->setMinimum(0);
+        m_ui.m_repeatCountSpinBox->setValue(0);
+        m_ui.m_repeatCountSpinBox->setEnabled(false);
+    }
+}
+
+void MessageUpdateDialog::repeatDurationUpdated(int value)
+{
+    if (m_ui.m_repeatCheckBox->checkState() == Qt::Checked) {
+        m_prevRepeatDuration = value;
+    }
+}
+
+void MessageUpdateDialog::repeatCountUpdated(int value)
+{
+    if ((m_ui.m_repeatCheckBox->checkState() == Qt::Checked) &&
+        (m_ui.m_indefinitelyCheckBox->checkState() == Qt::Unchecked)) {
+        m_prevRepeatCount = value;
+    }
+}
+
+void MessageUpdateDialog::indefinitelyUpdated(int checkboxValue)
+{
+    auto repeatState = m_ui.m_repeatCheckBox->checkState();
+    if (repeatState == Qt::Checked) {
+        m_sendIndefinitelyState = static_cast<decltype(m_sendIndefinitelyState)>(checkboxValue);
+        refreshRepeatInfo(m_ui.m_repeatCheckBox->checkState());
+    }
+}
+
 MessageInfoPtr MessageUpdateDialog::getMsgFromItem(QListWidgetItem* item)
 {
     auto var = item->data(Qt::UserRole);
@@ -126,10 +286,6 @@ MessageInfoPtr MessageUpdateDialog::getMsgFromItem(QListWidgetItem* item)
     return var.value<MessageInfoPtr>();
 }
 
-void MessageUpdateDialog::displayMessagePostponed(MessageInfoPtr msgInfo)
-{
-    m_msgDisplayWidget->displayMessage(std::move(msgInfo));
-}
-
 }  // namespace comms_champion
+
 

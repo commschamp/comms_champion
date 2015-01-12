@@ -38,6 +38,7 @@ public:
 public slots:
     void setEditEnabled(bool enabled);
     void displayMessage(MessageInfo::MessagePtr msg);
+    void clear();
 
 signals:
     void sigMsgUpdated();

@@ -232,7 +232,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QDialogButtonBox" name="buttonBox">
+      <widget class="QDialogButtonBox" name="m_buttonBox">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -250,7 +250,7 @@
  </resources>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>m_buttonBox</sender>
    <signal>accepted()</signal>
    <receiver>MessageUpdateDialog</receiver>
    <slot>accept()</slot>
@@ -266,7 +266,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>m_buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>MessageUpdateDialog</receiver>
    <slot>reject()</slot>

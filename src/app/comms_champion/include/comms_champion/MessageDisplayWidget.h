@@ -47,12 +47,18 @@ public slots:
         setEditEnabledImpl(enabled);
     }
 
+    void clear()
+    {
+        clearImpl();
+    }
+
 signals:
     void sigMsgUpdated();
 
 protected:
     virtual void displayMessageImpl(MessageInfoPtr msgInfo) = 0;
     virtual void setEditEnabledImpl(bool enabled) = 0;
+    virtual void clearImpl() = 0;
 };
 
 }  // namespace comms_champion

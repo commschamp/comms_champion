@@ -21,8 +21,10 @@
 #include <cassert>
 #include <limits>
 #include <type_traits>
+#include <algorithm>
 
 #include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QPushButton>
 
 #include "DefaultMessageDisplayWidget.h"
 
@@ -97,6 +99,12 @@ MessageUpdateDialog::MessageUpdateDialog(
     refreshDisplayedList(m_ui.m_searchLineEdit->text());
     refreshDelayInfo(m_ui.m_delayCheckBox->checkState());
     refreshRepeatInfo(m_ui.m_repeatCheckBox->checkState());
+    refreshButtons();
+
+    assert(parent);
+    auto newHeight = std::max(height(), (parent->height() * 9) / 10);
+    auto newWidth = std::max(width(), (parent->width() * 7) / 10);
+    resize(QSize(newWidth, newHeight));
 
     connect(
         m_msgDisplayWidget, SIGNAL(sigMsgUpdated()),
@@ -167,6 +175,7 @@ void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
     assert(msgInfo);
 
     m_msgDisplayWidget->displayMessage(std::move(msgInfo));
+    refreshButtons();
 }
 
 void MessageUpdateDialog::displayMessagePostponed(MessageInfoPtr msgInfo)
@@ -176,6 +185,11 @@ void MessageUpdateDialog::displayMessagePostponed(MessageInfoPtr msgInfo)
 
 void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)
 {
+    MessageInfoPtr selectedInfo;
+    if (0 <= m_ui.m_msgListWidget->currentRow()) {
+        selectedInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
+    }
+
     m_ui.m_msgListWidget->clear();
 
     for (auto& msgInfo : m_allMsgs) {
@@ -186,7 +200,17 @@ void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)
             item->setData(
                 Qt::UserRole,
                 QVariant::fromValue(msgInfo));
+
+            if (selectedInfo && (msgInfo.get() == selectedInfo.get())) {
+                m_ui.m_msgListWidget->setCurrentItem(item);
+            }
         }
+    }
+
+    refreshButtons();
+
+    if (m_ui.m_msgListWidget->currentRow() < 0) {
+        m_msgDisplayWidget->clear();
     }
 }
 
@@ -279,11 +303,27 @@ void MessageUpdateDialog::indefinitelyUpdated(int checkboxValue)
     }
 }
 
+void MessageUpdateDialog::accept()
+{
+    m_msgInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
+    assert(m_msgInfo);
+    Base::accept();
+}
+
 MessageInfoPtr MessageUpdateDialog::getMsgFromItem(QListWidgetItem* item)
 {
+    assert(item);
     auto var = item->data(Qt::UserRole);
     assert(var.canConvert<MessageInfoPtr>());
     return var.value<MessageInfoPtr>();
+}
+
+void MessageUpdateDialog::refreshButtons()
+{
+    auto okEnabled = (0 <= m_ui.m_msgListWidget->currentRow());
+    auto* okButton = m_ui.m_buttonBox->button(QDialogButtonBox::Ok);
+    assert(okButton);
+    okButton->setEnabled(okEnabled);
 }
 
 }  // namespace comms_champion

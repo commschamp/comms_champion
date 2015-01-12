@@ -67,6 +67,11 @@ void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo)
     }
 }
 
+void ProtocolsStackWidget::clear()
+{
+    m_ui.m_protocolsTreeWidget->clear();
+}
+
 void ProtocolsStackWidget::itemClicked(QTreeWidgetItem* item, int column)
 {
     static_cast<void>(column);

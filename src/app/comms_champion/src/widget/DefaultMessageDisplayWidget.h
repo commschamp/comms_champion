@@ -34,6 +34,7 @@ public:
 protected:
     virtual void displayMessageImpl(MessageInfoPtr msgInfo) override;
     virtual void setEditEnabledImpl(bool enabled) override;
+    virtual void clearImpl() override;
 
 private:
     MessageInfoPtr m_currMsg;

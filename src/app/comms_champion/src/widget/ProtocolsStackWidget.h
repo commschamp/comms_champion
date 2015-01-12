@@ -36,10 +36,10 @@ public:
     ~ProtocolsStackWidget();
 
     void displayMessage(MessageInfoPtr msgInfo);
+    void clear();
 
 signals:
     void sigMessageSelected(MessageInfo::MessagePtr msgInfo);
-
 
 private slots:
     void itemClicked(QTreeWidgetItem* item, int column);

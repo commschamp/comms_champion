@@ -61,6 +61,12 @@ void DefaultMessageDisplayWidget::setEditEnabledImpl(bool enabled)
     m_msgDetailsWidget->setEditEnabled(enabled);
 }
 
+void DefaultMessageDisplayWidget::clearImpl()
+{
+    m_msgDetailsWidget->clear();
+    m_protocolsDetailsWidget->clear();
+}
+
 }  // namespace comms_champion
 
 

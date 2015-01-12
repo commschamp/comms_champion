@@ -51,4 +51,9 @@ void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
     m_ui.m_scrollArea->setWidget(msgWidget.release());
 }
 
+void MsgDetailsWidget::clear()
+{
+    m_ui.m_scrollArea->setWidget(new QWidget());
+}
+
 } /* namespace comms_champion */

@@ -40,6 +40,7 @@ public:
     void updateFieldProperties(QWidget& fieldWidget, uint idx) const;
     void display(MessageDisplayHandler& handler);
     QString idAsString() const;
+    void reset();
 
 protected:
 
@@ -47,6 +48,7 @@ protected:
     virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const = 0;
     virtual void displayImpl(MessageDisplayHandler& handler) = 0;
     virtual QString idAsStringImpl() const = 0;
+    virtual void resetImpl() = 0;
 
     static void setNameProperty(QWidget& widget, const QString& value);
     static void setIndexedNameProperty(

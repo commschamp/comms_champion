@@ -75,6 +75,11 @@ void CCStatus::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
     }
 }
 
+void CCStatus::resetImpl()
+{
+    Base::getFields() = Base::AllFields();
+}
+
 }  // namespace message
 
 }  // namespace plugin

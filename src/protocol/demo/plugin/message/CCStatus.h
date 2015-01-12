@@ -45,7 +45,7 @@ public:
 protected:
     virtual const char* nameImpl() const override;
     virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
-
+    virtual void resetImpl() override;
 };
 
 }  // namespace message

@@ -78,6 +78,11 @@ void CCTransportMessage::updateFieldPropertiesImpl(
     }
 }
 
+void CCTransportMessage::resetImpl()
+{
+    assert(!"Mustn't be called");
+}
+
 }  // namespace message
 
 }  // namespace plugin

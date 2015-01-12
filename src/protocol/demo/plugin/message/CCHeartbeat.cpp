@@ -61,6 +61,11 @@ void CCHeartbeat::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) cons
     setNameProperty(fieldWidget, FieldNames[idx]);
 }
 
+void CCHeartbeat::resetImpl()
+{
+    Base::getFields() = Base::AllFields();
+}
+
 }  // namespace message
 
 }  // namespace plugin

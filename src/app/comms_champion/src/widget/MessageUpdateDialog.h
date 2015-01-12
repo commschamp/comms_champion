@@ -51,6 +51,7 @@ private slots:
     void repeatCountUpdated(int value);
     void indefinitelyUpdated(int checkboxValue);
     void accept();
+    void reset();
 
 private:
     MessageInfoPtr getMsgFromItem(QListWidgetItem* item);

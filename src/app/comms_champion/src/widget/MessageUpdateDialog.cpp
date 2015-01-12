@@ -145,6 +145,12 @@ MessageUpdateDialog::MessageUpdateDialog(
     connect(
         m_ui.m_indefinitelyCheckBox, SIGNAL(stateChanged(int)),
         this, SLOT(indefinitelyUpdated(int)));
+
+    auto* resetButton = m_ui.m_buttonBox->button(QDialogButtonBox::Reset);
+    assert(resetButton);
+    connect(
+        resetButton, SIGNAL(clicked()),
+        this, SLOT(reset()));
 }
 
 void MessageUpdateDialog::msgUpdated()
@@ -310,6 +316,18 @@ void MessageUpdateDialog::accept()
     Base::accept();
 }
 
+void MessageUpdateDialog::reset()
+{
+    auto msgInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
+    assert(msgInfo);
+    auto msgPtr = msgInfo->getAppMessage();
+    assert(msgPtr);
+    msgPtr->reset();
+    m_protocol->updateMessageInfo(*msgInfo);
+    assert(m_msgDisplayWidget);
+    m_msgDisplayWidget->displayMessage(std::move(msgInfo));
+}
+
 MessageInfoPtr MessageUpdateDialog::getMsgFromItem(QListWidgetItem* item)
 {
     assert(item);
@@ -320,10 +338,18 @@ MessageInfoPtr MessageUpdateDialog::getMsgFromItem(QListWidgetItem* item)
 
 void MessageUpdateDialog::refreshButtons()
 {
-    auto okEnabled = (0 <= m_ui.m_msgListWidget->currentRow());
-    auto* okButton = m_ui.m_buttonBox->button(QDialogButtonBox::Ok);
-    assert(okButton);
-    okButton->setEnabled(okEnabled);
+    auto msgSelected = (0 <= m_ui.m_msgListWidget->currentRow());
+
+    auto setButtonEnabledFunc =
+        [this](QDialogButtonBox::StandardButton buttonType, bool enabled)
+        {
+            auto* button = m_ui.m_buttonBox->button(buttonType);
+            assert(button);
+            button->setEnabled(enabled);
+        };
+
+    setButtonEnabledFunc(QDialogButtonBox::Ok, msgSelected);
+    setButtonEnabledFunc(QDialogButtonBox::Reset, msgSelected);
 }
 
 }  // namespace comms_champion

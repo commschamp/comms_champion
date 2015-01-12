@@ -50,6 +50,11 @@ QString Message::idAsString() const
     return idAsStringImpl();
 }
 
+void Message::reset()
+{
+    resetImpl();
+}
+
 void Message::setNameProperty(QWidget& widget, const QString& value)
 {
     widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));

@@ -44,6 +44,7 @@ function (bin_comms_champion)
         src/widget/ProtocolsStackWidget.h
         src/widget/MessageUpdateDialog.h
         src/widget/MainWindowWidget.h
+        src/widget/DefaultMessageDisplayWidget.h
         src/widget/field/BasicIntValueFieldWidget.h
         src/widget/field/BitmaskValueFieldWidget.h
         src/widget/field/BasicEnumValueFieldWidget.h

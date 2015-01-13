@@ -82,6 +82,8 @@ MessageUpdateDialog::MessageUpdateDialog(
     m_allMsgs(m_protocol->createAllMessages()),
     m_msgDisplayWidget(new DefaultMessageDisplayWidget())
 {
+    m_msgDisplayWidget->setEditEnabled(true);
+
     m_ui.setupUi(this);
     assert(m_ui.m_delayUnitsComboBox != nullptr);
     fillDurationComboBox(*m_ui.m_delayUnitsComboBox);

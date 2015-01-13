@@ -39,7 +39,7 @@ public:
     void clear();
 
 signals:
-    void sigMessageSelected(MessageInfo::MessagePtr msgInfo);
+    void sigMessageSelected(MessageInfo::MessagePtr msgInfo, bool editEnabled);
 
 private slots:
     void itemClicked(QTreeWidgetItem* item, int column);

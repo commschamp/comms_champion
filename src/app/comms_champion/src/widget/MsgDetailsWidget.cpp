@@ -35,6 +35,9 @@ MsgDetailsWidget::MsgDetailsWidget(QWidget* parent)
 void MsgDetailsWidget::setEditEnabled(bool enabled)
 {
     m_editEnabled = enabled;
+    if (m_displayedMsgWidget != nullptr) {
+        m_displayedMsgWidget->setEditEnabled(enabled);
+    }
 }
 
 void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
@@ -48,11 +51,13 @@ void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
         msgWidget.get(), SIGNAL(sigMsgUpdated()),
         this, SIGNAL(sigMsgUpdated()));
 
+    m_displayedMsgWidget = msgWidget.get();
     m_ui.m_scrollArea->setWidget(msgWidget.release());
 }
 
 void MsgDetailsWidget::clear()
 {
+    m_displayedMsgWidget = nullptr;
     m_ui.m_scrollArea->setWidget(new QWidget());
 }
 

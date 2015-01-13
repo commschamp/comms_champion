@@ -95,7 +95,8 @@ void ProtocolsStackWidget::reportMessageSelected(QTreeWidgetItem* item)
     assert(msgPtrVar.isValid());
     assert(msgPtrVar.canConvert<MessageInfo::MessagePtr>());
     auto msgPtr = msgPtrVar.value<MessageInfo::MessagePtr>();
-    emit sigMessageSelected(msgPtr);
+    bool editEnabled = (item == m_ui.m_protocolsTreeWidget->topLevelItem(0)->child(0));
+    emit sigMessageSelected(msgPtr, editEnabled);
 }
 
 }  // namespace comms_champion

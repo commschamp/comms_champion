@@ -47,6 +47,7 @@ private:
     typedef std::unique_ptr<MessageDisplayHandler> MsgDisplayHandlerPtr;
     Ui::MsgDetailsWidget m_ui;
     MsgDisplayHandlerPtr m_msgDisplayHandler;
+    MessageWidget* m_displayedMsgWidget = nullptr;
     bool m_editEnabled = true;
 };
 

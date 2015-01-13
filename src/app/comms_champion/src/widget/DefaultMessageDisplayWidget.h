@@ -27,6 +27,7 @@ class MsgDetailsWidget;
 class ProtocolsStackWidget;
 class DefaultMessageDisplayWidget : public MessageDisplayWidget
 {
+    Q_OBJECT
     using Base = MessageDisplayWidget;
 public:
     DefaultMessageDisplayWidget(QWidget* parent = nullptr);
@@ -36,10 +37,13 @@ protected:
     virtual void setEditEnabledImpl(bool enabled) override;
     virtual void clearImpl() override;
 
+private slots:
+    void msgSelectedInProtocol(MessageInfo::MessagePtr msg, bool editEnabled);
 private:
     MessageInfoPtr m_currMsg;
     MsgDetailsWidget* m_msgDetailsWidget = nullptr;
     ProtocolsStackWidget* m_protocolsDetailsWidget = nullptr;
+    bool m_globalEditEnabled = true;
 };
 
 }  // namespace comms_champion

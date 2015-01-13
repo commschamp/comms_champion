@@ -32,8 +32,8 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
     m_protocolsDetailsWidget(new ProtocolsStackWidget())
 {
     connect(
-        m_protocolsDetailsWidget, SIGNAL(sigMessageSelected(MessageInfo::MessagePtr)),
-        m_msgDetailsWidget, SLOT(displayMessage(MessageInfo::MessagePtr)));
+        m_protocolsDetailsWidget, SIGNAL(sigMessageSelected(MessageInfo::MessagePtr, bool)),
+        this, SLOT(msgSelectedInProtocol(MessageInfo::MessagePtr, bool)));
 
     connect(
         m_msgDetailsWidget, SIGNAL(sigMsgUpdated()),
@@ -58,6 +58,7 @@ void DefaultMessageDisplayWidget::displayMessageImpl(
 
 void DefaultMessageDisplayWidget::setEditEnabledImpl(bool enabled)
 {
+    m_globalEditEnabled = enabled;
     m_msgDetailsWidget->setEditEnabled(enabled);
 }
 
@@ -65,6 +66,14 @@ void DefaultMessageDisplayWidget::clearImpl()
 {
     m_msgDetailsWidget->clear();
     m_protocolsDetailsWidget->clear();
+}
+
+void DefaultMessageDisplayWidget::msgSelectedInProtocol(
+    MessageInfo::MessagePtr msg,
+    bool editEnabled)
+{
+    m_msgDetailsWidget->displayMessage(msg);
+    m_msgDetailsWidget->setEditEnabled(m_globalEditEnabled && editEnabled);
 }
 
 }  // namespace comms_champion

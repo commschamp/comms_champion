@@ -48,6 +48,7 @@ protected slots:
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo);
     virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo);
+    virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const;
 
 private slots:
     void itemClicked(QListWidgetItem* item);

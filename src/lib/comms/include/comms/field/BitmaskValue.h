@@ -200,7 +200,7 @@ public:
         setValue(getValue() & (~mask));
     }
 
-    const bool getBitValue(unsigned bitNum) const
+    bool getBitValue(unsigned bitNum) const
     {
         return hasAllBitsSet(calcMask(bitNum, BitOrderTag()));
     }

@@ -59,6 +59,30 @@ const char* GlobalConstants::msgObjPropertyName()
     return str;
 }
 
+const char* GlobalConstants::msgDelayPropertyName()
+{
+    static const char* str = "msg_delay";
+    return str;
+}
+
+const char* GlobalConstants::msgRepeatDurationPropertyName()
+{
+    static const char* str = "msg_repeat_duration";
+    return str;
+}
+
+const char* GlobalConstants::msgRepeatCountPropertyName()
+{
+    static const char* str = "msg_repeat_count";
+    return str;
+}
+
+const char* GlobalConstants::timestampPropertyName()
+{
+    static const char* str = "timestamp";
+    return str;
+}
+
 }  // namespace comms_champion
 
 

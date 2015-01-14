@@ -130,6 +130,11 @@ GuiAppMgr::SendState GuiAppMgr::sendState() const
     return m_sendState;
 }
 
+void GuiAppMgr::sendAddNewMessage(MessageInfoPtr msgInfo)
+{
+    emit sigAddSendMsg(std::move(msgInfo));
+}
+
 GuiAppMgr::GuiAppMgr(QObject* parent)
   : Base(parent),
     m_recvState(RecvState::Idle),

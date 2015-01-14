@@ -120,7 +120,7 @@ void MessageInfo::setProtocolName(const std::string& value)
 
 }
 
-QVariant MessageInfo::getExtraProperty(const std::string& property)
+QVariant MessageInfo::getExtraProperty(const std::string& property) const
 {
     auto iter = m_map.find(property);
     if (iter == m_map.end()) {

@@ -18,11 +18,13 @@
 #include "RecvMsgListWidget.h"
 
 #include <cassert>
+#include <chrono>
 
 #include <QtWidgets/QVBoxLayout>
 
 #include "RecvAreaToolBar.h"
 #include "GuiAppMgr.h"
+#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -46,6 +48,24 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
 void RecvMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
    GuiAppMgr::instance()->recvMsgClicked(msgInfo);
+}
+
+QString RecvMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
+{
+    typedef long long unsigned TimestampType;
+
+    auto timestampVar =
+        msgInfo.getExtraProperty(GlobalConstants::timestampPropertyName());
+    if ((!timestampVar.isValid()) || (!timestampVar.canConvert<TimestampType>())) {
+        auto timestamp =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        return QString("[{%1}]").arg(timestamp, 1, 10, QChar('0'));
+    }
+
+
+    auto timestamp = timestampVar.value<TimestampType>();
+    return QString("[%1]").arg(timestamp, 1, 10, QChar('0'));
 }
 
 } // namespace comms_champion

@@ -55,7 +55,7 @@ public:
     std::string getProtocolName() const;
     void setProtocolName(const std::string& value);
 
-    QVariant getExtraProperty(const std::string& property);
+    QVariant getExtraProperty(const std::string& property) const;
     bool setExtraProperty(const std::string& property, QVariant&& value);
 
 

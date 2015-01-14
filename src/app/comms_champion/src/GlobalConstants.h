@@ -43,6 +43,10 @@ public:
     static QString indexedNamePropertyName(unsigned idx);
     static const char* msgNumberPropertyName();
     static const char* msgObjPropertyName();
+    static const char* msgDelayPropertyName();
+    static const char* msgRepeatDurationPropertyName();
+    static const char* msgRepeatCountPropertyName();
+    static const char* timestampPropertyName();
 
 private:
     GlobalConstants() = default;

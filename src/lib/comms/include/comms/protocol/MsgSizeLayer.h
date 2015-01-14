@@ -300,7 +300,7 @@ private:
         WriteIterator& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
-        const std::random_access_iterator_tag& tag) const
+        std::random_access_iterator_tag) const
     {
         return writeRandomAccessIter(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
@@ -379,7 +379,6 @@ private:
             return ErrorStatus::BufferOverflow;
         }
 
-        typedef typename Field::ValueType ValueType;
         auto es = field.write(iter, Field::length());
         if (es != ErrorStatus::Success) {
             return es;

@@ -27,6 +27,7 @@
 #include <QtWidgets/QPushButton>
 
 #include "DefaultMessageDisplayWidget.h"
+#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -37,7 +38,6 @@ namespace
 QString getMessageNameForList(MessageInfoPtr msgInfo)
 {
     auto msgPtr = msgInfo->getAppMessage();
-    auto* name = msgPtr->name();
     return QString("(%1) %2").arg(msgPtr->idAsString()).arg(msgPtr->name());
 }
 
@@ -68,6 +68,28 @@ void fillDurationComboBox(QComboBox& box)
     for (auto s : Strings) {
         box.addItem(s);
     }
+}
+
+long long unsigned durationToMs(int value, Duration dur)
+{
+    static const long long unsigned Mul[] = {
+        1UL,
+        1UL * 1000,
+        1UL * 1000 * 60,
+        1UL * 1000 * 60 * 60,
+        1UL * 1000 * 60 * 60 * 24
+    };
+
+    static_assert(
+        std::extent<decltype(Mul)>::value == static_cast<long long unsigned>(Duration::NumOfDurations),
+        "Incorrect mapping.");
+
+    if (Duration::NumOfDurations <= dur) {
+        assert(!"Incorrert duration");
+        return static_cast<long long unsigned>(value);
+    }
+
+    return static_cast<long long unsigned>(Mul[static_cast<std::size_t>(dur)] * value);
 }
 
 }  // namespace
@@ -315,6 +337,22 @@ void MessageUpdateDialog::accept()
 {
     m_msgInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
     assert(m_msgInfo);
+
+    m_msgInfo->setExtraProperty(
+        GlobalConstants::msgDelayPropertyName(),
+        QVariant::fromValue(
+            durationToMs(
+                m_ui.m_delaySpinBox->value(),
+                static_cast<Duration>(m_ui.m_delayUnitsComboBox->currentIndex()))));
+    m_msgInfo->setExtraProperty(
+        GlobalConstants::msgRepeatDurationPropertyName(),
+        QVariant::fromValue(
+            durationToMs(
+                m_ui.m_repeatSpinBox->value(),
+                static_cast<Duration>(m_ui.m_repeatUnitsComboBox->currentIndex()))));
+    m_msgInfo->setExtraProperty(
+        GlobalConstants::msgRepeatCountPropertyName(),
+        QVariant::fromValue(m_ui.m_repeatCountSpinBox->value()));
     Base::accept();
 }
 

@@ -56,7 +56,7 @@ void BitmaskValueFieldWidget::refreshImpl()
 
     auto bitIdxLimit = m_wrapper->bitIdxLimit();
     assert(bitIdxLimit == m_checkboxes.size());
-    for (auto idx = 0; idx < bitIdxLimit; ++idx) {
+    for (auto idx = 0U; idx < bitIdxLimit; ++idx) {
         auto* checkbox = m_checkboxes[idx];
         if (checkbox == nullptr) {
             continue;

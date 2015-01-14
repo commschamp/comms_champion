@@ -17,9 +17,13 @@
 
 #include "SendMsgListWidget.h"
 
+#include <cassert>
+
 #include <QtWidgets/QVBoxLayout>
 
 #include "SendAreaToolBar.h"
+#include "GuiAppMgr.h"
+#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -28,6 +32,50 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
   : Base("Messages to Send", new SendAreaToolBar(), parent)
 {
     selectOnAdd(true);
+
+    auto* guiMgr = GuiAppMgr::instance();
+    assert(guiMgr != nullptr);
+    connect(guiMgr, SIGNAL(sigAddSendMsg(MessageInfoPtr)),
+            this, SLOT(addMessage(MessageInfoPtr)));
+}
+
+void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
+{
+    static_cast<void>(msgInfo);
+    assert(!"Not implemented yet");
+}
+
+QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
+{
+    QString str;
+    do {
+        auto delayVar = msgInfo.getExtraProperty(GlobalConstants::msgDelayPropertyName());
+        auto repeatDurVar = msgInfo.getExtraProperty(GlobalConstants::msgRepeatDurationPropertyName());
+        auto repeatCountVar = msgInfo.getExtraProperty(GlobalConstants::msgRepeatCountPropertyName());
+
+        if ((!delayVar.isValid()) ||
+            (!repeatDurVar.isValid()) ||
+            (!repeatCountVar.isValid())) {
+            assert(!"The message info doesn't contain expected properties");
+            break;
+        }
+
+        assert(delayVar.canConvert<long long unsigned>());
+        assert(repeatDurVar.canConvert<long long unsigned>());
+        assert(repeatCountVar.canConvert<long long unsigned>());
+
+        auto delay = delayVar.value<int>();
+        auto repeatDur = repeatDurVar.value<int>();
+        auto repeatCount = repeatCountVar.value<int>();
+
+        str =
+            QString("(%1:%2:%3)").
+                arg(delay, 1, 10, QChar('0')).
+                arg(repeatDur, 1, 10, QChar('0')).
+                arg(repeatCount, 1, 10, QChar('0'));
+
+    } while (false);
+    return str;
 }
 
 } // namespace comms_champion

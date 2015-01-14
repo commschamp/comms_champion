@@ -21,6 +21,11 @@ if (NOT NO_UNITTESTS)
     endif ()
 endif ()
 
+if (CMAKE_COMPILER_IS_GNUCC)
+    ext_add_c_cxx_flags("-Wall" "-Wextra" "-Werror")
+endif ()
+
+
 ext_add_cpp11_support()
 
 add_subdirectory (src)

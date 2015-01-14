@@ -76,6 +76,9 @@ void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
     MessageInfoPtr msgInfo;
     MessageUpdateDialog dialog(msgInfo, std::move(protocol), this);
     dialog.exec();
+    if (msgInfo) {
+        GuiAppMgr::instance()->sendAddNewMessage(std::move(msgInfo));
+    }
 }
 
 }  // namespace comms_champion

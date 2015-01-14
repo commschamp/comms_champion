@@ -70,10 +70,12 @@ Protocol::MessagesList Protocol::readImpl(
 
     auto eraseGuard =
         comms::util::makeScopeGuard(
-            [this, &readIterBeg, &remainingSizeCalc]()
+            [this, &readIterBeg]()
             {
-                auto dist = remainingSizeCalc(readIterBeg);
-                assert(dist <= m_data.size());
+                ReadIterator dataBegin = &m_data[0];
+                auto dist =
+                    static_cast<std::size_t>(
+                        std::distance(dataBegin, readIterBeg));
                 m_data.erase(m_data.begin(), m_data.begin() + dist);
             });
 

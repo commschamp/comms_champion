@@ -99,7 +99,7 @@ void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
     serValue.reserve(numOfDigits);
 
     static const int Step = 2;
-    for (auto i = 0U; i < valueCopy.size(); i += Step) {
+    for (auto i = 0; i < valueCopy.size(); i += Step) {
         QString byteValueStr(valueCopy.data() + i, Step);
         bool ok = false;
         auto byteValue = byteValueStr.toUInt(&ok, 16);

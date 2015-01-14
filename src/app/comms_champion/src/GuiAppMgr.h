@@ -56,6 +56,7 @@ public:
     bool recvMsgListSelectOnAddEnabled();
 
     SendState sendState() const;
+    void sendAddNewMessage(MessageInfoPtr msgInfo);
 
 public slots:
     void configClicked();
@@ -76,6 +77,7 @@ public slots:
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
+    void sigAddSendMsg(MessageInfoPtr msgInfo);
     void sigSetRecvState(int state);
     void sigSetSendState(int state);
     void sigDisplayMsgDetailsWidget(QWidget* widget);

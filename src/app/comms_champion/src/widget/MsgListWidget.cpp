@@ -30,6 +30,7 @@ MsgListWidget::MsgListWidget(
     const QString& listName,
     QWidget* toolbar,
     QWidget* parent)
+  : Base(parent)
 {
     m_ui.setupUi(this);
     m_ui.m_groupBoxLayout->insertWidget(0, toolbar);
@@ -46,7 +47,14 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
     assert(msgInfo);
     auto msg = msgInfo->getAppMessage();
     assert(msg);
-    m_ui.m_listWidget->addItem(msg->name());
+
+    auto itemStr = msgPrefixImpl(*msgInfo);
+    if (!itemStr.isEmpty()) {
+        itemStr.append(": ");
+    }
+    itemStr.append(msg->name());
+
+    m_ui.m_listWidget->addItem(itemStr);
     auto* item = m_ui.m_listWidget->item(m_ui.m_listWidget->count() - 1);
     item->setData(
         Qt::UserRole,
@@ -76,6 +84,12 @@ void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
 {
     static_cast<void>(msgInfo);
+}
+
+QString MsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
+{
+    static_cast<void>(msgInfo);
+    return QString();
 }
 
 void MsgListWidget::itemClicked(QListWidgetItem* item)

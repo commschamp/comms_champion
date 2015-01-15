@@ -26,6 +26,13 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+const QString EmptyStr;
+
+}  // namespace
+
 MsgListWidget::MsgListWidget(
     const QString& listName,
     QWidget* toolbar,
@@ -56,6 +63,7 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
 
     m_ui.m_listWidget->addItem(itemStr);
     auto* item = m_ui.m_listWidget->item(m_ui.m_listWidget->count() - 1);
+    item->setToolTip(msgTooltipImpl());
     item->setData(
         Qt::UserRole,
         QVariant::fromValue(msgInfo));
@@ -96,6 +104,11 @@ QString MsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
     return QString();
 }
 
+const QString& MsgListWidget::msgTooltipImpl() const
+{
+    return EmptyStr;
+}
+
 void MsgListWidget::itemClicked(QListWidgetItem* item)
 {
     msgClickedImpl(getMsgFromItem(item));
@@ -106,7 +119,7 @@ void MsgListWidget::itemDoubleClicked(QListWidgetItem* item)
     msgDoubleClickedImpl(getMsgFromItem(item));
 }
 
-MessageInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item)
+MessageInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item) const
 {
     auto var = item->data(Qt::UserRole);
     assert(var.canConvert<MessageInfoPtr>());

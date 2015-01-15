@@ -68,4 +68,10 @@ QString RecvMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
     return QString("[%1]").arg(timestamp, 1, 10, QChar('0'));
 }
 
+const QString& RecvMsgListWidget::msgTooltipImpl() const
+{
+    static const QString& Tooltip("Click to display");
+    return Tooltip;
+}
+
 } // namespace comms_champion

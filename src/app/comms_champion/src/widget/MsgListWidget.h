@@ -49,13 +49,14 @@ protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo);
     virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo);
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const;
+    virtual const QString& msgTooltipImpl() const;
 
 private slots:
     void itemClicked(QListWidgetItem* item);
     void itemDoubleClicked(QListWidgetItem* item);
 
 private:
-    MessageInfoPtr getMsgFromItem(QListWidgetItem* item);
+    MessageInfoPtr getMsgFromItem(QListWidgetItem* item) const;
 
     Ui::MsgListWidget m_ui;
     bool m_selectOnAdd = false;

@@ -79,4 +79,10 @@ QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
     return str;
 }
 
+const QString& SendMsgListWidget::msgTooltipImpl() const
+{
+    static const QString& Tooltip("Click to display, double click to edit");
+    return Tooltip;
+}
+
 } // namespace comms_champion

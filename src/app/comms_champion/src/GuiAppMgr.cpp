@@ -106,13 +106,20 @@ void GuiAppMgr::sendDeleteClicked()
 
 void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
 {
+    emit sigSendMsgListClearSelection();
     msgClicked(msgInfo);
-    bool selectOnAddEnabled = false;
     if (!m_clickedMsg) {
-        selectOnAddEnabled = true;
         emit sigRecvMsgListClearSelection();
     }
-    emit sigRecvMsgListSelectOnAddEnabled(selectOnAddEnabled);
+}
+
+void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
+{
+    emit sigRecvMsgListClearSelection();
+    msgClicked(msgInfo);
+    if (!m_clickedMsg) {
+        emit sigSendMsgListClearSelection();
+    }
 }
 
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
@@ -132,7 +139,8 @@ GuiAppMgr::SendState GuiAppMgr::sendState() const
 
 void GuiAppMgr::sendAddNewMessage(MessageInfoPtr msgInfo)
 {
-    emit sigAddSendMsg(std::move(msgInfo));
+    emit sigAddSendMsg(msgInfo);
+    sendMsgClicked(msgInfo);
 }
 
 GuiAppMgr::GuiAppMgr(QObject* parent)
@@ -171,12 +179,14 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo)
     assert(msgInfo);
     if (m_clickedMsg == msgInfo) {
         m_clickedMsg.reset();
-        // TODO: display dummy widget
+        emit sigClearDisplayedMsg();
+        emit sigRecvMsgListSelectOnAddEnabled(true);
         return;
     }
 
     m_clickedMsg = msgInfo;
     displayMessage(m_clickedMsg);
+    emit sigRecvMsgListSelectOnAddEnabled(false);
 }
 
 void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)

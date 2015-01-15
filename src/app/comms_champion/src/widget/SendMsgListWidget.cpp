@@ -37,12 +37,13 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
     assert(guiMgr != nullptr);
     connect(guiMgr, SIGNAL(sigAddSendMsg(MessageInfoPtr)),
             this, SLOT(addMessage(MessageInfoPtr)));
+    connect(guiMgr, SIGNAL(sigSendMsgListClearSelection()),
+            this, SLOT(clearSelection()));
 }
 
 void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
-    static_cast<void>(msgInfo);
-    assert(!"Not implemented yet");
+    GuiAppMgr::instance()->sendMsgClicked(std::move(msgInfo));
 }
 
 QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

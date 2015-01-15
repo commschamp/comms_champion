@@ -74,6 +74,7 @@ public slots:
     void sendDeleteClicked();
 
     void recvMsgClicked(MessageInfoPtr msgInfo);
+    void sendMsgClicked(MessageInfoPtr msgInfo);
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
@@ -83,7 +84,9 @@ signals:
     void sigDisplayMsgDetailsWidget(QWidget* widget);
     void sigRecvMsgListSelectOnAddEnabled(bool enabled);
     void sigRecvMsgListClearSelection();
+    void sigSendMsgListClearSelection();
     void sigDisplayMsg(MessageInfoPtr msgInfo);
+    void sigClearDisplayedMsg();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
 
 private:

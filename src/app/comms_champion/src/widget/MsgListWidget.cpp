@@ -62,6 +62,9 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
 
     if (m_selectOnAdd) {
         item->setSelected(true);
+    }
+
+    if (m_ui.m_listWidget->currentRow() < 0) {
         m_ui.m_listWidget->scrollToBottom();
     }
 }
@@ -74,6 +77,7 @@ void MsgListWidget::selectOnAdd(bool enabled)
 void MsgListWidget::clearSelection()
 {
     m_ui.m_listWidget->clearSelection();
+    m_ui.m_listWidget->setCurrentRow(-1);
 }
 
 void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)

@@ -157,6 +157,7 @@ void SendAreaToolBar::stateChanged(int state)
     }
 
     m_state = castedState;
+    refresh();
     return;
 }
 

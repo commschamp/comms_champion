@@ -51,34 +51,9 @@ const QString StartTooltip("Start Reception");
 const QString StopTooltip("Stop Reception");
 const QString SaveTooltip("Save Messages");
 
-void connectStartButton(QAction* action)
-{
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(recvStartClicked()));
-}
-
-void disconnectStartButton(QAction* action)
-{
-    QObject::disconnect(action, SIGNAL(triggered()),
-                        GuiAppMgr::instance(), SLOT(recvStartClicked()));
-}
-
-void connectStopButton(QAction* action)
-{
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(recvStopClicked()));
-}
-
-void disconnectStopButton(QAction* action)
-{
-    QObject::disconnect(action, SIGNAL(triggered()),
-                        GuiAppMgr::instance(), SLOT(recvStopClicked()));
-}
-
 QAction* createStartButton(QToolBar& bar)
 {
     auto* action = bar.addAction(startIcon(), StartTooltip);
-    connectStartButton(action);
     return action;
 }
 
@@ -94,64 +69,94 @@ QAction* createSaveButton(QToolBar& bar)
 }  // namespace
 
 RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
-  : Base(parent)
+  : Base(parent),
+    m_startStopButton(createStartButton(*this)),
+    m_saveButton(createSaveButton(*this)),
+    m_state(GuiAppMgr::instance()->recvState())
 {
-    m_startStopAction = createStartButton(*this);
-    m_saveAction = createSaveButton(*this);
+    connect(
+        m_startStopButton, SIGNAL(triggered()),
+        this, SLOT(startStopClicked()));
 
-    connect(GuiAppMgr::instance(), SIGNAL(sigSetRecvState(int)),
-            this, SLOT(recvStateChanged(int)));
+    auto* guiAppMgr = GuiAppMgr::instance();
+    connect(
+        guiAppMgr, SIGNAL(sigRecvListEmpty(bool)),
+        this, SLOT(recvListEmptyReport(bool)));
 
-    m_stateChangeHandlers[static_cast<int>(State::Idle)] =
-        std::bind(&RecvAreaToolBar::toIdleState, this);
+    connect(
+        guiAppMgr, SIGNAL(sigRecvMsgSelected(bool)),
+        this, SLOT(recvMsgSelectedReport(bool)));
 
-    m_stateChangeHandlers[static_cast<int>(State::Running)] =
-        std::bind(&RecvAreaToolBar::toRunningState, this);
+    connect(
+        guiAppMgr, SIGNAL(sigSetRecvState(int)),
+        this, SLOT(recvStateChanged(int)));
 
-    recvStateChanged(static_cast<int>(GuiAppMgr::instance()->recvState()));
+    refresh();
+}
+
+void RecvAreaToolBar::startStopClicked()
+{
+    if (m_state == State::Idle) {
+        GuiAppMgr::instance()->recvStartClicked();
+        return;
+    }
+
+    assert(m_state == State::Running);
+    GuiAppMgr::instance()->recvStopClicked();
+}
+
+void RecvAreaToolBar::recvListEmptyReport(bool empty)
+{
+    m_listEmpty = empty;
+    refresh();
+}
+
+void RecvAreaToolBar::recvMsgSelectedReport(bool selected)
+{
+    m_msgSelected = selected;
+    refresh();
 }
 
 void RecvAreaToolBar::recvStateChanged(int state)
 {
-    if ((static_cast<int>(m_stateChangeHandlers.size()) <= state) ||
-        (!m_stateChangeHandlers[state])) {
-        assert(!"Invalid recv state reported");
+    auto castedState = static_cast<State>(state);
+    if (m_state == castedState) {
         return;
     }
 
-    m_stateChangeHandlers[state]();
+    m_state = castedState;
+    refresh();
+    return;
 }
 
-void RecvAreaToolBar::toIdleState()
+void RecvAreaToolBar::refresh()
 {
-    if (m_state == State::Idle) {
-        return;
-    }
-
-    disconnectStopButton(m_startStopAction);
-    m_startStopAction->setIcon(startIcon());
-    m_startStopAction->setText(StartTooltip);
-    connectStartButton(m_startStopAction);
-
-    m_saveAction->setEnabled(true);
-
-    m_state = State::Idle;
+    refreshStartStopButton();
+    refreshSaveButton();
 }
 
-void RecvAreaToolBar::toRunningState()
+void RecvAreaToolBar::refreshStartStopButton()
 {
+    auto* button = m_startStopButton;
+    assert(button != nullptr);
     if (m_state == State::Running) {
-        return;
+        button->setIcon(stopIcon());
+        button->setText(StopTooltip);
     }
+    else {
+        button->setIcon(startIcon());
+        button->setText(StartTooltip);
+    }
+}
 
-    disconnectStartButton(m_startStopAction);
-    m_startStopAction->setIcon(stopIcon());
-    m_startStopAction->setText(StopTooltip);
-    connectStopButton(m_startStopAction);
-
-    m_saveAction->setEnabled(false);
-
-    m_state = State::Running;
+void RecvAreaToolBar::refreshSaveButton()
+{
+    auto* button = m_saveButton;
+    assert(button != nullptr);
+    bool enabled =
+        (m_state == State::Idle) &&
+        (!m_listEmpty);
+    button->setEnabled(enabled);
 }
 
 }  // namespace comms_champion

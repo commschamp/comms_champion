@@ -39,22 +39,22 @@ public:
 
     RecvAreaToolBar(QWidget* parent = nullptr);
 
-public slots:
+private slots:
+    void startStopClicked();
+    void recvListEmptyReport(bool empty);
+    void recvMsgSelectedReport(bool selected);
     void recvStateChanged(int state);
 
 private:
+    void refresh();
+    void refreshStartStopButton();
+    void refreshSaveButton();
 
-    using StateChangeHandler = std::function<void ()>;
-    using StateChangeHandlersMap =
-        std::array<StateChangeHandler, static_cast<unsigned>(State::NumOfStates)>;
-
-    void toIdleState();
-    void toRunningState();
-
-    QAction* m_startStopAction = nullptr;
-    QAction* m_saveAction = nullptr;
+    QAction* m_startStopButton = nullptr;
+    QAction* m_saveButton = nullptr;
     State m_state = State::Idle;
-    StateChangeHandlersMap m_stateChangeHandlers;
+    bool m_listEmpty = true;
+    bool m_msgSelected = false;
 };
 
 }  // namespace comms_champion

@@ -107,19 +107,25 @@ void GuiAppMgr::sendDeleteClicked()
 void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
 {
     emit sigSendMsgListClearSelection();
+    emit sigSendMsgSelected(false);
+
     msgClicked(msgInfo);
     if (!m_clickedMsg) {
         emit sigRecvMsgListClearSelection();
     }
+    emit sigRecvMsgSelected(static_cast<bool>(m_clickedMsg));
 }
 
 void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
 {
     emit sigRecvMsgListClearSelection();
+    emit sigRecvMsgSelected(false);
+
     msgClicked(msgInfo);
     if (!m_clickedMsg) {
         emit sigSendMsgListClearSelection();
     }
+    emit sigSendMsgSelected(static_cast<bool>(m_clickedMsg));
 }
 
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
@@ -132,6 +138,11 @@ bool GuiAppMgr::recvMsgListSelectOnAddEnabled()
     return m_recvListSelectOnAdd;
 }
 
+bool GuiAppMgr::recvListEmpty() const
+{
+    return m_recvListCount == 0;
+}
+
 GuiAppMgr::SendState GuiAppMgr::sendState() const
 {
     return m_sendState;
@@ -139,8 +150,18 @@ GuiAppMgr::SendState GuiAppMgr::sendState() const
 
 void GuiAppMgr::sendAddNewMessage(MessageInfoPtr msgInfo)
 {
+    bool wasEmpty = sendListEmpty();
+    ++m_sendListCount;
     emit sigAddSendMsg(msgInfo);
+    if (wasEmpty) {
+        emit sigSendListEmpty(false);
+    }
     sendMsgClicked(msgInfo);
+}
+
+bool GuiAppMgr::sendListEmpty() const
+{
+    return m_sendListCount == 0;
 }
 
 GuiAppMgr::GuiAppMgr(QObject* parent)
@@ -170,7 +191,12 @@ void GuiAppMgr::msgReceived(MessageInfoPtr msgInfo)
     assert(msg);
     std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
 #endif
+    bool wasEmpty = recvListEmpty();
+    ++m_recvListCount;
     emit sigAddRecvMsg(msgInfo);
+    if (wasEmpty) {
+        emit sigRecvListEmpty(false);
+    }
     displayMessageIfNotClicked(msgInfo);
 }
 

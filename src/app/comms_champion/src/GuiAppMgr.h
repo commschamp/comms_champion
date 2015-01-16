@@ -54,9 +54,11 @@ public:
 
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();
+    bool recvListEmpty() const;
 
     SendState sendState() const;
     void sendAddNewMessage(MessageInfoPtr msgInfo);
+    bool sendListEmpty() const;
 
 public slots:
     void configClicked();
@@ -88,6 +90,10 @@ signals:
     void sigDisplayMsg(MessageInfoPtr msgInfo);
     void sigClearDisplayedMsg();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
+    void sigRecvListEmpty(bool empty);
+    void sigSendListEmpty(bool empty);
+    void sigRecvMsgSelected(bool selected);
+    void sigSendMsgSelected(bool selected);
 
 private:
     GuiAppMgr(QObject* parent = nullptr);
@@ -105,9 +111,11 @@ private /*data*/:
 
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;
+    unsigned m_recvListCount = 0;
 
     SendState m_sendState;
     MessageInfoPtr m_clickedMsg;
+    unsigned m_sendListCount = 0;
 };
 
 }  // namespace comms_champion

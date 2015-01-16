@@ -39,6 +39,7 @@ function (bin_comms_champion)
         src/MsgMgr.h
         src/DummySocket.h
         src/widget/RecvAreaToolBar.h
+        src/widget/SendAreaToolBar.h
         src/widget/MsgListWidget.h
         src/widget/MsgDetailsWidget.h
         src/widget/ProtocolsStackWidget.h

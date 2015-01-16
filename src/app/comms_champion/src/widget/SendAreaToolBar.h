@@ -19,15 +19,43 @@
 #pragma once
 
 #include <QtWidgets/QToolBar>
+#include <QtWidgets/QAction>
+
+#include "GuiAppMgr.h"
 
 namespace comms_champion
 {
 
 class SendAreaToolBar : public QToolBar
 {
+    Q_OBJECT
     using Base = QToolBar;
 public:
+    typedef GuiAppMgr::SendState State;
+
     SendAreaToolBar(QWidget* parent = nullptr);
+
+private slots:
+    void sendListEmptyReport(bool empty);
+    void sendMsgSelectedReport(bool selected);
+    void stateChanged(int state);
+
+private:
+    void refresh();
+    void refreshStartStopButton();
+    void refreshStartStopAllButton();
+    void refreshAddButton();
+    void refreshEditButton();
+    void refreshDeleteButton();
+
+    QAction* m_startStopButton = nullptr;
+    QAction* m_startStopAllButton = nullptr;
+    QAction* m_addButton = nullptr;
+    QAction* m_editButton = nullptr;
+    QAction* m_deleteButton = nullptr;
+    State m_state = State::Idle;
+    bool m_listEmpty = true;
+    bool m_msgSelected = false;
 };
 
 }  // namespace comms_champion

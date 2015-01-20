@@ -42,6 +42,7 @@ public:
 
 protected slots:
     void addMessage(MessageInfoPtr msgInfo);
+    void updateCurrentMessage();
     void selectOnAdd(bool enabled);
     void clearSelection();
 
@@ -57,6 +58,7 @@ private slots:
 
 private:
     MessageInfoPtr getMsgFromItem(QListWidgetItem* item) const;
+    QString getMsgNameText(MessageInfoPtr msgInfo);
 
     Ui::MsgListWidget m_ui;
     bool m_selectOnAdd = false;

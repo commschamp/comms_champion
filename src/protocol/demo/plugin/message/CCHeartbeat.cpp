@@ -66,6 +66,14 @@ void CCHeartbeat::resetImpl()
     Base::getFields() = Base::AllFields();
 }
 
+void CCHeartbeat::assignImpl(const comms_champion::Message& other)
+{
+    assert(other.idAsString() == idAsString());
+    auto* castedOther = dynamic_cast<const CCHeartbeat*>(&other);
+    assert(castedOther != nullptr);
+    getFields() = castedOther->getFields();
+}
+
 }  // namespace message
 
 }  // namespace plugin

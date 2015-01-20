@@ -66,9 +66,13 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
 
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(close()));
 
+    auto* guiAppMgr = GuiAppMgr::instance();
     connect(
-        GuiAppMgr::instance(), SIGNAL(sigNewSendMsgDialog(ProtocolPtr)),
+        guiAppMgr, SIGNAL(sigNewSendMsgDialog(ProtocolPtr)),
         this, SLOT(newSendMsgDialog(ProtocolPtr)));
+    connect(
+        guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessageInfoPtr, ProtocolPtr)),
+        this, SLOT(updateSendMsgDialog(MessageInfoPtr, ProtocolPtr)));
 }
 
 void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
@@ -78,6 +82,19 @@ void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
     dialog.exec();
     if (msgInfo) {
         GuiAppMgr::instance()->sendAddNewMessage(std::move(msgInfo));
+    }
+}
+
+void MainWindowWidget::updateSendMsgDialog(
+    MessageInfoPtr msgInfo,
+    ProtocolPtr protocol)
+{
+    assert(msgInfo);
+    MessageUpdateDialog dialog(msgInfo, std::move(protocol), this);
+    int result = dialog.exec();
+    assert(msgInfo);
+    if (result != 0) {
+        GuiAppMgr::instance()->sendUpdateMessage(std::move(msgInfo));
     }
 }
 

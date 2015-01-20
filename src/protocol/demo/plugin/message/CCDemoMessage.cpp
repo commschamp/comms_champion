@@ -19,6 +19,7 @@
 #include "CCDemoMessage.h"
 
 #include <string>
+#include <cassert>
 
 namespace demo
 {
@@ -29,6 +30,17 @@ namespace plugin
 QString CCDemoMessage::idAsStringImpl() const
 {
     return QString("0x%1").arg((int)getId(), 2, 16, QChar('0'));
+}
+
+void CCDemoMessage::resetImpl()
+{
+    assert(!"Mustn't be called");
+}
+
+void CCDemoMessage::assignImpl(const comms_champion::Message& other)
+{
+    static_cast<void>(other);
+    assert(!"Mustn't be called");
 }
 
 }  // namespace plugin

@@ -64,12 +64,6 @@ void CCRawDataMessage::updateFieldPropertiesImpl(
     setNameProperty(fieldWidget, FieldNames[idx]);
 }
 
-void CCRawDataMessage::resetImpl()
-{
-    assert(!"Mustn't be called");
-}
-
-
 }  // namespace message
 
 }  // namespace plugin

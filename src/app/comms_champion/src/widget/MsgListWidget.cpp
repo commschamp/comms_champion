@@ -52,16 +52,7 @@ MsgListWidget::MsgListWidget(
 void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
 {
     assert(msgInfo);
-    auto msg = msgInfo->getAppMessage();
-    assert(msg);
-
-    auto itemStr = msgPrefixImpl(*msgInfo);
-    if (!itemStr.isEmpty()) {
-        itemStr.append(": ");
-    }
-    itemStr.append(msg->name());
-
-    m_ui.m_listWidget->addItem(itemStr);
+    m_ui.m_listWidget->addItem(getMsgNameText(msgInfo));
     auto* item = m_ui.m_listWidget->item(m_ui.m_listWidget->count() - 1);
     item->setToolTip(msgTooltipImpl());
     item->setData(
@@ -75,6 +66,19 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
     if (m_ui.m_listWidget->currentRow() < 0) {
         m_ui.m_listWidget->scrollToBottom();
     }
+}
+
+void MsgListWidget::updateCurrentMessage()
+{
+    auto* item = m_ui.m_listWidget->currentItem();
+    if (item == nullptr) {
+        assert(!"No item is selected for update");
+        return;
+    }
+
+    auto msgInfo = getMsgFromItem(item);
+    assert(msgInfo);
+    item->setText(getMsgNameText(std::move(msgInfo)));
 }
 
 void MsgListWidget::selectOnAdd(bool enabled)
@@ -124,6 +128,20 @@ MessageInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item) const
     auto var = item->data(Qt::UserRole);
     assert(var.canConvert<MessageInfoPtr>());
     return var.value<MessageInfoPtr>();
+}
+
+QString MsgListWidget::getMsgNameText(MessageInfoPtr msgInfo)
+{
+    assert(msgInfo);
+    auto msg = msgInfo->getAppMessage();
+    assert(msg);
+
+    auto itemStr = msgPrefixImpl(*msgInfo);
+    if (!itemStr.isEmpty()) {
+        itemStr.append(": ");
+    }
+    itemStr.append(msg->name());
+    return itemStr;
 }
 
 }  // namespace comms_champion

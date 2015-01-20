@@ -30,6 +30,7 @@ public:
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo) override;
+    virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo) override;
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const override;
     virtual const QString& msgTooltipImpl() const override;
 };

@@ -58,6 +58,7 @@ public:
 
     SendState sendState() const;
     void sendAddNewMessage(MessageInfoPtr msgInfo);
+    void sendUpdateMessage(MessageInfoPtr msgInfo);
     bool sendListEmpty() const;
 
 public slots:
@@ -77,10 +78,12 @@ public slots:
 
     void recvMsgClicked(MessageInfoPtr msgInfo);
     void sendMsgClicked(MessageInfoPtr msgInfo);
+    void sendMsgDoubleClicked(MessageInfoPtr msgInfo);
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
     void sigAddSendMsg(MessageInfoPtr msgInfo);
+    void sigSendMsgUpdated();
     void sigSetRecvState(int state);
     void sigSetSendState(int state);
     void sigDisplayMsgDetailsWidget(QWidget* widget);
@@ -90,6 +93,7 @@ signals:
     void sigDisplayMsg(MessageInfoPtr msgInfo);
     void sigClearDisplayedMsg();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
+    void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
     void sigRecvListEmpty(bool empty);
     void sigSendListEmpty(bool empty);
     void sigRecvMsgSelected(bool selected);

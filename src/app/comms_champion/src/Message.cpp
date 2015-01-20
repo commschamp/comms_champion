@@ -55,6 +55,11 @@ void Message::reset()
     resetImpl();
 }
 
+void Message::assign(const Message& other)
+{
+    assignImpl(other);
+}
+
 void Message::setNameProperty(QWidget& widget, const QString& value)
 {
     widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));

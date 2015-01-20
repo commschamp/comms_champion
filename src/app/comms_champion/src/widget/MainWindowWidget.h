@@ -36,6 +36,7 @@ public:
 
 private slots:
     void newSendMsgDialog(ProtocolPtr protocol);
+    void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
 
 private:
     Ui::MainWindowWidget m_ui;

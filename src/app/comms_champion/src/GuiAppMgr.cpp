@@ -96,7 +96,8 @@ void GuiAppMgr::sendAddClicked()
 
 void GuiAppMgr::sendEditClicked()
 {
-    assert(!"Send edit clicked");
+    assert(m_clickedMsg);
+    emit sigUpdateSendMsgDialog(m_clickedMsg, MsgMgr::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendDeleteClicked()
@@ -128,6 +129,17 @@ void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
     emit sigSendMsgSelected(static_cast<bool>(m_clickedMsg));
 }
 
+void GuiAppMgr::sendMsgDoubleClicked(MessageInfoPtr msgInfo)
+{
+    // Equivalent to selection + edit
+    assert(msgInfo);
+    if (msgInfo != m_clickedMsg) {
+        sendMsgClicked(msgInfo);
+    }
+    assert(m_clickedMsg == msgInfo);
+    sendEditClicked();
+}
+
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
     return m_recvState;
@@ -157,6 +169,15 @@ void GuiAppMgr::sendAddNewMessage(MessageInfoPtr msgInfo)
         emit sigSendListEmpty(false);
     }
     sendMsgClicked(msgInfo);
+}
+
+void GuiAppMgr::sendUpdateMessage(MessageInfoPtr msgInfo)
+{
+    assert(!sendListEmpty());
+    assert(m_clickedMsg);
+    assert(m_clickedMsg == msgInfo);
+    emit sigSendMsgUpdated();
+    displayMessage(std::move(msgInfo));
 }
 
 bool GuiAppMgr::sendListEmpty() const

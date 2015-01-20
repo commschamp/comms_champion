@@ -41,6 +41,7 @@ public:
     void display(MessageDisplayHandler& handler);
     QString idAsString() const;
     void reset();
+    void assign(const Message& other);
 
 protected:
 
@@ -49,6 +50,7 @@ protected:
     virtual void displayImpl(MessageDisplayHandler& handler) = 0;
     virtual QString idAsStringImpl() const = 0;
     virtual void resetImpl() = 0;
+    virtual void assignImpl(const Message& other) = 0;
 
     static void setNameProperty(QWidget& widget, const QString& value);
     static void setIndexedNameProperty(

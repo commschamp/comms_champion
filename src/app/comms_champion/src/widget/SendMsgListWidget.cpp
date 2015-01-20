@@ -37,6 +37,8 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
     assert(guiMgr != nullptr);
     connect(guiMgr, SIGNAL(sigAddSendMsg(MessageInfoPtr)),
             this, SLOT(addMessage(MessageInfoPtr)));
+    connect(guiMgr, SIGNAL(sigSendMsgUpdated()),
+            this, SLOT(updateCurrentMessage()));
     connect(guiMgr, SIGNAL(sigSendMsgListClearSelection()),
             this, SLOT(clearSelection()));
 }
@@ -44,6 +46,11 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
 void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
     GuiAppMgr::instance()->sendMsgClicked(std::move(msgInfo));
+}
+
+void SendMsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
+{
+    GuiAppMgr::instance()->sendMsgDoubleClicked(std::move(msgInfo));
 }
 
 QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

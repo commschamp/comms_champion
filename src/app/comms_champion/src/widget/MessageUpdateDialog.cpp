@@ -35,6 +35,9 @@ namespace comms_champion
 namespace
 {
 
+const std::string& DelayUnitsProperty("send_delay_units_internal");
+const std::string& RepeatUnitsProperty("send_repeat_units_internal");
+
 QString getMessageNameForList(MessageInfoPtr msgInfo)
 {
     auto msgPtr = msgInfo->getAppMessage();
@@ -70,26 +73,38 @@ void fillDurationComboBox(QComboBox& box)
     }
 }
 
+const long long unsigned DurationMul[] = {
+    1UL,
+    1UL * 1000,
+    1UL * 1000 * 60,
+    1UL * 1000 * 60 * 60,
+    1UL * 1000 * 60 * 60 * 24
+};
+
+static_assert(
+    std::extent<decltype(DurationMul)>::value == static_cast<long long unsigned>(Duration::NumOfDurations),
+    "Incorrect mapping.");
+
 long long unsigned durationToMs(int value, Duration dur)
 {
-    static const long long unsigned Mul[] = {
-        1UL,
-        1UL * 1000,
-        1UL * 1000 * 60,
-        1UL * 1000 * 60 * 60,
-        1UL * 1000 * 60 * 60 * 24
-    };
-
-    static_assert(
-        std::extent<decltype(Mul)>::value == static_cast<long long unsigned>(Duration::NumOfDurations),
-        "Incorrect mapping.");
 
     if (Duration::NumOfDurations <= dur) {
         assert(!"Incorrert duration");
         return static_cast<long long unsigned>(value);
     }
 
-    return static_cast<long long unsigned>(Mul[static_cast<std::size_t>(dur)] * value);
+    return static_cast<long long unsigned>(DurationMul[static_cast<std::size_t>(dur)] * value);
+}
+
+int msToDurationUnits(long long unsigned value, Duration dur)
+{
+
+    if (Duration::NumOfDurations <= dur) {
+        assert(!"Incorrert duration");
+        return static_cast<int>(value);
+    }
+
+    return static_cast<int>(value / DurationMul[static_cast<std::size_t>(dur)]);
 }
 
 }  // namespace
@@ -104,6 +119,33 @@ MessageUpdateDialog::MessageUpdateDialog(
     m_allMsgs(m_protocol->createAllMessages()),
     m_msgDisplayWidget(new DefaultMessageDisplayWidget())
 {
+    int msgIdx = -1;
+    if (m_msgInfo) {
+        auto providedAppMsg = m_msgInfo->getAppMessage();
+        assert(providedAppMsg);
+        auto id = providedAppMsg->idAsString();
+        int msgIdxTmp = 0;
+        for (auto& msgInfoTmp : m_allMsgs) {
+            auto appMsgTmp = msgInfoTmp->getAppMessage();
+            assert(appMsgTmp);
+            auto idTmp = appMsgTmp->idAsString();
+            if (idTmp == id) {
+                auto appMsgTmp = msgInfoTmp->getAppMessage();
+                assert(appMsgTmp);
+                auto appMsg = m_msgInfo->getAppMessage();
+                assert(appMsg);
+                appMsgTmp->assign(*appMsg);
+
+                m_protocol->updateMessageInfo(*msgInfoTmp);
+
+                msgIdx = msgIdxTmp;
+                break;
+            }
+           ++msgIdxTmp;
+        }
+    }
+
+
     m_msgDisplayWidget->setEditEnabled(true);
 
     m_ui.setupUi(this);
@@ -121,6 +163,56 @@ MessageUpdateDialog::MessageUpdateDialog(
     m_ui.m_repeatCountSpinBox->setRange(0, std::numeric_limits<int>::max());
 
     refreshDisplayedList(m_ui.m_searchLineEdit->text());
+    if (0 <= msgIdx) {
+        m_ui.m_msgListWidget->setCurrentRow(msgIdx);
+        m_msgDisplayWidget->displayMessage(
+            getMsgFromItem(m_ui.m_msgListWidget->currentItem()));
+
+        auto delayVar = m_msgInfo->getExtraProperty(GlobalConstants::msgDelayPropertyName());
+        auto delayUnitsVar = m_msgInfo->getExtraProperty(DelayUnitsProperty);
+        assert(delayVar.isValid());
+        assert(delayVar.canConvert<long long unsigned>());
+        assert(delayUnitsVar.isValid());
+        assert(delayUnitsVar.canConvert<int>());
+        auto delayUnits = delayUnitsVar.value<int>();
+        auto delay =
+            msToDurationUnits(
+                delayVar.value<long long unsigned>(),
+                static_cast<Duration>(delayUnits));
+        if (delay != 0) {
+            m_prevDelay = delay;
+            m_ui.m_delayUnitsComboBox->setCurrentIndex(delayUnits);
+            m_ui.m_delayCheckBox->setCheckState(Qt::Checked);
+        }
+
+        auto repeatVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatDurationPropertyName());
+        auto repeatUnitsVar = m_msgInfo->getExtraProperty(RepeatUnitsProperty);
+        assert(repeatVar.isValid());
+        assert(repeatVar.canConvert<long long unsigned>());
+        assert(repeatUnitsVar.isValid());
+        assert(repeatUnitsVar.canConvert<int>());
+        auto repeatUnits = repeatUnitsVar.value<int>();
+        auto repeatDuration =
+            msToDurationUnits(
+                repeatVar.value<long long unsigned>(),
+                static_cast<Duration>(repeatUnits));
+        if (repeatDuration != 0) {
+            m_prevRepeatDuration = repeatDuration;
+            m_ui.m_repeatUnitsComboBox->setCurrentIndex(repeatUnits);
+            m_ui.m_repeatCheckBox->setCheckState(Qt::Checked);
+        }
+
+        auto repeatCountVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatCountPropertyName());
+        assert(repeatCountVar.isValid());
+        assert(repeatCountVar.canConvert<int>());
+        auto repeatCount = repeatCountVar.value<int>();
+        if (repeatCount != 0) {
+            m_prevRepeatCount = repeatCount;
+        }
+        else {
+            m_sendIndefinitelyState = Qt::Checked;
+        }
+    }
     refreshDelayInfo(m_ui.m_delayCheckBox->checkState());
     refreshRepeatInfo(m_ui.m_repeatCheckBox->checkState());
     refreshButtons();
@@ -175,6 +267,7 @@ MessageUpdateDialog::MessageUpdateDialog(
     connect(
         resetButton, SIGNAL(clicked()),
         this, SLOT(reset()));
+
 }
 
 void MessageUpdateDialog::msgUpdated()
@@ -335,7 +428,16 @@ void MessageUpdateDialog::indefinitelyUpdated(int checkboxValue)
 
 void MessageUpdateDialog::accept()
 {
-    m_msgInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
+    auto msgInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
+    if (!m_msgInfo) {
+        m_msgInfo = std::move(msgInfo);
+    }
+    else {
+        m_msgInfo->setAppMessage(msgInfo->getAppMessage());
+        m_msgInfo->setTransportMessage(msgInfo->getTransportMessage());
+        m_msgInfo->setRawDataMessage(m_msgInfo->getRawDataMessage());
+    }
+
     assert(m_msgInfo);
 
     m_msgInfo->setExtraProperty(
@@ -344,12 +446,22 @@ void MessageUpdateDialog::accept()
             durationToMs(
                 m_ui.m_delaySpinBox->value(),
                 static_cast<Duration>(m_ui.m_delayUnitsComboBox->currentIndex()))));
+
+    m_msgInfo->setExtraProperty(
+        DelayUnitsProperty,
+        QVariant::fromValue(m_ui.m_delayUnitsComboBox->currentIndex()));
+
     m_msgInfo->setExtraProperty(
         GlobalConstants::msgRepeatDurationPropertyName(),
         QVariant::fromValue(
             durationToMs(
                 m_ui.m_repeatSpinBox->value(),
                 static_cast<Duration>(m_ui.m_repeatUnitsComboBox->currentIndex()))));
+
+    m_msgInfo->setExtraProperty(
+        RepeatUnitsProperty,
+        QVariant::fromValue(m_ui.m_repeatUnitsComboBox->currentIndex()));
+
     m_msgInfo->setExtraProperty(
         GlobalConstants::msgRepeatCountPropertyName(),
         QVariant::fromValue(m_ui.m_repeatCountSpinBox->value()));

@@ -48,6 +48,7 @@ private:
     void refreshAddButton();
     void refreshEditButton();
     void refreshDeleteButton();
+    void refreshClearButton();
 
     QAction* m_startStopButton = nullptr;
     QAction* m_startStopAllButton = nullptr;
@@ -55,6 +56,7 @@ private:
     QAction* m_addButton = nullptr;
     QAction* m_editButton = nullptr;
     QAction* m_deleteButton = nullptr;
+    QAction* m_clearButton = nullptr;
     State m_state = State::Idle;
     bool m_listEmpty = true;
     bool m_msgSelected = false;

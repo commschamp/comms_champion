@@ -105,12 +105,17 @@ void GuiAppMgr::sendDeleteClicked()
     emit sigSendDeleteSelectedMsg();
 }
 
+void GuiAppMgr::sendClearClicked()
+{
+    emit sigSendClear();
+}
+
 void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
 {
     emit sigSendMsgListClearSelection();
     emit sigSendMsgSelected(false);
 
-    msgClicked(msgInfo);
+    msgClicked(msgInfo, SelectionType::Recv);
     if (!m_clickedMsg) {
         emit sigRecvMsgListClearSelection();
     }
@@ -122,7 +127,7 @@ void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
     emit sigRecvMsgListClearSelection();
     emit sigRecvMsgSelected(false);
 
-    msgClicked(msgInfo);
+    msgClicked(msgInfo, SelectionType::Send);
     if (!m_clickedMsg) {
         emit sigSendMsgListClearSelection();
     }
@@ -144,6 +149,7 @@ void GuiAppMgr::sendMsgDeleted(MessageInfoPtr msgInfo)
 {
     static_cast<void>(msgInfo);
     assert(!sendListEmpty());
+    assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg == msgInfo);
     clearDisplayedMessage();
     --m_sendListCount;
@@ -151,6 +157,21 @@ void GuiAppMgr::sendMsgDeleted(MessageInfoPtr msgInfo)
         emit sigSendListEmpty(true);
     }
     emit sigSendMsgSelected(false);
+}
+
+void GuiAppMgr::sendListCleared()
+{
+    assert(0 < m_sendListCount);
+    bool wasSelected = (m_selType == SelectionType::Send);
+    assert((!wasSelected) || (m_clickedMsg));
+
+    m_sendListCount = 0;
+    emit sigSendListEmpty(true);
+
+    if (wasSelected) {
+        clearDisplayedMessage();
+        emit sigSendMsgSelected(false);
+    }
 }
 
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
@@ -182,6 +203,8 @@ void GuiAppMgr::sendAddNewMessage(MessageInfoPtr msgInfo)
         emit sigSendListEmpty(false);
     }
     sendMsgClicked(msgInfo);
+    assert(m_selType == SelectionType::Send);
+    assert(m_clickedMsg);
 }
 
 void GuiAppMgr::sendUpdateMessage(MessageInfoPtr msgInfo)
@@ -234,15 +257,18 @@ void GuiAppMgr::msgReceived(MessageInfoPtr msgInfo)
     displayMessageIfNotClicked(msgInfo);
 }
 
-void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo)
+void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
 {
     assert(msgInfo);
     if (m_clickedMsg == msgInfo) {
+        assert(selType == m_selType);
+        m_selType = SelectionType::None;
         clearDisplayedMessage();
         emit sigRecvMsgListSelectOnAddEnabled(true);
         return;
     }
 
+    m_selType = selType;
     m_clickedMsg = msgInfo;
     displayMessage(m_clickedMsg);
     emit sigRecvMsgListSelectOnAddEnabled(false);
@@ -262,6 +288,7 @@ void GuiAppMgr::displayMessageIfNotClicked(MessageInfoPtr msgInfo)
 
 void GuiAppMgr::clearDisplayedMessage()
 {
+    m_selType = SelectionType::Send;
     m_clickedMsg.reset();
     emit sigClearDisplayedMsg();
 }

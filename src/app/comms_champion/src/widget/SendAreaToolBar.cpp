@@ -75,6 +75,12 @@ const QIcon& deleteIcon()
     return Icon;
 }
 
+const QIcon& clearIcon()
+{
+    static const QIcon Icon(":/image/edit-clear.png");
+    return Icon;
+}
+
 QAction* createStartButton(QToolBar& bar)
 {
     auto* action = bar.addAction(startIcon(), StartTooltip);
@@ -124,6 +130,15 @@ QAction* createDeleteButton(QToolBar& bar)
     return action;
 }
 
+QAction* createClearButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(clearIcon(), "Delete All Messages");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendClearClicked()));
+    return action;
+}
+
+
 }  // namespace
 
 SendAreaToolBar::SendAreaToolBar(QWidget* parent)
@@ -134,6 +149,7 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
     m_addButton(createAddButton(*this)),
     m_editButton(createEditButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
+    m_clearButton(createClearButton(*this)),
     m_state(GuiAppMgr::instance()->sendState()),
     m_listEmpty(GuiAppMgr::instance()->sendListEmpty())
 {
@@ -186,6 +202,7 @@ void SendAreaToolBar::refresh()
     refreshAddButton();
     refreshEditButton();
     refreshDeleteButton();
+    refreshClearButton();
 }
 
 void SendAreaToolBar::refreshStartStopButton()
@@ -257,6 +274,16 @@ void SendAreaToolBar::refreshDeleteButton()
     bool enabled =
         (m_state == State::Idle) &&
         (m_msgSelected);
+    button->setEnabled(enabled);
+}
+
+void SendAreaToolBar::refreshClearButton()
+{
+    auto* button = m_clearButton;
+    assert(button);
+    bool enabled =
+        (m_state == State::Idle) &&
+        (!m_listEmpty);
     button->setEnabled(enabled);
 }
 

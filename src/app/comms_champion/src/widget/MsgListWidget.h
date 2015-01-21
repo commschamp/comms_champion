@@ -46,11 +46,13 @@ protected slots:
     void deleteCurrentMessage();
     void selectOnAdd(bool enabled);
     void clearSelection();
+    void clear();
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo);
     virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo);
     virtual void msgDeletedImpl(MessageInfoPtr msgInfo);
+    virtual void listClearedImpl();
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const;
     virtual const QString& msgTooltipImpl() const;
 

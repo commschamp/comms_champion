@@ -112,6 +112,12 @@ void MsgListWidget::clearSelection()
     m_ui.m_listWidget->setCurrentRow(-1);
 }
 
+void MsgListWidget::clear()
+{
+    m_ui.m_listWidget->clear();
+    listClearedImpl();
+}
+
 void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
     static_cast<void>(msgInfo);
@@ -125,6 +131,10 @@ void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
 void MsgListWidget::msgDeletedImpl(MessageInfoPtr msgInfo)
 {
     static_cast<void>(msgInfo);
+}
+
+void MsgListWidget::listClearedImpl()
+{
 }
 
 QString MsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

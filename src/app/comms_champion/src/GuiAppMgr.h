@@ -75,11 +75,13 @@ public slots:
     void sendAddClicked();
     void sendEditClicked();
     void sendDeleteClicked();
+    void sendClearClicked();
 
     void recvMsgClicked(MessageInfoPtr msgInfo);
     void sendMsgClicked(MessageInfoPtr msgInfo);
     void sendMsgDoubleClicked(MessageInfoPtr msgInfo);
     void sendMsgDeleted(MessageInfoPtr msgInfo);
+    void sendListCleared();
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
@@ -100,8 +102,16 @@ signals:
     void sigRecvMsgSelected(bool selected);
     void sigSendMsgSelected(bool selected);
     void sigSendDeleteSelectedMsg();
+    void sigSendClear();
 
 private:
+    enum class SelectionType
+    {
+        None,
+        Recv,
+        Send
+    };
+
     GuiAppMgr(QObject* parent = nullptr);
     void emitRecvStateUpdate();
     void emitSendStateUpdate();
@@ -111,7 +121,7 @@ private slots:
 
 private /*data*/:
 
-    void msgClicked(MessageInfoPtr msgInfo);
+    void msgClicked(MessageInfoPtr msgInfo, SelectionType selType);
     void displayMessage(MessageInfoPtr msgInfo);
     void displayMessageIfNotClicked(MessageInfoPtr msgInfo);
     void clearDisplayedMessage();
@@ -121,8 +131,10 @@ private /*data*/:
     unsigned m_recvListCount = 0;
 
     SendState m_sendState;
-    MessageInfoPtr m_clickedMsg;
     unsigned m_sendListCount = 0;
+
+    SelectionType m_selType = SelectionType::None;
+    MessageInfoPtr m_clickedMsg;
 };
 
 }  // namespace comms_champion

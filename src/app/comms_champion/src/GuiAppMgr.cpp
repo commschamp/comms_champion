@@ -102,7 +102,7 @@ void GuiAppMgr::sendEditClicked()
 
 void GuiAppMgr::sendDeleteClicked()
 {
-    assert(!"Send delete clicked");
+    emit sigSendDeleteSelectedMsg();
 }
 
 void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
@@ -138,6 +138,19 @@ void GuiAppMgr::sendMsgDoubleClicked(MessageInfoPtr msgInfo)
     }
     assert(m_clickedMsg == msgInfo);
     sendEditClicked();
+}
+
+void GuiAppMgr::sendMsgDeleted(MessageInfoPtr msgInfo)
+{
+    static_cast<void>(msgInfo);
+    assert(!sendListEmpty());
+    assert(m_clickedMsg == msgInfo);
+    clearDisplayedMessage();
+    --m_sendListCount;
+    if (sendListEmpty()) {
+        emit sigSendListEmpty(true);
+    }
+    emit sigSendMsgSelected(false);
 }
 
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
@@ -225,8 +238,7 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo)
 {
     assert(msgInfo);
     if (m_clickedMsg == msgInfo) {
-        m_clickedMsg.reset();
-        emit sigClearDisplayedMsg();
+        clearDisplayedMessage();
         emit sigRecvMsgListSelectOnAddEnabled(true);
         return;
     }
@@ -246,6 +258,12 @@ void GuiAppMgr::displayMessageIfNotClicked(MessageInfoPtr msgInfo)
     if (!m_clickedMsg) {
         displayMessage(msgInfo);
     }
+}
+
+void GuiAppMgr::clearDisplayedMessage()
+{
+    m_clickedMsg.reset();
+    emit sigClearDisplayedMsg();
 }
 
 }  // namespace comms_champion

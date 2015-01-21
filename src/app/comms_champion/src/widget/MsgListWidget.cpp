@@ -60,7 +60,9 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
         QVariant::fromValue(msgInfo));
 
     if (m_selectOnAdd) {
-        item->setSelected(true);
+//        item->setSelected(true);
+        m_ui.m_listWidget->setCurrentItem(item);
+//        assert(m_ui.m_listWidget->currentItem() == item);
     }
 
     if (m_ui.m_listWidget->currentRow() < 0) {
@@ -81,6 +83,24 @@ void MsgListWidget::updateCurrentMessage()
     item->setText(getMsgNameText(std::move(msgInfo)));
 }
 
+void MsgListWidget::deleteCurrentMessage()
+{
+    auto* item = m_ui.m_listWidget->currentItem();
+    if (item == nullptr) {
+        assert(!"No item is selected for deletion");
+        return;
+    }
+
+    auto msgInfo = getMsgFromItem(item);
+    delete item; // will remove from the list
+    msgDeletedImpl(std::move(msgInfo));
+
+    auto* nextItem = m_ui.m_listWidget->currentItem();
+    if (nextItem != nullptr) {
+        itemClicked(nextItem);
+    }
+}
+
 void MsgListWidget::selectOnAdd(bool enabled)
 {
     m_selectOnAdd = enabled;
@@ -98,6 +118,11 @@ void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 }
 
 void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
+{
+    static_cast<void>(msgInfo);
+}
+
+void MsgListWidget::msgDeletedImpl(MessageInfoPtr msgInfo)
 {
     static_cast<void>(msgInfo);
 }

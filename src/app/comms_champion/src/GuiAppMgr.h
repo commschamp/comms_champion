@@ -79,6 +79,7 @@ public slots:
     void recvMsgClicked(MessageInfoPtr msgInfo);
     void sendMsgClicked(MessageInfoPtr msgInfo);
     void sendMsgDoubleClicked(MessageInfoPtr msgInfo);
+    void sendMsgDeleted(MessageInfoPtr msgInfo);
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
@@ -98,6 +99,7 @@ signals:
     void sigSendListEmpty(bool empty);
     void sigRecvMsgSelected(bool selected);
     void sigSendMsgSelected(bool selected);
+    void sigSendDeleteSelectedMsg();
 
 private:
     GuiAppMgr(QObject* parent = nullptr);
@@ -112,6 +114,7 @@ private /*data*/:
     void msgClicked(MessageInfoPtr msgInfo);
     void displayMessage(MessageInfoPtr msgInfo);
     void displayMessageIfNotClicked(MessageInfoPtr msgInfo);
+    void clearDisplayedMessage();
 
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;

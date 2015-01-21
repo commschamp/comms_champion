@@ -31,6 +31,7 @@ namespace
 const QString StartTooltip("Send Selected");
 const QString StartAllTooltip("Send All");
 const QString StopTooltip("Stop Sending");
+const QString SaveTooltip("Save Messages");
 
 const QIcon& startIcon()
 {
@@ -47,6 +48,12 @@ const QIcon& startAllIcon()
 const QIcon& stopIcon()
 {
     static const QIcon Icon(":/image/stop.png");
+    return Icon;
+}
+
+const QIcon& saveIcon()
+{
+    static const QIcon Icon(":/image/save.png");
     return Icon;
 }
 
@@ -84,6 +91,15 @@ QAction* createStartAllButton(QToolBar& bar)
     return action;
 }
 
+QAction* createSaveButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(saveIcon(), SaveTooltip);
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendSaveClicked()));
+
+    return action;
+}
+
 QAction* createAddButton(QToolBar& bar)
 {
     auto* action = bar.addAction(addIcon(), "Add New Message");
@@ -114,6 +130,7 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
   : Base(parent),
     m_startStopButton(createStartButton(*this)),
     m_startStopAllButton(createStartAllButton(*this)),
+    m_saveButton(createSaveButton(*this)),
     m_addButton(createAddButton(*this)),
     m_editButton(createEditButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
@@ -165,6 +182,7 @@ void SendAreaToolBar::refresh()
 {
     refreshStartStopButton();
     refreshStartStopAllButton();
+    refreshSaveButton();
     refreshAddButton();
     refreshEditButton();
     refreshDeleteButton();
@@ -202,6 +220,16 @@ void SendAreaToolBar::refreshStartStopAllButton()
         button->setIcon(startAllIcon());
         button->setText(StartAllTooltip);
     }
+}
+
+void SendAreaToolBar::refreshSaveButton()
+{
+    auto* button = m_saveButton;
+    assert(button != nullptr);
+    bool enabled =
+        (m_state == State::Idle) &&
+        (!m_listEmpty);
+    button->setEnabled(enabled);
 }
 
 void SendAreaToolBar::refreshAddButton()

@@ -44,12 +44,14 @@ private:
     void refresh();
     void refreshStartStopButton();
     void refreshStartStopAllButton();
+    void refreshSaveButton();
     void refreshAddButton();
     void refreshEditButton();
     void refreshDeleteButton();
 
     QAction* m_startStopButton = nullptr;
     QAction* m_startStopAllButton = nullptr;
+    QAction* m_saveButton = nullptr;
     QAction* m_addButton = nullptr;
     QAction* m_editButton = nullptr;
     QAction* m_deleteButton = nullptr;

@@ -43,12 +43,14 @@ public:
 protected slots:
     void addMessage(MessageInfoPtr msgInfo);
     void updateCurrentMessage();
+    void deleteCurrentMessage();
     void selectOnAdd(bool enabled);
     void clearSelection();
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo);
     virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo);
+    virtual void msgDeletedImpl(MessageInfoPtr msgInfo);
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const;
     virtual const QString& msgTooltipImpl() const;
 

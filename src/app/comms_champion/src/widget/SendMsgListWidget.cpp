@@ -39,6 +39,8 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
             this, SLOT(addMessage(MessageInfoPtr)));
     connect(guiMgr, SIGNAL(sigSendMsgUpdated()),
             this, SLOT(updateCurrentMessage()));
+    connect(guiMgr, SIGNAL(sigSendDeleteSelectedMsg()),
+            this, SLOT(deleteCurrentMessage()));
     connect(guiMgr, SIGNAL(sigSendMsgListClearSelection()),
             this, SLOT(clearSelection()));
 }
@@ -51,6 +53,11 @@ void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 void SendMsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
 {
     GuiAppMgr::instance()->sendMsgDoubleClicked(std::move(msgInfo));
+}
+
+void SendMsgListWidget::msgDeletedImpl(MessageInfoPtr msgInfo)
+{
+    GuiAppMgr::instance()->sendMsgDeleted(std::move(msgInfo));
 }
 
 QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

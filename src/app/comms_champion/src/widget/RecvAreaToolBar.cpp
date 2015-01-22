@@ -47,9 +47,14 @@ const QIcon& saveIcon()
     return Icon;
 }
 
+const QIcon& deleteIcon()
+{
+    static const QIcon Icon(":/image/delete.png");
+    return Icon;
+}
+
 const QString StartTooltip("Start Reception");
 const QString StopTooltip("Stop Reception");
-const QString SaveTooltip("Save Messages");
 
 QAction* createStartButton(QToolBar& bar)
 {
@@ -59,10 +64,18 @@ QAction* createStartButton(QToolBar& bar)
 
 QAction* createSaveButton(QToolBar& bar)
 {
-    auto* action = bar.addAction(saveIcon(), SaveTooltip);
+    auto* action = bar.addAction(saveIcon(), "Save Messages");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvSaveClicked()));
 
+    return action;
+}
+
+QAction* createDeleteButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(deleteIcon(), "Delete Selected Message");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(recvDeleteClicked()));
     return action;
 }
 
@@ -72,6 +85,7 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
   : Base(parent),
     m_startStopButton(createStartButton(*this)),
     m_saveButton(createSaveButton(*this)),
+    m_deleteButton(createDeleteButton(*this)),
     m_state(GuiAppMgr::instance()->recvState())
 {
     connect(
@@ -133,6 +147,7 @@ void RecvAreaToolBar::refresh()
 {
     refreshStartStopButton();
     refreshSaveButton();
+    refreshDeleteButton();
 }
 
 void RecvAreaToolBar::refreshStartStopButton()
@@ -156,6 +171,14 @@ void RecvAreaToolBar::refreshSaveButton()
     bool enabled =
         (m_state == State::Idle) &&
         (!m_listEmpty);
+    button->setEnabled(enabled);
+}
+
+void RecvAreaToolBar::refreshDeleteButton()
+{
+    auto* button = m_deleteButton;
+    assert(button);
+    bool enabled = m_msgSelected;
     button->setEnabled(enabled);
 }
 

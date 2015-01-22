@@ -67,6 +67,7 @@ public slots:
     void recvStartClicked();
     void recvStopClicked();
     void recvSaveClicked();
+    void recvDeleteClicked();
 
     void sendStartClicked();
     void sendStartAllClicked();
@@ -78,6 +79,7 @@ public slots:
     void sendClearClicked();
 
     void recvMsgClicked(MessageInfoPtr msgInfo);
+    void recvMsgDeleted(MessageInfoPtr msgInfo);
     void sendMsgClicked(MessageInfoPtr msgInfo);
     void sendMsgDoubleClicked(MessageInfoPtr msgInfo);
     void sendMsgDeleted(MessageInfoPtr msgInfo);
@@ -101,6 +103,7 @@ signals:
     void sigSendListEmpty(bool empty);
     void sigRecvMsgSelected(bool selected);
     void sigSendMsgSelected(bool selected);
+    void sigRecvDeleteSelectedMsg();
     void sigSendDeleteSelectedMsg();
     void sigSendClear();
 

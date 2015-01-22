@@ -48,6 +48,8 @@ public:
     ProtocolPtr getProtocol() const;
     void setRecvEnabled(bool enabled);
 
+    void deleteRecvMsg(MessageInfoPtr msgInfo);
+
 signals:
     void sigMsgReceived(MessageInfoPtr msgInfo);
 

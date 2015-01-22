@@ -63,6 +63,11 @@ void GuiAppMgr::recvSaveClicked()
     assert(!"Recv save clicked");
 }
 
+void GuiAppMgr::recvDeleteClicked()
+{
+    emit sigRecvDeleteSelectedMsg();
+}
+
 void GuiAppMgr::sendStartClicked()
 {
     assert(!"Send start clicked");
@@ -120,6 +125,21 @@ void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
         emit sigRecvMsgListClearSelection();
     }
     emit sigRecvMsgSelected(static_cast<bool>(m_clickedMsg));
+}
+
+void GuiAppMgr::recvMsgDeleted(MessageInfoPtr msgInfo)
+{
+    static_cast<void>(msgInfo);
+    assert(!recvListEmpty());
+    assert(m_selType == SelectionType::Recv);
+    assert(m_clickedMsg == msgInfo);
+    clearDisplayedMessage();
+    --m_recvListCount;
+    if (recvListEmpty()) {
+        emit sigRecvListEmpty(true);
+    }
+    emit sigRecvMsgSelected(false);
+    MsgMgr::instanceRef().deleteRecvMsg(std::move(msgInfo));
 }
 
 void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)

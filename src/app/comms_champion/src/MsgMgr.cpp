@@ -92,6 +92,40 @@ void MsgMgr::setRecvEnabled(bool enabled)
     }
 }
 
+void MsgMgr::deleteRecvMsg(MessageInfoPtr msgInfo)
+{
+    assert(!m_recvMsgs.empty());
+    assert(msgInfo);
+
+    auto msgNumFromMsgInfoFunc =
+        [](const MessageInfo& info) -> MsgNumberType
+        {
+            auto msgNumVar = info.getExtraProperty(
+                GlobalConstants::msgNumberPropertyName());
+            assert(msgNumVar.isValid());
+            assert(msgNumVar.canConvert<MsgNumberType>());
+            return msgNumVar.value<MsgNumberType>();
+        };
+
+    auto msgNum = msgNumFromMsgInfoFunc(*msgInfo);
+
+    auto iter = std::lower_bound(
+        m_recvMsgs.begin(),
+        m_recvMsgs.end(),
+        msgNum,
+        [&msgNumFromMsgInfoFunc](const MessageInfoPtr& msgInfoTmp, MsgNumberType val) -> bool
+        {
+            return msgNumFromMsgInfoFunc(*msgInfoTmp) < val;
+        });
+
+    if (iter == m_recvMsgs.end()) {
+        assert(!"Deleting non existing message.");
+        return;
+    }
+
+    m_recvMsgs.erase(iter);
+}
+
 void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
     if ((!m_recvEnabled) || !(m_protocol)) {
@@ -110,16 +144,18 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
             GlobalConstants::msgNumberPropertyName(),
             QVariant::fromValue(m_nextMsgNum));
         ++m_nextMsgNum;
+        assert(0 < m_nextMsgNum); // wrap around is not supported
         emit sigMsgReceived(msgInfo);
     }
 
     m_recvMsgs.reserve(m_recvMsgs.size() + msgsList.size());
-     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_recvMsgs));
+    std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_recvMsgs));
 }
 
 MsgMgr::MsgMgr(QObject* parent)
   : Base(parent)
 {
+    m_recvMsgs.reserve(1024);
 }
 
 }  // namespace comms_champion

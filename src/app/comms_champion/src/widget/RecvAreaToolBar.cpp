@@ -53,6 +53,12 @@ const QIcon& deleteIcon()
     return Icon;
 }
 
+const QIcon& clearIcon()
+{
+    static const QIcon Icon(":/image/edit-clear.png");
+    return Icon;
+}
+
 const QString StartTooltip("Start Reception");
 const QString StopTooltip("Stop Reception");
 
@@ -79,6 +85,14 @@ QAction* createDeleteButton(QToolBar& bar)
     return action;
 }
 
+QAction* createClearButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(clearIcon(), "Delete All Messages");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(recvClearClicked()));
+    return action;
+}
+
 }  // namespace
 
 RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
@@ -86,6 +100,7 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
     m_startStopButton(createStartButton(*this)),
     m_saveButton(createSaveButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
+    m_clearButton(createClearButton(*this)),
     m_state(GuiAppMgr::instance()->recvState())
 {
     connect(
@@ -148,6 +163,7 @@ void RecvAreaToolBar::refresh()
     refreshStartStopButton();
     refreshSaveButton();
     refreshDeleteButton();
+    refreshClearButton();
 }
 
 void RecvAreaToolBar::refreshStartStopButton()
@@ -179,6 +195,14 @@ void RecvAreaToolBar::refreshDeleteButton()
     auto* button = m_deleteButton;
     assert(button);
     bool enabled = m_msgSelected;
+    button->setEnabled(enabled);
+}
+
+void RecvAreaToolBar::refreshClearButton()
+{
+    auto* button = m_clearButton;
+    assert(button);
+    bool enabled = (!m_listEmpty);
     button->setEnabled(enabled);
 }
 

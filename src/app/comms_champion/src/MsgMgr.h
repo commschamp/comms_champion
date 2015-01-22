@@ -49,6 +49,7 @@ public:
     void setRecvEnabled(bool enabled);
 
     void deleteRecvMsg(MessageInfoPtr msgInfo);
+    void deleteAllRecvMsgs();
 
 signals:
     void sigMsgReceived(MessageInfoPtr msgInfo);

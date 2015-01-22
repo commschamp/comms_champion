@@ -126,6 +126,11 @@ void MsgMgr::deleteRecvMsg(MessageInfoPtr msgInfo)
     m_recvMsgs.erase(iter);
 }
 
+void MsgMgr::deleteAllRecvMsgs()
+{
+    m_recvMsgs.clear();
+}
+
 void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
     if ((!m_recvEnabled) || !(m_protocol)) {

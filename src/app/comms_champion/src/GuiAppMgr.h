@@ -37,17 +37,24 @@ class GuiAppMgr : public QObject
     typedef QObject Base;
 public:
 
+    typedef MsgMgr::MsgInfosList MsgInfosList;
+
     enum class RecvState {
         Idle,
         Running,
         NumOfStates
     };
 
-    enum SendState {
+    enum class SendState {
         Idle,
         SendingSingle,
         SendingAll,
         NumOfStates
+    };
+
+    enum class MsgType {
+        Received,
+        Sent
     };
 
     static GuiAppMgr* instance();
@@ -60,6 +67,7 @@ public:
     void sendAddNewMessage(MessageInfoPtr msgInfo);
     void sendUpdateMessage(MessageInfoPtr msgInfo);
     bool sendListEmpty() const;
+    void sendMessages(MsgInfosList&& msgs);
 
 public slots:
     void configClicked();
@@ -125,6 +133,8 @@ private:
 
 private slots:
     void msgReceived(MessageInfoPtr msgInfo);
+    void msgSent(MessageInfoPtr msgInfo);
+    void sendPendingAndWait();
 
 private /*data*/:
 
@@ -132,16 +142,19 @@ private /*data*/:
     void displayMessage(MessageInfoPtr msgInfo);
     void displayMessageIfNotClicked(MessageInfoPtr msgInfo);
     void clearDisplayedMessage();
+    void addMsgToRecvList(MessageInfoPtr msgInfo, MsgType type);
 
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;
     unsigned m_recvListCount = 0;
+    bool m_recvListContainsSent = true;
 
     SendState m_sendState;
     unsigned m_sendListCount = 0;
 
     SelectionType m_selType = SelectionType::None;
     MessageInfoPtr m_clickedMsg;
+    MsgInfosList m_msgsToSend;
 };
 
 }  // namespace comms_champion

@@ -45,6 +45,8 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
             this, SLOT(clearSelection()));
     connect(guiMgr, SIGNAL(sigSendClear()),
             this, SLOT(clear()));
+    connect(guiMgr, SIGNAL(sigSetSendState(int)),
+            this, SLOT(stateChanged(int)));
 }
 
 void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
@@ -104,6 +106,30 @@ const QString& SendMsgListWidget::msgTooltipImpl() const
 {
     static const QString& Tooltip("Click to display, double click to edit");
     return Tooltip;
+}
+
+void SendMsgListWidget::stateChangedImpl(int state)
+{
+    typedef GuiAppMgr::SendState State;
+    auto castedState = static_cast<State>(state);
+    assert(castedState < State::NumOfStates);
+    if (static_cast<State>(state) == State::Idle) {
+        return;
+    }
+
+    if (static_cast<State>(state) == State::SendingSingle) {
+        auto msgInfo = currentMsg();
+        assert(msgInfo);
+        MsgInfosList allMsgsList;
+        allMsgsList.push_back(std::move(msgInfo));
+        GuiAppMgr::instance()->sendMessages(std::move(allMsgsList));
+        return;
+    }
+
+    assert(static_cast<State>(state) == State::SendingAll);
+    auto allMsgsList = allMsgs();
+    assert(!allMsgsList.empty());
+    GuiAppMgr::instance()->sendMessages(std::move(allMsgsList));
 }
 
 } // namespace comms_champion

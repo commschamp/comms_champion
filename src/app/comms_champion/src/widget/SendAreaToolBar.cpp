@@ -84,16 +84,12 @@ const QIcon& clearIcon()
 QAction* createStartButton(QToolBar& bar)
 {
     auto* action = bar.addAction(startIcon(), StartTooltip);
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendStartClicked()));
     return action;
 }
 
 QAction* createStartAllButton(QToolBar& bar)
 {
     auto* action = bar.addAction(startAllIcon(), StartAllTooltip);
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendStartAllClicked()));
     return action;
 }
 
@@ -153,6 +149,14 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
     m_state(GuiAppMgr::instance()->sendState()),
     m_listEmpty(GuiAppMgr::instance()->sendListEmpty())
 {
+    connect(
+        m_startStopButton, SIGNAL(triggered()),
+        this, SLOT(startStopClicked()));
+
+    connect(
+        m_startStopAllButton, SIGNAL(triggered()),
+        this, SLOT(startStopAllClicked()));
+
     auto* guiAppMgr = GuiAppMgr::instance();
     connect(
         guiAppMgr, SIGNAL(sigSendListEmpty(bool)),
@@ -194,6 +198,28 @@ void SendAreaToolBar::stateChanged(int state)
     return;
 }
 
+void SendAreaToolBar::startStopClicked()
+{
+    if (m_state == State::Idle) {
+        GuiAppMgr::instance()->sendStartClicked();
+        return;
+    }
+
+    assert(m_state == State::SendingSingle);
+    GuiAppMgr::instance()->sendStopClicked();
+}
+
+void SendAreaToolBar::startStopAllClicked()
+{
+    if (m_state == State::Idle) {
+        GuiAppMgr::instance()->sendStartAllClicked();
+        return;
+    }
+
+    assert(m_state == State::SendingAll);
+    GuiAppMgr::instance()->sendStopClicked();
+}
+
 void SendAreaToolBar::refresh()
 {
     refreshStartStopButton();
@@ -209,7 +235,10 @@ void SendAreaToolBar::refreshStartStopButton()
 {
     auto* button = m_startStopButton;
     assert(button);
-    bool enabled = (!m_listEmpty) && m_msgSelected;
+    bool enabled =
+        (!m_listEmpty) &&
+        (m_msgSelected) &&
+        ((m_state == State::SendingSingle) || (m_state == State::Idle));
     button->setEnabled(enabled);
 
     if (m_state == State::SendingSingle) {
@@ -226,7 +255,10 @@ void SendAreaToolBar::refreshStartStopAllButton()
 {
     auto* button = m_startStopAllButton;
     assert(button);
-    bool enabled = !m_listEmpty;
+    bool enabled =
+        (!m_listEmpty) &&
+        ((m_state == State::SendingAll) || (m_state == State::Idle));
+
     button->setEnabled(enabled);
 
     if (m_state == State::SendingAll) {

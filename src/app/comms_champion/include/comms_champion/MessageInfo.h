@@ -75,6 +75,13 @@ MessageInfoPtr makeMessageInfo()
     return MessageInfoPtr(new MessageInfo());
 }
 
+inline
+MessageInfoPtr makeMessageInfoCopy(const MessageInfo& msgInfo)
+{
+    return MessageInfoPtr(new MessageInfo(msgInfo));
+}
+
+
 }  // namespace comms_champion
 
 Q_DECLARE_METATYPE(comms_champion::MessageInfo::MessagePtr);

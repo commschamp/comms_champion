@@ -38,6 +38,7 @@ class Protocol
 {
 public:
     typedef std::list<MessageInfoPtr> MessagesList;
+    typedef std::list<DataInfoPtr> DataInfosList;
 
     virtual ~Protocol() {}
 
@@ -47,9 +48,14 @@ public:
     }
 
     MessagesList read(
-        DataInfoPtr dataInfo)
+        const DataInfo& dataInfo)
     {
-        return readImpl(std::move(dataInfo));
+        return readImpl(dataInfo);
+    }
+
+    DataInfosList write(const MessagesList& msgs)
+    {
+        return writeImpl(msgs);
     }
 
     MessagesList createAllMessages()
@@ -62,16 +68,23 @@ public:
         updateMessageInfoImpl(msgInfo);
     }
 
+    MessageInfoPtr cloneMessage(const MessageInfo& msgInfo)
+    {
+        return cloneMessageImpl(msgInfo);
+    }
+
 protected:
     virtual const std::string& nameImpl() const = 0;
 
+    virtual MessagesList readImpl(const DataInfo& dataInfo) = 0;
 
-    virtual MessagesList readImpl(
-        DataInfoPtr dataInfo) = 0;
+    virtual DataInfosList writeImpl(const MessagesList& msgs) = 0;
 
     virtual MessagesList createAllMessagesImpl() = 0;
 
     virtual void updateMessageInfoImpl(MessageInfo& msgInfo) = 0;
+
+    virtual MessageInfoPtr cloneMessageImpl(const MessageInfo& msgInfo) = 0;
 };
 
 typedef std::shared_ptr<Protocol> ProtocolPtr;

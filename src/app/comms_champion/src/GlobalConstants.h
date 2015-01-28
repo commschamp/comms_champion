@@ -27,16 +27,16 @@ class GlobalConstants
 {
 public:
 
-    enum class State
-    {
-        Waiting,
-        Running,
-        Sending,
-        SendingAll,
-        NumOfStates // Must be last
-    };
+//    enum class State
+//    {
+//        Waiting,
+//        Running,
+//        Sending,
+//        SendingAll,
+//        NumOfStates // Must be last
+//    };
 
-    static GlobalConstants* instance();
+//    static GlobalConstants* instance();
 
     static const char* indexPropertyName();
     static const char* namePropertyName();
@@ -47,6 +47,7 @@ public:
     static const char* msgRepeatDurationPropertyName();
     static const char* msgRepeatCountPropertyName();
     static const char* timestampPropertyName();
+    static const char* msgTypePropertyName();
 
 private:
     GlobalConstants() = default;

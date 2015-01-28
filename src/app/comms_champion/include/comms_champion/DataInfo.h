@@ -44,6 +44,12 @@ struct DataInfo
 
 using DataInfoPtr = std::shared_ptr<DataInfo>;
 
+inline
+DataInfoPtr makeDataInfo()
+{
+    return DataInfoPtr(new DataInfo());
+}
+
 }  // namespace comms_champion
 
 Q_DECLARE_METATYPE(comms_champion::DataInfoPtr);

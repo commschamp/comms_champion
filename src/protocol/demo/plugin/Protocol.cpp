@@ -44,11 +44,10 @@ const std::string& Protocol::nameImpl() const
 }
 
 Protocol::MessagesList Protocol::readImpl(
-    cc::DataInfoPtr dataInfoPtr)
+    const cc::DataInfo& dataInfo)
 {
-    assert(dataInfoPtr);
-    const std::uint8_t* iter = &dataInfoPtr->m_data[0];
-    auto size = dataInfoPtr->m_data.size();
+    const std::uint8_t* iter = &dataInfo.m_data[0];
+    auto size = dataInfo.m_data.size();
 
     MessagesList allInfos;
     m_data.reserve(m_data.size() + size);
@@ -182,6 +181,39 @@ Protocol::MessagesList Protocol::readImpl(
     return allInfos;
 }
 
+Protocol::DataInfosList Protocol::writeImpl(const MessagesList& msgs)
+{
+    DataInfosList dataList;
+    for (auto& msgInfo : msgs) {
+        auto msgPtr = msgInfo->getAppMessage();
+        assert(msgPtr);
+
+        cc::DataInfo::DataSeq data;
+        auto writeIter = std::back_inserter(data);
+        auto es =
+            m_protStack.write(
+                static_cast<const CCDemoMessage&>(*msgPtr),
+                writeIter,
+                data.max_size());
+        if (es == comms::ErrorStatus::UpdateRequired) {
+            auto updateIter = &data[0];
+            es = m_protStack.update(updateIter, data.size());
+        }
+
+        assert(es == comms::ErrorStatus::Success);
+        static_cast<void>(es);
+
+        auto dataInfo = cc::makeDataInfo();
+        assert(dataInfo);
+
+        dataInfo->m_timestamp = cc::DataInfo::TimestampClock::now();
+        dataInfo->m_data = std::move(data);
+
+        dataList.push_back(std::move(dataInfo));
+    }
+    return dataList;
+}
+
 Protocol::MessagesList Protocol::createAllMessagesImpl()
 {
     MessagesList allInfos;
@@ -240,6 +272,34 @@ void Protocol::updateMessageInfoImpl(comms_champion::MessageInfo& msgInfo)
     using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
     msgInfo.setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
     msgInfo.setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+}
+
+cc::MessageInfoPtr Protocol::cloneMessageImpl(
+        const cc::MessageInfo& msgInfo)
+{
+    auto appMsgPtr = msgInfo.getAppMessage();
+    assert(appMsgPtr);
+    auto* demoAppMsg = dynamic_cast<CCDemoMessage*>(appMsgPtr.get());
+    if (demoAppMsg == nullptr) {
+        assert(!"Invalid message provided for cloning");
+        return cc::MessageInfoPtr();
+    }
+
+    auto msgId = demoAppMsg->getId();
+    auto clonedAppMsg = m_protStack.createMsg(msgId);
+    clonedAppMsg->assign(*demoAppMsg);
+    assert(clonedAppMsg);
+
+    auto clonedMsgInfo = cc::makeMessageInfo();
+    clonedMsgInfo->setAppMessage(
+        cc::MessageInfo::MessagePtr(std::move(clonedAppMsg)));
+
+    updateMessageInfoImpl(*clonedMsgInfo);
+    clonedMsgInfo->setProtocolName(name());
+    assert(clonedMsgInfo->getTransportMessage());
+    assert(clonedMsgInfo->getRawDataMessage());
+
+    return clonedMsgInfo;
 }
 
 }  // namespace plugin

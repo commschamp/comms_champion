@@ -38,11 +38,16 @@ protected:
     virtual const std::string& nameImpl() const override;
 
     virtual MessagesList readImpl(
-            comms_champion::DataInfoPtr dataInfoPtr) override;
+            const comms_champion::DataInfo& dataInfo) override;
+
+    virtual DataInfosList writeImpl(const MessagesList& msgs) override;
 
     virtual MessagesList createAllMessagesImpl() override;
 
     virtual void updateMessageInfoImpl(comms_champion::MessageInfo& msgInfo) override;
+
+    virtual comms_champion::MessageInfoPtr cloneMessageImpl(
+        const comms_champion::MessageInfo& msgInfo) override;
 
 private:
     ProtocolStack m_protStack;

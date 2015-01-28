@@ -64,12 +64,13 @@ private:
     Ui::MessageUpdateDialog m_ui;
     int m_prevDelay = DisabledDelayValue + 1;
     int m_prevRepeatDuration = DisabledRepeatDuration + 1;
-    int m_prevRepeatCount = DisabledRepeatCount;
+    int m_prevRepeatCount = EnabledMinRepeatCount;
     Qt::CheckState m_sendIndefinitelyState = DisabledSendIndefinitelyState;
 
     static const int DisabledDelayValue = 0;
     static const int DisabledRepeatDuration = 0;
     static const int DisabledRepeatCount = 1;
+    static const int EnabledMinRepeatCount = 2;
     static const Qt::CheckState DisabledSendIndefinitelyState = Qt::Unchecked;
 };
 

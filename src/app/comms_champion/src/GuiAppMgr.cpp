@@ -23,7 +23,7 @@
 
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QtQml>
-#include <QtWidgets/QLabel>
+#include <QtCore/QTimer>
 
 #include "comms_champion/DefaultMessageDisplayHandler.h"
 #include "GlobalConstants.h"
@@ -75,22 +75,20 @@ void GuiAppMgr::recvClearClicked()
 
 void GuiAppMgr::sendStartClicked()
 {
-    assert(!"Send start clicked");
     m_sendState = SendState::SendingSingle;
     emitSendStateUpdate();
 }
 
 void GuiAppMgr::sendStartAllClicked()
 {
-    assert(!"Send start all clicked");
     m_sendState = SendState::SendingAll;
     emitSendStateUpdate();
 }
 
 void GuiAppMgr::sendStopClicked()
 {
-    assert(!"Send stop clicked");
     m_sendState = SendState::Idle;
+    m_msgsToSend.clear();
     emitSendStateUpdate();
 }
 
@@ -134,7 +132,6 @@ void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
 
 void GuiAppMgr::recvMsgDeleted(MessageInfoPtr msgInfo)
 {
-    static_cast<void>(msgInfo);
     assert(!recvListEmpty());
     assert(m_selType == SelectionType::Recv);
     assert(m_clickedMsg == msgInfo);
@@ -144,7 +141,20 @@ void GuiAppMgr::recvMsgDeleted(MessageInfoPtr msgInfo)
         emit sigRecvListEmpty(true);
     }
     emit sigRecvMsgSelected(false);
-    MsgMgr::instanceRef().deleteRecvMsg(std::move(msgInfo));
+
+    assert(msgInfo);
+    auto msgTypeVar =
+        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
+    assert(msgTypeVar.isValid());
+    assert(msgTypeVar.canConvert<int>());
+    auto type = static_cast<MsgType>(msgTypeVar.value<int>());
+    if (type == MsgType::Received) {
+        MsgMgr::instanceRef().deleteRecvMsg(std::move(msgInfo));
+    }
+    else {
+        assert(type == MsgType::Sent);
+        MsgMgr::instanceRef().deleteSentMsg(std::move(msgInfo));
+    }
 }
 
 void GuiAppMgr::recvListCleared()
@@ -163,6 +173,9 @@ void GuiAppMgr::recvListCleared()
     }
 
     MsgMgr::instanceRef().deleteAllRecvMsgs();
+    if (m_recvListContainsSent) {
+        MsgMgr::instanceRef().deleteAllSentMsgs();
+    }
 }
 
 void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
@@ -264,6 +277,17 @@ bool GuiAppMgr::sendListEmpty() const
     return m_sendListCount == 0;
 }
 
+void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
+{
+    assert(m_msgsToSend.empty());
+    for (auto& msgInfo : msgs) {
+        m_msgsToSend.push_back(makeMessageInfoCopy(*msgInfo));
+    }
+
+    assert(!m_msgsToSend.empty());
+    sendPendingAndWait();
+}
+
 GuiAppMgr::GuiAppMgr(QObject* parent)
   : Base(parent),
     m_recvState(RecvState::Idle),
@@ -271,6 +295,8 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
 {
     connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(MessageInfoPtr)),
             this, SLOT(msgReceived(MessageInfoPtr)));
+    connect(MsgMgr::instance(), SIGNAL(sigMsgSent(MessageInfoPtr)),
+            this, SLOT(msgSent(MessageInfoPtr)));
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -285,19 +311,117 @@ void GuiAppMgr::emitSendStateUpdate()
 
 void GuiAppMgr::msgReceived(MessageInfoPtr msgInfo)
 {
-#ifndef NDEBUG
-    assert(msgInfo);
-    auto msg = msgInfo->getAppMessage();
-    assert(msg);
-    std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
-#endif
-    bool wasEmpty = recvListEmpty();
-    ++m_recvListCount;
-    emit sigAddRecvMsg(msgInfo);
-    if (wasEmpty) {
-        emit sigRecvListEmpty(false);
+    addMsgToRecvList(std::move(msgInfo), MsgType::Received);
+}
+
+void GuiAppMgr::msgSent(MessageInfoPtr msgInfo)
+{
+    if (m_recvListContainsSent) {
+        addMsgToRecvList(std::move(msgInfo), MsgType::Sent);
     }
-    displayMessageIfNotClicked(msgInfo);
+}
+
+void GuiAppMgr::sendPendingAndWait()
+{
+    auto retrieveIntPropertyFunc =
+        [](const MessageInfo& mInfo, const char* property) -> int
+        {
+            auto delayVar =
+                mInfo.getExtraProperty(property);
+            assert(delayVar.isValid());
+            assert(delayVar.canConvert<int>());
+            return delayVar.value<int>();
+        };
+
+    auto retrieveDelayFunc =
+        [&](const MessageInfo& mInfo) -> int
+        {
+            return retrieveIntPropertyFunc(
+                mInfo, GlobalConstants::msgDelayPropertyName());
+        };
+
+    auto iter = m_msgsToSend.begin();
+    for (; iter != m_msgsToSend.end(); ++iter) {
+        auto& msgInfo = *iter;
+        assert(msgInfo);
+        auto delay = retrieveDelayFunc(*msgInfo);
+        if (delay != 0) {
+            break;
+        }
+    }
+
+    MsgInfosList nextMsgsToSend;
+    nextMsgsToSend.splice(
+        nextMsgsToSend.end(), m_msgsToSend, m_msgsToSend.begin(), iter);
+
+    MsgMgr::instanceRef().sendMsgs(nextMsgsToSend);
+
+    for (auto& msgToSend : nextMsgsToSend) {
+        auto repeatMs =
+            retrieveIntPropertyFunc(
+                *msgToSend,
+                GlobalConstants::msgRepeatDurationPropertyName());
+
+        auto repeatCount =
+            retrieveIntPropertyFunc(
+                *msgToSend,
+                GlobalConstants::msgRepeatCountPropertyName());
+
+        bool reinsert =
+            (0 < repeatMs) &&
+            ((repeatCount == 0) || (1 < repeatCount));
+
+        if (reinsert) {
+            auto newDelay = repeatMs;
+            auto iter =
+                std::find_if(
+                    m_msgsToSend.begin(), m_msgsToSend.end(),
+                    [&newDelay, &retrieveDelayFunc](MessageInfoPtr mInfo) mutable -> bool
+                    {
+                        assert(mInfo);
+                        auto mDelay = retrieveDelayFunc(*mInfo);
+                        if (newDelay < mDelay) {
+                            return true;
+                        }
+                        newDelay -= mDelay;
+                        return false;
+                    });
+
+            if (iter != m_msgsToSend.end()) {
+                auto& msgToUpdate = *iter;
+                assert(msgToUpdate);
+                auto mDelay = retrieveDelayFunc(*msgToUpdate);
+                msgToUpdate->setExtraProperty(
+                    GlobalConstants::msgDelayPropertyName(),
+                    QVariant::fromValue(mDelay - newDelay));
+            }
+
+            msgToSend->setExtraProperty(
+                GlobalConstants::msgDelayPropertyName(),
+                QVariant::fromValue(newDelay));
+
+            if (repeatCount != 0) {
+                msgToSend->setExtraProperty(
+                    GlobalConstants::msgRepeatCountPropertyName(),
+                    QVariant::fromValue(repeatCount - 1));
+            }
+
+            m_msgsToSend.insert(iter, std::move(msgToSend));
+        }
+    }
+
+    if (!m_msgsToSend.empty()) {
+        auto& msgInfo = m_msgsToSend.front();
+        assert(msgInfo);
+        auto delay = retrieveDelayFunc(*msgInfo);
+        assert(0 < delay);
+        msgInfo->setExtraProperty(
+            GlobalConstants::msgDelayPropertyName(), QVariant::fromValue(0));
+        QTimer::singleShot(delay, this, SLOT(sendPendingAndWait()));
+    }
+    else {
+        sendStopClicked();
+    }
 }
 
 void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
@@ -334,6 +458,37 @@ void GuiAppMgr::clearDisplayedMessage()
     m_selType = SelectionType::Send;
     m_clickedMsg.reset();
     emit sigClearDisplayedMsg();
+}
+
+void GuiAppMgr::addMsgToRecvList(MessageInfoPtr msgInfo, MsgType type)
+{
+    assert(msgInfo);
+    assert((type == MsgType::Received) || (type == MsgType::Sent));
+
+#ifndef NDEBUG
+    static const char* const RecvPrefix = "<-- ";
+    static const char* const SentPrefix = "--> ";
+
+    const char* prefix = RecvPrefix;
+    if (type == MsgType::Sent) {
+        prefix = SentPrefix;
+    }
+
+    auto msg = msgInfo->getAppMessage();
+    assert(msg);
+    std::cout << prefix << msg->name() << std::endl;
+#endif
+    msgInfo->setExtraProperty(
+        GlobalConstants::msgTypePropertyName(),
+        QVariant::fromValue(static_cast<int>(type)));
+
+    bool wasEmpty = recvListEmpty();
+    ++m_recvListCount;
+    emit sigAddRecvMsg(msgInfo);
+    if (wasEmpty) {
+        emit sigRecvListEmpty(false);
+    }
+    displayMessageIfNotClicked(msgInfo);
 }
 
 }  // namespace comms_champion

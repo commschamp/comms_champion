@@ -23,6 +23,8 @@
 
 #include "comms_champion/MessageInfo.h"
 
+#include "GuiAppMgr.h"
+
 #include "ui_MsgListWidget.h"
 
 namespace comms_champion
@@ -35,6 +37,8 @@ class MsgListWidget : public QWidget
     Q_OBJECT
     using Base = QWidget;
 public:
+    typedef GuiAppMgr::MsgInfosList MsgInfosList;
+
     MsgListWidget(
         const QString& listName,
         QWidget* toolbar,
@@ -47,6 +51,7 @@ protected slots:
     void selectOnAdd(bool enabled);
     void clearSelection();
     void clear();
+    void stateChanged(int state);
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo);
@@ -55,6 +60,10 @@ protected:
     virtual void listClearedImpl();
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const;
     virtual const QString& msgTooltipImpl() const;
+    virtual void stateChangedImpl(int state);
+
+    MessageInfoPtr currentMsg() const;
+    MsgInfosList allMsgs() const;
 
 private slots:
     void itemClicked(QListWidgetItem* item);

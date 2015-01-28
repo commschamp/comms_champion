@@ -45,7 +45,6 @@ void DummySocket::stopImpl()
 void DummySocket::sendDataImpl(DataInfoPtr dataPtr)
 {
     static_cast<void>(dataPtr);
-    assert(!"Send data is called");
 }
 
 void DummySocket::feedInDataImpl(DataInfoPtr dataPtr)

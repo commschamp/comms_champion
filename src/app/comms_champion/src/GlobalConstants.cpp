@@ -23,11 +23,11 @@
 namespace comms_champion
 {
 
-GlobalConstants* GlobalConstants::instance()
-{
-    static std::unique_ptr<GlobalConstants> obj(new GlobalConstants());
-    return obj.get();
-}
+//GlobalConstants* GlobalConstants::instance()
+//{
+//    static std::unique_ptr<GlobalConstants> obj(new GlobalConstants());
+//    return obj.get();
+//}
 
 const char* GlobalConstants::indexPropertyName()
 {
@@ -80,6 +80,12 @@ const char* GlobalConstants::msgRepeatCountPropertyName()
 const char* GlobalConstants::timestampPropertyName()
 {
     static const char* str = "timestamp";
+    return str;
+}
+
+const char* GlobalConstants::msgTypePropertyName()
+{
+    static const char* str = "msg_type";
     return str;
 }
 

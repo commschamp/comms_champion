@@ -373,6 +373,7 @@ void MessageUpdateDialog::refreshRepeatInfo(int checkboxValue)
 
         m_ui.m_repeatUnitsComboBox->setEnabled(false);
 
+        m_ui.m_repeatCountSpinBox->setMinimum(DisabledRepeatCount);
         m_ui.m_repeatCountSpinBox->setValue(DisabledRepeatCount);
         m_ui.m_repeatCountSpinBox->setEnabled(false);
 
@@ -392,7 +393,7 @@ void MessageUpdateDialog::refreshRepeatInfo(int checkboxValue)
 
     if (m_sendIndefinitelyState == Qt::Unchecked) {
         m_ui.m_repeatCountSpinBox->setValue(m_prevRepeatCount);
-        m_ui.m_repeatCountSpinBox->setMinimum(1);
+        m_ui.m_repeatCountSpinBox->setMinimum(EnabledMinRepeatCount);
         m_ui.m_repeatCountSpinBox->setEnabled(true);
     }
     else {

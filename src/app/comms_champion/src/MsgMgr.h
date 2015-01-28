@@ -38,6 +38,8 @@ class MsgMgr : public QObject
 
     typedef QObject Base;
 public:
+    typedef Protocol::MessagesList MsgInfosList;
+
     typedef unsigned long long MsgNumberType;
 
     static MsgMgr* instance();
@@ -50,20 +52,29 @@ public:
 
     void deleteRecvMsg(MessageInfoPtr msgInfo);
     void deleteAllRecvMsgs();
+    void deleteSentMsg(MessageInfoPtr msgInfo);
+    void deleteAllSentMsgs();
+
+    void sendMsgs(const MsgInfosList& msgs);
 
 signals:
     void sigMsgReceived(MessageInfoPtr msgInfo);
+    void sigMsgSent(MessageInfoPtr msgInfo);
 
 private slots:
     void socketDataReceived(DataInfoPtr dataInfoPtr);
 
 
 private:
+    typedef std::vector<MessageInfoPtr> MsgsList;
     typedef std::list<SocketPtr> SocketsList;
 
     MsgMgr(QObject* parent = nullptr);
+    void updateInternalId(MessageInfo& msgInfo);
+    static void deleteMsgFromList(MsgsList& list, MessageInfoPtr msgInfo);
 
-    std::vector<MessageInfoPtr> m_recvMsgs;
+    MsgsList m_recvMsgs;
+    MsgsList m_sentMsgs;
     bool m_recvEnabled = false;
 
     SocketsList m_sockets;

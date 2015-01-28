@@ -35,6 +35,7 @@ protected:
     virtual void listClearedImpl() override;
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const override;
     virtual const QString& msgTooltipImpl() const override;
+    virtual void stateChangedImpl(int state) override;
 };
 
 } /* namespace comms_champion */

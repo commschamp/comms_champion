@@ -94,7 +94,86 @@ void MsgMgr::setRecvEnabled(bool enabled)
 
 void MsgMgr::deleteRecvMsg(MessageInfoPtr msgInfo)
 {
-    assert(!m_recvMsgs.empty());
+    deleteMsgFromList(m_recvMsgs, std::move(msgInfo));
+}
+
+void MsgMgr::deleteAllRecvMsgs()
+{
+    m_recvMsgs.clear();
+}
+
+void MsgMgr::deleteSentMsg(MessageInfoPtr msgInfo)
+{
+    deleteMsgFromList(m_sentMsgs, std::move(msgInfo));
+}
+
+void MsgMgr::deleteAllSentMsgs()
+{
+    m_sentMsgs.clear();
+}
+
+void MsgMgr::sendMsgs(const MsgInfosList& msgs)
+{
+    if (msgs.empty()) {
+        return;
+    }
+
+    assert(!m_sockets.empty());
+    auto& lastSocket = m_sockets.back();
+
+    auto dataInfos = m_protocol->write(msgs);
+    for (auto& dInfo: dataInfos) {
+        lastSocket->sendData(std::move(dInfo));
+    }
+
+    for (auto& msgInfo : msgs) {
+        auto msgInfoToSent = m_protocol->cloneMessage(*msgInfo);
+        updateInternalId(*msgInfoToSent);
+        m_sentMsgs.push_back(msgInfoToSent);
+        emit sigMsgSent(msgInfoToSent);
+    }
+}
+
+void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
+{
+    if ((!m_recvEnabled) || !(m_protocol)) {
+        return;
+    }
+
+    assert(dataInfoPtr);
+    auto msgsList = m_protocol->read(*dataInfoPtr);
+    if (msgsList.empty()) {
+        return;
+    }
+
+    for (auto& msgInfo : msgsList) {
+        assert(msgInfo->getAppMessage());
+        updateInternalId(*msgInfo);
+        emit sigMsgReceived(msgInfo);
+    }
+
+    m_recvMsgs.reserve(m_recvMsgs.size() + msgsList.size());
+    std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_recvMsgs));
+}
+
+MsgMgr::MsgMgr(QObject* parent)
+  : Base(parent)
+{
+    m_recvMsgs.reserve(1024);
+}
+
+void MsgMgr::updateInternalId(MessageInfo& msgInfo)
+{
+    msgInfo.setExtraProperty(
+        GlobalConstants::msgNumberPropertyName(),
+        QVariant::fromValue(m_nextMsgNum));
+    ++m_nextMsgNum;
+    assert(0 < m_nextMsgNum); // wrap around is not supported
+}
+
+void MsgMgr::deleteMsgFromList(MsgsList& list, MessageInfoPtr msgInfo)
+{
+    assert(!list.empty());
     assert(msgInfo);
 
     auto msgNumFromMsgInfoFunc =
@@ -110,57 +189,20 @@ void MsgMgr::deleteRecvMsg(MessageInfoPtr msgInfo)
     auto msgNum = msgNumFromMsgInfoFunc(*msgInfo);
 
     auto iter = std::lower_bound(
-        m_recvMsgs.begin(),
-        m_recvMsgs.end(),
+        list.begin(),
+        list.end(),
         msgNum,
         [&msgNumFromMsgInfoFunc](const MessageInfoPtr& msgInfoTmp, MsgNumberType val) -> bool
         {
             return msgNumFromMsgInfoFunc(*msgInfoTmp) < val;
         });
 
-    if (iter == m_recvMsgs.end()) {
+    if (iter == list.end()) {
         assert(!"Deleting non existing message.");
         return;
     }
 
-    m_recvMsgs.erase(iter);
-}
-
-void MsgMgr::deleteAllRecvMsgs()
-{
-    m_recvMsgs.clear();
-}
-
-void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
-{
-    if ((!m_recvEnabled) || !(m_protocol)) {
-        return;
-    }
-
-    auto msgsList = m_protocol->read(dataInfoPtr);
-    if (msgsList.empty()) {
-        return;
-    }
-
-    for (auto& msgInfo : msgsList) {
-        assert(msgInfo->getAppMessage());
-
-        msgInfo->setExtraProperty(
-            GlobalConstants::msgNumberPropertyName(),
-            QVariant::fromValue(m_nextMsgNum));
-        ++m_nextMsgNum;
-        assert(0 < m_nextMsgNum); // wrap around is not supported
-        emit sigMsgReceived(msgInfo);
-    }
-
-    m_recvMsgs.reserve(m_recvMsgs.size() + msgsList.size());
-    std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_recvMsgs));
-}
-
-MsgMgr::MsgMgr(QObject* parent)
-  : Base(parent)
-{
-    m_recvMsgs.reserve(1024);
+    list.erase(iter);
 }
 
 }  // namespace comms_champion

@@ -118,6 +118,11 @@ void MsgListWidget::clear()
     listClearedImpl();
 }
 
+void MsgListWidget::stateChanged(int state)
+{
+    stateChangedImpl(state);
+}
+
 void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
     static_cast<void>(msgInfo);
@@ -146,6 +151,30 @@ QString MsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
 const QString& MsgListWidget::msgTooltipImpl() const
 {
     return EmptyStr;
+}
+
+void MsgListWidget::stateChangedImpl(int state)
+{
+    static_cast<void>(state);
+}
+
+MessageInfoPtr MsgListWidget::currentMsg() const
+{
+    auto* item = m_ui.m_listWidget->currentItem();
+    assert(item != nullptr);
+    return getMsgFromItem(item);
+}
+
+MsgListWidget::MsgInfosList MsgListWidget::allMsgs() const
+{
+    MsgInfosList allMsgsList;
+    for (auto idx = 0; idx < m_ui.m_listWidget->count(); ++idx) {
+        auto* item = m_ui.m_listWidget->item(idx);
+        auto msgInfoPtr = getMsgFromItem(item);
+        assert(msgInfoPtr);
+        allMsgsList.push_back(std::move(msgInfoPtr));
+    }
+    return allMsgsList;
 }
 
 void MsgListWidget::itemClicked(QListWidgetItem* item)

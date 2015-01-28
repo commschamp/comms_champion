@@ -39,6 +39,8 @@ private slots:
     void sendListEmptyReport(bool empty);
     void sendMsgSelectedReport(bool selected);
     void stateChanged(int state);
+    void startStopClicked();
+    void startStopAllClicked();
 
 private:
     void refresh();

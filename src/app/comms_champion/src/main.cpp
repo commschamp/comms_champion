@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
     auto* msgMgr = cc::MsgMgr::instance();
     msgMgr->setProtocol(pluginObj->alloc());
     msgMgr->addSocket(cc::makeDummySocket());
+    msgMgr->start();
     auto retval = app.exec();
     pluginObj->finalize();
     return retval;

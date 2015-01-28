@@ -68,6 +68,20 @@ void MsgMgr::setProtocol(ProtocolPtr protocol)
     m_protocol = std::move(protocol);
 }
 
+void MsgMgr::start()
+{
+    for (auto& s : m_sockets) {
+        s->start();
+    }
+}
+
+void MsgMgr::stop()
+{
+    for (auto& s : m_sockets) {
+        s->stop();
+    }
+}
+
 ProtocolPtr MsgMgr::getProtocol() const
 {
     return m_protocol;
@@ -76,40 +90,45 @@ ProtocolPtr MsgMgr::getProtocol() const
 void MsgMgr::setRecvEnabled(bool enabled)
 {
     m_recvEnabled = enabled;
-    if (m_sockets.empty()) {
+}
+
+void MsgMgr::deleteMsg(MessageInfoPtr msgInfo)
+{
+    assert(!m_allMsgs.empty());
+    assert(msgInfo);
+
+    auto msgNumFromMsgInfoFunc =
+        [](const MessageInfo& info) -> MsgNumberType
+        {
+            auto msgNumVar = info.getExtraProperty(
+                GlobalConstants::msgNumberPropertyName());
+            assert(msgNumVar.isValid());
+            assert(msgNumVar.canConvert<MsgNumberType>());
+            return msgNumVar.value<MsgNumberType>();
+        };
+
+    auto msgNum = msgNumFromMsgInfoFunc(*msgInfo);
+
+    auto iter = std::lower_bound(
+        m_allMsgs.begin(),
+        m_allMsgs.end(),
+        msgNum,
+        [&msgNumFromMsgInfoFunc](const MessageInfoPtr& msgInfoTmp, MsgNumberType val) -> bool
+        {
+            return msgNumFromMsgInfoFunc(*msgInfoTmp) < val;
+        });
+
+    if (iter == m_allMsgs.end()) {
+        assert(!"Deleting non existing message.");
         return;
     }
 
-    if (enabled) {
-        for (auto& s : m_sockets) {
-            s->start();
-        }
-    }
-    else {
-        for (auto& s : m_sockets) {
-            s->stop();
-        }
-    }
+    m_allMsgs.erase(iter);
 }
 
-void MsgMgr::deleteRecvMsg(MessageInfoPtr msgInfo)
+void MsgMgr::deleteAllMsgs()
 {
-    deleteMsgFromList(m_recvMsgs, std::move(msgInfo));
-}
-
-void MsgMgr::deleteAllRecvMsgs()
-{
-    m_recvMsgs.clear();
-}
-
-void MsgMgr::deleteSentMsg(MessageInfoPtr msgInfo)
-{
-    deleteMsgFromList(m_sentMsgs, std::move(msgInfo));
-}
-
-void MsgMgr::deleteAllSentMsgs()
-{
-    m_sentMsgs.clear();
+    m_allMsgs.clear();
 }
 
 void MsgMgr::sendMsgs(const MsgInfosList& msgs)
@@ -127,10 +146,11 @@ void MsgMgr::sendMsgs(const MsgInfosList& msgs)
     }
 
     for (auto& msgInfo : msgs) {
-        auto msgInfoToSent = m_protocol->cloneMessage(*msgInfo);
-        updateInternalId(*msgInfoToSent);
-        m_sentMsgs.push_back(msgInfoToSent);
-        emit sigMsgSent(msgInfoToSent);
+        auto msgInfoToSend = m_protocol->cloneMessage(*msgInfo);
+        updateInternalId(*msgInfoToSend);
+        updateMsgType(*msgInfoToSend, MsgType::Sent);
+        m_allMsgs.push_back(msgInfoToSend);
+        emit sigMsgAdded(msgInfoToSend);
     }
 }
 
@@ -149,17 +169,18 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
     for (auto& msgInfo : msgsList) {
         assert(msgInfo->getAppMessage());
         updateInternalId(*msgInfo);
-        emit sigMsgReceived(msgInfo);
+        updateMsgType(*msgInfo, MsgType::Received);
+        emit sigMsgAdded(msgInfo);
     }
 
-    m_recvMsgs.reserve(m_recvMsgs.size() + msgsList.size());
-    std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_recvMsgs));
+    m_allMsgs.reserve(m_allMsgs.size() + msgsList.size());
+    std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_allMsgs));
 }
 
 MsgMgr::MsgMgr(QObject* parent)
   : Base(parent)
 {
-    m_recvMsgs.reserve(1024);
+    m_allMsgs.reserve(1024);
 }
 
 void MsgMgr::updateInternalId(MessageInfo& msgInfo)
@@ -171,38 +192,13 @@ void MsgMgr::updateInternalId(MessageInfo& msgInfo)
     assert(0 < m_nextMsgNum); // wrap around is not supported
 }
 
-void MsgMgr::deleteMsgFromList(MsgsList& list, MessageInfoPtr msgInfo)
+void MsgMgr::updateMsgType(MessageInfo& msgInfo, MsgType type)
 {
-    assert(!list.empty());
-    assert(msgInfo);
+    assert((type == MsgType::Received) || (type == MsgType::Sent));
+    msgInfo.setExtraProperty(
+        GlobalConstants::msgTypePropertyName(),
+        QVariant::fromValue(static_cast<int>(type)));
 
-    auto msgNumFromMsgInfoFunc =
-        [](const MessageInfo& info) -> MsgNumberType
-        {
-            auto msgNumVar = info.getExtraProperty(
-                GlobalConstants::msgNumberPropertyName());
-            assert(msgNumVar.isValid());
-            assert(msgNumVar.canConvert<MsgNumberType>());
-            return msgNumVar.value<MsgNumberType>();
-        };
-
-    auto msgNum = msgNumFromMsgInfoFunc(*msgInfo);
-
-    auto iter = std::lower_bound(
-        list.begin(),
-        list.end(),
-        msgNum,
-        [&msgNumFromMsgInfoFunc](const MessageInfoPtr& msgInfoTmp, MsgNumberType val) -> bool
-        {
-            return msgNumFromMsgInfoFunc(*msgInfoTmp) < val;
-        });
-
-    if (iter == list.end()) {
-        assert(!"Deleting non existing message.");
-        return;
-    }
-
-    list.erase(iter);
 }
 
 }  // namespace comms_champion

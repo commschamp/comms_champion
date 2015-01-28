@@ -42,24 +42,31 @@ public:
 
     typedef unsigned long long MsgNumberType;
 
+    enum class MsgType {
+        Received,
+        Sent
+    };
+
+
     static MsgMgr* instance();
     static MsgMgr& instanceRef();
 
     void addSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
+
+    void start();
+    void stop();
+
     ProtocolPtr getProtocol() const;
     void setRecvEnabled(bool enabled);
 
-    void deleteRecvMsg(MessageInfoPtr msgInfo);
-    void deleteAllRecvMsgs();
-    void deleteSentMsg(MessageInfoPtr msgInfo);
-    void deleteAllSentMsgs();
+    void deleteMsg(MessageInfoPtr msgInfo);
+    void deleteAllMsgs();
 
     void sendMsgs(const MsgInfosList& msgs);
 
 signals:
-    void sigMsgReceived(MessageInfoPtr msgInfo);
-    void sigMsgSent(MessageInfoPtr msgInfo);
+    void sigMsgAdded(MessageInfoPtr msgInfo);
 
 private slots:
     void socketDataReceived(DataInfoPtr dataInfoPtr);
@@ -71,10 +78,9 @@ private:
 
     MsgMgr(QObject* parent = nullptr);
     void updateInternalId(MessageInfo& msgInfo);
-    static void deleteMsgFromList(MsgsList& list, MessageInfoPtr msgInfo);
+    void updateMsgType(MessageInfo& msgInfo, MsgType type);
 
-    MsgsList m_recvMsgs;
-    MsgsList m_sentMsgs;
+    MsgsList m_allMsgs;
     bool m_recvEnabled = false;
 
     SocketsList m_sockets;

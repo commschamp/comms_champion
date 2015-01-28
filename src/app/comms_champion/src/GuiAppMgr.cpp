@@ -142,19 +142,7 @@ void GuiAppMgr::recvMsgDeleted(MessageInfoPtr msgInfo)
     }
     emit sigRecvMsgSelected(false);
 
-    assert(msgInfo);
-    auto msgTypeVar =
-        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
-    assert(msgTypeVar.isValid());
-    assert(msgTypeVar.canConvert<int>());
-    auto type = static_cast<MsgType>(msgTypeVar.value<int>());
-    if (type == MsgType::Received) {
-        MsgMgr::instanceRef().deleteRecvMsg(std::move(msgInfo));
-    }
-    else {
-        assert(type == MsgType::Sent);
-        MsgMgr::instanceRef().deleteSentMsg(std::move(msgInfo));
-    }
+    MsgMgr::instanceRef().deleteMsg(std::move(msgInfo));
 }
 
 void GuiAppMgr::recvListCleared()
@@ -172,10 +160,7 @@ void GuiAppMgr::recvListCleared()
         emit sigRecvMsgListSelectOnAddEnabled(true);
     }
 
-    MsgMgr::instanceRef().deleteAllRecvMsgs();
-    if (m_recvListContainsSent) {
-        MsgMgr::instanceRef().deleteAllSentMsgs();
-    }
+    MsgMgr::instanceRef().deleteAllMsgs();
 }
 
 void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
@@ -293,10 +278,8 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
     m_recvState(RecvState::Idle),
     m_sendState(SendState::Idle)
 {
-    connect(MsgMgr::instance(), SIGNAL(sigMsgReceived(MessageInfoPtr)),
-            this, SLOT(msgReceived(MessageInfoPtr)));
-    connect(MsgMgr::instance(), SIGNAL(sigMsgSent(MessageInfoPtr)),
-            this, SLOT(msgSent(MessageInfoPtr)));
+    connect(MsgMgr::instance(), SIGNAL(sigMsgAdded(MessageInfoPtr)),
+            this, SLOT(msgAdded(MessageInfoPtr)));
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -309,16 +292,39 @@ void GuiAppMgr::emitSendStateUpdate()
     emit sigSetSendState(static_cast<int>(m_sendState));
 }
 
-void GuiAppMgr::msgReceived(MessageInfoPtr msgInfo)
+void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
 {
-    addMsgToRecvList(std::move(msgInfo), MsgType::Received);
-}
+    assert(msgInfo);
 
-void GuiAppMgr::msgSent(MessageInfoPtr msgInfo)
-{
-    if (m_recvListContainsSent) {
-        addMsgToRecvList(std::move(msgInfo), MsgType::Sent);
+#ifndef NDEBUG
+    auto msgTypeVar =
+        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
+    assert(msgTypeVar.isValid());
+    assert(msgTypeVar.canConvert<int>());
+    auto type = static_cast<MsgType>(msgTypeVar.value<int>());
+
+    assert((type == MsgType::Received) || (type == MsgType::Sent));
+
+    static const char* const RecvPrefix = "<-- ";
+    static const char* const SentPrefix = "--> ";
+
+    const char* prefix = RecvPrefix;
+    if (type == MsgType::Sent) {
+        prefix = SentPrefix;
     }
+
+    auto msg = msgInfo->getAppMessage();
+    assert(msg);
+    std::cout << prefix << msg->name() << std::endl;
+#endif
+
+    bool wasEmpty = recvListEmpty();
+    ++m_recvListCount;
+    emit sigAddRecvMsg(msgInfo);
+    if (wasEmpty) {
+        emit sigRecvListEmpty(false);
+    }
+    displayMessageIfNotClicked(msgInfo);
 }
 
 void GuiAppMgr::sendPendingAndWait()
@@ -458,37 +464,6 @@ void GuiAppMgr::clearDisplayedMessage()
     m_selType = SelectionType::Send;
     m_clickedMsg.reset();
     emit sigClearDisplayedMsg();
-}
-
-void GuiAppMgr::addMsgToRecvList(MessageInfoPtr msgInfo, MsgType type)
-{
-    assert(msgInfo);
-    assert((type == MsgType::Received) || (type == MsgType::Sent));
-
-#ifndef NDEBUG
-    static const char* const RecvPrefix = "<-- ";
-    static const char* const SentPrefix = "--> ";
-
-    const char* prefix = RecvPrefix;
-    if (type == MsgType::Sent) {
-        prefix = SentPrefix;
-    }
-
-    auto msg = msgInfo->getAppMessage();
-    assert(msg);
-    std::cout << prefix << msg->name() << std::endl;
-#endif
-    msgInfo->setExtraProperty(
-        GlobalConstants::msgTypePropertyName(),
-        QVariant::fromValue(static_cast<int>(type)));
-
-    bool wasEmpty = recvListEmpty();
-    ++m_recvListCount;
-    emit sigAddRecvMsg(msgInfo);
-    if (wasEmpty) {
-        emit sigRecvListEmpty(false);
-    }
-    displayMessageIfNotClicked(msgInfo);
 }
 
 }  // namespace comms_champion

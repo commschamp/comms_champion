@@ -52,10 +52,7 @@ public:
         NumOfStates
     };
 
-    enum class MsgType {
-        Received,
-        Sent
-    };
+    typedef MsgMgr::MsgType MsgType;
 
     static GuiAppMgr* instance();
 
@@ -132,8 +129,7 @@ private:
     void emitSendStateUpdate();
 
 private slots:
-    void msgReceived(MessageInfoPtr msgInfo);
-    void msgSent(MessageInfoPtr msgInfo);
+    void msgAdded(MessageInfoPtr msgInfo);
     void sendPendingAndWait();
 
 private /*data*/:
@@ -142,7 +138,6 @@ private /*data*/:
     void displayMessage(MessageInfoPtr msgInfo);
     void displayMessageIfNotClicked(MessageInfoPtr msgInfo);
     void clearDisplayedMessage();
-    void addMsgToRecvList(MessageInfoPtr msgInfo, MsgType type);
 
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;

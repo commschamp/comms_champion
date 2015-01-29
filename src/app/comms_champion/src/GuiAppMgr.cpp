@@ -461,7 +461,7 @@ void GuiAppMgr::displayMessageIfNotClicked(MessageInfoPtr msgInfo)
 
 void GuiAppMgr::clearDisplayedMessage()
 {
-    m_selType = SelectionType::Send;
+    m_selType = SelectionType::None;
     m_clickedMsg.reset();
     emit sigClearDisplayedMsg();
 }

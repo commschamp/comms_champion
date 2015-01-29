@@ -60,6 +60,11 @@ void Message::assign(const Message& other)
     assignImpl(other);
 }
 
+bool Message::isValid() const
+{
+    return isValidImpl();
+}
+
 void Message::setNameProperty(QWidget& widget, const QString& value)
 {
     widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));

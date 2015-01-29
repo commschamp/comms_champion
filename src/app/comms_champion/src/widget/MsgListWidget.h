@@ -20,6 +20,7 @@
 
 #include <QtWidgets/QWidget>
 #include <QtCore/QString>
+#include <QtCore/qnamespace.h>
 
 #include "comms_champion/MessageInfo.h"
 
@@ -38,6 +39,7 @@ class MsgListWidget : public QWidget
     using Base = QWidget;
 public:
     typedef GuiAppMgr::MsgInfosList MsgInfosList;
+    typedef GuiAppMgr::MsgType MsgType;
 
     MsgListWidget(
         const QString& listName,
@@ -61,6 +63,7 @@ protected:
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const;
     virtual const QString& msgTooltipImpl() const;
     virtual void stateChangedImpl(int state);
+    virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const;
 
     MessageInfoPtr currentMsg() const;
     MsgInfosList allMsgs() const;
@@ -72,6 +75,7 @@ private slots:
 private:
     MessageInfoPtr getMsgFromItem(QListWidgetItem* item) const;
     QString getMsgNameText(MessageInfoPtr msgInfo);
+    Qt::GlobalColor defaultItemColour(bool valid) const;
 
     Ui::MsgListWidget m_ui;
     bool m_selectOnAdd = false;

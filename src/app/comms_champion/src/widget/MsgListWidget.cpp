@@ -22,6 +22,7 @@
 #include <QtCore/QVariant>
 
 #include "comms_champion/Message.h"
+#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -55,14 +56,28 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
     m_ui.m_listWidget->addItem(getMsgNameText(msgInfo));
     auto* item = m_ui.m_listWidget->item(m_ui.m_listWidget->count() - 1);
     item->setToolTip(msgTooltipImpl());
+
+    auto appMsgPtr = msgInfo->getAppMessage();
+    assert(appMsgPtr);
+    bool valid = appMsgPtr->isValid();
+
+    auto typeVar =
+        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
+    if (typeVar.isValid()) {
+        assert(typeVar.canConvert<int>());
+        auto type = static_cast<MsgType>(typeVar.value<int>());
+        item->setForeground(getItemColourImpl(type, valid));
+    }
+    else {
+        item->setForeground(defaultItemColour(valid));
+    }
+
     item->setData(
         Qt::UserRole,
         QVariant::fromValue(msgInfo));
 
     if (m_selectOnAdd) {
-//        item->setSelected(true);
         m_ui.m_listWidget->setCurrentItem(item);
-//        assert(m_ui.m_listWidget->currentItem() == item);
     }
 
     if (m_ui.m_listWidget->currentRow() < 0) {
@@ -158,6 +173,12 @@ void MsgListWidget::stateChangedImpl(int state)
     static_cast<void>(state);
 }
 
+Qt::GlobalColor MsgListWidget::getItemColourImpl(MsgType type, bool valid) const
+{
+    static_cast<void>(type);
+    return defaultItemColour(valid);
+}
+
 MessageInfoPtr MsgListWidget::currentMsg() const
 {
     auto* item = m_ui.m_listWidget->currentItem();
@@ -206,6 +227,14 @@ QString MsgListWidget::getMsgNameText(MessageInfoPtr msgInfo)
     }
     itemStr.append(msg->name());
     return itemStr;
+}
+
+Qt::GlobalColor MsgListWidget::defaultItemColour(bool valid) const
+{
+    if (valid) {
+        return Qt::black;
+    }
+    return Qt::red;
 }
 
 }  // namespace comms_champion

@@ -34,6 +34,7 @@ protected:
     virtual void listClearedImpl() override;
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const override;
     virtual const QString& msgTooltipImpl() const override;
+    virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const override;
 };
 
 } /* namespace comms_champion */

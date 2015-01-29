@@ -42,6 +42,7 @@ public:
     QString idAsString() const;
     void reset();
     void assign(const Message& other);
+    bool isValid() const;
 
 protected:
 
@@ -51,6 +52,7 @@ protected:
     virtual QString idAsStringImpl() const = 0;
     virtual void resetImpl() = 0;
     virtual void assignImpl(const Message& other) = 0;
+    virtual bool isValidImpl() const = 0;
 
     static void setNameProperty(QWidget& widget, const QString& value);
     static void setIndexedNameProperty(

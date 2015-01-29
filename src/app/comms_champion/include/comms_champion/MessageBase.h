@@ -46,6 +46,11 @@ protected:
             CommsBase::dispatch(*castedHandler);
         }
     }
+
+    virtual bool isValidImpl() const override
+    {
+        return CommsBase::valid();
+    }
 };
 
 }  // namespace comms_champion

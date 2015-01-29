@@ -88,4 +88,17 @@ const QString& RecvMsgListWidget::msgTooltipImpl() const
     return Tooltip;
 }
 
+Qt::GlobalColor RecvMsgListWidget::getItemColourImpl(MsgType type, bool valid) const
+{
+    if (type == MsgType::Received) {
+        return Base::getItemColourImpl(type, valid);
+    }
+
+    if (valid) {
+        return Qt::darkGreen;
+    }
+
+    return Qt::darkRed;
+}
+
 } // namespace comms_champion

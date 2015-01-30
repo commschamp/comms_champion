@@ -77,7 +77,9 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
         QVariant::fromValue(msgInfo));
 
     if (m_selectOnAdd) {
-        m_ui.m_listWidget->setCurrentItem(item);
+//        m_ui.m_listWidget->setCurrentItem(item);
+        m_ui.m_listWidget->setCurrentRow(m_ui.m_listWidget->count() - 1);
+        assert(m_ui.m_listWidget->currentItem() == item);
     }
 
     if (m_ui.m_listWidget->currentRow() < 0) {
@@ -108,7 +110,6 @@ void MsgListWidget::deleteCurrentMessage()
 
     auto msgInfo = getMsgFromItem(item);
     delete item; // will remove from the list
-    msgDeletedImpl(std::move(msgInfo));
 
     auto* nextItem = m_ui.m_listWidget->currentItem();
     if (nextItem != nullptr) {
@@ -130,7 +131,6 @@ void MsgListWidget::clearSelection()
 void MsgListWidget::clear()
 {
     m_ui.m_listWidget->clear();
-    listClearedImpl();
 }
 
 void MsgListWidget::stateChanged(int state)
@@ -146,15 +146,6 @@ void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
 {
     static_cast<void>(msgInfo);
-}
-
-void MsgListWidget::msgDeletedImpl(MessageInfoPtr msgInfo)
-{
-    static_cast<void>(msgInfo);
-}
-
-void MsgListWidget::listClearedImpl()
-{
 }
 
 QString MsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

@@ -33,6 +33,20 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+GuiAppMgr::MsgType getMsgType(const MessageInfo& msgInfo)
+{
+    auto msgTypeVar =
+        msgInfo.getExtraProperty(GlobalConstants::msgTypePropertyName());
+    assert(msgTypeVar.isValid());
+    assert(msgTypeVar.canConvert<int>());
+    return static_cast<GuiAppMgr::MsgType>(msgTypeVar.value<int>());
+}
+
+}  // namespace
+
 GuiAppMgr* GuiAppMgr::instance()
 {
     static std::unique_ptr<GuiAppMgr> mgr(new GuiAppMgr());
@@ -65,12 +79,45 @@ void GuiAppMgr::recvSaveClicked()
 
 void GuiAppMgr::recvDeleteClicked()
 {
+    assert(!recvListEmpty());
+    assert(m_selType == SelectionType::Recv);
+    assert(m_clickedMsg);
+
+#ifndef NDEBUG
+
+    auto msg = m_clickedMsg->getAppMessage();
+    assert(msg);
+    std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
+#endif
+
+    MsgMgr::instanceRef().deleteMsg(m_clickedMsg);
+
+    clearDisplayedMessage();
     emit sigRecvDeleteSelectedMsg();
+    --m_recvListCount;
+    if (recvListEmpty()) {
+        emit sigRecvListEmpty(true);
+        emit sigRecvMsgSelected(false);
+    }
 }
 
 void GuiAppMgr::recvClearClicked()
 {
-    emit sigRecvClear();
+    assert(0 < m_recvListCount);
+    clearRecvList();
+    MsgMgr::instanceRef().deleteAllMsgs();
+}
+
+void GuiAppMgr::recvShowRecvToggled(bool checked)
+{
+    m_recvListShowReceived = checked;
+    refreshRecvList();
+}
+
+void GuiAppMgr::recvShowSentToggled(bool checked)
+{
+    m_recvListShowSent = checked;
+    refreshRecvList();
 }
 
 void GuiAppMgr::sendStartClicked()
@@ -110,12 +157,41 @@ void GuiAppMgr::sendEditClicked()
 
 void GuiAppMgr::sendDeleteClicked()
 {
+    assert(!sendListEmpty());
+    assert(m_selType == SelectionType::Send);
+    assert(m_clickedMsg);
+
+#ifndef NDEBUG
+
+    auto msg = m_clickedMsg->getAppMessage();
+    assert(msg);
+    std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
+#endif
+
+    clearDisplayedMessage();
     emit sigSendDeleteSelectedMsg();
+
+    --m_sendListCount;
+    if (sendListEmpty()) {
+        emit sigSendListEmpty(true);
+        emit sigSendMsgSelected(false);
+    }
 }
 
 void GuiAppMgr::sendClearClicked()
 {
     emit sigSendClear();
+    assert(0 < m_sendListCount);
+    bool wasSelected = (m_selType == SelectionType::Send);
+    assert((!wasSelected) || (m_clickedMsg));
+
+    m_sendListCount = 0;
+    emit sigSendListEmpty(true);
+
+    if (wasSelected) {
+        clearDisplayedMessage();
+        emit sigSendMsgSelected(false);
+    }
 }
 
 void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
@@ -128,39 +204,6 @@ void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
         emit sigRecvMsgListClearSelection();
     }
     emit sigRecvMsgSelected(static_cast<bool>(m_clickedMsg));
-}
-
-void GuiAppMgr::recvMsgDeleted(MessageInfoPtr msgInfo)
-{
-    assert(!recvListEmpty());
-    assert(m_selType == SelectionType::Recv);
-    assert(m_clickedMsg == msgInfo);
-    clearDisplayedMessage();
-    --m_recvListCount;
-    if (recvListEmpty()) {
-        emit sigRecvListEmpty(true);
-    }
-    emit sigRecvMsgSelected(false);
-
-    MsgMgr::instanceRef().deleteMsg(std::move(msgInfo));
-}
-
-void GuiAppMgr::recvListCleared()
-{
-    assert(0 < m_recvListCount);
-    bool wasSelected = (m_selType == SelectionType::Recv);
-    assert((!wasSelected) || (m_clickedMsg));
-
-    m_recvListCount = 0;
-    emit sigRecvListEmpty(true);
-
-    if (wasSelected) {
-        clearDisplayedMessage();
-        emit sigRecvMsgSelected(false);
-        emit sigRecvMsgListSelectOnAddEnabled(true);
-    }
-
-    MsgMgr::instanceRef().deleteAllMsgs();
 }
 
 void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
@@ -186,35 +229,6 @@ void GuiAppMgr::sendMsgDoubleClicked(MessageInfoPtr msgInfo)
     sendEditClicked();
 }
 
-void GuiAppMgr::sendMsgDeleted(MessageInfoPtr msgInfo)
-{
-    static_cast<void>(msgInfo);
-    assert(!sendListEmpty());
-    assert(m_selType == SelectionType::Send);
-    assert(m_clickedMsg == msgInfo);
-    clearDisplayedMessage();
-    --m_sendListCount;
-    if (sendListEmpty()) {
-        emit sigSendListEmpty(true);
-    }
-    emit sigSendMsgSelected(false);
-}
-
-void GuiAppMgr::sendListCleared()
-{
-    assert(0 < m_sendListCount);
-    bool wasSelected = (m_selType == SelectionType::Send);
-    assert((!wasSelected) || (m_clickedMsg));
-
-    m_sendListCount = 0;
-    emit sigSendListEmpty(true);
-
-    if (wasSelected) {
-        clearDisplayedMessage();
-        emit sigSendMsgSelected(false);
-    }
-}
-
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
     return m_recvState;
@@ -228,6 +242,16 @@ bool GuiAppMgr::recvMsgListSelectOnAddEnabled()
 bool GuiAppMgr::recvListEmpty() const
 {
     return m_recvListCount == 0;
+}
+
+bool GuiAppMgr::recvListShowsReceived() const
+{
+    return m_recvListShowReceived;
+}
+
+bool GuiAppMgr::recvListShowsSent() const
+{
+    return m_recvListShowSent;
 }
 
 GuiAppMgr::SendState GuiAppMgr::sendState() const
@@ -295,15 +319,10 @@ void GuiAppMgr::emitSendStateUpdate()
 void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
 {
     assert(msgInfo);
+    auto type = getMsgType(*msgInfo);
+    assert((type == MsgType::Received) || (type == MsgType::Sent));
 
 #ifndef NDEBUG
-    auto msgTypeVar =
-        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
-    assert(msgTypeVar.isValid());
-    assert(msgTypeVar.canConvert<int>());
-    auto type = static_cast<MsgType>(msgTypeVar.value<int>());
-
-    assert((type == MsgType::Received) || (type == MsgType::Sent));
 
     static const char* const RecvPrefix = "<-- ";
     static const char* const SentPrefix = "--> ";
@@ -318,13 +337,10 @@ void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
     std::cout << prefix << msg->name() << std::endl;
 #endif
 
-    bool wasEmpty = recvListEmpty();
-    ++m_recvListCount;
-    emit sigAddRecvMsg(msgInfo);
-    if (wasEmpty) {
-        emit sigRecvListEmpty(false);
+    if (canAddToRecvList(type)) {
+        addMsgToRecvList(msgInfo);
+        displayMessageIfNotClicked(msgInfo);
     }
-    displayMessageIfNotClicked(msgInfo);
 }
 
 void GuiAppMgr::sendPendingAndWait()
@@ -434,6 +450,12 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
 {
     assert(msgInfo);
     if (m_clickedMsg == msgInfo) {
+#ifndef NDEBUG
+        auto msg = m_clickedMsg->getAppMessage();
+        assert(msg);
+        std::cout << __FUNCTION__ << ": Removing selection for " << msg->name() << std::endl;
+#endif
+
         assert(selType == m_selType);
         m_selType = SelectionType::None;
         clearDisplayedMessage();
@@ -445,6 +467,13 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
     m_clickedMsg = msgInfo;
     displayMessage(m_clickedMsg);
     emit sigRecvMsgListSelectOnAddEnabled(false);
+
+#ifndef NDEBUG
+    auto msg = m_clickedMsg->getAppMessage();
+    assert(msg);
+    std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
+#endif
+
 }
 
 void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)
@@ -464,6 +493,74 @@ void GuiAppMgr::clearDisplayedMessage()
     m_selType = SelectionType::None;
     m_clickedMsg.reset();
     emit sigClearDisplayedMsg();
+}
+
+void GuiAppMgr::refreshRecvList()
+{
+    auto clickedMsg = m_clickedMsg;
+    if (m_selType == SelectionType::Recv) {
+        assert(m_clickedMsg);
+        recvMsgClicked(m_clickedMsg);
+        assert(!m_clickedMsg);
+    }
+    else if (m_selType != SelectionType::Send) {
+        emit sigClearDisplayedMsg();
+    }
+
+    clearRecvList();
+
+    auto& allMsgs = MsgMgr::instanceRef().getAllMsgs();
+    for (auto& msgInfo : allMsgs) {
+        auto type = getMsgType(*msgInfo);
+
+        if (canAddToRecvList(type)) {
+            addMsgToRecvList(msgInfo);
+            if (msgInfo == clickedMsg) {
+                recvMsgClicked(msgInfo);
+            }
+        }
+    }
+
+    if (!m_clickedMsg) {
+        emit sigRecvMsgListClearSelection();
+    }
+}
+
+void GuiAppMgr::addMsgToRecvList(MessageInfoPtr msgInfo)
+{
+    assert(msgInfo);
+    bool wasEmpty = recvListEmpty();
+    ++m_recvListCount;
+    emit sigAddRecvMsg(msgInfo);
+    if (wasEmpty) {
+        emit sigRecvListEmpty(false);
+    }
+}
+
+void GuiAppMgr::clearRecvList()
+{
+    emit sigRecvClear();
+
+    bool wasSelected = (m_selType == SelectionType::Recv);
+    assert((!wasSelected) || (m_clickedMsg));
+
+    m_recvListCount = 0;
+    emit sigRecvListEmpty(true);
+
+    if (wasSelected) {
+        clearDisplayedMessage();
+        emit sigRecvMsgSelected(false);
+        emit sigRecvMsgListSelectOnAddEnabled(true);
+    }
+}
+
+bool GuiAppMgr::canAddToRecvList(MsgType type) const
+{
+    assert((type == MsgType::Received) || (type == MsgType::Sent));
+
+    return
+        ((type == MsgType::Received) && m_recvListShowReceived) ||
+        ((type == MsgType::Sent) && m_recvListShowSent);
 }
 
 }  // namespace comms_champion

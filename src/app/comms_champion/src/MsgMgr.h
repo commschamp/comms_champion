@@ -42,6 +42,8 @@ public:
 
     typedef unsigned long long MsgNumberType;
 
+    typedef std::vector<MessageInfoPtr> MsgsList;
+
     enum class MsgType {
         Received,
         Sent
@@ -65,6 +67,8 @@ public:
 
     void sendMsgs(const MsgInfosList& msgs);
 
+    const MsgsList& getAllMsgs() const;
+
 signals:
     void sigMsgAdded(MessageInfoPtr msgInfo);
 
@@ -73,7 +77,6 @@ private slots:
 
 
 private:
-    typedef std::vector<MessageInfoPtr> MsgsList;
     typedef std::list<SocketPtr> SocketsList;
 
     MsgMgr(QObject* parent = nullptr);

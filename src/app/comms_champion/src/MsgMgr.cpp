@@ -154,6 +154,11 @@ void MsgMgr::sendMsgs(const MsgInfosList& msgs)
     }
 }
 
+const MsgMgr::MsgsList& MsgMgr::getAllMsgs() const
+{
+    return m_allMsgs;
+}
+
 void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
     if ((!m_recvEnabled) || !(m_protocol)) {

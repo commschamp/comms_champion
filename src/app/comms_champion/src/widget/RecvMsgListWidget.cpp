@@ -37,31 +37,26 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
 
     selectOnAdd(guiMgr->recvMsgListSelectOnAddEnabled());
 
-    connect(guiMgr, SIGNAL(sigAddRecvMsg(MessageInfoPtr)),
-            this, SLOT(addMessage(MessageInfoPtr)));
-    connect(guiMgr, SIGNAL(sigRecvMsgListSelectOnAddEnabled(bool)),
-            this, SLOT(selectOnAdd(bool)));
-    connect(guiMgr, SIGNAL(sigRecvMsgListClearSelection()),
-            this, SLOT(clearSelection()));
-    connect(guiMgr, SIGNAL(sigRecvDeleteSelectedMsg()),
-            this, SLOT(deleteCurrentMessage()));
-    connect(guiMgr, SIGNAL(sigRecvClear()),
-            this, SLOT(clear()));
+    connect(
+        guiMgr, SIGNAL(sigAddRecvMsg(MessageInfoPtr)),
+        this, SLOT(addMessage(MessageInfoPtr)));
+    connect(
+        guiMgr, SIGNAL(sigRecvMsgListSelectOnAddEnabled(bool)),
+        this, SLOT(selectOnAdd(bool)));
+    connect(
+        guiMgr, SIGNAL(sigRecvMsgListClearSelection()),
+        this, SLOT(clearSelection()));
+    connect(
+        guiMgr, SIGNAL(sigRecvDeleteSelectedMsg()),
+        this, SLOT(deleteCurrentMessage()));
+    connect(
+        guiMgr, SIGNAL(sigRecvClear()),
+        this, SLOT(clear()));
 }
 
 void RecvMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
    GuiAppMgr::instance()->recvMsgClicked(msgInfo);
-}
-
-void RecvMsgListWidget::msgDeletedImpl(MessageInfoPtr msgInfo)
-{
-    GuiAppMgr::instance()->recvMsgDeleted(std::move(msgInfo));
-}
-
-void RecvMsgListWidget::listClearedImpl()
-{
-    GuiAppMgr::instance()->recvListCleared();
 }
 
 QString RecvMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

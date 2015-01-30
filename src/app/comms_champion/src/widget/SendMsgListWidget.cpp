@@ -59,16 +59,6 @@ void SendMsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
     GuiAppMgr::instance()->sendMsgDoubleClicked(std::move(msgInfo));
 }
 
-void SendMsgListWidget::msgDeletedImpl(MessageInfoPtr msgInfo)
-{
-    GuiAppMgr::instance()->sendMsgDeleted(std::move(msgInfo));
-}
-
-void SendMsgListWidget::listClearedImpl()
-{
-    GuiAppMgr::instance()->sendListCleared();
-}
-
 QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
 {
     QString str;

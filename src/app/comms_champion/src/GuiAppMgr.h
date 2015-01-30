@@ -59,6 +59,8 @@ public:
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();
     bool recvListEmpty() const;
+    bool recvListShowsReceived() const;
+    bool recvListShowsSent() const;
 
     SendState sendState() const;
     void sendAddNewMessage(MessageInfoPtr msgInfo);
@@ -74,6 +76,8 @@ public slots:
     void recvSaveClicked();
     void recvDeleteClicked();
     void recvClearClicked();
+    void recvShowRecvToggled(bool checked);
+    void recvShowSentToggled(bool checked);
 
     void sendStartClicked();
     void sendStartAllClicked();
@@ -85,13 +89,9 @@ public slots:
     void sendClearClicked();
 
     void recvMsgClicked(MessageInfoPtr msgInfo);
-    void recvMsgDeleted(MessageInfoPtr msgInfo);
-    void recvListCleared();
 
     void sendMsgClicked(MessageInfoPtr msgInfo);
     void sendMsgDoubleClicked(MessageInfoPtr msgInfo);
-    void sendMsgDeleted(MessageInfoPtr msgInfo);
-    void sendListCleared();
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
@@ -138,11 +138,16 @@ private /*data*/:
     void displayMessage(MessageInfoPtr msgInfo);
     void displayMessageIfNotClicked(MessageInfoPtr msgInfo);
     void clearDisplayedMessage();
+    void refreshRecvList();
+    void addMsgToRecvList(MessageInfoPtr msgInfo);
+    void clearRecvList();
+    bool canAddToRecvList(MsgType type) const;
 
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;
     unsigned m_recvListCount = 0;
-    bool m_recvListContainsSent = true;
+    bool m_recvListShowReceived = true;
+    bool m_recvListShowSent = false;
 
     SendState m_sendState;
     unsigned m_sendListCount = 0;

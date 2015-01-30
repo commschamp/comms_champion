@@ -10,5 +10,7 @@
         <file>image/delete.png</file>
         <file>image/clear.png</file>
         <file>image/edit-clear.png</file>
+        <file>image/msg_recv.png</file>
+        <file>image/msg_send.png</file>
     </qresource>
 </RCC>

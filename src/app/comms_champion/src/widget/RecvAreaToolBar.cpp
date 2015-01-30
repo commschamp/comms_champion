@@ -59,6 +59,18 @@ const QIcon& clearIcon()
     return Icon;
 }
 
+const QIcon& showRecvIcon()
+{
+    static const QIcon Icon(":/image/msg_recv.png");
+    return Icon;
+}
+
+const QIcon& showSentIcon()
+{
+    static const QIcon Icon(":/image/msg_send.png");
+    return Icon;
+}
+
 const QString StartTooltip("Start Reception");
 const QString StopTooltip("Stop Reception");
 
@@ -93,6 +105,32 @@ QAction* createClearButton(QToolBar& bar)
     return action;
 }
 
+QAction* createShowReceived(QToolBar& bar)
+{
+    auto guiAppMgr = GuiAppMgr::instance();
+    auto* action = bar.addAction(showRecvIcon(), "Show Received Messages");
+    action->setCheckable(true);
+    action->setChecked(guiAppMgr->recvListShowsReceived());
+    QObject::connect(
+        action, SIGNAL(triggered(bool)),
+        guiAppMgr, SLOT(recvShowRecvToggled(bool)));
+    return action;
+}
+
+QAction* createShowSent(QToolBar& bar)
+{
+    auto guiAppMgr = GuiAppMgr::instance();
+    auto* action = bar.addAction(showSentIcon(), "Show Sent Messages");
+    action->setCheckable(true);
+    action->setChecked(guiAppMgr->recvListShowsSent());
+    QObject::connect(
+        action, SIGNAL(triggered(bool)),
+        guiAppMgr, SLOT(recvShowSentToggled(bool)));
+    return action;
+}
+
+
+
 }  // namespace
 
 RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
@@ -101,8 +139,15 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
     m_saveButton(createSaveButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
+    m_showRecvButton(createShowReceived(*this)),
+    m_showSentButton(createShowSent(*this)),
     m_state(GuiAppMgr::instance()->recvState())
 {
+    insertSeparator(m_showRecvButton);
+    auto empty = new QWidget();
+    empty->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    insertWidget(m_showRecvButton, empty);
+
     connect(
         m_startStopButton, SIGNAL(triggered()),
         this, SLOT(startStopClicked()));

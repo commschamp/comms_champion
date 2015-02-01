@@ -99,7 +99,7 @@ QAction* createDeleteButton(QToolBar& bar)
 
 QAction* createClearButton(QToolBar& bar)
 {
-    auto* action = bar.addAction(clearIcon(), "Delete All Messages");
+    auto* action = bar.addAction(clearIcon(), "Delete All Displayed Messages");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvClearClicked()));
     return action;

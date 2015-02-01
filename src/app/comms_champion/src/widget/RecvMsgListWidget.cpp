@@ -50,13 +50,18 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
         guiMgr, SIGNAL(sigRecvDeleteSelectedMsg()),
         this, SLOT(deleteCurrentMessage()));
     connect(
-        guiMgr, SIGNAL(sigRecvClear()),
-        this, SLOT(clear()));
+        guiMgr, SIGNAL(sigRecvClear(bool)),
+        this, SLOT(clear(bool)));
 }
 
 void RecvMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 {
    GuiAppMgr::instance()->recvMsgClicked(msgInfo);
+}
+
+void RecvMsgListWidget::msgListClearedImpl(MsgInfosList&& msgInfosList)
+{
+    GuiAppMgr::instance()->deleteMessages(std::move(msgInfosList));
 }
 
 QString RecvMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

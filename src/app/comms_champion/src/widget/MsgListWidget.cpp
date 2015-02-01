@@ -128,6 +128,25 @@ void MsgListWidget::clearSelection()
     m_ui.m_listWidget->setCurrentRow(-1);
 }
 
+void MsgListWidget::clear(bool reportDeleted)
+{
+    MsgInfosList msgInfosList;
+    if (reportDeleted) {
+        auto count = m_ui.m_listWidget->count();
+        for (auto idx = 0; idx < count; ++idx) {
+            auto* item = m_ui.m_listWidget->item(idx);
+            auto msgInfo = getMsgFromItem(item);
+            msgInfosList.push_back(std::move(msgInfo));
+        }
+    }
+
+    clear();
+
+    if (reportDeleted) {
+        msgListClearedImpl(std::move(msgInfosList));
+    }
+}
+
 void MsgListWidget::clear()
 {
     m_ui.m_listWidget->clear();
@@ -146,6 +165,11 @@ void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo)
 void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo)
 {
     static_cast<void>(msgInfo);
+}
+
+void MsgListWidget::msgListClearedImpl(MsgInfosList&& msgInfosList)
+{
+    static_cast<void>(msgInfosList);
 }
 
 QString MsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

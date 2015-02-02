@@ -12,5 +12,9 @@
         <file>image/edit-clear.png</file>
         <file>image/msg_recv.png</file>
         <file>image/msg_send.png</file>
+        <file>image/top.png</file>
+        <file>image/bottom.png</file>
+        <file>image/up.png</file>
+        <file>image/down.png</file>
     </qresource>
 </RCC>

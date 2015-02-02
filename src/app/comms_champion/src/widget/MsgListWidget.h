@@ -57,8 +57,8 @@ protected slots:
     void stateChanged(int state);
 
 protected:
-    virtual void msgClickedImpl(MessageInfoPtr msgInfo);
-    virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo);
+    virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx, int total);
+    virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx, int total);
     virtual void msgListClearedImpl(MsgInfosList&& msgInfosList);
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const;
     virtual const QString& msgTooltipImpl() const;

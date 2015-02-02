@@ -181,14 +181,14 @@ void GuiAppMgr::sendClearClicked()
 
     if (wasSelected) {
         clearDisplayedMessage();
-        emit sigSendMsgSelected(false);
+        emitSendNotSelected();
     }
 }
 
 void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
 {
     emit sigSendMsgListClearSelection();
-    emit sigSendMsgSelected(false);
+    emitSendNotSelected();
 
     msgClicked(msgInfo, SelectionType::Recv);
     if (!m_clickedMsg) {
@@ -197,7 +197,7 @@ void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo)
     emit sigRecvMsgSelected(static_cast<bool>(m_clickedMsg));
 }
 
-void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
+void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo, int idx, int total)
 {
     emit sigRecvMsgListClearSelection();
     emit sigRecvMsgSelected(false);
@@ -205,16 +205,19 @@ void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo)
     msgClicked(msgInfo, SelectionType::Send);
     if (!m_clickedMsg) {
         emit sigSendMsgListClearSelection();
+        emitSendNotSelected();
     }
-    emit sigSendMsgSelected(static_cast<bool>(m_clickedMsg));
+    else {
+        emit sigSendMsgSelected(idx, total);
+    }
 }
 
-void GuiAppMgr::sendMsgDoubleClicked(MessageInfoPtr msgInfo)
+void GuiAppMgr::sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx, int total)
 {
     // Equivalent to selection + edit
     assert(msgInfo);
     if (msgInfo != m_clickedMsg) {
-        sendMsgClicked(msgInfo);
+        sendMsgClicked(msgInfo, idx, total);
     }
     assert(m_clickedMsg == msgInfo);
     sendEditClicked();
@@ -258,7 +261,7 @@ void GuiAppMgr::sendAddNewMessage(MessageInfoPtr msgInfo)
     if (wasEmpty) {
         emit sigSendListEmpty(false);
     }
-    sendMsgClicked(msgInfo);
+    sendMsgClicked(msgInfo, m_sendListCount - 1, m_sendListCount);
     assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg);
 }
@@ -583,10 +586,14 @@ void GuiAppMgr::decSendListCount()
     --m_sendListCount;
     if (sendListEmpty()) {
         emit sigSendListEmpty(true);
-        emit sigSendMsgSelected(false);
+        emitSendNotSelected();
     }
 }
 
+void GuiAppMgr::emitSendNotSelected()
+{
+    emit sigSendMsgSelected(-1, 0);
+}
 
 }  // namespace comms_champion
 

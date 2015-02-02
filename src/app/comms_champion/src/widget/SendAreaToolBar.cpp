@@ -31,7 +31,6 @@ namespace
 const QString StartTooltip("Send Selected");
 const QString StartAllTooltip("Send All");
 const QString StopTooltip("Stop Sending");
-const QString SaveTooltip("Save Messages");
 
 const QIcon& startIcon()
 {
@@ -81,6 +80,30 @@ const QIcon& clearIcon()
     return Icon;
 }
 
+const QIcon& topIcon()
+{
+    static const QIcon Icon(":/image/top.png");
+    return Icon;
+}
+
+const QIcon& upIcon()
+{
+    static const QIcon Icon(":/image/up.png");
+    return Icon;
+}
+
+const QIcon& downIcon()
+{
+    static const QIcon Icon(":/image/down.png");
+    return Icon;
+}
+
+const QIcon& bottomIcon()
+{
+    static const QIcon Icon(":/image/bottom.png");
+    return Icon;
+}
+
 QAction* createStartButton(QToolBar& bar)
 {
     auto* action = bar.addAction(startIcon(), StartTooltip);
@@ -95,7 +118,7 @@ QAction* createStartAllButton(QToolBar& bar)
 
 QAction* createSaveButton(QToolBar& bar)
 {
-    auto* action = bar.addAction(saveIcon(), SaveTooltip);
+    auto* action = bar.addAction(saveIcon(), "Save Messages");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(sendSaveClicked()));
 
@@ -134,6 +157,37 @@ QAction* createClearButton(QToolBar& bar)
     return action;
 }
 
+QAction* createTopButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(topIcon(), "Move Message to the Top");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendTopClicked()));
+    return action;
+}
+
+QAction* createUpButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(upIcon(), "Move Message Up");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendUpClicked()));
+    return action;
+}
+
+QAction* createDownButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(downIcon(), "Move Message Down");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendDownClicked()));
+    return action;
+}
+
+QAction* createBottomButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(bottomIcon(), "Move Message to the Bottom");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(sendBottomClicked()));
+    return action;
+}
 
 }  // namespace
 
@@ -146,6 +200,10 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
     m_editButton(createEditButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
+    m_topButton(createTopButton(*this)),
+    m_upButton(createUpButton(*this)),
+    m_downButton(createDownButton(*this)),
+    m_bottomButton(createBottomButton(*this)),
     m_state(GuiAppMgr::instance()->sendState()),
     m_listEmpty(GuiAppMgr::instance()->sendListEmpty())
 {
@@ -163,8 +221,8 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
         this, SLOT(sendListEmptyReport(bool)));
 
     connect(
-        guiAppMgr, SIGNAL(sigSendMsgSelected(bool)),
-        this, SLOT(sendMsgSelectedReport(bool)));
+        guiAppMgr, SIGNAL(sigSendMsgSelected(int, int)),
+        this, SLOT(sendMsgSelectedReport(int, int)));
 
     connect(
         guiAppMgr, SIGNAL(sigSetSendState(int)),
@@ -180,9 +238,10 @@ void SendAreaToolBar::sendListEmptyReport(bool empty)
     refresh();
 }
 
-void SendAreaToolBar::sendMsgSelectedReport(bool selected)
+void SendAreaToolBar::sendMsgSelectedReport(int idx, int total)
 {
-    m_msgSelected = selected;
+    m_selectedIdx = idx;
+    m_listTotal = total;
     refresh();
 }
 
@@ -229,6 +288,10 @@ void SendAreaToolBar::refresh()
     refreshEditButton();
     refreshDeleteButton();
     refreshClearButton();
+    refreshUpButton(m_topButton);
+    refreshUpButton(m_upButton);
+    refreshDownButton(m_downButton);
+    refreshDownButton(m_bottomButton);
 }
 
 void SendAreaToolBar::refreshStartStopButton()
@@ -237,7 +300,7 @@ void SendAreaToolBar::refreshStartStopButton()
     assert(button);
     bool enabled =
         (!m_listEmpty) &&
-        (m_msgSelected) &&
+        (msgSelected()) &&
         ((m_state == State::SendingSingle) || (m_state == State::Idle));
     button->setEnabled(enabled);
 
@@ -295,7 +358,7 @@ void SendAreaToolBar::refreshEditButton()
     assert(button);
     bool enabled =
         (m_state == State::Idle) &&
-        (m_msgSelected);
+        (msgSelected());
     button->setEnabled(enabled);
 }
 
@@ -305,7 +368,7 @@ void SendAreaToolBar::refreshDeleteButton()
     assert(button);
     bool enabled =
         (m_state == State::Idle) &&
-        (m_msgSelected);
+        (msgSelected());
     button->setEnabled(enabled);
 }
 
@@ -319,6 +382,31 @@ void SendAreaToolBar::refreshClearButton()
     button->setEnabled(enabled);
 }
 
+void SendAreaToolBar::refreshUpButton(QAction* button)
+{
+    assert(button);
+    bool enabled =
+        (m_state == State::Idle) &&
+        (0 < m_selectedIdx);
+    button->setEnabled(enabled);
+}
+
+void SendAreaToolBar::refreshDownButton(QAction* button)
+{
+    assert(button);
+    bool enabled =
+        (m_state == State::Idle) &&
+        (msgSelected()) &&
+        (m_selectedIdx < (m_listTotal - 1));
+    button->setEnabled(enabled);
+}
+
+bool SendAreaToolBar::msgSelected() const
+{
+    bool result = (0 <= m_selectedIdx);
+    assert(m_selectedIdx < m_listTotal);
+    return result;
+}
 
 }  // namespace comms_champion
 

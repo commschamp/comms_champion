@@ -93,8 +93,8 @@ public slots:
 
     void recvMsgClicked(MessageInfoPtr msgInfo);
 
-    void sendMsgClicked(MessageInfoPtr msgInfo);
-    void sendMsgDoubleClicked(MessageInfoPtr msgInfo);
+    void sendMsgClicked(MessageInfoPtr msgInfo, int idx, int total);
+    void sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx, int total);
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
@@ -113,7 +113,7 @@ signals:
     void sigRecvListEmpty(bool empty);
     void sigSendListEmpty(bool empty);
     void sigRecvMsgSelected(bool selected);
-    void sigSendMsgSelected(bool selected);
+    void sigSendMsgSelected(int index, int total);
     void sigRecvDeleteSelectedMsg();
     void sigSendDeleteSelectedMsg();
     void sigRecvClear(bool reportDeleted);
@@ -147,6 +147,7 @@ private /*data*/:
     bool canAddToRecvList(MsgType type) const;
     void decRecvListCount();
     void decSendListCount();
+    void emitSendNotSelected();
 
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;

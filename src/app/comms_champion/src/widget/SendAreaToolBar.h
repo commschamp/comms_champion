@@ -37,7 +37,7 @@ public:
 
 private slots:
     void sendListEmptyReport(bool empty);
-    void sendMsgSelectedReport(bool selected);
+    void sendMsgSelectedReport(int idx, int total);
     void stateChanged(int state);
     void startStopClicked();
     void startStopAllClicked();
@@ -51,6 +51,10 @@ private:
     void refreshEditButton();
     void refreshDeleteButton();
     void refreshClearButton();
+    void refreshUpButton(QAction* button);
+    void refreshDownButton(QAction* button);
+
+    bool msgSelected() const;
 
     QAction* m_startStopButton = nullptr;
     QAction* m_startStopAllButton = nullptr;
@@ -59,9 +63,14 @@ private:
     QAction* m_editButton = nullptr;
     QAction* m_deleteButton = nullptr;
     QAction* m_clearButton = nullptr;
+    QAction* m_topButton = nullptr;
+    QAction* m_upButton = nullptr;
+    QAction* m_downButton = nullptr;
+    QAction* m_bottomButton = nullptr;
     State m_state = State::Idle;
     bool m_listEmpty = true;
-    bool m_msgSelected = false;
+    int m_selectedIdx = -1;
+    int m_listTotal = 0;
 };
 
 }  // namespace comms_champion

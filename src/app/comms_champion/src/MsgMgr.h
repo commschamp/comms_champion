@@ -44,6 +44,8 @@ public:
 
     typedef std::vector<MessageInfoPtr> MsgsList;
 
+    typedef DataInfo::Timestamp Timestamp;
+
     enum class MsgType {
         Received,
         Sent
@@ -81,7 +83,6 @@ private:
 
     MsgMgr(QObject* parent = nullptr);
     void updateInternalId(MessageInfo& msgInfo);
-    void updateMsgType(MessageInfo& msgInfo, MsgType type);
 
     MsgsList m_allMsgs;
     bool m_recvEnabled = false;

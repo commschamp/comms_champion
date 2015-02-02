@@ -19,6 +19,8 @@
 #pragma once
 
 #include <string>
+#include <chrono>
+
 #include <QtCore/QMetaType>
 
 Q_DECLARE_METATYPE(std::string);

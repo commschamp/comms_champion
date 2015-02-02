@@ -53,6 +53,7 @@ public:
     };
 
     typedef MsgMgr::MsgType MsgType;
+    typedef MsgMgr::Timestamp Timestamp;
 
     static GuiAppMgr* instance();
 

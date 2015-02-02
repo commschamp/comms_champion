@@ -66,21 +66,23 @@ void RecvMsgListWidget::msgListClearedImpl(MsgInfosList&& msgInfosList)
 
 QString RecvMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
 {
-    typedef long long unsigned TimestampType;
-
     auto timestampVar =
         msgInfo.getExtraProperty(GlobalConstants::timestampPropertyName());
-    if ((!timestampVar.isValid()) || (!timestampVar.canConvert<TimestampType>())) {
-        auto timestamp =
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-        return QString("[{%1}]").arg(timestamp, 1, 10, QChar('0'));
+
+    if (!timestampVar.isValid()) {
+        return QString();
     }
 
+    typedef GuiAppMgr::Timestamp TimestampType;
+    assert(timestampVar.canConvert<TimestampType>());
 
     auto timestamp = timestampVar.value<TimestampType>();
-    return QString("[%1]").arg(timestamp, 1, 10, QChar('0'));
+    auto timestampMs =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            timestamp.time_since_epoch()).count();
+    return QString("[%1]").arg(timestampMs, 1, 10, QChar('0'));
 }
+
 
 const QString& RecvMsgListWidget::msgTooltipImpl() const
 {

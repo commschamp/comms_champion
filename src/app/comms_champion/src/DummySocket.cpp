@@ -67,6 +67,7 @@ void DummySocket::timeout()
 
     DataInfoPtr dataInfoPtr(new DataInfo());
     dataInfoPtr->m_timestamp = DataInfo::TimestampClock::now();
+    assert(dataInfoPtr->m_timestamp != DataInfo::Timestamp());
     dataInfoPtr->m_data.assign(&Buf[0], &Buf[0] + BufSize);
     reportDataReceived(std::move(dataInfoPtr));
 }

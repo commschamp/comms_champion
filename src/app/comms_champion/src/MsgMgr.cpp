@@ -27,6 +27,27 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+void updateMsgType(MessageInfo& msgInfo, MsgMgr::MsgType type)
+{
+    assert((type == MsgMgr::MsgType::Received) || (type == MsgMgr::MsgType::Sent));
+    msgInfo.setExtraProperty(
+        GlobalConstants::msgTypePropertyName(),
+        QVariant::fromValue(static_cast<int>(type)));
+
+}
+
+void updateMsgTimestamp(MessageInfo& msgInfo, DataInfo::Timestamp timestamp)
+{
+    msgInfo.setExtraProperty(
+        GlobalConstants::timestampPropertyName(),
+        QVariant::fromValue(timestamp));
+}
+
+}  // namespace
+
 MsgMgr* MsgMgr::instance()
 {
     return &(instanceRef());
@@ -141,7 +162,9 @@ void MsgMgr::sendMsgs(const MsgInfosList& msgs)
     auto& lastSocket = m_sockets.back();
 
     auto dataInfos = m_protocol->write(msgs);
+    auto now = DataInfo::TimestampClock::now();
     for (auto& dInfo: dataInfos) {
+        dInfo->m_timestamp = now;
         lastSocket->sendData(std::move(dInfo));
     }
 
@@ -149,6 +172,7 @@ void MsgMgr::sendMsgs(const MsgInfosList& msgs)
         auto msgInfoToSend = m_protocol->cloneMessage(*msgInfo);
         updateInternalId(*msgInfoToSend);
         updateMsgType(*msgInfoToSend, MsgType::Sent);
+        updateMsgTimestamp(*msgInfoToSend, now);
         m_allMsgs.push_back(msgInfoToSend);
         emit sigMsgAdded(msgInfoToSend);
     }
@@ -175,6 +199,15 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
         assert(msgInfo->getAppMessage());
         updateInternalId(*msgInfo);
         updateMsgType(*msgInfo, MsgType::Received);
+
+        static const DataInfo::Timestamp DefaultTimestamp;
+        if (dataInfoPtr->m_timestamp != DefaultTimestamp) {
+            updateMsgTimestamp(*msgInfo, dataInfoPtr->m_timestamp);
+        }
+        else {
+            auto now = DataInfo::TimestampClock::now();
+            updateMsgTimestamp(*msgInfo, now);
+        }
         emit sigMsgAdded(msgInfo);
     }
 
@@ -197,14 +230,6 @@ void MsgMgr::updateInternalId(MessageInfo& msgInfo)
     assert(0 < m_nextMsgNum); // wrap around is not supported
 }
 
-void MsgMgr::updateMsgType(MessageInfo& msgInfo, MsgType type)
-{
-    assert((type == MsgType::Received) || (type == MsgType::Sent));
-    msgInfo.setExtraProperty(
-        GlobalConstants::msgTypePropertyName(),
-        QVariant::fromValue(static_cast<int>(type)));
-
-}
 
 }  // namespace comms_champion
 

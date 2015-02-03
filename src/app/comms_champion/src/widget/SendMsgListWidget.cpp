@@ -35,18 +35,36 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
 
     auto* guiMgr = GuiAppMgr::instance();
     assert(guiMgr != nullptr);
-    connect(guiMgr, SIGNAL(sigAddSendMsg(MessageInfoPtr)),
-            this, SLOT(addMessage(MessageInfoPtr)));
-    connect(guiMgr, SIGNAL(sigSendMsgUpdated()),
-            this, SLOT(updateCurrentMessage()));
-    connect(guiMgr, SIGNAL(sigSendDeleteSelectedMsg()),
-            this, SLOT(deleteCurrentMessage()));
-    connect(guiMgr, SIGNAL(sigSendMsgListClearSelection()),
-            this, SLOT(clearSelection()));
-    connect(guiMgr, SIGNAL(sigSendClear()),
-            this, SLOT(clear()));
-    connect(guiMgr, SIGNAL(sigSetSendState(int)),
-            this, SLOT(stateChanged(int)));
+    connect(
+        guiMgr, SIGNAL(sigAddSendMsg(MessageInfoPtr)),
+        this, SLOT(addMessage(MessageInfoPtr)));
+    connect(
+        guiMgr, SIGNAL(sigSendMsgUpdated()),
+        this, SLOT(updateCurrentMessage()));
+    connect(
+        guiMgr, SIGNAL(sigSendDeleteSelectedMsg()),
+        this, SLOT(deleteCurrentMessage()));
+    connect(
+        guiMgr, SIGNAL(sigSendMsgListClearSelection()),
+        this, SLOT(clearSelection()));
+    connect(
+        guiMgr, SIGNAL(sigSendClear()),
+        this, SLOT(clear()));
+    connect(
+        guiMgr, SIGNAL(sigSetSendState(int)),
+        this, SLOT(stateChanged(int)));
+    connect(
+        guiMgr, SIGNAL(sigSendMoveSelectedTop()),
+        this, SLOT(moveSelectedTop()));
+    connect(
+        guiMgr, SIGNAL(sigSendMoveSelectedUp()),
+        this, SLOT(moveSelectedUp()));
+    connect(
+        guiMgr, SIGNAL(sigSendMoveSelectedDown()),
+        this, SLOT(moveSelectedDown()));
+    connect(
+        guiMgr, SIGNAL(sigSendMoveSelectedBottom()),
+        this, SLOT(moveSelectedBottom()));
 }
 
 void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
@@ -120,6 +138,11 @@ void SendMsgListWidget::stateChangedImpl(int state)
     auto allMsgsList = allMsgs();
     assert(!allMsgsList.empty());
     GuiAppMgr::instance()->sendMessages(std::move(allMsgsList));
+}
+
+void SendMsgListWidget::msgMovedImpl(int idx)
+{
+    GuiAppMgr::instance()->sendSelectedMsgMoved(idx);
 }
 
 } // namespace comms_champion

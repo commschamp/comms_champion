@@ -90,11 +90,16 @@ public slots:
     void sendEditClicked();
     void sendDeleteClicked();
     void sendClearClicked();
+    void sendTopClicked();
+    void sendUpClicked();
+    void sendDownClicked();
+    void sendBottomClicked();
 
     void recvMsgClicked(MessageInfoPtr msgInfo, int idx);
 
     void sendMsgClicked(MessageInfoPtr msgInfo, int idx);
     void sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx);
+    void sendSelectedMsgMoved(int idx);
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
@@ -118,6 +123,10 @@ signals:
     void sigSendClear();
     void sigRecvListCountReport(unsigned count);
     void sigSendListCountReport(unsigned count);
+    void sigSendMoveSelectedTop();
+    void sigSendMoveSelectedUp();
+    void sigSendMoveSelectedDown();
+    void sigSendMoveSelectedBottom();
 
 private:
     enum class SelectionType

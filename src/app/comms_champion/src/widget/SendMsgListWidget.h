@@ -34,6 +34,7 @@ protected:
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const override;
     virtual const QString& msgTooltipImpl() const override;
     virtual void stateChangedImpl(int state) override;
+    virtual void msgMovedImpl(int idx) override;
 };
 
 } /* namespace comms_champion */

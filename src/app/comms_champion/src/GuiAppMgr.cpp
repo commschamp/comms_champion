@@ -186,6 +186,26 @@ void GuiAppMgr::sendClearClicked()
     emit sigSendListCountReport(m_sendListCount);
 }
 
+void GuiAppMgr::sendTopClicked()
+{
+    emit sigSendMoveSelectedTop();
+}
+
+void GuiAppMgr::sendUpClicked()
+{
+    emit sigSendMoveSelectedUp();
+}
+
+void GuiAppMgr::sendDownClicked()
+{
+    emit sigSendMoveSelectedDown();
+}
+
+void GuiAppMgr::sendBottomClicked()
+{
+    emit sigSendMoveSelectedBottom();
+}
+
 void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo, int idx)
 {
     emit sigSendMsgListClearSelection();
@@ -225,6 +245,14 @@ void GuiAppMgr::sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx)
     }
     assert(m_clickedMsg == msgInfo);
     sendEditClicked();
+}
+
+void GuiAppMgr::sendSelectedMsgMoved(int idx)
+{
+    assert(0 <= idx);
+    assert(m_clickedMsg);
+    assert(m_selType == SelectionType::Send);
+    emit sigSendMsgSelected(idx);
 }
 
 GuiAppMgr::RecvState GuiAppMgr::recvState() const

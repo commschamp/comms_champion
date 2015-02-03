@@ -55,6 +55,10 @@ protected slots:
     void clear(bool reportDeleted);
     void clear();
     void stateChanged(int state);
+    void moveSelectedTop();
+    void moveSelectedUp();
+    void moveSelectedDown();
+    void moveSelectedBottom();
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx);
@@ -64,6 +68,7 @@ protected:
     virtual const QString& msgTooltipImpl() const;
     virtual void stateChangedImpl(int state);
     virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const;
+    virtual void msgMovedImpl(int idx);
 
     MessageInfoPtr currentMsg() const;
     MsgInfosList allMsgs() const;
@@ -76,6 +81,7 @@ private:
     MessageInfoPtr getMsgFromItem(QListWidgetItem* item) const;
     QString getMsgNameText(MessageInfoPtr msgInfo);
     Qt::GlobalColor defaultItemColour(bool valid) const;
+    void moveItem(int fromRow, int toRow);
 
     Ui::MsgListWidget m_ui;
     bool m_selectOnAdd = false;

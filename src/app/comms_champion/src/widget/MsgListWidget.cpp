@@ -157,6 +157,50 @@ void MsgListWidget::stateChanged(int state)
     stateChangedImpl(state);
 }
 
+void MsgListWidget::moveSelectedTop()
+{
+    auto curRow = m_ui.m_listWidget->currentRow();
+    if (curRow <= 0) {
+        assert(!"No item is selected or moving up top item");
+        return;
+    }
+
+    moveItem(curRow, 0);
+}
+
+void MsgListWidget::moveSelectedUp()
+{
+    auto curRow = m_ui.m_listWidget->currentRow();
+    if (curRow <= 0) {
+        assert(!"No item is selected or moving up top item");
+        return;
+    }
+
+    moveItem(curRow, curRow - 1);
+}
+
+void MsgListWidget::moveSelectedDown()
+{
+    auto curRow = m_ui.m_listWidget->currentRow();
+    if ((m_ui.m_listWidget->count() - 1) <= curRow) {
+        assert(!"No item is selected or moving down bottom item");
+        return;
+    }
+
+    moveItem(curRow, curRow + 1);
+}
+
+void MsgListWidget::moveSelectedBottom()
+{
+    auto curRow = m_ui.m_listWidget->currentRow();
+    if ((m_ui.m_listWidget->count() - 1) <= curRow) {
+        assert(!"No item is selected or moving down bottom item");
+        return;
+    }
+
+    moveItem(curRow, m_ui.m_listWidget->count() - 1);
+}
+
 void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
     static_cast<void>(msgInfo);
@@ -194,6 +238,11 @@ Qt::GlobalColor MsgListWidget::getItemColourImpl(MsgType type, bool valid) const
 {
     static_cast<void>(type);
     return defaultItemColour(valid);
+}
+
+void MsgListWidget::msgMovedImpl(int idx)
+{
+    static_cast<void>(idx);
 }
 
 MessageInfoPtr MsgListWidget::currentMsg() const
@@ -256,6 +305,16 @@ Qt::GlobalColor MsgListWidget::defaultItemColour(bool valid) const
         return Qt::black;
     }
     return Qt::red;
+}
+
+void MsgListWidget::moveItem(int fromRow, int toRow)
+{
+    assert(fromRow < m_ui.m_listWidget->count());
+    auto* item = m_ui.m_listWidget->takeItem(fromRow);
+    assert(toRow <= m_ui.m_listWidget->count());
+    m_ui.m_listWidget->insertItem(toRow, item);
+    m_ui.m_listWidget->setCurrentRow(toRow);
+    msgMovedImpl(toRow);
 }
 
 }  // namespace comms_champion

@@ -157,18 +157,16 @@ void MsgListWidget::stateChanged(int state)
     stateChangedImpl(state);
 }
 
-void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx, int total)
+void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
     static_cast<void>(msgInfo);
     static_cast<void>(idx);
-    static_cast<void>(total);
 }
 
-void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx, int total)
+void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
     static_cast<void>(msgInfo);
     static_cast<void>(idx);
-    static_cast<void>(total);
 }
 
 void MsgListWidget::msgListClearedImpl(MsgInfosList&& msgInfosList)
@@ -221,16 +219,14 @@ void MsgListWidget::itemClicked(QListWidgetItem* item)
 {
     msgClickedImpl(
         getMsgFromItem(item),
-        m_ui.m_listWidget->row(item),
-        m_ui.m_listWidget->count());
+        m_ui.m_listWidget->row(item));
 }
 
 void MsgListWidget::itemDoubleClicked(QListWidgetItem* item)
 {
     msgDoubleClickedImpl(
         getMsgFromItem(item),
-        m_ui.m_listWidget->row(item),
-        m_ui.m_listWidget->count());
+        m_ui.m_listWidget->row(item));
 }
 
 MessageInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item) const

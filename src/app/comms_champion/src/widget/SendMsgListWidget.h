@@ -29,8 +29,8 @@ public:
     SendMsgListWidget(QWidget* parent = nullptr);
 
 protected:
-    virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx, int total) override;
-    virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx, int total) override;
+    virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx) override;
+    virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx) override;
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const override;
     virtual const QString& msgTooltipImpl() const override;
     virtual void stateChangedImpl(int state) override;

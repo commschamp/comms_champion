@@ -49,14 +49,14 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
             this, SLOT(stateChanged(int)));
 }
 
-void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx, int total)
+void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
-    GuiAppMgr::instance()->sendMsgClicked(std::move(msgInfo), idx, total);
+    GuiAppMgr::instance()->sendMsgClicked(std::move(msgInfo), idx);
 }
 
-void SendMsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx, int total)
+void SendMsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
-    GuiAppMgr::instance()->sendMsgDoubleClicked(std::move(msgInfo), idx, total);
+    GuiAppMgr::instance()->sendMsgDoubleClicked(std::move(msgInfo), idx);
 }
 
 QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const

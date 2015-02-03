@@ -54,11 +54,9 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
         this, SLOT(clear(bool)));
 }
 
-void RecvMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx, int total)
+void RecvMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
-    static_cast<void>(idx);
-    static_cast<void>(total);
-    GuiAppMgr::instance()->recvMsgClicked(msgInfo);
+    GuiAppMgr::instance()->recvMsgClicked(msgInfo, idx);
 }
 
 void RecvMsgListWidget::msgListClearedImpl(MsgInfosList&& msgInfosList)

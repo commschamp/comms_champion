@@ -91,10 +91,10 @@ public slots:
     void sendDeleteClicked();
     void sendClearClicked();
 
-    void recvMsgClicked(MessageInfoPtr msgInfo);
+    void recvMsgClicked(MessageInfoPtr msgInfo, int idx);
 
-    void sendMsgClicked(MessageInfoPtr msgInfo, int idx, int total);
-    void sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx, int total);
+    void sendMsgClicked(MessageInfoPtr msgInfo, int idx);
+    void sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx);
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
@@ -110,14 +110,14 @@ signals:
     void sigClearDisplayedMsg();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
-    void sigRecvListEmpty(bool empty);
-    void sigSendListEmpty(bool empty);
-    void sigRecvMsgSelected(bool selected);
-    void sigSendMsgSelected(int index, int total);
+    void sigRecvMsgSelected(int index);
+    void sigSendMsgSelected(int index);
     void sigRecvDeleteSelectedMsg();
     void sigSendDeleteSelectedMsg();
     void sigRecvClear(bool reportDeleted);
     void sigSendClear();
+    void sigRecvListCountReport(unsigned count);
+    void sigSendListCountReport(unsigned count);
 
 private:
     enum class SelectionType
@@ -147,6 +147,7 @@ private /*data*/:
     bool canAddToRecvList(MsgType type) const;
     void decRecvListCount();
     void decSendListCount();
+    void emitRecvNotSelected();
     void emitSendNotSelected();
 
     RecvState m_recvState;

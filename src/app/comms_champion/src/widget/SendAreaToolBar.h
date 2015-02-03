@@ -36,8 +36,8 @@ public:
     SendAreaToolBar(QWidget* parent = nullptr);
 
 private slots:
-    void sendListEmptyReport(bool empty);
-    void sendMsgSelectedReport(int idx, int total);
+    void sendListCountReport(unsigned count);
+    void sendMsgSelectedReport(int idx);
     void stateChanged(int state);
     void startStopClicked();
     void startStopAllClicked();
@@ -55,6 +55,7 @@ private:
     void refreshDownButton(QAction* button);
 
     bool msgSelected() const;
+    bool listEmpty() const;
 
     QAction* m_startStopButton = nullptr;
     QAction* m_startStopAllButton = nullptr;
@@ -68,9 +69,8 @@ private:
     QAction* m_downButton = nullptr;
     QAction* m_bottomButton = nullptr;
     State m_state = State::Idle;
-    bool m_listEmpty = true;
     int m_selectedIdx = -1;
-    int m_listTotal = 0;
+    unsigned m_listTotal = 0;
 };
 
 }  // namespace comms_champion

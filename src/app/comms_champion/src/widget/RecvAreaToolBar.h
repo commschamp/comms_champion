@@ -41,8 +41,8 @@ public:
 
 private slots:
     void startStopClicked();
-    void recvListEmptyReport(bool empty);
-    void recvMsgSelectedReport(bool selected);
+    void recvListCountReport(unsigned count);
+    void recvMsgSelectedReport(int idx);
     void recvStateChanged(int state);
 
 private:
@@ -52,6 +52,9 @@ private:
     void refreshDeleteButton();
     void refreshClearButton();
 
+    bool msgSelected() const;
+    bool listEmpty() const;
+
     QAction* m_startStopButton = nullptr;
     QAction* m_saveButton = nullptr;
     QAction* m_deleteButton = nullptr;
@@ -59,8 +62,8 @@ private:
     QAction* m_showRecvButton = nullptr;
     QAction* m_showSentButton = nullptr;
     State m_state = State::Idle;
-    bool m_listEmpty = true;
-    bool m_msgSelected = false;
+    int m_selectedIdx = -1;
+    unsigned m_listTotal = 0;
 };
 
 }  // namespace comms_champion

@@ -204,8 +204,7 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
     m_upButton(createUpButton(*this)),
     m_downButton(createDownButton(*this)),
     m_bottomButton(createBottomButton(*this)),
-    m_state(GuiAppMgr::instance()->sendState()),
-    m_listEmpty(GuiAppMgr::instance()->sendListEmpty())
+    m_state(GuiAppMgr::instance()->sendState())
 {
     connect(
         m_startStopButton, SIGNAL(triggered()),
@@ -217,12 +216,12 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
 
     auto* guiAppMgr = GuiAppMgr::instance();
     connect(
-        guiAppMgr, SIGNAL(sigSendListEmpty(bool)),
-        this, SLOT(sendListEmptyReport(bool)));
+        guiAppMgr, SIGNAL(sigSendListCountReport(unsigned)),
+        this, SLOT(sendListCountReport(unsigned)));
 
     connect(
-        guiAppMgr, SIGNAL(sigSendMsgSelected(int, int)),
-        this, SLOT(sendMsgSelectedReport(int, int)));
+        guiAppMgr, SIGNAL(sigSendMsgSelected(int)),
+        this, SLOT(sendMsgSelectedReport(int)));
 
     connect(
         guiAppMgr, SIGNAL(sigSetSendState(int)),
@@ -232,16 +231,15 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
     refresh();
 }
 
-void SendAreaToolBar::sendListEmptyReport(bool empty)
+void SendAreaToolBar::sendListCountReport(unsigned count)
 {
-    m_listEmpty = empty;
+    m_listTotal = count;
     refresh();
 }
 
-void SendAreaToolBar::sendMsgSelectedReport(int idx, int total)
+void SendAreaToolBar::sendMsgSelectedReport(int idx)
 {
     m_selectedIdx = idx;
-    m_listTotal = total;
     refresh();
 }
 
@@ -299,7 +297,7 @@ void SendAreaToolBar::refreshStartStopButton()
     auto* button = m_startStopButton;
     assert(button);
     bool enabled =
-        (!m_listEmpty) &&
+        (!listEmpty()) &&
         (msgSelected()) &&
         ((m_state == State::SendingSingle) || (m_state == State::Idle));
     button->setEnabled(enabled);
@@ -319,7 +317,7 @@ void SendAreaToolBar::refreshStartStopAllButton()
     auto* button = m_startStopAllButton;
     assert(button);
     bool enabled =
-        (!m_listEmpty) &&
+        (!listEmpty()) &&
         ((m_state == State::SendingAll) || (m_state == State::Idle));
 
     button->setEnabled(enabled);
@@ -340,7 +338,7 @@ void SendAreaToolBar::refreshSaveButton()
     assert(button != nullptr);
     bool enabled =
         (m_state == State::Idle) &&
-        (!m_listEmpty);
+        (!listEmpty());
     button->setEnabled(enabled);
 }
 
@@ -378,7 +376,7 @@ void SendAreaToolBar::refreshClearButton()
     assert(button);
     bool enabled =
         (m_state == State::Idle) &&
-        (!m_listEmpty);
+        (!listEmpty());
     button->setEnabled(enabled);
 }
 
@@ -397,15 +395,20 @@ void SendAreaToolBar::refreshDownButton(QAction* button)
     bool enabled =
         (m_state == State::Idle) &&
         (msgSelected()) &&
-        (m_selectedIdx < (m_listTotal - 1));
+        (m_selectedIdx < static_cast<decltype(m_selectedIdx)>(m_listTotal - 1));
     button->setEnabled(enabled);
 }
 
 bool SendAreaToolBar::msgSelected() const
 {
     bool result = (0 <= m_selectedIdx);
-    assert(m_selectedIdx < m_listTotal);
+    assert(m_selectedIdx < static_cast<decltype(m_selectedIdx)>(m_listTotal));
     return result;
+}
+
+bool SendAreaToolBar::listEmpty() const
+{
+    return 0 == m_listTotal;
 }
 
 }  // namespace comms_champion

@@ -154,12 +154,12 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
 
     auto* guiAppMgr = GuiAppMgr::instance();
     connect(
-        guiAppMgr, SIGNAL(sigRecvListEmpty(bool)),
-        this, SLOT(recvListEmptyReport(bool)));
+        guiAppMgr, SIGNAL(sigRecvListCountReport(unsigned)),
+        this, SLOT(recvListCountReport(unsigned)));
 
     connect(
-        guiAppMgr, SIGNAL(sigRecvMsgSelected(bool)),
-        this, SLOT(recvMsgSelectedReport(bool)));
+        guiAppMgr, SIGNAL(sigRecvMsgSelected(int)),
+        this, SLOT(recvMsgSelectedReport(int)));
 
     connect(
         guiAppMgr, SIGNAL(sigSetRecvState(int)),
@@ -179,15 +179,15 @@ void RecvAreaToolBar::startStopClicked()
     GuiAppMgr::instance()->recvStopClicked();
 }
 
-void RecvAreaToolBar::recvListEmptyReport(bool empty)
+void RecvAreaToolBar::recvListCountReport(unsigned count)
 {
-    m_listEmpty = empty;
+    m_listTotal = count;
     refresh();
 }
 
-void RecvAreaToolBar::recvMsgSelectedReport(bool selected)
+void RecvAreaToolBar::recvMsgSelectedReport(int idx)
 {
-    m_msgSelected = selected;
+    m_selectedIdx = idx;
     refresh();
 }
 
@@ -231,7 +231,7 @@ void RecvAreaToolBar::refreshSaveButton()
     assert(button != nullptr);
     bool enabled =
         (m_state == State::Idle) &&
-        (!m_listEmpty);
+        (!listEmpty());
     button->setEnabled(enabled);
 }
 
@@ -239,7 +239,7 @@ void RecvAreaToolBar::refreshDeleteButton()
 {
     auto* button = m_deleteButton;
     assert(button);
-    bool enabled = m_msgSelected;
+    bool enabled = msgSelected();
     button->setEnabled(enabled);
 }
 
@@ -247,9 +247,22 @@ void RecvAreaToolBar::refreshClearButton()
 {
     auto* button = m_clearButton;
     assert(button);
-    bool enabled = (!m_listEmpty);
+    bool enabled = (!listEmpty());
     button->setEnabled(enabled);
 }
+
+bool RecvAreaToolBar::msgSelected() const
+{
+    bool result = (0 <= m_selectedIdx);
+    assert(m_selectedIdx < static_cast<decltype(m_selectedIdx)>(m_listTotal));
+    return result;
+}
+
+bool RecvAreaToolBar::listEmpty() const
+{
+    return 0 == m_listTotal;
+}
+
 
 }  // namespace comms_champion
 

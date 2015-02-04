@@ -42,7 +42,7 @@ public:
     typedef GuiAppMgr::MsgType MsgType;
 
     MsgListWidget(
-        const QString& listName,
+        const QString& title,
         QWidget* toolbar,
         QWidget* parent = nullptr);
 
@@ -59,6 +59,7 @@ protected slots:
     void moveSelectedUp();
     void moveSelectedDown();
     void moveSelectedBottom();
+    void titleNeedsUpdate();
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx);
@@ -69,6 +70,7 @@ protected:
     virtual void stateChangedImpl(int state);
     virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const;
     virtual void msgMovedImpl(int idx);
+    virtual QString getTitleImpl() const;
 
     MessageInfoPtr currentMsg() const;
     MsgInfosList allMsgs() const;
@@ -82,9 +84,11 @@ private:
     QString getMsgNameText(MessageInfoPtr msgInfo);
     Qt::GlobalColor defaultItemColour(bool valid) const;
     void moveItem(int fromRow, int toRow);
+    void updateTitle();
 
     Ui::MsgListWidget m_ui;
     bool m_selectOnAdd = false;
+    QString m_title;
 };
 
 }  // namespace comms_champion

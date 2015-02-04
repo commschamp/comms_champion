@@ -30,7 +30,7 @@ namespace comms_champion
 {
 
 RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
-  : Base("Received Messages", new RecvAreaToolBar(), parent)
+  : Base(getTitlePrefix(), new RecvAreaToolBar(), parent)
 {
     auto* guiMgr = GuiAppMgr::instance();
     assert(guiMgr != nullptr);
@@ -52,6 +52,13 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
     connect(
         guiMgr, SIGNAL(sigRecvClear(bool)),
         this, SLOT(clear(bool)));
+    connect(
+        guiMgr, SIGNAL(sigRecvClear(bool)),
+        this, SLOT(clear(bool)));
+    connect(
+        guiMgr, SIGNAL(sigRecvListTitleNeedsUpdate()),
+        this, SLOT(titleNeedsUpdate()));
+
 }
 
 void RecvMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
@@ -101,6 +108,34 @@ Qt::GlobalColor RecvMsgListWidget::getItemColourImpl(MsgType type, bool valid) c
     }
 
     return Qt::darkRed;
+}
+
+QString RecvMsgListWidget::getTitleImpl() const
+{
+    return getTitlePrefix();
+}
+
+QString RecvMsgListWidget::getTitlePrefix()
+{
+    auto* guiAppMgr = GuiAppMgr::instance();
+    assert(guiAppMgr != nullptr);
+    if (guiAppMgr->recvListShowsReceived() && guiAppMgr->recvListShowsSent()) {
+        static const QString Str("All Messages");
+        return Str;
+    }
+
+    if (guiAppMgr->recvListShowsReceived()) {
+        static const QString Str("Received Messages");
+        return Str;
+    }
+
+    if (guiAppMgr->recvListShowsSent()) {
+        static const QString Str("Sent Messages");
+        return Str;
+    }
+
+    static const QString Str("No Messages");
+    return Str;
 }
 
 } // namespace comms_champion

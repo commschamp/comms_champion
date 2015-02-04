@@ -34,6 +34,10 @@ protected:
     virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const override;
     virtual const QString& msgTooltipImpl() const override;
     virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const override;
+    virtual QString getTitleImpl() const override;
+
+private:
+    static QString getTitlePrefix();
 };
 
 } /* namespace comms_champion */

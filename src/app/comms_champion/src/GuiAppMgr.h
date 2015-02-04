@@ -52,6 +52,11 @@ public:
         NumOfStates
     };
 
+    enum RecvListMode {
+        RecvList_ShowReceived = 1U << 0,
+        RecvList_ShowSent = 1U << 1
+    };
+
     typedef MsgMgr::MsgType MsgType;
     typedef MsgMgr::Timestamp Timestamp;
 
@@ -62,6 +67,7 @@ public:
     bool recvListEmpty() const;
     bool recvListShowsReceived() const;
     bool recvListShowsSent() const;
+    unsigned recvListModeMask() const;
 
     SendState sendState() const;
     void sendAddNewMessage(MessageInfoPtr msgInfo);
@@ -127,6 +133,7 @@ signals:
     void sigSendMoveSelectedUp();
     void sigSendMoveSelectedDown();
     void sigSendMoveSelectedBottom();
+    void sigRecvListTitleNeedsUpdate();
 
 private:
     enum class SelectionType
@@ -162,8 +169,7 @@ private /*data*/:
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;
     unsigned m_recvListCount = 0;
-    bool m_recvListShowReceived = true;
-    bool m_recvListShowSent = false;
+    unsigned m_recvListMode = RecvList_ShowReceived;
 
     SendState m_sendState;
     unsigned m_sendListCount = 0;

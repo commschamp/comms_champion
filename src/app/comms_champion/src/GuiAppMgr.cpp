@@ -105,13 +105,31 @@ void GuiAppMgr::recvClearClicked()
 
 void GuiAppMgr::recvShowRecvToggled(bool checked)
 {
-    m_recvListShowReceived = checked;
+    static const auto mask =
+        static_cast<decltype(m_recvListMode)>(RecvList_ShowReceived);
+    if (checked) {
+        m_recvListMode |= mask;
+    }
+    else {
+        m_recvListMode &= (~mask);
+    }
+
+    emit sigRecvListTitleNeedsUpdate();
     refreshRecvList();
 }
 
 void GuiAppMgr::recvShowSentToggled(bool checked)
 {
-    m_recvListShowSent = checked;
+    static const auto mask =
+        static_cast<decltype(m_recvListMode)>(RecvList_ShowSent);
+    if (checked) {
+        m_recvListMode |= mask;
+    }
+    else {
+        m_recvListMode &= (~mask);
+    }
+
+    emit sigRecvListTitleNeedsUpdate();
     refreshRecvList();
 }
 
@@ -272,12 +290,17 @@ bool GuiAppMgr::recvListEmpty() const
 
 bool GuiAppMgr::recvListShowsReceived() const
 {
-    return m_recvListShowReceived;
+    return (m_recvListMode & RecvList_ShowReceived) != 0;
 }
 
 bool GuiAppMgr::recvListShowsSent() const
 {
-    return m_recvListShowSent;
+    return (m_recvListMode & RecvList_ShowSent) != 0;
+}
+
+unsigned GuiAppMgr::recvListModeMask() const
+{
+    return m_recvListMode;
 }
 
 GuiAppMgr::SendState GuiAppMgr::sendState() const
@@ -597,8 +620,8 @@ bool GuiAppMgr::canAddToRecvList(MsgType type) const
     assert((type == MsgType::Received) || (type == MsgType::Sent));
 
     return
-        ((type == MsgType::Received) && m_recvListShowReceived) ||
-        ((type == MsgType::Sent) && m_recvListShowSent);
+        ((type == MsgType::Received) && recvListShowsReceived()) ||
+        ((type == MsgType::Sent) && recvListShowsSent());
 }
 
 void GuiAppMgr::decRecvListCount()

@@ -35,14 +35,15 @@ const QString EmptyStr;
 }  // namespace
 
 MsgListWidget::MsgListWidget(
-    const QString& listName,
+    const QString& title,
     QWidget* toolbar,
     QWidget* parent)
-  : Base(parent)
+  : Base(parent),
+    m_title(title)
 {
     m_ui.setupUi(this);
     m_ui.m_groupBoxLayout->insertWidget(0, toolbar);
-    m_ui.m_groupBox->setTitle(listName);
+    updateTitle();
 
     connect(m_ui.m_listWidget, SIGNAL(itemClicked(QListWidgetItem*)),
             this, SLOT(itemClicked(QListWidgetItem*)));
@@ -85,6 +86,8 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
     if (m_ui.m_listWidget->currentRow() < 0) {
         m_ui.m_listWidget->scrollToBottom();
     }
+
+    updateTitle();
 }
 
 void MsgListWidget::updateCurrentMessage()
@@ -110,6 +113,8 @@ void MsgListWidget::deleteCurrentMessage()
 
     auto msgInfo = getMsgFromItem(item);
     delete item; // will remove from the list
+
+    updateTitle();
 
     auto* nextItem = m_ui.m_listWidget->currentItem();
     if (nextItem != nullptr) {
@@ -150,6 +155,7 @@ void MsgListWidget::clear(bool reportDeleted)
 void MsgListWidget::clear()
 {
     m_ui.m_listWidget->clear();
+    updateTitle();
 }
 
 void MsgListWidget::stateChanged(int state)
@@ -201,6 +207,12 @@ void MsgListWidget::moveSelectedBottom()
     moveItem(curRow, m_ui.m_listWidget->count() - 1);
 }
 
+void MsgListWidget::titleNeedsUpdate()
+{
+    m_title = getTitleImpl();
+    updateTitle();
+}
+
 void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
     static_cast<void>(msgInfo);
@@ -243,6 +255,12 @@ Qt::GlobalColor MsgListWidget::getItemColourImpl(MsgType type, bool valid) const
 void MsgListWidget::msgMovedImpl(int idx)
 {
     static_cast<void>(idx);
+}
+
+QString MsgListWidget::getTitleImpl() const
+{
+    assert(!"Should not be called");
+    return QString();
 }
 
 MessageInfoPtr MsgListWidget::currentMsg() const
@@ -316,6 +334,15 @@ void MsgListWidget::moveItem(int fromRow, int toRow)
     m_ui.m_listWidget->setCurrentRow(toRow);
     msgMovedImpl(toRow);
 }
+
+void MsgListWidget::updateTitle()
+{
+    auto title =
+        m_title +
+        QString(" [%1]").arg(m_ui.m_listWidget->count(), 1, 10, QChar('0'));
+    m_ui.m_groupBox->setTitle(title);
+}
+
 
 }  // namespace comms_champion
 

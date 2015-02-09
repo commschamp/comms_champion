@@ -11,6 +11,7 @@ function (bin_comms_champion)
         src/GlobalConstants.cpp
         src/DefaultMessageDisplayHandler.cpp
         src/FieldWidget.cpp
+        src/ConfigMgr.cpp
         src/DummySocket.cpp
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp
@@ -38,6 +39,7 @@ function (bin_comms_champion)
         src/GuiAppMgr.h
         src/MsgMgr.h
         src/DummySocket.h
+        src/ConfigMgr.h
         src/widget/RecvAreaToolBar.h
         src/widget/SendAreaToolBar.h
         src/widget/MsgListWidget.h

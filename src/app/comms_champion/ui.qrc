@@ -4,7 +4,7 @@
         <file>image/start_all.png</file>
         <file>image/stop.png</file>
         <file>image/save.png</file>
-        <file>image/config.png</file>
+        <file>image/settings.png</file>
         <file>image/add.png</file>
         <file>image/edit.png</file>
         <file>image/delete.png</file>
@@ -16,5 +16,8 @@
         <file>image/bottom.png</file>
         <file>image/up.png</file>
         <file>image/down.png</file>
+        <file>image/upload.png</file>
+        <file>image/save_as.png</file>
+        <file>image/prot_config.png</file>
     </qresource>
 </RCC>

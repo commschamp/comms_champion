@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,30 +18,42 @@
 
 #pragma once
 
-#include <QtWidgets/QMainWindow>
-
-#include "comms_champion/Protocol.h"
-
-#include "ui_MainWindowWidget.h"
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QVariantMap>
 
 namespace comms_champion
 {
 
-class MainWindowWidget : public QMainWindow
+class ConfigMgr : public QObject
 {
     Q_OBJECT
-    using Base = QMainWindow;
 public:
-    MainWindowWidget(QWidget* parent = nullptr);
+    enum class ErrorStatus
+    {
+        Success,
+        BadFilename,
+        CorruptedFile
+    };
 
-private slots:
-    void newSendMsgDialog(ProtocolPtr protocol);
-    void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
-    void loadConfigDialog();
-    void saveConfigDialog();
+    static ConfigMgr& instance();
+
+    const QString& getCurrentFile() const;
+    static const QString& getFilesFilter();
+
+    ErrorStatus loadConfig(const QString& filename);
+    ErrorStatus saveConfig(const QString& filename);
+
+signals:
+    void sigConfigUpdated();
 
 private:
-    Ui::MainWindowWidget m_ui;
+    ConfigMgr() = default;
+
+    QString m_configFile;
+    QVariantMap m_options;
 };
 
 }  // namespace comms_champion
+
+

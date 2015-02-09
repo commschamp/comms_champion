@@ -78,7 +78,10 @@ public:
     void sendMessages(MsgInfosList&& msgs);
 
 public slots:
-    void configClicked();
+    void loadConfigClicked();
+    void saveConfigClicked();
+    void configProtocolClicked();
+    void settingsClicked();
 
     void recvStartClicked();
     void recvStopClicked();
@@ -119,8 +122,6 @@ signals:
     void sigSendMsgListClearSelection();
     void sigDisplayMsg(MessageInfoPtr msgInfo);
     void sigClearDisplayedMsg();
-    void sigNewSendMsgDialog(ProtocolPtr protocol);
-    void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
     void sigRecvMsgSelected(int index);
     void sigSendMsgSelected(int index);
     void sigRecvDeleteSelectedMsg();
@@ -134,6 +135,12 @@ signals:
     void sigSendMoveSelectedDown();
     void sigSendMoveSelectedBottom();
     void sigRecvListTitleNeedsUpdate();
+
+    void sigNewSendMsgDialog(ProtocolPtr protocol);
+    void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
+    void sigLoadConfigDialog();
+    void sigSaveConfigDialog();
+
 
 private:
     enum class SelectionType

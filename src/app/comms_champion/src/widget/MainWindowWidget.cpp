@@ -21,14 +21,17 @@
 
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QToolBar>
-#include <QtGui/QIcon>
 #include <QtWidgets/QShortcut>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtGui/QIcon>
 #include <QtGui/QKeySequence>
 
 #include "LeftPaneWidget.h"
 #include "RightPaneWidget.h"
 #include "MessageUpdateDialog.h"
 #include "GuiAppMgr.h"
+#include "ConfigMgr.h"
 
 namespace comms_champion
 {
@@ -36,11 +39,36 @@ namespace comms_champion
 namespace
 {
 
-void createConfigButton(QToolBar& bar)
+void createLoadButton(QToolBar& bar)
 {
-    auto* config = bar.addAction(QIcon(":/image/config.png"), "Settings");
-    QObject::connect(config, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(configClicked()));
+    auto* config = bar.addAction(QIcon(":/image/upload.png"), "Load Configuration");
+    QObject::connect(
+        config, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(loadConfigClicked()));
+}
+
+void createSaveButton(QToolBar& bar)
+{
+    auto* config = bar.addAction(QIcon(":/image/save_as.png"), "Save Configuration");
+    QObject::connect(
+        config, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(saveConfigClicked()));
+}
+
+void createConfigProtButton(QToolBar& bar)
+{
+    auto* config = bar.addAction(QIcon(":/image/prot_config.png"), "Configure Protocol and Sockets");
+    QObject::connect(
+        config, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(configProtocolClicked()));
+}
+
+void createSettingsButton(QToolBar& bar)
+{
+    auto* config = bar.addAction(QIcon(":/image/settings.png"), "Settings");
+    QObject::connect(
+        config, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(settingsClicked()));
 }
 
 }  // namespace
@@ -51,7 +79,10 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     m_ui.setupUi(this);
 
     auto* toolbar = new QToolBar();
-    createConfigButton(*toolbar);
+    createLoadButton(*toolbar);
+    createSaveButton(*toolbar);
+    createConfigProtButton(*toolbar);
+    createSettingsButton(*toolbar);
     addToolBar(toolbar);
 
     auto* splitter = new QSplitter();
@@ -73,6 +104,15 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     connect(
         guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessageInfoPtr, ProtocolPtr)),
         this, SLOT(updateSendMsgDialog(MessageInfoPtr, ProtocolPtr)));
+    connect(
+        guiAppMgr, SIGNAL(sigLoadConfigDialog()),
+        this, SLOT(loadConfigDialog()));
+    connect(
+        guiAppMgr, SIGNAL(sigSaveConfigDialog()),
+        this, SLOT(saveConfigDialog()));
+    connect(
+        m_ui.m_actionQuit, SIGNAL(triggered()),
+        this, SLOT(close()));
 }
 
 void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
@@ -97,5 +137,66 @@ void MainWindowWidget::updateSendMsgDialog(
         GuiAppMgr::instance()->sendUpdateMessage(std::move(msgInfo));
     }
 }
+
+void MainWindowWidget::loadConfigDialog()
+{
+    auto& configMgr = ConfigMgr::instance();
+    auto filename =
+        QFileDialog::getOpenFileName(
+            this,
+            tr("Open File"),
+            configMgr.getCurrentFile(),
+            configMgr.getFilesFilter());
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    auto result = configMgr.loadConfig(filename);
+    if (result == ConfigMgr::ErrorStatus::Success) {
+        return;
+    }
+
+    if (result == ConfigMgr::ErrorStatus::BadFilename) {
+        QMessageBox::critical(
+            this,
+            tr("Bad filename"),
+            tr("Failed to load the configuration file."));
+        return;
+    }
+
+    assert(!"NYI: Provide error message");
+    QMessageBox::critical(
+        this,
+        tr("Bad configuration file"),
+        tr("Failed to load the configuration file. Bad contents."));
+}
+
+void MainWindowWidget::saveConfigDialog()
+{
+    auto& configMgr = ConfigMgr::instance();
+    auto filename =
+        QFileDialog::getSaveFileName(
+            this,
+            tr("Save Configuration File"),
+            configMgr.getCurrentFile(),
+            configMgr.getFilesFilter());
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    auto result = configMgr.saveConfig(filename);
+    if (result == ConfigMgr::ErrorStatus::Success) {
+        return;
+    }
+
+    assert(result == ConfigMgr::ErrorStatus::BadFilename);
+    QMessageBox::critical(
+        this,
+        tr("Filesystem error"),
+        tr("Failed to save the configuration file."));
+}
+
 
 }  // namespace comms_champion

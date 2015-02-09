@@ -25,6 +25,7 @@
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
 #include "DummySocket.h"
+#include "ConfigMgr.h"
 
 #include "widget/MainWindowWidget.h"
 
@@ -40,11 +41,21 @@ void metaTypesRegisterAll()
     qRegisterMetaType<cc::ProtocolPtr>();
 }
 
+void initSingletons()
+{
+    static_cast<void>(cc::MsgMgr::instance());
+    static_cast<void>(cc::GuiAppMgr::instance());
+    static_cast<void>(cc::ConfigMgr::instance());
+}
+
 }  // namespace
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    metaTypesRegisterAll();
+    initSingletons();
 
     cc::MainWindowWidget window;
     window.showMaximized();

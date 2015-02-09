@@ -140,7 +140,7 @@ void MainWindowWidget::updateSendMsgDialog(
 
 void MainWindowWidget::loadConfigDialog()
 {
-    auto& configMgr = ConfigMgr::instance();
+    auto& configMgr = ConfigMgr::instanceRef();
     auto filename =
         QFileDialog::getOpenFileName(
             this,
@@ -152,29 +152,22 @@ void MainWindowWidget::loadConfigDialog()
         return;
     }
 
-    auto result = configMgr.loadConfig(filename);
-    if (result == ConfigMgr::ErrorStatus::Success) {
+    auto errors = configMgr.loadConfig(filename);
+    if (errors.empty()) {
         return;
     }
 
-    if (result == ConfigMgr::ErrorStatus::BadFilename) {
+    for (auto& errorInfo : errors) {
         QMessageBox::critical(
             this,
-            tr("Bad filename"),
-            tr("Failed to load the configuration file."));
-        return;
+            errorInfo.first,
+            errorInfo.second);
     }
-
-    assert(!"NYI: Provide error message");
-    QMessageBox::critical(
-        this,
-        tr("Bad configuration file"),
-        tr("Failed to load the configuration file. Bad contents."));
 }
 
 void MainWindowWidget::saveConfigDialog()
 {
-    auto& configMgr = ConfigMgr::instance();
+    auto& configMgr = ConfigMgr::instanceRef();
     auto filename =
         QFileDialog::getSaveFileName(
             this,
@@ -186,16 +179,17 @@ void MainWindowWidget::saveConfigDialog()
         return;
     }
 
-    auto result = configMgr.saveConfig(filename);
-    if (result == ConfigMgr::ErrorStatus::Success) {
+    auto errors = configMgr.saveConfig(filename);
+    if (errors.empty()) {
         return;
     }
 
-    assert(result == ConfigMgr::ErrorStatus::BadFilename);
-    QMessageBox::critical(
-        this,
-        tr("Filesystem error"),
-        tr("Failed to save the configuration file."));
+    for (auto& errorInfo : errors) {
+        QMessageBox::critical(
+            this,
+            errorInfo.first,
+            errorInfo.second);
+    }
 }
 
 

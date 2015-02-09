@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <utility>
+#include <list>
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QVariantMap>
@@ -29,20 +31,18 @@ class ConfigMgr : public QObject
 {
     Q_OBJECT
 public:
-    enum class ErrorStatus
-    {
-        Success,
-        BadFilename,
-        CorruptedFile
-    };
 
-    static ConfigMgr& instance();
+    static ConfigMgr* instance();
+    static ConfigMgr& instanceRef();
 
     const QString& getCurrentFile() const;
     static const QString& getFilesFilter();
 
-    ErrorStatus loadConfig(const QString& filename);
-    ErrorStatus saveConfig(const QString& filename);
+    typedef std::pair<QString, QString> ErrorInfo;
+    typedef std::list<ErrorInfo> ListOfErrors;
+    ListOfErrors loadConfig(const QString& filename);
+    ListOfErrors saveConfig(const QString& filename);
+    void reportConfigError(const QString& errorMsg);
 
 signals:
     void sigConfigUpdated();
@@ -52,6 +52,7 @@ private:
 
     QString m_configFile;
     QVariantMap m_options;
+    std::list<QString> m_reportedErrors;
 };
 
 }  // namespace comms_champion

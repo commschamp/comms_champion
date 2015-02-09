@@ -27,10 +27,15 @@
 namespace comms_champion
 {
 
-ConfigMgr& ConfigMgr::instance()
+ConfigMgr* ConfigMgr::instance()
 {
     static ConfigMgr mgr;
-    return mgr;
+    return &mgr;
+}
+
+ConfigMgr& ConfigMgr::instanceRef()
+{
+    return *(instance());
 }
 
 const QString& ConfigMgr::getCurrentFile() const
@@ -44,70 +49,123 @@ const QString& ConfigMgr::getFilesFilter()
     return Str;
 }
 
-ConfigMgr::ErrorStatus ConfigMgr::loadConfig(const QString& filename)
+ConfigMgr::ListOfErrors ConfigMgr::loadConfig(const QString& filename)
 {
-    QFile configFile(filename);
-    if (!configFile.open(QIODevice::ReadOnly)) {
-        return ErrorStatus::BadFilename;
-    }
-
-    auto data = configFile.readAll();
-
-    auto jsonError = QJsonParseError();
-    auto jsonDoc = QJsonDocument::fromJson(data, &jsonError);
-    if (jsonError.error != QJsonParseError::NoError) {
-        return ErrorStatus::CorruptedFile;
-    }
-
-    if (!jsonDoc.isObject()) {
-        return ErrorStatus::CorruptedFile;
-    }
-
-    auto topObject = jsonDoc.object();
-    auto keys = topObject.keys();
-    QVariantMap configMap;
-    for (auto k : keys) {
-        auto jsonValue = topObject.value(k);
-        if (!jsonValue.isObject()) {
-            return ErrorStatus::CorruptedFile;
-        }
-
-        auto valueMap = jsonValue.toObject().toVariantMap();
-        configMap.insert(k, QVariant::fromValue(std::move(valueMap)));
-    }
-
-    m_options.swap(configMap);
-    emit sigConfigUpdated();
-    return ErrorStatus::Success;
-}
-
-ConfigMgr::ErrorStatus ConfigMgr::saveConfig(const QString& filename)
-{
-    QString filenameTmp(filename);
-    while (true) {
-        filenameTmp.append(".tmp");
-        if (!QFile::exists(filenameTmp)) {
+    ListOfErrors errors;
+    do {
+        QFile configFile(filename);
+        if (!configFile.open(QIODevice::ReadOnly)) {
+            errors.push_back(
+                ListOfErrors::value_type(
+                    tr("Bad filename"),
+                    tr("Failed to load the configuration file.")));
             break;
         }
-    }
 
-    QFile configFile(filenameTmp);
-    if (!configFile.open(QIODevice::WriteOnly)) {
-        return ErrorStatus::BadFilename;
-    }
+        auto data = configFile.readAll();
 
-    auto jsonObj = QJsonObject::fromVariantMap(m_options);
-    QJsonDocument jsonDoc(jsonObj);
-    auto data = jsonDoc.toJson();
+        auto badConfigErrorFunc =
+            [&errors](const QString& msg)
+            {
+                errors.push_back(
+                    std::make_pair(
+                        tr("Bad configuration file"),
+                        msg));
+            };
 
-    configFile.write(data);
+        auto badContentsErrorFunc =
+            [&badConfigErrorFunc]()
+            {
+                badConfigErrorFunc(
+                    tr("Failed to load the configuration file. Bad contents."));
+            };
 
-    if (!QFile::remove(filename)) {
-        return ErrorStatus::BadFilename;
-    }
 
-    configFile.rename(filename);
-    return ErrorStatus::Success;
+        auto jsonError = QJsonParseError();
+        auto jsonDoc = QJsonDocument::fromJson(data, &jsonError);
+        if (jsonError.error != QJsonParseError::NoError) {
+            badContentsErrorFunc();
+            break;
+        }
+
+        if (!jsonDoc.isObject()) {
+            badContentsErrorFunc();
+            break;
+        }
+
+        auto topObject = jsonDoc.object();
+        auto keys = topObject.keys();
+        QVariantMap configMap;
+        for (auto k : keys) {
+            auto jsonValue = topObject.value(k);
+            if (!jsonValue.isObject()) {
+                badContentsErrorFunc();
+            }
+
+            auto valueMap = jsonValue.toObject().toVariantMap();
+            configMap.insert(k, QVariant::fromValue(std::move(valueMap)));
+        }
+
+        m_options.swap(configMap);
+        m_reportedErrors.clear();
+        emit sigConfigUpdated();
+        if (!m_reportedErrors.empty()) {
+            m_options.swap(configMap);
+            for (auto e : m_reportedErrors) {
+                badConfigErrorFunc(e);
+            }
+            break;
+        }
+    } while (false);
+    return errors;
+}
+
+ConfigMgr::ListOfErrors ConfigMgr::saveConfig(const QString& filename)
+{
+    ListOfErrors errors;
+    do {
+        QString filenameTmp(filename);
+        while (true) {
+            filenameTmp.append(".tmp");
+            if (!QFile::exists(filenameTmp)) {
+                break;
+            }
+        }
+
+        auto reportFilesystemErrorFunc =
+            [&errors]()
+            {
+                errors.push_back(
+                    std::make_pair(
+                        tr("Filesystem error"),
+                        tr("Failed to save the configuration file.")));
+            };
+
+        QFile configFile(filenameTmp);
+        if (!configFile.open(QIODevice::WriteOnly)) {
+            reportFilesystemErrorFunc();
+            break;
+        }
+
+        auto jsonObj = QJsonObject::fromVariantMap(m_options);
+        QJsonDocument jsonDoc(jsonObj);
+        auto data = jsonDoc.toJson();
+
+        configFile.write(data);
+
+        if (!QFile::remove(filename)) {
+            reportFilesystemErrorFunc();
+            break;
+        }
+
+        configFile.rename(filename);
+    } while (false);
+    return errors;
+}
+
+void ConfigMgr::reportConfigError(const QString& errorMsg)
+{
+    m_reportedErrors.push_back(errorMsg);
 }
 
 }  // namespace comms_champion

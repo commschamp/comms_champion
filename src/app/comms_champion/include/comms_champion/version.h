@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,12 +18,13 @@
 
 #pragma once
 
-#include "version.h"
-#include "Message.h"
-#include "MessageBase.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "PluginControlInterface.h"
-#include "Plugin.h"
-#include "MessageWidget.h"
-#include "MessageInfo.h"
+#include <cstdint>
+#include <limits>
+
+#define COMMS_CHAMPION_MAJOR 0
+#define COMMS_CHAMPION_MINOR 1
+#define COMMS_CHAMPION_VERSION (\
+    (static_cast<unsigned>(COMMS_CHAMPION_MAJOR) << std::numeric_limits<std::uint16_t>::digits) |\
+    (static_cast<std::uint16_t>(COMMS_CHAMPION_MINOR)))
+
+

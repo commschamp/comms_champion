@@ -22,6 +22,8 @@
 
 #include <QtCore/QtPlugin>
 
+#include "PluginControlInterface.h"
+
 namespace comms_champion
 {
 
@@ -30,9 +32,9 @@ class Plugin
 public:
     virtual ~Plugin() = default;
 
-    void initialize()
+    void initialize(const PluginControlInterface& controlInterface)
     {
-        initializeImpl();
+        initializeImpl(controlInterface);
     }
 
     void finalize()
@@ -40,16 +42,9 @@ public:
         finalizeImpl();
     }
 
-    void configure(const std::string& config = std::string())
-    {
-        configureImpl(config);
-    }
-
-
 protected:
-    virtual void initializeImpl() = 0;
+    virtual void initializeImpl(const PluginControlInterface& controlInterface) = 0;
     virtual void finalizeImpl() = 0;
-    virtual void configureImpl(const std::string& config) = 0;
 };
 
 }  // namespace comms_champion

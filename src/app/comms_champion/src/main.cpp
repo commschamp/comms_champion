@@ -70,18 +70,17 @@ int main(int argc, char *argv[])
     app.addLibraryPath(dir.path());
 
     QPluginLoader loader("demo");
-    auto* pluginObj = qobject_cast<cc::ProtocolPlugin*>(loader.instance());
+    auto* pluginObj = qobject_cast<cc::Plugin*>(loader.instance());
     if (pluginObj == nullptr) {
         std::cerr << "Failed to load plugin: " << loader.errorString().toStdString() << std::endl;
         return -1;
     }
 
-    pluginObj->initialize();
-    pluginObj->configure();
-    auto* msgMgr = cc::MsgMgr::instance();
-    msgMgr->setProtocol(pluginObj->alloc());
-    msgMgr->addSocket(cc::makeDummySocket());
-    msgMgr->start();
+    cc::PluginControlInterface controlInterface;
+    pluginObj->initialize(controlInterface);
+    auto& msgMgr = cc::MsgMgr::instanceRef();
+    msgMgr.addSocket(cc::makeDummySocket());
+    msgMgr.start();
     auto retval = app.exec();
     pluginObj->finalize();
     return retval;

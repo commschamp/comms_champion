@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,27 +18,18 @@
 
 #pragma once
 
-#include "Plugin.h"
 #include "Protocol.h"
 
 namespace comms_champion
 {
 
-class ProtocolPlugin : public Plugin
+class PluginControlInterface
 {
 public:
-
-    ProtocolPtr alloc()
-    {
-        return allocImpl();
-    }
-
-protected:
-
-    virtual ProtocolPtr allocImpl() = 0;
+    static unsigned version();
+    static void setProtocol(ProtocolPtr protocol);
 };
 
 }  // namespace comms_champion
 
-Q_DECLARE_INTERFACE(comms_champion::ProtocolPlugin, "cc.ProtocolPlugin")
 

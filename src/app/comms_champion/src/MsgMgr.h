@@ -25,7 +25,6 @@
 
 #include "comms_champion/Message.h"
 #include "comms_champion/Protocol.h"
-#include "comms_champion/ProtocolPlugin.h"
 #include "comms_champion/MessageInfo.h"
 #include "comms_champion/Socket.h"
 

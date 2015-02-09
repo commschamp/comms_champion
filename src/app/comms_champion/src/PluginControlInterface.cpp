@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -15,15 +15,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "comms_champion/PluginControlInterface.h"
 
-#pragma once
+#include "comms_champion/version.h"
 
-#include "version.h"
-#include "Message.h"
-#include "MessageBase.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "PluginControlInterface.h"
-#include "Plugin.h"
-#include "MessageWidget.h"
-#include "MessageInfo.h"
+#include "MsgMgr.h"
+
+namespace comms_champion
+{
+
+unsigned PluginControlInterface::version()
+{
+    return COMMS_CHAMPION_VERSION;
+}
+
+void PluginControlInterface::setProtocol(ProtocolPtr protocol)
+{
+    MsgMgr::instanceRef().setProtocol(std::move(protocol));
+}
+
+}  // namespace comms_champion
+
+

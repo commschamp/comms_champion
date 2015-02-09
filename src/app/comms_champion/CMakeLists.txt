@@ -12,6 +12,7 @@ function (bin_comms_champion)
         src/DefaultMessageDisplayHandler.cpp
         src/FieldWidget.cpp
         src/ConfigMgr.cpp
+        src/PluginControlInterface.cpp
         src/DummySocket.cpp
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp

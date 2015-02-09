@@ -21,31 +21,24 @@
 
 #include <iostream>
 
+namespace cc = comms_champion;
+
 namespace demo
 {
 
 namespace plugin
 {
 
-void DemoPlugin::initializeImpl()
+void DemoPlugin::initializeImpl(
+    const comms_champion::PluginControlInterface& controlInterface)
 {
+    controlInterface.setProtocol(cc::ProtocolPtr(new Protocol()));
     std::cout << "Plugin initialized!!!" << std::endl;
 }
 
 void DemoPlugin::finalizeImpl()
 {
     std::cout << "Plugin finalized!!!" << std::endl;
-}
-
-void DemoPlugin::configureImpl(const std::string& config)
-{
-    static_cast<void>(config);
-    std::cout << "Plugin configured!!!" << std::endl;
-}
-
-cc::ProtocolPtr DemoPlugin::allocImpl()
-{
-    return cc::ProtocolPtr(new Protocol());
 }
 
 }  // namespace plugin

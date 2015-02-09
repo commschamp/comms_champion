@@ -609,8 +609,6 @@ void GuiAppMgr::addMsgToRecvList(MessageInfoPtr msgInfo)
 
 void GuiAppMgr::clearRecvList(bool reportDeleted)
 {
-    emit sigRecvClear(reportDeleted);
-
     bool wasSelected = (m_selType == SelectionType::Recv);
     bool sendSelected = (m_selType == SelectionType::Send);
     assert((!wasSelected) || (m_clickedMsg));
@@ -628,6 +626,7 @@ void GuiAppMgr::clearRecvList(bool reportDeleted)
     }
 
     emit sigRecvListCountReport(m_recvListCount);
+    emit sigRecvClear(reportDeleted);
 }
 
 bool GuiAppMgr::canAddToRecvList(MsgType type) const

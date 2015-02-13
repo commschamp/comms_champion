@@ -24,8 +24,8 @@
 #include "comms_champion/comms_champion.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
-#include "DummySocket.h"
 #include "ConfigMgr.h"
+#include "PluginMgr.h"
 
 #include "widget/MainWindowWidget.h"
 
@@ -43,9 +43,10 @@ void metaTypesRegisterAll()
 
 void initSingletons()
 {
-    static_cast<void>(cc::MsgMgr::instance());
+    static_cast<void>(cc::MsgMgr::instanceRef());
     static_cast<void>(cc::GuiAppMgr::instance());
-    static_cast<void>(cc::ConfigMgr::instance());
+    static_cast<void>(cc::ConfigMgr::instanceRef());
+    static_cast<void>(cc::PluginMgr::instanceRef());
 }
 
 }  // namespace
@@ -69,20 +70,23 @@ int main(int argc, char *argv[])
 
     app.addLibraryPath(dir.path());
 
-    QPluginLoader loader("demo");
-    auto* pluginObj = qobject_cast<cc::Plugin*>(loader.instance());
-    if (pluginObj == nullptr) {
-        std::cerr << "Failed to load plugin: " << loader.errorString().toStdString() << std::endl;
-        return -1;
-    }
+    // TODO: use PluginMgr
 
-    cc::PluginControlInterface controlInterface;
-    pluginObj->initialize(controlInterface);
-    auto& msgMgr = cc::MsgMgr::instanceRef();
-    msgMgr.addSocket(cc::makeDummySocket());
-    msgMgr.start();
+//    QPluginLoader loader("demo");
+//    auto* pluginObj = qobject_cast<cc::Plugin*>(loader.instance());
+//    if (pluginObj == nullptr) {
+//        std::cerr << "Failed to load plugin: " << loader.errorString().toStdString() << std::endl;
+//        return -1;
+//    }
+//
+//    pluginObj->initialize();
+//    cc::PluginControlInterface controlInterface;
+//    pluginObj->apply(controlInterface);
+//    auto& msgMgr = cc::MsgMgr::instanceRef();
+//    msgMgr.addSocket(cc::makeDummySocket());
+//    msgMgr.start();
     auto retval = app.exec();
-    pluginObj->finalize();
+//    pluginObj->finalize();
     return retval;
 }
 

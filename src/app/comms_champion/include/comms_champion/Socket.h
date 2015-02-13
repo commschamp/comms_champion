@@ -82,7 +82,7 @@ protected:
     }
 };
 
-typedef std::unique_ptr<Socket> SocketPtr;
+typedef std::shared_ptr<Socket> SocketPtr;
 
 }  // namespace comms_champion
 

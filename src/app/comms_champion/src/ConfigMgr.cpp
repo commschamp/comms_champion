@@ -168,6 +168,22 @@ void ConfigMgr::reportConfigError(const QString& errorMsg)
     m_reportedErrors.push_back(errorMsg);
 }
 
+QVariantMap ConfigMgr::getConfiguration(const QString& topKey)
+{
+    auto iter = m_options.find(topKey);
+    if (iter == m_options.end()) {
+        return QVariantMap();
+    }
+
+    auto mapVar = *iter;
+    if ((!mapVar.isValid()) || (!mapVar.canConvert<QVariantMap>())) {
+        assert(!"Incorrect internal map, should not happen");
+        return QVariantMap();
+    }
+
+    return mapVar.value<QVariantMap>();
+}
+
 }  // namespace comms_champion
 
 

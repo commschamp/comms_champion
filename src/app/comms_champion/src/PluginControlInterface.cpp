@@ -34,6 +34,24 @@ void PluginControlInterface::setProtocol(ProtocolPtr protocol)
     MsgMgr::instanceRef().setProtocol(std::move(protocol));
 }
 
+void PluginControlInterface::clearProtocol()
+{
+    MsgMgr::instanceRef().setProtocol(ProtocolPtr());
+}
+
+void PluginControlInterface::addSocket(SocketPtr socket)
+{
+    MsgMgr::instanceRef().addSocket(std::move(socket));
+}
+
+void PluginControlInterface::removeSocket(SocketPtr socket)
+{
+    MsgMgr::instanceRef().removeSocket(std::move(socket));
+}
+
+
+
+
 }  // namespace comms_champion
 
 

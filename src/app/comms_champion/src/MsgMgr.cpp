@@ -19,6 +19,9 @@
 #include "MsgMgr.h"
 
 #include <cassert>
+#include <algorithm>
+#include <iterator>
+#include <iostream>
 
 #include <QtCore/QVariant>
 
@@ -61,6 +64,8 @@ MsgMgr& MsgMgr::instanceRef()
 
 void MsgMgr::addSocket(SocketPtr socket)
 {
+    std::cout << __FUNCTION__ << ": socket is at " << socket.get() << std::endl;
+
     if (!m_sockets.empty()) {
         auto& lastSocket = m_sockets.back();
 
@@ -84,6 +89,62 @@ void MsgMgr::addSocket(SocketPtr socket)
     m_sockets.push_back(std::move(socket));
 }
 
+void MsgMgr::removeSocket(SocketPtr socket)
+{
+    std::cout << __FUNCTION__ << ": socket is at " << socket.get() << std::endl;
+    auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
+    if (iter == m_sockets.end()) {
+        assert(!"Removing sockets that wasn't added before");
+        return;
+    }
+
+    do {
+        socket->disconnect();
+        bool prevExists = (iter != m_sockets.begin());
+        auto prevIter = iter;
+        std::advance(prevIter, -1);
+
+        auto nextIter = iter;
+        std::advance(nextIter, 1);
+        bool nextExists = (nextIter != m_sockets.end());
+
+        if (prevExists) {
+            disconnect(
+                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+                socket.get(), SLOT(feedInData(DataInfoPtr)));
+        }
+
+        if (nextExists) {
+            disconnect(
+                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
+                socket.get(), SLOT(sendData(DataInfoPtr)));
+        }
+
+        if (prevExists && nextExists) {
+            connect(
+                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+                (*nextIter).get(), SLOT(feedInData(DataInfoPtr)));
+
+            connect(
+                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
+                (*prevIter).get(), SLOT(sendData(DataInfoPtr)));
+
+            break;
+        }
+
+        if (prevExists) {
+            // Next doesn't exist
+            connect(
+                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+                this, SLOT(socketDataReceived(DataInfoPtr)));
+            break;
+        }
+
+    } while (false);
+
+    m_sockets.erase(iter);
+}
+
 void MsgMgr::setProtocol(ProtocolPtr protocol)
 {
     m_protocol = std::move(protocol);
@@ -91,16 +152,39 @@ void MsgMgr::setProtocol(ProtocolPtr protocol)
 
 void MsgMgr::start()
 {
+    if (m_running) {
+        assert(!"Already running");
+        return;
+    }
+
     for (auto& s : m_sockets) {
         s->start();
     }
+    m_running = true;
 }
 
 void MsgMgr::stop()
 {
+    if (!m_running) {
+        assert(!"Already stopped.");
+        return;
+    }
+
     for (auto& s : m_sockets) {
         s->stop();
     }
+    m_running = false;
+}
+
+void MsgMgr::clear()
+{
+    if (m_running) {
+        assert(!"Still running");
+        stop();
+    }
+
+    m_sockets.clear();
+    m_protocol.reset();
 }
 
 ProtocolPtr MsgMgr::getProtocol() const
@@ -154,7 +238,7 @@ void MsgMgr::deleteAllMsgs()
 
 void MsgMgr::sendMsgs(const MsgInfosList& msgs)
 {
-    if (msgs.empty()) {
+    if (msgs.empty() || m_sockets.empty() || (!m_protocol)) {
         return;
     }
 

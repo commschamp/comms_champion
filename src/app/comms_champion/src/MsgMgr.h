@@ -55,10 +55,12 @@ public:
     static MsgMgr& instanceRef();
 
     void addSocket(SocketPtr socket);
+    void removeSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
 
     void start();
     void stop();
+    void clear();
 
     ProtocolPtr getProtocol() const;
     void setRecvEnabled(bool enabled);
@@ -89,6 +91,7 @@ private:
     SocketsList m_sockets;
     ProtocolPtr m_protocol;
     MsgNumberType m_nextMsgNum = 1;
+    bool m_running = false;
 };
 
 }  // namespace comms_champion

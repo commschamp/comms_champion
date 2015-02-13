@@ -29,17 +29,29 @@ namespace demo
 namespace plugin
 {
 
-void DemoPlugin::initializeImpl(
-    const comms_champion::PluginControlInterface& controlInterface)
+DemoPlugin::DemoPlugin()
 {
-    controlInterface.setProtocol(cc::ProtocolPtr(new Protocol()));
-    std::cout << "Plugin initialized!!!" << std::endl;
+    std::cout << "DemoPlugin initialized!!!" << std::endl;
 }
 
-void DemoPlugin::finalizeImpl()
+DemoPlugin::~DemoPlugin()
 {
+    if (isApplied()) {
+        assert(m_controlInterface != nullptr);
+        m_controlInterface->clearProtocol();
+    }
     std::cout << "Plugin finalized!!!" << std::endl;
 }
+
+
+void DemoPlugin::applyImpl(
+    const comms_champion::PluginControlInterface& controlInterface)
+{
+    m_controlInterface = &controlInterface;
+    controlInterface.setProtocol(cc::ProtocolPtr(new Protocol()));
+    std::cout << "Plugin applied!!!" << std::endl;
+}
+
 
 }  // namespace plugin
 

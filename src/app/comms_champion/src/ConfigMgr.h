@@ -44,6 +44,8 @@ public:
     ListOfErrors saveConfig(const QString& filename);
     void reportConfigError(const QString& errorMsg);
 
+    QVariantMap getConfiguration(const QString& topKey);
+
 signals:
     void sigConfigUpdated();
 

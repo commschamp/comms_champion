@@ -13,7 +13,7 @@ function (bin_comms_champion)
         src/FieldWidget.cpp
         src/ConfigMgr.cpp
         src/PluginControlInterface.cpp
-        src/DummySocket.cpp
+        src/PluginMgr.cpp
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp
         src/widget/RightPaneWidget.cpp
@@ -39,8 +39,8 @@ function (bin_comms_champion)
         moc
         src/GuiAppMgr.h
         src/MsgMgr.h
-        src/DummySocket.h
         src/ConfigMgr.h
+        src/PluginMgr.h
         src/widget/RecvAreaToolBar.h
         src/widget/SendAreaToolBar.h
         src/widget/MsgListWidget.h
@@ -101,5 +101,7 @@ include_directories (
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
+add_subdirectory (src/plugin)
 
 bin_comms_champion()

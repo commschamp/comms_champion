@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,34 +18,43 @@
 
 #pragma once
 
-#include <QtCore/QObject>
-#include <QtCore/QtPlugin>
-#include "comms_champion/comms_champion.h"
+#include <memory>
 
-namespace demo
+#include "comms_champion/Plugin.h"
+#include "comms_champion/Socket.h"
+
+namespace comms_champion
 {
 
 namespace plugin
 {
 
-class DemoPlugin : public comms_champion::Plugin
+namespace dummy_socket
+{
+
+class DummySocketPlugin : public comms_champion::Plugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
+    Q_PLUGIN_METADATA(IID "cc.DummySocketPlugin")
     Q_INTERFACES(comms_champion::Plugin)
 
 public:
-    DemoPlugin();
-    ~DemoPlugin();
+    DummySocketPlugin();
+    ~DummySocketPlugin();
 
-protected:
+    virtual void applyImpl(const PluginControlInterface& controlInterface) override;
 
-    virtual void applyImpl(
-        const comms_champion::PluginControlInterface& controlInterface) override;
 private:
-    const comms_champion::PluginControlInterface* m_controlInterface = nullptr;
+    comms_champion::SocketPtr m_socket;
+    const PluginControlInterface* m_interface = nullptr;
 };
+
+}  // namespace dummy_socket
 
 }  // namespace plugin
 
-}  // namespace demo
+}  // namespace comms_champion
+
+
+
+

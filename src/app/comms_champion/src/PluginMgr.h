@@ -18,20 +18,42 @@
 
 #pragma once
 
-#include "Protocol.h"
-#include "Socket.h"
+#include <memory>
+#include <list>
+
+#include <QtCore/QObject>
+#include <QtCore/QVariantMap>
+#include <QtCore/QVariantList>
+#include <QtCore/QPluginLoader>
+
+#include "comms_champion/PluginControlInterface.h"
+
+#include "ConfigMgr.h"
 
 namespace comms_champion
 {
 
-class PluginControlInterface
+class PluginMgr : public QObject
 {
+    Q_OBJECT
 public:
-    static unsigned version();
-    static void setProtocol(ProtocolPtr protocol);
-    static void clearProtocol();
-    static void addSocket(SocketPtr socket);
-    static void removeSocket(SocketPtr socket);
+    static PluginMgr& instanceRef();
+
+private slots:
+    void configUpdated();
+
+private:
+    typedef std::shared_ptr<QPluginLoader> PluginLoaderPtr;
+    typedef std::list<PluginLoaderPtr> PluginLoadersList;
+
+    PluginMgr();
+
+    bool verifyPluginsConfiguration(const QVariantList plugins);
+    static PluginLoaderPtr allocPluginLoader(const QString& name);
+
+    QVariantMap m_curConfig;
+    PluginLoadersList m_plugins;
+    PluginControlInterface m_controlInterface;
 };
 
 }  // namespace comms_champion

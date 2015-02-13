@@ -19,7 +19,9 @@
 #pragma once
 
 #include <string>
+#include <cassert>
 
+#include <QtCore/QObject>
 #include <QtCore/QtPlugin>
 
 #include "PluginControlInterface.h"
@@ -27,24 +29,28 @@
 namespace comms_champion
 {
 
-class Plugin
+class Plugin : public QObject
 {
 public:
     virtual ~Plugin() = default;
 
-    void initialize(const PluginControlInterface& controlInterface)
+    bool isApplied() const
     {
-        initializeImpl(controlInterface);
+        return m_applied;
     }
 
-    void finalize()
+    void apply(const PluginControlInterface& controlInterface)
     {
-        finalizeImpl();
+        assert(!isApplied());
+        applyImpl(controlInterface);
+        m_applied = true;
     }
 
 protected:
-    virtual void initializeImpl(const PluginControlInterface& controlInterface) = 0;
-    virtual void finalizeImpl() = 0;
+    virtual void applyImpl(const PluginControlInterface& controlInterface) = 0;
+
+private:
+    bool m_applied = false;
 };
 
 }  // namespace comms_champion

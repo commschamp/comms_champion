@@ -33,14 +33,14 @@
 namespace comms_champion
 {
 
-class PluginMgr : public QObject
+class PluginMgr // : public QObject
 {
-    Q_OBJECT
+//    Q_OBJECT
 public:
     static PluginMgr& instanceRef();
 
-private slots:
-    void configUpdated();
+//private slots:
+//    void configUpdated();
 
 private:
     typedef std::shared_ptr<QPluginLoader> PluginLoaderPtr;
@@ -48,8 +48,8 @@ private:
 
     PluginMgr();
 
-    bool verifyPluginsConfiguration(const QVariantList plugins);
-    static PluginLoaderPtr allocPluginLoader(const QString& name);
+//    bool verifyPluginsConfiguration(const QVariantList plugins);
+//    static PluginLoaderPtr allocPluginLoader(const QString& name);
 
     QVariantMap m_curConfig;
     PluginLoadersList m_plugins;

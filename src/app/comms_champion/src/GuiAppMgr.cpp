@@ -53,20 +53,20 @@ GuiAppMgr* GuiAppMgr::instance()
     return mgr.get();
 }
 
-void GuiAppMgr::loadConfigClicked()
-{
-    emit sigLoadConfigDialog();
-}
-
-void GuiAppMgr::saveConfigClicked()
-{
-    emit sigSaveConfigDialog();
-}
-
-void GuiAppMgr::configProtocolClicked()
-{
-    assert(!"Configure protocol clicked");
-}
+//void GuiAppMgr::loadConfigClicked()
+//{
+//    emit sigLoadConfigDialog();
+//}
+//
+//void GuiAppMgr::saveConfigClicked()
+//{
+//    emit sigSaveConfigDialog();
+//}
+//
+//void GuiAppMgr::configProtocolClicked()
+//{
+//    assert(!"Configure protocol clicked");
+//}
 
 void GuiAppMgr::settingsClicked()
 {

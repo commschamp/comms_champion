@@ -78,9 +78,9 @@ public:
     void sendMessages(MsgInfosList&& msgs);
 
 public slots:
-    void loadConfigClicked();
-    void saveConfigClicked();
-    void configProtocolClicked();
+//    void loadConfigClicked();
+//    void saveConfigClicked();
+//    void configProtocolClicked();
     void settingsClicked();
 
     void recvStartClicked();

@@ -39,29 +39,29 @@ namespace comms_champion
 namespace
 {
 
-void createLoadButton(QToolBar& bar)
-{
-    auto* config = bar.addAction(QIcon(":/image/upload.png"), "Load Configuration");
-    QObject::connect(
-        config, SIGNAL(triggered()),
-        GuiAppMgr::instance(), SLOT(loadConfigClicked()));
-}
-
-void createSaveButton(QToolBar& bar)
-{
-    auto* config = bar.addAction(QIcon(":/image/save_as.png"), "Save Configuration");
-    QObject::connect(
-        config, SIGNAL(triggered()),
-        GuiAppMgr::instance(), SLOT(saveConfigClicked()));
-}
-
-void createConfigProtButton(QToolBar& bar)
-{
-    auto* config = bar.addAction(QIcon(":/image/prot_config.png"), "Configure Protocol and Sockets");
-    QObject::connect(
-        config, SIGNAL(triggered()),
-        GuiAppMgr::instance(), SLOT(configProtocolClicked()));
-}
+//void createLoadButton(QToolBar& bar)
+//{
+//    auto* config = bar.addAction(QIcon(":/image/upload.png"), "Load Configuration");
+//    QObject::connect(
+//        config, SIGNAL(triggered()),
+//        GuiAppMgr::instance(), SLOT(loadConfigClicked()));
+//}
+//
+//void createSaveButton(QToolBar& bar)
+//{
+//    auto* config = bar.addAction(QIcon(":/image/save_as.png"), "Save Configuration");
+//    QObject::connect(
+//        config, SIGNAL(triggered()),
+//        GuiAppMgr::instance(), SLOT(saveConfigClicked()));
+//}
+//
+//void createConfigProtButton(QToolBar& bar)
+//{
+//    auto* config = bar.addAction(QIcon(":/image/prot_config.png"), "Configure Protocol and Sockets");
+//    QObject::connect(
+//        config, SIGNAL(triggered()),
+//        GuiAppMgr::instance(), SLOT(configProtocolClicked()));
+//}
 
 void createSettingsButton(QToolBar& bar)
 {
@@ -79,9 +79,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     m_ui.setupUi(this);
 
     auto* toolbar = new QToolBar();
-    createLoadButton(*toolbar);
-    createSaveButton(*toolbar);
-    createConfigProtButton(*toolbar);
+//    createLoadButton(*toolbar);
+//    createSaveButton(*toolbar);
+//    createConfigProtButton(*toolbar);
     createSettingsButton(*toolbar);
     addToolBar(toolbar);
 
@@ -104,12 +104,12 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     connect(
         guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessageInfoPtr, ProtocolPtr)),
         this, SLOT(updateSendMsgDialog(MessageInfoPtr, ProtocolPtr)));
-    connect(
-        guiAppMgr, SIGNAL(sigLoadConfigDialog()),
-        this, SLOT(loadConfigDialog()));
-    connect(
-        guiAppMgr, SIGNAL(sigSaveConfigDialog()),
-        this, SLOT(saveConfigDialog()));
+//    connect(
+//        guiAppMgr, SIGNAL(sigLoadConfigDialog()),
+//        this, SLOT(loadConfigDialog()));
+//    connect(
+//        guiAppMgr, SIGNAL(sigSaveConfigDialog()),
+//        this, SLOT(saveConfigDialog()));
     connect(
         m_ui.m_actionQuit, SIGNAL(triggered()),
         this, SLOT(close()));
@@ -138,59 +138,59 @@ void MainWindowWidget::updateSendMsgDialog(
     }
 }
 
-void MainWindowWidget::loadConfigDialog()
-{
-    auto& configMgr = ConfigMgr::instanceRef();
-    auto filename =
-        QFileDialog::getOpenFileName(
-            this,
-            tr("Open File"),
-            configMgr.getCurrentFile(),
-            configMgr.getFilesFilter());
-
-    if (filename.isEmpty()) {
-        return;
-    }
-
-    auto errors = configMgr.loadConfig(filename);
-    if (errors.empty()) {
-        return;
-    }
-
-    for (auto& errorInfo : errors) {
-        QMessageBox::critical(
-            this,
-            errorInfo.first,
-            errorInfo.second);
-    }
-}
-
-void MainWindowWidget::saveConfigDialog()
-{
-    auto& configMgr = ConfigMgr::instanceRef();
-    auto filename =
-        QFileDialog::getSaveFileName(
-            this,
-            tr("Save Configuration File"),
-            configMgr.getCurrentFile(),
-            configMgr.getFilesFilter());
-
-    if (filename.isEmpty()) {
-        return;
-    }
-
-    auto errors = configMgr.saveConfig(filename);
-    if (errors.empty()) {
-        return;
-    }
-
-    for (auto& errorInfo : errors) {
-        QMessageBox::critical(
-            this,
-            errorInfo.first,
-            errorInfo.second);
-    }
-}
+//void MainWindowWidget::loadConfigDialog()
+//{
+//    auto& configMgr = ConfigMgr::instanceRef();
+//    auto filename =
+//        QFileDialog::getOpenFileName(
+//            this,
+//            tr("Open File"),
+//            configMgr.getCurrentFile(),
+//            configMgr.getFilesFilter());
+//
+//    if (filename.isEmpty()) {
+//        return;
+//    }
+//
+//    auto errors = configMgr.loadConfig(filename);
+//    if (errors.empty()) {
+//        return;
+//    }
+//
+//    for (auto& errorInfo : errors) {
+//        QMessageBox::critical(
+//            this,
+//            errorInfo.first,
+//            errorInfo.second);
+//    }
+//}
+//
+//void MainWindowWidget::saveConfigDialog()
+//{
+//    auto& configMgr = ConfigMgr::instanceRef();
+//    auto filename =
+//        QFileDialog::getSaveFileName(
+//            this,
+//            tr("Save Configuration File"),
+//            configMgr.getCurrentFile(),
+//            configMgr.getFilesFilter());
+//
+//    if (filename.isEmpty()) {
+//        return;
+//    }
+//
+//    auto errors = configMgr.saveConfig(filename);
+//    if (errors.empty()) {
+//        return;
+//    }
+//
+//    for (auto& errorInfo : errors) {
+//        QMessageBox::critical(
+//            this,
+//            errorInfo.first,
+//            errorInfo.second);
+//    }
+//}
 
 
 }  // namespace comms_champion

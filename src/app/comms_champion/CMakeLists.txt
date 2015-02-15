@@ -39,8 +39,6 @@ function (bin_comms_champion)
         moc
         src/GuiAppMgr.h
         src/MsgMgr.h
-        src/ConfigMgr.h
-        src/PluginMgr.h
         src/widget/RecvAreaToolBar.h
         src/widget/SendAreaToolBar.h
         src/widget/MsgListWidget.h

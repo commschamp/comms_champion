@@ -27,9 +27,9 @@
 namespace comms_champion
 {
 
-class ConfigMgr : public QObject
+class ConfigMgr // : public QObject
 {
-    Q_OBJECT
+//    Q_OBJECT
 public:
 
     static ConfigMgr* instance();
@@ -38,23 +38,20 @@ public:
     const QString& getCurrentFile() const;
     static const QString& getFilesFilter();
 
-    typedef std::pair<QString, QString> ErrorInfo;
-    typedef std::list<ErrorInfo> ListOfErrors;
-    ListOfErrors loadConfig(const QString& filename);
-    ListOfErrors saveConfig(const QString& filename);
-    void reportConfigError(const QString& errorMsg);
-
-    QVariantMap getConfiguration(const QString& topKey);
-
-signals:
-    void sigConfigUpdated();
+//    typedef std::pair<QString, QString> ErrorInfo;
+//    typedef std::list<ErrorInfo> ListOfErrors;
+//    ListOfErrors loadConfig(const QString& filename);
+//    ListOfErrors saveConfig(const QString& filename);
+//    void reportConfigError(const QString& errorMsg);
+//
+//    QVariantMap getConfiguration(const QString& topKey);
 
 private:
     ConfigMgr() = default;
 
     QString m_configFile;
-    QVariantMap m_options;
-    std::list<QString> m_reportedErrors;
+//    QVariantMap m_options;
+//    std::list<QString> m_reportedErrors;
 };
 
 }  // namespace comms_champion

@@ -30,6 +30,7 @@
 #include "LeftPaneWidget.h"
 #include "RightPaneWidget.h"
 #include "MessageUpdateDialog.h"
+#include "PluginConfigDialog.h"
 #include "GuiAppMgr.h"
 #include "ConfigMgr.h"
 
@@ -63,13 +64,21 @@ namespace
 //        GuiAppMgr::instance(), SLOT(configProtocolClicked()));
 //}
 
-void createSettingsButton(QToolBar& bar)
+void createPluginsButton(QToolBar& bar)
 {
-    auto* config = bar.addAction(QIcon(":/image/settings.png"), "Settings");
+    auto* config = bar.addAction(QIcon(":/image/plugin_edit.png"), "Manage and configure plugings");
     QObject::connect(
         config, SIGNAL(triggered()),
-        GuiAppMgr::instance(), SLOT(settingsClicked()));
+        GuiAppMgr::instance(), SLOT(pluginsEditClicked()));
 }
+
+//void createSettingsButton(QToolBar& bar)
+//{
+//    auto* config = bar.addAction(QIcon(":/image/settings.png"), "Settings");
+//    QObject::connect(
+//        config, SIGNAL(triggered()),
+//        GuiAppMgr::instance(), SLOT(settingsClicked()));
+//}
 
 }  // namespace
 
@@ -82,7 +91,7 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
 //    createLoadButton(*toolbar);
 //    createSaveButton(*toolbar);
 //    createConfigProtButton(*toolbar);
-    createSettingsButton(*toolbar);
+    createPluginsButton(*toolbar);
     addToolBar(toolbar);
 
     auto* splitter = new QSplitter();
@@ -104,6 +113,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     connect(
         guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessageInfoPtr, ProtocolPtr)),
         this, SLOT(updateSendMsgDialog(MessageInfoPtr, ProtocolPtr)));
+    connect(
+        guiAppMgr, SIGNAL(sigPluginsEditDialog()),
+        this, SLOT(pluginsEditDialog()));
 //    connect(
 //        guiAppMgr, SIGNAL(sigLoadConfigDialog()),
 //        this, SLOT(loadConfigDialog()));
@@ -136,6 +148,12 @@ void MainWindowWidget::updateSendMsgDialog(
     if (result != 0) {
         GuiAppMgr::instance()->sendUpdateMessage(std::move(msgInfo));
     }
+}
+
+void MainWindowWidget::pluginsEditDialog()
+{
+    PluginConfigDialog dialog(this);
+    dialog.exec();
 }
 
 //void MainWindowWidget::loadConfigDialog()

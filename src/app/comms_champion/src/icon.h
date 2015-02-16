@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,31 +18,30 @@
 
 #pragma once
 
-#include <QtWidgets/QMainWindow>
-
-#include "comms_champion/Protocol.h"
-
-#include "ui_MainWindowWidget.h"
+#include <QtGui/QIcon>
 
 namespace comms_champion
 {
 
-class MainWindowWidget : public QMainWindow
+namespace icon
 {
-    Q_OBJECT
-    using Base = QMainWindow;
-public:
-    MainWindowWidget(QWidget* parent = nullptr);
 
-private slots:
-    void newSendMsgDialog(ProtocolPtr protocol);
-    void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
-    void pluginsEditDialog();
-//    void loadConfigDialog();
-//    void saveConfigDialog();
+const QIcon& add();
+const QIcon& remove();
+const QIcon& clear();
+const QIcon& editClear();
+const QIcon& top();
+const QIcon& up();
+const QIcon& down();
+const QIcon& bottom();
+const QIcon& upload();
+const QIcon& save();
+const QIcon& saveAs();
 
-private:
-    Ui::MainWindowWidget m_ui;
-};
+}  // namespace icon
 
 }  // namespace comms_champion
+
+
+
+

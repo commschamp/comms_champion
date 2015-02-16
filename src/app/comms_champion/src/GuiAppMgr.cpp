@@ -68,9 +68,9 @@ GuiAppMgr* GuiAppMgr::instance()
 //    assert(!"Configure protocol clicked");
 //}
 
-void GuiAppMgr::settingsClicked()
+void GuiAppMgr::pluginsEditClicked()
 {
-    assert(!"Settings clicked");
+    emit sigPluginsEditDialog();
 }
 
 void GuiAppMgr::recvStartClicked()

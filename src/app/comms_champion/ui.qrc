@@ -18,6 +18,6 @@
         <file>image/down.png</file>
         <file>image/upload.png</file>
         <file>image/save_as.png</file>
-        <file>image/prot_config.png</file>
+        <file>image/plugin_edit.png</file>
     </qresource>
 </RCC>

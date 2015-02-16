@@ -81,7 +81,8 @@ public slots:
 //    void loadConfigClicked();
 //    void saveConfigClicked();
 //    void configProtocolClicked();
-    void settingsClicked();
+    void pluginsEditClicked();
+//    void settingsClicked();
 
     void recvStartClicked();
     void recvStopClicked();
@@ -138,8 +139,9 @@ signals:
 
     void sigNewSendMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
-    void sigLoadConfigDialog();
-    void sigSaveConfigDialog();
+    void sigPluginsEditDialog();
+//    void sigLoadConfigDialog();
+//    void sigSaveConfigDialog();
 
 
 private:

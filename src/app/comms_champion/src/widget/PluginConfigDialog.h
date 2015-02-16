@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -15,34 +15,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 #pragma once
 
-#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QLineEdit>
 
-#include "comms_champion/Protocol.h"
-
-#include "ui_MainWindowWidget.h"
+#include "ui_PluginConfigDialog.h"
 
 namespace comms_champion
 {
 
-class MainWindowWidget : public QMainWindow
+class PluginConfigDialog: public QDialog
 {
     Q_OBJECT
-    using Base = QMainWindow;
-public:
-    MainWindowWidget(QWidget* parent = nullptr);
+    using Base = QDialog;
 
-private slots:
-    void newSendMsgDialog(ProtocolPtr protocol);
-    void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
-    void pluginsEditDialog();
-//    void loadConfigDialog();
-//    void saveConfigDialog();
+public:
+    PluginConfigDialog(QWidget* parent = nullptr);
 
 private:
-    Ui::MainWindowWidget m_ui;
+
+    void createAvailableToolbar();
+    void createSelectedToolbar();
+
+    Ui::PluginConfigDialog m_ui;
+    QLineEdit* m_availSearchLineEdit = nullptr;
 };
 
-}  // namespace comms_champion
+} /* namespace comms_champion */

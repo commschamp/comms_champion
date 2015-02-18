@@ -22,8 +22,9 @@
 #include <list>
 
 #include <QtCore/QObject>
-#include <QtCore/QVariantMap>
-#include <QtCore/QVariantList>
+#include <QtCore/QString>
+//#include <QtCore/QVariantMap>
+//#include <QtCore/QVariantList>
 #include <QtCore/QPluginLoader>
 
 #include "comms_champion/PluginControlInterface.h"
@@ -37,7 +38,37 @@ class PluginMgr // : public QObject
 {
 //    Q_OBJECT
 public:
+
+    class PluginInfo
+    {
+        friend class PluginMgr;
+
+    public:
+        const QString& getName() const
+        {
+            return m_name;
+        }
+
+        const QString& getDescription() const
+        {
+            return m_desc;
+        }
+
+    private:
+        PluginInfo() = default;
+
+        QString m_filename;
+        QString m_name;
+        QString m_desc;
+    };
+
+    typedef std::shared_ptr<PluginInfo> PluginInfoPtr;
+    typedef std::list<PluginInfoPtr> ListOfPluginInfos;
+
     static PluginMgr& instanceRef();
+    void setPluginsDir(const QString& pluginDir);
+    const ListOfPluginInfos& getAvailablePlugins();
+
 
 //private slots:
 //    void configUpdated();
@@ -48,14 +79,19 @@ private:
 
     PluginMgr();
 
+    static PluginInfoPtr readPluginInfo(const QString& filename);
+
 //    bool verifyPluginsConfiguration(const QVariantList plugins);
 //    static PluginLoaderPtr allocPluginLoader(const QString& name);
 
-    QVariantMap m_curConfig;
-    PluginLoadersList m_plugins;
-    PluginControlInterface m_controlInterface;
+    QString m_pluginDir;
+    ListOfPluginInfos m_availablePlugins;
+//    QVariantMap m_curConfig;
+//    PluginLoadersList m_plugins;
+//    PluginControlInterface m_controlInterface;
 };
 
 }  // namespace comms_champion
 
+Q_DECLARE_METATYPE(comms_champion::PluginMgr::PluginInfoPtr);
 

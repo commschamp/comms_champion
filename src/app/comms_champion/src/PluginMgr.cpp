@@ -21,6 +21,8 @@
 
 #include <QtCore/QString>
 #include <QtCore/QVariantList>
+#include <QtCore/QDir>
+#include <QtCore/QJsonArray>
 
 #include "comms_champion/Plugin.h"
 
@@ -38,6 +40,11 @@ const QString ConfigTopKey("cc_plugin_mgr");
 const QString PluginListKey("plugins");
 const QString InvalidConfigurationStr(
         "Invalid plugins configuration.");
+
+const QString IidMetaKey("IID");
+const QString MetaDataMetaKey("MetaData");
+const QString NameMetaKey("name");
+const QString DescMetaKey("desc");
 
 struct PluginLoaderDeleter
 {
@@ -76,6 +83,34 @@ PluginMgr& PluginMgr::instanceRef()
 {
     static PluginMgr mgr;
     return mgr;
+}
+
+void PluginMgr::setPluginsDir(const QString& pluginDir)
+{
+    m_pluginDir = pluginDir;
+}
+
+const PluginMgr::ListOfPluginInfos& PluginMgr::getAvailablePlugins()
+{
+    if (!m_availablePlugins.empty()) {
+        return m_availablePlugins;
+    }
+
+    do {
+        QDir pluginDir(m_pluginDir);
+        auto files =
+            pluginDir.entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+
+        for (auto& f : files) {
+            auto infoPtr = readPluginInfo(f);
+            if (infoPtr) {
+                m_availablePlugins.push_back(std::move(infoPtr));
+            }
+        }
+    } while (false);
+
+    std::cout << "Number of available plugins is " << m_availablePlugins.size() << std::endl;
+    return m_availablePlugins;
 }
 
 //void PluginMgr::configUpdated()
@@ -217,6 +252,69 @@ PluginMgr::PluginMgr()
 //    std::cout << __FUNCTION__ << ": plugin " << name.toStdString() << " loaded and initialised" << std::endl;
 //    return loaderPtr;
 //}
+
+PluginMgr::PluginInfoPtr PluginMgr::readPluginInfo(const QString& filename)
+{
+    PluginInfoPtr ptr;
+
+    do {
+        QPluginLoader loader(filename);
+        assert(!loader.isLoaded());
+        auto metaData = loader.metaData();
+        assert(!loader.isLoaded());
+
+        if (metaData.isEmpty()) {
+            break;
+        }
+
+        auto iidJsonVal = metaData.value(IidMetaKey);
+        if (!iidJsonVal.isString()) {
+            break;
+        }
+
+        auto iidStr = iidJsonVal.toString();
+
+        ptr.reset(new PluginInfo());
+        ptr->m_filename = filename;
+
+        auto extraMeta = metaData.value(MetaDataMetaKey);
+        if (!extraMeta.isObject()) {
+            ptr->m_name = iidStr;
+            break;
+        }
+
+        auto extraMetaObj = extraMeta.toObject();
+        auto nameJsonVal = extraMetaObj.value(NameMetaKey);
+        if (!nameJsonVal.isString()) {
+            ptr->m_name = iidStr;
+        }
+
+        auto nameStr = nameJsonVal.toString();
+        if (nameStr.isEmpty()) {
+            ptr->m_name = iidStr;
+        }
+        else {
+            ptr->m_name = nameStr;
+        }
+
+        auto descJsonVal = extraMetaObj.value(DescMetaKey);
+        if (descJsonVal.isString()) {
+            ptr->m_desc = descJsonVal.toString();
+        }
+        else if (descJsonVal.isArray()) {
+            auto descVarList = descJsonVal.toArray().toVariantList();
+            for (auto& descPartVar : descVarList) {
+                if ((descPartVar.isValid()) &&
+                    (descPartVar.canConvert<QString>())) {
+                    ptr->m_desc.append(descPartVar.toString());
+                }
+            }
+        }
+
+    } while (false);
+    return ptr;
+}
+
 
 }  // namespace comms_champion
 

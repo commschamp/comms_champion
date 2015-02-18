@@ -37,6 +37,7 @@ private:
 
     void createAvailableToolbar();
     void createSelectedToolbar();
+    void refreshAvailablePlugins();
 
     Ui::PluginConfigDialog m_ui;
     QLineEdit* m_availSearchLineEdit = nullptr;

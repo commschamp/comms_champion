@@ -25,6 +25,7 @@
 #include <QtWidgets/QHBoxLayout>
 
 #include "icon.h"
+#include "PluginMgr.h"
 
 namespace comms_champion
 {
@@ -37,6 +38,8 @@ PluginConfigDialog::PluginConfigDialog(QWidget* parent)
 
     createAvailableToolbar();
     createSelectedToolbar();
+
+    refreshAvailablePlugins();
 
     assert(parent);
     auto newHeight = std::max(height(), (parent->height() * 9) / 10);
@@ -95,6 +98,31 @@ void PluginConfigDialog::createSelectedToolbar()
     static_cast<void>(upAction);
     static_cast<void>(downAction);
     static_cast<void>(bottomAction);
+}
+
+void PluginConfigDialog::refreshAvailablePlugins()
+{
+    auto& availablePlugins = PluginMgr::instanceRef().getAvailablePlugins();
+    auto filterStr = m_availSearchLineEdit->text();
+
+    for (auto& pluginInfoPtr : availablePlugins) {
+        auto& name = pluginInfoPtr->getName();
+        bool addEntry =
+            filterStr.isEmpty() ||
+            name.contains(filterStr, Qt::CaseInsensitive);
+
+        if (addEntry) {
+            m_ui.m_availListWidget->addItem(name);
+            auto* item = m_ui.m_availListWidget->item(
+                m_ui.m_availListWidget->count() - 1);
+            static const QString Tooltip("Use double click to select");
+            item->setToolTip(Tooltip);
+
+            item->setData(
+                Qt::UserRole,
+                QVariant::fromValue(pluginInfoPtr));
+            }
+    }
 }
 
 } /* namespace comms_champion */

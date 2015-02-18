@@ -1,0 +1,4 @@
+{
+    "name" : "Dummy Socket",
+    "desc" : "This is dummy socket that generates hard codes sequency of bytes once a second."
+}

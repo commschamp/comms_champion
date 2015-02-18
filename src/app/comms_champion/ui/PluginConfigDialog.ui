@@ -40,7 +40,7 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
-               <widget class="QListWidget" name="m_msgListWidget"/>
+               <widget class="QListWidget" name="m_availListWidget"/>
               </item>
              </layout>
             </widget>
@@ -82,7 +82,7 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
               <item>
-               <widget class="QListWidget" name="listWidget"/>
+               <widget class="QListWidget" name="m_selectedListWidget"/>
               </item>
              </layout>
             </widget>

@@ -35,7 +35,7 @@ namespace dummy_socket
 class DummySocketPlugin : public comms_champion::Plugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DummySocketPlugin")
+    Q_PLUGIN_METADATA(IID "cc.DummySocketPlugin" FILE "dummy_socket.json")
     Q_INTERFACES(comms_champion::Plugin)
 
 public:

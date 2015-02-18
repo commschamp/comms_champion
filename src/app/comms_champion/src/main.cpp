@@ -39,6 +39,7 @@ void metaTypesRegisterAll()
 {
     qRegisterMetaType<cc::MessageInfoPtr>();
     qRegisterMetaType<cc::ProtocolPtr>();
+    qRegisterMetaType<cc::PluginMgr::PluginInfoPtr>();
 }
 
 void initSingletons()
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
     }
 
     app.addLibraryPath(dir.path());
+    cc::PluginMgr::instanceRef().setPluginsDir(dir.path());
 
     // TODO: use PluginMgr
 

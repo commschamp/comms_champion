@@ -19,6 +19,9 @@
 
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLineEdit>
+#include <QtWidgets/QAction>
+
+#include "PluginMgr.h"
 
 #include "ui_PluginConfigDialog.h"
 
@@ -33,14 +36,46 @@ class PluginConfigDialog: public QDialog
 public:
     PluginConfigDialog(QWidget* parent = nullptr);
 
+private slots:
+    void availPluginClicked(QListWidgetItem* item);
+    void availPluginDoubleClicked(QListWidgetItem* item);
+    void selectedPluginClicked(QListWidgetItem* item);
+    void addClicked();
+    void searchTextChanged(const QString& text);
+    void searchClearClicked();
+    void loadClicked();
+    void saveClicked();
+    void removeClicked();
+    void clearClicked();
+    void topClicked();
+    void upClicked();
+    void downClicked();
+    void bottomClicked();
+
 private:
 
     void createAvailableToolbar();
     void createSelectedToolbar();
+
+    void refreshAll();
+    void refreshAvailable();
     void refreshAvailablePlugins();
+    void refreshAvailableToolbar();
+    void refreshSelectedToolbar();
+
+    PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item);
 
     Ui::PluginConfigDialog m_ui;
     QLineEdit* m_availSearchLineEdit = nullptr;
+    QAction* m_addButton = nullptr;
+    QAction* m_loadButton = nullptr;
+    QAction* m_saveButton = nullptr;
+    QAction* m_removeButton = nullptr;
+    QAction* m_clearButton = nullptr;
+    QAction* m_topButton = nullptr;
+    QAction* m_upButton = nullptr;
+    QAction* m_downButton = nullptr;
+    QAction* m_bottomButton = nullptr;
 };
 
 } /* namespace comms_champion */

@@ -109,7 +109,6 @@ const PluginMgr::ListOfPluginInfos& PluginMgr::getAvailablePlugins()
         }
     } while (false);
 
-    std::cout << "Number of available plugins is " << m_availablePlugins.size() << std::endl;
     return m_availablePlugins;
 }
 

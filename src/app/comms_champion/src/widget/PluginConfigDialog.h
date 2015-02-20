@@ -20,6 +20,7 @@
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QAction>
+#include <QtWidgets/QPushButton>
 
 #include "PluginMgr.h"
 
@@ -62,6 +63,17 @@ private:
     void refreshAvailablePlugins();
     void refreshAvailableToolbar();
     void refreshSelectedToolbar();
+    void refreshButtonBox();
+    void refreshSaveButton();
+    void refreshRemoveButton();
+    void refreshClearButton();
+    void refreshTopButton();
+    void refreshUpBotton();
+    void refreshDownBotton();
+    void refreshBottomButton();
+    void clearConfiguration();
+    void clearDescription();
+    void moveSelectedPlugin(int fromRow, int toRow);
 
     PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item);
 
@@ -76,6 +88,7 @@ private:
     QAction* m_upButton = nullptr;
     QAction* m_downButton = nullptr;
     QAction* m_bottomButton = nullptr;
+    QPushButton* m_applyButton = nullptr;
 };
 
 } /* namespace comms_champion */

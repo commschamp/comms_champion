@@ -55,41 +55,70 @@ PluginConfigDialog::PluginConfigDialog(QWidget* parent)
         m_ui.m_selectedListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
         this, SLOT(selectedPluginClicked(QListWidgetItem*)));
 
+    m_applyButton = m_ui.m_buttonBox->button(QDialogButtonBox::Ok);
+    m_applyButton->setText(tr("Apply"));
     refreshAll();
 }
 
 void PluginConfigDialog::availPluginClicked(QListWidgetItem* item)
 {
+    assert(item != nullptr);
     m_ui.m_selectedListWidget->setCurrentRow(-1);
+    refreshSelectedToolbar();
+
     m_ui.m_availListWidget->setCurrentItem(item);
     assert(m_ui.m_availListWidget->currentRow() == m_ui.m_availListWidget->row(item));
 
-    m_ui.m_configScrollArea->setWidget(new QWidget());
+    clearConfiguration();
 
     auto pluginInfoPtr = getPluginInfo(item);
     assert(pluginInfoPtr);
 
     m_ui.m_descLabel->setText(pluginInfoPtr->getDescription());
+    refreshAvailableToolbar();
 }
 
 void PluginConfigDialog::availPluginDoubleClicked(QListWidgetItem* item)
 {
-    static_cast<void>(item);
-    // TODO:
-    assert(!"NYI: available double clicked");
+    assert(item != nullptr);
+    availPluginClicked(item);
+    addClicked();
 }
 
 void PluginConfigDialog::selectedPluginClicked(QListWidgetItem* item)
 {
-    static_cast<void>(item);
-    // TODO:
-    assert(!"NYI: selected clicked");
+    assert(item != nullptr);
+    m_ui.m_availListWidget->setCurrentRow(-1);
+    refreshAvailableToolbar();
+
+    m_ui.m_selectedListWidget->setCurrentItem(item);
+    assert(m_ui.m_selectedListWidget->currentRow() == m_ui.m_selectedListWidget->row(item));
+
+    // TODO: proper configuration widget
+    clearConfiguration();
+
+    auto pluginInfoPtr = getPluginInfo(item);
+    assert(pluginInfoPtr);
+
+    m_ui.m_descLabel->setText(pluginInfoPtr->getDescription());
+    refreshSelectedToolbar();
 }
 
 void PluginConfigDialog::addClicked()
 {
-    // TODO:
-    assert(!"NYI: add button clicked");
+    auto pluginInfoPtr = getPluginInfo(m_ui.m_availListWidget->currentItem());
+    assert(pluginInfoPtr);
+    m_ui.m_selectedListWidget->addItem(pluginInfoPtr->getName());
+    auto* selectedItem = m_ui.m_selectedListWidget->item(
+        m_ui.m_selectedListWidget->count() - 1);
+
+    // TODO: load plugin is required.
+    selectedItem->setData(
+        Qt::UserRole,
+        QVariant::fromValue(pluginInfoPtr));
+
+    refreshSelectedToolbar();
+    refreshButtonBox();
 }
 
 void PluginConfigDialog::searchTextChanged(const QString& text)
@@ -118,38 +147,78 @@ void PluginConfigDialog::saveClicked()
 
 void PluginConfigDialog::removeClicked()
 {
-    // TODO:
-    assert(!"NYI: remove clicked");
+    auto* item = m_ui.m_selectedListWidget->currentItem();
+    assert(item != nullptr);
+    delete item;
+    refreshSelectedToolbar();
+    refreshButtonBox();
+
+    item = m_ui.m_selectedListWidget->currentItem();
+    if (item == nullptr) {
+        clearConfiguration();
+        clearDescription();
+        return;
+    }
+
+    selectedPluginClicked(item);
 }
 
 void PluginConfigDialog::clearClicked()
 {
-    // TODO:
-    assert(!"NYI: clear clicked");
+    bool displayingSelected =
+        (m_ui.m_selectedListWidget->currentItem() != nullptr);
+    m_ui.m_selectedListWidget->clear();
+    refreshSelectedToolbar();
+    refreshButtonBox();
+
+    if (displayingSelected) {
+        clearConfiguration();
+        clearDescription();
+    }
 }
 
 void PluginConfigDialog::topClicked()
 {
-    // TODO:
-    assert(!"NYI: top clicked");
+    auto curRow = m_ui.m_selectedListWidget->currentRow();
+    if (curRow <= 0) {
+        assert(!"No item is selected or moving up top item");
+        return;
+    }
+
+    moveSelectedPlugin(curRow, 0);
 }
 
 void PluginConfigDialog::upClicked()
 {
-    // TODO:
-    assert(!"NYI: up clicked");
+    auto curRow = m_ui.m_selectedListWidget->currentRow();
+    if (curRow <= 0) {
+        assert(!"No item is selected or moving up top item");
+        return;
+    }
+
+    moveSelectedPlugin(curRow, curRow - 1);
 }
 
 void PluginConfigDialog::downClicked()
 {
-    // TODO:
-    assert(!"NYI: down clicked");
+    auto curRow = m_ui.m_selectedListWidget->currentRow();
+    if ((m_ui.m_selectedListWidget->count() - 1) <= curRow) {
+        assert(!"No item is selected or moving down bottom item");
+        return;
+    }
+
+    moveSelectedPlugin(curRow, curRow + 1);
 }
 
 void PluginConfigDialog::bottomClicked()
 {
-    // TODO:
-    assert(!"NYI: bottom clicked");
+    auto curRow = m_ui.m_selectedListWidget->currentRow();
+    if ((m_ui.m_selectedListWidget->count() - 1) <= curRow) {
+        assert(!"No item is selected or moving down bottom item");
+        return;
+    }
+
+    moveSelectedPlugin(curRow, m_ui.m_selectedListWidget->count() - 1);
 }
 
 void PluginConfigDialog::createAvailableToolbar()
@@ -237,13 +306,13 @@ void PluginConfigDialog::refreshAll()
     refreshAvailablePlugins();
     refreshAvailableToolbar();
     refreshSelectedToolbar();
+    refreshButtonBox();
 }
 
 void PluginConfigDialog::refreshAvailable()
 {
     refreshAvailablePlugins();
     refreshAvailableToolbar();
-
 }
 
 void PluginConfigDialog::refreshAvailablePlugins()
@@ -294,7 +363,74 @@ void PluginConfigDialog::refreshAvailableToolbar()
 
 void PluginConfigDialog::refreshSelectedToolbar()
 {
-    // TODO:
+    refreshSaveButton();
+    refreshRemoveButton();
+    refreshClearButton();
+    refreshTopButton();
+    refreshUpBotton();
+    refreshDownBotton();
+    refreshBottomButton();
+}
+
+void PluginConfigDialog::refreshButtonBox()
+{
+    bool applyEnabled = (0 < m_ui.m_selectedListWidget->count());
+    m_applyButton->setEnabled(applyEnabled);
+}
+
+void PluginConfigDialog::refreshSaveButton()
+{
+    auto* button = m_saveButton;
+    bool enabled = (0 < m_ui.m_selectedListWidget->count());
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshRemoveButton()
+{
+    auto* button = m_removeButton;
+    bool enabled = (0 <= m_ui.m_selectedListWidget->currentRow());
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshClearButton()
+{
+    auto* button = m_clearButton;
+    bool enabled = (0 < m_ui.m_selectedListWidget->count());
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshTopButton()
+{
+    auto* button = m_topButton;
+    bool enabled = (0 < m_ui.m_selectedListWidget->currentRow());
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshUpBotton()
+{
+    auto* button = m_upButton;
+    bool enabled = (0 < m_ui.m_selectedListWidget->currentRow());
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshDownBotton()
+{
+    auto* button = m_downButton;
+    auto row = m_ui.m_selectedListWidget->currentRow();
+    bool enabled =
+        (0 <= row) &&
+        (row < (m_ui.m_selectedListWidget->count() - 1));
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshBottomButton()
+{
+    auto* button = m_bottomButton;
+    auto row = m_ui.m_selectedListWidget->currentRow();
+    bool enabled =
+        (0 <= row) &&
+        (row < (m_ui.m_selectedListWidget->count() - 1));
+    button->setEnabled(enabled);
 }
 
 PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
@@ -305,6 +441,26 @@ PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
     assert(pluginInfoPtrVar.isValid());
     assert(pluginInfoPtrVar.canConvert<PluginMgr::PluginInfoPtr>());
     return pluginInfoPtrVar.value<PluginMgr::PluginInfoPtr>();
+}
+
+void PluginConfigDialog::clearConfiguration()
+{
+    m_ui.m_configScrollArea->setWidget(new QWidget());
+}
+
+void PluginConfigDialog::clearDescription()
+{
+    m_ui.m_descLabel->setText(QString());
+}
+
+void PluginConfigDialog::moveSelectedPlugin(int fromRow, int toRow)
+{
+    assert(fromRow < m_ui.m_selectedListWidget->count());
+    auto* item = m_ui.m_selectedListWidget->takeItem(fromRow);
+    assert(toRow <= m_ui.m_selectedListWidget->count());
+    m_ui.m_selectedListWidget->insertItem(toRow, item);
+    m_ui.m_selectedListWidget->setCurrentRow(toRow);
+    refreshSelectedToolbar();
 }
 
 } /* namespace comms_champion */

@@ -29,15 +29,21 @@
 
 #include "comms_champion/PluginControlInterface.h"
 
-#include "ConfigMgr.h"
+//#include "ConfigMgr.h"
 
 namespace comms_champion
 {
 
-class PluginMgr // : public QObject
+class PluginMgr : public QObject
 {
-//    Q_OBJECT
+    Q_OBJECT
 public:
+
+    enum class PluginsState
+    {
+        Inactive,
+        Active,
+    };
 
     class PluginInfo
     {
@@ -65,9 +71,16 @@ public:
     typedef std::shared_ptr<PluginInfo> PluginInfoPtr;
     typedef std::list<PluginInfoPtr> ListOfPluginInfos;
 
+    virtual ~PluginMgr() = default;
+
+    static PluginMgr* instance();
     static PluginMgr& instanceRef();
     void setPluginsDir(const QString& pluginDir);
     const ListOfPluginInfos& getAvailablePlugins();
+    PluginsState getState() const;
+
+signals:
+    void sigStateChanged(int value);
 
 
 //private slots:
@@ -86,6 +99,7 @@ private:
 
     QString m_pluginDir;
     ListOfPluginInfos m_availablePlugins;
+    PluginsState m_state = PluginsState::Inactive;
 //    QVariantMap m_curConfig;
 //    PluginLoadersList m_plugins;
 //    PluginControlInterface m_controlInterface;

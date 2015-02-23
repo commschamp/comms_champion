@@ -14,6 +14,7 @@ function (bin_comms_champion)
         src/ConfigMgr.cpp
         src/PluginControlInterface.cpp
         src/PluginMgr.cpp
+        src/PluginConfig.cpp
         src/icon.cpp
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp
@@ -41,6 +42,7 @@ function (bin_comms_champion)
         moc
         src/GuiAppMgr.h
         src/MsgMgr.h
+        src/PluginMgr.h
         src/widget/RecvAreaToolBar.h
         src/widget/SendAreaToolBar.h
         src/widget/MsgListWidget.h

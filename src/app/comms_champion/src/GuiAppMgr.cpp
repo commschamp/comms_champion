@@ -369,6 +369,11 @@ void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
     sendPendingAndWait();
 }
 
+GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
+{
+    return PluginMgr::instanceRef().getState();
+}
+
 GuiAppMgr::GuiAppMgr(QObject* parent)
   : Base(parent),
     m_recvState(RecvState::Idle),
@@ -376,6 +381,9 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
 {
     connect(MsgMgr::instance(), SIGNAL(sigMsgAdded(MessageInfoPtr)),
             this, SLOT(msgAdded(MessageInfoPtr)));
+    connect(
+        PluginMgr::instance(), SIGNAL(sigStateChanged(int)),
+        this, SIGNAL(sigActivityStateChanged(int)));
 }
 
 void GuiAppMgr::emitRecvStateUpdate()

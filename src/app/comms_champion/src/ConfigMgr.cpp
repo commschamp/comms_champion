@@ -18,6 +18,7 @@
 #include "ConfigMgr.h"
 
 #include <cassert>
+#include <iostream>
 
 #include <QtCore/QFile>
 #include <QtCore/QJsonDocument>
@@ -38,15 +39,59 @@ ConfigMgr& ConfigMgr::instanceRef()
     return *(instance());
 }
 
-const QString& ConfigMgr::getCurrentFile() const
+const QString& ConfigMgr::getLastFile() const
 {
-    return m_configFile;
+    return m_lastConfigFile;
 }
 
 const QString& ConfigMgr::getFilesFilter()
 {
     static const QString Str(QObject::tr("Configuration files (*.cfg)"));
     return Str;
+}
+
+PluginConfig ConfigMgr::loadConfig(const QString& filename)
+{
+    PluginConfig loadedConfig;
+    do {
+        QFile configFile(filename);
+        if (!configFile.open(QIODevice::ReadOnly)) {
+            std::cerr << "ERROR: Failed to load the configuration file " <<
+                filename.toStdString() << std::endl;
+            break;
+        }
+
+        auto data = configFile.readAll();
+
+        auto jsonError = QJsonParseError();
+        auto jsonDoc = QJsonDocument::fromJson(data, &jsonError);
+        if (jsonError.error != QJsonParseError::NoError) {
+            std::cerr << "ERROR: Invalid contents of configuration file!" << std::endl;
+            break;
+        }
+
+        if (!jsonDoc.isObject()) {
+            std::cerr << "ERROR: Invalid contents of configuration file!" << std::endl;
+            break;
+        }
+
+        auto topObject = jsonDoc.object();
+        auto keys = topObject.keys();
+        QVariantMap configMap;
+        for (auto k : keys) {
+            auto jsonValue = topObject.value(k);
+            if (!jsonValue.isObject()) {
+                std::cerr << "ERROR: Invalid contents of configuration file!" << std::endl;
+            }
+
+            auto valueMap = jsonValue.toObject().toVariantMap();
+            configMap.insert(k, QVariant::fromValue(std::move(valueMap)));
+        }
+
+        loadedConfig.setFullConfig(configMap);
+        m_lastConfigFile = filename;
+    } while (false);
+    return loadedConfig;
 }
 
 //ConfigMgr::ListOfErrors ConfigMgr::loadConfig(const QString& filename)

@@ -27,6 +27,7 @@
 #include "comms_champion/Message.h"
 
 #include "MsgMgr.h"
+#include "PluginMgr.h"
 
 namespace comms_champion
 {
@@ -59,6 +60,7 @@ public:
 
     typedef MsgMgr::MsgType MsgType;
     typedef MsgMgr::Timestamp Timestamp;
+    typedef PluginMgr::PluginsState ActivityState;
 
     static GuiAppMgr* instance();
 
@@ -76,6 +78,8 @@ public:
 
     void deleteMessages(MsgInfosList&& msgs);
     void sendMessages(MsgInfosList&& msgs);
+
+    static ActivityState getActivityState();
 
 public slots:
 //    void loadConfigClicked();
@@ -140,6 +144,7 @@ signals:
     void sigNewSendMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
     void sigPluginsEditDialog();
+    void sigActivityStateChanged(int value);
 //    void sigLoadConfigDialog();
 //    void sigSaveConfigDialog();
 

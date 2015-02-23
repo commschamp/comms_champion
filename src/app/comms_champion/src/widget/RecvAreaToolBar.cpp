@@ -141,7 +141,8 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
     m_clearButton(createClearButton(*this)),
     m_showRecvButton(createShowReceived(*this)),
     m_showSentButton(createShowSent(*this)),
-    m_state(GuiAppMgr::instance()->recvState())
+    m_state(GuiAppMgr::instance()->recvState()),
+    m_activeState(GuiAppMgr::instance()->getActivityState())
 {
     insertSeparator(m_showRecvButton);
     auto empty = new QWidget();
@@ -164,6 +165,10 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
     connect(
         guiAppMgr, SIGNAL(sigSetRecvState(int)),
         this, SLOT(recvStateChanged(int)));
+
+    connect(
+        guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
+        this, SLOT(activeStateChanged(int)));
 
     refresh();
 }
@@ -203,6 +208,17 @@ void RecvAreaToolBar::recvStateChanged(int state)
     return;
 }
 
+void RecvAreaToolBar::activeStateChanged(int state)
+{
+    auto castedState = static_cast<ActivityState>(state);
+    if (m_activeState == castedState) {
+        return;
+    }
+
+    m_activeState = castedState;
+    refresh();
+}
+
 void RecvAreaToolBar::refresh()
 {
     refreshStartStopButton();
@@ -215,6 +231,7 @@ void RecvAreaToolBar::refreshStartStopButton()
 {
     auto* button = m_startStopButton;
     assert(button != nullptr);
+    bool enabled = (m_activeState == ActivityState::Active);
     if (m_state == State::Running) {
         button->setIcon(stopIcon());
         button->setText(StopTooltip);
@@ -223,6 +240,7 @@ void RecvAreaToolBar::refreshStartStopButton()
         button->setIcon(startIcon());
         button->setText(StartTooltip);
     }
+    button->setEnabled(enabled);
 }
 
 void RecvAreaToolBar::refreshSaveButton()
@@ -230,6 +248,7 @@ void RecvAreaToolBar::refreshSaveButton()
     auto* button = m_saveButton;
     assert(button != nullptr);
     bool enabled =
+        (m_activeState == ActivityState::Active) &&
         (m_state == State::Idle) &&
         (!listEmpty());
     button->setEnabled(enabled);
@@ -239,7 +258,9 @@ void RecvAreaToolBar::refreshDeleteButton()
 {
     auto* button = m_deleteButton;
     assert(button);
-    bool enabled = msgSelected();
+    bool enabled =
+        (m_activeState == ActivityState::Active) &&
+        msgSelected();
     button->setEnabled(enabled);
 }
 
@@ -247,7 +268,9 @@ void RecvAreaToolBar::refreshClearButton()
 {
     auto* button = m_clearButton;
     assert(button);
-    bool enabled = (!listEmpty());
+    bool enabled =
+        (m_activeState == ActivityState::Active) &&
+        (!listEmpty());
     button->setEnabled(enabled);
 }
 

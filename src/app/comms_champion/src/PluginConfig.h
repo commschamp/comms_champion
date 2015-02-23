@@ -18,44 +18,23 @@
 
 #pragma once
 
-#include <utility>
-#include <list>
-#include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QVariantMap>
-
-#include "PluginConfig.h"
 
 namespace comms_champion
 {
 
-class ConfigMgr // : public QObject
+class PluginConfig
 {
-//    Q_OBJECT
 public:
+    PluginConfig() = default;
 
-    static ConfigMgr* instance();
-    static ConfigMgr& instanceRef();
-
-    const QString& getLastFile() const;
-    static const QString& getFilesFilter();
-
-    PluginConfig loadConfig(const QString& filename);
-
-//    typedef std::pair<QString, QString> ErrorInfo;
-//    typedef std::list<ErrorInfo> ListOfErrors;
-//    ListOfErrors loadConfig(const QString& filename);
-//    ListOfErrors saveConfig(const QString& filename);
-//    void reportConfigError(const QString& errorMsg);
-//
-//    QVariantMap getConfiguration(const QString& topKey);
-
+    const QVariantMap& getFullConfig() const;
+    void setFullConfig(const QVariantMap& map);
+    QVariantMap getConfig(const QString& key) const;
+    void setConfig(const QString& key, const QVariantMap& map);
 private:
-    ConfigMgr() = default;
-
-    QString m_lastConfigFile;
-//    QVariantMap m_options;
-//    std::list<QString> m_reportedErrors;
+    QVariantMap m_map;
 };
 
 }  // namespace comms_champion

@@ -23,8 +23,10 @@
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QFileDialog>
 
 #include "icon.h"
+#include "ConfigMgr.h"
 
 namespace comms_champion
 {
@@ -135,14 +137,39 @@ void PluginConfigDialog::searchClearClicked()
 
 void PluginConfigDialog::loadClicked()
 {
+    auto& configMgr = ConfigMgr::instanceRef();
+    auto filename =
+        QFileDialog::getOpenFileName(
+            this,
+            tr("Load Configuration File"),
+            configMgr.getLastFile(),
+            configMgr.getFilesFilter());
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
     // TODO:
-    assert(!"NYI: load clicked");
+
+    assert(!"NYI: load configuration from file");
 }
 
 void PluginConfigDialog::saveClicked()
 {
+    auto& configMgr = ConfigMgr::instanceRef();
+    auto filename =
+        QFileDialog::getSaveFileName(
+            this,
+            tr("Save Configuration File"),
+            configMgr.getLastFile(),
+            configMgr.getFilesFilter());
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
     // TODO:
-    assert(!"NYI: save clicked");
+    assert(!"NYI: save configuration to file");
 }
 
 void PluginConfigDialog::removeClicked()

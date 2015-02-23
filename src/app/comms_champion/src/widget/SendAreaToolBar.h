@@ -32,6 +32,7 @@ class SendAreaToolBar : public QToolBar
     using Base = QToolBar;
 public:
     typedef GuiAppMgr::SendState State;
+    typedef GuiAppMgr::ActivityState ActivityState;
 
     SendAreaToolBar(QWidget* parent = nullptr);
 
@@ -39,6 +40,7 @@ private slots:
     void sendListCountReport(unsigned count);
     void sendMsgSelectedReport(int idx);
     void stateChanged(int state);
+    void activeStateChanged(int state);
     void startStopClicked();
     void startStopAllClicked();
 
@@ -69,6 +71,7 @@ private:
     QAction* m_downButton = nullptr;
     QAction* m_bottomButton = nullptr;
     State m_state = State::Idle;
+    ActivityState m_activeState = ActivityState::Inactive;
     int m_selectedIdx = -1;
     unsigned m_listTotal = 0;
 };

@@ -26,7 +26,7 @@
 
 #include "comms_champion/Plugin.h"
 
-#include "MsgMgr.h"
+//#include "MsgMgr.h"
 
 #include <iostream>
 
@@ -79,6 +79,11 @@ Plugin* getPlugin(QPluginLoader& loader)
 
 }  // namespace
 
+PluginMgr* PluginMgr::instance()
+{
+    return &(instanceRef());
+}
+
 PluginMgr& PluginMgr::instanceRef()
 {
     static PluginMgr mgr;
@@ -110,6 +115,11 @@ const PluginMgr::ListOfPluginInfos& PluginMgr::getAvailablePlugins()
     } while (false);
 
     return m_availablePlugins;
+}
+
+PluginMgr::PluginsState PluginMgr::getState() const
+{
+    return m_state;
 }
 
 //void PluginMgr::configUpdated()

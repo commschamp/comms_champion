@@ -36,6 +36,7 @@ class RecvAreaToolBar : public QToolBar
     using Base = QToolBar;
 public:
     typedef GuiAppMgr::RecvState State;
+    typedef GuiAppMgr::ActivityState ActivityState;
 
     RecvAreaToolBar(QWidget* parent = nullptr);
 
@@ -44,6 +45,7 @@ private slots:
     void recvListCountReport(unsigned count);
     void recvMsgSelectedReport(int idx);
     void recvStateChanged(int state);
+    void activeStateChanged(int state);
 
 private:
     void refresh();
@@ -62,6 +64,7 @@ private:
     QAction* m_showRecvButton = nullptr;
     QAction* m_showSentButton = nullptr;
     State m_state = State::Idle;
+    ActivityState m_activeState = ActivityState::Inactive;
     int m_selectedIdx = -1;
     unsigned m_listTotal = 0;
 };

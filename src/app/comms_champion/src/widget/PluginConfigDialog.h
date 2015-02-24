@@ -36,6 +36,7 @@ class PluginConfigDialog: public QDialog
 
 public:
     PluginConfigDialog(QWidget* parent = nullptr);
+    virtual void accept();
 
 private slots:
     void availPluginClicked(QListWidgetItem* item);
@@ -63,6 +64,7 @@ private:
     void refreshAvailablePlugins();
     void refreshAvailableToolbar();
     void refreshSelectedToolbar();
+    void refreshSelectedPlugins();
     void refreshButtonBox();
     void refreshSaveButton();
     void refreshRemoveButton();

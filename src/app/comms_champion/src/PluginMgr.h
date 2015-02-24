@@ -41,9 +41,12 @@ public:
 
     enum class PluginsState
     {
+        Clear,
         Inactive,
         Active,
     };
+
+    typedef std::shared_ptr<QPluginLoader> PluginLoaderPtr;
 
     class PluginInfo
     {
@@ -63,9 +66,11 @@ public:
     private:
         PluginInfo() = default;
 
-        QString m_filename;
+        PluginLoaderPtr m_loader;
+        QString m_iid;
         QString m_name;
         QString m_desc;
+        bool m_applied = false;
     };
 
     typedef std::shared_ptr<PluginInfo> PluginInfoPtr;
@@ -77,7 +82,11 @@ public:
     static PluginMgr& instanceRef();
     void setPluginsDir(const QString& pluginDir);
     const ListOfPluginInfos& getAvailablePlugins();
+    const ListOfPluginInfos& getAppliedPlugins() const;
     PluginsState getState() const;
+    bool loadPlugin(const PluginInfo& info);
+    bool needsReload(const ListOfPluginInfos& infos) const;
+    bool apply(const ListOfPluginInfos& infos);
 
 signals:
     void sigStateChanged(int value);
@@ -87,7 +96,6 @@ signals:
 //    void configUpdated();
 
 private:
-    typedef std::shared_ptr<QPluginLoader> PluginLoaderPtr;
     typedef std::list<PluginLoaderPtr> PluginLoadersList;
 
     PluginMgr();
@@ -98,11 +106,12 @@ private:
 //    static PluginLoaderPtr allocPluginLoader(const QString& name);
 
     QString m_pluginDir;
-    ListOfPluginInfos m_availablePlugins;
-    PluginsState m_state = PluginsState::Inactive;
+    ListOfPluginInfos m_plugins;
+    ListOfPluginInfos m_appliedPlugins;
+    PluginsState m_state = PluginsState::Clear;
 //    QVariantMap m_curConfig;
 //    PluginLoadersList m_plugins;
-//    PluginControlInterface m_controlInterface;
+    PluginControlInterface m_controlInterface;
 };
 
 }  // namespace comms_champion

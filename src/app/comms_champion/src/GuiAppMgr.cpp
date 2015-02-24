@@ -383,7 +383,7 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
             this, SLOT(msgAdded(MessageInfoPtr)));
     connect(
         PluginMgr::instance(), SIGNAL(sigStateChanged(int)),
-        this, SIGNAL(sigActivityStateChanged(int)));
+        this, SLOT(activeStateChanged(int)));
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -524,6 +524,23 @@ void GuiAppMgr::sendPendingAndWait()
     else {
         sendStopClicked();
     }
+}
+
+void GuiAppMgr::activeStateChanged(int state)
+{
+    auto castedState = static_cast<ActivityState>(state);
+    auto& msgMgr = MsgMgr::instanceRef();
+    if (castedState == ActivityState::Active) {
+        msgMgr.start();
+    }
+    else if (castedState == ActivityState::Clear) {
+        msgMgr.clear();
+    }
+    else {
+        assert(castedState == ActivityState::Inactive);
+        msgMgr.stop();
+    }
+    emit sigActivityStateChanged(state);
 }
 
 void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)

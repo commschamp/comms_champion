@@ -164,6 +164,7 @@ private:
 private slots:
     void msgAdded(MessageInfoPtr msgInfo);
     void sendPendingAndWait();
+    void activeStateChanged(int state);
 
 private /*data*/:
 

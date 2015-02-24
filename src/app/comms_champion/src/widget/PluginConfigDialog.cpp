@@ -24,6 +24,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 #include "icon.h"
 #include "ConfigMgr.h"
@@ -60,6 +61,47 @@ PluginConfigDialog::PluginConfigDialog(QWidget* parent)
     m_applyButton = m_ui.m_buttonBox->button(QDialogButtonBox::Ok);
     m_applyButton->setText(tr("Apply"));
     refreshAll();
+}
+
+void PluginConfigDialog::accept()
+{
+    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    ListOfPluginInfos infos;
+
+    assert(0 < m_ui.m_selectedListWidget->count());
+    for (auto idx = 0; idx < m_ui.m_selectedListWidget->count(); ++idx) {
+        auto* item = m_ui.m_selectedListWidget->item(idx);
+        assert(item != nullptr);
+        auto pluginInfo = getPluginInfo(item);
+        assert(pluginInfo);
+        infos.push_back(std::move(pluginInfo));
+    }
+
+    auto& pluginMgr = PluginMgr::instanceRef();
+    if (pluginMgr.needsReload(infos)) {
+        auto result =
+            QMessageBox::question(
+                this,
+                tr("Confirmation required!"),
+                tr("The list of plugins was updated.\n"
+                   "All the plugins must be reloaded and re-applied.\n"
+                   "Proceed?"));
+        if (result != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    bool applyResult = pluginMgr.apply(infos);
+    if (!applyResult) {
+        QMessageBox::critical(
+            this,
+            tr("Plugins error occurred!"),
+            tr("Failed to apply requested list of plugins."));
+        Base::reject();
+        return;
+    }
+
+    Base::accept();
 }
 
 void PluginConfigDialog::availPluginClicked(QListWidgetItem* item)
@@ -110,15 +152,25 @@ void PluginConfigDialog::addClicked()
 {
     auto pluginInfoPtr = getPluginInfo(m_ui.m_availListWidget->currentItem());
     assert(pluginInfoPtr);
+
+    auto loadResult = PluginMgr::instanceRef().loadPlugin(*pluginInfoPtr);
+    if (!loadResult) {
+        QMessageBox::critical(
+            this,
+            tr("Plugin Load Error."),
+            tr("Failed to load selected plugin."));
+        return;
+    }
+
     m_ui.m_selectedListWidget->addItem(pluginInfoPtr->getName());
     auto* selectedItem = m_ui.m_selectedListWidget->item(
         m_ui.m_selectedListWidget->count() - 1);
 
-    // TODO: load plugin is required.
     selectedItem->setData(
         Qt::UserRole,
         QVariant::fromValue(pluginInfoPtr));
 
+    refreshAvailablePlugins();
     refreshSelectedToolbar();
     refreshButtonBox();
 }
@@ -149,6 +201,14 @@ void PluginConfigDialog::loadClicked()
         return;
     }
 
+    auto config = configMgr.loadConfig(filename);
+    if (config.getFullConfig().isEmpty()) {
+        QMessageBox::critical(
+            this,
+            tr("Configuration Load Error."),
+            tr("Invalid configuration file."));
+    }
+
     // TODO:
 
     assert(!"NYI: load configuration from file");
@@ -177,6 +237,7 @@ void PluginConfigDialog::removeClicked()
     auto* item = m_ui.m_selectedListWidget->currentItem();
     assert(item != nullptr);
     delete item;
+    refreshAvailablePlugins();
     refreshSelectedToolbar();
     refreshButtonBox();
 
@@ -195,6 +256,7 @@ void PluginConfigDialog::clearClicked()
     bool displayingSelected =
         (m_ui.m_selectedListWidget->currentItem() != nullptr);
     m_ui.m_selectedListWidget->clear();
+    refreshAvailablePlugins();
     refreshSelectedToolbar();
     refreshButtonBox();
 
@@ -330,9 +392,10 @@ void PluginConfigDialog::createSelectedToolbar()
 
 void PluginConfigDialog::refreshAll()
 {
+    refreshSelectedPlugins();
+    refreshSelectedToolbar();
     refreshAvailablePlugins();
     refreshAvailableToolbar();
-    refreshSelectedToolbar();
     refreshButtonBox();
 }
 
@@ -347,10 +410,7 @@ void PluginConfigDialog::refreshAvailablePlugins()
     PluginMgr::PluginInfoPtr curInfo;
     auto* curItem = m_ui.m_availListWidget->currentItem();
     if (curItem != nullptr) {
-        auto dataVar = curItem->data(Qt::UserRole);
-        assert(dataVar.isValid());
-        assert(dataVar.canConvert<PluginMgr::PluginInfoPtr>());
-        curInfo = dataVar.value<PluginMgr::PluginInfoPtr>();
+        curInfo = getPluginInfo(curItem);
     }
 
     m_ui.m_availListWidget->clear();
@@ -359,21 +419,36 @@ void PluginConfigDialog::refreshAvailablePlugins()
 
     for (auto& pluginInfoPtr : availablePlugins) {
         auto& name = pluginInfoPtr->getName();
-        bool addEntry =
-            filterStr.isEmpty() ||
-            name.contains(filterStr, Qt::CaseInsensitive);
 
-        if (addEntry) {
-            m_ui.m_availListWidget->addItem(name);
-            auto* item = m_ui.m_availListWidget->item(
-                m_ui.m_availListWidget->count() - 1);
-            static const QString Tooltip("Use double click to select");
-            item->setToolTip(Tooltip);
+        if ((!filterStr.isEmpty()) &&
+            (!name.contains(filterStr, Qt::CaseInsensitive))) {
+            continue;
+        }
 
-            item->setData(
-                Qt::UserRole,
-                QVariant::fromValue(pluginInfoPtr));
+        bool alreadySelected = false;
+        for (auto selIdx = 0; selIdx < m_ui.m_selectedListWidget->count(); ++selIdx) {
+            auto* selItem = m_ui.m_selectedListWidget->item(selIdx);
+            assert(selItem != nullptr);
+            auto selPluginInfo = getPluginInfo(selItem);
+            if (selPluginInfo == pluginInfoPtr) {
+                alreadySelected = true;
+                break;
             }
+        }
+
+        if (alreadySelected) {
+            continue;
+        }
+
+        m_ui.m_availListWidget->addItem(name);
+        auto* item = m_ui.m_availListWidget->item(
+            m_ui.m_availListWidget->count() - 1);
+        static const QString Tooltip("Use double click to select");
+        item->setToolTip(Tooltip);
+
+        item->setData(
+            Qt::UserRole,
+            QVariant::fromValue(pluginInfoPtr));
 
         if (curInfo == pluginInfoPtr) {
             m_ui.m_availListWidget->setCurrentRow(
@@ -397,6 +472,24 @@ void PluginConfigDialog::refreshSelectedToolbar()
     refreshUpBotton();
     refreshDownBotton();
     refreshBottomButton();
+}
+
+void PluginConfigDialog::refreshSelectedPlugins()
+{
+    m_ui.m_selectedListWidget->clear();
+    auto& appliedPlugins = PluginMgr::instanceRef().getAppliedPlugins();
+
+    for (auto& pluginInfoPtr : appliedPlugins) {
+        auto& name = pluginInfoPtr->getName();
+        m_ui.m_selectedListWidget->addItem(name);
+        auto* item = m_ui.m_selectedListWidget->item(
+            m_ui.m_selectedListWidget->count() - 1);
+
+        item->setData(
+            Qt::UserRole,
+            QVariant::fromValue(pluginInfoPtr));
+    }
+
 }
 
 void PluginConfigDialog::refreshButtonBox()

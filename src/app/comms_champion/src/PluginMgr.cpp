@@ -97,8 +97,8 @@ void PluginMgr::setPluginsDir(const QString& pluginDir)
 
 const PluginMgr::ListOfPluginInfos& PluginMgr::getAvailablePlugins()
 {
-    if (!m_availablePlugins.empty()) {
-        return m_availablePlugins;
+    if (!m_plugins.empty()) {
+        return m_plugins;
     }
 
     do {
@@ -109,17 +109,73 @@ const PluginMgr::ListOfPluginInfos& PluginMgr::getAvailablePlugins()
         for (auto& f : files) {
             auto infoPtr = readPluginInfo(f);
             if (infoPtr) {
-                m_availablePlugins.push_back(std::move(infoPtr));
+                m_plugins.push_back(std::move(infoPtr));
             }
         }
     } while (false);
 
-    return m_availablePlugins;
+    return m_plugins;
+}
+
+const PluginMgr::ListOfPluginInfos& PluginMgr::getAppliedPlugins() const
+{
+    return m_appliedPlugins;
 }
 
 PluginMgr::PluginsState PluginMgr::getState() const
 {
     return m_state;
+}
+
+bool PluginMgr::loadPlugin(const PluginMgr::PluginInfo& info)
+{
+    assert(info.m_loader);
+    if (info.m_loader->isLoaded()) {
+        return true;
+    }
+
+    auto* plugin = getPlugin(*info.m_loader);
+    return plugin != nullptr;
+}
+
+bool PluginMgr::needsReload(const ListOfPluginInfos& infos) const
+{
+    assert(!infos.empty());
+    return (!m_appliedPlugins.empty()) &&
+           (m_appliedPlugins != infos);
+}
+
+bool PluginMgr::apply(const ListOfPluginInfos& infos)
+{
+    if (!m_appliedPlugins.empty()) {
+        emit sigStateChanged(static_cast<int>(PluginsState::Inactive));
+    }
+
+    bool reapply = needsReload(infos);
+    if (reapply) {
+        for (auto& pluginInfo : m_appliedPlugins) {
+            assert(pluginInfo);
+            assert(pluginInfo->m_loader);
+            assert (pluginInfo->m_loader->isLoaded());
+            pluginInfo->m_loader->unload();
+        }
+        emit sigStateChanged(static_cast<int>(PluginsState::Clear));
+    }
+
+    for (auto& reqInfo : infos) {
+        assert(reqInfo);
+        assert(reqInfo->m_loader);
+        auto* pluginPtr = getPlugin(*reqInfo->m_loader);
+        // TODO: reconfigure
+        if (reapply) {
+            pluginPtr->apply(m_controlInterface);
+        }
+    }
+
+    m_appliedPlugins = infos;
+
+    emit sigStateChanged(static_cast<int>(PluginsState::Active));
+    return true;
 }
 
 //void PluginMgr::configUpdated()
@@ -267,10 +323,10 @@ PluginMgr::PluginInfoPtr PluginMgr::readPluginInfo(const QString& filename)
     PluginInfoPtr ptr;
 
     do {
-        QPluginLoader loader(filename);
-        assert(!loader.isLoaded());
-        auto metaData = loader.metaData();
-        assert(!loader.isLoaded());
+        PluginLoaderPtr loader(new QPluginLoader(filename));
+        assert(!loader->isLoaded());
+        auto metaData = loader->metaData();
+        assert(!loader->isLoaded());
 
         if (metaData.isEmpty()) {
             break;
@@ -281,26 +337,25 @@ PluginMgr::PluginInfoPtr PluginMgr::readPluginInfo(const QString& filename)
             break;
         }
 
-        auto iidStr = iidJsonVal.toString();
-
         ptr.reset(new PluginInfo());
-        ptr->m_filename = filename;
+        ptr->m_iid = iidJsonVal.toString();
+        ptr->m_loader = std::move(loader);
 
         auto extraMeta = metaData.value(MetaDataMetaKey);
         if (!extraMeta.isObject()) {
-            ptr->m_name = iidStr;
+            ptr->m_name = ptr->m_iid;
             break;
         }
 
         auto extraMetaObj = extraMeta.toObject();
         auto nameJsonVal = extraMetaObj.value(NameMetaKey);
         if (!nameJsonVal.isString()) {
-            ptr->m_name = iidStr;
+            ptr->m_name = ptr->m_iid;
         }
 
         auto nameStr = nameJsonVal.toString();
         if (nameStr.isEmpty()) {
-            ptr->m_name = iidStr;
+            ptr->m_name = ptr->m_iid;
         }
         else {
             ptr->m_name = nameStr;

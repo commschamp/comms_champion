@@ -65,19 +65,8 @@ PluginConfigDialog::PluginConfigDialog(QWidget* parent)
 
 void PluginConfigDialog::accept()
 {
-    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
-    ListOfPluginInfos infos;
-
-    assert(0 < m_ui.m_selectedListWidget->count());
-    for (auto idx = 0; idx < m_ui.m_selectedListWidget->count(); ++idx) {
-        auto* item = m_ui.m_selectedListWidget->item(idx);
-        assert(item != nullptr);
-        auto pluginInfo = getPluginInfo(item);
-        assert(pluginInfo);
-        infos.push_back(std::move(pluginInfo));
-    }
-
     auto& pluginMgr = PluginMgr::instanceRef();
+    auto infos = getSelectedPlugins();
     if (pluginMgr.needsReload(infos)) {
         auto result =
             QMessageBox::question(
@@ -202,7 +191,7 @@ void PluginConfigDialog::loadClicked()
     }
 
     auto config = configMgr.loadConfig(filename);
-    if (config.getFullConfig().isEmpty()) {
+    if (config.isEmpty()) {
         QMessageBox::critical(
             this,
             tr("Configuration Load Error."),
@@ -228,8 +217,17 @@ void PluginConfigDialog::saveClicked()
         return;
     }
 
-    // TODO:
-    assert(!"NYI: save configuration to file");
+    auto& pluginMgr = PluginMgr::instanceRef();
+    auto infos = getSelectedPlugins();
+    auto config = pluginMgr.getConfigForPlugins(infos);
+
+    bool saveResult = configMgr.saveConfig(filename, config);
+    if (!saveResult) {
+        QMessageBox::critical(
+            this,
+            tr("File system error!"),
+            tr("Failed to save plugins configuration."));
+    }
 }
 
 void PluginConfigDialog::removeClicked()
@@ -554,7 +552,7 @@ void PluginConfigDialog::refreshBottomButton()
 }
 
 PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
-    QListWidgetItem* item)
+    QListWidgetItem* item) const
 {
     assert(item != nullptr);
     auto pluginInfoPtrVar = item->data(Qt::UserRole);
@@ -581,6 +579,22 @@ void PluginConfigDialog::moveSelectedPlugin(int fromRow, int toRow)
     m_ui.m_selectedListWidget->insertItem(toRow, item);
     m_ui.m_selectedListWidget->setCurrentRow(toRow);
     refreshSelectedToolbar();
+}
+
+PluginMgr::ListOfPluginInfos PluginConfigDialog::getSelectedPlugins() const
+{
+    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    ListOfPluginInfos infos;
+
+    assert(0 < m_ui.m_selectedListWidget->count());
+    for (auto idx = 0; idx < m_ui.m_selectedListWidget->count(); ++idx) {
+        auto* item = m_ui.m_selectedListWidget->item(idx);
+        assert(item != nullptr);
+        auto pluginInfo = getPluginInfo(item);
+        assert(pluginInfo);
+        infos.push_back(std::move(pluginInfo));
+    }
+    return infos;
 }
 
 } /* namespace comms_champion */

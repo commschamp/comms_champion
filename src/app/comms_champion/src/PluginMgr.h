@@ -23,8 +23,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QString>
-//#include <QtCore/QVariantMap>
-//#include <QtCore/QVariantList>
+#include <QtCore/QVariantMap>
 #include <QtCore/QPluginLoader>
 
 #include "comms_champion/PluginControlInterface.h"
@@ -87,6 +86,7 @@ public:
     bool loadPlugin(const PluginInfo& info);
     bool needsReload(const ListOfPluginInfos& infos) const;
     bool apply(const ListOfPluginInfos& infos);
+    QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos) const;
 
 signals:
     void sigStateChanged(int value);

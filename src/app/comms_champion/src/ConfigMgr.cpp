@@ -46,13 +46,13 @@ const QString& ConfigMgr::getLastFile() const
 
 const QString& ConfigMgr::getFilesFilter()
 {
-    static const QString Str(QObject::tr("Configuration files (*.cfg)"));
+    static const QString Str(QObject::tr("All Files (*)"));
     return Str;
 }
 
-PluginConfig ConfigMgr::loadConfig(const QString& filename)
+QVariantMap ConfigMgr::loadConfig(const QString& filename)
 {
-    PluginConfig loadedConfig;
+    QVariantMap loadedConfig;
     do {
         QFile configFile(filename);
         if (!configFile.open(QIODevice::ReadOnly)) {
@@ -76,158 +76,44 @@ PluginConfig ConfigMgr::loadConfig(const QString& filename)
         }
 
         auto topObject = jsonDoc.object();
-        auto keys = topObject.keys();
-        QVariantMap configMap;
-        for (auto k : keys) {
-            auto jsonValue = topObject.value(k);
-            if (!jsonValue.isObject()) {
-                std::cerr << "ERROR: Invalid contents of configuration file!" << std::endl;
-            }
-
-            auto valueMap = jsonValue.toObject().toVariantMap();
-            configMap.insert(k, QVariant::fromValue(std::move(valueMap)));
-        }
-
-        loadedConfig.setFullConfig(configMap);
+        loadedConfig = topObject.toVariantMap();
         m_lastConfigFile = filename;
     } while (false);
+
     return loadedConfig;
 }
 
-//ConfigMgr::ListOfErrors ConfigMgr::loadConfig(const QString& filename)
-//{
-//    ListOfErrors errors;
-//    do {
-//        QFile configFile(filename);
-//        if (!configFile.open(QIODevice::ReadOnly)) {
-//            errors.push_back(
-//                ListOfErrors::value_type(
-//                    tr("Bad filename"),
-//                    tr("Failed to load the configuration file.")));
-//            break;
-//        }
-//
-//        auto data = configFile.readAll();
-//
-//        auto badConfigErrorFunc =
-//            [&errors](const QString& msg)
-//            {
-//                errors.push_back(
-//                    std::make_pair(
-//                        tr("Bad configuration file"),
-//                        msg));
-//            };
-//
-//        auto badContentsErrorFunc =
-//            [&badConfigErrorFunc]()
-//            {
-//                badConfigErrorFunc(
-//                    tr("Failed to load the configuration file. Bad contents."));
-//            };
-//
-//
-//        auto jsonError = QJsonParseError();
-//        auto jsonDoc = QJsonDocument::fromJson(data, &jsonError);
-//        if (jsonError.error != QJsonParseError::NoError) {
-//            badContentsErrorFunc();
-//            break;
-//        }
-//
-//        if (!jsonDoc.isObject()) {
-//            badContentsErrorFunc();
-//            break;
-//        }
-//
-//        auto topObject = jsonDoc.object();
-//        auto keys = topObject.keys();
-//        QVariantMap configMap;
-//        for (auto k : keys) {
-//            auto jsonValue = topObject.value(k);
-//            if (!jsonValue.isObject()) {
-//                badContentsErrorFunc();
-//            }
-//
-//            auto valueMap = jsonValue.toObject().toVariantMap();
-//            configMap.insert(k, QVariant::fromValue(std::move(valueMap)));
-//        }
-//
-//        m_options.swap(configMap);
-//        m_reportedErrors.clear();
-//        emit sigConfigUpdated();
-//        if (!m_reportedErrors.empty()) {
-//            m_options.swap(configMap);
-//            for (auto e : m_reportedErrors) {
-//                badConfigErrorFunc(e);
-//            }
-//            break;
-//        }
-//    } while (false);
-//    return errors;
-//}
-//
-//ConfigMgr::ListOfErrors ConfigMgr::saveConfig(const QString& filename)
-//{
-//    ListOfErrors errors;
-//    do {
-//        QString filenameTmp(filename);
-//        while (true) {
-//            filenameTmp.append(".tmp");
-//            if (!QFile::exists(filenameTmp)) {
-//                break;
-//            }
-//        }
-//
-//        auto reportFilesystemErrorFunc =
-//            [&errors]()
-//            {
-//                errors.push_back(
-//                    std::make_pair(
-//                        tr("Filesystem error"),
-//                        tr("Failed to save the configuration file.")));
-//            };
-//
-//        QFile configFile(filenameTmp);
-//        if (!configFile.open(QIODevice::WriteOnly)) {
-//            reportFilesystemErrorFunc();
-//            break;
-//        }
-//
-//        auto jsonObj = QJsonObject::fromVariantMap(m_options);
-//        QJsonDocument jsonDoc(jsonObj);
-//        auto data = jsonDoc.toJson();
-//
-//        configFile.write(data);
-//
-//        if (!QFile::remove(filename)) {
-//            reportFilesystemErrorFunc();
-//            break;
-//        }
-//
-//        configFile.rename(filename);
-//    } while (false);
-//    return errors;
-//}
-//
-//void ConfigMgr::reportConfigError(const QString& errorMsg)
-//{
-//    m_reportedErrors.push_back(errorMsg);
-//}
-//
-//QVariantMap ConfigMgr::getConfiguration(const QString& topKey)
-//{
-//    auto iter = m_options.find(topKey);
-//    if (iter == m_options.end()) {
-//        return QVariantMap();
-//    }
-//
-//    auto mapVar = *iter;
-//    if ((!mapVar.isValid()) || (!mapVar.canConvert<QVariantMap>())) {
-//        assert(!"Incorrect internal map, should not happen");
-//        return QVariantMap();
-//    }
-//
-//    return mapVar.value<QVariantMap>();
-//}
+bool ConfigMgr::saveConfig(const QString& filename, const QVariantMap& config)
+{
+    QString filenameTmp(filename);
+    while (true) {
+        filenameTmp.append(".tmp");
+        if (!QFile::exists(filenameTmp)) {
+            break;
+        }
+    }
+
+    QFile configFile(filenameTmp);
+    if (!configFile.open(QIODevice::WriteOnly)) {
+        return false;
+    }
+
+    auto jsonObj = QJsonObject::fromVariantMap(config);
+    QJsonDocument jsonDoc(jsonObj);
+    auto data = jsonDoc.toJson();
+
+    configFile.write(data);
+
+    if ((QFile::exists(filename)) &&
+        (!QFile::remove(filename))) {
+        configFile.close();
+        QFile::remove(filenameTmp);
+        return false;
+    }
+
+    configFile.rename(filename);
+    return true;
+}
 
 }  // namespace comms_champion
 

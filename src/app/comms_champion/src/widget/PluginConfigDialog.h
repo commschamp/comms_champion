@@ -77,7 +77,8 @@ private:
     void clearDescription();
     void moveSelectedPlugin(int fromRow, int toRow);
 
-    PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item);
+    PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item) const;
+    PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
 
     Ui::PluginConfigDialog m_ui;
     QLineEdit* m_availSearchLineEdit = nullptr;

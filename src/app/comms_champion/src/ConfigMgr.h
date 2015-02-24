@@ -24,7 +24,6 @@
 #include <QtCore/QString>
 #include <QtCore/QVariantMap>
 
-#include "PluginConfig.h"
 
 namespace comms_champion
 {
@@ -40,7 +39,8 @@ public:
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
 
-    PluginConfig loadConfig(const QString& filename);
+    QVariantMap loadConfig(const QString& filename);
+    bool saveConfig(const QString& filename, const QVariantMap& config);
 
 //    typedef std::pair<QString, QString> ErrorInfo;
 //    typedef std::list<ErrorInfo> ListOfErrors;

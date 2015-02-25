@@ -90,7 +90,47 @@ const QIcon& saveAs()
     return iconObj;
 }
 
+const QIcon& start()
+{
+    static const QIcon iconObj(":/image/start.png");
+    return iconObj;
+}
 
+const QIcon& startAll()
+{
+    static const QIcon iconObj(":/image/start_all.png");
+    return iconObj;
+}
+
+const QIcon& stop()
+{
+    static const QIcon iconObj(":/image/stop.png");
+    return iconObj;
+}
+
+const QIcon& edit()
+{
+    static const QIcon iconObj(":/image/edit.png");
+    return iconObj;
+}
+
+const QIcon& showRecv()
+{
+    static const QIcon iconObj(":/image/msg_recv.png");
+    return iconObj;
+}
+
+const QIcon& showSent()
+{
+    static const QIcon iconObj(":/image/msg_send.png");
+    return iconObj;
+}
+
+const QIcon& pluginEdit()
+{
+    static const QIcon iconObj(":/image/plugin_edit.png");
+    return iconObj;
+}
 
 }  // namespace icon
 

@@ -37,6 +37,13 @@ const QIcon& bottom();
 const QIcon& upload();
 const QIcon& save();
 const QIcon& saveAs();
+const QIcon& start();
+const QIcon& startAll();
+const QIcon& stop();
+const QIcon& edit();
+const QIcon& showRecv();
+const QIcon& showSent();
+const QIcon& pluginEdit();
 
 }  // namespace icon
 

@@ -33,6 +33,7 @@
 #include "PluginConfigDialog.h"
 #include "GuiAppMgr.h"
 #include "ConfigMgr.h"
+#include "icon.h"
 
 namespace comms_champion
 {
@@ -40,45 +41,13 @@ namespace comms_champion
 namespace
 {
 
-//void createLoadButton(QToolBar& bar)
-//{
-//    auto* config = bar.addAction(QIcon(":/image/upload.png"), "Load Configuration");
-//    QObject::connect(
-//        config, SIGNAL(triggered()),
-//        GuiAppMgr::instance(), SLOT(loadConfigClicked()));
-//}
-//
-//void createSaveButton(QToolBar& bar)
-//{
-//    auto* config = bar.addAction(QIcon(":/image/save_as.png"), "Save Configuration");
-//    QObject::connect(
-//        config, SIGNAL(triggered()),
-//        GuiAppMgr::instance(), SLOT(saveConfigClicked()));
-//}
-//
-//void createConfigProtButton(QToolBar& bar)
-//{
-//    auto* config = bar.addAction(QIcon(":/image/prot_config.png"), "Configure Protocol and Sockets");
-//    QObject::connect(
-//        config, SIGNAL(triggered()),
-//        GuiAppMgr::instance(), SLOT(configProtocolClicked()));
-//}
-
 void createPluginsButton(QToolBar& bar)
 {
-    auto* config = bar.addAction(QIcon(":/image/plugin_edit.png"), "Manage and configure plugings");
+    auto* config = bar.addAction(icon::pluginEdit(), "Manage and configure plugings");
     QObject::connect(
         config, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(pluginsEditClicked()));
 }
-
-//void createSettingsButton(QToolBar& bar)
-//{
-//    auto* config = bar.addAction(QIcon(":/image/settings.png"), "Settings");
-//    QObject::connect(
-//        config, SIGNAL(triggered()),
-//        GuiAppMgr::instance(), SLOT(settingsClicked()));
-//}
 
 }  // namespace
 
@@ -88,9 +57,6 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     m_ui.setupUi(this);
 
     auto* toolbar = new QToolBar();
-//    createLoadButton(*toolbar);
-//    createSaveButton(*toolbar);
-//    createConfigProtButton(*toolbar);
     createPluginsButton(*toolbar);
     addToolBar(toolbar);
 
@@ -116,12 +82,6 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     connect(
         guiAppMgr, SIGNAL(sigPluginsEditDialog()),
         this, SLOT(pluginsEditDialog()));
-//    connect(
-//        guiAppMgr, SIGNAL(sigLoadConfigDialog()),
-//        this, SLOT(loadConfigDialog()));
-//    connect(
-//        guiAppMgr, SIGNAL(sigSaveConfigDialog()),
-//        this, SLOT(saveConfigDialog()));
     connect(
         m_ui.m_actionQuit, SIGNAL(triggered()),
         this, SLOT(close()));

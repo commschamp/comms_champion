@@ -23,66 +23,26 @@
 #include <QtWidgets/QAction>
 #include <QtGui/QIcon>
 
+#include "icon.h"
+
 namespace comms_champion
 {
 
 namespace
 {
 
-const QIcon& startIcon()
-{
-    static const QIcon Icon(":/image/start.png");
-    return Icon;
-}
-
-const QIcon& stopIcon()
-{
-    static const QIcon Icon(":/image/stop.png");
-    return Icon;
-}
-
-const QIcon& saveIcon()
-{
-    static const QIcon Icon(":/image/save.png");
-    return Icon;
-}
-
-const QIcon& deleteIcon()
-{
-    static const QIcon Icon(":/image/delete.png");
-    return Icon;
-}
-
-const QIcon& clearIcon()
-{
-    static const QIcon Icon(":/image/edit-clear.png");
-    return Icon;
-}
-
-const QIcon& showRecvIcon()
-{
-    static const QIcon Icon(":/image/msg_recv.png");
-    return Icon;
-}
-
-const QIcon& showSentIcon()
-{
-    static const QIcon Icon(":/image/msg_send.png");
-    return Icon;
-}
-
 const QString StartTooltip("Start Reception");
 const QString StopTooltip("Stop Reception");
 
 QAction* createStartButton(QToolBar& bar)
 {
-    auto* action = bar.addAction(startIcon(), StartTooltip);
+    auto* action = bar.addAction(icon::start(), StartTooltip);
     return action;
 }
 
 QAction* createSaveButton(QToolBar& bar)
 {
-    auto* action = bar.addAction(saveIcon(), "Save Messages");
+    auto* action = bar.addAction(icon::save(), "Save Messages");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvSaveClicked()));
 
@@ -91,7 +51,7 @@ QAction* createSaveButton(QToolBar& bar)
 
 QAction* createDeleteButton(QToolBar& bar)
 {
-    auto* action = bar.addAction(deleteIcon(), "Delete Selected Message");
+    auto* action = bar.addAction(icon::remove(), "Delete Selected Message");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvDeleteClicked()));
     return action;
@@ -99,7 +59,7 @@ QAction* createDeleteButton(QToolBar& bar)
 
 QAction* createClearButton(QToolBar& bar)
 {
-    auto* action = bar.addAction(clearIcon(), "Delete All Displayed Messages");
+    auto* action = bar.addAction(icon::editClear(), "Delete All Displayed Messages");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvClearClicked()));
     return action;
@@ -108,7 +68,7 @@ QAction* createClearButton(QToolBar& bar)
 QAction* createShowReceived(QToolBar& bar)
 {
     auto guiAppMgr = GuiAppMgr::instance();
-    auto* action = bar.addAction(showRecvIcon(), "Show Received Messages");
+    auto* action = bar.addAction(icon::showRecv(), "Show Received Messages");
     action->setCheckable(true);
     action->setChecked(guiAppMgr->recvListShowsReceived());
     QObject::connect(
@@ -120,7 +80,7 @@ QAction* createShowReceived(QToolBar& bar)
 QAction* createShowSent(QToolBar& bar)
 {
     auto guiAppMgr = GuiAppMgr::instance();
-    auto* action = bar.addAction(showSentIcon(), "Show Sent Messages");
+    auto* action = bar.addAction(icon::showSent(), "Show Sent Messages");
     action->setCheckable(true);
     action->setChecked(guiAppMgr->recvListShowsSent());
     QObject::connect(
@@ -233,11 +193,11 @@ void RecvAreaToolBar::refreshStartStopButton()
     assert(button != nullptr);
     bool enabled = (m_activeState == ActivityState::Active);
     if (m_state == State::Running) {
-        button->setIcon(stopIcon());
+        button->setIcon(icon::stop());
         button->setText(StopTooltip);
     }
     else {
-        button->setIcon(startIcon());
+        button->setIcon(icon::start());
         button->setText(StartTooltip);
     }
     button->setEnabled(enabled);

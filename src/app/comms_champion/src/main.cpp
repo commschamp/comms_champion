@@ -72,23 +72,7 @@ int main(int argc, char *argv[])
     app.addLibraryPath(dir.path());
     cc::PluginMgr::instanceRef().setPluginsDir(dir.path());
 
-    // TODO: use PluginMgr
-
-//    QPluginLoader loader("demo");
-//    auto* pluginObj = qobject_cast<cc::Plugin*>(loader.instance());
-//    if (pluginObj == nullptr) {
-//        std::cerr << "Failed to load plugin: " << loader.errorString().toStdString() << std::endl;
-//        return -1;
-//    }
-//
-//    pluginObj->initialize();
-//    cc::PluginControlInterface controlInterface;
-//    pluginObj->apply(controlInterface);
-//    auto& msgMgr = cc::MsgMgr::instanceRef();
-//    msgMgr.addSocket(cc::makeDummySocket());
-//    msgMgr.start();
     auto retval = app.exec();
-//    pluginObj->finalize();
     return retval;
 }
 

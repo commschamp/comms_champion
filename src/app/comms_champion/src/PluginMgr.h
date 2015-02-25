@@ -28,8 +28,6 @@
 
 #include "comms_champion/PluginControlInterface.h"
 
-//#include "ConfigMgr.h"
-
 namespace comms_champion
 {
 
@@ -75,7 +73,7 @@ public:
     typedef std::shared_ptr<PluginInfo> PluginInfoPtr;
     typedef std::list<PluginInfoPtr> ListOfPluginInfos;
 
-    virtual ~PluginMgr() = default;
+    ~PluginMgr();
 
     static PluginMgr* instance();
     static PluginMgr& instanceRef();
@@ -83,6 +81,7 @@ public:
     const ListOfPluginInfos& getAvailablePlugins();
     const ListOfPluginInfos& getAppliedPlugins() const;
     PluginsState getState() const;
+    ListOfPluginInfos loadPluginsFromConfig(const QVariantMap& config) const;
     bool loadPlugin(const PluginInfo& info);
     bool needsReload(const ListOfPluginInfos& infos) const;
     bool apply(const ListOfPluginInfos& infos);
@@ -91,10 +90,6 @@ public:
 signals:
     void sigStateChanged(int value);
 
-
-//private slots:
-//    void configUpdated();
-
 private:
     typedef std::list<PluginLoaderPtr> PluginLoadersList;
 
@@ -102,15 +97,10 @@ private:
 
     static PluginInfoPtr readPluginInfo(const QString& filename);
 
-//    bool verifyPluginsConfiguration(const QVariantList plugins);
-//    static PluginLoaderPtr allocPluginLoader(const QString& name);
-
     QString m_pluginDir;
     ListOfPluginInfos m_plugins;
     ListOfPluginInfos m_appliedPlugins;
     PluginsState m_state = PluginsState::Clear;
-//    QVariantMap m_curConfig;
-//    PluginLoadersList m_plugins;
     PluginControlInterface m_controlInterface;
 };
 

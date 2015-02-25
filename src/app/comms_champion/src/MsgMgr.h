@@ -54,6 +54,8 @@ public:
     static MsgMgr* instance();
     static MsgMgr& instanceRef();
 
+    ~MsgMgr();
+
     void addSocket(SocketPtr socket);
     void removeSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);

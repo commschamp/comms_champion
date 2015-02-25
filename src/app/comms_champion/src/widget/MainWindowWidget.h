@@ -38,8 +38,6 @@ private slots:
     void newSendMsgDialog(ProtocolPtr protocol);
     void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
     void pluginsEditDialog();
-//    void loadConfigDialog();
-//    void saveConfigDialog();
 
 private:
     Ui::MainWindowWidget m_ui;

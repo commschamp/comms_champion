@@ -196,11 +196,25 @@ void PluginConfigDialog::loadClicked()
             this,
             tr("Configuration Load Error."),
             tr("Invalid configuration file."));
+        return;
     }
 
-    // TODO:
+    auto& pluginMgr = PluginMgr::instanceRef();
+    auto loadedPlugins = pluginMgr.loadPluginsFromConfig(config);
 
-    assert(!"NYI: load configuration from file");
+    refreshSelectedPlugins(loadedPlugins);
+    refreshSelectedToolbar();
+    refreshAvailablePlugins();
+    refreshAvailableToolbar();
+    refreshButtonBox();
+
+    assert(m_ui.m_selectedListWidget != nullptr);
+    assert(m_ui.m_selectedListWidget->currentItem() == nullptr);
+    assert(m_ui.m_availListWidget != nullptr);
+    if (m_ui.m_availListWidget->currentItem() == nullptr) {
+        clearConfiguration();
+        clearDescription();
+    }
 }
 
 void PluginConfigDialog::saveClicked()
@@ -474,10 +488,14 @@ void PluginConfigDialog::refreshSelectedToolbar()
 
 void PluginConfigDialog::refreshSelectedPlugins()
 {
-    m_ui.m_selectedListWidget->clear();
-    auto& appliedPlugins = PluginMgr::instanceRef().getAppliedPlugins();
+    refreshSelectedPlugins(PluginMgr::instanceRef().getAppliedPlugins());
+}
 
-    for (auto& pluginInfoPtr : appliedPlugins) {
+void PluginConfigDialog::refreshSelectedPlugins(
+    const PluginMgr::ListOfPluginInfos& infos)
+{
+    m_ui.m_selectedListWidget->clear();
+    for (auto& pluginInfoPtr : infos) {
         auto& name = pluginInfoPtr->getName();
         m_ui.m_selectedListWidget->addItem(name);
         auto* item = m_ui.m_selectedListWidget->item(

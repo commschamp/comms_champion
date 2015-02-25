@@ -65,6 +65,7 @@ private:
     void refreshAvailableToolbar();
     void refreshSelectedToolbar();
     void refreshSelectedPlugins();
+    void refreshSelectedPlugins(const PluginMgr::ListOfPluginInfos& infos);
     void refreshButtonBox();
     void refreshSaveButton();
     void refreshRemoveButton();

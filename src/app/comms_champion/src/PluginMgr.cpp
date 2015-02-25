@@ -62,6 +62,17 @@ Plugin* getPlugin(QPluginLoader& loader)
 
 }  // namespace
 
+PluginMgr::~PluginMgr()
+{
+    for (auto& pluginInfoPtr : m_plugins) {
+        assert(pluginInfoPtr);
+        assert(pluginInfoPtr->m_loader);
+        if (pluginInfoPtr->m_loader->isLoaded()) {
+            pluginInfoPtr->m_loader->unload();
+        }
+    }
+}
+
 PluginMgr* PluginMgr::instance()
 {
     return &(instanceRef());
@@ -110,6 +121,43 @@ PluginMgr::PluginsState PluginMgr::getState() const
     return m_state;
 }
 
+PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
+    const QVariantMap& config) const
+{
+    ListOfPluginInfos pluginInfos;
+    do {
+        auto listVar = config.value(PluginsKey);
+        if ((!listVar.isValid()) || (!listVar.canConvert<QVariantList>())) {
+            break;
+        }
+
+        auto varList = listVar.value<QVariantList>();
+        for (auto& iidVar : varList) {
+            if ((!iidVar.isValid()) || (!iidVar.canConvert<QString>())) {
+                continue;
+            }
+
+            auto iid = iidVar.toString();
+            auto iter =
+                std::find_if(
+                    m_plugins.begin(), m_plugins.end(),
+                    [&iid](const PluginInfoPtr& i) -> bool
+                    {
+                        return i->m_iid == iid;
+                    });
+
+            if (iter == m_plugins.end()) {
+                continue;
+            }
+
+            pluginInfos.push_back(*iter);
+        }
+
+    } while (false);
+
+    return pluginInfos;
+}
+
 bool PluginMgr::loadPlugin(const PluginMgr::PluginInfo& info)
 {
     assert(info.m_loader);
@@ -150,7 +198,7 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
         assert(reqInfo->m_loader);
         auto* pluginPtr = getPlugin(*reqInfo->m_loader);
         // TODO: reconfigure
-        if (reapply) {
+        if (m_appliedPlugins.empty() || reapply) {
             pluginPtr->apply(m_controlInterface);
         }
     }

@@ -112,6 +112,7 @@ bool ConfigMgr::saveConfig(const QString& filename, const QVariantMap& config)
     }
 
     configFile.rename(filename);
+    m_lastConfigFile = filename;
     return true;
 }
 

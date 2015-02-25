@@ -62,6 +62,8 @@ MsgMgr& MsgMgr::instanceRef()
     return mgr;
 }
 
+MsgMgr::~MsgMgr() = default;
+
 void MsgMgr::addSocket(SocketPtr socket)
 {
     std::cout << __FUNCTION__ << ": socket is at " << socket.get() << std::endl;

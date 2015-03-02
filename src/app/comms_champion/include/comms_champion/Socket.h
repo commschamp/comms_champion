@@ -63,6 +63,7 @@ public slots:
 signals:
     void sigDataReceived(DataInfoPtr dataPtr);
     void sigDataToSend(DataInfoPtr dataPtr);
+    void sigErrorReport(const QString& msg);
 
 protected:
 
@@ -79,6 +80,11 @@ protected:
     void reportDataToSend(DataInfoPtr dataPtr)
     {
         emit sigDataToSend(std::move(dataPtr));
+    }
+
+    void reportError(const QString& msg)
+    {
+        emit sigErrorReport(msg);
     }
 };
 

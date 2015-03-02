@@ -150,6 +150,13 @@ PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
                 continue;
             }
 
+            auto pluginInfoPtr = *iter;
+            assert(pluginInfoPtr);
+            assert(pluginInfoPtr->m_loader);
+            auto* pluginPtr = getPlugin(*pluginInfoPtr->m_loader);
+            assert(pluginPtr != nullptr);
+            pluginPtr->reconfigure(config);
+
             pluginInfos.push_back(*iter);
         }
 
@@ -197,7 +204,6 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
         assert(reqInfo);
         assert(reqInfo->m_loader);
         auto* pluginPtr = getPlugin(*reqInfo->m_loader);
-        // TODO: reconfigure
         if (m_appliedPlugins.empty() || reapply) {
             pluginPtr->apply(m_controlInterface);
         }
@@ -218,6 +224,11 @@ QVariantMap PluginMgr::getConfigForPlugins(
         assert(pluginInfoPtr);
         assert(!pluginInfoPtr->m_iid.isEmpty());
         pluginsList.append(QVariant::fromValue(pluginInfoPtr->m_iid));
+
+        assert(pluginInfoPtr->m_loader);
+        auto* pluginPtr = getPlugin(*pluginInfoPtr->m_loader);
+        assert(pluginPtr != nullptr);
+        pluginPtr->getCurrentConfig(config);
     }
 
     config.insert(PluginsKey, QVariant::fromValue(pluginsList));

@@ -14,6 +14,7 @@ function (bin_comms_champion)
         src/ConfigMgr.cpp
         src/PluginControlInterface.cpp
         src/PluginMgr.cpp
+        src/Plugin.cpp
         src/icon.cpp
         src/widget/MainWindowWidget.cpp
         src/widget/LeftPaneWidget.cpp

@@ -37,19 +37,10 @@ ServerSocket::ServerSocket()
         this, SLOT(newConnection()));
 }
 
-ServerSocket::~ServerSocket()
-{
-}
+ServerSocket::~ServerSocket() = default;
 
 bool ServerSocket::startImpl()
 {
-    if (m_port == InvalidPort) {
-        static const QString InvalidPortError(
-            tr("Port of TCP/IP Server wasn't configured properly."));
-        reportError(InvalidPortError);
-        return false;
-    }
-
     if (m_server.isListening()) {
         assert(!"Already listening");
         static const QString AlreadyListeningError(

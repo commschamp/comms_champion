@@ -23,6 +23,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QtPlugin>
+#include <QtCore/QVariantMap>
 
 #include "PluginControlInterface.h"
 
@@ -46,8 +47,19 @@ public:
         m_applied = true;
     }
 
+    void getCurrentConfig(QVariantMap& config)
+    {
+        getCurrentConfigImpl(config);
+    }
+
+    void reconfigure(const QVariantMap& config) {
+        reconfigureImpl(config);
+    }
+
 protected:
     virtual void applyImpl(const PluginControlInterface& controlInterface) = 0;
+    virtual void getCurrentConfigImpl(QVariantMap& config);
+    virtual void reconfigureImpl(const QVariantMap& config);
 
 private:
     bool m_applied = false;

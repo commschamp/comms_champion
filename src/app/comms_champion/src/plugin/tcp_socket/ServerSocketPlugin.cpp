@@ -32,6 +32,14 @@ namespace plugin
 namespace tcp_socket
 {
 
+namespace
+{
+
+const QString MainConfigKey("cc_tcp_server_socket");
+const QString PortSubKey("port");
+
+}  // namespace
+
 ServerSocketPlugin::ServerSocketPlugin()
 {
     std::cout << "Initialising TCP ServerSocketPlugin at " << this  << std::endl;
@@ -53,14 +61,48 @@ void ServerSocketPlugin::applyImpl(
 {
     assert(!isApplied());
     m_interface = &controlInterface;
-    m_socket.reset(new ServerSocket());
-
-    // TODO: do proper configuration
-    m_socket->setPort(20000);
+    createSocketIfNeeded();
 
     controlInterface.addSocket(m_socket);
     std::cout << "Applied TCP ServerSocketPlugin at " << this << "; socket is at " << m_socket.get() << std::endl;
     assert(m_socket);
+}
+
+void ServerSocketPlugin::getCurrentConfigImpl(QVariantMap& config)
+{
+    createSocketIfNeeded();
+
+    QVariantMap subConfig;
+    subConfig.insert(PortSubKey, QVariant::fromValue(m_socket->getPort()));
+    config.insert(MainConfigKey, QVariant::fromValue(subConfig));
+}
+
+void ServerSocketPlugin::reconfigureImpl(const QVariantMap& config)
+{
+    auto subConfigVar = config.value(MainConfigKey);
+    if ((!subConfigVar.isValid()) || (!subConfigVar.canConvert<QVariantMap>())) {
+        return;
+    }
+
+    typedef ServerSocket::PortType PortType;
+    auto subConfig = subConfigVar.value<QVariantMap>();
+    auto portVar = subConfig.value(PortSubKey);
+    if ((!portVar.isValid()) || (!portVar.canConvert<PortType>())) {
+        return;
+    }
+
+    auto port = portVar.value<PortType>();
+
+    createSocketIfNeeded();
+
+    m_socket->setPort(port);
+}
+
+void ServerSocketPlugin::createSocketIfNeeded()
+{
+    if (!m_socket) {
+        m_socket.reset(new ServerSocket());
+    }
 }
 
 }  // namespace tcp_socket

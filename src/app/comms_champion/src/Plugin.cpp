@@ -15,52 +15,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-#pragma once
-
-#include <memory>
-
 #include "comms_champion/Plugin.h"
-
-#include "ServerSocket.h"
 
 namespace comms_champion
 {
 
-namespace plugin
+void Plugin::getCurrentConfigImpl(QVariantMap& config)
 {
+    static_cast<void>(config);
+}
 
-namespace tcp_socket
+void Plugin::reconfigureImpl(const QVariantMap& config)
 {
-
-class ServerSocketPlugin : public comms_champion::Plugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.TcpServerSocketPlugin" FILE "tcp_server_socket.json")
-    Q_INTERFACES(comms_champion::Plugin)
-
-public:
-    ServerSocketPlugin();
-    ~ServerSocketPlugin();
-
-    virtual void applyImpl(const PluginControlInterface& controlInterface) override;
-    virtual void getCurrentConfigImpl(QVariantMap& config) override;
-    virtual void reconfigureImpl(const QVariantMap& config) override;
-
-private:
-
-    void createSocketIfNeeded();
-
-    std::shared_ptr<ServerSocket> m_socket;
-    const PluginControlInterface* m_interface = nullptr;
-};
-
-}  // namespace tcp_socket
-
-}  // namespace plugin
+    static_cast<void>(config);
+}
 
 }  // namespace comms_champion
-
-
 
 

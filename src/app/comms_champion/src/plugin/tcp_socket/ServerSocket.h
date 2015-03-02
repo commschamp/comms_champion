@@ -71,8 +71,8 @@ private slots:
     void socketErrorOccurred(QAbstractSocket::SocketError err);
 
 private:
-    static const PortType InvalidPort = 0;
-    PortType m_port = InvalidPort;
+    static const PortType DefaultPort = 20000;
+    PortType m_port = DefaultPort;
     QTcpServer m_server;
     std::list<QTcpSocket*> m_sockets;
 };

@@ -127,11 +127,17 @@ void PluginConfigDialog::selectedPluginClicked(QListWidgetItem* item)
     m_ui.m_selectedListWidget->setCurrentItem(item);
     assert(m_ui.m_selectedListWidget->currentRow() == m_ui.m_selectedListWidget->row(item));
 
-    // TODO: proper configuration widget
-    clearConfiguration();
-
     auto pluginInfoPtr = getPluginInfo(item);
     assert(pluginInfoPtr);
+
+    auto configWidget =
+        PluginMgr::instanceRef().getPluginConfigWidget(*pluginInfoPtr);
+    if (configWidget) {
+        m_ui.m_configScrollArea->setWidget(configWidget.release());
+    }
+    else {
+        clearConfiguration();
+    }
 
     m_ui.m_descLabel->setText(pluginInfoPtr->getDescription());
     refreshSelectedToolbar();

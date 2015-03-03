@@ -30,6 +30,11 @@ void Plugin::reconfigureImpl(const QVariantMap& config)
     static_cast<void>(config);
 }
 
+Plugin::WidgetPtr Plugin::getConfigWidgetImpl()
+{
+    return WidgetPtr();
+}
+
 }  // namespace comms_champion
 
 

@@ -20,10 +20,12 @@
 
 #include <string>
 #include <cassert>
+#include <memory>
 
 #include <QtCore/QObject>
 #include <QtCore/QtPlugin>
 #include <QtCore/QVariantMap>
+#include <QtWidgets/QWidget>
 
 #include "PluginControlInterface.h"
 
@@ -33,6 +35,8 @@ namespace comms_champion
 class Plugin : public QObject
 {
 public:
+    typedef std::unique_ptr<QWidget> WidgetPtr;
+
     virtual ~Plugin() = default;
 
     bool isApplied() const
@@ -56,10 +60,16 @@ public:
         reconfigureImpl(config);
     }
 
+    WidgetPtr getConfigWidget()
+    {
+        return getConfigWidgetImpl();
+    }
+
 protected:
     virtual void applyImpl(const PluginControlInterface& controlInterface) = 0;
     virtual void getCurrentConfigImpl(QVariantMap& config);
     virtual void reconfigureImpl(const QVariantMap& config);
+    virtual WidgetPtr getConfigWidgetImpl();
 
 private:
     bool m_applied = false;

@@ -27,6 +27,7 @@
 #include <QtCore/QPluginLoader>
 
 #include "comms_champion/PluginControlInterface.h"
+#include "comms_champion/Plugin.h"
 
 namespace comms_champion
 {
@@ -72,6 +73,7 @@ public:
 
     typedef std::shared_ptr<PluginInfo> PluginInfoPtr;
     typedef std::list<PluginInfoPtr> ListOfPluginInfos;
+    typedef Plugin::WidgetPtr WidgetPtr;
 
     ~PluginMgr();
 
@@ -85,7 +87,8 @@ public:
     bool loadPlugin(const PluginInfo& info);
     bool needsReload(const ListOfPluginInfos& infos) const;
     bool apply(const ListOfPluginInfos& infos);
-    QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos) const;
+    static QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos);
+    static WidgetPtr getPluginConfigWidget(const PluginInfo& info);
 
 signals:
     void sigStateChanged(int value);

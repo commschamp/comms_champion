@@ -165,7 +165,7 @@ PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
     return pluginInfos;
 }
 
-bool PluginMgr::loadPlugin(const PluginMgr::PluginInfo& info)
+bool PluginMgr::loadPlugin(const PluginInfo& info)
 {
     assert(info.m_loader);
     if (info.m_loader->isLoaded()) {
@@ -216,7 +216,7 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
 }
 
 QVariantMap PluginMgr::getConfigForPlugins(
-    const ListOfPluginInfos& infos) const
+    const ListOfPluginInfos& infos)
 {
     QVariantMap config;
     QVariantList pluginsList;
@@ -233,6 +233,14 @@ QVariantMap PluginMgr::getConfigForPlugins(
 
     config.insert(PluginsKey, QVariant::fromValue(pluginsList));
     return config;
+}
+
+PluginMgr::WidgetPtr PluginMgr::getPluginConfigWidget(const PluginInfo& info)
+{
+    assert(info.m_loader);
+    auto* pluginPtr = getPlugin(*info.m_loader);
+    assert(pluginPtr != nullptr);
+    return pluginPtr->getConfigWidget();
 }
 
 PluginMgr::PluginMgr()

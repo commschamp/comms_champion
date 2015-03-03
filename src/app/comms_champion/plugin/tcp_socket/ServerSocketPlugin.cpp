@@ -22,6 +22,7 @@
 #include <cassert>
 
 #include "ServerSocket.h"
+#include "ServerSocketConfigWidget.h"
 
 namespace comms_champion
 {
@@ -96,6 +97,13 @@ void ServerSocketPlugin::reconfigureImpl(const QVariantMap& config)
     createSocketIfNeeded();
 
     m_socket->setPort(port);
+}
+
+ServerSocketPlugin::WidgetPtr ServerSocketPlugin::getConfigWidgetImpl()
+{
+    createSocketIfNeeded();
+    assert(m_socket);
+    return WidgetPtr(new ServerSocketConfigWidget(*m_socket));
 }
 
 void ServerSocketPlugin::createSocketIfNeeded()

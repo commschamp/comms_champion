@@ -18,11 +18,10 @@
 
 #pragma once
 
-#include <memory>
-
-#include "comms_champion/Plugin.h"
+#include <QtWidgets/QWidget>
 
 #include "ServerSocket.h"
+#include "ui_ServerSocketConfigWidget.h"
 
 namespace comms_champion
 {
@@ -33,35 +32,34 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ServerSocketPlugin : public comms_champion::Plugin
+class ServerSocketConfigWidget : public QWidget
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.TcpServerSocketPlugin" FILE "tcp_server_socket.json")
-    Q_INTERFACES(comms_champion::Plugin)
-
+    typedef QWidget Base;
 public:
-    ServerSocketPlugin();
-    ~ServerSocketPlugin();
+    typedef ServerSocket::PortType PortType;
 
-    virtual void applyImpl(const PluginControlInterface& controlInterface) override;
-    virtual void getCurrentConfigImpl(QVariantMap& config) override;
-    virtual void reconfigureImpl(const QVariantMap& config) override;
-    virtual WidgetPtr getConfigWidgetImpl() override;
+    explicit ServerSocketConfigWidget(
+        ServerSocket& socket,
+        QWidget* parent = nullptr);
+
+    ~ServerSocketConfigWidget();
+
+private slots:
+    void portValueChanged(int value);
 
 private:
-
-    void createSocketIfNeeded();
-
-    std::shared_ptr<ServerSocket> m_socket;
-    const PluginControlInterface* m_interface = nullptr;
+    ServerSocket& m_socket;
+    Ui::ServerSocketConfigWidget m_ui;
 };
+
+
+
 
 }  // namespace tcp_socket
 
 }  // namespace plugin
 
 }  // namespace comms_champion
-
-
 
 

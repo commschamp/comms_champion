@@ -168,6 +168,7 @@ void PluginConfigDialog::addClicked()
     refreshAvailablePlugins();
     refreshSelectedToolbar();
     refreshButtonBox();
+    selectedPluginClicked(selectedItem);
 }
 
 void PluginConfigDialog::searchTextChanged(const QString& text)

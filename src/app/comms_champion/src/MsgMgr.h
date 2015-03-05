@@ -76,6 +76,7 @@ public:
 
 signals:
     void sigMsgAdded(MessageInfoPtr msgInfo);
+    void sigErrorReported(const QString& msg);
 
 private slots:
     void socketDataReceived(DataInfoPtr dataInfoPtr);

@@ -19,7 +19,6 @@
 
 #include <list>
 
-#include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 
 #include "comms_champion/Socket.h"
@@ -34,7 +33,7 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ServerSocket : public comms_champion::Socket
+class ClientSocket : public comms_champion::Socket
 {
     Q_OBJECT
     using Base = comms_champion::Socket;
@@ -42,8 +41,18 @@ class ServerSocket : public comms_champion::Socket
 public:
     typedef unsigned short PortType;
 
-    ServerSocket();
-    ~ServerSocket();
+    ClientSocket();
+    ~ClientSocket();
+
+    void setHost(const QString& value)
+    {
+        m_host = value;
+    }
+
+    const QString& getHost() const
+    {
+        return m_host;
+    }
 
     void setPort(PortType value)
     {
@@ -62,16 +71,18 @@ protected:
     virtual void feedInDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:
-    void newConnection();
-    void connectionTerminated();
+    void socketConnected();
+    void socketDisconnected();
     void readFromSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);
 
 private:
     static const PortType DefaultPort = 20000;
+    QString m_host;
     PortType m_port = DefaultPort;
-    QTcpServer m_server;
-    std::list<QTcpSocket*> m_sockets;
+    QTcpSocket m_socket;
+    bool m_connected = false;
+    bool m_tryingToConnect = false;
 };
 
 }  // namespace tcp_socket

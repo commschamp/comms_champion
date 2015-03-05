@@ -83,6 +83,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
         guiAppMgr, SIGNAL(sigPluginsEditDialog()),
         this, SLOT(pluginsEditDialog()));
     connect(
+        guiAppMgr, SIGNAL(sigErrorReported(const QString&)),
+        this, SLOT(displayErrorMsg(const QString&)));
+    connect(
         m_ui.m_actionQuit, SIGNAL(triggered()),
         this, SLOT(close()));
 }
@@ -114,6 +117,14 @@ void MainWindowWidget::pluginsEditDialog()
 {
     PluginConfigDialog dialog(this);
     dialog.exec();
+}
+
+void MainWindowWidget::displayErrorMsg(const QString& msg)
+{
+    QMessageBox::critical(
+        this,
+        QObject::tr("Error occurred!"),
+        msg);
 }
 
 }  // namespace comms_champion

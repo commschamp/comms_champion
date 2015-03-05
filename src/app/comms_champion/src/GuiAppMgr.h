@@ -140,13 +140,11 @@ signals:
     void sigSendMoveSelectedDown();
     void sigSendMoveSelectedBottom();
     void sigRecvListTitleNeedsUpdate();
-
     void sigNewSendMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
     void sigPluginsEditDialog();
     void sigActivityStateChanged(int value);
-//    void sigLoadConfigDialog();
-//    void sigSaveConfigDialog();
+    void sigErrorReported(const QString& msg);
 
 
 private:
@@ -165,6 +163,7 @@ private slots:
     void msgAdded(MessageInfoPtr msgInfo);
     void sendPendingAndWait();
     void activeStateChanged(int state);
+    void errorReported(const QString& msg);
 
 private /*data*/:
 

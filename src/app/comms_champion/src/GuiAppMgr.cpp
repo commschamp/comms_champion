@@ -379,8 +379,12 @@ GuiAppMgr::GuiAppMgr(QObject* parent)
     m_recvState(RecvState::Idle),
     m_sendState(SendState::Idle)
 {
-    connect(MsgMgr::instance(), SIGNAL(sigMsgAdded(MessageInfoPtr)),
-            this, SLOT(msgAdded(MessageInfoPtr)));
+    connect(
+        MsgMgr::instance(), SIGNAL(sigMsgAdded(MessageInfoPtr)),
+        this, SLOT(msgAdded(MessageInfoPtr)));
+    connect(
+        MsgMgr::instance(), SIGNAL(sigErrorReported(const QString&)),
+        this, SLOT(errorReported(const QString&)));
     connect(
         PluginMgr::instance(), SIGNAL(sigStateChanged(int)),
         this, SLOT(activeStateChanged(int)));
@@ -541,6 +545,11 @@ void GuiAppMgr::activeStateChanged(int state)
         msgMgr.stop();
     }
     emit sigActivityStateChanged(state);
+}
+
+void GuiAppMgr::errorReported(const QString& msg)
+{
+    emit sigErrorReported(msg + tr("\nThe tool may not work properly!"));
 }
 
 void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)

@@ -88,6 +88,10 @@ void MsgMgr::addSocket(SocketPtr socket)
         socket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
         this, SLOT(socketDataReceived(DataInfoPtr)));
 
+    connect(
+        socket.get(), SIGNAL(sigErrorReport(const QString&)),
+        this, SIGNAL(sigErrorReported(const QString&)));
+
     m_sockets.push_back(std::move(socket));
 }
 

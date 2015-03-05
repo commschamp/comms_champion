@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,30 +18,49 @@
 
 #pragma once
 
-#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QWidget>
 
-#include "comms_champion/Protocol.h"
-
-#include "ui_MainWindowWidget.h"
+#include "ClientSocket.h"
+#include "ui_ClientSocketConfigWidget.h"
 
 namespace comms_champion
 {
 
-class MainWindowWidget : public QMainWindow
+namespace plugin
+{
+
+namespace tcp_socket
+{
+
+class ClientSocketConfigWidget : public QWidget
 {
     Q_OBJECT
-    using Base = QMainWindow;
+    typedef QWidget Base;
 public:
-    MainWindowWidget(QWidget* parent = nullptr);
+    typedef ClientSocket::PortType PortType;
+
+    explicit ClientSocketConfigWidget(
+        ClientSocket& socket,
+        QWidget* parent = nullptr);
+
+    ~ClientSocketConfigWidget();
 
 private slots:
-    void newSendMsgDialog(ProtocolPtr protocol);
-    void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
-    void pluginsEditDialog();
-    void displayErrorMsg(const QString& msg);
+    void hostValueChanged(const QString& value);
+    void portValueChanged(int value);
 
 private:
-    Ui::MainWindowWidget m_ui;
+    ClientSocket& m_socket;
+    Ui::ClientSocketConfigWidget m_ui;
 };
 
+
+
+
+}  // namespace tcp_socket
+
+}  // namespace plugin
+
 }  // namespace comms_champion
+
+

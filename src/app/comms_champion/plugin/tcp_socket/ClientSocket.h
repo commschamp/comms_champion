@@ -64,6 +64,15 @@ public:
         return m_port;
     }
 
+    bool setConnected(bool connected);
+
+    bool connectToServer();
+
+    bool disconnectFromServer();
+
+signals:
+    void sigConnectionStatus(bool connected);
+
 protected:
     virtual bool startImpl() override;
     virtual void stopImpl() override;
@@ -83,6 +92,8 @@ private:
     QTcpSocket m_socket;
     bool m_connected = false;
     bool m_tryingToConnect = false;
+    bool m_connectOnStart = false;
+    bool m_forcedDisconnection = false;
 };
 
 }  // namespace tcp_socket

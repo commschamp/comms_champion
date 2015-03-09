@@ -25,6 +25,7 @@
 #include <QtWidgets/QWidget>
 
 #include "comms_champion/Message.h"
+#include "comms_champion/PluginControlInterface.h"
 
 #include "MsgMgr.h"
 #include "PluginMgr.h"
@@ -61,8 +62,11 @@ public:
     typedef MsgMgr::MsgType MsgType;
     typedef MsgMgr::Timestamp Timestamp;
     typedef PluginMgr::PluginsState ActivityState;
+    typedef PluginControlInterface::ActionPtr ActionPtr;
 
     static GuiAppMgr* instance();
+
+    ~GuiAppMgr();
 
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();
@@ -80,13 +84,11 @@ public:
     void sendMessages(MsgInfosList&& msgs);
 
     static ActivityState getActivityState();
+    void addMainToolbarAction(ActionPtr action);
+    void removeMainToolbarAction(ActionPtr action);
 
 public slots:
-//    void loadConfigClicked();
-//    void saveConfigClicked();
-//    void configProtocolClicked();
     void pluginsEditClicked();
-//    void settingsClicked();
 
     void recvStartClicked();
     void recvStopClicked();
@@ -145,6 +147,8 @@ signals:
     void sigPluginsEditDialog();
     void sigActivityStateChanged(int value);
     void sigErrorReported(const QString& msg);
+    void sigAddMainToolbarAction(ActionPtr action);
+    void sigRemoveMainToolbarAction(ActionPtr action);
 
 
 private:
@@ -195,4 +199,4 @@ private /*data*/:
 
 }  // namespace comms_champion
 
-
+Q_DECLARE_METATYPE(comms_champion::GuiAppMgr::ActionPtr);

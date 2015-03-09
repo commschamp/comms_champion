@@ -54,6 +54,9 @@ ClientSocketPlugin::~ClientSocketPlugin()
         assert(m_socket);
         m_interface->removeSocket(m_socket);
         m_socket.reset();
+
+        assert(m_connectAction);
+        m_interface->removeMainToolbarAction(m_connectAction);
     }
 }
 
@@ -63,8 +66,11 @@ void ClientSocketPlugin::applyImpl(
     assert(!isApplied());
     m_interface = &controlInterface;
     createSocketIfNeeded();
+    createConnectIconIfNeeded();
 
     controlInterface.addSocket(m_socket);
+    controlInterface.addMainToolbarAction(m_connectAction);
+
     std::cout << "Applied TCP ClientSocketPlugin at " << this << "; socket is at " << m_socket.get() << std::endl;
     assert(m_socket);
 }
@@ -113,10 +119,35 @@ ClientSocketPlugin::WidgetPtr ClientSocketPlugin::getConfigWidgetImpl()
     return WidgetPtr(new ClientSocketConfigWidget(*m_socket));
 }
 
+void ClientSocketPlugin::connectStatusChangeRequest(bool connected)
+{
+    assert(m_socket);
+    m_socket->setConnected(connected);
+}
+
+void ClientSocketPlugin::connectionStatusChanged(bool connected)
+{
+    assert(m_connectAction);
+    m_connectAction->setConnected(connected);
+}
+
 void ClientSocketPlugin::createSocketIfNeeded()
 {
     if (!m_socket) {
         m_socket.reset(new ClientSocket());
+        connect(
+            m_socket.get(), SIGNAL(sigConnectionStatus(bool)),
+            this, SLOT(connectionStatusChanged(bool)));
+    }
+}
+
+void ClientSocketPlugin::createConnectIconIfNeeded()
+{
+    if (!m_connectAction) {
+        m_connectAction.reset(new ClientConnectAction());
+        connect(
+            m_connectAction.get(), SIGNAL(sigConnectStateChangeReq(bool)),
+            this, SLOT(connectStatusChangeRequest(bool)));
     }
 }
 

@@ -48,7 +48,16 @@ ClientSocket::ClientSocket()
 
 ClientSocket::~ClientSocket() = default;
 
-bool ClientSocket::startImpl()
+bool ClientSocket::setConnected(bool connected)
+{
+    if (connected) {
+        return connectToServer();
+    }
+
+    return disconnectFromServer();
+}
+
+bool ClientSocket::connectToServer()
 {
     if (m_tryingToConnect || m_connected) {
         assert(!"Already connected or trying to connect.");
@@ -63,16 +72,31 @@ bool ClientSocket::startImpl()
     }
 
     m_tryingToConnect = true;
+    m_forcedDisconnection = false;
     m_socket.connectToHost(m_host, m_port);
+    return true;
+}
+
+bool ClientSocket::disconnectFromServer()
+{
+    assert(!m_tryingToConnect);
+    m_forcedDisconnection = true;
+    m_socket.disconnectFromHost();
+    return true;
+}
+
+bool ClientSocket::startImpl()
+{
+    if (m_connectOnStart) {
+        return connectToServer();
+    }
     return true;
 }
 
 void ClientSocket::stopImpl()
 {
-    m_connected = false;
-    m_tryingToConnect = false;
+    disconnectFromServer();
     disconnect(&m_socket);
-    m_socket.disconnectFromHost();
     m_socket.close();
 }
 
@@ -94,15 +118,22 @@ void ClientSocket::socketConnected()
 {
     m_connected = true;
     m_tryingToConnect = false;
+    emit sigConnectionStatus(true);
 }
 
 void ClientSocket::socketDisconnected()
 {
-    m_connected = true;
+    bool mustReport = !m_forcedDisconnection;
+    m_connected = false;
     m_tryingToConnect = false;
-    static const QString DisconnectedError(
-        tr("Connection to TCP/IP Server was disconnected."));
-    reportError(DisconnectedError);
+    m_forcedDisconnection = false;
+    emit sigConnectionStatus(false);
+
+    if (mustReport) {
+        static const QString DisconnectedError(
+            tr("Connection to TCP/IP Server was disconnected."));
+        reportError(DisconnectedError);
+    }
 }
 
 void ClientSocket::readFromSocket()
@@ -132,6 +163,7 @@ void ClientSocket::socketErrorOccurred(QAbstractSocket::SocketError err)
     assert(socket != nullptr);
 
     reportError(socket->errorString());
+    disconnectFromServer();
 }
 
 }  // namespace tcp_socket

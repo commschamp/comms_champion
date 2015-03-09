@@ -17,9 +17,12 @@
 
 #include "comms_champion/PluginControlInterface.h"
 
+#include <cassert>
+
 #include "comms_champion/version.h"
 
 #include "MsgMgr.h"
+#include "GuiAppMgr.h"
 
 namespace comms_champion
 {
@@ -49,8 +52,20 @@ void PluginControlInterface::removeSocket(SocketPtr socket)
     MsgMgr::instanceRef().removeSocket(std::move(socket));
 }
 
+void PluginControlInterface::addMainToolbarAction(ActionPtr action)
+{
+    auto* guiAppMgr = GuiAppMgr::instance();
+    assert(guiAppMgr != nullptr);
+    guiAppMgr->addMainToolbarAction(std::move(action));
+}
 
-
+void PluginControlInterface::removeMainToolbarAction(ActionPtr action)
+{
+    auto* guiAppMgr = GuiAppMgr::instance();
+    if (guiAppMgr != nullptr) {
+        guiAppMgr->removeMainToolbarAction(std::move(action));
+    }
+}
 
 }  // namespace comms_champion
 

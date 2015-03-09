@@ -53,20 +53,7 @@ GuiAppMgr* GuiAppMgr::instance()
     return mgr.get();
 }
 
-//void GuiAppMgr::loadConfigClicked()
-//{
-//    emit sigLoadConfigDialog();
-//}
-//
-//void GuiAppMgr::saveConfigClicked()
-//{
-//    emit sigSaveConfigDialog();
-//}
-//
-//void GuiAppMgr::configProtocolClicked()
-//{
-//    assert(!"Configure protocol clicked");
-//}
+GuiAppMgr::~GuiAppMgr() = default;
 
 void GuiAppMgr::pluginsEditClicked()
 {
@@ -372,6 +359,16 @@ void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
 GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
 {
     return PluginMgr::instanceRef().getState();
+}
+
+void GuiAppMgr::addMainToolbarAction(ActionPtr action)
+{
+    emit sigAddMainToolbarAction(std::move(action));
+}
+
+void GuiAppMgr::removeMainToolbarAction(ActionPtr action)
+{
+    emit sigRemoveMainToolbarAction(std::move(action));
 }
 
 GuiAppMgr::GuiAppMgr(QObject* parent)

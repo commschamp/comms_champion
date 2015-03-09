@@ -23,6 +23,7 @@
 #include "comms_champion/Plugin.h"
 
 #include "ClientSocket.h"
+#include "ClientConnectAction.h"
 
 namespace comms_champion
 {
@@ -48,11 +49,17 @@ public:
     virtual void reconfigureImpl(const QVariantMap& config) override;
     virtual WidgetPtr getConfigWidgetImpl() override;
 
+private slots:
+    void connectStatusChangeRequest(bool connected);
+    void connectionStatusChanged(bool connected);
+
 private:
 
     void createSocketIfNeeded();
+    void createConnectIconIfNeeded();
 
     std::shared_ptr<ClientSocket> m_socket;
+    std::shared_ptr<ClientConnectAction> m_connectAction;
     const PluginControlInterface* m_interface = nullptr;
 };
 

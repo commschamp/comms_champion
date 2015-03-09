@@ -64,12 +64,14 @@ function (plugin_tcp_client_socket)
         ClientSocket.cpp
         ClientSocketPlugin.cpp
         ClientSocketConfigWidget.cpp
+        ClientConnectAction.cpp
     )
     
     set (hdr
         ClientSocket.h
         ClientSocketPlugin.h
         ClientSocketConfigWidget.h
+        ClientConnectAction.h
     )
     
     qt5_wrap_cpp(
@@ -82,8 +84,9 @@ function (plugin_tcp_client_socket)
         ClientSocketConfigWidget.ui
     )
     
+    qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/client_socket.qrc)
     
-    add_library (${name} SHARED ${src} ${moc} ${ui})
+    add_library (${name} SHARED ${src} ${moc} ${ui} ${resources})
     target_link_libraries(${name} Qt5::Network Qt5::Core)
     
     install (

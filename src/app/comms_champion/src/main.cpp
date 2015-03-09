@@ -39,15 +39,16 @@ void metaTypesRegisterAll()
 {
     qRegisterMetaType<cc::MessageInfoPtr>();
     qRegisterMetaType<cc::ProtocolPtr>();
+    qRegisterMetaType<cc::GuiAppMgr::ActionPtr>();
     qRegisterMetaType<cc::PluginMgr::PluginInfoPtr>();
 }
 
 void initSingletons()
 {
     static_cast<void>(cc::MsgMgr::instanceRef());
-    static_cast<void>(cc::GuiAppMgr::instance());
     static_cast<void>(cc::ConfigMgr::instanceRef());
     static_cast<void>(cc::PluginMgr::instanceRef());
+    static_cast<void>(cc::GuiAppMgr::instance());
 }
 
 }  // namespace
@@ -56,8 +57,8 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    metaTypesRegisterAll();
     initSingletons();
+    metaTypesRegisterAll();
 
     cc::MainWindowWidget window;
     window.showMaximized();

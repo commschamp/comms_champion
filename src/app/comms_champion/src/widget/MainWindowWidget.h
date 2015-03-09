@@ -18,10 +18,14 @@
 
 #pragma once
 
+#include <list>
+
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QToolBar>
 
 #include "comms_champion/Protocol.h"
 
+#include "GuiAppMgr.h"
 #include "ui_MainWindowWidget.h"
 
 namespace comms_champion
@@ -32,16 +36,27 @@ class MainWindowWidget : public QMainWindow
     Q_OBJECT
     using Base = QMainWindow;
 public:
+    typedef GuiAppMgr::ActionPtr ActionPtr;
+    typedef GuiAppMgr::ActivityState ActiveState;
+
     MainWindowWidget(QWidget* parent = nullptr);
+    ~MainWindowWidget();
 
 private slots:
     void newSendMsgDialog(ProtocolPtr protocol);
     void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
     void pluginsEditDialog();
     void displayErrorMsg(const QString& msg);
+    void addMainToolbarAction(ActionPtr action);
+    void removeMainToolbarAction(ActionPtr action);
+    void activeStateChanged(int state);
 
 private:
+    void clearCustomToolbarActions();
+
     Ui::MainWindowWidget m_ui;
+    QToolBar* m_toolbar = nullptr;
+    std::list<ActionPtr> m_customActions;
 };
 
 }  // namespace comms_champion

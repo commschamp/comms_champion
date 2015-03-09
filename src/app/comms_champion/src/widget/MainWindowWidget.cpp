@@ -20,7 +20,6 @@
 #include <cassert>
 
 #include <QtWidgets/QSplitter>
-#include <QtWidgets/QToolBar>
 #include <QtWidgets/QShortcut>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
@@ -41,12 +40,14 @@ namespace comms_champion
 namespace
 {
 
-void createPluginsButton(QToolBar& bar)
+void createStandardButtons(QToolBar& bar)
 {
     auto* config = bar.addAction(icon::pluginEdit(), "Manage and configure plugings");
     QObject::connect(
         config, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(pluginsEditClicked()));
+
+    bar.addSeparator();
 }
 
 }  // namespace
@@ -56,9 +57,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
 {
     m_ui.setupUi(this);
 
-    auto* toolbar = new QToolBar();
-    createPluginsButton(*toolbar);
-    addToolBar(toolbar);
+    m_toolbar = new QToolBar();
+    createStandardButtons(*m_toolbar);
+    addToolBar(m_toolbar);
 
     auto* splitter = new QSplitter();
     auto* leftPane = new LeftPaneWidget();
@@ -86,8 +87,22 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
         guiAppMgr, SIGNAL(sigErrorReported(const QString&)),
         this, SLOT(displayErrorMsg(const QString&)));
     connect(
+        guiAppMgr, SIGNAL(sigAddMainToolbarAction(ActionPtr)),
+        this, SLOT(addMainToolbarAction(ActionPtr)));
+    connect(
+        guiAppMgr, SIGNAL(sigRemoveMainToolbarAction(ActionPtr)),
+        this, SLOT(removeMainToolbarAction(ActionPtr)));
+    connect(
+        guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
+        this, SLOT(activeStateChanged(int)));
+    connect(
         m_ui.m_actionQuit, SIGNAL(triggered()),
         this, SLOT(close()));
+}
+
+MainWindowWidget::~MainWindowWidget()
+{
+    clearCustomToolbarActions();
 }
 
 void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
@@ -126,5 +141,51 @@ void MainWindowWidget::displayErrorMsg(const QString& msg)
         QObject::tr("Error occurred!"),
         msg);
 }
+
+void MainWindowWidget::addMainToolbarAction(ActionPtr action)
+{
+    auto iter = std::find(m_customActions.begin(), m_customActions.end(), action);
+    if (iter != m_customActions.end())
+    {
+        assert(!"Adding action second time");
+        return;
+    }
+
+    assert(m_toolbar != nullptr);
+    m_toolbar->addAction(action.get());
+    m_customActions.push_back(action);
+}
+
+void MainWindowWidget::removeMainToolbarAction(ActionPtr action)
+{
+    auto iter = std::find(m_customActions.begin(), m_customActions.end(), action);
+    if (iter == m_customActions.end())
+    {
+        assert(!"Removing action that wasn't added");
+        return;
+    }
+
+    assert(m_toolbar != nullptr);
+    m_toolbar->removeAction(action.get());
+    m_customActions.erase(iter);
+}
+
+void MainWindowWidget::activeStateChanged(int state)
+{
+    auto castedState = static_cast<ActiveState>(state);
+    if (castedState == ActiveState::Clear) {
+        clearCustomToolbarActions();
+    }
+}
+
+void MainWindowWidget::clearCustomToolbarActions()
+{
+    assert(m_toolbar != nullptr);
+    for (auto& action : m_customActions) {
+        m_toolbar->removeAction(action.get());
+    }
+    m_customActions.clear();
+}
+
 
 }  // namespace comms_champion

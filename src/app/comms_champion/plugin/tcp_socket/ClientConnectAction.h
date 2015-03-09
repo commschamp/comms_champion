@@ -18,29 +18,41 @@
 
 #pragma once
 
-#include <memory>
-
 #include <QtWidgets/QAction>
-
-#include "Protocol.h"
-#include "Socket.h"
 
 namespace comms_champion
 {
 
-class PluginControlInterface
+namespace plugin
 {
-public:
-    typedef std::shared_ptr<QAction> ActionPtr;
 
-    static unsigned version();
-    static void setProtocol(ProtocolPtr protocol);
-    static void clearProtocol();
-    static void addSocket(SocketPtr socket);
-    static void removeSocket(SocketPtr socket);
-    static void addMainToolbarAction(ActionPtr action);
-    static void removeMainToolbarAction(ActionPtr action);
+namespace tcp_socket
+{
+
+class ClientConnectAction : public QAction
+{
+    Q_OBJECT
+    typedef QAction Base;
+public:
+    ClientConnectAction(bool connected = false, QWidget* parent = nullptr);
+
+    void setConnected(bool connected);
+
+signals:
+    void sigConnectStateChangeReq(bool connect);
+
+private slots:
+    void iconClicked();
+
+private:
+    void refresh();
+
+    bool m_connected = false;
 };
+
+}  // namespace tcp_socket
+
+}  // namespace plugin
 
 }  // namespace comms_champion
 

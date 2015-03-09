@@ -79,7 +79,7 @@ bool ClientSocket::connectToServer()
 
 bool ClientSocket::disconnectFromServer()
 {
-    assert(!m_tryingToConnect);
+    m_tryingToConnect = false;
     m_forcedDisconnection = true;
     m_socket.disconnectFromHost();
     return true;

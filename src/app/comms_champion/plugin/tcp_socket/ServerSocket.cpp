@@ -134,6 +134,11 @@ void ServerSocket::readFromSocket()
 
 void ServerSocket::socketErrorOccurred(QAbstractSocket::SocketError err)
 {
+    if (err == QAbstractSocket::RemoteHostClosedError) {
+        // Ignore remote client disconnection
+        return;
+    }
+
     static_cast<void>(err);
     auto* socket = qobject_cast<QTcpSocket*>(sender());
     assert(socket != nullptr);

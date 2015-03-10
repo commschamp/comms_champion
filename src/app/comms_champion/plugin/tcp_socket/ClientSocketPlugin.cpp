@@ -43,35 +43,34 @@ const QString PortSubKey("port");
 
 ClientSocketPlugin::ClientSocketPlugin()
 {
-    std::cout << "Initialising TCP ClientSocketPlugin at " << this  << std::endl;
 }
 
 ClientSocketPlugin::~ClientSocketPlugin()
 {
-    std::cout << "Finalising TCP ClientSocketPlugin at " << this << std::endl;
     if (isApplied()) {
-        assert(m_interface != nullptr);
+        auto interface = getCtrlInterface();
+        assert(interface != nullptr);
         assert(m_socket);
-        m_interface->removeSocket(m_socket);
+        interface->removeSocket(m_socket);
         m_socket.reset();
 
         assert(m_connectAction);
-        m_interface->removeMainToolbarAction(m_connectAction);
+        interface->removeMainToolbarAction(m_connectAction);
     }
 }
 
-void ClientSocketPlugin::applyImpl(
-    const PluginControlInterface& controlInterface)
+void ClientSocketPlugin::applyImpl()
 {
     assert(!isApplied());
-    m_interface = &controlInterface;
     createSocketIfNeeded();
     createConnectIconIfNeeded();
 
-    controlInterface.addSocket(m_socket);
-    controlInterface.addMainToolbarAction(m_connectAction);
+    auto* interface = getCtrlInterface();
+    if (interface != nullptr) {
+        interface->addSocket(m_socket);
+        interface->addMainToolbarAction(m_connectAction);
+    }
 
-    std::cout << "Applied TCP ClientSocketPlugin at " << this << "; socket is at " << m_socket.get() << std::endl;
     assert(m_socket);
 }
 

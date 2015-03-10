@@ -40,10 +40,8 @@ public:
 
 protected:
 
-    virtual void applyImpl(
-        const comms_champion::PluginControlInterface& controlInterface) override;
+    virtual void applyImpl() override;
 private:
-    const comms_champion::PluginControlInterface* m_controlInterface = nullptr;
 };
 
 }  // namespace plugin

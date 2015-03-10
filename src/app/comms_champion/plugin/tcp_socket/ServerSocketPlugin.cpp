@@ -18,7 +18,6 @@
 #include "ServerSocketPlugin.h"
 
 #include <memory>
-#include <iostream>
 #include <cassert>
 
 #include "ServerSocket.h"
@@ -43,29 +42,28 @@ const QString PortSubKey("port");
 
 ServerSocketPlugin::ServerSocketPlugin()
 {
-    std::cout << "Initialising TCP ServerSocketPlugin at " << this  << std::endl;
 }
 
 ServerSocketPlugin::~ServerSocketPlugin()
 {
-    std::cout << "Finalising TCP ServerSocketPlugin at " << this << std::endl;
     if (isApplied()) {
-        assert(m_interface != nullptr);
+        auto* interface = getCtrlInterface();
+        assert(interface != nullptr);
         assert(m_socket);
-        m_interface->removeSocket(m_socket);
+        interface->removeSocket(m_socket);
         m_socket.reset();
     }
 }
 
-void ServerSocketPlugin::applyImpl(
-    const PluginControlInterface& controlInterface)
+void ServerSocketPlugin::applyImpl()
 {
     assert(!isApplied());
-    m_interface = &controlInterface;
     createSocketIfNeeded();
 
-    controlInterface.addSocket(m_socket);
-    std::cout << "Applied TCP ServerSocketPlugin at " << this << "; socket is at " << m_socket.get() << std::endl;
+    auto* interface = getCtrlInterface();
+    if (interface != nullptr) {
+        interface->addSocket(m_socket);
+    }
     assert(m_socket);
 }
 

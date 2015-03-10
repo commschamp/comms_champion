@@ -18,39 +18,38 @@
 
 #pragma once
 
-#include <memory>
+#include <QtCore/QObject>
+#include <QtWidgets/QAction>
 
-#include "comms_champion/Plugin.h"
+#include "comms_champion/Protocol.h"
 #include "comms_champion/Socket.h"
 
 namespace comms_champion
 {
 
-namespace plugin
-{
-
-namespace dummy_socket
-{
-
-class DummySocketPlugin : public comms_champion::Plugin
+class PluginControlInterfaceImpl : public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DummySocketPlugin" FILE "dummy_socket.json")
-    Q_INTERFACES(comms_champion::Plugin)
-
 public:
-    DummySocketPlugin();
-    ~DummySocketPlugin();
+    typedef std::shared_ptr<QAction> ActionPtr;
 
-    virtual void applyImpl() override;
+    PluginControlInterfaceImpl();
+    ~PluginControlInterfaceImpl() = default;
 
-private:
-    comms_champion::SocketPtr m_socket;
+    void setProtocol(ProtocolPtr protocol);
+    void clearProtocol();
+    void addSocket(SocketPtr socket);
+    void removeSocket(SocketPtr socket);
+    void addMainToolbarAction(ActionPtr action);
+    void removeMainToolbarAction(ActionPtr action);
+
+signals:
+    void sigSetProtocol(ProtocolPtr protocol);
+    void sigAddSocket(SocketPtr socket);
+    void sigRemoveSocket(SocketPtr socket);
+    void sigAddMainToolbarAction(ActionPtr action);
+    void sigRemoveMainToolbarAction(ActionPtr action);
 };
-
-}  // namespace dummy_socket
-
-}  // namespace plugin
 
 }  // namespace comms_champion
 

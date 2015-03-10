@@ -19,13 +19,23 @@
 
 #include <cassert>
 
+#include <QtCore/QObject>
+
 #include "comms_champion/version.h"
 
 #include "MsgMgr.h"
 #include "GuiAppMgr.h"
+#include "PluginControlInterfaceImpl.h"
 
 namespace comms_champion
 {
+
+PluginControlInterface::PluginControlInterface()
+  : m_pImpl(new PluginControlInterfaceImpl())
+{
+}
+
+PluginControlInterface::~PluginControlInterface() = default;
 
 unsigned PluginControlInterface::version()
 {
@@ -34,37 +44,38 @@ unsigned PluginControlInterface::version()
 
 void PluginControlInterface::setProtocol(ProtocolPtr protocol)
 {
-    MsgMgr::instanceRef().setProtocol(std::move(protocol));
+    assert(m_pImpl);
+    m_pImpl->setProtocol(std::move(protocol));
 }
 
 void PluginControlInterface::clearProtocol()
 {
-    MsgMgr::instanceRef().setProtocol(ProtocolPtr());
+    assert(m_pImpl);
+    m_pImpl->clearProtocol();
 }
 
 void PluginControlInterface::addSocket(SocketPtr socket)
 {
-    MsgMgr::instanceRef().addSocket(std::move(socket));
+    assert(m_pImpl);
+    m_pImpl->addSocket(std::move(socket));
 }
 
 void PluginControlInterface::removeSocket(SocketPtr socket)
 {
-    MsgMgr::instanceRef().removeSocket(std::move(socket));
+    assert(m_pImpl);
+    m_pImpl->removeSocket(std::move(socket));
 }
 
 void PluginControlInterface::addMainToolbarAction(ActionPtr action)
 {
-    auto* guiAppMgr = GuiAppMgr::instance();
-    assert(guiAppMgr != nullptr);
-    guiAppMgr->addMainToolbarAction(std::move(action));
+    assert(m_pImpl);
+    m_pImpl->addMainToolbarAction(std::move(action));
 }
 
 void PluginControlInterface::removeMainToolbarAction(ActionPtr action)
 {
-    auto* guiAppMgr = GuiAppMgr::instance();
-    if (guiAppMgr != nullptr) {
-        guiAppMgr->removeMainToolbarAction(std::move(action));
-    }
+    assert(m_pImpl);
+    m_pImpl->removeMainToolbarAction(std::move(action));
 }
 
 }  // namespace comms_champion

@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
     cc::MainWindowWidget window;
     window.showMaximized();
 
+
     QDir dir(app.applicationDirPath());
     dir.cdUp();
     if (!dir.cd("plugin")) {

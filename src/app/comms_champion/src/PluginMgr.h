@@ -104,7 +104,7 @@ private:
     ListOfPluginInfos m_plugins;
     ListOfPluginInfos m_appliedPlugins;
     PluginsState m_state = PluginsState::Clear;
-    PluginControlInterface m_controlInterface;
+    std::unique_ptr<PluginControlInterface> m_controlInterface;
 };
 
 }  // namespace comms_champion

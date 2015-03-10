@@ -44,10 +44,11 @@ public:
         return m_applied;
     }
 
-    void apply(const PluginControlInterface& controlInterface)
+    void apply(PluginControlInterface& controlInterface)
     {
         assert(!isApplied());
-        applyImpl(controlInterface);
+        m_ctrlInterface = &controlInterface;
+        applyImpl();
         m_applied = true;
     }
 
@@ -66,13 +67,19 @@ public:
     }
 
 protected:
-    virtual void applyImpl(const PluginControlInterface& controlInterface) = 0;
+    virtual void applyImpl() = 0;
     virtual void getCurrentConfigImpl(QVariantMap& config);
     virtual void reconfigureImpl(const QVariantMap& config);
     virtual WidgetPtr getConfigWidgetImpl();
 
+    PluginControlInterface* getCtrlInterface()
+    {
+        return m_ctrlInterface;
+    }
+
 private:
     bool m_applied = false;
+    PluginControlInterface* m_ctrlInterface = nullptr;
 };
 
 }  // namespace comms_champion

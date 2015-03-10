@@ -85,13 +85,6 @@ void GuiAppMgr::recvDeleteClicked()
     assert(m_selType == SelectionType::Recv);
     assert(m_clickedMsg);
 
-#ifndef NDEBUG
-
-    auto msg = m_clickedMsg->getAppMessage();
-    assert(msg);
-    std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
-#endif
-
     MsgMgr::instanceRef().deleteMsg(m_clickedMsg);
 
     clearDisplayedMessage();
@@ -175,13 +168,6 @@ void GuiAppMgr::sendDeleteClicked()
     assert(!sendListEmpty());
     assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg);
-
-#ifndef NDEBUG
-
-    auto msg = m_clickedMsg->getAppMessage();
-    assert(msg);
-    std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
-#endif
 
     clearDisplayedMessage();
     emit sigSendDeleteSelectedMsg();
@@ -275,6 +261,17 @@ void GuiAppMgr::sendSelectedMsgMoved(int idx)
     emit sigSendMsgSelected(idx);
 }
 
+void GuiAppMgr::addMainToolbarAction(ActionPtr action)
+{
+    emit sigAddMainToolbarAction(std::move(action));
+}
+
+void GuiAppMgr::removeMainToolbarAction(ActionPtr action)
+{
+    emit sigRemoveMainToolbarAction(std::move(action));
+}
+
+
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
     return m_recvState;
@@ -359,16 +356,6 @@ void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
 GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
 {
     return PluginMgr::instanceRef().getState();
-}
-
-void GuiAppMgr::addMainToolbarAction(ActionPtr action)
-{
-    emit sigAddMainToolbarAction(std::move(action));
-}
-
-void GuiAppMgr::removeMainToolbarAction(ActionPtr action)
-{
-    emit sigRemoveMainToolbarAction(std::move(action));
 }
 
 GuiAppMgr::GuiAppMgr(QObject* parent)
@@ -553,11 +540,6 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
 {
     assert(msgInfo);
     if (m_clickedMsg == msgInfo) {
-#ifndef NDEBUG
-        auto msg = m_clickedMsg->getAppMessage();
-        assert(msg);
-        std::cout << __FUNCTION__ << ": Removing selection for " << msg->name() << std::endl;
-#endif
 
         assert(selType == m_selType);
         clearDisplayedMessage();
@@ -569,13 +551,6 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
     m_clickedMsg = msgInfo;
     displayMessage(m_clickedMsg);
     emit sigRecvMsgListSelectOnAddEnabled(false);
-
-#ifndef NDEBUG
-    auto msg = m_clickedMsg->getAppMessage();
-    assert(msg);
-    std::cout << __FUNCTION__ << ": " << msg->name() << std::endl;
-#endif
-
 }
 
 void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)

@@ -43,7 +43,7 @@ public:
     ServerSocketPlugin();
     ~ServerSocketPlugin();
 
-    virtual void applyImpl(const PluginControlInterface& controlInterface) override;
+    virtual void applyImpl() override;
     virtual void getCurrentConfigImpl(QVariantMap& config) override;
     virtual void reconfigureImpl(const QVariantMap& config) override;
     virtual WidgetPtr getConfigWidgetImpl() override;
@@ -53,7 +53,6 @@ private:
     void createSocketIfNeeded();
 
     std::shared_ptr<ServerSocket> m_socket;
-    const PluginControlInterface* m_interface = nullptr;
 };
 
 }  // namespace tcp_socket

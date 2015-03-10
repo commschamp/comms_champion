@@ -18,7 +18,6 @@
 #include "DummySocketPlugin.h"
 
 #include <memory>
-#include <iostream>
 #include <cassert>
 
 #include "DummySocket.h"
@@ -42,28 +41,28 @@ private:
 
 DummySocketPlugin::DummySocketPlugin()
 {
-    std::cout << "Initialising DummySocketPlugin at " << this  << std::endl;
 }
 
 DummySocketPlugin::~DummySocketPlugin()
 {
-    std::cout << "Finalising DummySocketPlugin at " << this << std::endl;
     if (isApplied()) {
-        assert(m_interface != nullptr);
+        auto interface = getCtrlInterface();
+        assert(interface != nullptr);
         assert(m_socket);
-        m_interface->removeSocket(m_socket);
+        interface->removeSocket(m_socket);
         m_socket.reset();
     }
 }
 
-void DummySocketPlugin::applyImpl(
-    const PluginControlInterface& controlInterface)
+void DummySocketPlugin::applyImpl()
 {
     assert(!isApplied());
-    m_interface = &controlInterface;
+    auto interface = getCtrlInterface();
     m_socket.reset(new DummySocket());
-    controlInterface.addSocket(m_socket);
-    std::cout << "Applied DummySocketPlugin at " << this << "; socket is at " << m_socket.get() << std::endl;
+    if (interface != nullptr) {
+        interface->addSocket(m_socket);
+    }
+
     assert(m_socket);
 }
 

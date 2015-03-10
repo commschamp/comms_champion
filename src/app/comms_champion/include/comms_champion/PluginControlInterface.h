@@ -28,18 +28,25 @@
 namespace comms_champion
 {
 
+class PluginControlInterfaceImpl;
 class PluginControlInterface
 {
 public:
     typedef std::shared_ptr<QAction> ActionPtr;
 
+    PluginControlInterface();
+    ~PluginControlInterface();
+
     static unsigned version();
-    static void setProtocol(ProtocolPtr protocol);
-    static void clearProtocol();
-    static void addSocket(SocketPtr socket);
-    static void removeSocket(SocketPtr socket);
-    static void addMainToolbarAction(ActionPtr action);
-    static void removeMainToolbarAction(ActionPtr action);
+    void setProtocol(ProtocolPtr protocol);
+    void clearProtocol();
+    void addSocket(SocketPtr socket);
+    void removeSocket(SocketPtr socket);
+    void addMainToolbarAction(ActionPtr action);
+    void removeMainToolbarAction(ActionPtr action);
+
+private:
+    std::unique_ptr<PluginControlInterfaceImpl> m_pImpl;
 };
 
 }  // namespace comms_champion

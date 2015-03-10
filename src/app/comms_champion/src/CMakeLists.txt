@@ -13,6 +13,7 @@ function (bin_comms_champion)
         FieldWidget.cpp
         ConfigMgr.cpp
         PluginControlInterface.cpp
+        PluginControlInterfaceImpl.cpp
         PluginMgr.cpp
         Plugin.cpp
         icon.cpp
@@ -43,6 +44,7 @@ function (bin_comms_champion)
         GuiAppMgr.h
         MsgMgr.h
         PluginMgr.h
+        PluginControlInterfaceImpl.h
         widget/RecvAreaToolBar.h
         widget/SendAreaToolBar.h
         widget/MsgListWidget.h

@@ -56,10 +56,6 @@ public:
 
     ~MsgMgr();
 
-    void addSocket(SocketPtr socket);
-    void removeSocket(SocketPtr socket);
-    void setProtocol(ProtocolPtr protocol);
-
     void start();
     void stop();
     void clear();
@@ -73,6 +69,11 @@ public:
     void sendMsgs(const MsgInfosList& msgs);
 
     const MsgsList& getAllMsgs() const;
+
+public slots:
+    void addSocket(SocketPtr socket);
+    void removeSocket(SocketPtr socket);
+    void setProtocol(ProtocolPtr protocol);
 
 signals:
     void sigMsgAdded(MessageInfoPtr msgInfo);

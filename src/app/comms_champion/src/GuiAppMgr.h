@@ -84,8 +84,6 @@ public:
     void sendMessages(MsgInfosList&& msgs);
 
     static ActivityState getActivityState();
-    void addMainToolbarAction(ActionPtr action);
-    void removeMainToolbarAction(ActionPtr action);
 
 public slots:
     void pluginsEditClicked();
@@ -116,6 +114,10 @@ public slots:
     void sendMsgClicked(MessageInfoPtr msgInfo, int idx);
     void sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx);
     void sendSelectedMsgMoved(int idx);
+
+    void addMainToolbarAction(ActionPtr action);
+    void removeMainToolbarAction(ActionPtr action);
+
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);

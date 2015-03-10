@@ -19,8 +19,6 @@
 #include "DemoPlugin.h"
 #include "Protocol.h"
 
-#include <iostream>
-
 namespace cc = comms_champion;
 
 namespace demo
@@ -31,25 +29,24 @@ namespace plugin
 
 DemoPlugin::DemoPlugin()
 {
-    std::cout << "DemoPlugin initialized!!!" << std::endl;
 }
 
 DemoPlugin::~DemoPlugin()
 {
     if (isApplied()) {
-        assert(m_controlInterface != nullptr);
-        m_controlInterface->clearProtocol();
+        auto* interface = getCtrlInterface();
+        assert(interface != nullptr);
+        interface->clearProtocol();
     }
-    std::cout << "Plugin finalized!!!" << std::endl;
 }
 
 
-void DemoPlugin::applyImpl(
-    const comms_champion::PluginControlInterface& controlInterface)
+void DemoPlugin::applyImpl()
 {
-    m_controlInterface = &controlInterface;
-    controlInterface.setProtocol(cc::ProtocolPtr(new Protocol()));
-    std::cout << "Plugin applied!!!" << std::endl;
+    auto* interface = getCtrlInterface();
+    if (interface != nullptr) {
+        interface->setProtocol(cc::ProtocolPtr(new Protocol()));
+    }
 }
 
 

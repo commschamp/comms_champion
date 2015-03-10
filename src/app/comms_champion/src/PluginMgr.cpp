@@ -200,12 +200,16 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
         emit sigStateChanged(static_cast<int>(PluginsState::Clear));
     }
 
+    if (!m_controlInterface) {
+        m_controlInterface.reset(new PluginControlInterface());
+    }
+
     for (auto& reqInfo : infos) {
         assert(reqInfo);
         assert(reqInfo->m_loader);
         auto* pluginPtr = getPlugin(*reqInfo->m_loader);
         if (m_appliedPlugins.empty() || reapply) {
-            pluginPtr->apply(m_controlInterface);
+            pluginPtr->apply(*m_controlInterface);
         }
     }
 

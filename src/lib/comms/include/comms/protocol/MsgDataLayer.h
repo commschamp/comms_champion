@@ -52,6 +52,13 @@ public:
     typedef typename TMessage::ReadIterator ReadIterator;
     typedef typename TMessage::WriteIterator WriteIterator;
 
+    MsgDataLayer() = default;
+    MsgDataLayer(const MsgDataLayer&) = default;
+    MsgDataLayer(MsgDataLayer&&) = default;
+    ~MsgDataLayer() = default;
+    MsgDataLayer& operator=(const MsgDataLayer&) = default;
+    MsgDataLayer& operator=(MsgDataLayer&&) = default;
+
     template <typename TMsgPtr>
     static ErrorStatus read(
         TMsgPtr& msgPtr,

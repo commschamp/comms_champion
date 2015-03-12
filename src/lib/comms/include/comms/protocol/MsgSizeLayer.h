@@ -47,9 +47,10 @@ namespace protocol
 /// @headerfile embxx/comms/protocol/MsgSizeLayer.h
 template <typename TField,
           typename TNextLayer>
-class MsgSizeLayer : public ProtocolLayerBase<TField, TNextLayer>
+class MsgSizeLayer : public
+        ProtocolLayerBase<TField, TNextLayer, MsgSizeLayer<TField, TNextLayer> >
 {
-    typedef ProtocolLayerBase<TField, TNextLayer> Base;
+    typedef ProtocolLayerBase<TField, TNextLayer, MsgSizeLayer<TField, TNextLayer> > Base;
 
 public:
 
@@ -132,14 +133,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        static_assert(comms::util::IsTuple<TAllFields>::Value,
-                                        "Expected TAllFields to be a tuple");
-        auto& field = std::get<TIdx>(allFields);
-
-        typedef typename std::decay<decltype(field)>::type FieldType;
-        static_assert(
-            std::is_same<Field, FieldType>::value,
-            "Field has wrong type");
+        auto& field = Base::template getField<TIdx>(allFields);
 
         return
             readInternal(
@@ -193,15 +187,7 @@ public:
     {
         typedef typename std::iterator_traits<WriteIterator>::iterator_category IterType;
 
-        static_assert(comms::util::IsTuple<TAllFields>::Value,
-                                        "Expected TAllFields to be a tuple");
-        auto& field = std::get<TIdx>(allFields);
-
-        typedef typename std::decay<decltype(field)>::type FieldType;
-        static_assert(
-            std::is_same<Field, FieldType>::value,
-            "Field has wrong type");
-
+        auto& field = Base::template getField<TIdx>(allFields);
         return
             writeInternal(
                 field,
@@ -230,15 +216,7 @@ public:
         TUpdateIter& iter,
         std::size_t size) const
     {
-        static_assert(comms::util::IsTuple<TAllFields>::Value,
-                                        "Expected TAllFields to be a tuple");
-        auto& field = std::get<TIdx>(allFields);
-
-        typedef typename std::decay<decltype(field)>::type FieldType;
-        static_assert(
-            std::is_same<Field, FieldType>::value,
-            "Field has wrong type");
-
+        auto& field = Base::template getField<TIdx>(allFields);
 
         field.setValue(static_cast<typename Field::ValueType>(size - Field::length()));
         return
@@ -262,7 +240,7 @@ private:
     {
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(size, missingSize);
+            Base::updateMissingSize(field, size, missingSize);
         }
 
         if (es != ErrorStatus::Success) {
@@ -294,36 +272,36 @@ private:
     }
 
     template <typename TWriter>
-    ErrorStatus writeInternal(
+    static ErrorStatus writeInternal(
         Field& field,
         const Message& msg,
         WriteIterator& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
-        std::random_access_iterator_tag) const
+        std::random_access_iterator_tag)
     {
         return writeRandomAccessIter(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
     template <typename TWriter>
-    ErrorStatus writeInternal(
+    static ErrorStatus writeInternal(
         Field& field,
         const Message& msg,
         WriteIterator& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
-        std::output_iterator_tag) const
+        std::output_iterator_tag)
     {
         return writeOutputIter(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
     template <typename TWriter>
-    ErrorStatus writeRandomAccessIter(
+    static ErrorStatus writeRandomAccessIter(
         Field& field,
         const Message& msg,
         WriteIterator& iter,
         std::size_t size,
-        TWriter&& nextLayerWriter) const
+        TWriter&& nextLayerWriter)
     {
         WriteIterator firstIter(iter);
         auto es = field.write(iter, size);
@@ -346,12 +324,12 @@ private:
     }
 
     template <typename TWriter>
-    ErrorStatus writeOutputIter(
+    static ErrorStatus writeOutputIter(
         Field& field,
         const Message& msg,
         WriteIterator& iter,
         std::size_t size,
-        TWriter&& nextLayerWriter) const
+        TWriter&& nextLayerWriter)
     {
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
@@ -369,11 +347,11 @@ private:
     }
 
     template <typename TUpdateIter, typename TUpdater>
-    ErrorStatus updateInternal(
+    static ErrorStatus updateInternal(
         Field& field,
         TUpdateIter& iter,
         std::size_t size,
-        TUpdater&& nextLayerUpdater) const
+        TUpdater&& nextLayerUpdater)
     {
         if (size < Field::length()) {
             return ErrorStatus::BufferOverflow;

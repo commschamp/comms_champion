@@ -21,5 +21,5 @@
 #include "protocol/MsgDataLayer.h"
 #include "protocol/MsgIdLayer.h"
 #include "protocol/MsgSizeLayer.h"
-
+#include "protocol/SyncPrefixLayer.h"
 

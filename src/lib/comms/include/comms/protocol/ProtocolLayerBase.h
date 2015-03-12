@@ -32,7 +32,7 @@ namespace comms
 namespace protocol
 {
 
-template <typename TField, typename TNextLayer>
+template <typename TField, typename TNextLayer, typename TDerived>
 class ProtocolLayerBase
 {
 public:
@@ -60,8 +60,9 @@ public:
 
     typedef typename NextLayer::WriteIterator WriteIterator;
 
-    ProtocolLayerBase() = default;
     ProtocolLayerBase(const ProtocolLayerBase&) = default;
+
+    ProtocolLayerBase(ProtocolLayerBase&&) = default;
 
     template <typename... TArgs>
     ProtocolLayerBase(TArgs&&... args)
@@ -84,13 +85,18 @@ public:
 
     constexpr std::size_t length() const
     {
-        return Field().length() + nextLayer_.length();
+        return static_cast<const TDerived*>(this)->fieldLength() + nextLayer_.length();
     }
 
     template <typename TMsg>
     constexpr std::size_t length(const TMsg& msg) const
     {
-        return Field().length() + nextLayer_.length(msg);
+        return static_cast<const TDerived*>(this)->fieldLength() + nextLayer_.length(msg);
+    }
+
+    constexpr std::size_t fieldLength() const
+    {
+        return Field().length();
     }
 
     template <typename TIter>
@@ -259,13 +265,42 @@ protected:
         TAllFields& allFields_;
     };
 
-
-    void updateMissingSize(std::size_t size, std::size_t* missingSize)
+    void updateMissingSize(std::size_t size, std::size_t* missingSize) const
     {
         if (missingSize != nullptr) {
             GASSERT(size <= length());
             *missingSize = std::max(std::size_t(1U), length() - size);
         }
+    }
+
+    void updateMissingSize(
+        const Field& field,
+        std::size_t size,
+        std::size_t* missingSize)
+    {
+        if (missingSize != nullptr) {
+            auto totalLen = field.length() + nextLayer_.length();
+            GASSERT(size <= totalLen);
+            *missingSize = std::max(std::size_t(1U), totalLen - size);
+        }
+    }
+
+    template <std::size_t TIdx, typename TAllFields>
+    static Field& getField(TAllFields& allFields)
+    {
+        static_assert(comms::util::IsTuple<TAllFields>::Value,
+                                        "Expected TAllFields to be a tuple");
+        static_assert(TIdx < std::tuple_size<TAllFields>::value,
+                                        "Invalid tuple access index");
+
+        auto& field = std::get<TIdx>(allFields);
+
+        typedef typename std::decay<decltype(field)>::type FieldType;
+        static_assert(
+            std::is_same<Field, FieldType>::value,
+            "Field has wrong type");
+
+        return field;
     }
 
     NextLayerReader createNextLayerReader()

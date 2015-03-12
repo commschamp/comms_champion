@@ -42,9 +42,13 @@ template <typename TField,
           typename TAllMessages,
           typename TNextLayer>
 class MsgIdLayerBase<TField, TAllMessages, TNextLayer> :
-        public comms::protocol::ProtocolLayerBase<TField, TNextLayer>
+        public comms::protocol::ProtocolLayerBase<TField, TNextLayer, MsgIdLayerBase<TField, TAllMessages, TNextLayer> >
 {
-    typedef comms::protocol::ProtocolLayerBase<TField, TNextLayer> Base;
+    typedef comms::protocol::ProtocolLayerBase<
+        TField,
+        TNextLayer,
+        MsgIdLayerBase<TField, TAllMessages, TNextLayer>
+    > Base;
 public:
 
     typedef std::unique_ptr<typename Base::Message> MsgPtr;
@@ -68,9 +72,12 @@ template <typename TField,
           typename TNextLayer>
 class MsgIdLayerBase<
     TField, TAllMessages, TNextLayer, comms::protocol::option::InPlaceAllocation> :
-    public comms::protocol::ProtocolLayerBase<TField, TNextLayer>
+    public comms::protocol::ProtocolLayerBase<TField, TNextLayer, MsgIdLayerBase<TField, TAllMessages, TNextLayer, comms::protocol::option::InPlaceAllocation> >
 {
-    typedef comms::protocol::ProtocolLayerBase<TField, TNextLayer> Base;
+    typedef comms::protocol::ProtocolLayerBase<
+        TField,
+        TNextLayer,
+        MsgIdLayerBase<TField, TAllMessages, TNextLayer, comms::protocol::option::InPlaceAllocation> > Base;
 public:
 
     /// @cond DOCUMENT_ASSERT_MANAGER

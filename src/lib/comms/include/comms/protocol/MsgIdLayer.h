@@ -253,13 +253,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        static_assert(comms::util::IsTuple<TAllFields>::Value,
-                                        "Expected TAllFields to be a tuple");
-        auto& field = std::get<TIdx>(allFields);
-        typedef typename std::decay<decltype(field)>::type FieldType;
-        static_assert(
-            std::is_same<Field, FieldType>::value,
-            "Field has wrong type");
+        auto& field = Base::template getField<TIdx>(allFields);
         return
             readInternal(
                 field,
@@ -301,13 +295,7 @@ public:
         WriteIterator& iter,
         std::size_t size) const
     {
-        static_assert(comms::util::IsTuple<TAllFields>::Value,
-                                        "Expected TAllFields to be a tuple");
-        auto& field = std::get<TIdx>(allFields);
-        typedef typename std::decay<decltype(field)>::type FieldType;
-        static_assert(
-            std::is_same<Field, FieldType>::value,
-            "Field has wrong type");
+        auto& field = Base::template getField<TIdx>(allFields);
 
         field.setValue(msg.getId());
         return
@@ -434,7 +422,7 @@ private:
         GASSERT(!msgPtr);
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(size, missingSize);
+            Base::updateMissingSize(field, size, missingSize);
         }
 
         if (es != ErrorStatus::Success) {

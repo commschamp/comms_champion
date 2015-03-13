@@ -52,6 +52,7 @@ protected:
 private:
     ProtocolStack m_protStack;
     std::vector<std::uint8_t> m_data;
+    std::vector<std::uint8_t> m_garbage;
 };
 
 }  // namespace plugin

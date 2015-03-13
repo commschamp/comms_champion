@@ -27,17 +27,26 @@ namespace demo
 namespace protocol
 {
 
+const std::uint16_t SyncPrefixValue = 0x689f;
+
 template <typename TMsgBase, typename TAllMessages>
-using Stack = comms::protocol::MsgSizeLayer<
-        comms::field::BasicIntValue<typename TMsgBase::Field, std::uint16_t>,
-        comms::protocol::MsgIdLayer<
-            comms::field::BasicEnumValue<
-                typename TMsgBase::Field,
-                demo::message::MsgId,
-                comms::field::option::LengthLimitImpl<1>,
-                comms::field::option::ValidRangeImpl<0, demo::message::MsgId_NumOfMessages - 1>>,
-            TAllMessages,
-            comms::protocol::MsgDataLayer<TMsgBase>
+using Stack =
+    comms::protocol::SyncPrefixLayer<
+        comms::field::BasicIntValue<
+            typename TMsgBase::Field,
+            std::uint16_t,
+            comms::field::option::DefaultValueImpl<SyncPrefixValue> >,
+        comms::protocol::MsgSizeLayer<
+            comms::field::BasicIntValue<typename TMsgBase::Field, std::uint16_t>,
+            comms::protocol::MsgIdLayer<
+                comms::field::BasicEnumValue<
+                    typename TMsgBase::Field,
+                    demo::message::MsgId,
+                    comms::field::option::LengthLimitImpl<1>,
+                    comms::field::option::ValidRangeImpl<0, demo::message::MsgId_NumOfMessages - 1>>,
+                TAllMessages,
+                comms::protocol::MsgDataLayer<TMsgBase>
+            >
         >
     >;
 

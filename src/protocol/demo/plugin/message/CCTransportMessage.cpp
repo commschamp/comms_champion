@@ -22,6 +22,7 @@
 #include <type_traits>
 
 #include "protocol/DemoMessage.h"
+#include "ProtocolStack.h"
 
 namespace demo
 {
@@ -37,13 +38,19 @@ namespace
 
 enum FieldIdx
 {
+    FieldIdx_Sync,
     FieldIdx_Size,
     FieldIdx_MsgId,
     FieldIdx_Data,
     FieldIdx_NumOfFields
 };
 
+static_assert(
+    demo::plugin::ProtocolStack::NumOfLayers == FieldIdx_NumOfFields,
+    "Incorrect assumption about protocols layers");
+
 const char* FieldNames[] = {
+    "Sync",
     "Size",
     "ID",
     "Data"

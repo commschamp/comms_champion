@@ -283,7 +283,6 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
     }
 
     for (auto& msgInfo : msgsList) {
-        assert(msgInfo->getAppMessage());
         updateInternalId(*msgInfo);
         updateMsgType(*msgInfo, MsgType::Received);
 

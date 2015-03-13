@@ -101,13 +101,6 @@ Protocol::MessagesList Protocol::readImpl(
         auto msgInfo = cc::makeMessageInfo();
         msgInfo->setProtocolName(name());
 
-        auto advanceReadIterGuard
-            = comms::util::makeScopeGuard(
-                [&readIterBeg, &readIterCur]()
-                {
-                    readIterBeg = readIterCur;
-                });
-
         auto addMsgInfoGuard =
             comms::util::makeScopeGuard(
                 [&allInfos, &msgInfo]()
@@ -115,67 +108,84 @@ Protocol::MessagesList Protocol::readImpl(
                     allInfos.push_back(std::move(msgInfo));
                 });
 
-        auto setTransportMsgGuard =
-            comms::util::makeScopeGuard(
-                [&fields, &msgInfo]()
-                {
-                    std::unique_ptr<message::CCTransportMessage> transportMsgPtr(
-                                        new message::CCTransportMessage());
-                    transportMsgPtr->setFields(fields);
-                    msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
-                });
+        auto setTransportMsgFunc =
+            [&fields, &msgInfo]()
+            {
+                std::unique_ptr<message::CCTransportMessage> transportMsgPtr(
+                                    new message::CCTransportMessage());
+                transportMsgPtr->setFields(fields);
+                msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+            };
 
-        auto setRawDataMsgGuard =
-            comms::util::makeScopeGuard(
-                [readIterBeg, &readIterCur, msgInfo]()
-                {
-                    auto readIterBegTmp = readIterBeg;
-                    // readIterBeg is captured by value on purpose
+        auto setRawDataMsgFunc =
+            [readIterBeg, &readIterCur, &msgInfo]()
+            {
+                auto readIterBegTmp = readIterBeg;
+                // readIterBeg is captured by value on purpose
+                std::unique_ptr<message::CCRawDataMessage> rawDataMsgPtr(
+                                    new message::CCRawDataMessage());
+                auto dataSize = static_cast<std::size_t>(
+                                std::distance(readIterBegTmp, readIterCur));
+                auto es = rawDataMsgPtr->read(readIterBegTmp, dataSize);
+                static_cast<void>(es);
+                assert(es == comms::ErrorStatus::Success);
+                msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+            };
+
+        auto checkGarbageFunc =
+            [this, &allInfos]()
+            {
+                if (!m_garbage.empty()) {
+                    auto garbageMsgInfo = cc::makeMessageInfo();
+                    garbageMsgInfo->setProtocolName(name());
                     std::unique_ptr<message::CCRawDataMessage> rawDataMsgPtr(
                                         new message::CCRawDataMessage());
-                    auto dataSize = static_cast<std::size_t>(
-                                    std::distance(readIterBegTmp, readIterCur));
-                    auto es = rawDataMsgPtr->read(readIterBegTmp, dataSize);
+                    ReadIterator garbageReadIterator = &m_garbage[0];
+                    auto es = rawDataMsgPtr->read(garbageReadIterator, m_garbage.size());
                     static_cast<void>(es);
                     assert(es == comms::ErrorStatus::Success);
-                    msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
-                });
+                    garbageMsgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+                    allInfos.push_back(std::move(garbageMsgInfo));
+                    m_garbage.clear();
+                }
+            };
 
         if (es == comms::ErrorStatus::Success) {
+            checkGarbageFunc();
             assert(msgPtr);
             msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
             assert(msgInfo->getAppMessage());
+
+            setTransportMsgFunc();
+            setRawDataMsgFunc();
+            readIterBeg = readIterCur;
             continue;
         }
 
         if (es == comms::ErrorStatus::InvalidMsgData) {
+            checkGarbageFunc();
+            setTransportMsgFunc();
+            setRawDataMsgFunc();
+            readIterBeg = readIterCur;
             continue;
         }
 
+        addMsgInfoGuard.release();
+
         if (es == comms::ErrorStatus::MsgAllocFaulure) {
             assert(!"Mustn't happen");
-            setRawDataMsgGuard.release();
-            setTransportMsgGuard.release();
-            addMsgInfoGuard.release();
             break;
         }
 
-        // Protocol error, no transport message,
-        setTransportMsgGuard.release();
+        // TODO: check error
 
-        while (true) {
-            ++readIterBeg;
-            if (&m_data[m_data.size()] <= readIterBeg) {
-                break;
-            }
-
-            readIterCur = readIterBeg;
-            es = m_protStack.read(msgPtr, readIterCur, remainingSizeCalc(readIterCur));
-            if ((es != comms::ErrorStatus::ProtocolError) &&
-                (es != comms::ErrorStatus::InvalidMsgId)) {
-                break;
-            }
+        // Protocol error
+        m_garbage.push_back(*readIterBeg);
+        static const std::size_t GarbageLimit = 512;
+        if (GarbageLimit <= m_garbage.size()) {
+            checkGarbageFunc();
         }
+        ++readIterBeg;
     }
 
     return allInfos;

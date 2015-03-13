@@ -401,8 +401,18 @@ void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
     }
 
     auto msg = msgInfo->getAppMessage();
-    assert(msg);
-    std::cout << prefix << msg->name() << std::endl;
+    if (msg) {
+        std::cout << prefix << msg->name() << std::endl;
+    }
+    else if (msgInfo->getTransportMessage()) {
+        std:: cout << prefix << "???" << std::endl;
+    }
+    else if (msgInfo->getRawDataMessage()) {
+        std:: cout << prefix << "-#-" << std::endl;
+    }
+    else {
+        assert(!"Should not happen");
+    }
 #endif
 
     if (canAddToRecvList(type)) {

@@ -52,6 +52,8 @@ public:
     typedef typename TMessage::ReadIterator ReadIterator;
     typedef typename TMessage::WriteIterator WriteIterator;
 
+    static const std::size_t NumOfLayers = 1;
+
     MsgDataLayer() = default;
     MsgDataLayer(const MsgDataLayer&) = default;
     MsgDataLayer(MsgDataLayer&&) = default;

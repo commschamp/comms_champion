@@ -60,6 +60,8 @@ public:
 
     typedef typename NextLayer::WriteIterator WriteIterator;
 
+    static const std::size_t NumOfLayers = 1 + NextLayer::NumOfLayers;
+
     ProtocolLayerBase(const ProtocolLayerBase&) = default;
 
     ProtocolLayerBase(ProtocolLayerBase&&) = default;

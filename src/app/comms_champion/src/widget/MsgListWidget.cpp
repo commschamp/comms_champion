@@ -58,9 +58,11 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
     auto* item = m_ui.m_listWidget->item(m_ui.m_listWidget->count() - 1);
     item->setToolTip(msgTooltipImpl());
 
+    bool valid = false;
     auto appMsgPtr = msgInfo->getAppMessage();
-    assert(appMsgPtr);
-    bool valid = appMsgPtr->isValid();
+    if (appMsgPtr) {
+        valid = appMsgPtr->isValid();
+    }
 
     auto typeVar =
         msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
@@ -306,14 +308,29 @@ MessageInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item) const
 QString MsgListWidget::getMsgNameText(MessageInfoPtr msgInfo)
 {
     assert(msgInfo);
-    auto msg = msgInfo->getAppMessage();
-    assert(msg);
-
     auto itemStr = msgPrefixImpl(*msgInfo);
     if (!itemStr.isEmpty()) {
         itemStr.append(": ");
     }
-    itemStr.append(msg->name());
+
+    do {
+        auto appMsg = msgInfo->getAppMessage();
+        if (appMsg) {
+            itemStr.append(appMsg->name());
+            break;
+        }
+
+        if (msgInfo->getTransportMessage()) {
+            static const QString UnknownMsgName("???");
+            itemStr.append(UnknownMsgName);
+            break;
+        }
+
+        assert(msgInfo->getRawDataMessage());
+        static const QString GarbageMsgName("-#-");
+        itemStr.append(GarbageMsgName);
+    } while (false);
+
     return itemStr;
 }
 

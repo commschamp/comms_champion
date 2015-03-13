@@ -100,32 +100,17 @@ void GuiAppMgr::recvClearClicked()
 
 void GuiAppMgr::recvShowRecvToggled(bool checked)
 {
-    static const auto mask =
-        static_cast<decltype(m_recvListMode)>(RecvList_ShowReceived);
-    if (checked) {
-        m_recvListMode |= mask;
-    }
-    else {
-        m_recvListMode &= (~mask);
-    }
-
-    emit sigRecvListTitleNeedsUpdate();
-    refreshRecvList();
+    updateRecvListMode(RecvListMode_ShowReceived, checked);
 }
 
 void GuiAppMgr::recvShowSentToggled(bool checked)
 {
-    static const auto mask =
-        static_cast<decltype(m_recvListMode)>(RecvList_ShowSent);
-    if (checked) {
-        m_recvListMode |= mask;
-    }
-    else {
-        m_recvListMode &= (~mask);
-    }
+    updateRecvListMode(RecvListMode_ShowSent, checked);
+}
 
-    emit sigRecvListTitleNeedsUpdate();
-    refreshRecvList();
+void GuiAppMgr::recvShowGarbageToggled(bool checked)
+{
+    updateRecvListMode(RecvListMode_ShowGarbage, checked);
 }
 
 void GuiAppMgr::sendStartClicked()
@@ -289,12 +274,17 @@ bool GuiAppMgr::recvListEmpty() const
 
 bool GuiAppMgr::recvListShowsReceived() const
 {
-    return (m_recvListMode & RecvList_ShowReceived) != 0;
+    return (m_recvListMode & RecvListMode_ShowReceived) != 0;
 }
 
 bool GuiAppMgr::recvListShowsSent() const
 {
-    return (m_recvListMode & RecvList_ShowSent) != 0;
+    return (m_recvListMode & RecvListMode_ShowSent) != 0;
+}
+
+bool GuiAppMgr::recvListShowsGarbage() const
+{
+    return (m_recvListMode & RecvListMode_ShowGarbage) != 0;
 }
 
 unsigned GuiAppMgr::recvListModeMask() const
@@ -415,7 +405,7 @@ void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
     }
 #endif
 
-    if (canAddToRecvList(type)) {
+    if (canAddToRecvList(*msgInfo, type)) {
         addMsgToRecvList(msgInfo);
         displayMessageIfNotClicked(msgInfo);
     }
@@ -601,7 +591,7 @@ void GuiAppMgr::refreshRecvList()
     for (auto& msgInfo : allMsgs) {
         auto type = getMsgType(*msgInfo);
 
-        if (canAddToRecvList(type)) {
+        if (canAddToRecvList(*msgInfo, type)) {
             addMsgToRecvList(msgInfo);
             if (msgInfo == clickedMsg) {
                 assert(0 < m_recvListCount);
@@ -645,13 +635,31 @@ void GuiAppMgr::clearRecvList(bool reportDeleted)
     emit sigRecvClear(reportDeleted);
 }
 
-bool GuiAppMgr::canAddToRecvList(MsgType type) const
+bool GuiAppMgr::canAddToRecvList(
+    const MessageInfo& msgInfo,
+    MsgType type) const
 {
     assert((type == MsgType::Received) || (type == MsgType::Sent));
 
-    return
+    bool typeBasedResult =
         ((type == MsgType::Received) && recvListShowsReceived()) ||
         ((type == MsgType::Sent) && recvListShowsSent());
+
+    if (!typeBasedResult) {
+        return false;
+    }
+
+    if (type == MsgType::Sent) {
+        assert(msgInfo.getAppMessage()); // Cannot be garbage
+        return true;
+    }
+
+    if (msgInfo.getAppMessage()) {
+        return true; // Show valid message
+    }
+
+    // Garbage
+    return recvListShowsGarbage();
 }
 
 void GuiAppMgr::decRecvListCount()
@@ -682,6 +690,22 @@ void GuiAppMgr::emitSendNotSelected()
     emit sigSendMsgSelected(-1);
 }
 
+void GuiAppMgr::updateRecvListMode(RecvListMode mode, bool checked)
+{
+    auto mask =
+        static_cast<decltype(m_recvListMode)>(mode);
+    if (checked) {
+        m_recvListMode |= mask;
+    }
+    else {
+        m_recvListMode &= (~mask);
+    }
+
+    if (mode != RecvListMode_ShowGarbage) {
+        emit sigRecvListTitleNeedsUpdate();
+    }
+    refreshRecvList();
+}
 
 }  // namespace comms_champion
 

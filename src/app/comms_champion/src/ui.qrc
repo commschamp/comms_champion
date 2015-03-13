@@ -19,5 +19,6 @@
         <file>image/upload.png</file>
         <file>image/save_as.png</file>
         <file>image/plugin_edit.png</file>
+        <file>image/error_log.png</file>
     </qresource>
 </RCC>

@@ -65,6 +65,19 @@ QAction* createClearButton(QToolBar& bar)
     return action;
 }
 
+QAction* createShowGarbage(QToolBar& bar)
+{
+    auto guiAppMgr = GuiAppMgr::instance();
+    auto* action = bar.addAction(
+        icon::errorLog(), "Show Message Errors and Garbage Data");
+    action->setCheckable(true);
+    action->setChecked(guiAppMgr->recvListShowsGarbage());
+    QObject::connect(
+        action, SIGNAL(triggered(bool)),
+        guiAppMgr, SLOT(recvShowGarbageToggled(bool)));
+    return action;
+}
+
 QAction* createShowReceived(QToolBar& bar)
 {
     auto guiAppMgr = GuiAppMgr::instance();
@@ -99,15 +112,16 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
     m_saveButton(createSaveButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
+    m_showGarbageButton(createShowGarbage(*this)),
     m_showRecvButton(createShowReceived(*this)),
     m_showSentButton(createShowSent(*this)),
     m_state(GuiAppMgr::instance()->recvState()),
     m_activeState(GuiAppMgr::instance()->getActivityState())
 {
-    insertSeparator(m_showRecvButton);
+    insertSeparator(m_showGarbageButton);
     auto empty = new QWidget();
     empty->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    insertWidget(m_showRecvButton, empty);
+    insertWidget(m_showGarbageButton, empty);
 
     connect(
         m_startStopButton, SIGNAL(triggered()),

@@ -132,6 +132,12 @@ const QIcon& pluginEdit()
     return iconObj;
 }
 
+const QIcon& errorLog()
+{
+    static const QIcon iconObj(":/image/error_log.png");
+    return iconObj;
+}
+
 }  // namespace icon
 
 }  // namespace comms_champion

@@ -44,6 +44,7 @@ const QIcon& edit();
 const QIcon& showRecv();
 const QIcon& showSent();
 const QIcon& pluginEdit();
+const QIcon& errorLog();
 
 }  // namespace icon
 

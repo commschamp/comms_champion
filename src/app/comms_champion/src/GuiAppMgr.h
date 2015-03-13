@@ -54,9 +54,10 @@ public:
         NumOfStates
     };
 
-    enum RecvListMode {
-        RecvList_ShowReceived = 1U << 0,
-        RecvList_ShowSent = 1U << 1
+    enum RecvListMode : unsigned {
+        RecvListMode_ShowReceived = 1U << 0,
+        RecvListMode_ShowSent = 1U << 1,
+        RecvListMode_ShowGarbage = 1U << 2
     };
 
     typedef MsgMgr::MsgType MsgType;
@@ -73,6 +74,7 @@ public:
     bool recvListEmpty() const;
     bool recvListShowsReceived() const;
     bool recvListShowsSent() const;
+    bool recvListShowsGarbage() const;
     unsigned recvListModeMask() const;
 
     SendState sendState() const;
@@ -95,6 +97,7 @@ public slots:
     void recvClearClicked();
     void recvShowRecvToggled(bool checked);
     void recvShowSentToggled(bool checked);
+    void recvShowGarbageToggled(bool checked);
 
     void sendStartClicked();
     void sendStartAllClicked();
@@ -180,16 +183,20 @@ private /*data*/:
     void refreshRecvList();
     void addMsgToRecvList(MessageInfoPtr msgInfo);
     void clearRecvList(bool reportDeleted);
-    bool canAddToRecvList(MsgType type) const;
+    bool canAddToRecvList(const MessageInfo& msgInfo, MsgType type) const;
     void decRecvListCount();
     void decSendListCount();
     void emitRecvNotSelected();
     void emitSendNotSelected();
+    void updateRecvListMode(RecvListMode mode, bool checked);
 
     RecvState m_recvState;
     bool m_recvListSelectOnAdd = true;
     unsigned m_recvListCount = 0;
-    unsigned m_recvListMode = RecvList_ShowReceived;
+    unsigned m_recvListMode =
+        RecvListMode_ShowReceived |
+        RecvListMode_ShowSent |
+        RecvListMode_ShowGarbage;
 
     SendState m_sendState;
     unsigned m_sendListCount = 0;

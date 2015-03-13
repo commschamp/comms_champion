@@ -61,6 +61,7 @@ private:
     QAction* m_saveButton = nullptr;
     QAction* m_deleteButton = nullptr;
     QAction* m_clearButton = nullptr;
+    QAction* m_showGarbageButton = nullptr;
     QAction* m_showRecvButton = nullptr;
     QAction* m_showSentButton = nullptr;
     State m_state = State::Idle;

@@ -12,6 +12,7 @@ function (bin_comms_champion)
         DefaultMessageDisplayHandler.cpp
         FieldWidget.cpp
         ConfigMgr.cpp
+        MsgFileMgr.cpp
         PluginControlInterface.cpp
         PluginControlInterfaceImpl.cpp
         PluginMgr.cpp

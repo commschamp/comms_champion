@@ -38,7 +38,6 @@ class MsgListWidget : public QWidget
     Q_OBJECT
     using Base = QWidget;
 public:
-    typedef GuiAppMgr::MsgInfosList MsgInfosList;
     typedef GuiAppMgr::MsgType MsgType;
 
     MsgListWidget(
@@ -60,6 +59,7 @@ protected slots:
     void moveSelectedDown();
     void moveSelectedBottom();
     void titleNeedsUpdate();
+    void saveMessages(const QString& filename);
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx);
@@ -71,6 +71,7 @@ protected:
     virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const;
     virtual void msgMovedImpl(int idx);
     virtual QString getTitleImpl() const;
+    virtual void saveMessagesImpl(const QString& filename);
 
     MessageInfoPtr currentMsg() const;
     MsgInfosList allMsgs() const;

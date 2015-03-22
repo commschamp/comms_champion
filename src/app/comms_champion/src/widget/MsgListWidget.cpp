@@ -215,6 +215,11 @@ void MsgListWidget::titleNeedsUpdate()
     updateTitle();
 }
 
+void MsgListWidget::saveMessages(const QString& filename)
+{
+    saveMessagesImpl(filename);
+}
+
 void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
     static_cast<void>(msgInfo);
@@ -265,6 +270,11 @@ QString MsgListWidget::getTitleImpl() const
     return QString();
 }
 
+void MsgListWidget::saveMessagesImpl(const QString& filename)
+{
+    static_cast<void>(filename);
+}
+
 MessageInfoPtr MsgListWidget::currentMsg() const
 {
     auto* item = m_ui.m_listWidget->currentItem();
@@ -272,7 +282,7 @@ MessageInfoPtr MsgListWidget::currentMsg() const
     return getMsgFromItem(item);
 }
 
-MsgListWidget::MsgInfosList MsgListWidget::allMsgs() const
+MsgInfosList MsgListWidget::allMsgs() const
 {
     MsgInfosList allMsgsList;
     for (auto idx = 0; idx < m_ui.m_listWidget->count(); ++idx) {

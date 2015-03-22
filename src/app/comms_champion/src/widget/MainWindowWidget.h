@@ -50,9 +50,11 @@ private slots:
     void addMainToolbarAction(ActionPtr action);
     void removeMainToolbarAction(ActionPtr action);
     void activeStateChanged(int state);
+    void saveSendMsgsDialog();
 
 private:
     void clearCustomToolbarActions();
+    QString saveMsgsDialog();
 
     Ui::MainWindowWidget m_ui;
     QToolBar* m_toolbar = nullptr;

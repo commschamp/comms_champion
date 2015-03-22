@@ -35,9 +35,6 @@ namespace comms_champion
 namespace
 {
 
-const std::string& DelayUnitsProperty("send_delay_units_internal");
-const std::string& RepeatUnitsProperty("send_repeat_units_internal");
-
 QString getMessageNameForList(MessageInfoPtr msgInfo)
 {
     auto msgPtr = msgInfo->getAppMessage();
@@ -169,7 +166,7 @@ MessageUpdateDialog::MessageUpdateDialog(
             getMsgFromItem(m_ui.m_msgListWidget->currentItem()));
 
         auto delayVar = m_msgInfo->getExtraProperty(GlobalConstants::msgDelayPropertyName());
-        auto delayUnitsVar = m_msgInfo->getExtraProperty(DelayUnitsProperty);
+        auto delayUnitsVar = m_msgInfo->getExtraProperty(GlobalConstants::msgDelayUnitsPropertyName());
         assert(delayVar.isValid());
         assert(delayVar.canConvert<long long unsigned>());
         assert(delayUnitsVar.isValid());
@@ -186,7 +183,7 @@ MessageUpdateDialog::MessageUpdateDialog(
         }
 
         auto repeatVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatDurationPropertyName());
-        auto repeatUnitsVar = m_msgInfo->getExtraProperty(RepeatUnitsProperty);
+        auto repeatUnitsVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatUnitsPropertyName());
         assert(repeatVar.isValid());
         assert(repeatVar.canConvert<long long unsigned>());
         assert(repeatUnitsVar.isValid());
@@ -449,7 +446,7 @@ void MessageUpdateDialog::accept()
                 static_cast<Duration>(m_ui.m_delayUnitsComboBox->currentIndex()))));
 
     m_msgInfo->setExtraProperty(
-        DelayUnitsProperty,
+        GlobalConstants::msgDelayUnitsPropertyName(),
         QVariant::fromValue(m_ui.m_delayUnitsComboBox->currentIndex()));
 
     m_msgInfo->setExtraProperty(
@@ -460,7 +457,7 @@ void MessageUpdateDialog::accept()
                 static_cast<Duration>(m_ui.m_repeatUnitsComboBox->currentIndex()))));
 
     m_msgInfo->setExtraProperty(
-        RepeatUnitsProperty,
+        GlobalConstants::msgRepeatUnitsPropertyName(),
         QVariant::fromValue(m_ui.m_repeatUnitsComboBox->currentIndex()));
 
     m_msgInfo->setExtraProperty(

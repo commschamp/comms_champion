@@ -39,8 +39,6 @@ class GuiAppMgr : public QObject
     typedef QObject Base;
 public:
 
-    typedef MsgMgr::MsgInfosList MsgInfosList;
-
     enum class RecvState {
         Idle,
         Running,
@@ -66,6 +64,7 @@ public:
     typedef PluginControlInterface::ActionPtr ActionPtr;
 
     static GuiAppMgr* instance();
+    static GuiAppMgr& instanceRef();
 
     ~GuiAppMgr();
 
@@ -81,6 +80,7 @@ public:
     void sendAddNewMessage(MessageInfoPtr msgInfo);
     void sendUpdateMessage(MessageInfoPtr msgInfo);
     bool sendListEmpty() const;
+    void sendSaveMsgsToFile(const QString& filename);
 
     void deleteMessages(MsgInfosList&& msgs);
     void sendMessages(MsgInfosList&& msgs);
@@ -149,11 +149,13 @@ signals:
     void sigRecvListTitleNeedsUpdate();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
+    void sigSaveSendMsgsDialog();
     void sigPluginsEditDialog();
     void sigActivityStateChanged(int value);
     void sigErrorReported(const QString& msg);
     void sigAddMainToolbarAction(ActionPtr action);
     void sigRemoveMainToolbarAction(ActionPtr action);
+    void sigSendSaveMsgs(const QString& filename);
 
 
 private:

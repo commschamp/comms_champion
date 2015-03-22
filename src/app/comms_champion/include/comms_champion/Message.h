@@ -18,6 +18,9 @@
 
 #pragma once
 
+#include <vector>
+#include <cstdint>
+
 #include <QtCore/QObject>
 
 namespace comms_champion
@@ -30,6 +33,8 @@ class Message : public QObject
 
     typedef QObject Base;
 public:
+    typedef std::vector<std::uint8_t> DataSeq;
+
     Message() = default;
     Message(const Message&) = default;
     virtual ~Message();
@@ -43,6 +48,7 @@ public:
     void reset();
     void assign(const Message& other);
     bool isValid() const;
+    DataSeq serialiseData() const;
 
 protected:
 
@@ -53,6 +59,7 @@ protected:
     virtual void resetImpl() = 0;
     virtual void assignImpl(const Message& other) = 0;
     virtual bool isValidImpl() const = 0;
+    virtual DataSeq serialiseDataImpl() const = 0;
 
     static void setNameProperty(QWidget& widget, const QString& value);
     static void setIndexedNameProperty(

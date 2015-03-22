@@ -35,6 +35,7 @@ protected:
     virtual const QString& msgTooltipImpl() const override;
     virtual void stateChangedImpl(int state) override;
     virtual void msgMovedImpl(int idx) override;
+    virtual void saveMessagesImpl(const QString& filename) override;
 };
 
 } /* namespace comms_champion */

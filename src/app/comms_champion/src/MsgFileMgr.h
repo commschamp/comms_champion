@@ -21,29 +21,37 @@
 #include <utility>
 #include <list>
 #include <QtCore/QString>
-#include <QtCore/QVariantMap>
+#include <QtCore/QVariantList>
 
+#include "comms_champion/MessageInfo.h"
 
 namespace comms_champion
 {
 
-class ConfigMgr
+class MsgFileMgr
 {
 public:
 
-    static ConfigMgr* instance();
-    static ConfigMgr& instanceRef();
+    enum class Type
+    {
+        Recv,
+        Send
+    };
+
+    static MsgFileMgr* instance();
+    static MsgFileMgr& instanceRef();
 
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
 
-    QVariantMap loadConfig(const QString& filename);
-    bool saveConfig(const QString& filename, const QVariantMap& config);
+//    QVariantList load(const QString& filename);
+    bool save(Type type, const QString& filename, const MsgInfosList& msgs);
 
 private:
-    ConfigMgr() = default;
+    MsgFileMgr() = default;
+    static QVariantList convertMsgList(Type type, const MsgInfosList& msgs);
 
-    QString m_lastConfigFile;
+    QString m_lastFile;
 };
 
 }  // namespace comms_champion

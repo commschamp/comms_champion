@@ -44,7 +44,9 @@ public:
     static const char* msgNumberPropertyName();
     static const char* msgObjPropertyName();
     static const char* msgDelayPropertyName();
+    static const char* msgDelayUnitsPropertyName();
     static const char* msgRepeatDurationPropertyName();
+    static const char* msgRepeatUnitsPropertyName();
     static const char* msgRepeatCountPropertyName();
     static const char* timestampPropertyName();
     static const char* msgTypePropertyName();

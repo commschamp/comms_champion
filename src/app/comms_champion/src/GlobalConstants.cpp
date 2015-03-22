@@ -65,9 +65,21 @@ const char* GlobalConstants::msgDelayPropertyName()
     return str;
 }
 
+const char* GlobalConstants::msgDelayUnitsPropertyName()
+{
+    static const char* str = "msg_delay_units";
+    return str;
+}
+
 const char* GlobalConstants::msgRepeatDurationPropertyName()
 {
     static const char* str = "msg_repeat_duration";
+    return str;
+}
+
+const char* GlobalConstants::msgRepeatUnitsPropertyName()
+{
+    static const char* str = "msg_repeat_units";
     return str;
 }
 

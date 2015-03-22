@@ -24,6 +24,7 @@
 #include "SendAreaToolBar.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
+#include "MsgFileMgr.h"
 
 namespace comms_champion
 {
@@ -65,6 +66,9 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
     connect(
         guiMgr, SIGNAL(sigSendMoveSelectedBottom()),
         this, SLOT(moveSelectedBottom()));
+    connect(
+        guiMgr, SIGNAL(sigSendSaveMsgs(const QString&)),
+        this, SLOT(saveMessages(const QString&)));
 }
 
 void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
@@ -130,19 +134,25 @@ void SendMsgListWidget::stateChangedImpl(int state)
         assert(msgInfo);
         MsgInfosList allMsgsList;
         allMsgsList.push_back(std::move(msgInfo));
-        GuiAppMgr::instance()->sendMessages(std::move(allMsgsList));
+        GuiAppMgr::instanceRef().sendMessages(std::move(allMsgsList));
         return;
     }
 
     assert(static_cast<State>(state) == State::SendingAll);
     auto allMsgsList = allMsgs();
     assert(!allMsgsList.empty());
-    GuiAppMgr::instance()->sendMessages(std::move(allMsgsList));
+    GuiAppMgr::instanceRef().sendMessages(std::move(allMsgsList));
 }
 
 void SendMsgListWidget::msgMovedImpl(int idx)
 {
-    GuiAppMgr::instance()->sendSelectedMsgMoved(idx);
+    GuiAppMgr::instanceRef().sendSelectedMsgMoved(idx);
+}
+
+void SendMsgListWidget::saveMessagesImpl(const QString& filename)
+{
+    static_cast<void>(filename);
+    MsgFileMgr::instanceRef().save(MsgFileMgr::Type::Send, filename, allMsgs());
 }
 
 } // namespace comms_champion

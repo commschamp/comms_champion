@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <list>
 
 #include <QtCore/QMetaType>
 #include <QtCore/QVariant>
@@ -68,6 +69,8 @@ private:
 };
 
 using MessageInfoPtr = std::shared_ptr<MessageInfo>;
+
+using MsgInfosList = std::list<MessageInfoPtr>;
 
 inline
 MessageInfoPtr makeMessageInfo()

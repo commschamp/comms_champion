@@ -49,8 +49,13 @@ GuiAppMgr::MsgType getMsgType(const MessageInfo& msgInfo)
 
 GuiAppMgr* GuiAppMgr::instance()
 {
-    static std::unique_ptr<GuiAppMgr> mgr(new GuiAppMgr());
-    return mgr.get();
+    return &(instanceRef());
+}
+
+GuiAppMgr& GuiAppMgr::instanceRef()
+{
+    static GuiAppMgr mgr;
+    return mgr;
 }
 
 GuiAppMgr::~GuiAppMgr() = default;
@@ -134,7 +139,7 @@ void GuiAppMgr::sendStopClicked()
 
 void GuiAppMgr::sendSaveClicked()
 {
-    assert(!"Send save clicked");
+    emit sigSaveSendMsgsDialog();
 }
 
 void GuiAppMgr::sendAddClicked()
@@ -319,6 +324,11 @@ void GuiAppMgr::sendUpdateMessage(MessageInfoPtr msgInfo)
 bool GuiAppMgr::sendListEmpty() const
 {
     return m_sendListCount == 0;
+}
+
+void GuiAppMgr::sendSaveMsgsToFile(const QString& filename)
+{
+    emit sigSendSaveMsgs(filename);
 }
 
 void GuiAppMgr::deleteMessages(MsgInfosList&& msgs)

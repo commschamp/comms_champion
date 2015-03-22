@@ -37,8 +37,6 @@ class MsgMgr : public QObject
 
     typedef QObject Base;
 public:
-    typedef Protocol::MessagesList MsgInfosList;
-
     typedef unsigned long long MsgNumberType;
 
     typedef std::vector<MessageInfoPtr> MsgsList;

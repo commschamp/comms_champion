@@ -32,6 +32,7 @@
 #include "PluginConfigDialog.h"
 #include "GuiAppMgr.h"
 #include "ConfigMgr.h"
+#include "MsgFileMgr.h"
 #include "icon.h"
 
 namespace comms_champion
@@ -95,6 +96,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parent)
     connect(
         guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
         this, SLOT(activeStateChanged(int)));
+    connect(
+        guiAppMgr, SIGNAL(sigSaveSendMsgsDialog()),
+        this, SLOT(saveSendMsgsDialog()));
     connect(
         m_ui.m_actionQuit, SIGNAL(triggered()),
         this, SLOT(close()));
@@ -178,6 +182,16 @@ void MainWindowWidget::activeStateChanged(int state)
     }
 }
 
+void MainWindowWidget::saveSendMsgsDialog()
+{
+    auto filename = saveMsgsDialog();
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    GuiAppMgr::instance()->sendSaveMsgsToFile(filename);
+}
+
 void MainWindowWidget::clearCustomToolbarActions()
 {
     assert(m_toolbar != nullptr);
@@ -185,6 +199,18 @@ void MainWindowWidget::clearCustomToolbarActions()
         m_toolbar->removeAction(action.get());
     }
     m_customActions.clear();
+}
+
+QString MainWindowWidget::saveMsgsDialog()
+{
+    auto& msgsFileMgr = MsgFileMgr::instanceRef();
+    return
+        QFileDialog::getSaveFileName(
+            this,
+            tr("Save Messages to File"),
+            msgsFileMgr.getLastFile(),
+            msgsFileMgr.getFilesFilter());
+
 }
 
 

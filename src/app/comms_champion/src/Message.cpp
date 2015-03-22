@@ -65,6 +65,11 @@ bool Message::isValid() const
     return isValidImpl();
 }
 
+Message::DataSeq Message::serialiseData() const
+{
+    return serialiseDataImpl();
+}
+
 void Message::setNameProperty(QWidget& widget, const QString& value)
 {
     widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));

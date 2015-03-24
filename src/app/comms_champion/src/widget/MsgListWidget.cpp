@@ -234,7 +234,6 @@ void MsgListWidget::saveMessages(const QString& filename)
 
 void MsgListWidget::selectMsg(int idx)
 {
-//    assert(0 <= idx);
     assert(idx < m_ui.m_listWidget->count());
     m_ui.m_listWidget->setCurrentRow(idx);
 }

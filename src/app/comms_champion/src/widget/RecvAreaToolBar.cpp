@@ -40,14 +40,14 @@ QAction* createStartButton(QToolBar& bar)
     return action;
 }
 
-QAction* createSaveButton(QToolBar& bar)
-{
-    auto* action = bar.addAction(icon::save(), "Save Messages");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(recvSaveClicked()));
-
-    return action;
-}
+//QAction* createSaveButton(QToolBar& bar)
+//{
+//    auto* action = bar.addAction(icon::save(), "Save Messages");
+//    QObject::connect(action, SIGNAL(triggered()),
+//                     GuiAppMgr::instance(), SLOT(recvSaveClicked()));
+//
+//    return action;
+//}
 
 QAction* createDeleteButton(QToolBar& bar)
 {
@@ -109,7 +109,7 @@ QAction* createShowSent(QToolBar& bar)
 RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
   : Base(parent),
     m_startStopButton(createStartButton(*this)),
-    m_saveButton(createSaveButton(*this)),
+//    m_saveButton(createSaveButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
     m_showGarbageButton(createShowGarbage(*this)),
@@ -196,7 +196,7 @@ void RecvAreaToolBar::activeStateChanged(int state)
 void RecvAreaToolBar::refresh()
 {
     refreshStartStopButton();
-    refreshSaveButton();
+//    refreshSaveButton();
     refreshDeleteButton();
     refreshClearButton();
 }
@@ -217,16 +217,16 @@ void RecvAreaToolBar::refreshStartStopButton()
     button->setEnabled(enabled);
 }
 
-void RecvAreaToolBar::refreshSaveButton()
-{
-    auto* button = m_saveButton;
-    assert(button != nullptr);
-    bool enabled =
-        (m_activeState == ActivityState::Active) &&
-        (m_state == State::Idle) &&
-        (!listEmpty());
-    button->setEnabled(enabled);
-}
+//void RecvAreaToolBar::refreshSaveButton()
+//{
+//    auto* button = m_saveButton;
+//    assert(button != nullptr);
+//    bool enabled =
+//        (m_activeState == ActivityState::Active) &&
+//        (m_state == State::Idle) &&
+//        (!listEmpty());
+//    button->setEnabled(enabled);
+//}
 
 void RecvAreaToolBar::refreshDeleteButton()
 {

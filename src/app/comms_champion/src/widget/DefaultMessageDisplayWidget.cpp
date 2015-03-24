@@ -17,6 +17,8 @@
 
 #include "DefaultMessageDisplayWidget.h"
 
+#include <cassert>
+
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QSplitter>
 
@@ -53,6 +55,14 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
 void DefaultMessageDisplayWidget::displayMessageImpl(
     MessageInfoPtr msgInfo)
 {
+    assert(msgInfo);
+    auto appMsg = msgInfo->getAppMessage();
+    if (appMsg) {
+        m_msgDetailsWidget->updateTitle(appMsg);
+    }
+    else {
+        m_msgDetailsWidget->clear();
+    }
     m_protocolsDetailsWidget->displayMessage(std::move(msgInfo));
 }
 

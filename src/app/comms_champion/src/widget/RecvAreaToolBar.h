@@ -50,7 +50,7 @@ private slots:
 private:
     void refresh();
     void refreshStartStopButton();
-    void refreshSaveButton();
+//    void refreshSaveButton();
     void refreshDeleteButton();
     void refreshClearButton();
 
@@ -58,7 +58,7 @@ private:
     bool listEmpty() const;
 
     QAction* m_startStopButton = nullptr;
-    QAction* m_saveButton = nullptr;
+//    QAction* m_saveButton = nullptr;
     QAction* m_deleteButton = nullptr;
     QAction* m_clearButton = nullptr;
     QAction* m_showGarbageButton = nullptr;

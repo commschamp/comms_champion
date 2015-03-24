@@ -25,6 +25,17 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+const QString& getTitlePrefix()
+{
+    static const QString Str(QObject::tr("Message Details"));
+    return Str;
+}
+
+}  // namespace
+
 MsgDetailsWidget::MsgDetailsWidget(QWidget* parent)
   : Base(parent),
     m_msgDisplayHandler(new DefaultMessageDisplayHandler())
@@ -55,10 +66,25 @@ void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
     m_ui.m_scrollArea->setWidget(msgWidget.release());
 }
 
+void MsgDetailsWidget::updateTitle(MessageInfo::MessagePtr msg)
+{
+    auto title = getTitlePrefix();
+    title.append(": ");
+    title.append(msg->name());
+    auto idStr = msg->idAsString();
+    if (idStr != msg->name()) {
+        title.append(" (");
+        title.append(idStr);
+        title.append(")");
+    }
+    m_ui.m_groupBox->setTitle(title);
+}
+
 void MsgDetailsWidget::clear()
 {
     m_displayedMsgWidget = nullptr;
     m_ui.m_scrollArea->setWidget(new QWidget());
+    m_ui.m_groupBox->setTitle(getTitlePrefix());
 }
 
 } /* namespace comms_champion */

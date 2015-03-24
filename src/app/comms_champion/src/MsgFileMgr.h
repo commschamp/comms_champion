@@ -24,6 +24,7 @@
 #include <QtCore/QVariantList>
 
 #include "comms_champion/MessageInfo.h"
+#include "comms_champion/Protocol.h"
 
 namespace comms_champion
 {
@@ -44,12 +45,13 @@ public:
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
 
-//    QVariantList load(const QString& filename);
+    MsgInfosList load(Type type, const QString& filename, Protocol& protocol);
     bool save(Type type, const QString& filename, const MsgInfosList& msgs);
 
 private:
     MsgFileMgr() = default;
     static QVariantList convertMsgList(Type type, const MsgInfosList& msgs);
+    static MsgInfosList convertMsgList(Type type, const QVariantList& msgs, Protocol& protocol);
 
     QString m_lastFile;
 };

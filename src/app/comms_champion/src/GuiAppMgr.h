@@ -80,7 +80,9 @@ public:
     void sendAddNewMessage(MessageInfoPtr msgInfo);
     void sendUpdateMessage(MessageInfoPtr msgInfo);
     bool sendListEmpty() const;
+    void sendLoadMsgsFromFile(bool clear, const QString& filename);
     void sendSaveMsgsToFile(const QString& filename);
+    void sendUpdateList(const MsgInfosList& msgs);
 
     void deleteMessages(MsgInfosList&& msgs);
     void sendMessages(MsgInfosList&& msgs);
@@ -102,6 +104,7 @@ public slots:
     void sendStartClicked();
     void sendStartAllClicked();
     void sendStopClicked();
+    void sendLoadClicked();
     void sendSaveClicked();
     void sendAddClicked();
     void sendEditClicked();
@@ -149,12 +152,14 @@ signals:
     void sigRecvListTitleNeedsUpdate();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
+    void sigLoadSendMsgsDialog(bool askForClear);
     void sigSaveSendMsgsDialog();
     void sigPluginsEditDialog();
     void sigActivityStateChanged(int value);
     void sigErrorReported(const QString& msg);
     void sigAddMainToolbarAction(ActionPtr action);
     void sigRemoveMainToolbarAction(ActionPtr action);
+    void sigSendLoadMsgs(bool clear, const QString& filename, ProtocolPtr protocol);
     void sigSendSaveMsgs(const QString& filename);
 
 

@@ -135,7 +135,7 @@ void MsgListWidget::clearSelection()
     m_ui.m_listWidget->setCurrentRow(-1);
 }
 
-void MsgListWidget::clear(bool reportDeleted)
+void MsgListWidget::clearList(bool reportDeleted)
 {
     MsgInfosList msgInfosList;
     if (reportDeleted) {
@@ -147,14 +147,14 @@ void MsgListWidget::clear(bool reportDeleted)
         }
     }
 
-    clear();
+    clearList();
 
     if (reportDeleted) {
         msgListClearedImpl(std::move(msgInfosList));
     }
 }
 
-void MsgListWidget::clear()
+void MsgListWidget::clearList()
 {
     m_ui.m_listWidget->clear();
     updateTitle();
@@ -215,9 +215,28 @@ void MsgListWidget::titleNeedsUpdate()
     updateTitle();
 }
 
+void MsgListWidget::loadMessages(
+    bool clearExisting,
+    const QString& filename,
+    ProtocolPtr protocol)
+{
+    if (clearExisting) {
+        clearList();
+    }
+
+    loadMessagesImpl(filename, *protocol);
+}
+
 void MsgListWidget::saveMessages(const QString& filename)
 {
     saveMessagesImpl(filename);
+}
+
+void MsgListWidget::selectMsg(int idx)
+{
+//    assert(0 <= idx);
+    assert(idx < m_ui.m_listWidget->count());
+    m_ui.m_listWidget->setCurrentRow(idx);
 }
 
 void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
@@ -268,6 +287,12 @@ QString MsgListWidget::getTitleImpl() const
 {
     assert(!"Should not be called");
     return QString();
+}
+
+void MsgListWidget::loadMessagesImpl(const QString& filename, Protocol& protocol)
+{
+    static_cast<void>(filename);
+    static_cast<void>(protocol);
 }
 
 void MsgListWidget::saveMessagesImpl(const QString& filename)

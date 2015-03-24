@@ -228,20 +228,35 @@ Protocol::MessagesList Protocol::createAllMessagesImpl()
 {
     MessagesList allInfos;
 
-    using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
     for (auto idx = 0; idx < demo::message::MsgId_NumOfMessages; ++idx) {
         auto id = static_cast<demo::message::MsgId>(idx);
-        auto msgInfo = cc::makeMessageInfo();
-        auto msgPtr = m_protStack.createMsg(id);
-        assert(msgPtr);
-
-        msgInfo->setProtocolName(name());
-        msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
-        updateMessageInfo(*msgInfo);
-
+        auto msgInfo = createMessage(id);
         allInfos.push_back(std::move(msgInfo));
     }
     return allInfos;
+}
+
+cc::MessageInfoPtr Protocol::createMessageImpl(const QString& idAsString)
+{
+    cc::MessageInfoPtr result;
+    do {
+        bool ok = false;
+        int numId = idAsString.toInt(&ok, 10);
+        if (!ok) {
+            numId = idAsString.toInt(&ok, 16);
+            if (!ok) {
+                break;
+            }
+        }
+
+        if ((numId < 0) ||
+            (demo::message::MsgId_NumOfMessages <= numId)) {
+            break;
+        }
+
+        result = createMessage(static_cast<demo::message::MsgId>(numId));
+    } while (false);
+    return result;
 }
 
 void Protocol::updateMessageInfoImpl(comms_champion::MessageInfo& msgInfo)
@@ -310,6 +325,20 @@ cc::MessageInfoPtr Protocol::cloneMessageImpl(
     assert(clonedMsgInfo->getRawDataMessage());
 
     return clonedMsgInfo;
+}
+
+cc::MessageInfoPtr Protocol::createMessage(demo::message::MsgId id)
+{
+    assert(id < demo::message::MsgId_NumOfMessages);
+    auto msgInfo = cc::makeMessageInfo();
+    auto msgPtr = m_protStack.createMsg(id);
+    assert(msgPtr);
+
+    using MessageInfoMsgPtr = cc::MessageInfo::MessagePtr;
+    msgInfo->setProtocolName(name());
+    msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
+    updateMessageInfo(*msgInfo);
+    return msgInfo;
 }
 
 }  // namespace plugin

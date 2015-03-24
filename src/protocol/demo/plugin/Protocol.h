@@ -44,12 +44,15 @@ protected:
 
     virtual MessagesList createAllMessagesImpl() override;
 
+    virtual comms_champion::MessageInfoPtr createMessageImpl(const QString& idAsString) override;
+
     virtual void updateMessageInfoImpl(comms_champion::MessageInfo& msgInfo) override;
 
     virtual comms_champion::MessageInfoPtr cloneMessageImpl(
         const comms_champion::MessageInfo& msgInfo) override;
 
 private:
+    comms_champion::MessageInfoPtr createMessage(demo::message::MsgId id);
     ProtocolStack m_protStack;
     std::vector<std::uint8_t> m_data;
     std::vector<std::uint8_t> m_garbage;

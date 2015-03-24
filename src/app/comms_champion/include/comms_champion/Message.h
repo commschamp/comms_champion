@@ -48,7 +48,8 @@ public:
     void reset();
     void assign(const Message& other);
     bool isValid() const;
-    DataSeq serialiseData() const;
+    DataSeq encodeData() const;
+    bool decodeData(const DataSeq& data);
 
 protected:
 
@@ -59,7 +60,8 @@ protected:
     virtual void resetImpl() = 0;
     virtual void assignImpl(const Message& other) = 0;
     virtual bool isValidImpl() const = 0;
-    virtual DataSeq serialiseDataImpl() const = 0;
+    virtual DataSeq encodeDataImpl() const = 0;
+    virtual bool decodeDataImpl(const DataSeq& data) = 0;
 
     static void setNameProperty(QWidget& widget, const QString& value);
     static void setIndexedNameProperty(

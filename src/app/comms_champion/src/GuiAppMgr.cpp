@@ -137,6 +137,11 @@ void GuiAppMgr::sendStopClicked()
     emitSendStateUpdate();
 }
 
+void GuiAppMgr::sendLoadClicked()
+{
+    emit sigLoadSendMsgsDialog(0 < m_sendListCount);
+}
+
 void GuiAppMgr::sendSaveClicked()
 {
     emit sigSaveSendMsgsDialog();
@@ -326,9 +331,40 @@ bool GuiAppMgr::sendListEmpty() const
     return m_sendListCount == 0;
 }
 
+void GuiAppMgr::sendLoadMsgsFromFile(bool clear, const QString& filename)
+{
+    emit sigSendLoadMsgs(clear, filename, MsgMgr::instanceRef().getProtocol());
+}
+
 void GuiAppMgr::sendSaveMsgsToFile(const QString& filename)
 {
     emit sigSendSaveMsgs(filename);
+}
+
+void GuiAppMgr::sendUpdateList(const MsgInfosList& msgs)
+{
+    decltype(m_clickedMsg) clickedMsg;
+    if (m_selType == SelectionType::Send) {
+        assert(m_clickedMsg);
+        assert(0 < m_sendListCount);
+        clickedMsg = m_clickedMsg;
+        sendMsgClicked(m_clickedMsg, -1);
+        assert(!m_clickedMsg);
+    }
+
+    int clickedIdx = 0;
+    for (auto& msgInfo : msgs) {
+        if (msgInfo == clickedMsg) {
+            break;
+        }
+        ++clickedIdx;
+    }
+
+    m_sendListCount = msgs.size();
+    emit sigSendListCountReport(m_sendListCount);
+    if ((clickedMsg) && (static_cast<std::size_t>(clickedIdx) < msgs.size())) {
+        sendMsgClicked(clickedMsg, clickedIdx);
+    }
 }
 
 void GuiAppMgr::deleteMessages(MsgInfosList&& msgs)

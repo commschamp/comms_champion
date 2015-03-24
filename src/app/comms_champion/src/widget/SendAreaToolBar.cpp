@@ -46,11 +46,22 @@ QAction* createStartAllButton(QToolBar& bar)
     return action;
 }
 
+QAction* createLoadButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(icon::upload(), "Load Messages");
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendLoadClicked()));
+
+    return action;
+}
+
 QAction* createSaveButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::save(), "Save Messages");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendSaveClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendSaveClicked()));
 
     return action;
 }
@@ -58,64 +69,72 @@ QAction* createSaveButton(QToolBar& bar)
 QAction* createAddButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::add(), "Add New Message");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendAddClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendAddClicked()));
     return action;
 }
 
 QAction* createEditButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::edit(), "Edit Selected Message");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendEditClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendEditClicked()));
     return action;
 }
 
 QAction* createDeleteButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::remove(), "Delete Selected Message");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendDeleteClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendDeleteClicked()));
     return action;
 }
 
 QAction* createClearButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::editClear(), "Delete All Messages");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendClearClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendClearClicked()));
     return action;
 }
 
 QAction* createTopButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::top(), "Move Message to the Top");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendTopClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendTopClicked()));
     return action;
 }
 
 QAction* createUpButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::up(), "Move Message Up");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendUpClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendUpClicked()));
     return action;
 }
 
 QAction* createDownButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::down(), "Move Message Down");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendDownClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendDownClicked()));
     return action;
 }
 
 QAction* createBottomButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::bottom(), "Move Message to the Bottom");
-    QObject::connect(action, SIGNAL(triggered()),
-                     GuiAppMgr::instance(), SLOT(sendBottomClicked()));
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendBottomClicked()));
     return action;
 }
 
@@ -125,6 +144,7 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parent)
   : Base(parent),
     m_startStopButton(createStartButton(*this)),
     m_startStopAllButton(createStartAllButton(*this)),
+    m_loadButton(createLoadButton(*this)),
     m_saveButton(createSaveButton(*this)),
     m_addButton(createAddButton(*this)),
     m_editButton(createEditButton(*this)),
@@ -226,6 +246,7 @@ void SendAreaToolBar::refresh()
 {
     refreshStartStopButton();
     refreshStartStopAllButton();
+    refreshLoadButton();
     refreshSaveButton();
     refreshAddButton();
     refreshEditButton();
@@ -277,6 +298,16 @@ void SendAreaToolBar::refreshStartStopAllButton()
         button->setIcon(icon::startAll());
         button->setText(StartAllTooltip);
     }
+}
+
+void SendAreaToolBar::refreshLoadButton()
+{
+    auto* button = m_loadButton;
+    assert(button != nullptr);
+    bool enabled =
+        (m_activeState == ActivityState::Active) &&
+        (m_state == State::Idle);
+    button->setEnabled(enabled);
 }
 
 void SendAreaToolBar::refreshSaveButton()

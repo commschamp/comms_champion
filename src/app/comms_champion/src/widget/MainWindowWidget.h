@@ -50,10 +50,12 @@ private slots:
     void addMainToolbarAction(ActionPtr action);
     void removeMainToolbarAction(ActionPtr action);
     void activeStateChanged(int state);
+    void loadSendMsgsDialog(bool askForClear);
     void saveSendMsgsDialog();
 
 private:
     void clearCustomToolbarActions();
+    QString loadMsgsDialog();
     QString saveMsgsDialog();
 
     Ui::MainWindowWidget m_ui;

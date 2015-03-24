@@ -51,10 +51,7 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
         this, SLOT(deleteCurrentMessage()));
     connect(
         guiMgr, SIGNAL(sigRecvClear(bool)),
-        this, SLOT(clear(bool)));
-    connect(
-        guiMgr, SIGNAL(sigRecvClear(bool)),
-        this, SLOT(clear(bool)));
+        this, SLOT(clearList(bool)));
     connect(
         guiMgr, SIGNAL(sigRecvListTitleNeedsUpdate()),
         this, SLOT(titleNeedsUpdate()));

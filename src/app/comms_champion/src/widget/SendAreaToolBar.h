@@ -48,6 +48,7 @@ private:
     void refresh();
     void refreshStartStopButton();
     void refreshStartStopAllButton();
+    void refreshLoadButton();
     void refreshSaveButton();
     void refreshAddButton();
     void refreshEditButton();
@@ -61,6 +62,7 @@ private:
 
     QAction* m_startStopButton = nullptr;
     QAction* m_startStopAllButton = nullptr;
+    QAction* m_loadButton = nullptr;
     QAction* m_saveButton = nullptr;
     QAction* m_addButton = nullptr;
     QAction* m_editButton = nullptr;

@@ -65,9 +65,14 @@ bool Message::isValid() const
     return isValidImpl();
 }
 
-Message::DataSeq Message::serialiseData() const
+Message::DataSeq Message::encodeData() const
 {
-    return serialiseDataImpl();
+    return encodeDataImpl();
+}
+
+bool Message::decodeData(const DataSeq& data)
+{
+    return decodeDataImpl(data);
 }
 
 void Message::setNameProperty(QWidget& widget, const QString& value)

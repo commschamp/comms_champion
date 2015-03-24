@@ -23,6 +23,7 @@
 #include <QtCore/qnamespace.h>
 
 #include "comms_champion/MessageInfo.h"
+#include "comms_champion/Protocol.h"
 
 #include "GuiAppMgr.h"
 
@@ -51,15 +52,17 @@ protected slots:
     void deleteCurrentMessage();
     void selectOnAdd(bool enabled);
     void clearSelection();
-    void clear(bool reportDeleted);
-    void clear();
+    void clearList(bool reportDeleted);
+    void clearList();
     void stateChanged(int state);
     void moveSelectedTop();
     void moveSelectedUp();
     void moveSelectedDown();
     void moveSelectedBottom();
     void titleNeedsUpdate();
+    void loadMessages(bool clearExisting, const QString& filename, ProtocolPtr protocol);
     void saveMessages(const QString& filename);
+    void selectMsg(int idx);
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx);
@@ -71,6 +74,7 @@ protected:
     virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const;
     virtual void msgMovedImpl(int idx);
     virtual QString getTitleImpl() const;
+    virtual void loadMessagesImpl(const QString& filename, Protocol& protocol);
     virtual void saveMessagesImpl(const QString& filename);
 
     MessageInfoPtr currentMsg() const;

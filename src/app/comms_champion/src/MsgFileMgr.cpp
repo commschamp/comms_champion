@@ -18,6 +18,8 @@
 #include "MsgFileMgr.h"
 
 #include <cassert>
+#include <algorithm>
+#include <iterator>
 #include <iostream>
 
 #include <QtCore/QFile>
@@ -93,6 +95,43 @@ const QString& MsgFileMgr::getLastFile() const
     return m_lastFile;
 }
 
+MsgInfosList MsgFileMgr::load(
+    Type type,
+    const QString& filename,
+    Protocol& protocol)
+{
+    MsgInfosList allMsgs;
+    do {
+        QFile msgsFile(filename);
+        if (!msgsFile.open(QIODevice::ReadOnly)) {
+            std::cerr << "ERROR: Failed to load the file " <<
+                filename.toStdString() << std::endl;
+            break;
+        }
+
+        auto data = msgsFile.readAll();
+
+        auto jsonError = QJsonParseError();
+        auto jsonDoc = QJsonDocument::fromJson(data, &jsonError);
+        if (jsonError.error != QJsonParseError::NoError) {
+            std::cerr << "ERROR: Invalid contents of messages file!" << std::endl;
+            break;
+        }
+
+        if (!jsonDoc.isArray()) {
+            std::cerr << "ERROR: Invalid contents of messages file!" << std::endl;
+            break;
+        }
+
+        auto topArray = jsonDoc.array();
+        auto varList = topArray.toVariantList();
+        allMsgs = convertMsgList(type, varList, protocol);
+        m_lastFile = filename;
+    } while (false);
+
+    return allMsgs;
+}
+
 bool MsgFileMgr::save(Type type, const QString& filename, const MsgInfosList& msgs)
 {
     QString filenameTmp(filename);
@@ -148,7 +187,7 @@ QVariantList MsgFileMgr::convertMsgList(Type type, const MsgInfosList& msgs)
             continue;
         }
 
-        auto msgData = appMsg->serialiseData();
+        auto msgData = appMsg->encodeData();
         QString msgDataStr;
         for (auto dataByte : msgData) {
             if (!msgDataStr.isEmpty()) {
@@ -213,6 +252,133 @@ QVariantList MsgFileMgr::convertMsgList(Type type, const MsgInfosList& msgs)
     }
     return convertedList;
 }
+
+MsgInfosList MsgFileMgr::convertMsgList(
+    Type type,
+    const QVariantList& msgs,
+    Protocol& protocol)
+{
+    static_cast<void>(type);
+    MsgInfosList convertedList;
+    for (auto& msgMapVar : msgs) {
+        if ((!msgMapVar.isValid()) || (!msgMapVar.canConvert<QVariantMap>())) {
+            continue;
+        }
+
+        auto msgMap = msgMapVar.value<QVariantMap>();
+        auto msgIdVar = msgMap.value(getIdKeyStr());
+        if ((!msgIdVar.isValid()) || (!msgIdVar.canConvert<QString>())) {
+            continue;
+        }
+
+        auto dataVar = msgMap.value(getDataKeyStr());
+        if ((!dataVar.isValid()) || (!dataVar.canConvert<QString>())) {
+            continue;
+        }
+
+        auto dataStr = dataVar.value<QString>();
+        QString stripedDataStr;
+        stripedDataStr.reserve(dataStr.size());
+        std::copy_if(
+            dataStr.begin(), dataStr.end(), std::back_inserter(stripedDataStr),
+            [](QChar ch) -> bool
+            {
+                return
+                    ch.isDigit() ||
+                    ((QChar('A') <= ch) && (ch <= QChar('F'))) ||
+                    ((QChar('a') <= ch) && (ch <= QChar('f')));
+            });
+
+        if ((dataStr.size() & 0x1) != 0) {
+            stripedDataStr.prepend(QChar('0'));
+        }
+
+        Message::DataSeq data;
+        QString num;
+        for (auto ch : stripedDataStr) {
+            num.append(ch);
+            if (num.size() == 1) {
+                continue;
+            }
+
+            assert(num.size() == 2);
+            bool ok = false;
+            auto byte = num.toInt(&ok, 16);
+            static_cast<void>(ok);
+            assert(ok);
+            assert((0 <= byte) && (byte <= 0xf));
+            data.push_back(static_cast<Message::DataSeq::value_type>(byte));
+            num.clear();
+        }
+
+        auto msgId = msgIdVar.value<QString>();
+        auto msgInfo = protocol.createMessage(msgId);
+        if (!msgInfo) {
+            continue;
+        }
+
+        auto appMsg = msgInfo->getAppMessage();
+        if (!appMsg) {
+            assert(!"Message wasn't properly created by the protocol");
+            continue;
+        }
+
+        if (!appMsg->decodeData(data)) {
+            continue;
+        }
+
+        protocol.updateMessageInfo(*msgInfo);
+
+        unsigned long long delay = 0;
+        auto delayVar = msgMap.value(getDelayKeyStr());
+        if (delayVar.isValid() && delayVar.canConvert<decltype(delay)>()) {
+            delay = delayVar.value<decltype(delay)>();
+        }
+        msgInfo->setExtraProperty(
+            GlobalConstants::msgDelayPropertyName(),
+            QVariant::fromValue(delay));
+
+        int delayUnits = 0;
+        auto delayUnitsVar = msgMap.value(getDelayUnitsKeyStr());
+        if (delayUnitsVar.isValid() && delayUnitsVar.canConvert<decltype(delayUnits)>()) {
+            delayUnits = delayUnitsVar.value<decltype(delayUnits)>();
+        }
+        msgInfo->setExtraProperty(
+            GlobalConstants::msgDelayUnitsPropertyName(),
+            QVariant::fromValue(delayUnits));
+
+        unsigned long long repeatDuration = 0;
+        auto repeatDurationVar = msgMap.value(getRepeatDurationKeyStr());
+        if (repeatDurationVar.isValid() && repeatDurationVar.canConvert<decltype(repeatDuration)>()) {
+            repeatDuration = repeatDurationVar.value<decltype(repeatDuration)>();
+        }
+        msgInfo->setExtraProperty(
+            GlobalConstants::msgRepeatDurationPropertyName(),
+            QVariant::fromValue(repeatDuration));
+
+        int repeatUnits = 0;
+        auto repeatUnitsVar = msgMap.value(getRepeatUnitsKeyStr());
+        if (repeatUnitsVar.isValid() && repeatUnitsVar.canConvert<decltype(repeatUnits)>()) {
+            repeatUnits = repeatUnitsVar.value<decltype(repeatUnits)>();
+        }
+        msgInfo->setExtraProperty(
+            GlobalConstants::msgRepeatUnitsPropertyName(),
+            QVariant::fromValue(repeatUnits));
+
+        int repeatCount = 0;
+        auto repeatCountVar = msgMap.value(getRepeatCountKeyStr());
+        if (repeatCountVar.isValid() && repeatCountVar.canConvert<decltype(repeatCount)>()) {
+            repeatCount = repeatCountVar.value<decltype(repeatCount)>();
+        }
+        msgInfo->setExtraProperty(
+            GlobalConstants::msgRepeatCountPropertyName(),
+            QVariant::fromValue(repeatCount));
+
+        convertedList.push_back(std::move(msgInfo));
+    }
+    return convertedList;
+}
+
 
 }  // namespace comms_champion
 

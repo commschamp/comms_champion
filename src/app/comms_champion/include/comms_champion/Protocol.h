@@ -25,6 +25,7 @@
 #include <string>
 
 #include <QtCore/QMetaType>
+#include <QtCore/QString>
 
 #include "Message.h"
 #include "ErrorStatus.h"
@@ -63,6 +64,11 @@ public:
         return createAllMessagesImpl();
     }
 
+    MessageInfoPtr createMessage(const QString& idAsString)
+    {
+        return createMessageImpl(idAsString);
+    }
+
     void updateMessageInfo(MessageInfo& msgInfo)
     {
         updateMessageInfoImpl(msgInfo);
@@ -81,6 +87,8 @@ protected:
     virtual DataInfosList writeImpl(const MessagesList& msgs) = 0;
 
     virtual MessagesList createAllMessagesImpl() = 0;
+
+    virtual MessageInfoPtr createMessageImpl(const QString& idAsString) = 0;
 
     virtual void updateMessageInfoImpl(MessageInfo& msgInfo) = 0;
 

@@ -50,7 +50,7 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
         this, SLOT(clearSelection()));
     connect(
         guiMgr, SIGNAL(sigSendClear()),
-        this, SLOT(clear()));
+        this, SLOT(clearList()));
     connect(
         guiMgr, SIGNAL(sigSetSendState(int)),
         this, SLOT(stateChanged(int)));
@@ -67,8 +67,14 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parent)
         guiMgr, SIGNAL(sigSendMoveSelectedBottom()),
         this, SLOT(moveSelectedBottom()));
     connect(
+        guiMgr, SIGNAL(sigSendLoadMsgs(bool, const QString&, ProtocolPtr)),
+        this, SLOT(loadMessages(bool, const QString&, ProtocolPtr)));
+    connect(
         guiMgr, SIGNAL(sigSendSaveMsgs(const QString&)),
         this, SLOT(saveMessages(const QString&)));
+    connect(
+        guiMgr, SIGNAL(sigSendMsgSelected(int)),
+        this, SLOT(selectMsg(int)));
 }
 
 void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
@@ -149,9 +155,18 @@ void SendMsgListWidget::msgMovedImpl(int idx)
     GuiAppMgr::instanceRef().sendSelectedMsgMoved(idx);
 }
 
-void SendMsgListWidget::saveMessagesImpl(const QString& filename)
+void SendMsgListWidget::loadMessagesImpl(const QString& filename, Protocol& protocol)
 {
     static_cast<void>(filename);
+    auto msgs = MsgFileMgr::instanceRef().load(MsgFileMgr::Type::Send, filename, protocol);
+    for (auto& m : msgs) {
+        addMessage(m);
+    }
+    GuiAppMgr::instanceRef().sendUpdateList(allMsgs());
+}
+
+void SendMsgListWidget::saveMessagesImpl(const QString& filename)
+{
     MsgFileMgr::instanceRef().save(MsgFileMgr::Type::Send, filename, allMsgs());
 }
 

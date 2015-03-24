@@ -57,7 +57,7 @@ protected:
         return CommsBase::valid();
     }
 
-    virtual DataSeq serialiseDataImpl() const override
+    virtual DataSeq encodeDataImpl() const override
     {
         typedef typename CommsBase::WriteIterator WriteIterator;
         typedef typename std::iterator_traits<WriteIterator>::iterator_category Tag;
@@ -65,21 +65,35 @@ protected:
         static_assert(
             std::is_base_of<std::random_access_iterator_tag, Tag>::value ||
             std::is_base_of<std::output_iterator_tag, Tag>::value,
-            "Only random access or output iterator is supported for data serialisation.");
+            "Only random access or output iterator is supported for data encoding.");
 
-        return serialiseDataIntenal(Tag());
+        return encodeDataIntenal(Tag());
+    }
+
+    virtual bool decodeDataImpl(const DataSeq& data) override
+    {
+        typedef typename CommsBase::ReadIterator ReadIterator;
+        typedef typename std::iterator_traits<ReadIterator>::iterator_category Tag;
+        static_assert(
+            std::is_base_of<std::random_access_iterator_tag, Tag>::value,
+            "Only random access iterator is supported for data decoding.");
+
+        return decodeDataRandomAccess(data);
     }
 
 private:
     struct UseBackInserterTag {};
     struct WriteThanCopyTag {};
+    struct UseDataSeqIterTag {};
+    struct UsePointerTag {};
+    struct OtherInputIterTag {};
 
-    DataSeq serialiseDataIntenal(std::random_access_iterator_tag) const
+    DataSeq encodeDataIntenal(std::random_access_iterator_tag) const
     {
-        return serialiseDataRandomAccess();
+        return encodeDataRandomAccess();
     }
 
-    DataSeq serialiseDataIntenal(std::output_iterator_tag) const
+    DataSeq encodeDataIntenal(std::output_iterator_tag) const
     {
         typedef typename CommsBase::WriteIterator WriteIterator;
         typedef typename
@@ -92,10 +106,10 @@ private:
         static_assert(
             std::is_same<Tag, UseBackInserterTag>::value,
             "Currently only back_insert_iterator is supported.");
-        return serialiseDataWithOutputIter(Tag());
+        return encodeDataWithOutputIter(Tag());
     }
 
-    DataSeq serialiseDataRandomAccess() const
+    DataSeq encodeDataRandomAccess() const
     {
         DataSeq data;
         try {
@@ -120,7 +134,7 @@ private:
         return data;
     }
 
-    DataSeq serialiseDataWithOutputIter(UseBackInserterTag) const
+    DataSeq encodeDataWithOutputIter(UseBackInserterTag) const
     {
         DataSeq data;
         auto iter = std::back_inserter(data);
@@ -128,6 +142,47 @@ private:
         assert(es == comms::ErrorStatus::Success);
         static_cast<void>(es);
         return data;
+    }
+
+    bool decodeDataRandomAccess(const DataSeq& data)
+    {
+        typedef typename CommsBase::ReadIterator ReadIterator;
+        typedef typename
+            std::conditional<
+                std::is_same<DataSeq::const_iterator, ReadIterator>::value,
+                UseDataSeqIterTag,
+                typename std::conditional<
+                    std::is_pointer<ReadIterator>::value,
+                    UsePointerTag,
+                    OtherInputIterTag
+                >::type
+            >::type Tag;
+
+        static_assert(
+            !std::is_same<Tag, OtherInputIterTag>::value,
+            "Unexpected read iterator");
+
+        return decodeDataRandomAccessInternal(data, Tag());
+    }
+
+    bool decodeDataRandomAccessInternal(const DataSeq& data, UseDataSeqIterTag)
+    {
+        auto iter = data.begin();
+        return decodeDataRandomAccessWithIter(iter, data.size());
+    }
+
+    bool decodeDataRandomAccessInternal(const DataSeq& data, UsePointerTag)
+    {
+        typedef typename CommsBase::ReadIterator ReadIterator;
+        ReadIterator iter = &data[0];
+        return decodeDataRandomAccessWithIter(iter, data.size());
+    }
+
+    template <typename TIter>
+    bool decodeDataRandomAccessWithIter(TIter& iter, std::size_t bufSize)
+    {
+        auto es = CommsBase::read(iter, bufSize);
+        return es == comms::ErrorStatus::Success;
     }
 };
 

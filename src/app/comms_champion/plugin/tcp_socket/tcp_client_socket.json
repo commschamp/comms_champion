@@ -1,0 +1,7 @@
+{
+    "name" : "TCP/IP Client Socket",
+    "desc" : [
+        "I/O socket that connects a remote tcp port and allows\n",
+        "communication via TCP/IP connection."
+    ]
+}

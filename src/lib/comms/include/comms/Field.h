@@ -19,19 +19,17 @@
 #pragma once
 
 #include "util/access.h"
+#include "details/FieldBase.h"
 
 namespace comms
 {
 
-template <typename TTraits>
-class Field
+template <typename... TOptions>
+class Field : public details::FieldBase<TOptions...>
 {
+    typedef details::FieldBase<TOptions...> Base;
 public:
-    /// @brief Traits class type.
-    typedef TTraits Traits;
-
-    /// Actual Endianness defined in provided Traits class
-    typedef typename Traits::Endianness Endianness;
+    typedef typename Base::Endian Endian;
 
 protected:
     /// @brief Write data into the output sequence.
@@ -71,7 +69,7 @@ protected:
     {
         static_assert(TSize <= sizeof(T),
                                     "Cannot put more bytes than type contains");
-        return util::writeData<TSize, T>(value, iter, Endianness());
+        return util::writeData<TSize, T>(value, iter, Endian());
     }
 
     /// @brief Read data from input sequence.
@@ -112,7 +110,7 @@ protected:
     {
         static_assert(TSize <= sizeof(T),
             "Cannot get more bytes than type contains");
-        return util::readData<T, TSize>(iter, Endianness());
+        return util::readData<T, TSize>(iter, Endian());
     }
 
 };

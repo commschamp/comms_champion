@@ -47,15 +47,8 @@ public:
     void test15();
 
 private:
-    struct BigEndianTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
-
-    struct LittleEndianTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
+    typedef comms::option::UseBigEndian UseBigEndianOpt;
+    typedef comms::option::UseLittleEndian UseLittleEndianOpt;
 
     enum Enum1 {
         Enum1_Value1,
@@ -92,7 +85,7 @@ namespace cfo = comms::field::option;
 void FieldsTestSuite::test1()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         std::uint32_t> Field;
 
     static const char Buf[] = {
@@ -110,7 +103,7 @@ void FieldsTestSuite::test1()
 void FieldsTestSuite::test2()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         std::uint32_t,
         cfo::LengthLimitImpl<3>
     > Field;
@@ -130,7 +123,7 @@ void FieldsTestSuite::test2()
 void FieldsTestSuite::test3()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         std::int16_t
     > Field;
 
@@ -148,7 +141,7 @@ void FieldsTestSuite::test3()
 void FieldsTestSuite::test4()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         std::int16_t
     > Field;
 
@@ -166,7 +159,7 @@ void FieldsTestSuite::test4()
 void FieldsTestSuite::test5()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<LittleEndianTraits>,
+        comms::Field<UseLittleEndianOpt>,
         std::int16_t
     > Field;
 
@@ -184,7 +177,7 @@ void FieldsTestSuite::test5()
 void FieldsTestSuite::test6()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         std::int16_t,
         cfo::LengthLimitImpl<1>
     > Field;
@@ -203,7 +196,7 @@ void FieldsTestSuite::test6()
 void FieldsTestSuite::test7()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         std::int16_t,
         cfo::LengthLimitImpl<1>,
         cfo::SerOffsetImpl<-2000>
@@ -225,7 +218,7 @@ void FieldsTestSuite::test7()
 void FieldsTestSuite::test8()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         std::uint32_t,
         cfo::LengthLimitImpl<3>,
         cfo::ValidRangeImpl<0, 0x010200>
@@ -246,7 +239,7 @@ void FieldsTestSuite::test8()
 void FieldsTestSuite::test9()
 {
     typedef comms::field::BasicIntValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         std::uint8_t,
         cfo::ValidRangeImpl<0, 10>,
         cfo::DefaultValueImpl<100>
@@ -271,7 +264,7 @@ void FieldsTestSuite::test9()
 void FieldsTestSuite::test10()
 {
     typedef comms::field::BitmaskValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         comms::field::option::LengthLimitImpl<2>
     > Field;
 
@@ -303,7 +296,7 @@ void FieldsTestSuite::test10()
 void FieldsTestSuite::test11()
 {
     typedef comms::field::BitmaskValue<
-        comms::Field<LittleEndianTraits>,
+        comms::Field<UseLittleEndianOpt>,
         comms::field::option::LengthLimitImpl<3>,
         cfo::DefaultValueImpl<0xffffff>,
         cfo::BitmaskReservedBitsImpl<0xff0000, 0>
@@ -332,7 +325,7 @@ void FieldsTestSuite::test11()
 void FieldsTestSuite::test12()
 {
     typedef comms::field::BasicEnumValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         Enum1,
         cfo::LengthLimitImpl<1>,
         cfo::ValidRangeImpl<0, Enum1_NumOfValues - 1>,
@@ -368,7 +361,7 @@ void FieldsTestSuite::test12()
 void FieldsTestSuite::test13()
 {
     typedef comms::field::BasicEnumValue<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         Enum2,
         cfo::LengthLimitImpl<2>,
         cfo::ValidRangeImpl<0, (int)(Enum2::NumOfValues) - 1>,
@@ -404,9 +397,9 @@ void FieldsTestSuite::test13()
 void FieldsTestSuite::test14()
 {
     typedef comms::field::VarSizeArray<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         comms::field::BasicIntValue<
-            comms::Field<BigEndianTraits>,
+            comms::Field<UseBigEndianOpt>,
             std::uint8_t
         >
     > Field;
@@ -426,9 +419,9 @@ void FieldsTestSuite::test14()
 void FieldsTestSuite::test15()
 {
     typedef comms::field::VarSizeArray<
-        comms::Field<BigEndianTraits>,
+        comms::Field<UseBigEndianOpt>,
         comms::field::BasicIntValue<
-            comms::Field<BigEndianTraits>,
+            comms::Field<UseBigEndianOpt>,
             std::uint8_t
         >,
         comms::field::option::FixedSizeStorage<32>

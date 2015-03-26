@@ -78,7 +78,7 @@ public:
         >::type MsgIdParamType;
 
     /// @brief Type of default base class for all the fields
-    typedef comms::Field<Traits> Field;
+    typedef comms::Field<comms::option::UseEndian<Endianness> > Field;
 
     /// @brief Destructor
     virtual ~Message() {};

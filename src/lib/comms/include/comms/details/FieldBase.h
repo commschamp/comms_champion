@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,52 +18,35 @@
 
 #pragma once
 
-#include <tuple>
+#include "comms/traits.h"
+#include "comms/options.h"
 
 namespace comms
 {
 
-namespace option
+namespace details
 {
 
-template <long long int TId>
-struct NumIdImpl
+template <typename... TOptions>
+class FieldBase;
+
+template <>
+class FieldBase<>
 {
-    static const auto Value = TId;
+protected:
+    // Use big endian by default
+    typedef comms::traits::endian::Big Endian;
 };
 
-template <typename TActual>
-struct DispatchImpl
+template <typename TEndian, typename... TOptions>
+class FieldBase<comms::option::UseEndian<TEndian>, TOptions...> : public FieldBase<TOptions...>
 {
-    typedef TActual MsgType;
-};
-
-template <typename TFields>
-struct FieldsImpl;
-
-template <typename... TFields>
-struct FieldsImpl<std::tuple<TFields...> >
-{
-    typedef std::tuple<TFields...> Fields;
-};
-
-struct NoFieldsImpl {};
-
-struct NoIdImpl {};
-
-template <typename TEndian>
-struct UseEndian
-{
+protected:
     typedef TEndian Endian;
 };
 
-using UseBigEndian = UseEndian<comms::traits::endian::Big>;
 
-using UseLittleEndian = UseEndian<comms::traits::endian::Little>;
-
-
-}  // namespace option
-
+}  // namespace details
 
 }  // namespace comms
 

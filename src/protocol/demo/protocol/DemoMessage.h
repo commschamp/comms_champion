@@ -34,16 +34,15 @@ enum MsgId
     MsgId_NumOfMessages
 };
 
-struct DemoDefaultTraits
-{
-    typedef MsgId MsgIdType;
-    typedef comms::traits::endian::Big Endianness;
-    typedef const std::uint8_t* ReadIterator;
-    typedef std::uint8_t* WriteIterator;
-};
+typedef std::tuple<
+    comms::option::SetMsgIdType<MsgId>,
+    comms::option::UseBigEndian,
+    comms::option::SetReadIterator<const std::uint8_t*>,
+    comms::option::SetWriteIterator<std::uint8_t*>
+> DemoDefaultTraits;
 
-template <typename TTraits = DemoDefaultTraits>
-using DemoMessageT = comms::Message<TTraits>;
+template <typename... TOptions>
+using DemoMessageT = comms::Message<TOptions...>;
 
 using DemoMessage = DemoMessageT<DemoDefaultTraits>;
 

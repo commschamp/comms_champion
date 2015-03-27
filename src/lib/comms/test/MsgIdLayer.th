@@ -44,15 +44,19 @@ private:
         typedef char* WriteIterator;
     };
 
-    struct BeTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
+    typedef std::tuple<
+        comms::option::SetMsgIdType<MessageType>,
+        comms::option::UseBigEndian,
+        comms::option::SetReadIterator<const char*>,
+        comms::option::SetWriteIterator<char*>
+    > BeTraits;
 
-    struct LeTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
+    typedef std::tuple<
+        comms::option::SetMsgIdType<MessageType>,
+        comms::option::UseLittleEndian,
+        comms::option::SetReadIterator<const char*>,
+        comms::option::SetWriteIterator<char*>
+    > LeTraits;
 
     typedef TestMessageBase<BeTraits> BeMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;

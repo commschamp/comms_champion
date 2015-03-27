@@ -61,6 +61,30 @@ using UseBigEndian = UseEndian<comms::traits::endian::Big>;
 
 using UseLittleEndian = UseEndian<comms::traits::endian::Little>;
 
+template <typename T>
+struct SetMsgIdType
+{
+    typedef T MsgIdType;
+};
+
+template <typename TIter>
+struct SetReadIterator
+{
+    typedef TIter ReadIterator;
+};
+
+template <typename TIter>
+struct SetWriteIterator
+{
+    typedef TIter WriteIterator;
+};
+
+template <typename T>
+struct SetHandler
+{
+    typedef T Handler;
+};
+
 
 }  // namespace option
 

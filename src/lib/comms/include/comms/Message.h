@@ -33,6 +33,8 @@
 #include "Field.h"
 #include "EmptyHandler.h"
 
+#include "details/MessageBase.h"
+
 namespace comms
 {
 
@@ -45,28 +47,26 @@ namespace comms
 /// @tparam TTraits Various behavioural traits relevant for the message. Must
 ///         define:
 ///         @li Type MsgIdType. Type used for message identification.
-///         @li Type Endianness. Must be either comms::traits::endian::Big
+///         @li Type Endian. Must be either comms::traits::endian::Big
 ///             or comms::traits::endian::Little.
 ///         @li Type ReadIterator. Can be any type of input iterator. It will
 ///             be used to read message contents from serialised data sequence.
 ///         @li Type WriteIterator. Can be any type of output iterator. It will
 ///             be used to serialise message contents to provided data sequence.
 /// @headerfile comms/Message.h
-template <typename TTraits, typename THandler = EmptyHandler>
-class Message
+template <typename... TOptions>
+class Message : public details::MessageBase<TOptions...>
 {
+    typedef details::MessageBase<TOptions...> Base;
 public:
 
-    /// @brief Traits class type.
-    typedef TTraits Traits;
-
     /// @brief Type used for message ID
-    typedef typename Traits::MsgIdType MsgIdType;
+    typedef typename Base::MsgIdType MsgIdType;
 
     static const bool HasStaticMsgId = false;
 
-    /// Actual Endianness defined in provided Traits class
-    typedef typename Traits::Endianness Endianness;
+    /// Actual Endian defined in provided Traits class
+    typedef typename Base::Endian Endian;
 
     /// @brief Type that must be returned by getId function.
     /// @details In case the message ID is of integral or enum types, the
@@ -78,7 +78,7 @@ public:
         >::type MsgIdParamType;
 
     /// @brief Type of default base class for all the fields
-    typedef comms::Field<comms::option::UseEndian<Endianness> > Field;
+    typedef comms::Field<comms::option::UseEndian<Endian> > Field;
 
     /// @brief Destructor
     virtual ~Message() {};
@@ -93,7 +93,7 @@ public:
 
     /// @brief Type of read iterator
     /// @details Must be defined in Traits as ReadIterator type.
-    typedef typename Traits::ReadIterator ReadIterator;
+    typedef typename Base::ReadIterator ReadIterator;
 
     /// @brief Read body of the message from stream buffer
     /// @details Calls to pure virtual function readImpl() which must
@@ -128,7 +128,7 @@ public:
 #ifndef COMMS_NO_WRITE
     /// @brief Type of write iterator
     /// @details Must be defined in Traits as WriteIterator type.
-    typedef typename Traits::WriteIterator WriteIterator;
+    typedef typename Base::WriteIterator WriteIterator;
 
     /// @brief Write body of the message to the stream buffer
     /// @details This function checks whether required buffer size returned
@@ -198,7 +198,7 @@ public:
 
 #ifndef COMMS_NO_DISPATCH
     /// @brief Message handler type
-    typedef THandler Handler;
+    typedef typename Base::Handler Handler;
 
     /// @brief Dispatch message to its handler
     /// @details Calls to pure virtual function dispatchImpl() which must
@@ -320,7 +320,7 @@ protected:
     {
         static_assert(TSize <= sizeof(T),
                                     "Cannot put more bytes than type contains");
-        return util::writeData<TSize, T>(value, iter, Endianness());
+        return util::writeData<TSize, T>(value, iter, Endian());
     }
 
     /// @brief Read data from input sequence.
@@ -361,7 +361,7 @@ protected:
     {
         static_assert(TSize <= sizeof(T),
             "Cannot get more bytes than type contains");
-        return util::readData<T, TSize>(iter, Endianness());
+        return util::readData<T, TSize>(iter, Endian());
     }
 };
 

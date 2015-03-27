@@ -65,8 +65,16 @@ private:
         typedef comms::traits::endian::Little Endianness;
     };
 
-    typedef comms::Message<BigEndianTraits> BeMessageBase;
-    typedef comms::Message<LittleEndianTraits> LeMessageBase;
+    typedef
+        comms::Message<
+            comms::option::UseBigEndian,
+            comms::option::SetMsgIdType<MessageType>
+        > BeMessageBase;
+    typedef
+        comms::Message<
+            comms::option::UseLittleEndian,
+            comms::option::SetMsgIdType<MessageType>
+        > LeMessageBase;
 
     typedef Message1<BeMessageBase> BeMsg1;
     typedef Message1<LeMessageBase> LeMsg1;

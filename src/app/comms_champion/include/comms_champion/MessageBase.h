@@ -31,12 +31,16 @@
 namespace comms_champion
 {
 
-template <typename TTraits, typename THandler = DefaultMessageDisplayHandler>
-class MessageBase : public Message, public comms::Message<TTraits, THandler>
+template <typename... TOptions>
+class MessageBase :
+        public Message,
+        public comms::Message<TOptions..., comms::option::SetHandler<DefaultMessageDisplayHandler> >
 {
     using CCBase = Message;
-    using CommsBase = comms::Message<TTraits, THandler>;
+    using CommsBase = comms::Message<TOptions..., comms::option::SetHandler<DefaultMessageDisplayHandler> >;
 public:
+    typedef typename CommsBase::Handler Handler;
+
     MessageBase() = default;
     MessageBase(const MessageBase&) = default;
     MessageBase(MessageBase&&) = default;
@@ -46,7 +50,7 @@ public:
 protected:
     virtual void displayImpl(MessageDisplayHandler& handler) override
     {
-        auto* castedHandler = dynamic_cast<THandler*>(&handler);
+        auto* castedHandler = dynamic_cast<Handler*>(&handler);
         if (castedHandler != nullptr) {
             CommsBase::dispatch(*castedHandler);
         }

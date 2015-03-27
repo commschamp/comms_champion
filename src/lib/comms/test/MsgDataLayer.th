@@ -62,31 +62,33 @@ private:
         typedef char* WriteIterator;
     };
 
-    struct BackInserterCommonTraits {
-        typedef MessageType MsgIdType;
-        typedef const char* ReadIterator;
-        typedef std::back_insert_iterator<std::vector<char> > WriteIterator;
-    };
+    typedef std::tuple<
+        comms::option::SetMsgIdType<MessageType>,
+        comms::option::UseBigEndian,
+        comms::option::SetReadIterator<const char*>,
+        comms::option::SetWriteIterator<char*>
+    > BigEndianTraits;
 
-    struct BigEndianTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
+    typedef std::tuple<
+        comms::option::SetMsgIdType<MessageType>,
+        comms::option::UseBigEndian,
+        comms::option::SetReadIterator<const char*>,
+        comms::option::SetWriteIterator<std::back_insert_iterator<std::vector<char> > >
+    > BackInserterBigEndianTraits;
 
-    struct BackInserterBigEndianTraits : public BackInserterCommonTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
+    typedef std::tuple<
+        comms::option::SetMsgIdType<MessageType>,
+        comms::option::UseLittleEndian,
+        comms::option::SetReadIterator<const char*>,
+        comms::option::SetWriteIterator<char*>
+    > LittleEndianTraits;
 
-    struct LittleEndianTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
-
-    struct BackInserterLittleEndianTraits : public BackInserterCommonTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
+    typedef std::tuple<
+        comms::option::SetMsgIdType<MessageType>,
+        comms::option::UseLittleEndian,
+        comms::option::SetReadIterator<const char*>,
+        comms::option::SetWriteIterator<std::back_insert_iterator<std::vector<char> > >
+    > BackInserterLittleEndianTraits;
 
     typedef comms::Message<BigEndianTraits> BeMessageBase;
     typedef comms::Message<BackInserterBigEndianTraits> BackInsertBeMessageBase;

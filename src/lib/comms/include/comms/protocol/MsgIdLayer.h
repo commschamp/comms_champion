@@ -111,6 +111,41 @@ struct MsgFactoryCreator<0, false>
     }
 };
 
+template <typename TOption>
+struct IsNumIdImplOpt
+{
+    static const bool Value = false;
+};
+
+template <long long int TId>
+struct IsNumIdImplOpt<comms::option::NumIdImpl<TId> >
+{
+    static const bool Value = true;
+};
+
+template <typename TOptions>
+struct HasNumIdImplOpt;
+
+template <typename TFirst, typename... TRest>
+struct HasNumIdImplOpt<std::tuple<TFirst, TRest...> >
+{
+    static const bool Value =
+        IsNumIdImplOpt<TFirst>::Value ||
+        HasNumIdImplOpt<std::tuple<TRest...> >::Value;
+};
+
+template <>
+struct HasNumIdImplOpt<std::tuple<> >
+{
+    static const bool Value = false;
+};
+
+template <typename TMessage>
+struct HasStaticId
+{
+    static const bool Value = HasNumIdImplOpt<typename TMessage::AllOptions>::Value;
+};
+
 }  // namespace details
 
 /// @ingroup comms
@@ -369,8 +404,10 @@ private:
     {
     public:
         typedef TMessage Message;
-    protected:
+
         GenericMsgFactory() : id_(Message().getId()) {}
+
+    protected:
 
         virtual MsgIdParamType getIdImpl() const
         {
@@ -392,7 +429,7 @@ private:
     template <typename TMessage>
     using MsgFactory =
         typename std::conditional<
-            TMessage::HasStaticMsgId,
+            details::HasStaticId<TMessage>::Value,
             NumIdMsgFactory<TMessage>,
             GenericMsgFactory<TMessage>
         >::type;

@@ -252,6 +252,19 @@ TValue tupleAccumulate(TTuple&& tuple, const TValue& value, TFunc&& func)
                 std::forward<TFunc>(func));
 }
 
+//----------------------------------------
+
+template <typename TFirst, typename TSecond>
+struct TupleCat
+{
+    static_assert(IsTuple<TFirst>::Value, "TFirst must be tuple");
+    static_assert(IsTuple<TSecond>::Value, "TSecond must be tuple");
+    typedef typename std::decay<decltype(std::tuple_cat(std::declval<TFirst>(), std::declval<TSecond>()))>::type Type;
+};
+
+template <typename TField, typename TTuple>
+using TupleCatT = typename TupleCat<TField, TTuple>::Type;
+
 }  // namespace util
 
 }  // namespace comms

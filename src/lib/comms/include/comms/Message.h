@@ -63,7 +63,7 @@ public:
     /// @brief Type used for message ID
     typedef typename Base::MsgIdType MsgIdType;
 
-    static const bool HasStaticMsgId = false;
+    typedef typename Base::AllOptions AllOptions;
 
     /// Actual Endian defined in provided Traits class
     typedef typename Base::Endian Endian;

@@ -53,8 +53,10 @@ class MessageBase<TMessage, option::NumIdImpl<TId>, TRest...> :
 {
     typedef MessageBase<TMessage, TRest...> Base;
     typedef typename Base::MsgIdParamType MsgIdParamType;
+    typedef option::NumIdImpl<TId> Option;
+
 public:
-    static const bool HasStaticMsgId = true;
+    typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
     static const auto MsgId = static_cast<typename Base::MsgIdType>(TId);
 
 protected:
@@ -75,6 +77,9 @@ class MessageBase<TMessage, option::DispatchImpl<TActual>, TRest...> :
     typedef MessageBase<TMessage, TRest...> Base;
     typedef option::DispatchImpl<TActual> DispatchOption;
     typedef typename DispatchOption::MsgType MsgType;
+
+public:
+    typedef comms::util::TupleCatT<std::tuple<DispatchOption>, typename Base::AllOptions> AllOptions;
 
 protected:
     using Base::MessageBase;
@@ -97,6 +102,7 @@ class MessageBase<TMessage, option::FieldsImpl<TFields>, TRest...> :
     typedef option::FieldsImpl<TFields> FieldsOption;
 
 public:
+    typedef comms::util::TupleCatT<std::tuple<FieldsOption>, typename Base::AllOptions> AllOptions;
     typedef typename FieldsOption::Fields AllFields;
 
     AllFields& getFields()
@@ -244,6 +250,10 @@ class MessageBase<TMessage, option::NoFieldsImpl, TRest...> :
             public MessageBase<TMessage, option::FieldsImpl<std::tuple<> >, TRest...>
 {
     typedef MessageBase<TMessage, option::FieldsImpl<std::tuple<> >, TRest...> Base;
+    typedef option::NoFieldsImpl Option;
+
+public:
+    typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 
 protected:
     using Base::MessageBase;
@@ -256,9 +266,10 @@ class MessageBase<TMessage, option::NoIdImpl, TRest...> :
 {
     typedef MessageBase<TMessage, TRest...> Base;
     typedef typename Base::MsgIdParamType MsgIdParamType;
+    typedef option::NoIdImpl Option;
 public:
-    static const bool HasStaticMsgId = true;
     static const auto MsgId = typename Base::MsgIdType();
+    typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 
 protected:
     using Base::MessageBase;

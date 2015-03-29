@@ -59,7 +59,7 @@
       </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_8">
+      <layout class="QVBoxLayout" name="verticalLayout_8" stretch="1,0,1,0,1">
        <item>
         <widget class="QGroupBox" name="m_selectedGroupBox">
          <property name="title">
@@ -77,7 +77,7 @@
                <x>0</x>
                <y>0</y>
                <width>375</width>
-               <height>210</height>
+               <height>121</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -115,7 +115,7 @@
                <x>0</x>
                <y>0</y>
                <width>375</width>
-               <height>76</height>
+               <height>120</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -153,7 +153,7 @@
                <x>0</x>
                <y>0</y>
                <width>375</width>
-               <height>76</height>
+               <height>121</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_5">

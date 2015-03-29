@@ -21,8 +21,6 @@
 #include <cassert>
 #include <memory>
 
-#include <QtQml/QQmlApplicationEngine>
-#include <QtQml/QtQml>
 #include <QtCore/QTimer>
 
 #include "comms_champion/DefaultMessageDisplayHandler.h"

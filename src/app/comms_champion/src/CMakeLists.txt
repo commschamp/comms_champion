@@ -88,7 +88,7 @@ function (bin_comms_champion)
     target_link_libraries(
         ${name}
         ${PROTOCOL_LIB_NAME} 
-        Qt5::Qml Qt5::Quick Qt5::Widgets Qt5::Core
+        Qt5::Widgets Qt5::Core
     )
     
     install (

@@ -45,6 +45,7 @@ public:
     void test13();
     void test14();
     void test15();
+    void test16();
 
 private:
     typedef comms::option::UseBigEndian UseBigEndianOpt;
@@ -437,14 +438,34 @@ void FieldsTestSuite::test15()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), BufSize);
     TS_ASSERT(field.valid());
-//
-//    static const char Buf2[] = {
-//        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc
-//    };
-//    static const std::size_t BufSize2 = std::extent<decltype(Buf)>::value;
-//    field = readWriteField<Field>(Buf2, BufSize2);
-//    TS_ASSERT_EQUALS(field.length(), BufSize2);
-//    TS_ASSERT(field.valid());
+
+    static const char Buf2[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc
+    };
+    static const std::size_t BufSize2 = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf2, BufSize2);
+    TS_ASSERT_EQUALS(field.length(), BufSize2);
+    TS_ASSERT(field.valid());
+}
+
+void FieldsTestSuite::test16()
+{
+    typedef comms::field::StaticString<
+        comms::Field<UseBigEndianOpt>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT(field.empty());
+
+    static const char Buf[] = {
+        0x5, 'h', 'e', 'l', 'l', 'o', 'g', 'a', 'r'
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(field.length(), field.size() + 1U);
+    TS_ASSERT(field.valid());
 }
 
 template <typename TField>

@@ -67,6 +67,12 @@ struct FixedSizeStorage
     static const std::size_t Value = TSize;
 };
 
+template <typename T>
+struct SetDefaultValueInitialiser
+{
+    typedef T Type;
+};
+
 
 }  // namespace option
 

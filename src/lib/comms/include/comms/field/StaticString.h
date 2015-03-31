@@ -40,22 +40,28 @@ class StaticString : public details::StaticStringBase<TField, TOptions...>
     typedef details::StaticStringBase<TField, TOptions...> Base;
 public:
     typedef char CharType;
-    typedef const CharType* ValueType;
-    typedef ValueType Iterator;
+    typedef const CharType* Iterator;
+    typedef CharType value_type;
     typedef Iterator iterator;
 
     typedef typename Base::DefaultInitialiser DefaultInitialiser;
+    typedef typename Base::SizeValidator SizeValidator;
+    typedef typename Base::ContentValidator ContentValidator;
 
     static const std::size_t SizeLength = Base::SizeLength;
 
     StaticString()
-      : size_(0)
     {
         DefaultInitialiser initialiser;
         GASSERT(initialiser.size() < StorageSize);
         std::copy_n(initialiser.begin(), initialiser.size(), storage_.begin());
         size_ = initialiser.size();
         endString();
+    }
+
+    StaticString(const CharType* value)
+    {
+        setValue(value);
     }
 
     StaticString(const StaticString& other)
@@ -83,12 +89,13 @@ public:
 
     void setValue(const CharType* value)
     {
-        clear();
-        while ((value != '\0') && (size_ < capacity())) {
+        size_ = 0;
+        while ((*value != '\0') && (size_ < capacity())) {
             storage_[size_] = *value;
             ++size_;
             ++value;
         }
+        endString();
     }
 
     void clear()
@@ -117,9 +124,9 @@ public:
         return size_ == 0;
     }
 
-    static constexpr bool valid()
+    constexpr bool valid() const
     {
-        return true;
+        return SizeValidator()(size_) && ContentValidator()(begin(), end());
     }
 
     Iterator begin() const
@@ -182,6 +189,7 @@ public:
         std::copy_n(iter, len, storage_.begin());
         std::advance(iter, len);
         size_ = len;
+        endString();
         return ErrorStatus::Success;
     }
 
@@ -209,8 +217,64 @@ private:
     typedef std::array<CharType, StorageSize> StorageType;
 
     StorageType storage_;
-    std::size_t size_;
+    std::size_t size_ = 0;
 };
+
+/// @brief Equality comparison operator.
+/// @related BasicIntValue
+template <typename... TArgs>
+bool operator==(
+    const StaticString<TArgs...>& field1,
+    const StaticString<TArgs...>& field2)
+{
+    return
+        field1.size() == field2.size() &&
+        std::equal(field1.begin(), field1.end(), field2.begin());
+}
+
+/// @brief Non-equality comparison operator.
+/// @related BasicIntValue
+template <typename... TArgs>
+bool operator!=(
+    const StaticString<TArgs...>& field1,
+    const StaticString<TArgs...>& field2)
+{
+    return !(field1 == field2);
+}
+
+/// @brief Equivalence comparison operator.
+/// @related BasicIntValue
+template <typename... TArgs>
+bool operator<(
+    const StaticString<TArgs...>& field1,
+    const StaticString<TArgs...>& field2)
+{
+    return std::lexicographical_compare(field1.begin(), field1.end(), field2.begin(), field2.end());
+}
+
+namespace details
+{
+
+template <typename T>
+struct IsStaticString
+{
+    static const bool Value = false;
+};
+
+template <typename... TArgs>
+struct IsStaticString<comms::field::StaticString<TArgs...> >
+{
+    static const bool Value = true;
+};
+
+}  // namespace details
+
+template <typename T>
+constexpr bool isStaticString()
+{
+    return details::IsStaticString<T>::Value;
+}
+
 
 }  // namespace field
 

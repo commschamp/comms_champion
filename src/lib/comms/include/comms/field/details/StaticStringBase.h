@@ -48,6 +48,34 @@ struct DefaultStaticStringInitialiser
     }
 };
 
+struct DefaultStaticStringSizeValidator
+{
+    constexpr bool operator()(std::size_t) const
+    {
+        return true;
+    }
+};
+
+template <std::size_t TMaxSize>
+struct StaticStringSizeValidator
+{
+    constexpr bool operator()(std::size_t size) const
+    {
+        return size <= TMaxSize;
+    }
+};
+
+struct DefaultStaticStringContentValidator
+{
+    template <typename TIter>
+    bool operator()(TIter, TIter) const
+    {
+        return true;
+    }
+};
+
+
+
 template <typename TField, typename... TOptions>
 class StaticStringBase;
 
@@ -56,17 +84,20 @@ class StaticStringBase<TField> : public TField
 {
 protected:
     typedef DefaultStaticStringInitialiser DefaultInitialiser;
+    typedef DefaultStaticStringSizeValidator SizeValidator;
+    typedef DefaultStaticStringContentValidator ContentValidator;
+
     static const std::size_t SizeLength = sizeof(std::uint8_t);
     static const std::size_t StorageSize =
         static_cast<std::size_t>(std::numeric_limits<std::uint8_t>::max());
 };
 
 template <typename TField, std::size_t TLen, typename... TOptions>
-class StaticStringBase<TField, comms::field::option::LengthLimitImpl<TLen>, TOptions...> :
+class StaticStringBase<TField, comms::field::option::SetStringSizeLengthLimit<TLen>, TOptions...> :
     public StaticStringBase<TField, TOptions...>
 {
     typedef StaticStringBase<TField, TOptions...> Base;
-    typedef comms::field::option::LengthLimitImpl<TLen> Option;
+    typedef comms::field::option::SetStringSizeLengthLimit<TLen> Option;
 
 protected:
 
@@ -102,6 +133,31 @@ protected:
 
     typedef typename Option::Type DefaultInitialiser;
 };
+
+template <typename TField, std::size_t TSize, typename... TOptions>
+class StaticStringBase<TField, comms::field::option::SetValidStringMaxSize<TSize>, TOptions...> :
+    public StaticStringBase<TField, TOptions...>
+{
+    typedef StaticStringBase<TField, TOptions...> Base;
+    typedef comms::field::option::SetValidStringMaxSize<TSize> Option;
+
+protected:
+
+    typedef StaticStringSizeValidator<Option::Value> SizeValidator;
+};
+
+template <typename TField, typename T, typename... TOptions>
+class StaticStringBase<TField, comms::field::option::SetStringContentValidator<T>, TOptions...> :
+    public StaticStringBase<TField, TOptions...>
+{
+    typedef StaticStringBase<TField, TOptions...> Base;
+    typedef comms::field::option::SetStringContentValidator<T> Option;
+
+protected:
+
+    typedef typename Option::Type ContentValidator;
+};
+
 
 }  // namespace details
 

@@ -46,6 +46,9 @@ public:
     void test14();
     void test15();
     void test16();
+    void test17();
+    void test18();
+    void test19();
 
 private:
     typedef comms::option::UseBigEndian UseBigEndianOpt;
@@ -458,6 +461,12 @@ void FieldsTestSuite::test16()
     TS_ASSERT(field.valid());
     TS_ASSERT(field.empty());
 
+    static const char ExpectedBuf[] = {
+        0x0
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
     static const char Buf[] = {
         0x5, 'h', 'e', 'l', 'l', 'o', 'g', 'a', 'r'
     };
@@ -466,6 +475,91 @@ void FieldsTestSuite::test16()
     TS_ASSERT_EQUALS(field.size(), static_cast<std::size_t>(Buf[0]));
     TS_ASSERT_EQUALS(field.length(), field.size() + 1U);
     TS_ASSERT(field.valid());
+}
+
+void FieldsTestSuite::test17()
+{
+    typedef comms::field::StaticString<
+        comms::Field<UseBigEndianOpt>,
+        comms::field::option::SetValidStringMaxSize<4>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT(field.empty());
+
+    static const char Buf[] = {
+        0x5, 'h', 'e', 'l', 'l', 'o', 'g', 'a', 'r'
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(field.length(), field.size() + 1U);
+    TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.getValue(), std::string("hello"));
+}
+
+void FieldsTestSuite::test18()
+{
+    struct HelloInitialiser
+    {
+        static const char* begin()
+        {
+            static const std::string Str("hello");
+            return Str.c_str();
+        }
+
+        static std::size_t size()
+        {
+            return sizeof("hello") - 1;
+        }
+    };
+
+    typedef comms::field::StaticString<
+        comms::Field<UseBigEndianOpt>,
+        comms::field::option::SetDefaultValueInitialiser<HelloInitialiser>,
+        comms::field::option::SetStringSizeLengthLimit<2>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT(!field.empty());
+    TS_ASSERT_EQUALS(field.getValue(), std::string("hello"));
+    field.clear();
+    TS_ASSERT(field.empty());
+    field.setValue("bla");
+    TS_ASSERT_EQUALS(field.getValue(), std::string("bla"));
+    TS_ASSERT_EQUALS(field.size(), 3);
+    TS_ASSERT_EQUALS(field.length(), 5);
+
+    static const char ExpectedBuf[] = {
+        0x0, 0x3, 'b', 'l', 'a'
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test19()
+{
+    typedef comms::field::StaticString<
+        comms::Field<UseBigEndianOpt>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT(field.empty());
+
+    static const std::string Str("hello");
+    std::copy(Str.begin(), Str.end(), std::back_inserter(field));
+    TS_ASSERT(!field.empty());
+    TS_ASSERT_EQUALS(field.size(), Str.size());
+    TS_ASSERT_EQUALS(field.getValue(), Str);
+
+    static const char ExpectedBuf[] = {
+        0x5, 'h', 'e', 'l', 'l', 'o'
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
 }
 
 template <typename TField>
@@ -516,7 +610,7 @@ void FieldsTestSuite::writeReadField(
 
     if (es == comms::ErrorStatus::Success) {
         auto readIter = &outDataBuf[0];
-        TField newField;
+        typename std::decay<decltype(field)>::type newField;
         auto readEs = newField.read(readIter, size);
         TS_ASSERT_EQUALS(readEs, comms::ErrorStatus::Success);
         TS_ASSERT_EQUALS(field, newField);

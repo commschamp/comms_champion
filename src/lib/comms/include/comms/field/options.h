@@ -73,6 +73,24 @@ struct SetDefaultValueInitialiser
     typedef T Type;
 };
 
+template <std::size_t TSize>
+struct SetValidStringMaxSize
+{
+    static const std::size_t Value = TSize;
+};
+
+template <typename T>
+struct SetStringContentValidator
+{
+    typedef T Type;
+};
+
+template<std::size_t TLen>
+struct SetStringSizeLengthLimit
+{
+    static const std::size_t Value = TLen;
+};
+
 
 }  // namespace option
 

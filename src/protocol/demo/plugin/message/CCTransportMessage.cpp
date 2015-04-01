@@ -80,8 +80,20 @@ void CCTransportMessage::updateFieldPropertiesImpl(
     setNameProperty(fieldWidget, FieldNames[idx]);
 
     if (idx == FieldIdx_MsgId) {
-        setIndexedNameProperty(fieldWidget, demo::message::MsgId_Heartbeat, "Heartbeat");
-        setIndexedNameProperty(fieldWidget, demo::message::MsgId_Status, "Status");
+        static const QString MsgNames[] = {
+            "Heartbeat",
+            "Status",
+            "Serial Info"
+        };
+
+        static const auto NumOfMsgNames = std::extent<decltype(MsgNames)>::value;
+
+        static_assert(
+            NumOfMsgNames == demo::message::MsgId_NumOfMessages,
+            "Message names mapping is incorrect.");
+        for (auto idx = 0U; idx < NumOfMsgNames; ++idx) {
+            setIndexedNameProperty(fieldWidget, idx, MsgNames[idx]);
+        }
     }
 }
 

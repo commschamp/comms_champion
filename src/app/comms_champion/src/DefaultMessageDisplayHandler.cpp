@@ -66,6 +66,16 @@ DefaultMessageDisplayHandler::createBasicEnumValueFieldWidget(
 }
 
 DefaultMessageDisplayHandler::FieldWidgetPtr
+DefaultMessageDisplayHandler::createStringFieldWidget(
+    field_wrapper::StringWrapperPtr&& fieldWrapper)
+{
+    assert(!"NYI");
+    static_cast<void>(fieldWrapper);
+    return FieldWidgetPtr();
+}
+
+
+DefaultMessageDisplayHandler::FieldWidgetPtr
 DefaultMessageDisplayHandler::createUnknownValueFieldWidget(
     field_wrapper::UnknownValueWrapperPtr&& fieldWrapper)
 {

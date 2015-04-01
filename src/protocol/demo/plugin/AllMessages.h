@@ -21,6 +21,9 @@
 #include <tuple>
 #include "message/CCHeartbeat.h"
 #include "message/CCStatus.h"
+#include "message/CCSerialInfo.h"
+
+#include "protocol/DemoMessage.h"
 
 namespace demo
 {
@@ -31,8 +34,13 @@ namespace plugin
 using AllMessages =
     std::tuple<
         message::CCHeartbeat,
-        message::CCStatus
+        message::CCStatus,
+        message::CCSerialInfo
     >;
+
+static_assert(
+    std::tuple_size<AllMessages>::value == demo::message::MsgId_NumOfMessages,
+    "Incorrect number of messages.");
 
 }  // namespace plugin
 

@@ -31,6 +31,7 @@
 #include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 #include "comms_champion/field_wrapper/BasicEnumValueWrapper.h"
+#include "comms_champion/field_wrapper/StringWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -42,6 +43,7 @@ namespace details
 struct BasicIntValueTag {};
 struct BitmaskValueTag {};
 struct BasicEnumValueTag {};
+struct StaticStringTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -50,7 +52,9 @@ struct TagOf
     static_assert(!comms::field::isBasicIntValue<TField>(),
         "BasicIntValue is perceived as unknown type");
     static_assert(!comms::field::isBitmaskValue<TField>(),
-        "BasicValue is perceived as unknown type");
+        "BitmaskValue is perceived as unknown type");
+    static_assert(!comms::field::isStaticString<TField>(),
+        "StaticString is perceived as unknown type");
     typedef UnknownValueTag Type;
 };
 
@@ -84,6 +88,16 @@ struct TagOf<comms::field::BasicEnumValue<TArgs...> >
     typedef BasicEnumValueTag Type;
 };
 
+template <typename... TArgs>
+struct TagOf<comms::field::StaticString<TArgs...> >
+{
+    static_assert(
+        comms::field::isStaticString<comms::field::StaticString<TArgs...> >(),
+        "isStaticString is supposed to return true");
+
+    typedef StaticStringTag Type;
+};
+
 template <typename TField>
 using TagOfT = typename TagOf<TField>::Type;
 
@@ -111,6 +125,7 @@ private:
     using BasicIntValueTag = details::BasicIntValueTag;
     using BitmaskValueTag = details::BitmaskValueTag;
     using BasicEnumValueTag = details::BasicEnumValueTag;
+    using StaticStringTag = details::StaticStringTag;
     using UnknownValueTag = details::UnknownValueTag;
 
     template <typename THandler>
@@ -168,6 +183,13 @@ private:
     }
 
     template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, StaticStringTag)
+    {
+        return createStringFieldWidget(
+            field_wrapper::makeStaticStringWrapper(field));
+    }
+
+    template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -182,6 +204,9 @@ private:
 
     FieldWidgetPtr createBasicEnumValueFieldWidget(
         field_wrapper::BasicEnumValueWrapperPtr&& fieldWrapper);
+
+    FieldWidgetPtr createStringFieldWidget(
+        field_wrapper::StringWrapperPtr&& fieldWrapper);
 
     FieldWidgetPtr createUnknownValueFieldWidget(
         field_wrapper::UnknownValueWrapperPtr&& fieldWrapper);

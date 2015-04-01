@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 
 #pragma once
 
+
+#pragma once
+
 #include <tuple>
 #include <cstdint>
 
@@ -30,25 +33,25 @@ namespace message
 {
 
 template <typename TFieldBase>
-using HeartbeatFields =
+using SerialInfoFields =
     std::tuple<
-        comms::field::BasicIntValue<
+        comms::field::StaticString<
             TFieldBase,
-            std::uint16_t>
+            comms::field::option::SetValidStringMaxSize<64> >
     >;
 
 template <typename TMsgBase = DemoMessage>
-class Heartbeat : public
+class SerialInfo : public
     comms::MessageBase<
         TMsgBase,
-        comms::option::NumIdImpl<MsgId_Heartbeat>,
-        comms::option::FieldsImpl<HeartbeatFields<typename TMsgBase::Field> >,
-        comms::option::DispatchImpl<Heartbeat<TMsgBase> >
+        comms::option::NumIdImpl<MsgId_SerialInfo>,
+        comms::option::FieldsImpl<SerialInfoFields<typename TMsgBase::Field> >,
+        comms::option::DispatchImpl<SerialInfo<TMsgBase> >
     >
 {
 public:
     enum FieldId {
-        FieldId_Counter,
+        FieldId_Device,
         FieldId_NumOfFields
     };
 };
@@ -56,5 +59,8 @@ public:
 }  // namespace message
 
 }  // namespace demo
+
+
+
 
 

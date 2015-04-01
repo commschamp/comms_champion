@@ -41,8 +41,12 @@ class StaticString : public details::StaticStringBase<TField, TOptions...>
 public:
     typedef char CharType;
     typedef const CharType* Iterator;
-    typedef CharType value_type;
     typedef Iterator iterator;
+
+    typedef typename std::iterator_traits<iterator>::iterator_category iterator_category;
+    typedef typename std::iterator_traits<iterator>::value_type value_type;
+    typedef typename std::iterator_traits<iterator>::difference_type difference_type;
+    typedef typename std::iterator_traits<iterator>::pointer pointer;
 
     typedef typename Base::DefaultInitialiser DefaultInitialiser;
     typedef typename Base::SizeValidator SizeValidator;
@@ -202,15 +206,39 @@ public:
 
         Base::template writeData<SizeLength>(size_, iter);
         std::copy_n(storage_.begin(), size_, iter);
-        std::advance(iter, size_);
 
+        typedef typename std::decay<decltype(iter)>::type IterType;
+        typedef typename std::conditional<
+            std::is_same<typename std::iterator_traits<IterType>::difference_type, void>::value,
+            UseInc,
+            UseStdAdvance
+        >::type Tag;
+
+        advanceIter(iter, size_, Tag());
         return ErrorStatus::Success;
     }
 
 private:
+    struct UseStdAdvance {};
+    struct UseInc {};
+
     void endString()
     {
         storage_[size_] = '\0';
+    }
+
+    template <typename TIter>
+    static void advanceIter(TIter& iter, std::size_t sizeParam, UseStdAdvance)
+    {
+        std::advance(iter, sizeParam);
+    }
+
+    template <typename TIter>
+    static void advanceIter(TIter& iter, std::size_t sizeParam, UseInc)
+    {
+        for (auto i = 0U; i < sizeParam; ++i) {
+            ++iter;
+        }
     }
 
     static const std::size_t StorageSize = Base::StorageSize;

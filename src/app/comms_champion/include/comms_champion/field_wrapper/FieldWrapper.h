@@ -63,6 +63,17 @@ public:
 
 protected:
 
+    struct Writable {};
+    struct ReadOnly {};
+
+    using UpdateTag =
+        typename std::conditional<
+            std::is_const<TField>::value,
+            ReadOnly,
+            Writable
+        >::type;
+
+
     FieldWrapperT(Field& field)
       : m_field(field)
     {

@@ -18,36 +18,40 @@
 
 #pragma once
 
-#include <cstdint>
 #include "comms/comms.h"
+#include "protocol/message/SerialInfo.h"
+#include "CCDemoMessage.h"
 
 namespace demo
+{
+
+namespace plugin
 {
 
 namespace message
 {
 
-enum MsgId
+class CCSerialInfo : public demo::message::SerialInfo<demo::plugin::CCDemoMessage>
 {
-    MsgId_Heartbeat,
-    MsgId_Status,
-    MsgId_SerialInfo,
-    MsgId_NumOfMessages
+    using Base = demo::message::SerialInfo<demo::plugin::CCDemoMessage>;
+public:
+
+    CCSerialInfo() = default;
+    CCSerialInfo(const CCSerialInfo&) = default;
+    virtual ~CCSerialInfo() = default;
+
+    CCSerialInfo& operator=(const CCSerialInfo&) = default;
+
+protected:
+    virtual const char* nameImpl() const override;
+    virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
+    virtual void resetImpl() override;
+    virtual void assignImpl(const comms_champion::Message& other) override;
 };
 
-typedef std::tuple<
-    comms::option::SetMsgIdType<MsgId>,
-    comms::option::UseBigEndian,
-    comms::option::SetReadIterator<const std::uint8_t*>,
-    comms::option::SetWriteIterator<std::uint8_t*>
-> DemoDefaultTraits;
-
-template <typename... TOptions>
-using DemoMessageT = comms::Message<TOptions...>;
-
-using DemoMessage = DemoMessageT<DemoDefaultTraits>;
-
 }  // namespace message
+
+}  // namespace plugin
 
 }  // namespace demo
 

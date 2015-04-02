@@ -18,38 +18,44 @@
 
 #pragma once
 
-#include <QtWidgets/QWidget>
+#include "comms_champion/FieldWidget.h"
+#include "comms_champion/field_wrapper/StringWrapper.h"
 
-#include "comms_champion/MessageInfo.h"
-
-#include "ui_ProtocolsStackWidget.h"
+#include "ui_StringFieldWidget.h"
 
 namespace comms_champion
 {
 
-class ProtocolsStackWidget : public QWidget
+class StringFieldWidget : public FieldWidget
 {
     Q_OBJECT
-    using Base = QWidget;
+    typedef FieldWidget Base;
 public:
-    ProtocolsStackWidget(QWidget* parent = nullptr);
-    ~ProtocolsStackWidget();
+    using WrapperPtr = field_wrapper::StringWrapperPtr;
 
-    void displayMessage(MessageInfoPtr msgInfo);
-    void clear();
+    explicit StringFieldWidget(
+        WrapperPtr&& wrapper,
+        QWidget* parent = nullptr);
 
-signals:
-    void sigMessageSelected(MessageInfo::MessagePtr msgInfo, bool editEnabled);
+    ~StringFieldWidget();
+
+protected:
+    virtual void refreshImpl() override;
+    virtual void setEditEnabledImpl(bool enabled) override;
+    virtual void propertiesUpdatedImpl() override;
 
 private slots:
-    void itemClicked(QTreeWidgetItem* item, int column);
+    void stringChanged(const QString& str);
 
 private:
-    void reportMessageSelected(QTreeWidgetItem* item);
-    static MessageInfo::MessagePtr msgFromItem(QTreeWidgetItem* item);
 
-    Ui::ProtocolsStackWidget m_ui;
+    void readPropertiesAndUpdateUi();
+    void updateString(const QString& str);
+
+    Ui::StringFieldWidget m_ui;
+    WrapperPtr m_wrapper;
 };
+
 
 }  // namespace comms_champion
 

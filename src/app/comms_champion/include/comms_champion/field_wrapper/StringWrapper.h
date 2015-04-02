@@ -59,21 +59,16 @@ public:
         return serialisedValueImpl();
     }
 
-    std::size_t sizeLength() const
+    int maxSize() const
     {
-        return sizeLengthImpl();
-    }
-
-    int sizeWidth() const
-    {
-        return static_cast<int>(sizeLength()) * 2;
+        return maxSizeImpl();
     }
 
 protected:
     virtual QString valueImpl() const = 0;
     virtual void setValueImpl(const QString& val) = 0;
     virtual SerializedType serialisedValueImpl() const = 0;
-    virtual std::size_t sizeLengthImpl() const = 0;
+    virtual int maxSizeImpl() const = 0;
 };
 
 template <typename TField>
@@ -113,17 +108,21 @@ protected:
 
     virtual SerializedType serialisedValueImpl() const override
     {
+        auto& field = Base::field();
         SerializedType value;
-        value.reserve(Base::field().size());
-        for (auto ch : Base::field()) {
-            value.push_back(static_cast<typename SerializedType::value_type>(ch));
-        }
+        value.reserve(field.length());
+        auto iter = std::back_inserter(value);
+        field.write(iter, value.max_size());
         return value;
     }
 
-    virtual std::size_t sizeLengthImpl() const override
+    virtual int maxSizeImpl() const override
     {
-        return Field::SizeLength;
+        if (sizeof(int) <= Field::SizeLength) {
+            return std::numeric_limits<int>::max();
+        }
+
+        return static_cast<int>((1U << Field::SizeLength) - 1);
     }
 
 private:

@@ -24,6 +24,7 @@
 #include "widget/field/BasicIntValueFieldWidget.h"
 #include "widget/field/BitmaskValueFieldWidget.h"
 #include "widget/field/BasicEnumValueFieldWidget.h"
+#include "widget/field/StringFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -69,9 +70,9 @@ DefaultMessageDisplayHandler::FieldWidgetPtr
 DefaultMessageDisplayHandler::createStringFieldWidget(
     field_wrapper::StringWrapperPtr&& fieldWrapper)
 {
-    assert(!"NYI");
-    static_cast<void>(fieldWrapper);
-    return FieldWidgetPtr();
+    return
+        FieldWidgetPtr(
+            new StringFieldWidget(std::move(fieldWrapper)));
 }
 
 

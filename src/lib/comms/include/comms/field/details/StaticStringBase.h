@@ -89,7 +89,7 @@ protected:
 
     static const std::size_t SizeLength = sizeof(std::uint8_t);
     static const std::size_t StorageSize =
-        static_cast<std::size_t>(std::numeric_limits<std::uint8_t>::max());
+        static_cast<std::size_t>(std::numeric_limits<std::uint8_t>::max()) + 1U;
 };
 
 template <typename TField, std::size_t TLen, typename... TOptions>

@@ -78,6 +78,13 @@ void DefaultMessageDisplayWidget::clearImpl()
     m_protocolsDetailsWidget->clear();
 }
 
+void DefaultMessageDisplayWidget::refreshImpl()
+{
+    if (m_msgDetailsWidget != nullptr) {
+        m_msgDetailsWidget->refresh();
+    }
+}
+
 void DefaultMessageDisplayWidget::msgSelectedInProtocol(
     MessageInfo::MessagePtr msg,
     bool editEnabled)

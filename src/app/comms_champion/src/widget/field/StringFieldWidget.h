@@ -45,12 +45,11 @@ protected:
     virtual void propertiesUpdatedImpl() override;
 
 private slots:
-    void stringChanged(const QString& str);
+    void stringChanged();
 
 private:
 
     void readPropertiesAndUpdateUi();
-    void updateString(const QString& str);
 
     Ui::StringFieldWidget m_ui;
     WrapperPtr m_wrapper;

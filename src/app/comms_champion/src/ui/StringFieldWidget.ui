@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>386</width>
-    <height>29</height>
+    <width>611</width>
+    <height>80</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,7 +36,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="m_valueLineEdit"/>
+      <widget class="QPlainTextEdit" name="m_valuePlainTextEdit">
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::AdjustIgnored</enum>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer">
@@ -70,7 +74,10 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="m_serValueLineEdit">
+      <widget class="QPlainTextEdit" name="m_serValuePlainTextEdit">
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::AdjustIgnored</enum>
+       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>

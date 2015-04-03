@@ -35,8 +35,8 @@ StringFieldWidget::StringFieldWidget(
 
 
     connect(
-        m_ui.m_valueLineEdit, SIGNAL(textEdited(const QString&)),
-        this, SLOT(stringChanged(const QString&)));
+        m_ui.m_valuePlainTextEdit, SIGNAL(textChanged()),
+        this, SLOT(stringChanged()));
 
 
     refresh();
@@ -57,26 +57,31 @@ void StringFieldWidget::refreshImpl()
         serValueStr.append(QString("%1").arg(byte, 2, 16, QChar('0')));
     }
 
-    assert(m_ui.m_serValueLineEdit != nullptr);
-    m_ui.m_serValueLineEdit->setText(serValueStr);
+    assert(m_ui.m_serValuePlainTextEdit != nullptr);
+    m_ui.m_serValuePlainTextEdit->setPlainText(serValueStr);
 
-    assert(m_ui.m_valueLineEdit != nullptr);
+    assert(m_ui.m_valuePlainTextEdit != nullptr);
     auto value = m_wrapper->value();
-    if (m_ui.m_valueLineEdit->text() != value) {
-        m_ui.m_valueLineEdit->setText(value);
+    if (m_ui.m_valuePlainTextEdit->toPlainText() != value) {
+        auto cursor = m_ui.m_valuePlainTextEdit->textCursor();
+        auto newPosition = std::min(cursor.position(), value.size());
+        m_ui.m_valuePlainTextEdit->setPlainText(value);
+        cursor.setPosition(newPosition);
+        m_ui.m_valuePlainTextEdit->setTextCursor(cursor);
     }
 
     bool valid = m_wrapper->valid();
     setValidityStyleSheet(*m_ui.m_nameLabel, valid);
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
-    setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
+    setValidityStyleSheet(*m_ui.m_valuePlainTextEdit, valid);
+    setValidityStyleSheet(*m_ui.m_serValuePlainTextEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
 void StringFieldWidget::setEditEnabledImpl(bool enabled)
 {
     bool readonly = !enabled;
-    m_ui.m_valueLineEdit->setReadOnly(readonly);
+    m_ui.m_valuePlainTextEdit->setReadOnly(readonly);
 }
 
 void StringFieldWidget::propertiesUpdatedImpl()
@@ -84,29 +89,22 @@ void StringFieldWidget::propertiesUpdatedImpl()
     readPropertiesAndUpdateUi();
 }
 
-void StringFieldWidget::stringChanged(const QString& str)
+void StringFieldWidget::stringChanged()
 {
+    auto str = m_ui.m_valuePlainTextEdit->toPlainText();
     if (str.size() < m_wrapper->maxSize()) {
-        QString strCpy(str);
-        strCpy.resize(m_wrapper->maxSize());
-        updateString(strCpy);
-        return;
+        str.resize(m_wrapper->maxSize());
     }
 
-    updateString(str);
+    m_wrapper->setValue(str);
+    refresh();
+    emitFieldUpdated();
 }
 
 void StringFieldWidget::readPropertiesAndUpdateUi()
 {
     assert(m_ui.m_nameLabel != nullptr);
     updateNameLabel(*m_ui.m_nameLabel);
-}
-
-void StringFieldWidget::updateString(const QString& str)
-{
-    m_wrapper->setValue(str);
-    refresh();
-    emitFieldUpdated();
 }
 
 }  // namespace comms_champion

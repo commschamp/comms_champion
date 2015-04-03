@@ -24,6 +24,7 @@
 
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QPlainTextEdit>
 
 #include "GlobalConstants.h"
 
@@ -89,6 +90,12 @@ void FieldWidget::setValidityStyleSheet(QLabel& widget, bool valid)
 void FieldWidget::setValidityStyleSheet(QLineEdit& widget, bool valid)
 {
     static const QString InvalidStylesheet("QLineEdit { color: red }");
+    updateValidityStyle(widget, valid, InvalidStylesheet);
+}
+
+void FieldWidget::setValidityStyleSheet(QPlainTextEdit& widget, bool valid)
+{
+    static const QString InvalidStylesheet("QPlainTextEdit { color: red }");
     updateValidityStyle(widget, valid, InvalidStylesheet);
 }
 

@@ -475,6 +475,7 @@ void MessageUpdateDialog::reset()
     msgPtr->reset();
     m_protocol->updateMessageInfo(*msgInfo);
     assert(m_msgDisplayWidget);
+    m_msgDisplayWidget->refresh();
     m_msgDisplayWidget->displayMessage(std::move(msgInfo));
 }
 

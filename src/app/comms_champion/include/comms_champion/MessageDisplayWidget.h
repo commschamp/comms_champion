@@ -52,6 +52,11 @@ public slots:
         clearImpl();
     }
 
+    void refresh()
+    {
+        refreshImpl();
+    }
+
 signals:
     void sigMsgUpdated();
 
@@ -59,6 +64,7 @@ protected:
     virtual void displayMessageImpl(MessageInfoPtr msgInfo) = 0;
     virtual void setEditEnabledImpl(bool enabled) = 0;
     virtual void clearImpl() = 0;
+    virtual void refreshImpl() = 0;
 };
 
 }  // namespace comms_champion

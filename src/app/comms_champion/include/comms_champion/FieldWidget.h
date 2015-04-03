@@ -22,6 +22,7 @@
 
 class QLineEdit;
 class QLabel;
+class QPlainTextEdit;
 
 namespace comms_champion
 {
@@ -49,6 +50,7 @@ protected:
 
     static void setValidityStyleSheet(QLabel& widget, bool valid);
     static void setValidityStyleSheet(QLineEdit& widget, bool valid);
+    static void setValidityStyleSheet(QPlainTextEdit& widget, bool valid);
     static void setSerialisedInputMask(QLineEdit& line, int width);
 
     template <typename TSerValue>

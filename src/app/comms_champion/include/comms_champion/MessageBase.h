@@ -34,10 +34,10 @@ namespace comms_champion
 template <typename... TOptions>
 class MessageBase :
         public Message,
-        public comms::Message<TOptions..., comms::option::SetHandler<DefaultMessageDisplayHandler> >
+        public comms::Message<TOptions..., comms::option::Handler<DefaultMessageDisplayHandler> >
 {
     using CCBase = Message;
-    using CommsBase = comms::Message<TOptions..., comms::option::SetHandler<DefaultMessageDisplayHandler> >;
+    using CommsBase = comms::Message<TOptions..., comms::option::Handler<DefaultMessageDisplayHandler> >;
 public:
     typedef typename CommsBase::Handler Handler;
 

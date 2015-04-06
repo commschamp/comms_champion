@@ -44,7 +44,7 @@ template <typename TMsgBase = DemoMessage>
 class SerialInfo : public
     comms::MessageBase<
         TMsgBase,
-        comms::option::NumIdImpl<MsgId_SerialInfo>,
+        comms::option::StaticNumIdImpl<MsgId_SerialInfo>,
         comms::option::FieldsImpl<SerialInfoFields<typename TMsgBase::Field> >,
         comms::option::DispatchImpl<SerialInfo<TMsgBase> >
     >

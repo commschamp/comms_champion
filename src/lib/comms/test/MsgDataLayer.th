@@ -63,31 +63,31 @@ private:
     };
 
     typedef std::tuple<
-        comms::option::SetMsgIdType<MessageType>,
-        comms::option::UseBigEndian,
-        comms::option::SetReadIterator<const char*>,
-        comms::option::SetWriteIterator<char*>
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
     > BigEndianTraits;
 
     typedef std::tuple<
-        comms::option::SetMsgIdType<MessageType>,
-        comms::option::UseBigEndian,
-        comms::option::SetReadIterator<const char*>,
-        comms::option::SetWriteIterator<std::back_insert_iterator<std::vector<char> > >
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >
     > BackInserterBigEndianTraits;
 
     typedef std::tuple<
-        comms::option::SetMsgIdType<MessageType>,
-        comms::option::UseLittleEndian,
-        comms::option::SetReadIterator<const char*>,
-        comms::option::SetWriteIterator<char*>
+        comms::option::MsgIdType<MessageType>,
+        comms::option::LittleEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
     > LittleEndianTraits;
 
     typedef std::tuple<
-        comms::option::SetMsgIdType<MessageType>,
-        comms::option::UseLittleEndian,
-        comms::option::SetReadIterator<const char*>,
-        comms::option::SetWriteIterator<std::back_insert_iterator<std::vector<char> > >
+        comms::option::MsgIdType<MessageType>,
+        comms::option::LittleEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >
     > BackInserterLittleEndianTraits;
 
     typedef comms::Message<BigEndianTraits> BeMessageBase;

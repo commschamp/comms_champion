@@ -62,7 +62,7 @@ template <typename TMessage>
 class Message1 : public
         comms::MessageBase<
             TMessage,
-            comms::option::NumIdImpl<MessageType1>,
+            comms::option::StaticNumIdImpl<MessageType1>,
             comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
             comms::option::DispatchImpl<Message1<TMessage> >
         >
@@ -94,7 +94,7 @@ template <typename TMessage>
 class Message2 : public
     comms::MessageBase<
         TMessage,
-        comms::option::NumIdImpl<MessageType2>,
+        comms::option::StaticNumIdImpl<MessageType2>,
         comms::option::NoFieldsImpl,
         comms::option::DispatchImpl<Message2<TMessage> >
     >
@@ -136,7 +136,7 @@ template <typename TMessage>
 class Message3 : public
     comms::MessageBase<
         TMessage,
-        comms::option::NumIdImpl<MessageType3>,
+        comms::option::StaticNumIdImpl<MessageType3>,
         comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
         comms::option::DispatchImpl<Message3<TMessage> >
     >

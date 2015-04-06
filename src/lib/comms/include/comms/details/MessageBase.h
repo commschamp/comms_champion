@@ -49,59 +49,59 @@ protected:
 };
 
 template <typename T, typename... TOptions>
-class MessageBase<comms::option::SetMsgIdType<T>, TOptions...>
+class MessageBase<comms::option::MsgIdType<T>, TOptions...>
                                             : public MessageBase<TOptions...>
 {
-    typedef comms::option::SetMsgIdType<T> Option;
+    typedef comms::option::MsgIdType<T> Option;
     typedef MessageBase<TOptions...> Base;
 protected:
-    typedef typename Option::MsgIdType MsgIdType;
+    typedef typename Option::Type MsgIdType;
     typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 
 };
 
 template <typename TEndian, typename... TOptions>
-class MessageBase<comms::option::UseEndian<TEndian>, TOptions...>
+class MessageBase<comms::option::Endian<TEndian>, TOptions...>
                                             : public MessageBase<TOptions...>
 {
-    typedef comms::option::UseEndian<TEndian> Option;
+    typedef comms::option::Endian<TEndian> Option;
     typedef MessageBase<TOptions...> Base;
 protected:
-    typedef typename Option::Endian Endian;
+    typedef typename Option::Type Endian;
     typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 };
 
 
 template <typename TIter, typename... TOptions>
-class MessageBase<comms::option::SetReadIterator<TIter>, TOptions...>
+class MessageBase<comms::option::ReadIterator<TIter>, TOptions...>
                                             : public MessageBase<TOptions...>
 {
-    typedef comms::option::SetReadIterator<TIter> Option;
+    typedef comms::option::ReadIterator<TIter> Option;
     typedef MessageBase<TOptions...> Base;
 protected:
-    typedef typename Option::ReadIterator ReadIterator;
+    typedef typename Option::Type ReadIterator;
     typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 };
 
 template <typename TIter, typename... TOptions>
-class MessageBase<comms::option::SetWriteIterator<TIter>, TOptions...>
+class MessageBase<comms::option::WriteIterator<TIter>, TOptions...>
                                             : public MessageBase<TOptions...>
 {
-    typedef comms::option::SetWriteIterator<TIter> Option;
+    typedef comms::option::WriteIterator<TIter> Option;
     typedef MessageBase<TOptions...> Base;
 protected:
-    typedef typename Option::WriteIterator WriteIterator;
+    typedef typename Option::Type WriteIterator;
     typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 };
 
 template <typename T, typename... TOptions>
-class MessageBase<comms::option::SetHandler<T>, TOptions...>
+class MessageBase<comms::option::Handler<T>, TOptions...>
                                             : public MessageBase<TOptions...>
 {
-    typedef comms::option::SetHandler<T> Option;
+    typedef comms::option::Handler<T> Option;
     typedef MessageBase<TOptions...> Base;
 protected:
-    typedef typename Option::Handler Handler;
+    typedef typename Option::Type Handler;
     typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 };
 

@@ -31,10 +31,10 @@ namespace plugin
 {
 
 typedef std::tuple<
-    comms::option::SetMsgIdType<demo::message::MsgId>,
-    comms::option::UseBigEndian,
-    comms::option::SetReadIterator<const std::uint8_t*>,
-    comms::option::SetWriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >
+    comms::option::MsgIdType<demo::message::MsgId>,
+    comms::option::BigEndian,
+    comms::option::ReadIterator<const std::uint8_t*>,
+    comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >
 >CCDemoDefaultOptions;
 
 class CCDemoMessage : public comms_champion::MessageBase<CCDemoDefaultOptions>

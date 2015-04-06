@@ -67,13 +67,13 @@ private:
 
     typedef
         comms::Message<
-            comms::option::UseBigEndian,
-            comms::option::SetMsgIdType<MessageType>
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>
         > BeMessageBase;
     typedef
         comms::Message<
-            comms::option::UseLittleEndian,
-            comms::option::SetMsgIdType<MessageType>
+            comms::option::LittleEndian,
+            comms::option::MsgIdType<MessageType>
         > LeMessageBase;
 
     typedef Message1<BeMessageBase> BeMsg1;

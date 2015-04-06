@@ -39,10 +39,11 @@ protected:
 };
 
 template <typename TEndian, typename... TOptions>
-class FieldBase<comms::option::UseEndian<TEndian>, TOptions...> : public FieldBase<TOptions...>
+class FieldBase<comms::option::Endian<TEndian>, TOptions...> : public FieldBase<TOptions...>
 {
+    typedef comms::option::Endian<TEndian> Option;
 protected:
-    typedef TEndian Endian;
+    typedef typename Option::Type Endian;
 };
 
 

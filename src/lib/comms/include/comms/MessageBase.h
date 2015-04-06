@@ -48,12 +48,12 @@ protected:
 template <typename TMessage,
           long long int TId,
           typename... TRest>
-class MessageBase<TMessage, option::NumIdImpl<TId>, TRest...> :
+class MessageBase<TMessage, option::StaticNumIdImpl<TId>, TRest...> :
                                 public MessageBase<TMessage, TRest...>
 {
     typedef MessageBase<TMessage, TRest...> Base;
     typedef typename Base::MsgIdParamType MsgIdParamType;
-    typedef option::NumIdImpl<TId> Option;
+    typedef option::StaticNumIdImpl<TId> Option;
 
 public:
     typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;

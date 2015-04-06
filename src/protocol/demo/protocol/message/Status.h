@@ -58,7 +58,7 @@ template <typename TMsgBase = DemoMessage>
 class Status : public
     comms::MessageBase<
         TMsgBase,
-        comms::option::NumIdImpl<MsgId_Status>,
+        comms::option::StaticNumIdImpl<MsgId_Status>,
         comms::option::FieldsImpl<StatusFields<typename TMsgBase::Field> >,
         comms::option::DispatchImpl<Status<TMsgBase> >
     >

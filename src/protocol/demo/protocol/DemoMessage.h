@@ -36,10 +36,10 @@ enum MsgId
 };
 
 typedef std::tuple<
-    comms::option::SetMsgIdType<MsgId>,
-    comms::option::UseBigEndian,
-    comms::option::SetReadIterator<const std::uint8_t*>,
-    comms::option::SetWriteIterator<std::uint8_t*>
+    comms::option::MsgIdType<MsgId>,
+    comms::option::BigEndian,
+    comms::option::ReadIterator<const std::uint8_t*>,
+    comms::option::WriteIterator<std::uint8_t*>
 > DemoDefaultTraits;
 
 template <typename... TOptions>

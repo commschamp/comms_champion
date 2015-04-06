@@ -41,7 +41,7 @@ template <typename TMsgBase = DemoMessage>
 class Heartbeat : public
     comms::MessageBase<
         TMsgBase,
-        comms::option::NumIdImpl<MsgId_Heartbeat>,
+        comms::option::StaticNumIdImpl<MsgId_Heartbeat>,
         comms::option::FieldsImpl<HeartbeatFields<typename TMsgBase::Field> >,
         comms::option::DispatchImpl<Heartbeat<TMsgBase> >
     >

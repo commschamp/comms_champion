@@ -45,17 +45,17 @@ private:
     };
 
     typedef std::tuple<
-        comms::option::SetMsgIdType<MessageType>,
-        comms::option::UseBigEndian,
-        comms::option::SetReadIterator<const char*>,
-        comms::option::SetWriteIterator<char*>
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
     > BeTraits;
 
     typedef std::tuple<
-        comms::option::SetMsgIdType<MessageType>,
-        comms::option::UseLittleEndian,
-        comms::option::SetReadIterator<const char*>,
-        comms::option::SetWriteIterator<char*>
+        comms::option::MsgIdType<MessageType>,
+        comms::option::LittleEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
     > LeTraits;
 
     typedef TestMessageBase<BeTraits> BeMsgBase;

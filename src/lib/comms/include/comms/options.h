@@ -27,7 +27,7 @@ namespace option
 {
 
 template <long long int TId>
-struct NumIdImpl
+struct StaticNumIdImpl
 {
     static const auto Value = TId;
 };
@@ -52,37 +52,37 @@ struct NoFieldsImpl {};
 struct NoIdImpl {};
 
 template <typename TEndian>
-struct UseEndian
+struct Endian
 {
-    typedef TEndian Endian;
+    typedef TEndian Type;
 };
 
-using UseBigEndian = UseEndian<comms::traits::endian::Big>;
+using BigEndian = Endian<comms::traits::endian::Big>;
 
-using UseLittleEndian = UseEndian<comms::traits::endian::Little>;
+using LittleEndian = Endian<comms::traits::endian::Little>;
 
 template <typename T>
-struct SetMsgIdType
+struct MsgIdType
 {
-    typedef T MsgIdType;
+    typedef T Type;
 };
 
 template <typename TIter>
-struct SetReadIterator
+struct ReadIterator
 {
-    typedef TIter ReadIterator;
+    typedef TIter Type;
 };
 
 template <typename TIter>
-struct SetWriteIterator
+struct WriteIterator
 {
-    typedef TIter WriteIterator;
+    typedef TIter Type;
 };
 
 template <typename T>
-struct SetHandler
+struct Handler
 {
-    typedef T Handler;
+    typedef T Type;
 };
 
 

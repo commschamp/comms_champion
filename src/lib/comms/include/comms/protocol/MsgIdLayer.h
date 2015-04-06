@@ -118,7 +118,7 @@ struct IsNumIdImplOpt
 };
 
 template <long long int TId>
-struct IsNumIdImplOpt<comms::option::NumIdImpl<TId> >
+struct IsNumIdImplOpt<comms::option::StaticNumIdImpl<TId> >
 {
     static const bool Value = true;
 };

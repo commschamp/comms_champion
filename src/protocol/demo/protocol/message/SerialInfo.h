@@ -37,7 +37,7 @@ using SerialInfoFields =
     std::tuple<
         comms::field::StaticString<
             TFieldBase,
-            comms::field::option::SetValidStringMaxSize<32> >
+            comms::option::ValidStringMaxSize<32> >
     >;
 
 template <typename TMsgBase = DemoMessage>

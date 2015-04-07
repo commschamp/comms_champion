@@ -84,8 +84,6 @@ private:
         comms::ErrorStatus expectedStatus = comms::ErrorStatus::Success);
 };
 
-namespace cfo = comms::field::option;
-
 void FieldsTestSuite::test1()
 {
     typedef comms::field::BasicIntValue<
@@ -109,7 +107,7 @@ void FieldsTestSuite::test2()
     typedef comms::field::BasicIntValue<
         comms::Field<BigEndianOpt>,
         std::uint32_t,
-        cfo::LengthLimitImpl<3>
+        comms::option::FixedLength<3>
     > Field;
 
     static const char Buf[] = {
@@ -183,7 +181,7 @@ void FieldsTestSuite::test6()
     typedef comms::field::BasicIntValue<
         comms::Field<BigEndianOpt>,
         std::int16_t,
-        cfo::LengthLimitImpl<1>
+        comms::option::FixedLength<1>
     > Field;
 
     static const char Buf[] = {
@@ -202,8 +200,8 @@ void FieldsTestSuite::test7()
     typedef comms::field::BasicIntValue<
         comms::Field<BigEndianOpt>,
         std::int16_t,
-        cfo::LengthLimitImpl<1>,
-        cfo::SerOffsetImpl<-2000>
+        comms::option::FixedLength<1>,
+        comms::option::NumValueSerOffset<-2000>
     > Field;
 
     static const char Buf[] = {
@@ -224,8 +222,8 @@ void FieldsTestSuite::test8()
     typedef comms::field::BasicIntValue<
         comms::Field<BigEndianOpt>,
         std::uint32_t,
-        cfo::LengthLimitImpl<3>,
-        cfo::ValidRangeImpl<0, 0x010200>
+        comms::option::FixedLength<3>,
+        comms::option::ValidNumValueRange<0, 0x010200>
     > Field;
 
     static const char Buf[] = {
@@ -245,8 +243,8 @@ void FieldsTestSuite::test9()
     typedef comms::field::BasicIntValue<
         comms::Field<BigEndianOpt>,
         std::uint8_t,
-        cfo::ValidRangeImpl<0, 10>,
-        cfo::DefaultValueImpl<100>
+        comms::option::ValidNumValueRange<0, 10>,
+        comms::option::DefaultNumValue<100>
     > Field;
 
     Field field;
@@ -269,7 +267,7 @@ void FieldsTestSuite::test10()
 {
     typedef comms::field::BitmaskValue<
         comms::Field<BigEndianOpt>,
-        comms::field::option::LengthLimitImpl<2>
+        comms::option::FixedLength<2>
     > Field;
 
     Field field;
@@ -301,9 +299,9 @@ void FieldsTestSuite::test11()
 {
     typedef comms::field::BitmaskValue<
         comms::Field<LittleEndianOpt>,
-        comms::field::option::LengthLimitImpl<3>,
-        cfo::DefaultValueImpl<0xffffff>,
-        cfo::BitmaskReservedBitsImpl<0xff0000, 0>
+        comms::option::FixedLength<3>,
+        comms::option::DefaultNumValue<0xffffff>,
+        comms::option::BitmaskReservedBits<0xff0000, 0>
     > Field;
 
     Field field;
@@ -331,9 +329,9 @@ void FieldsTestSuite::test12()
     typedef comms::field::BasicEnumValue<
         comms::Field<BigEndianOpt>,
         Enum1,
-        cfo::LengthLimitImpl<1>,
-        cfo::ValidRangeImpl<0, Enum1_NumOfValues - 1>,
-        cfo::DefaultValueImpl<Enum1_NumOfValues>
+        comms::option::FixedLength<1>,
+        comms::option::ValidNumValueRange<0, Enum1_NumOfValues - 1>,
+        comms::option::DefaultNumValue<Enum1_NumOfValues>
     > Field;
 
     Field field;
@@ -367,9 +365,9 @@ void FieldsTestSuite::test13()
     typedef comms::field::BasicEnumValue<
         comms::Field<BigEndianOpt>,
         Enum2,
-        cfo::LengthLimitImpl<2>,
-        cfo::ValidRangeImpl<0, (int)(Enum2::NumOfValues) - 1>,
-        cfo::DefaultValueImpl<(int)Enum2::NumOfValues>
+        comms::option::FixedLength<2>,
+        comms::option::ValidNumValueRange<0, (int)(Enum2::NumOfValues) - 1>,
+        comms::option::DefaultNumValue<(int)Enum2::NumOfValues>
     > Field;
 
     Field field;
@@ -428,7 +426,7 @@ void FieldsTestSuite::test15()
             comms::Field<BigEndianOpt>,
             std::uint8_t
         >,
-        comms::field::option::FixedSizeStorage<32>
+        comms::option::FixedSizeStorage<32>
     > Field;
 
     Field field;
@@ -481,7 +479,7 @@ void FieldsTestSuite::test17()
 {
     typedef comms::field::StaticString<
         comms::Field<BigEndianOpt>,
-        comms::field::option::SetValidStringMaxSize<4>
+        comms::option::ValidStringMaxSize<4>
     > Field;
 
     Field field;
@@ -517,8 +515,8 @@ void FieldsTestSuite::test18()
 
     typedef comms::field::StaticString<
         comms::Field<BigEndianOpt>,
-        comms::field::option::SetDefaultValueInitialiser<HelloInitialiser>,
-        comms::field::option::SetStringSizeLengthLimit<2>
+        comms::option::DefaultValueInitialiser<HelloInitialiser>,
+        comms::option::StringSizeLength<2>
     > Field;
 
     Field field;

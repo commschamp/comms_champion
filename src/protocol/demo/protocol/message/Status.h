@@ -44,13 +44,13 @@ using StatusFields =
         comms::field::BasicEnumValue<
             TFieldBase,
             ExecutionStatus,
-            comms::field::option::LengthLimitImpl<1>,
-            comms::field::option::ValidRangeImpl<ExecutionStatus_Idle, ExecutionStatus_NumOfStatuses - 1> >,
+            comms::option::FixedLength<1>,
+            comms::option::ValidNumValueRange<ExecutionStatus_Idle, ExecutionStatus_NumOfStatuses - 1> >,
         comms::field::BitmaskValue<
             TFieldBase,
-            comms::field::option::LengthLimitImpl<2>,
-            comms::field::option::BitmaskReservedBitsImpl<0xfff0, false>,
-            comms::field::option::BitmaskBitZeroIsLsbImpl
+            comms::option::FixedLength<2>,
+            comms::option::BitmaskReservedBits<0xfff0, false>,
+            comms::option::BitIndexingStartsFromLsb
         >
     >;
 

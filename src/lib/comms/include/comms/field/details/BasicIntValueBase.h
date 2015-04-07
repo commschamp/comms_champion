@@ -21,7 +21,7 @@
 #include <type_traits>
 #include <limits>
 
-#include "comms/field/options.h"
+#include "comms/options.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/IntegralPromotion.h"
 
@@ -63,20 +63,21 @@ template <typename TField, typename T, long long int TMinValue, long long int TM
 class BasicIntValueBase<
     TField,
     T,
-    comms::field::option::ValidRangeImpl<TMinValue, TMaxValue>,
+    comms::option::ValidNumValueRange<TMinValue, TMaxValue>,
     TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
     typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef comms::option::ValidNumValueRange<TMinValue, TMaxValue> Option;
 
 protected:
     using Base::BasicIntValueBase;
 
     static const auto MinValidValue =
-        static_cast<decltype(Base::MinValidValue)>(TMinValue);
+        static_cast<decltype(Base::MinValidValue)>(Option::MinValue);
     static const auto MaxValidValue =
-        static_cast<decltype(Base::MaxValidValue)>(TMaxValue);
+        static_cast<decltype(Base::MaxValidValue)>(Option::MaxValue);
 };
 
 namespace details
@@ -132,12 +133,13 @@ template <typename TField, typename T, std::size_t TLen, typename... TOptions>
 class BasicIntValueBase<
     TField,
     T,
-    comms::field::option::LengthLimitImpl<TLen>,
+    comms::option::FixedLength<TLen>,
     TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
     typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef comms::option::FixedLength<TLen> Option;
 
 protected:
     using Base::BasicIntValueBase;
@@ -158,40 +160,42 @@ protected:
                 static_cast<long long int>(Base::MaxValidValue)
             >::Value);
 
-    static const std::size_t SerialisedLen = TLen;
+    static const std::size_t SerialisedLen = Option::Value;
 };
 
 template <typename TField, typename T, long long int TOff, typename... TOptions>
 class BasicIntValueBase<
     TField,
     T,
-    comms::field::option::SerOffsetImpl<TOff>,
+    comms::option::NumValueSerOffset<TOff>,
     TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
     typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef comms::option::NumValueSerOffset<TOff> Option;
 protected:
     using Base::BasicIntValueBase;
 
-    static const auto Offset = static_cast<decltype(Base::Offset)>(TOff);
+    static const auto Offset = static_cast<decltype(Base::Offset)>(Option::Value);
 };
 
 template <typename TField, typename T, long long int TValue, typename... TOptions>
 class BasicIntValueBase<
     TField,
     T,
-    comms::field::option::DefaultValueImpl<TValue>,
+    comms::option::DefaultNumValue<TValue>,
     TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
     typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef comms::option::DefaultNumValue<TValue> Option;
 
 protected:
     using Base::BasicIntValueBase;
 
-    static const auto DefaultValue = static_cast<decltype(Base::DefaultValue)>(TValue);
+    static const auto DefaultValue = static_cast<decltype(Base::DefaultValue)>(Option::Value);
 };
 
 }  // namespace details

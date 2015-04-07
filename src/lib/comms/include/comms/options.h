@@ -20,6 +20,8 @@
 
 #include <tuple>
 
+#include "comms/traits.h"
+
 namespace comms
 {
 
@@ -85,6 +87,75 @@ struct Handler
     typedef T Type;
 };
 
+template<std::size_t TLen>
+struct FixedLength
+{
+    static const std::size_t Value = TLen;
+};
+
+template<long long int TOffset>
+struct NumValueSerOffset
+{
+    static const auto Value = TOffset;
+};
+
+// TODO: should be alias to content validator
+template<long long int TMinValue, long long int TMaxValue>
+struct ValidNumValueRange
+{
+    static const auto MinValue = TMinValue;
+    static const auto MaxValue = TMaxValue;
+};
+
+// TODO: should be alias to default initialiser
+template<long long int TVal>
+struct DefaultNumValue
+{
+    static const auto Value = TVal;
+};
+
+// TODO: should be alias to content validator
+template<long long unsigned TMask, bool TValue>
+struct BitmaskReservedBits
+{
+    static const auto Mask = TMask;
+    static const auto Value = TValue;
+};
+
+// TODO: rename to Msb
+struct BitIndexingStartsFromLsb {};
+
+template <std::size_t TSize>
+struct FixedSizeStorage
+{
+    static const std::size_t Value = TSize;
+};
+
+template <typename T>
+struct DefaultValueInitialiser
+{
+    typedef T Type;
+};
+
+// TODO: remove
+template <std::size_t TSize>
+struct ValidStringMaxSize
+{
+    static const std::size_t Value = TSize;
+};
+
+template <typename T>
+struct StringContentValidator
+{
+    typedef T Type;
+};
+
+// TODO: remove
+template<std::size_t TLen>
+struct StringSizeLength
+{
+    static const std::size_t Value = TLen;
+};
 
 }  // namespace option
 

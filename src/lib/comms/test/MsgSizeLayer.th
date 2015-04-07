@@ -86,8 +86,8 @@ private:
         comms::field::BasicIntValue<
             TField,
             unsigned,
-            comms::field::option::LengthLimitImpl<TSize>,
-            comms::field::option::SerOffsetImpl<TOffset>
+            comms::option::FixedLength<TSize>,
+            comms::option::NumValueSerOffset<TOffset>
         >;
 
     template <typename TField>
@@ -111,7 +111,7 @@ private:
         comms::field::BasicEnumValue<
             TField,
             MessageType,
-            comms::field::option::LengthLimitImpl<TLen>
+            comms::option::FixedLength<TLen>
         >;
 
     template <typename TField>

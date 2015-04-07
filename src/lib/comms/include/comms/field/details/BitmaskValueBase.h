@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "comms/field/options.h"
+#include "comms/options.h"
 #include "comms/util/SizeToType.h"
 
 namespace comms
@@ -49,40 +49,43 @@ protected:
 template <typename TField, long long int TValue, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    comms::field::option::DefaultValueImpl<TValue>,
+    comms::option::DefaultNumValue<TValue>,
     TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
     typedef BitmaskValueBase<TField, TOptions...> Base;
+    typedef comms::option::DefaultNumValue<TValue> Option;
 
 protected:
     using Base::BitmaskValueBase;
 
-    static const auto DefaultValue = static_cast<decltype(Base::DefaultValue)>(TValue);
+    static const auto DefaultValue = static_cast<decltype(Base::DefaultValue)>(Option::Value);
 };
 
 template <typename TField, long long unsigned TMask, bool TValue, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    comms::field::option::BitmaskReservedBitsImpl<TMask, TValue>,
+    comms::option::BitmaskReservedBits<TMask, TValue>,
     TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
     typedef BitmaskValueBase<TField, TOptions...> Base;
+    typedef comms::option::BitmaskReservedBits<TMask, TValue> Option;
 
 protected:
     using Base::BitmaskValueBase;
 
-    static const auto ReservedMask = static_cast<decltype(Base::ReservedMask)>(TMask);
-    static const auto ReservedValue = static_cast<decltype(Base::ReservedValue)>(TValue);
+    static const auto ReservedMask = static_cast<decltype(Base::ReservedMask)>(Option::Mask);
+    static const auto ReservedValue = static_cast<decltype(Base::ReservedValue)>(Option::Value);
 };
 
 template <typename TField, std::size_t TLen, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    comms::field::option::LengthLimitImpl<TLen>,
+    comms::option::FixedLength<TLen>,
     TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
 
     typedef BitmaskValueBase<TField, TOptions...> Base;
+    typedef comms::option::FixedLength<TLen> Option;
 
 protected:
     using Base::BitmaskValueBase;
@@ -90,14 +93,14 @@ protected:
     using ValueType = typename comms::util::SizeToType<TLen, false>::Type;
 
     static const auto DefaultValue = static_cast<ValueType>(Base::DefaultValue);
-    static const std::size_t SerialisedLen = TLen;
+    static const std::size_t SerialisedLen = Option::Value;
     static const auto ReservedMask = static_cast<ValueType>(Base::ReservedMask);
 };
 
 template <typename TField, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    comms::field::option::BitmaskBitZeroIsLsbImpl,
+    comms::option::BitIndexingStartsFromLsb,
     TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
     typedef BitmaskValueBase<TField, TOptions...> Base;

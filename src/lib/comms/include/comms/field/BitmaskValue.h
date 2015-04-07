@@ -72,8 +72,8 @@ public:
         BasicIntValue<
             TField,
             ValueType,
-            option::LengthLimitImpl<SerialisedLen>,
-            option::DefaultValueImpl<DefaultValue>
+            comms::option::FixedLength<SerialisedLen>,
+            comms::option::DefaultNumValue<DefaultValue>
         > IntValueField;
 
     /// @brief Serialised Type

@@ -23,7 +23,7 @@
 #include <cstddef>
 #include <limits>
 
-#include "comms/field/options.h"
+#include "comms/options.h"
 
 namespace comms
 {
@@ -93,11 +93,11 @@ protected:
 };
 
 template <typename TField, std::size_t TLen, typename... TOptions>
-class StaticStringBase<TField, comms::field::option::SetStringSizeLengthLimit<TLen>, TOptions...> :
+class StaticStringBase<TField, comms::option::StringSizeLength<TLen>, TOptions...> :
     public StaticStringBase<TField, TOptions...>
 {
     typedef StaticStringBase<TField, TOptions...> Base;
-    typedef comms::field::option::SetStringSizeLengthLimit<TLen> Option;
+    typedef comms::option::StringSizeLength<TLen> Option;
 
 protected:
 
@@ -105,11 +105,11 @@ protected:
 };
 
 template <typename TField, std::size_t TSize, typename... TOptions>
-class StaticStringBase<TField, comms::field::option::FixedSizeStorage<TSize>, TOptions...> :
+class StaticStringBase<TField, comms::option::FixedSizeStorage<TSize>, TOptions...> :
     public StaticStringBase<TField, TOptions...>
 {
     typedef StaticStringBase<TField, TOptions...> Base;
-    typedef comms::field::option::FixedSizeStorage<TSize> Option;
+    typedef comms::option::FixedSizeStorage<TSize> Option;
     static const std::size_t MaxAllowedSize =
         static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()) + 1;
 
@@ -123,11 +123,11 @@ protected:
 };
 
 template <typename TField, typename T, typename... TOptions>
-class StaticStringBase<TField, comms::field::option::SetDefaultValueInitialiser<T>, TOptions...> :
+class StaticStringBase<TField, comms::option::DefaultValueInitialiser<T>, TOptions...> :
     public StaticStringBase<TField, TOptions...>
 {
     typedef StaticStringBase<TField, TOptions...> Base;
-    typedef comms::field::option::SetDefaultValueInitialiser<T> Option;
+    typedef comms::option::DefaultValueInitialiser<T> Option;
 
 protected:
 
@@ -135,11 +135,11 @@ protected:
 };
 
 template <typename TField, std::size_t TSize, typename... TOptions>
-class StaticStringBase<TField, comms::field::option::SetValidStringMaxSize<TSize>, TOptions...> :
+class StaticStringBase<TField, comms::option::ValidStringMaxSize<TSize>, TOptions...> :
     public StaticStringBase<TField, TOptions...>
 {
     typedef StaticStringBase<TField, TOptions...> Base;
-    typedef comms::field::option::SetValidStringMaxSize<TSize> Option;
+    typedef comms::option::ValidStringMaxSize<TSize> Option;
 
 protected:
 
@@ -147,11 +147,11 @@ protected:
 };
 
 template <typename TField, typename T, typename... TOptions>
-class StaticStringBase<TField, comms::field::option::SetStringContentValidator<T>, TOptions...> :
+class StaticStringBase<TField, comms::option::StringContentValidator<T>, TOptions...> :
     public StaticStringBase<TField, TOptions...>
 {
     typedef StaticStringBase<TField, TOptions...> Base;
-    typedef comms::field::option::SetStringContentValidator<T> Option;
+    typedef comms::option::StringContentValidator<T> Option;
 
 protected:
 

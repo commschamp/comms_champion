@@ -20,7 +20,7 @@
 #include <vector>
 #include <array>
 #include <type_traits>
-#include "comms/field/options.h"
+#include "comms/options.h"
 #include "comms/Assert.h"
 
 namespace comms
@@ -120,15 +120,16 @@ protected:
 };
 
 template <typename TField, typename T, std::size_t TSize, typename... TOptions>
-class VarSizeArrayBase<TField, T, comms::field::option::FixedSizeStorage<TSize>, TOptions...> : public
+class VarSizeArrayBase<TField, T, comms::option::FixedSizeStorage<TSize>, TOptions...> : public
     VarSizeArrayBase<TField, T, TOptions...>
 {
     typedef VarSizeArrayBase<TField, T, TOptions...> Base;
+    typedef comms::option::FixedSizeStorage<TSize> Option;
 
 protected:
 
     typedef typename Base::ElementType ElementType;
-    typedef VarSizeStdArrayWrapper<ElementType, TSize> StorageType;
+    typedef VarSizeStdArrayWrapper<ElementType, Option::Value> StorageType;
 
     using Base::Base;
 };

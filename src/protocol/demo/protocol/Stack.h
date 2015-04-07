@@ -35,15 +35,15 @@ using Stack =
         comms::field::BasicIntValue<
             typename TMsgBase::Field,
             std::uint16_t,
-            comms::field::option::DefaultValueImpl<SyncPrefixValue> >,
+            comms::option::DefaultNumValue<SyncPrefixValue> >,
         comms::protocol::MsgSizeLayer<
             comms::field::BasicIntValue<typename TMsgBase::Field, std::uint16_t>,
             comms::protocol::MsgIdLayer<
                 comms::field::BasicEnumValue<
                     typename TMsgBase::Field,
                     demo::message::MsgId,
-                    comms::field::option::LengthLimitImpl<1>,
-                    comms::field::option::ValidRangeImpl<0, demo::message::MsgId_NumOfMessages - 1>>,
+                    comms::option::FixedLength<1>,
+                    comms::option::ValidNumValueRange<0, demo::message::MsgId_NumOfMessages - 1>>,
                 TAllMessages,
                 comms::protocol::MsgDataLayer<TMsgBase>
             >

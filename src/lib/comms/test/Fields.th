@@ -283,6 +283,25 @@ void FieldsTestSuite::test10()
 
     TS_ASSERT_EQUALS(field.getValue(), 0xdead);
     TS_ASSERT_EQUALS(field.getSerialisedValue(), field.getValue());
+    TS_ASSERT_EQUALS(field.getBitValue(0U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(1U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(2U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(3U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(4U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(5U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(6U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(7U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(8U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(9U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(10U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(11U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(12U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(13U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(14U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(15U), true);
+
+    field.setBitValue(1U, true);
+    TS_ASSERT_EQUALS(field.getValue(), 0xdeaf);
 
     field.setBits(0x2);
     TS_ASSERT_EQUALS(field.getValue(), 0xdeaf);
@@ -301,7 +320,8 @@ void FieldsTestSuite::test11()
         comms::Field<LittleEndianOpt>,
         comms::option::FixedLength<3>,
         comms::option::DefaultNumValue<0xffffff>,
-        comms::option::BitmaskReservedBits<0xff0000, 0>
+        comms::option::BitmaskReservedBits<0xff0000, 0>,
+        comms::option::BitIndexingStartsFromMsb
     > Field;
 
     Field field;
@@ -318,10 +338,40 @@ void FieldsTestSuite::test11()
     TS_ASSERT_EQUALS(field.getValue(), 0xadde);
     TS_ASSERT_EQUALS(field.getSerialisedValue(), field.getValue());
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.getBitValue(0U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(1U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(2U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(3U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(4U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(5U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(6U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(7U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(8U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(9U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(10U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(11U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(12U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(13U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(14U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(15U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(16U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(17U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(18U), false);
+    TS_ASSERT_EQUALS(field.getBitValue(19U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(20U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(21U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(22U), true);
+    TS_ASSERT_EQUALS(field.getBitValue(23U), false);
 
     field.setBits(0x10000);
     TS_ASSERT_EQUALS(field.getValue(), 0x1adde);
     TS_ASSERT(!field.valid());
+
+    field.setBitValue(23U, true);
+    TS_ASSERT_EQUALS(field.getValue(), 0x1addf);
+    field.setBitValue(7U, false);
+    TS_ASSERT_EQUALS(field.getValue(), 0xaddf);
+    TS_ASSERT(field.valid());
 }
 
 void FieldsTestSuite::test12()

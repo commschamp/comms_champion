@@ -122,8 +122,7 @@ struct BitmaskReservedBits
     static const auto Value = TValue;
 };
 
-// TODO: rename to Msb
-struct BitIndexingStartsFromLsb {};
+struct BitIndexingStartsFromMsb {};
 
 template <std::size_t TSize>
 struct FixedSizeStorage

@@ -66,10 +66,6 @@ public:
     /// @brief Serialised Type
     typedef typename IntValueField::SerialisedType SerialisedType;
 
-    /// @brief Default initialisation value
-    static const auto DefaultValue =
-                        static_cast<ValueType>(IntValueField::DefaultValue);
-
     /// @brief Length of serialised data
     static const std::size_t SerialisedLen = IntValueField::SerialisedLen;
 

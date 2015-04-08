@@ -19,6 +19,7 @@
 #pragma once
 
 #include <tuple>
+#include <type_traits>
 
 #include "comms/traits.h"
 
@@ -108,11 +109,7 @@ struct ValidNumValueRange
 };
 
 // TODO: should be alias to default initialiser
-template<long long int TVal>
-struct DefaultNumValue
-{
-    static const auto Value = TVal;
-};
+
 
 // TODO: should be alias to content validator
 template<long long unsigned TMask, bool TValue>
@@ -155,6 +152,26 @@ struct StringSizeLength
 {
     static const std::size_t Value = TLen;
 };
+
+namespace details
+{
+
+template<long long int TVal>
+struct DefaultNumValueInitialiser
+{
+    template <typename TField>
+    void operator()(TField&& field)
+    {
+        typedef typename std::decay<TField>::type FieldType;
+        typedef typename FieldType::ValueType ValueType;
+        field.setValue(static_cast<ValueType>(TVal));
+    }
+};
+
+}  // namespace details
+
+template<long long int TVal>
+using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitialiser<TVal> >;
 
 }  // namespace option
 

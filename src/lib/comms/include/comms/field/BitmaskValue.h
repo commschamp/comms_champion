@@ -53,9 +53,6 @@ public:
     /// @brief Type of the stored value
     typedef typename Base::ValueType ValueType;
 
-    /// @brief Default value to be set in default constructor
-    static const auto DefaultValue = Base::DefaultValue;
-
     /// @brief Length of serialised data
     static const std::size_t SerialisedLen = Base::SerialisedLen;
 
@@ -70,8 +67,7 @@ public:
         BasicIntValue<
             TField,
             ValueType,
-            comms::option::FixedLength<SerialisedLen>,
-            comms::option::DefaultNumValue<DefaultValue>
+            comms::option::FixedLength<SerialisedLen>
         > IntValueField;
 
     /// @brief Serialised Type
@@ -79,7 +75,15 @@ public:
 
     /// @brief Default constructor.
     /// @brief Initial bitmask has all bits cleared (equals 0)
-    BitmaskValue() = default;
+    BitmaskValue()
+    {
+        typedef typename std::conditional<
+            Base::HasCustomInitialiser,
+            CustomInitialisationTag,
+            DefaultInitialisationTag
+        >::type Tag;
+        completeDefaultInitialisation(Tag());
+    }
 
     /// @brief Constructor
     explicit BitmaskValue(ValueType value)
@@ -228,6 +232,9 @@ private:
             BitZeroIsLsbTag
         >::type;
 
+    struct DefaultInitialisationTag {};
+    struct CustomInitialisationTag {};
+
 
     static ValueType calcMask(unsigned bitNum, BitZeroIsMsbTag)
     {
@@ -242,6 +249,16 @@ private:
         GASSERT(bitNum < TotalBits);
         auto mask = static_cast<ValueType>(1) << bitNum;
         return mask;
+    }
+
+    void completeDefaultInitialisation(DefaultInitialisationTag)
+    {
+    }
+
+    void completeDefaultInitialisation(CustomInitialisationTag)
+    {
+        typedef typename Base::DefaultValueInitialiser DefaultValueInitialiser;
+        DefaultValueInitialiser()(*this);
     }
 
     IntValueField intValue_;

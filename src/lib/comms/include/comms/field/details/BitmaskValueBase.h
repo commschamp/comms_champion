@@ -39,26 +39,11 @@ class BitmaskValueBase<TField> : public TField
 protected:
     typedef long long unsigned ValueType;
 
-    static const auto DefaultValue = static_cast<ValueType>(0);
     static const std::size_t SerialisedLen = sizeof(ValueType);
     static const auto ReservedMask = static_cast<ValueType>(0);
     static const bool ReservedValue = false;
     static const bool BitZeroIsMsb = false;
-};
-
-template <typename TField, long long int TValue, typename... TOptions>
-class BitmaskValueBase<
-    TField,
-    comms::option::DefaultNumValue<TValue>,
-    TOptions...> : public BitmaskValueBase<TField, TOptions...>
-{
-    typedef BitmaskValueBase<TField, TOptions...> Base;
-    typedef comms::option::DefaultNumValue<TValue> Option;
-
-protected:
-    using Base::BitmaskValueBase;
-
-    static const auto DefaultValue = static_cast<decltype(Base::DefaultValue)>(Option::Value);
+    static const bool HasCustomInitialiser = false;
 };
 
 template <typename TField, long long unsigned TMask, bool TValue, typename... TOptions>
@@ -92,7 +77,6 @@ protected:
 
     using ValueType = typename comms::util::SizeToType<TLen, false>::Type;
 
-    static const auto DefaultValue = static_cast<ValueType>(Base::DefaultValue);
     static const std::size_t SerialisedLen = Option::Value;
     static const auto ReservedMask = static_cast<ValueType>(Base::ReservedMask);
 };
@@ -110,6 +94,23 @@ protected:
 
     static const bool BitZeroIsMsb = true;
 };
+
+template <typename TField, typename T, typename... TOptions>
+class BitmaskValueBase<
+    TField,
+    comms::option::DefaultValueInitialiser<T>,
+    TOptions...> : public BitmaskValueBase<TField, TOptions...>
+{
+    typedef BitmaskValueBase<TField, TOptions...> Base;
+    typedef comms::option::DefaultValueInitialiser<T> Option;
+
+protected:
+    using Base::BitmaskValueBase;
+
+    typedef typename Option::Type DefaultValueInitialiser;
+    static const bool HasCustomInitialiser = true;
+};
+
 
 }  // namespace details
 

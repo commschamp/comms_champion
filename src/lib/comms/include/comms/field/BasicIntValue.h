@@ -66,9 +66,6 @@ public:
     /// @brief Offset Type
     typedef typename Base::OffsetType OffsetType;
 
-    /// @brief Default initialisation value
-    static const auto DefaultValue = Base::DefaultValue;
-
     /// @brief Length of serialised data
     static const std::size_t SerialisedLen = Base::SerialisedLen;
 
@@ -84,8 +81,14 @@ public:
     /// @brief Default constructor
     /// @details Sets default value to be 0.
     BasicIntValue()
-      : value_(static_cast<ValueType>(DefaultValue))
+      : value_(static_cast<ValueType>(0))
     {
+        typedef typename std::conditional<
+            Base::HasCustomInitialiser,
+            CustomInitialisationTag,
+            DefaultInitialisationTag
+        >::type Tag;
+        completeDefaultInitialisation(Tag());
     }
 
     /// @brief Constructor
@@ -208,6 +211,8 @@ public:
 private:
     struct Compare {};
     struct ReturnTrue {};
+    struct DefaultInitialisationTag {};
+    struct CustomInitialisationTag {};
 
     bool aboveMin(Compare) const
     {
@@ -229,6 +234,15 @@ private:
         return true;
     }
 
+    void completeDefaultInitialisation(DefaultInitialisationTag)
+    {
+    }
+
+    void completeDefaultInitialisation(CustomInitialisationTag)
+    {
+        typedef typename Base::DefaultValueInitialiser DefaultValueInitialiser;
+        DefaultValueInitialiser()(*this);
+    }
 
 
     ValueType value_;

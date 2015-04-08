@@ -52,11 +52,11 @@ protected:
 
     using Base::Base;
 
-    static const auto DefaultValue = static_cast<ValueType>(0);
     static const std::size_t SerialisedLen = sizeof(T);
     static const auto MinValidValue = std::numeric_limits<ValueType>::min();
     static const auto MaxValidValue = std::numeric_limits<ValueType>::max();
     static const auto Offset = static_cast<OffsetType>(0);
+    static const bool HasCustomInitialiser = false;
 };
 
 template <typename TField, typename T, long long int TMinValue, long long int TMaxValue, typename... TOptions>
@@ -80,7 +80,7 @@ protected:
         static_cast<decltype(Base::MaxValidValue)>(Option::MaxValue);
 };
 
-namespace details
+namespace basic_int_value_details
 {
 
 template <long long int TVal1, long long int TVal2, bool TLess>
@@ -127,7 +127,7 @@ struct MaxValue
         MaxValueHelper<TVal1, TVal2, (TVal1 < TVal2)>::Value;
 };
 
-}  // namespace details
+}  // namespace basic_int_value_details
 
 template <typename TField, typename T, std::size_t TLen, typename... TOptions>
 class BasicIntValueBase<
@@ -148,14 +148,14 @@ protected:
 
     static const auto MinValidValue =
         static_cast<decltype(Base::MinValidValue)>(
-            details::MaxValue<
+            basic_int_value_details::MaxValue<
                 static_cast<long long int>(std::numeric_limits<SerialisedType>::min()) - Base::Offset,
                 static_cast<long long int>(Base::MinValidValue)
             >::Value);
 
     static const auto MaxValidValue =
         static_cast<decltype(Base::MaxValidValue)>(
-            details::MinValue<
+            basic_int_value_details::MinValue<
                 static_cast<long long int>(std::numeric_limits<SerialisedType>::max()) - Base::Offset,
                 static_cast<long long int>(Base::MaxValidValue)
             >::Value);
@@ -180,22 +180,23 @@ protected:
     static const auto Offset = static_cast<decltype(Base::Offset)>(Option::Value);
 };
 
-template <typename TField, typename T, long long int TValue, typename... TOptions>
+template <typename TField, typename T, typename TInit, typename... TOptions>
 class BasicIntValueBase<
     TField,
     T,
-    comms::option::DefaultNumValue<TValue>,
+    comms::option::DefaultValueInitialiser<TInit>,
     TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
     typedef BasicIntValueBase<TField, T, TOptions...> Base;
-    typedef comms::option::DefaultNumValue<TValue> Option;
+    typedef comms::option::DefaultValueInitialiser<TInit> Option;
 
 protected:
     using Base::BasicIntValueBase;
 
-    static const auto DefaultValue = static_cast<decltype(Base::DefaultValue)>(Option::Value);
+    typedef typename Option::Type DefaultValueInitialiser;
+    static const bool HasCustomInitialiser = true;
 };
 
 }  // namespace details

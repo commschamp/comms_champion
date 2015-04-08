@@ -112,6 +112,23 @@ protected:
 };
 
 
+template <typename TField, typename T, typename... TOptions>
+class BitmaskValueBase<
+    TField,
+    comms::option::ContentsValidator<T>,
+    TOptions...> : public BitmaskValueBase<TField, TOptions...>
+{
+    typedef BitmaskValueBase<TField, TOptions...> Base;
+    typedef comms::option::ContentsValidator<T> Option;
+
+protected:
+    using Base::BitmaskValueBase;
+
+    typedef typename Option::Type ContentsValidator;
+    static const bool HasCustomValidator = true;
+};
+
+
 }  // namespace details
 
 }  // namespace field

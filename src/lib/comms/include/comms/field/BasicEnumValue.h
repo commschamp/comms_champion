@@ -69,14 +69,6 @@ public:
     /// @brief Length of serialised data
     static const std::size_t SerialisedLen = IntValueField::SerialisedLen;
 
-    /// @brief Minimal Valid Value
-    static const auto MinValidValue =
-                        static_cast<ValueType>(IntValueField::MinValidValue);
-
-    /// @brief Maximal Valid Value
-    static const auto MaxValidValue =
-                        static_cast<ValueType>(IntValueField::MaxValidValue);
-
     /// @brief Default constructor.
     /// @brief Initial value is equal to LimitValue
     BasicEnumValue() = default;
@@ -165,6 +157,7 @@ public:
     }
 
 private:
+
     IntValueField intValue_;
 };
 

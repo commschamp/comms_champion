@@ -38,19 +38,6 @@ public:
     using Base::NumericValueWrapper;
     using IntType = typename Base::UnderlyingType;
 
-    IntType maxValidValue() const
-    {
-        return maxValidValueImpl();
-    }
-
-    IntType minValidValue() const
-    {
-        return minValidValueImpl();
-    }
-
-protected:
-    virtual UnderlyingType maxValidValueImpl() const = 0;
-    virtual UnderlyingType minValidValueImpl() const = 0;
 };
 
 template <typename TField>
@@ -78,16 +65,6 @@ public:
 
     BasicEnumValueWrapperT& operator=(const BasicEnumValueWrapperT&) = delete;
 
-protected:
-    virtual IntType maxValidValueImpl() const override
-    {
-        return static_cast<IntType>(Field::MaxValidValue);
-    }
-
-    virtual IntType minValidValueImpl() const override
-    {
-        return static_cast<IntType>(Field::MinValidValue);
-    }
 };
 
 using BasicEnumValueWrapperPtr = std::unique_ptr<BasicEnumValueWrapper>;

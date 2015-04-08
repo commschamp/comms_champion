@@ -53,31 +53,9 @@ protected:
     using Base::Base;
 
     static const std::size_t SerialisedLen = sizeof(T);
-    static const auto MinValidValue = std::numeric_limits<ValueType>::min();
-    static const auto MaxValidValue = std::numeric_limits<ValueType>::max();
     static const auto Offset = static_cast<OffsetType>(0);
     static const bool HasCustomInitialiser = false;
-};
-
-template <typename TField, typename T, long long int TMinValue, long long int TMaxValue, typename... TOptions>
-class BasicIntValueBase<
-    TField,
-    T,
-    comms::option::ValidNumValueRange<TMinValue, TMaxValue>,
-    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
-{
-    static_assert(std::is_integral<T>::value, "T must be integral.");
-
-    typedef BasicIntValueBase<TField, T, TOptions...> Base;
-    typedef comms::option::ValidNumValueRange<TMinValue, TMaxValue> Option;
-
-protected:
-    using Base::BasicIntValueBase;
-
-    static const auto MinValidValue =
-        static_cast<decltype(Base::MinValidValue)>(Option::MinValue);
-    static const auto MaxValidValue =
-        static_cast<decltype(Base::MaxValidValue)>(Option::MaxValue);
+    static const bool HasCustomValidator = false;
 };
 
 namespace basic_int_value_details
@@ -146,20 +124,6 @@ protected:
 
     typedef typename util::SizeToType<TLen, std::is_signed<T>::value>::Type SerialisedType;
 
-    static const auto MinValidValue =
-        static_cast<decltype(Base::MinValidValue)>(
-            basic_int_value_details::MaxValue<
-                static_cast<long long int>(std::numeric_limits<SerialisedType>::min()) - Base::Offset,
-                static_cast<long long int>(Base::MinValidValue)
-            >::Value);
-
-    static const auto MaxValidValue =
-        static_cast<decltype(Base::MaxValidValue)>(
-            basic_int_value_details::MinValue<
-                static_cast<long long int>(std::numeric_limits<SerialisedType>::max()) - Base::Offset,
-                static_cast<long long int>(Base::MaxValidValue)
-            >::Value);
-
     static const std::size_t SerialisedLen = Option::Value;
 };
 
@@ -197,6 +161,25 @@ protected:
 
     typedef typename Option::Type DefaultValueInitialiser;
     static const bool HasCustomInitialiser = true;
+};
+
+template <typename TField, typename T, typename TValidator, typename... TOptions>
+class BasicIntValueBase<
+    TField,
+    T,
+    comms::option::ContentsValidator<TValidator>,
+    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+{
+    static_assert(std::is_integral<T>::value, "T must be integral.");
+
+    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef comms::option::ContentsValidator<TValidator> Option;
+
+protected:
+    using Base::BasicIntValueBase;
+
+    typedef typename Option::Type ContentsValidator;
+    static const bool HasCustomValidator = true;
 };
 
 }  // namespace details

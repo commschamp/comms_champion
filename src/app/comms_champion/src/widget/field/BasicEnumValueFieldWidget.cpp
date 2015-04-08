@@ -173,12 +173,25 @@ void BasicEnumValueFieldWidget::readPropertiesAndUpdateUi()
     m_ui.m_valueComboBox->insertSeparator(1);
     assert(m_ui.m_valueComboBox->count() == EnumValuesStartIndex);
 
-    auto maxValidValue = m_wrapper->maxValidValue();
-    for (auto value = m_wrapper->minValidValue(); value <= maxValidValue; ++value) {
-        auto valueName = property(GlobalConstants::indexedNamePropertyName(value).toUtf8().data());
+    auto appProperties = dynamicPropertyNames();
+    for (auto& prop : appProperties) {
+        QString propStr(prop);
+        auto& prefix = GlobalConstants::indexedNamePropertyPrefix();
+        if (!propStr.startsWith(prefix)) {
+            continue;
+        }
+
+        propStr.remove(prefix);
+        bool ok = false;
+        auto idx = propStr.toUInt(&ok, 10);
+        if (!ok) {
+            continue;
+        }
+
+        auto valueName = property(GlobalConstants::indexedNamePropertyName(idx).toUtf8().data());
         if ((valueName.isValid()) &&
             (valueName.canConvert<QString>())) {
-            m_ui.m_valueComboBox->addItem(valueName.value<QString>(), QVariant(value));
+            m_ui.m_valueComboBox->addItem(valueName.value<QString>(), QVariant(idx));
         }
     }
 

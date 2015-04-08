@@ -20,6 +20,7 @@
 
 #include <tuple>
 #include <type_traits>
+#include <limits>
 
 #include "comms/traits.h"
 
@@ -101,17 +102,6 @@ struct NumValueSerOffset
 };
 
 // TODO: should be alias to content validator
-template<long long int TMinValue, long long int TMaxValue>
-struct ValidNumValueRange
-{
-    static const auto MinValue = TMinValue;
-    static const auto MaxValue = TMaxValue;
-};
-
-// TODO: should be alias to default initialiser
-
-
-// TODO: should be alias to content validator
 template<long long unsigned TMask, bool TValue>
 struct BitmaskReservedBits
 {
@@ -129,6 +119,12 @@ struct FixedSizeStorage
 
 template <typename T>
 struct DefaultValueInitialiser
+{
+    typedef T Type;
+};
+
+template <typename T>
+struct ContentsValidator
 {
     typedef T Type;
 };
@@ -168,13 +164,76 @@ struct DefaultNumValueInitialiser
     }
 };
 
+template<long long int TMinValue, long long int TMaxValue>
+struct NumValueRangeValidator
+{
+    static_assert(
+        TMinValue <= TMaxValue,
+        "Min value must be not greater than Max value");
+
+    template <typename TField>
+    constexpr bool operator()(TField&& field) const
+    {
+        typedef typename std::decay<TField>::type FieldType;
+        typedef typename FieldType::ValueType ValueType;
+        typedef typename std::conditional<
+            std::numeric_limits<ValueType>::min() < MinValue,
+            CompareTag,
+            ReturnTrueTag
+        >::type MinTag;
+
+        typedef typename std::conditional<
+            MaxValue < std::numeric_limits<ValueType>::max(),
+            CompareTag,
+            ReturnTrueTag
+        >::type MaxTag;
+
+        return aboveMin(field.getValue(), MinTag()) && belowMax(field.getValue(), MaxTag());
+    }
+
+private:
+    struct ReturnTrueTag {};
+    struct CompareTag {};
+
+    template <typename TValue>
+    static constexpr bool aboveMin(TValue&& value, CompareTag)
+    {
+        return (MinValue <= value);
+    }
+
+    template <typename TValue>
+    static constexpr bool aboveMin(TValue&&, ReturnTrueTag)
+    {
+        return true;
+    }
+
+    template <typename TValue>
+    static constexpr bool belowMax(TValue&& value, CompareTag)
+    {
+        return (value <= MaxValue);
+    }
+
+    template <typename TValue>
+    static constexpr bool belowMax(TValue&&, ReturnTrueTag)
+    {
+        return true;
+    }
+
+
+    static const auto MinValue = TMinValue;
+    static const auto MaxValue = TMaxValue;
+};
+
 }  // namespace details
 
 template<long long int TVal>
 using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitialiser<TVal> >;
 
-}  // namespace option
+template<long long int TMinValue, long long int TMaxValue>
+using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMinValue, TMaxValue> >;
 
+
+}  // namespace option
 
 }  // namespace comms
 

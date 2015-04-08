@@ -72,12 +72,6 @@ public:
     /// @brief Offset to be applied when serialising
     static const auto Offset = Base::Offset;
 
-    /// @brief Minimal Valid Value
-    static const auto MinValidValue = Base::MinValidValue;
-
-    /// @brief Maximal Valid Value
-    static const auto MaxValidValue = Base::MaxValidValue;
-
     /// @brief Default constructor
     /// @details Sets default value to be 0.
     BasicIntValue()
@@ -192,47 +186,20 @@ public:
     }
 
     constexpr bool valid() const {
-        static_cast<void>(this);
-        typedef typename std::conditional<
-            (std::numeric_limits<ValueType>::min() < MinValidValue),
-            Compare,
-            ReturnTrue
-        >::type MinTag;
 
-        typedef typename std::conditional<
-            (MaxValidValue < std::numeric_limits<ValueType>::max()),
-            Compare,
-            ReturnTrue
-        >::type MaxTag;
-
-        return aboveMin(MinTag()) && belowMax(MaxTag());
+        return validInternal(
+            typename std::conditional<
+                Base::HasCustomValidator,
+                CustomValidatorTag,
+                DefaultValidatorTag
+            >::type());
     }
 
 private:
-    struct Compare {};
-    struct ReturnTrue {};
     struct DefaultInitialisationTag {};
     struct CustomInitialisationTag {};
-
-    bool aboveMin(Compare) const
-    {
-        return (MinValidValue <= value_);
-    }
-
-    static constexpr bool aboveMin(ReturnTrue)
-    {
-        return true;
-    }
-
-    bool belowMax(Compare) const
-    {
-        return (value_ <= MaxValidValue);
-    }
-
-    static constexpr bool belowMax(ReturnTrue)
-    {
-        return true;
-    }
+    struct DefaultValidatorTag {};
+    struct CustomValidatorTag {};
 
     void completeDefaultInitialisation(DefaultInitialisationTag)
     {
@@ -244,6 +211,17 @@ private:
         DefaultValueInitialiser()(*this);
     }
 
+    constexpr bool validInternal(DefaultValidatorTag) const
+    {
+        static_cast<void>(this);
+        return true;
+    }
+
+    constexpr bool validInternal(CustomValidatorTag) const
+    {
+        typedef typename Base::ContentsValidator ContentsValidator;
+        return ContentsValidator()(*this);
+    }
 
     ValueType value_;
 };

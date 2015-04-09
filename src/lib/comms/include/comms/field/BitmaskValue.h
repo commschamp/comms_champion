@@ -56,12 +56,6 @@ public:
     /// @brief Length of serialised data
     static const std::size_t SerialisedLen = Base::SerialisedLen;
 
-    /// @brief Reserved bits mask
-    static const auto ReservedMask = Base::ReservedMask;
-
-    /// @brief Valid value for reserved bits.
-    static const bool ReservedValue = Base::ReservedValue;
-
     /// @brief Definition of underlying BasicIntValue field type
     typedef
         BasicIntValue<
@@ -164,10 +158,12 @@ public:
 
     constexpr bool valid() const
     {
-        if (ReservedValue) {
-            return (getValue() & ReservedMask) == ReservedMask;
-        }
-        return (getValue() & ReservedMask) == 0;
+        return validInternal(
+            typename std::conditional<
+                Base::HasCustomValidator,
+                CustomValidatorTag,
+                DefaultValidatorTag
+            >::type());
     }
 
     /// @brief Check whether all bits from provided mask are set.
@@ -234,7 +230,8 @@ private:
 
     struct DefaultInitialisationTag {};
     struct CustomInitialisationTag {};
-
+    struct DefaultValidatorTag {};
+    struct CustomValidatorTag {};
 
     static ValueType calcMask(unsigned bitNum, BitZeroIsMsbTag)
     {
@@ -259,6 +256,17 @@ private:
     {
         typedef typename Base::DefaultValueInitialiser DefaultValueInitialiser;
         DefaultValueInitialiser()(*this);
+    }
+
+    static constexpr bool validInternal(DefaultValidatorTag)
+    {
+        return true;
+    }
+
+    constexpr bool validInternal(CustomValidatorTag) const
+    {
+        typedef typename Base::ContentsValidator ContentsValidator;
+        return ContentsValidator()(*this);
     }
 
     IntValueField intValue_;

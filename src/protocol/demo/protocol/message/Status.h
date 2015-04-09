@@ -49,7 +49,7 @@ using StatusFields =
         comms::field::BitmaskValue<
             TFieldBase,
             comms::option::FixedLength<2>,
-            comms::option::BitmaskReservedBits<0xfff0, false>
+            comms::option::BitmaskReservedBits<0xfff0, 0x0>
         >
     >;
 

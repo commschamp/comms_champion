@@ -211,9 +211,8 @@ private:
         DefaultValueInitialiser()(*this);
     }
 
-    constexpr bool validInternal(DefaultValidatorTag) const
+    static constexpr bool validInternal(DefaultValidatorTag)
     {
-        static_cast<void>(this);
         return true;
     }
 

@@ -101,14 +101,6 @@ struct NumValueSerOffset
     static const auto Value = TOffset;
 };
 
-// TODO: should be alias to content validator
-template<long long unsigned TMask, bool TValue>
-struct BitmaskReservedBits
-{
-    static const auto Mask = TMask;
-    static const auto Value = TValue;
-};
-
 struct BitIndexingStartsFromMsb {};
 
 template <std::size_t TSize>
@@ -224,6 +216,19 @@ private:
     static const auto MaxValue = TMaxValue;
 };
 
+template<long long int TMask, long long int TValue>
+struct BitmaskReservedBitsValidator
+{
+    template <typename TField>
+    constexpr bool operator()(TField&& field) const
+    {
+        typedef typename std::decay<TField>::type FieldType;
+        typedef typename FieldType::ValueType ValueType;
+
+        return (field.getValue() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
+    }
+};
+
 }  // namespace details
 
 template<long long int TVal>
@@ -231,6 +236,9 @@ using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitiali
 
 template<long long int TMinValue, long long int TMaxValue>
 using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMinValue, TMaxValue> >;
+
+template<long long unsigned TMask, long long unsigned TValue>
+using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValidator<TMask, TValue> >;
 
 
 }  // namespace option

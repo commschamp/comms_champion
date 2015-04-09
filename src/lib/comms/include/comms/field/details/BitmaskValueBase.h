@@ -40,27 +40,11 @@ protected:
     typedef long long unsigned ValueType;
 
     static const std::size_t SerialisedLen = sizeof(ValueType);
-    static const auto ReservedMask = static_cast<ValueType>(0);
-    static const bool ReservedValue = false;
     static const bool BitZeroIsMsb = false;
     static const bool HasCustomInitialiser = false;
+    static const bool HasCustomValidator = false;
 };
 
-template <typename TField, long long unsigned TMask, bool TValue, typename... TOptions>
-class BitmaskValueBase<
-    TField,
-    comms::option::BitmaskReservedBits<TMask, TValue>,
-    TOptions...> : public BitmaskValueBase<TField, TOptions...>
-{
-    typedef BitmaskValueBase<TField, TOptions...> Base;
-    typedef comms::option::BitmaskReservedBits<TMask, TValue> Option;
-
-protected:
-    using Base::BitmaskValueBase;
-
-    static const auto ReservedMask = static_cast<decltype(Base::ReservedMask)>(Option::Mask);
-    static const auto ReservedValue = static_cast<decltype(Base::ReservedValue)>(Option::Value);
-};
 
 template <typename TField, std::size_t TLen, typename... TOptions>
 class BitmaskValueBase<
@@ -78,7 +62,6 @@ protected:
     using ValueType = typename comms::util::SizeToType<TLen, false>::Type;
 
     static const std::size_t SerialisedLen = Option::Value;
-    static const auto ReservedMask = static_cast<ValueType>(Base::ReservedMask);
 };
 
 template <typename TField, typename... TOptions>

@@ -501,19 +501,36 @@ void FieldsTestSuite::test15()
 
 void FieldsTestSuite::test16()
 {
-    typedef comms::field::StaticString<
-        comms::Field<BigEndianOpt>
+    typedef comms::field::BasicIntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t
+    > SizeField;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        SizeField
     > Field;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        SizeField,
+        comms::option::FixedSizeStorage<256>
+    > StaticStorageField;
 
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT(field.empty());
+
+    StaticStorageField staticStorageField;
+    TS_ASSERT(staticStorageField.valid());
+    TS_ASSERT(staticStorageField.empty());
 
     static const char ExpectedBuf[] = {
         0x0
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+    writeReadField(staticStorageField, ExpectedBuf, ExpectedBufSize);
 
     static const char Buf[] = {
         0x5, 'h', 'e', 'l', 'l', 'o', 'g', 'a', 'r'
@@ -523,18 +540,40 @@ void FieldsTestSuite::test16()
     TS_ASSERT_EQUALS(field.size(), static_cast<std::size_t>(Buf[0]));
     TS_ASSERT_EQUALS(field.length(), field.size() + 1U);
     TS_ASSERT(field.valid());
+
+    staticStorageField = readWriteField<StaticStorageField>(Buf, BufSize);
+    TS_ASSERT_EQUALS(staticStorageField.size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(staticStorageField.length(), staticStorageField.size() + 1U);
+    TS_ASSERT(staticStorageField.valid());
 }
 
 void FieldsTestSuite::test17()
 {
-    typedef comms::field::StaticString<
+    typedef comms::field::BasicIntValue<
         comms::Field<BigEndianOpt>,
-        comms::option::ValidStringMaxSize<4>
+        std::uint8_t,
+        comms::option::ValidNumValueRange<0, 4>
+    > SizeField;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        SizeField
     > Field;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        SizeField,
+        comms::option::FixedSizeStorage<256>
+    > StaticStorageField;
 
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT(field.empty());
+
+    StaticStorageField staticStorageField;
+    TS_ASSERT(staticStorageField.valid());
+    TS_ASSERT(staticStorageField.empty());
+
 
     static const char Buf[] = {
         0x5, 'h', 'e', 'l', 'l', 'o', 'g', 'a', 'r'
@@ -544,58 +583,99 @@ void FieldsTestSuite::test17()
     TS_ASSERT_EQUALS(field.size(), static_cast<std::size_t>(Buf[0]));
     TS_ASSERT_EQUALS(field.length(), field.size() + 1U);
     TS_ASSERT(!field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), std::string("hello"));
+    TS_ASSERT_EQUALS(field.getValue(), "hello");
+
+    staticStorageField = readWriteField<StaticStorageField>(Buf, BufSize);
+    TS_ASSERT_EQUALS(staticStorageField.size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(staticStorageField.length(), field.size() + 1U);
+    TS_ASSERT(!staticStorageField.valid());
+    TS_ASSERT_EQUALS(staticStorageField.getValue(), "hello");
 }
+
+struct HelloInitialiser
+{
+    template <typename TField>
+    void operator()(TField&& field)
+    {
+        field.setValue("hello");
+    }
+};
 
 void FieldsTestSuite::test18()
 {
-    struct HelloInitialiser
-    {
-        static const char* begin()
-        {
-            static const std::string Str("hello");
-            return Str.c_str();
-        }
-
-        static std::size_t size()
-        {
-            return sizeof("hello") - 1;
-        }
-    };
-
-    typedef comms::field::StaticString<
+    typedef comms::field::BasicIntValue<
         comms::Field<BigEndianOpt>,
-        comms::option::DefaultValueInitialiser<HelloInitialiser>,
-        comms::option::StringSizeLength<2>
+        std::uint16_t
+    > SizeField;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        SizeField,
+        comms::option::DefaultValueInitialiser<HelloInitialiser>
     > Field;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        SizeField,
+        comms::option::DefaultValueInitialiser<HelloInitialiser>,
+        comms::option::FixedSizeStorage<64>
+    > StaticStorageField;
 
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT(!field.empty());
-    TS_ASSERT_EQUALS(field.getValue(), std::string("hello"));
+    TS_ASSERT_EQUALS(field.getValue(), "hello");
     field.clear();
     TS_ASSERT(field.empty());
     field.setValue("bla");
-    TS_ASSERT_EQUALS(field.getValue(), std::string("bla"));
+    TS_ASSERT_EQUALS(field.getValue(), "bla");
     TS_ASSERT_EQUALS(field.size(), 3);
     TS_ASSERT_EQUALS(field.length(), 5);
+
+    StaticStorageField staticStorageField;
+    TS_ASSERT(staticStorageField.valid());
+    TS_ASSERT(!staticStorageField.empty());
+    TS_ASSERT_EQUALS(staticStorageField.getValue(), "hello");
+    staticStorageField.clear();
+    TS_ASSERT(staticStorageField.empty());
+    staticStorageField.setValue("bla");
+    TS_ASSERT_EQUALS(staticStorageField.getValue(), "bla");
+    TS_ASSERT_EQUALS(staticStorageField.size(), 3);
+    TS_ASSERT_EQUALS(staticStorageField.length(), 5);
 
     static const char ExpectedBuf[] = {
         0x0, 0x3, 'b', 'l', 'a'
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+    writeReadField(staticStorageField, ExpectedBuf, ExpectedBufSize);
 }
 
 void FieldsTestSuite::test19()
 {
-    typedef comms::field::StaticString<
-        comms::Field<BigEndianOpt>
+    typedef comms::field::BasicIntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t
+    > SizeField;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        SizeField
     > Field;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        SizeField,
+        comms::option::FixedSizeStorage<64>
+    > StaticStorageField;
 
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT(field.empty());
+
+    StaticStorageField staticStorageField;
+    TS_ASSERT(staticStorageField.valid());
+    TS_ASSERT(staticStorageField.empty());
 
     static const std::string Str("hello");
     std::copy(Str.begin(), Str.end(), std::back_inserter(field));
@@ -603,11 +683,17 @@ void FieldsTestSuite::test19()
     TS_ASSERT_EQUALS(field.size(), Str.size());
     TS_ASSERT_EQUALS(field.getValue(), Str);
 
+    std::copy(Str.begin(), Str.end(), std::back_inserter(staticStorageField));
+    TS_ASSERT(!staticStorageField.empty());
+    TS_ASSERT_EQUALS(staticStorageField.size(), Str.size());
+    TS_ASSERT_EQUALS(staticStorageField.getValue(), Str.c_str());
+
     static const char ExpectedBuf[] = {
         0x5, 'h', 'e', 'l', 'l', 'o'
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+    writeReadField(staticStorageField, ExpectedBuf, ExpectedBufSize);
 }
 
 template <typename TField>

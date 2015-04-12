@@ -81,9 +81,9 @@ public:
         return size() == 0;
     }
 
-    constexpr std::size_t max_size() const
+    static constexpr std::size_t max_size()
     {
-        return str_.capacity() - 1;
+        return Queue::capacity() - 1;
     }
 
     const char* c_str() const

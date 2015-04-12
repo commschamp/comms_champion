@@ -2070,7 +2070,7 @@ public:
     /// @return Unsigned value, capacity of the queue.
     /// @note Thread safety: Safe
     /// @note Exception guarantee: No throw.
-    constexpr std::size_t capacity() const
+    static constexpr std::size_t capacity()
     {
         return TSize;
     }

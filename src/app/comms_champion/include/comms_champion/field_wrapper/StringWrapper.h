@@ -72,7 +72,7 @@ protected:
 };
 
 template <typename TField>
-class StaticStringWrapperT : public FieldWrapperT<StringWrapper, TField>
+class StringWrapperT : public FieldWrapperT<StringWrapper, TField>
 {
     using Base = FieldWrapperT<StringWrapper, TField>;
     using Field = TField;
@@ -82,23 +82,23 @@ class StaticStringWrapperT : public FieldWrapperT<StringWrapper, TField>
     using ReadOnly = typename Base::ReadOnly;
 
 public:
-    StaticStringWrapperT(Field& field)
+    StringWrapperT(Field& field)
       : Base(field)
     {
     }
 
-    StaticStringWrapperT(const StaticStringWrapperT&) = default;
-    StaticStringWrapperT(StaticStringWrapperT&&) = default;
-    virtual ~StaticStringWrapperT() = default;
+    StringWrapperT(const StringWrapperT&) = default;
+    StringWrapperT(StringWrapperT&&) = default;
+    virtual ~StringWrapperT() = default;
 
-    StaticStringWrapperT& operator=(const StaticStringWrapperT&) = delete;
+    StringWrapperT& operator=(const StringWrapperT&) = delete;
 
 protected:
 
     virtual QString valueImpl() const override
     {
         auto& strField = Base::field();
-        return QString::fromUtf8(strField.getValue(), strField.size());
+        return QString::fromUtf8(strField.getValue().c_str(), strField.size());
     }
 
     virtual void setValueImpl(const QString& val) override
@@ -118,11 +118,13 @@ protected:
 
     virtual int maxSizeImpl() const override
     {
-        if (sizeof(int) <= Field::SizeLength) {
+        typedef typename Field::SizeField SizeField;
+
+        if (sizeof(int) <= SizeField::SerialisedLen) {
             return std::numeric_limits<int>::max();
         }
 
-        return static_cast<int>((1U << Field::SizeLength) - 1);
+        return static_cast<int>((1U << SizeField::SerialisedLen) - 1);
     }
 
 private:
@@ -143,11 +145,11 @@ using StringWrapperPtr = std::unique_ptr<StringWrapper>;
 
 template <typename TField>
 StringWrapperPtr
-makeStaticStringWrapper(TField& field)
+makeStringWrapper(TField& field)
 {
     return
         StringWrapperPtr(
-            new StaticStringWrapperT<TField>(field));
+            new StringWrapperT<TField>(field));
 }
 
 }  // namespace field_wrapper

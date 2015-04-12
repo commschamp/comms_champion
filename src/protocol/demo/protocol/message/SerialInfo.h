@@ -35,9 +35,14 @@ namespace message
 template <typename TFieldBase>
 using SerialInfoFields =
     std::tuple<
-        comms::field::StaticString<
+        comms::field::String<
             TFieldBase,
-            comms::option::ValidStringMaxSize<32> >
+            comms::field::BasicIntValue<
+                TFieldBase,
+                std::uint8_t,
+                comms::option::ValidNumValueRange<0, 32>
+            >
+        >
     >;
 
 template <typename TMsgBase = DemoMessage>

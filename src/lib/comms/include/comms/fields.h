@@ -24,6 +24,3 @@
 #include "field/VarSizeArray.h"
 #include "field/String.h"
 
-
-#include "field/StaticString.h"
-

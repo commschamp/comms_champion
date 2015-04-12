@@ -43,7 +43,7 @@ namespace details
 struct BasicIntValueTag {};
 struct BitmaskValueTag {};
 struct BasicEnumValueTag {};
-struct StaticStringTag {};
+struct StringTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -53,8 +53,8 @@ struct TagOf
         "BasicIntValue is perceived as unknown type");
     static_assert(!comms::field::isBitmaskValue<TField>(),
         "BitmaskValue is perceived as unknown type");
-    static_assert(!comms::field::isStaticString<TField>(),
-        "StaticString is perceived as unknown type");
+    static_assert(!comms::field::isString<TField>(),
+        "String is perceived as unknown type");
     typedef UnknownValueTag Type;
 };
 
@@ -89,13 +89,13 @@ struct TagOf<comms::field::BasicEnumValue<TArgs...> >
 };
 
 template <typename... TArgs>
-struct TagOf<comms::field::StaticString<TArgs...> >
+struct TagOf<comms::field::String<TArgs...> >
 {
     static_assert(
-        comms::field::isStaticString<comms::field::StaticString<TArgs...> >(),
-        "isStaticString is supposed to return true");
+        comms::field::isString<comms::field::String<TArgs...> >(),
+        "isString is supposed to return true");
 
-    typedef StaticStringTag Type;
+    typedef StringTag Type;
 };
 
 template <typename TField>
@@ -125,7 +125,7 @@ private:
     using BasicIntValueTag = details::BasicIntValueTag;
     using BitmaskValueTag = details::BitmaskValueTag;
     using BasicEnumValueTag = details::BasicEnumValueTag;
-    using StaticStringTag = details::StaticStringTag;
+    using StringTag = details::StringTag;
     using UnknownValueTag = details::UnknownValueTag;
 
     template <typename THandler>
@@ -183,10 +183,10 @@ private:
     }
 
     template <typename TField>
-    FieldWidgetPtr createFieldWidget(TField& field, StaticStringTag)
+    FieldWidgetPtr createFieldWidget(TField& field, StringTag)
     {
         return createStringFieldWidget(
-            field_wrapper::makeStaticStringWrapper(field));
+            field_wrapper::makeStringWrapper(field));
     }
 
     template <typename TField>

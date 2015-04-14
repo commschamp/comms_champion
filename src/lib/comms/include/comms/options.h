@@ -95,6 +95,15 @@ struct FixedLength
     static const std::size_t Value = TLen;
 };
 
+template<std::size_t TMin, std::size_t TMax>
+struct VarLength
+{
+    static_assert(TMin <= TMax, "TMin must not be greater that TMax.");
+    static const std::size_t MinValue = TMin;
+    static const std::size_t MaxValue = TMax;
+};
+
+
 template<long long int TOffset>
 struct NumValueSerOffset
 {
@@ -119,26 +128,6 @@ template <typename T>
 struct ContentsValidator
 {
     typedef T Type;
-};
-
-// TODO: remove
-template <std::size_t TSize>
-struct ValidStringMaxSize
-{
-    static const std::size_t Value = TSize;
-};
-
-template <typename T>
-struct StringContentValidator
-{
-    typedef T Type;
-};
-
-// TODO: remove
-template<std::size_t TLen>
-struct StringSizeLength
-{
-    static const std::size_t Value = TLen;
 };
 
 namespace details

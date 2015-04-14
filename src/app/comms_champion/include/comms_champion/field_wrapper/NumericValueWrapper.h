@@ -213,9 +213,9 @@ private:
     UnderlyingType maxValueImplInternal(SerialisedUnsignedTag) const
     {
         auto maxSerialised = std::numeric_limits<SerialisedType>::max();
-        if (Field::SerialisedLen < sizeof(SerialisedType)) {
+        if (Base::field().length() < sizeof(SerialisedType)) {
             static const auto numOfBits =
-                Field::SerialisedLen * std::numeric_limits<std::uint8_t>::digits;
+                Base::field().length() * std::numeric_limits<std::uint8_t>::digits;
             maxSerialised = (static_cast<SerialisedType>(1) << numOfBits) - 1;
         }
 

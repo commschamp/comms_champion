@@ -96,8 +96,7 @@ void FieldsTestSuite::test1()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == sizeof(std::uint32_t), "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), sizeof(std::uint32_t));
     TS_ASSERT_EQUALS(field.getValue(), 0x01020304);
     TS_ASSERT(field.valid());
 }
@@ -116,8 +115,7 @@ void FieldsTestSuite::test2()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == 3, "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), 3);
     TS_ASSERT_EQUALS(field.getValue(), 0x010203);
     TS_ASSERT(field.valid());
 }
@@ -134,8 +132,7 @@ void FieldsTestSuite::test3()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == sizeof(std::int16_t), "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), static_cast<std::int16_t>(0x0102));
     TS_ASSERT(field.valid());
 }
@@ -152,8 +149,7 @@ void FieldsTestSuite::test4()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == sizeof(std::int16_t), "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), -1);
     TS_ASSERT(field.valid());
 }
@@ -170,8 +166,7 @@ void FieldsTestSuite::test5()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == sizeof(std::int16_t), "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), std::numeric_limits<std::int16_t>::min());
     TS_ASSERT(field.valid());
 }
@@ -189,8 +184,7 @@ void FieldsTestSuite::test6()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == 1, "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), -1);
     TS_ASSERT(field.valid());
 }
@@ -210,8 +204,7 @@ void FieldsTestSuite::test7()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
 
-    static_assert(field.length() == 1, "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), 2013);
     TS_ASSERT_EQUALS(field.getSerialisedValue(), 13);
     TS_ASSERT(field.valid());
@@ -232,8 +225,7 @@ void FieldsTestSuite::test8()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == 3, "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), 3);
     TS_ASSERT_EQUALS(field.getValue(), 0x010203);
     TS_ASSERT(!field.valid());
 }
@@ -257,8 +249,7 @@ void FieldsTestSuite::test9()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == 1, "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), 0x05);
     TS_ASSERT(field.valid());
 }
@@ -279,8 +270,7 @@ void FieldsTestSuite::test10()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == 2, "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), 2);
     TS_ASSERT_EQUALS(field.getValue(), 0xdead);
     TS_ASSERT_EQUALS(field.getSerialisedValue(), field.getValue());
     TS_ASSERT_EQUALS(field.getBitValue(0U), true);
@@ -333,8 +323,7 @@ void FieldsTestSuite::test11()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == 3, "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), 3);
     TS_ASSERT_EQUALS(field.getValue(), 0xadde);
     TS_ASSERT_EQUALS(field.getSerialisedValue(), field.getValue());
     TS_ASSERT(field.valid());
@@ -393,8 +382,7 @@ void FieldsTestSuite::test12()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == 1, "Sizes do not match");
-
+    TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), Enum1_Value1);
     TS_ASSERT_EQUALS(field.getSerialisedValue(), field.asIntValueField().getValue());
     TS_ASSERT(field.valid());
@@ -429,7 +417,7 @@ void FieldsTestSuite::test13()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
-    static_assert(field.length() == 2, "Sizes do not match");
+    TS_ASSERT_EQUALS(field.length(), 2);
 
     TS_ASSERT_EQUALS(field.getValue(), Enum2::Value4);
     TS_ASSERT_EQUALS(field.getSerialisedValue(), field.asIntValueField().getValue());

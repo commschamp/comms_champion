@@ -52,7 +52,8 @@ protected:
 
     using Base::Base;
 
-    static const std::size_t SerialisedLen = sizeof(T);
+    static const std::size_t MinLength = sizeof(T);
+    static const std::size_t MaxLength = sizeof(T);
     static const auto Offset = static_cast<OffsetType>(0);
     static const bool HasCustomInitialiser = false;
     static const bool HasCustomValidator = false;
@@ -124,7 +125,29 @@ protected:
 
     typedef typename util::SizeToType<TLen, std::is_signed<T>::value>::Type SerialisedType;
 
-    static const std::size_t SerialisedLen = Option::Value;
+    static const std::size_t MinLength = Option::Value;
+    static const std::size_t MaxLength = Option::Value;
+};
+
+template <typename TField, typename T, std::size_t TMin, std::size_t TMax, typename... TOptions>
+class BasicIntValueBase<
+    TField,
+    T,
+    comms::option::VarLength<TMin, TMax>,
+    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+{
+    static_assert(std::is_integral<T>::value, "T must be integral.");
+
+    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef comms::option::VarLength<TMin, TMax> Option;
+
+protected:
+    using Base::BasicIntValueBase;
+
+    static const std::size_t MinLength = Option::MinValue;
+    static const std::size_t MaxLength = Option::MaxValue;
+
+    typedef typename util::SizeToType<MaxLength, std::is_signed<T>::value>::Type SerialisedType;
 };
 
 template <typename TField, typename T, long long int TOff, typename... TOptions>

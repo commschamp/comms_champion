@@ -66,12 +66,6 @@ public:
     /// @brief Offset Type
     typedef typename Base::OffsetType OffsetType;
 
-    /// @brief Length of serialised data
-    static const std::size_t SerialisedLen = Base::SerialisedLen;
-
-    /// @brief Offset to be applied when serialising
-    static const auto Offset = Base::Offset;
-
     /// @brief Default constructor
     /// @details Sets default value to be 0.
     BasicIntValue()
@@ -130,19 +124,19 @@ public:
     /// @brief Convert value to serialised data
     static constexpr const SerialisedType toSerialised(ValueType value)
     {
-        return static_cast<SerialisedType>(Offset + value);
+        return toSerialisedInternal(value, LengthTag());
     }
 
     /// @brief Convert serialised data to actual value
     static constexpr const ValueType fromSerialised(SerialisedType value)
     {
-        return static_cast<ValueType>((-Offset) + value);
+        return fromSerialisedInternal(value, LengthTag());
     }
 
     /// @brief Get length of serialised data
-    static constexpr std::size_t length()
+    constexpr std::size_t length() const
     {
-        return SerialisedLen;
+        return lengthInternal(LengthTag());
     }
 
     /// @brief Read the serialised field value from the some data structure.
@@ -156,14 +150,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        if (size < length()) {
-            return ErrorStatus::NotEnoughData;
-        }
-
-        auto serialisedValue =
-            Base::template readData<SerialisedType, SerialisedLen>(iter);
-        setSerialisedValue(serialisedValue);
-        return ErrorStatus::Success;
+        return readInternal(iter, size, LengthTag());
     }
 
     /// @brief Write the serialised field value to some data structure.
@@ -177,12 +164,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        if (size < length()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        Base::template writeData<SerialisedLen>(getSerialisedValue(), iter);
-        return ErrorStatus::Success;
+        return writeInternal(iter, size, LengthTag());
     }
 
     constexpr bool valid() const {
@@ -195,11 +177,44 @@ public:
             >::type());
     }
 
+    static constexpr std::size_t maxLength()
+    {
+        return MaxLength;
+    }
+
+    static constexpr std::size_t minLength()
+    {
+        return MinLength;
+    }
+
+    static constexpr bool hasFixedLength()
+    {
+        return HasFixedLength;
+    }
+
+    static constexpr OffsetType serOffset()
+    {
+        return Offset;
+    }
+
 private:
+    static const std::size_t MinLength = Base::MinLength;
+    static const std::size_t MaxLength = Base::MaxLength;
+    static const bool HasFixedLength = (MinLength == MaxLength);
+    static const auto Offset = Base::Offset;
+
     struct DefaultInitialisationTag {};
     struct CustomInitialisationTag {};
     struct DefaultValidatorTag {};
     struct CustomValidatorTag {};
+    struct FixedLengthTag {};
+    struct VarLengthTag {};
+
+    typedef typename std::conditional<
+        HasFixedLength,
+        FixedLengthTag,
+        VarLengthTag
+    >::type LengthTag;
 
     void completeDefaultInitialisation(DefaultInitialisationTag)
     {
@@ -221,6 +236,67 @@ private:
         typedef typename Base::ContentsValidator ContentsValidator;
         return ContentsValidator()(*this);
     }
+
+    constexpr std::size_t lengthInternal(FixedLengthTag) const
+    {
+        static_cast<void>(this);
+        return MaxLength;
+    }
+
+    constexpr std::size_t lengthInternal(VarLengthTag) const
+    {
+        static_cast<void>(this);
+        GASSERT(!"NYI");
+        return 0;
+    }
+
+    template <typename TIter>
+    ErrorStatus readFixedLength(TIter& iter, std::size_t size)
+    {
+        if (size < length()) {
+            return ErrorStatus::NotEnoughData;
+        }
+
+        auto serialisedValue =
+            Base::template readData<SerialisedType, MaxLength>(iter);
+        setSerialisedValue(serialisedValue);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    ErrorStatus readInternal(TIter& iter, std::size_t size, FixedLengthTag)
+    {
+        return readFixedLength(iter, size);
+    }
+
+    template <typename TIter>
+    ErrorStatus writeFixedLength(TIter& iter, std::size_t size) const
+    {
+        if (size < length()) {
+            return ErrorStatus::BufferOverflow;
+        }
+
+        Base::template writeData<MaxLength>(getSerialisedValue(), iter);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    ErrorStatus writeInternal(TIter& iter, std::size_t size, FixedLengthTag) const
+    {
+        return writeFixedLength(iter, size);
+    }
+
+    static constexpr const SerialisedType toSerialisedInternal(ValueType value, FixedLengthTag)
+    {
+        return static_cast<SerialisedType>(Offset + value);
+    }
+
+    /// @brief Convert serialised data to actual value
+    static constexpr const ValueType fromSerialisedInternal(SerialisedType value, FixedLengthTag)
+    {
+        return static_cast<ValueType>((-Offset) + value);
+    }
+
 
     ValueType value_;
 };

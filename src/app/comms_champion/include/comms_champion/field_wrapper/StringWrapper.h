@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <cassert>
 #include <memory>
+#include <limits>
 
 #include <QtCore/QString>
 
@@ -118,13 +119,15 @@ protected:
 
     virtual int maxSizeImpl() const override
     {
-        typedef typename Field::SizeField SizeField;
-
-        if (sizeof(int) <= SizeField::SerialisedLen) {
+        auto sizeField = Base::field().sizeField();
+        if (sizeof(int) <= sizeField.maxLength()) {
             return std::numeric_limits<int>::max();
         }
 
-        return static_cast<int>((1U << SizeField::SerialisedLen) - 1);
+        auto shift =
+            sizeField.maxLength() * std::numeric_limits<std::uint8_t>::digits;
+
+        return static_cast<int>((1U << shift) - 1);
     }
 
 private:

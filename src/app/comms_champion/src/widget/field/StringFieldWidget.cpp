@@ -92,7 +92,7 @@ void StringFieldWidget::propertiesUpdatedImpl()
 void StringFieldWidget::stringChanged()
 {
     auto str = m_ui.m_valuePlainTextEdit->toPlainText();
-    if (str.size() < m_wrapper->maxSize()) {
+    if (m_wrapper->maxSize() < str.size()) {
         str.resize(m_wrapper->maxSize());
     }
 

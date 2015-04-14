@@ -70,6 +70,10 @@ public:
     static_assert(comms::field::isBasicIntValue<Field>(),
         "Field must be of BasicIntValue type");
 
+    static_assert(Field::hasFixedLength(),
+        "Field is expected to have fixed length");
+
+
     using Base::ProtocolLayerBase;
 
     /// @brief Destructor is default
@@ -205,8 +209,9 @@ public:
         TUpdateIter& iter,
         std::size_t size) const
     {
+        static_assert(Field::hasFixedLength(), "Assumption about fixed size length is incorrect.");
         typedef typename Field::ValueType ValueType;
-        Field field(static_cast<ValueType>(size - Field::length()));
+        Field field(static_cast<ValueType>(size - Field::maxLength()));
         return updateInternal(field, iter, size, Base::createNextLayerUpdater());
     }
 
@@ -218,7 +223,7 @@ public:
     {
         auto& field = Base::template getField<TIdx>(allFields);
 
-        field.setValue(static_cast<typename Field::ValueType>(size - Field::length()));
+        field.setValue(static_cast<typename Field::ValueType>(size - field.length()));
         return
             updateInternal(
                 field,
@@ -247,13 +252,13 @@ private:
             return es;
         }
 
-        static const auto Offset = static_cast<std::size_t>(Field::Offset);
+        static const auto Offset = static_cast<std::size_t>(Field::serOffset());
         auto serialisedValue = static_cast<std::size_t>(field.getSerialisedValue());
-        if ((0 < Offset) && (serialisedValue < Field::Offset)) {
+        if ((0 < Offset) && (serialisedValue < Offset)) {
             return ErrorStatus::ProtocolError;
         }
 
-        auto actualRemainingSize = (size - Field::length());
+        auto actualRemainingSize = (size - field.length());
         auto requiredRemainingSize = static_cast<std::size_t>(field.getValue());
 
         if (actualRemainingSize < requiredRemainingSize) {
@@ -353,16 +358,21 @@ private:
         std::size_t size,
         TUpdater&& nextLayerUpdater)
     {
-        if (size < Field::length()) {
+        if (size < Field::maxLength()) {
             return ErrorStatus::BufferOverflow;
         }
 
-        auto es = field.write(iter, Field::length());
+        auto remSize = size - Field::maxLength();
+        field.setValue(
+            static_cast<typename Field::ValueType>(remSize));
+
+
+        auto es = field.write(iter, field.length());
         if (es != ErrorStatus::Success) {
             return es;
         }
 
-        return nextLayerUpdater.update(iter, size - Field::length());
+        return nextLayerUpdater.update(iter, remSize);
     }
 };
 

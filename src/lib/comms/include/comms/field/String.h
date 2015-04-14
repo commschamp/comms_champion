@@ -132,7 +132,7 @@ public:
 
     constexpr std::size_t length() const
     {
-        return SizeField::length() + size();
+        return sizeField().length() + size();
     }
 
     constexpr std::size_t size() const
@@ -218,6 +218,11 @@ public:
 
         advanceIter(iter, size(), Tag());
         return ErrorStatus::Success;
+    }
+
+    SizeField sizeField() const
+    {
+        return SizeField(static_cast<typename SizeField::ValueType>(size()));
     }
 
 private:

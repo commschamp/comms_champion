@@ -137,9 +137,9 @@ public:
     }
 
     /// @copydoc BasicIntValue::length()
-    static constexpr std::size_t length()
+    constexpr std::size_t length() const
     {
-        return IntValueField::length();
+        return intValue_.length();
     }
 
     /// @copydoc BasicIntValue::read()

@@ -49,6 +49,7 @@ public:
     void test17();
     void test18();
     void test19();
+    void test20();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -683,6 +684,25 @@ void FieldsTestSuite::test19()
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
     writeReadField(staticStorageField, ExpectedBuf, ExpectedBufSize);
 }
+
+void FieldsTestSuite::test20()
+{
+//    typedef comms::field::BasicIntValue<
+//        comms::Field<LittleEndianOpt>,
+//        std::uint16_t,
+//        comms::option::VarLength<1, 2>
+//    > Field;
+//
+//    static const char Buf[] = {
+//        (char)0x81, 0x01
+//    };
+//    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+//    auto field = readWriteField<Field>(Buf, BufSize);
+//    TS_ASSERT_EQUALS(field.length(), 2U);
+//    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint16_t>(0x81));
+//    TS_ASSERT(field.valid());
+}
+
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

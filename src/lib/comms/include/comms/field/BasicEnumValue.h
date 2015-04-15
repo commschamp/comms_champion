@@ -156,6 +156,11 @@ public:
         return intValue_.valid();
     }
 
+    static constexpr bool hasFixedLength()
+    {
+        return true;
+    }
+
 private:
 
     IntValueField intValue_;

@@ -50,10 +50,7 @@ BasicEnumValueFieldWidget::~BasicEnumValueFieldWidget() = default;
 void BasicEnumValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateNumericSerialisedValue(
-        *m_ui.m_serValueLineEdit,
-        m_wrapper->serialisedValue(),
-        m_wrapper->width());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->serialisedString());
 
     bool valid = m_wrapper->valid();
     auto comboIdx = m_ui.m_valueComboBox->currentIndex();
@@ -106,7 +103,6 @@ void BasicEnumValueFieldWidget::refreshImpl()
 void BasicEnumValueFieldWidget::setEditEnabledImpl(bool enabled)
 {
     bool readonly = !enabled;
-//    m_ui.m_valueSpinBox->setReadOnly(readonly);
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
@@ -118,19 +114,7 @@ void BasicEnumValueFieldWidget::propertiesUpdatedImpl()
 
 void BasicEnumValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
-    static_assert(std::is_same<long long int, UnderlyingType>::value,
-        "Underlying type assumption is wrong");
-
-    bool ok = false;
-    UnderlyingType serValue = value.toLongLong(&ok, 16);
-    assert(ok);
-    static_cast<void>(ok);
-    if (serValue == m_wrapper->serialisedValue()) {
-        return;
-    }
-    m_wrapper->setSerialisedValue(serValue);
-    emitFieldUpdated();
-    refresh();
+    handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
 void BasicEnumValueFieldWidget::valueUpdated(int idx)

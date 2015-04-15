@@ -32,7 +32,7 @@ namespace plugin
 
 typedef std::tuple<
     comms::option::MsgIdType<demo::message::MsgId>,
-    comms::option::BigEndian,
+    comms::option::LittleEndian,
     comms::option::ReadIterator<const std::uint8_t*>,
     comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >
 >CCDemoDefaultOptions;

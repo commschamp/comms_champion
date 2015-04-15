@@ -34,14 +34,14 @@ BasicIntValueFieldWidget::BasicIntValueFieldWidget(
     m_ui.setupUi(this);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
-    setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
+    setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
 
     m_ui.m_valueSpinBox->setRange(m_wrapper->minValue(), m_wrapper->maxValue());
 
     connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(int)),
             this, SLOT(valueUpdated(int)));
 
-    connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
+    connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
     refresh();
@@ -53,12 +53,10 @@ BasicIntValueFieldWidget::~BasicIntValueFieldWidget() = default;
 void BasicIntValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateNumericSerialisedValue(
-        *m_ui.m_serValueLineEdit,
-        m_wrapper->serialisedValue(),
-        m_wrapper->width());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->serialisedString());
 
     auto value = m_wrapper->value();
+    assert(m_ui.m_valueSpinBox);
     if (m_ui.m_valueSpinBox->value() != value) {
         m_ui.m_valueSpinBox->setValue(value);
     }
@@ -84,19 +82,7 @@ void BasicIntValueFieldWidget::propertiesUpdatedImpl()
 
 void BasicIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
-    static_assert(std::is_same<int, UnderlyingType>::value,
-        "Underlying type assumption is wrong");
-
-    bool ok = false;
-    UnderlyingType serValue = value.toInt(&ok, 16);
-    assert(ok);
-    static_cast<void>(ok);
-    if (serValue == m_wrapper->serialisedValue()) {
-        return;
-    }
-    m_wrapper->setSerialisedValue(serValue);
-    refresh();
-    emitFieldUpdated();
+    handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
 void BasicIntValueFieldWidget::valueUpdated(int value)

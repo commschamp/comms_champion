@@ -40,7 +40,7 @@ BitmaskValueFieldWidget::BitmaskValueFieldWidget(
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
 
-    connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
+    connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 }
 
@@ -49,10 +49,7 @@ BitmaskValueFieldWidget::~BitmaskValueFieldWidget() = default;
 void BitmaskValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateNumericSerialisedValue(
-        *m_ui.m_serValueLineEdit,
-        m_wrapper->serialisedValue(),
-        m_wrapper->width());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->serialisedString());
 
     auto bitIdxLimit = m_wrapper->bitIdxLimit();
     assert(bitIdxLimit == m_checkboxes.size());
@@ -93,20 +90,7 @@ void BitmaskValueFieldWidget::propertiesUpdatedImpl()
 
 void BitmaskValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
-    assert(isEditEnabled());
-    static_assert(std::is_same<unsigned long long, UnderlyingType>::value,
-        "Underlying type assumption is wrong");
-
-    bool ok = false;
-    UnderlyingType serValue = value.toULongLong(&ok, 16);
-    assert(ok);
-    static_cast<void>(ok);
-    if (serValue == m_wrapper->serialisedValue()) {
-        return;
-    }
-    m_wrapper->setSerialisedValue(serValue);
-    refresh();
-    emitFieldUpdated();
+    handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
 void BitmaskValueFieldWidget::checkBoxUpdated(int value)

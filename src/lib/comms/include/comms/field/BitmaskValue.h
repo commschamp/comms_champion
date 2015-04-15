@@ -214,6 +214,11 @@ public:
         }
     }
 
+    static constexpr bool hasFixedLength()
+    {
+        return true;
+    }
+
 private:
     static const bool BitZeroIsMsb = Base::BitZeroIsMsb;
     static const std::size_t TotalBits =

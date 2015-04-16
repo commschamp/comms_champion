@@ -50,6 +50,8 @@ public:
     void test18();
     void test19();
     void test20();
+    void test21();
+    void test22();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -207,7 +209,6 @@ void FieldsTestSuite::test7()
 
     TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), 2013);
-    TS_ASSERT_EQUALS(field.getSerialisedValue(), 13);
     TS_ASSERT(field.valid());
 }
 
@@ -273,7 +274,6 @@ void FieldsTestSuite::test10()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 2);
     TS_ASSERT_EQUALS(field.getValue(), 0xdead);
-    TS_ASSERT_EQUALS(field.getSerialisedValue(), field.getValue());
     TS_ASSERT_EQUALS(field.getBitValue(0U), true);
     TS_ASSERT_EQUALS(field.getBitValue(1U), false);
     TS_ASSERT_EQUALS(field.getBitValue(2U), true);
@@ -326,7 +326,6 @@ void FieldsTestSuite::test11()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 3);
     TS_ASSERT_EQUALS(field.getValue(), 0xadde);
-    TS_ASSERT_EQUALS(field.getSerialisedValue(), field.getValue());
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(field.getBitValue(0U), false);
     TS_ASSERT_EQUALS(field.getBitValue(1U), false);
@@ -385,7 +384,6 @@ void FieldsTestSuite::test12()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), Enum1_Value1);
-    TS_ASSERT_EQUALS(field.getSerialisedValue(), field.asIntValueField().getValue());
     TS_ASSERT(field.valid());
 
     field.setValue(Enum1_NumOfValues);
@@ -421,7 +419,6 @@ void FieldsTestSuite::test13()
     TS_ASSERT_EQUALS(field.length(), 2);
 
     TS_ASSERT_EQUALS(field.getValue(), Enum2::Value4);
-    TS_ASSERT_EQUALS(field.getSerialisedValue(), field.asIntValueField().getValue());
     TS_ASSERT(field.valid());
 
     field.setValue(Enum2::NumOfValues);
@@ -687,20 +684,90 @@ void FieldsTestSuite::test19()
 
 void FieldsTestSuite::test20()
 {
-//    typedef comms::field::BasicIntValue<
-//        comms::Field<LittleEndianOpt>,
-//        std::uint16_t,
-//        comms::option::VarLength<1, 2>
-//    > Field;
-//
-//    static const char Buf[] = {
-//        (char)0x81, 0x01
-//    };
-//    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
-//    auto field = readWriteField<Field>(Buf, BufSize);
-//    TS_ASSERT_EQUALS(field.length(), 2U);
-//    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint16_t>(0x81));
-//    TS_ASSERT(field.valid());
+    typedef comms::field::BasicIntValue<
+        comms::Field<LittleEndianOpt>,
+        std::uint16_t,
+        comms::option::VarLength<1, 2>
+    > Field;
+
+    static const char Buf[] = {
+        (char)0x81, 0x01
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint16_t>(0x81));
+    TS_ASSERT(field.valid());
+
+    field.setValue(0x7ff);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    static const char ExpectedBuf[] = {
+        (char)0xff, 0x0f
+    };
+
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test21()
+{
+    typedef comms::field::BasicIntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint32_t,
+        comms::option::VarLength<1, 3>
+    > Field;
+
+    static const char Buf[] = {
+        (char)0x83, 0x0f
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint32_t>(0x18f));
+    TS_ASSERT(field.valid());
+
+    field.setValue(0x7ff);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    static const char ExpectedBuf[] = {
+        (char)0x8f, (char)0x7f
+    };
+
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    field.setValue(0x7f);
+    TS_ASSERT_EQUALS(field.length(), 1U);
+    static const char ExpectedBuf2[] = {
+        (char)0x7f
+    };
+
+    static const std::size_t ExpectedBufSize2 = std::extent<decltype(ExpectedBuf2)>::value;
+    writeReadField(field, ExpectedBuf2, ExpectedBufSize2);
+
+    static const char Buf2[] = {
+        (char)0x91, (char)0xc2, (char)0x3f, (char)0xff
+    };
+    static const std::size_t BufSize2 = std::extent<decltype(Buf2)>::value;
+    field = readWriteField<Field>(Buf2, BufSize2);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint32_t>(0x4613f));
+    TS_ASSERT(field.valid());
+}
+
+void FieldsTestSuite::test22()
+{
+    typedef comms::field::BasicIntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint32_t,
+        comms::option::VarLength<1, 3>
+    > Field;
+
+    static const char Buf[] = {
+        (char)0x83, (char)0x8f, (char)0x8c, (char)0x3f, (char)0xff
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize, comms::ErrorStatus::ProtocolError);
+    static_cast<void>(field);
 }
 
 

@@ -124,13 +124,13 @@ public:
     /// @brief Convert value to serialised data
     static constexpr const SerialisedType toSerialised(ValueType value)
     {
-        return toSerialisedInternal(value, LengthTag());
+        return static_cast<SerialisedType>(Offset + value);
     }
 
     /// @brief Convert serialised data to actual value
     static constexpr const ValueType fromSerialised(SerialisedType value)
     {
-        return fromSerialisedInternal(value, LengthTag());
+        return static_cast<ValueType>((-Offset) + value);
     }
 
     /// @brief Get length of serialised data
@@ -245,15 +245,21 @@ private:
 
     constexpr std::size_t lengthInternal(VarLengthTag) const
     {
-        static_cast<void>(this);
-        GASSERT(!"NYI");
-        return 0;
+        typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerType;
+        auto serValue = static_cast<UnsignedSerType>(getSerialisedValue());
+        std::size_t len = 0U;
+        while (0 < serValue) {
+            serValue >>= VarLengthShift;
+            ++len;
+        }
+
+        return std::max(std::size_t(MinLength), len);
     }
 
     template <typename TIter>
     ErrorStatus readFixedLength(TIter& iter, std::size_t size)
     {
-        if (size < length()) {
+        if (size < minLength()) {
             return ErrorStatus::NotEnoughData;
         }
 
@@ -263,70 +269,77 @@ private:
         return ErrorStatus::Success;
     }
 
-//    void addByteToSerialisedValueBigEndian(
-//        std::uint8_t byte,
-//        SerialisedType& value)
-//    {
-//        GASSERT((byte & VarLengthContinueBit) == 0);
-//        value <<= VarLengthShift;
-//        value |= byte;
-//    }
-//
-//    void addByteToSerialisedValueLittleEndian(
-//        std::uint8_t byte,
-//        std::size_t byteCount,
-//        SerialisedType& value)
-//    {
-//        GASSERT((byte & VarLengthContinueBit) == 0);
-//        auto shift =
-//            byteCount * VarLengthShift;
-//        value = (static_cast<SerialisedType>(byte) << shift) | value;
-//    }
-//
-//    void addByteToSerialisedValue(
-//        std::uint8_t byte,
-//        std::size_t byteCount,
-//        SerialisedType& value,
-//        comms::traits::endian::Big)
-//    {
-//        static_cast<void>(byteCount);
-//        addByteToSerialisedValueBigEndian(byte, value);
-//    }
-//
-//    void addByteToSerialisedValue(
-//        std::uint8_t byte,
-//        std::size_t byteCount,
-//        SerialisedType& value,
-//        comms::traits::endian::Little)
-//    {
-//        addByteToSerialisedValueLittleEndian(byte, byteCount, value);
-//    }
+    static void addByteToSerialisedValueBigEndian(
+        std::uint8_t byte,
+        SerialisedType& value)
+    {
+        GASSERT((byte & VarLengthContinueBit) == 0);
+        value <<= VarLengthShift;
+        value |= byte;
+    }
 
-//    template <typename TIter>
-//    ErrorStatus readVarLength(TIter& iter, std::size_t size)
-//    {
-//        SerialisedType value = 0;
-//        std::size_t byteCount = 0;
-//        while (true) {
-//            if (size == 0) {
-//                return ErrorStatus::NotEnoughData;
-//            }
-//            auto byte = Base::template readData<std::uint8_t>(iter);
-//            auto byteValue = byte & VarLengthValueBitsMask;
-//            addByteToSerialisedValue(
-//                byteValue, byteCount, value, typename Base::Endian());
-//            if ((byte & VarLengthContinueBit) != 0) {
-//                break;
-//            }
-//
-//            ++byteCount;
-//            if (MaxLength <= byteCount) {
-//                return ErrorStatus::ProtocolError;
-//            }
-//            --size;
-//        }
-//        setSerialisedValue(value);
-//    }
+    static void addByteToSerialisedValueLittleEndian(
+        std::uint8_t byte,
+        std::size_t byteCount,
+        SerialisedType& value)
+    {
+        GASSERT((byte & VarLengthContinueBit) == 0);
+        auto shift =
+            byteCount * VarLengthShift;
+        value = (static_cast<SerialisedType>(byte) << shift) | value;
+    }
+
+    static void addByteToSerialisedValue(
+        std::uint8_t byte,
+        std::size_t byteCount,
+        SerialisedType& value,
+        comms::traits::endian::Big)
+    {
+        static_cast<void>(byteCount);
+        addByteToSerialisedValueBigEndian(byte, value);
+    }
+
+    static void addByteToSerialisedValue(
+        std::uint8_t byte,
+        std::size_t byteCount,
+        SerialisedType& value,
+        comms::traits::endian::Little)
+    {
+        addByteToSerialisedValueLittleEndian(byte, byteCount, value);
+    }
+
+    template <typename TIter>
+    ErrorStatus readVarLength(TIter& iter, std::size_t size)
+    {
+        SerialisedType value = 0;
+        std::size_t byteCount = 0;
+        while (true) {
+            if (size == 0) {
+                return ErrorStatus::NotEnoughData;
+            }
+            auto byte = Base::template readData<std::uint8_t>(iter);
+            auto byteValue = byte & VarLengthValueBitsMask;
+            addByteToSerialisedValue(
+                byteValue, byteCount, value, typename Base::Endian());
+
+            ++byteCount;
+
+            if ((byte & VarLengthContinueBit) == 0) {
+                break;
+            }
+
+            if (MaxLength <= byteCount) {
+                return ErrorStatus::ProtocolError;
+            }
+            --size;
+        }
+
+        if (byteCount < minLength()) {
+            std::advance(iter, minLength() - byteCount);
+        }
+        setSerialisedValue(value);
+        return ErrorStatus::Success;
+    }
 
     template <typename TIter>
     ErrorStatus readInternal(TIter& iter, std::size_t size, FixedLengthTag)
@@ -351,17 +364,84 @@ private:
         return ErrorStatus::Success;
     }
 
-//    template <typename TIter>
-//    ErrorStatus writeVarLength(TIter& iter, std::size_t size, comms::traits::endian::Big) const
-//    {
-//        return writeVarLengthBigEndian(iter, size);
-//    }
-//
-//    template <typename TIter>
-//    ErrorStatus writeVarLength(TIter& iter, std::size_t size, comms::traits::endian::Little) const
-//    {
-//        return writeVarLengthLittleEndian(iter, size);
-//    }
+    static std::uint8_t removeByteFromSerialisedValueBigEndian(
+        SerialisedType& value)
+    {
+        static const auto Mask = ~(static_cast<SerialisedType>(VarLengthValueBitsMask));
+
+        auto valueTmp = value;
+        std::size_t shift = 0;
+        while ((valueTmp & Mask) != 0) {
+            valueTmp >>= VarLengthShift;
+            shift += VarLengthShift;
+        }
+
+        auto clearMask = ~(static_cast<SerialisedType>(VarLengthValueBitsMask) << shift);
+        value &= clearMask;
+        return static_cast<std::uint8_t>(valueTmp);
+    }
+
+    static std::uint8_t removeByteFromSerialisedValueLittleEndian(
+        SerialisedType& value)
+    {
+        auto byte = static_cast<std::uint8_t>(value & VarLengthValueBitsMask);
+        value >>= VarLengthShift;
+        return byte;
+    }
+
+    static std::uint8_t removeByteFromSerialisedValue(
+        SerialisedType& value,
+        comms::traits::endian::Big)
+    {
+        return removeByteFromSerialisedValueBigEndian(value);
+    }
+
+    static std::uint8_t removeByteFromSerialisedValue(
+        SerialisedType& value,
+        comms::traits::endian::Little)
+    {
+        return removeByteFromSerialisedValueLittleEndian(value);
+    }
+
+    template <typename TIter>
+    ErrorStatus writeVarLength(TIter& iter, std::size_t size) const
+    {
+        SerialisedType value = getSerialisedValue();
+        std::size_t byteCount = 0;
+        while (true) {
+            if (size == 0) {
+                return ErrorStatus::BufferOverflow;
+            }
+
+            auto byte = removeByteFromSerialisedValue(value, typename Base::Endian());
+            auto mustStop = (value == 0);
+            if (!mustStop) {
+                GASSERT((byte & VarLengthContinueBit) == 0);
+                byte |= VarLengthContinueBit;
+            }
+
+            Base::writeData(byte, iter);
+            ++byteCount;
+
+            if (mustStop) {
+                break;
+            }
+
+            GASSERT(byteCount < maxLength());
+            --size;
+        }
+
+        GASSERT(
+            (std::is_same<typename Base::Endian, comms::traits::endian::Little>::value) ||
+            (minLength() <= byteCount));
+
+        while (byteCount < minLength()) {
+            Base::writeData(std::uint8_t(0), iter);
+            ++byteCount;
+        }
+
+        return ErrorStatus::Success;
+    }
 
     template <typename TIter>
     ErrorStatus writeInternal(TIter& iter, std::size_t size, FixedLengthTag) const
@@ -372,18 +452,7 @@ private:
     template <typename TIter>
     ErrorStatus writeInternal(TIter& iter, std::size_t size, VarLengthTag) const
     {
-        return writeVarLength(iter, size, typename Base::Endian());
-    }
-
-    static constexpr const SerialisedType toSerialisedInternal(ValueType value, FixedLengthTag)
-    {
-        return static_cast<SerialisedType>(Offset + value);
-    }
-
-    /// @brief Convert serialised data to actual value
-    static constexpr const ValueType fromSerialisedInternal(SerialisedType value, FixedLengthTag)
-    {
-        return static_cast<ValueType>((-Offset) + value);
+        return writeVarLength(iter, size);
     }
 
     static const unsigned VarLengthShift = 7;
@@ -391,6 +460,7 @@ private:
         (static_cast<std::uint8_t>(1U) << VarLengthShift) - 1;
     static const std::uint8_t VarLengthContinueBit =
         static_cast<std::uint8_t>(~(VarLengthValueBitsMask));
+
     ValueType value_;
 };
 

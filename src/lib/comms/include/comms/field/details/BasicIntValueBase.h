@@ -127,6 +127,11 @@ protected:
 
     static const std::size_t MinLength = Option::Value;
     static const std::size_t MaxLength = Option::Value;
+
+    static_assert(
+        0 < MinLength,
+        "Fixed length cannot be 0.");
+
 };
 
 template <typename TField, typename T, std::size_t TMin, std::size_t TMax, typename... TOptions>
@@ -148,6 +153,14 @@ protected:
     static const std::size_t MaxLength = Option::MaxValue;
 
     typedef typename util::SizeToType<MaxLength, std::is_signed<T>::value>::Type SerialisedType;
+
+    static_assert(
+        0 < MinLength,
+        "MinLength cannot be 0.");
+
+    static_assert(
+        MinLength <= MaxLength,
+        "MinLength must be non-greater than MaxLength");
 };
 
 template <typename TField, typename T, long long int TOff, typename... TOptions>

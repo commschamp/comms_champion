@@ -52,6 +52,7 @@ public:
     void test20();
     void test21();
     void test22();
+    void test23();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -64,7 +65,7 @@ private:
         Enum1_NumOfValues
     };
 
-    enum class Enum2 {
+    enum class Enum2 : unsigned {
         Value1,
         Value2,
         Value3,
@@ -102,6 +103,8 @@ void FieldsTestSuite::test1()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::uint32_t));
     TS_ASSERT_EQUALS(field.getValue(), 0x01020304);
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::uint32_t>::max());
 }
 
 void FieldsTestSuite::test2()
@@ -121,6 +124,8 @@ void FieldsTestSuite::test2()
     TS_ASSERT_EQUALS(field.length(), 3);
     TS_ASSERT_EQUALS(field.getValue(), 0x010203);
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0xffffff);
 }
 
 void FieldsTestSuite::test3()
@@ -138,6 +143,8 @@ void FieldsTestSuite::test3()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), static_cast<std::int16_t>(0x0102));
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::int16_t>::min());
+    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::int16_t>::max());
 }
 
 void FieldsTestSuite::test4()
@@ -155,6 +162,8 @@ void FieldsTestSuite::test4()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), -1);
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::int16_t>::min());
+    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::int16_t>::max());
 }
 
 void FieldsTestSuite::test5()
@@ -172,6 +181,8 @@ void FieldsTestSuite::test5()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), std::numeric_limits<std::int16_t>::min());
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::int16_t>::min());
+    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::int16_t>::max());
 }
 
 void FieldsTestSuite::test6()
@@ -190,6 +201,8 @@ void FieldsTestSuite::test6()
     TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), -1);
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::int8_t>::min());
+    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::int8_t>::max());
 }
 
 void FieldsTestSuite::test7()
@@ -210,6 +223,8 @@ void FieldsTestSuite::test7()
     TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), 2013);
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), 2000 + std::numeric_limits<std::int8_t>::min());
+    TS_ASSERT_EQUALS(field.maxValue(), 2000 + std::numeric_limits<std::int8_t>::max());
 }
 
 void FieldsTestSuite::test8()
@@ -230,6 +245,8 @@ void FieldsTestSuite::test8()
     TS_ASSERT_EQUALS(field.length(), 3);
     TS_ASSERT_EQUALS(field.getValue(), 0x010203);
     TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0xffffff);
 }
 
 void FieldsTestSuite::test9()
@@ -254,6 +271,8 @@ void FieldsTestSuite::test9()
     TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), 0x05);
     TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::uint8_t>::min());
+    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::uint8_t>::max());
 }
 
 void FieldsTestSuite::test10()
@@ -303,6 +322,9 @@ void FieldsTestSuite::test10()
     };
     const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::uint16_t>::min());
+    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::uint16_t>::max());
 }
 
 void FieldsTestSuite::test11()
@@ -361,6 +383,9 @@ void FieldsTestSuite::test11()
     field.setBitValue(7U, false);
     TS_ASSERT_EQUALS(field.getValue(), 0xaddf);
     TS_ASSERT(field.valid());
+
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0xffffff);
 }
 
 void FieldsTestSuite::test12()
@@ -395,6 +420,9 @@ void FieldsTestSuite::test12()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0xff);
 }
 
 void FieldsTestSuite::test13()
@@ -430,6 +458,9 @@ void FieldsTestSuite::test13()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0xffff);
 }
 
 void FieldsTestSuite::test14()
@@ -531,6 +562,9 @@ void FieldsTestSuite::test16()
     TS_ASSERT_EQUALS(staticStorageField.size(), static_cast<std::size_t>(Buf[0]));
     TS_ASSERT_EQUALS(staticStorageField.length(), staticStorageField.size() + 1U);
     TS_ASSERT(staticStorageField.valid());
+
+    TS_ASSERT_EQUALS(field.sizeField().minValue(), 0U);
+    TS_ASSERT_EQUALS(field.sizeField().maxValue(), 0xff);
 }
 
 void FieldsTestSuite::test17()
@@ -707,6 +741,9 @@ void FieldsTestSuite::test20()
 
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0x3fff);
 }
 
 void FieldsTestSuite::test21()
@@ -752,6 +789,9 @@ void FieldsTestSuite::test21()
     TS_ASSERT_EQUALS(field.length(), 3U);
     TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint32_t>(0x4613f));
     TS_ASSERT(field.valid());
+
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0x1fffff);
 }
 
 void FieldsTestSuite::test22()
@@ -768,8 +808,42 @@ void FieldsTestSuite::test22()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize, comms::ErrorStatus::ProtocolError);
     static_cast<void>(field);
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0x1fffff);
 }
 
+void FieldsTestSuite::test23()
+{
+    typedef comms::field::BasicIntValue<
+        comms::Field<LittleEndianOpt>,
+        std::int16_t,
+        comms::option::VarLength<1, 2>
+    > Field;
+
+    Field field;
+    TS_ASSERT_EQUALS(field.minValue(), static_cast<int16_t>(0xe000));
+    TS_ASSERT_EQUALS(field.maxValue(), 0x1fff);
+
+    field.setValue(field.minValue());
+    TS_ASSERT_EQUALS(field.length(), 2U);
+
+    static const char ExpectedMinValueBuf[] = {
+        (char)0x80, (char)0x40
+    };
+
+    static const std::size_t ExpectedMinValueBufSize = std::extent<decltype(ExpectedMinValueBuf)>::value;
+    writeReadField(field, ExpectedMinValueBuf, ExpectedMinValueBufSize);
+
+    field.setValue(field.maxValue());
+    TS_ASSERT_EQUALS(field.length(), 2U);
+
+    static const char ExpectedMaxValueBuf[] = {
+        (char)0xff, (char)0x3f
+    };
+
+    static const std::size_t ExpectedMaxValueBufSize = std::extent<decltype(ExpectedMaxValueBuf)>::value;
+    writeReadField(field, ExpectedMaxValueBuf, ExpectedMaxValueBufSize);
+}
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(
@@ -815,7 +889,15 @@ void FieldsTestSuite::writeReadField(
     auto writeIter = &outDataBuf[0];
     auto es = field.write(writeIter, size);
     TS_ASSERT_EQUALS(es, expectedStatus);
-    TS_ASSERT(std::equal(expectedBuf, expectedBuf + size, &outDataBuf[0]));
+    bool bufAsExpected = std::equal(expectedBuf, expectedBuf + size, &outDataBuf[0]);
+    if (!bufAsExpected) {
+        std::cout << "Expected buffer: " << std::hex;
+        std::copy_n(expectedBuf, size, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << "\nActual buffer: ";
+        std::copy_n(&outDataBuf[0], size, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << std::dec << std::endl;
+    }
+    TS_ASSERT(bufAsExpected);
 
     if (es == comms::ErrorStatus::Success) {
         auto readIter = &outDataBuf[0];

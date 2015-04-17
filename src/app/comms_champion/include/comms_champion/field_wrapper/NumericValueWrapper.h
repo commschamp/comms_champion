@@ -200,18 +200,20 @@ protected:
         auto& field = Base::field();
         auto es = field.read(iter, value.size());
         static_cast<void>(es);
-        assert(es == comms::ErrorStatus::Success);
-        assert(value.size() == field.length());
+        if (Base::field().hasFixedLength()) {
+            assert(es == comms::ErrorStatus::Success);
+            assert(value.size() == field.length());
+        }
     }
 
     virtual UnderlyingType minValueImpl() const override
     {
-        return minValueImplInternal(SerialisedTypeTag());
+        return Base::field().minValue();
     }
 
     virtual UnderlyingType maxValueImpl() const override
     {
-        return maxValueImplInternal(SerialisedTypeTag());
+        return Base::field().maxValue();
     }
 
     virtual std::size_t minLengthImpl() const override
@@ -276,59 +278,6 @@ private:
     {
         static_cast<void>(value);
         assert(!"Attempt to update readonly field");
-    }
-
-    UnderlyingType minValueImplInternal(SerialisedUnsignedTag) const
-    {
-        Field fieldTmp;
-        fieldTmp.setSerialisedValue(0);
-        return fieldTmp.getValue();
-    }
-
-    UnderlyingType minValueImplInternal(SerialisedSignedTag) const
-    {
-        auto minSerialised = std::numeric_limits<SerialisedType>::min();
-        if (Field::SerialisedLen < sizeof(SerialisedType)) {
-            typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerialisedType;
-            static const auto numOfBits =
-                Field::SerialisedLen * std::numeric_limits<std::uint8_t>::digits;
-            minSerialised =
-                static_cast<UnderlyingType>(
-                    static_cast<UnsignedSerialisedType>(1) << (numOfBits - 1));
-        }
-
-        Field fieldTmp;
-        fieldTmp.setSerialisedValue(0);
-        return static_cast<UnderlyingType>(fieldTmp.getValue());
-    }
-
-    UnderlyingType maxValueImplInternal(SerialisedUnsignedTag) const
-    {
-        auto maxSerialised = std::numeric_limits<SerialisedType>::max();
-        if (Base::field().length() < sizeof(SerialisedType)) {
-            static const auto numOfBits =
-                Base::field().length() * std::numeric_limits<std::uint8_t>::digits;
-            maxSerialised = (static_cast<SerialisedType>(1) << numOfBits) - 1;
-        }
-
-        Field fieldTmp;
-        fieldTmp.setSerialisedValue(maxSerialised);
-        return static_cast<UnderlyingType>(fieldTmp.getValue());
-    }
-
-    UnderlyingType maxValueImplInternal(SerialisedSignedTag) const
-    {
-        auto maxSerialised = std::numeric_limits<SerialisedType>::max();
-        if (Field::SerialisedLen < sizeof(SerialisedType)) {
-            static const auto numOfBits =
-                Field::SerialisedLen * std::numeric_limits<std::uint8_t>::digits;
-
-            maxSerialised = (static_cast<SerialisedType>(1) << (Field::numOfBits - 1)) - 1;
-        }
-
-        Field fieldTmp;
-        fieldTmp.setSerialisedValue(maxSerialised);
-        return static_cast<UnderlyingType>(fieldTmp.getValue());
     }
 
     std::size_t minLengthInternal(FixedLengthTag) const

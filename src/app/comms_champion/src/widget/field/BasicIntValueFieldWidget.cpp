@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
 #include "GlobalConstants.h"
 

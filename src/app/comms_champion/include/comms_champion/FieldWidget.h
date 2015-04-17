@@ -25,6 +25,7 @@
 class QLineEdit;
 class QLabel;
 class QPlainTextEdit;
+class QSpinBox;
 
 namespace comms_champion
 {

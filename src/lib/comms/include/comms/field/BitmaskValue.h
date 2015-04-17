@@ -142,6 +142,16 @@ public:
         return intValue_.length();
     }
 
+    static constexpr std::size_t minValue()
+    {
+        return IntValueField::minValue();
+    }
+
+    static constexpr std::size_t maxValue()
+    {
+        return IntValueField::maxValue();
+    }
+
     /// @copydoc BasicIntValue::read()
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)

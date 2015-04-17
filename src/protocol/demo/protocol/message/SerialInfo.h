@@ -42,6 +42,11 @@ using SerialInfoFields =
                 std::uint8_t,
                 comms::option::ValidNumValueRange<0, 32>
             >
+        >,
+        comms::field::BasicIntValue<
+            TFieldBase,
+            std::uint16_t,
+            comms::option::VarLength<1, 2>
         >
     >;
 
@@ -57,6 +62,7 @@ class SerialInfo : public
 public:
     enum FieldId {
         FieldId_Device,
+        FieldId_Baud,
         FieldId_NumOfFields
     };
 };

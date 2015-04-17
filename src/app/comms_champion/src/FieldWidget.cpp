@@ -26,6 +26,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QPlainTextEdit>
+#include <QtWidgets/QSpinBox>
 
 #include "GlobalConstants.h"
 

@@ -106,6 +106,8 @@ public:
     /// @param value Value to set.
     void setValue(ValueType value)
     {
+        GASSERT(minValue() <= value);
+        GASSERT(value <= maxValue());
         value_ = value;
     }
 
@@ -187,6 +189,16 @@ public:
         return MinLength;
     }
 
+    static ValueType minValue()
+    {
+        return minValueInternal(LengthTag());
+    }
+
+    static ValueType maxValue()
+    {
+        return maxValueInternal(LengthTag());
+    }
+
     static constexpr bool hasFixedLength()
     {
         return HasFixedLength;
@@ -209,12 +221,22 @@ private:
     struct CustomValidatorTag {};
     struct FixedLengthTag {};
     struct VarLengthTag {};
+    struct NoAdjustment {};
+    struct ShorterLengthAdjustment {};
 
     typedef typename std::conditional<
         HasFixedLength,
         FixedLengthTag,
         VarLengthTag
     >::type LengthTag;
+
+    typedef typename std::conditional<
+        sizeof(SerialisedType) == MaxLength,
+        NoAdjustment,
+        ShorterLengthAdjustment
+    >::type AdjustmentTag;
+
+    typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerType;
 
     void completeDefaultInitialisation(DefaultInitialisationTag)
     {
@@ -243,10 +265,57 @@ private:
         return MaxLength;
     }
 
+    UnsignedSerType adjustToUnsignedSerialisedVarLength() const
+    {
+        static_assert(MaxLength <= sizeof(UnsignedSerType),
+            "MaxLength is expected to be shorter than size of serialised type.");
+
+        static const auto ZeroBitsCount =
+            ((sizeof(UnsignedSerType) - MaxLength) * std::numeric_limits<std::uint8_t>::digits) + MaxLength;
+
+        static const auto TotalBits =
+            sizeof(UnsignedSerType) * std::numeric_limits<std::uint8_t>::digits;
+
+        static const auto Mask =
+            (static_cast<UnsignedSerType>(1U) << (TotalBits - ZeroBitsCount)) - 1;
+
+        return static_cast<UnsignedSerType>(getSerialisedValue()) & Mask;
+    }
+
+    SerialisedType adjustFromUnsignedSerialisedVarLength(UnsignedSerType value)
+    {
+        static_assert(MaxLength <= sizeof(UnsignedSerType),
+            "MaxLength is expected to be shorter than size of serialised type.");
+
+        static const auto ZeroBitsCount =
+            ((sizeof(UnsignedSerType) - MaxLength) * std::numeric_limits<std::uint8_t>::digits) + MaxLength;
+
+        static const auto TotalBits =
+            sizeof(UnsignedSerType) * std::numeric_limits<std::uint8_t>::digits;
+
+        static const auto Mask =
+            (static_cast<UnsignedSerType>(1U) << (TotalBits - ZeroBitsCount)) - 1;
+
+        static const auto SignPos = (TotalBits - ZeroBitsCount) - 1;
+        static const auto SignMask =
+            static_cast<UnsignedSerType>(1U) << SignPos;
+
+        bool negValue =
+            (std::is_signed<SerialisedType>::value) &&
+            ((value & SignMask) != 0);
+
+        if ((std::is_signed<SerialisedType>::value) &&
+            (negValue)) {
+            value |= (~Mask);
+        }
+
+        return static_cast<SerialisedType>(value);
+    }
+
     constexpr std::size_t lengthInternal(VarLengthTag) const
     {
-        typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerType;
-        auto serValue = static_cast<UnsignedSerType>(getSerialisedValue());
+        auto serValue = adjustToUnsignedSerialisedVarLength();
+
         std::size_t len = 0U;
         while (0 < serValue) {
             serValue >>= VarLengthShift;
@@ -271,7 +340,7 @@ private:
 
     static void addByteToSerialisedValueBigEndian(
         std::uint8_t byte,
-        SerialisedType& value)
+        UnsignedSerType& value)
     {
         GASSERT((byte & VarLengthContinueBit) == 0);
         value <<= VarLengthShift;
@@ -281,7 +350,7 @@ private:
     static void addByteToSerialisedValueLittleEndian(
         std::uint8_t byte,
         std::size_t byteCount,
-        SerialisedType& value)
+        UnsignedSerType& value)
     {
         GASSERT((byte & VarLengthContinueBit) == 0);
         auto shift =
@@ -292,7 +361,7 @@ private:
     static void addByteToSerialisedValue(
         std::uint8_t byte,
         std::size_t byteCount,
-        SerialisedType& value,
+        UnsignedSerType& value,
         comms::traits::endian::Big)
     {
         static_cast<void>(byteCount);
@@ -302,7 +371,7 @@ private:
     static void addByteToSerialisedValue(
         std::uint8_t byte,
         std::size_t byteCount,
-        SerialisedType& value,
+        UnsignedSerType& value,
         comms::traits::endian::Little)
     {
         addByteToSerialisedValueLittleEndian(byte, byteCount, value);
@@ -311,7 +380,7 @@ private:
     template <typename TIter>
     ErrorStatus readVarLength(TIter& iter, std::size_t size)
     {
-        SerialisedType value = 0;
+        UnsignedSerType value = 0;
         std::size_t byteCount = 0;
         while (true) {
             if (size == 0) {
@@ -337,7 +406,9 @@ private:
         if (byteCount < minLength()) {
             std::advance(iter, minLength() - byteCount);
         }
-        setSerialisedValue(value);
+
+        auto adjustedValue = adjustFromUnsignedSerialisedVarLength(value);
+        setSerialisedValue(adjustedValue);
         return ErrorStatus::Success;
     }
 
@@ -365,7 +436,7 @@ private:
     }
 
     static std::uint8_t removeByteFromSerialisedValueBigEndian(
-        SerialisedType& value)
+        UnsignedSerType& value)
     {
         static const auto Mask = ~(static_cast<SerialisedType>(VarLengthValueBitsMask));
 
@@ -382,7 +453,7 @@ private:
     }
 
     static std::uint8_t removeByteFromSerialisedValueLittleEndian(
-        SerialisedType& value)
+        UnsignedSerType& value)
     {
         auto byte = static_cast<std::uint8_t>(value & VarLengthValueBitsMask);
         value >>= VarLengthShift;
@@ -390,14 +461,14 @@ private:
     }
 
     static std::uint8_t removeByteFromSerialisedValue(
-        SerialisedType& value,
+        UnsignedSerType& value,
         comms::traits::endian::Big)
     {
         return removeByteFromSerialisedValueBigEndian(value);
     }
 
     static std::uint8_t removeByteFromSerialisedValue(
-        SerialisedType& value,
+        UnsignedSerType& value,
         comms::traits::endian::Little)
     {
         return removeByteFromSerialisedValueLittleEndian(value);
@@ -406,7 +477,7 @@ private:
     template <typename TIter>
     ErrorStatus writeVarLength(TIter& iter, std::size_t size) const
     {
-        SerialisedType value = getSerialisedValue();
+        auto value = adjustToUnsignedSerialisedVarLength();
         std::size_t byteCount = 0;
         while (true) {
             if (size == 0) {
@@ -453,6 +524,117 @@ private:
     ErrorStatus writeInternal(TIter& iter, std::size_t size, VarLengthTag) const
     {
         return writeVarLength(iter, size);
+    }
+
+    static constexpr SerialisedType adjustSerialisedFixedLength(
+        SerialisedType value,
+        NoAdjustment)
+    {
+        return value;
+    }
+
+    static SerialisedType adjustSerialisedFixedLength(
+        SerialisedType value,
+        ShorterLengthAdjustment)
+    {
+        static const auto Shift =
+            MaxLength * std::numeric_limits<std::uint8_t>::digits;
+        static const auto Mask =
+            (static_cast<UnsignedSerType>(1) << Shift) - 1;
+        static const auto SignBitMask =
+            (static_cast<UnsignedSerType>(1) << (Shift - 1));
+
+        auto unsignedResult = static_cast<UnsignedSerType>(value) & Mask;
+        if ((std::is_signed<SerialisedType>::value) &&
+            ((unsignedResult & SignBitMask) != 0U)) {
+            unsignedResult |= ~(Mask);
+        }
+
+        return static_cast<SerialisedType>(unsignedResult);
+    }
+
+    static ValueType minValueFixedLength()
+    {
+        auto minSer = std::numeric_limits<SerialisedType>::min();
+        auto adjustedSerialised = adjustSerialisedFixedLength(minSer, AdjustmentTag());
+        return fromSerialised(adjustedSerialised);
+    }
+
+    static ValueType minValueInternal(FixedLengthTag)
+    {
+        return minValueFixedLength();
+    }
+
+    static SerialisedType adjustSerialisedVarLength(
+        SerialisedType value)
+    {
+        auto fixedAdjusted = adjustSerialisedFixedLength(value, AdjustmentTag());
+        static const auto TotalBits =
+            sizeof(SerialisedType) * std::numeric_limits<std::uint8_t>::digits;
+        static const auto SignPos = TotalBits - 1;
+        static const auto SignMask =
+            static_cast<UnsignedSerType>(1U) << SignPos;
+
+        bool negValue =
+            (std::is_signed<SerialisedType>::value) &&
+            ((fixedAdjusted & SignMask) != 0);
+
+        static const auto Shift = MaxLength;
+
+        static const auto Mask =
+            (static_cast<UnsignedSerType>(1) << (TotalBits - Shift)) - 1;
+
+        auto unsignedResult =
+            (static_cast<UnsignedSerType>(fixedAdjusted) >> Shift) & Mask;
+
+        if (negValue) {
+            unsignedResult |= ~(Mask);
+        }
+
+        return static_cast<SerialisedType>(unsignedResult);
+    }
+
+    static ValueType minValueVarLength()
+    {
+        auto value = std::numeric_limits<SerialisedType>::min();
+        if (std::is_unsigned<SerialisedType>::value) {
+            return fromSerialised(static_cast<SerialisedType>(0U));
+        }
+
+        auto adjustedSerialised = adjustSerialisedVarLength(value);
+        return fromSerialised(adjustedSerialised);
+    }
+
+    static ValueType minValueInternal(VarLengthTag)
+    {
+        return minValueVarLength();
+    }
+
+    static ValueType maxValueFixedLength()
+    {
+        auto value = std::numeric_limits<SerialisedType>::max();
+        auto adjustedSerialised = adjustSerialisedFixedLength(value, AdjustmentTag());
+        return fromSerialised(adjustedSerialised);
+    }
+
+    static ValueType maxValueVarLength()
+    {
+        static const auto value = std::numeric_limits<SerialisedType>::max();
+        static_assert(
+            0 < value,
+            "Expected maximal value to be positive.");
+        auto adjustedSerialised = adjustSerialisedVarLength(value);
+        return fromSerialised(adjustedSerialised);
+    }
+
+    static ValueType maxValueInternal(FixedLengthTag)
+    {
+        return maxValueFixedLength();
+    }
+
+    static ValueType maxValueInternal(VarLengthTag)
+    {
+        return maxValueVarLength();
     }
 
     static const unsigned VarLengthShift = 7;

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,10 +18,38 @@
 
 #pragma once
 
-#include "field/BasicIntValue.h"
-#include "field/BitmaskValue.h"
-#include "field/BasicEnumValue.h"
-#include "field/VarSizeArray.h"
-#include "field/String.h"
-#include "field/Bitfield.h"
+namespace comms
+{
+
+namespace field
+{
+
+namespace details
+{
+
+template <typename TField, typename... TOptions>
+class BitfieldBase;
+
+template <typename TField>
+class BitfieldBase<TField> : public TField
+{
+protected:
+    static const bool IndexingFromMsb = false;
+};
+
+template <typename TField, typename... TOptions>
+class BitfieldBase<TField, comms::option::BitIndexingStartsFromMsb, TOptions...> :
+    public BitfieldBase<TField, TOptions...>
+{
+protected:
+    static const bool IndexingFromMsb = true;
+};
+
+
+}  // namespace details
+
+}  // namespace field
+
+}  // namespace comms
+
 

@@ -556,6 +556,11 @@ private:
     static ValueType minValueFixedLength()
     {
         auto minSer = std::numeric_limits<SerialisedType>::min();
+        if (std::is_unsigned<SerialisedType>::value && (0 < serOffset())) {
+            minSer = static_cast<SerialisedType>(
+                std::max(static_cast<OffsetType>(minSer), serOffset()));
+        }
+
         auto adjustedSerialised = adjustSerialisedFixedLength(minSer, AdjustmentTag());
         return fromSerialised(adjustedSerialised);
     }

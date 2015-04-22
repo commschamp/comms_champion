@@ -126,8 +126,8 @@ using Message3Fields =
             TField,
             std::int16_t,
             comms::option::FixedLength<1>,
-            comms::option::ValidNumValueRange<-200, 200>,
-            comms::option::DefaultNumValue<255> >, // invalid upon creation
+            comms::option::ValidNumValueRange<-120, 120>,
+            comms::option::DefaultNumValue<127> >, // invalid upon creation
         comms::field::BitmaskValue<TField, comms::option::FixedLength<2> >,
         comms::field::BitmaskValue<TField, comms::option::FixedLength<3> >
     >;

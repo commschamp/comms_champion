@@ -59,9 +59,8 @@ class BitmaskValueBase<
 protected:
     using Base::BitmaskValueBase;
 
-    using ValueType = typename comms::util::SizeToType<TLen, false>::Type;
-
     static const std::size_t SerialisedLen = Option::Value;
+    using ValueType = typename comms::util::SizeToType<SerialisedLen, false>::Type;
 };
 
 template <typename TField, typename... TOptions>

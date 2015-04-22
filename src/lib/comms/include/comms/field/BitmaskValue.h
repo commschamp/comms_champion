@@ -44,7 +44,7 @@ namespace field
 /// @headerfile comms/field/BitmaskValue.h
 template <typename TField,
           typename... TOptions>
-class BitmaskValue : details::BitmaskValueBase<TField, TOptions...>
+class BitmaskValue : public details::BitmaskValueBase<TField, TOptions...>
 {
     typedef details::BitmaskValueBase<TField, TOptions...> Base;
 
@@ -227,6 +227,16 @@ public:
     static constexpr bool hasFixedLength()
     {
         return true;
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return SerialisedLen;
+    }
+
+    static constexpr std::size_t minLength()
+    {
+        return SerialisedLen;
     }
 
 private:

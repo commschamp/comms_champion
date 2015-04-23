@@ -36,8 +36,7 @@ class BasicEnumValueWrapper : public NumericValueWrapper<long long int>
     using Base = NumericValueWrapper<long long int>;
 public:
     using Base::NumericValueWrapper;
-    using IntType = typename Base::UnderlyingType;
-
+    using UnderlyingType = typename Base::UnderlyingType;
 };
 
 template <typename TField>
@@ -48,9 +47,9 @@ class BasicEnumValueWrapperT : public NumericValueWrapperT<BasicEnumValueWrapper
     static_assert(comms::field::isBasicEnumValue<Field>(), "Must be of BasicEnumValueField type");
 
     using ValueType = typename Field::ValueType;
-    using IntType = typename Base::UnderlyingType;
-    static_assert(sizeof(ValueType) <= sizeof(IntType), "This wrapper cannot handle provided field.");
-    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(IntType)),
+    using UnderlyingType = typename Base::UnderlyingType;
+    static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
+    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
         "This wrapper cannot handle provided field.");
 
 public:

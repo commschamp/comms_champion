@@ -96,16 +96,6 @@ public:
         setSerialisedValue(seq);
     }
 
-    UnderlyingType minValue() const
-    {
-        return minValueImpl();
-    }
-
-    UnderlyingType maxValue() const
-    {
-        return maxValueImpl();
-    }
-
     std::size_t minLength() const
     {
         return minLengthImpl();
@@ -131,8 +121,6 @@ private:
     virtual SerialisedSeq serialisedValueImpl() const = 0;
     virtual void setValueImpl(UnderlyingType value) = 0;
     virtual void setSerialisedValueImpl(const SerialisedSeq& value) = 0;
-    virtual UnderlyingType minValueImpl() const = 0;
-    virtual UnderlyingType maxValueImpl() const = 0;
     virtual std::size_t minLengthImpl() const = 0;
     virtual std::size_t maxLengthImpl() const = 0;
 };
@@ -204,16 +192,6 @@ protected:
             assert(es == comms::ErrorStatus::Success);
             assert(value.size() == field.length());
         }
-    }
-
-    virtual UnderlyingType minValueImpl() const override
-    {
-        return Base::field().minValue();
-    }
-
-    virtual UnderlyingType maxValueImpl() const override
-    {
-        return Base::field().maxValue();
     }
 
     virtual std::size_t minLengthImpl() const override

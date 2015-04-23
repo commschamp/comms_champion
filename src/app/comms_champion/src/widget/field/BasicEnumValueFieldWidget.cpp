@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
 #include "GlobalConstants.h"
 
@@ -153,10 +154,8 @@ void BasicEnumValueFieldWidget::readPropertiesAndUpdateUi()
     updateNameLabel(*m_ui.m_nameLabel);
 
     m_ui.m_valueComboBox->clear();
-    m_ui.m_valueComboBox->addItem(InvalidValueComboText, QVariant(m_wrapper->maxValue()));
-    m_ui.m_valueComboBox->insertSeparator(1);
-    assert(m_ui.m_valueComboBox->count() == EnumValuesStartIndex);
 
+    auto maxValue = std::numeric_limits<unsigned>::min();
     auto appProperties = dynamicPropertyNames();
     for (auto& prop : appProperties) {
         QString propStr(prop);
@@ -172,12 +171,17 @@ void BasicEnumValueFieldWidget::readPropertiesAndUpdateUi()
             continue;
         }
 
+        maxValue = std::max(maxValue, idx);
+
         auto valueName = property(GlobalConstants::indexedNamePropertyName(idx).toUtf8().data());
         if ((valueName.isValid()) &&
             (valueName.canConvert<QString>())) {
             m_ui.m_valueComboBox->addItem(valueName.value<QString>(), QVariant(idx));
         }
     }
+
+    m_ui.m_valueComboBox->insertItem(0, InvalidValueComboText, QVariant(maxValue + 1));
+    m_ui.m_valueComboBox->insertSeparator(1);
 
     connect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),
             this, SLOT(valueUpdated(int)));

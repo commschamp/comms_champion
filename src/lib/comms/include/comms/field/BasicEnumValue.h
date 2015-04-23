@@ -168,7 +168,17 @@ public:
 
     static constexpr bool hasFixedLength()
     {
-        return true;
+        return IntValueField::hasFixedLength();
+    }
+
+    static constexpr std::size_t minLength()
+    {
+        return IntValueField::minLength();
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return IntValueField::minLength();
     }
 
 private:

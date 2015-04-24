@@ -25,6 +25,8 @@
 #include "comms/util/Tuple.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/access.h"
+#include "comms/Assert.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -200,7 +202,8 @@ public:
     typedef typename Base::Endian Endian;
     typedef details::MembersToFieldsT<TMembers> Fields;
 
-//    typedef typename Base::ValueType ValueType;
+    typedef typename comms::util::SizeToType<SerialisedLen, false>::Type SerialisedType;
+    typedef SerialisedType ValueType;
 
     Fields& fields()
     {
@@ -210,6 +213,28 @@ public:
     const Fields& fields() const
     {
         return fields_;
+    }
+
+    ValueType getValue() const
+    {
+        std::uint8_t buf[SerialisedLen] = {0};
+        auto* writeIter = &buf[0];
+        auto es = write(writeIter, SerialisedLen);
+        static_cast<void>(es);
+        GASSERT(es == comms::ErrorStatus::Success);
+        const auto* readIter = &buf[0];
+        return comms::util::readData<ValueType, SerialisedLen>(readIter, Endian());
+    }
+
+    void setValue(ValueType value)
+    {
+        std::uint8_t buf[SerialisedLen] = {0};
+        auto* writeIter = &buf[0];
+        comms::util::writeData<SerialisedLen>(value, writeIter, Endian());
+        const auto* readIter = &buf[0];
+        auto es = read(readIter, SerialisedLen);
+        static_cast<void>(es);
+        GASSERT(es == comms::ErrorStatus::Success);
     }
 
     template <std::size_t TIdx>
@@ -230,7 +255,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        if (size <= length()) {
+        if (size < length()) {
             return ErrorStatus::NotEnoughData;
         }
 
@@ -256,10 +281,19 @@ public:
         return es;
     }
 
+    constexpr bool valid() const {
+        return comms::util::tupleAccumulate(fields_, true, ValidHelper());
+    }
+
+    static constexpr bool hasFixedLength()
+    {
+        return true;
+    }
+
+
 private:
 
     typedef TMembers Members;
-    typedef typename comms::util::SizeToType<SerialisedLen, false>::Type SerialisedType;
 
     static const bool IndexingFromMsb = Base::IndexingFromMsb;
 
@@ -364,6 +398,15 @@ private:
         ErrorStatus& es_;
     };
 
+    struct ValidHelper
+    {
+        template <typename TFieldParam>
+        bool operator()(bool soFar, TFieldParam&& field)
+        {
+            return soFar && field.valid();
+        }
+    };
+
     static_assert(
         comms::util::IsTuple<Fields>::Value,
         "Fields must be tuple.");
@@ -374,6 +417,60 @@ private:
 
     Fields fields_;
 };
+
+/// @brief Equality comparison operator.
+/// @related Bitfield
+template <typename... TArgs>
+bool operator==(
+    const Bitfield<TArgs...>& field1,
+    const Bitfield<TArgs...>& field2)
+{
+    return field1.getValue() == field2.getValue();
+}
+
+/// @brief Non-equality comparison operator.
+/// @related Bitfield
+template <typename... TArgs>
+bool operator!=(
+    const Bitfield<TArgs...>& field1,
+    const Bitfield<TArgs...>& field2)
+{
+    return field1.getValue() != field2.getValue();
+}
+
+/// @brief Equivalence comparison operator.
+/// @related Bitfield
+template <typename... TArgs>
+bool operator<(
+    const Bitfield<TArgs...>& field1,
+    const Bitfield<TArgs...>& field2)
+{
+    return field1.getValue() < field2.getValue();
+}
+
+namespace details
+{
+
+template <typename T>
+struct IsBitfield
+{
+    static const bool Value = false;
+};
+
+template <typename... TArgs>
+struct IsBitfield<comms::field::Bitfield<TArgs...> >
+{
+    static const bool Value = true;
+};
+
+}  // namespace details
+
+template <typename T>
+constexpr bool isBitfield()
+{
+    return details::IsBitfield<T>::Value;
+}
+
 
 }  // namespace field
 

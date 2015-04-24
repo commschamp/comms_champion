@@ -651,8 +651,6 @@ private:
     ValueType value_;
 };
 
-// Implementation
-
 /// @brief Equality comparison operator.
 /// @related BasicIntValue
 template <typename... TArgs>

@@ -32,6 +32,7 @@
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 #include "comms_champion/field_wrapper/BasicEnumValueWrapper.h"
 #include "comms_champion/field_wrapper/StringWrapper.h"
+#include "comms_champion/field_wrapper/BitfieldWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -44,6 +45,7 @@ struct BasicIntValueTag {};
 struct BitmaskValueTag {};
 struct BasicEnumValueTag {};
 struct StringTag {};
+struct BitfieldTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -98,6 +100,16 @@ struct TagOf<comms::field::String<TArgs...> >
     typedef StringTag Type;
 };
 
+template <typename... TArgs>
+struct TagOf<comms::field::Bitfield<TArgs...> >
+{
+    static_assert(
+        comms::field::isBitfield<comms::field::Bitfield<TArgs...> >(),
+        "isBitfield is supposed to return true");
+
+    typedef BitfieldTag Type;
+};
+
 template <typename TField>
 using TagOfT = typename TagOf<TField>::Type;
 
@@ -126,6 +138,7 @@ private:
     using BitmaskValueTag = details::BitmaskValueTag;
     using BasicEnumValueTag = details::BasicEnumValueTag;
     using StringTag = details::StringTag;
+    using BitfieldTag = details::BitfieldTag;
     using UnknownValueTag = details::UnknownValueTag;
 
     template <typename THandler>
@@ -190,6 +203,13 @@ private:
     }
 
     template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, BitfieldTag)
+    {
+        return createBitfieldFieldWidget(
+            field_wrapper::makeBitfieldWrapper(field));
+    }
+
+    template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -207,6 +227,9 @@ private:
 
     FieldWidgetPtr createStringFieldWidget(
         field_wrapper::StringWrapperPtr&& fieldWrapper);
+
+    FieldWidgetPtr createBitfieldFieldWidget(
+        field_wrapper::BitfieldWrapperPtr&& fieldWrapper);
 
     FieldWidgetPtr createUnknownValueFieldWidget(
         field_wrapper::UnknownValueWrapperPtr&& fieldWrapper);

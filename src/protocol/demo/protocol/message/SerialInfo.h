@@ -32,6 +32,46 @@ namespace demo
 namespace message
 {
 
+enum class Parity
+{
+    None,
+    Odd,
+    Even,
+    NumOfValues
+};
+
+enum class StopBit
+{
+    One,
+    OneAndHalf,
+    Two,
+    NumOfValues
+};
+
+template <typename TFieldBase>
+using SerialInfoParityField =
+    comms::field::BasicEnumValue<
+        TFieldBase,
+        Parity,
+        comms::option::FixedLength<1>
+    >;
+
+template <typename TFieldBase>
+using SerialInfoStopBitField =
+    comms::field::BasicEnumValue<
+        TFieldBase,
+        StopBit,
+        comms::option::FixedLength<1>
+    >;
+
+template <typename TFieldBase>
+using SerialInfoFlagsField =
+    comms::field::BitmaskValue<
+        TFieldBase,
+        comms::option::FixedLength<1>,
+        comms::option::BitIndexingStartsFromMsb
+    >;
+
 template <typename TFieldBase>
 using SerialInfoFields =
     std::tuple<
@@ -47,6 +87,15 @@ using SerialInfoFields =
             TFieldBase,
             std::uint16_t,
             comms::option::VarLength<1, 2>
+        >,
+        comms::field::Bitfield<
+            TFieldBase,
+            std::tuple<
+                comms::field::BitfieldMember<SerialInfoParityField<TFieldBase>, 2>,
+                comms::field::BitfieldMember<SerialInfoStopBitField<TFieldBase>, 2>,
+                comms::field::BitfieldMember<SerialInfoFlagsField<TFieldBase>, 4>
+            >,
+            comms::option::BitIndexingStartsFromMsb
         >
     >;
 
@@ -63,6 +112,7 @@ public:
     enum FieldId {
         FieldId_Device,
         FieldId_Baud,
+        FieldId_Flags,
         FieldId_NumOfFields
     };
 };

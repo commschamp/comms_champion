@@ -25,6 +25,7 @@
 #include "widget/field/BitmaskValueFieldWidget.h"
 #include "widget/field/BasicEnumValueFieldWidget.h"
 #include "widget/field/StringFieldWidget.h"
+#include "widget/field/BitfieldFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -75,6 +76,14 @@ DefaultMessageDisplayHandler::createStringFieldWidget(
             new StringFieldWidget(std::move(fieldWrapper)));
 }
 
+DefaultMessageDisplayHandler::FieldWidgetPtr
+DefaultMessageDisplayHandler::createBitfieldFieldWidget(
+    field_wrapper::BitfieldWrapperPtr&& fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new BitfieldFieldWidget(std::move(fieldWrapper)));
+}
 
 DefaultMessageDisplayHandler::FieldWidgetPtr
 DefaultMessageDisplayHandler::createUnknownValueFieldWidget(

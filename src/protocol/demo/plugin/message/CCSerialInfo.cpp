@@ -39,7 +39,8 @@ const char* SerialInfoName = "Serial Info";
 
 const char* FieldNames[] = {
     "Device",
-    "Baud"
+    "Baud",
+    "Flags"
 };
 
 static_assert(std::extent<decltype(FieldNames)>::value == CCSerialInfo::FieldId_NumOfFields,

@@ -42,6 +42,8 @@ public:
 
     ~BitfieldFieldWidget();
 
+    void addMemberField(FieldWidget* memberFieldWidget);
+
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
@@ -49,15 +51,19 @@ protected:
 
 private slots:
     void serialisedValueUpdated(const QString& value);
+    void memberFieldUpdated();
 
 private:
     using WrapperType = typename WrapperPtr::element_type;
     using UnderlyingType = typename WrapperType::UnderlyingType;
 
-    void readPropertiesAndUpdateUi();
+    void refreshInternal();
+    void refreshMembers();
+    void updateMemberProperties(std::size_t idx);
 
     Ui::BitfieldFieldWidget m_ui;
     WrapperPtr m_wrapper;
+    std::vector<FieldWidget*> m_members;
 };
 
 

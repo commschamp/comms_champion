@@ -50,10 +50,15 @@ public:
         return maxValueImpl();
     }
 
+    void forceValuesRange(UnderlyingType min, UnderlyingType max)
+    {
+        forceValuesRangeImpl(min, max);
+    }
+
 protected:
     virtual UnderlyingType minValueImpl() const = 0;
     virtual UnderlyingType maxValueImpl() const = 0;
-
+    virtual void forceValuesRangeImpl(UnderlyingType min, UnderlyingType max) = 0;
 };
 
 template <typename TField>
@@ -84,13 +89,23 @@ public:
 protected:
     virtual UnderlyingType minValueImpl() const override
     {
-        return Base::field().minValue();
+        return std::max(static_cast<UnderlyingType>(Base::field().minValue()), m_forcedMin);
     }
 
     virtual UnderlyingType maxValueImpl() const override
     {
-        return Base::field().maxValue();
+        return std::min(static_cast<UnderlyingType>(Base::field().maxValue()), m_forcedMax);
     }
+
+    virtual void forceValuesRangeImpl(UnderlyingType min, UnderlyingType max) override
+    {
+        m_forcedMin = min;
+        m_forcedMax = max;
+    }
+
+private:
+    UnderlyingType m_forcedMin = std::numeric_limits<UnderlyingType>::min();
+    UnderlyingType m_forcedMax = std::numeric_limits<UnderlyingType>::max();
 };
 
 using BasicIntValueWrapperPtr = std::unique_ptr<BasicIntValueWrapper>;

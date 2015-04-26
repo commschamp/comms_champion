@@ -123,7 +123,14 @@ public:
     void handle(TMessage& msg)
     {
         auto& fields = msg.getFields();
-        comms::util::tupleForEach(fields, makeFieldsDisplayDispatcher(*this));
+        comms::util::tupleForEach(
+            fields,
+            makeFieldsDisplayDispatcher(
+                *this,
+                [this](FieldWidgetPtr&& fieldWidget)
+                {
+                    m_widget->addFieldWidget(fieldWidget.release());
+                }));
     }
 
 protected:
@@ -141,12 +148,15 @@ private:
     using BitfieldTag = details::BitfieldTag;
     using UnknownValueTag = details::UnknownValueTag;
 
-    template <typename THandler>
+    template <typename TCreateWidgetHandler>
     class FieldsDisplayDispatcher
     {
     public:
-        FieldsDisplayDispatcher(THandler& handler)
-          : m_handler(handler)
+        typedef std::function <void (FieldWidgetPtr)> WidgetDispatchFunc;
+        template <typename TDispatchFunc>
+        FieldsDisplayDispatcher(TCreateWidgetHandler& handler, TDispatchFunc&& dispatchOp)
+          : m_handler(handler),
+            m_dispatchOp(std::forward<TDispatchFunc>(dispatchOp))
         {
         }
 
@@ -158,20 +168,22 @@ private:
 
             auto fieldWidget =
                 m_handler.createFieldWidget(std::forward<TField>(field), Tag());
-            m_handler.m_widget->addFieldWidget(fieldWidget.release());
+            m_dispatchOp(std::move(fieldWidget));
         }
 
     private:
-        THandler& m_handler;
+        TCreateWidgetHandler& m_handler;
+        WidgetDispatchFunc m_dispatchOp;
     };
 
-    template <typename THandler>
+    template <typename TCreateWidgetHandler>
     friend class FieldsDisplayDispatcher;
 
-    template <typename THandler>
-    FieldsDisplayDispatcher<THandler> makeFieldsDisplayDispatcher(THandler& handler)
+    template <typename TCreateWidgetHandler, typename TDispatchFunc>
+    FieldsDisplayDispatcher<TCreateWidgetHandler>
+    makeFieldsDisplayDispatcher(TCreateWidgetHandler& handler, TDispatchFunc&& dispatchOp)
     {
-        return FieldsDisplayDispatcher<THandler>(handler);
+        return FieldsDisplayDispatcher<TCreateWidgetHandler>(handler, std::forward<TDispatchFunc>(dispatchOp));
     }
 
     template <typename TField>
@@ -205,8 +217,20 @@ private:
     template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, BitfieldTag)
     {
-        return createBitfieldFieldWidget(
+        auto widget = createBitfieldFieldWidget(
             field_wrapper::makeBitfieldWrapper(field));
+
+        auto& memberFields = field.fields();
+        comms::util::tupleForEach(
+            memberFields,
+            makeFieldsDisplayDispatcher(
+                *this,
+                [this, &widget](FieldWidgetPtr&& fieldWidget)
+                {
+                    bitfieldWidgetAddMember(*widget, std::move(fieldWidget));
+                }));
+
+        return std::move(widget);
     }
 
     template <typename TField>
@@ -234,6 +258,9 @@ private:
     FieldWidgetPtr createUnknownValueFieldWidget(
         field_wrapper::UnknownValueWrapperPtr&& fieldWrapper);
 
+    void bitfieldWidgetAddMember(
+        FieldWidget& bitfieldWidget,
+        FieldWidgetPtr memberFieldWidget);
 
     static void updateFieldIdxProperty(FieldWidget& field, std::size_t idx);
 

@@ -37,7 +37,7 @@ const char* GlobalConstants::indexPropertyName()
 
 const char* GlobalConstants::namePropertyName()
 {
-    static const char* str = "name";
+    static const char* str = "cc.name";
     return str;
 }
 
@@ -104,6 +104,17 @@ const char* GlobalConstants::msgTypePropertyName()
 {
     static const char* str = "msg_type";
     return str;
+}
+
+QString GlobalConstants::indexedMemberDataPropertyName(unsigned idx)
+{
+    return indexedMemberDataPropertyPrefix() + QString("%1").arg(idx);
+}
+
+const QString& GlobalConstants::indexedMemberDataPropertyPrefix()
+{
+    static const QString Str("cc.member_");
+    return Str;
 }
 
 }  // namespace comms_champion

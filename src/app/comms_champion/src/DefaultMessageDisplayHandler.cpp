@@ -94,6 +94,19 @@ DefaultMessageDisplayHandler::createUnknownValueFieldWidget(
             new UnknownValueFieldWidget(std::move(fieldWrapper)));
 }
 
+void DefaultMessageDisplayHandler::bitfieldWidgetAddMember(
+    FieldWidget& bitfieldWidget,
+    FieldWidgetPtr memberFieldWidget)
+{
+    auto* castedBitfieldWidget = dynamic_cast<BitfieldFieldWidget*>(&bitfieldWidget);
+    if (castedBitfieldWidget == nullptr) {
+        assert(!"Wrong cast, expected bitfield widget");
+        return;
+    }
+
+    castedBitfieldWidget->addMemberField(memberFieldWidget.release());
+}
+
 void DefaultMessageDisplayHandler::updateFieldIdxProperty(
     FieldWidget& field,
     std::size_t idx)

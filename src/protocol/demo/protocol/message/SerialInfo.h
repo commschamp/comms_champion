@@ -32,7 +32,7 @@ namespace demo
 namespace message
 {
 
-enum class Parity
+enum class Parity : std::uint8_t
 {
     None,
     Odd,
@@ -40,7 +40,7 @@ enum class Parity
     NumOfValues
 };
 
-enum class StopBit
+enum class StopBit : std::uint8_t
 {
     One,
     OneAndHalf,
@@ -53,7 +53,8 @@ using SerialInfoParityField =
     comms::field::BasicEnumValue<
         TFieldBase,
         Parity,
-        comms::option::FixedLength<1>
+        comms::option::FixedLength<1>,
+        comms::option::ValidNumValueRange<(int)Parity::None, (int)Parity::NumOfValues - 1>
     >;
 
 template <typename TFieldBase>
@@ -61,7 +62,8 @@ using SerialInfoStopBitField =
     comms::field::BasicEnumValue<
         TFieldBase,
         StopBit,
-        comms::option::FixedLength<1>
+        comms::option::FixedLength<1>,
+        comms::option::ValidNumValueRange<(int)StopBit::One, (int)StopBit::NumOfValues - 1>
     >;
 
 template <typename TFieldBase>

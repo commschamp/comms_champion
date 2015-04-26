@@ -45,29 +45,58 @@ BitfieldFieldWidget::BitfieldFieldWidget(
 
 BitfieldFieldWidget::~BitfieldFieldWidget() = default;
 
+void BitfieldFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
+{
+    m_members.push_back(memberFieldWidget);
+    auto idx = m_members.size() - 1;
+    updateMemberProperties(idx);
+
+    m_ui.m_membersLayout->addWidget(memberFieldWidget);
+    assert((std::size_t)m_ui.m_membersLayout->count() == m_members.size());
+
+    refreshInternal();
+}
+
 void BitfieldFieldWidget::refreshImpl()
+{
+    refreshInternal();
+    refreshMembers();
+}
+
+void BitfieldFieldWidget::setEditEnabledImpl(bool enabled)
+{
+    bool readonly = !enabled;
+    m_ui.m_serValueLineEdit->setReadOnly(readonly);
+    for (auto* memberFieldWidget : m_members) {
+        memberFieldWidget->setEditEnabled(enabled);
+    }
+}
+
+void BitfieldFieldWidget::propertiesUpdatedImpl()
+{
+    for (auto idx = 0U; idx < m_members.size(); ++idx) {
+        auto* memberFieldWidget = m_members[idx];
+        updateMemberProperties(idx);
+        memberFieldWidget->propertiesUpdated();
+    }
+}
+
+void BitfieldFieldWidget::serialisedValueUpdated(const QString& value)
+{
+    handleNumericSerialisedValueUpdate(value, *m_wrapper);
+    refreshMembers();
+}
+
+void BitfieldFieldWidget::memberFieldUpdated()
+{
+    refreshInternal();
+    emitFieldUpdated();
+}
+
+void BitfieldFieldWidget::refreshInternal()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->serialisedString());
-
-//    auto bitIdxLimit = m_wrapper->bitIdxLimit();
-//    assert(bitIdxLimit == m_checkboxes.size());
-//    for (auto idx = 0U; idx < bitIdxLimit; ++idx) {
-//        auto* checkbox = m_checkboxes[idx];
-//        if (checkbox == nullptr) {
-//            continue;
-//        }
-//
-//        bool showedBitValue = checkbox->checkState() != 0;
-//        bool actualBitValue = m_wrapper->bitValue(idx);
-//        if (showedBitValue != actualBitValue) {
-//            Qt::CheckState state = Qt::Unchecked;
-//            if (actualBitValue) {
-//                state = Qt::Checked;
-//            }
-//            checkbox->setCheckState(state);
-//        }
-//    }
 
     bool valid = m_wrapper->valid();
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
@@ -75,27 +104,26 @@ void BitfieldFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void BitfieldFieldWidget::setEditEnabledImpl(bool enabled)
+void BitfieldFieldWidget::refreshMembers()
 {
-    bool readonly = !enabled;
-    m_ui.m_serValueLineEdit->setReadOnly(readonly);
+    for (auto* memberFieldWidget : m_members) {
+        memberFieldWidget->refresh();
+    }
 }
 
-void BitfieldFieldWidget::propertiesUpdatedImpl()
+void BitfieldFieldWidget::updateMemberProperties(std::size_t idx)
 {
-    readPropertiesAndUpdateUi();
-    refresh();
-}
-
-void BitfieldFieldWidget::serialisedValueUpdated(const QString& value)
-{
-    handleNumericSerialisedValueUpdate(value, *m_wrapper);
-}
-
-void BitfieldFieldWidget::readPropertiesAndUpdateUi()
-{
-
-    //createCheckboxes();
+    assert(idx < m_members.size());
+    FieldWidget* memberFieldWidget = m_members[idx];
+    assert(memberFieldWidget != nullptr);
+    auto propsVar = property(GlobalConstants::indexedMemberDataPropertyName(idx).toUtf8().data());
+    if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
+        auto map = propsVar.value<QVariantMap>();
+        auto keys = map.keys();
+        for (auto& k : keys) {
+            memberFieldWidget->setProperty(k.toUtf8().data(), map[k]);
+        }
+    }
 }
 
 }  // namespace comms_champion

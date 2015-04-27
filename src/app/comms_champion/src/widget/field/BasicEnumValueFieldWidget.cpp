@@ -99,6 +99,17 @@ void BasicEnumValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+
+    bool serHidden = false;
+    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
+    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
+        serHidden = serHiddenVar.value<bool>();
+    }
+
+    m_ui.m_serValueLineEdit->setHidden(serHidden);
+    m_ui.m_serFrontLabel->setHidden(serHidden);
+    m_ui.m_serBackLabel->setHidden(serHidden);
+    m_ui.m_sepLine->setHidden(serHidden);
 }
 
 void BasicEnumValueFieldWidget::setEditEnabledImpl(bool enabled)

@@ -23,7 +23,7 @@
 
 #include <QtWidgets/QCheckBox>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -120,7 +120,7 @@ void BitfieldFieldWidget::updateMemberProperties(std::size_t idx)
     assert(idx < m_members.size());
     FieldWidget* memberFieldWidget = m_members[idx];
     assert(memberFieldWidget != nullptr);
-    auto propsVar = property(GlobalConstants::indexedMemberDataPropertyName(idx).toUtf8().data());
+    auto propsVar = Property::getIndexedDataVal(*this, idx);
     if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
         auto map = propsVar.value<QVariantMap>();
         auto keys = map.keys();
@@ -128,6 +128,8 @@ void BitfieldFieldWidget::updateMemberProperties(std::size_t idx)
             memberFieldWidget->setProperty(k.toUtf8().data(), map[k]);
         }
     }
+
+    Property::setSerialisedHiddenVal(*memberFieldWidget, true);
 }
 
 }  // namespace comms_champion

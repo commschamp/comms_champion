@@ -21,7 +21,7 @@
 #include <cassert>
 #include <limits>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -102,6 +102,17 @@ void BasicIntValueFieldWidget::readPropertiesAndUpdateUi()
 {
     assert(m_ui.m_nameLabel != nullptr);
     updateNameLabel(*m_ui.m_nameLabel);
+
+    bool serHidden = false;
+    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
+    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
+        serHidden = serHiddenVar.value<bool>();
+    }
+
+    m_ui.m_serValueLineEdit->setHidden(serHidden);
+    m_ui.m_serFrontLabel->setHidden(serHidden);
+    m_ui.m_serBackLabel->setHidden(serHidden);
+    m_ui.m_sepLine->setHidden(serHidden);
 }
 
 }  // namespace comms_champion

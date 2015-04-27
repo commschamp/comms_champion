@@ -17,6 +17,10 @@
 
 #include "CCRawDataMessage.h"
 
+#include "comms_champion/Property.h"
+
+namespace cc = comms_champion;
+
 namespace demo
 {
 
@@ -61,7 +65,7 @@ void CCRawDataMessage::updateFieldPropertiesImpl(
         return;
     }
 
-    setNameProperty(fieldWidget, FieldNames[idx]);
+    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
 }
 
 }  // namespace message

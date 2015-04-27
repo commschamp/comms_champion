@@ -79,6 +79,7 @@ QVariantMap getStopBitsMemberData()
     map.insert(cc::Property::name(), QVariant::fromValue(QString("Stop Bits")));
 
     static const QString ValueMap[] = {
+        "None",
         "One",
         "One and a Half",
         "Two"
@@ -168,18 +169,14 @@ void CCSerialInfo::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) con
         return;
     }
 
-    setNameProperty(fieldWidget, FieldNames[idx]);
+    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
     if (idx == FieldId_Flags) {
         auto& flagsField = std::get<FieldId_Flags>(getFields());
         auto& flagsMemberFields = flagsField.fields();
         typedef typename std::decay<decltype(flagsMemberFields)>::type FlagsBitfieldMembers;
         static const std::size_t NumOfMembers = std::tuple_size<FlagsBitfieldMembers>::value;
         for (std::size_t idx = 0U; idx < NumOfMembers; ++idx) {
-            static const QString MemDataPropNamePrefix("cc.member_");
-            QString memDataPropName = MemDataPropNamePrefix + QString("%1").arg(idx);
-            fieldWidget.setProperty(
-                memDataPropName.toUtf8().data(),
-                QVariant::fromValue(getMemberData(idx)));
+            cc::Property::setIndexedDataVal(fieldWidget, idx, getMemberData(idx));
         }
     }
 }

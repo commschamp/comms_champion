@@ -21,8 +21,13 @@
 #include <cassert>
 #include <type_traits>
 
+#include "comms_champion/Property.h"
+
 #include "protocol/DemoMessage.h"
 #include "ProtocolStack.h"
+
+
+namespace cc = comms_champion;
 
 namespace demo
 {
@@ -77,7 +82,7 @@ void CCTransportMessage::updateFieldPropertiesImpl(
         return;
     }
 
-    setNameProperty(fieldWidget, FieldNames[idx]);
+    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
 
     if (idx == FieldIdx_MsgId) {
         static const QString MsgNames[] = {
@@ -92,7 +97,7 @@ void CCTransportMessage::updateFieldPropertiesImpl(
             NumOfMsgNames == demo::message::MsgId_NumOfMessages,
             "Message names mapping is incorrect.");
         for (auto idx = 0U; idx < NumOfMsgNames; ++idx) {
-            setIndexedNameProperty(fieldWidget, idx, MsgNames[idx]);
+            cc::Property::setIndexedNameVal(fieldWidget, idx, MsgNames[idx]);
         }
     }
 }

@@ -42,6 +42,7 @@ enum class Parity : std::uint8_t
 
 enum class StopBit : std::uint8_t
 {
+    None,
     One,
     OneAndHalf,
     Two,
@@ -63,7 +64,7 @@ using SerialInfoStopBitField =
         TFieldBase,
         StopBit,
         comms::option::FixedLength<1>,
-        comms::option::ValidNumValueRange<(int)StopBit::One, (int)StopBit::NumOfValues - 1>
+        comms::option::ValidNumValueRange<(int)StopBit::None, (int)StopBit::NumOfValues - 1>
     >;
 
 template <typename TFieldBase>

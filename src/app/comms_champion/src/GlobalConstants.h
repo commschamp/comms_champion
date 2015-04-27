@@ -48,8 +48,6 @@ public:
     static const char* msgRepeatCountPropertyName();
     static const char* timestampPropertyName();
     static const char* msgTypePropertyName();
-    static QString indexedMemberDataPropertyName(unsigned idx);
-    static const QString& indexedMemberDataPropertyPrefix();
 
 private:
     GlobalConstants() = default;

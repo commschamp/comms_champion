@@ -17,6 +17,8 @@
 
 #include "comms_champion/Property.h"
 
+#include <QtCore/QVariant>
+
 namespace comms_champion
 {
 
@@ -24,6 +26,11 @@ const char* Property::name()
 {
     static const char* Str = "cc.name";
     return Str;
+}
+
+void Property::setNameVal(QObject& obj, const QString& val)
+{
+    obj.setProperty(name(), QVariant::fromValue(val));
 }
 
 const QString& Property::indexedNamePrefix()
@@ -35,6 +42,48 @@ const QString& Property::indexedNamePrefix()
 QString Property::indexedName(unsigned idx)
 {
     return indexedNamePrefix() + QString("%1").arg(idx);
+}
+
+void Property::setIndexedNameVal(QObject& obj, unsigned idx, const QString& val)
+{
+    obj.setProperty(indexedName(idx).toUtf8().data(), QVariant::fromValue(val));
+}
+
+const QString& Property::indexedDataPrefix()
+{
+    static const QString Str("cc.data_");
+    return Str;
+}
+
+QString Property::indexedData(unsigned idx)
+{
+    return indexedDataPrefix() + QString("%1").arg(idx);
+}
+
+void Property::setIndexedDataVal(QObject& obj, unsigned idx, const QVariantMap& val)
+{
+    obj.setProperty(indexedData(idx).toUtf8().data(), QVariant::fromValue(val));
+}
+
+QVariant Property::getIndexedDataVal(QObject& obj, unsigned idx)
+{
+    return obj.property(indexedData(idx).toUtf8().data());
+}
+
+const char* Property::serialisedHidden()
+{
+    static const char* Str = "cc.ser_hidden";
+    return Str;
+}
+
+void Property::setSerialisedHiddenVal(QObject& obj, bool val)
+{
+    obj.setProperty(serialisedHidden(), QVariant::fromValue(val));
+}
+
+QVariant Property::getSerialisedHiddenVal(QObject& obj)
+{
+    return obj.property(serialisedHidden());
 }
 
 }  // namespace comms_champion

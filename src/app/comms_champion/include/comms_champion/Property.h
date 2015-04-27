@@ -19,6 +19,8 @@
 #pragma once
 
 #include <QtCore/QString>
+#include <QtCore/QObject>
+#include <QtCore/QVariantMap>
 
 namespace comms_champion
 {
@@ -27,8 +29,17 @@ class Property
 {
 public:
     static const char* name();
+    static void setNameVal(QObject& obj, const QString& val);
     static const QString& indexedNamePrefix();
     static QString indexedName(unsigned idx);
+    static void setIndexedNameVal(QObject& obj, unsigned idx, const QString& val);
+    static const QString& indexedDataPrefix();
+    static QString indexedData(unsigned idx);
+    static void setIndexedDataVal(QObject& obj, unsigned idx, const QVariantMap& val);
+    static QVariant getIndexedDataVal(QObject& obj, unsigned idx);
+    static const char* serialisedHidden();
+    static void setSerialisedHiddenVal(QObject& obj, bool val);
+    static QVariant getSerialisedHiddenVal(QObject& obj);
 };
 
 }  // namespace comms_champion

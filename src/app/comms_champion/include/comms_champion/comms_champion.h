@@ -27,3 +27,4 @@
 #include "Plugin.h"
 #include "MessageWidget.h"
 #include "MessageInfo.h"
+#include "Property.h"

@@ -23,7 +23,7 @@
 
 #include <QtWidgets/QCheckBox>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -133,7 +133,7 @@ void BitmaskValueFieldWidget::createCheckboxes()
     assert(m_checkboxes.size() == bitIdxLimit);
     for (unsigned idx = 0; idx < bitIdxLimit; ++idx) {
 
-        auto indexedName = property(GlobalConstants::indexedNamePropertyName(idx).toUtf8().data());
+        auto indexedName = property(Property::indexedName(idx).toUtf8().data());
         if ((indexedName.isValid()) &&
             (indexedName.canConvert<QString>())) {
             auto* checkbox = new QCheckBox(indexedName.value<QString>());

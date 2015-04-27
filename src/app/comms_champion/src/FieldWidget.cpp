@@ -28,7 +28,7 @@
 #include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QSpinBox>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -136,7 +136,7 @@ void FieldWidget::updateValue(QLineEdit& line, const QString& value)
 
 void FieldWidget::updateNameLabel(QLabel& label)
 {
-    auto nameProperty = property(GlobalConstants::namePropertyName());
+    auto nameProperty = property(Property::name());
     if (nameProperty.isValid()) {
         label.setText(nameProperty.toString() + ':');
     }

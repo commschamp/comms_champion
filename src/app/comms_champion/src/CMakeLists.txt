@@ -9,6 +9,7 @@ function (bin_comms_champion)
         Message.cpp
         MessageInfo.cpp
         GlobalConstants.cpp
+        Property.cpp
         DefaultMessageDisplayHandler.cpp
         FieldWidget.cpp
         ConfigMgr.cpp

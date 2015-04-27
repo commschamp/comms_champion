@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <cassert>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -119,7 +119,7 @@ void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
 
 void UnknownValueFieldWidget::readPropertiesAndUpdateUi()
 {
-    auto nameProperty = property(GlobalConstants::namePropertyName());
+    auto nameProperty = property(Property::name());
     if (nameProperty.isValid()) {
         m_ui.m_nameLabel->setText(nameProperty.toString() + ':');
     }

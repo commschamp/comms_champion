@@ -67,11 +67,20 @@ using SerialInfoStopBitField =
     >;
 
 template <typename TFieldBase>
+using SerialInfoQosField =
+    comms::field::BasicIntValue<
+        TFieldBase,
+        std::uint8_t,
+        comms::option::FixedLength<1>,
+        comms::option::ValidNumValueRange<0, 3>
+    >;
+
+template <typename TFieldBase>
 using SerialInfoFlagsField =
     comms::field::BitmaskValue<
         TFieldBase,
         comms::option::FixedLength<1>,
-        comms::option::BitIndexingStartsFromMsb
+        comms::option::BitmaskReservedBits<0xfd, 0x0>
     >;
 
 template <typename TFieldBase>
@@ -95,7 +104,8 @@ using SerialInfoFields =
             std::tuple<
                 comms::field::BitfieldMember<SerialInfoParityField<TFieldBase>, 2>,
                 comms::field::BitfieldMember<SerialInfoStopBitField<TFieldBase>, 2>,
-                comms::field::BitfieldMember<SerialInfoFlagsField<TFieldBase>, 4>
+                comms::field::BitfieldMember<SerialInfoQosField<TFieldBase>, 2>,
+                comms::field::BitfieldMember<SerialInfoFlagsField<TFieldBase>, 2>
             >,
             comms::option::BitIndexingStartsFromMsb
         >

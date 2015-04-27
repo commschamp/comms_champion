@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,8 @@
 #include <QtCore/QVariant>
 #include <QtCore/QVariantMap>
 
+#include "comms_champion/Property.h"
+
 namespace demo
 {
 
@@ -33,11 +35,12 @@ namespace plugin
 namespace message
 {
 
+namespace cc = comms_champion;
+
 namespace
 {
 
 const char* SerialInfoName = "Serial Info";
-const QString NamePropertyName("cc.name");
 
 const char* FieldNames[] = {
     "Device",
@@ -51,21 +54,73 @@ static_assert(std::extent<decltype(FieldNames)>::value == CCSerialInfo::FieldId_
 QVariantMap getParityMemberData()
 {
     QVariantMap map;
-    map.insert(NamePropertyName, QVariant::fromValue(QString("Parity")));
+    map.insert(cc::Property::name(), QVariant::fromValue(QString("Parity")));
+
+    static const QString ValueMap[] = {
+        "None",
+        "Odd",
+        "Even"
+    };
+
+    static const std::size_t NumOfValues = std::extent<decltype(ValueMap)>::value;
+    static_assert(
+        NumOfValues == (std::size_t)demo::message::Parity::NumOfValues,
+        "Incorrect value mapping");
+
+    for (auto idx = 0U; idx < NumOfValues; ++idx) {
+        map.insert(cc::Property::indexedName(idx), QVariant::fromValue(ValueMap[idx]));
+    }
     return map;
 }
 
 QVariantMap getStopBitsMemberData()
 {
     QVariantMap map;
-    map.insert(NamePropertyName, QVariant::fromValue(QString("Stop Bits")));
+    map.insert(cc::Property::name(), QVariant::fromValue(QString("Stop Bits")));
+
+    static const QString ValueMap[] = {
+        "One",
+        "One and a Half",
+        "Two"
+    };
+
+    static const std::size_t NumOfValues = std::extent<decltype(ValueMap)>::value;
+    static_assert(
+        NumOfValues == (std::size_t)demo::message::StopBit::NumOfValues,
+        "Incorrect value mapping");
+
+    for (auto idx = 0U; idx < NumOfValues; ++idx) {
+        map.insert(cc::Property::indexedName(idx), QVariant::fromValue(ValueMap[idx]));
+    }
     return map;
 }
 
 QVariantMap getFlagsMemberData()
 {
     QVariantMap map;
-    map.insert(NamePropertyName, QVariant::fromValue(QString("Flags")));
+    map.insert(cc::Property::name(), QVariant::fromValue(QString("Flags")));
+
+    static const QString ValueMap[] = {
+        QString(),
+        "HW FLOW CTRL"
+    };
+
+    static const std::size_t NumOfValues = std::extent<decltype(ValueMap)>::value;
+    for (auto idx = 0U; idx < NumOfValues; ++idx) {
+        auto& value = ValueMap[idx];
+        if (value.isEmpty()) {
+            continue;
+        }
+
+        map.insert(cc::Property::indexedName(idx), QVariant::fromValue(value));
+    }
+    return map;
+}
+
+QVariantMap getQosMemberData()
+{
+    QVariantMap map;
+    map.insert(cc::Property::name(), QVariant::fromValue(QString("QoS")));
     return map;
 }
 
@@ -74,12 +129,21 @@ const QVariantMap& getMemberData(std::size_t idx)
     static const QVariantMap Map[] = {
         getParityMemberData(),
         getStopBitsMemberData(),
+        getQosMemberData(),
         getFlagsMemberData()
     };
 
     static const auto DataCount = std::extent<decltype(Map)>::value;
+
+    typedef typename
+        std::decay<
+            decltype(
+                std::get<CCSerialInfo::FieldId_Flags>(std::declval<CCSerialInfo::AllFields>()).fields())
+        >::type FlagsMembers;
+    static const auto NumOfFlagsMembers = std::tuple_size<FlagsMembers>::value;
+
     static_assert(
-        DataCount == CCSerialInfo::FieldId_NumOfFields,
+        DataCount == NumOfFlagsMembers,
         "Data for some member fields is missing.");
 
     if (DataCount <= idx) {

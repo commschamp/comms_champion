@@ -55,6 +55,10 @@ void BitfieldFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
     assert((std::size_t)m_ui.m_membersLayout->count() == m_members.size());
 
     refreshInternal();
+
+    connect(
+        memberFieldWidget, SIGNAL(sigFieldUpdated()),
+        this, SLOT(memberFieldUpdated()));
 }
 
 void BitfieldFieldWidget::refreshImpl()

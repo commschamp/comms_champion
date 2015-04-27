@@ -35,23 +35,6 @@ const char* GlobalConstants::indexPropertyName()
     return str;
 }
 
-const char* GlobalConstants::namePropertyName()
-{
-    static const char* str = "cc.name";
-    return str;
-}
-
-QString GlobalConstants::indexedNamePropertyName(unsigned idx)
-{
-    return indexedNamePropertyPrefix() + QString("%1").arg(idx);
-}
-
-const QString& GlobalConstants::indexedNamePropertyPrefix()
-{
-    static const QString Prefix("name_");
-    return Prefix;
-}
-
 const char* GlobalConstants::msgNumberPropertyName()
 {
     static const char* str = "msg_num";

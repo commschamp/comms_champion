@@ -21,7 +21,7 @@
 #include <cassert>
 #include <limits>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -159,7 +159,7 @@ void BasicEnumValueFieldWidget::readPropertiesAndUpdateUi()
     auto appProperties = dynamicPropertyNames();
     for (auto& prop : appProperties) {
         QString propStr(prop);
-        auto& prefix = GlobalConstants::indexedNamePropertyPrefix();
+        auto& prefix = Property::indexedNamePrefix();
         if (!propStr.startsWith(prefix)) {
             continue;
         }
@@ -173,7 +173,7 @@ void BasicEnumValueFieldWidget::readPropertiesAndUpdateUi()
 
         maxValue = std::max(maxValue, idx);
 
-        auto valueName = property(GlobalConstants::indexedNamePropertyName(idx).toUtf8().data());
+        auto valueName = property(Property::indexedName(idx).toUtf8().data());
         if ((valueName.isValid()) &&
             (valueName.canConvert<QString>())) {
             m_ui.m_valueComboBox->addItem(valueName.value<QString>(), QVariant(idx));

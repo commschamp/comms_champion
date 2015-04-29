@@ -131,7 +131,17 @@ struct ContentsValidator
     typedef T Type;
 };
 
-struct ForceValidValuesOnly {};
+template <typename T>
+struct InvalidValueBehaviour
+{
+    static_assert(
+        std::is_same<comms::traits::behaviour::UseValue, T>::value ||
+        std::is_same<comms::traits::behaviour::IgnoreValue, T>::value ||
+        std::is_same<comms::traits::behaviour::Fail, T>::value,
+        "Unexpected type for InvalidValueBehaviour option.");
+
+    typedef T Type;
+};
 
 namespace details
 {
@@ -161,13 +171,13 @@ struct NumValueRangeValidator
         typedef typename std::decay<TField>::type FieldType;
         typedef typename FieldType::ValueType ValueType;
         typedef typename std::conditional<
-            std::numeric_limits<ValueType>::min() < MinValue,
+            (std::numeric_limits<ValueType>::min() < MinValue),
             CompareTag,
             ReturnTrueTag
         >::type MinTag;
 
         typedef typename std::conditional<
-            MaxValue < std::numeric_limits<ValueType>::max(),
+            (MaxValue < std::numeric_limits<ValueType>::max()),
             CompareTag,
             ReturnTrueTag
         >::type MaxTag;

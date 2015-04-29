@@ -22,6 +22,7 @@
 #include <limits>
 
 #include "comms/options.h"
+#include "comms/traits.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/IntegralPromotion.h"
 
@@ -57,7 +58,8 @@ protected:
     static const auto Offset = static_cast<OffsetType>(0);
     static const bool HasCustomInitialiser = false;
     static const bool HasCustomValidator = false;
-    static const bool ValidValuesOnly = false;
+
+    typedef comms::traits::behaviour::UseValue InvalidValueBehaviourTag;
 };
 
 namespace basic_int_value_details
@@ -219,22 +221,24 @@ protected:
     static const bool HasCustomValidator = true;
 };
 
-template <typename TField, typename T, typename... TOptions>
+template <typename TField, typename T, typename TBehaviour, typename... TOptions>
 class BasicIntValueBase<
     TField,
     T,
-    comms::option::ForceValidValuesOnly,
+    comms::option::InvalidValueBehaviour<TBehaviour>,
     TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
     typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef comms::option::InvalidValueBehaviour<TBehaviour> Option;
 
 protected:
     using Base::BasicIntValueBase;
 
-    static const bool ValidValuesOnly = true;
+    typedef typename Option::Type InvalidValueBehaviourTag;
 };
+
 
 
 }  // namespace details

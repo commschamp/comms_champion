@@ -72,7 +72,7 @@ public:
       : value_(static_cast<ValueType>(0))
     {
         completeDefaultInitialisation(InitalisationTag());
-        validateValue(AllowedValidityTag());
+        validateConstruction(InvalidValueBehaviourTag());
     }
 
     /// @brief Constructor
@@ -81,7 +81,7 @@ public:
     explicit BasicIntValue(ValueType value)
       : value_(value)
     {
-        validateValue(AllowedValidityTag());
+        validateConstruction(InvalidValueBehaviourTag());
     }
 
     /// @brief Copy constructor is default
@@ -105,8 +105,7 @@ public:
     {
         GASSERT(minValue() <= value);
         GASSERT(value <= maxValue());
-        value_ = value;
-        validateValue(AllowedValidityTag());
+        setValueInternal(value, InvalidValueBehaviourTag());
     }
 
     /// @brief Retrieve serialised data
@@ -118,8 +117,7 @@ public:
     /// @brief Set serialised data
     void setSerialisedValue(SerialisedType value)
     {
-        value_ = fromSerialised(value);
-        validateValue(AllowedValidityTag());
+        setValueInternal(fromSerialised(value), InvalidValueBehaviourTag());
     }
 
     /// @brief Convert value to serialised data
@@ -168,8 +166,8 @@ public:
         return writeInternal(iter, size, LengthTag());
     }
 
-    constexpr bool valid() const {
-
+    constexpr bool valid() const
+    {
         return validInternal(
             typename std::conditional<
                 Base::HasCustomValidator,
@@ -215,6 +213,8 @@ private:
     static const auto Offset = Base::Offset;
     static const bool ValidValuesOnly = Base::ValidValuesOnly;
 
+    typedef typename Base::InvalidValueBehaviourTag InvalidValueBehaviourTag;
+
     struct DefaultInitialisationTag {};
     struct CustomInitialisationTag {};
     struct DefaultValidatorTag {};
@@ -223,8 +223,6 @@ private:
     struct VarLengthTag {};
     struct NoAdjustmentTag {};
     struct ShorterLengthAdjustmentTag {};
-    struct AllowInvalidValuesTag {};
-    struct ForcedToValidValuesOnlyTag {};
 
     typedef typename std::conditional<
         Base::HasCustomInitialiser,
@@ -243,12 +241,6 @@ private:
         NoAdjustmentTag,
         ShorterLengthAdjustmentTag
     >::type AdjustmentTag;
-
-    typedef typename std::conditional<
-        ValidValuesOnly,
-        ForcedToValidValuesOnlyTag,
-        AllowInvalidValuesTag
-    >::type AllowedValidityTag;
 
     typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerType;
 
@@ -348,7 +340,7 @@ private:
 
         auto serialisedValue =
             Base::template readData<SerialisedType, MaxLength>(iter);
-        return assignReadValue(serialisedValue, AllowedValidityTag());
+        return assignReadValue(serialisedValue, InvalidValueBehaviourTag());
     }
 
     static void addByteToSerialisedValueBigEndian(
@@ -421,7 +413,7 @@ private:
         }
 
         auto adjustedValue = adjustFromUnsignedSerialisedVarLength(value);
-        return assignReadValue(adjustedValue, AllowedValidityTag());
+        return assignReadValue(adjustedValue, InvalidValueBehaviourTag());
     }
 
     template <typename TIter>
@@ -654,16 +646,39 @@ private:
         return maxValueVarLength();
     }
 
-    void validateValue(ForcedToValidValuesOnlyTag)
+    void validateConstruction(comms::traits::behaviour::Fail)
     {
         GASSERT(valid());
     }
 
-    void validateValue(AllowInvalidValuesTag)
+    void validateConstruction(comms::traits::behaviour::IgnoreValue)
     {
     }
 
-    ErrorStatus assignReadValue(SerialisedType serValue, ForcedToValidValuesOnlyTag)
+    void validateConstruction(comms::traits::behaviour::UseValue)
+    {
+    }
+
+    void setValueInternal(ValueType value, comms::traits::behaviour::UseValue)
+    {
+        value_ = value;
+    }
+
+    void setValueInternal(ValueType value, comms::traits::behaviour::IgnoreValue)
+    {
+        BasicIntValue fieldTmp(value);
+        if (fieldTmp.valid()) {
+            value_ = value;
+        }
+    }
+
+    void setValueInternal(ValueType value, comms::traits::behaviour::Fail)
+    {
+        value_ = value;
+        GASSERT(valid());
+    }
+
+    ErrorStatus assignReadValue(SerialisedType serValue, comms::traits::behaviour::Fail)
     {
         BasicIntValue fieldTmp;
         fieldTmp.value_ = fromSerialised(serValue);
@@ -675,9 +690,21 @@ private:
         return ErrorStatus::Success;
     }
 
-    ErrorStatus assignReadValue(SerialisedType serValue, AllowInvalidValuesTag)
+    ErrorStatus assignReadValue(SerialisedType serValue, comms::traits::behaviour::UseValue)
     {
         value_ = fromSerialised(serValue);
+        return ErrorStatus::Success;
+    }
+
+    ErrorStatus assignReadValue(SerialisedType serValue, comms::traits::behaviour::IgnoreValue)
+    {
+        auto value = fromSerialised(serValue);
+        BasicIntValue fieldTmp(value);
+        if ((fieldTmp.valid()) &&
+            (fieldTmp.getValue() == value)) {
+            value_ = value;
+        }
+
         return ErrorStatus::Success;
     }
 

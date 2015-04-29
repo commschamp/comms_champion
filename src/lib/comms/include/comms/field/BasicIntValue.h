@@ -71,12 +71,8 @@ public:
     BasicIntValue()
       : value_(static_cast<ValueType>(0))
     {
-        typedef typename std::conditional<
-            Base::HasCustomInitialiser,
-            CustomInitialisationTag,
-            DefaultInitialisationTag
-        >::type Tag;
-        completeDefaultInitialisation(Tag());
+        completeDefaultInitialisation(InitalisationTag());
+        validateValue(AllowedValidityTag());
     }
 
     /// @brief Constructor
@@ -85,6 +81,7 @@ public:
     explicit BasicIntValue(ValueType value)
       : value_(value)
     {
+        validateValue(AllowedValidityTag());
     }
 
     /// @brief Copy constructor is default
@@ -109,6 +106,7 @@ public:
         GASSERT(minValue() <= value);
         GASSERT(value <= maxValue());
         value_ = value;
+        validateValue(AllowedValidityTag());
     }
 
     /// @brief Retrieve serialised data
@@ -121,6 +119,7 @@ public:
     void setSerialisedValue(SerialisedType value)
     {
         value_ = fromSerialised(value);
+        validateValue(AllowedValidityTag());
     }
 
     /// @brief Convert value to serialised data
@@ -214,6 +213,7 @@ private:
     static const std::size_t MaxLength = Base::MaxLength;
     static const bool HasFixedLength = (MinLength == MaxLength);
     static const auto Offset = Base::Offset;
+    static const bool ValidValuesOnly = Base::ValidValuesOnly;
 
     struct DefaultInitialisationTag {};
     struct CustomInitialisationTag {};
@@ -221,8 +221,16 @@ private:
     struct CustomValidatorTag {};
     struct FixedLengthTag {};
     struct VarLengthTag {};
-    struct NoAdjustment {};
-    struct ShorterLengthAdjustment {};
+    struct NoAdjustmentTag {};
+    struct ShorterLengthAdjustmentTag {};
+    struct AllowInvalidValuesTag {};
+    struct ForcedToValidValuesOnlyTag {};
+
+    typedef typename std::conditional<
+        Base::HasCustomInitialiser,
+        CustomInitialisationTag,
+        DefaultInitialisationTag
+    >::type InitalisationTag;
 
     typedef typename std::conditional<
         HasFixedLength,
@@ -232,9 +240,15 @@ private:
 
     typedef typename std::conditional<
         sizeof(SerialisedType) == MaxLength,
-        NoAdjustment,
-        ShorterLengthAdjustment
+        NoAdjustmentTag,
+        ShorterLengthAdjustmentTag
     >::type AdjustmentTag;
+
+    typedef typename std::conditional<
+        ValidValuesOnly,
+        ForcedToValidValuesOnlyTag,
+        AllowInvalidValuesTag
+    >::type AllowedValidityTag;
 
     typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerType;
 
@@ -334,8 +348,7 @@ private:
 
         auto serialisedValue =
             Base::template readData<SerialisedType, MaxLength>(iter);
-        setSerialisedValue(serialisedValue);
-        return ErrorStatus::Success;
+        return assignReadValue(serialisedValue, AllowedValidityTag());
     }
 
     static void addByteToSerialisedValueBigEndian(
@@ -408,8 +421,7 @@ private:
         }
 
         auto adjustedValue = adjustFromUnsignedSerialisedVarLength(value);
-        setSerialisedValue(adjustedValue);
-        return ErrorStatus::Success;
+        return assignReadValue(adjustedValue, AllowedValidityTag());
     }
 
     template <typename TIter>
@@ -528,14 +540,14 @@ private:
 
     static constexpr SerialisedType adjustSerialisedFixedLength(
         SerialisedType value,
-        NoAdjustment)
+        NoAdjustmentTag)
     {
         return value;
     }
 
     static SerialisedType adjustSerialisedFixedLength(
         SerialisedType value,
-        ShorterLengthAdjustment)
+        ShorterLengthAdjustmentTag)
     {
         static const auto Shift =
             MaxLength * std::numeric_limits<std::uint8_t>::digits;
@@ -640,6 +652,33 @@ private:
     static ValueType maxValueInternal(VarLengthTag)
     {
         return maxValueVarLength();
+    }
+
+    void validateValue(ForcedToValidValuesOnlyTag)
+    {
+        GASSERT(valid());
+    }
+
+    void validateValue(AllowInvalidValuesTag)
+    {
+    }
+
+    ErrorStatus assignReadValue(SerialisedType serValue, ForcedToValidValuesOnlyTag)
+    {
+        BasicIntValue fieldTmp;
+        fieldTmp.value_ = fromSerialised(serValue);
+        if (!fieldTmp.valid()) {
+            return ErrorStatus::ProtocolError;
+        }
+
+        value_ = fieldTmp.value_;
+        return ErrorStatus::Success;
+    }
+
+    ErrorStatus assignReadValue(SerialisedType serValue, AllowInvalidValuesTag)
+    {
+        value_ = fromSerialised(serValue);
+        return ErrorStatus::Success;
     }
 
     static const unsigned VarLengthShift = 7;

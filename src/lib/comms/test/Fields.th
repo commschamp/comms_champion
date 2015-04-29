@@ -57,6 +57,8 @@ public:
     void test25();
     void test26();
     void test27();
+    void test28();
+    void test29();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -993,6 +995,8 @@ void FieldsTestSuite::test27()
     TS_ASSERT_EQUALS(mem3.getValue(), 0x1);
 }
 
+
+
 template <typename TField>
 TField FieldsTestSuite::readWriteField(
     const char* buf,
@@ -1024,6 +1028,90 @@ TField FieldsTestSuite::readWriteField(
     TS_ASSERT_EQUALS(field.length(), writeDiff);
     TS_ASSERT_EQUALS(diff, writeDiff);
     return field;
+}
+
+void FieldsTestSuite::test28()
+{
+    typedef comms::field::BasicIntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint16_t,
+        comms::option::DefaultNumValue<0x7>,
+        comms::option::ValidNumValueRange<0x7, 0x7>,
+        comms::option::ForceValidValuesOnly> Field;
+
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.getValue(), 0x7);
+
+    static const char Buf[] = {
+        0x00, 0x0f
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    const auto* readIter = &Buf[0];
+    auto es = field.read(readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::ProtocolError);
+    TS_ASSERT_EQUALS(field.getValue(), 0x7);
+    TS_ASSERT(field.valid());
+
+    static const char Buf2[] = {
+        0x00, 0x07, (char)0xff
+    };
+
+    static const std::size_t BufSize2 = std::extent<decltype(Buf2)>::value;
+    readIter = &Buf2[0];
+    es = field.read(readIter, BufSize2);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field.getValue(), 0x7);
+    TS_ASSERT(field.valid());
+
+
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::uint16_t>::max());
+}
+
+void FieldsTestSuite::test29()
+{
+    typedef comms::field::BasicEnumValue<
+        comms::Field<BigEndianOpt>,
+        Enum1,
+        comms::option::FixedLength<2>,
+        comms::option::ValidNumValueRange<0, Enum1_NumOfValues - 1>,
+        comms::option::DefaultNumValue<Enum1_Value2>,
+        comms::option::ForceValidValuesOnly
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.getValue(), Enum1_Value2);
+
+    static const char Buf[] = {
+        0x0, (char)Enum1_Value1, (char)0x3f
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 2);
+    TS_ASSERT_EQUALS(field.getValue(), Enum1_Value1);
+    TS_ASSERT(field.valid());
+
+    static const char Buf2[] = {
+        0x0, (char)Enum1_NumOfValues, (char)0x3f
+    };
+    static const std::size_t BufSize2 = std::extent<decltype(Buf2)>::value;
+    readWriteField<Field>(Buf2, BufSize2, comms::ErrorStatus::ProtocolError);
+
+    field.setValue(Enum1_Value3);
+    TS_ASSERT(field.valid());
+
+    static const char ExpectedBuf[] = {
+        0x0, (char)Enum1_Value3
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    TS_ASSERT_EQUALS(field.minValue(), 0U);
+    TS_ASSERT_EQUALS(field.maxValue(), 0xffff);
 }
 
 template <typename TField>

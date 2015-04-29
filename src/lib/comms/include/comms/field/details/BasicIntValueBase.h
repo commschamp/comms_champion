@@ -57,6 +57,7 @@ protected:
     static const auto Offset = static_cast<OffsetType>(0);
     static const bool HasCustomInitialiser = false;
     static const bool HasCustomValidator = false;
+    static const bool ValidValuesOnly = false;
 };
 
 namespace basic_int_value_details
@@ -217,6 +218,24 @@ protected:
     typedef typename Option::Type ContentsValidator;
     static const bool HasCustomValidator = true;
 };
+
+template <typename TField, typename T, typename... TOptions>
+class BasicIntValueBase<
+    TField,
+    T,
+    comms::option::ForceValidValuesOnly,
+    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+{
+    static_assert(std::is_integral<T>::value, "T must be integral.");
+
+    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+
+protected:
+    using Base::BasicIntValueBase;
+
+    static const bool ValidValuesOnly = true;
+};
+
 
 }  // namespace details
 

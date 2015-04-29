@@ -23,6 +23,7 @@
 #include <limits>
 
 #include "comms/traits.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -129,6 +130,8 @@ struct ContentsValidator
 {
     typedef T Type;
 };
+
+struct ForceValidValuesOnly {};
 
 namespace details
 {

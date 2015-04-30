@@ -35,23 +35,7 @@ namespace field_wrapper
 class UnknownValueWrapper : public FieldWrapper
 {
 public:
-    typedef std::vector<std::uint8_t> SerializedType;
-
     virtual ~UnknownValueWrapper() {}
-
-    SerializedType serialisedValue() const
-    {
-        return serialisedValueImpl();
-    }
-
-    bool setSerialisedValue(const SerializedType& value)
-    {
-        return setSerialisedValueImpl(value);
-    }
-
-protected:
-    virtual SerializedType serialisedValueImpl() const = 0;
-    virtual bool setSerialisedValueImpl(const SerializedType& value) = 0;
 };
 
 template <typename TField>
@@ -59,7 +43,7 @@ class UnknownValueWrapperT : public FieldWrapperT<UnknownValueWrapper, TField>
 {
     using Base = FieldWrapperT<UnknownValueWrapper, TField>;
     using Field = TField;
-    using SerializedType = typename Base::SerializedType;
+    using SerialisedSeq = typename Base::SerialisedSeq;
 
 public:
     UnknownValueWrapperT(Field& field)
@@ -75,49 +59,27 @@ public:
 
 protected:
 
-    virtual SerializedType serialisedValueImpl() const override
+    virtual SerialisedSeq getSerialisedValueImpl() const override
     {
         auto& field = Base::field();
-        SerializedType value;
+        SerialisedSeq value;
         value.reserve(field.length());
         auto iter = std::back_inserter(value);
         field.write(iter, value.max_size());
         return value;
     }
 
-    virtual bool setSerialisedValueImpl(const SerializedType& value) override
-    {
-        return setSerialisedValueImplInternal(value, UpdateTag());
-    }
-
-private:
-    struct Writable {};
-    struct ReadOnly {};
-
-    using UpdateTag =
-        typename std::conditional<
-            std::is_const<TField>::value,
-            ReadOnly,
-            Writable
-        >::type;
-
-    bool setSerialisedValueImplInternal(const SerializedType& value, Writable)
+    virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
     {
         if (value.empty()) {
             return false;
         }
 
         const std::uint8_t* iter = &value[0];
-        auto result = Base::field().read(iter, value.size());
-        return result == comms::ErrorStatus::Success;
+        auto es = Base::field().read(iter, value.size());
+        return es == comms::ErrorStatus::Success;
     }
 
-    bool setSerialisedValueImplInternal(const SerializedType& value, ReadOnly)
-    {
-        static_cast<void>(value);
-        assert(!"Attempt to update readonly field");
-        return false;
-    }
 };
 
 using UnknownValueWrapperPtr = std::unique_ptr<UnknownValueWrapper>;

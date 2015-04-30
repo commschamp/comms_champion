@@ -100,7 +100,7 @@ void BitfieldFieldWidget::memberFieldUpdated()
 void BitfieldFieldWidget::refreshInternal()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->serialisedString());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
     bool valid = m_wrapper->valid();
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);

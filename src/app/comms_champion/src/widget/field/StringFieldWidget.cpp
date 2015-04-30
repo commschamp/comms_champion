@@ -48,7 +48,7 @@ StringFieldWidget::~StringFieldWidget() = default;
 void StringFieldWidget::refreshImpl()
 {
     QString serValueStr;
-    auto serValue = m_wrapper->serialisedValue();
+    auto serValue = m_wrapper->getSerialisedValue();
 
     for (auto byte : serValue) {
         if (!serValueStr.isEmpty()) {
@@ -61,7 +61,7 @@ void StringFieldWidget::refreshImpl()
     m_ui.m_serValuePlainTextEdit->setPlainText(serValueStr);
 
     assert(m_ui.m_valuePlainTextEdit != nullptr);
-    auto value = m_wrapper->value();
+    auto value = m_wrapper->getValue();
     if (m_ui.m_valuePlainTextEdit->toPlainText() != value) {
         auto cursor = m_ui.m_valuePlainTextEdit->textCursor();
         auto newPosition = std::min(cursor.position(), value.size());

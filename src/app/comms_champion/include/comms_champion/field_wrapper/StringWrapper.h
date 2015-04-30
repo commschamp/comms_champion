@@ -41,23 +41,17 @@ namespace field_wrapper
 class StringWrapper : public FieldWrapper
 {
 public:
-    typedef std::vector<std::uint8_t> SerializedType;
 
     virtual ~StringWrapper() {}
 
-    QString value() const
+    QString getValue() const
     {
-        return valueImpl();
+        return getValueImpl();
     }
 
     void setValue(const QString& val)
     {
         setValueImpl(val);
-    }
-
-    SerializedType serialisedValue() const
-    {
-        return serialisedValueImpl();
     }
 
     int maxSize() const
@@ -66,9 +60,8 @@ public:
     }
 
 protected:
-    virtual QString valueImpl() const = 0;
+    virtual QString getValueImpl() const = 0;
     virtual void setValueImpl(const QString& val) = 0;
-    virtual SerializedType serialisedValueImpl() const = 0;
     virtual int maxSizeImpl() const = 0;
 };
 
@@ -77,12 +70,10 @@ class StringWrapperT : public FieldWrapperT<StringWrapper, TField>
 {
     using Base = FieldWrapperT<StringWrapper, TField>;
     using Field = TField;
-    using SerializedType = typename Base::SerializedType;
-    using UpdateTag = typename Base::UpdateTag;
-    using Writable = typename Base::Writable;
-    using ReadOnly = typename Base::ReadOnly;
 
 public:
+    using SerialisedSeq = typename Base::SerialisedSeq;
+
     StringWrapperT(Field& field)
       : Base(field)
     {
@@ -96,7 +87,7 @@ public:
 
 protected:
 
-    virtual QString valueImpl() const override
+    virtual QString getValueImpl() const override
     {
         auto& strField = Base::field();
         return QString::fromUtf8(strField.getValue().c_str(), strField.size());
@@ -104,17 +95,24 @@ protected:
 
     virtual void setValueImpl(const QString& val) override
     {
-        setValueImplInternal(val, UpdateTag());
+        Base::field().setValue(val.toStdString().c_str());
     }
 
-    virtual SerializedType serialisedValueImpl() const override
+    virtual SerialisedSeq getSerialisedValueImpl() const override
     {
         auto& field = Base::field();
-        SerializedType value;
+        SerialisedSeq value;
         value.reserve(field.length());
         auto iter = std::back_inserter(value);
         field.write(iter, value.max_size());
         return value;
+    }
+
+    virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
+    {
+        static_cast<void>(value);
+        assert(!"Mustn't be called");
+        return false;
     }
 
     virtual int maxSizeImpl() const override
@@ -132,16 +130,6 @@ protected:
 
 private:
 
-    void setValueImplInternal(const QString& val, Writable)
-    {
-        Base::field().setValue(val.toStdString().c_str());
-    }
-
-    void setValueImplInternal(const QString& val, ReadOnly)
-    {
-        static_cast<void>(val);
-        assert(!"Attempt to update readonly field");
-    }
 };
 
 using StringWrapperPtr = std::unique_ptr<StringWrapper>;

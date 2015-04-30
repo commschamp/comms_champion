@@ -54,9 +54,9 @@ BasicIntValueFieldWidget::~BasicIntValueFieldWidget() = default;
 void BasicIntValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->serialisedString());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
-    auto value = m_wrapper->value();
+    auto value = m_wrapper->getValue();
     assert(m_ui.m_valueSpinBox);
     if (m_ui.m_valueSpinBox->value() != value) {
         m_ui.m_valueSpinBox->setValue(value);
@@ -88,7 +88,7 @@ void BasicIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 
 void BasicIntValueFieldWidget::valueUpdated(int value)
 {
-    if (value == m_wrapper->value()) {
+    if (value == m_wrapper->getValue()) {
         return;
     }
 

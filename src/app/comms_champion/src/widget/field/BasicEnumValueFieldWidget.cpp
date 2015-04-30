@@ -51,7 +51,7 @@ BasicEnumValueFieldWidget::~BasicEnumValueFieldWidget() = default;
 void BasicEnumValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->serialisedString());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
     bool valid = m_wrapper->valid();
     auto comboIdx = m_ui.m_valueComboBox->currentIndex();
@@ -70,7 +70,7 @@ void BasicEnumValueFieldWidget::refreshImpl()
             break;
         }
 
-        auto value = m_wrapper->value();
+        auto value = m_wrapper->getValue();
         auto comboValue = comboRetrieveValueFunc(m_ui.m_valueComboBox->currentIndex());
         if (value == comboValue) {
             break;
@@ -140,7 +140,7 @@ void BasicEnumValueFieldWidget::valueUpdated(int idx)
         assert(valueVar.isValid());
         assert(valueVar.canConvert<UnderlyingType>());
         auto value = valueVar.value<UnderlyingType>();
-        if (value == m_wrapper->value()) {
+        if (value == m_wrapper->getValue()) {
             return;
         }
 

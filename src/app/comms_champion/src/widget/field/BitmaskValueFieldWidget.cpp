@@ -49,7 +49,7 @@ BitmaskValueFieldWidget::~BitmaskValueFieldWidget() = default;
 void BitmaskValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->serialisedString());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
     auto bitIdxLimit = m_wrapper->bitIdxLimit();
     assert(bitIdxLimit == m_checkboxes.size());

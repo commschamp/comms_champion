@@ -44,27 +44,13 @@ UnknownValueFieldWidget::~UnknownValueFieldWidget() = default;
 
 void UnknownValueFieldWidget::refreshImpl()
 {
-    QString serValueStr;
-    auto serValue = m_wrapper->serialisedValue();
-
-    for (auto byte : serValue) {
-        serValueStr.append(QString("%1").arg(byte, 2, 16, QChar('0')));
-    }
-
-    QString altSerValueStr(serValueStr);
-    if ((!serValueStr.isEmpty()) &&
-        (serValueStr[0] == '0')) {
-        altSerValueStr = QString(serValueStr.data() + 1);
-    }
-
     auto curText = m_ui.m_serValueLineEdit->text();
-    if ((curText != serValueStr) &&
-        (curText != altSerValueStr)) {
+    auto serString = m_wrapper->getSerialisedString();
+    if (curText != serString) {
 
         assert(m_ui.m_serValueLineEdit != nullptr);
         setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
-        m_ui.m_serValueLineEdit->setText(serValueStr);
-
+        m_ui.m_serValueLineEdit->setText(serString);
     }
 
     setFieldValid(m_wrapper->valid());
@@ -87,28 +73,10 @@ void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
 
     QString valueCopy(value);
     if ((valueCopy.size() & 0x1) != 0) {
-        valueCopy.resize(valueCopy.size() - 1);
+        valueCopy.append(QChar('0'));
     }
 
-    assert((valueCopy.size() & 0x1) == 0);
-    auto numOfDigits = valueCopy.size() / 2;
-
-    using SerializedType =
-        field_wrapper::UnknownValueWrapperPtr::element_type::SerializedType;
-    SerializedType serValue;
-    serValue.reserve(numOfDigits);
-
-    static const int Step = 2;
-    for (auto i = 0; i < valueCopy.size(); i += Step) {
-        QString byteValueStr(valueCopy.data() + i, Step);
-        bool ok = false;
-        auto byteValue = byteValueStr.toUInt(&ok, 16);
-        assert(ok);
-        static_cast<void>(ok);
-        serValue.push_back(static_cast<SerializedType::value_type>(byteValue));
-    }
-
-    if (m_wrapper->setSerialisedValue(serValue)) {
+    if (m_wrapper->setSerialisedString(valueCopy)) {
         refresh();
         emitFieldUpdated();
     }

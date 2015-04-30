@@ -50,6 +50,17 @@ typedef util::traits::endian::Little Little;
 
 }  // namespace endian
 
+namespace behaviour
+{
+
+struct UseValue {};
+
+struct IgnoreValue {};
+
+struct Fail {};
+
+}  // namespace behaviour
+
 namespace checksum
 {
 

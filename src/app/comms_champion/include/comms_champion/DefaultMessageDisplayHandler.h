@@ -31,6 +31,8 @@
 #include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 #include "comms_champion/field_wrapper/BasicEnumValueWrapper.h"
+#include "comms_champion/field_wrapper/StringWrapper.h"
+#include "comms_champion/field_wrapper/BitfieldWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -42,6 +44,8 @@ namespace details
 struct BasicIntValueTag {};
 struct BitmaskValueTag {};
 struct BasicEnumValueTag {};
+struct StringTag {};
+struct BitfieldTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -50,7 +54,9 @@ struct TagOf
     static_assert(!comms::field::isBasicIntValue<TField>(),
         "BasicIntValue is perceived as unknown type");
     static_assert(!comms::field::isBitmaskValue<TField>(),
-        "BasicValue is perceived as unknown type");
+        "BitmaskValue is perceived as unknown type");
+    static_assert(!comms::field::isString<TField>(),
+        "String is perceived as unknown type");
     typedef UnknownValueTag Type;
 };
 
@@ -84,6 +90,26 @@ struct TagOf<comms::field::BasicEnumValue<TArgs...> >
     typedef BasicEnumValueTag Type;
 };
 
+template <typename... TArgs>
+struct TagOf<comms::field::String<TArgs...> >
+{
+    static_assert(
+        comms::field::isString<comms::field::String<TArgs...> >(),
+        "isString is supposed to return true");
+
+    typedef StringTag Type;
+};
+
+template <typename... TArgs>
+struct TagOf<comms::field::Bitfield<TArgs...> >
+{
+    static_assert(
+        comms::field::isBitfield<comms::field::Bitfield<TArgs...> >(),
+        "isBitfield is supposed to return true");
+
+    typedef BitfieldTag Type;
+};
+
 template <typename TField>
 using TagOfT = typename TagOf<TField>::Type;
 
@@ -97,7 +123,14 @@ public:
     void handle(TMessage& msg)
     {
         auto& fields = msg.getFields();
-        comms::util::tupleForEach(fields, makeFieldsDisplayDispatcher(*this));
+        comms::util::tupleForEach(
+            fields,
+            makeFieldsDisplayDispatcher(
+                *this,
+                [this](FieldWidgetPtr&& fieldWidget)
+                {
+                    m_widget->addFieldWidget(fieldWidget.release());
+                }));
     }
 
 protected:
@@ -111,14 +144,19 @@ private:
     using BasicIntValueTag = details::BasicIntValueTag;
     using BitmaskValueTag = details::BitmaskValueTag;
     using BasicEnumValueTag = details::BasicEnumValueTag;
+    using StringTag = details::StringTag;
+    using BitfieldTag = details::BitfieldTag;
     using UnknownValueTag = details::UnknownValueTag;
 
-    template <typename THandler>
+    template <typename TCreateWidgetHandler>
     class FieldsDisplayDispatcher
     {
     public:
-        FieldsDisplayDispatcher(THandler& handler)
-          : m_handler(handler)
+        typedef std::function <void (FieldWidgetPtr)> WidgetDispatchFunc;
+        template <typename TDispatchFunc>
+        FieldsDisplayDispatcher(TCreateWidgetHandler& handler, TDispatchFunc&& dispatchOp)
+          : m_handler(handler),
+            m_dispatchOp(std::forward<TDispatchFunc>(dispatchOp))
         {
         }
 
@@ -130,20 +168,22 @@ private:
 
             auto fieldWidget =
                 m_handler.createFieldWidget(std::forward<TField>(field), Tag());
-            m_handler.m_widget->addFieldWidget(fieldWidget.release());
+            m_dispatchOp(std::move(fieldWidget));
         }
 
     private:
-        THandler& m_handler;
+        TCreateWidgetHandler& m_handler;
+        WidgetDispatchFunc m_dispatchOp;
     };
 
-    template <typename THandler>
+    template <typename TCreateWidgetHandler>
     friend class FieldsDisplayDispatcher;
 
-    template <typename THandler>
-    FieldsDisplayDispatcher<THandler> makeFieldsDisplayDispatcher(THandler& handler)
+    template <typename TCreateWidgetHandler, typename TDispatchFunc>
+    FieldsDisplayDispatcher<TCreateWidgetHandler>
+    makeFieldsDisplayDispatcher(TCreateWidgetHandler& handler, TDispatchFunc&& dispatchOp)
     {
-        return FieldsDisplayDispatcher<THandler>(handler);
+        return FieldsDisplayDispatcher<TCreateWidgetHandler>(handler, std::forward<TDispatchFunc>(dispatchOp));
     }
 
     template <typename TField>
@@ -168,6 +208,32 @@ private:
     }
 
     template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, StringTag)
+    {
+        return createStringFieldWidget(
+            field_wrapper::makeStringWrapper(field));
+    }
+
+    template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, BitfieldTag)
+    {
+        auto widget = createBitfieldFieldWidget(
+            field_wrapper::makeBitfieldWrapper(field));
+
+        auto& memberFields = field.fields();
+        comms::util::tupleForEach(
+            memberFields,
+            makeFieldsDisplayDispatcher(
+                *this,
+                [this, &widget](FieldWidgetPtr&& fieldWidget)
+                {
+                    bitfieldWidgetAddMember(*widget, std::move(fieldWidget));
+                }));
+
+        return std::move(widget);
+    }
+
+    template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -183,9 +249,18 @@ private:
     FieldWidgetPtr createBasicEnumValueFieldWidget(
         field_wrapper::BasicEnumValueWrapperPtr&& fieldWrapper);
 
+    FieldWidgetPtr createStringFieldWidget(
+        field_wrapper::StringWrapperPtr&& fieldWrapper);
+
+    FieldWidgetPtr createBitfieldFieldWidget(
+        field_wrapper::BitfieldWrapperPtr&& fieldWrapper);
+
     FieldWidgetPtr createUnknownValueFieldWidget(
         field_wrapper::UnknownValueWrapperPtr&& fieldWrapper);
 
+    void bitfieldWidgetAddMember(
+        FieldWidget& bitfieldWidget,
+        FieldWidgetPtr memberFieldWidget);
 
     static void updateFieldIdxProperty(FieldWidget& field, std::size_t idx);
 

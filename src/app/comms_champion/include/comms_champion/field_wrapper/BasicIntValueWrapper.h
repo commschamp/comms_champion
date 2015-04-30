@@ -31,7 +31,35 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-using BasicIntValueWrapper = NumericValueWrapper<int>;
+class BasicIntValueWrapper : public NumericValueWrapper<int>
+{
+    typedef NumericValueWrapper<int> Base;
+public:
+
+    typedef Base::UnderlyingType UnderlyingType;
+
+    using Base::NumericValueWrapper;
+
+    UnderlyingType minValue() const
+    {
+        return minValueImpl();
+    }
+
+    UnderlyingType maxValue() const
+    {
+        return maxValueImpl();
+    }
+
+    void forceValuesRange(UnderlyingType min, UnderlyingType max)
+    {
+        forceValuesRangeImpl(min, max);
+    }
+
+protected:
+    virtual UnderlyingType minValueImpl() const = 0;
+    virtual UnderlyingType maxValueImpl() const = 0;
+    virtual void forceValuesRangeImpl(UnderlyingType min, UnderlyingType max) = 0;
+};
 
 template <typename TField>
 class BasicIntValueWrapperT : public NumericValueWrapperT<BasicIntValueWrapper, TField>
@@ -41,9 +69,9 @@ class BasicIntValueWrapperT : public NumericValueWrapperT<BasicIntValueWrapper, 
     static_assert(comms::field::isBasicIntValue<Field>(), "Must be of BasicIntValueField type");
 
     using ValueType = typename Field::ValueType;
-    using IntType = typename Base::UnderlyingType;
-    static_assert(sizeof(ValueType) <= sizeof(IntType), "This wrapper cannot handle provided field.");
-    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(IntType)),
+    using UnderlyingType = typename Base::UnderlyingType;
+    static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
+    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
         "This wrapper cannot handle provided field.");
 
 public:
@@ -57,6 +85,27 @@ public:
     virtual ~BasicIntValueWrapperT() = default;
 
     BasicIntValueWrapperT& operator=(const BasicIntValueWrapperT&) = delete;
+
+protected:
+    virtual UnderlyingType minValueImpl() const override
+    {
+        return std::max(static_cast<UnderlyingType>(Base::field().minValue()), m_forcedMin);
+    }
+
+    virtual UnderlyingType maxValueImpl() const override
+    {
+        return std::min(static_cast<UnderlyingType>(Base::field().maxValue()), m_forcedMax);
+    }
+
+    virtual void forceValuesRangeImpl(UnderlyingType min, UnderlyingType max) override
+    {
+        m_forcedMin = min;
+        m_forcedMax = max;
+    }
+
+private:
+    UnderlyingType m_forcedMin = std::numeric_limits<UnderlyingType>::min();
+    UnderlyingType m_forcedMax = std::numeric_limits<UnderlyingType>::max();
 };
 
 using BasicIntValueWrapperPtr = std::unique_ptr<BasicIntValueWrapper>;

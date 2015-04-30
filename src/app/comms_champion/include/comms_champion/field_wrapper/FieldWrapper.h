@@ -21,6 +21,8 @@
 #include <cstdint>
 #include <cstddef>
 
+#include <QtCore/QString>
+
 namespace comms_champion
 {
 
@@ -30,6 +32,8 @@ namespace field_wrapper
 class FieldWrapper
 {
 public:
+    typedef std::vector<std::uint8_t> SerialisedSeq;
+
     virtual ~FieldWrapper() {};
 
     std::size_t length() const
@@ -47,10 +51,25 @@ public:
         return validImpl();
     }
 
+    SerialisedSeq getSerialisedValue() const
+    {
+        return getSerialisedValueImpl();
+    }
+
+    bool setSerialisedValue(const SerialisedSeq& value)
+    {
+        return setSerialisedValueImpl(value);
+    }
+
+    QString getSerialisedString() const;
+
+    bool setSerialisedString(const QString& str);
+
 protected:
     virtual std::size_t lengthImpl() const = 0;
     virtual bool validImpl() const = 0;
-
+    virtual SerialisedSeq getSerialisedValueImpl() const = 0;
+    virtual bool setSerialisedValueImpl(const SerialisedSeq& value) = 0;
 };
 
 template <typename TBase, typename TField>

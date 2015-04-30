@@ -23,7 +23,6 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QWidget>
 
-#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -73,21 +72,6 @@ Message::DataSeq Message::encodeData() const
 bool Message::decodeData(const DataSeq& data)
 {
     return decodeDataImpl(data);
-}
-
-void Message::setNameProperty(QWidget& widget, const QString& value)
-{
-    widget.setProperty(GlobalConstants::namePropertyName(), QVariant(value));
-}
-
-void Message::setIndexedNameProperty(
-    QWidget& widget,
-    unsigned idx,
-    const QString& value)
-{
-    widget.setProperty(
-        GlobalConstants::indexedNamePropertyName(idx).toUtf8().data(),
-        QVariant(value));
 }
 
 

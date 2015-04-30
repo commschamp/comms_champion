@@ -30,15 +30,14 @@ namespace demo
 namespace plugin
 {
 
-struct CCDemoDefaultTraits
-{
-    typedef demo::message::MsgId MsgIdType;
-    typedef comms::traits::endian::Big Endianness;
-    typedef const std::uint8_t* ReadIterator;
-    typedef std::back_insert_iterator<std::vector<std::uint8_t> > WriteIterator;
-};
+typedef std::tuple<
+    comms::option::MsgIdType<demo::message::MsgId>,
+    comms::option::LittleEndian,
+    comms::option::ReadIterator<const std::uint8_t*>,
+    comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >
+>CCDemoDefaultOptions;
 
-class CCDemoMessage : public comms_champion::MessageBase<CCDemoDefaultTraits>
+class CCDemoMessage : public comms_champion::MessageBase<CCDemoDefaultOptions>
 {
 public:
     CCDemoMessage() = default;

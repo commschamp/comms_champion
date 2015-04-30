@@ -24,6 +24,8 @@
 #include "widget/field/BasicIntValueFieldWidget.h"
 #include "widget/field/BitmaskValueFieldWidget.h"
 #include "widget/field/BasicEnumValueFieldWidget.h"
+#include "widget/field/StringFieldWidget.h"
+#include "widget/field/BitfieldFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -66,12 +68,43 @@ DefaultMessageDisplayHandler::createBasicEnumValueFieldWidget(
 }
 
 DefaultMessageDisplayHandler::FieldWidgetPtr
+DefaultMessageDisplayHandler::createStringFieldWidget(
+    field_wrapper::StringWrapperPtr&& fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new StringFieldWidget(std::move(fieldWrapper)));
+}
+
+DefaultMessageDisplayHandler::FieldWidgetPtr
+DefaultMessageDisplayHandler::createBitfieldFieldWidget(
+    field_wrapper::BitfieldWrapperPtr&& fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new BitfieldFieldWidget(std::move(fieldWrapper)));
+}
+
+DefaultMessageDisplayHandler::FieldWidgetPtr
 DefaultMessageDisplayHandler::createUnknownValueFieldWidget(
     field_wrapper::UnknownValueWrapperPtr&& fieldWrapper)
 {
     return
         FieldWidgetPtr(
             new UnknownValueFieldWidget(std::move(fieldWrapper)));
+}
+
+void DefaultMessageDisplayHandler::bitfieldWidgetAddMember(
+    FieldWidget& bitfieldWidget,
+    FieldWidgetPtr memberFieldWidget)
+{
+    auto* castedBitfieldWidget = dynamic_cast<BitfieldFieldWidget*>(&bitfieldWidget);
+    if (castedBitfieldWidget == nullptr) {
+        assert(!"Wrong cast, expected bitfield widget");
+        return;
+    }
+
+    castedBitfieldWidget->addMemberField(memberFieldWidget.release());
 }
 
 void DefaultMessageDisplayHandler::updateFieldIdxProperty(

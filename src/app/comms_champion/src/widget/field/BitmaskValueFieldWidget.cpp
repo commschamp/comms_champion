@@ -23,7 +23,7 @@
 
 #include <QtWidgets/QCheckBox>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -40,7 +40,7 @@ BitmaskValueFieldWidget::BitmaskValueFieldWidget(
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
 
-    connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
+    connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 }
 
@@ -49,10 +49,7 @@ BitmaskValueFieldWidget::~BitmaskValueFieldWidget() = default;
 void BitmaskValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateNumericSerialisedValue(
-        *m_ui.m_serValueLineEdit,
-        m_wrapper->serialisedValue(),
-        m_wrapper->width());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
     auto bitIdxLimit = m_wrapper->bitIdxLimit();
     assert(bitIdxLimit == m_checkboxes.size());
@@ -93,20 +90,7 @@ void BitmaskValueFieldWidget::propertiesUpdatedImpl()
 
 void BitmaskValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
-    assert(isEditEnabled());
-    static_assert(std::is_same<unsigned long long, UnderlyingType>::value,
-        "Underlying type assumption is wrong");
-
-    bool ok = false;
-    UnderlyingType serValue = value.toULongLong(&ok, 16);
-    assert(ok);
-    static_cast<void>(ok);
-    if (serValue == m_wrapper->serialisedValue()) {
-        return;
-    }
-    m_wrapper->setSerialisedValue(serValue);
-    refresh();
-    emitFieldUpdated();
+    handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
 void BitmaskValueFieldWidget::checkBoxUpdated(int value)
@@ -141,6 +125,17 @@ void BitmaskValueFieldWidget::readPropertiesAndUpdateUi()
         }
     }
     createCheckboxes();
+
+    bool serHidden = false;
+    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
+    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
+        serHidden = serHiddenVar.value<bool>();
+    }
+
+    m_ui.m_serValueLineEdit->setHidden(serHidden);
+    m_ui.m_serFrontLabel->setHidden(serHidden);
+    m_ui.m_serBackLabel->setHidden(serHidden);
+    m_ui.m_sepLine->setHidden(serHidden);
 }
 
 void BitmaskValueFieldWidget::createCheckboxes()
@@ -149,7 +144,7 @@ void BitmaskValueFieldWidget::createCheckboxes()
     assert(m_checkboxes.size() == bitIdxLimit);
     for (unsigned idx = 0; idx < bitIdxLimit; ++idx) {
 
-        auto indexedName = property(GlobalConstants::indexedNamePropertyName(idx).toUtf8().data());
+        auto indexedName = property(Property::indexedName(idx).toUtf8().data());
         if ((indexedName.isValid()) &&
             (indexedName.canConvert<QString>())) {
             auto* checkbox = new QCheckBox(indexedName.value<QString>());

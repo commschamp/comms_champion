@@ -62,13 +62,6 @@ protected:
     virtual bool isValidImpl() const = 0;
     virtual DataSeq encodeDataImpl() const = 0;
     virtual bool decodeDataImpl(const DataSeq& data) = 0;
-
-    static void setNameProperty(QWidget& widget, const QString& value);
-    static void setIndexedNameProperty(
-        QWidget& widget,
-        unsigned idx,
-        const QString& value);
-
 };
 
 }  // namespace comms_champion

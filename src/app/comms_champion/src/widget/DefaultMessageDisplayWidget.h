@@ -36,6 +36,7 @@ protected:
     virtual void displayMessageImpl(MessageInfoPtr msgInfo) override;
     virtual void setEditEnabledImpl(bool enabled) override;
     virtual void clearImpl() override;
+    virtual void refreshImpl() override;
 
 private slots:
     void msgSelectedInProtocol(MessageInfo::MessagePtr msg, bool editEnabled);

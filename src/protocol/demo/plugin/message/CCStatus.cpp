@@ -23,6 +23,10 @@
 
 #include <QtCore/QVariant>
 
+#include "comms_champion/Property.h"
+
+namespace cc = comms_champion;
+
 namespace demo
 {
 
@@ -59,19 +63,19 @@ void CCStatus::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
         return;
     }
 
-    setNameProperty(fieldWidget, FieldNames[idx]);
+    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
 
     if (idx == FieldId_ExecutionStatus) {
-        setIndexedNameProperty(fieldWidget, demo::message::ExecutionStatus_Idle, "Idle");
-        setIndexedNameProperty(fieldWidget, demo::message::ExecutionStatus_Running, "Running");
-        setIndexedNameProperty(fieldWidget, demo::message::ExecutionStatus_Complete, "Complete");
-        setIndexedNameProperty(fieldWidget, demo::message::ExecutionStatus_Error, "Error");
+        cc::Property::setIndexedNameVal(fieldWidget, demo::message::ExecutionStatus_Idle, "Idle");
+        cc::Property::setIndexedNameVal(fieldWidget, demo::message::ExecutionStatus_Running, "Running");
+        cc::Property::setIndexedNameVal(fieldWidget, demo::message::ExecutionStatus_Complete, "Complete");
+        cc::Property::setIndexedNameVal(fieldWidget, demo::message::ExecutionStatus_Error, "Error");
     }
     else if (idx == FieldId_Features) {
-        setIndexedNameProperty(fieldWidget, 0, "Feature1");
-        setIndexedNameProperty(fieldWidget, 1, "Feature2");
-        setIndexedNameProperty(fieldWidget, 2, "Feature3");
-        setIndexedNameProperty(fieldWidget, 3, "Feature4");
+        cc::Property::setIndexedNameVal(fieldWidget, 0, "Feature1");
+        cc::Property::setIndexedNameVal(fieldWidget, 1, "Feature2");
+        cc::Property::setIndexedNameVal(fieldWidget, 2, "Feature3");
+        cc::Property::setIndexedNameVal(fieldWidget, 3, "Feature4");
     }
 }
 

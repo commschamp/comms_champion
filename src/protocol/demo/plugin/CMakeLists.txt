@@ -9,6 +9,7 @@ function (plugin_demo)
         message/CCRawDataMessage.cpp
         message/CCHeartbeat.cpp
         message/CCStatus.cpp
+        message/CCSerialInfo.cpp
     )
     
     set (hdr

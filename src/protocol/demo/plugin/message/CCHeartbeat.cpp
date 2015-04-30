@@ -23,6 +23,10 @@
 
 #include <QtCore/QVariant>
 
+#include "comms_champion/Property.h"
+
+namespace cc = comms_champion;
+
 namespace demo
 {
 
@@ -58,7 +62,7 @@ void CCHeartbeat::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) cons
         return;
     }
 
-    setNameProperty(fieldWidget, FieldNames[idx]);
+    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
 }
 
 void CCHeartbeat::resetImpl()

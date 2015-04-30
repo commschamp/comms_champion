@@ -35,6 +35,32 @@ ProtocolsStackWidget::~ProtocolsStackWidget() = default;
 
 void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo)
 {
+    bool selectionChanged = true;
+    do {
+        assert(m_ui.m_protocolsTreeWidget != nullptr);
+        auto* topProtocolItem = m_ui.m_protocolsTreeWidget->topLevelItem(0);
+        if (topProtocolItem == nullptr) {
+            break;
+        }
+
+        auto firstChild = topProtocolItem->child(0);
+        if (firstChild == nullptr) {
+            break;
+        }
+
+        assert(m_ui.m_protocolsTreeWidget->currentItem() != nullptr);
+        if (firstChild != m_ui.m_protocolsTreeWidget->currentItem()) {
+            break;
+        }
+
+        auto storedAppMsg = msgFromItem(firstChild);
+        if (storedAppMsg != msgInfo->getAppMessage()) {
+            break;
+        }
+
+        selectionChanged = false;
+    } while (false);
+
     assert(msgInfo);
     m_ui.m_protocolsTreeWidget->clear();
     QStringList colValues(QString(msgInfo->getProtocolName().c_str()));
@@ -63,7 +89,9 @@ void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo)
     auto* firstMsgItem = topProtocolItem->child(0);
     if (firstMsgItem != 0) {
         m_ui.m_protocolsTreeWidget->setCurrentItem(firstMsgItem);
-        reportMessageSelected(firstMsgItem);
+        if (selectionChanged) {
+            reportMessageSelected(firstMsgItem);
+        }
     }
 }
 
@@ -91,12 +119,17 @@ void ProtocolsStackWidget::itemClicked(QTreeWidgetItem* item, int column)
 
 void ProtocolsStackWidget::reportMessageSelected(QTreeWidgetItem* item)
 {
+    auto msgPtr = msgFromItem(item);
+    bool editEnabled = (item == m_ui.m_protocolsTreeWidget->topLevelItem(0)->child(0));
+    emit sigMessageSelected(msgPtr, editEnabled);
+}
+
+MessageInfo::MessagePtr ProtocolsStackWidget::msgFromItem(QTreeWidgetItem* item)
+{
     auto msgPtrVar = item->data(0, Qt::UserRole);
     assert(msgPtrVar.isValid());
     assert(msgPtrVar.canConvert<MessageInfo::MessagePtr>());
-    auto msgPtr = msgPtrVar.value<MessageInfo::MessagePtr>();
-    bool editEnabled = (item == m_ui.m_protocolsTreeWidget->topLevelItem(0)->child(0));
-    emit sigMessageSelected(msgPtr, editEnabled);
+    return msgPtrVar.value<MessageInfo::MessagePtr>();
 }
 
 }  // namespace comms_champion

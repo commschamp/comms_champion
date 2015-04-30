@@ -19,8 +19,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -34,14 +35,14 @@ BasicIntValueFieldWidget::BasicIntValueFieldWidget(
     m_ui.setupUi(this);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
-    setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
+    setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
 
     m_ui.m_valueSpinBox->setRange(m_wrapper->minValue(), m_wrapper->maxValue());
 
     connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(int)),
             this, SLOT(valueUpdated(int)));
 
-    connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
+    connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
     refresh();
@@ -53,12 +54,10 @@ BasicIntValueFieldWidget::~BasicIntValueFieldWidget() = default;
 void BasicIntValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateNumericSerialisedValue(
-        *m_ui.m_serValueLineEdit,
-        m_wrapper->serialisedValue(),
-        m_wrapper->width());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
-    auto value = m_wrapper->value();
+    auto value = m_wrapper->getValue();
+    assert(m_ui.m_valueSpinBox);
     if (m_ui.m_valueSpinBox->value() != value) {
         m_ui.m_valueSpinBox->setValue(value);
     }
@@ -84,24 +83,12 @@ void BasicIntValueFieldWidget::propertiesUpdatedImpl()
 
 void BasicIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
-    static_assert(std::is_same<int, UnderlyingType>::value,
-        "Underlying type assumption is wrong");
-
-    bool ok = false;
-    UnderlyingType serValue = value.toInt(&ok, 16);
-    assert(ok);
-    static_cast<void>(ok);
-    if (serValue == m_wrapper->serialisedValue()) {
-        return;
-    }
-    m_wrapper->setSerialisedValue(serValue);
-    refresh();
-    emitFieldUpdated();
+    handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
 void BasicIntValueFieldWidget::valueUpdated(int value)
 {
-    if (value == m_wrapper->value()) {
+    if (value == m_wrapper->getValue()) {
         return;
     }
 
@@ -115,6 +102,17 @@ void BasicIntValueFieldWidget::readPropertiesAndUpdateUi()
 {
     assert(m_ui.m_nameLabel != nullptr);
     updateNameLabel(*m_ui.m_nameLabel);
+
+    bool serHidden = false;
+    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
+    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
+        serHidden = serHiddenVar.value<bool>();
+    }
+
+    m_ui.m_serValueLineEdit->setHidden(serHidden);
+    m_ui.m_serFrontLabel->setHidden(serHidden);
+    m_ui.m_serBackLabel->setHidden(serHidden);
+    m_ui.m_sepLine->setHidden(serHidden);
 }
 
 }  // namespace comms_champion

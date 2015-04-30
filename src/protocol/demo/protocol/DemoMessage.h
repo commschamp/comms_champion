@@ -31,19 +31,19 @@ enum MsgId
 {
     MsgId_Heartbeat,
     MsgId_Status,
+    MsgId_SerialInfo,
     MsgId_NumOfMessages
 };
 
-struct DemoDefaultTraits
-{
-    typedef MsgId MsgIdType;
-    typedef comms::traits::endian::Big Endianness;
-    typedef const std::uint8_t* ReadIterator;
-    typedef std::uint8_t* WriteIterator;
-};
+typedef std::tuple<
+    comms::option::MsgIdType<MsgId>,
+    comms::option::LittleEndian,
+    comms::option::ReadIterator<const std::uint8_t*>,
+    comms::option::WriteIterator<std::uint8_t*>
+> DemoDefaultTraits;
 
-template <typename TTraits = DemoDefaultTraits>
-using DemoMessageT = comms::Message<TTraits>;
+template <typename... TOptions>
+using DemoMessageT = comms::Message<TOptions...>;
 
 using DemoMessage = DemoMessageT<DemoDefaultTraits>;
 

@@ -14,6 +14,18 @@
    <string>Message Details</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QGroupBox" name="m_groupBox">
      <property name="title">
@@ -30,8 +42,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>460</width>
-           <height>405</height>
+           <width>478</width>
+           <height>423</height>
           </rect>
          </property>
         </widget>

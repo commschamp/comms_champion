@@ -20,8 +20,9 @@
 #include <vector>
 #include <array>
 #include <type_traits>
-#include "comms/field/options.h"
+#include "comms/options.h"
 #include "comms/Assert.h"
+#include "comms/util/StaticQueue.h"
 
 namespace comms
 {
@@ -36,71 +37,73 @@ template <typename TElementType, std::size_t TSize>
 class VarSizeStdArrayWrapper
 {
     typedef TElementType ElementType;
-    typedef std::array<ElementType, TSize> StorageType;
 
-    typedef typename
-        std::aligned_storage<
-        sizeof(ElementType),
-        alignof(ElementType)
-    >::type ActualElementType;
-
-    typedef std::array<ActualElementType, TSize> ActualStorageType;
+    typedef comms::util::StaticQueue<ElementType, TSize> Queue;
 public:
-    typedef typename StorageType::iterator iterator;
-    typedef typename StorageType::const_iterator const_iterator;
+    typedef typename Queue::LinearisedIterator iterator;
+    typedef typename Queue::ConstLinearisedIterator const_iterator;
+    typedef typename std::iterator_traits<iterator>::iterator_category iterator_category;
+    typedef typename std::iterator_traits<iterator>::value_type value_type;
+    typedef typename std::iterator_traits<iterator>::difference_type difference_type;
+    typedef typename std::iterator_traits<iterator>::pointer pointer;
+
 
     iterator begin()
     {
-        return reinterpret_cast<StorageType*>(&data_)->begin();
+        return data_.lbegin();
     }
+
+    const_iterator begin() const
+    {
+        return data_.lbegin();
+    }
+
 
     const_iterator cbegin() const
     {
-        return reinterpret_cast<const StorageType*>(&data_)->cbegin();
+        return data_.clbegin();
     }
 
     iterator end()
     {
-        return begin() + size_;
+        return data_.lend();
+    }
+
+    const_iterator end() const
+    {
+        return data_.lend();
     }
 
     const_iterator cend() const
     {
-        return cbegin() + size_;
+        return data_.clend();
     }
 
     std::size_t size() const
     {
-        return size_;
+        return data_.size();
     }
 
     static constexpr std::size_t max_size()
     {
-        return TSize;
+        return Queue::capacity();
     }
 
     template <typename U>
     void push_back(U&& value)
     {
-        GASSERT(size_ < TSize);
-        auto* place = &data_[size_];
-        new (place) ElementType(std::forward<U>(value));
-        ++size_;
+        GASSERT(size() < max_size());
+        data_.pushBack(std::forward<U>(value));
     }
 
     void clear()
     {
-        for (auto idx = 0U; idx < size_; ++idx) {
-            auto* elem = reinterpret_cast<ElementType*>(&data_[idx]);
-            elem->~ElementType();
-        }
-        size_ = 0;
+        data_.clear();
     }
 
 
 private:
-    ActualStorageType data_;
-    std::size_t size_ = 0;
+    Queue data_;
 };
 
 template <typename TField, typename T, typename... TOptions>
@@ -120,15 +123,16 @@ protected:
 };
 
 template <typename TField, typename T, std::size_t TSize, typename... TOptions>
-class VarSizeArrayBase<TField, T, comms::field::option::FixedSizeStorage<TSize>, TOptions...> : public
+class VarSizeArrayBase<TField, T, comms::option::FixedSizeStorage<TSize>, TOptions...> : public
     VarSizeArrayBase<TField, T, TOptions...>
 {
     typedef VarSizeArrayBase<TField, T, TOptions...> Base;
+    typedef comms::option::FixedSizeStorage<TSize> Option;
 
 protected:
 
     typedef typename Base::ElementType ElementType;
-    typedef VarSizeStdArrayWrapper<ElementType, TSize> StorageType;
+    typedef VarSizeStdArrayWrapper<ElementType, Option::Value> StorageType;
 
     using Base::Base;
 };

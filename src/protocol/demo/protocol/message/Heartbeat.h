@@ -30,7 +30,7 @@ namespace message
 {
 
 template <typename TFieldBase>
-using HeatbeatFields =
+using HeartbeatFields =
     std::tuple<
         comms::field::BasicIntValue<
             TFieldBase,
@@ -41,8 +41,8 @@ template <typename TMsgBase = DemoMessage>
 class Heartbeat : public
     comms::MessageBase<
         TMsgBase,
-        comms::option::NumIdImpl<MsgId_Heartbeat>,
-        comms::option::FieldsImpl<HeatbeatFields<typename TMsgBase::Field> >,
+        comms::option::StaticNumIdImpl<MsgId_Heartbeat>,
+        comms::option::FieldsImpl<HeartbeatFields<typename TMsgBase::Field> >,
         comms::option::DispatchImpl<Heartbeat<TMsgBase> >
     >
 {

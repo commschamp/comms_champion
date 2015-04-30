@@ -44,15 +44,19 @@ private:
         typedef char* WriteIterator;
     };
 
-    struct BeTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
+    > BeTraits;
 
-    struct LeTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::LittleEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
+    > LeTraits;
 
     typedef TestMessageBase<BeTraits> BeMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;
@@ -73,7 +77,7 @@ private:
         comms::field::BasicEnumValue<
             TField,
             MessageType,
-            comms::field::option::LengthLimitImpl<1>
+            comms::option::FixedLength<1>
         >;
 
     template <typename TField>
@@ -81,7 +85,7 @@ private:
         comms::field::BasicEnumValue<
             TField,
             MessageType,
-            comms::field::option::LengthLimitImpl<2>
+            comms::option::FixedLength<2>
         >;
 
     template <typename TField>
@@ -89,7 +93,7 @@ private:
         comms::field::BasicEnumValue<
             TField,
             MessageType,
-            comms::field::option::LengthLimitImpl<3>
+            comms::option::FixedLength<3>
         >;
 
     typedef Field1<BeField> BeField1;

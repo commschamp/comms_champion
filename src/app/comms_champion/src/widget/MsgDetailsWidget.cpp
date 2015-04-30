@@ -87,4 +87,11 @@ void MsgDetailsWidget::clear()
     m_ui.m_groupBox->setTitle(getTitlePrefix());
 }
 
+void MsgDetailsWidget::refresh()
+{
+    if ((m_displayedMsgWidget != nullptr) && (m_editEnabled)) {
+        m_displayedMsgWidget->refresh();
+    }
+}
+
 } /* namespace comms_champion */

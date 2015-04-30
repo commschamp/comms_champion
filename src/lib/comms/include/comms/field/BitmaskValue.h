@@ -44,7 +44,7 @@ namespace field
 /// @headerfile comms/field/BitmaskValue.h
 template <typename TField,
           typename... TOptions>
-class BitmaskValue : details::BitmaskValueBase<TField, TOptions...>
+class BitmaskValue : public details::BitmaskValueBase<TField, TOptions...>
 {
     typedef details::BitmaskValueBase<TField, TOptions...> Base;
 
@@ -53,27 +53,15 @@ public:
     /// @brief Type of the stored value
     typedef typename Base::ValueType ValueType;
 
-    /// @brief Default value to be set in default constructor
-    static const auto DefaultValue = Base::DefaultValue;
-
     /// @brief Length of serialised data
     static const std::size_t SerialisedLen = Base::SerialisedLen;
-
-    /// @brief Reserved bits mask
-    static const auto ReservedMask = Base::ReservedMask;
-
-    /// @brief Valid value for reserved bits.
-    static const bool ReservedValue = Base::ReservedValue;
-
-    static const bool BitZeroIsMsb = Base::BitZeroIsMsb;
 
     /// @brief Definition of underlying BasicIntValue field type
     typedef
         BasicIntValue<
             TField,
             ValueType,
-            option::LengthLimitImpl<SerialisedLen>,
-            option::DefaultValueImpl<DefaultValue>
+            comms::option::FixedLength<SerialisedLen>
         > IntValueField;
 
     /// @brief Serialised Type
@@ -81,7 +69,15 @@ public:
 
     /// @brief Default constructor.
     /// @brief Initial bitmask has all bits cleared (equals 0)
-    BitmaskValue() = default;
+    BitmaskValue()
+    {
+        typedef typename std::conditional<
+            Base::HasCustomInitialiser,
+            CustomInitialisationTag,
+            DefaultInitialisationTag
+        >::type Tag;
+        completeDefaultInitialisation(Tag());
+    }
 
     /// @brief Constructor
     explicit BitmaskValue(ValueType value)
@@ -141,9 +137,19 @@ public:
     }
 
     /// @copydoc BasicIntValue::length()
-    static constexpr std::size_t length()
+    constexpr std::size_t length() const
     {
-        return IntValueField::length();
+        return intValue_.length();
+    }
+
+    static constexpr std::size_t minValue()
+    {
+        return IntValueField::minValue();
+    }
+
+    static constexpr std::size_t maxValue()
+    {
+        return IntValueField::maxValue();
     }
 
     /// @copydoc BasicIntValue::read()
@@ -162,10 +168,12 @@ public:
 
     constexpr bool valid() const
     {
-        if (ReservedValue) {
-            return (getValue() & ReservedMask) == ReservedMask;
-        }
-        return (getValue() & ReservedMask) == 0;
+        return validInternal(
+            typename std::conditional<
+                Base::HasCustomValidator,
+                CustomValidatorTag,
+                DefaultValidatorTag
+            >::type());
     }
 
     /// @brief Check whether all bits from provided mask are set.
@@ -216,7 +224,26 @@ public:
         }
     }
 
+    static constexpr bool hasFixedLength()
+    {
+        return true;
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return SerialisedLen;
+    }
+
+    static constexpr std::size_t minLength()
+    {
+        return SerialisedLen;
+    }
+
 private:
+    static const bool BitZeroIsMsb = Base::BitZeroIsMsb;
+    static const std::size_t TotalBits =
+        SerialisedLen * std::numeric_limits<std::uint8_t>::digits;
+
     struct BitZeroIsMsbTag {};
     struct BitZeroIsLsbTag {};
     using BitOrderTag = typename
@@ -226,20 +253,45 @@ private:
             BitZeroIsLsbTag
         >::type;
 
+    struct DefaultInitialisationTag {};
+    struct CustomInitialisationTag {};
+    struct DefaultValidatorTag {};
+    struct CustomValidatorTag {};
 
     static ValueType calcMask(unsigned bitNum, BitZeroIsMsbTag)
     {
-        GASSERT(bitNum < std::numeric_limits<ValueType>::digits);
-        auto shift = (std::numeric_limits<ValueType>::digits - 1) - bitNum;
+        GASSERT(bitNum < TotalBits);
+        auto shift = (TotalBits - 1) - bitNum;
         auto mask = static_cast<ValueType>(1) << shift;
         return mask;
     }
 
     static ValueType calcMask(unsigned bitNum, BitZeroIsLsbTag)
     {
-        GASSERT(bitNum < std::numeric_limits<ValueType>::digits);
+        GASSERT(bitNum < TotalBits);
         auto mask = static_cast<ValueType>(1) << bitNum;
         return mask;
+    }
+
+    void completeDefaultInitialisation(DefaultInitialisationTag)
+    {
+    }
+
+    void completeDefaultInitialisation(CustomInitialisationTag)
+    {
+        typedef typename Base::DefaultValueInitialiser DefaultValueInitialiser;
+        DefaultValueInitialiser()(*this);
+    }
+
+    static constexpr bool validInternal(DefaultValidatorTag)
+    {
+        return true;
+    }
+
+    constexpr bool validInternal(CustomValidatorTag) const
+    {
+        typedef typename Base::ContentsValidator ContentsValidator;
+        return ContentsValidator()(*this);
     }
 
     IntValueField intValue_;

@@ -62,31 +62,33 @@ private:
         typedef char* WriteIterator;
     };
 
-    struct BackInserterCommonTraits {
-        typedef MessageType MsgIdType;
-        typedef const char* ReadIterator;
-        typedef std::back_insert_iterator<std::vector<char> > WriteIterator;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
+    > BigEndianTraits;
 
-    struct BigEndianTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >
+    > BackInserterBigEndianTraits;
 
-    struct BackInserterBigEndianTraits : public BackInserterCommonTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::LittleEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
+    > LittleEndianTraits;
 
-    struct LittleEndianTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
-
-    struct BackInserterLittleEndianTraits : public BackInserterCommonTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::LittleEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >
+    > BackInserterLittleEndianTraits;
 
     typedef comms::Message<BigEndianTraits> BeMessageBase;
     typedef comms::Message<BackInserterBigEndianTraits> BackInsertBeMessageBase;

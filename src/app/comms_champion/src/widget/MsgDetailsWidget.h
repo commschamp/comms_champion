@@ -40,6 +40,7 @@ public slots:
     void displayMessage(MessageInfo::MessagePtr msg);
     void updateTitle(MessageInfo::MessagePtr msg);
     void clear();
+    void refresh();
 
 signals:
     void sigMsgUpdated();

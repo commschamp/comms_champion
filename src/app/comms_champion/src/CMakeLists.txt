@@ -9,8 +9,10 @@ function (bin_comms_champion)
         Message.cpp
         MessageInfo.cpp
         GlobalConstants.cpp
+        Property.cpp
         DefaultMessageDisplayHandler.cpp
         FieldWidget.cpp
+        FieldWrapper.cpp
         ConfigMgr.cpp
         MsgFileMgr.cpp
         PluginControlInterface.cpp
@@ -36,6 +38,8 @@ function (bin_comms_champion)
         widget/field/BasicIntValueFieldWidget.cpp
         widget/field/BitmaskValueFieldWidget.cpp
         widget/field/BasicEnumValueFieldWidget.cpp
+        widget/field/StringFieldWidget.cpp
+        widget/field/BitfieldFieldWidget.cpp
         widget/field/UnknownValueFieldWidget.cpp
     )
     
@@ -58,6 +62,8 @@ function (bin_comms_champion)
         widget/field/BasicIntValueFieldWidget.h
         widget/field/BitmaskValueFieldWidget.h
         widget/field/BasicEnumValueFieldWidget.h
+        widget/field/StringFieldWidget.h
+        widget/field/BitfieldFieldWidget.h
         widget/field/UnknownValueFieldWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      
@@ -78,6 +84,8 @@ function (bin_comms_champion)
         ui/BasicIntValueFieldWidget.ui
         ui/BitmaskValueFieldWidget.ui
         ui/BasicEnumValueFieldWidget.ui
+        ui/StringFieldWidget.ui
+        ui/BitfieldFieldWidget.ui
         ui/UnknownValueFieldWidget.ui
     )
     
@@ -88,7 +96,7 @@ function (bin_comms_champion)
     target_link_libraries(
         ${name}
         ${PROTOCOL_LIB_NAME} 
-        Qt5::Qml Qt5::Quick Qt5::Widgets Qt5::Core
+        Qt5::Widgets Qt5::Core
     )
     
     install (

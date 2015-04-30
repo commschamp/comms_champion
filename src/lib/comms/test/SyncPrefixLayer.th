@@ -36,34 +36,27 @@ public:
 
 private:
 
-    struct CommonTraits
-    {
-        typedef MessageType MsgIdType;
-        typedef const char* ReadIterator;
-        typedef char* WriteIterator;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
+    > BeTraits;
 
-    struct BackInsertTraits
-    {
-        typedef MessageType MsgIdType;
-        typedef const char* ReadIterator;
-        typedef std::back_insert_iterator<std::vector<char> > WriteIterator;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >
+    > BeBackInsertTraits;
 
-    struct BeTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::LittleEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>
+    > LeTraits;
 
-    struct LeTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
-
-    struct BeBackInsertTraits : public BackInsertTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
 
     typedef TestMessageBase<BeTraits> BeMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;
@@ -87,7 +80,7 @@ private:
         comms::field::BasicIntValue<
             TField,
             unsigned,
-            comms::field::option::LengthLimitImpl<TSize>
+            comms::option::FixedLength<TSize>
         >;
 
     template <typename TField>
@@ -101,8 +94,8 @@ private:
         comms::field::BasicIntValue<
             TField,
             unsigned,
-            comms::field::option::LengthLimitImpl<TSize>,
-            comms::field::option::SerOffsetImpl<TOffset>
+            comms::option::FixedLength<TSize>,
+            comms::option::NumValueSerOffset<TOffset>
         >;
 
     template <typename TField>
@@ -126,7 +119,7 @@ private:
         comms::field::BasicEnumValue<
             TField,
             MessageType,
-            comms::field::option::LengthLimitImpl<TLen>
+            comms::option::FixedLength<TLen>
         >;
 
     template <typename TField>

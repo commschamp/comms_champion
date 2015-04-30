@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "comms/field/options.h"
+#include "comms/options.h"
 #include "comms/util/SizeToType.h"
 
 namespace comms
@@ -39,65 +39,34 @@ class BitmaskValueBase<TField> : public TField
 protected:
     typedef long long unsigned ValueType;
 
-    static const auto DefaultValue = static_cast<ValueType>(0);
     static const std::size_t SerialisedLen = sizeof(ValueType);
-    static const auto ReservedMask = static_cast<ValueType>(0);
-    static const bool ReservedValue = false;
-    static const bool BitZeroIsMsb = true;
+    static const bool BitZeroIsMsb = false;
+    static const bool HasCustomInitialiser = false;
+    static const bool HasCustomValidator = false;
 };
 
-template <typename TField, long long int TValue, typename... TOptions>
-class BitmaskValueBase<
-    TField,
-    comms::field::option::DefaultValueImpl<TValue>,
-    TOptions...> : public BitmaskValueBase<TField, TOptions...>
-{
-    typedef BitmaskValueBase<TField, TOptions...> Base;
-
-protected:
-    using Base::BitmaskValueBase;
-
-    static const auto DefaultValue = static_cast<decltype(Base::DefaultValue)>(TValue);
-};
-
-template <typename TField, long long unsigned TMask, bool TValue, typename... TOptions>
-class BitmaskValueBase<
-    TField,
-    comms::field::option::BitmaskReservedBitsImpl<TMask, TValue>,
-    TOptions...> : public BitmaskValueBase<TField, TOptions...>
-{
-    typedef BitmaskValueBase<TField, TOptions...> Base;
-
-protected:
-    using Base::BitmaskValueBase;
-
-    static const auto ReservedMask = static_cast<decltype(Base::ReservedMask)>(TMask);
-    static const auto ReservedValue = static_cast<decltype(Base::ReservedValue)>(TValue);
-};
 
 template <typename TField, std::size_t TLen, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    comms::field::option::LengthLimitImpl<TLen>,
+    comms::option::FixedLength<TLen>,
     TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
 
     typedef BitmaskValueBase<TField, TOptions...> Base;
+    typedef comms::option::FixedLength<TLen> Option;
 
 protected:
     using Base::BitmaskValueBase;
 
-    using ValueType = typename comms::util::SizeToType<TLen, false>::Type;
-
-    static const auto DefaultValue = static_cast<ValueType>(Base::DefaultValue);
-    static const std::size_t SerialisedLen = TLen;
-    static const auto ReservedMask = static_cast<ValueType>(Base::ReservedMask);
+    static const std::size_t SerialisedLen = Option::Value;
+    using ValueType = typename comms::util::SizeToType<SerialisedLen, false>::Type;
 };
 
 template <typename TField, typename... TOptions>
 class BitmaskValueBase<
     TField,
-    comms::field::option::BitmaskBitZeroIsLsbImpl,
+    comms::option::BitIndexingStartsFromMsb,
     TOptions...> : public BitmaskValueBase<TField, TOptions...>
 {
     typedef BitmaskValueBase<TField, TOptions...> Base;
@@ -105,8 +74,42 @@ class BitmaskValueBase<
 protected:
     using Base::BitmaskValueBase;
 
-    static const bool BitZeroIsMsb = false;
+    static const bool BitZeroIsMsb = true;
 };
+
+template <typename TField, typename T, typename... TOptions>
+class BitmaskValueBase<
+    TField,
+    comms::option::DefaultValueInitialiser<T>,
+    TOptions...> : public BitmaskValueBase<TField, TOptions...>
+{
+    typedef BitmaskValueBase<TField, TOptions...> Base;
+    typedef comms::option::DefaultValueInitialiser<T> Option;
+
+protected:
+    using Base::BitmaskValueBase;
+
+    typedef typename Option::Type DefaultValueInitialiser;
+    static const bool HasCustomInitialiser = true;
+};
+
+
+template <typename TField, typename T, typename... TOptions>
+class BitmaskValueBase<
+    TField,
+    comms::option::ContentsValidator<T>,
+    TOptions...> : public BitmaskValueBase<TField, TOptions...>
+{
+    typedef BitmaskValueBase<TField, TOptions...> Base;
+    typedef comms::option::ContentsValidator<T> Option;
+
+protected:
+    using Base::BitmaskValueBase;
+
+    typedef typename Option::Type ContentsValidator;
+    static const bool HasCustomValidator = true;
+};
+
 
 }  // namespace details
 

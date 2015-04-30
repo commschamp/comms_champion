@@ -66,20 +66,8 @@ public:
     /// @brief Serialised Type
     typedef typename IntValueField::SerialisedType SerialisedType;
 
-    /// @brief Default initialisation value
-    static const auto DefaultValue =
-                        static_cast<ValueType>(IntValueField::DefaultValue);
-
     /// @brief Length of serialised data
     static const std::size_t SerialisedLen = IntValueField::SerialisedLen;
-
-    /// @brief Minimal Valid Value
-    static const auto MinValidValue =
-                        static_cast<ValueType>(IntValueField::MinValidValue);
-
-    /// @brief Maximal Valid Value
-    static const auto MaxValidValue =
-                        static_cast<ValueType>(IntValueField::MaxValidValue);
 
     /// @brief Default constructor.
     /// @brief Initial value is equal to LimitValue
@@ -143,9 +131,19 @@ public:
     }
 
     /// @copydoc BasicIntValue::length()
-    static constexpr std::size_t length()
+    constexpr std::size_t length() const
     {
-        return IntValueField::length();
+        return intValue_.length();
+    }
+
+    static constexpr std::size_t minValue()
+    {
+        return IntValueField::minValue();
+    }
+
+    static constexpr std::size_t maxValue()
+    {
+        return IntValueField::maxValue();
     }
 
     /// @copydoc BasicIntValue::read()
@@ -168,7 +166,23 @@ public:
         return intValue_.valid();
     }
 
+    static constexpr bool hasFixedLength()
+    {
+        return IntValueField::hasFixedLength();
+    }
+
+    static constexpr std::size_t minLength()
+    {
+        return IntValueField::minLength();
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return IntValueField::minLength();
+    }
+
 private:
+
     IntValueField intValue_;
 };
 

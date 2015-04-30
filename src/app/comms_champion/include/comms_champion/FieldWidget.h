@@ -18,10 +18,14 @@
 
 #pragma once
 
+#include <cassert>
+
 #include <QtWidgets/QWidget>
 
 class QLineEdit;
 class QLabel;
+class QPlainTextEdit;
+class QSpinBox;
 
 namespace comms_champion
 {
@@ -49,18 +53,29 @@ protected:
 
     static void setValidityStyleSheet(QLabel& widget, bool valid);
     static void setValidityStyleSheet(QLineEdit& widget, bool valid);
+    static void setValidityStyleSheet(QPlainTextEdit& widget, bool valid);
+    static void setSerialisedInputMask(QLineEdit& line, int minWidth, int maxWidth);
     static void setSerialisedInputMask(QLineEdit& line, int width);
+    static void updateValue(QLineEdit& line, const QString& value);
 
-    template <typename TSerValue>
-    static void updateNumericSerialisedValue(
-        QLineEdit& line,
-        TSerValue value,
-        int width)
+    template <typename TWrapper>
+    void handleNumericSerialisedValueUpdate(
+        const QString& value,
+        TWrapper& wrapper)
     {
-        updateNumericSerialisedValueInternal(
-            line,
-            static_cast<unsigned long long>(value),
-            width);
+        assert(isEditEnabled());
+        do {
+            if ((value.size() & 0x1U) == 0) {
+               wrapper.setSerialisedString(value);
+               break;
+            }
+
+            QString valueCpy(value);
+            valueCpy.append(QChar('0'));
+            wrapper.setSerialisedString(valueCpy);
+        } while (false);
+        refresh();
+        emitFieldUpdated();
     }
 
     virtual void refreshImpl() = 0;

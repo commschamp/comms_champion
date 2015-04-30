@@ -46,6 +46,7 @@ private slots:
 
 private:
     void reportMessageSelected(QTreeWidgetItem* item);
+    static MessageInfo::MessagePtr msgFromItem(QTreeWidgetItem* item);
 
     Ui::ProtocolsStackWidget m_ui;
 };

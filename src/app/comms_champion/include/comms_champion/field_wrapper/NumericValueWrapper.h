@@ -23,6 +23,8 @@
 #include <memory>
 #include <type_traits>
 #include <limits>
+#include <algorithm>
+#include <iterator>
 
 #include "FieldWrapper.h"
 
@@ -35,14 +37,16 @@ namespace field_wrapper
 template <typename TUnderlyingType>
 class NumericValueWrapper : public FieldWrapper
 {
+    typedef FieldWrapper Base;
 public:
     typedef TUnderlyingType UnderlyingType;
+    typedef Base::SerialisedSeq SerialisedSeq;
 
     virtual ~NumericValueWrapper() {}
 
-    UnderlyingType value() const
+    UnderlyingType getValue() const
     {
-        return valueImpl();
+        return getValueImpl();
     }
 
     void setValue(UnderlyingType value)
@@ -50,33 +54,31 @@ public:
         setValueImpl(value);
     }
 
-    UnderlyingType serialisedValue() const
+    std::size_t minLength() const
     {
-        return serialisedValueImpl();
+        return minLengthImpl();
     }
 
-    void setSerialisedValue(UnderlyingType value)
+    std::size_t maxLength() const
     {
-        setSerialisedValueImpl(value);
+        return maxLengthImpl();
     }
 
-    UnderlyingType minValue() const
+    int minWidth() const
     {
-        return minValueImpl();
+        return static_cast<int>(minLength()) * 2;
     }
 
-    UnderlyingType maxValue() const
+    int maxWidth() const
     {
-        return maxValueImpl();
+        return static_cast<int>(maxLength()) * 2;
     }
 
 private:
-    virtual UnderlyingType valueImpl() const = 0;
-    virtual UnderlyingType serialisedValueImpl() const = 0;
+    virtual UnderlyingType getValueImpl() const = 0;
     virtual void setValueImpl(UnderlyingType value) = 0;
-    virtual void setSerialisedValueImpl(UnderlyingType value) = 0;
-    virtual UnderlyingType minValueImpl() const = 0;
-    virtual UnderlyingType maxValueImpl() const = 0;
+    virtual std::size_t minLengthImpl() const = 0;
+    virtual std::size_t maxLengthImpl() const = 0;
 };
 
 template <typename TBase, typename TField>
@@ -86,6 +88,7 @@ class NumericValueWrapperT : public FieldWrapperT<TBase, TField>
 
 public:
     using UnderlyingType = typename Base::UnderlyingType;
+    using SerialisedSeq = typename Base::SerialisedSeq;
 
 protected:
     using Field = TField;
@@ -112,45 +115,56 @@ public:
 
 protected:
 
-    virtual UnderlyingType valueImpl() const override
+    virtual UnderlyingType getValueImpl() const override
     {
         return static_cast<UnderlyingType>(Base::field().getValue());
     }
 
-    virtual UnderlyingType serialisedValueImpl() const override
-    {
-        return static_cast<UnderlyingType>(Base::field().getSerialisedValue());
-    }
-
     virtual void setValueImpl(UnderlyingType value) override
     {
-        setValueImplInternal(value, UpdateTag());
+        Base::field().setValue(static_cast<ValueType>(value));
     }
 
-    virtual void setSerialisedValueImpl(UnderlyingType value) override
+    virtual SerialisedSeq getSerialisedValueImpl() const override
     {
-        setSerialisedValueImplInternal(value, UpdateTag());
+        SerialisedSeq seq;
+        auto& field = Base::field();
+        seq.reserve(field.length());
+        auto iter = std::back_inserter(seq);
+        auto es = field.write(iter, seq.max_size());
+        static_cast<void>(es);
+        assert(es == comms::ErrorStatus::Success);
+        assert(seq.size() == field.length());
+        return seq;
     }
 
-    virtual UnderlyingType minValueImpl() const override
+    virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
     {
-        return minValueImplInternal(SerialisedTypeTag());
+        auto iter = &value[0];
+        auto& field = Base::field();
+        auto es = field.read(iter, value.size());
+        return es == comms::ErrorStatus::Success;
     }
 
-    virtual UnderlyingType maxValueImpl() const override
+    virtual std::size_t minLengthImpl() const override
     {
-        return maxValueImplInternal(SerialisedTypeTag());
+        return minLengthInternal(LengthTag());
+    }
+
+    virtual std::size_t maxLengthImpl() const override
+    {
+        return maxLengthInternal(LengthTag());
     }
 
 private:
-    struct Writable {};
-    struct ReadOnly {};
+    struct FixedLengthTag {};
+    struct VarLengthTag {};
 
-    using UpdateTag =
+    using LengthTag =
         typename std::conditional<
-            std::is_const<TField>::value,
-            ReadOnly,
-            Writable
+            Field::hasFixedLength(),
+            FixedLengthTag,
+            VarLengthTag
         >::type;
 
     struct SerialisedSignedTag {};
@@ -164,79 +178,24 @@ private:
         >::type;
 
 
-    void setValueImplInternal(UnderlyingType value, Writable)
+    std::size_t minLengthInternal(FixedLengthTag) const
     {
-        Base::field().setValue(static_cast<ValueType>(value));
+        return Base::field().length();
     }
 
-    void setValueImplInternal(UnderlyingType value, ReadOnly)
+    std::size_t minLengthInternal(VarLengthTag) const
     {
-        static_cast<void>(value);
-        assert(!"Attempt to update readonly field");
+        return Base::field().minLength();
     }
 
-    void setSerialisedValueImplInternal(UnderlyingType value, Writable)
+    std::size_t maxLengthInternal(FixedLengthTag) const
     {
-        Base::field().setSerialisedValue(static_cast<ValueType>(value));
+        return Base::field().length();
     }
 
-    void setSerialisedValueImplInternal(UnderlyingType value, ReadOnly)
+    std::size_t maxLengthInternal(VarLengthTag) const
     {
-        static_cast<void>(value);
-        assert(!"Attempt to update readonly field");
-    }
-
-    UnderlyingType minValueImplInternal(SerialisedUnsignedTag) const
-    {
-        Field fieldTmp;
-        fieldTmp.setSerialisedValue(0);
-        return fieldTmp.getValue();
-    }
-
-    UnderlyingType minValueImplInternal(SerialisedSignedTag) const
-    {
-        auto minSerialised = std::numeric_limits<SerialisedType>::min();
-        if (Field::SerialisedLen < sizeof(SerialisedType)) {
-            typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerialisedType;
-            static const auto numOfBits =
-                Field::SerialisedLen * std::numeric_limits<std::uint8_t>::digits;
-            minSerialised =
-                static_cast<UnderlyingType>(
-                    static_cast<UnsignedSerialisedType>(1) << (numOfBits - 1));
-        }
-
-        Field fieldTmp;
-        fieldTmp.setSerialisedValue(0);
-        return static_cast<UnderlyingType>(fieldTmp.getValue());
-    }
-
-    UnderlyingType maxValueImplInternal(SerialisedUnsignedTag) const
-    {
-        auto maxSerialised = std::numeric_limits<SerialisedType>::max();
-        if (Field::SerialisedLen < sizeof(SerialisedType)) {
-            static const auto numOfBits =
-                Field::SerialisedLen * std::numeric_limits<std::uint8_t>::digits;
-            maxSerialised = (static_cast<SerialisedType>(1) << numOfBits) - 1;
-        }
-
-        Field fieldTmp;
-        fieldTmp.setSerialisedValue(maxSerialised);
-        return static_cast<UnderlyingType>(fieldTmp.getValue());
-    }
-
-    UnderlyingType maxValueImplInternal(SerialisedSignedTag) const
-    {
-        auto maxSerialised = std::numeric_limits<SerialisedType>::max();
-        if (Field::SerialisedLen < sizeof(SerialisedType)) {
-            static const auto numOfBits =
-                Field::SerialisedLen * std::numeric_limits<std::uint8_t>::digits;
-
-            maxSerialised = (static_cast<SerialisedType>(1) << (Field::numOfBits - 1)) - 1;
-        }
-
-        Field fieldTmp;
-        fieldTmp.setSerialisedValue(maxSerialised);
-        return static_cast<UnderlyingType>(fieldTmp.getValue());
+        return Base::field().maxLength();
     }
 };
 

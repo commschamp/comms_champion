@@ -36,21 +36,7 @@ class BasicEnumValueWrapper : public NumericValueWrapper<long long int>
     using Base = NumericValueWrapper<long long int>;
 public:
     using Base::NumericValueWrapper;
-    using IntType = typename Base::UnderlyingType;
-
-    IntType maxValidValue() const
-    {
-        return maxValidValueImpl();
-    }
-
-    IntType minValidValue() const
-    {
-        return minValidValueImpl();
-    }
-
-protected:
-    virtual UnderlyingType maxValidValueImpl() const = 0;
-    virtual UnderlyingType minValidValueImpl() const = 0;
+    using UnderlyingType = typename Base::UnderlyingType;
 };
 
 template <typename TField>
@@ -61,9 +47,9 @@ class BasicEnumValueWrapperT : public NumericValueWrapperT<BasicEnumValueWrapper
     static_assert(comms::field::isBasicEnumValue<Field>(), "Must be of BasicEnumValueField type");
 
     using ValueType = typename Field::ValueType;
-    using IntType = typename Base::UnderlyingType;
-    static_assert(sizeof(ValueType) <= sizeof(IntType), "This wrapper cannot handle provided field.");
-    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(IntType)),
+    using UnderlyingType = typename Base::UnderlyingType;
+    static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
+    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
         "This wrapper cannot handle provided field.");
 
 public:
@@ -78,16 +64,6 @@ public:
 
     BasicEnumValueWrapperT& operator=(const BasicEnumValueWrapperT&) = delete;
 
-protected:
-    virtual IntType maxValidValueImpl() const override
-    {
-        return static_cast<IntType>(Field::MaxValidValue);
-    }
-
-    virtual IntType minValidValueImpl() const override
-    {
-        return static_cast<IntType>(Field::MinValidValue);
-    }
 };
 
 using BasicEnumValueWrapperPtr = std::unique_ptr<BasicEnumValueWrapper>;

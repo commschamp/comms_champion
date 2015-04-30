@@ -19,8 +19,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -50,10 +51,7 @@ BasicEnumValueFieldWidget::~BasicEnumValueFieldWidget() = default;
 void BasicEnumValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
-    updateNumericSerialisedValue(
-        *m_ui.m_serValueLineEdit,
-        m_wrapper->serialisedValue(),
-        m_wrapper->width());
+    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
     bool valid = m_wrapper->valid();
     auto comboIdx = m_ui.m_valueComboBox->currentIndex();
@@ -72,7 +70,7 @@ void BasicEnumValueFieldWidget::refreshImpl()
             break;
         }
 
-        auto value = m_wrapper->value();
+        auto value = m_wrapper->getValue();
         auto comboValue = comboRetrieveValueFunc(m_ui.m_valueComboBox->currentIndex());
         if (value == comboValue) {
             break;
@@ -101,12 +99,22 @@ void BasicEnumValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+
+    bool serHidden = false;
+    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
+    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
+        serHidden = serHiddenVar.value<bool>();
+    }
+
+    m_ui.m_serValueLineEdit->setHidden(serHidden);
+    m_ui.m_serFrontLabel->setHidden(serHidden);
+    m_ui.m_serBackLabel->setHidden(serHidden);
+    m_ui.m_sepLine->setHidden(serHidden);
 }
 
 void BasicEnumValueFieldWidget::setEditEnabledImpl(bool enabled)
 {
     bool readonly = !enabled;
-//    m_ui.m_valueSpinBox->setReadOnly(readonly);
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
@@ -118,19 +126,7 @@ void BasicEnumValueFieldWidget::propertiesUpdatedImpl()
 
 void BasicEnumValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
-    static_assert(std::is_same<long long int, UnderlyingType>::value,
-        "Underlying type assumption is wrong");
-
-    bool ok = false;
-    UnderlyingType serValue = value.toLongLong(&ok, 16);
-    assert(ok);
-    static_cast<void>(ok);
-    if (serValue == m_wrapper->serialisedValue()) {
-        return;
-    }
-    m_wrapper->setSerialisedValue(serValue);
-    emitFieldUpdated();
-    refresh();
+    handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
 void BasicEnumValueFieldWidget::valueUpdated(int idx)
@@ -144,7 +140,7 @@ void BasicEnumValueFieldWidget::valueUpdated(int idx)
         assert(valueVar.isValid());
         assert(valueVar.canConvert<UnderlyingType>());
         auto value = valueVar.value<UnderlyingType>();
-        if (value == m_wrapper->value()) {
+        if (value == m_wrapper->getValue()) {
             return;
         }
 
@@ -169,18 +165,34 @@ void BasicEnumValueFieldWidget::readPropertiesAndUpdateUi()
     updateNameLabel(*m_ui.m_nameLabel);
 
     m_ui.m_valueComboBox->clear();
-    m_ui.m_valueComboBox->addItem(InvalidValueComboText, QVariant(m_wrapper->maxValue()));
-    m_ui.m_valueComboBox->insertSeparator(1);
-    assert(m_ui.m_valueComboBox->count() == EnumValuesStartIndex);
 
-    auto maxValidValue = m_wrapper->maxValidValue();
-    for (auto value = m_wrapper->minValidValue(); value <= maxValidValue; ++value) {
-        auto valueName = property(GlobalConstants::indexedNamePropertyName(value).toUtf8().data());
+    auto maxValue = std::numeric_limits<unsigned>::min();
+    auto appProperties = dynamicPropertyNames();
+    for (auto& prop : appProperties) {
+        QString propStr(prop);
+        auto& prefix = Property::indexedNamePrefix();
+        if (!propStr.startsWith(prefix)) {
+            continue;
+        }
+
+        propStr.remove(prefix);
+        bool ok = false;
+        auto idx = propStr.toUInt(&ok, 10);
+        if (!ok) {
+            continue;
+        }
+
+        maxValue = std::max(maxValue, idx);
+
+        auto valueName = property(Property::indexedName(idx).toUtf8().data());
         if ((valueName.isValid()) &&
             (valueName.canConvert<QString>())) {
-            m_ui.m_valueComboBox->addItem(valueName.value<QString>(), QVariant(value));
+            m_ui.m_valueComboBox->addItem(valueName.value<QString>(), QVariant(idx));
         }
     }
+
+    m_ui.m_valueComboBox->insertItem(0, InvalidValueComboText, QVariant(maxValue + 1));
+    m_ui.m_valueComboBox->insertSeparator(1);
 
     connect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),
             this, SLOT(valueUpdated(int)));

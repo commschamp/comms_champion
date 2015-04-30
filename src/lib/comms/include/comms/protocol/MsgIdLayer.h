@@ -212,8 +212,8 @@ public:
     typedef typename Base::NextLayer NextLayer;
 
     static_assert(
-        comms::field::isBasicIntValue<Field>() || comms::field::isBasicEnumValue<Field>(),
-        "Field must be of BasicIntValue or BasicEnumValue types");
+        comms::field::isComplexIntValue<Field>() || comms::field::isBasicEnumValue<Field>(),
+        "Field must be of ComplexIntValue or BasicEnumValue types");
 
     template <typename... TArgs>
     explicit MsgIdLayer(TArgs&&... args)

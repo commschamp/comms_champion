@@ -19,25 +19,25 @@
 #pragma once
 
 #include "comms_champion/FieldWidget.h"
-#include "comms_champion/field_wrapper/BasicIntValueWrapper.h"
+#include "comms_champion/field_wrapper/ComplexIntValueWrapper.h"
 
-#include "ui_BasicIntValueFieldWidget.h"
+#include "ui_ComplexIntValueFieldWidget.h"
 
 namespace comms_champion
 {
 
-class BasicIntValueFieldWidget : public FieldWidget
+class ComplexIntValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
     typedef FieldWidget Base;
 public:
-    using WrapperPtr = field_wrapper::BasicIntValueWrapperPtr;
+    using WrapperPtr = field_wrapper::ComplexIntValueWrapperPtr;
 
-    explicit BasicIntValueFieldWidget(
+    explicit ComplexIntValueFieldWidget(
         WrapperPtr&& wrapper,
         QWidget* parent = nullptr);
 
-    ~BasicIntValueFieldWidget();
+    ~ComplexIntValueFieldWidget();
 
 protected:
     virtual void refreshImpl() override;
@@ -54,7 +54,7 @@ private:
 
     void readPropertiesAndUpdateUi();
 
-    Ui::BasicIntValueFieldWidget m_ui;
+    Ui::ComplexIntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
 };
 

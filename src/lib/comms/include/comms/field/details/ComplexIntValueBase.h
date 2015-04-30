@@ -36,10 +36,10 @@ namespace details
 {
 
 template <typename TField, typename T, typename... TOptions>
-class BasicIntValueBase;
+class ComplexIntValueBase;
 
 template <typename TField, typename T>
-class BasicIntValueBase<TField, T> : public TField
+class ComplexIntValueBase<TField, T> : public TField
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
@@ -112,19 +112,19 @@ struct MaxValue
 }  // namespace basic_int_value_details
 
 template <typename TField, typename T, std::size_t TLen, typename... TOptions>
-class BasicIntValueBase<
+class ComplexIntValueBase<
     TField,
     T,
     comms::option::FixedLength<TLen>,
-    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+    TOptions...> : public ComplexIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
-    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef ComplexIntValueBase<TField, T, TOptions...> Base;
     typedef comms::option::FixedLength<TLen> Option;
 
 protected:
-    using Base::BasicIntValueBase;
+    using Base::ComplexIntValueBase;
 
     typedef typename util::SizeToType<TLen, std::is_signed<T>::value>::Type SerialisedType;
 
@@ -138,19 +138,19 @@ protected:
 };
 
 template <typename TField, typename T, std::size_t TMin, std::size_t TMax, typename... TOptions>
-class BasicIntValueBase<
+class ComplexIntValueBase<
     TField,
     T,
     comms::option::VarLength<TMin, TMax>,
-    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+    TOptions...> : public ComplexIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
-    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef ComplexIntValueBase<TField, T, TOptions...> Base;
     typedef comms::option::VarLength<TMin, TMax> Option;
 
 protected:
-    using Base::BasicIntValueBase;
+    using Base::ComplexIntValueBase;
 
     static const std::size_t MinLength = Option::MinValue;
     static const std::size_t MaxLength = Option::MaxValue;
@@ -167,74 +167,74 @@ protected:
 };
 
 template <typename TField, typename T, long long int TOff, typename... TOptions>
-class BasicIntValueBase<
+class ComplexIntValueBase<
     TField,
     T,
     comms::option::NumValueSerOffset<TOff>,
-    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+    TOptions...> : public ComplexIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
-    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef ComplexIntValueBase<TField, T, TOptions...> Base;
     typedef comms::option::NumValueSerOffset<TOff> Option;
 protected:
-    using Base::BasicIntValueBase;
+    using Base::ComplexIntValueBase;
 
     static const auto Offset = static_cast<decltype(Base::Offset)>(Option::Value);
 };
 
 template <typename TField, typename T, typename TInit, typename... TOptions>
-class BasicIntValueBase<
+class ComplexIntValueBase<
     TField,
     T,
     comms::option::DefaultValueInitialiser<TInit>,
-    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+    TOptions...> : public ComplexIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
-    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef ComplexIntValueBase<TField, T, TOptions...> Base;
     typedef comms::option::DefaultValueInitialiser<TInit> Option;
 
 protected:
-    using Base::BasicIntValueBase;
+    using Base::ComplexIntValueBase;
 
     typedef typename Option::Type DefaultValueInitialiser;
     static const bool HasCustomInitialiser = true;
 };
 
 template <typename TField, typename T, typename TValidator, typename... TOptions>
-class BasicIntValueBase<
+class ComplexIntValueBase<
     TField,
     T,
     comms::option::ContentsValidator<TValidator>,
-    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+    TOptions...> : public ComplexIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
-    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef ComplexIntValueBase<TField, T, TOptions...> Base;
     typedef comms::option::ContentsValidator<TValidator> Option;
 
 protected:
-    using Base::BasicIntValueBase;
+    using Base::ComplexIntValueBase;
 
     typedef typename Option::Type ContentsValidator;
     static const bool HasCustomValidator = true;
 };
 
 template <typename TField, typename T, typename TBehaviour, typename... TOptions>
-class BasicIntValueBase<
+class ComplexIntValueBase<
     TField,
     T,
     comms::option::InvalidValueBehaviour<TBehaviour>,
-    TOptions...> : public BasicIntValueBase<TField, T, TOptions...>
+    TOptions...> : public ComplexIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral.");
 
-    typedef BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef ComplexIntValueBase<TField, T, TOptions...> Base;
     typedef comms::option::InvalidValueBehaviour<TBehaviour> Option;
 
 protected:
-    using Base::BasicIntValueBase;
+    using Base::ComplexIntValueBase;
 
     typedef typename Option::Type InvalidValueBehaviourTag;
 };

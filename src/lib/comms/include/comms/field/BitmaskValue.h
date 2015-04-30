@@ -23,7 +23,7 @@
 
 #include <limits>
 #include "comms/Field.h"
-#include "BasicIntValue.h"
+#include "ComplexIntValue.h"
 
 #include "details/BitmaskValueBase.h"
 
@@ -37,7 +37,7 @@ namespace field
 /// @{
 
 /// @brief Defines "Bitmask Value Field".
-/// @details The class uses BasicIntValue as its underlying type while providing
+/// @details The class uses ComplexIntValue as its underlying type while providing
 ///          additional API functions to access/set/clear bits in the bitmask.
 /// @tparam TField Base (interface) class for this field.
 /// @tparam TLen Length of serialised data in bytes.
@@ -56,9 +56,9 @@ public:
     /// @brief Length of serialised data
     static const std::size_t SerialisedLen = Base::SerialisedLen;
 
-    /// @brief Definition of underlying BasicIntValue field type
+    /// @brief Definition of underlying ComplexIntValue field type
     typedef
-        BasicIntValue<
+        ComplexIntValue<
             TField,
             ValueType,
             comms::option::FixedLength<SerialisedLen>
@@ -94,49 +94,49 @@ public:
     /// @brief Copy assignment is default
     BitmaskValue& operator=(const BitmaskValue&) = default;
 
-    /// @brief Retrieve underlying BasicIntValue field.
+    /// @brief Retrieve underlying ComplexIntValue field.
     const IntValueField asIntValueField() const
     {
         return intValue_;
     }
 
-    /// @copydoc BasicIntValue::getValue()
+    /// @copydoc ComplexIntValue::getValue()
     const ValueType getValue() const
     {
         return intValue_.getValue();
     }
 
-    /// @copydoc BasicIntValue::setValue()
+    /// @copydoc ComplexIntValue::setValue()
     void setValue(ValueType value)
     {
         intValue_.setValue(value);
     }
 
-    /// @copydoc BasicIntValue::getSerialisedValue()
+    /// @copydoc ComplexIntValue::getSerialisedValue()
     const SerialisedType getSerialisedValue() const
     {
         return intValue_.getSerialisedValue();
     }
 
-    /// @copydoc BasicIntValue::setSerialisedValue()
+    /// @copydoc ComplexIntValue::setSerialisedValue()
     void setSerialisedValue(SerialisedType value)
     {
         intValue_.setSerialisedValue(value);
     }
 
-    /// @copydoc BasicIntValue::toSerialised()
+    /// @copydoc ComplexIntValue::toSerialised()
     static constexpr const SerialisedType toSerialised(ValueType value)
     {
         return IntValueField::toSerialised(value);
     }
 
-    /// @copydoc BasicIntValue::fromSerialised()
+    /// @copydoc ComplexIntValue::fromSerialised()
     static constexpr const ValueType fromSerialised(SerialisedType value)
     {
         return IntValueField::fromSerialised(value);
     }
 
-    /// @copydoc BasicIntValue::length()
+    /// @copydoc ComplexIntValue::length()
     constexpr std::size_t length() const
     {
         return intValue_.length();
@@ -152,14 +152,14 @@ public:
         return IntValueField::maxValue();
     }
 
-    /// @copydoc BasicIntValue::read()
+    /// @copydoc ComplexIntValue::read()
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
         return intValue_.read(iter, size);
     }
 
-    /// @copydoc BasicIntValue::write()
+    /// @copydoc ComplexIntValue::write()
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {

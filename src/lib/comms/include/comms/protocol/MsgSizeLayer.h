@@ -67,8 +67,8 @@ public:
 
     typedef typename Base::Field Field;
 
-    static_assert(comms::field::isBasicIntValue<Field>(),
-        "Field must be of BasicIntValue type");
+    static_assert(comms::field::isComplexIntValue<Field>(),
+        "Field must be of ComplexIntValue type");
 
     static_assert(Field::hasFixedLength(),
         "Field is expected to have fixed length");

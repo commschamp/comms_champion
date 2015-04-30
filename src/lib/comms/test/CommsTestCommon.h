@@ -55,7 +55,7 @@ private:
 template <typename TField>
 using FieldsMessage1 =
     std::tuple<
-        comms::field::BasicIntValue<TField, std::uint16_t>
+        comms::field::ComplexIntValue<TField, std::uint16_t>
     >;
 
 template <typename TMessage>
@@ -121,8 +121,8 @@ bool operator==(
 template <typename TField>
 using Message3Fields =
     std::tuple<
-        comms::field::BasicIntValue<TField, std::uint32_t>,
-        comms::field::BasicIntValue<
+        comms::field::ComplexIntValue<TField, std::uint32_t>,
+        comms::field::ComplexIntValue<
             TField,
             std::int16_t,
             comms::option::FixedLength<1>,

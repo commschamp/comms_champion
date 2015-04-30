@@ -22,7 +22,7 @@
 #include <cassert>
 #include <memory>
 
-#include "comms/field/BasicIntValue.h"
+#include "comms/field/ComplexIntValue.h"
 #include "NumericValueWrapper.h"
 
 namespace comms_champion
@@ -31,7 +31,7 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class BasicIntValueWrapper : public NumericValueWrapper<int>
+class ComplexIntValueWrapper : public NumericValueWrapper<int>
 {
     typedef NumericValueWrapper<int> Base;
 public:
@@ -62,11 +62,11 @@ protected:
 };
 
 template <typename TField>
-class BasicIntValueWrapperT : public NumericValueWrapperT<BasicIntValueWrapper, TField>
+class ComplexIntValueWrapperT : public NumericValueWrapperT<ComplexIntValueWrapper, TField>
 {
-    using Base = NumericValueWrapperT<BasicIntValueWrapper, TField>;
+    using Base = NumericValueWrapperT<ComplexIntValueWrapper, TField>;
     using Field = TField;
-    static_assert(comms::field::isBasicIntValue<Field>(), "Must be of BasicIntValueField type");
+    static_assert(comms::field::isComplexIntValue<Field>(), "Must be of ComplexIntValueField type");
 
     using ValueType = typename Field::ValueType;
     using UnderlyingType = typename Base::UnderlyingType;
@@ -75,16 +75,16 @@ class BasicIntValueWrapperT : public NumericValueWrapperT<BasicIntValueWrapper, 
         "This wrapper cannot handle provided field.");
 
 public:
-    BasicIntValueWrapperT(Field& field)
+    ComplexIntValueWrapperT(Field& field)
       : Base(field)
     {
     }
 
-    BasicIntValueWrapperT(const BasicIntValueWrapperT&) = default;
-    BasicIntValueWrapperT(BasicIntValueWrapperT&&) = default;
-    virtual ~BasicIntValueWrapperT() = default;
+    ComplexIntValueWrapperT(const ComplexIntValueWrapperT&) = default;
+    ComplexIntValueWrapperT(ComplexIntValueWrapperT&&) = default;
+    virtual ~ComplexIntValueWrapperT() = default;
 
-    BasicIntValueWrapperT& operator=(const BasicIntValueWrapperT&) = delete;
+    ComplexIntValueWrapperT& operator=(const ComplexIntValueWrapperT&) = delete;
 
 protected:
     virtual UnderlyingType minValueImpl() const override
@@ -108,15 +108,15 @@ private:
     UnderlyingType m_forcedMax = std::numeric_limits<UnderlyingType>::max();
 };
 
-using BasicIntValueWrapperPtr = std::unique_ptr<BasicIntValueWrapper>;
+using ComplexIntValueWrapperPtr = std::unique_ptr<ComplexIntValueWrapper>;
 
 template <typename TField>
-BasicIntValueWrapperPtr
-makeBasicIntValueWrapper(TField& field)
+ComplexIntValueWrapperPtr
+makeComplexIntValueWrapper(TField& field)
 {
     return
-        BasicIntValueWrapperPtr(
-            new BasicIntValueWrapperT<TField>(field));
+        ComplexIntValueWrapperPtr(
+            new ComplexIntValueWrapperT<TField>(field));
 }
 
 }  // namespace field_wrapper

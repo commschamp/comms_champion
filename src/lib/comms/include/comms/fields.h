@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "field/BasicIntValue.h"
+#include "field/ComplexIntValue.h"
 #include "field/BitmaskValue.h"
 #include "field/BasicEnumValue.h"
 #include "field/VarSizeArray.h"

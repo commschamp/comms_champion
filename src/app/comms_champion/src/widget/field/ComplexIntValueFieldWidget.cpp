@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "BasicIntValueFieldWidget.h"
+#include "ComplexIntValueFieldWidget.h"
 
 #include <algorithm>
 #include <cassert>
@@ -26,7 +26,7 @@
 namespace comms_champion
 {
 
-BasicIntValueFieldWidget::BasicIntValueFieldWidget(
+ComplexIntValueFieldWidget::ComplexIntValueFieldWidget(
     WrapperPtr&& wrapper,
     QWidget* parent)
   : Base(parent),
@@ -49,9 +49,9 @@ BasicIntValueFieldWidget::BasicIntValueFieldWidget(
     readPropertiesAndUpdateUi();
 }
 
-BasicIntValueFieldWidget::~BasicIntValueFieldWidget() = default;
+ComplexIntValueFieldWidget::~ComplexIntValueFieldWidget() = default;
 
-void BasicIntValueFieldWidget::refreshImpl()
+void ComplexIntValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
@@ -69,24 +69,24 @@ void BasicIntValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void BasicIntValueFieldWidget::setEditEnabledImpl(bool enabled)
+void ComplexIntValueFieldWidget::setEditEnabledImpl(bool enabled)
 {
     bool readonly = !enabled;
     m_ui.m_valueSpinBox->setReadOnly(readonly);
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void BasicIntValueFieldWidget::propertiesUpdatedImpl()
+void ComplexIntValueFieldWidget::propertiesUpdatedImpl()
 {
     readPropertiesAndUpdateUi();
 }
 
-void BasicIntValueFieldWidget::serialisedValueUpdated(const QString& value)
+void ComplexIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
-void BasicIntValueFieldWidget::valueUpdated(int value)
+void ComplexIntValueFieldWidget::valueUpdated(int value)
 {
     if (value == m_wrapper->getValue()) {
         return;
@@ -98,7 +98,7 @@ void BasicIntValueFieldWidget::valueUpdated(int value)
     emitFieldUpdated();
 }
 
-void BasicIntValueFieldWidget::readPropertiesAndUpdateUi()
+void ComplexIntValueFieldWidget::readPropertiesAndUpdateUi()
 {
     assert(m_ui.m_nameLabel != nullptr);
     updateNameLabel(*m_ui.m_nameLabel);

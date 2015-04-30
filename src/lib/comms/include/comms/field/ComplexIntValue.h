@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file comms/field/BasicIntValue.h
+/// @file comms/field/ComplexIntValue.h
 /// This file contains definition of basic integral value field that
 /// can be used in message definition.
 
@@ -28,7 +28,7 @@
 #include "comms/util/SizeToType.h"
 #include "comms/util/IntegralPromotion.h"
 
-#include "details/BasicIntValueBase.h"
+#include "details/ComplexIntValueBase.h"
 
 namespace comms
 {
@@ -47,13 +47,13 @@ namespace field
 /// @tparam TLen Length of serialised data in bytes. Default value is sizeof(T).
 /// @tparam TOff Offset to apply when serialising data.
 /// @pre @code std::is_integral<T>::value == true @endcode
-/// @headerfile comms/field/BasicIntValue.h
+/// @headerfile comms/field/ComplexIntValue.h
 template <typename TField, typename T, typename... TOptions>
-class BasicIntValue : public details::BasicIntValueBase<TField, T, TOptions...>
+class ComplexIntValue : public details::ComplexIntValueBase<TField, T, TOptions...>
 {
     static_assert(std::is_integral<T>::value, "T must be integral value");
 
-    typedef details::BasicIntValueBase<TField, T, TOptions...> Base;
+    typedef details::ComplexIntValueBase<TField, T, TOptions...> Base;
 
 public:
 
@@ -68,7 +68,7 @@ public:
 
     /// @brief Default constructor
     /// @details Sets default value to be 0.
-    BasicIntValue()
+    ComplexIntValue()
       : value_(static_cast<ValueType>(0))
     {
         completeDefaultInitialisation(InitalisationTag());
@@ -78,20 +78,20 @@ public:
     /// @brief Constructor
     /// @details Sets initial value.
     /// @param value Initial value
-    explicit BasicIntValue(ValueType value)
+    explicit ComplexIntValue(ValueType value)
       : value_(value)
     {
         validateConstruction(InvalidValueBehaviourTag());
     }
 
     /// @brief Copy constructor is default
-    BasicIntValue(const BasicIntValue&) = default;
+    ComplexIntValue(const ComplexIntValue&) = default;
 
     /// @brief Destructor is default
-    ~BasicIntValue() = default;
+    ~ComplexIntValue() = default;
 
     /// @brief Copy assignment is default
-    BasicIntValue& operator=(const BasicIntValue&) = default;
+    ComplexIntValue& operator=(const ComplexIntValue&) = default;
 
     /// @brief Retrieve the value.
     const ValueType getValue() const
@@ -666,7 +666,7 @@ private:
 
     void setValueInternal(ValueType value, comms::traits::behaviour::IgnoreValue)
     {
-        BasicIntValue fieldTmp(value);
+        ComplexIntValue fieldTmp(value);
         if (fieldTmp.valid()) {
             value_ = value;
         }
@@ -680,7 +680,7 @@ private:
 
     ErrorStatus assignReadValue(SerialisedType serValue, comms::traits::behaviour::Fail)
     {
-        BasicIntValue fieldTmp;
+        ComplexIntValue fieldTmp;
         fieldTmp.value_ = fromSerialised(serValue);
         if (!fieldTmp.valid()) {
             return ErrorStatus::ProtocolError;
@@ -699,7 +699,7 @@ private:
     ErrorStatus assignReadValue(SerialisedType serValue, comms::traits::behaviour::IgnoreValue)
     {
         auto value = fromSerialised(serValue);
-        BasicIntValue fieldTmp(value);
+        ComplexIntValue fieldTmp(value);
         if ((fieldTmp.valid()) &&
             (fieldTmp.getValue() == value)) {
             value_ = value;
@@ -718,31 +718,31 @@ private:
 };
 
 /// @brief Equality comparison operator.
-/// @related BasicIntValue
+/// @related ComplexIntValue
 template <typename... TArgs>
 bool operator==(
-    const BasicIntValue<TArgs...>& field1,
-    const BasicIntValue<TArgs...>& field2)
+    const ComplexIntValue<TArgs...>& field1,
+    const ComplexIntValue<TArgs...>& field2)
 {
     return field1.getValue() == field2.getValue();
 }
 
 /// @brief Non-equality comparison operator.
-/// @related BasicIntValue
+/// @related ComplexIntValue
 template <typename... TArgs>
 bool operator!=(
-    const BasicIntValue<TArgs...>& field1,
-    const BasicIntValue<TArgs...>& field2)
+    const ComplexIntValue<TArgs...>& field1,
+    const ComplexIntValue<TArgs...>& field2)
 {
     return field1.getValue() != field2.getValue();
 }
 
 /// @brief Equivalence comparison operator.
-/// @related BasicIntValue
+/// @related ComplexIntValue
 template <typename... TArgs>
 bool operator<(
-    const BasicIntValue<TArgs...>& field1,
-    const BasicIntValue<TArgs...>& field2)
+    const ComplexIntValue<TArgs...>& field1,
+    const ComplexIntValue<TArgs...>& field2)
 {
     return field1.getValue() < field2.getValue();
 }
@@ -751,13 +751,13 @@ namespace details
 {
 
 template <typename T>
-struct IsBasicIntValue
+struct IsComplexIntValue
 {
     static const bool Value = false;
 };
 
 template <typename... TArgs>
-struct IsBasicIntValue<comms::field::BasicIntValue<TArgs...> >
+struct IsComplexIntValue<comms::field::ComplexIntValue<TArgs...> >
 {
     static const bool Value = true;
 };
@@ -765,9 +765,9 @@ struct IsBasicIntValue<comms::field::BasicIntValue<TArgs...> >
 }  // namespace details
 
 template <typename T>
-constexpr bool isBasicIntValue()
+constexpr bool isComplexIntValue()
 {
-    return details::IsBasicIntValue<T>::Value;
+    return details::IsComplexIntValue<T>::Value;
 }
 
 /// @}

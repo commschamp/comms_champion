@@ -186,7 +186,7 @@ private:
 };
 
 /// @brief Equivalence comparison operator.
-/// @related BasicIntValue
+/// @related ComplexIntValue
 template <typename... TArgs>
 bool operator<(
     const VarSizeArray<TArgs...>& field1,
@@ -197,7 +197,7 @@ bool operator<(
 }
 
 /// @brief Non-equality comparison operator.
-/// @related BasicIntValue
+/// @related ComplexIntValue
 template <typename... TArgs>
 bool operator!=(
     const VarSizeArray<TArgs...>& field1,
@@ -207,7 +207,7 @@ bool operator!=(
 }
 
 /// @brief Equality comparison operator.
-/// @related BasicIntValue
+/// @related ComplexIntValue
 template <typename... TArgs>
 bool operator==(
     const VarSizeArray<TArgs...>& field1,

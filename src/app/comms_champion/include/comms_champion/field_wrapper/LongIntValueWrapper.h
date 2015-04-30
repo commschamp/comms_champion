@@ -22,7 +22,7 @@
 #include <cassert>
 #include <memory>
 
-#include "comms/field/BasicIntValue.h"
+#include "comms/field/ComplexIntValue.h"
 #include "NumericValueWrapper.h"
 
 namespace comms_champion
@@ -38,7 +38,7 @@ class LongIntValueWrapperT : public NumericValueWrapperT<LongIntValueWrapper, TF
 {
     using Base = NumericValueWrapperT<LongIntValueWrapper, TField>;
     using Field = TField;
-    static_assert(comms::field::isBasicIntValue<Field>(), "Must be of BasicIntValueField type");
+    static_assert(comms::field::isComplexIntValue<Field>(), "Must be of ComplexIntValueField type");
 
     using ValueType = typename Field::ValueType;
     using IntType = typename Base::UnderlyingType;

@@ -69,7 +69,7 @@ using SerialInfoStopBitField =
 
 template <typename TFieldBase>
 using SerialInfoQosField =
-    comms::field::BasicIntValue<
+    comms::field::ComplexIntValue<
         TFieldBase,
         std::uint8_t,
         comms::option::FixedLength<1>,
@@ -89,13 +89,13 @@ using SerialInfoFields =
     std::tuple<
         comms::field::String<
             TFieldBase,
-            comms::field::BasicIntValue<
+            comms::field::ComplexIntValue<
                 TFieldBase,
                 std::uint8_t,
                 comms::option::ValidNumValueRange<0, 32>
             >
         >,
-        comms::field::BasicIntValue<
+        comms::field::ComplexIntValue<
             TFieldBase,
             std::uint16_t,
             comms::option::VarLength<1, 2>

@@ -20,7 +20,7 @@
 
 #include <type_traits>
 
-#include "BasicIntValue.h"
+#include "ComplexIntValue.h"
 
 namespace comms
 {
@@ -32,7 +32,7 @@ namespace field
 /// @{
 
 /// @brief Defines "Enum Value Field".
-/// @details The class uses BasicIntValue as its underlying type while providing
+/// @details The class uses ComplexIntValue as its underlying type while providing
 ///          additional API function to check range of the value.
 /// @tparam TField Base (interface) class for this field.
 /// @tparam TEnum Enum type.
@@ -54,9 +54,9 @@ public:
     /// @brief Underlying type
     typedef typename std::underlying_type<ValueType>::type UnderlyingType;
 
-    /// @brief Definition of underlying BasicIntValue field type
+    /// @brief Definition of underlying ComplexIntValue field type
     typedef
-        BasicIntValue<
+        ComplexIntValue<
             Base,
             UnderlyingType,
             TOptions...
@@ -88,49 +88,49 @@ public:
     /// @brief Copy assignment is default
     BasicEnumValue& operator=(const BasicEnumValue&) = default;
 
-    /// @brief Retrieve underlying BasicIntValue field.
+    /// @brief Retrieve underlying ComplexIntValue field.
     constexpr const IntValueField asIntValueField() const
     {
         return intValue_;
     }
 
-    /// @copydoc BasicIntValue::getValue()
+    /// @copydoc ComplexIntValue::getValue()
     constexpr const ValueType getValue() const
     {
         return static_cast<ValueType>(intValue_.getValue());
     }
 
-    /// @copydoc BasicIntValue::setValue()
+    /// @copydoc ComplexIntValue::setValue()
     void setValue(ValueType value)
     {
         intValue_.setValue(static_cast<UnderlyingType>(value));
     }
 
-    /// @copydoc BasicIntValue::getSerialisedValue()
+    /// @copydoc ComplexIntValue::getSerialisedValue()
     const SerialisedType getSerialisedValue() const
     {
         return intValue_.getSerialisedValue();
     }
 
-    /// @copydoc BasicIntValue::setSerialisedValue()
+    /// @copydoc ComplexIntValue::setSerialisedValue()
     void setSerialisedValue(SerialisedType value)
     {
         intValue_.setSerialisedValue(value);
     }
 
-    /// @copydoc BasicIntValue::toSerialised()
+    /// @copydoc ComplexIntValue::toSerialised()
     static constexpr const SerialisedType toSerialised(ValueType value)
     {
         return IntValueField::toSerialised(static_cast<UnderlyingType>(value));
     }
 
-    /// @copydoc BasicIntValue::fromSerialised()
+    /// @copydoc ComplexIntValue::fromSerialised()
     static constexpr const ValueType fromSerialised(SerialisedType value)
     {
         return static_cast<ValueType>(IntValueField::fromSerialised(value));
     }
 
-    /// @copydoc BasicIntValue::length()
+    /// @copydoc ComplexIntValue::length()
     constexpr std::size_t length() const
     {
         return intValue_.length();
@@ -146,14 +146,14 @@ public:
         return IntValueField::maxValue();
     }
 
-    /// @copydoc BasicIntValue::read()
+    /// @copydoc ComplexIntValue::read()
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
         return intValue_.read(iter, size);
     }
 
-    /// @copydoc BasicIntValue::write()
+    /// @copydoc ComplexIntValue::write()
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {

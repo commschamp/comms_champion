@@ -32,7 +32,7 @@ namespace message
 template <typename TFieldBase>
 using HeartbeatFields =
     std::tuple<
-        comms::field::BasicIntValue<
+        comms::field::ComplexIntValue<
             TFieldBase,
             std::uint16_t>
     >;

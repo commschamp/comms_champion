@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,13 +18,6 @@
 
 #pragma once
 
-#include "field/ComplexIntValue.h"
-#include "field/BitmaskValue.h"
-#include "field/BasicEnumValue.h"
-#include "field/VarSizeArray.h"
-#include "field/String.h"
-#include "field/Bitfield.h"
+#include "FixedLength.h"
 
-#include "field/adapter/adapters.h"
-#include "field/basic/basics.h"
 

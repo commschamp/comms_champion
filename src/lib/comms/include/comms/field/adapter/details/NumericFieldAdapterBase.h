@@ -41,14 +41,14 @@ public:
     typedef typename Base::ParamValueType ParamValueType;
     typedef typename Next::SerialisedType SerialisedType;
 
-    constexpr SerialisedType toSerialised(ParamValueType value)
+    static constexpr SerialisedType toSerialised(ParamValueType value)
     {
-        return Base::next().toSerialised(value);
+        return Next::toSerialised(value);
     }
 
     static constexpr ParamValueType fromSerialised(SerialisedType value)
     {
-        return Base::next().fromSerialised(value);
+        return Next::fromSerialised(value);
     }
 };
 

@@ -97,7 +97,7 @@ private:
 
 void FieldsTestSuite::test1()
 {
-    typedef comms::field::ComplexIntValue<
+    typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::uint32_t> Field;
 
@@ -110,13 +110,11 @@ void FieldsTestSuite::test1()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::uint32_t));
     TS_ASSERT_EQUALS(field.getValue(), 0x01020304);
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.minValue(), 0U);
-    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::uint32_t>::max());
 }
 
 void FieldsTestSuite::test2()
 {
-    typedef comms::field::ComplexIntValue<
+    typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::uint32_t,
         comms::option::FixedLength<3>
@@ -131,13 +129,11 @@ void FieldsTestSuite::test2()
     TS_ASSERT_EQUALS(field.length(), 3);
     TS_ASSERT_EQUALS(field.getValue(), 0x010203);
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.minValue(), 0U);
-    TS_ASSERT_EQUALS(field.maxValue(), 0xffffff);
 }
 
 void FieldsTestSuite::test3()
 {
-    typedef comms::field::ComplexIntValue<
+    typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::int16_t
     > Field;
@@ -150,13 +146,11 @@ void FieldsTestSuite::test3()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), static_cast<std::int16_t>(0x0102));
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::int16_t>::min());
-    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::int16_t>::max());
 }
 
 void FieldsTestSuite::test4()
 {
-    typedef comms::field::ComplexIntValue<
+    typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::int16_t
     > Field;
@@ -169,13 +163,11 @@ void FieldsTestSuite::test4()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), -1);
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::int16_t>::min());
-    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::int16_t>::max());
 }
 
 void FieldsTestSuite::test5()
 {
-    typedef comms::field::ComplexIntValue<
+    typedef comms::field::IntValue<
         comms::Field<LittleEndianOpt>,
         std::int16_t
     > Field;
@@ -188,13 +180,11 @@ void FieldsTestSuite::test5()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
     TS_ASSERT_EQUALS(field.getValue(), std::numeric_limits<std::int16_t>::min());
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::int16_t>::min());
-    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::int16_t>::max());
 }
 
 void FieldsTestSuite::test6()
 {
-    typedef comms::field::ComplexIntValue<
+    typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::int16_t,
         comms::option::FixedLength<1>
@@ -208,8 +198,6 @@ void FieldsTestSuite::test6()
     TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), -1);
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.minValue(), std::numeric_limits<std::int8_t>::min());
-    TS_ASSERT_EQUALS(field.maxValue(), std::numeric_limits<std::int8_t>::max());
 }
 
 void FieldsTestSuite::test7()

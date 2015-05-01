@@ -18,9 +18,11 @@
 
 #pragma once
 
-#include "BasicIntValue.h"
-
-#include "details/OptionsParser.h"
+#include "comms/ErrorStatus.h"
+#include "comms/field/category.h"
+#include "comms/options.h"
+#include "basic/IntValue.h"
+#include "details/AdaptBasicField.h"
 
 namespace comms
 {
@@ -33,9 +35,61 @@ class IntValue : public TFieldBase
 {
     typedef TFieldBase Base;
 
-    typedef details::OptionsParser<TOptions...> Options;
+    typedef basic::IntValue<TFieldBase, T> BasicField;
+    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+
+    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename ThisField::Category>::value,
+        "ThisField is expected to be of NumericFieldCategory");
 public:
+
+    typedef typename ThisField::ValueType ValueType;
+    typedef typename ThisField::ParamValueType ParamValueType;
+    typedef typename ThisField::SerialisedType SerialisedType;
+
+    ParamValueType getValue() const
+    {
+        return field_.getValue();
+    }
+
+    void setValue(ParamValueType value)
+    {
+        field_.setValue(value);
+    }
+
+    constexpr std::size_t length() const
+    {
+        return field_.length();
+    }
+
+    static constexpr std::size_t minLength()
+    {
+        return ThisField::minLength();
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return ThisField::maxLength();
+    }
+
+    constexpr bool valid() const
+    {
+        return field_.valid();
+    }
+
+    template <typename TIter>
+    ErrorStatus read(TIter& iter, std::size_t size)
+    {
+        return field_.read(iter, size);
+    }
+
+    template <typename TIter>
+    ErrorStatus write(TIter& iter, std::size_t size) const
+    {
+        return field_.write(iter, size);
+    }
+
 private:
+    ThisField field_;
 };
 
 }  // namespace field

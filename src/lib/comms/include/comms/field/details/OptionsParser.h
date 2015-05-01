@@ -35,7 +35,7 @@ struct OptionsParser;
 template <>
 struct OptionsParser<>
 {
-    static const bool HasLengthLimit = false;
+    static const bool HasFixedLengthLimit = false;
 };
 
 template <std::size_t TLen, typename... TOptions>
@@ -45,8 +45,8 @@ class OptionsParser<
 {
     typedef comms::option::FixedLength<TLen> Option;
 public:
-    static const bool HasLengthLimit = true;
-    static const std::size_t Length = Option::Value;
+    static const bool HasFixedLengthLimit = true;
+    static const std::size_t FixedLength = Option::Value;
 };
 
 }  // namespace details

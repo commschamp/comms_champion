@@ -106,12 +106,12 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return next().minLength();
+        return Next::minLength();
     }
 
     static constexpr std::size_t maxLength()
     {
-        return next().maxLength();
+        return Next::maxLength();
     }
 
     constexpr bool valid() const

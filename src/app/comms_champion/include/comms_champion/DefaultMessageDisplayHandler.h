@@ -29,6 +29,7 @@
 #include "comms_champion/DefaultMessageWidget.h"
 
 #include "comms_champion/field_wrapper/ComplexIntValueWrapper.h"
+#include "comms_champion/field_wrapper/IntValueWrapper.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 #include "comms_champion/field_wrapper/BasicEnumValueWrapper.h"
 #include "comms_champion/field_wrapper/StringWrapper.h"
@@ -42,6 +43,7 @@ namespace details
 {
 
 struct ComplexIntValueTag {};
+struct IntValueTag {};
 struct BitmaskValueTag {};
 struct BasicEnumValueTag {};
 struct StringTag {};
@@ -52,6 +54,8 @@ template <typename TField>
 struct TagOf
 {
     static_assert(!comms::field::isComplexIntValue<TField>(),
+        "ComplexIntValue is perceived as unknown type");
+    static_assert(!comms::field::isIntValue<TField>(),
         "ComplexIntValue is perceived as unknown type");
     static_assert(!comms::field::isBitmaskValue<TField>(),
         "BitmaskValue is perceived as unknown type");
@@ -68,6 +72,16 @@ struct TagOf<comms::field::ComplexIntValue<TArgs...> >
         "isComplexIntValue is supposed to return true");
 
     typedef ComplexIntValueTag Type;
+};
+
+template <typename... TArgs>
+struct TagOf<comms::field::IntValue<TArgs...> >
+{
+    static_assert(
+        comms::field::isIntValue<comms::field::IntValue<TArgs...> >(),
+        "isIntValue is supposed to return true");
+
+    typedef IntValueTag Type;
 };
 
 template <typename... TArgs>
@@ -142,6 +156,7 @@ protected:
 private:
 
     using ComplexIntValueTag = details::ComplexIntValueTag;
+    using IntValueTag = details::IntValueTag;
     using BitmaskValueTag = details::BitmaskValueTag;
     using BasicEnumValueTag = details::BasicEnumValueTag;
     using StringTag = details::StringTag;
@@ -194,6 +209,13 @@ private:
     }
 
     template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, IntValueTag)
+    {
+        return createIntValueFieldWidget(
+            field_wrapper::makeIntValueWrapper(field));
+    }
+
+    template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, BitmaskValueTag)
     {
         return createBitmaskValueFieldWidget(
@@ -242,6 +264,9 @@ private:
 
     FieldWidgetPtr createComplexIntValueFieldWidget(
         field_wrapper::ComplexIntValueWrapperPtr&& fieldWrapper);
+
+    FieldWidgetPtr createIntValueFieldWidget(
+        field_wrapper::IntValueWrapperPtr&& fieldWrapper);
 
     FieldWidgetPtr createBitmaskValueFieldWidget(
         field_wrapper::BitmaskValueWrapperPtr&& fieldWrapper);

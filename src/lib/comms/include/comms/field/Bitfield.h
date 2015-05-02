@@ -252,6 +252,16 @@ public:
         return SerialisedLen;
     }
 
+    static constexpr std::size_t minLength()
+    {
+        return SerialisedLen;
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return SerialisedLen;
+    }
+
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {

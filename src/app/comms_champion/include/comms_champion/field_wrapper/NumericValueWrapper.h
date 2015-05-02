@@ -127,45 +127,14 @@ protected:
 
     virtual std::size_t minLengthImpl() const override
     {
-        return minLengthInternal(LengthTag());
+        return Base::field().minLength();
     }
 
     virtual std::size_t maxLengthImpl() const override
     {
-        return maxLengthInternal(LengthTag());
-    }
-
-private:
-    struct FixedLengthTag {};
-    struct VarLengthTag {};
-
-    using LengthTag =
-        typename std::conditional<
-            Field::hasFixedLength(),
-            FixedLengthTag,
-            VarLengthTag
-        >::type;
-
-
-    std::size_t minLengthInternal(FixedLengthTag) const
-    {
-        return Base::field().length();
-    }
-
-    std::size_t minLengthInternal(VarLengthTag) const
-    {
-        return Base::field().minLength();
-    }
-
-    std::size_t maxLengthInternal(FixedLengthTag) const
-    {
-        return Base::field().length();
-    }
-
-    std::size_t maxLengthInternal(VarLengthTag) const
-    {
         return Base::field().maxLength();
     }
+
 };
 
 }  // namespace field_wrapper

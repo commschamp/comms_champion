@@ -92,6 +92,61 @@ private:
     ThisField field_;
 };
 
+
+/// @brief Equality comparison operator.
+/// @related IntValue
+template <typename... TArgs>
+bool operator==(
+    const IntValue<TArgs...>& field1,
+    const IntValue<TArgs...>& field2)
+{
+    return field1.getValue() == field2.getValue();
+}
+
+/// @brief Non-equality comparison operator.
+/// @related IntValue
+template <typename... TArgs>
+bool operator!=(
+    const IntValue<TArgs...>& field1,
+    const IntValue<TArgs...>& field2)
+{
+    return field1.getValue() != field2.getValue();
+}
+
+/// @brief Equivalence comparison operator.
+/// @related IntValue
+template <typename... TArgs>
+bool operator<(
+    const IntValue<TArgs...>& field1,
+    const IntValue<TArgs...>& field2)
+{
+    return field1.getValue() < field2.getValue();
+}
+
+namespace details
+{
+
+template <typename T>
+struct IsIntValue
+{
+    static const bool Value = false;
+};
+
+template <typename... TArgs>
+struct IsIntValue<comms::field::IntValue<TArgs...> >
+{
+    static const bool Value = true;
+};
+
+}  // namespace details
+
+template <typename T>
+constexpr bool isIntValue()
+{
+    return details::IsIntValue<T>::Value;
+}
+
+
 }  // namespace field
 
 }  // namespace comms

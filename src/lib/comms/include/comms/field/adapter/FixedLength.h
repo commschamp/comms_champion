@@ -23,6 +23,7 @@
 
 #include "details/AdapterBase.h"
 #include "comms/Assert.h"
+#include "comms/util/SizeToType.h"
 
 namespace comms
 {

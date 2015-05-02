@@ -125,27 +125,6 @@ protected:
         Base::field().setValue(static_cast<ValueType>(value));
     }
 
-    virtual SerialisedSeq getSerialisedValueImpl() const override
-    {
-        SerialisedSeq seq;
-        auto& field = Base::field();
-        seq.reserve(field.length());
-        auto iter = std::back_inserter(seq);
-        auto es = field.write(iter, seq.max_size());
-        static_cast<void>(es);
-        assert(es == comms::ErrorStatus::Success);
-        assert(seq.size() == field.length());
-        return seq;
-    }
-
-    virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
-    {
-        auto iter = &value[0];
-        auto& field = Base::field();
-        auto es = field.read(iter, value.size());
-        return es == comms::ErrorStatus::Success;
-    }
-
     virtual std::size_t minLengthImpl() const override
     {
         return minLengthInternal(LengthTag());
@@ -165,16 +144,6 @@ private:
             Field::hasFixedLength(),
             FixedLengthTag,
             VarLengthTag
-        >::type;
-
-    struct SerialisedSignedTag {};
-    struct SerialisedUnsignedTag {};
-
-    using SerialisedTypeTag =
-        typename std::conditional<
-            std::is_signed<SerialisedType>::value,
-            SerialisedSignedTag,
-            SerialisedUnsignedTag
         >::type;
 
 

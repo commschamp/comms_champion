@@ -98,16 +98,6 @@ protected:
         Base::field().setValue(val.toStdString().c_str());
     }
 
-    virtual SerialisedSeq getSerialisedValueImpl() const override
-    {
-        auto& field = Base::field();
-        SerialisedSeq value;
-        value.reserve(field.length());
-        auto iter = std::back_inserter(value);
-        field.write(iter, value.max_size());
-        return value;
-    }
-
     virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
     {
         static_cast<void>(value);

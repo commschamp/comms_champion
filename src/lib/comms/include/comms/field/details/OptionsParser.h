@@ -35,7 +35,19 @@ struct OptionsParser;
 template <>
 struct OptionsParser<>
 {
+    static const bool HasSerOffset = false;
     static const bool HasFixedLengthLimit = false;
+};
+
+template <long long int TOffset, typename... TOptions>
+class OptionsParser<
+    comms::option::NumValueSerOffset<TOffset>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::NumValueSerOffset<TOffset> Option;
+public:
+    static const bool HasSerOffset = true;
+    static const std::size_t SerOffset = Option::Value;
 };
 
 template <std::size_t TLen, typename... TOptions>

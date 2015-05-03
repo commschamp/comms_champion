@@ -31,6 +31,28 @@ namespace field
 namespace details
 {
 
+template <typename TField, typename TOpts, bool THasSerOffset>
+struct AdaptBasicFieldSerOffset;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldSerOffset<TField, TOpts, true>
+{
+    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename TField::Category>::value,
+        "The FixedLength option is supported only for numeric value fields.");
+    typedef comms::field::adapter::SerOffset<TOpts::SerOffset, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldSerOffset<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts, bool THasSerOffset>
+using AdaptBasicFieldSerOffsetT =
+    typename AdaptBasicFieldSerOffset<TField, TOpts, THasSerOffset>::Type;
+
+
 template <typename TField, typename TOpts, bool THasFixedLength>
 struct AdaptBasicFieldFixedLength;
 
@@ -57,10 +79,12 @@ template <typename TBasic, typename... TOptions>
 class AdaptBasicField
 {
     typedef OptionsParser<TOptions...> ParsedOptions;
+    typedef AdaptBasicFieldSerOffsetT<
+        TBasic, ParsedOptions, ParsedOptions::HasSerOffset> Field1;
     typedef AdaptBasicFieldFixedLengthT<
-        TBasic, ParsedOptions, ParsedOptions::HasFixedLengthLimit> Field1;
+        Field1, ParsedOptions, ParsedOptions::HasFixedLengthLimit> Field2;
 public:
-    typedef Field1 Type;
+    typedef Field2 Type;
 };
 
 template <typename TBasic, typename... TOptions>

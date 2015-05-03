@@ -19,5 +19,5 @@
 #pragma once
 
 #include "FixedLength.h"
-
+#include "SerOffset.h"
 

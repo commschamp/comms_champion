@@ -202,7 +202,7 @@ void FieldsTestSuite::test6()
 
 void FieldsTestSuite::test7()
 {
-    typedef comms::field::ComplexIntValue<
+    typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::int16_t,
         comms::option::FixedLength<1>,
@@ -218,8 +218,20 @@ void FieldsTestSuite::test7()
     TS_ASSERT_EQUALS(field.length(), 1);
     TS_ASSERT_EQUALS(field.getValue(), 2013);
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.minValue(), 2000 + std::numeric_limits<std::int8_t>::min());
-    TS_ASSERT_EQUALS(field.maxValue(), 2000 + std::numeric_limits<std::int8_t>::max());
+
+    field.setValue(2000);
+    static const char ExpectedBuf[] = {
+        0
+    };
+    const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    field.setValue(2000 + 0xff);
+    static const char ExpectedBuf2[] = {
+        (char)0xff
+    };
+    const std::size_t ExpectedBufSize2 = std::extent<decltype(ExpectedBuf2)>::value;
+    writeReadField(field, ExpectedBuf2, ExpectedBufSize2);
 }
 
 void FieldsTestSuite::test8()

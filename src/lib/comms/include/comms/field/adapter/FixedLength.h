@@ -192,6 +192,8 @@ private:
     static const std::size_t Length = TLen;
     static const std::size_t BitLength =
         Length * std::numeric_limits<std::uint8_t>::digits;
+
+    static_assert(0 < Length, "Length is expected to be greater than 0");
 };
 
 }  // namespace adapter

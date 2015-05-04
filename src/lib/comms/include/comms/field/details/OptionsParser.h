@@ -37,6 +37,7 @@ struct OptionsParser<>
 {
     static const bool HasSerOffset = false;
     static const bool HasFixedLengthLimit = false;
+    static const bool HasVarLengthLimits = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
 };
@@ -47,6 +48,7 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
     typedef comms::option::NumValueSerOffset<TOffset> Option;
+
 public:
     static const bool HasSerOffset = true;
     static const std::size_t SerOffset = Option::Value;
@@ -57,10 +59,30 @@ class OptionsParser<
     comms::option::FixedLength<TLen>,
     TOptions...> : public OptionsParser<TOptions...>
 {
+    typedef OptionsParser<TOptions...> Base;
     typedef comms::option::FixedLength<TLen> Option;
+
+    static_assert(!Base::HasVarLengthLimits,
+        "Cannot mix FixedLength and VarLength options.");
 public:
     static const bool HasFixedLengthLimit = true;
     static const std::size_t FixedLength = Option::Value;
+};
+
+template <std::size_t TMinLen, std::size_t TMaxLen, typename... TOptions>
+class OptionsParser<
+    comms::option::VarLength<TMinLen, TMaxLen>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef OptionsParser<TOptions...> Base;
+    typedef comms::option::VarLength<TMinLen, TMaxLen> Option;
+
+    static_assert(!Base::HasFixedLengthLimit,
+        "Cannot mix FixedLength and VarLength options.");
+public:
+    static const bool HasVarLengthLimits = true;
+    static const std::size_t MinVarLength = Option::MinValue;
+    static const std::size_t MaxVarLength = Option::MaxValue;
 };
 
 template <typename TInitialiser, typename... TOptions>

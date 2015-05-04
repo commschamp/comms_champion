@@ -18,8 +18,9 @@
 
 #pragma once
 
-#include "FixedLength.h"
 #include "SerOffset.h"
+#include "FixedLength.h"
+#include "VarLength.h"
 #include "DefaultValueInitialiser.h"
 #include "CustomValidator.h"
 

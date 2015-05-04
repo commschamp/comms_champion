@@ -74,6 +74,29 @@ template <typename TField, typename TOpts, bool THasFixedLength>
 using AdaptBasicFieldFixedLengthT =
     typename AdaptBasicFieldFixedLength<TField, TOpts, THasFixedLength>::Type;
 
+
+template <typename TField, typename TOpts, bool THasVarLengths>
+struct AdaptBasicFieldVarLength;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldVarLength<TField, TOpts, true>
+{
+    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename TField::Category>::value,
+        "The VarLength option is supported only for numeric value fields.");
+    typedef comms::field::adapter::VarLength<TOpts::MinVarLength, TOpts::MaxVarLength, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldVarLength<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts, bool THasVarLengths>
+using AdaptBasicFieldVarLengthT =
+    typename AdaptBasicFieldVarLength<TField, TOpts, THasVarLengths>::Type;
+
+
 template <typename TField, typename TOpts, bool THasDefaultValueInitialiser>
 struct AdaptBasicFieldDefaultValueInitialiser;
 
@@ -119,15 +142,17 @@ class AdaptBasicField
 {
     typedef OptionsParser<TOptions...> ParsedOptions;
     typedef AdaptBasicFieldSerOffsetT<
-        TBasic, ParsedOptions, ParsedOptions::HasSerOffset> Field1;
+        TBasic, ParsedOptions, ParsedOptions::HasSerOffset> SerOffsetAdapted;
     typedef AdaptBasicFieldFixedLengthT<
-        Field1, ParsedOptions, ParsedOptions::HasFixedLengthLimit> Field2;
+        SerOffsetAdapted, ParsedOptions, ParsedOptions::HasFixedLengthLimit> FixedLengthAdapted;
+    typedef AdaptBasicFieldVarLengthT<
+        FixedLengthAdapted, ParsedOptions, ParsedOptions::HasVarLengthLimits> VarLengthAdapted;
     typedef AdaptBasicFieldDefaultValueInitialiserT<
-        Field2, ParsedOptions, ParsedOptions::HasDefaultValueInitialiser> Field3;
+        VarLengthAdapted, ParsedOptions, ParsedOptions::HasDefaultValueInitialiser> DefaultValueInitialiserAdapted;
     typedef AdaptBasicFieldCustomValidatorT<
-        Field3, ParsedOptions, ParsedOptions::HasCustomValidator> Field4;
+        DefaultValueInitialiserAdapted, ParsedOptions, ParsedOptions::HasCustomValidator> CustomValidatorAdapted;
 public:
-    typedef Field4 Type;
+    typedef CustomValidatorAdapted Type;
 };
 
 template <typename TBasic, typename... TOptions>

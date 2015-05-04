@@ -512,13 +512,6 @@ struct Reader
 
 }  // namespace details
 
-template <typename T, typename TIter>
-void writeBig(T value, TIter& iter)
-{
-    typedef typename std::decay<T>::type ValueType;
-    writeBig<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
-}
-
 template <std::size_t TSize, typename T, typename TIter>
 void writeBig(T value, TIter& iter)
 {
@@ -526,10 +519,10 @@ void writeBig(T value, TIter& iter)
 }
 
 template <typename T, typename TIter>
-T readBig(TIter& iter)
+void writeBig(T value, TIter& iter)
 {
     typedef typename std::decay<T>::type ValueType;
-    return static_cast<T>(readBig<ValueType, sizeof(ValueType)>(iter));
+    writeBig<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
 }
 
 template <typename T, std::size_t TSize, typename TIter>
@@ -539,10 +532,10 @@ T readBig(TIter& iter)
 }
 
 template <typename T, typename TIter>
-void writeLittle(T value, TIter& iter)
+T readBig(TIter& iter)
 {
     typedef typename std::decay<T>::type ValueType;
-    writeLittle<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
+    return static_cast<T>(readBig<ValueType, sizeof(ValueType)>(iter));
 }
 
 template <std::size_t TSize, typename T, typename TIter>
@@ -552,16 +545,23 @@ void writeLittle(T value, TIter& iter)
 }
 
 template <typename T, typename TIter>
-T readLittle(TIter& iter)
+void writeLittle(T value, TIter& iter)
 {
     typedef typename std::decay<T>::type ValueType;
-    return static_cast<T>(readLittle<ValueType, sizeof(ValueType)>(iter));
+    writeLittle<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
 }
 
 template <typename T, std::size_t TSize, typename TIter>
 T readLittle(TIter& iter)
 {
     return details::Reader<details::ReadHelper>::template read<traits::endian::Little, T, TSize>(iter);
+}
+
+template <typename T, typename TIter>
+T readLittle(TIter& iter)
+{
+    typedef typename std::decay<T>::type ValueType;
+    return static_cast<T>(readLittle<ValueType, sizeof(ValueType)>(iter));
 }
 
 template <typename T, typename TIter>

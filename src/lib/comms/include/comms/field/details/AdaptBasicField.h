@@ -74,6 +74,45 @@ template <typename TField, typename TOpts, bool THasFixedLength>
 using AdaptBasicFieldFixedLengthT =
     typename AdaptBasicFieldFixedLength<TField, TOpts, THasFixedLength>::Type;
 
+template <typename TField, typename TOpts, bool THasDefaultValueInitialiser>
+struct AdaptBasicFieldDefaultValueInitialiser;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldDefaultValueInitialiser<TField, TOpts, true>
+{
+    typedef comms::field::adapter::DefaultValueInitialiser<typename TOpts::DefaultValueInitialiser, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldDefaultValueInitialiser<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts, bool THasDefaultValueInitialiser>
+using AdaptBasicFieldDefaultValueInitialiserT =
+    typename AdaptBasicFieldDefaultValueInitialiser<TField, TOpts, THasDefaultValueInitialiser>::Type;
+
+template <typename TField, typename TOpts, bool THasCustomValidator>
+struct AdaptBasicFieldCustomValidator;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldCustomValidator<TField, TOpts, true>
+{
+    typedef comms::field::adapter::CustomValidator<typename TOpts::CustomValidator, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldCustomValidator<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts, bool THasCustomValidator>
+using AdaptBasicFieldCustomValidatorT =
+    typename AdaptBasicFieldCustomValidator<TField, TOpts, THasCustomValidator>::Type;
+
+
 
 template <typename TBasic, typename... TOptions>
 class AdaptBasicField
@@ -83,8 +122,12 @@ class AdaptBasicField
         TBasic, ParsedOptions, ParsedOptions::HasSerOffset> Field1;
     typedef AdaptBasicFieldFixedLengthT<
         Field1, ParsedOptions, ParsedOptions::HasFixedLengthLimit> Field2;
+    typedef AdaptBasicFieldDefaultValueInitialiserT<
+        Field2, ParsedOptions, ParsedOptions::HasDefaultValueInitialiser> Field3;
+    typedef AdaptBasicFieldCustomValidatorT<
+        Field3, ParsedOptions, ParsedOptions::HasCustomValidator> Field4;
 public:
-    typedef Field2 Type;
+    typedef Field4 Type;
 };
 
 template <typename TBasic, typename... TOptions>

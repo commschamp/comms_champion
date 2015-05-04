@@ -37,6 +37,8 @@ struct OptionsParser<>
 {
     static const bool HasSerOffset = false;
     static const bool HasFixedLengthLimit = false;
+    static const bool HasDefaultValueInitialiser = false;
+    static const bool HasCustomValidator = false;
 };
 
 template <long long int TOffset, typename... TOptions>
@@ -59,6 +61,28 @@ class OptionsParser<
 public:
     static const bool HasFixedLengthLimit = true;
     static const std::size_t FixedLength = Option::Value;
+};
+
+template <typename TInitialiser, typename... TOptions>
+class OptionsParser<
+    comms::option::DefaultValueInitialiser<TInitialiser>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::DefaultValueInitialiser<TInitialiser> Option;
+public:
+    static const bool HasDefaultValueInitialiser = true;
+    typedef typename Option::Type DefaultValueInitialiser;
+};
+
+template <typename TValidator, typename... TOptions>
+class OptionsParser<
+    comms::option::ContentsValidator<TValidator>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::ContentsValidator<TValidator> Option;
+public:
+    static const bool HasCustomValidator = true;
+    typedef typename Option::Type CustomValidator;
 };
 
 }  // namespace details

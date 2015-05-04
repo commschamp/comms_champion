@@ -18,8 +18,36 @@
 
 #pragma once
 
-#include "FixedLength.h"
-#include "SerOffset.h"
-#include "DefaultValueInitialiser.h"
-#include "CustomValidator.h"
+#include "details/AdapterBase.h"
+
+namespace comms
+{
+
+namespace field
+{
+
+namespace adapter
+{
+
+template <typename TValidator, typename TNext>
+class CustomValidator : public details::AdapterBaseT<TNext>
+{
+    typedef details::AdapterBaseT<TNext> Base;
+    typedef TValidator Validator;
+
+public:
+    bool valid() const
+    {
+        return Base::valid() && (Validator()(*this));
+    }
+};
+
+}  // namespace adapter
+
+}  // namespace field
+
+}  // namespace comms
+
+
+
 

@@ -18,8 +18,34 @@
 
 #pragma once
 
-#include "FixedLength.h"
-#include "SerOffset.h"
-#include "DefaultValueInitialiser.h"
-#include "CustomValidator.h"
+#include "details/AdapterBase.h"
+
+namespace comms
+{
+
+namespace field
+{
+
+namespace adapter
+{
+
+template <typename TInitialiser, typename TNext>
+class DefaultValueInitialiser : public details::AdapterBaseT<TNext>
+{
+    typedef details::AdapterBaseT<TNext> Base;
+    typedef TInitialiser Initialiser;
+public:
+    DefaultValueInitialiser()
+    {
+        Initialiser()(*this);
+    }
+};
+
+}  // namespace adapter
+
+}  // namespace field
+
+}  // namespace comms
+
+
 

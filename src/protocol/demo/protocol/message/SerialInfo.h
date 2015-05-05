@@ -95,7 +95,7 @@ using SerialInfoFields =
                 comms::option::ValidNumValueRange<0, 32>
             >
         >,
-        comms::field::ComplexIntValue<
+        comms::field::IntValue<
             TFieldBase,
             std::uint16_t,
             comms::option::VarLength<1, 2>

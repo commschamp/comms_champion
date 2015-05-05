@@ -68,12 +68,8 @@ public:
 
     typedef typename Base::Field Field;
 
-    static_assert(comms::field::isComplexIntValue<Field>(),
+    static_assert(comms::field::isIntValue<Field>(),
         "Field must be of ComplexIntValue type");
-
-    static_assert(Field::hasFixedLength(),
-        "Field is expected to have fixed length");
-
 
     using Base::ProtocolLayerBase;
 
@@ -232,12 +228,6 @@ private:
 
         if (es != ErrorStatus::Success) {
             return es;
-        }
-
-        static const auto Offset = static_cast<std::size_t>(Field::serOffset());
-        auto serialisedValue = static_cast<std::size_t>(field.getSerialisedValue());
-        if ((0 < Offset) && (serialisedValue < Offset)) {
-            return ErrorStatus::ProtocolError;
         }
 
         auto actualRemainingSize = (size - field.length());

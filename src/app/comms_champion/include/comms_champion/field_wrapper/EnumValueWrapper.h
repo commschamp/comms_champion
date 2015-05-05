@@ -22,7 +22,7 @@
 #include <cassert>
 #include <memory>
 
-#include "comms/field/BasicEnumValue.h"
+#include "comms/field/EnumValue.h"
 #include "NumericValueWrapper.h"
 
 namespace comms_champion
@@ -31,7 +31,7 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class BasicEnumValueWrapper : public NumericValueWrapper<long long int>
+class EnumValueWrapper : public NumericValueWrapper<long long int>
 {
     using Base = NumericValueWrapper<long long int>;
 public:
@@ -40,11 +40,11 @@ public:
 };
 
 template <typename TField>
-class BasicEnumValueWrapperT : public NumericValueWrapperT<BasicEnumValueWrapper, TField>
+class EnumValueWrapperT : public NumericValueWrapperT<EnumValueWrapper, TField>
 {
-    using Base = NumericValueWrapperT<BasicEnumValueWrapper, TField>;
+    using Base = NumericValueWrapperT<EnumValueWrapper, TField>;
     using Field = TField;
-    static_assert(comms::field::isBasicEnumValue<Field>(), "Must be of BasicEnumValueField type");
+    static_assert(comms::field::isEnumValue<Field>(), "Must be of EnumValueField type");
 
     using ValueType = typename Field::ValueType;
     using UnderlyingType = typename Base::UnderlyingType;
@@ -53,28 +53,28 @@ class BasicEnumValueWrapperT : public NumericValueWrapperT<BasicEnumValueWrapper
         "This wrapper cannot handle provided field.");
 
 public:
-    BasicEnumValueWrapperT(Field& field)
+    EnumValueWrapperT(Field& field)
       : Base(field)
     {
     }
 
-    BasicEnumValueWrapperT(const BasicEnumValueWrapperT&) = default;
-    BasicEnumValueWrapperT(BasicEnumValueWrapperT&&) = default;
-    virtual ~BasicEnumValueWrapperT() = default;
+    EnumValueWrapperT(const EnumValueWrapperT&) = default;
+    EnumValueWrapperT(EnumValueWrapperT&&) = default;
+    virtual ~EnumValueWrapperT() = default;
 
-    BasicEnumValueWrapperT& operator=(const BasicEnumValueWrapperT&) = delete;
+    EnumValueWrapperT& operator=(const EnumValueWrapperT&) = delete;
 
 };
 
-using BasicEnumValueWrapperPtr = std::unique_ptr<BasicEnumValueWrapper>;
+using EnumValueWrapperPtr = std::unique_ptr<EnumValueWrapper>;
 
 template <typename TField>
-BasicEnumValueWrapperPtr
-makeBasicEnumValueWrapper(TField& field)
+EnumValueWrapperPtr
+makeEnumValueWrapper(TField& field)
 {
     return
-        BasicEnumValueWrapperPtr(
-            new BasicEnumValueWrapperT<TField>(field));
+        EnumValueWrapperPtr(
+            new EnumValueWrapperT<TField>(field));
 }
 
 }  // namespace field_wrapper

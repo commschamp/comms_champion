@@ -39,7 +39,7 @@ using Stack =
         comms::protocol::MsgSizeLayer<
             comms::field::IntValue<typename TMsgBase::Field, std::uint16_t>,
             comms::protocol::MsgIdLayer<
-                comms::field::BasicEnumValue<
+                comms::field::EnumValue<
                     typename TMsgBase::Field,
                     demo::message::MsgId,
                     comms::option::FixedLength<1>,

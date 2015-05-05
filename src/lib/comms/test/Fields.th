@@ -400,7 +400,7 @@ void FieldsTestSuite::test11()
 
 void FieldsTestSuite::test12()
 {
-    typedef comms::field::BasicEnumValue<
+    typedef comms::field::EnumValue<
         comms::Field<BigEndianOpt>,
         Enum1,
         comms::option::FixedLength<1>,
@@ -434,7 +434,7 @@ void FieldsTestSuite::test12()
 
 void FieldsTestSuite::test13()
 {
-    typedef comms::field::BasicEnumValue<
+    typedef comms::field::EnumValue<
         comms::Field<BigEndianOpt>,
         Enum2,
         comms::option::FixedLength<2>,
@@ -962,7 +962,7 @@ void FieldsTestSuite::test27()
                 comms::option::FixedLength<1>
             >, 8>,
         comms::field::BitfieldMember<
-            comms::field::BasicEnumValue<
+            comms::field::EnumValue<
                 comms::Field<BigEndianOpt>,
                 Enum1,
                 comms::option::FixedLength<1>
@@ -1044,7 +1044,7 @@ void FieldsTestSuite::test28()
 
 void FieldsTestSuite::test29()
 {
-//    typedef comms::field::BasicEnumValue<
+//    typedef comms::field::EnumValue<
 //        comms::Field<BigEndianOpt>,
 //        Enum1,
 //        comms::option::FixedLength<2>,

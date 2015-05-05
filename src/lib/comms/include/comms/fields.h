@@ -20,7 +20,7 @@
 
 #include "field/ComplexIntValue.h"
 #include "field/BitmaskValue.h"
-#include "field/BasicEnumValue.h"
+#include "field/EnumValue.h"
 #include "field/VarSizeArray.h"
 #include "field/String.h"
 #include "field/Bitfield.h"

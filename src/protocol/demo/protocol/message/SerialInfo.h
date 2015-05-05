@@ -51,7 +51,7 @@ enum class StopBit : std::uint8_t
 
 template <typename TFieldBase>
 using SerialInfoParityField =
-    comms::field::BasicEnumValue<
+    comms::field::EnumValue<
         TFieldBase,
         Parity,
         comms::option::FixedLength<1>,
@@ -60,7 +60,7 @@ using SerialInfoParityField =
 
 template <typename TFieldBase>
 using SerialInfoStopBitField =
-    comms::field::BasicEnumValue<
+    comms::field::EnumValue<
         TFieldBase,
         StopBit,
         comms::option::FixedLength<1>,

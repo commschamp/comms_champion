@@ -37,12 +37,11 @@ class CustomValidator : public details::AdapterBaseT<TNext>
 
 public:
 
-    typedef typename Base::ValueType ValueType;
     typedef typename Base::ParamValueType ParamValueType;
 
     CustomValidator() = default;
 
-    CustomValidator(ParamValueType value)
+    explicit CustomValidator(ParamValueType value)
       : Base(value)
     {
     }

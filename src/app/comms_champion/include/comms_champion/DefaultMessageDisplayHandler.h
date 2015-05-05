@@ -31,7 +31,7 @@
 #include "comms_champion/field_wrapper/ComplexIntValueWrapper.h"
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
-#include "comms_champion/field_wrapper/BasicEnumValueWrapper.h"
+#include "comms_champion/field_wrapper/EnumValueWrapper.h"
 #include "comms_champion/field_wrapper/StringWrapper.h"
 #include "comms_champion/field_wrapper/BitfieldWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
@@ -45,7 +45,7 @@ namespace details
 struct ComplexIntValueTag {};
 struct IntValueTag {};
 struct BitmaskValueTag {};
-struct BasicEnumValueTag {};
+struct EnumValueTag {};
 struct StringTag {};
 struct BitfieldTag {};
 struct UnknownValueTag {};
@@ -95,13 +95,13 @@ struct TagOf<comms::field::BitmaskValue<TArgs...> >
 };
 
 template <typename... TArgs>
-struct TagOf<comms::field::BasicEnumValue<TArgs...> >
+struct TagOf<comms::field::EnumValue<TArgs...> >
 {
     static_assert(
-        comms::field::isBasicEnumValue<comms::field::BasicEnumValue<TArgs...> >(),
-        "isBasicEnumValue is supposed to return true");
+        comms::field::isEnumValue<comms::field::EnumValue<TArgs...> >(),
+        "isEnumValue is supposed to return true");
 
-    typedef BasicEnumValueTag Type;
+    typedef EnumValueTag Type;
 };
 
 template <typename... TArgs>
@@ -158,7 +158,7 @@ private:
     using ComplexIntValueTag = details::ComplexIntValueTag;
     using IntValueTag = details::IntValueTag;
     using BitmaskValueTag = details::BitmaskValueTag;
-    using BasicEnumValueTag = details::BasicEnumValueTag;
+    using EnumValueTag = details::EnumValueTag;
     using StringTag = details::StringTag;
     using BitfieldTag = details::BitfieldTag;
     using UnknownValueTag = details::UnknownValueTag;
@@ -223,10 +223,10 @@ private:
     }
 
     template <typename TField>
-    FieldWidgetPtr createFieldWidget(TField& field, BasicEnumValueTag)
+    FieldWidgetPtr createFieldWidget(TField& field, EnumValueTag)
     {
-        return createBasicEnumValueFieldWidget(
-            field_wrapper::makeBasicEnumValueWrapper(field));
+        return createEnumValueFieldWidget(
+            field_wrapper::makeEnumValueWrapper(field));
     }
 
     template <typename TField>
@@ -271,8 +271,8 @@ private:
     FieldWidgetPtr createBitmaskValueFieldWidget(
         field_wrapper::BitmaskValueWrapperPtr&& fieldWrapper);
 
-    FieldWidgetPtr createBasicEnumValueFieldWidget(
-        field_wrapper::BasicEnumValueWrapperPtr&& fieldWrapper);
+    FieldWidgetPtr createEnumValueFieldWidget(
+        field_wrapper::EnumValueWrapperPtr&& fieldWrapper);
 
     FieldWidgetPtr createStringFieldWidget(
         field_wrapper::StringWrapperPtr&& fieldWrapper);

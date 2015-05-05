@@ -74,7 +74,7 @@ private:
 
     template <typename TField>
     using Field1 =
-        comms::field::BasicEnumValue<
+        comms::field::EnumValue<
             TField,
             MessageType,
             comms::option::FixedLength<1>
@@ -82,7 +82,7 @@ private:
 
     template <typename TField>
     using Field2 =
-        comms::field::BasicEnumValue<
+        comms::field::EnumValue<
             TField,
             MessageType,
             comms::option::FixedLength<2>
@@ -90,7 +90,7 @@ private:
 
     template <typename TField>
     using Field3 =
-        comms::field::BasicEnumValue<
+        comms::field::EnumValue<
             TField,
             MessageType,
             comms::option::FixedLength<3>

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "BasicEnumValueFieldWidget.h"
+#include "EnumValueFieldWidget.h"
 
 #include <algorithm>
 #include <cassert>
@@ -34,7 +34,7 @@ const int EnumValuesStartIndex = 2;
 
 }  // namespace
 
-BasicEnumValueFieldWidget::BasicEnumValueFieldWidget(
+EnumValueFieldWidget::EnumValueFieldWidget(
     WrapperPtr&& wrapper,
     QWidget* parent)
   : Base(parent),
@@ -46,9 +46,9 @@ BasicEnumValueFieldWidget::BasicEnumValueFieldWidget(
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
 }
 
-BasicEnumValueFieldWidget::~BasicEnumValueFieldWidget() = default;
+EnumValueFieldWidget::~EnumValueFieldWidget() = default;
 
-void BasicEnumValueFieldWidget::refreshImpl()
+void EnumValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
@@ -112,24 +112,24 @@ void BasicEnumValueFieldWidget::refreshImpl()
     m_ui.m_sepLine->setHidden(serHidden);
 }
 
-void BasicEnumValueFieldWidget::setEditEnabledImpl(bool enabled)
+void EnumValueFieldWidget::setEditEnabledImpl(bool enabled)
 {
     bool readonly = !enabled;
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void BasicEnumValueFieldWidget::propertiesUpdatedImpl()
+void EnumValueFieldWidget::propertiesUpdatedImpl()
 {
     readPropertiesAndUpdateUi();
     refresh();
 }
 
-void BasicEnumValueFieldWidget::serialisedValueUpdated(const QString& value)
+void EnumValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
-void BasicEnumValueFieldWidget::valueUpdated(int idx)
+void EnumValueFieldWidget::valueUpdated(int idx)
 {
     if ((!m_wrapper->valid()) && (idx < EnumValuesStartIndex)) {
         return;
@@ -151,7 +151,7 @@ void BasicEnumValueFieldWidget::valueUpdated(int idx)
     refresh();
 }
 
-void BasicEnumValueFieldWidget::readPropertiesAndUpdateUi()
+void EnumValueFieldWidget::readPropertiesAndUpdateUi()
 {
     if (m_signalsConnected) {
         disconnect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),

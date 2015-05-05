@@ -40,9 +40,9 @@ namespace field
 ///         sizeof(std::underlying_type<TEnum>::type).
 /// @tparam TLimit Maximal and invalid value. All other values below the TLimit
 ///         are considered to be valid.
-/// @headerfile comms/field/BasicEnumValue.h
+/// @headerfile comms/field/EnumValue.h
 template <typename TField, typename TEnum, typename... TOptions>
-class BasicEnumValue : public TField
+class EnumValue : public TField
 {
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
     typedef TField Base;
@@ -68,22 +68,22 @@ public:
 
     /// @brief Default constructor.
     /// @brief Initial value is equal to LimitValue
-    BasicEnumValue() = default;
+    EnumValue() = default;
 
     /// @brief Constructor
-    explicit BasicEnumValue(ValueType value)
+    explicit EnumValue(ValueType value)
       : intValue_(static_cast<UnderlyingType>(value))
     {
     }
 
     /// @brief Copy constructor is default
-    BasicEnumValue(const BasicEnumValue&) = default;
+    EnumValue(const EnumValue&) = default;
 
     /// @brief Destructor is default
-    ~BasicEnumValue() = default;
+    ~EnumValue() = default;
 
     /// @brief Copy assignment is default
-    BasicEnumValue& operator=(const BasicEnumValue&) = default;
+    EnumValue& operator=(const EnumValue&) = default;
 
     constexpr const ValueType getValue() const
     {
@@ -137,31 +137,31 @@ private:
 // Implementation
 
 /// @brief Equality comparison operator.
-/// @related BasicEnumValue
+/// @related EnumValue
 template <typename... TArgs>
 bool operator==(
-    const BasicEnumValue<TArgs...>& field1,
-    const BasicEnumValue<TArgs...>& field2)
+    const EnumValue<TArgs...>& field1,
+    const EnumValue<TArgs...>& field2)
 {
     return field1.getValue() == field2.getValue();
 }
 
 /// @brief Non-equality comparison operator.
-/// @related BasicEnumValue
+/// @related EnumValue
 template <typename... TArgs>
 bool operator!=(
-    const BasicEnumValue<TArgs...>& field1,
-    const BasicEnumValue<TArgs...>& field2)
+    const EnumValue<TArgs...>& field1,
+    const EnumValue<TArgs...>& field2)
 {
     return field1.getValue() != field2.getValue();
 }
 
 /// @brief Equivalence comparison operator.
-/// @related BasicEnumValue
+/// @related EnumValue
 template <typename... TArgs>
 bool operator<(
-    const BasicEnumValue<TArgs...>& field1,
-    const BasicEnumValue<TArgs...>& field2)
+    const EnumValue<TArgs...>& field1,
+    const EnumValue<TArgs...>& field2)
 {
     return field1.getValue() < field2.getValue();
 }
@@ -170,13 +170,13 @@ namespace details
 {
 
 template <typename T>
-struct IsBasicEnumValue
+struct IsEnumValue
 {
     static const bool Value = false;
 };
 
 template <typename... TArgs>
-struct IsBasicEnumValue<comms::field::BasicEnumValue<TArgs...> >
+struct IsEnumValue<comms::field::EnumValue<TArgs...> >
 {
     static const bool Value = true;
 };
@@ -184,9 +184,9 @@ struct IsBasicEnumValue<comms::field::BasicEnumValue<TArgs...> >
 }  // namespace details
 
 template <typename T>
-constexpr bool isBasicEnumValue()
+constexpr bool isEnumValue()
 {
-    return details::IsBasicEnumValue<T>::Value;
+    return details::IsEnumValue<T>::Value;
 }
 
 

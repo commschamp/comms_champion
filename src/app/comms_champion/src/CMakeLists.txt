@@ -38,7 +38,7 @@ function (bin_comms_champion)
         widget/field/ComplexIntValueFieldWidget.cpp
         widget/field/IntValueFieldWidget.cpp
         widget/field/BitmaskValueFieldWidget.cpp
-        widget/field/BasicEnumValueFieldWidget.cpp
+        widget/field/EnumValueFieldWidget.cpp
         widget/field/StringFieldWidget.cpp
         widget/field/BitfieldFieldWidget.cpp
         widget/field/UnknownValueFieldWidget.cpp
@@ -63,7 +63,7 @@ function (bin_comms_champion)
         widget/field/ComplexIntValueFieldWidget.h
         widget/field/IntValueFieldWidget.h
         widget/field/BitmaskValueFieldWidget.h
-        widget/field/BasicEnumValueFieldWidget.h
+        widget/field/EnumValueFieldWidget.h
         widget/field/StringFieldWidget.h
         widget/field/BitfieldFieldWidget.h
         widget/field/UnknownValueFieldWidget.h
@@ -86,7 +86,7 @@ function (bin_comms_champion)
         ui/ComplexIntValueFieldWidget.ui
         ui/IntValueFieldWidget.ui
         ui/BitmaskValueFieldWidget.ui
-        ui/BasicEnumValueFieldWidget.ui
+        ui/EnumValueFieldWidget.ui
         ui/StringFieldWidget.ui
         ui/BitfieldFieldWidget.ui
         ui/UnknownValueFieldWidget.ui

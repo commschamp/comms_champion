@@ -19,25 +19,25 @@
 #pragma once
 
 #include "comms_champion/FieldWidget.h"
-#include "comms_champion/field_wrapper/BasicEnumValueWrapper.h"
+#include "comms_champion/field_wrapper/EnumValueWrapper.h"
 
-#include "ui_BasicEnumValueFieldWidget.h"
+#include "ui_EnumValueFieldWidget.h"
 
 namespace comms_champion
 {
 
-class BasicEnumValueFieldWidget : public FieldWidget
+class EnumValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
     typedef FieldWidget Base;
 public:
-    using WrapperPtr = field_wrapper::BasicEnumValueWrapperPtr;
+    using WrapperPtr = field_wrapper::EnumValueWrapperPtr;
 
-    explicit BasicEnumValueFieldWidget(
+    explicit EnumValueFieldWidget(
         WrapperPtr&& wrapper,
         QWidget* parent = nullptr);
 
-    ~BasicEnumValueFieldWidget();
+    ~EnumValueFieldWidget();
 
 protected:
     virtual void refreshImpl() override;
@@ -54,7 +54,7 @@ private:
 
     void readPropertiesAndUpdateUi();
 
-    Ui::BasicEnumValueFieldWidget m_ui;
+    Ui::EnumValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
     bool m_signalsConnected = false;
 };

@@ -108,7 +108,7 @@ private:
 
     template <typename TField, std::size_t TLen>
     using IdField =
-        comms::field::BasicEnumValue<
+        comms::field::EnumValue<
             TField,
             MessageType,
             comms::option::FixedLength<TLen>

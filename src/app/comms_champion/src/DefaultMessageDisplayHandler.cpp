@@ -24,7 +24,7 @@
 #include "widget/field/ComplexIntValueFieldWidget.h"
 #include "widget/field/IntValueFieldWidget.h"
 #include "widget/field/BitmaskValueFieldWidget.h"
-#include "widget/field/BasicEnumValueFieldWidget.h"
+#include "widget/field/EnumValueFieldWidget.h"
 #include "widget/field/StringFieldWidget.h"
 #include "widget/field/BitfieldFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
@@ -69,12 +69,12 @@ DefaultMessageDisplayHandler::createBitmaskValueFieldWidget(
 }
 
 DefaultMessageDisplayHandler::FieldWidgetPtr
-DefaultMessageDisplayHandler::createBasicEnumValueFieldWidget(
-    field_wrapper::BasicEnumValueWrapperPtr&& fieldWrapper)
+DefaultMessageDisplayHandler::createEnumValueFieldWidget(
+    field_wrapper::EnumValueWrapperPtr&& fieldWrapper)
 {
     return
         FieldWidgetPtr(
-            new BasicEnumValueFieldWidget(std::move(fieldWrapper)));
+            new EnumValueFieldWidget(std::move(fieldWrapper)));
 }
 
 DefaultMessageDisplayHandler::FieldWidgetPtr

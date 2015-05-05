@@ -23,7 +23,7 @@
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
 #include "comms/field/VarSizeArray.h"
-#include "comms/field/ComplexIntValue.h"
+#include "comms/field/IntValue.h"
 
 namespace comms
 {
@@ -36,7 +36,7 @@ template <
     typename TField =
         comms::field::VarSizeArray<
             typename TMessage::Field,
-            comms::field::ComplexIntValue<typename TMessage::Field, std::uint8_t>
+            comms::field::IntValue<typename TMessage::Field, std::uint8_t>
         >
 >
 class MsgDataLayer

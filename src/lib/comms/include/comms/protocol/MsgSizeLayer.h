@@ -69,7 +69,7 @@ public:
     typedef typename Base::Field Field;
 
     static_assert(comms::field::isIntValue<Field>(),
-        "Field must be of ComplexIntValue type");
+        "Field must be of IntValue type");
 
     using Base::ProtocolLayerBase;
 

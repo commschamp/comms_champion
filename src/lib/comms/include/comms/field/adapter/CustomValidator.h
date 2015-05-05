@@ -36,6 +36,22 @@ class CustomValidator : public details::AdapterBaseT<TNext>
     typedef TValidator Validator;
 
 public:
+
+    typedef typename Base::ValueType ValueType;
+    typedef typename Base::ParamValueType ParamValueType;
+
+    CustomValidator() = default;
+
+    CustomValidator(ParamValueType value)
+      : Base(value)
+    {
+    }
+
+    CustomValidator(const CustomValidator&) = default;
+    CustomValidator(CustomValidator&&) = default;
+    CustomValidator& operator=(const CustomValidator&) = default;
+    CustomValidator& operator=(CustomValidator&&) = default;
+
     bool valid() const
     {
         return Base::valid() && (Validator()(*this));

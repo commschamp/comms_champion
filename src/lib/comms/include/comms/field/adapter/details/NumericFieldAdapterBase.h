@@ -41,6 +41,11 @@ public:
     typedef typename Base::ParamValueType ParamValueType;
     typedef typename Next::SerialisedType SerialisedType;
 
+    NumericFieldAdapterBase(const NumericFieldAdapterBase&) = default;
+    NumericFieldAdapterBase(NumericFieldAdapterBase&&) = default;
+    NumericFieldAdapterBase& operator=(const NumericFieldAdapterBase&) = default;
+    NumericFieldAdapterBase& operator=(NumericFieldAdapterBase&&) = default;
+
     static constexpr SerialisedType toSerialised(ParamValueType value)
     {
         return Next::toSerialised(value);
@@ -49,6 +54,13 @@ public:
     static constexpr ParamValueType fromSerialised(SerialisedType value)
     {
         return Next::fromSerialised(value);
+    }
+
+protected:
+    NumericFieldAdapterBase() = default;
+    explicit NumericFieldAdapterBase(ParamValueType value)
+      : Base(value)
+    {
     }
 };
 

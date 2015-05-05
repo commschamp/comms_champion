@@ -41,6 +41,19 @@ public:
     typedef typename Base::SerialisedType SerialisedType;
     typedef typename Base::Endian Endian;
 
+    SerOffset() = default;
+
+    explicit SerOffset(ParamValueType value)
+      : Base(value)
+    {
+    }
+
+    SerOffset(const SerOffset&) = default;
+    SerOffset(SerOffset&&) = default;
+    SerOffset& operator=(const SerOffset&) = default;
+    SerOffset& operator=(SerOffset&&) = default;
+
+
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {

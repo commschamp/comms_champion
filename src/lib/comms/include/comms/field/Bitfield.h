@@ -341,7 +341,8 @@ private:
                 }
             }
 
-            static_assert(FieldType::hasFixedLength(), "Bitfield supports fixed length members only.");
+            static_assert(FieldType::minLength() == FieldType::maxLength(),
+                "Bitfield supports fixed length members only.");
 
             static const std::size_t MaxLength = FieldType::maxLength();
             std::uint8_t buf[MaxLength];
@@ -375,7 +376,8 @@ private:
             typedef typename std::decay<decltype(field)>::type FieldType;
             typedef typename FieldType::SerialisedType FieldSerialisedType;
 
-            static_assert(FieldType::hasFixedLength(), "Bitfield supports fixed length members only.");
+            static_assert(FieldType::minLength() == FieldType::maxLength(),
+                "Bitfield supports fixed length members only.");
 
             static const std::size_t MaxLength = FieldType::maxLength();
             std::uint8_t buf[MaxLength];

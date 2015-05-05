@@ -35,10 +35,22 @@ class DefaultValueInitialiser : public details::AdapterBaseT<TNext>
     typedef details::AdapterBaseT<TNext> Base;
     typedef TInitialiser Initialiser;
 public:
+    typedef typename Base::ParamValueType ParamValueType;
+
     DefaultValueInitialiser()
     {
         Initialiser()(*this);
     }
+
+    explicit DefaultValueInitialiser(ParamValueType value)
+      : Base(value)
+    {
+    }
+
+    DefaultValueInitialiser(const DefaultValueInitialiser&) = default;
+    DefaultValueInitialiser(DefaultValueInitialiser&&) = default;
+    DefaultValueInitialiser& operator=(const DefaultValueInitialiser&) = default;
+    DefaultValueInitialiser& operator=(DefaultValueInitialiser&&) = default;
 };
 
 }  // namespace adapter

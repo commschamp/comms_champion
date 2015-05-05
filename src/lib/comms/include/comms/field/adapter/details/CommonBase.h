@@ -69,6 +69,11 @@ public:
 
     typedef typename Next::ParamValueType ParamValueType;
 
+    CommonBase(const CommonBase&) = default;
+    CommonBase(CommonBase&&) = default;
+    CommonBase& operator=(const CommonBase&) = default;
+    CommonBase& operator=(CommonBase&&) = default;
+
     Next& next()
     {
         return next_;
@@ -129,6 +134,13 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return next().write(iter, size);
+    }
+
+protected:
+    CommonBase() = default;
+    explicit CommonBase(ParamValueType value)
+      : next_(value)
+    {
     }
 
 private:

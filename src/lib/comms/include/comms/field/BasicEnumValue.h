@@ -20,7 +20,7 @@
 
 #include <type_traits>
 
-#include "ComplexIntValue.h"
+#include "IntValue.h"
 
 namespace comms
 {
@@ -56,7 +56,7 @@ public:
 
     /// @brief Definition of underlying ComplexIntValue field type
     typedef
-        ComplexIntValue<
+        IntValue<
             Base,
             UnderlyingType,
             TOptions...
@@ -65,9 +65,6 @@ public:
 
     /// @brief Serialised Type
     typedef typename IntValueField::SerialisedType SerialisedType;
-
-    /// @brief Length of serialised data
-    static const std::size_t SerialisedLen = IntValueField::SerialisedLen;
 
     /// @brief Default constructor.
     /// @brief Initial value is equal to LimitValue
@@ -88,13 +85,6 @@ public:
     /// @brief Copy assignment is default
     BasicEnumValue& operator=(const BasicEnumValue&) = default;
 
-    /// @brief Retrieve underlying ComplexIntValue field.
-    constexpr const IntValueField asIntValueField() const
-    {
-        return intValue_;
-    }
-
-    /// @copydoc ComplexIntValue::getValue()
     constexpr const ValueType getValue() const
     {
         return static_cast<ValueType>(intValue_.getValue());
@@ -106,69 +96,10 @@ public:
         intValue_.setValue(static_cast<UnderlyingType>(value));
     }
 
-    /// @copydoc ComplexIntValue::getSerialisedValue()
-    const SerialisedType getSerialisedValue() const
-    {
-        return intValue_.getSerialisedValue();
-    }
-
-    /// @copydoc ComplexIntValue::setSerialisedValue()
-    void setSerialisedValue(SerialisedType value)
-    {
-        intValue_.setSerialisedValue(value);
-    }
-
-    /// @copydoc ComplexIntValue::toSerialised()
-    static constexpr const SerialisedType toSerialised(ValueType value)
-    {
-        return IntValueField::toSerialised(static_cast<UnderlyingType>(value));
-    }
-
-    /// @copydoc ComplexIntValue::fromSerialised()
-    static constexpr const ValueType fromSerialised(SerialisedType value)
-    {
-        return static_cast<ValueType>(IntValueField::fromSerialised(value));
-    }
-
     /// @copydoc ComplexIntValue::length()
     constexpr std::size_t length() const
     {
         return intValue_.length();
-    }
-
-    static constexpr std::size_t minValue()
-    {
-        return IntValueField::minValue();
-    }
-
-    static constexpr std::size_t maxValue()
-    {
-        return IntValueField::maxValue();
-    }
-
-    /// @copydoc ComplexIntValue::read()
-    template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
-    {
-        return intValue_.read(iter, size);
-    }
-
-    /// @copydoc ComplexIntValue::write()
-    template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const
-    {
-        return intValue_.write(iter, size);
-    }
-
-    /// @brief Check whether value is in range [0, ValueLimit).
-    bool valid() const
-    {
-        return intValue_.valid();
-    }
-
-    static constexpr bool hasFixedLength()
-    {
-        return IntValueField::hasFixedLength();
     }
 
     static constexpr std::size_t minLength()
@@ -178,7 +109,24 @@ public:
 
     static constexpr std::size_t maxLength()
     {
-        return IntValueField::minLength();
+        return IntValueField::maxLength();
+    }
+
+    template <typename TIter>
+    ErrorStatus read(TIter& iter, std::size_t size)
+    {
+        return intValue_.read(iter, size);
+    }
+
+    template <typename TIter>
+    ErrorStatus write(TIter& iter, std::size_t size) const
+    {
+        return intValue_.write(iter, size);
+    }
+
+    bool valid() const
+    {
+        return intValue_.valid();
     }
 
 private:
@@ -195,7 +143,7 @@ bool operator==(
     const BasicEnumValue<TArgs...>& field1,
     const BasicEnumValue<TArgs...>& field2)
 {
-    return field1.asIntValueField() == field2.asIntValueField();
+    return field1.getValue() == field2.getValue();
 }
 
 /// @brief Non-equality comparison operator.
@@ -205,7 +153,7 @@ bool operator!=(
     const BasicEnumValue<TArgs...>& field1,
     const BasicEnumValue<TArgs...>& field2)
 {
-    return field1.asIntValueField() != field2.asIntValueField();
+    return field1.getValue() != field2.getValue();
 }
 
 /// @brief Equivalence comparison operator.
@@ -215,7 +163,7 @@ bool operator<(
     const BasicEnumValue<TArgs...>& field1,
     const BasicEnumValue<TArgs...>& field2)
 {
-    return field1.asIntValueField() < field2.asIntValueField();
+    return field1.getValue() < field2.getValue();
 }
 
 namespace details

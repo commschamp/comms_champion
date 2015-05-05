@@ -54,6 +54,18 @@ public:
 
     typedef typename Base::Endian Endian;
 
+    FixedLength() = default;
+
+    explicit FixedLength(ParamValueType value)
+      : Base(value)
+    {
+    }
+
+    FixedLength(const FixedLength&) = default;
+    FixedLength(FixedLength&&) = default;
+    FixedLength& operator=(const FixedLength&) = default;
+    FixedLength& operator=(FixedLength&&) = default;
+
     ParamValueType getValue() const
     {
         auto value = Base::getValue();

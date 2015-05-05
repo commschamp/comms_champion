@@ -46,6 +46,13 @@ public:
     typedef typename ThisField::ParamValueType ParamValueType;
     typedef typename ThisField::SerialisedType SerialisedType;
 
+    IntValue() = default;
+
+    explicit IntValue(ValueType value)
+      : field_(value)
+    {
+    }
+
     ParamValueType getValue() const
     {
         return field_.getValue();

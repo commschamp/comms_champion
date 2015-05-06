@@ -41,11 +41,11 @@ namespace field
 /// @tparam TLimit Maximal and invalid value. All other values below the TLimit
 ///         are considered to be valid.
 /// @headerfile comms/field/EnumValue.h
-template <typename TField, typename TEnum, typename... TOptions>
-class EnumValue : public TField
+template <typename TFieldBase, typename TEnum, typename... TOptions>
+class EnumValue : public TFieldBase
 {
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
-    typedef TField Base;
+    typedef TFieldBase Base;
 public:
 
     /// @brief Type of the stored value
@@ -62,9 +62,6 @@ public:
             TOptions...
         > IntValueField;
 
-
-    /// @brief Serialised Type
-    typedef typename IntValueField::SerialisedType SerialisedType;
 
     /// @brief Default constructor.
     /// @brief Initial value is equal to LimitValue

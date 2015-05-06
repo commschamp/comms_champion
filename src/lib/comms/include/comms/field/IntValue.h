@@ -44,7 +44,6 @@ public:
 
     typedef typename ThisField::ValueType ValueType;
     typedef typename ThisField::ParamValueType ParamValueType;
-    typedef typename ThisField::SerialisedType SerialisedType;
 
     IntValue() = default;
 

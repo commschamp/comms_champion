@@ -25,13 +25,43 @@
 #include "comms/Field.h"
 #include "ComplexIntValue.h"
 
-#include "details/BitmaskValueBase.h"
+#include "comms/util/SizeToType.h"
+#include "details/AdaptBasicField.h"
+#include "details/OptionsParser.h"
+#include "IntValue.h"
 
 namespace comms
 {
 
 namespace field
 {
+
+namespace details
+{
+
+template <typename TOptionsBundle, bool THasFixedLength>
+struct BitmaskUndertlyingType;
+
+template <typename TOptionsBundle>
+struct BitmaskUndertlyingType<TOptionsBundle, true>
+{
+    typedef typename comms::util::SizeToType<TOptionsBundle::FixedLength, false>::Type Type;
+};
+
+template <typename TOptionsBundle>
+struct BitmaskUndertlyingType<TOptionsBundle, false>
+{
+    static_assert(!TOptionsBundle::HasVarLengthLimits,
+        "Bitmask with variable length is not supported.");
+    typedef unsigned Type;
+};
+
+template <typename TOptionsBundle>
+using BitmaskUndertlyingTypeT =
+    typename BitmaskUndertlyingType<TOptionsBundle, TOptionsBundle::HasFixedLengthLimit>::Type;
+
+
+}  // namespace details
 
 /// @addtogroup comms
 /// @{
@@ -42,42 +72,30 @@ namespace field
 /// @tparam TField Base (interface) class for this field.
 /// @tparam TLen Length of serialised data in bytes.
 /// @headerfile comms/field/BitmaskValue.h
-template <typename TField,
+template <typename TFieldBase,
           typename... TOptions>
-class BitmaskValue : public details::BitmaskValueBase<TField, TOptions...>
+class BitmaskValue : public TFieldBase
 {
-    typedef details::BitmaskValueBase<TField, TOptions...> Base;
+    typedef TFieldBase Base;
+
+    typedef details::OptionsParser<TOptions...> OptionsBundle;
+
+    typedef details::BitmaskUndertlyingTypeT<OptionsBundle> IntValueType;
+
+    typedef
+        IntValue<
+            TFieldBase,
+            IntValueType,
+            TOptions...
+        > IntValueField;
 
 public:
 
-    /// @brief Type of the stored value
-    typedef typename Base::ValueType ValueType;
-
-    /// @brief Length of serialised data
-    static const std::size_t SerialisedLen = Base::SerialisedLen;
-
-    /// @brief Definition of underlying ComplexIntValue field type
-    typedef
-        ComplexIntValue<
-            TField,
-            ValueType,
-            comms::option::FixedLength<SerialisedLen>
-        > IntValueField;
-
-    /// @brief Serialised Type
-    typedef typename IntValueField::SerialisedType SerialisedType;
+    typedef typename IntValueField::ValueType ValueType;
 
     /// @brief Default constructor.
     /// @brief Initial bitmask has all bits cleared (equals 0)
-    BitmaskValue()
-    {
-        typedef typename std::conditional<
-            Base::HasCustomInitialiser,
-            CustomInitialisationTag,
-            DefaultInitialisationTag
-        >::type Tag;
-        completeDefaultInitialisation(Tag());
-    }
+    BitmaskValue() = default;
 
     /// @brief Constructor
     explicit BitmaskValue(ValueType value)
@@ -88,17 +106,14 @@ public:
     /// @brief Copy constructor is default
     BitmaskValue(const BitmaskValue&) = default;
 
+    BitmaskValue(BitmaskValue&&) = default;
+
     /// @brief Destructor is default
     ~BitmaskValue() = default;
 
     /// @brief Copy assignment is default
     BitmaskValue& operator=(const BitmaskValue&) = default;
-
-    /// @brief Retrieve underlying ComplexIntValue field.
-    const IntValueField asIntValueField() const
-    {
-        return intValue_;
-    }
+    BitmaskValue& operator=(BitmaskValue&&) = default;
 
     /// @copydoc ComplexIntValue::getValue()
     const ValueType getValue() const
@@ -112,44 +127,19 @@ public:
         intValue_.setValue(value);
     }
 
-    /// @copydoc ComplexIntValue::getSerialisedValue()
-    const SerialisedType getSerialisedValue() const
-    {
-        return intValue_.getSerialisedValue();
-    }
-
-    /// @copydoc ComplexIntValue::setSerialisedValue()
-    void setSerialisedValue(SerialisedType value)
-    {
-        intValue_.setSerialisedValue(value);
-    }
-
-    /// @copydoc ComplexIntValue::toSerialised()
-    static constexpr const SerialisedType toSerialised(ValueType value)
-    {
-        return IntValueField::toSerialised(value);
-    }
-
-    /// @copydoc ComplexIntValue::fromSerialised()
-    static constexpr const ValueType fromSerialised(SerialisedType value)
-    {
-        return IntValueField::fromSerialised(value);
-    }
-
-    /// @copydoc ComplexIntValue::length()
     constexpr std::size_t length() const
     {
         return intValue_.length();
     }
 
-    static constexpr std::size_t minValue()
+    static constexpr std::size_t maxLength()
     {
-        return IntValueField::minValue();
+        return IntValueField::maxLength();
     }
 
-    static constexpr std::size_t maxValue()
+    static constexpr std::size_t minLength()
     {
-        return IntValueField::maxValue();
+        return IntValueField::minLength();
     }
 
     /// @copydoc ComplexIntValue::read()
@@ -168,12 +158,7 @@ public:
 
     constexpr bool valid() const
     {
-        return validInternal(
-            typename std::conditional<
-                Base::HasCustomValidator,
-                CustomValidatorTag,
-                DefaultValidatorTag
-            >::type());
+        return intValue_.valid();
     }
 
     /// @brief Check whether all bits from provided mask are set.
@@ -210,12 +195,13 @@ public:
 
     bool getBitValue(unsigned bitNum) const
     {
-        return hasAllBitsSet(calcMask(bitNum, BitOrderTag()));
+        return hasAllBitsSet(
+            static_cast<ValueType>(1U) << bitNum);
     }
 
     void setBitValue(unsigned bitNum, bool value)
     {
-        auto mask = calcMask(bitNum, BitOrderTag());
+        auto mask = static_cast<ValueType>(1U) << bitNum;
         if (value) {
             setBits(mask);
         }
@@ -224,75 +210,7 @@ public:
         }
     }
 
-    static constexpr bool hasFixedLength()
-    {
-        return true;
-    }
-
-    static constexpr std::size_t maxLength()
-    {
-        return SerialisedLen;
-    }
-
-    static constexpr std::size_t minLength()
-    {
-        return SerialisedLen;
-    }
-
 private:
-    static const bool BitZeroIsMsb = Base::BitZeroIsMsb;
-    static const std::size_t TotalBits =
-        SerialisedLen * std::numeric_limits<std::uint8_t>::digits;
-
-    struct BitZeroIsMsbTag {};
-    struct BitZeroIsLsbTag {};
-    using BitOrderTag = typename
-        std::conditional<
-            BitZeroIsMsb,
-            BitZeroIsMsbTag,
-            BitZeroIsLsbTag
-        >::type;
-
-    struct DefaultInitialisationTag {};
-    struct CustomInitialisationTag {};
-    struct DefaultValidatorTag {};
-    struct CustomValidatorTag {};
-
-    static ValueType calcMask(unsigned bitNum, BitZeroIsMsbTag)
-    {
-        GASSERT(bitNum < TotalBits);
-        auto shift = (TotalBits - 1) - bitNum;
-        auto mask = static_cast<ValueType>(1) << shift;
-        return mask;
-    }
-
-    static ValueType calcMask(unsigned bitNum, BitZeroIsLsbTag)
-    {
-        GASSERT(bitNum < TotalBits);
-        auto mask = static_cast<ValueType>(1) << bitNum;
-        return mask;
-    }
-
-    void completeDefaultInitialisation(DefaultInitialisationTag)
-    {
-    }
-
-    void completeDefaultInitialisation(CustomInitialisationTag)
-    {
-        typedef typename Base::DefaultValueInitialiser DefaultValueInitialiser;
-        DefaultValueInitialiser()(*this);
-    }
-
-    static constexpr bool validInternal(DefaultValidatorTag)
-    {
-        return true;
-    }
-
-    constexpr bool validInternal(CustomValidatorTag) const
-    {
-        typedef typename Base::ContentsValidator ContentsValidator;
-        return ContentsValidator()(*this);
-    }
 
     IntValueField intValue_;
 };
@@ -306,7 +224,7 @@ bool operator==(
     const BitmaskValue<TArgs...>& field1,
     const BitmaskValue<TArgs...>& field2)
 {
-    return field1.asIntValueField() == field2.asIntValueField();
+    return field1.getValue() == field2.getValue();
 }
 
 /// @brief Non-equality comparison operator.
@@ -316,7 +234,7 @@ bool operator!=(
     const BitmaskValue<TArgs...>& field1,
     const BitmaskValue<TArgs...>& field2)
 {
-    return field1.asIntValueField() != field2.asIntValueField();
+    return field1.getValue() != field2.getValue();
 }
 
 /// @brief Equivalence comparison operator.
@@ -326,7 +244,7 @@ bool operator<(
     const BitmaskValue<TArgs...>& field1,
     const BitmaskValue<TArgs...>& field2)
 {
-    return field1.asIntValueField() < field2.asIntValueField();
+    return field1.getValue() < field2.getValue();
 }
 
 namespace details

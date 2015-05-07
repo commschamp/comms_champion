@@ -139,7 +139,7 @@ const QVariantMap& getMemberData(std::size_t idx)
     typedef typename
         std::decay<
             decltype(
-                std::get<CCSerialInfo::FieldId_Flags>(std::declval<CCSerialInfo::AllFields>()).fields())
+                std::get<CCSerialInfo::FieldId_Flags>(std::declval<CCSerialInfo::AllFields>()).members())
         >::type FlagsMembers;
     static const auto NumOfFlagsMembers = std::tuple_size<FlagsMembers>::value;
 
@@ -172,7 +172,7 @@ void CCSerialInfo::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) con
     cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
     if (idx == FieldId_Flags) {
         auto& flagsField = std::get<FieldId_Flags>(getFields());
-        auto& flagsMemberFields = flagsField.fields();
+        auto& flagsMemberFields = flagsField.members();
         typedef typename std::decay<decltype(flagsMemberFields)>::type FlagsBitfieldMembers;
         static const std::size_t NumOfMembers = std::tuple_size<FlagsBitfieldMembers>::value;
         for (std::size_t idx = 0U; idx < NumOfMembers; ++idx) {

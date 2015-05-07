@@ -93,7 +93,6 @@ public:
 protected:
     using Field = TField;
     using ValueType = typename Field::ValueType;
-    using SerialisedType = typename Field::SerialisedType;
 
     static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
     static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),

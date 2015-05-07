@@ -242,7 +242,7 @@ private:
         auto widget = createBitfieldFieldWidget(
             field_wrapper::makeBitfieldWrapper(field));
 
-        auto& memberFields = field.fields();
+        auto& memberFields = field.members();
         comms::util::tupleForEach(
             memberFields,
             makeFieldsDisplayDispatcher(

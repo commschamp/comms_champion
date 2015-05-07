@@ -20,6 +20,7 @@
 
 #include "SerOffset.h"
 #include "FixedLength.h"
+#include "FixedBitLength.h"
 #include "VarLength.h"
 #include "DefaultValueInitialiser.h"
 #include "CustomValidator.h"

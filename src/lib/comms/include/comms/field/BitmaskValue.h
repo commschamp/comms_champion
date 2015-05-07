@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -90,6 +90,8 @@ class BitmaskValue : public TFieldBase
         > IntValueField;
 
 public:
+
+    typedef OptionsBundle ParsedOptions;
 
     typedef typename IntValueField::ValueType ValueType;
 

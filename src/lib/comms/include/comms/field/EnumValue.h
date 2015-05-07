@@ -20,6 +20,7 @@
 
 #include <type_traits>
 
+#include "details/OptionsParser.h"
 #include "IntValue.h"
 
 namespace comms
@@ -47,6 +48,8 @@ class EnumValue : public TFieldBase
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
     typedef TFieldBase Base;
 public:
+
+    typedef details::OptionsParser<TOptions...> ParsedOptions;
 
     /// @brief Type of the stored value
     typedef TEnum ValueType;

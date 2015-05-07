@@ -74,6 +74,26 @@ template <typename TField, typename TOpts, bool THasFixedLength>
 using AdaptBasicFieldFixedLengthT =
     typename AdaptBasicFieldFixedLength<TField, TOpts, THasFixedLength>::Type;
 
+template <typename TField, typename TOpts, bool THasFixedBitLength>
+struct AdaptBasicFieldFixedBitLength;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldFixedBitLength<TField, TOpts, true>
+{
+    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename TField::Category>::value,
+        "The FixedBitLength option is supported only for numeric value fields.");
+    typedef comms::field::adapter::FixedBitLength<TOpts::FixedBitLength, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldFixedBitLength<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts, bool THasFixedBitLength>
+using AdaptBasicFieldFixedBitLengthT =
+    typename AdaptBasicFieldFixedBitLength<TField, TOpts, THasFixedBitLength>::Type;
 
 template <typename TField, typename TOpts, bool THasVarLengths>
 struct AdaptBasicFieldVarLength;
@@ -145,8 +165,10 @@ class AdaptBasicField
         TBasic, ParsedOptions, ParsedOptions::HasSerOffset> SerOffsetAdapted;
     typedef AdaptBasicFieldFixedLengthT<
         SerOffsetAdapted, ParsedOptions, ParsedOptions::HasFixedLengthLimit> FixedLengthAdapted;
+    typedef AdaptBasicFieldFixedBitLengthT<
+        FixedLengthAdapted, ParsedOptions, ParsedOptions::HasFixedBitLengthLimit> FixedBitLengthAdapted;
     typedef AdaptBasicFieldVarLengthT<
-        FixedLengthAdapted, ParsedOptions, ParsedOptions::HasVarLengthLimits> VarLengthAdapted;
+        FixedBitLengthAdapted, ParsedOptions, ParsedOptions::HasVarLengthLimits> VarLengthAdapted;
     typedef AdaptBasicFieldDefaultValueInitialiserT<
         VarLengthAdapted, ParsedOptions, ParsedOptions::HasDefaultValueInitialiser> DefaultValueInitialiserAdapted;
     typedef AdaptBasicFieldCustomValidatorT<

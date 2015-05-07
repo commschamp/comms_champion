@@ -96,6 +96,12 @@ struct FixedLength
     static const std::size_t Value = TLen;
 };
 
+template<std::size_t TLen>
+struct FixedBitLength
+{
+    static const std::size_t Value = TLen;
+};
+
 template<std::size_t TMin, std::size_t TMax>
 struct VarLength
 {

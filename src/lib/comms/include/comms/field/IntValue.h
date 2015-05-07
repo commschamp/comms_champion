@@ -42,6 +42,7 @@ class IntValue : public TFieldBase
         "ThisField is expected to be of NumericFieldCategory");
 public:
 
+    typedef details::OptionsParser<TOptions...> ParsedOptions;
     typedef typename ThisField::ValueType ValueType;
     typedef typename ThisField::ParamValueType ParamValueType;
 

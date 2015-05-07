@@ -24,6 +24,7 @@
 #include "details/AdapterBase.h"
 #include "comms/Assert.h"
 #include "comms/util/SizeToType.h"
+#include "comms/util/BitSizeToByteSize.h"
 
 namespace comms
 {
@@ -35,36 +36,42 @@ namespace adapter
 {
 
 template <std::size_t TLen, typename TNext>
-class FixedLength : public details::AdapterBaseT<TNext>
+class FixedBitLength : public details::AdapterBaseT<TNext>
 {
     typedef details::AdapterBaseT<TNext> Base;
     typedef typename Base::Next::SerialisedType NextSerialisedType;
+
+    static const std::size_t BitLength = TLen;
+    static const std::size_t Length =
+        comms::util::BitSizeToByteSize<BitLength>::Value;
+
+    static_assert(0 < BitLength, "Bit length is expected to be greater than 0");
+    static_assert(Length <= sizeof(NextSerialisedType),
+        "The provided length limit is too big");
+
 public:
 
     typedef typename Base::ParamValueType ParamValueType;
 
-    static_assert(TLen <= sizeof(NextSerialisedType),
-        "The provided length limit is too big");
-
     typedef typename std::conditional<
-        (TLen < sizeof(NextSerialisedType)),
-        typename comms::util::SizeToType<TLen, std::is_signed<NextSerialisedType>::value>::Type,
+        (Length < sizeof(NextSerialisedType)),
+        typename comms::util::SizeToType<Length, std::is_signed<NextSerialisedType>::value>::Type,
         NextSerialisedType
     >::type SerialisedType;
 
     typedef typename Base::Endian Endian;
 
-    FixedLength() = default;
+    FixedBitLength() = default;
 
-    explicit FixedLength(ParamValueType value)
+    explicit FixedBitLength(ParamValueType value)
       : Base(fromSerialised(toSerialised(value)))
     {
     }
 
-    FixedLength(const FixedLength&) = default;
-    FixedLength(FixedLength&&) = default;
-    FixedLength& operator=(const FixedLength&) = default;
-    FixedLength& operator=(FixedLength&&) = default;
+    FixedBitLength(const FixedBitLength&) = default;
+    FixedBitLength(FixedBitLength&&) = default;
+    FixedBitLength& operator=(const FixedBitLength&) = default;
+    FixedBitLength& operator=(FixedBitLength&&) = default;
 
     ParamValueType getValue() const
     {
@@ -95,12 +102,12 @@ public:
 
     static constexpr SerialisedType toSerialised(ParamValueType value)
     {
-        return toSerialisedInternal(value, ConversionTag());
+        return toSerialisedInternal(value, HasSignTag());
     }
 
     static constexpr ParamValueType fromSerialised(SerialisedType value)
     {
-        return fromSerialisedInternal(value, ConversionTag());
+        return fromSerialisedInternal(value, HasSignTag());
     }
 
     template <typename TIter>
@@ -110,8 +117,9 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
-        auto serialisedValue =
-            comms::util::readData<SerialisedType, Length>(iter, Endian());
+        auto unsignedSerialisedValue =
+            comms::util::readData<UnsignedSerialisedType, Length>(iter, Endian());
+        auto serialisedValue = signExtUnsignedSerialised(unsignedSerialisedValue, HasSignTag());
         Base::setValue(Base::fromSerialised(serialisedValue));
         return ErrorStatus::Success;
     }
@@ -129,17 +137,8 @@ public:
 
 private:
 
-    struct JustCastTag {};
-    struct SignExtendTag {};
     struct UnsignedTag {};
     struct SignedTag {};
-
-    typedef typename std::conditional<
-        (TLen < sizeof(SerialisedType)),
-        SignExtendTag,
-        JustCastTag
-    >::type ConversionTag;
-
 
     typedef typename std::conditional<
         std::is_signed<SerialisedType>::value,
@@ -150,37 +149,38 @@ private:
     typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerialisedType;
 
 
-    static constexpr SerialisedType toSerialisedInternal(ParamValueType value, JustCastTag)
-    {
-        return static_cast<SerialisedType>(Base::toSerialised(value));
-    }
-
-    static SerialisedType toSerialisedInternal(ParamValueType value, SignExtendTag)
+    static SerialisedType toSerialisedInternal(ParamValueType value, UnsignedTag)
     {
         static const auto Mask =
             (static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1;
 
+        return static_cast<SerialisedType>(Base::toSerialised(value) & Mask);
+    }
+
+    static SerialisedType toSerialisedInternal(ParamValueType value, SignedTag)
+    {
         auto serValue =
-            static_cast<UnsignedSerialisedType>(toSerialisedInternal(value, JustCastTag()));
+            static_cast<UnsignedSerialisedType>(toSerialisedInternal(value, UnsignedTag()));
 
-        serValue &= Mask;
-        return signExtUnsignedSerialised(serValue, HasSignTag());
+        return signExtUnsignedSerialised(serValue, SignedTag());
     }
 
-    static constexpr ParamValueType fromSerialisedInternal(SerialisedType value, JustCastTag)
-    {
-        return Base::fromSerialised(static_cast<NextSerialisedType>(value));
-    }
-
-    static ParamValueType fromSerialisedInternal(SerialisedType value, SignExtendTag)
+    static ParamValueType fromSerialisedInternal(SerialisedType value, UnsignedTag)
     {
         static const auto Mask =
             (static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1;
 
-        auto valueTmp = static_cast<UnsignedSerialisedType>(value) & Mask;
+        return Base::fromSerialised(static_cast<NextSerialisedType>(value & Mask));
+    }
+
+    static ParamValueType fromSerialisedInternal(SerialisedType value, SignedTag)
+    {
+        auto valueTmp = fromSerialisedInternal(
+            static_cast<UnsignedSerialisedType>(value),
+            UnsignedTag());
         return fromSerialisedInternal(
-            signExtUnsignedSerialised(valueTmp, HasSignTag()),
-            JustCastTag());
+            signExtUnsignedSerialised(valueTmp, SignedTag()),
+            UnsignedTag());
     }
 
     static constexpr SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType value, UnsignedTag)
@@ -200,12 +200,6 @@ private:
         }
         return static_cast<SerialisedType>(value);
     }
-
-    static const std::size_t Length = TLen;
-    static const std::size_t BitLength =
-        Length * std::numeric_limits<std::uint8_t>::digits;
-
-    static_assert(0 < Length, "Length is expected to be greater than 0");
 };
 
 }  // namespace adapter

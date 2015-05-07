@@ -55,6 +55,7 @@ using SerialInfoParityField =
         TFieldBase,
         Parity,
         comms::option::FixedLength<1>,
+        comms::option::FixedBitLength<2>,
         comms::option::ValidNumValueRange<(int)Parity::None, (int)Parity::NumOfValues - 1>
     >;
 
@@ -64,15 +65,17 @@ using SerialInfoStopBitField =
         TFieldBase,
         StopBit,
         comms::option::FixedLength<1>,
+        comms::option::FixedBitLength<2>,
         comms::option::ValidNumValueRange<(int)StopBit::None, (int)StopBit::NumOfValues - 1>
     >;
 
 template <typename TFieldBase>
 using SerialInfoQosField =
-    comms::field::ComplexIntValue<
+    comms::field::IntValue<
         TFieldBase,
         std::uint8_t,
         comms::option::FixedLength<1>,
+        comms::option::FixedBitLength<2>,
         comms::option::ValidNumValueRange<0, 3>
     >;
 
@@ -81,6 +84,7 @@ using SerialInfoFlagsField =
     comms::field::BitmaskValue<
         TFieldBase,
         comms::option::FixedLength<1>,
+        comms::option::FixedBitLength<2>,
         comms::option::BitmaskReservedBits<0xfd, 0x0>
     >;
 
@@ -89,7 +93,7 @@ using SerialInfoFields =
     std::tuple<
         comms::field::String<
             TFieldBase,
-            comms::field::ComplexIntValue<
+            comms::field::IntValue<
                 TFieldBase,
                 std::uint8_t,
                 comms::option::ValidNumValueRange<0, 32>
@@ -103,12 +107,11 @@ using SerialInfoFields =
         comms::field::Bitfield<
             TFieldBase,
             std::tuple<
-                comms::field::BitfieldMember<SerialInfoParityField<TFieldBase>, 2>,
-                comms::field::BitfieldMember<SerialInfoStopBitField<TFieldBase>, 2>,
-                comms::field::BitfieldMember<SerialInfoQosField<TFieldBase>, 2>,
-                comms::field::BitfieldMember<SerialInfoFlagsField<TFieldBase>, 2>
-            >,
-            comms::option::BitIndexingStartsFromMsb
+                SerialInfoParityField<TFieldBase>,
+                SerialInfoStopBitField<TFieldBase>,
+                SerialInfoQosField<TFieldBase>,
+                SerialInfoFlagsField<TFieldBase>
+            >
         >
     >;
 

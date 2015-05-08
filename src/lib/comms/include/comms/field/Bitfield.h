@@ -21,7 +21,6 @@
 #include <type_traits>
 #include <limits>
 
-#include "details/BitfieldBase.h"
 #include "comms/util/Tuple.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/access.h"

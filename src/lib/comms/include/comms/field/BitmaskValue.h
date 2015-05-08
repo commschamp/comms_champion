@@ -23,7 +23,6 @@
 
 #include <limits>
 #include "comms/Field.h"
-#include "ComplexIntValue.h"
 
 #include "comms/util/SizeToType.h"
 #include "details/AdaptBasicField.h"

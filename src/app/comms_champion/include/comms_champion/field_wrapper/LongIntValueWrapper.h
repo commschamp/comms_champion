@@ -22,7 +22,7 @@
 #include <cassert>
 #include <memory>
 
-#include "comms/field/ComplexIntValue.h"
+#include "comms/field/IntValue.h"
 #include "NumericValueWrapper.h"
 
 namespace comms_champion

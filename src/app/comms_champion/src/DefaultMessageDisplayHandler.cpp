@@ -21,7 +21,6 @@
 
 #include "GlobalConstants.h"
 
-#include "widget/field/ComplexIntValueFieldWidget.h"
 #include "widget/field/IntValueFieldWidget.h"
 #include "widget/field/BitmaskValueFieldWidget.h"
 #include "widget/field/EnumValueFieldWidget.h"
@@ -39,15 +38,6 @@ DefaultMessageDisplayHandler::createMsgWidgetImpl(
     m_widget.reset(new DefaultMessageWidget(msg));
     msg.display(*this);
     return MsgWidgetPtr(m_widget.release());
-}
-
-DefaultMessageDisplayHandler::FieldWidgetPtr
-DefaultMessageDisplayHandler::createComplexIntValueFieldWidget(
-    field_wrapper::ComplexIntValueWrapperPtr&& fieldWrapper)
-{
-    return
-        FieldWidgetPtr(
-            new ComplexIntValueFieldWidget(std::move(fieldWrapper)));
 }
 
 DefaultMessageDisplayHandler::FieldWidgetPtr

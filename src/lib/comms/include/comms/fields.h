@@ -18,14 +18,12 @@
 
 #pragma once
 
-#include "field/ComplexIntValue.h"
+#include "field/IntValue.h"
 #include "field/BitmaskValue.h"
 #include "field/EnumValue.h"
 #include "field/VarSizeArray.h"
 #include "field/String.h"
 #include "field/Bitfield.h"
-
-#include "field/IntValue.h"
 
 #include "field/adapter/adapters.h"
 #include "field/basic/basics.h"

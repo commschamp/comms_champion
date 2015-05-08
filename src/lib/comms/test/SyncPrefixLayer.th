@@ -77,7 +77,7 @@ private:
 
     template <typename TField, std::size_t TSize>
     using SyncField =
-        comms::field::ComplexIntValue<
+        comms::field::IntValue<
             TField,
             unsigned,
             comms::option::FixedLength<TSize>

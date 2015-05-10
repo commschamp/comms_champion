@@ -462,7 +462,7 @@ void FieldsTestSuite::test13()
 
 void FieldsTestSuite::test14()
 {
-    typedef comms::field::VarSizeArray<
+    typedef comms::field::ArrayList<
         comms::Field<BigEndianOpt>,
         comms::field::IntValue<
             comms::Field<BigEndianOpt>,

@@ -20,6 +20,7 @@
 
 #include <type_traits>
 
+#include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
 
 namespace comms

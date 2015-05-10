@@ -29,6 +29,7 @@ namespace category
 {
 
 struct NumericValueField {};
+struct CollectionField {};
 
 namespace details
 {

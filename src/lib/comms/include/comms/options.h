@@ -117,8 +117,6 @@ struct NumValueSerOffset
     static const auto Value = TOffset;
 };
 
-struct BitIndexingStartsFromMsb {};
-
 template <std::size_t TSize>
 struct FixedSizeStorage
 {

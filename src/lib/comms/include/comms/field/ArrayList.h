@@ -70,28 +70,14 @@ public:
     typedef ParsedOptionsInternal ParsedOptions;
     typedef StorageTypeInternal StorageType;
 
-    /// @brief Value Type
-    typedef typename ThisField::ElementType ElementType;
-
-    typedef ElementType& Reference;
-
-    typedef Reference reference;
-
-    typedef const ElementType& ConstReference;
-
-    typedef ConstReference const_reference;
-
-    typedef typename StorageType::iterator Iterator;
-
-    typedef Iterator iterator;
-
-    typedef typename StorageType::const_iterator ConstIterator;
-
-    typedef ConstIterator const_iterator;
-
     /// @brief Default constructor
     /// @details Sets default value to be 0.
     ArrayList() = default;
+
+    explicit ArrayList(const StorageType& fields)
+      : field_(fields)
+    {
+    }
 
     /// @brief Copy constructor is default
     ArrayList(const ArrayList&) = default;
@@ -108,12 +94,12 @@ public:
 
     StorageType& fields()
     {
-        return field_.fields();
+        return field_.getValue();
     }
 
     const StorageType& fields() const
     {
-        return field_.fields();
+        return field_.getValue();
     }
 
 //    Iterator begin()

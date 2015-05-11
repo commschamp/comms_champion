@@ -36,37 +36,47 @@ namespace details
 {
 
 template <typename TNext>
-class NumericFieldAdapterBase : public CommonBase<TNext>
+class CollectionFieldAdapterBase : public CommonBase<TNext>
 {
     typedef CommonBase<TNext> Base;
 public:
     typedef typename Base::Category Category;
     typedef typename Base::Next Next;
+    typedef typename Base::ValueType ValueType;
     typedef typename Base::ParamValueType ParamValueType;
-    typedef typename Next::SerialisedType SerialisedType;
+    typedef typename Next::ElementType ElementType;
+    typedef typename Next::ValueRefType ValueRefType;
 
     static_assert(
-        std::is_base_of<comms::field::category::NumericValueField, Category>::value,
-        "This adapter base class is expected to wrap the numeric field.");
+        std::is_base_of<comms::field::category::CollectionField, Category>::value,
+        "This adapter base class is expected to wrap the collection field.");
 
-    NumericFieldAdapterBase(const NumericFieldAdapterBase&) = default;
-    NumericFieldAdapterBase(NumericFieldAdapterBase&&) = default;
-    NumericFieldAdapterBase& operator=(const NumericFieldAdapterBase&) = default;
-    NumericFieldAdapterBase& operator=(NumericFieldAdapterBase&&) = default;
+    CollectionFieldAdapterBase(const CollectionFieldAdapterBase&) = default;
+    CollectionFieldAdapterBase(CollectionFieldAdapterBase&&) = default;
+    CollectionFieldAdapterBase& operator=(const CollectionFieldAdapterBase&) = default;
+    CollectionFieldAdapterBase& operator=(CollectionFieldAdapterBase&&) = default;
 
-    static constexpr SerialisedType toSerialised(ParamValueType value)
+    using Base::getValue;
+
+    ValueRefType& getValue()
     {
-        return Next::toSerialised(value);
+        return Base::next().getValue();
     }
 
-    static constexpr ParamValueType fromSerialised(SerialisedType value)
+    template <typename U>
+    void pushBack(U&& value)
     {
-        return Next::fromSerialised(value);
+        Base::next().pushBack(std::forward<U>(value));
+    }
+
+    void clear()
+    {
+        Base::next().clear();
     }
 
 protected:
-    NumericFieldAdapterBase() = default;
-    explicit NumericFieldAdapterBase(ParamValueType value)
+    CollectionFieldAdapterBase() = default;
+    explicit CollectionFieldAdapterBase(ParamValueType value)
       : Base(value)
     {
     }

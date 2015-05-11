@@ -123,6 +123,12 @@ struct FixedSizeStorage
     static const std::size_t Value = TSize;
 };
 
+template <typename TField>
+struct SequenceSizeFieldPrefix
+{
+    typedef TField Type;
+};
+
 template <typename T>
 struct DefaultValueInitialiser
 {

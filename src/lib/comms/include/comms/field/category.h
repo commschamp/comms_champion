@@ -38,7 +38,8 @@ template <typename T>
 struct IsValidCategory
 {
     static const bool Value =
-        std::is_same<NumericValueField, T>::value;
+        std::is_same<NumericValueField, T>::value ||
+        std::is_same<CollectionField, T>::value;
 };
 
 template <class T, class R = void>

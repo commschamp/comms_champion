@@ -84,16 +84,6 @@ public:
         return next_;
     }
 
-    FieldType& field()
-    {
-        return fieldInternal(NextTypeTag());
-    }
-
-    const FieldType& field() const
-    {
-        return fieldInternal(NextTypeTag());
-    }
-
     ParamValueType getValue() const
     {
         return next().getValue();

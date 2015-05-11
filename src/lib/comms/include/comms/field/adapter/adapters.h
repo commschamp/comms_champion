@@ -22,6 +22,7 @@
 #include "FixedLength.h"
 #include "FixedBitLength.h"
 #include "VarLength.h"
+#include "SequenceSizeFieldPrefix.h"
 #include "DefaultValueInitialiser.h"
 #include "CustomValidator.h"
 

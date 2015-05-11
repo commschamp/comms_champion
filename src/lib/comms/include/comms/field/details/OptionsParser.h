@@ -39,6 +39,7 @@ struct OptionsParser<>
     static const bool HasFixedLengthLimit = false;
     static const bool HasFixedBitLengthLimit = false;
     static const bool HasVarLengthLimits = false;
+    static const bool HasSequenceSizeFieldPrefix=false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
     static const bool HasFixedSizeStorage = false;
@@ -103,6 +104,17 @@ public:
     static const bool HasVarLengthLimits = true;
     static const std::size_t MinVarLength = Option::MinValue;
     static const std::size_t MaxVarLength = Option::MaxValue;
+};
+
+template <typename TSizeField, typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceSizeFieldPrefix<TSizeField>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::SequenceSizeFieldPrefix<TSizeField> Option;
+public:
+    static const bool HasSequenceSizeFieldPrefix = true;
+    typedef typename Option::Type SequenceSizeFieldPrefix;
 };
 
 template <typename TInitialiser, typename... TOptions>

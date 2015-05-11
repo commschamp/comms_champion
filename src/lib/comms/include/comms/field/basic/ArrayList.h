@@ -67,15 +67,6 @@ public:
     ArrayList& operator=(ArrayList&&) = default;
     ~ArrayList() = default;
 
-    const ValueType& fields() const
-    {
-        return value_;
-    }
-
-    ValueType& fields()
-    {
-        return value_;
-    }
 
     ParamValueType getValue() const
     {
@@ -95,6 +86,17 @@ public:
     void setValue(ValueType&& value)
     {
         value_ = std::move(value);
+    }
+
+    template <typename U>
+    void pushBack(U&& value)
+    {
+        value_.push_back(std::forward<U>(value));
+    }
+
+    void clear()
+    {
+        value_.clear();
     }
 
     constexpr std::size_t length() const

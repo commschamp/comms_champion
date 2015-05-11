@@ -41,6 +41,7 @@ struct OptionsParser<>
     static const bool HasVarLengthLimits = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
+    static const bool HasFixedSizeStorage = false;
 };
 
 template <long long int TOffset, typename... TOptions>
@@ -124,6 +125,17 @@ class OptionsParser<
 public:
     static const bool HasCustomValidator = true;
     typedef typename Option::Type CustomValidator;
+};
+
+template <std::size_t TSize, typename... TOptions>
+class OptionsParser<
+    comms::option::FixedSizeStorage<TSize>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::FixedSizeStorage<TSize> Option;
+public:
+    static const bool HasFixedSizeStorage = true;
+    static const std::size_t FixedSizeStorage = Option::Value;
 };
 
 }  // namespace details

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <algorithm>
+#include <vector>
 
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
@@ -31,16 +31,45 @@ namespace comms
 namespace field
 {
 
+namespace details
+{
+
+template <typename TElement, typename TOptions, bool THasFixedStorage>
+struct ArrayListStorageType;
+
+template <typename TElement, typename TOptions>
+struct ArrayListStorageType<TElement, TOptions, true>
+{
+    typedef comms::util::StaticQueue<TElement, TOptions::FixedSizeStorage> Type;
+};
+
+template <typename TElement, typename TOptions>
+struct ArrayListStorageType<TElement, TOptions, false>
+{
+    typedef std::vector<TElement> Type;
+};
+
+template <typename TElement, typename TOptions>
+using ArrayListStorageTypeT =
+    typename ArrayListStorageType<TElement, TOptions, TOptions::HasFixedSizeStorage>::Type;
+
+
+}  // namespace details
+
 template <typename TFieldBase, typename TElement, typename... TOptions>
 class ArrayList : public TFieldBase
 {
     using Base = TFieldBase;
-    // TODO: storage type
-    typedef basic::ArrayList<TFieldBase, TElement> BasicField;
+    typedef details::OptionsParser<TOptions...> ParsedOptionsInternal;
+    using StorageTypeInternal =
+        details::ArrayListStorageTypeT<TElement, ParsedOptionsInternal>;
+    typedef basic::ArrayList<TFieldBase, TElement, StorageTypeInternal> BasicField;
     typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
-    typedef typename ThisField::ValueType StorageType;
 
 public:
+    typedef ParsedOptionsInternal ParsedOptions;
+    typedef StorageTypeInternal StorageType;
+
     /// @brief Value Type
     typedef typename ThisField::ElementType ElementType;
 

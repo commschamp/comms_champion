@@ -25,6 +25,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
+#include "comms/util/StaticQueue.h"
 
 namespace comms
 {
@@ -60,12 +61,21 @@ public:
     {
     }
 
-
     ArrayList(const ArrayList&) = default;
     ArrayList(ArrayList&&) = default;
     ArrayList& operator=(const ArrayList&) = default;
     ArrayList& operator=(ArrayList&&) = default;
     ~ArrayList() = default;
+
+    const ValueType& fields() const
+    {
+        return value_;
+    }
+
+    ValueType& fields()
+    {
+        return value_;
+    }
 
     ParamValueType getValue() const
     {
@@ -129,7 +139,6 @@ public:
         }
 
         return ErrorStatus::Success;
-
     }
 
     template <typename TIter>
@@ -176,8 +185,6 @@ private:
                     return sum + e.length();
                 });
     }
-
-
 
     ValueType value_;
 };

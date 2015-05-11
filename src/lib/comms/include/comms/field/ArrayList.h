@@ -106,6 +106,16 @@ public:
 
     ArrayList& operator=(ArrayList&&) = default;
 
+    StorageType& fields()
+    {
+        return field_.fields();
+    }
+
+    const StorageType& fields() const
+    {
+        return field_.fields();
+    }
+
 //    Iterator begin()
 //    {
 //        return data_.begin();
@@ -190,7 +200,8 @@ bool operator<(
     const ArrayList<TArgs...>& field2)
 {
     return std::lexicographical_compare(
-                field1.begin(), field1.end(), field2.begin(), field2.end());
+                field1.fields().begin(), field1.fields().end(),
+                field2.fields().begin(), field2.fields().end());
 }
 
 /// @brief Non-equality comparison operator.

@@ -21,7 +21,6 @@
 #include "field/IntValue.h"
 #include "field/BitmaskValue.h"
 #include "field/EnumValue.h"
-#include "field/VarSizeArray.h"
 #include "field/ArrayList.h"
 #include "field/String.h"
 #include "field/Bitfield.h"

@@ -22,7 +22,7 @@
 #include <iterator>
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
-#include "comms/field/VarSizeArray.h"
+#include "comms/field/ArrayList.h"
 #include "comms/field/IntValue.h"
 
 namespace comms
@@ -34,7 +34,7 @@ namespace protocol
 template <
     typename TMessage,
     typename TField =
-        comms::field::VarSizeArray<
+        comms::field::ArrayList<
             typename TMessage::Field,
             comms::field::IntValue<typename TMessage::Field, std::uint8_t>
         >

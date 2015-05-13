@@ -22,6 +22,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
+#include "comms/util/StaticQueue.h"
 #include "basic/ArrayList.h"
 #include "details/AdaptBasicField.h"
 
@@ -63,7 +64,7 @@ class ArrayList : public TFieldBase
     typedef details::OptionsParser<TOptions...> ParsedOptionsInternal;
     using StorageTypeInternal =
         details::ArrayListStorageTypeT<TElement, ParsedOptionsInternal>;
-    typedef basic::ArrayList<TFieldBase, TElement, StorageTypeInternal> BasicField;
+    typedef basic::ArrayList<TFieldBase, StorageTypeInternal> BasicField;
     typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
 
 public:
@@ -102,52 +103,11 @@ public:
         return field_.getValue();
     }
 
-//    Iterator begin()
-//    {
-//        return data_.begin();
-//    }
-//
-//    ConstIterator begin() const
-//    {
-//        return cbegin();
-//    }
-//
-//    ConstIterator cbegin() const
-//    {
-//        return data_.cbegin();
-//    }
-//
-//    Iterator end()
-//    {
-//        return data_.end();
-//    }
-//
-//    ConstIterator end() const
-//    {
-//        return cend();
-//    }
-//
-//    ConstIterator cend() const
-//    {
-//        return data_.cend();
-//    }
-//
-//    constexpr std::size_t size() const
-//    {
-//        return data_.size();
-//    }
-
     /// @brief Get length of serialised data
     constexpr std::size_t length() const
     {
         return field_.length();
     }
-
-//    template <typename U>
-//    void pushBack(U&& value)
-//    {
-//        data_.push_back(std::forward<U>(value));
-//    }
 
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
@@ -155,14 +115,6 @@ public:
         return field_.read(iter, len);
     }
 
-    /// @brief Write the serialised field value to some data structure.
-    /// @tparam TIter Type of output iterator
-    /// @param[in, out] iter Output iterator.
-    /// @param[in] size Size of the buffer, field data must fit it.
-    /// @return Status of the write operation.
-    /// @pre Value of provided "size" must be less than or equal to
-    ///      available space in the data structure.
-    /// @post The iterator will be incremented.
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {

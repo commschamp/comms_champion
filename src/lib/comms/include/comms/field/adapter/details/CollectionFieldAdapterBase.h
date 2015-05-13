@@ -74,6 +74,18 @@ public:
         Base::next().clear();
     }
 
+    template <typename TIter>
+    static ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len)
+    {
+        return Next::readElement(elem, iter, len);
+    }
+
+    template <typename TIter>
+    static ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len)
+    {
+        return Next::writeElement(elem, iter, len);
+    }
+
 protected:
     CollectionFieldAdapterBase() = default;
     explicit CollectionFieldAdapterBase(ParamValueType value)

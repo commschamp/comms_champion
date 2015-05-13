@@ -93,22 +93,16 @@ public:
         auto count = static_cast<std::size_t>(sizeField.getValue());
         len -= sizeField.length();
 
-        if (len < (count * ElementType::minLength())) {
-            return comms::ErrorStatus::NotEnoughData;
-        }
-
         Base::clear();
         while (0 < count) {
-            ElementType field;
-            es = field.read(iter, len);
+            auto elem = ElementType();
+            es = Base::readElement(elem, iter, len);
 
             if (es != ErrorStatus::Success) {
                 return es;
             }
 
-            GASSERT(field.length() <= len);
-            len -= field.length();
-            Base::pushBack(std::move(field));
+            Base::pushBack(std::move(elem));
             --count;
         }
 

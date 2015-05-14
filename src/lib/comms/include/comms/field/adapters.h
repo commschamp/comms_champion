@@ -26,4 +26,5 @@
 #include "adapter/DefaultValueInitialiser.h"
 #include "adapter/CustomValidator.h"
 #include "adapter/FailOnInvalid.h"
+#include "adapter/IgnoreInvalid.h"
 

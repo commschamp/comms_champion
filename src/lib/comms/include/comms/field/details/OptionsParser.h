@@ -153,6 +153,18 @@ public:
     static const bool HasFailOnInvalid = true;
 };
 
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::IgnoreInvalid,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef OptionsParser<TOptions...> Base;
+    static_assert(!Base::HasFailOnInvalid,
+        "Cannot mix FailOnInvalid and IgnoreInvalid options.");
+public:
+    static const bool HasIgnoreInvalid = true;
+};
+
 template <std::size_t TSize, typename... TOptions>
 class OptionsParser<
     comms::option::FixedSizeStorage<TSize>,

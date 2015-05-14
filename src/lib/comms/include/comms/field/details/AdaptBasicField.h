@@ -192,6 +192,24 @@ template <typename TField, typename TOpts>
 using AdaptBasicFieldFailOnInvalidT =
     typename AdaptBasicFieldFailOnInvalid<TField, TOpts::HasFailOnInvalid>::Type;
 
+template <typename TField, bool THasIgnoreInvalid>
+struct AdaptBasicFieldIgnoreInvalid;
+
+template <typename TField>
+struct AdaptBasicFieldIgnoreInvalid<TField, true>
+{
+    typedef comms::field::adapter::IgnoreInvalid<TField> Type;
+};
+
+template <typename TField>
+struct AdaptBasicFieldIgnoreInvalid<TField, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts>
+using AdaptBasicFieldIgnoreInvalidT =
+    typename AdaptBasicFieldIgnoreInvalid<TField, TOpts::HasIgnoreInvalid>::Type;
 
 template <typename TBasic, typename... TOptions>
 class AdaptBasicField
@@ -213,8 +231,10 @@ class AdaptBasicField
         DefaultValueInitialiserAdapted, ParsedOptions> CustomValidatorAdapted;
     typedef AdaptBasicFieldFailOnInvalidT<
         CustomValidatorAdapted, ParsedOptions> FailOnInvalidAdapted;
+    typedef AdaptBasicFieldIgnoreInvalidT<
+        FailOnInvalidAdapted, ParsedOptions> IgnoreInvalidAdapted;
 public:
-    typedef FailOnInvalidAdapted Type;
+    typedef IgnoreInvalidAdapted Type;
 };
 
 template <typename TBasic, typename... TOptions>

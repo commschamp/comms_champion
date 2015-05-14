@@ -76,7 +76,7 @@ using SerialInfoQosField =
         std::uint8_t,
         comms::option::FixedLength<1>,
         comms::option::FixedBitLength<2>,
-        comms::option::ValidNumValueRange<0, 3>
+        comms::option::ValidNumValueRange<0, 2>
     >;
 
 template <typename TFieldBase>

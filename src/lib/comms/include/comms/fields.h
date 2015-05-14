@@ -25,6 +25,6 @@
 #include "field/String.h"
 #include "field/Bitfield.h"
 
-#include "field/adapter/adapters.h"
-#include "field/basic/basics.h"
+#include "field/adapters.h"
+#include "field/basics.h"
 

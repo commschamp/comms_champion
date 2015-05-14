@@ -19,7 +19,7 @@
 #pragma once
 
 #include "comms/field/category.h"
-#include "comms/field/adapter/adapters.h"
+#include "comms/field/adapters.h"
 #include "OptionsParser.h"
 
 namespace comms

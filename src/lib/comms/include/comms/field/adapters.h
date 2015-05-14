@@ -18,6 +18,11 @@
 
 #pragma once
 
-#include "IntValue.h"
-#include "ArrayList.h"
+#include "adapter/SerOffset.h"
+#include "adapter/FixedLength.h"
+#include "adapter/FixedBitLength.h"
+#include "adapter/VarLength.h"
+#include "adapter/SequenceSizeFieldPrefix.h"
+#include "adapter/DefaultValueInitialiser.h"
+#include "adapter/CustomValidator.h"
 

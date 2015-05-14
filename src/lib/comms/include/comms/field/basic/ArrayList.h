@@ -35,6 +35,37 @@ namespace field
 namespace basic
 {
 
+namespace details
+{
+
+template <typename TElemType, bool TIntegral>
+struct ArrayListFieldHasVarLengthHelper;
+
+template <typename TElemType>
+struct ArrayListFieldHasVarLengthHelper<TElemType, true>
+{
+    static const bool Value = false;
+};
+
+template <typename TElemType>
+struct ArrayListFieldHasVarLengthHelper<TElemType, false>
+{
+    static const bool Value = TElemType::minLength() != TElemType::maxLength();
+};
+
+template <typename TElemType>
+struct ArrayListFieldHasVarLength
+{
+    static const bool Value =
+        ArrayListFieldHasVarLengthHelper<
+            TElemType,
+            std::is_integral<TElemType>::value
+        >::Value;
+};
+
+
+}  // namespace details
+
 template <typename TFieldBase, typename TStorage>
 class ArrayList : public TFieldBase
 {
@@ -159,11 +190,10 @@ public:
         auto es = ErrorStatus::Success;
         auto remainingLen = len;
         for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            es = fieldIter->write(iter, remainingLen);
+            es = writeElement(*fieldIter, iter, remainingLen);
             if (es != ErrorStatus::Success) {
                 break;
             }
-            remainingLen -= fieldIter->length();
         }
 
         return es;
@@ -182,9 +212,9 @@ private:
     >::type ElemTag;
 
     typedef typename std::conditional<
-        (ElementType::minLength() == ElementType::maxLength()),
-        FixedLengthTag,
-        VarLengthTag
+        details::ArrayListFieldHasVarLength<ElementType>::Value,
+        VarLengthTag,
+        FixedLengthTag
     >::type FieldLengthTag;
 
     constexpr std::size_t lengthInternal(FieldElemTag) const
@@ -274,7 +304,7 @@ private:
             return ErrorStatus::BufferOverflow;
         }
 
-        elem = comms::util::writeData(elem, iter, Endian());
+        comms::util::writeData(elem, iter, Endian());
         len -= sizeof(ElementType);
         return ErrorStatus::Success;
     }

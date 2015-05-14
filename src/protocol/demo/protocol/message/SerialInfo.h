@@ -93,10 +93,12 @@ using SerialInfoFields =
     std::tuple<
         comms::field::String<
             TFieldBase,
-            comms::field::IntValue<
-                TFieldBase,
-                std::uint8_t,
-                comms::option::ValidNumValueRange<0, 32>
+            comms::option::SequenceSizeFieldPrefix<
+                comms::field::IntValue<
+                    TFieldBase,
+                    std::uint8_t,
+                    comms::option::ValidNumValueRange<0, 32>
+                >
             >
         >,
         comms::field::IntValue<

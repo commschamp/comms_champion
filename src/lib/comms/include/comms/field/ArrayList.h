@@ -25,6 +25,7 @@
 #include "comms/util/StaticQueue.h"
 #include "basic/ArrayList.h"
 #include "details/AdaptBasicField.h"
+#include "details/OptionsParser.h"
 
 namespace comms
 {

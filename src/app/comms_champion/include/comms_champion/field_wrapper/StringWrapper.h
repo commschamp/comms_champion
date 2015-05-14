@@ -90,7 +90,7 @@ protected:
     virtual QString getValueImpl() const override
     {
         auto& strField = Base::field();
-        return QString::fromUtf8(strField.getValue().c_str(), strField.size());
+        return QString::fromUtf8(strField.string().c_str(), strField.string().size());
     }
 
     virtual void setValueImpl(const QString& val) override
@@ -107,19 +107,41 @@ protected:
 
     virtual int maxSizeImpl() const override
     {
-        auto sizeField = Base::field().sizeField();
-        if (sizeof(int) <= sizeField.maxLength()) {
+        return maxSizeInternal(SizeExistanceTag());
+    }
+
+private:
+    struct SizeFieldExistsTag {};
+    struct NoSizeFieldTag {};
+
+    typedef typename Field::ParsedOptions FieldOptions;
+    typedef typename std::conditional<
+        FieldOptions::HasSequenceSizeFieldPrefix,
+        SizeFieldExistsTag,
+        NoSizeFieldTag
+    >::type SizeExistanceTag;
+
+    static int maxSizeInternal(SizeFieldExistsTag)
+    {
+        typedef typename FieldOptions::SequenceSizeFieldPrefix SizeField;
+        if (sizeof(int) <= SizeField::maxLength()) {
             return std::numeric_limits<int>::max();
         }
 
         auto shift =
-            sizeField.maxLength() * std::numeric_limits<std::uint8_t>::digits;
+            SizeField::maxLength() * std::numeric_limits<std::uint8_t>::digits;
 
         return static_cast<int>((1U << shift) - 1);
     }
 
-private:
-
+    int maxSizeInternal(NoSizeFieldTag) const
+    {
+        return
+            static_cast<int>(
+                std::min(
+                    static_cast<std::size_t>(std::numeric_limits<int>::max()),
+                    Base::field().string().max_size()));
+    }
 };
 
 using StringWrapperPtr = std::unique_ptr<StringWrapper>;

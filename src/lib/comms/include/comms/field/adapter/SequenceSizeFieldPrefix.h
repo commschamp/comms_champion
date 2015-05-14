@@ -37,11 +37,9 @@ class SequenceSizeFieldPrefix : public details::AdapterBaseT<TNext>
     typedef TSizeField SizeField;
 
 public:
-
     typedef typename Base::ValueType ValueType;
     typedef typename Base::ParamValueType ParamValueType;
     typedef typename Base::ElementType ElementType;
-
 
     SequenceSizeFieldPrefix() = default;
 

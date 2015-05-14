@@ -141,17 +141,9 @@ struct ContentsValidator
     typedef T Type;
 };
 
-template <typename T>
-struct InvalidValueBehaviour
-{
-    static_assert(
-        std::is_same<comms::traits::behaviour::UseValue, T>::value ||
-        std::is_same<comms::traits::behaviour::IgnoreValue, T>::value ||
-        std::is_same<comms::traits::behaviour::Fail, T>::value,
-        "Unexpected type for InvalidValueBehaviour option.");
+struct FailOnInvalid {};
 
-    typedef T Type;
-};
+struct IgnoreInvalid {};
 
 namespace details
 {

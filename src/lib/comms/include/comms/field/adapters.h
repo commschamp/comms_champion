@@ -25,4 +25,5 @@
 #include "adapter/SequenceSizeFieldPrefix.h"
 #include "adapter/DefaultValueInitialiser.h"
 #include "adapter/CustomValidator.h"
+#include "adapter/FailOnInvalid.h"
 

@@ -42,6 +42,8 @@ struct OptionsParser<>
     static const bool HasSequenceSizeFieldPrefix=false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
+    static const bool HasFailOnInvalid = false;
+    static const bool HasIgnoreInvalid = false;
     static const bool HasFixedSizeStorage = false;
 };
 
@@ -137,6 +139,18 @@ class OptionsParser<
 public:
     static const bool HasCustomValidator = true;
     typedef typename Option::Type CustomValidator;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::FailOnInvalid,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef OptionsParser<TOptions...> Base;
+    static_assert(!Base::HasIgnoreInvalid,
+        "Cannot mix FailOnInvalid and IgnoreInvalid options.");
+public:
+    static const bool HasFailOnInvalid = true;
 };
 
 template <std::size_t TSize, typename... TOptions>

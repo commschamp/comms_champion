@@ -60,6 +60,7 @@ public:
     void test28();
     void test29();
     void test30();
+    void test31();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1102,6 +1103,46 @@ void FieldsTestSuite::test30()
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(field.getValue(), 0x2);
     TS_ASSERT(field.valid());
+}
+
+void FieldsTestSuite::test31()
+{
+
+    typedef comms::field::Optional<
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint16_t,
+            comms::option::ValidNumValueRange<0, 10>
+        >
+    > Field;
+
+    typedef Field::Mode Mode;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.getValue(), 0U);
+    TS_ASSERT_EQUALS(field.getMode(), Mode::Tentative);
+
+    static const char Buf[] = {
+        0x0f, (char)0xf0
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    const auto* readIter = &Buf[0];
+    auto es = field.read(readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field.getValue(), 0xff0);
+    TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.getMode(), Mode::Exists);
+    field.setMode(Mode::Missing);
+
+    char bufTmp[16] = {0};
+    static const std::size_t BufTmpSize = std::extent<decltype(bufTmp)>::value;
+
+    auto writeIter = &bufTmp[0];
+    es = field.write(writeIter, BufTmpSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(writeIter, &bufTmp[0]);
 }
 
 template <typename TField>

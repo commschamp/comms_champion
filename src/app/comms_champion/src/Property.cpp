@@ -70,6 +70,17 @@ QVariant Property::getIndexedDataVal(QObject& obj, unsigned idx)
     return obj.property(indexedData(idx).toUtf8().data());
 }
 
+const char* Property::data()
+{
+    static const char* Str = "cc.data";
+    return Str;
+}
+
+void Property::setDataVal(QObject& obj, const QVariantMap& val)
+{
+    obj.setProperty(data(), QVariant::fromValue(val));
+}
+
 const char* Property::serialisedHidden()
 {
     static const char* Str = "cc.ser_hidden";

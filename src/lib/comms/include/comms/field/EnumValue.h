@@ -54,6 +54,8 @@ public:
     /// @brief Type of the stored value
     typedef TEnum ValueType;
 
+    typedef ValueType ParamValueType;
+
     /// @brief Underlying type
     typedef typename std::underlying_type<ValueType>::type UnderlyingType;
 
@@ -85,13 +87,13 @@ public:
     /// @brief Copy assignment is default
     EnumValue& operator=(const EnumValue&) = default;
 
-    constexpr const ValueType getValue() const
+    constexpr const ParamValueType getValue() const
     {
         return static_cast<ValueType>(intValue_.getValue());
     }
 
     /// @copydoc ComplexIntValue::setValue()
-    void setValue(ValueType value)
+    void setValue(ParamValueType value)
     {
         intValue_.setValue(static_cast<UnderlyingType>(value));
     }

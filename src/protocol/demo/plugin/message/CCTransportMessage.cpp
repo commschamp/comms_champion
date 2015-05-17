@@ -88,7 +88,8 @@ void CCTransportMessage::updateFieldPropertiesImpl(
         static const QString MsgNames[] = {
             "Heartbeat",
             "Status",
-            "Serial Info"
+            "Serial Info",
+            "Optional Test"
         };
 
         static const auto NumOfMsgNames = std::extent<decltype(MsgNames)>::value;

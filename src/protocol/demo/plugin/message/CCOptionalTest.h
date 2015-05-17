@@ -18,37 +18,40 @@
 
 #pragma once
 
-#include <cstdint>
 #include "comms/comms.h"
+#include "protocol/message/OptionalTest.h"
+#include "CCDemoMessage.h"
 
 namespace demo
+{
+
+namespace plugin
 {
 
 namespace message
 {
 
-enum MsgId
+class CCOptionalTest : public demo::message::OptionalTest<demo::plugin::CCDemoMessage>
 {
-    MsgId_Heartbeat,
-    MsgId_Status,
-    MsgId_SerialInfo,
-    MsgId_OptionalTest,
-    MsgId_NumOfMessages
+    using Base = demo::message::OptionalTest<demo::plugin::CCDemoMessage>;
+public:
+
+    CCOptionalTest() = default;
+    CCOptionalTest(const CCOptionalTest&) = default;
+    virtual ~CCOptionalTest() = default;
+
+    CCOptionalTest& operator=(const CCOptionalTest&) = default;
+
+protected:
+    virtual const char* nameImpl() const override;
+    virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
+    virtual void resetImpl() override;
+    virtual void assignImpl(const comms_champion::Message& other) override;
 };
 
-typedef std::tuple<
-    comms::option::MsgIdType<MsgId>,
-    comms::option::LittleEndian,
-    comms::option::ReadIterator<const std::uint8_t*>,
-    comms::option::WriteIterator<std::uint8_t*>
-> DemoDefaultTraits;
-
-template <typename... TOptions>
-using DemoMessageT = comms::Message<TOptions...>;
-
-using DemoMessage = DemoMessageT<DemoDefaultTraits>;
-
 }  // namespace message
+
+}  // namespace plugin
 
 }  // namespace demo
 

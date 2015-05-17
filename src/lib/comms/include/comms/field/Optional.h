@@ -93,9 +93,9 @@ public:
         field_.setValue(value);
     }
 
-    constexpr std::size_t length() const
+    std::size_t length() const
     {
-        if (mode_ != Mode::Exists) {
+        if (mode_ == Mode::Missing) {
             return 0U;
         }
 

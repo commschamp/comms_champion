@@ -10,6 +10,7 @@ function (plugin_demo)
         message/CCHeartbeat.cpp
         message/CCStatus.cpp
         message/CCSerialInfo.cpp
+        message/CCOptionalTest.cpp
     )
     
     set (hdr

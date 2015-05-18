@@ -39,6 +39,7 @@ public:
     static QVariant getIndexedDataVal(QObject& obj, unsigned idx);
     static const char* data();
     static void setDataVal(QObject& obj, const QVariantMap& val);
+    static QVariant getDataVal(QObject& obj);
     static const char* serialisedHidden();
     static void setSerialisedHiddenVal(QObject& obj, bool val);
     static QVariant getSerialisedHiddenVal(QObject& obj);

@@ -40,6 +40,7 @@ function (bin_comms_champion)
         widget/field/EnumValueFieldWidget.cpp
         widget/field/StringFieldWidget.cpp
         widget/field/BitfieldFieldWidget.cpp
+        widget/field/OptionalFieldWidget.cpp
         widget/field/UnknownValueFieldWidget.cpp
     )
     
@@ -64,6 +65,7 @@ function (bin_comms_champion)
         widget/field/EnumValueFieldWidget.h
         widget/field/StringFieldWidget.h
         widget/field/BitfieldFieldWidget.h
+        widget/field/OptionalFieldWidget.h
         widget/field/UnknownValueFieldWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      
@@ -86,6 +88,7 @@ function (bin_comms_champion)
         ui/EnumValueFieldWidget.ui
         ui/StringFieldWidget.ui
         ui/BitfieldFieldWidget.ui
+        ui/OptionalFieldWidget.ui
         ui/UnknownValueFieldWidget.ui
     )
     

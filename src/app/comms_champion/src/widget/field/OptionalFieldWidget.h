@@ -21,27 +21,27 @@
 #include <vector>
 
 #include "comms_champion/FieldWidget.h"
-#include "comms_champion/field_wrapper/BitfieldWrapper.h"
+#include "comms_champion/field_wrapper/OptionalWrapper.h"
 
-#include "ui_BitfieldFieldWidget.h"
+#include "ui_OptionalFieldWidget.h"
 
 namespace comms_champion
 {
 
-class BitfieldFieldWidget : public FieldWidget
+class OptionalFieldWidget : public FieldWidget
 {
     Q_OBJECT
     typedef FieldWidget Base;
 public:
-    using WrapperPtr = field_wrapper::BitfieldWrapperPtr;
+    using WrapperPtr = field_wrapper::OptionalWrapperPtr;
 
-    explicit BitfieldFieldWidget(
-        WrapperPtr&& wrapper,
+    explicit OptionalFieldWidget(
+        WrapperPtr wrapper,
         QWidget* parent = nullptr);
 
-    ~BitfieldFieldWidget();
+    ~OptionalFieldWidget();
 
-    void addMemberField(FieldWidget* memberFieldWidget);
+    void setField(FieldWidget* fieldWidget);
 
 protected:
     virtual void refreshImpl() override;
@@ -49,20 +49,20 @@ protected:
     virtual void propertiesUpdatedImpl() override;
 
 private slots:
-    void serialisedValueUpdated(const QString& value);
-    void memberFieldUpdated();
+    void fieldUpdated();
+    void availabilityChanged(int state);
 
 private:
-    using WrapperType = typename WrapperPtr::element_type;
-    using UnderlyingType = typename WrapperType::UnderlyingType;
+    using WrapperType = WrapperPtr::element_type;
+    typedef WrapperType::Mode Mode;
 
     void refreshInternal();
-    void refreshMembers();
-    void updateMemberProperties(std::size_t idx);
+    void refreshField();
+    void updateFieldProperties();
 
-    Ui::BitfieldFieldWidget m_ui;
+    Ui::OptionalFieldWidget m_ui;
     WrapperPtr m_wrapper;
-    std::vector<FieldWidget*> m_members;
+    FieldWidget* m_field = nullptr;
 };
 
 

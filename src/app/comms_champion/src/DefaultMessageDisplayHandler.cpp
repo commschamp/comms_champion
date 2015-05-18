@@ -26,6 +26,7 @@
 #include "widget/field/EnumValueFieldWidget.h"
 #include "widget/field/StringFieldWidget.h"
 #include "widget/field/BitfieldFieldWidget.h"
+#include "widget/field/OptionalFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -86,6 +87,15 @@ DefaultMessageDisplayHandler::createBitfieldFieldWidget(
 }
 
 DefaultMessageDisplayHandler::FieldWidgetPtr
+DefaultMessageDisplayHandler::createOptionalFieldWidget(
+    field_wrapper::OptionalWrapperPtr fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new OptionalFieldWidget(std::move(fieldWrapper)));
+}
+
+DefaultMessageDisplayHandler::FieldWidgetPtr
 DefaultMessageDisplayHandler::createUnknownValueFieldWidget(
     field_wrapper::UnknownValueWrapperPtr&& fieldWrapper)
 {
@@ -105,6 +115,19 @@ void DefaultMessageDisplayHandler::bitfieldWidgetAddMember(
     }
 
     castedBitfieldWidget->addMemberField(memberFieldWidget.release());
+}
+
+void DefaultMessageDisplayHandler::optionalWidgetSetField(
+    FieldWidget& optionalWidget,
+    FieldWidgetPtr fieldWidget)
+{
+    auto* castedOptionalFieldWidget = dynamic_cast<OptionalFieldWidget*>(&optionalWidget);
+    if (castedOptionalFieldWidget == nullptr) {
+        assert(!"Wrong cast, expected optional widget");
+        return;
+    }
+
+    castedOptionalFieldWidget->setField(fieldWidget.release());
 }
 
 void DefaultMessageDisplayHandler::updateFieldIdxProperty(

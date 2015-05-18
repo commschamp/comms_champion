@@ -19,12 +19,21 @@
 #pragma once
 
 #include "comms/Assert.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
 
 namespace field
 {
+
+enum class OptionalMode
+{
+    Tentative,
+    Exists,
+    Missing,
+    NumOfModes // Must be last
+};
 
 template <typename TField>
 class Optional
@@ -33,13 +42,7 @@ public:
     typedef TField Field;
     typedef typename Field::ParamValueType ParamValueType;
 
-    enum class Mode
-    {
-        Tentative,
-        Exists,
-        Missing,
-        NumOfModes // Must be last
-    };
+    typedef OptionalMode Mode;
 
     Optional() = default;
 

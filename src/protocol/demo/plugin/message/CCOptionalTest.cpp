@@ -88,7 +88,7 @@ void CCOptionalTest::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) c
     }
     else if (idx == FieldId_OptInt) {
         QVariantMap map;
-        map.insert(cc::Property::name(), QVariant::fromValue(QString("Opt enum")));
+        map.insert(cc::Property::name(), QVariant::fromValue(QString("Opt int")));
         cc::Property::setDataVal(fieldWidget, map);
     }
 }

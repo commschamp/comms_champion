@@ -81,6 +81,11 @@ void Property::setDataVal(QObject& obj, const QVariantMap& val)
     obj.setProperty(data(), QVariant::fromValue(val));
 }
 
+QVariant Property::getDataVal(QObject& obj)
+{
+    return obj.property(data());
+}
+
 const char* Property::serialisedHidden()
 {
     static const char* Str = "cc.ser_hidden";

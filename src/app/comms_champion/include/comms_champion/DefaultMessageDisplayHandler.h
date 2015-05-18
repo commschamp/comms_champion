@@ -33,6 +33,7 @@
 #include "comms_champion/field_wrapper/EnumValueWrapper.h"
 #include "comms_champion/field_wrapper/StringWrapper.h"
 #include "comms_champion/field_wrapper/BitfieldWrapper.h"
+#include "comms_champion/field_wrapper/OptionalWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -46,6 +47,7 @@ struct BitmaskValueTag {};
 struct EnumValueTag {};
 struct StringTag {};
 struct BitfieldTag {};
+struct OptionalTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -55,8 +57,14 @@ struct TagOf
         "IntValue is perceived as unknown type");
     static_assert(!comms::field::isBitmaskValue<TField>(),
         "BitmaskValue is perceived as unknown type");
+    static_assert(!comms::field::isEnumValue<TField>(),
+        "EnumValue is perceived as unknown type");
     static_assert(!comms::field::isString<TField>(),
         "String is perceived as unknown type");
+    static_assert(!comms::field::isBitfield<TField>(),
+        "Bitfield is perceived as unknown type");
+    static_assert(!comms::field::isOptional<TField>(),
+        "Optional is perceived as unknown type");
     typedef UnknownValueTag Type;
 };
 
@@ -110,6 +118,16 @@ struct TagOf<comms::field::Bitfield<TArgs...> >
     typedef BitfieldTag Type;
 };
 
+template <typename... TArgs>
+struct TagOf<comms::field::Optional<TArgs...> >
+{
+    static_assert(
+        comms::field::isOptional<comms::field::Optional<TArgs...> >(),
+        "isOptional is supposed to return true");
+
+    typedef OptionalTag Type;
+};
+
 template <typename TField>
 using TagOfT = typename TagOf<TField>::Type;
 
@@ -146,6 +164,7 @@ private:
     using EnumValueTag = details::EnumValueTag;
     using StringTag = details::StringTag;
     using BitfieldTag = details::BitfieldTag;
+    using OptionalTag = details::OptionalTag;
     using UnknownValueTag = details::UnknownValueTag;
 
     template <typename TCreateWidgetHandler>
@@ -234,6 +253,25 @@ private:
     }
 
     template <typename TField>
+    FieldWidgetPtr createFieldWidget(TField& field, OptionalTag)
+    {
+        auto widget = createOptionalFieldWidget(
+            field_wrapper::makeOptionalWrapper(field));
+
+        auto wrappedOptField = std::forward_as_tuple(field.field());
+        comms::util::tupleForEach(
+            wrappedOptField,
+            makeFieldsDisplayDispatcher(
+                *this,
+                [this, &widget](FieldWidgetPtr&& fieldWidget)
+                {
+                    optionalWidgetSetField(*widget, std::move(fieldWidget));
+                }));
+
+        return std::move(widget);
+    }
+
+    template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -255,10 +293,17 @@ private:
     FieldWidgetPtr createBitfieldFieldWidget(
         field_wrapper::BitfieldWrapperPtr&& fieldWrapper);
 
+    FieldWidgetPtr createOptionalFieldWidget(
+        field_wrapper::OptionalWrapperPtr fieldWrapper);
+
     FieldWidgetPtr createUnknownValueFieldWidget(
         field_wrapper::UnknownValueWrapperPtr&& fieldWrapper);
 
     void bitfieldWidgetAddMember(
+        FieldWidget& optionalWidget,
+        FieldWidgetPtr fieldWidget);
+
+    void optionalWidgetSetField(
         FieldWidget& bitfieldWidget,
         FieldWidgetPtr memberFieldWidget);
 

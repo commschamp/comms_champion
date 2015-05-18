@@ -96,7 +96,13 @@ void OptionalFieldWidget::availabilityChanged(int state)
     else {
         mode = Mode::Exists;
     }
+
     if (mode == m_wrapper->getMode()) {
+        return;
+    }
+
+    if (!isEditEnabled()) {
+        refreshInternal();
         return;
     }
 

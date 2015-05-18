@@ -70,6 +70,11 @@ class OptionalTest : public
         comms::option::DispatchImpl<OptionalTest<TMsgBase> >
     >
 {
+    typedef comms::MessageBase<
+        TMsgBase,
+        comms::option::StaticNumIdImpl<MsgId_OptionalTest>,
+        comms::option::FieldsImpl<OptionalTestFields<typename TMsgBase::Field> >,
+        comms::option::DispatchImpl<OptionalTest<TMsgBase> > >Base;
 public:
     enum FieldId {
         FieldId_Flags,
@@ -77,6 +82,54 @@ public:
         FieldId_OptInt,
         FieldId_NumOfFields
     };
+
+    OptionalTest()
+    {
+        auto& fields = Base::getFields();
+        auto& optEnumField = std::get<FieldId_OptEnum>(fields);
+        auto& optIntField = std::get<FieldId_OptInt>(fields);
+
+        optEnumField.setMode(comms::field::OptionalMode::Missing);
+        optIntField.setMode(comms::field::OptionalMode::Missing);
+    }
+
+protected:
+    virtual bool validImpl() const override
+    {
+        if (!Base::validImpl()) {
+            return false;
+        }
+
+        auto& fields = Base::getFields();
+        auto& flagsField = std::get<FieldId_Flags>(fields);
+        auto& optEnumField = std::get<FieldId_OptEnum>(fields);
+        auto& optIntField = std::get<FieldId_OptInt>(fields);
+
+        auto mask = flagsField.getValue();
+        bool enumExists = ((mask & 0x1) != 0);
+        if ((enumExists) &&
+            (optEnumField.getMode() != comms::field::OptionalMode::Exists)) {
+            return false;
+        }
+
+        if ((!enumExists) &&
+            (optEnumField.getMode() != comms::field::OptionalMode::Missing)) {
+            return false;
+        }
+
+        bool intExists = ((mask & 0x2) != 0);
+        if ((intExists) &&
+            (optIntField.getMode() != comms::field::OptionalMode::Exists)) {
+            return false;
+        }
+
+        if ((!intExists) &&
+            (optIntField.getMode() != comms::field::OptionalMode::Missing)) {
+            return false;
+        }
+
+        return true;
+    }
 };
 
 }  // namespace message

@@ -102,7 +102,24 @@ void MsgListWidget::updateCurrentMessage()
 
     auto msgInfo = getMsgFromItem(item);
     assert(msgInfo);
-    item->setText(getMsgNameText(std::move(msgInfo)));
+    item->setText(getMsgNameText(msgInfo));
+
+    bool valid = false;
+    auto appMsgPtr = msgInfo->getAppMessage();
+    if (appMsgPtr) {
+        valid = appMsgPtr->isValid();
+    }
+
+    auto typeVar =
+        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
+    if (typeVar.isValid()) {
+        assert(typeVar.canConvert<int>());
+        auto type = static_cast<MsgType>(typeVar.value<int>());
+        item->setForeground(getItemColourImpl(type, valid));
+    }
+    else {
+        item->setForeground(defaultItemColour(valid));
+    }
 }
 
 void MsgListWidget::deleteCurrentMessage()

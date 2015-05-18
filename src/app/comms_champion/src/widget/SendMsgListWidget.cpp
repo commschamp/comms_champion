@@ -30,7 +30,8 @@ namespace comms_champion
 {
 
 SendMsgListWidget::SendMsgListWidget(QWidget* parent)
-  : Base("Messages to Send", new SendAreaToolBar(), parent)
+  : Base("Messages to Send", new SendAreaToolBar(), parent),
+    m_state(GuiAppMgr::instanceRef().sendState())
 {
     selectOnAdd(true);
 
@@ -84,6 +85,9 @@ void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
 
 void SendMsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx)
 {
+    if (m_state != State::Idle) {
+        return;
+    }
     GuiAppMgr::instance()->sendMsgDoubleClicked(std::move(msgInfo), idx);
 }
 
@@ -128,14 +132,13 @@ const QString& SendMsgListWidget::msgTooltipImpl() const
 
 void SendMsgListWidget::stateChangedImpl(int state)
 {
-    typedef GuiAppMgr::SendState State;
-    auto castedState = static_cast<State>(state);
-    assert(castedState < State::NumOfStates);
-    if (static_cast<State>(state) == State::Idle) {
+    m_state = static_cast<State>(state);
+    assert(m_state < State::NumOfStates);
+    if (m_state == State::Idle) {
         return;
     }
 
-    if (static_cast<State>(state) == State::SendingSingle) {
+    if (m_state == State::SendingSingle) {
         auto msgInfo = currentMsg();
         assert(msgInfo);
         MsgInfosList allMsgsList;
@@ -144,7 +147,7 @@ void SendMsgListWidget::stateChangedImpl(int state)
         return;
     }
 
-    assert(static_cast<State>(state) == State::SendingAll);
+    assert(m_state == State::SendingAll);
     auto allMsgsList = allMsgs();
     assert(!allMsgsList.empty());
     GuiAppMgr::instanceRef().sendMessages(std::move(allMsgsList));

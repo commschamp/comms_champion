@@ -262,20 +262,20 @@ void SendAreaToolBar::refreshStartStopButton()
 {
     auto* button = m_startStopButton;
     assert(button);
-    bool enabled =
-        (m_activeState == ActivityState::Active) &&
-        (!listEmpty()) &&
-        (msgSelected()) &&
-        ((m_state == State::SendingSingle) || (m_state == State::Idle));
-    button->setEnabled(enabled);
-
     if (m_state == State::SendingSingle) {
         button->setIcon(icon::stop());
         button->setText(StopTooltip);
+        button->setEnabled(true);
     }
     else {
         button->setIcon(icon::start());
         button->setText(StartTooltip);
+        bool enabled =
+            (m_activeState == ActivityState::Active) &&
+            (!listEmpty()) &&
+            (msgSelected()) &&
+            (m_state == State::Idle);
+        button->setEnabled(enabled);
     }
 }
 
@@ -283,20 +283,21 @@ void SendAreaToolBar::refreshStartStopAllButton()
 {
     auto* button = m_startStopAllButton;
     assert(button);
-    bool enabled =
-        (m_activeState == ActivityState::Active) &&
-        (!listEmpty()) &&
-        ((m_state == State::SendingAll) || (m_state == State::Idle));
-
-    button->setEnabled(enabled);
-
     if (m_state == State::SendingAll) {
         button->setIcon(icon::stop());
         button->setText(StopTooltip);
+        button->setEnabled(true);
     }
     else {
         button->setIcon(icon::startAll());
         button->setText(StartAllTooltip);
+        bool enabled =
+            (m_activeState == ActivityState::Active) &&
+            (!listEmpty()) &&
+            (m_state == State::Idle);
+
+        button->setEnabled(enabled);
+
     }
 }
 

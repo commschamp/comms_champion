@@ -28,3 +28,4 @@
 #include "MessageWidget.h"
 #include "MessageInfo.h"
 #include "Property.h"
+#include "ProtocolMessageBase.h"

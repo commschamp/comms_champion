@@ -194,6 +194,16 @@ private:
     bool allocated_ = false;
 };
 
+template <typename TField,
+          typename TAllMessages,
+          typename TNextLayer,
+          typename... TOptions>
+class MsgIdLayerBase<
+    TField, TAllMessages, TNextLayer, std::tuple<TOptions...> > :
+    public MsgIdLayerBase<TField, TAllMessages, TNextLayer, TOptions...>
+{
+};
+
 }  // namespace details
 
 }  // namespace protocol

@@ -22,6 +22,7 @@
 #include <cassert>
 #include <iterator>
 #include <algorithm>
+#include <vector>
 
 #include "comms/comms.h"
 
@@ -31,13 +32,22 @@
 namespace comms_champion
 {
 
-template <typename... TOptions>
+template <template<typename...> class TMessageBase, typename... TOptions>
 class MessageBase :
         public Message,
-        public comms::Message<TOptions..., comms::option::Handler<DefaultMessageDisplayHandler> >
+        public TMessageBase<
+            comms::option::ReadIterator<const std::uint8_t*>,
+            comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
+            comms::option::Handler<DefaultMessageDisplayHandler>,
+            TOptions...>
 {
     using CCBase = Message;
-    using CommsBase = comms::Message<TOptions..., comms::option::Handler<DefaultMessageDisplayHandler> >;
+    using CommsBase =
+        TMessageBase<
+            comms::option::ReadIterator<const std::uint8_t*>,
+            comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
+            comms::option::Handler<DefaultMessageDisplayHandler>,
+            TOptions...>;
 public:
     typedef typename CommsBase::Handler Handler;
 
@@ -45,8 +55,17 @@ public:
     MessageBase(const MessageBase&) = default;
     MessageBase(MessageBase&&) = default;
     ~MessageBase() = default;
-    MessageBase& operator=(const MessageBase&) = default;
-    MessageBase& operator=(MessageBase&&) = default;
+    MessageBase& operator=(const MessageBase& other)
+    {
+        CommsBase::operator=(other);
+        return *this;
+    }
+
+    MessageBase& operator=(MessageBase&& other)
+    {
+        CommsBase::operator=(std::move(other));
+        return *this;
+    }
 protected:
     virtual void displayImpl(MessageDisplayHandler& handler) override
     {

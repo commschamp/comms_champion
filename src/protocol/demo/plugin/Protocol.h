@@ -45,10 +45,6 @@ public:
 
 protected:
     virtual const std::string& nameImpl() const override;
-
-    virtual MessagesList createAllMessagesImpl() override;
-
-    virtual comms_champion::MessageInfoPtr createMessageImpl(const QString& idAsString) override;
 };
 
 }  // namespace plugin

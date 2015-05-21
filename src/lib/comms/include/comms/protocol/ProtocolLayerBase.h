@@ -32,6 +32,29 @@ namespace comms
 namespace protocol
 {
 
+namespace details
+{
+
+template <class T, class R = void>
+struct EnableIfHasAllMessages { typedef R Type; };
+
+template <class T, class Enable = void>
+struct AllMessagesHelper
+{
+    typedef void Type;
+};
+
+template <class T>
+struct AllMessagesHelper<T, typename EnableIfHasAllMessages<typename T::AllMessages>::Type>
+{
+    typedef typename T::AllMessages Type;
+};
+
+template <class T>
+using AllMessagesType = typename AllMessagesHelper<T>::Type;
+
+}  // namespace details
+
 template <typename TField, typename TNextLayer, typename TDerived>
 class ProtocolLayerBase
 {
@@ -47,6 +70,8 @@ public:
                 std::declval<typename TNextLayer::AllFields>())
             )
         >::type AllFields;
+
+    typedef details::AllMessagesType<NextLayer> AllMessages;
 
     typedef typename NextLayer::MsgPtr MsgPtr;
 

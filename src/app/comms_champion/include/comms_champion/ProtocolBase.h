@@ -23,6 +23,7 @@
 
 #include "comms_champion/ErrorStatus.h"
 #include "comms/util/ScopeGuard.h"
+#include "comms/util/Tuple.h"
 
 #include "Protocol.h"
 #include "MessageInfo.h"
@@ -40,7 +41,18 @@ protected:
     typedef TTransportMsg TransportMsg;
     typedef TRawDataMsg RawDataMsg;
     typedef typename ProtocolStack::Message Message;
+    typedef typename Message::MsgIdType MsgIdType;
     typedef typename Message::MsgIdParamType MsgIdParamType;
+    typedef typename ProtocolStack::AllMessages AllMessages;
+
+    static_assert(
+        !std::is_void<AllMessages>::value,
+        "AllMessages must be a normal type");
+
+    static_assert(
+        comms::util::IsTuple<AllMessages>::Value,
+        "AllMessages is expected to be a tuple.");
+
 
     virtual MessagesList readImpl(const DataInfo& dataInfo)
     {
@@ -316,8 +328,109 @@ protected:
         return msgInfo;
     }
 
+    virtual MessagesList createAllMessagesImpl() override
+    {
+        MessagesList allMsgs;
+        comms::util::tupleForEachType<AllMessages>(AllMsgsCreateHelper(allMsgs));
+        for (auto& msgInfoPtr : allMsgs) {
+            updateMessageInfo(*msgInfoPtr);
+        }
+        return allMsgs;
+    }
+
+    virtual MessageInfoPtr createMessageImpl(const QString& idAsString) override
+    {
+        return createMessageInternal(idAsString, MsgIdTypeTag());
+    }
 
 private:
+    struct NumericIdTag {};
+    struct OtherIdTag {};
+
+    typedef typename std::conditional<
+        (std::is_enum<MsgIdType>::value || std::is_integral<MsgIdType>::value),
+        NumericIdTag,
+        OtherIdTag
+    >::type MsgIdTypeTag;
+
+    class AllMsgsCreateHelper
+    {
+    public:
+        AllMsgsCreateHelper(MessagesList& allMsgs)
+          : m_allMsgs(allMsgs)
+        {
+        }
+
+        template <typename TMsg>
+        void operator()()
+        {
+            MessageInfo::MessagePtr msgPtr(new TMsg());
+            auto msgInfo = makeMessageInfo();
+            assert(msgInfo);
+            msgInfo->setAppMessage(std::move(msgPtr));
+            m_allMsgs.push_back(std::move(msgInfo));
+        }
+
+    private:
+        MessagesList& m_allMsgs;
+    };
+
+    class MsgCreateHelper
+    {
+    public:
+        MsgCreateHelper(const QString& id, MessageInfoPtr& msgInfo)
+          : m_id(id),
+            m_msgInfo(msgInfo)
+        {
+        }
+
+        template <typename TMsg>
+        void operator()()
+        {
+            if (m_msgInfo) {
+                return;
+            }
+
+            MessageInfo::MessagePtr msgPtr(new TMsg());
+            if (m_id == msgPtr->idAsString()) {
+                m_msgInfo = makeMessageInfo();
+                m_msgInfo->setAppMessage(std::move(msgPtr));
+            }
+        }
+
+    private:
+        const QString& m_id;
+        MessageInfoPtr& m_msgInfo;
+    };
+
+    MessageInfoPtr createMessageInternal(const QString& idAsString, NumericIdTag)
+    {
+        MessageInfoPtr result;
+        do {
+            bool ok = false;
+            int numId = idAsString.toInt(&ok, 10);
+            if (!ok) {
+                numId = idAsString.toInt(&ok, 16);
+                if (!ok) {
+                    break;
+                }
+            }
+
+            result = createMessage(static_cast<MsgIdType>(numId));
+        } while (false);
+        return result;
+    }
+
+    MessageInfoPtr createMessageInternal(const QString& idAsString, OtherIdTag)
+    {
+        MessageInfoPtr result;
+        comms::util::tupleForEachType(MsgCreateHelper(idAsString, result));
+        if (result) {
+            updateMessageInfo(*result);
+        }
+        return result;
+    }
+
     ProtocolStack m_protStack;
     std::vector<std::uint8_t> m_data;
     std::vector<std::uint8_t> m_garbage;

@@ -40,41 +40,6 @@ const std::string& Protocol::nameImpl() const
     return Name;
 }
 
-Protocol::MessagesList Protocol::createAllMessagesImpl()
-{
-    MessagesList allInfos;
-
-    for (auto idx = 0; idx < demo::message::MsgId_NumOfMessages; ++idx) {
-        auto id = static_cast<demo::message::MsgId>(idx);
-        auto msgInfo = createMessage(id);
-        allInfos.push_back(std::move(msgInfo));
-    }
-    return allInfos;
-}
-
-cc::MessageInfoPtr Protocol::createMessageImpl(const QString& idAsString)
-{
-    cc::MessageInfoPtr result;
-    do {
-        bool ok = false;
-        int numId = idAsString.toInt(&ok, 10);
-        if (!ok) {
-            numId = idAsString.toInt(&ok, 16);
-            if (!ok) {
-                break;
-            }
-        }
-
-        if ((numId < 0) ||
-            (demo::message::MsgId_NumOfMessages <= numId)) {
-            break;
-        }
-
-        result = createMessage(static_cast<demo::message::MsgId>(numId));
-    } while (false);
-    return result;
-}
-
 }  // namespace plugin
 
 }  // namespace demo

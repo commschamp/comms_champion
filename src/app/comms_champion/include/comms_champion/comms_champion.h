@@ -29,3 +29,4 @@
 #include "MessageInfo.h"
 #include "Property.h"
 #include "ProtocolMessageBase.h"
+#include "TransportMessageBase.h"

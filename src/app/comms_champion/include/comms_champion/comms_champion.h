@@ -23,6 +23,7 @@
 #include "MessageBase.h"
 #include "ErrorStatus.h"
 #include "Protocol.h"
+#include "ProtocolBase.h"
 #include "PluginControlInterface.h"
 #include "Plugin.h"
 #include "MessageWidget.h"
@@ -30,3 +31,4 @@
 #include "Property.h"
 #include "ProtocolMessageBase.h"
 #include "TransportMessageBase.h"
+#include "RawDataMessage.h"

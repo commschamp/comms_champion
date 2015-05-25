@@ -56,14 +56,6 @@ struct MsgFactoryCreateHelper<0>
     static void create(TMethodsRegistry& registry)
     {
         static_cast<void>(registry);
-        typedef typename std::decay<decltype(registry)>::type RegistryType;
-        typedef typename RegistryType::value_type MethodPtr;
-        GASSERT(
-            std::is_sorted(registry.begin(), registry.end(),
-                [](MethodPtr methodPtr1, MethodPtr methodPtr2) -> bool
-                {
-                    return methodPtr1->getId() < methodPtr2->getId();
-                }));
     }
 };
 
@@ -119,18 +111,25 @@ public:
     MsgFactory()
     {
         initRegistryInternal(MethodTypeTag());
+        GASSERT(
+            std::is_sorted(registry_.begin(), registry_.end(),
+                [](FactoryMethod* methodPtr1, FactoryMethod* methodPtr2) -> bool
+                {
+                    GASSERT(methodPtr1 != nullptr);
+                    GASSERT(methodPtr2 != nullptr);
+                    return methodPtr1->getId() < methodPtr2->getId();
+                }));
     }
 
     MsgPtr createMsg(MsgIdParamType id) const
     {
         auto iter =
             std::lower_bound(
-                registry_.begin(), registry_.end(),
-                [](FactoryMethod* method1, FactoryMethod* method2) -> bool
+                registry_.begin(), registry_.end(), id,
+                [](FactoryMethod* method1, MsgIdParamType idParam) -> bool
                 {
                     GASSERT(method1 != nullptr);
-                    GASSERT(method2 != nullptr);
-                    return method1->getId() < method2->getId();
+                    return method1->getId() < idParam;
                 });
 
         if ((iter == registry_.end()) ||
@@ -139,6 +138,25 @@ public:
         }
 
         return (*iter)->create(*this);
+    }
+
+    bool msgRegistered(MsgIdParamType id) const
+    {
+        auto iter =
+            std::lower_bound(
+                registry_.begin(), registry_.end(), id,
+                [](FactoryMethod* method1, MsgIdParamType idParam) -> bool
+                {
+                    GASSERT(method1 != nullptr);
+                    return method1->getId() < idParam;
+                });
+
+        if ((iter == registry_.end()) ||
+            ((*iter)->getId() != id)) {
+            return false;
+        }
+
+        return true;
     }
 
 private:
@@ -152,7 +170,7 @@ private:
             return getIdImpl();
         }
 
-        MsgPtr create(MsgFactory& factory) const
+        MsgPtr create(const MsgFactory& factory) const
         {
             return createImpl(factory);
         }
@@ -161,7 +179,7 @@ private:
         FactoryMethod() = default;
 
         virtual MsgIdParamType getIdImpl() const = 0;
-        virtual MsgPtr createImpl(MsgFactory& factory) const = 0;
+        virtual MsgPtr createImpl(const MsgFactory& factory) const = 0;
     };
 
     template <typename TMessage>
@@ -176,7 +194,7 @@ private:
             return static_cast<MsgIdParamType>(MsgId);
         }
 
-        virtual MsgPtr createImpl(MsgFactory& factory) const
+        virtual MsgPtr createImpl(const MsgFactory& factory) const
         {
             return factory.template allocMsg<Message>();
         }
@@ -200,7 +218,7 @@ private:
             return id_;
         }
 
-        virtual MsgPtr createImpl(MsgFactory& factory) const
+        virtual MsgPtr createImpl(const MsgFactory& factory) const
         {
             return factory.template allocMsg<Message>();
         }

@@ -46,7 +46,7 @@ protected:
     MsgFactoryBase() = default;
 
     template <typename TObj, typename... TArgs>
-    MsgPtr allocMsg(TArgs&&... args)
+    MsgPtr allocMsg(TArgs&&... args) const
     {
         static_assert(std::is_base_of<Message, TObj>::value,
             "TObj is not a proper message type");
@@ -137,7 +137,7 @@ protected:
     MsgFactoryBase() = default;
 
     template <typename TObj, typename... TArgs>
-    MsgPtr allocMsg(TArgs&&... args)
+    MsgPtr allocMsg(TArgs&&... args) const
     {
         if (allocated_) {
             return MsgPtr();
@@ -161,8 +161,8 @@ protected:
 private:
     typedef typename comms::util::TupleAsAlignedUnion<TAllMessages>::Type AlignedStorage;
 
-    AlignedStorage place_;
-    bool allocated_ = false;
+    mutable AlignedStorage place_;
+    mutable bool allocated_ = false;
 };
 
 

@@ -29,8 +29,8 @@
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
 #include "ProtocolLayerBase.h"
-#include "details/MsgIdLayerBase.h"
 #include "comms/fields.h"
+#include "comms/MsgFactory.h"
 
 namespace comms
 {
@@ -38,161 +38,25 @@ namespace comms
 namespace protocol
 {
 
-namespace details
-{
-
-template <std::size_t TEndIdx, typename TAllMessages>
-struct AreMessagesSorted
-{
-    typedef typename std::tuple_element<TEndIdx - 2, TAllMessages>::type FirstElemType;
-    typedef typename std::tuple_element<TEndIdx - 1, TAllMessages>::type SecondElemType;
-
-    static const bool Value =
-        ((FirstElemType::MsgId < SecondElemType::MsgId) &&
-         (AreMessagesSorted<TEndIdx - 1, TAllMessages>::Value));
-};
-
-template <typename TAllMessages>
-struct AreMessagesSorted<1, TAllMessages>
-{
-    static const bool Value = true;
-};
-
-template <typename TAllMessages>
-struct AreMessagesSorted<0, TAllMessages>
-{
-    static const bool Value = true;
-};
-
-template <std::size_t TSize, bool TIsNumeric>
-struct MsgFactoryCreator
-{
-    template <typename TAllMessages,
-              template <class> class TFactory,
-              typename TFactories>
-    static void create(TFactories& factories)
-    {
-        static const std::size_t Idx = TSize - 1;
-        MsgFactoryCreator<Idx, TIsNumeric>::template
-                            create<TAllMessages, TFactory>(factories);
-
-        typedef typename std::tuple_element<Idx, TAllMessages>::type Message;
-        static TFactory<Message> factory;
-        factories[Idx] = &factory;
-    }
-};
-
-template <>
-struct MsgFactoryCreator<0, true>
-{
-    template <typename TAllMessages,
-              template <class> class TFactory,
-              typename TFactories>
-    static void create(TFactories& factories)
-    {
-        static_cast<void>(factories);
-        static const std::size_t NumOfMsgs = std::tuple_size<TAllMessages>::value;
-        static_assert(AreMessagesSorted<NumOfMsgs, TAllMessages>::Value,
-            "All the message types in the bundle must be sorted in ascending order "
-            "based on their MsgId");
-
-    }
-};
-
-template <>
-struct MsgFactoryCreator<0, false>
-{
-    template <typename TAllMessages,
-              template <class> class TFactory,
-              typename TFactories>
-    static void create(TFactories& factories)
-    {
-        GASSERT(std::is_sorted(factories.begin(), factories.end()));
-    }
-};
-
-template <typename TOption>
-struct IsNumIdImplOpt
-{
-    static const bool Value = false;
-};
-
-template <long long int TId>
-struct IsNumIdImplOpt<comms::option::StaticNumIdImpl<TId> >
-{
-    static const bool Value = true;
-};
-
-template <typename TOptions>
-struct HasNumIdImplOpt;
-
-template <typename TFirst, typename... TRest>
-struct HasNumIdImplOpt<std::tuple<TFirst, TRest...> >
-{
-    static const bool Value =
-        IsNumIdImplOpt<TFirst>::Value ||
-        HasNumIdImplOpt<std::tuple<TRest...> >::Value;
-};
-
-template <>
-struct HasNumIdImplOpt<std::tuple<> >
-{
-    static const bool Value = false;
-};
-
-template <typename TMessage>
-struct HasStaticId
-{
-    static const bool Value = HasNumIdImplOpt<typename TMessage::AllOptions>::Value;
-};
-
-}  // namespace details
-
-/// @ingroup comms
-/// @brief Protocol layer that uses message ID to differentiate between messages.
-/// @details This layers is a "must have" one, it contains allocator to allocate
-///          message object.
-/// @tparam TAllMessages A tuple (std::tuple) of all the custom message types
-///         this protocol layer must support. The messages in the tuple must
-///         be sorted in ascending order based on their MsgId
-/// @tparam TAllocator The allocator class, will be used to allocate message
-///         objects in read() member function.
-///         The requirements for the allocator are:
-///         @li Must have a default (no arguments) constructor.
-///         @li Must provide allocation function to allocate message
-///             objects. The signature must be as following:
-///             @code template <typename TObj, typename... TArgs> std::unique_ptr<TObj, Deleter> alloc(TArgs&&... args); @endcode
-///             The Deleter maybe either default "std::default_delete<T>" or
-///             custom one. All the allocators defined in "util" module
-///             (header: "embxx/util/Allocators.h") satisfy these requirements.
-///             See also embxx::comms::DynMemMsgAllocator and
-///             embxx::comms::InPlaceMsgAllocator
-/// @tparam TTraits A traits class that must define:
-///         @li Endianness type. Either embxx::comms::traits::endian::Big or
-///             embxx::comms::traits::endian::Little
-///         @li MsgIdLen static integral constant specifying length of
-///             message ID field in bytes.
-/// @pre TAllMessages must be any variation of std::tuple
-/// @pre All message types in TAllMessages must be in ascending order based on
-///      their MsgId value
-/// @headerfile embxx/comms/protocol/MsgIdLayer.h
 template <typename TField,
           typename TAllMessages,
           typename TNextLayer,
           typename... TOptions>
 class MsgIdLayer :
-    public details::MsgIdLayerBase<TField, TAllMessages, TNextLayer, TOptions...>
+    public comms::protocol::ProtocolLayerBase<TField, TNextLayer, MsgIdLayer<TField, TAllMessages, TNextLayer, TOptions...> >
 {
     static_assert(util::IsTuple<TAllMessages>::Value,
         "TAllMessages must be of std::tuple type");
-    typedef details::MsgIdLayerBase<TField, TAllMessages, TNextLayer, TOptions...> Base;
+    typedef comms::protocol::ProtocolLayerBase<TField, TNextLayer, MsgIdLayer<TField, TAllMessages, TNextLayer, TOptions...> > Base;
+
+    typedef comms::MsgFactory<typename Base::Message, TAllMessages, TOptions...> Factory;
 
 public:
 
     /// @brief Definition of all messages type. Must be std::tuple
-    typedef typename Base::AllMessages AllMessages;
+    typedef typename Factory::AllMessages AllMessages;
 
-    typedef typename Base::MsgPtr MsgPtr;
+    typedef typename Factory::MsgPtr MsgPtr;
 
     typedef typename Base::Message Message;
 
@@ -207,7 +71,7 @@ public:
     /// @brief Type of write iterator
     typedef typename Base::WriteIterator WriteIterator;
 
-    typedef typename Base::Field Field;
+    typedef TField Field;
 
     typedef typename Base::NextLayer NextLayer;
 
@@ -219,13 +83,6 @@ public:
     explicit MsgIdLayer(TArgs&&... args)
        : Base(std::forward<TArgs>(args)...)
     {
-        static const std::size_t NumOfMsgs = std::tuple_size<AllMessages>::value;
-        static const bool Numeric =
-            std::is_arithmetic<MsgIdType>::value ||
-            std::is_enum<MsgIdType>::value;
-
-        details::MsgFactoryCreator<NumOfMsgs, Numeric>::template
-                        create<AllMessages, MsgFactory>(factories_);
     }
 
     /// @brief Copy constructor is default
@@ -344,108 +201,10 @@ public:
 
     MsgPtr createMsg(MsgIdParamType id)
     {
-        auto factoryIter = findFactory(id);
-
-        if ((factoryIter == factories_.end()) || ((*factoryIter)->getId() != id)) {
-            return MsgPtr();
-        }
-
-        return (*factoryIter)->create(*this);
+        return factory_.createMsg(id);
     }
 
 private:
-
-    /// @cond DOCUMENT_MSG_ID_PROTOCOL_LAYER_FACTORY
-    class Factory
-    {
-    public:
-
-        virtual ~Factory() {};
-
-        MsgIdParamType getId() const
-        {
-            return this->getIdImpl();
-        }
-
-        MsgPtr create(MsgIdLayer& layer) const
-        {
-            return this->createImpl(layer);
-        }
-
-    protected:
-        virtual MsgIdParamType getIdImpl() const = 0;
-        virtual MsgPtr createImpl(MsgIdLayer& layer) const = 0;
-    };
-
-    template <typename TMessage>
-    class NumIdMsgFactory : public Factory
-    {
-    public:
-        typedef TMessage Message;
-        static const auto MsgId = Message::MsgId;
-    protected:
-        virtual MsgIdParamType getIdImpl() const
-        {
-            return static_cast<MsgIdParamType>(MsgId);
-        }
-
-        virtual MsgPtr createImpl(MsgIdLayer& layer) const
-        {
-            return layer.template allocMsg<Message>();
-        }
-    };
-
-    template <typename TMessage>
-    friend class comms::protocol::MsgIdLayer<
-        TField, TAllMessages, TNextLayer, TOptions...>::NumIdMsgFactory;
-
-    template <typename TMessage>
-    class GenericMsgFactory : public Factory
-    {
-    public:
-        typedef TMessage Message;
-
-        GenericMsgFactory() : id_(Message().getId()) {}
-
-    protected:
-
-        virtual MsgIdParamType getIdImpl() const
-        {
-            return id_;
-        }
-
-        virtual MsgPtr createImpl(MsgIdLayer& layer) const
-        {
-            return layer.template allocMsg<Message>();
-        }
-    private:
-        typename Message::MsgIdType id_;
-    };
-
-    template <typename TMessage>
-    friend class comms::protocol::MsgIdLayer<
-        TField, TAllMessages, TNextLayer, TOptions...>::GenericMsgFactory;
-
-    template <typename TMessage>
-    using MsgFactory =
-        typename std::conditional<
-            details::HasStaticId<TMessage>::Value,
-            NumIdMsgFactory<TMessage>,
-            GenericMsgFactory<TMessage>
-        >::type;
-
-    /// @endcond
-
-    typedef std::array<Factory*, std::tuple_size<AllMessages>::value> Factories;
-
-    typename Factories::iterator findFactory(MsgIdParamType id)
-    {
-        return std::lower_bound(factories_.begin(), factories_.end(), id,
-            [](Factory* factory, MsgIdParamType id) -> bool
-            {
-                return factory->getId() < id;
-            });
-    }
 
     template <typename TReader>
     ErrorStatus readInternal(
@@ -468,14 +227,13 @@ private:
 
         auto id = field.getValue();
 
-        auto factoryIter = findFactory(id);
-        if ((factoryIter == factories_.end()) || ((*factoryIter)->getId() != id)) {
-            return ErrorStatus::InvalidMsgId;
-        }
-
-        msgPtr = (*factoryIter)->create(*this);
+        msgPtr = createMsg(id);
 
         if (!msgPtr) {
+            if (!factory_.msgRegistered(id)) {
+                return ErrorStatus::InvalidMsgId;
+            }
+
             return ErrorStatus::MsgAllocFaulure;
         }
 
@@ -504,7 +262,7 @@ private:
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
-    Factories factories_;
+    Factory factory_;
 };
 
 // Implementation

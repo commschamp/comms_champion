@@ -155,7 +155,7 @@ private:
                 TIdField,
                 AllMessages<TMessage>,
                 comms::protocol::MsgDataLayer<TMessage>,
-                comms::protocol::option::InPlaceAllocation
+                comms::option::InPlaceAllocation
             >
         >;
 };

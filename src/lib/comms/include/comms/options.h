@@ -123,6 +123,8 @@ struct FixedSizeStorage
     static const std::size_t Value = TSize;
 };
 
+struct InPlaceAllocation {};
+
 template <typename TField>
 struct SequenceSizeFieldPrefix
 {

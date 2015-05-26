@@ -165,6 +165,11 @@ private:
     mutable bool allocated_ = false;
 };
 
+template <typename TMsgBase, typename TAllMessages, typename... TBundledOptions, typename... TOtherOptions>
+class MsgFactoryBase<TMsgBase, TAllMessages, std::tuple<TBundledOptions...>, TOtherOptions...> :
+    public MsgFactoryBase<TMsgBase, TAllMessages, TBundledOptions..., TOtherOptions...>
+{
+};
 
 }  // namespace details
 

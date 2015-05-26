@@ -265,8 +265,6 @@ private:
     Factory factory_;
 };
 
-// Implementation
-
 
 }  // namespace protocol
 

@@ -29,6 +29,7 @@
 #include "comms_champion/DefaultMessageWidget.h"
 
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
+#include "comms_champion/field_wrapper/LongIntValueWrapper.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 #include "comms_champion/field_wrapper/EnumValueWrapper.h"
 #include "comms_champion/field_wrapper/StringWrapper.h"
@@ -167,6 +168,9 @@ private:
     using OptionalTag = details::OptionalTag;
     using UnknownValueTag = details::UnknownValueTag;
 
+    struct IntValueWrapperTag {};
+    struct LongIntValueWrapperTag {};
+
     template <typename TCreateWidgetHandler>
     class FieldsDisplayDispatcher
     {
@@ -208,8 +212,14 @@ private:
     template <typename TField>
     FieldWidgetPtr createFieldWidget(TField& field, IntValueTag)
     {
-        return createIntValueFieldWidget(
-            field_wrapper::makeIntValueWrapper(field));
+        typedef typename std::decay<decltype(field)>::type DecayedField;
+        typedef typename std::conditional<
+            field_wrapper::IntValueWrapper::canHandleField<DecayedField>(),
+            IntValueWrapperTag,
+            LongIntValueWrapperTag
+        >::type Tag;
+
+        return createIntValueFieldWidgetInternal(field, Tag());
     }
 
     template <typename TField>
@@ -279,7 +289,10 @@ private:
     }
 
     FieldWidgetPtr createIntValueFieldWidget(
-        field_wrapper::IntValueWrapperPtr&& fieldWrapper);
+        field_wrapper::IntValueWrapperPtr fieldWrapper);
+
+    FieldWidgetPtr createLongIntValueFieldWidget(
+        field_wrapper::LongIntValueWrapperPtr fieldWrapper);
 
     FieldWidgetPtr createBitmaskValueFieldWidget(
         field_wrapper::BitmaskValueWrapperPtr&& fieldWrapper);
@@ -308,6 +321,21 @@ private:
         FieldWidgetPtr memberFieldWidget);
 
     static void updateFieldIdxProperty(FieldWidget& field, std::size_t idx);
+
+    template <typename TField>
+    FieldWidgetPtr createIntValueFieldWidgetInternal(TField& field, IntValueWrapperTag)
+    {
+        return createIntValueFieldWidget(
+            field_wrapper::makeIntValueWrapper(field));
+    }
+
+    template <typename TField>
+    FieldWidgetPtr createIntValueFieldWidgetInternal(TField& field, LongIntValueWrapperTag)
+    {
+        return createLongIntValueFieldWidget(
+            field_wrapper::makeLongIntValueWrapper(field));
+    }
+
 
     using DefaultMsgWidgetPtr = std::unique_ptr<DefaultMessageWidget>;
     DefaultMsgWidgetPtr m_widget;

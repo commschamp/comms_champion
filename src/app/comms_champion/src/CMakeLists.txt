@@ -36,6 +36,7 @@ function (bin_comms_champion)
         widget/MessageUpdateDialog.cpp
         widget/PluginConfigDialog.cpp
         widget/field/IntValueFieldWidget.cpp
+        widget/field/LongIntValueFieldWidget.cpp
         widget/field/BitmaskValueFieldWidget.cpp
         widget/field/EnumValueFieldWidget.cpp
         widget/field/StringFieldWidget.cpp
@@ -61,6 +62,7 @@ function (bin_comms_champion)
         widget/MainWindowWidget.h
         widget/DefaultMessageDisplayWidget.h
         widget/field/IntValueFieldWidget.h
+        widget/field/LongIntValueFieldWidget.h
         widget/field/BitmaskValueFieldWidget.h
         widget/field/EnumValueFieldWidget.h
         widget/field/StringFieldWidget.h
@@ -84,6 +86,7 @@ function (bin_comms_champion)
         ui/MessageUpdateDialog.ui
         ui/PluginConfigDialog.ui
         ui/IntValueFieldWidget.ui
+        ui/LongIntValueFieldWidget.ui
         ui/BitmaskValueFieldWidget.ui
         ui/EnumValueFieldWidget.ui
         ui/StringFieldWidget.ui

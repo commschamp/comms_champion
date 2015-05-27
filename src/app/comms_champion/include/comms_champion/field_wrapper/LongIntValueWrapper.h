@@ -31,22 +31,43 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-using LongIntValueWrapper = NumericValueWrapper<long long int>;
+class LongIntValueWrapper : public NumericValueWrapper<long long int>
+{
+    typedef NumericValueWrapper<long long int> Base;
+public:
+
+    typedef typename Base::UnderlyingType UnderlyingType;
+
+    using Base::NumericValueWrapper;
+
+    virtual ~LongIntValueWrapper() {}
+
+    UnderlyingType minValue() const
+    {
+        return minValueImpl();
+    }
+
+    UnderlyingType maxValue() const
+    {
+        return maxValueImpl();
+    }
+
+protected:
+    virtual UnderlyingType minValueImpl() const = 0;
+    virtual UnderlyingType maxValueImpl() const = 0;
+};
 
 template <typename TField>
 class LongIntValueWrapperT : public NumericValueWrapperT<LongIntValueWrapper, TField>
 {
     using Base = NumericValueWrapperT<LongIntValueWrapper, TField>;
     using Field = TField;
-    static_assert(comms::field::isComplexIntValue<Field>(), "Must be of ComplexIntValueField type");
-
-    using ValueType = typename Field::ValueType;
-    using IntType = typename Base::UnderlyingType;
-    static_assert(sizeof(ValueType) <= sizeof(IntType), "This wrapper cannot handle provided field.");
-    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(IntType)),
-        "This wrapper cannot handle provided field.");
+    static_assert(comms::field::isIntValue<Field>(), "Must be of IntValueField type");
 
 public:
+
+    typedef typename Base::UnderlyingType UnderlyingType;
+
     LongIntValueWrapperT(Field& field)
       : Base(field)
     {
@@ -57,6 +78,18 @@ public:
     virtual ~LongIntValueWrapperT() = default;
 
     LongIntValueWrapperT& operator=(const LongIntValueWrapperT&) = delete;
+
+protected:
+    virtual UnderlyingType minValueImpl() const override
+    {
+        return std::numeric_limits<typename Field::ValueType>::min();
+    }
+
+    virtual UnderlyingType maxValueImpl() const override
+    {
+        return std::numeric_limits<typename Field::ValueType>::max();
+    }
+
 };
 
 using LongIntValueWrapperPtr = std::unique_ptr<LongIntValueWrapper>;

@@ -40,6 +40,8 @@ public:
 
     using Base::NumericValueWrapper;
 
+    virtual ~IntValueWrapper() {}
+
     UnderlyingType minValue() const
     {
         return minValueImpl();
@@ -48,6 +50,14 @@ public:
     UnderlyingType maxValue() const
     {
         return maxValueImpl();
+    }
+
+    template <typename TField>
+    static constexpr bool canHandleField()
+    {
+        return
+            (sizeof(typename TField::ValueType) < sizeof(UnderlyingType)) ||
+            ((sizeof(typename TField::ValueType) == sizeof(UnderlyingType)) && (std::is_signed<typename TField::ValueType>::value));
     }
 
 protected:
@@ -62,13 +72,10 @@ class IntValueWrapperT : public NumericValueWrapperT<IntValueWrapper, TField>
     using Field = TField;
     static_assert(comms::field::isIntValue<Field>(), "Must be of IntValueField type");
 
-    using ValueType = typename Field::ValueType;
-    using UnderlyingType = typename Base::UnderlyingType;
-    static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
-    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
-        "This wrapper cannot handle provided field.");
-
 public:
+
+    typedef typename Base::UnderlyingType UnderlyingType;
+
     IntValueWrapperT(Field& field)
       : Base(field)
     {

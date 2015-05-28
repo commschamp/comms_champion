@@ -41,6 +41,12 @@ public:
     typedef std::list<MessageInfoPtr> MessagesList;
     typedef std::list<DataInfoPtr> DataInfosList;
 
+    enum class UpdateStatus
+    {
+        NoChangeToAppMsg,
+        AppMsgWasChanged
+    };
+
     virtual ~Protocol() {}
 
     const std::string& name() const
@@ -69,9 +75,9 @@ public:
         return createMessageImpl(idAsString);
     }
 
-    void updateMessageInfo(MessageInfo& msgInfo)
+    UpdateStatus updateMessageInfo(MessageInfo& msgInfo)
     {
-        updateMessageInfoImpl(msgInfo);
+        return updateMessageInfoImpl(msgInfo);
     }
 
     MessageInfoPtr cloneMessage(const MessageInfo& msgInfo)
@@ -90,7 +96,7 @@ protected:
 
     virtual MessageInfoPtr createMessageImpl(const QString& idAsString) = 0;
 
-    virtual void updateMessageInfoImpl(MessageInfo& msgInfo) = 0;
+    virtual UpdateStatus updateMessageInfoImpl(MessageInfo& msgInfo) = 0;
 
     virtual MessageInfoPtr cloneMessageImpl(const MessageInfo& msgInfo) = 0;
 };

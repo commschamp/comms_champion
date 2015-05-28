@@ -231,48 +231,52 @@ protected:
         return dataList;
     }
 
-    virtual void updateMessageInfoImpl(MessageInfo& msgInfo) override
+    virtual UpdateStatus updateMessageInfoImpl(MessageInfo& msgInfo) override
     {
-        auto msgPtr = msgInfo.getAppMessage();
-        assert(msgPtr);
+        do {
+            auto msgPtr = msgInfo.getAppMessage();
+            assert(msgPtr);
 
-        using AllFields = typename ProtocolStack::AllFields;
-        AllFields fields;
-        std::vector<std::uint8_t> data;
+            using AllFields = typename ProtocolStack::AllFields;
+            AllFields fields;
+            std::vector<std::uint8_t> data;
 
-        auto writeIter = std::back_inserter(data);
-        auto es =
-            m_protStack.template writeFieldsCached<0>(
-                fields,
-                static_cast<const Message&>(*msgPtr),
-                writeIter,
-                data.max_size());
-        if (es == comms::ErrorStatus::UpdateRequired) {
-            auto updateIter = &data[0];
-            es = m_protStack.template updateFieldsCached<0>(fields, updateIter, data.size());
-        }
+            auto writeIter = std::back_inserter(data);
+            auto es =
+                m_protStack.template writeFieldsCached<0>(
+                    fields,
+                    static_cast<const Message&>(*msgPtr),
+                    writeIter,
+                    data.max_size());
+            if (es == comms::ErrorStatus::UpdateRequired) {
+                auto updateIter = &data[0];
+                es = m_protStack.template updateFieldsCached<0>(fields, updateIter, data.size());
+            }
 
-        if (es != comms::ErrorStatus::Success) {
-            assert(!"Message write/update has failed unexpectedly");
-            return;
-        }
+            if (es != comms::ErrorStatus::Success) {
+                assert(!"Message write/update has failed unexpectedly");
+                break;
+            }
 
-        std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
-        transportMsgPtr->setFields(fields);
+            std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
+            transportMsgPtr->setFields(fields);
 
-        std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
+            std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
 
-        typedef typename RawDataMsg::ReadIterator ReadIterator;
-        ReadIterator rawDataReadIter = &data[0];
-        es = rawDataMsgPtr->read(rawDataReadIter, data.size());
-        if (es != comms::ErrorStatus::Success) {
-            assert(!"Unexpected failure to read raw data of the message");
-            return;
-        }
+            typedef typename RawDataMsg::ReadIterator ReadIterator;
+            ReadIterator rawDataReadIter = &data[0];
+            es = rawDataMsgPtr->read(rawDataReadIter, data.size());
+            if (es != comms::ErrorStatus::Success) {
+                assert(!"Unexpected failure to read raw data of the message");
+                break;
+            }
 
-        using MessageInfoMsgPtr = MessageInfo::MessagePtr;
-        msgInfo.setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
-        msgInfo.setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+            using MessageInfoMsgPtr = MessageInfo::MessagePtr;
+            msgInfo.setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+            msgInfo.setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+        } while (false);
+
+        return UpdateStatus::NoChangeToAppMsg;
     }
 
     virtual MessageInfoPtr cloneMessageImpl(

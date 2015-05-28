@@ -53,7 +53,8 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
 }
 
 void DefaultMessageDisplayWidget::displayMessageImpl(
-    MessageInfoPtr msgInfo)
+    MessageInfoPtr msgInfo,
+    bool force)
 {
     assert(msgInfo);
     auto appMsg = msgInfo->getAppMessage();
@@ -63,7 +64,7 @@ void DefaultMessageDisplayWidget::displayMessageImpl(
     else {
         m_msgDetailsWidget->clear();
     }
-    m_protocolsDetailsWidget->displayMessage(std::move(msgInfo));
+    m_protocolsDetailsWidget->displayMessage(std::move(msgInfo), force);
 }
 
 void DefaultMessageDisplayWidget::setEditEnabledImpl(bool enabled)

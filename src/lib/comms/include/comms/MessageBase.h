@@ -134,6 +134,27 @@ protected:
         util::tupleForEach(fields_, FieldReader(iter, status, remainingSize));
         return status;
     }
+
+    template <std::size_t TIdx>
+    ErrorStatus readFieldsUntil(
+        typename Base::ReadIterator& iter,
+        std::size_t& size)
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        util::tupleForEachUntil<TIdx>(fields_, FieldReader(iter, status, size));
+        return status;
+    }
+
+    template <std::size_t TIdx>
+    ErrorStatus readFieldsFrom(
+        typename Base::ReadIterator& iter,
+        std::size_t& size)
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        util::tupleForEachFrom<TIdx>(fields_, FieldReader(iter, status, size));
+        return status;
+    }
+
 #endif // #ifndef COMMS_NO_READ
 
 #ifndef COMMS_NO_WRITE

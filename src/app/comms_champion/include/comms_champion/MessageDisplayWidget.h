@@ -37,9 +37,9 @@ public:
 
 public slots:
 
-    void displayMessage(MessageInfoPtr msgInfo)
+    void displayMessage(MessageInfoPtr msgInfo, bool force = false)
     {
-        displayMessageImpl(msgInfo);
+        displayMessageImpl(msgInfo, force);
     }
 
     void setEditEnabled(bool enabled)
@@ -61,7 +61,7 @@ signals:
     void sigMsgUpdated();
 
 protected:
-    virtual void displayMessageImpl(MessageInfoPtr msgInfo) = 0;
+    virtual void displayMessageImpl(MessageInfoPtr msgInfo, bool force) = 0;
     virtual void setEditEnabledImpl(bool enabled) = 0;
     virtual void clearImpl() = 0;
     virtual void refreshImpl() = 0;

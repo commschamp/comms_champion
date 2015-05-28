@@ -117,7 +117,7 @@ struct TupleIsUnique<std::tuple<> >
 namespace details
 {
 
-template <std::size_t TRem>
+template <std::size_t TRem, std::size_t TOff = 0>
 class TupleForEachHelper
 {
 
@@ -128,18 +128,19 @@ public:
         typedef typename std::decay<TTuple>::type Tuple;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
-        static_assert(TRem <= TupleSize, "Incorrect TRem");
+        static const std::size_t OffsetedRem = TRem + TOff;
+        static_assert(OffsetedRem <= TupleSize, "Incorrect parameters");
 
-        static const std::size_t Idx = TupleSize - TRem;
+        static const std::size_t Idx = TupleSize - OffsetedRem;
         func(std::get<Idx>(std::forward<TTuple>(tuple)));
-        TupleForEachHelper<TRem - 1>::exec(
+        TupleForEachHelper<TRem - 1, TOff>::exec(
             std::forward<TTuple>(tuple),
             std::forward<TFunc>(func));
     }
 };
 
-template <>
-class TupleForEachHelper<0>
+template <std::size_t TOff>
+class TupleForEachHelper<0, TOff>
 {
 
 public:
@@ -163,6 +164,37 @@ void tupleForEach(TTuple&& tuple, TFunc&& func)
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
 }
+
+template <std::size_t TIdx, typename TTuple, typename TFunc>
+void tupleForEachUntil(TTuple&& tuple, TFunc&& func)
+{
+    typedef typename std::decay<TTuple>::type Tuple;
+    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static_assert(TIdx <= TupleSize,
+        "The index is too big.");
+
+    static_assert(0U < TIdx,
+        "The index must be greater than 0.");
+
+    details::TupleForEachHelper<TIdx, TupleSize - TIdx>::exec(
+        std::forward<TTuple>(tuple),
+        std::forward<TFunc>(func));
+}
+
+template <std::size_t TIdx, typename TTuple, typename TFunc>
+void tupleForEachFrom(TTuple&& tuple, TFunc&& func)
+{
+    typedef typename std::decay<TTuple>::type Tuple;
+    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static_assert(TIdx < TupleSize,
+        "The index is too big.");
+
+    details::TupleForEachHelper<TupleSize - TIdx>::exec(
+        std::forward<TTuple>(tuple),
+        std::forward<TFunc>(func));
+}
+
+
 //----------------------------------------
 
 namespace details

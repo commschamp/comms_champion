@@ -22,6 +22,7 @@
 #include <type_traits>
 
 #include <QtWidgets/QCheckBox>
+#include <QtWidgets/QFrame>
 
 #include "comms_champion/Property.h"
 
@@ -51,8 +52,16 @@ void BitfieldFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
     auto idx = m_members.size() - 1;
     updateMemberProperties(idx);
 
+    if (m_ui.m_membersLayout->count() != 0) {
+        auto* line = new QFrame(this);
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
+
+        m_ui.m_membersLayout->addWidget(line);
+    }
+
     m_ui.m_membersLayout->addWidget(memberFieldWidget);
-    assert((std::size_t)m_ui.m_membersLayout->count() == m_members.size());
+    assert((std::size_t)m_ui.m_membersLayout->count() == ((m_members.size() * 2) - 1));
 
     refreshInternal();
 

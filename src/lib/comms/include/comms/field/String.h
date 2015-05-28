@@ -72,6 +72,8 @@ public:
 
     typedef ParsedOptionsInternal ParsedOptions;
     typedef StorageTypeInternal StorageType;
+    typedef StorageType ValueType;
+    typedef const StorageType& ParamValueType;
 
     String() = default;
 

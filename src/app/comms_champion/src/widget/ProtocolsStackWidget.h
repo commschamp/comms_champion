@@ -35,7 +35,7 @@ public:
     ProtocolsStackWidget(QWidget* parent = nullptr);
     ~ProtocolsStackWidget();
 
-    void displayMessage(MessageInfoPtr msgInfo);
+    void displayMessage(MessageInfoPtr msgInfo, bool force);
     void clear();
 
 signals:

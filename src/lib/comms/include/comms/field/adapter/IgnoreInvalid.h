@@ -62,7 +62,7 @@ public:
         }
 
         if (nextTmp.valid()) {
-            Base::next() = nextTmp;
+            Base::next() = std::move(nextTmp);
         }
 
         return comms::ErrorStatus::Success;

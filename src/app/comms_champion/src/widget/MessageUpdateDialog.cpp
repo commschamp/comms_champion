@@ -277,7 +277,8 @@ void MessageUpdateDialog::msgUpdated()
 
     assert(m_protocol);
     assert(msgInfo);
-    m_protocol->updateMessageInfo(*msgInfo);
+    auto status = m_protocol->updateMessageInfo(*msgInfo);
+    bool forceUpdate = (status == Protocol::UpdateStatus::AppMsgWasChanged);
     assert(m_msgDisplayWidget);
 
     // Direct invocation of m_msgDisplayWidget->displayMessage(std::move(msgInfo))
@@ -286,7 +287,8 @@ void MessageUpdateDialog::msgUpdated()
         this,
         "displayMessagePostponed",
         Qt::QueuedConnection,
-        Q_ARG(comms_champion::MessageInfoPtr, std::move(msgInfo)));
+        Q_ARG(comms_champion::MessageInfoPtr, std::move(msgInfo)),
+        Q_ARG(bool, forceUpdate));
 }
 
 void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
@@ -298,9 +300,9 @@ void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
     refreshButtons();
 }
 
-void MessageUpdateDialog::displayMessagePostponed(MessageInfoPtr msgInfo)
+void MessageUpdateDialog::displayMessagePostponed(MessageInfoPtr msgInfo, bool force)
 {
-    m_msgDisplayWidget->displayMessage(std::move(msgInfo));
+    m_msgDisplayWidget->displayMessage(std::move(msgInfo), force);
 }
 
 void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)

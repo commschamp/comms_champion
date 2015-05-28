@@ -33,7 +33,7 @@ public:
     DefaultMessageDisplayWidget(QWidget* parent = nullptr);
 
 protected:
-    virtual void displayMessageImpl(MessageInfoPtr msgInfo) override;
+    virtual void displayMessageImpl(MessageInfoPtr msgInfo, bool force) override;
     virtual void setEditEnabledImpl(bool enabled) override;
     virtual void clearImpl() override;
     virtual void refreshImpl() override;

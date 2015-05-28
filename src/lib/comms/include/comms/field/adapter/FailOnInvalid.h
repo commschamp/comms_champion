@@ -40,32 +40,17 @@ public:
     typedef typename Base::ValueType ValueType;
     typedef typename Base::ParamValueType ParamValueType;
 
-    FailOnInvalid()
-    {
-        GASSERT(valid());
-    }
+    FailOnInvalid() = default;
 
     explicit FailOnInvalid(ParamValueType value)
       : Base(value)
     {
-        GASSERT(valid());
     }
 
     FailOnInvalid(const FailOnInvalid&) = default;
     FailOnInvalid(FailOnInvalid&&) = default;
     FailOnInvalid& operator=(const FailOnInvalid&) = default;
     FailOnInvalid& operator=(FailOnInvalid&&) = default;
-
-    void setValue(ParamValueType value)
-    {
-        Base::setValue(value);
-        GASSERT(valid());
-    }
-
-    constexpr bool valid() const
-    {
-        return Base::valid();
-    }
 
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
@@ -80,15 +65,8 @@ public:
             return comms::ErrorStatus::ProtocolError;
         }
 
-        Base::next() = nextTmp;
+        Base::next() = std::move(nextTmp);
         return comms::ErrorStatus::Success;
-    }
-
-    template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
-    {
-        GASSERT(valid());
-        return Base::write(iter, len);
     }
 };
 

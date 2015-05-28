@@ -33,10 +33,14 @@ ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parent)
 
 ProtocolsStackWidget::~ProtocolsStackWidget() = default;
 
-void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo)
+void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo, bool force)
 {
     bool selectionChanged = true;
     do {
+        if (force) {
+            break;
+        }
+
         assert(m_ui.m_protocolsTreeWidget != nullptr);
         auto* topProtocolItem = m_ui.m_protocolsTreeWidget->topLevelItem(0);
         if (topProtocolItem == nullptr) {

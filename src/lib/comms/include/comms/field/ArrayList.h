@@ -71,6 +71,8 @@ class ArrayList : public TFieldBase
 public:
     typedef ParsedOptionsInternal ParsedOptions;
     typedef StorageTypeInternal StorageType;
+    typedef StorageType ValueType;
+    typedef const StorageType& ParamValueType;
 
     /// @brief Default constructor
     /// @details Sets default value to be 0.

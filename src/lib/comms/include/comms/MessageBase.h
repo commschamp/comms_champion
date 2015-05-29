@@ -155,6 +155,16 @@ protected:
         return status;
     }
 
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    ErrorStatus readFieldsFromUntil(
+        typename Base::ReadIterator& iter,
+        std::size_t& size)
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields_, FieldReader(iter, status, size));
+        return status;
+    }
+
 #endif // #ifndef COMMS_NO_READ
 
 #ifndef COMMS_NO_WRITE
@@ -238,7 +248,7 @@ private:
 
     private:
         WriteIterator& iter_;
-        ErrorStatus status_;
+        ErrorStatus& status_;
         std::size_t& size_;
     };
 

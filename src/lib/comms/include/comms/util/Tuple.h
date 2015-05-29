@@ -194,7 +194,26 @@ void tupleForEachFrom(TTuple&& tuple, TFunc&& func)
         std::forward<TFunc>(func));
 }
 
+template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TTuple, typename TFunc>
+void tupleForEachFromUntil(TTuple&& tuple, TFunc&& func)
+{
+    typedef typename std::decay<TTuple>::type Tuple;
+    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static_assert(TFromIdx < TupleSize,
+        "The from index is too big.");
 
+    static_assert(TUntilIdx <= TupleSize,
+        "The until index is too big.");
+
+    static_assert(TFromIdx < TUntilIdx,
+        "The from index must be less than until index.");
+
+    static const std::size_t FieldsCount = TUntilIdx - TFromIdx;
+
+    details::TupleForEachHelper<FieldsCount, TupleSize - TUntilIdx>::exec(
+        std::forward<TTuple>(tuple),
+        std::forward<TFunc>(func));
+}
 //----------------------------------------
 
 namespace details

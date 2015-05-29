@@ -335,7 +335,7 @@ protected:
     virtual MessagesList createAllMessagesImpl() override
     {
         MessagesList allMsgs;
-        comms::util::tupleForEachType<AllMessages>(AllMsgsCreateHelper(allMsgs));
+        comms::util::tupleForEachType<AllMessages>(AllMsgsCreateHelper(name(), allMsgs));
         for (auto& msgInfoPtr : allMsgs) {
             updateMessageInfo(*msgInfoPtr);
         }
@@ -360,8 +360,9 @@ private:
     class AllMsgsCreateHelper
     {
     public:
-        AllMsgsCreateHelper(MessagesList& allMsgs)
-          : m_allMsgs(allMsgs)
+        AllMsgsCreateHelper(const std::string& protName, MessagesList& allMsgs)
+          : m_protName(protName),
+            m_allMsgs(allMsgs)
         {
         }
 
@@ -371,19 +372,22 @@ private:
             MessageInfo::MessagePtr msgPtr(new TMsg());
             auto msgInfo = makeMessageInfo();
             assert(msgInfo);
+            msgInfo->setProtocolName(m_protName);
             msgInfo->setAppMessage(std::move(msgPtr));
             m_allMsgs.push_back(std::move(msgInfo));
         }
 
     private:
+        const std::string& m_protName;
         MessagesList& m_allMsgs;
     };
 
     class MsgCreateHelper
     {
     public:
-        MsgCreateHelper(const QString& id, MessageInfoPtr& msgInfo)
-          : m_id(id),
+        MsgCreateHelper(const std::string& protName, const QString& id, MessageInfoPtr& msgInfo)
+          : m_protName(protName),
+            m_id(id),
             m_msgInfo(msgInfo)
         {
         }
@@ -398,11 +402,13 @@ private:
             MessageInfo::MessagePtr msgPtr(new TMsg());
             if (m_id == msgPtr->idAsString()) {
                 m_msgInfo = makeMessageInfo();
+                m_msgInfo->setProtocolName(m_protName);
                 m_msgInfo->setAppMessage(std::move(msgPtr));
             }
         }
 
     private:
+        const std::string& m_protName;
         const QString& m_id;
         MessageInfoPtr& m_msgInfo;
     };
@@ -428,7 +434,7 @@ private:
     MessageInfoPtr createMessageInternal(const QString& idAsString, OtherIdTag)
     {
         MessageInfoPtr result;
-        comms::util::tupleForEachType(MsgCreateHelper(idAsString, result));
+        comms::util::tupleForEachType(MsgCreateHelper(name(), idAsString, result));
         if (result) {
             updateMessageInfo(*result);
         }

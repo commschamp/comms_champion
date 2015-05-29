@@ -210,7 +210,7 @@ private:
         }
     private:
         ReadIterator& iter_;
-        ErrorStatus status_;
+        ErrorStatus& status_;
         std::size_t& size_;
     };
 

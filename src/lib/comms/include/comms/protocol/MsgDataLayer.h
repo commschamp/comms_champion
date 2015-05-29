@@ -211,7 +211,7 @@ private:
         auto dataSize = static_cast<std::size_t>(std::distance(dataIter, iter));
         auto dataEs = field.read(dataIter, dataSize);
         GASSERT(dataEs == comms::ErrorStatus::Success);
-        GASSERT((!msgPtr) || (dataSize == msgPtr->length()));
+        GASSERT((es != ErrorStatus::Success) || (!msgPtr) || (dataSize == msgPtr->length()));
         return es;
     }
 

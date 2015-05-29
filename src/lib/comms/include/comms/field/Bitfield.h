@@ -27,6 +27,8 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 
+#include "details/OptionsParser.h"
+
 #include "IntValue.h"
 
 namespace comms
@@ -96,7 +98,7 @@ constexpr std::size_t getMemberShiftPos()
 
 }  // namespace details
 
-template <typename TFieldBase, typename TMembers>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bitfield : public TFieldBase
 {
     typedef TFieldBase Base;
@@ -138,6 +140,7 @@ class Bitfield : public TFieldBase
     >::type IntValueField;
 
 public:
+    typedef details::OptionsParser<TOptions...> ParsedOptions;
     typedef typename Base::Endian Endian;
     typedef TMembers Members;
 
@@ -232,10 +235,20 @@ public:
     }
 
     constexpr bool valid() const {
-        return comms::util::tupleAccumulate(members_, true, ValidHelper());
+        return
+            comms::util::tupleAccumulate(members_, true, ValidHelper()) &&
+            extraValidation(ExtraValidationTag());
     }
 
 private:
+
+    struct NoExtraValidationTag {};
+    struct ExtraValidationExists {};
+    typedef typename std::conditional<
+        ParsedOptions::HasCustomValidator,
+        ExtraValidationExists,
+        NoExtraValidationTag
+    >::type ExtraValidationTag;
 
     class ReadHelper
     {
@@ -337,6 +350,15 @@ private:
             return soFar && field.valid();
         }
     };
+
+    static constexpr bool extraValidation(NoExtraValidationTag) {
+        return true;
+    }
+
+    constexpr bool extraValidation(ExtraValidationExists) const {
+        typedef typename ParsedOptions::CustomValidator Validator;
+        return Validator()(*this);
+    }
 
     Members members_;
 };

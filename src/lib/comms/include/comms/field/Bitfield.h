@@ -145,6 +145,13 @@ public:
     typedef TMembers Members;
 
     typedef SerialisedType ValueType;
+    typedef ValueType ParamValueType;
+
+    Bitfield() = default;
+    explicit Bitfield(ParamValueType value)
+    {
+        setValue(value);
+    }
 
     Members& members()
     {
@@ -156,7 +163,7 @@ public:
         return members_;
     }
 
-    ValueType getValue() const
+    ParamValueType getValue() const
     {
         std::uint8_t buf[Length] = {0};
         auto* writeIter = &buf[0];
@@ -167,7 +174,7 @@ public:
         return comms::util::readData<ValueType, Length>(readIter, Endian());
     }
 
-    void setValue(ValueType value)
+    void setValue(ParamValueType value)
     {
         std::uint8_t buf[Length] = {0};
         auto* writeIter = &buf[0];

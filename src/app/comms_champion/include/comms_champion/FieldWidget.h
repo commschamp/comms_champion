@@ -83,10 +83,6 @@ protected:
     virtual void propertiesUpdatedImpl();
 
 private:
-    static void updateNumericSerialisedValueInternal(
-        QLineEdit& line,
-        unsigned long long value,
-        int width);
 
     bool m_editEnabled = true;
 };

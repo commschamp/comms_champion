@@ -138,7 +138,14 @@ void FieldWidget::updateNameLabel(QLabel& label)
 {
     auto nameProperty = property(Property::name());
     if (nameProperty.isValid()) {
-        label.setText(nameProperty.toString() + ':');
+        auto str = nameProperty.toString();
+        if (!str.isEmpty()) {
+            label.setText(nameProperty.toString() + ':');
+            label.show();
+        }
+        else {
+            label.hide();
+        }
     }
 }
 

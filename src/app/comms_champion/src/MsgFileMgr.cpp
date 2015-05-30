@@ -306,7 +306,7 @@ MsgInfosList MsgFileMgr::convertMsgList(
             auto byte = num.toInt(&ok, 16);
             static_cast<void>(ok);
             assert(ok);
-            assert((0 <= byte) && (byte <= 0xf));
+            assert((0 <= byte) && (byte <= 0xff));
             data.push_back(static_cast<Message::DataSeq::value_type>(byte));
             num.clear();
         }

@@ -11,6 +11,7 @@ function (bin_comms_champion)
         GlobalConstants.cpp
         Property.cpp
         DefaultMessageDisplayHandler.cpp
+        FieldWidgetCreator.cpp
         FieldWidget.cpp
         FieldWrapper.cpp
         ConfigMgr.cpp

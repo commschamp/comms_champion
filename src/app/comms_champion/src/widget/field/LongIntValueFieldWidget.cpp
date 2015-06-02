@@ -33,6 +33,10 @@ LongIntValueFieldWidget::LongIntValueFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    setNameLabelWidget(m_ui.m_nameLabel);
+    setValueWidget(m_ui.m_valueWidget);
+    setSeparatorWidget(m_ui.m_sepLine);
+    setSerialisedValueWidget(m_ui.m_serValueWidget);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
@@ -49,7 +53,6 @@ LongIntValueFieldWidget::LongIntValueFieldWidget(
             this, SLOT(serialisedValueUpdated(const QString&)));
 
     refresh();
-    readPropertiesAndUpdateUi();
 }
 
 LongIntValueFieldWidget::~LongIntValueFieldWidget() = default;
@@ -79,11 +82,6 @@ void LongIntValueFieldWidget::setEditEnabledImpl(bool enabled)
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void LongIntValueFieldWidget::propertiesUpdatedImpl()
-{
-    readPropertiesAndUpdateUi();
-}
-
 void LongIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);
@@ -100,23 +98,6 @@ void LongIntValueFieldWidget::valueUpdated(double value)
     m_wrapper->setValue(castedValue);
     refresh();
     emitFieldUpdated();
-}
-
-void LongIntValueFieldWidget::readPropertiesAndUpdateUi()
-{
-    assert(m_ui.m_nameLabel != nullptr);
-    updateNameLabel(*m_ui.m_nameLabel);
-
-    bool serHidden = false;
-    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
-    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
-        serHidden = serHiddenVar.value<bool>();
-    }
-
-    m_ui.m_serValueLineEdit->setHidden(serHidden);
-    m_ui.m_serFrontLabel->setHidden(serHidden);
-    m_ui.m_serBackLabel->setHidden(serHidden);
-    m_ui.m_sepLine->setHidden(serHidden);
 }
 
 }  // namespace comms_champion

@@ -43,6 +43,10 @@ public:
     static const char* serialisedHidden();
     static void setSerialisedHiddenVal(QObject& obj, bool val);
     static QVariant getSerialisedHiddenVal(QObject& obj);
+    static const char* fieldHidden();
+    static void setFieldHiddenVal(QObject& obj, bool val);
+    static QVariant getFieldHiddenVal(QObject& obj);
+
 };
 
 }  // namespace comms_champion

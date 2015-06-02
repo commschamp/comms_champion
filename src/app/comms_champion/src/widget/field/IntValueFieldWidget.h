@@ -42,7 +42,6 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
-    virtual void propertiesUpdatedImpl() override;
 
 private slots:
     void serialisedValueUpdated(const QString& value);
@@ -52,7 +51,6 @@ private:
     using WrapperType = typename WrapperPtr::element_type;
     using UnderlyingType = typename WrapperType::UnderlyingType;
 
-    void readPropertiesAndUpdateUi();
 
     Ui::IntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;

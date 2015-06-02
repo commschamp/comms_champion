@@ -102,6 +102,22 @@ QVariant Property::getSerialisedHiddenVal(QObject& obj)
     return obj.property(serialisedHidden());
 }
 
+const char* Property::fieldHidden()
+{
+    static const char* Str = "cc.field_hidden";
+    return Str;
+}
+
+void Property::setFieldHiddenVal(QObject& obj, bool val)
+{
+    obj.setProperty(fieldHidden(), QVariant::fromValue(val));
+}
+
+QVariant Property::getFieldHiddenVal(QObject& obj)
+{
+    return obj.property(fieldHidden());
+}
+
 }  // namespace comms_champion
 
 

@@ -18,7 +18,11 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QFrame>
+
 #include "MessageWidget.h"
 #include "FieldWidget.h"
 #include "Message.h"
@@ -35,6 +39,7 @@ public:
     ~DefaultMessageWidget() = default;
 
     void addFieldWidget(FieldWidget* field);
+    void insertFieldWidget(int fieldIdx, FieldWidget* field);
 
 protected:
     virtual void refreshImpl() override;
@@ -45,6 +50,9 @@ signals:
     void sigSetEditEnabled(bool enabled);
 
 private:
+    std::unique_ptr<QFrame> createFieldSeparator();
+    void connectFieldSignals(FieldWidget* field);
+
     using LayoutType = QVBoxLayout;
     Message& m_msg;
     LayoutType* m_layout;

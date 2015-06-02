@@ -23,6 +23,8 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QWidget>
 
+#include "comms_champion/MessageDisplayHandler.h"
+#include "comms_champion/MessageWidget.h"
 
 namespace comms_champion
 {
@@ -32,6 +34,11 @@ Message::~Message() = default;
 const char* Message::name() const
 {
     return nameImpl();
+}
+
+void Message::widgetCreationEndNotification(MessageWidget& widget)
+{
+    widgetCreationEndNotificationImpl(widget);
 }
 
 void Message::updateFieldProperties(QWidget& fieldWidget, uint idx) const
@@ -74,6 +81,10 @@ bool Message::decodeData(const DataSeq& data)
     return decodeDataImpl(data);
 }
 
+void Message::widgetCreationEndNotificationImpl(MessageWidget& widget)
+{
+    static_cast<void>(widget);
+}
 
 }  // namespace comms_champion
 

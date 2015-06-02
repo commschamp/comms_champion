@@ -70,7 +70,9 @@ void FieldWidget::setEditEnabled(bool enabled)
 
 void FieldWidget::propertiesUpdated()
 {
+    performNameLabelUpdate();
     propertiesUpdatedImpl();
+    performUiElementsVisibilityCheck();
 }
 
 void FieldWidget::emitFieldUpdated()
@@ -156,6 +158,51 @@ void FieldWidget::setEditEnabledImpl(bool enabled)
 
 void FieldWidget::propertiesUpdatedImpl()
 {
+}
+
+void FieldWidget::performUiElementsVisibilityCheck()
+{
+    if ((m_valueWidget == nullptr) &&
+        (m_sepWidget == nullptr) &&
+        (m_serValueWidget == nullptr)) {
+        return;
+    }
+
+    auto setWidgetHiddenFunc =
+        [](QWidget* widget, bool hidden)
+        {
+            if (widget != nullptr) {
+                widget->setHidden(hidden);
+            }
+        };
+
+
+    auto allHiddenVar = Property::getFieldHiddenVal(*this);
+    if (allHiddenVar.isValid() && allHiddenVar.canConvert<bool>()) {
+        auto allHidden = allHiddenVar.toBool();
+        setWidgetHiddenFunc(m_valueWidget, allHidden);
+        setWidgetHiddenFunc(m_sepWidget, allHidden);
+        setWidgetHiddenFunc(m_serValueWidget, allHidden);
+
+        if (allHidden) {
+            return;
+        }
+    }
+
+
+    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
+    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
+        auto serHidden = serHiddenVar.toBool();
+        setWidgetHiddenFunc(m_sepWidget, serHidden);
+        setWidgetHiddenFunc(m_serValueWidget, serHidden);
+    }
+}
+
+void FieldWidget::performNameLabelUpdate()
+{
+    if (m_nameLabel != nullptr) {
+        updateNameLabel(*m_nameLabel);
+    }
 }
 
 }  // namespace comms_champion

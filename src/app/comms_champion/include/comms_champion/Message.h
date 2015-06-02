@@ -27,6 +27,7 @@ namespace comms_champion
 {
 
 class MessageDisplayHandler;
+class MessageWidget;
 class Message : public QObject
 {
     Q_OBJECT
@@ -42,6 +43,7 @@ public:
     Message& operator=(const Message&) = default;
 
     const char* name() const;
+    void widgetCreationEndNotification(MessageWidget& widget);
     void updateFieldProperties(QWidget& fieldWidget, uint idx) const;
     void display(MessageDisplayHandler& handler);
     QString idAsString() const;
@@ -54,6 +56,7 @@ public:
 protected:
 
     virtual const char* nameImpl() const = 0;
+    virtual void widgetCreationEndNotificationImpl(MessageWidget& widget);
     virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const = 0;
     virtual void displayImpl(MessageDisplayHandler& handler) = 0;
     virtual QString idAsStringImpl() const = 0;

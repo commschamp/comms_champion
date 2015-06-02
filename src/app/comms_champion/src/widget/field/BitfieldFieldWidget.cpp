@@ -36,6 +36,9 @@ BitfieldFieldWidget::BitfieldFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    setValueWidget(m_ui.m_valueWidget);
+    setSeparatorWidget(m_ui.m_sepLine);
+    setSerialisedValueWidget(m_ui.m_serValueWidget);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
@@ -130,13 +133,41 @@ void BitfieldFieldWidget::updateMemberProperties(std::size_t idx)
     FieldWidget* memberFieldWidget = m_members[idx];
     assert(memberFieldWidget != nullptr);
     auto propsVar = Property::getIndexedDataVal(*this, idx);
-    if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
+    do {
+        if ((!propsVar.isValid()) || (!propsVar.canConvert<QVariantMap>())) {
+            break;
+        }
+
         auto map = propsVar.value<QVariantMap>();
         auto keys = map.keys();
         for (auto& k : keys) {
             memberFieldWidget->setProperty(k.toUtf8().data(), map[k]);
         }
-    }
+
+        auto hiddenVar = map.value(Property::fieldHidden());
+        if ((!hiddenVar.isValid()) || (!hiddenVar.canConvert<bool>())) {
+            break;
+        }
+
+        bool hidden = hiddenVar.toBool();
+        if (!hidden) {
+            break;
+        }
+
+        assert(1U < m_members.size());
+        int sepLineIdx = 1;
+        if (0 < idx) {
+            sepLineIdx = (idx * 2) - 1;
+        }
+
+        auto* sepLineItem = m_ui.m_membersLayout->itemAt(sepLineIdx);
+        assert(sepLineItem != nullptr);
+        auto* sepLine = sepLineItem->widget();
+        assert(sepLine != nullptr);
+        sepLine->hide();
+        return;
+
+    } while (false);
 
     Property::setSerialisedHiddenVal(*memberFieldWidget, true);
 }

@@ -36,6 +36,10 @@ BitmaskValueFieldWidget::BitmaskValueFieldWidget(
     m_checkboxes(m_wrapper->bitIdxLimit())
 {
     m_ui.setupUi(this);
+    setNameLabelWidget(m_ui.m_nameLabel);
+    setValueWidget(m_ui.m_valueWidget);
+    setSeparatorWidget(m_ui.m_sepLine);
+    setSerialisedValueWidget(m_ui.m_serValueWidget);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
@@ -116,8 +120,6 @@ void BitmaskValueFieldWidget::checkBoxUpdated(int value)
 
 void BitmaskValueFieldWidget::readPropertiesAndUpdateUi()
 {
-    assert(m_ui.m_nameLabel != nullptr);
-    updateNameLabel(*m_ui.m_nameLabel);
     for (auto& checkbox : m_checkboxes) {
         if (checkbox != nullptr) {
             m_ui.m_checkboxesLayout->removeWidget(checkbox);
@@ -125,17 +127,6 @@ void BitmaskValueFieldWidget::readPropertiesAndUpdateUi()
         }
     }
     createCheckboxes();
-
-    bool serHidden = false;
-    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
-    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
-        serHidden = serHiddenVar.value<bool>();
-    }
-
-    m_ui.m_serValueLineEdit->setHidden(serHidden);
-    m_ui.m_serFrontLabel->setHidden(serHidden);
-    m_ui.m_serBackLabel->setHidden(serHidden);
-    m_ui.m_sepLine->setHidden(serHidden);
 }
 
 void BitmaskValueFieldWidget::createCheckboxes()

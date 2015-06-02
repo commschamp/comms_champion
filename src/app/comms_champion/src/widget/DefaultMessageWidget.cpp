@@ -44,21 +44,52 @@ DefaultMessageWidget::DefaultMessageWidget(
 
 void DefaultMessageWidget::addFieldWidget(FieldWidget* field)
 {
-    assert(field != nullptr);
+    if (field == nullptr) {
+        assert(!"Field object should be provided");
+        return;
+    }
+
     m_msg.updateFieldProperties(*field, m_curFieldIdx);
     field->propertiesUpdated();
-    ++m_curFieldIdx;
 
-    if (!m_layout->isEmpty()) {
-        auto* line = new QFrame(this);
-        line->setFrameShape(QFrame::HLine);
-        line->setFrameShadow(QFrame::Sunken);
-        m_layout->insertWidget(m_layout->count() - 1, line);
+    if (m_curFieldIdx != 0) {
+        m_layout->insertWidget(m_layout->count() - 1, createFieldSeparator().release());
     }
     m_layout->insertWidget(m_layout->count() - 1, field);
-    connect(this, SIGNAL(sigRefreshFields()), field, SLOT(refresh()));
-    connect(this, SIGNAL(sigSetEditEnabled(bool)), field, SLOT(setEditEnabled(bool)));
-    connect(field, SIGNAL(sigFieldUpdated()), this, SIGNAL(sigMsgUpdated()));
+    connectFieldSignals(field);
+
+    ++m_curFieldIdx;
+}
+
+void DefaultMessageWidget::insertFieldWidget(int idx, FieldWidget* field)
+{
+    if (field == nullptr) {
+        assert(!"Field object should be provided");
+        return;
+    }
+
+    if (idx < 0) {
+        assert(!"Unexpected field index");
+        return;
+    }
+
+    auto adjustedIdx = std::min(idx * 2, m_layout->count() - 1);
+
+    m_layout->insertWidget(adjustedIdx, field);
+    connectFieldSignals(field);
+
+    if (m_layout->count() <= 2) {
+        return;
+    }
+
+    auto sep = createFieldSeparator();
+    if ((m_layout->count() - 2) <= adjustedIdx) {
+
+        m_layout->insertWidget(adjustedIdx, sep.release());
+        return;
+    }
+
+    m_layout->insertWidget(adjustedIdx + 1, sep.release());
 }
 
 void DefaultMessageWidget::refreshImpl()
@@ -69,6 +100,22 @@ void DefaultMessageWidget::refreshImpl()
 void DefaultMessageWidget::setEditEnabledImpl(bool enabled)
 {
     emit sigSetEditEnabled(enabled);
+}
+
+std::unique_ptr<QFrame> DefaultMessageWidget::createFieldSeparator()
+{
+    std::unique_ptr<QFrame> line(new QFrame(this));
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    return std::move(line);
+}
+
+void DefaultMessageWidget::connectFieldSignals(FieldWidget* field)
+{
+    assert(field != nullptr);
+    connect(this, SIGNAL(sigRefreshFields()), field, SLOT(refresh()));
+    connect(this, SIGNAL(sigSetEditEnabled(bool)), field, SLOT(setEditEnabled(bool)));
+    connect(field, SIGNAL(sigFieldUpdated()), this, SIGNAL(sigMsgUpdated()));
 }
 
 }  // namespace comms_champion

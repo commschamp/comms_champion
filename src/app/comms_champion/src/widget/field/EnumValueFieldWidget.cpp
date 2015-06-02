@@ -41,6 +41,10 @@ EnumValueFieldWidget::EnumValueFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    setNameLabelWidget(m_ui.m_nameLabel);
+    setValueWidget(m_ui.m_valueWidget);
+    setSeparatorWidget(m_ui.m_sepLine);
+    setSerialisedValueWidget(m_ui.m_serValueWidget);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
@@ -99,17 +103,6 @@ void EnumValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
-
-    bool serHidden = false;
-    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
-    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
-        serHidden = serHiddenVar.value<bool>();
-    }
-
-    m_ui.m_serValueLineEdit->setHidden(serHidden);
-    m_ui.m_serFrontLabel->setHidden(serHidden);
-    m_ui.m_serBackLabel->setHidden(serHidden);
-    m_ui.m_sepLine->setHidden(serHidden);
 }
 
 void EnumValueFieldWidget::setEditEnabledImpl(bool enabled)
@@ -160,9 +153,6 @@ void EnumValueFieldWidget::readPropertiesAndUpdateUi()
         disconnect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
                    this, SLOT(serialisedValueUpdated(const QString&)));
     }
-
-    assert(m_ui.m_nameLabel != nullptr);
-    updateNameLabel(*m_ui.m_nameLabel);
 
     m_ui.m_valueComboBox->clear();
 

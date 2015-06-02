@@ -78,13 +78,39 @@ protected:
         emitFieldUpdated();
     }
 
+    void setNameLabelWidget(QLabel* widget)
+    {
+        m_nameLabel = widget;
+    }
+
+    void setValueWidget(QWidget* widget)
+    {
+        m_valueWidget = widget;
+    }
+
+    void setSeparatorWidget(QWidget* widget)
+    {
+        m_sepWidget = widget;
+    }
+
+    void setSerialisedValueWidget(QWidget* widget)
+    {
+        m_serValueWidget = widget;
+    }
+
     virtual void refreshImpl() = 0;
     virtual void setEditEnabledImpl(bool enabled);
     virtual void propertiesUpdatedImpl();
 
 private:
+    void performUiElementsVisibilityCheck();
+    void performNameLabelUpdate();
 
     bool m_editEnabled = true;
+    QLabel* m_nameLabel = nullptr;
+    QWidget* m_valueWidget = nullptr;
+    QWidget* m_sepWidget = nullptr;
+    QWidget* m_serValueWidget = nullptr;
 };
 
 }  // namespace comms_champion

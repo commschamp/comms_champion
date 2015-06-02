@@ -32,3 +32,4 @@
 #include "ProtocolMessageBase.h"
 #include "TransportMessageBase.h"
 #include "RawDataMessage.h"
+#include "FieldWidgetCreator.h"

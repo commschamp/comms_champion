@@ -179,10 +179,11 @@ public:
         std::uint8_t buf[Length] = {0};
         auto* writeIter = &buf[0];
         comms::util::writeData<Length>(value, writeIter, Endian());
+        GASSERT(static_cast<std::size_t>(std::distance(&buf[0], writeIter)) == Length);
         const auto* readIter = &buf[0];
         auto es = read(readIter, Length);
         static_cast<void>(es);
-        GASSERT(es == comms::ErrorStatus::Success);
+        //GASSERT(es == comms::ErrorStatus::Success);
     }
 
     template <std::size_t TIdx>

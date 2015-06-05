@@ -23,6 +23,7 @@
 #include "comms/field/category.h"
 #include "NumericFieldAdapterBase.h"
 #include "CollectionFieldAdapterBase.h"
+#include "BundleFieldAdapterBase.h"
 
 namespace comms
 {
@@ -48,7 +49,11 @@ struct AdapterBase
         typename std::conditional<
             std::is_base_of<comms::field::category::CollectionField, typename TNext::Category>::value,
             CollectionFieldAdapterBase<TNext>,
-            void
+            typename std::conditional<
+                std::is_base_of<comms::field::category::BundleField, typename TNext::Category>::value,
+                BundleFieldAdapterBase<TNext>,
+                void
+            >::type
         >::type
     >::type Type;
 

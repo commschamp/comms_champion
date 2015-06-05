@@ -61,6 +61,7 @@ public:
     void test29();
     void test30();
     void test31();
+    void test32();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1143,6 +1144,63 @@ void FieldsTestSuite::test31()
     es = field.write(writeIter, BufTmpSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(writeIter, &bufTmp[0]);
+}
+
+void FieldsTestSuite::test32()
+{
+
+    typedef comms::field::Bundle<
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t,
+                comms::option::ValidNumValueRange<0, 10>,
+                comms::option::DefaultNumValue<5>
+            >,
+            comms::field::EnumValue<
+                comms::Field<BigEndianOpt>,
+                Enum1,
+                comms::option::FixedLength<1>,
+                comms::option::ValidNumValueRange<0, Enum1_NumOfValues - 1>,
+                comms::option::DefaultNumValue<Enum1_Value2>
+            >
+        >
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    auto& intValField = std::get<0>(field.members());
+    auto& enumValField = std::get<1>(field.members());
+    TS_ASSERT_EQUALS(intValField.getValue(), 5U);
+    TS_ASSERT_EQUALS(enumValField.getValue(), Enum1_Value2);
+
+    intValField.setValue(50U);
+    TS_ASSERT(!field.valid());
+    intValField.setValue(1U);
+    TS_ASSERT(field.valid());
+    enumValField.setValue(Enum1_NumOfValues);
+    TS_ASSERT(!field.valid());
+
+    static const char Buf[] = {
+        0x00, 0x3, Enum1_Value3, (char)0xff
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(intValField.getValue(), 3U);
+    TS_ASSERT_EQUALS(enumValField.getValue(), Enum1_Value3);
+
+    intValField.setValue(0xabcd);
+    enumValField.setValue(Enum1_Value1);
+
+    static const char ExpectedBuf[] = {
+        (char)0xab, (char)0xcd, (char)Enum1_Value1
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
 }
 
 template <typename TField>

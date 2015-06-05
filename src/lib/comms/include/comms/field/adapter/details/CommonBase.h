@@ -133,6 +133,11 @@ protected:
     {
     }
 
+    explicit CommonBase(ValueType&& value)
+      : next_(std::move(value))
+    {
+    }
+
 private:
     struct NextIsLeafTag {};
     struct NextIsAdapterTag {};

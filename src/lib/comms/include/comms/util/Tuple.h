@@ -377,17 +377,15 @@ class TupleAccumulateHelper
 
 public:
     template <typename TTuple, typename TValue, typename TFunc>
-    static TValue exec(TTuple&& tuple, const TValue& value, TFunc&& func)
+    static constexpr TValue exec(TTuple&& tuple, const TValue& value, TFunc&& func)
     {
         typedef typename std::decay<TTuple>::type Tuple;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
-        static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
-        static_assert(TRem <= TupleSize, "Incorrect TRem");
+        static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
 
-        static const std::size_t Idx = TupleSize - TRem;
         return TupleAccumulateHelper<TRem - 1>::exec(
                     std::forward<TTuple>(tuple),
-                    func(value, std::get<Idx>(std::forward<TTuple>(tuple))),
+                    func(value, std::get<std::tuple_size<Tuple>::value - TRem>(std::forward<TTuple>(tuple))),
                     std::forward<TFunc>(func));
     }
 };
@@ -398,10 +396,8 @@ class TupleAccumulateHelper<0>
 
 public:
     template <typename TTuple, typename TValue, typename TFunc>
-    static TValue exec(TTuple&& tuple, const TValue& value, TFunc&& func)
+    static constexpr TValue exec(TTuple&& /* tuple */, const TValue& value, TFunc&& /* func */)
     {
-        static_cast<void>(tuple);
-        static_cast<void>(func);
         return value;
     }
 };
@@ -409,18 +405,64 @@ public:
 }  // namespace details
 
 template <typename TTuple, typename TValue, typename TFunc>
-TValue tupleAccumulate(TTuple&& tuple, const TValue& value, TFunc&& func)
+constexpr TValue tupleAccumulate(TTuple&& tuple, const TValue& value, TFunc&& func)
 {
     typedef typename std::decay<TTuple>::type Tuple;
-    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
 
-    return details::TupleAccumulateHelper<TupleSize>::exec(
+    return details::TupleAccumulateHelper<std::tuple_size<Tuple>::value>::exec(
                 std::forward<TTuple>(tuple),
                 value,
                 std::forward<TFunc>(func));
 }
 
 //----------------------------------------
+
+namespace details
+{
+
+template <std::size_t TRem>
+class TupleTypeAccumulateHelper
+{
+
+public:
+    template <typename TTuple, typename TValue, typename TFunc>
+    static constexpr TValue exec(const TValue& value, TFunc&& func)
+    {
+        typedef typename std::decay<TTuple>::type Tuple;
+        static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
+        static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
+
+        return TupleTypeAccumulateHelper<TRem - 1>::template exec<Tuple>(
+            func.template operator()<typename std::tuple_element<std::tuple_size<Tuple>::value - TRem, Tuple>::type>(value),
+            std::forward<TFunc>(func));
+    }
+};
+
+template <>
+class TupleTypeAccumulateHelper<0>
+{
+
+public:
+    template <typename TTuple, typename TValue, typename TFunc>
+    static constexpr TValue exec(const TValue& value, TFunc&& /* func */)
+    {
+        return value;
+    }
+};
+
+}  // namespace details
+
+template <typename TTuple, typename TValue, typename TFunc>
+constexpr TValue tupleTypeAccumulate(const TValue& value, TFunc&& func)
+{
+    typedef typename std::decay<TTuple>::type Tuple;
+    return details::TupleTypeAccumulateHelper<std::tuple_size<Tuple>::value>::template exec<Tuple>(
+        value,
+        std::forward<TFunc>(func));
+}
+
+//----------------------------------------
+
 
 template <typename TFirst, typename TSecond>
 struct TupleCat

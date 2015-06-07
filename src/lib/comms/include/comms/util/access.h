@@ -390,7 +390,7 @@ T read(std::size_t size, TIter& iter)
 }
 
 template <typename TEndian, typename T, typename TIter>
-T readRandomAccess(std::size_t size, TIter& iter)
+T readFromPointerToSigned(std::size_t size, TIter& iter)
 {
     typedef typename std::decay<T>::type ValueType;
 
@@ -412,21 +412,31 @@ T readRandomAccess(std::size_t size, TIter& iter)
     return static_cast<T>(static_cast<ValueType>(value));
 }
 
-template <typename TEndian, bool TIsPointerToUnsignedConst>
+template <typename TEndian, bool TIsPointer, bool TIsUnsignedConst>
 struct ReadRandomAccessHelper;
 
 template <typename TEndian>
-struct ReadRandomAccessHelper<TEndian, false>
+struct ReadRandomAccessHelper<TEndian, true, false>
 {
     template <typename T, typename TIter>
     static T read(std::size_t size, TIter& iter)
     {
-        return readRandomAccess<TEndian, T>(size, iter);
+        return readFromPointerToSigned<TEndian, T>(size, iter);
     }
 };
 
 template <typename TEndian>
-struct ReadRandomAccessHelper<TEndian, true>
+struct ReadRandomAccessHelper<TEndian, true, true>
+{
+    template <typename T, typename TIter>
+    static T read(std::size_t size, TIter& iter)
+    {
+        return details::read<TEndian, T>(size, iter);
+    }
+};
+
+template <typename TEndian, bool TIsUnsignedConst>
+struct ReadRandomAccessHelper<TEndian, false, TIsUnsignedConst>
 {
     template <typename T, typename TIter>
     static T read(std::size_t size, TIter& iter)
@@ -455,11 +465,13 @@ struct ReadHelper<TEndian, true>
     static T read(std::size_t size, TIter& iter)
     {
         typedef ByteType<TIter> ByteType;
-        static const bool IsPointerToUnsignedConst =
-            std::is_pointer<TIter>::value &&
+        static const bool IsPointer =
+            std::is_pointer<TIter>::value;
+
+        static const bool IsUnsignedConstData =
             std::is_const<ByteType>::value &&
             std::is_unsigned<ByteType>::value;
-        return ReadRandomAccessHelper<TEndian, IsPointerToUnsignedConst>::template read<T>(size, iter);
+        return ReadRandomAccessHelper<TEndian, IsPointer, IsUnsignedConstData>::template read<T>(size, iter);
     }
 };
 

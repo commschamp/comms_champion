@@ -117,6 +117,10 @@ public:
 
     bool valid() const
     {
+        if (mode_ == Mode::Missing) {
+            return true;
+        }
+
         return field_.valid();
     }
 

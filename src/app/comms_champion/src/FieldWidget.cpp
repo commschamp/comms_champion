@@ -162,6 +162,16 @@ void FieldWidget::propertiesUpdatedImpl()
 
 void FieldWidget::performUiElementsVisibilityCheck()
 {
+    auto allHiddenVar = Property::getFieldHiddenVal(*this);
+    if (allHiddenVar.isValid() && allHiddenVar.canConvert<bool>()) {
+        auto allHidden = allHiddenVar.toBool();
+        setHidden(allHidden);
+
+        if (allHidden) {
+            return;
+        }
+    }
+
     if ((m_valueWidget == nullptr) &&
         (m_sepWidget == nullptr) &&
         (m_serValueWidget == nullptr)) {
@@ -175,19 +185,6 @@ void FieldWidget::performUiElementsVisibilityCheck()
                 widget->setHidden(hidden);
             }
         };
-
-
-    auto allHiddenVar = Property::getFieldHiddenVal(*this);
-    if (allHiddenVar.isValid() && allHiddenVar.canConvert<bool>()) {
-        auto allHidden = allHiddenVar.toBool();
-        setWidgetHiddenFunc(m_valueWidget, allHidden);
-        setWidgetHiddenFunc(m_sepWidget, allHidden);
-        setWidgetHiddenFunc(m_serValueWidget, allHidden);
-
-        if (allHidden) {
-            return;
-        }
-    }
 
 
     auto serHiddenVar = Property::getSerialisedHiddenVal(*this);

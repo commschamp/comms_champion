@@ -27,6 +27,7 @@
 #include "widget/field/StringFieldWidget.h"
 #include "widget/field/BitfieldFieldWidget.h"
 #include "widget/field/OptionalFieldWidget.h"
+#include "widget/field/BundleFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -56,6 +57,19 @@ void FieldWidgetCreator::optionalWidgetSetField(
     }
 
     castedOptionalFieldWidget->setField(fieldWidget.release());
+}
+
+void FieldWidgetCreator::bundleWidgetAddMember(
+    FieldWidget& bundleWidget,
+    FieldWidgetPtr memberWidget)
+{
+    auto* castedBundleWidget = qobject_cast<BundleFieldWidget*>(&bundleWidget);
+    if (castedBundleWidget == nullptr) {
+        assert(!"Wrong cast, expected bundle widget");
+        return;
+    }
+
+    castedBundleWidget->addMemberField(memberWidget.release());
 }
 
 FieldWidgetCreator::FieldWidgetPtr
@@ -120,6 +134,12 @@ FieldWidgetCreator::createOptionalFieldWidget(
     return
         FieldWidgetPtr(
             new OptionalFieldWidget(std::move(fieldWrapper)));
+}
+
+FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createBundleFieldWidget()
+{
+    return
+        FieldWidgetPtr(new BundleFieldWidget());
 }
 
 FieldWidgetCreator::FieldWidgetPtr

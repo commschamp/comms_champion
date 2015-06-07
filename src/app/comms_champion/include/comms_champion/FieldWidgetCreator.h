@@ -44,6 +44,7 @@ struct EnumValueTag {};
 struct StringTag {};
 struct BitfieldTag {};
 struct OptionalTag {};
+struct BundleTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -124,6 +125,16 @@ struct FieldWidgetCreatorTagOf<comms::field::Optional<TArgs...> >
     typedef OptionalTag Type;
 };
 
+template <typename... TArgs>
+struct FieldWidgetCreatorTagOf<comms::field::Bundle<TArgs...> >
+{
+    static_assert(
+        comms::field::isBundle<comms::field::Bundle<TArgs...> >(),
+        "isBundle is supposed to return true");
+
+    typedef BundleTag Type;
+};
+
 template <typename TField>
 using FieldWidgetCreatorTagOfT = typename FieldWidgetCreatorTagOf<TField>::Type;
 
@@ -152,6 +163,10 @@ public:
         FieldWidget& optionalWidget,
         FieldWidgetPtr fieldWidget);
 
+    static void bundleWidgetAddMember(
+        FieldWidget& bundleWidget,
+        FieldWidgetPtr memberWidget);
+
 private:
     using IntValueTag = details::IntValueTag;
     using BitmaskValueTag = details::BitmaskValueTag;
@@ -159,6 +174,7 @@ private:
     using StringTag = details::StringTag;
     using BitfieldTag = details::BitfieldTag;
     using OptionalTag = details::OptionalTag;
+    using BundleTag = details::BundleTag;
     using UnknownValueTag = details::UnknownValueTag;
 
     struct IntValueWrapperTag {};
@@ -252,6 +268,23 @@ private:
     }
 
     template <typename TField>
+    static FieldWidgetPtr createWidgetInternal(TField& field, BundleTag)
+    {
+        auto widget = createBundleFieldWidget();
+
+        auto& memberFields = field.members();
+        comms::util::tupleForEach(
+            memberFields,
+            SubfieldsCreateHelper(
+                [&widget](FieldWidgetPtr fieldWidget)
+                {
+                    FieldWidgetCreator::bundleWidgetAddMember(*widget, std::move(fieldWidget));
+                }));
+
+        return std::move(widget);
+    }
+
+    template <typename TField>
     static FieldWidgetPtr createWidgetInternal(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -292,6 +325,8 @@ private:
 
     static FieldWidgetPtr createOptionalFieldWidget(
         field_wrapper::OptionalWrapperPtr fieldWrapper);
+
+    static FieldWidgetPtr createBundleFieldWidget();
 
     static FieldWidgetPtr createUnknownValueFieldWidget(
             field_wrapper::UnknownValueWrapperPtr fieldWrapper);

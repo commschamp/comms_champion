@@ -106,6 +106,16 @@ public:
         return field_.getValue();
     }
 
+    const StorageType& getValue() const
+    {
+        return field_.getValue();
+    }
+
+    void setValue(const StorageType& value)
+    {
+        field_.setValue(value);
+    }
+
     /// @brief Get length of serialised data
     constexpr std::size_t length() const
     {
@@ -165,6 +175,28 @@ bool operator==(
     return !(field1 != field2);
 }
 
+namespace details
+{
+
+template <typename T>
+struct IsArrayList
+{
+    static const bool Value = false;
+};
+
+template <typename... TArgs>
+struct IsArrayList<comms::field::ArrayList<TArgs...> >
+{
+    static const bool Value = true;
+};
+
+}  // namespace details
+
+template <typename T>
+constexpr bool isArrayList()
+{
+    return details::IsArrayList<T>::Value;
+}
 
 
 

@@ -34,7 +34,7 @@ namespace message
 typedef std::tuple<
     comms::field::ArrayList<
         CCDemoMessage::Field,
-        comms::field::IntValue<CCDemoMessage::Field, std::uint8_t>
+        std::uint8_t
     >
 > RawDataMessageFields;
 

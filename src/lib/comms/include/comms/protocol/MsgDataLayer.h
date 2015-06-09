@@ -36,7 +36,7 @@ template <
     typename TField =
         comms::field::ArrayList<
             typename TMessage::Field,
-            comms::field::IntValue<typename TMessage::Field, std::uint8_t>
+            std::uint8_t
         >
 >
 class MsgDataLayer

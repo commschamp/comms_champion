@@ -44,6 +44,7 @@ function (bin_comms_champion)
         widget/field/BitfieldFieldWidget.cpp
         widget/field/OptionalFieldWidget.cpp
         widget/field/BundleFieldWidget.cpp
+        widget/field/ArrayListRawDataFieldWidget.cpp
         widget/field/UnknownValueFieldWidget.cpp
     )
     
@@ -71,6 +72,7 @@ function (bin_comms_champion)
         widget/field/BitfieldFieldWidget.h
         widget/field/OptionalFieldWidget.h
         widget/field/BundleFieldWidget.h
+        widget/field/ArrayListRawDataFieldWidget.h
         widget/field/UnknownValueFieldWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      
@@ -95,6 +97,7 @@ function (bin_comms_champion)
         ui/StringFieldWidget.ui
         ui/BitfieldFieldWidget.ui
         ui/OptionalFieldWidget.ui
+        ui/ArrayListRawDataFieldWidget.ui
         ui/UnknownValueFieldWidget.ui
     )
     

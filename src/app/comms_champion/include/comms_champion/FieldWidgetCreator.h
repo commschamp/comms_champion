@@ -30,6 +30,7 @@
 #include "comms_champion/field_wrapper/StringWrapper.h"
 #include "comms_champion/field_wrapper/BitfieldWrapper.h"
 #include "comms_champion/field_wrapper/OptionalWrapper.h"
+#include "comms_champion/field_wrapper/ArrayListRawDataWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -45,6 +46,7 @@ struct StringTag {};
 struct BitfieldTag {};
 struct OptionalTag {};
 struct BundleTag {};
+struct ArrayListTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -62,6 +64,8 @@ struct FieldWidgetCreatorTagOf
         "Bitfield is perceived as unknown type");
     static_assert(!comms::field::isOptional<TField>(),
         "Optional is perceived as unknown type");
+    static_assert(!comms::field::isArrayList<TField>(),
+        "ArrayList is perceived as unknown type");
     typedef UnknownValueTag Type;
 };
 
@@ -135,6 +139,16 @@ struct FieldWidgetCreatorTagOf<comms::field::Bundle<TArgs...> >
     typedef BundleTag Type;
 };
 
+template <typename... TArgs>
+struct FieldWidgetCreatorTagOf<comms::field::ArrayList<TArgs...> >
+{
+    static_assert(
+        comms::field::isArrayList<comms::field::ArrayList<TArgs...> >(),
+        "isArrayList is supposed to return true");
+
+    typedef ArrayListTag Type;
+};
+
 template <typename TField>
 using FieldWidgetCreatorTagOfT = typename FieldWidgetCreatorTagOf<TField>::Type;
 
@@ -175,10 +189,14 @@ private:
     using BitfieldTag = details::BitfieldTag;
     using OptionalTag = details::OptionalTag;
     using BundleTag = details::BundleTag;
+    using ArrayListTag = details::ArrayListTag;
     using UnknownValueTag = details::UnknownValueTag;
 
     struct IntValueWrapperTag {};
     struct LongIntValueWrapperTag {};
+
+    struct RawDataArrayListTag {};
+    struct CollectionOfFieldsArrayListTag {};
 
     class SubfieldsCreateHelper
     {
@@ -285,6 +303,20 @@ private:
     }
 
     template <typename TField>
+    static FieldWidgetPtr createWidgetInternal(TField& field, ArrayListTag)
+    {
+        typedef typename std::decay<decltype(field)>::type FieldType;
+        typedef typename FieldType::StorageType::value_type ElementType;
+        typedef typename std::conditional<
+            std::is_integral<ElementType>::value,
+            RawDataArrayListTag,
+            CollectionOfFieldsArrayListTag
+        >::type TypeTag;
+
+        return createArrayListFieldWidgetInternal(field, TypeTag());
+    }
+
+    template <typename TField>
     static FieldWidgetPtr createWidgetInternal(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -303,6 +335,20 @@ private:
     {
         return createLongIntValueFieldWidget(
             field_wrapper::makeLongIntValueWrapper(field));
+    }
+
+    template <typename TField>
+    static FieldWidgetPtr createArrayListFieldWidgetInternal(TField& field, RawDataArrayListTag)
+    {
+        return createArrayListRawDataFieldWidget(
+            field_wrapper::makeArrayListRawDataWrapper(field));
+    }
+
+    template <typename TField>
+    static FieldWidgetPtr createArrayListFieldWidgetInternal(TField& field, CollectionOfFieldsArrayListTag)
+    {
+        // TODO: implement
+        return createWidgetInternal(field, UnknownValueTag());
     }
 
     static FieldWidgetPtr createIntValueFieldWidget(
@@ -327,6 +373,9 @@ private:
         field_wrapper::OptionalWrapperPtr fieldWrapper);
 
     static FieldWidgetPtr createBundleFieldWidget();
+
+    static FieldWidgetPtr createArrayListRawDataFieldWidget(
+        field_wrapper::ArrayListRawDataWrapperPtr fieldWrapper);
 
     static FieldWidgetPtr createUnknownValueFieldWidget(
             field_wrapper::UnknownValueWrapperPtr fieldWrapper);

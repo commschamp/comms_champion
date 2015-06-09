@@ -28,6 +28,7 @@
 #include "widget/field/BitfieldFieldWidget.h"
 #include "widget/field/OptionalFieldWidget.h"
 #include "widget/field/BundleFieldWidget.h"
+#include "widget/field/ArrayListRawDataFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -141,6 +142,15 @@ FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createBundleFieldWidget()
     return
         FieldWidgetPtr(new BundleFieldWidget());
 }
+
+FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createArrayListRawDataFieldWidget(
+    field_wrapper::ArrayListRawDataWrapperPtr fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new ArrayListRawDataFieldWidget(std::move(fieldWrapper)));
+}
+
 
 FieldWidgetCreator::FieldWidgetPtr
 FieldWidgetCreator::createUnknownValueFieldWidget(

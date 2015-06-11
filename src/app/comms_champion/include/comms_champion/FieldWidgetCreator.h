@@ -31,6 +31,7 @@
 #include "comms_champion/field_wrapper/BitfieldWrapper.h"
 #include "comms_champion/field_wrapper/OptionalWrapper.h"
 #include "comms_champion/field_wrapper/ArrayListRawDataWrapper.h"
+#include "comms_champion/field_wrapper/ArrayListWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -180,6 +181,10 @@ public:
     static void bundleWidgetAddMember(
         FieldWidget& bundleWidget,
         FieldWidgetPtr memberWidget);
+
+    static void arrayListAddDataField(
+        FieldWidget& arrayListWidget,
+        FieldWidgetPtr dataFieldWidget);
 
 private:
     using IntValueTag = details::IntValueTag;
@@ -347,8 +352,16 @@ private:
     template <typename TField>
     static FieldWidgetPtr createArrayListFieldWidgetInternal(TField& field, CollectionOfFieldsArrayListTag)
     {
-        // TODO: implement
-        return createWidgetInternal(field, UnknownValueTag());
+        auto widget = createArrayListFieldWidget(
+            field_wrapper::makeArrayListWrapper(field));
+
+        auto& dataFields = field.fields();
+        for (auto& f : dataFields) {
+            auto dataFieldWidget = createWidget(f);
+            arrayListAddDataField(*widget, std::move(dataFieldWidget));
+        }
+
+        return std::move(widget);
     }
 
     static FieldWidgetPtr createIntValueFieldWidget(
@@ -376,6 +389,9 @@ private:
 
     static FieldWidgetPtr createArrayListRawDataFieldWidget(
         field_wrapper::ArrayListRawDataWrapperPtr fieldWrapper);
+
+    static FieldWidgetPtr createArrayListFieldWidget(
+        field_wrapper::ArrayListWrapperPtr fieldWrapper);
 
     static FieldWidgetPtr createUnknownValueFieldWidget(
             field_wrapper::UnknownValueWrapperPtr fieldWrapper);

@@ -62,6 +62,7 @@ public:
     void test30();
     void test31();
     void test32();
+    void test33();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -576,11 +577,17 @@ void FieldsTestSuite::test17()
         comms::option::SequenceSizeFieldPrefix<SizeField>
     > Field;
 
+    TS_ASSERT_EQUALS(Field::minLength(), SizeField::maxLength());
+    TS_ASSERT_EQUALS(Field::maxLength(), SizeField::maxLength() + std::numeric_limits<std::uint16_t>::max());
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceSizeFieldPrefix<SizeField>,
         comms::option::FixedSizeStorage<256>
     > StaticStorageField;
+
+    TS_ASSERT_EQUALS(StaticStorageField::minLength(), SizeField::maxLength());
+    TS_ASSERT_EQUALS(StaticStorageField::maxLength(), SizeField::maxLength() + 255);
 
     Field field;
     TS_ASSERT(field.valid());
@@ -1007,6 +1014,8 @@ void FieldsTestSuite::test28()
         >
     > Field;
 
+    TS_ASSERT_EQUALS(Field::minLength(), sizeof(std::uint16_t));
+
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(field.fields().size(), 0U);
@@ -1167,6 +1176,9 @@ void FieldsTestSuite::test32()
         >
     > Field;
 
+    TS_ASSERT_EQUALS(Field::minLength(), 3U);
+    TS_ASSERT_EQUALS(Field::maxLength(), 3U);
+
     Field field;
     TS_ASSERT(field.valid());
     auto& intValField = std::get<0>(field.members());
@@ -1201,6 +1213,44 @@ void FieldsTestSuite::test32()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test33()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t
+    > SizeField;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceSizeFieldPrefix<SizeField>
+    > StringField;
+
+
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        StringField
+    > Field;
+
+    TS_ASSERT_EQUALS(Field::minLength(), 0U);
+    TS_ASSERT_EQUALS(Field::maxLength(), 0xffff * StringField::maxLength());
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT(field.getValue().empty());
+
+    static const char Buf[] = {
+        0x05, 'h', 'e', 'l', 'l', 'o', 0x03, 'b', 'l', 'a'
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), BufSize);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.getValue()[0].getValue(), "hello");
+    TS_ASSERT_EQUALS(field.getValue()[1].getValue(), "bla");
 }
 
 template <typename TField>

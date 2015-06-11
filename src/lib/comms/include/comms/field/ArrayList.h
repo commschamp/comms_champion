@@ -139,6 +139,17 @@ public:
         return field_.valid();
     }
 
+    static constexpr std::size_t minLength()
+    {
+        return ThisField::minLength();
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return ThisField::maxLength();
+    }
+
+
 private:
     ThisField field_;
 };

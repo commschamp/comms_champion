@@ -20,11 +20,14 @@
 
 #include <type_traits>
 #include <algorithm>
+#include <limits>
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
 #include "comms/util/access.h"
+#include "comms/util/StaticQueue.h"
+#include "comms/util/StaticString.h"
 
 namespace comms
 {
@@ -61,6 +64,24 @@ struct ArrayListFieldHasVarLength
             TElemType,
             std::is_integral<TElemType>::value
         >::Value;
+};
+
+template <typename TStorage>
+struct ArrayListMaxLengthRetrieveHelper
+{
+    static const std::size_t Value = 0xffff;
+};
+
+template <typename T, std::size_t TSize>
+struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticQueue<T, TSize> >
+{
+    static const std::size_t Value = TSize;
+};
+
+template <std::size_t TSize>
+struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticString<TSize> >
+{
+    static const std::size_t Value = TSize - 1;
 };
 
 
@@ -142,7 +163,9 @@ public:
 
     static constexpr std::size_t maxLength()
     {
-        return ValueType::max_size() * maxLengthInternal(ElemTag());
+        return
+            details::ArrayListMaxLengthRetrieveHelper<TStorage>::Value *
+            maxLengthInternal(ElemTag());
     }
 
     constexpr bool valid() const

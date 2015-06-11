@@ -29,6 +29,7 @@
 #include "widget/field/OptionalFieldWidget.h"
 #include "widget/field/BundleFieldWidget.h"
 #include "widget/field/ArrayListRawDataFieldWidget.h"
+#include "widget/field/ArrayListFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -71,6 +72,19 @@ void FieldWidgetCreator::bundleWidgetAddMember(
     }
 
     castedBundleWidget->addMemberField(memberWidget.release());
+}
+
+void FieldWidgetCreator::arrayListAddDataField(
+    FieldWidget& arrayListWidget,
+    FieldWidgetPtr dataFieldWidget)
+{
+    auto* castedWidget = qobject_cast<ArrayListFieldWidget*>(&arrayListWidget);
+    if (castedWidget == nullptr) {
+        assert(!"Wrong cast, expected array list widget");
+        return;
+    }
+
+    castedWidget->addDataField(dataFieldWidget.release());
 }
 
 FieldWidgetCreator::FieldWidgetPtr
@@ -149,6 +163,14 @@ FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createArrayListRawDataFie
     return
         FieldWidgetPtr(
             new ArrayListRawDataFieldWidget(std::move(fieldWrapper)));
+}
+
+FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createArrayListFieldWidget(
+    field_wrapper::ArrayListWrapperPtr fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new ArrayListFieldWidget(std::move(fieldWrapper)));
 }
 
 

@@ -21,6 +21,8 @@
 #include <functional>
 #include <vector>
 
+#include <QtCore/QVariantMap>
+
 #include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/ArrayListWrapper.h"
 
@@ -42,6 +44,7 @@ public:
 
     void refresh();
     void setEditEnabled(bool enabled);
+    void updateProperties(const QVariantMap& props);
 
 signals:
     void sigFieldUpdated();
@@ -80,6 +83,7 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
+    virtual void propertiesUpdatedImpl() override;
 
 private slots:
     void dataFieldUpdated();

@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <cassert>
 
-#include "GlobalConstants.h"
+#include "comms_champion/Property.h"
 
 namespace comms_champion
 {
@@ -55,6 +55,17 @@ void ArrayListElementWidget::setEditEnabled(bool enabled)
     m_editEnabled = enabled;
     m_fieldWidget->setEditEnabled(enabled);
     updateUi();
+}
+
+void ArrayListElementWidget::updateProperties(const QVariantMap& props)
+{
+    assert(m_fieldWidget != nullptr);
+
+    auto keys = props.keys();
+    for (auto& k : keys) {
+        m_fieldWidget->setProperty(k.toUtf8().data(), props[k]);
+    }
+    m_fieldWidget->propertiesUpdated();
 }
 
 void ArrayListElementWidget::updateUi()
@@ -92,7 +103,8 @@ ArrayListFieldWidget::~ArrayListFieldWidget() = default;
 void ArrayListFieldWidget::refreshImpl()
 {
     while (!m_elements.empty()) {
-        std::unique_ptr<ArrayListElementWidget> fieldWidget(m_elements.back());
+        assert(m_elements.back() != nullptr);
+        delete m_elements.back();
         m_elements.pop_back();
     }
 
@@ -106,6 +118,20 @@ void ArrayListFieldWidget::setEditEnabledImpl(bool enabled)
         elem->setEditEnabled(enabled);
     }
     updateUi();
+}
+
+void ArrayListFieldWidget::propertiesUpdatedImpl()
+{
+    auto propsVar = Property::getDataVal(*this);
+    if ((!propsVar.isValid()) || (!propsVar.canConvert<QVariantMap>())) {
+        return;
+    }
+
+    auto props = propsVar.value<QVariantMap>();
+
+    for (auto* elem : m_elements) {
+        elem->updateProperties(props);
+    }
 }
 
 void ArrayListFieldWidget::dataFieldUpdated()
@@ -130,12 +156,13 @@ void ArrayListFieldWidget::removeField()
         return;
     }
 
-    // Delete field widget on exit, will remove from UI
-    std::unique_ptr<ArrayListElementWidget> fieldWidget(*iter);
-    m_elements.erase(iter);
-
     auto idx = static_cast<int>(std::distance(m_elements.begin(), iter));
     m_wrapper->removeField(idx);
+
+    assert((*iter) != nullptr);
+    delete *iter;
+    m_elements.erase(iter);
+
     refreshInternal();
     emitFieldUpdated();
 }
@@ -145,6 +172,12 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
     auto* wrapperWidget = new ArrayListElementWidget(dataFieldWidget);
     wrapperWidget->setEditEnabled(isEditEnabled());
 
+    auto propsVar = Property::getDataVal(*this);
+    if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
+        auto props = propsVar.value<QVariantMap>();
+        wrapperWidget->updateProperties(props);
+    }
+
     connect(
         wrapperWidget, SIGNAL(sigFieldUpdated()),
         this, SLOT(dataFieldUpdated()));
@@ -152,7 +185,6 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
     connect(
         wrapperWidget, SIGNAL(sigRemoveRequested()),
         this, SLOT(removeField()));
-
 
     m_elements.push_back(wrapperWidget);
     m_ui.m_membersLayout->addWidget(wrapperWidget);

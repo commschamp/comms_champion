@@ -158,8 +158,6 @@ using FieldWidgetCreatorTagOfT = typename FieldWidgetCreatorTagOf<TField>::Type;
 class FieldWidgetCreator
 {
 public:
-    typedef std::unique_ptr<FieldWidget> FieldWidgetPtr;
-
     FieldWidgetCreator() = default;
 
     template <typename TField>
@@ -181,10 +179,6 @@ public:
     static void bundleWidgetAddMember(
         FieldWidget& bundleWidget,
         FieldWidgetPtr memberWidget);
-
-    static void arrayListAddDataField(
-        FieldWidget& arrayListWidget,
-        FieldWidgetPtr dataFieldWidget);
 
 private:
     using IntValueTag = details::IntValueTag;
@@ -352,14 +346,24 @@ private:
     template <typename TField>
     static FieldWidgetPtr createArrayListFieldWidgetInternal(TField& field, CollectionOfFieldsArrayListTag)
     {
-        auto widget = createArrayListFieldWidget(
-            field_wrapper::makeArrayListWrapper(field));
+        auto addMissingFieldsFunc =
+            [&field](std::size_t from) -> std::vector<FieldWidgetPtr>
+            {
+                std::vector<FieldWidgetPtr> allFieldsWidgets;
 
-        auto& dataFields = field.fields();
-        for (auto& f : dataFields) {
-            auto dataFieldWidget = createWidget(f);
-            arrayListAddDataField(*widget, std::move(dataFieldWidget));
-        }
+                auto& dataFields = field.fields();
+                while (from < dataFields.size()) {
+                    auto& f = dataFields[from];
+                    allFieldsWidgets.push_back(createWidget(f));
+                    ++from;
+                }
+
+                return allFieldsWidgets;
+            };
+
+        auto widget = createArrayListFieldWidget(
+            field_wrapper::makeArrayListWrapper(field),
+            std::move(addMissingFieldsFunc));
 
         return std::move(widget);
     }
@@ -391,7 +395,8 @@ private:
         field_wrapper::ArrayListRawDataWrapperPtr fieldWrapper);
 
     static FieldWidgetPtr createArrayListFieldWidget(
-        field_wrapper::ArrayListWrapperPtr fieldWrapper);
+        field_wrapper::ArrayListWrapperPtr fieldWrapper,
+        std::function<std::vector<FieldWidgetPtr> (std::size_t)>&& updateFunc);
 
     static FieldWidgetPtr createUnknownValueFieldWidget(
             field_wrapper::UnknownValueWrapperPtr fieldWrapper);

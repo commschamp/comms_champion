@@ -25,11 +25,51 @@
 namespace comms_champion
 {
 
+ArrayListElementWidget::ArrayListElementWidget(
+    FieldWidget* fieldWidget,
+    QWidget* parent)
+  : Base(parent)
+{
+    m_ui.setupUi(this);
+    m_fieldWidget = fieldWidget;
+    m_ui.m_layout->addWidget(fieldWidget);
+
+    connect(
+        m_fieldWidget, SIGNAL(sigFieldUpdated()),
+        this, SIGNAL(sigFieldUpdated()));
+
+    connect(
+        m_ui.m_removePushButton, SIGNAL(clicked()),
+        this, SIGNAL(sigRemoveRequested()));
+
+    updateUi();
+}
+
+void ArrayListElementWidget::refresh()
+{
+    m_fieldWidget->refresh();
+}
+
+void ArrayListElementWidget::setEditEnabled(bool enabled)
+{
+    m_editEnabled = enabled;
+    m_fieldWidget->setEditEnabled(enabled);
+    updateUi();
+}
+
+void ArrayListElementWidget::updateUi()
+{
+    m_ui.m_buttonWidget->setVisible(m_editEnabled);
+    m_ui.m_sepLine->setVisible(m_editEnabled);
+}
+
 ArrayListFieldWidget::ArrayListFieldWidget(
-    WrapperPtr&& wrapper,
+    WrapperPtr wrapper,
+    CreateMissingDataFieldsFunc&& updateFunc,
     QWidget* parent)
   : Base(parent),
-    m_wrapper(std::move(wrapper))
+    m_wrapper(std::move(wrapper)),
+    m_createMissingDataFieldsCallback(std::move(updateFunc))
 {
     m_ui.setupUi(this);
     setNameLabelWidget(m_ui.m_nameLabel);
@@ -37,34 +77,85 @@ ArrayListFieldWidget::ArrayListFieldWidget(
     setSeparatorWidget(m_ui.m_sepLine);
     setSerialisedValueWidget(m_ui.m_serValueWidget);
 
-    refresh();
+    refreshInternal();
+    addMissingFields();
+
+    updateUi();
+
+    connect(
+        m_ui.m_addFieldPushButton, SIGNAL(clicked()),
+        this, SLOT(addNewField()));
 }
 
 ArrayListFieldWidget::~ArrayListFieldWidget() = default;
 
-void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
-{
-    static_cast<void>(dataFieldWidget);
-    // TODO:
-}
-
 void ArrayListFieldWidget::refreshImpl()
 {
+    while (!m_elements.empty()) {
+        std::unique_ptr<ArrayListElementWidget> fieldWidget(m_elements.back());
+        m_elements.pop_back();
+    }
+
     refreshInternal();
-    // TODO: refresh all data fields
+    addMissingFields();
 }
 
 void ArrayListFieldWidget::setEditEnabledImpl(bool enabled)
 {
-    static_cast<void>(enabled);
-//    bool readonly = !enabled;
-//    m_ui.m_valuePlainTextEdit->setReadOnly(readonly);
+    for (auto* elem : m_elements) {
+        elem->setEditEnabled(enabled);
+    }
+    updateUi();
 }
 
 void ArrayListFieldWidget::dataFieldUpdated()
 {
     refreshInternal();
     emitFieldUpdated();
+}
+
+void ArrayListFieldWidget::addNewField()
+{
+    m_wrapper->addField();
+    addMissingFields();
+    dataFieldUpdated();
+}
+
+void ArrayListFieldWidget::removeField()
+{
+    auto* sigSender = sender();
+    auto iter = std::find(m_elements.begin(), m_elements.end(), sigSender);
+    if (iter == m_elements.end()) {
+        assert(!"Something is not right");
+        return;
+    }
+
+    // Delete field widget on exit, will remove from UI
+    std::unique_ptr<ArrayListElementWidget> fieldWidget(*iter);
+    m_elements.erase(iter);
+
+    auto idx = static_cast<int>(std::distance(m_elements.begin(), iter));
+    m_wrapper->removeField(idx);
+    refreshInternal();
+    emitFieldUpdated();
+}
+
+void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
+{
+    auto* wrapperWidget = new ArrayListElementWidget(dataFieldWidget);
+    wrapperWidget->setEditEnabled(isEditEnabled());
+
+    connect(
+        wrapperWidget, SIGNAL(sigFieldUpdated()),
+        this, SLOT(dataFieldUpdated()));
+
+    connect(
+        wrapperWidget, SIGNAL(sigRemoveRequested()),
+        this, SLOT(removeField()));
+
+
+    m_elements.push_back(wrapperWidget);
+    m_ui.m_membersLayout->addWidget(wrapperWidget);
 }
 
 void ArrayListFieldWidget::refreshInternal()
@@ -88,6 +179,25 @@ void ArrayListFieldWidget::refreshInternal()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValuePlainTextEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+}
+
+void ArrayListFieldWidget::updateUi()
+{
+    bool enabled = isEditEnabled();
+    m_ui.m_addSepLine->setVisible(enabled);
+    m_ui.m_addFieldPushButton->setVisible(enabled);
+}
+
+void ArrayListFieldWidget::addMissingFields()
+{
+    if (!m_createMissingDataFieldsCallback) {
+        return;
+    }
+
+    auto fieldWidgets = m_createMissingDataFieldsCallback(m_elements.size());
+    for (auto& fieldWidgetPtr : fieldWidgets) {
+        addDataField(fieldWidgetPtr.release());
+    }
 }
 
 }  // namespace comms_champion

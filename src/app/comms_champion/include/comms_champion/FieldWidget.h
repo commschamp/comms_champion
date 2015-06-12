@@ -19,6 +19,7 @@
 #pragma once
 
 #include <cassert>
+#include <memory>
 
 #include <QtWidgets/QWidget>
 
@@ -112,6 +113,8 @@ private:
     QWidget* m_sepWidget = nullptr;
     QWidget* m_serValueWidget = nullptr;
 };
+
+typedef std::unique_ptr<FieldWidget> FieldWidgetPtr;
 
 }  // namespace comms_champion
 

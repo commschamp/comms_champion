@@ -45,8 +45,6 @@ class DefaultMessageDisplayHandler : public MessageDisplayHandler
 {
 public:
 
-    typedef FieldWidgetCreator::FieldWidgetPtr FieldWidgetPtr;
-
     template <typename TMessage>
     void handle(TMessage& msg)
     {

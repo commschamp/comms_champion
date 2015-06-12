@@ -101,6 +101,7 @@ function (bin_comms_champion)
         ui/OptionalFieldWidget.ui
         ui/ArrayListRawDataFieldWidget.ui
         ui/ArrayListFieldWidget.ui
+        ui/ArrayListElementWidget.ui
         ui/UnknownValueFieldWidget.ui
     )
     

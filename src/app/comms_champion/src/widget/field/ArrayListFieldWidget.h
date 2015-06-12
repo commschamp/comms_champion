@@ -19,14 +19,41 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 
 #include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/ArrayListWrapper.h"
 
+#include "ui_ArrayListElementWidget.h"
 #include "ui_ArrayListFieldWidget.h"
 
 namespace comms_champion
 {
+
+class ArrayListElementWidget : public QWidget
+{
+    Q_OBJECT
+    typedef QWidget Base;
+public:
+
+    ArrayListElementWidget(
+        FieldWidget* fieldWidget,
+        QWidget* parent = nullptr);
+
+    void refresh();
+    void setEditEnabled(bool enabled);
+
+signals:
+    void sigFieldUpdated();
+    void sigRemoveRequested();
+
+private:
+
+    void updateUi();
+    Ui::ArrayListElementWidget m_ui;
+    FieldWidget* m_fieldWidget = nullptr;
+    bool m_editEnabled = true;
+};
 
 class ArrayListFieldWidget : public FieldWidget
 {
@@ -34,14 +61,21 @@ class ArrayListFieldWidget : public FieldWidget
     typedef FieldWidget Base;
 public:
     using WrapperPtr = field_wrapper::ArrayListWrapperPtr;
+    typedef std::function<std::vector<FieldWidgetPtr> (std::size_t)> CreateMissingDataFieldsFunc;
 
     explicit ArrayListFieldWidget(
-        WrapperPtr&& wrapper,
+        WrapperPtr wrapper,
+        CreateMissingDataFieldsFunc&& updateFunc,
         QWidget* parent = nullptr);
 
     ~ArrayListFieldWidget();
 
-    void addDataField(FieldWidget* dataFieldWidget);
+    template <typename TFunc>
+    void setCreateMissingDataFieldsCallback(TFunc&& func)
+    {
+        m_createMissingDataFieldsCallback = std::forward<TFunc>(func);
+        addMissingFields();
+    }
 
 protected:
     virtual void refreshImpl() override;
@@ -49,13 +83,20 @@ protected:
 
 private slots:
     void dataFieldUpdated();
+    void addNewField();
+    void removeField();
 
 private:
 
+    void addDataField(FieldWidget* dataFieldWidget);
     void refreshInternal();
+    void updateUi();
+    void addMissingFields();
 
     Ui::ArrayListFieldWidget m_ui;
     WrapperPtr m_wrapper;
+    std::vector<ArrayListElementWidget*> m_elements;
+    CreateMissingDataFieldsFunc m_createMissingDataFieldsCallback;
 };
 
 }  // namespace comms_champion

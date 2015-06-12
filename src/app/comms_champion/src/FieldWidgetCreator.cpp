@@ -74,20 +74,7 @@ void FieldWidgetCreator::bundleWidgetAddMember(
     castedBundleWidget->addMemberField(memberWidget.release());
 }
 
-void FieldWidgetCreator::arrayListAddDataField(
-    FieldWidget& arrayListWidget,
-    FieldWidgetPtr dataFieldWidget)
-{
-    auto* castedWidget = qobject_cast<ArrayListFieldWidget*>(&arrayListWidget);
-    if (castedWidget == nullptr) {
-        assert(!"Wrong cast, expected array list widget");
-        return;
-    }
-
-    castedWidget->addDataField(dataFieldWidget.release());
-}
-
-FieldWidgetCreator::FieldWidgetPtr
+FieldWidgetPtr
 FieldWidgetCreator::createIntValueFieldWidget(
     field_wrapper::IntValueWrapperPtr fieldWrapper)
 {
@@ -96,7 +83,7 @@ FieldWidgetCreator::createIntValueFieldWidget(
             new IntValueFieldWidget(std::move(fieldWrapper)));
 }
 
-FieldWidgetCreator::FieldWidgetPtr
+FieldWidgetPtr
 FieldWidgetCreator::createLongIntValueFieldWidget(
     field_wrapper::LongIntValueWrapperPtr fieldWrapper)
 {
@@ -106,7 +93,7 @@ FieldWidgetCreator::createLongIntValueFieldWidget(
 }
 
 
-FieldWidgetCreator::FieldWidgetPtr
+FieldWidgetPtr
 FieldWidgetCreator::createBitmaskValueFieldWidget(
     field_wrapper::BitmaskValueWrapperPtr fieldWrapper)
 {
@@ -115,7 +102,7 @@ FieldWidgetCreator::createBitmaskValueFieldWidget(
             new BitmaskValueFieldWidget(std::move(fieldWrapper)));
 }
 
-FieldWidgetCreator::FieldWidgetPtr
+FieldWidgetPtr
 FieldWidgetCreator::createEnumValueFieldWidget(
     field_wrapper::EnumValueWrapperPtr fieldWrapper)
 {
@@ -124,7 +111,7 @@ FieldWidgetCreator::createEnumValueFieldWidget(
             new EnumValueFieldWidget(std::move(fieldWrapper)));
 }
 
-FieldWidgetCreator::FieldWidgetPtr
+FieldWidgetPtr
 FieldWidgetCreator::createStringFieldWidget(
     field_wrapper::StringWrapperPtr fieldWrapper)
 {
@@ -133,7 +120,7 @@ FieldWidgetCreator::createStringFieldWidget(
             new StringFieldWidget(std::move(fieldWrapper)));
 }
 
-FieldWidgetCreator::FieldWidgetPtr
+FieldWidgetPtr
 FieldWidgetCreator::createBitfieldFieldWidget(
     field_wrapper::BitfieldWrapperPtr fieldWrapper)
 {
@@ -142,7 +129,7 @@ FieldWidgetCreator::createBitfieldFieldWidget(
             new BitfieldFieldWidget(std::move(fieldWrapper)));
 }
 
-FieldWidgetCreator::FieldWidgetPtr
+FieldWidgetPtr
 FieldWidgetCreator::createOptionalFieldWidget(
     field_wrapper::OptionalWrapperPtr fieldWrapper)
 {
@@ -151,13 +138,13 @@ FieldWidgetCreator::createOptionalFieldWidget(
             new OptionalFieldWidget(std::move(fieldWrapper)));
 }
 
-FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createBundleFieldWidget()
+FieldWidgetPtr FieldWidgetCreator::createBundleFieldWidget()
 {
     return
         FieldWidgetPtr(new BundleFieldWidget());
 }
 
-FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createArrayListRawDataFieldWidget(
+FieldWidgetPtr FieldWidgetCreator::createArrayListRawDataFieldWidget(
     field_wrapper::ArrayListRawDataWrapperPtr fieldWrapper)
 {
     return
@@ -165,16 +152,19 @@ FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createArrayListRawDataFie
             new ArrayListRawDataFieldWidget(std::move(fieldWrapper)));
 }
 
-FieldWidgetCreator::FieldWidgetPtr FieldWidgetCreator::createArrayListFieldWidget(
-    field_wrapper::ArrayListWrapperPtr fieldWrapper)
+FieldWidgetPtr FieldWidgetCreator::createArrayListFieldWidget(
+    field_wrapper::ArrayListWrapperPtr fieldWrapper,
+    std::function<std::vector<FieldWidgetPtr> (std::size_t)>&& updateFunc)
 {
     return
         FieldWidgetPtr(
-            new ArrayListFieldWidget(std::move(fieldWrapper)));
+            new ArrayListFieldWidget(
+                std::move(fieldWrapper),
+                std::move(updateFunc)));
 }
 
 
-FieldWidgetCreator::FieldWidgetPtr
+FieldWidgetPtr
 FieldWidgetCreator::createUnknownValueFieldWidget(
     field_wrapper::UnknownValueWrapperPtr fieldWrapper)
 {

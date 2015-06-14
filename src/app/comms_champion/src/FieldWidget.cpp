@@ -193,7 +193,7 @@ void FieldWidget::performNameLabelUpdate(const QVariantMap& props)
 
     auto str = nameProperty.toString();
     if (str.isEmpty()) {
-        hide();
+        m_nameLabel->hide();
         return;
     }
 

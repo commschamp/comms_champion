@@ -63,12 +63,10 @@ protected:
         return Str;
     }
 
-    virtual void updateFieldPropertiesImpl(
-        QWidget& fieldWidget,
-        uint idx) const override
+    virtual const QVariantList& fieldsPropertiesImpl() const override
     {
-        static_cast<void>(fieldWidget);
-        static_cast<void>(idx);
+        static const QVariantList Props;
+        return Props;
     }
 
     virtual QString idAsStringImpl() const override

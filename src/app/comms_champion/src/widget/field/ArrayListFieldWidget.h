@@ -101,6 +101,7 @@ private:
     WrapperPtr m_wrapper;
     std::vector<ArrayListElementWidget*> m_elements;
     CreateMissingDataFieldsFunc m_createMissingDataFieldsCallback;
+    QVariantMap m_elemProperties;
 };
 
 }  // namespace comms_champion

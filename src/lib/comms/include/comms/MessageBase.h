@@ -177,6 +177,39 @@ protected:
         util::tupleForEach(fields_, FieldWriter(iter, status, remainingSize));
         return status;
     }
+
+    template <std::size_t TIdx>
+    ErrorStatus writeFieldsUntil(
+        typename Base::WriteIterator& iter,
+        std::size_t size) const
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachUntil<TIdx>(fields_, FieldWriter(iter, status, remainingSize));
+        return status;
+    }
+
+    template <std::size_t TIdx>
+    ErrorStatus writeFieldsFrom(
+        typename Base::WriteIterator& iter,
+        std::size_t size) const
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachFrom<TIdx>(fields_, FieldWriter(iter, status, remainingSize));
+        return status;
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    ErrorStatus writeFieldsFromUntil(
+        typename Base::WriteIterator& iter,
+        std::size_t size) const
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields_, FieldWriter(iter, status, remainingSize));
+        return status;
+    }
 #endif // #ifndef COMMS_NO_WRITE
 
 #if !defined(COMMS_NO_READ) || !defined(COMMS_NO_WRITE) || !defined(COMMS_NO_LENGTH)

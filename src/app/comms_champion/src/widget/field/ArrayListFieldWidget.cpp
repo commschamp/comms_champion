@@ -123,10 +123,10 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         return;
     }
 
-    auto elemProps = elemPropsVar.value<QVariantMap>();
+    m_elemProperties = elemPropsVar.value<QVariantMap>();
 
     for (auto* elem : m_elements) {
-        elem->updateProperties(elemProps);
+        elem->updateProperties(m_elemProperties);
     }
 }
 
@@ -181,6 +181,8 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
     connect(
         wrapperWidget, SIGNAL(sigRemoveRequested()),
         this, SLOT(removeField()));
+
+    wrapperWidget->updateProperties(m_elemProperties);
 
     m_elements.push_back(wrapperWidget);
     m_ui.m_membersLayout->addWidget(wrapperWidget);

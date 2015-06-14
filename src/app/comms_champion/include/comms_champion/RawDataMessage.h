@@ -67,15 +67,10 @@ protected:
         return Str;
     }
 
-    virtual void updateFieldPropertiesImpl(
-        QWidget& fieldWidget,
-        uint idx) const override
+    virtual const QVariantList& fieldsPropertiesImpl() const override
     {
-        if (idx != 0) {
-            return;
-        }
-
-        Property::setNameVal(fieldWidget, "Data");
+        static const QVariantList Props = createFieldsProperties();
+        return Props;
     }
 
     virtual QString idAsStringImpl() const override
@@ -93,6 +88,22 @@ protected:
     {
         static_cast<void>(other);
         assert(!"Mustn't be called");
+    }
+
+private:
+    static QVariantMap createDataProperties()
+    {
+        static const QString Name("Data");
+        QVariantMap props;
+        props.insert(Property::name(), Name);
+        return props;
+    }
+
+    static QVariantList createFieldsProperties()
+    {
+        QVariantList props;
+        props.append(createDataProperties());
+        return props;
     }
 };
 

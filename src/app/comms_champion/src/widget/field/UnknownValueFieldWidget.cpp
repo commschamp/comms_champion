@@ -32,12 +32,12 @@ UnknownValueFieldWidget::UnknownValueFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    setNameLabelWidget(m_ui.m_nameLabel);
 
     connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
     refresh();
-    readPropertiesAndUpdateUi();
 }
 
 UnknownValueFieldWidget::~UnknownValueFieldWidget() = default;
@@ -62,11 +62,6 @@ void UnknownValueFieldWidget::setEditEnabledImpl(bool enabled)
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void UnknownValueFieldWidget::propertiesUpdatedImpl()
-{
-    readPropertiesAndUpdateUi();
-}
-
 void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     assert(isEditEnabled());
@@ -82,14 +77,6 @@ void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
     }
     else {
         setFieldValid(false);
-    }
-}
-
-void UnknownValueFieldWidget::readPropertiesAndUpdateUi()
-{
-    auto nameProperty = property(Property::name());
-    if (nameProperty.isValid()) {
-        m_ui.m_nameLabel->setText(nameProperty.toString() + ':');
     }
 }
 

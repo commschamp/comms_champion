@@ -43,14 +43,12 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
-    virtual void propertiesUpdatedImpl() override;
     virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private slots:
     void memberFieldUpdated();
 
 private:
-    void updateMemberProperties(std::size_t idx);
 
     QVBoxLayout* m_membersLayout;
     std::vector<FieldWidget*> m_members;

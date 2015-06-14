@@ -43,7 +43,6 @@ public:
 public slots:
     void refresh();
     void setEditEnabled(bool enabled);
-    void propertiesUpdated();
     void updateProperties(const QVariantMap& props);
 
 signals:
@@ -52,7 +51,6 @@ signals:
 protected:
     void emitFieldUpdated();
     bool isEditEnabled() const;
-    void updateNameLabel(QLabel& label);
 
     static void setValidityStyleSheet(QLabel& widget, bool valid);
     static void setValidityStyleSheet(QLineEdit& widget, bool valid);
@@ -103,13 +101,10 @@ protected:
 
     virtual void refreshImpl() = 0;
     virtual void setEditEnabledImpl(bool enabled);
-    virtual void propertiesUpdatedImpl();
     virtual void updatePropertiesImpl(const QVariantMap& props);
 
 private:
-    void performUiElementsVisibilityCheck();
     void performUiElementsVisibilityCheck(const QVariantMap& props);
-    void performNameLabelUpdate();
     void performNameLabelUpdate(const QVariantMap& props);
 
     bool m_editEnabled = true;

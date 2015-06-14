@@ -45,7 +45,6 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
-    virtual void propertiesUpdatedImpl() override;
     virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private slots:
@@ -55,9 +54,6 @@ private slots:
 private:
     using WrapperType = typename WrapperPtr::element_type;
     using UnderlyingType = typename WrapperType::UnderlyingType;
-
-    void readPropertiesAndUpdateUi();
-    void createCheckboxes();
 
     Ui::BitmaskValueFieldWidget m_ui;
     WrapperPtr m_wrapper;

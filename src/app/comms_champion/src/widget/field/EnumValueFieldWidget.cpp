@@ -111,12 +111,6 @@ void EnumValueFieldWidget::setEditEnabledImpl(bool enabled)
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void EnumValueFieldWidget::propertiesUpdatedImpl()
-{
-    readPropertiesAndUpdateUi();
-    refresh();
-}
-
 void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     if (m_signalsConnected) {
@@ -192,55 +186,6 @@ void EnumValueFieldWidget::valueUpdated(int idx)
         emitFieldUpdated();
     }
     refresh();
-}
-
-void EnumValueFieldWidget::readPropertiesAndUpdateUi()
-{
-    if (m_signalsConnected) {
-        disconnect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),
-                   this, SLOT(valueUpdated(int)));
-
-        disconnect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
-                   this, SLOT(serialisedValueUpdated(const QString&)));
-    }
-
-    m_ui.m_valueComboBox->clear();
-
-    auto maxValue = std::numeric_limits<unsigned>::min();
-    auto appProperties = dynamicPropertyNames();
-    for (auto& prop : appProperties) {
-        QString propStr(prop);
-        auto& prefix = Property::indexedNamePrefix();
-        if (!propStr.startsWith(prefix)) {
-            continue;
-        }
-
-        propStr.remove(prefix);
-        bool ok = false;
-        auto idx = propStr.toUInt(&ok, 10);
-        if (!ok) {
-            continue;
-        }
-
-        maxValue = std::max(maxValue, idx);
-
-        auto valueName = property(Property::indexedName(idx).toUtf8().data());
-        if ((valueName.isValid()) &&
-            (valueName.canConvert<QString>())) {
-            m_ui.m_valueComboBox->addItem(valueName.value<QString>(), QVariant(idx));
-        }
-    }
-
-    m_ui.m_valueComboBox->insertItem(0, InvalidValueComboText, QVariant(maxValue + 1));
-    m_ui.m_valueComboBox->insertSeparator(1);
-
-    connect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),
-            this, SLOT(valueUpdated(int)));
-
-    connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
-            this, SLOT(serialisedValueUpdated(const QString&)));
-
-    m_signalsConnected = true;
 }
 
 }  // namespace comms_champion

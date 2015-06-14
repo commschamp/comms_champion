@@ -42,8 +42,6 @@ BundleFieldWidget::~BundleFieldWidget() = default;
 void BundleFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
 {
     m_members.push_back(memberFieldWidget);
-    auto idx = m_members.size() - 1;
-    updateMemberProperties(idx);
 
     if (m_membersLayout->count() != 0) {
         auto* line = new QFrame(this);
@@ -75,13 +73,6 @@ void BundleFieldWidget::setEditEnabledImpl(bool enabled)
     }
 }
 
-void BundleFieldWidget::propertiesUpdatedImpl()
-{
-    for (auto idx = 0U; idx < m_members.size(); ++idx) {
-        updateMemberProperties(idx);
-    }
-}
-
 void BundleFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     for (auto idx = 0U; idx < m_members.size(); ++idx) {
@@ -100,27 +91,6 @@ void BundleFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 void BundleFieldWidget::memberFieldUpdated()
 {
     emitFieldUpdated();
-}
-
-void BundleFieldWidget::updateMemberProperties(std::size_t idx)
-{
-    assert(idx < m_members.size());
-    FieldWidget* memberFieldWidget = m_members[idx];
-    assert(memberFieldWidget != nullptr);
-    auto propsVar = Property::getIndexedDataVal(*this, idx);
-    do {
-        if ((!propsVar.isValid()) || (!propsVar.canConvert<QVariantMap>())) {
-            break;
-        }
-
-        auto map = propsVar.value<QVariantMap>();
-        auto keys = map.keys();
-        for (auto& k : keys) {
-            memberFieldWidget->setProperty(k.toUtf8().data(), map[k]);
-        }
-    } while (false);
-
-    memberFieldWidget->propertiesUpdated();
 }
 
 }  // namespace comms_champion

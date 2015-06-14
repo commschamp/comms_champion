@@ -68,13 +68,6 @@ void FieldWidget::setEditEnabled(bool enabled)
     setEditEnabledImpl(enabled);
 }
 
-void FieldWidget::propertiesUpdated()
-{
-    performNameLabelUpdate();
-    propertiesUpdatedImpl();
-    performUiElementsVisibilityCheck();
-}
-
 void FieldWidget::updateProperties(const QVariantMap& props)
 {
     performNameLabelUpdate(props);
@@ -143,68 +136,14 @@ void FieldWidget::updateValue(QLineEdit& line, const QString& value)
     line.setCursorPosition(cursorPos);
 }
 
-void FieldWidget::updateNameLabel(QLabel& label)
-{
-    auto nameProperty = property(Property::name());
-    if (nameProperty.isValid()) {
-        auto str = nameProperty.toString();
-        if (!str.isEmpty()) {
-            label.setText(nameProperty.toString() + ':');
-            label.show();
-        }
-        else {
-            label.hide();
-        }
-    }
-}
-
 void FieldWidget::setEditEnabledImpl(bool enabled)
 {
     static_cast<void>(enabled);
 }
 
-void FieldWidget::propertiesUpdatedImpl()
-{
-}
-
 void FieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     static_cast<void>(props);
-}
-
-void FieldWidget::performUiElementsVisibilityCheck()
-{
-    auto allHiddenVar = Property::getFieldHiddenVal(*this);
-    if (allHiddenVar.isValid() && allHiddenVar.canConvert<bool>()) {
-        auto allHidden = allHiddenVar.toBool();
-        setHidden(allHidden);
-
-        if (allHidden) {
-            return;
-        }
-    }
-
-    if ((m_valueWidget == nullptr) &&
-        (m_sepWidget == nullptr) &&
-        (m_serValueWidget == nullptr)) {
-        return;
-    }
-
-    auto setWidgetHiddenFunc =
-        [](QWidget* widget, bool hidden)
-        {
-            if (widget != nullptr) {
-                widget->setHidden(hidden);
-            }
-        };
-
-
-    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
-    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
-        auto serHidden = serHiddenVar.toBool();
-        setWidgetHiddenFunc(m_sepWidget, serHidden);
-        setWidgetHiddenFunc(m_serValueWidget, serHidden);
-    }
 }
 
 void FieldWidget::performUiElementsVisibilityCheck(const QVariantMap& props)
@@ -238,13 +177,6 @@ void FieldWidget::performUiElementsVisibilityCheck(const QVariantMap& props)
         auto serHidden = serHiddenVar.toBool();
         setWidgetHiddenFunc(m_sepWidget, serHidden);
         setWidgetHiddenFunc(m_serValueWidget, serHidden);
-    }
-}
-
-void FieldWidget::performNameLabelUpdate()
-{
-    if (m_nameLabel != nullptr) {
-        updateNameLabel(*m_nameLabel);
     }
 }
 

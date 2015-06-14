@@ -52,8 +52,6 @@ BitfieldFieldWidget::~BitfieldFieldWidget() = default;
 void BitfieldFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
 {
     m_members.push_back(memberFieldWidget);
-    auto idx = m_members.size() - 1;
-    updateMemberProperties(idx);
 
     if (m_ui.m_membersLayout->count() != 0) {
         auto* line = new QFrame(this);
@@ -85,15 +83,6 @@ void BitfieldFieldWidget::setEditEnabledImpl(bool enabled)
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
     for (auto* memberFieldWidget : m_members) {
         memberFieldWidget->setEditEnabled(enabled);
-    }
-}
-
-void BitfieldFieldWidget::propertiesUpdatedImpl()
-{
-    for (auto idx = 0U; idx < m_members.size(); ++idx) {
-        auto* memberFieldWidget = m_members[idx];
-        updateMemberProperties(idx);
-        memberFieldWidget->propertiesUpdated();
     }
 }
 
@@ -141,51 +130,6 @@ void BitfieldFieldWidget::refreshMembers()
     for (auto* memberFieldWidget : m_members) {
         memberFieldWidget->refresh();
     }
-}
-
-void BitfieldFieldWidget::updateMemberProperties(std::size_t idx)
-{
-    assert(idx < m_members.size());
-    FieldWidget* memberFieldWidget = m_members[idx];
-    assert(memberFieldWidget != nullptr);
-    auto propsVar = Property::getIndexedDataVal(*this, idx);
-    do {
-        if ((!propsVar.isValid()) || (!propsVar.canConvert<QVariantMap>())) {
-            break;
-        }
-
-        auto map = propsVar.value<QVariantMap>();
-        auto keys = map.keys();
-        for (auto& k : keys) {
-            memberFieldWidget->setProperty(k.toUtf8().data(), map[k]);
-        }
-
-        auto hiddenVar = map.value(Property::fieldHidden());
-        if ((!hiddenVar.isValid()) || (!hiddenVar.canConvert<bool>())) {
-            break;
-        }
-
-        bool hidden = hiddenVar.toBool();
-        if (!hidden) {
-            break;
-        }
-
-        assert(1U < m_members.size());
-        int sepLineIdx = 1;
-        if (0 < idx) {
-            sepLineIdx = (idx * 2) - 1;
-        }
-
-        auto* sepLineItem = m_ui.m_membersLayout->itemAt(sepLineIdx);
-        assert(sepLineItem != nullptr);
-        auto* sepLine = sepLineItem->widget();
-        assert(sepLine != nullptr);
-        sepLine->hide();
-        return;
-
-    } while (false);
-
-    Property::setSerialisedHiddenVal(*memberFieldWidget, true);
 }
 
 }  // namespace comms_champion

@@ -48,7 +48,6 @@ void OptionalFieldWidget::setField(FieldWidget* fieldWidget)
     assert(m_field == nullptr);
     assert(fieldWidget != nullptr);
     m_field = fieldWidget;
-    updateFieldProperties();
 
     m_ui.m_layout->insertWidget(m_ui.m_layout->count() - 1, fieldWidget);
 
@@ -69,17 +68,6 @@ void OptionalFieldWidget::setEditEnabledImpl(bool enabled)
 {
     assert(m_field != nullptr);
     m_field->setEditEnabled(enabled);
-}
-
-void OptionalFieldWidget::propertiesUpdatedImpl()
-{
-    updateFieldProperties();
-    m_field->propertiesUpdated();
-    auto nameProperty = property(Property::name());
-    if (nameProperty.isValid()) {
-        m_ui.m_nameLabel->setText(nameProperty.toString());
-    }
-    refreshInternal();
 }
 
 void OptionalFieldWidget::updatePropertiesImpl(const QVariantMap& props)
@@ -149,18 +137,6 @@ void OptionalFieldWidget::refreshField()
     m_field->refresh();
 }
 
-void OptionalFieldWidget::updateFieldProperties()
-{
-    assert(m_field != nullptr);
-    auto propsVar = Property::getDataVal(*this);
-    if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
-        auto map = propsVar.value<QVariantMap>();
-        auto keys = map.keys();
-        for (auto& k : keys) {
-            m_field->setProperty(k.toUtf8().data(), map[k]);
-        }
-    }
-}
 
 }  // namespace comms_champion
 

@@ -86,12 +86,6 @@ void BitmaskValueFieldWidget::setEditEnabledImpl(bool enabled)
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void BitmaskValueFieldWidget::propertiesUpdatedImpl()
-{
-    readPropertiesAndUpdateUi();
-    refresh();
-}
-
 void BitmaskValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     for (auto* checkbox : m_checkboxes) {
@@ -141,36 +135,6 @@ void BitmaskValueFieldWidget::checkBoxUpdated(int value)
     refresh();
     if (updated) {
         emitFieldUpdated();
-    }
-}
-
-void BitmaskValueFieldWidget::readPropertiesAndUpdateUi()
-{
-    for (auto& checkbox : m_checkboxes) {
-        if (checkbox != nullptr) {
-            m_ui.m_checkboxesLayout->removeWidget(checkbox);
-            checkbox = nullptr;
-        }
-    }
-    createCheckboxes();
-}
-
-void BitmaskValueFieldWidget::createCheckboxes()
-{
-    auto bitIdxLimit = m_wrapper->bitIdxLimit();
-    assert(m_checkboxes.size() == bitIdxLimit);
-    for (unsigned idx = 0; idx < bitIdxLimit; ++idx) {
-
-        auto indexedName = property(Property::indexedName(idx).toUtf8().data());
-        if ((indexedName.isValid()) &&
-            (indexedName.canConvert<QString>())) {
-            auto* checkbox = new QCheckBox(indexedName.value<QString>());
-            m_ui.m_checkboxesLayout->addWidget(checkbox);
-            m_checkboxes[idx] = checkbox;
-
-            connect(checkbox, SIGNAL(stateChanged(int)),
-                    this, SLOT(checkBoxUpdated(int)));
-        }
     }
 }
 

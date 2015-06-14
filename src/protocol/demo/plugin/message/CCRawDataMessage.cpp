@@ -39,14 +39,6 @@ enum FieldIdx
     FieldIdx_NumOfFields
 };
 
-const char* FieldNames[] = {
-    "Data"
-};
-
-static_assert(
-    std::extent<decltype(FieldNames)>::value == FieldIdx_NumOfFields,
-    "FieldNames array must be updated.");
-
 QVariantMap createDataProperties()
 {
     QVariantMap props;
@@ -70,18 +62,6 @@ const char* CCRawDataMessage::nameImpl() const
 {
     static const char* Str = "Raw Data Message";
     return Str;
-}
-
-void CCRawDataMessage::updateFieldPropertiesImpl(
-    QWidget& fieldWidget,
-    uint idx) const
-{
-    if (FieldIdx_NumOfFields <= idx) {
-        assert(idx < FieldIdx_NumOfFields);
-        return;
-    }
-
-    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
 }
 
 const QVariantList& CCRawDataMessage::fieldsPropertiesImpl() const

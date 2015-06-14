@@ -42,15 +42,6 @@ namespace
 
 const char* OptionalTestName = "Optional Test";
 
-const char* FieldNames[] = {
-    "Flags",
-    "Opt. Enum",
-    "Opt. Int"
-};
-
-static_assert(std::extent<decltype(FieldNames)>::value == CCOptionalTest::FieldId_NumOfFields,
-    "CCOptionalTest::FieldId enum has changed");
-
 QVariantMap createFlagsProperties()
 {
     QVariantMap props;
@@ -111,41 +102,6 @@ QVariantList createFieldsProperties()
 const char* CCOptionalTest::nameImpl() const
 {
     return OptionalTestName;
-}
-
-void CCOptionalTest::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
-{
-    if (FieldId_NumOfFields <= idx) {
-        assert(idx < FieldId_NumOfFields);
-        return;
-    }
-
-    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
-    if (idx == FieldId_Flags) {
-        cc::Property::setIndexedNameVal(fieldWidget, 0, "Enable opt. enum");
-        cc::Property::setIndexedNameVal(fieldWidget, 1, "Enable opt. int");
-    }
-    else if (idx == FieldId_OptEnum) {
-        QVariantMap map;
-        map.insert(cc::Property::name(), QVariant::fromValue(QString("Opt enum")));
-
-        static const QString NameMap[] = {
-            "Val1",
-            "Val2",
-            "Val3"
-        };
-
-        static const std::size_t NumOfValues = std::extent<decltype(NameMap)>::value;
-        for (auto idx = 0U; idx < NumOfValues; ++idx) {
-            map.insert(cc::Property::indexedName(idx), QVariant::fromValue(NameMap[idx]));
-        }
-        cc::Property::setDataVal(fieldWidget, map);
-    }
-    else if (idx == FieldId_OptInt) {
-        QVariantMap map;
-        map.insert(cc::Property::name(), QVariant::fromValue(QString("Opt int")));
-        cc::Property::setDataVal(fieldWidget, map);
-    }
 }
 
 const QVariantList& CCOptionalTest::fieldsPropertiesImpl() const

@@ -66,16 +66,6 @@ const char* CCHeartbeat::nameImpl() const
     return HeartbeatName;
 }
 
-void CCHeartbeat::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
-{
-    if (FieldId_NumOfFields <= idx) {
-        assert(idx < FieldId_NumOfFields);
-        return;
-    }
-
-    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
-}
-
 const QVariantList& CCHeartbeat::fieldsPropertiesImpl() const
 {
     static const QVariantList Props = createFieldsProperties();

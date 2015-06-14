@@ -45,7 +45,6 @@ public:
 
     const char* name() const;
     void widgetCreationEndNotification(MessageWidget& widget);
-    void updateFieldProperties(QWidget& fieldWidget, uint idx) const;
     const QVariantList& fieldsProperties() const;
     void display(MessageDisplayHandler& handler);
     QString idAsString() const;
@@ -60,7 +59,6 @@ protected:
     virtual const char* nameImpl() const = 0;
     virtual void widgetCreationEndNotificationImpl(MessageWidget& widget);
     virtual const QVariantList& fieldsPropertiesImpl() const = 0;
-    virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const = 0;
     virtual void displayImpl(MessageDisplayHandler& handler) = 0;
     virtual QString idAsStringImpl() const = 0;
     virtual void resetImpl() = 0;

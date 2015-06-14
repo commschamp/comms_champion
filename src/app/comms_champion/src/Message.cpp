@@ -41,11 +41,6 @@ void Message::widgetCreationEndNotification(MessageWidget& widget)
     widgetCreationEndNotificationImpl(widget);
 }
 
-void Message::updateFieldProperties(QWidget& fieldWidget, uint idx) const
-{
-    updateFieldPropertiesImpl(fieldWidget, idx);
-}
-
 const QVariantList& Message::fieldsProperties() const
 {
     return fieldsPropertiesImpl();

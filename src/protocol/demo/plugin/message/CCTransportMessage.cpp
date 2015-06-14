@@ -54,17 +54,6 @@ static_assert(
     demo::plugin::ProtocolStack::NumOfLayers == FieldIdx_NumOfFields,
     "Incorrect assumption about protocols layers");
 
-const char* FieldNames[] = {
-    "Sync",
-    "Size",
-    "ID",
-    "Data"
-};
-
-static_assert(
-    std::extent<decltype(FieldNames)>::value == FieldIdx_NumOfFields,
-    "FieldNames array must be updated.");
-
 QVariantMap createSyncProperties()
 {
     QVariantMap props;
@@ -128,36 +117,6 @@ const char* CCTransportMessage::nameImpl() const
 {
     static const char* Str = "Demo Protocol Transport Message";
     return Str;
-}
-
-void CCTransportMessage::updateFieldPropertiesImpl(
-    QWidget& fieldWidget,
-    uint idx) const
-{
-    if (FieldIdx_NumOfFields <= idx) {
-        assert(idx < FieldIdx_NumOfFields);
-        return;
-    }
-
-    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
-
-    if (idx == FieldIdx_MsgId) {
-        static const QString MsgNames[] = {
-            "Heartbeat",
-            "Status",
-            "Serial Info",
-            "Optional Test"
-        };
-
-        static const auto NumOfMsgNames = std::extent<decltype(MsgNames)>::value;
-
-        static_assert(
-            NumOfMsgNames == demo::message::MsgId_NumOfMessages,
-            "Message names mapping is incorrect.");
-        for (auto idx = 0U; idx < NumOfMsgNames; ++idx) {
-            cc::Property::setIndexedNameVal(fieldWidget, idx, MsgNames[idx]);
-        }
-    }
 }
 
 const QVariantList& CCTransportMessage::fieldsPropertiesImpl() const

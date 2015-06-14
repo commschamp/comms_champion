@@ -42,16 +42,6 @@ namespace
 
 const char* SerialInfoName = "Serial Info";
 
-const char* FieldNames[] = {
-    "Device",
-    "Baud",
-    "Flags"
-};
-
-static_assert(std::extent<decltype(FieldNames)>::value == CCSerialInfo::FieldId_NumOfFields,
-    "CCSerialInfo::FieldId enum has changed");
-
-
 QVariantMap getParityMemberData()
 {
     QVariantMap map;
@@ -207,25 +197,6 @@ QVariantList createFieldsProperties()
 const char* CCSerialInfo::nameImpl() const
 {
     return SerialInfoName;
-}
-
-void CCSerialInfo::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
-{
-    if (FieldId_NumOfFields <= idx) {
-        assert(idx < FieldId_NumOfFields);
-        return;
-    }
-
-    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
-    if (idx == FieldId_Flags) {
-        auto& flagsField = std::get<FieldId_Flags>(getFields());
-        auto& flagsMemberFields = flagsField.members();
-        typedef typename std::decay<decltype(flagsMemberFields)>::type FlagsBitfieldMembers;
-        static const std::size_t NumOfMembers = std::tuple_size<FlagsBitfieldMembers>::value;
-        for (std::size_t idx = 0U; idx < NumOfMembers; ++idx) {
-            cc::Property::setIndexedDataVal(fieldWidget, idx, getMemberData(idx));
-        }
-    }
 }
 
 const QVariantList& CCSerialInfo::fieldsPropertiesImpl() const

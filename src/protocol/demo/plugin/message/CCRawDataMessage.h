@@ -55,7 +55,6 @@ public:
 
 protected:
     virtual const char* nameImpl() const override;
-    virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
     virtual const QVariantList& fieldsPropertiesImpl() const override;
 };
 

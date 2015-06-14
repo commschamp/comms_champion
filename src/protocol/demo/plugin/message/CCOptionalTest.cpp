@@ -51,6 +51,61 @@ const char* FieldNames[] = {
 static_assert(std::extent<decltype(FieldNames)>::value == CCOptionalTest::FieldId_NumOfFields,
     "CCOptionalTest::FieldId enum has changed");
 
+QVariantMap createFlagsProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), QVariant::fromValue(QString("Flags")));
+    props.insert(cc::Property::indexedName(0), QVariant::fromValue(QString("Enable opt. enum")));
+    props.insert(cc::Property::indexedName(1), QVariant::fromValue(QString("Enable opt. int")));
+    return props;
+}
+
+QVariantMap createOptEnumProperties()
+{
+    static const QString Name("Opt enum");
+    QVariantMap enumProps;
+    enumProps.insert(cc::Property::name(), QVariant::fromValue(Name));
+
+    static const QString NameMap[] = {
+        "Val1",
+        "Val2",
+        "Val3"
+    };
+
+    static const std::size_t NumOfValues = std::extent<decltype(NameMap)>::value;
+    for (auto idx = 0U; idx < NumOfValues; ++idx) {
+        enumProps.insert(cc::Property::indexedName(idx), QVariant::fromValue(NameMap[idx]));
+    }
+
+    QVariantMap props;
+    props.insert(cc::Property::name(), QVariant::fromValue(Name));
+    props.insert(cc::Property::data(), QVariant::fromValue(enumProps));
+    return props;
+}
+
+QVariantMap createOptIntProperties()
+{
+    static const QString Name("Opt int");
+    QVariantMap intProps;
+    intProps.insert(cc::Property::name(), QVariant::fromValue(Name));
+
+    QVariantMap props;
+    props.insert(cc::Property::name(), QVariant::fromValue(Name));
+    props.insert(cc::Property::data(), QVariant::fromValue(intProps));
+    return props;
+}
+
+QVariantList createFieldsProperties()
+{
+    QVariantList props;
+    props.append(QVariant::fromValue(createFlagsProperties()));
+    props.append(QVariant::fromValue(createOptEnumProperties()));
+    props.append(QVariant::fromValue(createOptIntProperties()));
+
+    assert(props.size() == CCOptionalTest::FieldId_NumOfFields);
+    return props;
+}
+
 }  // namespace
 
 const char* CCOptionalTest::nameImpl() const
@@ -91,6 +146,12 @@ void CCOptionalTest::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) c
         map.insert(cc::Property::name(), QVariant::fromValue(QString("Opt int")));
         cc::Property::setDataVal(fieldWidget, map);
     }
+}
+
+const QVariantList& CCOptionalTest::fieldsPropertiesImpl() const
+{
+    static const QVariantList Props = createFieldsProperties();
+    return Props;
 }
 
 void CCOptionalTest::resetImpl()

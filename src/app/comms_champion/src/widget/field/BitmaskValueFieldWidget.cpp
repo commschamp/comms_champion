@@ -92,6 +92,32 @@ void BitmaskValueFieldWidget::propertiesUpdatedImpl()
     refresh();
 }
 
+void BitmaskValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    for (auto* checkbox : m_checkboxes) {
+        delete checkbox;
+    }
+
+    m_checkboxes.clear();
+    m_checkboxes.resize(m_wrapper->bitIdxLimit());
+
+    for (unsigned idx = 0; idx < m_checkboxes.size(); ++idx) {
+
+        auto indexedName = props.value(Property::indexedName(idx));
+        if ((indexedName.isValid()) &&
+            (indexedName.canConvert<QString>())) {
+            auto* checkbox = new QCheckBox(indexedName.value<QString>());
+            m_ui.m_checkboxesLayout->addWidget(checkbox);
+            m_checkboxes[idx] = checkbox;
+
+            connect(checkbox, SIGNAL(stateChanged(int)),
+                    this, SLOT(checkBoxUpdated(int)));
+        }
+    }
+
+    refresh();
+}
+
 void BitmaskValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);

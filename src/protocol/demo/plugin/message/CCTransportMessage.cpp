@@ -65,6 +65,63 @@ static_assert(
     std::extent<decltype(FieldNames)>::value == FieldIdx_NumOfFields,
     "FieldNames array must be updated.");
 
+QVariantMap createSyncProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Sync");
+    return props;
+}
+
+QVariantMap createSizeProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Size");
+    return props;
+}
+
+QVariantMap createIdProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Size");
+
+    static const QString MsgNames[] = {
+        "Heartbeat",
+        "Status",
+        "Serial Info",
+        "Optional Test"
+    };
+
+    static const auto NumOfMsgNames = std::extent<decltype(MsgNames)>::value;
+
+    static_assert(
+        NumOfMsgNames == demo::message::MsgId_NumOfMessages,
+        "Message names mapping is incorrect.");
+    for (auto idx = 0U; idx < NumOfMsgNames; ++idx) {
+        props.insert(cc::Property::indexedName(idx), MsgNames[idx]);
+    }
+
+    return props;
+}
+
+QVariantMap createDataProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Data");
+    return props;
+}
+
+QVariantList createFieldsProperties()
+{
+    QVariantList props;
+    props.append(QVariant::fromValue(createSyncProperties()));
+    props.append(QVariant::fromValue(createSizeProperties()));
+    props.append(QVariant::fromValue(createIdProperties()));
+    props.append(QVariant::fromValue(createDataProperties()));
+
+    assert(props.size() == FieldIdx_NumOfFields);
+    return props;
+}
+
 }  // namespace
 
 const char* CCTransportMessage::nameImpl() const
@@ -101,6 +158,12 @@ void CCTransportMessage::updateFieldPropertiesImpl(
             cc::Property::setIndexedNameVal(fieldWidget, idx, MsgNames[idx]);
         }
     }
+}
+
+const QVariantList& CCTransportMessage::fieldsPropertiesImpl() const
+{
+    static const auto Props = createFieldsProperties();
+    return Props;
 }
 
 }  // namespace message

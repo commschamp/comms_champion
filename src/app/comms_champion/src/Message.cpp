@@ -46,6 +46,11 @@ void Message::updateFieldProperties(QWidget& fieldWidget, uint idx) const
     updateFieldPropertiesImpl(fieldWidget, idx);
 }
 
+const QVariantList& Message::fieldsProperties() const
+{
+    return fieldsPropertiesImpl();
+}
+
 void Message::display(MessageDisplayHandler& handler)
 {
     displayImpl(handler);

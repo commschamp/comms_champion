@@ -49,8 +49,18 @@ void DefaultMessageWidget::addFieldWidget(FieldWidget* field)
         return;
     }
 
-    m_msg.updateFieldProperties(*field, m_curFieldIdx);
-    field->propertiesUpdated();
+    auto& props = m_msg.fieldsProperties();
+    if (m_curFieldIdx < static_cast<decltype(m_curFieldIdx)>(props.size())) {
+        auto& propsMapVar = props.at(m_curFieldIdx);
+        if (propsMapVar.isValid() && propsMapVar.canConvert<QVariantMap>()) {
+            auto propsMap = propsMapVar.value<QVariantMap>();
+            field->updateProperties(propsMap);
+        }
+    }
+
+//    // TODO: remove
+//    m_msg.updateFieldProperties(*field, m_curFieldIdx);
+//    field->propertiesUpdated();
 
     if (m_curFieldIdx != 0) {
         m_layout->insertWidget(m_layout->count() - 1, createFieldSeparator().release());

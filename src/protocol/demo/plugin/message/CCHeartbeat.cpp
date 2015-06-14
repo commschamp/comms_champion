@@ -21,7 +21,7 @@
 #include <type_traits>
 #include <cassert>
 
-#include <QtCore/QVariant>
+#include <QtCore/QVariantMap>
 
 #include "comms_champion/Property.h"
 
@@ -48,6 +48,17 @@ const char* FieldNames[] = {
 static_assert(std::extent<decltype(FieldNames)>::value == CCHeartbeat::FieldId_NumOfFields,
     "CCHeartbeat::FieldId enum has changed");
 
+QVariantList createFieldsProperties()
+{
+    QVariantList list;
+    for (auto idx = 0U; idx < std::extent<decltype(FieldNames)>::value; ++idx) {
+        QVariantMap fieldMap;
+        fieldMap.insert(cc::Property::name(), QVariant::fromValue(QString(FieldNames[idx])));
+        list.append(QVariant::fromValue(fieldMap));
+    }
+    return list;
+}
+
 }  // namespace
 
 const char* CCHeartbeat::nameImpl() const
@@ -63,6 +74,12 @@ void CCHeartbeat::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) cons
     }
 
     cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
+}
+
+const QVariantList& CCHeartbeat::fieldsPropertiesImpl() const
+{
+    static const QVariantList Props = createFieldsProperties();
+    return Props;
 }
 
 void CCHeartbeat::resetImpl()

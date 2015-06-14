@@ -47,6 +47,7 @@ protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
     virtual void propertiesUpdatedImpl() override;
+    virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private slots:
     void fieldUpdated();

@@ -47,6 +47,22 @@ static_assert(
     std::extent<decltype(FieldNames)>::value == FieldIdx_NumOfFields,
     "FieldNames array must be updated.");
 
+QVariantMap createDataProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Data");
+    return props;
+}
+
+QVariantList createFieldsProperties()
+{
+    QVariantList props;
+    props.append(QVariant::fromValue(createDataProperties()));
+
+    assert(props.size() == FieldIdx_NumOfFields);
+    return props;
+}
+
 }  // namespace
 
 
@@ -66,6 +82,12 @@ void CCRawDataMessage::updateFieldPropertiesImpl(
     }
 
     cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
+}
+
+const QVariantList& CCRawDataMessage::fieldsPropertiesImpl() const
+{
+    static const auto Props = createFieldsProperties();
+    return Props;
 }
 
 }  // namespace message

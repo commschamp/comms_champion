@@ -49,6 +49,38 @@ const char* FieldNames[] = {
 static_assert(std::extent<decltype(FieldNames)>::value == CCStatus::FieldId_NumOfFields,
     "CCStatus::FieldId enum has changed");
 
+QVariantMap createStatusProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Execution Status");
+    props.insert(cc::Property::indexedName(demo::message::ExecutionStatus_Idle), "Idle");
+    props.insert(cc::Property::indexedName(demo::message::ExecutionStatus_Running), "Running");
+    props.insert(cc::Property::indexedName(demo::message::ExecutionStatus_Complete), "Complete");
+    props.insert(cc::Property::indexedName(demo::message::ExecutionStatus_Error), "Error");
+    return props;
+}
+
+QVariantMap FeaturesProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Features");
+    props.insert(cc::Property::indexedName(0), "Feature 1");
+    props.insert(cc::Property::indexedName(1), "Feature 2");
+    props.insert(cc::Property::indexedName(2), "Feature 3");
+    props.insert(cc::Property::indexedName(3), "Feature 4");
+    return props;
+}
+
+QVariantList createFieldsProperties()
+{
+    QVariantList props;
+    props.append(QVariant::fromValue(createStatusProperties()));
+    props.append(QVariant::fromValue(FeaturesProperties()));
+
+    assert(props.size() == CCStatus::FieldId_NumOfFields);
+    return props;
+}
+
 }  // namespace
 
 const char* CCStatus::nameImpl() const
@@ -77,6 +109,12 @@ void CCStatus::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
         cc::Property::setIndexedNameVal(fieldWidget, 2, "Feature3");
         cc::Property::setIndexedNameVal(fieldWidget, 3, "Feature4");
     }
+}
+
+const QVariantList& CCStatus::fieldsPropertiesImpl() const
+{
+    static const auto Props = createFieldsProperties();
+    return Props;
 }
 
 void CCStatus::resetImpl()

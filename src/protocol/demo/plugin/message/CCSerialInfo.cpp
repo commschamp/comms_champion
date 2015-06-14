@@ -51,10 +51,12 @@ const char* FieldNames[] = {
 static_assert(std::extent<decltype(FieldNames)>::value == CCSerialInfo::FieldId_NumOfFields,
     "CCSerialInfo::FieldId enum has changed");
 
+
 QVariantMap getParityMemberData()
 {
     QVariantMap map;
     map.insert(cc::Property::name(), QVariant::fromValue(QString("Parity")));
+    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
 
     static const QString ValueMap[] = {
         "None",
@@ -77,6 +79,7 @@ QVariantMap getStopBitsMemberData()
 {
     QVariantMap map;
     map.insert(cc::Property::name(), QVariant::fromValue(QString("Stop Bits")));
+    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
 
     static const QString ValueMap[] = {
         "None",
@@ -100,6 +103,7 @@ QVariantMap getFlagsMemberData()
 {
     QVariantMap map;
     map.insert(cc::Property::name(), QVariant::fromValue(QString("Flags")));
+    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
 
     static const QString ValueMap[] = {
         QString(),
@@ -122,6 +126,7 @@ QVariantMap getQosMemberData()
 {
     QVariantMap map;
     map.insert(cc::Property::name(), QVariant::fromValue(QString("QoS")));
+    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
     return map;
 }
 
@@ -155,6 +160,48 @@ const QVariantMap& getMemberData(std::size_t idx)
     return Map[idx];
 }
 
+QVariantMap getDeviceProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Device");
+    return props;
+}
+
+QVariantMap getBaudProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Baud");
+    return props;
+}
+
+QVariantMap getFlagsProperties()
+{
+    QVariantMap props;
+
+    typedef CCSerialInfo::AllFields AllFields;
+    typedef std::decay<decltype(std::get<CCSerialInfo::FieldId_Flags>(std::declval<AllFields>()))>::type FlagsType;
+    typedef std::decay<decltype(std::declval<FlagsType>().members())>::type MembersType;
+    static const std::size_t NumOfMembers = std::tuple_size<MembersType>::value;
+
+    for (std::size_t idx = 0U; idx < NumOfMembers; ++idx) {
+        props.insert(cc::Property::indexedData(idx), getMemberData(idx));
+    }
+
+    props.insert(cc::Property::name(), "Flags");
+    return props;
+}
+
+QVariantList createFieldsProperties()
+{
+    QVariantList props;
+    props.append(QVariant::fromValue(getDeviceProperties()));
+    props.append(QVariant::fromValue(getBaudProperties()));
+    props.append(QVariant::fromValue(getFlagsProperties()));
+
+    assert(props.size() == CCSerialInfo::FieldId_NumOfFields);
+    return props;
+}
+
 }  // namespace
 
 const char* CCSerialInfo::nameImpl() const
@@ -179,6 +226,12 @@ void CCSerialInfo::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) con
             cc::Property::setIndexedDataVal(fieldWidget, idx, getMemberData(idx));
         }
     }
+}
+
+const QVariantList& CCSerialInfo::fieldsPropertiesImpl() const
+{
+    static const auto Props = createFieldsProperties();
+    return Props;
 }
 
 void CCSerialInfo::resetImpl()

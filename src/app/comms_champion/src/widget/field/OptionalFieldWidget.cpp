@@ -35,6 +35,7 @@ OptionalFieldWidget::OptionalFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    setNameLabelWidget(m_ui.m_nameLabel);
 
     connect(m_ui.m_optCheckBox, SIGNAL(stateChanged(int)),
             this, SLOT(availabilityChanged(int)));
@@ -79,6 +80,15 @@ void OptionalFieldWidget::propertiesUpdatedImpl()
         m_ui.m_nameLabel->setText(nameProperty.toString());
     }
     refreshInternal();
+}
+
+void OptionalFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    auto wrappedPropsVar = props.value(Property::data());
+    if (wrappedPropsVar.isValid() && wrappedPropsVar.canConvert<QVariantMap>()) {
+        m_field->updateProperties(wrappedPropsVar.value<QVariantMap>());
+        refreshInternal();
+    }
 }
 
 void OptionalFieldWidget::fieldUpdated()

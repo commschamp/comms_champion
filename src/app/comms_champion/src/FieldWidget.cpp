@@ -75,6 +75,13 @@ void FieldWidget::propertiesUpdated()
     performUiElementsVisibilityCheck();
 }
 
+void FieldWidget::updateProperties(const QVariantMap& props)
+{
+    performNameLabelUpdate(props);
+    updatePropertiesImpl(props);
+    performUiElementsVisibilityCheck(props);
+}
+
 void FieldWidget::emitFieldUpdated()
 {
     emit sigFieldUpdated();
@@ -160,6 +167,11 @@ void FieldWidget::propertiesUpdatedImpl()
 {
 }
 
+void FieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    static_cast<void>(props);
+}
+
 void FieldWidget::performUiElementsVisibilityCheck()
 {
     auto allHiddenVar = Property::getFieldHiddenVal(*this);
@@ -195,11 +207,67 @@ void FieldWidget::performUiElementsVisibilityCheck()
     }
 }
 
+void FieldWidget::performUiElementsVisibilityCheck(const QVariantMap& props)
+{
+    auto allHiddenVar = props.value(Property::fieldHidden());
+    if (allHiddenVar.isValid() && allHiddenVar.canConvert<bool>()) {
+        auto allHidden = allHiddenVar.toBool();
+        setHidden(allHidden);
+
+        if (allHidden) {
+            return;
+        }
+    }
+
+    if ((m_valueWidget == nullptr) &&
+        (m_sepWidget == nullptr) &&
+        (m_serValueWidget == nullptr)) {
+        return;
+    }
+
+    auto setWidgetHiddenFunc =
+        [](QWidget* widget, bool hidden)
+        {
+            if (widget != nullptr) {
+                widget->setHidden(hidden);
+            }
+        };
+
+    auto serHiddenVar = props.value(Property::serialisedHidden());
+    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
+        auto serHidden = serHiddenVar.toBool();
+        setWidgetHiddenFunc(m_sepWidget, serHidden);
+        setWidgetHiddenFunc(m_serValueWidget, serHidden);
+    }
+}
+
 void FieldWidget::performNameLabelUpdate()
 {
     if (m_nameLabel != nullptr) {
         updateNameLabel(*m_nameLabel);
     }
+}
+
+void FieldWidget::performNameLabelUpdate(const QVariantMap& props)
+{
+    if (m_nameLabel == nullptr) {
+        return;
+    }
+
+    auto nameProperty = props.value(Property::name());
+    if ((!nameProperty.isValid()) || (!nameProperty.canConvert<QString>())) {
+        return;
+    }
+
+    auto str = nameProperty.toString();
+    if (str.isEmpty()) {
+        hide();
+        return;
+    }
+
+    str.append(':');
+    m_nameLabel->setText(str);
+    m_nameLabel->show();
 }
 
 }  // namespace comms_champion

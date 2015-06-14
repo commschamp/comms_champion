@@ -61,6 +61,9 @@ void ArrayListElementWidget::updateProperties(const QVariantMap& props)
 {
     assert(m_fieldWidget != nullptr);
 
+    m_fieldWidget->updateProperties(props);
+
+    // TODO: remove
     auto keys = props.keys();
     for (auto& k : keys) {
         m_fieldWidget->setProperty(k.toUtf8().data(), props[k]);
@@ -131,6 +134,20 @@ void ArrayListFieldWidget::propertiesUpdatedImpl()
 
     for (auto* elem : m_elements) {
         elem->updateProperties(props);
+    }
+}
+
+void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    auto elemPropsVar = props.value(Property::data());
+    if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
+        return;
+    }
+
+    auto elemProps = elemPropsVar.value<QVariantMap>();
+
+    for (auto* elem : m_elements) {
+        elem->updateProperties(elemProps);
     }
 }
 

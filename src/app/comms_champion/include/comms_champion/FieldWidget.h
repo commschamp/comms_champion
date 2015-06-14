@@ -21,6 +21,7 @@
 #include <cassert>
 #include <memory>
 
+#include <QtCore/QVariantMap>
 #include <QtWidgets/QWidget>
 
 class QLineEdit;
@@ -43,6 +44,7 @@ public slots:
     void refresh();
     void setEditEnabled(bool enabled);
     void propertiesUpdated();
+    void updateProperties(const QVariantMap& props);
 
 signals:
     void sigFieldUpdated();
@@ -102,10 +104,13 @@ protected:
     virtual void refreshImpl() = 0;
     virtual void setEditEnabledImpl(bool enabled);
     virtual void propertiesUpdatedImpl();
+    virtual void updatePropertiesImpl(const QVariantMap& props);
 
 private:
     void performUiElementsVisibilityCheck();
+    void performUiElementsVisibilityCheck(const QVariantMap& props);
     void performNameLabelUpdate();
+    void performNameLabelUpdate(const QVariantMap& props);
 
     bool m_editEnabled = true;
     QLabel* m_nameLabel = nullptr;

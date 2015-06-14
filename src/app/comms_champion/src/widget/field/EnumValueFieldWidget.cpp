@@ -117,6 +117,56 @@ void EnumValueFieldWidget::propertiesUpdatedImpl()
     refresh();
 }
 
+void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    if (m_signalsConnected) {
+        disconnect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),
+                   this, SLOT(valueUpdated(int)));
+
+        disconnect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
+                   this, SLOT(serialisedValueUpdated(const QString&)));
+    }
+
+    m_ui.m_valueComboBox->clear();
+
+    auto maxValue = std::numeric_limits<unsigned>::min();
+    auto availableKeys = props.keys();
+    for (auto& propKey : availableKeys) {
+        auto& prefix = Property::indexedNamePrefix();
+        if (!propKey.startsWith(prefix)) {
+            continue;
+        }
+
+        QString propKeyCopy(propKey);
+        propKeyCopy.remove(prefix);
+        bool ok = false;
+        auto idx = propKeyCopy.toUInt(&ok, 10);
+        if (!ok) {
+            continue;
+        }
+
+        maxValue = std::max(maxValue, idx);
+
+        auto valueNameVar = props.value(propKey);
+        if ((valueNameVar.isValid()) &&
+            (valueNameVar.canConvert<QString>())) {
+            m_ui.m_valueComboBox->addItem(valueNameVar.value<QString>(), QVariant(idx));
+        }
+    }
+
+    m_ui.m_valueComboBox->insertItem(0, InvalidValueComboText, QVariant(maxValue + 1));
+    m_ui.m_valueComboBox->insertSeparator(1);
+
+    connect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(valueUpdated(int)));
+
+    connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
+            this, SLOT(serialisedValueUpdated(const QString&)));
+
+    m_signalsConnected = true;
+    refresh();
+}
+
 void EnumValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);

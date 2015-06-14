@@ -97,6 +97,22 @@ void BitfieldFieldWidget::propertiesUpdatedImpl()
     }
 }
 
+void BitfieldFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    for (auto idx = 0U; idx < m_members.size(); ++idx) {
+        auto memberPropsVar = props.value(Property::indexedData(idx));
+        if ((!memberPropsVar.isValid()) || (!memberPropsVar.canConvert<QVariantMap>())) {
+            continue;
+        }
+
+        auto memberProps = memberPropsVar.value<QVariantMap>();
+
+        auto* memberFieldWidget = m_members[idx];
+        assert(memberFieldWidget != nullptr);
+        memberFieldWidget->updateProperties(memberProps);
+    }
+}
+
 void BitfieldFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);

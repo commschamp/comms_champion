@@ -82,6 +82,21 @@ void BundleFieldWidget::propertiesUpdatedImpl()
     }
 }
 
+void BundleFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    for (auto idx = 0U; idx < m_members.size(); ++idx) {
+        auto* memberFieldWidget = m_members[idx];
+        assert(memberFieldWidget != nullptr);
+
+        auto memberPropsVar = props.value(Property::indexedData(idx));
+        if ((!memberPropsVar.isValid()) || (!memberPropsVar.canConvert<QVariantMap>())) {
+            continue;
+        }
+
+        memberFieldWidget->updateProperties(memberPropsVar.value<QVariantMap>());
+    }
+}
+
 void BundleFieldWidget::memberFieldUpdated()
 {
     emitFieldUpdated();

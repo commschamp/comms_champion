@@ -26,7 +26,6 @@ DefaultMessageDisplayHandler::createMsgWidgetImpl(
 {
     m_widget.reset(new DefaultMessageWidget(msg));
     msg.display(*this);
-    msg.widgetCreationEndNotification(*m_widget);
     return MsgWidgetPtr(m_widget.release());
 }
 

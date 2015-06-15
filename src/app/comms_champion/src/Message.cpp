@@ -36,11 +36,6 @@ const char* Message::name() const
     return nameImpl();
 }
 
-void Message::widgetCreationEndNotification(MessageWidget& widget)
-{
-    widgetCreationEndNotificationImpl(widget);
-}
-
 const QVariantList& Message::fieldsProperties() const
 {
     return fieldsPropertiesImpl();
@@ -79,11 +74,6 @@ Message::DataSeq Message::encodeData() const
 bool Message::decodeData(const DataSeq& data)
 {
     return decodeDataImpl(data);
-}
-
-void Message::widgetCreationEndNotificationImpl(MessageWidget& widget)
-{
-    static_cast<void>(widget);
 }
 
 }  // namespace comms_champion

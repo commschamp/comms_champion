@@ -44,7 +44,6 @@ public:
     Message& operator=(const Message&) = default;
 
     const char* name() const;
-    void widgetCreationEndNotification(MessageWidget& widget);
     const QVariantList& fieldsProperties() const;
     void display(MessageDisplayHandler& handler);
     QString idAsString() const;
@@ -57,7 +56,6 @@ public:
 protected:
 
     virtual const char* nameImpl() const = 0;
-    virtual void widgetCreationEndNotificationImpl(MessageWidget& widget);
     virtual const QVariantList& fieldsPropertiesImpl() const = 0;
     virtual void displayImpl(MessageDisplayHandler& handler) = 0;
     virtual QString idAsStringImpl() const = 0;

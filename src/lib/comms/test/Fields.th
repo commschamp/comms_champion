@@ -405,6 +405,7 @@ void FieldsTestSuite::test12()
     > Field;
 
     Field field;
+
     TS_ASSERT(!field.valid());
     TS_ASSERT_EQUALS(field.getValue(), Enum1_NumOfValues);
 

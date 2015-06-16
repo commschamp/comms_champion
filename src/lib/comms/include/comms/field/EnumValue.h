@@ -20,8 +20,10 @@
 
 #include <type_traits>
 
+#include "comms/options.h"
 #include "details/OptionsParser.h"
-#include "IntValue.h"
+#include "basic/EnumValue.h"
+#include "details/AdaptBasicField.h"
 
 namespace comms
 {
@@ -32,40 +34,20 @@ namespace field
 /// @addtogroup comms
 /// @{
 
-/// @brief Defines "Enum Value Field".
-/// @details The class uses ComplexIntValue as its underlying type while providing
-///          additional API function to check range of the value.
-/// @tparam TField Base (interface) class for this field.
-/// @tparam TEnum Enum type.
-/// @tparam TLen Length of serialised data in bytes. The default value is
-///         sizeof(std::underlying_type<TEnum>::type).
-/// @tparam TLimit Maximal and invalid value. All other values below the TLimit
-///         are considered to be valid.
-/// @headerfile comms/field/EnumValue.h
 template <typename TFieldBase, typename TEnum, typename... TOptions>
 class EnumValue : public TFieldBase
 {
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
     typedef TFieldBase Base;
+
+    typedef basic::EnumValue<TFieldBase, TEnum> BasicField;
+    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+
 public:
 
     typedef details::OptionsParser<TOptions...> ParsedOptions;
-
-    /// @brief Type of the stored value
-    typedef TEnum ValueType;
-
-    typedef ValueType ParamValueType;
-
-    /// @brief Underlying type
-    typedef typename std::underlying_type<ValueType>::type UnderlyingType;
-
-    /// @brief Definition of underlying ComplexIntValue field type
-    typedef
-        IntValue<
-            Base,
-            UnderlyingType,
-            TOptions...
-        > IntValueField;
+    typedef typename ThisField::ValueType ValueType;
+    typedef typename ThisField::ParamValueType ParamValueType;
 
 
     /// @brief Default constructor.
@@ -74,7 +56,7 @@ public:
 
     /// @brief Constructor
     explicit EnumValue(ValueType value)
-      : intValue_(static_cast<UnderlyingType>(value))
+      : field_(value)
     {
     }
 
@@ -89,51 +71,51 @@ public:
 
     constexpr const ParamValueType getValue() const
     {
-        return static_cast<ValueType>(intValue_.getValue());
+        return field_.getValue();
     }
 
     /// @copydoc ComplexIntValue::setValue()
     void setValue(ParamValueType value)
     {
-        intValue_.setValue(static_cast<UnderlyingType>(value));
+        field_.setValue(value);
     }
 
     /// @copydoc ComplexIntValue::length()
     constexpr std::size_t length() const
     {
-        return intValue_.length();
+        return field_.length();
     }
 
     static constexpr std::size_t minLength()
     {
-        return IntValueField::minLength();
+        return ThisField::minLength();
     }
 
     static constexpr std::size_t maxLength()
     {
-        return IntValueField::maxLength();
+        return ThisField::maxLength();
     }
 
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return intValue_.read(iter, size);
+        return field_.read(iter, size);
     }
 
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        return intValue_.write(iter, size);
+        return field_.write(iter, size);
     }
 
     bool valid() const
     {
-        return intValue_.valid();
+        return field_.valid();
     }
 
 private:
 
-    IntValueField intValue_;
+    ThisField field_;
 };
 
 // Implementation

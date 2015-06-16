@@ -172,16 +172,14 @@ struct NumValueRangeValidator
     template <typename TField>
     constexpr bool operator()(TField&& field) const
     {
-        typedef typename std::decay<TField>::type FieldType;
-        typedef typename FieldType::ValueType ValueType;
         typedef typename std::conditional<
-            (std::numeric_limits<ValueType>::min() < MinValue),
+            (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
             CompareTag,
             ReturnTrueTag
         >::type MinTag;
 
         typedef typename std::conditional<
-            (MaxValue < std::numeric_limits<ValueType>::max()),
+            (MaxValue < std::numeric_limits<decltype(MaxValue)>::max()),
             CompareTag,
             ReturnTrueTag
         >::type MaxTag;
@@ -196,7 +194,7 @@ private:
     template <typename TValue>
     static constexpr bool aboveMin(TValue&& value, CompareTag)
     {
-        return (MinValue <= value);
+        return (MinValue <= static_cast<decltype(MinValue)>(value));
     }
 
     template <typename TValue>
@@ -208,7 +206,7 @@ private:
     template <typename TValue>
     static constexpr bool belowMax(TValue&& value, CompareTag)
     {
-        return (value <= MaxValue);
+        return (static_cast<decltype(MaxValue)>(value) <= MaxValue);
     }
 
     template <typename TValue>

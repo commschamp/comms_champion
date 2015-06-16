@@ -19,5 +19,6 @@
 #pragma once
 
 #include "basic/IntValue.h"
+#include "basic/EnumValue.h"
 #include "basic/ArrayList.h"
 #include "basic/Bundle.h"

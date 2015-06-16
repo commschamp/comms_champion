@@ -123,6 +123,7 @@ void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
     m_ui.m_valueComboBox->clear();
 
+    std::vector<unsigned> availableIndices;
     auto maxValue = std::numeric_limits<unsigned>::min();
     auto availableKeys = props.keys();
     for (auto& propKey : availableKeys) {
@@ -140,7 +141,12 @@ void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         }
 
         maxValue = std::max(maxValue, idx);
+        availableIndices.push_back(idx);
+    }
 
+    std::sort(availableIndices.begin(), availableIndices.end());
+    for (auto idx : availableIndices) {
+        auto propKey = Property::indexedName(idx);
         auto valueNameVar = props.value(propKey);
         if ((valueNameVar.isValid()) &&
             (valueNameVar.canConvert<QString>())) {

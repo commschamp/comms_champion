@@ -886,7 +886,8 @@ void FieldsTestSuite::test25()
 
     typedef comms::field::Bitfield<
         comms::Field<BigEndianOpt>,
-        BitfileMembers> Field;
+        BitfileMembers
+    > Field;
 
     Field field;
     static_cast<void>(field);

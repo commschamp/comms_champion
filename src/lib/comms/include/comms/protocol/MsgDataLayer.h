@@ -210,6 +210,7 @@ private:
         auto es = read(msgPtr, iter, size, missingSize);
         auto dataSize = static_cast<std::size_t>(std::distance(dataIter, iter));
         auto dataEs = field.read(dataIter, dataSize);
+        static_cast<void>(dataEs);
         GASSERT(dataEs == comms::ErrorStatus::Success);
         GASSERT((es != ErrorStatus::Success) || (!msgPtr) || (dataSize == msgPtr->length()));
         return es;

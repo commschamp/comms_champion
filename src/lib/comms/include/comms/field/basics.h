@@ -22,3 +22,4 @@
 #include "basic/EnumValue.h"
 #include "basic/ArrayList.h"
 #include "basic/Bundle.h"
+#include "basic/Bitfield.h"

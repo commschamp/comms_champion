@@ -189,7 +189,7 @@ public:
     {
         auto& field = Base::template getField<TIdx>(allFields);
 
-        field.setValue(msg.getId());
+        field.value() = msg.getId();
         return
             writeInternal(
                 field,
@@ -225,7 +225,7 @@ private:
             return es;
         }
 
-        auto id = field.getValue();
+        auto id = field.value();
 
         msgPtr = createMsg(id);
 

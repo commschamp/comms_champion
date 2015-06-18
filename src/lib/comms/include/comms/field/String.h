@@ -103,7 +103,7 @@ public:
 
     String& operator=(const char* str)
     {
-        str_.getValue() = str;
+        value() = str;
         return *this;
     }
 

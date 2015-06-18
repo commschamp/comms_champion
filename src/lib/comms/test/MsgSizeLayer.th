@@ -173,14 +173,14 @@ void SyncPrefixLayerTestSuite::test1()
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
-    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).getValue(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).value(), 0x0102);
 
     InPlaceProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> inPlaceStack;
     auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr2);
     TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
     auto& msg2 = dynamic_cast<BeMsg1&>(*msgPtr2);
-    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).getValue(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).value(), 0x0102);
 
     TS_ASSERT_EQUALS(msg1, msg2);
 
@@ -191,7 +191,7 @@ void SyncPrefixLayerTestSuite::test1()
 void SyncPrefixLayerTestSuite::test2()
 {
     LeMsg1 msg;
-    std::get<0>(msg.getFields()).setValue(0x0304);
+    std::get<0>(msg.getFields()).value() = 0x0304;
 
     static const char ExpectedBuf[] = {
         0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03
@@ -245,7 +245,7 @@ void SyncPrefixLayerTestSuite::test4()
 void SyncPrefixLayerTestSuite::test5()
 {
     LeMsg1 msg;
-    std::get<0>(msg.getFields()).setValue(0x0203);
+    std::get<0>(msg.getFields()).value() = 0x0203;
 
     char buf[2] = {0};
     static const std::size_t BufSize = std::extent<decltype(buf)>::value;
@@ -270,7 +270,7 @@ void SyncPrefixLayerTestSuite::test6()
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg = dynamic_cast<BeMsg1&>(*msgPtr);
-    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).getValue(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).value(), 0x0102);
 }
 
 void SyncPrefixLayerTestSuite::test7()
@@ -286,7 +286,7 @@ void SyncPrefixLayerTestSuite::test7()
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg = dynamic_cast<BeMsg1&>(*msgPtr);
-    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).getValue(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).value(), 0x0102);
 }
 
 void SyncPrefixLayerTestSuite::test8()
@@ -302,14 +302,14 @@ void SyncPrefixLayerTestSuite::test8()
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg1 = dynamic_cast<BeBackInsertMsg1&>(*msgPtr);
-    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).getValue(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).value(), 0x0102);
 
     InPlaceProtocolStack<BeBackInsertSizeField20, BeBackInsertIdField1, BeBackInsertMsgBase> inPlaceStack;
     auto msgPtr2 = vectorBackInsertReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr2);
     TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
     auto& msg2 = dynamic_cast<BeBackInsertMsg1&>(*msgPtr2);
-    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).getValue(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).value(), 0x0102);
 
     TS_ASSERT_EQUALS(msg1, msg2);
 
@@ -322,10 +322,10 @@ void SyncPrefixLayerTestSuite::test9()
     BeBackInsertMsg3 msg;
     TS_ASSERT(!msg.valid());
     auto& fields = msg.getFields();
-    std::get<0>(fields).setValue(0x01020304);
-    std::get<1>(fields).setValue(0x05);
-    std::get<2>(fields).setValue(0x0607);
-    std::get<3>(fields).setValue(0x08090a);
+    std::get<0>(fields).value() = 0x01020304;
+    std::get<1>(fields).value() = 0x05;
+    std::get<2>(fields).value() = 0x0607;
+    std::get<3>(fields).value() = 0x08090a;
 
     static const char ExpectedBuf[] = {
         0x0, 0xb, MessageType3, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa
@@ -367,14 +367,14 @@ void SyncPrefixLayerTestSuite::test11()
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType3);
 
-    TS_ASSERT_EQUALS(std::get<0>(fields).getValue(), 0x0b);
-    TS_ASSERT_EQUALS(std::get<1>(fields).getValue(), MessageType3);
+    TS_ASSERT_EQUALS(std::get<0>(fields).value(), 0x0b);
+    TS_ASSERT_EQUALS(std::get<1>(fields).value(), MessageType3);
 
     auto& msg = dynamic_cast<BeMsg3&>(*msgPtr);
     auto& msgFields = msg.getFields();
-    TS_ASSERT_EQUALS(std::get<0>(msgFields).getValue(), 0x01020304);
-    TS_ASSERT_EQUALS(std::get<1>(msgFields).getValue(), 0x05);
-    TS_ASSERT_EQUALS(std::get<2>(msgFields).getValue(), 0x0607);
-    TS_ASSERT_EQUALS(std::get<3>(msgFields).getValue(), 0x08090a);
+    TS_ASSERT_EQUALS(std::get<0>(msgFields).value(), 0x01020304);
+    TS_ASSERT_EQUALS(std::get<1>(msgFields).value(), 0x05);
+    TS_ASSERT_EQUALS(std::get<2>(msgFields).value(), 0x0607);
+    TS_ASSERT_EQUALS(std::get<3>(msgFields).value(), 0x08090a);
 }
 

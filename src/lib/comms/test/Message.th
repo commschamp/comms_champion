@@ -92,12 +92,12 @@ void MessageTestSuite::test1()
         std::extent<decltype(Buf)>::value;
 
     auto beMsg = internalReadWriteTest<BeMsg1>(&Buf[0], BufSize);
-    auto value = std::get<0>(beMsg.getFields()).getValue();
+    auto value = std::get<0>(beMsg.getFields()).value();
     TS_ASSERT_EQUALS(value, 0x0102);
     TS_ASSERT(beMsg.valid());
 
     auto leMsg = internalReadWriteTest<LeMsg1>(&Buf[0], BufSize);
-    value = std::get<0>(leMsg.getFields()).getValue();
+    value = std::get<0>(leMsg.getFields()).value();
     TS_ASSERT_EQUALS(value, 0x0201);
     TS_ASSERT(leMsg.valid());
 }
@@ -110,7 +110,7 @@ void MessageTestSuite::test2()
 
     BeMsg1 beMsg;
     TS_ASSERT(beMsg.valid());
-    std::get<0>(beMsg.getFields()).setValue(0x0102);
+    std::get<0>(beMsg.getFields()).value() = 0x0102;
     std::uint8_t beBuf[2] = {0};
     static const std::size_t BeBufSize = std::extent<decltype(beBuf)>::value;
     internalWriteReadTest(beMsg, &beBuf[0], BeBufSize);
@@ -121,7 +121,7 @@ void MessageTestSuite::test2()
     };
 
     LeMsg1 leMsg;
-    std::get<0>(leMsg.getFields()).setValue(0x0102);
+    std::get<0>(leMsg.getFields()).value() = 0x0102;
     TS_ASSERT(leMsg.valid());
     std::uint8_t leBuf[2] = {0};
     static const std::size_t LeBufSize = std::extent<decltype(leBuf)>::value;
@@ -157,11 +157,11 @@ void MessageTestSuite::test4()
     static const std::size_t BufSize = std::extent<decltype(buf)>::value;
 
     BeMsg1 beMsg;
-    std::get<0>(beMsg.getFields()).setValue(0x0102);
+    std::get<0>(beMsg.getFields()).value() = 0x0102;
     internalWriteReadTest(beMsg, buf, BufSize, comms::ErrorStatus::BufferOverflow);
 
     LeMsg1 leMsg;
-    std::get<0>(leMsg.getFields()).setValue(0x0102);
+    std::get<0>(leMsg.getFields()).value() = 0x0102;
     internalWriteReadTest(leMsg, buf, BufSize, comms::ErrorStatus::BufferOverflow);
 }
 
@@ -177,10 +177,10 @@ void MessageTestSuite::test5()
     TS_ASSERT(!beMsg.valid()); // there is invalid field
     beMsg = internalReadWriteTest<BeMsg3>(Buf, BufSize);
 
-    TS_ASSERT_EQUALS(std::get<0>(beMsg.getFields()).getValue(), 0x01020304);
-    TS_ASSERT_EQUALS(std::get<1>(beMsg.getFields()).getValue(), -5);
-    TS_ASSERT_EQUALS(std::get<2>(beMsg.getFields()).getValue(), 0xdead);
-    TS_ASSERT_EQUALS(std::get<3>(beMsg.getFields()).getValue(), 0xaaff);
+    TS_ASSERT_EQUALS(std::get<0>(beMsg.getFields()).value(), 0x01020304);
+    TS_ASSERT_EQUALS(std::get<1>(beMsg.getFields()).value(), -5);
+    TS_ASSERT_EQUALS(std::get<2>(beMsg.getFields()).value(), 0xdead);
+    TS_ASSERT_EQUALS(std::get<3>(beMsg.getFields()).value(), 0xaaff);
     TS_ASSERT_EQUALS(beMsg.length(), 10);
     TS_ASSERT(beMsg.valid());
 
@@ -188,10 +188,10 @@ void MessageTestSuite::test5()
     TS_ASSERT(!leMsg.valid());
     leMsg = internalReadWriteTest<LeMsg3>(Buf, BufSize);
 
-    TS_ASSERT_EQUALS(std::get<0>(leMsg.getFields()).getValue(), 0x04030201);
-    TS_ASSERT_EQUALS(std::get<1>(leMsg.getFields()).getValue(), -5);
-    TS_ASSERT_EQUALS(std::get<2>(leMsg.getFields()).getValue(), 0xadde);
-    TS_ASSERT_EQUALS(std::get<3>(leMsg.getFields()).getValue(), 0xffaa00);
+    TS_ASSERT_EQUALS(std::get<0>(leMsg.getFields()).value(), 0x04030201);
+    TS_ASSERT_EQUALS(std::get<1>(leMsg.getFields()).value(), -5);
+    TS_ASSERT_EQUALS(std::get<2>(leMsg.getFields()).value(), 0xadde);
+    TS_ASSERT_EQUALS(std::get<3>(leMsg.getFields()).value(), 0xffaa00);
     TS_ASSERT_EQUALS(leMsg.length(), 10);
     TS_ASSERT(leMsg.valid());
 }

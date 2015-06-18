@@ -119,15 +119,15 @@ void MsgDataLayerTestSuite::test1()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     auto msg = internalReadWriteTest<BeMsg1>(Buf, BufSize);
-    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).getValue(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg.getFields()).value(), 0x0102);
     auto msg2 = internalReadWriteToVectorTest<BackInsertBeMsg1>(Buf, BufSize);
-    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).getValue(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).value(), 0x0102);
 }
 
 void MsgDataLayerTestSuite::test2()
 {
     BeMsg1 msg;
-    std::get<0>(msg.getFields()).setValue(0x0203);
+    std::get<0>(msg.getFields()).value() = 0x0203;
 
     static const char ExpectedBuf[] = {
         0x02, 0x03
@@ -153,7 +153,7 @@ void MsgDataLayerTestSuite::test3()
 void MsgDataLayerTestSuite::test4()
 {
     LeMsg1 msg;
-    std::get<0>(msg.getFields()).setValue(0x0203);
+    std::get<0>(msg.getFields()).value() = 0x0203;
 
     char buf[1] = {0};
     const std::size_t bufSize = std::extent<decltype(buf)>::value;

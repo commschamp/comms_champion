@@ -182,7 +182,7 @@ public:
     }
 
     /// @brief Set all the provided bits.
-    /// @details Equivalent to @code setValue(getValue() | mask); @endcode
+    /// @details Equivalent to @code value() |= mask; @endcode
     /// @param[in] mask Mask of bits to set.
     void setBits(ValueType mask)
     {
@@ -190,7 +190,7 @@ public:
     }
 
     /// @brief Set all the provided bits.
-    /// @details Equivalent to @code setValue(getValue() & (~mask)); @endcode
+    /// @details Equivalent to @code value() &= (~mask); @endcode
     /// @param[in] mask Mask of bits to clear.
     void clearBits(ValueType mask)
     {

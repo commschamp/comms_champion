@@ -231,7 +231,7 @@ private:
         }
 
         auto actualRemainingSize = (size - field.length());
-        auto requiredRemainingSize = static_cast<std::size_t>(field.getValue());
+        auto requiredRemainingSize = static_cast<std::size_t>(field.value());
 
         if (actualRemainingSize < requiredRemainingSize) {
             if (missingSize != nullptr) {
@@ -257,7 +257,8 @@ private:
         TWriter&& nextLayerWriter) const
     {
         typedef typename Field::ValueType FieldValueType;
-        field.setValue(static_cast<FieldValueType>(Base::nextLayer().length(msg)));
+        field.value() =
+            static_cast<FieldValueType>(Base::nextLayer().length(msg));
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;

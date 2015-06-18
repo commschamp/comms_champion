@@ -166,29 +166,6 @@ public:
         return members_;
     }
 
-//    ParamValueType getValue() const
-//    {
-//        std::uint8_t buf[Length] = {0};
-//        auto* writeIter = &buf[0];
-//        auto es = write(writeIter, Length);
-//        static_cast<void>(es);
-//        GASSERT(es == comms::ErrorStatus::Success);
-//        const auto* readIter = &buf[0];
-//        return comms::util::readData<ValueType, Length>(readIter, Endian());
-//    }
-//
-//    void setValue(ParamValueType value)
-//    {
-//        std::uint8_t buf[Length] = {0};
-//        auto* writeIter = &buf[0];
-//        comms::util::writeData<Length>(value, writeIter, Endian());
-//        GASSERT(static_cast<std::size_t>(std::distance(&buf[0], writeIter)) == Length);
-//        const auto* readIter = &buf[0];
-//        auto es = read(readIter, Length);
-//        static_cast<void>(es);
-//        //GASSERT(es == comms::ErrorStatus::Success);
-//    }
-
     static constexpr std::size_t length()
     {
         return Length;

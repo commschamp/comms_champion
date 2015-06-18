@@ -134,7 +134,7 @@ const QVariantMap& getMemberData(std::size_t idx)
     typedef typename
         std::decay<
             decltype(
-                std::get<CCSerialInfo::FieldId_Flags>(std::declval<CCSerialInfo::AllFields>()).members())
+                std::get<CCSerialInfo::FieldId_Flags>(std::declval<CCSerialInfo::AllFields>()).value())
         >::type FlagsMembers;
     static const auto NumOfFlagsMembers = std::tuple_size<FlagsMembers>::value;
 
@@ -170,7 +170,7 @@ QVariantMap getFlagsProperties()
 
     typedef CCSerialInfo::AllFields AllFields;
     typedef std::decay<decltype(std::get<CCSerialInfo::FieldId_Flags>(std::declval<AllFields>()))>::type FlagsType;
-    typedef std::decay<decltype(std::declval<FlagsType>().members())>::type MembersType;
+    typedef std::decay<decltype(std::declval<FlagsType>().value())>::type MembersType;
     static const std::size_t NumOfMembers = std::tuple_size<MembersType>::value;
 
     for (std::size_t idx = 0U; idx < NumOfMembers; ++idx) {

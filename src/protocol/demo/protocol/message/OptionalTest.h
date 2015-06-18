@@ -105,7 +105,7 @@ protected:
         auto& optEnumField = std::get<FieldId_OptEnum>(fields);
         auto& optIntField = std::get<FieldId_OptInt>(fields);
 
-        auto mask = flagsField.getValue();
+        auto mask = flagsField.value();
         bool enumExists = ((mask & 0x1) != 0);
         if ((enumExists) &&
             (optEnumField.getMode() != comms::field::OptionalMode::Exists)) {

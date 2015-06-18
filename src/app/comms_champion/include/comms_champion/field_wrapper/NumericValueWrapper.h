@@ -37,6 +37,8 @@ namespace field_wrapper
 template <typename TUnderlyingType>
 class NumericValueWrapper : public FieldWrapper
 {
+    static_assert(std::is_integral<TUnderlyingType>::value,
+        "Underlying type is expected to be integral.");
     typedef FieldWrapper Base;
 public:
     typedef TUnderlyingType UnderlyingType;
@@ -116,12 +118,12 @@ protected:
 
     virtual UnderlyingType getValueImpl() const override
     {
-        return static_cast<UnderlyingType>(Base::field().getValue());
+        return static_cast<UnderlyingType>(Base::field().value());
     }
 
     virtual void setValueImpl(UnderlyingType value) override
     {
-        Base::field().setValue(static_cast<ValueType>(value));
+        Base::field().value() = static_cast<ValueType>(value);
     }
 
     virtual std::size_t minLengthImpl() const override

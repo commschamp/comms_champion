@@ -259,7 +259,7 @@ private:
         auto widget = createBitfieldFieldWidget(
             field_wrapper::makeBitfieldWrapper(field));
 
-        auto& memberFields = field.members();
+        auto& memberFields = field.value();
         comms::util::tupleForEach(
             memberFields,
             SubfieldsCreateHelper(
@@ -289,7 +289,7 @@ private:
     {
         auto widget = createBundleFieldWidget();
 
-        auto& memberFields = field.members();
+        auto& memberFields = field.value();
         comms::util::tupleForEach(
             memberFields,
             SubfieldsCreateHelper(

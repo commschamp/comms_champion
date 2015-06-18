@@ -91,7 +91,7 @@ protected:
     {
         QString retStr;
         auto& dataField = Base::field();
-        auto& data = dataField.getValue();
+        auto& data = dataField.value();
         for (auto byte : data) {
             retStr.append(QString("%1").arg(static_cast<uint>(byte), 2, 16, QChar('0')));
         }
@@ -179,7 +179,7 @@ private:
             static_cast<int>(
                 std::min(
                     static_cast<std::size_t>(std::numeric_limits<int>::max()),
-                    Base::field().getValue().max_size()));
+                    Base::field().value().max_size()));
     }
 };
 

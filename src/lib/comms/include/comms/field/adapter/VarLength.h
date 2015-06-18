@@ -44,7 +44,7 @@ class VarLength : public details::AdapterBaseT<TNext>
 
 public:
 
-    typedef typename Base::ParamValueType ParamValueType;
+    typedef typename Base::ValueType ValueType;
 
     static_assert(TMaxLen <= sizeof(NextSerialisedType),
         "The provided max length limit is too big");
@@ -59,8 +59,13 @@ public:
 
     VarLength() = default;
 
-    explicit VarLength(ParamValueType value)
+    explicit VarLength(const ValueType& value)
       : Base(value)
+    {
+    }
+
+    explicit VarLength(ValueType&& value)
+      : Base(std::move(value))
     {
     }
 
@@ -70,22 +75,10 @@ public:
     VarLength& operator=(VarLength&&) = default;
 
 
-    ParamValueType getValue() const
-    {
-        auto value = Base::getValue();
-        GASSERT(value == fromSerialised(toSerialised(value)));
-        return value;
-    }
-
-    void setValue(ParamValueType value)
-    {
-        Base::setValue(fromSerialised(toSerialised(value)));
-    }
-
     std::size_t length() const
     {
         auto serValue =
-            adjustToUnsignedSerialisedVarLength(toSerialised(getValue()));
+            adjustToUnsignedSerialisedVarLength(toSerialised(Base::value()));
         std::size_t len = 0U;
         while (0 < serValue) {
             serValue >>= VarLengthShift;
@@ -106,14 +99,14 @@ public:
         return MaxLength;
     }
 
-    static constexpr SerialisedType toSerialised(ParamValueType value)
+    static constexpr SerialisedType toSerialised(ValueType value)
     {
         return signExtUnsignedSerialised(
             adjustToUnsignedSerialisedVarLength(Base::toSerialised(value)),
             HasSignTag());
     }
 
-    static constexpr ParamValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType value)
     {
         return Base::fromSerialised(
             static_cast<NextSerialisedType>(
@@ -154,14 +147,14 @@ public:
         }
 
         auto adjustedValue = signExtUnsignedSerialised(value, byteCount, HasSignTag());
-        Base::setValue(Base::fromSerialised(adjustedValue));
+        Base::value() = Base::fromSerialised(adjustedValue);
         return ErrorStatus::Success;
     }
 
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        auto value = adjustToUnsignedSerialisedVarLength(Base::toSerialised(Base::getValue()));
+        auto value = adjustToUnsignedSerialisedVarLength(Base::toSerialised(Base::value()));
         std::size_t byteCount = 0;
         while (true) {
             if (size == 0) {

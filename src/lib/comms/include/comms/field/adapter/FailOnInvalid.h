@@ -38,12 +38,16 @@ public:
 
     typedef typename Base::Next Next;
     typedef typename Base::ValueType ValueType;
-    typedef typename Base::ParamValueType ParamValueType;
 
     FailOnInvalid() = default;
 
-    explicit FailOnInvalid(ParamValueType value)
+    explicit FailOnInvalid(const ValueType& value)
       : Base(value)
+    {
+    }
+
+    explicit FailOnInvalid(ValueType&& value)
+      : Base(std::move(value))
     {
     }
 

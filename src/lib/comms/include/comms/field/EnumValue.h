@@ -47,7 +47,6 @@ public:
 
     typedef details::OptionsParser<TOptions...> ParsedOptions;
     typedef typename ThisField::ValueType ValueType;
-    typedef typename ThisField::ParamValueType ParamValueType;
 
 
     /// @brief Default constructor.
@@ -55,8 +54,13 @@ public:
     EnumValue() = default;
 
     /// @brief Constructor
-    explicit EnumValue(ValueType value)
+    explicit EnumValue(const ValueType& value)
       : field_(value)
+    {
+    }
+
+    explicit EnumValue(ValueType&& value)
+      : field_(std::move(value))
     {
     }
 
@@ -69,15 +73,14 @@ public:
     /// @brief Copy assignment is default
     EnumValue& operator=(const EnumValue&) = default;
 
-    constexpr const ParamValueType getValue() const
+    const ValueType& value() const
     {
-        return field_.getValue();
+        return field_.value();
     }
 
-    /// @copydoc ComplexIntValue::setValue()
-    void setValue(ParamValueType value)
+    ValueType& value()
     {
-        field_.setValue(value);
+        return field_.value();
     }
 
     /// @copydoc ComplexIntValue::length()
@@ -127,7 +130,7 @@ bool operator==(
     const EnumValue<TArgs...>& field1,
     const EnumValue<TArgs...>& field2)
 {
-    return field1.getValue() == field2.getValue();
+    return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
@@ -137,7 +140,7 @@ bool operator!=(
     const EnumValue<TArgs...>& field1,
     const EnumValue<TArgs...>& field2)
 {
-    return field1.getValue() != field2.getValue();
+    return field1.value() != field2.value();
 }
 
 /// @brief Equivalence comparison operator.
@@ -147,7 +150,7 @@ bool operator<(
     const EnumValue<TArgs...>& field1,
     const EnumValue<TArgs...>& field2)
 {
-    return field1.getValue() < field2.getValue();
+    return field1.value() < field2.value();
 }
 
 namespace details

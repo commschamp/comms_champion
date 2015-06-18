@@ -38,12 +38,16 @@ public:
 
     typedef typename Base::Next Next;
     typedef typename Base::ValueType ValueType;
-    typedef typename Base::ParamValueType ParamValueType;
 
     IgnoreInvalid() = default;
 
-    explicit IgnoreInvalid(ParamValueType value)
+    explicit IgnoreInvalid(const ValueType& value)
       : Base(value)
+    {
+    }
+
+    explicit IgnoreInvalid(ValueType&& value)
+      : Base(std::move(value))
     {
     }
 

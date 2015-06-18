@@ -44,14 +44,12 @@ public:
 
     typedef T ValueType;
 
-    typedef ValueType ParamValueType;
-
     typedef ValueType SerialisedType;
 
 
     IntValue() = default;
 
-    explicit IntValue(ParamValueType value)
+    explicit IntValue(ValueType value)
       : value_(value)
     {
     }
@@ -63,14 +61,14 @@ public:
     IntValue& operator=(const IntValue&) = default;
     IntValue& operator=(IntValue&&) = default;
 
-    ParamValueType getValue() const
+    const ValueType& value() const
     {
         return value_;
     }
 
-    void setValue(ParamValueType value)
+    ValueType& value()
     {
-        value_ = value;
+        return value_;
     }
 
     static constexpr std::size_t length()
@@ -88,14 +86,14 @@ public:
         return length();
     }
 
-    static constexpr SerialisedType toSerialised(ParamValueType value)
+    static constexpr SerialisedType toSerialised(ValueType value)
     {
         return static_cast<SerialisedType>(value);
     }
 
-    static constexpr ParamValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType value)
     {
-        return static_cast<ParamValueType>(value);
+        return static_cast<ValueType>(value);
     }
 
     static constexpr bool valid()

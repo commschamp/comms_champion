@@ -98,12 +98,9 @@ public:
     typedef typename TStorage::value_type ElementType;
     typedef TStorage ValueType;
 
-    typedef const ValueType& ParamValueType;
-    typedef ValueType& ValueRefType;
-
     ArrayList() = default;
 
-    explicit ArrayList(ParamValueType value)
+    explicit ArrayList(const ValueType& value)
       : value_(value)
     {
     }
@@ -119,25 +116,14 @@ public:
     ArrayList& operator=(ArrayList&&) = default;
     ~ArrayList() = default;
 
-
-    ParamValueType getValue() const
+    const ValueType& value() const
     {
         return value_;
     }
 
-    ValueRefType getValue()
+    ValueType& value()
     {
         return value_;
-    }
-
-    void setValue(ParamValueType value)
-    {
-        value_ = value;
-    }
-
-    void setValue(ValueType&& value)
-    {
-        value_ = std::move(value);
     }
 
     template <typename U>

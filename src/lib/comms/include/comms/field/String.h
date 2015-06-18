@@ -73,18 +73,22 @@ public:
     typedef ParsedOptionsInternal ParsedOptions;
     typedef StorageTypeInternal StorageType;
     typedef StorageType ValueType;
-    typedef const StorageType& ParamValueType;
 
     String() = default;
 
-    explicit String(const StorageType& fields)
-      : str_(fields)
+    explicit String(const ValueType& value)
+      : str_(value)
+    {
+    }
+
+    explicit String(ValueType&& value)
+      : str_(std::move(value))
     {
     }
 
     explicit String(const char* str)
     {
-        str_.getValue() = str;
+        str_.value() = str;
     }
 
     String(const String&) = default;
@@ -103,24 +107,14 @@ public:
         return *this;
     }
 
-    StorageType& string()
+    ValueType& value()
     {
-        return str_.getValue();
+        return str_.value();
     }
 
-    const StorageType& string() const
+    const ValueType& value() const
     {
-        return str_.getValue();
-    }
-
-    const StorageType& getValue() const
-    {
-        return str_.getValue();
-    }
-
-    void setValue(const StorageType& value)
-    {
-        string() = value;
+        return str_.value();
     }
 
     constexpr std::size_t length() const
@@ -167,7 +161,7 @@ bool operator==(
     const String<TArgs...>& field1,
     const String<TArgs...>& field2)
 {
-    return field1.string() == field2.string();
+    return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
@@ -177,7 +171,7 @@ bool operator!=(
     const String<TArgs...>& field1,
     const String<TArgs...>& field2)
 {
-    return field1.string() != field2.string();
+    return field1.value() != field2.value();
 }
 
 /// @brief Equivalence comparison operator.
@@ -187,7 +181,7 @@ bool operator<(
     const String<TArgs...>& field1,
     const String<TArgs...>& field2)
 {
-    return field1.string() < field2.string();
+    return field1.value() < field2.value();
 }
 
 namespace details

@@ -37,12 +37,17 @@ class CustomValidator : public details::AdapterBaseT<TNext>
 
 public:
 
-    typedef typename Base::ParamValueType ParamValueType;
+    typedef typename Base::ValueType ValueType;
 
     CustomValidator() = default;
 
-    explicit CustomValidator(ParamValueType value)
+    explicit CustomValidator(const ValueType& value)
       : Base(value)
+    {
+    }
+
+    explicit CustomValidator(ValueType&& value)
+      : Base(std::move(value))
     {
     }
 

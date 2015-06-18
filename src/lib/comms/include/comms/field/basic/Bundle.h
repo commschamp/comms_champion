@@ -39,12 +39,10 @@ class Bundle
 {
 public:
     typedef comms::field::category::BundleField Category;
-    typedef TMembers Members;
-    typedef Members ValueType;
-    typedef const ValueType& ParamValueType;
+    typedef TMembers ValueType;
 
     Bundle() = default;
-    explicit Bundle(ParamValueType value)
+    explicit Bundle(const ValueType& value)
       : members_(value)
     {
     }
@@ -61,51 +59,41 @@ public:
     Bundle& operator=(const Bundle&) = default;
     Bundle& operator=(Bundle&&) = default;
 
-    Members& members()
+    const ValueType& value() const
     {
         return members_;
     }
 
-    const Members& members() const
+    ValueType& value()
     {
         return members_;
-    }
-
-    ParamValueType getValue() const
-    {
-        return members_;
-    }
-
-    void setValue(ParamValueType members)
-    {
-        members_ = members;
     }
 
     constexpr std::size_t length() const
     {
-        return comms::util::tupleAccumulate(members(), std::size_t(0), LengthCalcHelper());
+        return comms::util::tupleAccumulate(value(), std::size_t(0), LengthCalcHelper());
     }
 
     static constexpr std::size_t minLength()
     {
-        return comms::util::tupleTypeAccumulate<Members>(std::size_t(0), MinLengthCalcHelper());
+        return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MinLengthCalcHelper());
     }
 
     static constexpr std::size_t maxLength()
     {
-        return comms::util::tupleTypeAccumulate<Members>(std::size_t(0), MaxLengthCalcHelper());
+        return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MaxLengthCalcHelper());
     }
 
     constexpr bool valid() const
     {
-        return comms::util::tupleAccumulate(members(), true, ValidCheckHelper());
+        return comms::util::tupleAccumulate(value(), true, ValidCheckHelper());
     }
 
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         auto es = ErrorStatus::Success;
-        comms::util::tupleForEach(members(), makeReadHelper(es, iter, len));
+        comms::util::tupleForEach(value(), makeReadHelper(es, iter, len));
         return es;
     }
 
@@ -113,7 +101,7 @@ public:
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         auto es = ErrorStatus::Success;
-        comms::util::tupleForEach(members(), makeWriteHelper(es, iter, len));
+        comms::util::tupleForEach(value(), makeWriteHelper(es, iter, len));
         return es;
     }
 
@@ -226,8 +214,8 @@ private:
         return WriteHelper<TIter>(es, iter, len);
     }
 
-    static_assert(comms::util::IsTuple<Members>::Value, "Members must be tuple");
-    Members members_;
+    static_assert(comms::util::IsTuple<ValueType>::Value, "ValueType must be tuple");
+    ValueType members_;
 };
 
 }  // namespace basic

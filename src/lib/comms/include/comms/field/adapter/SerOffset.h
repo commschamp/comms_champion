@@ -37,14 +37,18 @@ class SerOffset : public details::AdapterBaseT<TNext>
 public:
 
     typedef typename Base::ValueType ValueType;
-    typedef typename Base::ParamValueType ParamValueType;
     typedef typename Base::SerialisedType SerialisedType;
     typedef typename Base::Endian Endian;
 
     SerOffset() = default;
 
-    explicit SerOffset(ParamValueType value)
+    explicit SerOffset(const ValueType& value)
       : Base(value)
+    {
+    }
+
+    explicit SerOffset(ValueType&& value)
+      : Base(std::move(value))
     {
     }
 
@@ -63,7 +67,7 @@ public:
 
         auto serialisedValue =
             comms::util::readData<SerialisedType>(iter, Endian());
-        Base::setValue(fromSerialised(serialisedValue));
+        Base::value() = fromSerialised(serialisedValue);
         return ErrorStatus::Success;
     }
 
@@ -74,21 +78,30 @@ public:
             return ErrorStatus::BufferOverflow;
         }
 
-        comms::util::writeData(toSerialised(Base::getValue()), iter, Endian());
+        comms::util::writeData(toSerialised(Base::value()), iter, Endian());
         return ErrorStatus::Success;
     }
 
-    static constexpr SerialisedType toSerialised(ParamValueType value)
+    static constexpr SerialisedType toSerialised(ValueType value)
+    {
+        return adjustToSerialised(Base::toSerialised(value));
+    }
+
+    static constexpr ValueType fromSerialised(SerialisedType value)
+    {
+        return Base::fromSerialised(adjustFromSerialised(value));
+    }
+
+private:
+    static SerialisedType adjustToSerialised(SerialisedType value)
     {
         return static_cast<SerialisedType>(Offset + value);
     }
 
-    static constexpr ParamValueType fromSerialised(SerialisedType value)
+    static SerialisedType adjustFromSerialised(SerialisedType value)
     {
-        return static_cast<ValueType>((-Offset) + value);
+        return static_cast<SerialisedType>((-Offset) + value);
     }
-
-private:
 };
 
 }  // namespace adapter

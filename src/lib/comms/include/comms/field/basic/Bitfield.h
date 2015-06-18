@@ -143,49 +143,51 @@ class Bitfield : public TFieldBase
 public:
     typedef comms::field::category::BundleField Category;
     typedef typename Base::Endian Endian;
-    typedef TMembers Members;
-
-    typedef SerialisedType ValueType;
-    typedef ValueType ParamValueType;
+    typedef TMembers ValueType;
 
     Bitfield() = default;
-    explicit Bitfield(ParamValueType value)
+    explicit Bitfield(const ValueType& value)
+      : members_(value)
     {
-        setValue(value);
     }
 
-    Members& members()
+    explicit Bitfield(ValueType&& value)
+      : members_(std::move(value))
+    {
+    }
+
+    const ValueType& value() const
     {
         return members_;
     }
 
-    const Members& members() const
+    ValueType& value()
     {
         return members_;
     }
 
-    ParamValueType getValue() const
-    {
-        std::uint8_t buf[Length] = {0};
-        auto* writeIter = &buf[0];
-        auto es = write(writeIter, Length);
-        static_cast<void>(es);
-        GASSERT(es == comms::ErrorStatus::Success);
-        const auto* readIter = &buf[0];
-        return comms::util::readData<ValueType, Length>(readIter, Endian());
-    }
-
-    void setValue(ParamValueType value)
-    {
-        std::uint8_t buf[Length] = {0};
-        auto* writeIter = &buf[0];
-        comms::util::writeData<Length>(value, writeIter, Endian());
-        GASSERT(static_cast<std::size_t>(std::distance(&buf[0], writeIter)) == Length);
-        const auto* readIter = &buf[0];
-        auto es = read(readIter, Length);
-        static_cast<void>(es);
-        //GASSERT(es == comms::ErrorStatus::Success);
-    }
+//    ParamValueType getValue() const
+//    {
+//        std::uint8_t buf[Length] = {0};
+//        auto* writeIter = &buf[0];
+//        auto es = write(writeIter, Length);
+//        static_cast<void>(es);
+//        GASSERT(es == comms::ErrorStatus::Success);
+//        const auto* readIter = &buf[0];
+//        return comms::util::readData<ValueType, Length>(readIter, Endian());
+//    }
+//
+//    void setValue(ParamValueType value)
+//    {
+//        std::uint8_t buf[Length] = {0};
+//        auto* writeIter = &buf[0];
+//        comms::util::writeData<Length>(value, writeIter, Endian());
+//        GASSERT(static_cast<std::size_t>(std::distance(&buf[0], writeIter)) == Length);
+//        const auto* readIter = &buf[0];
+//        auto es = read(readIter, Length);
+//        static_cast<void>(es);
+//        //GASSERT(es == comms::ErrorStatus::Success);
+//    }
 
     static constexpr std::size_t length()
     {
@@ -254,7 +256,7 @@ private:
 
             typedef typename std::decay<decltype(field)>::type FieldType;
             typedef typename FieldType::ParsedOptions FieldOptions;
-            static const auto Pos = details::getMemberShiftPos<TIdx, Members>();
+            static const auto Pos = details::getMemberShiftPos<TIdx, ValueType>();
             static const auto Mask =
                 (static_cast<SerialisedType>(1) << FieldOptions::FixedBitLength) - 1;
 
@@ -311,7 +313,7 @@ private:
             auto fieldSerValue = comms::util::readData<SerialisedType, MaxLength>(readIter, FieldEndian());
 
             typedef typename FieldType::ParsedOptions FieldOptions;
-            static const auto Pos = details::getMemberShiftPos<TIdx, Members>();
+            static const auto Pos = details::getMemberShiftPos<TIdx, ValueType>();
             static const auto Mask =
                 (static_cast<SerialisedType>(1) << FieldOptions::FixedBitLength) - 1;
 
@@ -339,7 +341,7 @@ private:
         }
     };
 
-    Members members_;
+    ValueType members_;
 };
 
 }  // namespace basic

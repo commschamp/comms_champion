@@ -44,43 +44,37 @@ class Bitfield : public TFieldBase
 public:
     typedef details::OptionsParser<TOptions...> ParsedOptions;
     typedef typename ThisField::ValueType ValueType;
-    typedef typename ThisField::ParamValueType ParamValueType;
-    typedef typename ThisField::Members Members;
 
     Bitfield() = default;
-    explicit Bitfield(ParamValueType value)
+    explicit Bitfield(const ValueType& value)
       : field_(value)
     {
     }
 
-    Members& members()
+    explicit Bitfield(ValueType&& value)
+      : field_(std::move(value))
     {
-        return field_.members();
     }
 
-    const Members& members() const
+    const ValueType& value() const
     {
-        return field_.members();
+        return field_.value();
     }
 
-    ParamValueType getValue() const
+    ValueType& value()
     {
-        return field_.getValue();
+        return field_.value();
     }
 
-    void setValue(ParamValueType value)
-    {
-        field_.setValue(value);
-    }
 
     template <std::size_t TIdx>
     static constexpr std::size_t memberBitLength()
     {
         static_assert(
-            TIdx < std::tuple_size<Members>::value,
+            TIdx < std::tuple_size<ValueType>::value,
             "Index exceeds number of fields");
 
-        typedef typename std::tuple_element<TIdx, Members>::type FieldType;
+        typedef typename std::tuple_element<TIdx, ValueType>::type FieldType;
         typedef typename FieldType::ParsedOptions FieldOptions;
         return FieldOptions::FixedBitLength;
     }
@@ -128,7 +122,7 @@ bool operator==(
     const Bitfield<TArgs...>& field1,
     const Bitfield<TArgs...>& field2)
 {
-    return field1.getValue() == field2.getValue();
+    return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
@@ -138,7 +132,7 @@ bool operator!=(
     const Bitfield<TArgs...>& field1,
     const Bitfield<TArgs...>& field2)
 {
-    return field1.getValue() != field2.getValue();
+    return field1.value() != field2.value();
 }
 
 /// @brief Equivalence comparison operator.
@@ -148,7 +142,7 @@ bool operator<(
     const Bitfield<TArgs...>& field1,
     const Bitfield<TArgs...>& field2)
 {
-    return field1.getValue() < field2.getValue();
+    return field1.value() < field2.value();
 }
 
 namespace details

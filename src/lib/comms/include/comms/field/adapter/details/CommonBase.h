@@ -67,8 +67,6 @@ public:
 
     typedef typename Next::ValueType ValueType;
 
-    typedef typename Next::ParamValueType ParamValueType;
-
     CommonBase(const CommonBase&) = default;
     CommonBase(CommonBase&&) = default;
     CommonBase& operator=(const CommonBase&) = default;
@@ -84,14 +82,14 @@ public:
         return next_;
     }
 
-    ParamValueType getValue() const
+    const ValueType& value() const
     {
-        return next().getValue();
+        return next().value();
     }
 
-    void setValue(ParamValueType value)
+    ValueType& value()
     {
-        next().setValue(value);
+        return next().value();
     }
 
     constexpr std::size_t length() const
@@ -128,7 +126,7 @@ public:
 
 protected:
     CommonBase() = default;
-    explicit CommonBase(ParamValueType value)
+    explicit CommonBase(const ValueType& value)
       : next_(value)
     {
     }

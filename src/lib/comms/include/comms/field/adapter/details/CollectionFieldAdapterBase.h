@@ -43,9 +43,7 @@ public:
     typedef typename Base::Category Category;
     typedef typename Base::Next Next;
     typedef typename Base::ValueType ValueType;
-    typedef typename Base::ParamValueType ParamValueType;
     typedef typename Next::ElementType ElementType;
-    typedef typename Next::ValueRefType ValueRefType;
 
     static_assert(
         std::is_base_of<comms::field::category::CollectionField, Category>::value,
@@ -56,12 +54,6 @@ public:
     CollectionFieldAdapterBase& operator=(const CollectionFieldAdapterBase&) = default;
     CollectionFieldAdapterBase& operator=(CollectionFieldAdapterBase&&) = default;
 
-    using Base::getValue;
-
-    ValueRefType& getValue()
-    {
-        return Base::next().getValue();
-    }
 
     template <typename U>
     void pushBack(U&& value)
@@ -88,8 +80,13 @@ public:
 
 protected:
     CollectionFieldAdapterBase() = default;
-    explicit CollectionFieldAdapterBase(ParamValueType value)
+    explicit CollectionFieldAdapterBase(const ValueType& value)
       : Base(value)
+    {
+    }
+
+    explicit CollectionFieldAdapterBase(ValueType&& value)
+      : Base(std::move(value))
     {
     }
 };

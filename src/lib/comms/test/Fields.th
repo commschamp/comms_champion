@@ -111,7 +111,7 @@ void FieldsTestSuite::test1()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), sizeof(std::uint32_t));
-    TS_ASSERT_EQUALS(field.getValue(), 0x01020304);
+    TS_ASSERT_EQUALS(field.value(), 0x01020304);
     TS_ASSERT(field.valid());
 }
 
@@ -130,7 +130,7 @@ void FieldsTestSuite::test2()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 3);
-    TS_ASSERT_EQUALS(field.getValue(), 0x010203);
+    TS_ASSERT_EQUALS(field.value(), 0x010203);
     TS_ASSERT(field.valid());
 }
 
@@ -147,7 +147,7 @@ void FieldsTestSuite::test3()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
-    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::int16_t>(0x0102));
+    TS_ASSERT_EQUALS(field.value(), static_cast<std::int16_t>(0x0102));
     TS_ASSERT(field.valid());
 }
 
@@ -164,7 +164,7 @@ void FieldsTestSuite::test4()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
-    TS_ASSERT_EQUALS(field.getValue(), -1);
+    TS_ASSERT_EQUALS(field.value(), -1);
     TS_ASSERT(field.valid());
 }
 
@@ -181,7 +181,7 @@ void FieldsTestSuite::test5()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), sizeof(std::int16_t));
-    TS_ASSERT_EQUALS(field.getValue(), std::numeric_limits<std::int16_t>::min());
+    TS_ASSERT_EQUALS(field.value(), std::numeric_limits<std::int16_t>::min());
     TS_ASSERT(field.valid());
 }
 
@@ -199,7 +199,7 @@ void FieldsTestSuite::test6()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 1);
-    TS_ASSERT_EQUALS(field.getValue(), -1);
+    TS_ASSERT_EQUALS(field.value(), -1);
     TS_ASSERT(field.valid());
 }
 
@@ -219,19 +219,19 @@ void FieldsTestSuite::test7()
     auto field = readWriteField<Field>(Buf, BufSize);
 
     TS_ASSERT_EQUALS(field.length(), 1);
-    TS_ASSERT_EQUALS(field.getValue(), 2013);
+    TS_ASSERT_EQUALS(field.value(), 2013);
     TS_ASSERT(field.valid());
 
-    field.setValue(2000);
+    field.value() = 2000;
     static const char ExpectedBuf[] = {
         0
     };
     const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
 
-    field.setValue(2000 + 0xff);
+    field.value() = 2000 + 0x7f;
     static const char ExpectedBuf2[] = {
-        (char)0xff
+        (char)0x7f
     };
     const std::size_t ExpectedBufSize2 = std::extent<decltype(ExpectedBuf2)>::value;
     writeReadField(field, ExpectedBuf2, ExpectedBufSize2);
@@ -248,9 +248,9 @@ void FieldsTestSuite::test8()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), 0U);
-    field.setValue(0x010200);
-    TS_ASSERT_EQUALS(field.getValue(), 0x010200);
+    TS_ASSERT_EQUALS(field.value(), 0U);
+    field.value() = 0x010200;
+    TS_ASSERT_EQUALS(field.value(), 0x010200);
     TS_ASSERT(field.valid());
 
     static const char Buf[] = {
@@ -260,7 +260,7 @@ void FieldsTestSuite::test8()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 3);
-    TS_ASSERT_EQUALS(field.getValue(), 0x010203);
+    TS_ASSERT_EQUALS(field.value(), 0x010203);
     TS_ASSERT(!field.valid());
 }
 
@@ -274,7 +274,7 @@ void FieldsTestSuite::test9()
     > Field;
 
     Field field;
-    TS_ASSERT_EQUALS(field.getValue(), 100);
+    TS_ASSERT_EQUALS(field.value(), 100);
     TS_ASSERT(!field.valid());
 
     static const char Buf[] = {
@@ -284,7 +284,7 @@ void FieldsTestSuite::test9()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 1);
-    TS_ASSERT_EQUALS(field.getValue(), 0x05);
+    TS_ASSERT_EQUALS(field.value(), 0x05);
     TS_ASSERT(field.valid());
 }
 
@@ -297,7 +297,7 @@ void FieldsTestSuite::test10()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), 0U);
+    TS_ASSERT_EQUALS(field.value(), 0U);
 
     static const char Buf[] = {
         (char)0xde, (char)0xad,
@@ -305,7 +305,7 @@ void FieldsTestSuite::test10()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 2);
-    TS_ASSERT_EQUALS(field.getValue(), 0xdead);
+    TS_ASSERT_EQUALS(field.value(), 0xdead);
     TS_ASSERT_EQUALS(field.getBitValue(0U), true);
     TS_ASSERT_EQUALS(field.getBitValue(1U), false);
     TS_ASSERT_EQUALS(field.getBitValue(2U), true);
@@ -324,10 +324,10 @@ void FieldsTestSuite::test10()
     TS_ASSERT_EQUALS(field.getBitValue(15U), true);
 
     field.setBitValue(1U, true);
-    TS_ASSERT_EQUALS(field.getValue(), 0xdeaf);
+    TS_ASSERT_EQUALS(field.value(), 0xdeaf);
 
     field.setBits(0x2);
-    TS_ASSERT_EQUALS(field.getValue(), 0xdeaf);
+    TS_ASSERT_EQUALS(field.value(), 0xdeaf);
     TS_ASSERT(field.valid());
 
     static const char ExpectedBuf[] = {
@@ -348,7 +348,7 @@ void FieldsTestSuite::test11()
 
     Field field;
     TS_ASSERT(!field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), 0xffffff);
+    TS_ASSERT_EQUALS(field.value(), 0xffffff);
 
     static const char Buf[] = {
         (char)0xde, (char)0xad, (char)0x00, (char)0xff
@@ -356,7 +356,7 @@ void FieldsTestSuite::test11()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 3);
-    TS_ASSERT_EQUALS(field.getValue(), 0xadde);
+    TS_ASSERT_EQUALS(field.value(), 0xadde);
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(field.getBitValue(0U), false);
     TS_ASSERT_EQUALS(field.getBitValue(1U), true);
@@ -384,13 +384,13 @@ void FieldsTestSuite::test11()
     TS_ASSERT_EQUALS(field.getBitValue(23U), false);
 
     field.setBits(0x10000);
-    TS_ASSERT_EQUALS(field.getValue(), 0x1adde);
+    TS_ASSERT_EQUALS(field.value(), 0x1adde);
     TS_ASSERT(!field.valid());
 
     field.setBitValue(0U, true);
-    TS_ASSERT_EQUALS(field.getValue(), 0x1addf);
+    TS_ASSERT_EQUALS(field.value(), 0x1addf);
     field.setBitValue(16U, false);
-    TS_ASSERT_EQUALS(field.getValue(), 0xaddf);
+    TS_ASSERT_EQUALS(field.value(), 0xaddf);
     TS_ASSERT(field.valid());
 }
 
@@ -407,7 +407,7 @@ void FieldsTestSuite::test12()
     Field field;
 
     TS_ASSERT(!field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), Enum1_NumOfValues);
+    TS_ASSERT_EQUALS(field.value(), Enum1_NumOfValues);
 
     static const char Buf[] = {
         (char)Enum1_Value1, (char)0x3f
@@ -415,12 +415,12 @@ void FieldsTestSuite::test12()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 1);
-    TS_ASSERT_EQUALS(field.getValue(), Enum1_Value1);
+    TS_ASSERT_EQUALS(field.value(), Enum1_Value1);
     TS_ASSERT(field.valid());
 
-    field.setValue(Enum1_NumOfValues);
+    field.value() = Enum1_NumOfValues;
     TS_ASSERT(!field.valid());
-    field.setValue(Enum1_Value2);
+    field.value() = Enum1_Value2;
 
     static const char ExpectedBuf[] = {
         (char)Enum1_Value2
@@ -441,7 +441,7 @@ void FieldsTestSuite::test13()
 
     Field field;
     TS_ASSERT(!field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), Enum2::NumOfValues);
+    TS_ASSERT_EQUALS(field.value(), Enum2::NumOfValues);
 
     static const char Buf[] = {
         0x0, (char)Enum2::Value4, (char)0x3f
@@ -450,12 +450,12 @@ void FieldsTestSuite::test13()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 2);
 
-    TS_ASSERT_EQUALS(field.getValue(), Enum2::Value4);
+    TS_ASSERT_EQUALS(field.value(), Enum2::Value4);
     TS_ASSERT(field.valid());
 
-    field.setValue(Enum2::NumOfValues);
+    field.value() = Enum2::NumOfValues;
     TS_ASSERT(!field.valid());
-    field.setValue(Enum2::Value3);
+    field.value() = Enum2::Value3;
 
     static const char ExpectedBuf[] = {
         0x0, (char)Enum2::Value3
@@ -537,11 +537,11 @@ void FieldsTestSuite::test16()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT(field.string().empty());
+    TS_ASSERT(field.value().empty());
 
     StaticStorageField staticStorageField;
     TS_ASSERT(staticStorageField.valid());
-    TS_ASSERT(staticStorageField.string().empty());
+    TS_ASSERT(staticStorageField.value().empty());
 
     static const char ExpectedBuf[] = {
         0x0
@@ -555,13 +555,13 @@ void FieldsTestSuite::test16()
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
-    TS_ASSERT_EQUALS(field.string().size(), static_cast<std::size_t>(Buf[0]));
-    TS_ASSERT_EQUALS(field.length(), field.string().size() + 1U);
+    TS_ASSERT_EQUALS(field.value().size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(field.length(), field.value().size() + 1U);
     TS_ASSERT(field.valid());
 
     staticStorageField = readWriteField<StaticStorageField>(Buf, BufSize);
-    TS_ASSERT_EQUALS(staticStorageField.string().size(), static_cast<std::size_t>(Buf[0]));
-    TS_ASSERT_EQUALS(staticStorageField.length(), staticStorageField.string().size() + 1U);
+    TS_ASSERT_EQUALS(staticStorageField.value().size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(staticStorageField.length(), staticStorageField.value().size() + 1U);
     TS_ASSERT(staticStorageField.valid());
 }
 
@@ -592,27 +592,27 @@ void FieldsTestSuite::test17()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT(field.string().empty());
+    TS_ASSERT(field.value().empty());
 
     StaticStorageField staticStorageField;
     TS_ASSERT(staticStorageField.valid());
-    TS_ASSERT(staticStorageField.string().empty());
+    TS_ASSERT(staticStorageField.value().empty());
 
     static const char Buf[] = {
         0x5, 'h', 'e', 'l', 'l', 'o', 'g', 'a', 'r'
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
-    TS_ASSERT_EQUALS(field.string().size(), static_cast<std::size_t>(Buf[0]));
-    TS_ASSERT_EQUALS(field.length(), field.string().size() + 1U);
+    TS_ASSERT_EQUALS(field.value().size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(field.length(), field.value().size() + 1U);
     TS_ASSERT(!field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), "hello");
+    TS_ASSERT_EQUALS(field.value(), "hello");
 
     staticStorageField = readWriteField<StaticStorageField>(Buf, BufSize);
-    TS_ASSERT_EQUALS(staticStorageField.string().size(), static_cast<std::size_t>(Buf[0]));
-    TS_ASSERT_EQUALS(staticStorageField.length(), field.string().size() + 1U);
+    TS_ASSERT_EQUALS(staticStorageField.value().size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(staticStorageField.length(), field.value().size() + 1U);
     TS_ASSERT(!staticStorageField.valid());
-    TS_ASSERT_EQUALS(staticStorageField.getValue().c_str(), "hello");
+    TS_ASSERT_EQUALS(staticStorageField.value().c_str(), "hello");
 }
 
 struct HelloInitialiser
@@ -620,7 +620,7 @@ struct HelloInitialiser
     template <typename TField>
     void operator()(TField&& field)
     {
-        field.setValue("hello");
+        field.value() = "hello";
     }
 };
 
@@ -646,24 +646,24 @@ void FieldsTestSuite::test18()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT(!field.string().empty());
-    TS_ASSERT_EQUALS(field.string(), "hello");
-    field.string().clear();
-    TS_ASSERT(field.string().empty());
-    field.setValue("bla");
-    TS_ASSERT_EQUALS(field.string(), "bla");
-    TS_ASSERT_EQUALS(field.string().size(), 3);
+    TS_ASSERT(!field.value().empty());
+    TS_ASSERT_EQUALS(field.value(), "hello");
+    field.value().clear();
+    TS_ASSERT(field.value().empty());
+    field.value() = "bla";
+    TS_ASSERT_EQUALS(field.value(), "bla");
+    TS_ASSERT_EQUALS(field.value().size(), 3);
     TS_ASSERT_EQUALS(field.length(), 5);
 
     StaticStorageField staticStorageField;
     TS_ASSERT(staticStorageField.valid());
-    TS_ASSERT(!staticStorageField.string().empty());
-    TS_ASSERT_EQUALS(staticStorageField.string().c_str(), "hello");
-    staticStorageField.string().clear();
-    TS_ASSERT(staticStorageField.string().empty());
-    staticStorageField.setValue("bla");
-    TS_ASSERT_EQUALS(staticStorageField.string().c_str(), "bla");
-    TS_ASSERT_EQUALS(staticStorageField.string().size(), 3);
+    TS_ASSERT(!staticStorageField.value().empty());
+    TS_ASSERT_EQUALS(staticStorageField.value().c_str(), "hello");
+    staticStorageField.value().clear();
+    TS_ASSERT(staticStorageField.value().empty());
+    staticStorageField.value() = "bla";
+    TS_ASSERT_EQUALS(staticStorageField.value().c_str(), "bla");
+    TS_ASSERT_EQUALS(staticStorageField.value().size(), 3);
     TS_ASSERT_EQUALS(staticStorageField.length(), 5);
 
     static const char ExpectedBuf[] = {
@@ -693,12 +693,12 @@ void FieldsTestSuite::test19()
     > StaticStorageField;
 
     Field field;
-    auto& fieldStr = field.string();
+    auto& fieldStr = field.value();
     TS_ASSERT(field.valid());
     TS_ASSERT(fieldStr.empty());
 
     StaticStorageField staticStorageField;
-    auto& staticStorageFieldStr = staticStorageField.string();
+    auto& staticStorageFieldStr = staticStorageField.value();
     TS_ASSERT(staticStorageField.valid());
     TS_ASSERT(staticStorageFieldStr.empty());
 
@@ -735,10 +735,10 @@ void FieldsTestSuite::test20()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 2U);
-    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint16_t>(0x81));
+    TS_ASSERT_EQUALS(field.value(), static_cast<std::uint16_t>(0x81));
     TS_ASSERT(field.valid());
 
-    field.setValue(0x7ff);
+    field.value() = 0x7ff;
     TS_ASSERT_EQUALS(field.length(), 2U);
     static const char ExpectedBuf[] = {
         (char)0xff, 0x0f
@@ -762,10 +762,10 @@ void FieldsTestSuite::test21()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     auto field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 2U);
-    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint32_t>(0x18f));
+    TS_ASSERT_EQUALS(field.value(), static_cast<std::uint32_t>(0x18f));
     TS_ASSERT(field.valid());
 
-    field.setValue(0x7ff);
+    field.value() = 0x7ff;
     TS_ASSERT_EQUALS(field.length(), 2U);
     static const char ExpectedBuf[] = {
         (char)0x8f, (char)0x7f
@@ -774,9 +774,9 @@ void FieldsTestSuite::test21()
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
 
-    field.setValue(0x7f);
+    field.value() = 0x7f;
     TS_ASSERT_EQUALS(field.length(), 1U);
-    TS_ASSERT_EQUALS(field.getValue(), 0x7f);
+    TS_ASSERT_EQUALS(field.value(), 0x7f);
     static const char ExpectedBuf2[] = {
         (char)0x7f
     };
@@ -790,7 +790,7 @@ void FieldsTestSuite::test21()
     static const std::size_t BufSize2 = std::extent<decltype(Buf2)>::value;
     field = readWriteField<Field>(Buf2, BufSize2);
     TS_ASSERT_EQUALS(field.length(), 3U);
-    TS_ASSERT_EQUALS(field.getValue(), static_cast<std::uint32_t>(0x4613f));
+    TS_ASSERT_EQUALS(field.value(), static_cast<std::uint32_t>(0x4613f));
     TS_ASSERT(field.valid());
 }
 
@@ -820,7 +820,7 @@ void FieldsTestSuite::test23()
 
     Field field;
 
-    field.setValue(static_cast<int16_t>(0xe000));
+    field.value() = static_cast<int16_t>(0xe000);
     TS_ASSERT_EQUALS(field.length(), 2U);
 
     static const char ExpectedMinValueBuf[] = {
@@ -830,7 +830,7 @@ void FieldsTestSuite::test23()
     static const std::size_t ExpectedMinValueBufSize = std::extent<decltype(ExpectedMinValueBuf)>::value;
     writeReadField(field, ExpectedMinValueBuf, ExpectedMinValueBufSize);
 
-    field.setValue(0x1fff);
+    field.value() = 0x1fff;
     TS_ASSERT_EQUALS(field.length(), 2U);
 
     static const char ExpectedMaxValueBuf[] = {
@@ -857,9 +857,9 @@ void FieldsTestSuite::test24()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     Field field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 2);
-    TS_ASSERT_EQUALS(field.getValue(), 0x0);
+    TS_ASSERT_EQUALS(field.value(), 0x0);
     TS_ASSERT(field.valid());
-    field.setValue(3);
+    field.value() = 3;
     TS_ASSERT(!field.valid());
 
     static const char ExpectedBuf[] = {
@@ -901,12 +901,12 @@ void FieldsTestSuite::test25()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     field = readWriteField<Field>(Buf, BufSize);
-    auto& members = field.members();
+    auto& members = field.value();
     auto& mem1 = std::get<0>(members);
-    TS_ASSERT_EQUALS(mem1.getValue(), 0x1);
+    TS_ASSERT_EQUALS(mem1.value(), 0x1);
 
     auto& mem2 = std::get<1>(members);
-    TS_ASSERT_EQUALS(mem2.getValue(), 0x10);
+    TS_ASSERT_EQUALS(mem2.value(), 0x10);
 }
 
 void FieldsTestSuite::test26()
@@ -941,12 +941,12 @@ void FieldsTestSuite::test26()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     field = readWriteField<Field>(Buf, BufSize);
-    auto& members = field.members();
+    auto& members = field.value();
     auto& mem1 = std::get<0>(members);
-    TS_ASSERT_EQUALS(mem1.getValue(), 0x1);
+    TS_ASSERT_EQUALS(mem1.value(), 0x1);
 
     auto& mem2 = std::get<1>(members);
-    TS_ASSERT_EQUALS(mem2.getValue(), 0x1);
+    TS_ASSERT_EQUALS(mem2.value(), 0x1);
 }
 
 void FieldsTestSuite::test27()
@@ -988,15 +988,15 @@ void FieldsTestSuite::test27()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     field = readWriteField<Field>(Buf, BufSize);
-    auto& members = field.members();
+    auto& members = field.value();
     auto& mem1 = std::get<0>(members);
-    TS_ASSERT_EQUALS(mem1.getValue(), 0x1);
+    TS_ASSERT_EQUALS(mem1.value(), 0x1);
 
     auto& mem2 = std::get<1>(members);
-    TS_ASSERT_EQUALS(mem2.getValue(), 0xfa);
+    TS_ASSERT_EQUALS(mem2.value(), 0xfa);
 
     auto& mem3 = std::get<2>(members);
-    TS_ASSERT_EQUALS(mem3.getValue(), 0x4);
+    TS_ASSERT_EQUALS(mem3.value(), 0x4);
 }
 
 void FieldsTestSuite::test28()
@@ -1020,7 +1020,7 @@ void FieldsTestSuite::test28()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.fields().size(), 0U);
+    TS_ASSERT_EQUALS(field.value().size(), 0U);
 
     static const char Buf[] = {
         0x0, 0xa, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9
@@ -1029,9 +1029,9 @@ void FieldsTestSuite::test28()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), BufSize);
     TS_ASSERT(!field.valid());
-    TS_ASSERT_EQUALS(field.fields().size(), 10U);
+    TS_ASSERT_EQUALS(field.value().size(), 10U);
 
-    field.fields().resize(5);
+    field.value().resize(5);
     static const char ExpectedBuf[] = {
         0x0, 0x5, 0x0, 0x1, 0x2, 0x3, 0x4
     };
@@ -1053,7 +1053,7 @@ void FieldsTestSuite::test29()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), Enum1_Value2);
+    TS_ASSERT_EQUALS(field.value(), Enum1_Value2);
 
     static const char Buf[] = {
         0x0, (char)Enum1_Value1, (char)0x3f
@@ -1061,7 +1061,7 @@ void FieldsTestSuite::test29()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 2);
-    TS_ASSERT_EQUALS(field.getValue(), Enum1_Value1);
+    TS_ASSERT_EQUALS(field.value(), Enum1_Value1);
     TS_ASSERT(field.valid());
 
     static const char Buf2[] = {
@@ -1070,7 +1070,7 @@ void FieldsTestSuite::test29()
     static const std::size_t BufSize2 = std::extent<decltype(Buf2)>::value;
     readWriteField<Field>(Buf2, BufSize2, comms::ErrorStatus::ProtocolError);
 
-    field.setValue(Enum1_Value3);
+    field.value() = Enum1_Value3;
     TS_ASSERT(field.valid());
 
     static const char ExpectedBuf[] = {
@@ -1092,7 +1092,7 @@ void FieldsTestSuite::test30()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), 0x2);
+    TS_ASSERT_EQUALS(field.value(), 0x2);
 
     static const char Buf[] = {
         0x0f
@@ -1102,7 +1102,7 @@ void FieldsTestSuite::test30()
     const auto* readIter = &Buf[0];
     auto es = field.read(readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    TS_ASSERT_EQUALS(field.getValue(), 0x2);
+    TS_ASSERT_EQUALS(field.value(), 0x2);
     TS_ASSERT(field.valid());
 
     static const char Buf2[] = {
@@ -1113,7 +1113,7 @@ void FieldsTestSuite::test30()
     readIter = &Buf2[0];
     es = field.read(readIter, BufSize2);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    TS_ASSERT_EQUALS(field.getValue(), 0x2);
+    TS_ASSERT_EQUALS(field.value(), 0x2);
     TS_ASSERT(field.valid());
 }
 
@@ -1132,7 +1132,7 @@ void FieldsTestSuite::test31()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.getValue(), 0U);
+    TS_ASSERT_EQUALS(field.field().value(), 0U);
     TS_ASSERT_EQUALS(field.getMode(), Mode::Tentative);
 
     static const char Buf[] = {
@@ -1143,7 +1143,7 @@ void FieldsTestSuite::test31()
     const auto* readIter = &Buf[0];
     auto es = field.read(readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    TS_ASSERT_EQUALS(field.getValue(), 0xff0);
+    TS_ASSERT_EQUALS(field.field().value(), 0xff0);
     TS_ASSERT(!field.valid());
     TS_ASSERT_EQUALS(field.getMode(), Mode::Exists);
     field.setMode(Mode::Missing);
@@ -1183,16 +1183,16 @@ void FieldsTestSuite::test32()
 
     Field field;
     TS_ASSERT(field.valid());
-    auto& intValField = std::get<0>(field.members());
-    auto& enumValField = std::get<1>(field.members());
-    TS_ASSERT_EQUALS(intValField.getValue(), 5U);
-    TS_ASSERT_EQUALS(enumValField.getValue(), Enum1_Value2);
+    auto& intValField = std::get<0>(field.value());
+    auto& enumValField = std::get<1>(field.value());
+    TS_ASSERT_EQUALS(intValField.value(), 5U);
+    TS_ASSERT_EQUALS(enumValField.value(), Enum1_Value2);
 
-    intValField.setValue(50U);
+    intValField.value() = 50U;
     TS_ASSERT(!field.valid());
-    intValField.setValue(1U);
+    intValField.value() = 1U;
     TS_ASSERT(field.valid());
-    enumValField.setValue(Enum1_NumOfValues);
+    enumValField.value() = Enum1_NumOfValues;
     TS_ASSERT(!field.valid());
 
     static const char Buf[] = {
@@ -1204,11 +1204,11 @@ void FieldsTestSuite::test32()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), 3U);
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(intValField.getValue(), 3U);
-    TS_ASSERT_EQUALS(enumValField.getValue(), Enum1_Value3);
+    TS_ASSERT_EQUALS(intValField.value(), 3U);
+    TS_ASSERT_EQUALS(enumValField.value(), Enum1_Value3);
 
-    intValField.setValue(0xabcd);
-    enumValField.setValue(Enum1_Value1);
+    intValField.value() = 0xabcd;
+    enumValField.value() = Enum1_Value1;
 
     static const char ExpectedBuf[] = {
         (char)0xab, (char)0xcd, (char)Enum1_Value1
@@ -1240,7 +1240,7 @@ void FieldsTestSuite::test33()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT(field.getValue().empty());
+    TS_ASSERT(field.value().empty());
 
     static const char Buf[] = {
         0x05, 'h', 'e', 'l', 'l', 'o', 0x03, 'b', 'l', 'a'
@@ -1251,8 +1251,8 @@ void FieldsTestSuite::test33()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), BufSize);
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.getValue()[0].getValue(), "hello");
-    TS_ASSERT_EQUALS(field.getValue()[1].getValue(), "bla");
+    TS_ASSERT_EQUALS(field.value()[0].value(), "hello");
+    TS_ASSERT_EQUALS(field.value()[1].value(), "bla");
 }
 
 template <typename TField>
@@ -1315,5 +1315,6 @@ void FieldsTestSuite::writeReadField(
         auto readEs = newField.read(readIter, size);
         TS_ASSERT_EQUALS(readEs, comms::ErrorStatus::Success);
         TS_ASSERT_EQUALS(field, newField);
+        TS_ASSERT_EQUALS(field.value(), newField.value());
     }
 }

@@ -38,13 +38,17 @@ class SequenceSizeFieldPrefix : public details::AdapterBaseT<TNext>
 
 public:
     typedef typename Base::ValueType ValueType;
-    typedef typename Base::ParamValueType ParamValueType;
     typedef typename Base::ElementType ElementType;
 
     SequenceSizeFieldPrefix() = default;
 
-    explicit SequenceSizeFieldPrefix(ParamValueType value)
+    explicit SequenceSizeFieldPrefix(const ValueType& value)
       : Base(value)
+    {
+    }
+
+    explicit SequenceSizeFieldPrefix(ValueType&& value)
+      : Base(std::move(value))
     {
     }
 
@@ -57,7 +61,7 @@ public:
     {
         typedef typename SizeField::ValueType SizeValueType;
         return
-            SizeField(static_cast<SizeValueType>(Base::getValue().size())).length() +
+            SizeField(static_cast<SizeValueType>(Base::value().size())).length() +
             Base::length();
     }
 
@@ -75,7 +79,7 @@ public:
     {
         typedef typename SizeField::ValueType SizeValueType;
         return
-            SizeField(static_cast<SizeValueType>(Base::getValue().size())).valid() &&
+            SizeField(static_cast<SizeValueType>(Base::value().size())).valid() &&
             Base::valid();
     }
 
@@ -88,7 +92,7 @@ public:
             return es;
         }
 
-        auto count = static_cast<std::size_t>(sizeField.getValue());
+        auto count = static_cast<std::size_t>(sizeField.value());
         len -= sizeField.length();
 
         Base::clear();
@@ -111,7 +115,7 @@ public:
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         typedef typename SizeField::ValueType SizeValueType;
-        SizeField sizeField(static_cast<SizeValueType>(Base::getValue().size()));
+        SizeField sizeField(static_cast<SizeValueType>(Base::value().size()));
         auto es = sizeField.write(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;

@@ -44,23 +44,27 @@ public:
 
     typedef details::OptionsParser<TOptions...> ParsedOptions;
     typedef typename ThisField::ValueType ValueType;
-    typedef typename ThisField::ParamValueType ParamValueType;
 
     IntValue() = default;
 
-    explicit IntValue(ValueType value)
+    explicit IntValue(const ValueType& value)
       : field_(value)
     {
     }
 
-    ParamValueType getValue() const
+    explicit IntValue(ValueType&& value)
+      : field_(value)
     {
-        return field_.getValue();
     }
 
-    void setValue(ParamValueType value)
+    const ValueType& value() const
     {
-        field_.setValue(value);
+        return field_.value();
+    }
+
+    ValueType& value()
+    {
+        return field_.value();
     }
 
     constexpr std::size_t length() const
@@ -107,7 +111,7 @@ bool operator==(
     const IntValue<TArgs...>& field1,
     const IntValue<TArgs...>& field2)
 {
-    return field1.getValue() == field2.getValue();
+    return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
@@ -117,7 +121,7 @@ bool operator!=(
     const IntValue<TArgs...>& field1,
     const IntValue<TArgs...>& field2)
 {
-    return field1.getValue() != field2.getValue();
+    return field1.value() != field2.value();
 }
 
 /// @brief Equivalence comparison operator.
@@ -127,7 +131,7 @@ bool operator<(
     const IntValue<TArgs...>& field1,
     const IntValue<TArgs...>& field2)
 {
-    return field1.getValue() < field2.getValue();
+    return field1.value() < field2.value();
 }
 
 namespace details

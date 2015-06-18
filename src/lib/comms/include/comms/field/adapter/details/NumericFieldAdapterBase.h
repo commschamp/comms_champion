@@ -42,7 +42,7 @@ class NumericFieldAdapterBase : public CommonBase<TNext>
 public:
     typedef typename Base::Category Category;
     typedef typename Base::Next Next;
-    typedef typename Base::ParamValueType ParamValueType;
+    typedef typename Base::ValueType ValueType;
     typedef typename Next::SerialisedType SerialisedType;
 
     static_assert(
@@ -54,19 +54,19 @@ public:
     NumericFieldAdapterBase& operator=(const NumericFieldAdapterBase&) = default;
     NumericFieldAdapterBase& operator=(NumericFieldAdapterBase&&) = default;
 
-    static constexpr SerialisedType toSerialised(ParamValueType value)
+    static constexpr SerialisedType toSerialised(ValueType value)
     {
         return Next::toSerialised(value);
     }
 
-    static constexpr ParamValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType value)
     {
         return Next::fromSerialised(value);
     }
 
 protected:
     NumericFieldAdapterBase() = default;
-    explicit NumericFieldAdapterBase(ParamValueType value)
+    explicit NumericFieldAdapterBase(const ValueType& value)
       : Base(value)
     {
     }

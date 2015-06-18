@@ -72,14 +72,18 @@ public:
     typedef ParsedOptionsInternal ParsedOptions;
     typedef StorageTypeInternal StorageType;
     typedef StorageType ValueType;
-    typedef const StorageType& ParamValueType;
 
     /// @brief Default constructor
     /// @details Sets default value to be 0.
     ArrayList() = default;
 
-    explicit ArrayList(const StorageType& fields)
-      : field_(fields)
+    explicit ArrayList(const ValueType& value)
+      : field_(value)
+    {
+    }
+
+    explicit ArrayList(ValueType&& value)
+      : field_(std::move(value))
     {
     }
 
@@ -96,24 +100,14 @@ public:
 
     ArrayList& operator=(ArrayList&&) = default;
 
-    StorageType& fields()
+    ValueType& value()
     {
-        return field_.getValue();
+        return field_.value();
     }
 
-    const StorageType& fields() const
+    const ValueType& value() const
     {
-        return field_.getValue();
-    }
-
-    const StorageType& getValue() const
-    {
-        return field_.getValue();
-    }
-
-    void setValue(const StorageType& value)
-    {
-        field_.setValue(value);
+        return field_.value();
     }
 
     /// @brief Get length of serialised data
@@ -162,8 +156,8 @@ bool operator<(
     const ArrayList<TArgs...>& field2)
 {
     return std::lexicographical_compare(
-                field1.fields().begin(), field1.fields().end(),
-                field2.fields().begin(), field2.fields().end());
+                field1.value().begin(), field1.value().end(),
+                field2.value().begin(), field2.value().end());
 }
 
 /// @brief Non-equality comparison operator.
@@ -208,7 +202,6 @@ constexpr bool isArrayList()
 {
     return details::IsArrayList<T>::Value;
 }
-
 
 
 }  // namespace field

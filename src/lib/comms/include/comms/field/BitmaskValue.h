@@ -99,8 +99,13 @@ public:
     BitmaskValue() = default;
 
     /// @brief Constructor
-    explicit BitmaskValue(ValueType value)
+    explicit BitmaskValue(const ValueType& value)
        : intValue_(value)
+    {
+    }
+
+    explicit BitmaskValue(ValueType&& value)
+       : intValue_(std::move(value))
     {
     }
 
@@ -116,16 +121,14 @@ public:
     BitmaskValue& operator=(const BitmaskValue&) = default;
     BitmaskValue& operator=(BitmaskValue&&) = default;
 
-    /// @copydoc ComplexIntValue::getValue()
-    const ValueType getValue() const
+    const ValueType& value() const
     {
-        return intValue_.getValue();
+        return intValue_.value();
     }
 
-    /// @copydoc ComplexIntValue::setValue()
-    void setValue(ValueType value)
+    ValueType& value()
     {
-        intValue_.setValue(value);
+        return intValue_.value();
     }
 
     constexpr std::size_t length() const
@@ -167,7 +170,7 @@ public:
     /// @return true in case all the bits are set, false otherwise
     bool hasAllBitsSet(ValueType mask) const
     {
-        return (getValue() & mask) == mask;
+        return (value() & mask) == mask;
     }
 
     /// @brief Check whether any bits from provided mask are set.
@@ -175,7 +178,7 @@ public:
     /// @return true in case at least one of the bits is set, false otherwise.
     bool hasAnyBitsSet(ValueType mask) const
     {
-        return (getValue() & mask) != 0;
+        return (value() & mask) != 0;
     }
 
     /// @brief Set all the provided bits.
@@ -183,7 +186,7 @@ public:
     /// @param[in] mask Mask of bits to set.
     void setBits(ValueType mask)
     {
-        setValue(getValue() | mask);
+        value() |= mask;
     }
 
     /// @brief Set all the provided bits.
@@ -191,7 +194,7 @@ public:
     /// @param[in] mask Mask of bits to clear.
     void clearBits(ValueType mask)
     {
-        setValue(getValue() & (~mask));
+        value() &= (~mask);
     }
 
     bool getBitValue(unsigned bitNum) const
@@ -225,7 +228,7 @@ bool operator==(
     const BitmaskValue<TArgs...>& field1,
     const BitmaskValue<TArgs...>& field2)
 {
-    return field1.getValue() == field2.getValue();
+    return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
@@ -235,7 +238,7 @@ bool operator!=(
     const BitmaskValue<TArgs...>& field1,
     const BitmaskValue<TArgs...>& field2)
 {
-    return field1.getValue() != field2.getValue();
+    return field1.value() != field2.value();
 }
 
 /// @brief Equivalence comparison operator.
@@ -245,7 +248,7 @@ bool operator<(
     const BitmaskValue<TArgs...>& field1,
     const BitmaskValue<TArgs...>& field2)
 {
-    return field1.getValue() < field2.getValue();
+    return field1.value() < field2.value();
 }
 
 namespace details

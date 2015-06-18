@@ -56,15 +56,13 @@ public:
 
     typedef T ValueType;
 
-    typedef ValueType ParamValueType;
-
     typedef typename IntValueField::ValueType SerialisedType;
 
 
     EnumValue() = default;
 
-    explicit EnumValue(ParamValueType value)
-      : intField_(static_cast<IntValueType>(value))
+    explicit EnumValue(ValueType value)
+      : value_(value)
     {
     }
 
@@ -75,14 +73,14 @@ public:
     EnumValue& operator=(const EnumValue&) = default;
     EnumValue& operator=(EnumValue&&) = default;
 
-    ParamValueType getValue() const
+    const ValueType& value() const
     {
-        return static_cast<ValueType>(intField_.getValue());
+        return value_;
     }
 
-    void setValue(ParamValueType value)
+    ValueType& value()
     {
-        intField_.setValue(static_cast<IntValueType>(value));
+        return value_;
     }
 
     static constexpr std::size_t length()
@@ -100,12 +98,12 @@ public:
         return length();
     }
 
-    static constexpr SerialisedType toSerialised(ParamValueType value)
+    static constexpr SerialisedType toSerialised(ValueType value)
     {
         return IntValueField::toSerialised(static_cast<IntValueType>(value));
     }
 
-    static constexpr ParamValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType value)
     {
         return static_cast<ValueType>(IntValueField::fromSerialised(value));
     }
@@ -118,17 +116,17 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return intField_.read(iter, size);
+        return IntValueField(static_cast<IntValueType>(value_)).read(iter, size);
     }
 
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        return intField_.write(iter, size);
+        return IntValueField(static_cast<IntValueType>(value_)).write(iter, size);
     }
 
 private:
-    IntValueField intField_;
+    ValueType value_;
 };
 
 }  // namespace basic

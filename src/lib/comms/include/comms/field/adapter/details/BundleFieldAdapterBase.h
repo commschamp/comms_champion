@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "comms/field/category.h"
 #include "CommonBase.h"
 
 namespace comms
@@ -34,48 +33,7 @@ namespace details
 {
 
 template <typename TNext>
-class BundleFieldAdapterBase : public CommonBase<TNext>
-{
-    typedef CommonBase<TNext> Base;
-public:
-    typedef typename Base::Category Category;
-    typedef typename Base::Next Next;
-    typedef typename Base::ParamValueType ParamValueType;
-    typedef typename Base::ValueType ValueType;
-    typedef typename Next::Members Members;
-
-    static_assert(
-        std::is_base_of<comms::field::category::BundleField, Category>::value,
-        "This adapter base class is expected to wrap the bundle field.");
-
-    BundleFieldAdapterBase(const BundleFieldAdapterBase&) = default;
-    BundleFieldAdapterBase(BundleFieldAdapterBase&&) = default;
-    BundleFieldAdapterBase& operator=(const BundleFieldAdapterBase&) = default;
-    BundleFieldAdapterBase& operator=(BundleFieldAdapterBase&&) = default;
-
-    Members& members()
-    {
-        return Base::next().members();
-    }
-
-    const Members& members() const
-    {
-        return Base::next().members();
-    }
-
-protected:
-    BundleFieldAdapterBase() = default;
-    explicit BundleFieldAdapterBase(ParamValueType value)
-      : Base(value)
-    {
-    }
-
-    explicit BundleFieldAdapterBase(ValueType&& value)
-      : Base(std::move(value))
-    {
-    }
-};
-
+using BundleFieldAdapterBase = CommonBase<TNext>;
 
 }  // namespace details
 

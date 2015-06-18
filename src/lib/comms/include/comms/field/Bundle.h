@@ -46,13 +46,11 @@ class Bundle
 
 public:
     typedef details::OptionsParser<TOptions...> ParsedOptions;
-    typedef typename ThisField::Members Members;
     typedef typename ThisField::ValueType ValueType;
-    typedef typename ThisField::ParamValueType ParamValueType;
 
     Bundle() = default;
 
-    explicit Bundle(ParamValueType value)
+    explicit Bundle(const ValueType& value)
       : field_(value)
     {
     }
@@ -62,24 +60,15 @@ public:
     {
     }
 
-    Members& members()
+
+    ValueType& value()
     {
-        return field_.members();
+        return field_.value();
     }
 
-    const Members& members() const
+    const ValueType& value() const
     {
-        return field_.members();
-    }
-
-    ParamValueType getValue() const
-    {
-        return field_.getValue();
-    }
-
-    void setValue(ParamValueType value)
-    {
-        field_.setValue(value);
+        return field_.value();
     }
 
     constexpr std::size_t length() const
@@ -124,7 +113,7 @@ bool operator==(
     const Bundle<TArgs...>& field1,
     const Bundle<TArgs...>& field2)
 {
-    return field1.getValue() == field2.getValue();
+    return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
@@ -134,7 +123,7 @@ bool operator!=(
     const Bundle<TArgs...>& field1,
     const Bundle<TArgs...>& field2)
 {
-    return field1.getValue() != field2.getValue();
+    return field1.value() != field2.value();
 }
 
 namespace details

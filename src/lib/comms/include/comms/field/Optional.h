@@ -40,7 +40,6 @@ class Optional
 {
 public:
     typedef TField Field;
-    typedef typename Field::ParamValueType ParamValueType;
 
     typedef OptionalMode Mode;
 
@@ -84,16 +83,6 @@ public:
     {
         GASSERT(value < Mode::NumOfModes);
         mode_ = value;
-    }
-
-    ParamValueType getValue() const
-    {
-        return field_.getValue();
-    }
-
-    void setValue(ParamValueType value)
-    {
-        field_.setValue(value);
     }
 
     std::size_t length() const
@@ -169,7 +158,7 @@ bool operator==(
     const Optional<TArgs...>& field1,
     const Optional<TArgs...>& field2)
 {
-    return field1.getValue() == field2.getValue();
+    return field1.field() == field2.field();
 }
 
 /// @brief Non-equality comparison operator.
@@ -179,7 +168,7 @@ bool operator!=(
     const Optional<TArgs...>& field1,
     const Optional<TArgs...>& field2)
 {
-    return field1.getValue() != field2.getValue();
+    return field1.field() != field2.field();
 }
 
 /// @brief Equivalence comparison operator.
@@ -189,7 +178,7 @@ bool operator<(
     const Optional<TArgs...>& field1,
     const Optional<TArgs...>& field2)
 {
-    return field1.getValue() < field2.getValue();
+    return field1.field() < field2.field();
 }
 
 namespace details

@@ -158,7 +158,7 @@ struct DefaultNumValueInitialiser
     {
         typedef typename std::decay<TField>::type FieldType;
         typedef typename FieldType::ValueType ValueType;
-        field.setValue(static_cast<ValueType>(TVal));
+        field.value() = static_cast<ValueType>(TVal);
     }
 };
 
@@ -184,7 +184,7 @@ struct NumValueRangeValidator
             ReturnTrueTag
         >::type MaxTag;
 
-        return aboveMin(field.getValue(), MinTag()) && belowMax(field.getValue(), MaxTag());
+        return aboveMin(field.value(), MinTag()) && belowMax(field.value(), MaxTag());
     }
 
 private:
@@ -229,7 +229,7 @@ struct BitmaskReservedBitsValidator
         typedef typename std::decay<TField>::type FieldType;
         typedef typename FieldType::ValueType ValueType;
 
-        return (field.getValue() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
+        return (field.value() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
     }
 };
 

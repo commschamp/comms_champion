@@ -351,7 +351,7 @@ private:
             {
                 std::vector<FieldWidgetPtr> allFieldsWidgets;
 
-                auto& dataFields = field.fields();
+                auto& dataFields = field.value();
                 while (from < dataFields.size()) {
                     auto& f = dataFields[from];
                     allFieldsWidgets.push_back(createWidget(f));

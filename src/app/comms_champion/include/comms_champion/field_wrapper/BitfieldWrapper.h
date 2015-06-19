@@ -36,7 +36,6 @@ class BitfieldWrapper : public FieldWrapper
     using Base = FieldWrapper;
 public:
     using Base::FieldWrapper;
-protected:
     typedef unsigned long long UnderlyingType;
 };
 

@@ -82,7 +82,7 @@ protected:
 
     virtual void addFieldImpl() override
     {
-        auto& col = Base::field().fields();
+        auto& col = Base::field().value();
 
         typedef typename std::decay<decltype(col)>::type CollectionType;
         typedef typename CollectionType::value_type ElementType;
@@ -92,7 +92,7 @@ protected:
 
     virtual void removeFieldImpl(int idx) override
     {
-        auto& storage = Base::field().fields();
+        auto& storage = Base::field().value();
         if (static_cast<decltype(idx)>(storage.size()) <= idx) {
             return;
         }

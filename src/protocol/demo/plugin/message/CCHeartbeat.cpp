@@ -74,7 +74,7 @@ const QVariantList& CCHeartbeat::fieldsPropertiesImpl() const
 
 void CCHeartbeat::resetImpl()
 {
-    Base::getFields() = Base::AllFields();
+    fields() = Base::AllFields();
 }
 
 void CCHeartbeat::assignImpl(const comms_champion::Message& other)
@@ -82,7 +82,7 @@ void CCHeartbeat::assignImpl(const comms_champion::Message& other)
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCHeartbeat*>(&other);
     assert(castedOther != nullptr);
-    getFields() = castedOther->getFields();
+    fields() = castedOther->fields();
 }
 
 }  // namespace message

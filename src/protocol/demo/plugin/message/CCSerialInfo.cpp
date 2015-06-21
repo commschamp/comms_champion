@@ -207,7 +207,7 @@ const QVariantList& CCSerialInfo::fieldsPropertiesImpl() const
 
 void CCSerialInfo::resetImpl()
 {
-    Base::getFields() = Base::AllFields();
+    fields() = Base::AllFields();
 }
 
 void CCSerialInfo::assignImpl(const comms_champion::Message& other)
@@ -215,7 +215,7 @@ void CCSerialInfo::assignImpl(const comms_champion::Message& other)
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCSerialInfo*>(&other);
     assert(castedOther != nullptr);
-    getFields() = castedOther->getFields();
+    fields() = castedOther->fields();
 }
 
 }  // namespace message

@@ -122,7 +122,7 @@ protected:
                 [&fields, &msgInfo]()
                 {
                     std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
-                    transportMsgPtr->setFields(fields);
+                    transportMsgPtr->fields() = fields;
                     msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
                 };
 
@@ -259,7 +259,7 @@ protected:
             }
 
             std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
-            transportMsgPtr->setFields(fields);
+            transportMsgPtr->fields() = fields;
 
             std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
 

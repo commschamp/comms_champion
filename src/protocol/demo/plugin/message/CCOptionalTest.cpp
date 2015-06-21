@@ -112,7 +112,7 @@ const QVariantList& CCOptionalTest::fieldsPropertiesImpl() const
 
 void CCOptionalTest::resetImpl()
 {
-    Base::getFields() = Base::AllFields();
+    fields() = Base::AllFields();
 }
 
 void CCOptionalTest::assignImpl(const comms_champion::Message& other)
@@ -120,7 +120,7 @@ void CCOptionalTest::assignImpl(const comms_champion::Message& other)
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCOptionalTest*>(&other);
     assert(castedOther != nullptr);
-    getFields() = castedOther->getFields();
+    fields() = castedOther->fields();
 }
 
 }  // namespace message

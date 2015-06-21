@@ -105,20 +105,14 @@ public:
     typedef comms::util::TupleCatT<std::tuple<FieldsOption>, typename Base::AllOptions> AllOptions;
     typedef typename FieldsOption::Fields AllFields;
 
-    AllFields& getFields()
+    AllFields& fields()
     {
         return fields_;
     }
 
-    const AllFields& getFields() const
+    const AllFields& fields() const
     {
         return fields_;
-    }
-
-    template <typename TNewFields>
-    void setFields(TNewFields&& fields)
-    {
-        fields_ = std::forward<TNewFields>(fields);
     }
 
 protected:

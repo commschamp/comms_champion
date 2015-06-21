@@ -85,7 +85,7 @@ public:
 
     OptionalTest()
     {
-        auto& fields = Base::getFields();
+        auto& fields = Base::fields();
         auto& optEnumField = std::get<FieldId_OptEnum>(fields);
         auto& optIntField = std::get<FieldId_OptInt>(fields);
 
@@ -100,7 +100,7 @@ protected:
             return false;
         }
 
-        auto& fields = Base::getFields();
+        auto& fields = Base::fields();
         auto& flagsField = std::get<FieldId_Flags>(fields);
         auto& optEnumField = std::get<FieldId_OptEnum>(fields);
         auto& optIntField = std::get<FieldId_OptInt>(fields);

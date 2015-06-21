@@ -87,7 +87,7 @@ bool operator==(
     const Message1<TArgs...>& msg1,
     const Message1<TArgs...>& msg2)
 {
-    return msg1.getFields() == msg2.getFields();
+    return msg1.fields() == msg2.fields();
 }
 
 template <typename TMessage>
@@ -115,7 +115,7 @@ bool operator==(
     const Message2<TArgs...>& msg1,
     const Message2<TArgs...>& msg2)
 {
-    return msg1.getFields() == msg2.getFields();
+    return msg1.fields() == msg2.fields();
 }
 
 template <typename TField>
@@ -160,7 +160,7 @@ bool operator==(
     const Message3<TArgs...>& msg1,
     const Message3<TArgs...>& msg2)
 {
-    return msg1.getFields() == msg2.getFields();
+    return msg1.fields() == msg2.fields();
 }
 
 template <typename TMessage>

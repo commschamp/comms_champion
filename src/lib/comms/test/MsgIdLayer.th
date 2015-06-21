@@ -134,14 +134,14 @@ void MsgIdLayerTestSuite::test1()
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
-    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).value(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 
     InPlaceProtocolStack<BeField1, BeMsgBase> inPlaceStack;
     auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr2);
     TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
     auto& msg2 = dynamic_cast<BeMsg1&>(*msgPtr2);
-    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).value(), 0x0102);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.fields()).value(), 0x0102);
 
     TS_ASSERT_EQUALS(msg1, msg2);
 
@@ -152,7 +152,7 @@ void MsgIdLayerTestSuite::test1()
 void MsgIdLayerTestSuite::test2()
 {
     BeMsg1 msg;
-    std::get<0>(msg.getFields()).value() = 0x0203;
+    std::get<0>(msg.fields()).value() = 0x0203;
 
     static const char ExpectedBuf[] = {
         0x0, MessageType1, 0x02, 0x03
@@ -216,7 +216,7 @@ void MsgIdLayerTestSuite::test4()
 void MsgIdLayerTestSuite::test5()
 {
     BeMsg1 msg;
-    std::get<0>(msg.getFields()).value() = 0x0203;
+    std::get<0>(msg.fields()).value() = 0x0203;
 
     char buf[2] = {0};
     static const auto BufSize = std::extent<decltype(buf)>::value;
@@ -256,7 +256,7 @@ void MsgIdLayerTestSuite::test7()
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg1 = dynamic_cast<LeMsg1&>(*msgPtr);
-    TS_ASSERT_EQUALS(std::get<0>(msg1.getFields()).value(), 0x0201);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0201);
 
     typedef InPlaceProtocolStack<LeField2, LeMsgBase> InPlaceProtStack;
     InPlaceProtStack::AllFields fields2;
@@ -265,7 +265,7 @@ void MsgIdLayerTestSuite::test7()
     TS_ASSERT(msgPtr2);
     TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
     auto& msg2 = dynamic_cast<LeMsg1&>(*msgPtr2);
-    TS_ASSERT_EQUALS(std::get<0>(msg2.getFields()).value(), 0x0201);
+    TS_ASSERT_EQUALS(std::get<0>(msg2.fields()).value(), 0x0201);
 
     TS_ASSERT_EQUALS(msg1, msg2);
     TS_ASSERT_EQUALS(fields, fields2);

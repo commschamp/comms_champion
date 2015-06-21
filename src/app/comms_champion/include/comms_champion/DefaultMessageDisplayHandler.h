@@ -48,7 +48,7 @@ public:
     template <typename TMessage>
     void handle(TMessage& msg)
     {
-        auto& fields = msg.getFields();
+        auto& fields = msg.fields();
         comms::util::tupleForEach(
             fields,
             FieldsDisplayDispatcher(

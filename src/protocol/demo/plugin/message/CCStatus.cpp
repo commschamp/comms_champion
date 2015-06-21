@@ -88,7 +88,7 @@ const QVariantList& CCStatus::fieldsPropertiesImpl() const
 
 void CCStatus::resetImpl()
 {
-    Base::getFields() = Base::AllFields();
+    fields() = Base::AllFields();
 }
 
 void CCStatus::assignImpl(const comms_champion::Message& other)
@@ -96,7 +96,7 @@ void CCStatus::assignImpl(const comms_champion::Message& other)
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCStatus*>(&other);
     assert(castedOther != nullptr);
-    getFields() = castedOther->getFields();
+    fields() = castedOther->fields();
 }
 
 

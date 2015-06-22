@@ -52,10 +52,15 @@ public:
         removeFieldImpl(idx);
     }
 
+    unsigned size() const
+    {
+        return sizeImpl();
+    }
 
 protected:
     virtual void addFieldImpl() = 0;
     virtual void removeFieldImpl(int idx) = 0;
+    virtual unsigned sizeImpl() const = 0;
 };
 
 template <typename TField>
@@ -107,6 +112,10 @@ protected:
         return false;
     }
 
+    virtual unsigned sizeImpl() const
+    {
+        return Base::field().value().size();
+    }
 };
 
 using ArrayListWrapperPtr = std::unique_ptr<ArrayListWrapper>;

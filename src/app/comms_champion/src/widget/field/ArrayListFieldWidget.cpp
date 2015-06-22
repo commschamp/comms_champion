@@ -34,6 +34,7 @@ ArrayListElementWidget::ArrayListElementWidget(
     m_fieldWidget = fieldWidget;
     m_ui.m_layout->addWidget(fieldWidget);
 
+    updateUi();
     connect(
         m_fieldWidget, SIGNAL(sigFieldUpdated()),
         this, SIGNAL(sigFieldUpdated()));
@@ -42,7 +43,6 @@ ArrayListElementWidget::ArrayListElementWidget(
         m_ui.m_removePushButton, SIGNAL(clicked()),
         this, SIGNAL(sigRemoveRequested()));
 
-    updateUi();
 }
 
 void ArrayListElementWidget::refresh()
@@ -106,6 +106,7 @@ void ArrayListFieldWidget::refreshImpl()
 
     refreshInternal();
     addMissingFields();
+    assert(m_elements.size() == m_wrapper->size());
 }
 
 void ArrayListFieldWidget::setEditEnabledImpl(bool enabled)
@@ -139,8 +140,9 @@ void ArrayListFieldWidget::dataFieldUpdated()
 void ArrayListFieldWidget::addNewField()
 {
     m_wrapper->addField();
-    addMissingFields();
-    dataFieldUpdated();
+    refreshImpl();
+    assert(m_elements.size() == m_wrapper->size());
+    emitFieldUpdated();
 }
 
 void ArrayListFieldWidget::removeField()
@@ -153,13 +155,14 @@ void ArrayListFieldWidget::removeField()
     }
 
     auto idx = static_cast<int>(std::distance(m_elements.begin(), iter));
+
     m_wrapper->removeField(idx);
 
-    assert((*iter) != nullptr);
-    delete *iter;
-    m_elements.erase(iter);
+    refreshImpl();
 
-    refreshInternal();
+    assert(m_elements.size() == m_wrapper->size());
+    assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
+
     emitFieldUpdated();
 }
 
@@ -167,12 +170,7 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
 {
     auto* wrapperWidget = new ArrayListElementWidget(dataFieldWidget);
     wrapperWidget->setEditEnabled(isEditEnabled());
-
-    auto propsVar = Property::getDataVal(*this);
-    if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
-        auto props = propsVar.value<QVariantMap>();
-        wrapperWidget->updateProperties(props);
-    }
+    wrapperWidget->updateProperties(m_elemProperties);
 
     connect(
         wrapperWidget, SIGNAL(sigFieldUpdated()),
@@ -181,8 +179,6 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
     connect(
         wrapperWidget, SIGNAL(sigRemoveRequested()),
         this, SLOT(removeField()));
-
-    wrapperWidget->updateProperties(m_elemProperties);
 
     m_elements.push_back(wrapperWidget);
     m_ui.m_membersLayout->addWidget(wrapperWidget);
@@ -224,10 +220,13 @@ void ArrayListFieldWidget::addMissingFields()
         return;
     }
 
+    assert(m_elements.size() <= m_wrapper->size());
     auto fieldWidgets = m_createMissingDataFieldsCallback(m_elements.size());
     for (auto& fieldWidgetPtr : fieldWidgets) {
         addDataField(fieldWidgetPtr.release());
     }
+    assert(m_elements.size() == m_wrapper->size());
+    assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
 }
 
 }  // namespace comms_champion

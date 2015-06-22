@@ -40,13 +40,11 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
-    virtual void propertiesUpdatedImpl() override;
 
 private slots:
     void serialisedValueUpdated(const QString& value);
 
 private:
-    void readPropertiesAndUpdateUi();
     void setFieldValid(bool valid);
 
     Ui::UnknownValueFieldWidget m_ui;

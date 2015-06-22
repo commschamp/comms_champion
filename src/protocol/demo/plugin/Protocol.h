@@ -20,7 +20,12 @@
 
 #include <vector>
 #include "comms_champion/Protocol.h"
+#include "comms_champion/ProtocolBase.h"
 #include "ProtocolStack.h"
+
+#include "message/CCTransportMessage.h"
+#include "message/CCRawDataMessage.h"
+
 
 namespace demo
 {
@@ -28,7 +33,11 @@ namespace demo
 namespace plugin
 {
 
-class Protocol : public comms_champion::Protocol
+class Protocol : public
+    comms_champion::ProtocolBase<
+        ProtocolStack,
+        message::CCTransportMessage,
+        message::CCRawDataMessage>
 {
 public:
     Protocol() = default;
@@ -36,26 +45,6 @@ public:
 
 protected:
     virtual const std::string& nameImpl() const override;
-
-    virtual MessagesList readImpl(
-            const comms_champion::DataInfo& dataInfo) override;
-
-    virtual DataInfosList writeImpl(const MessagesList& msgs) override;
-
-    virtual MessagesList createAllMessagesImpl() override;
-
-    virtual comms_champion::MessageInfoPtr createMessageImpl(const QString& idAsString) override;
-
-    virtual void updateMessageInfoImpl(comms_champion::MessageInfo& msgInfo) override;
-
-    virtual comms_champion::MessageInfoPtr cloneMessageImpl(
-        const comms_champion::MessageInfo& msgInfo) override;
-
-private:
-    comms_champion::MessageInfoPtr createMessage(demo::message::MsgId id);
-    ProtocolStack m_protStack;
-    std::vector<std::uint8_t> m_data;
-    std::vector<std::uint8_t> m_garbage;
 };
 
 }  // namespace plugin

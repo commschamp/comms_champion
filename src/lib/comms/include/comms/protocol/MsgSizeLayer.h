@@ -22,6 +22,7 @@
 
 #include <iterator>
 #include <type_traits>
+#include "comms/field/IntValue.h"
 #include "ProtocolLayerBase.h"
 
 namespace comms
@@ -67,12 +68,8 @@ public:
 
     typedef typename Base::Field Field;
 
-    static_assert(comms::field::isBasicIntValue<Field>(),
-        "Field must be of BasicIntValue type");
-
-    static_assert(Field::hasFixedLength(),
-        "Field is expected to have fixed length");
-
+    static_assert(comms::field::isIntValue<Field>(),
+        "Field must be of IntValue type");
 
     using Base::ProtocolLayerBase;
 
@@ -81,6 +78,17 @@ public:
 
     /// @brief Copy assignment is default
     MsgSizeLayer& operator=(const MsgSizeLayer&) = default;
+
+    constexpr std::size_t length() const
+    {
+        return Base::length();
+    }
+
+    template <typename TMsg>
+    constexpr std::size_t length(const TMsg& msg) const
+    {
+        return lengthInternal(msg, LengthTag());
+    }
 
 
     /// @brief Deserialise message from the input data sequence.
@@ -177,9 +185,8 @@ public:
             WriteIterator& iter,
             std::size_t size) const
     {
-        typedef typename std::iterator_traits<WriteIterator>::iterator_category IterType;
         Field field;
-        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), IterType());
+        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
     }
 
     template <std::size_t TIdx, typename TAllFields>
@@ -189,8 +196,6 @@ public:
         WriteIterator& iter,
         std::size_t size) const
     {
-        typedef typename std::iterator_traits<WriteIterator>::iterator_category IterType;
-
         auto& field = Base::template getField<TIdx>(allFields);
         return
             writeInternal(
@@ -198,41 +203,14 @@ public:
                 msg,
                 iter,
                 size,
-                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
-                IterType());
-    }
-
-    /// @brief Update the recently written output data sequence.
-    /// @copydetails MsgIdLayer::update
-    template <typename TUpdateIter>
-    ErrorStatus update(
-        TUpdateIter& iter,
-        std::size_t size) const
-    {
-        static_assert(Field::hasFixedLength(), "Assumption about fixed size length is incorrect.");
-        typedef typename Field::ValueType ValueType;
-        Field field(static_cast<ValueType>(size - Field::maxLength()));
-        return updateInternal(field, iter, size, Base::createNextLayerUpdater());
-    }
-
-    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
-    ErrorStatus updateFieldsCached(
-        TAllFields& allFields,
-        TUpdateIter& iter,
-        std::size_t size) const
-    {
-        auto& field = Base::template getField<TIdx>(allFields);
-
-        field.setValue(static_cast<typename Field::ValueType>(size - field.length()));
-        return
-            updateInternal(
-                field,
-                iter,
-                size,
-                Base::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
+                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
     }
 
 private:
+
+    using FixedLengthTag = typename Base::FixedLengthTag;
+    using VarLengthTag = typename Base::VarLengthTag;
+    using LengthTag = typename Base::LengthTag;
 
     template <typename TMsgPtr, typename TReader>
     ErrorStatus readInternal(
@@ -252,14 +230,8 @@ private:
             return es;
         }
 
-        static const auto Offset = static_cast<std::size_t>(Field::serOffset());
-        auto serialisedValue = static_cast<std::size_t>(field.getSerialisedValue());
-        if ((0 < Offset) && (serialisedValue < Offset)) {
-            return ErrorStatus::ProtocolError;
-        }
-
         auto actualRemainingSize = (size - field.length());
-        auto requiredRemainingSize = static_cast<std::size_t>(field.getValue());
+        auto requiredRemainingSize = static_cast<std::size_t>(field.value());
 
         if (actualRemainingSize < requiredRemainingSize) {
             if (missingSize != nullptr) {
@@ -277,102 +249,37 @@ private:
     }
 
     template <typename TWriter>
-    static ErrorStatus writeInternal(
+    ErrorStatus writeInternal(
         Field& field,
         const Message& msg,
         WriteIterator& iter,
         std::size_t size,
-        TWriter&& nextLayerWriter,
-        std::random_access_iterator_tag)
+        TWriter&& nextLayerWriter) const
     {
-        return writeRandomAccessIter(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
-    }
-
-    template <typename TWriter>
-    static ErrorStatus writeInternal(
-        Field& field,
-        const Message& msg,
-        WriteIterator& iter,
-        std::size_t size,
-        TWriter&& nextLayerWriter,
-        std::output_iterator_tag)
-    {
-        return writeOutputIter(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
-    }
-
-    template <typename TWriter>
-    static ErrorStatus writeRandomAccessIter(
-        Field& field,
-        const Message& msg,
-        WriteIterator& iter,
-        std::size_t size,
-        TWriter&& nextLayerWriter)
-    {
-        WriteIterator firstIter(iter);
+        typedef typename Field::ValueType FieldValueType;
+        field.value() =
+            static_cast<FieldValueType>(Base::nextLayer().length(msg));
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
 
         GASSERT(field.length() <= size);
-        es = nextLayerWriter.write(msg, iter, size - field.length());
-        if (es == ErrorStatus::Success)
-        {
-            field.setValue(
-                static_cast<typename Field::ValueType>(
-                    std::distance(firstIter, iter) - field.length()));
-
-            es = field.write(firstIter, field.length());
-        }
-
-        return es;
+        return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
-    template <typename TWriter>
-    static ErrorStatus writeOutputIter(
-        Field& field,
-        const Message& msg,
-        WriteIterator& iter,
-        std::size_t size,
-        TWriter&& nextLayerWriter)
+    template <typename TMsg>
+    constexpr std::size_t lengthInternal(const TMsg& msg, FixedLengthTag) const
     {
-        auto es = field.write(iter, size);
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        GASSERT(field.length() <= size);
-        es = nextLayerWriter.write(msg, iter, size - field.length());
-        if (es != ErrorStatus::Success)
-        {
-            return es;
-        }
-
-        return ErrorStatus::UpdateRequired;
+        return Base::length(msg);
     }
 
-    template <typename TUpdateIter, typename TUpdater>
-    static ErrorStatus updateInternal(
-        Field& field,
-        TUpdateIter& iter,
-        std::size_t size,
-        TUpdater&& nextLayerUpdater)
+    template <typename TMsg>
+    std::size_t lengthInternal(const TMsg& msg, VarLengthTag) const
     {
-        if (size < Field::maxLength()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        auto remSize = size - Field::maxLength();
-        field.setValue(
-            static_cast<typename Field::ValueType>(remSize));
-
-
-        auto es = field.write(iter, field.length());
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        return nextLayerUpdater.update(iter, remSize);
+        typedef typename Field::ValueType FieldValueType;
+        auto remSize = Base::nextLayer().length(msg);
+        return Field(static_cast<FieldValueType>(remSize)).length() + remSize;
     }
 };
 

@@ -42,19 +42,11 @@ namespace
 
 const char* SerialInfoName = "Serial Info";
 
-const char* FieldNames[] = {
-    "Device",
-    "Baud",
-    "Flags"
-};
-
-static_assert(std::extent<decltype(FieldNames)>::value == CCSerialInfo::FieldId_NumOfFields,
-    "CCSerialInfo::FieldId enum has changed");
-
 QVariantMap getParityMemberData()
 {
     QVariantMap map;
     map.insert(cc::Property::name(), QVariant::fromValue(QString("Parity")));
+    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
 
     static const QString ValueMap[] = {
         "None",
@@ -77,6 +69,7 @@ QVariantMap getStopBitsMemberData()
 {
     QVariantMap map;
     map.insert(cc::Property::name(), QVariant::fromValue(QString("Stop Bits")));
+    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
 
     static const QString ValueMap[] = {
         "None",
@@ -100,6 +93,7 @@ QVariantMap getFlagsMemberData()
 {
     QVariantMap map;
     map.insert(cc::Property::name(), QVariant::fromValue(QString("Flags")));
+    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
 
     static const QString ValueMap[] = {
         QString(),
@@ -122,6 +116,7 @@ QVariantMap getQosMemberData()
 {
     QVariantMap map;
     map.insert(cc::Property::name(), QVariant::fromValue(QString("QoS")));
+    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
     return map;
 }
 
@@ -139,7 +134,7 @@ const QVariantMap& getMemberData(std::size_t idx)
     typedef typename
         std::decay<
             decltype(
-                std::get<CCSerialInfo::FieldId_Flags>(std::declval<CCSerialInfo::AllFields>()).fields())
+                std::get<CCSerialInfo::FieldId_Flags>(std::declval<CCSerialInfo::AllFields>()).value())
         >::type FlagsMembers;
     static const auto NumOfFlagsMembers = std::tuple_size<FlagsMembers>::value;
 
@@ -155,6 +150,48 @@ const QVariantMap& getMemberData(std::size_t idx)
     return Map[idx];
 }
 
+QVariantMap getDeviceProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Device");
+    return props;
+}
+
+QVariantMap getBaudProperties()
+{
+    QVariantMap props;
+    props.insert(cc::Property::name(), "Baud");
+    return props;
+}
+
+QVariantMap getFlagsProperties()
+{
+    QVariantMap props;
+
+    typedef CCSerialInfo::AllFields AllFields;
+    typedef std::decay<decltype(std::get<CCSerialInfo::FieldId_Flags>(std::declval<AllFields>()))>::type FlagsType;
+    typedef std::decay<decltype(std::declval<FlagsType>().value())>::type MembersType;
+    static const std::size_t NumOfMembers = std::tuple_size<MembersType>::value;
+
+    for (std::size_t idx = 0U; idx < NumOfMembers; ++idx) {
+        props.insert(cc::Property::indexedData(idx), getMemberData(idx));
+    }
+
+    props.insert(cc::Property::name(), "Flags");
+    return props;
+}
+
+QVariantList createFieldsProperties()
+{
+    QVariantList props;
+    props.append(QVariant::fromValue(getDeviceProperties()));
+    props.append(QVariant::fromValue(getBaudProperties()));
+    props.append(QVariant::fromValue(getFlagsProperties()));
+
+    assert(props.size() == CCSerialInfo::FieldId_NumOfFields);
+    return props;
+}
+
 }  // namespace
 
 const char* CCSerialInfo::nameImpl() const
@@ -162,28 +199,15 @@ const char* CCSerialInfo::nameImpl() const
     return SerialInfoName;
 }
 
-void CCSerialInfo::updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const
+const QVariantList& CCSerialInfo::fieldsPropertiesImpl() const
 {
-    if (FieldId_NumOfFields <= idx) {
-        assert(idx < FieldId_NumOfFields);
-        return;
-    }
-
-    cc::Property::setNameVal(fieldWidget, FieldNames[idx]);
-    if (idx == FieldId_Flags) {
-        auto& flagsField = std::get<FieldId_Flags>(getFields());
-        auto& flagsMemberFields = flagsField.fields();
-        typedef typename std::decay<decltype(flagsMemberFields)>::type FlagsBitfieldMembers;
-        static const std::size_t NumOfMembers = std::tuple_size<FlagsBitfieldMembers>::value;
-        for (std::size_t idx = 0U; idx < NumOfMembers; ++idx) {
-            cc::Property::setIndexedDataVal(fieldWidget, idx, getMemberData(idx));
-        }
-    }
+    static const auto Props = createFieldsProperties();
+    return Props;
 }
 
 void CCSerialInfo::resetImpl()
 {
-    Base::getFields() = Base::AllFields();
+    fields() = Base::AllFields();
 }
 
 void CCSerialInfo::assignImpl(const comms_champion::Message& other)
@@ -191,7 +215,7 @@ void CCSerialInfo::assignImpl(const comms_champion::Message& other)
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCSerialInfo*>(&other);
     assert(castedOther != nullptr);
-    getFields() = castedOther->getFields();
+    fields() = castedOther->fields();
 }
 
 }  // namespace message

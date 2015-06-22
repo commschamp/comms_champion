@@ -37,6 +37,8 @@ namespace field_wrapper
 template <typename TUnderlyingType>
 class NumericValueWrapper : public FieldWrapper
 {
+    static_assert(std::is_integral<TUnderlyingType>::value,
+        "Underlying type is expected to be integral.");
     typedef FieldWrapper Base;
 public:
     typedef TUnderlyingType UnderlyingType;
@@ -93,7 +95,6 @@ public:
 protected:
     using Field = TField;
     using ValueType = typename Field::ValueType;
-    using SerialisedType = typename Field::SerialisedType;
 
     static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
     static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
@@ -117,86 +118,24 @@ protected:
 
     virtual UnderlyingType getValueImpl() const override
     {
-        return static_cast<UnderlyingType>(Base::field().getValue());
+        return static_cast<UnderlyingType>(Base::field().value());
     }
 
     virtual void setValueImpl(UnderlyingType value) override
     {
-        Base::field().setValue(static_cast<ValueType>(value));
-    }
-
-    virtual SerialisedSeq getSerialisedValueImpl() const override
-    {
-        SerialisedSeq seq;
-        auto& field = Base::field();
-        seq.reserve(field.length());
-        auto iter = std::back_inserter(seq);
-        auto es = field.write(iter, seq.max_size());
-        static_cast<void>(es);
-        assert(es == comms::ErrorStatus::Success);
-        assert(seq.size() == field.length());
-        return seq;
-    }
-
-    virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
-    {
-        auto iter = &value[0];
-        auto& field = Base::field();
-        auto es = field.read(iter, value.size());
-        return es == comms::ErrorStatus::Success;
+        Base::field().value() = static_cast<ValueType>(value);
     }
 
     virtual std::size_t minLengthImpl() const override
     {
-        return minLengthInternal(LengthTag());
+        return Base::field().minLength();
     }
 
     virtual std::size_t maxLengthImpl() const override
     {
-        return maxLengthInternal(LengthTag());
-    }
-
-private:
-    struct FixedLengthTag {};
-    struct VarLengthTag {};
-
-    using LengthTag =
-        typename std::conditional<
-            Field::hasFixedLength(),
-            FixedLengthTag,
-            VarLengthTag
-        >::type;
-
-    struct SerialisedSignedTag {};
-    struct SerialisedUnsignedTag {};
-
-    using SerialisedTypeTag =
-        typename std::conditional<
-            std::is_signed<SerialisedType>::value,
-            SerialisedSignedTag,
-            SerialisedUnsignedTag
-        >::type;
-
-
-    std::size_t minLengthInternal(FixedLengthTag) const
-    {
-        return Base::field().length();
-    }
-
-    std::size_t minLengthInternal(VarLengthTag) const
-    {
-        return Base::field().minLength();
-    }
-
-    std::size_t maxLengthInternal(FixedLengthTag) const
-    {
-        return Base::field().length();
-    }
-
-    std::size_t maxLengthInternal(VarLengthTag) const
-    {
         return Base::field().maxLength();
     }
+
 };
 
 }  // namespace field_wrapper

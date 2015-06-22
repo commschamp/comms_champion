@@ -390,7 +390,7 @@ T read(std::size_t size, TIter& iter)
 }
 
 template <typename TEndian, typename T, typename TIter>
-T readRandomAccess(std::size_t size, TIter& iter)
+T readFromPointerToSigned(std::size_t size, TIter& iter)
 {
     typedef typename std::decay<T>::type ValueType;
 
@@ -412,21 +412,31 @@ T readRandomAccess(std::size_t size, TIter& iter)
     return static_cast<T>(static_cast<ValueType>(value));
 }
 
-template <typename TEndian, bool TIsPointerToUnsignedConst>
+template <typename TEndian, bool TIsPointer, bool TIsUnsignedConst>
 struct ReadRandomAccessHelper;
 
 template <typename TEndian>
-struct ReadRandomAccessHelper<TEndian, false>
+struct ReadRandomAccessHelper<TEndian, true, false>
 {
     template <typename T, typename TIter>
     static T read(std::size_t size, TIter& iter)
     {
-        return readRandomAccess<TEndian, T>(size, iter);
+        return readFromPointerToSigned<TEndian, T>(size, iter);
     }
 };
 
 template <typename TEndian>
-struct ReadRandomAccessHelper<TEndian, true>
+struct ReadRandomAccessHelper<TEndian, true, true>
+{
+    template <typename T, typename TIter>
+    static T read(std::size_t size, TIter& iter)
+    {
+        return details::read<TEndian, T>(size, iter);
+    }
+};
+
+template <typename TEndian, bool TIsUnsignedConst>
+struct ReadRandomAccessHelper<TEndian, false, TIsUnsignedConst>
 {
     template <typename T, typename TIter>
     static T read(std::size_t size, TIter& iter)
@@ -455,11 +465,13 @@ struct ReadHelper<TEndian, true>
     static T read(std::size_t size, TIter& iter)
     {
         typedef ByteType<TIter> ByteType;
-        static const bool IsPointerToUnsignedConst =
-            std::is_pointer<TIter>::value &&
+        static const bool IsPointer =
+            std::is_pointer<TIter>::value;
+
+        static const bool IsUnsignedConstData =
             std::is_const<ByteType>::value &&
             std::is_unsigned<ByteType>::value;
-        return ReadRandomAccessHelper<TEndian, IsPointerToUnsignedConst>::template read<T>(size, iter);
+        return ReadRandomAccessHelper<TEndian, IsPointer, IsUnsignedConstData>::template read<T>(size, iter);
     }
 };
 
@@ -512,13 +524,6 @@ struct Reader
 
 }  // namespace details
 
-template <typename T, typename TIter>
-void writeBig(T value, TIter& iter)
-{
-    typedef typename std::decay<T>::type ValueType;
-    writeBig<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
-}
-
 template <std::size_t TSize, typename T, typename TIter>
 void writeBig(T value, TIter& iter)
 {
@@ -526,10 +531,10 @@ void writeBig(T value, TIter& iter)
 }
 
 template <typename T, typename TIter>
-T readBig(TIter& iter)
+void writeBig(T value, TIter& iter)
 {
     typedef typename std::decay<T>::type ValueType;
-    return static_cast<T>(readBig<ValueType, sizeof(ValueType)>(iter));
+    writeBig<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
 }
 
 template <typename T, std::size_t TSize, typename TIter>
@@ -539,10 +544,10 @@ T readBig(TIter& iter)
 }
 
 template <typename T, typename TIter>
-void writeLittle(T value, TIter& iter)
+T readBig(TIter& iter)
 {
     typedef typename std::decay<T>::type ValueType;
-    writeLittle<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
+    return static_cast<T>(readBig<ValueType, sizeof(ValueType)>(iter));
 }
 
 template <std::size_t TSize, typename T, typename TIter>
@@ -552,16 +557,23 @@ void writeLittle(T value, TIter& iter)
 }
 
 template <typename T, typename TIter>
-T readLittle(TIter& iter)
+void writeLittle(T value, TIter& iter)
 {
     typedef typename std::decay<T>::type ValueType;
-    return static_cast<T>(readLittle<ValueType, sizeof(ValueType)>(iter));
+    writeLittle<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
 }
 
 template <typename T, std::size_t TSize, typename TIter>
 T readLittle(TIter& iter)
 {
     return details::Reader<details::ReadHelper>::template read<traits::endian::Little, T, TSize>(iter);
+}
+
+template <typename T, typename TIter>
+T readLittle(TIter& iter)
+{
+    typedef typename std::decay<T>::type ValueType;
+    return static_cast<T>(readLittle<ValueType, sizeof(ValueType)>(iter));
 }
 
 template <typename T, typename TIter>

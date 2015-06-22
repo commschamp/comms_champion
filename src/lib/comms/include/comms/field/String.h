@@ -18,7 +18,14 @@
 
 #pragma once
 
-#include "details/StringBase.h"
+#include <vector>
+
+#include "comms/ErrorStatus.h"
+#include "comms/options.h"
+#include "comms/util/StaticString.h"
+#include "basic/ArrayList.h"
+#include "details/AdaptBasicField.h"
+#include "details/OptionsParser.h"
 
 namespace comms
 {
@@ -26,42 +33,62 @@ namespace comms
 namespace field
 {
 
-template <typename TField, typename TSizeField, typename... TOptions>
-class String : public details::StringBase<TField, TSizeField, TOptions...>
+namespace details
 {
-    typedef details::StringBase<TField, TSizeField, TOptions...> Base;
+
+template <typename TOptions, bool THasFixedStorage>
+struct StringStorageType;
+
+template <typename TOptions>
+struct StringStorageType<TOptions, true>
+{
+    typedef comms::util::StaticString<TOptions::FixedSizeStorage> Type;
+};
+
+template <typename TOptions>
+struct StringStorageType<TOptions, false>
+{
+    typedef std::string Type;
+};
+
+template <typename TOptions>
+using StringStorageTypeT =
+    typename StringStorageType<TOptions, TOptions::HasFixedSizeStorage>::Type;
+
+} // namespace details
+
+template <typename TFieldBase, typename... TOptions>
+class String : public TFieldBase
+{
+    typedef TFieldBase Base;
+
+    typedef details::OptionsParser<TOptions...> ParsedOptionsInternal;
+    using StorageTypeInternal =
+        details::StringStorageTypeT<ParsedOptionsInternal>;
+    typedef basic::ArrayList<TFieldBase, StorageTypeInternal> BasicField;
+    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+
 public:
 
-    typedef typename Base::SizeField SizeField;
-    typedef typename Base::StorageType StorageType;
-    typedef typename StorageType::iterator Iterator;
-    typedef Iterator iterator;
-    typedef typename StorageType::const_iterator ConstIterator;
-    typedef ConstIterator const_iterator;
+    typedef ParsedOptionsInternal ParsedOptions;
+    typedef StorageTypeInternal StorageType;
+    typedef StorageType ValueType;
 
-    typedef typename std::iterator_traits<iterator>::iterator_category iterator_category;
-    typedef typename std::iterator_traits<iterator>::value_type value_type;
-    typedef typename std::iterator_traits<iterator>::difference_type difference_type;
-    typedef typename std::iterator_traits<iterator>::pointer pointer;
+    String() = default;
 
-    String()
-    {
-        typedef typename std::conditional<
-            Base::HasCustomInitialiser,
-            CustomInitialisationTag,
-            DefaultInitialisationTag
-        >::type Tag;
-        completeDefaultInitialisation(Tag());
-    }
-
-    explicit String(const char* value)
+    explicit String(const ValueType& value)
       : str_(value)
     {
     }
 
-    explicit String(const StorageType& value)
-      : str_(value)
+    explicit String(ValueType&& value)
+      : str_(std::move(value))
     {
+    }
+
+    explicit String(const char* str)
+    {
+        str_.value() = str;
     }
 
     String(const String&) = default;
@@ -76,200 +103,55 @@ public:
 
     String& operator=(const char* str)
     {
-        str_ = str;
+        value() = str;
         return *this;
     }
 
-    const StorageType& getValue() const
+    ValueType& value()
     {
-        return str_;
+        return str_.value();
     }
 
-    void setValue(const char* value)
+    const ValueType& value() const
     {
-        str_ = value;
-    }
-
-    void setValue(const StorageType& value)
-    {
-        str_ = value;
-    }
-
-    iterator begin()
-    {
-        return str_.begin();
-    }
-
-    const_iterator begin() const
-    {
-        return str_.begin();
-    }
-
-    const_iterator cbegin() const
-    {
-        return str_.cbegin();
-    }
-
-    iterator end()
-    {
-        return str_.end();
-    }
-
-    const_iterator end() const
-    {
-        return str_.end();
-    }
-
-    const_iterator cend() const
-    {
-        return str_.cend();
-    }
-
-    void clear()
-    {
-        str_.clear();
+        return str_.value();
     }
 
     constexpr std::size_t length() const
     {
-        return sizeField().length() + size();
-    }
-
-    constexpr std::size_t size() const
-    {
-        return str_.size();
-    }
-
-    bool empty() const
-    {
-        return str_.empty();
+        return str_.length();
     }
 
     constexpr bool valid() const
     {
-        return
-            SizeField(static_cast<typename SizeField::ValueType>(size())).valid() &&
-            validInternal(
-            typename std::conditional<
-                Base::HasCustomValidator,
-                CustomValidatorTag,
-                DefaultValidatorTag
-            >::type());
-    }
-
-    template <typename U>
-    void pushBack(U&& ch)
-    {
-        str_.push_back(std::forward<U>(ch));
-    }
-
-    template <typename U>
-    void push_back(U&& ch)
-    {
-        pushBack(std::forward<U>(ch));
+        return str_.valid();
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t bufSize)
+    ErrorStatus read(TIter& iter, std::size_t len)
     {
-        SizeField sizeField;
-        auto es = sizeField.read(iter, bufSize);
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        auto len = sizeField.getValue();
-
-        if (str_.max_size() <= len) {
-            return ErrorStatus::InvalidMsgData;
-        }
-
-        auto remSize = bufSize - sizeField.length();
-        if (remSize < len) {
-            return ErrorStatus::NotEnoughData;
-        }
-
-        clear();
-        std::copy_n(iter, len, std::back_inserter(str_));
-        std::advance(iter, len);
-        return ErrorStatus::Success;
+        return str_.read(iter, len);
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t bufSize) const
+    ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        if (bufSize < length()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        SizeField sizeField(static_cast<typename SizeField::ValueType>(size()));
-        auto es = sizeField.write(iter, bufSize);
-        static_cast<void>(es);
-        GASSERT(es == ErrorStatus::Success);
-
-        std::copy_n(begin(), size(), iter);
-
-        typedef typename std::decay<decltype(iter)>::type IterType;
-        typedef typename std::conditional<
-            std::is_same<typename std::iterator_traits<IterType>::difference_type, void>::value,
-            UseIncTag,
-            UseStdAdvanceTag
-        >::type Tag;
-
-        advanceIter(iter, size(), Tag());
-        return ErrorStatus::Success;
+        return str_.write(iter, len);
     }
 
-    SizeField sizeField() const
+    static constexpr std::size_t minLength()
     {
-        return SizeField(static_cast<typename SizeField::ValueType>(size()));
+        return ThisField::minLength();
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return ThisField::maxLength();
     }
 
 private:
 
-    struct DefaultInitialisationTag {};
-    struct CustomInitialisationTag {};
-    struct DefaultValidatorTag {};
-    struct CustomValidatorTag {};
-    struct UseStdAdvanceTag {};
-    struct UseIncTag {};
-
-    void completeDefaultInitialisation(DefaultInitialisationTag)
-    {
-    }
-
-    void completeDefaultInitialisation(CustomInitialisationTag)
-    {
-        typedef typename Base::DefaultValueInitialiser DefaultValueInitialiser;
-        DefaultValueInitialiser()(*this);
-    }
-
-    static constexpr bool validInternal(DefaultValidatorTag)
-    {
-        return true;
-    }
-
-    constexpr bool validInternal(CustomValidatorTag) const
-    {
-        typedef typename Base::ContentsValidator ContentsValidator;
-        return ContentsValidator()(*this);
-    }
-
-    template <typename TIter>
-    static void advanceIter(TIter& iter, std::size_t sizeParam, UseStdAdvanceTag)
-    {
-        std::advance(iter, sizeParam);
-    }
-
-    template <typename TIter>
-    static void advanceIter(TIter& iter, std::size_t sizeParam, UseIncTag)
-    {
-        for (auto i = 0U; i < sizeParam; ++i) {
-            ++iter;
-        }
-    }
-
-    StorageType str_;
+    ThisField str_;
 };
 
 /// @brief Equality comparison operator.
@@ -279,7 +161,7 @@ bool operator==(
     const String<TArgs...>& field1,
     const String<TArgs...>& field2)
 {
-    return field1.getValue() == field2.getValue();
+    return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
@@ -289,7 +171,7 @@ bool operator!=(
     const String<TArgs...>& field1,
     const String<TArgs...>& field2)
 {
-    return field1.getValue() != field2.getValue();
+    return field1.value() != field2.value();
 }
 
 /// @brief Equivalence comparison operator.
@@ -299,7 +181,7 @@ bool operator<(
     const String<TArgs...>& field1,
     const String<TArgs...>& field2)
 {
-    return field1.getValue() < field2.getValue();
+    return field1.value() < field2.value();
 }
 
 namespace details

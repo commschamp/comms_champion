@@ -19,7 +19,9 @@
 #pragma once
 
 #include <cassert>
+#include <memory>
 
+#include <QtCore/QVariantMap>
 #include <QtWidgets/QWidget>
 
 class QLineEdit;
@@ -41,7 +43,7 @@ public:
 public slots:
     void refresh();
     void setEditEnabled(bool enabled);
-    void propertiesUpdated();
+    void updateProperties(const QVariantMap& props);
 
 signals:
     void sigFieldUpdated();
@@ -49,7 +51,6 @@ signals:
 protected:
     void emitFieldUpdated();
     bool isEditEnabled() const;
-    void updateNameLabel(QLabel& label);
 
     static void setValidityStyleSheet(QLabel& widget, bool valid);
     static void setValidityStyleSheet(QLineEdit& widget, bool valid);
@@ -78,18 +79,42 @@ protected:
         emitFieldUpdated();
     }
 
+    void setNameLabelWidget(QLabel* widget)
+    {
+        m_nameLabel = widget;
+    }
+
+    void setValueWidget(QWidget* widget)
+    {
+        m_valueWidget = widget;
+    }
+
+    void setSeparatorWidget(QWidget* widget)
+    {
+        m_sepWidget = widget;
+    }
+
+    void setSerialisedValueWidget(QWidget* widget)
+    {
+        m_serValueWidget = widget;
+    }
+
     virtual void refreshImpl() = 0;
     virtual void setEditEnabledImpl(bool enabled);
-    virtual void propertiesUpdatedImpl();
+    virtual void updatePropertiesImpl(const QVariantMap& props);
 
 private:
-    static void updateNumericSerialisedValueInternal(
-        QLineEdit& line,
-        unsigned long long value,
-        int width);
+    void performUiElementsVisibilityCheck(const QVariantMap& props);
+    void performNameLabelUpdate(const QVariantMap& props);
 
     bool m_editEnabled = true;
+    QLabel* m_nameLabel = nullptr;
+    QWidget* m_valueWidget = nullptr;
+    QWidget* m_sepWidget = nullptr;
+    QWidget* m_serValueWidget = nullptr;
 };
+
+typedef std::unique_ptr<FieldWidget> FieldWidgetPtr;
 
 }  // namespace comms_champion
 

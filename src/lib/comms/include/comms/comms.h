@@ -22,6 +22,7 @@
 #include "Assert.h"
 #include "Message.h"
 #include "MessageBase.h"
+#include "MsgFactory.h"
 #include "fields.h"
 #include "protocols.h"
-
+#include "field_cast.h"

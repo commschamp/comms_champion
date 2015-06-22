@@ -96,6 +96,12 @@ struct FixedLength
     static const std::size_t Value = TLen;
 };
 
+template<std::size_t TLen>
+struct FixedBitLength
+{
+    static const std::size_t Value = TLen;
+};
+
 template<std::size_t TMin, std::size_t TMax>
 struct VarLength
 {
@@ -111,12 +117,18 @@ struct NumValueSerOffset
     static const auto Value = TOffset;
 };
 
-struct BitIndexingStartsFromMsb {};
-
 template <std::size_t TSize>
 struct FixedSizeStorage
 {
     static const std::size_t Value = TSize;
+};
+
+struct InPlaceAllocation {};
+
+template <typename TField>
+struct SequenceSizeFieldPrefix
+{
+    typedef TField Type;
 };
 
 template <typename T>
@@ -131,17 +143,9 @@ struct ContentsValidator
     typedef T Type;
 };
 
-template <typename T>
-struct InvalidValueBehaviour
-{
-    static_assert(
-        std::is_same<comms::traits::behaviour::UseValue, T>::value ||
-        std::is_same<comms::traits::behaviour::IgnoreValue, T>::value ||
-        std::is_same<comms::traits::behaviour::Fail, T>::value,
-        "Unexpected type for InvalidValueBehaviour option.");
+struct FailOnInvalid {};
 
-    typedef T Type;
-};
+struct IgnoreInvalid {};
 
 namespace details
 {
@@ -154,7 +158,7 @@ struct DefaultNumValueInitialiser
     {
         typedef typename std::decay<TField>::type FieldType;
         typedef typename FieldType::ValueType ValueType;
-        field.setValue(static_cast<ValueType>(TVal));
+        field.value() = static_cast<ValueType>(TVal);
     }
 };
 
@@ -168,21 +172,19 @@ struct NumValueRangeValidator
     template <typename TField>
     constexpr bool operator()(TField&& field) const
     {
-        typedef typename std::decay<TField>::type FieldType;
-        typedef typename FieldType::ValueType ValueType;
         typedef typename std::conditional<
-            (std::numeric_limits<ValueType>::min() < MinValue),
+            (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
             CompareTag,
             ReturnTrueTag
         >::type MinTag;
 
         typedef typename std::conditional<
-            (MaxValue < std::numeric_limits<ValueType>::max()),
+            (MaxValue < std::numeric_limits<decltype(MaxValue)>::max()),
             CompareTag,
             ReturnTrueTag
         >::type MaxTag;
 
-        return aboveMin(field.getValue(), MinTag()) && belowMax(field.getValue(), MaxTag());
+        return aboveMin(field.value(), MinTag()) && belowMax(field.value(), MaxTag());
     }
 
 private:
@@ -192,7 +194,7 @@ private:
     template <typename TValue>
     static constexpr bool aboveMin(TValue&& value, CompareTag)
     {
-        return (MinValue <= value);
+        return (MinValue <= static_cast<decltype(MinValue)>(value));
     }
 
     template <typename TValue>
@@ -204,7 +206,7 @@ private:
     template <typename TValue>
     static constexpr bool belowMax(TValue&& value, CompareTag)
     {
-        return (value <= MaxValue);
+        return (static_cast<decltype(MaxValue)>(value) <= MaxValue);
     }
 
     template <typename TValue>
@@ -227,7 +229,7 @@ struct BitmaskReservedBitsValidator
         typedef typename std::decay<TField>::type FieldType;
         typedef typename FieldType::ValueType ValueType;
 
-        return (field.getValue() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
+        return (field.value() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
     }
 };
 

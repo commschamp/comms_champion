@@ -25,7 +25,6 @@
 
 #include "ui_BitfieldFieldWidget.h"
 
-class QCheckBox;
 namespace comms_champion
 {
 
@@ -47,7 +46,7 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
-    virtual void propertiesUpdatedImpl() override;
+    virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private slots:
     void serialisedValueUpdated(const QString& value);
@@ -59,7 +58,6 @@ private:
 
     void refreshInternal();
     void refreshMembers();
-    void updateMemberProperties(std::size_t idx);
 
     Ui::BitfieldFieldWidget m_ui;
     WrapperPtr m_wrapper;

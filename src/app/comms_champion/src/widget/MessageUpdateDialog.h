@@ -42,7 +42,7 @@ public:
 private slots:
     void msgUpdated();
     void itemClicked(QListWidgetItem* item);
-    void displayMessagePostponed(comms_champion::MessageInfoPtr msgInfo);
+    void displayMessagePostponed(comms_champion::MessageInfoPtr msgInfo, bool force);
     void refreshDisplayedList(const QString& searchText);
     void refreshDelayInfo(int checkboxValue);
     void delayUpdated(int value);

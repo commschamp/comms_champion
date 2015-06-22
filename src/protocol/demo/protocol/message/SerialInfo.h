@@ -51,29 +51,32 @@ enum class StopBit : std::uint8_t
 
 template <typename TFieldBase>
 using SerialInfoParityField =
-    comms::field::BasicEnumValue<
+    comms::field::EnumValue<
         TFieldBase,
         Parity,
         comms::option::FixedLength<1>,
+        comms::option::FixedBitLength<2>,
         comms::option::ValidNumValueRange<(int)Parity::None, (int)Parity::NumOfValues - 1>
     >;
 
 template <typename TFieldBase>
 using SerialInfoStopBitField =
-    comms::field::BasicEnumValue<
+    comms::field::EnumValue<
         TFieldBase,
         StopBit,
         comms::option::FixedLength<1>,
+        comms::option::FixedBitLength<2>,
         comms::option::ValidNumValueRange<(int)StopBit::None, (int)StopBit::NumOfValues - 1>
     >;
 
 template <typename TFieldBase>
 using SerialInfoQosField =
-    comms::field::BasicIntValue<
+    comms::field::IntValue<
         TFieldBase,
         std::uint8_t,
         comms::option::FixedLength<1>,
-        comms::option::ValidNumValueRange<0, 3>
+        comms::option::FixedBitLength<2>,
+        comms::option::ValidNumValueRange<0, 2>
     >;
 
 template <typename TFieldBase>
@@ -81,6 +84,7 @@ using SerialInfoFlagsField =
     comms::field::BitmaskValue<
         TFieldBase,
         comms::option::FixedLength<1>,
+        comms::option::FixedBitLength<2>,
         comms::option::BitmaskReservedBits<0xfd, 0x0>
     >;
 
@@ -89,13 +93,15 @@ using SerialInfoFields =
     std::tuple<
         comms::field::String<
             TFieldBase,
-            comms::field::BasicIntValue<
-                TFieldBase,
-                std::uint8_t,
-                comms::option::ValidNumValueRange<0, 32>
+            comms::option::SequenceSizeFieldPrefix<
+                comms::field::IntValue<
+                    TFieldBase,
+                    std::uint8_t,
+                    comms::option::ValidNumValueRange<0, 32>
+                >
             >
         >,
-        comms::field::BasicIntValue<
+        comms::field::IntValue<
             TFieldBase,
             std::uint16_t,
             comms::option::VarLength<1, 2>
@@ -103,12 +109,11 @@ using SerialInfoFields =
         comms::field::Bitfield<
             TFieldBase,
             std::tuple<
-                comms::field::BitfieldMember<SerialInfoParityField<TFieldBase>, 2>,
-                comms::field::BitfieldMember<SerialInfoStopBitField<TFieldBase>, 2>,
-                comms::field::BitfieldMember<SerialInfoQosField<TFieldBase>, 2>,
-                comms::field::BitfieldMember<SerialInfoFlagsField<TFieldBase>, 2>
-            >,
-            comms::option::BitIndexingStartsFromMsb
+                SerialInfoParityField<TFieldBase>,
+                SerialInfoStopBitField<TFieldBase>,
+                SerialInfoQosField<TFieldBase>,
+                SerialInfoFlagsField<TFieldBase>
+            >
         >
     >;
 

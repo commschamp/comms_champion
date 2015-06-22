@@ -70,6 +70,22 @@ QVariant Property::getIndexedDataVal(QObject& obj, unsigned idx)
     return obj.property(indexedData(idx).toUtf8().data());
 }
 
+const char* Property::data()
+{
+    static const char* Str = "cc.data";
+    return Str;
+}
+
+void Property::setDataVal(QObject& obj, const QVariantMap& val)
+{
+    obj.setProperty(data(), QVariant::fromValue(val));
+}
+
+QVariant Property::getDataVal(QObject& obj)
+{
+    return obj.property(data());
+}
+
 const char* Property::serialisedHidden()
 {
     static const char* Str = "cc.ser_hidden";
@@ -84,6 +100,22 @@ void Property::setSerialisedHiddenVal(QObject& obj, bool val)
 QVariant Property::getSerialisedHiddenVal(QObject& obj)
 {
     return obj.property(serialisedHidden());
+}
+
+const char* Property::fieldHidden()
+{
+    static const char* Str = "cc.field_hidden";
+    return Str;
+}
+
+void Property::setFieldHiddenVal(QObject& obj, bool val)
+{
+    obj.setProperty(fieldHidden(), QVariant::fromValue(val));
+}
+
+QVariant Property::getFieldHiddenVal(QObject& obj)
+{
+    return obj.property(fieldHidden());
 }
 
 }  // namespace comms_champion

@@ -32,6 +32,7 @@ enum MsgId
     MsgId_Heartbeat,
     MsgId_Status,
     MsgId_SerialInfo,
+    MsgId_OptionalTest,
     MsgId_NumOfMessages
 };
 

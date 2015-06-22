@@ -42,14 +42,11 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void setEditEnabledImpl(bool enabled) override;
-    virtual void propertiesUpdatedImpl() override;
 
 private slots:
     void stringChanged();
 
 private:
-
-    void readPropertiesAndUpdateUi();
 
     Ui::StringFieldWidget m_ui;
     WrapperPtr m_wrapper;

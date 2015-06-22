@@ -32,14 +32,14 @@ const std::uint16_t SyncPrefixValue = 0x689f;
 template <typename TMsgBase, typename TAllMessages>
 using Stack =
     comms::protocol::SyncPrefixLayer<
-        comms::field::BasicIntValue<
+        comms::field::IntValue<
             typename TMsgBase::Field,
             std::uint16_t,
             comms::option::DefaultNumValue<SyncPrefixValue> >,
         comms::protocol::MsgSizeLayer<
-            comms::field::BasicIntValue<typename TMsgBase::Field, std::uint16_t>,
+            comms::field::IntValue<typename TMsgBase::Field, std::uint16_t>,
             comms::protocol::MsgIdLayer<
-                comms::field::BasicEnumValue<
+                comms::field::EnumValue<
                     typename TMsgBase::Field,
                     demo::message::MsgId,
                     comms::option::FixedLength<1>,

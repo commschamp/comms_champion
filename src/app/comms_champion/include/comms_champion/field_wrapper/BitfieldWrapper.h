@@ -23,7 +23,7 @@
 #include <memory>
 
 #include "comms/field/Bitfield.h"
-#include "NumericValueWrapper.h"
+#include "FieldWrapper.h"
 
 namespace comms_champion
 {
@@ -31,26 +31,22 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class BitfieldWrapper : public NumericValueWrapper<long long unsigned>
+class BitfieldWrapper : public FieldWrapper
 {
-    using Base = NumericValueWrapper<long long unsigned>;
+    using Base = FieldWrapper;
 public:
-    using Base::NumericValueWrapper;
+    using Base::FieldWrapper;
+    typedef unsigned long long UnderlyingType;
 };
 
 template <typename TField>
-class BitfieldWrapperT : public NumericValueWrapperT<BitfieldWrapper, TField>
+class BitfieldWrapperT : public FieldWrapperT<BitfieldWrapper, TField>
 {
-    using Base = NumericValueWrapperT<BitfieldWrapper, TField>;
+    using Base = FieldWrapperT<BitfieldWrapper, TField>;
     using Field = TField;
     static_assert(comms::field::isBitfield<Field>(), "Must be of Bitfield field type");
 
-    using ValueType = typename Field::ValueType;
     using UnderlyingType = typename Base::UnderlyingType;
-    static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
-    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
-        "This wrapper cannot handle provided field.");
-
 public:
     BitfieldWrapperT(Field& field)
       : Base(field)

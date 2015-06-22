@@ -18,10 +18,15 @@
 
 #pragma once
 
-#include "field/BasicIntValue.h"
+#include "field/IntValue.h"
 #include "field/BitmaskValue.h"
-#include "field/BasicEnumValue.h"
-#include "field/VarSizeArray.h"
+#include "field/EnumValue.h"
+#include "field/ArrayList.h"
 #include "field/String.h"
 #include "field/Bitfield.h"
+#include "field/Optional.h"
+#include "field/Bundle.h"
+
+#include "field/adapters.h"
+#include "field/basics.h"
 

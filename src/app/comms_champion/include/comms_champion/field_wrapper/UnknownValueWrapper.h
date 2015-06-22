@@ -59,27 +59,6 @@ public:
 
 protected:
 
-    virtual SerialisedSeq getSerialisedValueImpl() const override
-    {
-        auto& field = Base::field();
-        SerialisedSeq value;
-        value.reserve(field.length());
-        auto iter = std::back_inserter(value);
-        field.write(iter, value.max_size());
-        return value;
-    }
-
-    virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
-    {
-        if (value.empty()) {
-            return false;
-        }
-
-        const std::uint8_t* iter = &value[0];
-        auto es = Base::field().read(iter, value.size());
-        return es == comms::ErrorStatus::Success;
-    }
-
 };
 
 using UnknownValueWrapperPtr = std::unique_ptr<UnknownValueWrapper>;

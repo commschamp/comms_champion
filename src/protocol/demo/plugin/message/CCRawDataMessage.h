@@ -32,9 +32,9 @@ namespace message
 {
 
 typedef std::tuple<
-    comms::field::VarSizeArray<
-    CCDemoMessage::Field,
-        comms::field::BasicIntValue<CCDemoMessage::Field, std::uint8_t>
+    comms::field::ArrayList<
+        CCDemoMessage::Field,
+        std::uint8_t
     >
 > RawDataMessageFields;
 
@@ -55,7 +55,7 @@ public:
 
 protected:
     virtual const char* nameImpl() const override;
-    virtual void updateFieldPropertiesImpl(QWidget& fieldWidget, uint idx) const override;
+    virtual const QVariantList& fieldsPropertiesImpl() const override;
 };
 
 }  // namespace message

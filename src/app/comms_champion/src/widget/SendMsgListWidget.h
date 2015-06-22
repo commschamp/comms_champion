@@ -37,6 +37,10 @@ protected:
     virtual void msgMovedImpl(int idx) override;
     virtual void loadMessagesImpl(const QString& filename, Protocol& protocol) override;
     virtual void saveMessagesImpl(const QString& filename) override;
+
+private:
+    typedef GuiAppMgr::SendState State;
+    State m_state;
 };
 
 } /* namespace comms_champion */

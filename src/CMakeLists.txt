@@ -1,7 +1,5 @@
 # Find the QtWidgets library
 find_package(Qt5Network REQUIRED)
-find_package(Qt5Qml REQUIRED)
-find_package(Qt5Quick REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 

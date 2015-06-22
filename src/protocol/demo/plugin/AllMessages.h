@@ -22,6 +22,7 @@
 #include "message/CCHeartbeat.h"
 #include "message/CCStatus.h"
 #include "message/CCSerialInfo.h"
+#include "message/CCOptionalTest.h"
 
 #include "protocol/DemoMessage.h"
 
@@ -35,7 +36,8 @@ using AllMessages =
     std::tuple<
         message::CCHeartbeat,
         message::CCStatus,
-        message::CCSerialInfo
+        message::CCSerialInfo,
+        message::CCOptionalTest
     >;
 
 static_assert(

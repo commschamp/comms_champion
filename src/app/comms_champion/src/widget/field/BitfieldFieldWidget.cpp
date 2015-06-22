@@ -22,6 +22,7 @@
 #include <type_traits>
 
 #include <QtWidgets/QCheckBox>
+#include <QtWidgets/QFrame>
 
 #include "comms_champion/Property.h"
 
@@ -35,6 +36,9 @@ BitfieldFieldWidget::BitfieldFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    setValueWidget(m_ui.m_valueWidget);
+    setSeparatorWidget(m_ui.m_sepLine);
+    setSerialisedValueWidget(m_ui.m_serValueWidget);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
@@ -48,11 +52,17 @@ BitfieldFieldWidget::~BitfieldFieldWidget() = default;
 void BitfieldFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
 {
     m_members.push_back(memberFieldWidget);
-    auto idx = m_members.size() - 1;
-    updateMemberProperties(idx);
+
+    if (m_ui.m_membersLayout->count() != 0) {
+        auto* line = new QFrame(this);
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
+
+        m_ui.m_membersLayout->addWidget(line);
+    }
 
     m_ui.m_membersLayout->addWidget(memberFieldWidget);
-    assert((std::size_t)m_ui.m_membersLayout->count() == m_members.size());
+    assert((std::size_t)m_ui.m_membersLayout->count() == ((m_members.size() * 2) - 1));
 
     refreshInternal();
 
@@ -76,12 +86,19 @@ void BitfieldFieldWidget::setEditEnabledImpl(bool enabled)
     }
 }
 
-void BitfieldFieldWidget::propertiesUpdatedImpl()
+void BitfieldFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     for (auto idx = 0U; idx < m_members.size(); ++idx) {
+        auto memberPropsVar = props.value(Property::indexedData(idx));
+        if ((!memberPropsVar.isValid()) || (!memberPropsVar.canConvert<QVariantMap>())) {
+            continue;
+        }
+
+        auto memberProps = memberPropsVar.value<QVariantMap>();
+
         auto* memberFieldWidget = m_members[idx];
-        updateMemberProperties(idx);
-        memberFieldWidget->propertiesUpdated();
+        assert(memberFieldWidget != nullptr);
+        memberFieldWidget->updateProperties(memberProps);
     }
 }
 
@@ -113,23 +130,6 @@ void BitfieldFieldWidget::refreshMembers()
     for (auto* memberFieldWidget : m_members) {
         memberFieldWidget->refresh();
     }
-}
-
-void BitfieldFieldWidget::updateMemberProperties(std::size_t idx)
-{
-    assert(idx < m_members.size());
-    FieldWidget* memberFieldWidget = m_members[idx];
-    assert(memberFieldWidget != nullptr);
-    auto propsVar = Property::getIndexedDataVal(*this, idx);
-    if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
-        auto map = propsVar.value<QVariantMap>();
-        auto keys = map.keys();
-        for (auto& k : keys) {
-            memberFieldWidget->setProperty(k.toUtf8().data(), map[k]);
-        }
-    }
-
-    Property::setSerialisedHiddenVal(*memberFieldWidget, true);
 }
 
 }  // namespace comms_champion

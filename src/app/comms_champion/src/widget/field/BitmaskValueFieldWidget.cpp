@@ -36,6 +36,10 @@ BitmaskValueFieldWidget::BitmaskValueFieldWidget(
     m_checkboxes(m_wrapper->bitIdxLimit())
 {
     m_ui.setupUi(this);
+    setNameLabelWidget(m_ui.m_nameLabel);
+    setValueWidget(m_ui.m_valueWidget);
+    setSeparatorWidget(m_ui.m_sepLine);
+    setSerialisedValueWidget(m_ui.m_serValueWidget);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
@@ -82,9 +86,29 @@ void BitmaskValueFieldWidget::setEditEnabledImpl(bool enabled)
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void BitmaskValueFieldWidget::propertiesUpdatedImpl()
+void BitmaskValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    readPropertiesAndUpdateUi();
+    for (auto* checkbox : m_checkboxes) {
+        delete checkbox;
+    }
+
+    m_checkboxes.clear();
+    m_checkboxes.resize(m_wrapper->bitIdxLimit());
+
+    for (unsigned idx = 0; idx < m_checkboxes.size(); ++idx) {
+
+        auto indexedName = props.value(Property::indexedName(idx));
+        if ((indexedName.isValid()) &&
+            (indexedName.canConvert<QString>())) {
+            auto* checkbox = new QCheckBox(indexedName.value<QString>());
+            m_ui.m_checkboxesLayout->addWidget(checkbox);
+            m_checkboxes[idx] = checkbox;
+
+            connect(checkbox, SIGNAL(stateChanged(int)),
+                    this, SLOT(checkBoxUpdated(int)));
+        }
+    }
+
     refresh();
 }
 
@@ -111,49 +135,6 @@ void BitmaskValueFieldWidget::checkBoxUpdated(int value)
     refresh();
     if (updated) {
         emitFieldUpdated();
-    }
-}
-
-void BitmaskValueFieldWidget::readPropertiesAndUpdateUi()
-{
-    assert(m_ui.m_nameLabel != nullptr);
-    updateNameLabel(*m_ui.m_nameLabel);
-    for (auto& checkbox : m_checkboxes) {
-        if (checkbox != nullptr) {
-            m_ui.m_checkboxesLayout->removeWidget(checkbox);
-            checkbox = nullptr;
-        }
-    }
-    createCheckboxes();
-
-    bool serHidden = false;
-    auto serHiddenVar = Property::getSerialisedHiddenVal(*this);
-    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
-        serHidden = serHiddenVar.value<bool>();
-    }
-
-    m_ui.m_serValueLineEdit->setHidden(serHidden);
-    m_ui.m_serFrontLabel->setHidden(serHidden);
-    m_ui.m_serBackLabel->setHidden(serHidden);
-    m_ui.m_sepLine->setHidden(serHidden);
-}
-
-void BitmaskValueFieldWidget::createCheckboxes()
-{
-    auto bitIdxLimit = m_wrapper->bitIdxLimit();
-    assert(m_checkboxes.size() == bitIdxLimit);
-    for (unsigned idx = 0; idx < bitIdxLimit; ++idx) {
-
-        auto indexedName = property(Property::indexedName(idx).toUtf8().data());
-        if ((indexedName.isValid()) &&
-            (indexedName.canConvert<QString>())) {
-            auto* checkbox = new QCheckBox(indexedName.value<QString>());
-            m_ui.m_checkboxesLayout->addWidget(checkbox);
-            m_checkboxes[idx] = checkbox;
-
-            connect(checkbox, SIGNAL(stateChanged(int)),
-                    this, SLOT(checkBoxUpdated(int)));
-        }
     }
 }
 

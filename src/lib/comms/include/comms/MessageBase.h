@@ -105,20 +105,14 @@ public:
     typedef comms::util::TupleCatT<std::tuple<FieldsOption>, typename Base::AllOptions> AllOptions;
     typedef typename FieldsOption::Fields AllFields;
 
-    AllFields& getFields()
+    AllFields& fields()
     {
         return fields_;
     }
 
-    const AllFields& getFields() const
+    const AllFields& fields() const
     {
         return fields_;
-    }
-
-    template <typename TNewFields>
-    void setFields(TNewFields&& fields)
-    {
-        fields_ = std::forward<TNewFields>(fields);
     }
 
 protected:
@@ -134,6 +128,37 @@ protected:
         util::tupleForEach(fields_, FieldReader(iter, status, remainingSize));
         return status;
     }
+
+    template <std::size_t TIdx>
+    ErrorStatus readFieldsUntil(
+        typename Base::ReadIterator& iter,
+        std::size_t& size)
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        util::tupleForEachUntil<TIdx>(fields_, FieldReader(iter, status, size));
+        return status;
+    }
+
+    template <std::size_t TIdx>
+    ErrorStatus readFieldsFrom(
+        typename Base::ReadIterator& iter,
+        std::size_t& size)
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        util::tupleForEachFrom<TIdx>(fields_, FieldReader(iter, status, size));
+        return status;
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    ErrorStatus readFieldsFromUntil(
+        typename Base::ReadIterator& iter,
+        std::size_t& size)
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields_, FieldReader(iter, status, size));
+        return status;
+    }
+
 #endif // #ifndef COMMS_NO_READ
 
 #ifndef COMMS_NO_WRITE
@@ -144,6 +169,39 @@ protected:
         ErrorStatus status = ErrorStatus::Success;
         std::size_t remainingSize = size;
         util::tupleForEach(fields_, FieldWriter(iter, status, remainingSize));
+        return status;
+    }
+
+    template <std::size_t TIdx>
+    ErrorStatus writeFieldsUntil(
+        typename Base::WriteIterator& iter,
+        std::size_t size) const
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachUntil<TIdx>(fields_, FieldWriter(iter, status, remainingSize));
+        return status;
+    }
+
+    template <std::size_t TIdx>
+    ErrorStatus writeFieldsFrom(
+        typename Base::WriteIterator& iter,
+        std::size_t size) const
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachFrom<TIdx>(fields_, FieldWriter(iter, status, remainingSize));
+        return status;
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    ErrorStatus writeFieldsFromUntil(
+        typename Base::WriteIterator& iter,
+        std::size_t size) const
+    {
+        ErrorStatus status = ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields_, FieldWriter(iter, status, remainingSize));
         return status;
     }
 #endif // #ifndef COMMS_NO_WRITE
@@ -189,7 +247,7 @@ private:
         }
     private:
         ReadIterator& iter_;
-        ErrorStatus status_;
+        ErrorStatus& status_;
         std::size_t& size_;
     };
 
@@ -217,7 +275,7 @@ private:
 
     private:
         WriteIterator& iter_;
-        ErrorStatus status_;
+        ErrorStatus& status_;
         std::size_t& size_;
     };
 

@@ -32,12 +32,10 @@ namespace plugin
 
 typedef std::tuple<
     comms::option::MsgIdType<demo::message::MsgId>,
-    comms::option::LittleEndian,
-    comms::option::ReadIterator<const std::uint8_t*>,
-    comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >
+    comms::option::LittleEndian
 >CCDemoDefaultOptions;
 
-class CCDemoMessage : public comms_champion::MessageBase<CCDemoDefaultOptions>
+class CCDemoMessage : public comms_champion::MessageBase<demo::message::DemoMessageT, CCDemoDefaultOptions>
 {
 public:
     CCDemoMessage() = default;

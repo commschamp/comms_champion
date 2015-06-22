@@ -11,6 +11,7 @@ function (bin_comms_champion)
         GlobalConstants.cpp
         Property.cpp
         DefaultMessageDisplayHandler.cpp
+        FieldWidgetCreator.cpp
         FieldWidget.cpp
         FieldWrapper.cpp
         ConfigMgr.cpp
@@ -35,11 +36,16 @@ function (bin_comms_champion)
         widget/ProtocolsStackWidget.cpp
         widget/MessageUpdateDialog.cpp
         widget/PluginConfigDialog.cpp
-        widget/field/BasicIntValueFieldWidget.cpp
+        widget/field/IntValueFieldWidget.cpp
+        widget/field/LongIntValueFieldWidget.cpp
         widget/field/BitmaskValueFieldWidget.cpp
-        widget/field/BasicEnumValueFieldWidget.cpp
+        widget/field/EnumValueFieldWidget.cpp
         widget/field/StringFieldWidget.cpp
         widget/field/BitfieldFieldWidget.cpp
+        widget/field/OptionalFieldWidget.cpp
+        widget/field/BundleFieldWidget.cpp
+        widget/field/ArrayListRawDataFieldWidget.cpp
+        widget/field/ArrayListFieldWidget.cpp
         widget/field/UnknownValueFieldWidget.cpp
     )
     
@@ -59,11 +65,16 @@ function (bin_comms_champion)
         widget/PluginConfigDialog.h
         widget/MainWindowWidget.h
         widget/DefaultMessageDisplayWidget.h
-        widget/field/BasicIntValueFieldWidget.h
+        widget/field/IntValueFieldWidget.h
+        widget/field/LongIntValueFieldWidget.h
         widget/field/BitmaskValueFieldWidget.h
-        widget/field/BasicEnumValueFieldWidget.h
+        widget/field/EnumValueFieldWidget.h
         widget/field/StringFieldWidget.h
         widget/field/BitfieldFieldWidget.h
+        widget/field/OptionalFieldWidget.h
+        widget/field/BundleFieldWidget.h
+        widget/field/ArrayListRawDataFieldWidget.h
+        widget/field/ArrayListFieldWidget.h
         widget/field/UnknownValueFieldWidget.h
         ${_inc_dir}/Message.h      
         ${_inc_dir}/FieldWidget.h      
@@ -81,11 +92,16 @@ function (bin_comms_champion)
         ui/ProtocolsStackWidget.ui
         ui/MessageUpdateDialog.ui
         ui/PluginConfigDialog.ui
-        ui/BasicIntValueFieldWidget.ui
+        ui/IntValueFieldWidget.ui
+        ui/LongIntValueFieldWidget.ui
         ui/BitmaskValueFieldWidget.ui
-        ui/BasicEnumValueFieldWidget.ui
+        ui/EnumValueFieldWidget.ui
         ui/StringFieldWidget.ui
         ui/BitfieldFieldWidget.ui
+        ui/OptionalFieldWidget.ui
+        ui/ArrayListRawDataFieldWidget.ui
+        ui/ArrayListFieldWidget.ui
+        ui/ArrayListElementWidget.ui
         ui/UnknownValueFieldWidget.ui
     )
     

@@ -32,7 +32,10 @@ StringFieldWidget::StringFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
-
+    setNameLabelWidget(m_ui.m_nameLabel);
+    setValueWidget(m_ui.m_valueWidget);
+    setSeparatorWidget(m_ui.m_sepLine);
+    setSerialisedValueWidget(m_ui.m_serValueWidget);
 
     connect(
         m_ui.m_valuePlainTextEdit, SIGNAL(textChanged()),
@@ -40,7 +43,6 @@ StringFieldWidget::StringFieldWidget(
 
 
     refresh();
-    readPropertiesAndUpdateUi();
 }
 
 StringFieldWidget::~StringFieldWidget() = default;
@@ -84,11 +86,6 @@ void StringFieldWidget::setEditEnabledImpl(bool enabled)
     m_ui.m_valuePlainTextEdit->setReadOnly(readonly);
 }
 
-void StringFieldWidget::propertiesUpdatedImpl()
-{
-    readPropertiesAndUpdateUi();
-}
-
 void StringFieldWidget::stringChanged()
 {
     auto str = m_ui.m_valuePlainTextEdit->toPlainText();
@@ -99,12 +96,6 @@ void StringFieldWidget::stringChanged()
     m_wrapper->setValue(str);
     refresh();
     emitFieldUpdated();
-}
-
-void StringFieldWidget::readPropertiesAndUpdateUi()
-{
-    assert(m_ui.m_nameLabel != nullptr);
-    updateNameLabel(*m_ui.m_nameLabel);
 }
 
 }  // namespace comms_champion

@@ -32,6 +32,29 @@ namespace comms
 namespace protocol
 {
 
+namespace details
+{
+
+template <class T, class R = void>
+struct EnableIfHasAllMessages { typedef R Type; };
+
+template <class T, class Enable = void>
+struct AllMessagesHelper
+{
+    typedef void Type;
+};
+
+template <class T>
+struct AllMessagesHelper<T, typename EnableIfHasAllMessages<typename T::AllMessages>::Type>
+{
+    typedef typename T::AllMessages Type;
+};
+
+template <class T>
+using AllMessagesType = typename AllMessagesHelper<T>::Type;
+
+}  // namespace details
+
 template <typename TField, typename TNextLayer, typename TDerived>
 class ProtocolLayerBase
 {
@@ -47,6 +70,8 @@ public:
                 std::declval<typename TNextLayer::AllFields>())
             )
         >::type AllFields;
+
+    typedef details::AllMessagesType<NextLayer> AllMessages;
 
     typedef typename NextLayer::MsgPtr MsgPtr;
 
@@ -96,17 +121,15 @@ public:
         return static_cast<const TDerived*>(this)->fieldLength() + nextLayer_.length(msg);
     }
 
-    constexpr std::size_t fieldLength() const
+    static constexpr std::size_t fieldLength()
     {
-        return Field().length();
+        return Field::minLength();
     }
 
     template <typename TIter>
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
-        auto len = Field().length();
-        std::advance(iter, len);
-        return nextLayer_.update(iter, size - len);
+        return updateInternal(iter, size, LengthTag());
     }
 
     template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
@@ -115,9 +138,7 @@ public:
         TUpdateIter& iter,
         std::size_t size) const
     {
-        auto len = Field().length();
-        std::advance(iter, len);
-        return nextLayer_.updateFieldsCached<TIdx + 1>(allFields, iter, size - len);
+        return updateFieldsCachedInternal<TIdx>(allFields, iter, size, LengthTag());
     }
 
     MsgPtr createMsg(MsgIdParamType id)
@@ -126,6 +147,14 @@ public:
     }
 
 protected:
+
+    struct FixedLengthTag {};
+    struct VarLengthTag {};
+    typedef typename std::conditional<
+        (Field::minLength() == Field::maxLength()),
+        FixedLengthTag,
+        VarLengthTag
+    >::type LengthTag;
 
     class NextLayerReader
     {
@@ -278,7 +307,7 @@ protected:
     void updateMissingSize(
         const Field& field,
         std::size_t size,
-        std::size_t* missingSize)
+        std::size_t* missingSize) const
     {
         if (missingSize != nullptr) {
             auto totalLen = field.length() + nextLayer_.length();
@@ -343,6 +372,55 @@ protected:
 
 
 private:
+
+    template <typename TIter>
+    comms::ErrorStatus updateInternal(TIter& iter, std::size_t size, FixedLengthTag) const
+    {
+        auto len = Field().length();
+        GASSERT(len <= size);
+        std::advance(iter, len);
+        return nextLayer_.update(iter, size - len);
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus updateInternal(TIter& iter, std::size_t size, VarLengthTag) const
+    {
+        Field field;
+        auto es = field.read(iter, size);
+        if (es == comms::ErrorStatus::Success) {
+            es = nextLayer_.update(iter, size - field.length());
+        }
+        return es;
+    }
+
+    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    ErrorStatus updateFieldsCachedInternal(
+        TAllFields& allFields,
+        TUpdateIter& iter,
+        std::size_t size,
+        FixedLengthTag) const
+    {
+        auto len = Field().length();
+        GASSERT(len <= size);
+        std::advance(iter, len);
+        return nextLayer_.updateFieldsCached<TIdx + 1>(allFields, iter, size - len);
+    }
+
+    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    ErrorStatus updateFieldsCachedInternal(
+        TAllFields& allFields,
+        TUpdateIter& iter,
+        std::size_t size,
+        VarLengthTag) const
+    {
+        Field field;
+        auto es = field.read(iter, size);
+        if (es == comms::ErrorStatus::Success) {
+            es = nextLayer_.updateFieldsCached<TIdx + 1>(allFields, iter, size - field.length());
+        }
+        return es;
+    }
+
 
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");
     NextLayer nextLayer_;

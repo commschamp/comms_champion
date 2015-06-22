@@ -22,8 +22,8 @@
 #include <iterator>
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
-#include "comms/field/VarSizeArray.h"
-#include "comms/field/BasicIntValue.h"
+#include "comms/field/ArrayList.h"
+#include "comms/field/IntValue.h"
 
 namespace comms
 {
@@ -34,9 +34,9 @@ namespace protocol
 template <
     typename TMessage,
     typename TField =
-        comms::field::VarSizeArray<
+        comms::field::ArrayList<
             typename TMessage::Field,
-            comms::field::BasicIntValue<typename TMessage::Field, std::uint8_t>
+            std::uint8_t
         >
 >
 class MsgDataLayer
@@ -210,8 +210,9 @@ private:
         auto es = read(msgPtr, iter, size, missingSize);
         auto dataSize = static_cast<std::size_t>(std::distance(dataIter, iter));
         auto dataEs = field.read(dataIter, dataSize);
-        GASSERT((!msgPtr) || (dataSize == msgPtr->length()));
+        static_cast<void>(dataEs);
         GASSERT(dataEs == comms::ErrorStatus::Success);
+        GASSERT((es != ErrorStatus::Success) || (!msgPtr) || (dataSize == msgPtr->length()));
         return es;
     }
 

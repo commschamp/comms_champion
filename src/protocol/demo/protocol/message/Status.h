@@ -41,7 +41,7 @@ enum ExecutionStatus
 template <typename TFieldBase>
 using StatusFields =
     std::tuple<
-        comms::field::BasicEnumValue<
+        comms::field::EnumValue<
             TFieldBase,
             ExecutionStatus,
             comms::option::FixedLength<1>,

@@ -20,8 +20,11 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cassert>
 
 #include <QtCore/QString>
+
+#include "comms/comms.h"
 
 namespace comms_champion
 {
@@ -78,6 +81,7 @@ class FieldWrapperT : public TBase
     using Base = TBase;
     using Field = TField;
 public:
+    typedef typename Base::SerialisedSeq SerialisedSeq;
     virtual ~FieldWrapperT() = default;
 
 protected:
@@ -107,6 +111,28 @@ protected:
         return m_field;
     }
 
+    virtual SerialisedSeq getSerialisedValueImpl() const override
+    {
+        SerialisedSeq seq;
+        seq.reserve(m_field.length());
+        auto iter = std::back_inserter(seq);
+        auto es = m_field.write(iter, seq.max_size());
+        static_cast<void>(es);
+        assert(es == comms::ErrorStatus::Success);
+        assert(seq.size() == m_field.length());
+        return seq;
+    }
+
+    virtual bool setSerialisedValueImpl(const SerialisedSeq& value) override
+    {
+        if (value.empty()) {
+            return false;
+        }
+
+        auto iter = &value[0];
+        auto es = m_field.read(iter, value.size());
+        return es == comms::ErrorStatus::Success;
+    }
 
 private:
     Field& m_field;

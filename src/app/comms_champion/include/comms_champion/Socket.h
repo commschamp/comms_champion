@@ -54,7 +54,6 @@ public slots:
         sendDataImpl(std::move(dataPtr));
     }
 
-
     void feedInData(DataInfoPtr dataPtr)
     {
         feedInDataImpl(std::move(dataPtr));

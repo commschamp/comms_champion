@@ -1,0 +1,120 @@
+//
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#include "SerialSocketPlugin.h"
+
+#include <memory>
+#include <cassert>
+
+#include "SerialSocket.h"
+#include "SerialSocketConfigWidget.h"
+
+namespace comms_champion
+{
+
+namespace plugin
+{
+
+namespace serial_socket
+{
+
+namespace
+{
+
+const QString MainConfigKey("cc_serial_socket");
+//const QString PortSubKey("port");
+
+}  // namespace
+
+SerialSocketPlugin::SerialSocketPlugin()
+{
+}
+
+SerialSocketPlugin::~SerialSocketPlugin()
+{
+    if (isApplied()) {
+        auto* interface = getCtrlInterface();
+        assert(interface != nullptr);
+        assert(m_socket);
+        interface->removeSocket(m_socket);
+        m_socket.reset();
+    }
+}
+
+void SerialSocketPlugin::applyImpl()
+{
+    assert(!isApplied());
+    createSocketIfNeeded();
+
+    auto* interface = getCtrlInterface();
+    if (interface != nullptr) {
+        interface->addSocket(m_socket);
+    }
+    assert(m_socket);
+}
+
+void SerialSocketPlugin::getCurrentConfigImpl(QVariantMap& config)
+{
+    createSocketIfNeeded();
+
+    QVariantMap subConfig;
+//    subConfig.insert(PortSubKey, QVariant::fromValue(m_socket->getPort()));
+    config.insert(MainConfigKey, QVariant::fromValue(subConfig));
+}
+
+void SerialSocketPlugin::reconfigureImpl(const QVariantMap& config)
+{
+    auto subConfigVar = config.value(MainConfigKey);
+    if ((!subConfigVar.isValid()) || (!subConfigVar.canConvert<QVariantMap>())) {
+        return;
+    }
+
+    auto subConfig = subConfigVar.value<QVariantMap>();
+//    auto portVar = subConfig.value(PortSubKey);
+//    if ((!portVar.isValid()) || (!portVar.canConvert<PortType>())) {
+//        return;
+//    }
+//
+//    auto port = portVar.value<PortType>();
+
+    createSocketIfNeeded();
+
+//    m_socket->setPort(port);
+}
+
+SerialSocketPlugin::WidgetPtr SerialSocketPlugin::getConfigWidgetImpl()
+{
+    createSocketIfNeeded();
+    assert(m_socket);
+    return WidgetPtr(new SerialSocketConfigWidget(*m_socket));
+}
+
+void SerialSocketPlugin::createSocketIfNeeded()
+{
+    if (!m_socket) {
+        m_socket.reset(new SerialSocket());
+    }
+}
+
+}  // namespace serial_socket
+
+}  // namespace plugin
+
+
+}  // namespace comms_champion
+
+

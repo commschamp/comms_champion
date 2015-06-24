@@ -18,6 +18,9 @@
 #include <iostream>
 #include <cassert>
 #include "SerialSocket.h"
+#include <QtSerialPort/QSerialPortInfo>
+
+#include <algorithm>
 
 namespace comms_champion
 {
@@ -30,49 +33,52 @@ namespace serial_socket
 
 SerialSocket::SerialSocket()
 {
-//    connect(
-//        &m_server, SIGNAL(newConnection()),
-//        this, SLOT(newConnection()));
+    auto list = QSerialPortInfo::availablePorts();
+    auto firstDev = std::min_element(
+        list.begin(), list.end(),
+        [](const QSerialPortInfo& info1, const QSerialPortInfo& info2) -> bool
+        {
+            return info1.systemLocation() < info2.systemLocation();
+        });
+
+    if (firstDev != list.end()) {
+        m_name = firstDev->systemLocation();
+    }
+
+    connect(
+        &m_serial, SIGNAL(error(QSerialPort::SerialPortError)),
+        this, SLOT(errorOccurred(QSerialPort::SerialPortError)));
+
+    connect(
+        &m_serial, SIGNAL(readyRead()),
+        this, SLOT(performRead()));
 }
 
 SerialSocket::~SerialSocket() = default;
 
 bool SerialSocket::startImpl()
 {
-//    if (m_server.isListening()) {
-//        assert(!"Already listening");
-//        static const QString AlreadyListeningError(
-//            tr("Previous run of TCP/IP Server socket wasn't terminated properly."));
-//        reportError(AlreadyListeningError);
-//        return false;
-//    }
-//
-//    if (!m_server.listen(QHostAddress::Any, m_port)) {
-//        static const QString FailedToListenError(
-//            tr("Failed to listen on specified TCP/IP port."));
-//        reportError(FailedToListenError);
-//        return false;
-//    }
+    if (!m_serial.open(QSerialPort::ReadWrite)) {
+        static const QString FailedToOpenError(
+            tr("Failed to open serial port."));
+        reportError(FailedToOpenError);
+        return false;
+    }
 
     return true;
 }
 
 void SerialSocket::stopImpl()
 {
-//    m_server.close();
+    m_serial.close();
 }
 
 void SerialSocket::sendDataImpl(DataInfoPtr dataPtr)
 {
-    static_cast<void>(dataPtr);
-//    assert(dataPtr);
-//    for (auto* socketTmp : m_sockets) {
-//        auto* socket = qobject_cast<QTcpSocket*>(socketTmp);
-//        assert(socket != nullptr);
-//        socket->write(
-//            reinterpret_cast<const char*>(&dataPtr->m_data[0]),
-//            dataPtr->m_data.size());
-//    }
+    assert(dataPtr);
+    m_serial.write(
+        reinterpret_cast<const char*>(&dataPtr->m_data[0]),
+        dataPtr->m_data.size());
 }
 
 void SerialSocket::feedInDataImpl(DataInfoPtr dataPtr)
@@ -81,39 +87,30 @@ void SerialSocket::feedInDataImpl(DataInfoPtr dataPtr)
     assert(!"Expected to be bottom socket, should not be called");
 }
 
-//void SerialSocket::readFromSocket()
-//{
-//    auto* socket = qobject_cast<QTcpSocket*>(sender());
-//    assert(socket != nullptr);
-//
-//    auto dataPtr = makeDataInfo();
-//    dataPtr->m_timestamp = DataInfo::TimestampClock::now();
-//
-//    auto dataSize = socket->bytesAvailable();
-//    dataPtr->m_data.resize(dataSize);
-//    auto result =
-//        socket->read(reinterpret_cast<char*>(&dataPtr->m_data[0]), dataSize);
-//    if (result != dataSize) {
-//        dataPtr->m_data.resize(result);
-//    }
-//
-//    // TODO: provide origin information
-//    reportDataReceived(std::move(dataPtr));
-//}
-//
-//void SerialSocket::socketErrorOccurred(QAbstractSocket::SocketError err)
-//{
-//    if (err == QAbstractSocket::RemoteHostClosedError) {
-//        // Ignore remote client disconnection
-//        return;
-//    }
-//
-//    static_cast<void>(err);
-//    auto* socket = qobject_cast<QTcpSocket*>(sender());
-//    assert(socket != nullptr);
-//
-//    reportError(socket->errorString());
-//}
+void SerialSocket::performRead()
+{
+    assert(sender() == &m_serial);
+
+    auto dataPtr = makeDataInfo();
+    dataPtr->m_timestamp = DataInfo::TimestampClock::now();
+
+    auto dataSize = m_serial.bytesAvailable();
+    dataPtr->m_data.resize(dataSize);
+    auto result =
+        m_serial.read(reinterpret_cast<char*>(&dataPtr->m_data[0]), dataSize);
+    if (result != dataSize) {
+        dataPtr->m_data.resize(result);
+    }
+
+    reportDataReceived(std::move(dataPtr));
+}
+
+void SerialSocket::errorOccurred(QSerialPort::SerialPortError err)
+{
+    static_cast<void>(err);
+    reportError(m_serial.errorString());
+    m_serial.clearError();
+}
 
 }  // namespace serial_socket
 

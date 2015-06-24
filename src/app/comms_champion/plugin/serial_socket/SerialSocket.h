@@ -86,7 +86,9 @@ protected:
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
     virtual void feedInDataImpl(DataInfoPtr dataPtr) override;
 
-    //void socketErrorOccurred(QAbstractSocket::SocketError err);
+private slots:
+    void performRead();
+    void errorOccurred(QSerialPort::SerialPortError err);
 
 private:
     QSerialPort m_serial;

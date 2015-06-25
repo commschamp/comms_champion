@@ -27,10 +27,6 @@
 
 #include "comms_champion/Plugin.h"
 
-//#include "MsgMgr.h"
-
-#include <iostream>
-
 namespace comms_champion
 {
 

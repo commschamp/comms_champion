@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <iostream>
 #include <cassert>
 #include "SerialSocket.h"
 #include <QtSerialPort/QSerialPortInfo>
@@ -58,12 +57,19 @@ SerialSocket::~SerialSocket() = default;
 
 bool SerialSocket::startImpl()
 {
+    m_serial.setPortName(m_name);
     if (!m_serial.open(QSerialPort::ReadWrite)) {
         static const QString FailedToOpenError(
             tr("Failed to open serial port."));
         reportError(FailedToOpenError);
         return false;
     }
+
+    m_serial.setBaudRate(m_baud);
+    m_serial.setDataBits(m_dataBits);
+    m_serial.setParity(m_parity);
+    m_serial.setStopBits(m_stopBits);
+    m_serial.setFlowControl(m_flowControl);
 
     return true;
 }
@@ -107,6 +113,10 @@ void SerialSocket::performRead()
 
 void SerialSocket::errorOccurred(QSerialPort::SerialPortError err)
 {
+    if (err == QSerialPort::NoError) {
+        return;
+    }
+
     static_cast<void>(err);
     reportError(m_serial.errorString());
     m_serial.clearError();

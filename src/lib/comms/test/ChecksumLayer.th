@@ -24,7 +24,7 @@
 #include "cxxtest/TestSuite.h"
 #include "CommsTestCommon.h"
 
-class SyncPrefixLayerTestSuite : public CxxTest::TestSuite
+class ChecksumLayerTestSuite : public CxxTest::TestSuite
 {
 public:
     void test1();
@@ -133,27 +133,46 @@ private:
     using BeIdField2 = IdField2<BeField>;
     using LeIdField2 = IdField2<LeField>;
 
-    template <typename TSyncField, typename TSizeField, typename TIdField, typename TMessage>
+
+    template <typename TField, std::size_t TLen>
+    using ChecksumField =
+        comms::field::IntValue<
+            TField,
+            typename comms::util::SizeToType<TLen>::Type
+        >;
+
+
+    template <typename TField>
+    using ChecksumField1 = ChecksumField<TField, 1U>;
+    using BeChecksumField1 = ChecksumField1<BeField>;
+    using LeChecksumField1 = ChecksumField1<LeField>;
+    using BeBackInsertChecksumField1 = ChecksumField1<BeBackInsertField>;
+
+    template <typename TSyncField, typename TChecksumField, typename TSizeField, typename TIdField, typename TMessage>
     using ProtocolStack =
         comms::protocol::SyncPrefixLayer<
             TSyncField,
-            comms::protocol::MsgSizeLayer<
-                TSizeField,
-                comms::protocol::MsgIdLayer<
-                    TIdField,
-                    AllMessages<TMessage>,
-                    comms::protocol::MsgDataLayer<TMessage>
+            comms::protocol::ChecksumLayer<
+                TChecksumField,
+                comms::protocol::checksum::BasicSum<>,
+                comms::protocol::MsgSizeLayer<
+                    TSizeField,
+                    comms::protocol::MsgIdLayer<
+                        TIdField,
+                        AllMessages<TMessage>,
+                        comms::protocol::MsgDataLayer<TMessage>
+                    >
                 >
             >
         >;
 };
 
-void SyncPrefixLayerTestSuite::test1()
+void ChecksumLayerTestSuite::test1()
 {
     static const std::uint16_t SyncValue = 0x68f5;
 
     static const char Buf[] = {
-        0x68, (char)0xf5, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        0x68, (char)0xf5, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -161,6 +180,7 @@ void SyncPrefixLayerTestSuite::test1()
     typedef
         ProtocolStack<
             BeSyncField2,
+            BeChecksumField1,
             BeSizeField20,
             BeIdField1,
             BeMsgBase
@@ -176,7 +196,7 @@ void SyncPrefixLayerTestSuite::test1()
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 }
 
-void SyncPrefixLayerTestSuite::test2()
+void ChecksumLayerTestSuite::test2()
 {
     static const std::uint16_t SyncValue = 0xdead;
 
@@ -184,7 +204,7 @@ void SyncPrefixLayerTestSuite::test2()
     std::get<0>(msg.fields()).value() = 0x0304;
 
     static const char ExpectedBuf[] = {
-        (char)0xad, (char)0xde, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03
+        (char)0xad, (char)0xde, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03, 0x0b
     };
 
     static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
@@ -193,6 +213,7 @@ void SyncPrefixLayerTestSuite::test2()
     typedef
         ProtocolStack<
             LeSyncField2,
+            LeChecksumField1,
             LeSizeField30,
             LeIdField2,
             LeMsgBase
@@ -203,12 +224,12 @@ void SyncPrefixLayerTestSuite::test2()
     commonWriteReadMsgTest(stack, msg, buf, BufSize, &ExpectedBuf[0]);
 }
 
-void SyncPrefixLayerTestSuite::test3()
+void ChecksumLayerTestSuite::test3()
 {
     static const std::uint16_t SyncValue = 0x68f5;
 
     static const char Buf[] = {
-        0x68, (char)0xe5, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        0x68, (char)0xf5, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x07, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -216,6 +237,7 @@ void SyncPrefixLayerTestSuite::test3()
     typedef
         ProtocolStack<
             BeSyncField2,
+            BeChecksumField1,
             BeSizeField20,
             BeIdField1,
             BeMsgBase
@@ -228,12 +250,12 @@ void SyncPrefixLayerTestSuite::test3()
     TS_ASSERT(!msgPtr);
 }
 
-void SyncPrefixLayerTestSuite::test4()
+void ChecksumLayerTestSuite::test4()
 {
     static const std::uint16_t SyncValue = 0x68f5;
 
     static const char Buf[] = {
-        0x68
+        0x68, (char)0xf5, 0x0, 0x3, MessageType1, 0x01, 0x02
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -241,6 +263,7 @@ void SyncPrefixLayerTestSuite::test4()
     typedef
         ProtocolStack<
             BeSyncField2,
+            BeChecksumField1,
             BeSizeField20,
             BeIdField1,
             BeMsgBase
@@ -252,20 +275,21 @@ void SyncPrefixLayerTestSuite::test4()
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
     TS_ASSERT(!msgPtr);
 }
-
-void SyncPrefixLayerTestSuite::test5()
+//
+void ChecksumLayerTestSuite::test5()
 {
     static const std::uint16_t SyncValue = 0xdead;
 
     LeMsg1 msg;
     std::get<0>(msg.fields()).value() = 0x0203;
 
-    char buf[1] = {0};
+    char buf[9] = {0};
     static const std::size_t BufSize = std::extent<decltype(buf)>::value;
 
     typedef
         ProtocolStack<
             LeSyncField2,
+            LeChecksumField1,
             LeSizeField30,
             LeIdField2,
             LeMsgBase
@@ -276,11 +300,11 @@ void SyncPrefixLayerTestSuite::test5()
     commonWriteReadMsgTest(stack, msg, buf, BufSize, nullptr, comms::ErrorStatus::BufferOverflow);
 }
 
-void SyncPrefixLayerTestSuite::test6()
+void ChecksumLayerTestSuite::test6()
 {
     static const std::uint16_t SyncValue = 0xdead;
     static const char Buf[] = {
-        (char)0xde, (char)0xad, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        (char)0xde, (char)0xad, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -288,6 +312,7 @@ void SyncPrefixLayerTestSuite::test6()
     typedef
         ProtocolStack<
             BeBackInsertSyncField2,
+            BeBackInsertChecksumField1,
             BeBackInsertSizeField20,
             BeBackInsertIdField1,
             BeBackInsertMsgBase

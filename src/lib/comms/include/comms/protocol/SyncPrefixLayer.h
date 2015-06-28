@@ -51,16 +51,8 @@ public:
     SyncPrefixLayer() = default;
 
     template <typename... TArgs>
-    SyncPrefixLayer(const Field& field, TArgs&&... args)
-      : Base(std::forward<TArgs>(args)...),
-        field_(field)
-    {
-    }
-
-    template <typename... TArgs>
-    SyncPrefixLayer(Field&& field, TArgs&&... args)
-      : Base(std::forward<TArgs>(args)...),
-        field_(std::move(field))
+    explicit SyncPrefixLayer(TArgs&&... args)
+      : Base(std::forward<TArgs>(args)...)
     {
     }
 

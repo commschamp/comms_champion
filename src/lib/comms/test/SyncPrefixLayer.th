@@ -80,7 +80,8 @@ private:
         comms::field::IntValue<
             TField,
             unsigned,
-            comms::option::FixedLength<TSize>
+            comms::option::FixedLength<TSize>,
+            comms::option::DefaultNumValue<0xabcd>
         >;
 
     template <typename TField>
@@ -150,10 +151,8 @@ private:
 
 void SyncPrefixLayerTestSuite::test1()
 {
-    static const std::uint16_t SyncValue = 0x68f5;
-
     static const char Buf[] = {
-        0x68, (char)0xf5, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -166,8 +165,7 @@ void SyncPrefixLayerTestSuite::test1()
             BeMsgBase
         > Stack;
 
-    static const BeSyncField2 ExpSync(SyncValue);
-    Stack stack(ExpSync);
+    Stack stack;
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
@@ -178,13 +176,11 @@ void SyncPrefixLayerTestSuite::test1()
 
 void SyncPrefixLayerTestSuite::test2()
 {
-    static const std::uint16_t SyncValue = 0xdead;
-
     LeMsg1 msg;
     std::get<0>(msg.fields()).value() = 0x0304;
 
     static const char ExpectedBuf[] = {
-        (char)0xad, (char)0xde, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03
+        (char)0xcd, (char)0xab, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03
     };
 
     static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
@@ -198,17 +194,14 @@ void SyncPrefixLayerTestSuite::test2()
             LeMsgBase
         > Stack;
 
-    static const LeSyncField2 ExpSync(SyncValue);
-    Stack stack(ExpSync);
+    Stack stack;
     commonWriteReadMsgTest(stack, msg, buf, BufSize, &ExpectedBuf[0]);
 }
 
 void SyncPrefixLayerTestSuite::test3()
 {
-    static const std::uint16_t SyncValue = 0x68f5;
-
     static const char Buf[] = {
-        0x68, (char)0xe5, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        (char)0xab, (char)0xce, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -221,8 +214,7 @@ void SyncPrefixLayerTestSuite::test3()
             BeMsgBase
         > Stack;
 
-    static const BeSyncField2 ExpSync(SyncValue);
-    Stack stack(ExpSync);
+    Stack stack;
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::ProtocolError);
     TS_ASSERT(!msgPtr);
@@ -230,10 +222,8 @@ void SyncPrefixLayerTestSuite::test3()
 
 void SyncPrefixLayerTestSuite::test4()
 {
-    static const std::uint16_t SyncValue = 0x68f5;
-
     static const char Buf[] = {
-        0x68
+        (char)0xab
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -246,8 +236,7 @@ void SyncPrefixLayerTestSuite::test4()
             BeMsgBase
         > Stack;
 
-    static const BeSyncField2 ExpSync(SyncValue);
-    Stack stack(ExpSync);
+    Stack stack;
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
     TS_ASSERT(!msgPtr);
@@ -255,8 +244,6 @@ void SyncPrefixLayerTestSuite::test4()
 
 void SyncPrefixLayerTestSuite::test5()
 {
-    static const std::uint16_t SyncValue = 0xdead;
-
     LeMsg1 msg;
     std::get<0>(msg.fields()).value() = 0x0203;
 
@@ -271,16 +258,14 @@ void SyncPrefixLayerTestSuite::test5()
             LeMsgBase
         > Stack;
 
-    static const LeSyncField2 ExpSync(SyncValue);
-    Stack stack(ExpSync);
+    Stack stack;
     commonWriteReadMsgTest(stack, msg, buf, BufSize, nullptr, comms::ErrorStatus::BufferOverflow);
 }
 
 void SyncPrefixLayerTestSuite::test6()
 {
-    static const std::uint16_t SyncValue = 0xdead;
     static const char Buf[] = {
-        (char)0xde, (char)0xad, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -293,8 +278,7 @@ void SyncPrefixLayerTestSuite::test6()
             BeBackInsertMsgBase
         > Stack;
 
-    static const BeBackInsertSyncField2 ExpSync(SyncValue);
-    Stack stack(ExpSync);
+    Stack stack;
 
     auto msgPtr = vectorBackInsertReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);

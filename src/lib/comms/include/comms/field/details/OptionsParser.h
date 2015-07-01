@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <tuple>
 #include "comms/options.h"
 
 namespace comms
@@ -175,6 +176,14 @@ public:
     static const bool HasFixedSizeStorage = true;
     static const std::size_t FixedSizeStorage = Option::Value;
 };
+
+template <typename... TTupleOptions, typename... TOptions>
+class OptionsParser<
+    std::tuple<TTupleOptions...>,
+    TOptions...> : public OptionsParser<TTupleOptions..., TOptions...>
+{
+};
+
 
 }  // namespace details
 

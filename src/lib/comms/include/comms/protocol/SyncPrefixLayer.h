@@ -47,7 +47,6 @@ public:
 
     typedef typename Base::Field Field;
 
-    // Inherit constructors
     SyncPrefixLayer() = default;
 
     template <typename... TArgs>
@@ -61,22 +60,6 @@ public:
     SyncPrefixLayer(SyncPrefixLayer&&) = default;
 
     ~SyncPrefixLayer() = default;
-
-    template <typename TOtherField>
-    void setExpectedPrefix(TOtherField&& field)
-    {
-        field_ = std::forward<TOtherField>(field);
-    }
-
-    const Field& getExpectedPrefix() const
-    {
-        return field_;
-    }
-
-    constexpr std::size_t fieldLength() const
-    {
-        return field_.length();
-    }
 
     template <typename TMsgPtr>
     ErrorStatus read(
@@ -121,7 +104,8 @@ public:
             WriteIterator& iter,
             std::size_t size) const
     {
-        return writeInternal(msg, iter, size, Base::createNextLayerWriter());
+        Field field;
+        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
     }
 
     template <std::size_t TIdx, typename TAllFields>
@@ -132,10 +116,9 @@ public:
         std::size_t size) const
     {
         auto& field = Base::template getField<TIdx>(allFields);
-        field = field_;
-
         return
             writeInternal(
+                field,
                 msg,
                 iter,
                 size,
@@ -162,7 +145,7 @@ private:
             return es;
         }
 
-        if (field != field_) {
+        if (field != Field()) {
             // doesn't match expected
             return ErrorStatus::ProtocolError;
         }
@@ -172,21 +155,20 @@ private:
 
     template <typename TWriter>
     ErrorStatus writeInternal(
+        const Field& field,
         const Message& msg,
         WriteIterator& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        auto es = field_.write(iter, size);
+        auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
         }
 
-        GASSERT(field_.length() <= size);
-        return nextLayerWriter.write(msg, iter, size - field_.length());
+        GASSERT(field.length() <= size);
+        return nextLayerWriter.write(msg, iter, size - field.length());
     }
-
-    Field field_;
 };
 
 }  // namespace protocol

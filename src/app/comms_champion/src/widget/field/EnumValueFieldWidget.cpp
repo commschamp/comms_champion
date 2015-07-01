@@ -117,7 +117,7 @@ void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         disconnect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),
                    this, SLOT(valueUpdated(int)));
 
-        disconnect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
+        disconnect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
                    this, SLOT(serialisedValueUpdated(const QString&)));
     }
 
@@ -157,14 +157,15 @@ void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     m_ui.m_valueComboBox->insertItem(0, InvalidValueComboText, QVariant(maxValue + 1));
     m_ui.m_valueComboBox->insertSeparator(1);
 
+    refresh();
+
     connect(m_ui.m_valueComboBox, SIGNAL(currentIndexChanged(int)),
             this, SLOT(valueUpdated(int)));
 
-    connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),
+    connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
     m_signalsConnected = true;
-    refresh();
 }
 
 void EnumValueFieldWidget::serialisedValueUpdated(const QString& value)

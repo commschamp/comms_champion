@@ -89,16 +89,13 @@ protected:
                 });
 
         while (true) {
-            using AllFields = typename ProtocolStack::AllFields;
             using ProtocolMsgPtr = typename ProtocolStack::MsgPtr;
 
-            AllFields fields;
             ProtocolMsgPtr msgPtr;
 
             auto readIterCur = readIterBeg;
             auto es =
-                m_protStack.template readFieldsCached<0>(
-                    fields,
+                m_protStack.read(
                     msgPtr,
                     readIterCur,
                     remainingSizeCalc(readIterCur));
@@ -118,23 +115,23 @@ protected:
                         allInfos.push_back(std::move(msgInfo));
                     });
 
-            auto setTransportMsgFunc =
-                [&fields, &msgInfo]()
-                {
-                    std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
-                    transportMsgPtr->fields() = fields;
-                    msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
-                };
-
-            auto setRawDataMsgFunc =
+            auto setTransportAndRawMsgsFunc =
                 [readIterBeg, &readIterCur, &msgInfo]()
                 {
-                    auto readIterBegTmp = readIterBeg;
                     // readIterBeg is captured by value on purpose
-                    std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
                     auto dataSize = static_cast<std::size_t>(
-                                    std::distance(readIterBegTmp, readIterCur));
-                    auto es = rawDataMsgPtr->read(readIterBegTmp, dataSize);
+                                std::distance(readIterBeg, readIterCur));
+
+                    auto readTransportIterBegTmp = readIterBeg;
+                    std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
+                    auto es = transportMsgPtr->read(readTransportIterBegTmp, dataSize);
+                    static_cast<void>(es);
+                    assert(es == comms::ErrorStatus::Success);
+                    msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+
+                    auto readRawIterBegTmp = readIterBeg;
+                    std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
+                    es = rawDataMsgPtr->read(readRawIterBegTmp, dataSize);
                     static_cast<void>(es);
                     assert(es == comms::ErrorStatus::Success);
                     msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
@@ -163,16 +160,14 @@ protected:
                 msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
                 assert(msgInfo->getAppMessage());
 
-                setTransportMsgFunc();
-                setRawDataMsgFunc();
+                setTransportAndRawMsgsFunc();
                 readIterBeg = readIterCur;
                 continue;
             }
 
             if (es == comms::ErrorStatus::InvalidMsgData) {
                 checkGarbageFunc();
-                setTransportMsgFunc();
-                setRawDataMsgFunc();
+                setTransportAndRawMsgsFunc();
                 readIterBeg = readIterCur;
                 continue;
             }
@@ -237,20 +232,17 @@ protected:
             auto msgPtr = msgInfo.getAppMessage();
             assert(msgPtr);
 
-            using AllFields = typename ProtocolStack::AllFields;
-            AllFields fields;
             std::vector<std::uint8_t> data;
 
             auto writeIter = std::back_inserter(data);
             auto es =
-                m_protStack.template writeFieldsCached<0>(
-                    fields,
+                m_protStack.write(
                     static_cast<const Message&>(*msgPtr),
                     writeIter,
                     data.max_size());
             if (es == comms::ErrorStatus::UpdateRequired) {
                 auto updateIter = &data[0];
-                es = m_protStack.template updateFieldsCached<0>(fields, updateIter, data.size());
+                es = m_protStack.template update(updateIter, data.size());
             }
 
             if (es != comms::ErrorStatus::Success) {
@@ -258,15 +250,26 @@ protected:
                 break;
             }
 
+            auto readMessageFunc =
+                [&data](Message& msg) -> bool
+                {
+                    typename Message::ReadIterator iter = &data[0];
+                    auto es = msg.read(iter, data.size());
+                    if (es != comms::ErrorStatus::Success) {
+                        return false;
+                    }
+
+                    return true;
+                };
+
             std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
-            transportMsgPtr->fields() = fields;
+            if (!readMessageFunc(*transportMsgPtr)) {
+                assert(!"Unexpected failure to read transport message");
+                break;
+            }
 
             std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
-
-            typedef typename RawDataMsg::ReadIterator ReadIterator;
-            ReadIterator rawDataReadIter = &data[0];
-            es = rawDataMsgPtr->read(rawDataReadIter, data.size());
-            if (es != comms::ErrorStatus::Success) {
+            if (!readMessageFunc(*rawDataMsgPtr)) {
                 assert(!"Unexpected failure to read raw data of the message");
                 break;
             }

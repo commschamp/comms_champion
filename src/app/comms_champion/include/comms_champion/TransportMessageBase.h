@@ -45,11 +45,11 @@ class TransportMessageImpl : public
 
 }  // namespace details
 
-template <typename TProtStack>
+template <typename TMessage, typename TAllFields>
 class TransportMessageBase : public
     ProtocolMessageBase<
-        details::TransportMessageImpl<typename TProtStack::Message, typename TProtStack::AllFields>,
-        TransportMessageBase<TProtStack>
+        details::TransportMessageImpl<TMessage, TAllFields>,
+        TransportMessageBase<TMessage, TAllFields>
     >
 {
 public:

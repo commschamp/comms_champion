@@ -293,9 +293,7 @@ protected:
             return MessageInfoPtr();
         }
 
-        auto msgId = actualAppMsg->getId();
-        auto clonedAppMsg = m_protStack.createMsg(msgId);
-        clonedAppMsg->assign(*actualAppMsg);
+        auto clonedAppMsg = cloneMessageInternal(*actualAppMsg);
         assert(clonedAppMsg);
 
         auto clonedMsgInfo = makeMessageInfo();
@@ -308,6 +306,26 @@ protected:
         assert(clonedMsgInfo->getRawDataMessage());
 
         return clonedMsgInfo;
+    }
+
+    virtual MessagesList createAllMessagesImpl() override
+    {
+        return createAllMessagesInTuple<AllMessages>();
+    }
+
+    virtual MessageInfoPtr createMessageImpl(const QString& idAsString) override
+    {
+        return createMessageInternal(idAsString, MsgIdTypeTag());
+    }
+
+    virtual MessageInfo::MessagePtr cloneMessageImpl(
+        const Message& msg)
+    {
+        auto msgId = msg.getId();
+        auto clonedMsg = m_protStack.createMsg(msgId);
+        assert(clonedMsg);
+        clonedMsg->assign(msg);
+        return std::move(clonedMsg);
     }
 
     ProtocolStack& protocolStack()
@@ -335,19 +353,15 @@ protected:
         return msgInfo;
     }
 
-    virtual MessagesList createAllMessagesImpl() override
+    template <typename TMsgsTuple>
+    MessagesList createAllMessagesInTuple()
     {
         MessagesList allMsgs;
-        comms::util::tupleForEachType<AllMessages>(AllMsgsCreateHelper(name(), allMsgs));
+        comms::util::tupleForEachType<TMsgsTuple>(AllMsgsCreateHelper(name(), allMsgs));
         for (auto& msgInfoPtr : allMsgs) {
             updateMessageInfo(*msgInfoPtr);
         }
         return allMsgs;
-    }
-
-    virtual MessageInfoPtr createMessageImpl(const QString& idAsString) override
-    {
-        return createMessageInternal(idAsString, MsgIdTypeTag());
     }
 
 private:
@@ -442,6 +456,12 @@ private:
             updateMessageInfo(*result);
         }
         return result;
+    }
+
+    MessageInfo::MessagePtr cloneMessageInternal(
+        const Message& msg)
+    {
+        return cloneMessageImpl(msg);
     }
 
     ProtocolStack m_protStack;

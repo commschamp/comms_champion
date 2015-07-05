@@ -41,31 +41,6 @@ public:
     ProtocolMessageBase& operator=(ProtocolMessageBase&&) = default;
 
 protected:
-    virtual QString idAsStringImpl() const override
-    {
-        auto id = Base::getId();
-
-        typedef typename std::decay<decltype(id)>::type IdType;
-        typedef typename std::conditional<
-            std::is_enum<IdType>::value,
-            EnumTag,
-            typename std::conditional<
-                std::is_integral<IdType>::value,
-                IntTag,
-                typename std::conditional<
-                    std::is_same<std::string, IdType>::value,
-                    StdStringTag,
-                    typename std::conditional<
-                        std::is_same<const char*, IdType>::value,
-                        CStringTag,
-                        OtherTag
-                    >::type
-                >::type
-            >::type
-        >::type Tag;
-
-        return idAsStringInternal(id, Tag());
-    }
 
     virtual void resetImpl() override
     {
@@ -85,44 +60,6 @@ protected:
         actObj = *castedOther;
     }
 
-private:
-    struct EnumTag {};
-    struct IntTag {};
-    struct StdStringTag {};
-    struct CStringTag {};
-    struct OtherTag {};
-
-    template <typename TId>
-    static QString idAsStringInternal(TId&& id, EnumTag)
-    {
-        typedef typename std::decay<decltype(id)>::type IdType;
-        typedef typename std::underlying_type<IdType>::type UnderlyingType;
-        return QString("%1").arg((UnderlyingType)id, 1, 10, QChar('0'));
-    }
-
-    template <typename TId>
-    static QString idAsStringInternal(TId&& id, IntTag)
-    {
-        return QString("%1").arg(id, 1, 10, QChar('0'));
-    }
-
-    template <typename TId>
-    static QString idAsStringInternal(TId&& id, StdStringTag)
-    {
-        return QString::fromStdString(id);
-    }
-
-    template <typename TId>
-    QString idAsStringInternal(TId&& id, CStringTag)
-    {
-        return QString(id);
-    }
-
-    template <typename TId>
-    QString idAsStringInternal(TId&& id, OtherTag)
-    {
-        return QString();
-    }
 };
 
 }  // namespace comms_champion

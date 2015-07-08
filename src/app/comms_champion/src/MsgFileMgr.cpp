@@ -289,7 +289,7 @@ MsgInfosList MsgFileMgr::convertMsgList(
                     ((QChar('a') <= ch) && (ch <= QChar('f')));
             });
 
-        if ((dataStr.size() & 0x1) != 0) {
+        if ((stripedDataStr.size() & 0x1) != 0) {
             stripedDataStr.prepend(QChar('0'));
         }
 

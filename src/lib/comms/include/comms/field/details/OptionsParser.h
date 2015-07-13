@@ -40,7 +40,8 @@ struct OptionsParser<>
     static const bool HasFixedLengthLimit = false;
     static const bool HasFixedBitLengthLimit = false;
     static const bool HasVarLengthLimits = false;
-    static const bool HasSequenceSizeFieldPrefix=false;
+    static const bool HasSequenceSizeFieldPrefix = false;
+    static const bool HasSequenceSizeForcing = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
     static const bool HasFailOnInvalid = false;
@@ -115,9 +116,27 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
     typedef comms::option::SequenceSizeFieldPrefix<TSizeField> Option;
+    typedef OptionsParser<TOptions...> Base;
+    static_assert(!Base::HasSequenceSizeForcing,
+        "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
+        "mustn't be used together");
+
 public:
     static const bool HasSequenceSizeFieldPrefix = true;
     typedef typename Option::Type SequenceSizeFieldPrefix;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceSizeForcingEnabled,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef OptionsParser<TOptions...> Base;
+    static_assert(!Base::HasSequenceSizeFieldPrefix,
+        "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
+        "mustn't be used together");
+public:
+    static const bool HasSequenceSizeForcing = true;
 };
 
 template <typename TInitialiser, typename... TOptions>

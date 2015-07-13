@@ -23,6 +23,7 @@
 #include "adapter/FixedBitLength.h"
 #include "adapter/VarLength.h"
 #include "adapter/SequenceSizeFieldPrefix.h"
+#include "adapter/SequenceSizeForcing.h"
 #include "adapter/DefaultValueInitialiser.h"
 #include "adapter/CustomValidator.h"
 #include "adapter/FailOnInvalid.h"

@@ -95,20 +95,7 @@ public:
         auto count = static_cast<std::size_t>(sizeField.value());
         len -= sizeField.length();
 
-        Base::clear();
-        while (0 < count) {
-            auto elem = ElementType();
-            es = Base::readElement(elem, iter, len);
-
-            if (es != ErrorStatus::Success) {
-                return es;
-            }
-
-            Base::pushBack(std::move(elem));
-            --count;
-        }
-
-        return ErrorStatus::Success;
+        return Base::readN(count, iter, len);
     }
 
     template <typename TIter>

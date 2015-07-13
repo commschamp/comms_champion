@@ -78,6 +78,22 @@ public:
         return Next::writeElement(elem, iter, len);
     }
 
+    template <typename TIter>
+    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t len)
+    {
+        return Base::next().readN(count, iter, len);
+    }
+
+    void forceReadElemCount(std::size_t count)
+    {
+        Base::next().forceReadElemCount(count);
+    }
+
+    void clearReadElemCount()
+    {
+        Base::next().clearReadElemCount();
+    }
+
 protected:
     CollectionFieldAdapterBase() = default;
     explicit CollectionFieldAdapterBase(const ValueType& value)

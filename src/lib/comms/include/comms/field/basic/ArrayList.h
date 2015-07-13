@@ -184,6 +184,25 @@ public:
     }
 
     template <typename TIter>
+    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t len)
+    {
+        value_.clear();
+        auto remLen = len;
+        while (0 < count) {
+            auto elem = ElementType();
+            auto es = readElement(elem, iter, remLen);
+            if (es != ErrorStatus::Success) {
+                return es;
+            }
+
+            value_.push_back(std::move(elem));
+            --count;
+        }
+
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
     static ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len)
     {
         return writeElementInternal(elem, iter, len, ElemTag());
@@ -206,6 +225,16 @@ public:
         }
 
         return es;
+    }
+
+    void forceReadElemCount(std::size_t)
+    {
+        GASSERT(!"Not supported, use SequenceSizeForcingEnabled option");
+    }
+
+    void clearReadElemCount()
+    {
+        GASSERT(!"Not supported, use SequenceSizeForcingEnabled option");
     }
 
 private:

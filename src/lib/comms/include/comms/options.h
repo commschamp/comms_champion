@@ -131,6 +131,10 @@ struct SequenceSizeFieldPrefix
     typedef TField Type;
 };
 
+struct SequenceSizeForcingEnabled
+{
+};
+
 template <typename T>
 struct DefaultValueInitialiser
 {

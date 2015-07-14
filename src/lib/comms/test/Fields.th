@@ -64,6 +64,7 @@ public:
     void test32();
     void test33();
     void test34();
+    void test35();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -97,6 +98,12 @@ private:
         const char* expectedBuf,
         std::size_t size,
         comms::ErrorStatus expectedStatus = comms::ErrorStatus::Success);
+
+    template <typename TFP>
+    bool fpEquals(TFP value1, TFP value2)
+    {
+        return (std::abs(value1 - value2) < std::numeric_limits<TFP>::epsilon());
+    }
 };
 
 void FieldsTestSuite::test1()
@@ -1289,6 +1296,32 @@ void FieldsTestSuite::test34()
     TS_ASSERT_EQUALS(field.value().size(), MaxCount);
 }
 
+void FieldsTestSuite::test35()
+{
+    typedef comms::field::FloatValue<
+        comms::Field<BigEndianOpt>,
+        float
+    > Field;
+
+    Field field;
+    TS_ASSERT(fpEquals(field.value(), 0.0f));
+    field.value() = 1.23;
+    TS_ASSERT(fpEquals(field.value(), 1.23f));
+
+    std::vector<std::uint8_t> buf;
+    auto writeIter = std::back_inserter(buf);
+    auto es = field.write(writeIter, buf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(buf.size(), sizeof(float));
+
+    field = Field();
+    TS_ASSERT(fpEquals(field.value(), 0.0f));
+
+    const auto* readIter = &buf[0];
+    es = field.read(readIter, buf.size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT(fpEquals(field.value(), 1.23f));
+}
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

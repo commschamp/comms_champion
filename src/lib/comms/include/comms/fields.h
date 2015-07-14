@@ -26,6 +26,7 @@
 #include "field/Bitfield.h"
 #include "field/Optional.h"
 #include "field/Bundle.h"
+#include "field/FloatValue.h"
 
 #include "field/adapters.h"
 #include "field/basics.h"

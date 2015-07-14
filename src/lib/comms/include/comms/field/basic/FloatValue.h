@@ -22,6 +22,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
+#include "comms/util/SizeToType.h"
 
 namespace comms
 {
@@ -33,9 +34,9 @@ namespace basic
 {
 
 template <typename TFieldBase, typename T>
-class IntValue : public TFieldBase
+class FloatValue : public TFieldBase
 {
-    static_assert(std::is_integral<T>::value, "T must be integral value");
+    static_assert(std::is_floating_point<T>::value, "T must be floating point value");
 
     typedef TFieldBase Base;
 public:
@@ -44,22 +45,21 @@ public:
 
     typedef T ValueType;
 
-    typedef ValueType SerialisedType;
+    typedef typename comms::util::SizeToType<sizeof(ValueType), false>::Type SerialisedType;
 
+    FloatValue() = default;
 
-    IntValue() = default;
-
-    explicit IntValue(ValueType value)
+    explicit FloatValue(ValueType value)
       : value_(value)
     {
     }
 
-    IntValue(const IntValue&) = default;
-    IntValue(IntValue&&) = default;
-    ~IntValue() = default;
+    FloatValue(const FloatValue&) = default;
+    FloatValue(FloatValue&&) = default;
+    ~FloatValue() = default;
 
-    IntValue& operator=(const IntValue&) = default;
-    IntValue& operator=(IntValue&&) = default;
+    FloatValue& operator=(const FloatValue&) = default;
+    FloatValue& operator=(FloatValue&&) = default;
 
     const ValueType& value() const
     {
@@ -86,14 +86,18 @@ public:
         return length();
     }
 
-    static constexpr SerialisedType toSerialised(ValueType value)
+    static SerialisedType toSerialised(ValueType value)
     {
-        return static_cast<SerialisedType>(value);
+        CastUnion castUnion;
+        castUnion.value_ = value;
+        return castUnion.serValue_;
     }
 
-    static constexpr ValueType fromSerialised(SerialisedType value)
+    static ValueType fromSerialised(SerialisedType value)
     {
-        return static_cast<ValueType>(value);
+        CastUnion castUnion;
+        castUnion.serValue_ = value;
+        return castUnion.value_;
     }
 
     static constexpr bool valid()
@@ -126,7 +130,13 @@ public:
     }
 
 private:
-    ValueType value_ = static_cast<ValueType>(0);
+    union CastUnion
+    {
+        ValueType value_;
+        SerialisedType serValue_;
+    };
+
+    ValueType value_ = static_cast<ValueType>(0.0);
 };
 
 }  // namespace basic

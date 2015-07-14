@@ -66,8 +66,9 @@ void BundleFieldWidget::refreshImpl()
     }
 }
 
-void BundleFieldWidget::setEditEnabledImpl(bool enabled)
+void BundleFieldWidget::editEnabledUpdatedImpl()
 {
+    bool enabled = isEditEnabled();
     for (auto* memberFieldWidget : m_members) {
         memberFieldWidget->setEditEnabled(enabled);
     }

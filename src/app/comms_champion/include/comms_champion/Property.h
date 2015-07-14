@@ -46,6 +46,7 @@ public:
     static const char* fieldHidden();
     static void setFieldHiddenVal(QObject& obj, bool val);
     static QVariant getFieldHiddenVal(QObject& obj);
+    static const QString& readOnly();
 
 };
 

@@ -65,7 +65,7 @@ void FieldWidget::refresh()
 void FieldWidget::setEditEnabled(bool enabled)
 {
     m_editEnabled = enabled;
-    setEditEnabledImpl(enabled);
+    editEnabledUpdatedImpl();
 }
 
 void FieldWidget::updateProperties(const QVariantMap& props)
@@ -73,6 +73,7 @@ void FieldWidget::updateProperties(const QVariantMap& props)
     performNameLabelUpdate(props);
     updatePropertiesImpl(props);
     performUiElementsVisibilityCheck(props);
+    performUiReadOnlyCheck(props);
 }
 
 void FieldWidget::emitFieldUpdated()
@@ -82,7 +83,7 @@ void FieldWidget::emitFieldUpdated()
 
 bool FieldWidget::isEditEnabled() const
 {
-    return m_editEnabled;
+    return m_editEnabled && (!m_forcedReadOnly);
 }
 
 void FieldWidget::setValidityStyleSheet(QLabel& widget, bool valid)
@@ -136,9 +137,8 @@ void FieldWidget::updateValue(QLineEdit& line, const QString& value)
     line.setCursorPosition(cursorPos);
 }
 
-void FieldWidget::setEditEnabledImpl(bool enabled)
+void FieldWidget::editEnabledUpdatedImpl()
 {
-    static_cast<void>(enabled);
 }
 
 void FieldWidget::updatePropertiesImpl(const QVariantMap& props)
@@ -177,6 +177,15 @@ void FieldWidget::performUiElementsVisibilityCheck(const QVariantMap& props)
         auto serHidden = serHiddenVar.toBool();
         setWidgetHiddenFunc(m_sepWidget, serHidden);
         setWidgetHiddenFunc(m_serValueWidget, serHidden);
+    }
+}
+
+void FieldWidget::performUiReadOnlyCheck(const QVariantMap& props)
+{
+    auto readOnlyVar = props.value(Property::readOnly());
+    if (readOnlyVar.isValid() && readOnlyVar.canConvert<bool>()) {
+        m_forcedReadOnly = readOnlyVar.value<bool>();
+        editEnabledUpdatedImpl();
     }
 }
 

@@ -75,9 +75,9 @@ void LongIntValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void LongIntValueFieldWidget::setEditEnabledImpl(bool enabled)
+void LongIntValueFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_valueSpinBox->setReadOnly(readonly);
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }

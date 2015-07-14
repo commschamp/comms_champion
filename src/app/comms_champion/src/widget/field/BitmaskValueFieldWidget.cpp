@@ -80,9 +80,9 @@ void BitmaskValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void BitmaskValueFieldWidget::setEditEnabledImpl(bool enabled)
+void BitmaskValueFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 

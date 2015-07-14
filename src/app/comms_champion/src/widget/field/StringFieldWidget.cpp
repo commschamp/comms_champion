@@ -80,9 +80,9 @@ void StringFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void StringFieldWidget::setEditEnabledImpl(bool enabled)
+void StringFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_valuePlainTextEdit->setReadOnly(readonly);
 }
 

@@ -72,9 +72,9 @@ void IntValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void IntValueFieldWidget::setEditEnabledImpl(bool enabled)
+void IntValueFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_valueSpinBox->setReadOnly(readonly);
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }

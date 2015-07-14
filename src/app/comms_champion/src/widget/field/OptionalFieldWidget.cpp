@@ -64,10 +64,10 @@ void OptionalFieldWidget::refreshImpl()
     refreshField();
 }
 
-void OptionalFieldWidget::setEditEnabledImpl(bool enabled)
+void OptionalFieldWidget::editEnabledUpdatedImpl()
 {
     assert(m_field != nullptr);
-    m_field->setEditEnabled(enabled);
+    m_field->setEditEnabled(isEditEnabled());
 }
 
 void OptionalFieldWidget::updatePropertiesImpl(const QVariantMap& props)

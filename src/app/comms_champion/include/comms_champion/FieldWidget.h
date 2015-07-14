@@ -100,13 +100,15 @@ protected:
     }
 
     virtual void refreshImpl() = 0;
-    virtual void setEditEnabledImpl(bool enabled);
+    virtual void editEnabledUpdatedImpl();
     virtual void updatePropertiesImpl(const QVariantMap& props);
 
 private:
     void performUiElementsVisibilityCheck(const QVariantMap& props);
+    void performUiReadOnlyCheck(const QVariantMap& props);
     void performNameLabelUpdate(const QVariantMap& props);
 
+    bool m_forcedReadOnly = false;
     bool m_editEnabled = true;
     QLabel* m_nameLabel = nullptr;
     QWidget* m_valueWidget = nullptr;

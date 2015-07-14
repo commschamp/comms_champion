@@ -77,12 +77,12 @@ void BitfieldFieldWidget::refreshImpl()
     refreshMembers();
 }
 
-void BitfieldFieldWidget::setEditEnabledImpl(bool enabled)
+void BitfieldFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
     for (auto* memberFieldWidget : m_members) {
-        memberFieldWidget->setEditEnabled(enabled);
+        memberFieldWidget->setEditEnabled(!readonly);
     }
 }
 

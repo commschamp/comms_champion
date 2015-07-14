@@ -118,6 +118,12 @@ QVariant Property::getFieldHiddenVal(QObject& obj)
     return obj.property(fieldHidden());
 }
 
+const QString& Property::readOnly()
+{
+    static const QString Str("cc.read_only");
+    return Str;
+}
+
 }  // namespace comms_champion
 
 

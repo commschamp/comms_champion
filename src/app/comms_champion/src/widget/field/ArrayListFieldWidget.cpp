@@ -109,10 +109,10 @@ void ArrayListFieldWidget::refreshImpl()
     assert(m_elements.size() == m_wrapper->size());
 }
 
-void ArrayListFieldWidget::setEditEnabledImpl(bool enabled)
+void ArrayListFieldWidget::editEnabledUpdatedImpl()
 {
     for (auto* elem : m_elements) {
-        elem->setEditEnabled(enabled);
+        elem->setEditEnabled(isEditEnabled());
     }
     updateUi();
 }

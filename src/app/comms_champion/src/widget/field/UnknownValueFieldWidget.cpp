@@ -56,9 +56,9 @@ void UnknownValueFieldWidget::refreshImpl()
     setFieldValid(m_wrapper->valid());
 }
 
-void UnknownValueFieldWidget::setEditEnabledImpl(bool enabled)
+void UnknownValueFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 

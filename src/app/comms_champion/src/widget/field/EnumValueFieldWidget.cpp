@@ -105,9 +105,9 @@ void EnumValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void EnumValueFieldWidget::setEditEnabledImpl(bool enabled)
+void EnumValueFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 

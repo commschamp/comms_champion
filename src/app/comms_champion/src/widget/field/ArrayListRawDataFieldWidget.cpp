@@ -96,9 +96,9 @@ void ArrayListRawDataFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void ArrayListRawDataFieldWidget::setEditEnabledImpl(bool enabled)
+void ArrayListRawDataFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_valuePlainTextEdit->setReadOnly(readonly);
 }
 

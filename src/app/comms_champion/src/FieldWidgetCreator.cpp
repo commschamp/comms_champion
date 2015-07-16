@@ -30,6 +30,7 @@
 #include "widget/field/BundleFieldWidget.h"
 #include "widget/field/ArrayListRawDataFieldWidget.h"
 #include "widget/field/ArrayListFieldWidget.h"
+#include "widget/field/FloatValueFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -163,6 +164,14 @@ FieldWidgetPtr FieldWidgetCreator::createArrayListFieldWidget(
                 std::move(updateFunc)));
 }
 
+FieldWidgetPtr FieldWidgetCreator::createFloatValueFieldWidget(
+    field_wrapper::FloatValueWrapperPtr fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new FloatValueFieldWidget(
+                std::move(fieldWrapper)));
+}
 
 FieldWidgetPtr
 FieldWidgetCreator::createUnknownValueFieldWidget(

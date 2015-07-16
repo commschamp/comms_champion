@@ -32,6 +32,7 @@
 #include "comms_champion/field_wrapper/OptionalWrapper.h"
 #include "comms_champion/field_wrapper/ArrayListRawDataWrapper.h"
 #include "comms_champion/field_wrapper/ArrayListWrapper.h"
+#include "comms_champion/field_wrapper/FloatValueWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -48,6 +49,7 @@ struct BitfieldTag {};
 struct OptionalTag {};
 struct BundleTag {};
 struct ArrayListTag {};
+struct FloatValueTag {};
 struct UnknownValueTag {};
 
 template <typename TField>
@@ -67,6 +69,9 @@ struct FieldWidgetCreatorTagOf
         "Optional is perceived as unknown type");
     static_assert(!comms::field::isArrayList<TField>(),
         "ArrayList is perceived as unknown type");
+    static_assert(!comms::field::isFloatValue<TField>(),
+        "FloatValue is perceived as unknown type");
+
     typedef UnknownValueTag Type;
 };
 
@@ -150,6 +155,17 @@ struct FieldWidgetCreatorTagOf<comms::field::ArrayList<TArgs...> >
     typedef ArrayListTag Type;
 };
 
+template <typename... TArgs>
+struct FieldWidgetCreatorTagOf<comms::field::FloatValue<TArgs...> >
+{
+    static_assert(
+        comms::field::isFloatValue<comms::field::FloatValue<TArgs...> >(),
+        "isFloatValue is supposed to return true");
+
+    typedef FloatValueTag Type;
+};
+
+
 template <typename TField>
 using FieldWidgetCreatorTagOfT = typename FieldWidgetCreatorTagOf<TField>::Type;
 
@@ -189,6 +205,7 @@ private:
     using OptionalTag = details::OptionalTag;
     using BundleTag = details::BundleTag;
     using ArrayListTag = details::ArrayListTag;
+    using FloatValueTag = details::FloatValueTag;
     using UnknownValueTag = details::UnknownValueTag;
 
     struct IntValueWrapperTag {};
@@ -316,6 +333,14 @@ private:
     }
 
     template <typename TField>
+    static FieldWidgetPtr createWidgetInternal(TField& field, FloatValueTag)
+    {
+        return createFloatValueFieldWidget(
+            field_wrapper::makeFloatValueWrapper(field));
+    }
+
+
+    template <typename TField>
     static FieldWidgetPtr createWidgetInternal(TField& field, UnknownValueTag)
     {
         return createUnknownValueFieldWidget(
@@ -397,6 +422,9 @@ private:
     static FieldWidgetPtr createArrayListFieldWidget(
         field_wrapper::ArrayListWrapperPtr fieldWrapper,
         std::function<std::vector<FieldWidgetPtr> (std::size_t)>&& updateFunc);
+
+    static FieldWidgetPtr createFloatValueFieldWidget(
+        field_wrapper::FloatValueWrapperPtr fieldWrapper);
 
     static FieldWidgetPtr createUnknownValueFieldWidget(
             field_wrapper::UnknownValueWrapperPtr fieldWrapper);

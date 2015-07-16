@@ -124,6 +124,12 @@ const QString& Property::readOnly()
     return Str;
 }
 
+const QString& Property::floatDecimals()
+{
+    static const QString Str("cc.float_dec");
+    return Str;
+}
+
 }  // namespace comms_champion
 
 

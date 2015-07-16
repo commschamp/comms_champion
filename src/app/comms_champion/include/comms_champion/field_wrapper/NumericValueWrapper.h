@@ -37,8 +37,8 @@ namespace field_wrapper
 template <typename TUnderlyingType>
 class NumericValueWrapper : public FieldWrapper
 {
-    static_assert(std::is_integral<TUnderlyingType>::value,
-        "Underlying type is expected to be integral.");
+    static_assert(std::is_integral<TUnderlyingType>::value || std::is_floating_point<TUnderlyingType>::value,
+        "Underlying type is expected to be integral or floating point.");
     typedef FieldWrapper Base;
 public:
     typedef TUnderlyingType UnderlyingType;

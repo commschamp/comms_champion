@@ -29,15 +29,6 @@
 #include "comms_champion/DefaultMessageWidget.h"
 #include "comms_champion/FieldWidgetCreator.h"
 
-#include "comms_champion/field_wrapper/IntValueWrapper.h"
-#include "comms_champion/field_wrapper/LongIntValueWrapper.h"
-#include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
-#include "comms_champion/field_wrapper/EnumValueWrapper.h"
-#include "comms_champion/field_wrapper/StringWrapper.h"
-#include "comms_champion/field_wrapper/BitfieldWrapper.h"
-#include "comms_champion/field_wrapper/OptionalWrapper.h"
-#include "comms_champion/field_wrapper/UnknownValueWrapper.h"
-
 namespace comms_champion
 {
 

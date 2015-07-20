@@ -72,7 +72,7 @@ void OptionalFieldWidget::editEnabledUpdatedImpl()
 
 void OptionalFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto wrappedPropsVar = props.value(Property::data());
+    auto wrappedPropsVar = Property::getData(props);
     if (wrappedPropsVar.isValid() && wrappedPropsVar.canConvert<QVariantMap>()) {
         m_field->updateProperties(wrappedPropsVar.value<QVariantMap>());
         refreshInternal();

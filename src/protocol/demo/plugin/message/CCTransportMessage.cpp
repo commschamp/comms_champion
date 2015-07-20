@@ -56,22 +56,17 @@ static_assert(
 
 QVariantMap createSyncProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Sync");
-    return props;
+    return cc::Property::createPropertiesMap("Sync");
 }
 
 QVariantMap createSizeProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Size");
-    return props;
+    return cc::Property::createPropertiesMap("Size");
 }
 
 QVariantMap createIdProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Size");
+    auto props = cc::Property::createPropertiesMap("ID");
 
     static const QString MsgNames[] = {
         "Heartbeat",
@@ -85,18 +80,18 @@ QVariantMap createIdProperties()
     static_assert(
         NumOfMsgNames == demo::message::MsgId_NumOfMessages,
         "Message names mapping is incorrect.");
+    QVariantList idProps;
     for (auto idx = 0U; idx < NumOfMsgNames; ++idx) {
-        props.insert(cc::Property::indexedName(idx), MsgNames[idx]);
+        cc::Property::appendEnumValue(idProps, MsgNames[idx], idx);
     }
 
+    cc::Property::setData(props, std::move(idProps));
     return props;
 }
 
 QVariantMap createDataProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Data");
-    return props;
+    return cc::Property::createPropertiesMap("Data");
 }
 
 QVariantList createFieldsProperties()

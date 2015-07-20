@@ -61,7 +61,7 @@ void EnumValueFieldWidget::refreshImpl()
     auto comboIdx = m_ui.m_valueComboBox->currentIndex();
 
     auto comboRetrieveValueFunc =
-        [this](int idx)
+        [this](int idx) -> UnderlyingType
         {
             auto comboValueVar = m_ui.m_valueComboBox->itemData(idx);
             assert(comboValueVar.isValid());
@@ -70,7 +70,7 @@ void EnumValueFieldWidget::refreshImpl()
         };
 
     do {
-        if ((!valid) && (comboIdx < EnumValuesStartIndex)) {
+        if ((!valid) && (comboIdx < m_idxOffset)) {
             break;
         }
 
@@ -82,7 +82,7 @@ void EnumValueFieldWidget::refreshImpl()
 
         bool foundMatch = false;
         auto itemsCount = m_ui.m_valueComboBox->count();
-        for (auto idx = EnumValuesStartIndex; idx < itemsCount; ++idx) {
+        for (auto idx = m_idxOffset; idx < itemsCount; ++idx) {
             comboValue = comboRetrieveValueFunc(idx);
             if (value == comboValue) {
                 m_ui.m_valueComboBox->setCurrentIndex(idx);
@@ -123,39 +123,83 @@ void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
     m_ui.m_valueComboBox->clear();
 
-    std::vector<unsigned> availableIndices;
-    auto maxValue = std::numeric_limits<unsigned>::min();
-    auto availableKeys = props.keys();
-    for (auto& propKey : availableKeys) {
-        auto& prefix = Property::indexedNamePrefix();
-        if (!propKey.startsWith(prefix)) {
-            continue;
+    auto dataListVar = Property::getData(props);
+    auto maxValue = std::numeric_limits<long long int>::min();
+    do {
+        if ((!dataListVar.isValid()) || (!dataListVar.canConvert<QVariantList>())) {
+            break;
         }
 
-        QString propKeyCopy(propKey);
-        propKeyCopy.remove(prefix);
-        bool ok = false;
-        auto idx = propKeyCopy.toUInt(&ok, 10);
-        if (!ok) {
-            continue;
+        auto dataList = dataListVar.value<QVariantList>();
+        for (auto& elemPropsVar : dataList) {
+            if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
+                continue;
+            }
+
+            auto elemProps = elemPropsVar.value<QVariantMap>();
+            auto nameVar = Property::getName(elemProps);
+            auto dataVar = Property::getData(elemProps);
+
+            if ((!nameVar.isValid()) ||
+                (!dataVar.isValid()) ||
+                (!nameVar.canConvert<QString>()) ||
+                (!dataVar.canConvert<long long int>())) {
+                continue;
+            }
+
+            auto name = nameVar.toString();
+            auto data = dataVar.value<long long int>();
+            m_ui.m_valueComboBox->addItem(name, data);
+
+            maxValue = std::max(maxValue, data);
         }
 
-        maxValue = std::max(maxValue, idx);
-        availableIndices.push_back(idx);
+    } while (false);
+
+    auto invValue = maxValue + 1;
+    auto len = m_wrapper->length();
+    auto shift = len * std::numeric_limits<std::uint8_t>::digits;
+    auto maxAllowedValue =
+        static_cast<UnderlyingType>((static_cast<long long unsigned>(1) << shift) - 1);
+
+    do {
+        if (invValue < 0) {
+            invValue = maxAllowedValue;
+            break;
+        }
+
+        if (invValue <= maxAllowedValue) {
+            break;
+        }
+
+        std::vector<UnderlyingType> storedValues;
+        for (auto idx = 0; idx < m_ui.m_valueComboBox->count(); ++idx) {
+            storedValues.push_back(m_ui.m_valueComboBox->itemData(idx).value<UnderlyingType>());
+        }
+
+        invValue = maxAllowedValue - 1;
+        while (0 < invValue) {
+            if (std::none_of(
+                storedValues.begin(), storedValues.end(),
+                [invValue](UnderlyingType val) -> bool
+                {
+                    return val == invValue;
+                })) {
+
+                break;
+            }
+
+            --invValue;
+        }
+
+    } while (false);
+
+    m_idxOffset = 0;
+    if (0 <= invValue) {
+        m_ui.m_valueComboBox->insertItem(0, InvalidValueComboText, QVariant(maxValue + 1));
+        m_ui.m_valueComboBox->insertSeparator(1);
+        m_idxOffset = EnumValuesStartIndex;
     }
-
-    std::sort(availableIndices.begin(), availableIndices.end());
-    for (auto idx : availableIndices) {
-        auto propKey = Property::indexedName(idx);
-        auto valueNameVar = props.value(propKey);
-        if ((valueNameVar.isValid()) &&
-            (valueNameVar.canConvert<QString>())) {
-            m_ui.m_valueComboBox->addItem(valueNameVar.value<QString>(), QVariant(idx));
-        }
-    }
-
-    m_ui.m_valueComboBox->insertItem(0, InvalidValueComboText, QVariant(maxValue + 1));
-    m_ui.m_valueComboBox->insertSeparator(1);
 
     refresh();
 
@@ -175,7 +219,7 @@ void EnumValueFieldWidget::serialisedValueUpdated(const QString& value)
 
 void EnumValueFieldWidget::valueUpdated(int idx)
 {
-    if ((!m_wrapper->valid()) && (idx < EnumValuesStartIndex)) {
+    if ((!m_wrapper->valid()) && (idx < m_idxOffset)) {
         return;
     }
 

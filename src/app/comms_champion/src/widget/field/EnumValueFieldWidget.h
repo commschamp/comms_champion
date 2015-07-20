@@ -55,6 +55,7 @@ private:
     Ui::EnumValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
     bool m_signalsConnected = false;
+    int m_idxOffset = 0;
 };
 
 

@@ -92,21 +92,30 @@ void BitmaskValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         delete checkbox;
     }
 
+    auto bitNamesListVar = Property::getData(props);
+    if ((!bitNamesListVar.isValid()) || (!bitNamesListVar.canConvert<QVariantList>())) {
+        return;
+    }
+
+    auto bitNamesList = bitNamesListVar.value<QVariantList>();
+
     m_checkboxes.clear();
+
+    auto count = std::min((unsigned)bitNamesList.size(), m_wrapper->bitIdxLimit());
     m_checkboxes.resize(m_wrapper->bitIdxLimit());
 
-    for (unsigned idx = 0; idx < m_checkboxes.size(); ++idx) {
-
-        auto indexedName = props.value(Property::indexedName(idx));
-        if ((indexedName.isValid()) &&
-            (indexedName.canConvert<QString>())) {
-            auto* checkbox = new QCheckBox(indexedName.value<QString>());
-            m_ui.m_checkboxesLayout->addWidget(checkbox);
-            m_checkboxes[idx] = checkbox;
-
-            connect(checkbox, SIGNAL(stateChanged(int)),
-                    this, SLOT(checkBoxUpdated(int)));
+    for (unsigned idx = 0; idx < count; ++idx) {
+        auto& nameVar = bitNamesList[idx];
+        if ((!nameVar.isValid()) || (!nameVar.canConvert<QString>())) {
+            continue;
         }
+
+        auto* checkbox = new QCheckBox(nameVar.toString());
+        m_ui.m_checkboxesLayout->addWidget(checkbox);
+        m_checkboxes[idx] = checkbox;
+
+        connect(checkbox, SIGNAL(stateChanged(int)),
+                this, SLOT(checkBoxUpdated(int)));
     }
 
     refresh();

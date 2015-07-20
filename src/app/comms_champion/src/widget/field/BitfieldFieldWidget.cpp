@@ -88,8 +88,15 @@ void BitfieldFieldWidget::editEnabledUpdatedImpl()
 
 void BitfieldFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    for (auto idx = 0U; idx < m_members.size(); ++idx) {
-        auto memberPropsVar = props.value(Property::indexedData(idx));
+    auto dataListVar = Property::getData(props);
+    if ((!dataListVar.isValid()) || (!dataListVar.canConvert<QVariantList>())) {
+        return;
+    }
+
+    auto dataList = dataListVar.value<QVariantList>();
+    auto count = std::min((std::size_t)dataList.size(), m_members.size());
+    for (auto idx = 0U; idx < count; ++idx) {
+        auto& memberPropsVar = dataList[idx];
         if ((!memberPropsVar.isValid()) || (!memberPropsVar.canConvert<QVariantMap>())) {
             continue;
         }

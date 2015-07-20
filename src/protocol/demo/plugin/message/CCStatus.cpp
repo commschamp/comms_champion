@@ -43,24 +43,26 @@ const char* Name = "Status";
 
 QVariantMap createStatusProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Execution Status");
-    props.insert(cc::Property::indexedName(demo::message::ExecutionStatus_Idle), "Idle");
-    props.insert(cc::Property::indexedName(demo::message::ExecutionStatus_Running), "Running");
-    props.insert(cc::Property::indexedName(demo::message::ExecutionStatus_Complete), "Complete");
-    props.insert(cc::Property::indexedName(demo::message::ExecutionStatus_Error), "Error");
+    QVariantList valuesProps;
+    cc::Property::appendEnumValue(valuesProps, "Idle", demo::message::ExecutionStatus_Idle);
+    cc::Property::appendEnumValue(valuesProps, "Running", demo::message::ExecutionStatus_Running);
+    cc::Property::appendEnumValue(valuesProps, "Complete", demo::message::ExecutionStatus_Complete);
+    cc::Property::appendEnumValue(valuesProps, "Error", demo::message::ExecutionStatus_Error);
+
+    QVariantMap props = cc::Property::createPropertiesMap("Execution Status");
+    cc::Property::setData(props, std::move(valuesProps));
     return props;
 }
 
 QVariantMap FeaturesProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Features");
-    props.insert(cc::Property::indexedName(0), "Feature 1");
-    props.insert(cc::Property::indexedName(1), "Feature 2");
-    props.insert(cc::Property::indexedName(2), "Feature 3");
-    props.insert(cc::Property::indexedName(3), "Feature 4");
-    return props;
+    QVariantList bitNames;
+    bitNames.append("Feature 1");
+    bitNames.append("Feature 2");
+    bitNames.append("Feature 3");
+    bitNames.append("Feature 4");
+
+    return cc::Property::createPropertiesMap("Features", std::move(bitNames));
 }
 
 QVariantList createFieldsProperties()

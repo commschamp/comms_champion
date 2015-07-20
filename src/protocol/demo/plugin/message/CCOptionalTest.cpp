@@ -44,46 +44,29 @@ const char* OptionalTestName = "Optional Test";
 
 QVariantMap createFlagsProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), QVariant::fromValue(QString("Flags")));
-    props.insert(cc::Property::indexedName(0), QVariant::fromValue(QString("Enable opt. enum")));
-    props.insert(cc::Property::indexedName(1), QVariant::fromValue(QString("Enable opt. int")));
-    return props;
+    QVariantList valuesData;
+    valuesData.append("Enable opt. enum");
+    valuesData.append("Enable opt. int");
+    return cc::Property::createPropertiesMap("Flags", std::move(valuesData));
 }
 
 QVariantMap createOptEnumProperties()
 {
     static const QString Name("Opt enum");
-    QVariantMap enumProps;
-    enumProps.insert(cc::Property::name(), QVariant::fromValue(Name));
+    QVariantList enumValues;
+    cc::Property::appendEnumValue(enumValues, "Val1");
+    cc::Property::appendEnumValue(enumValues, "Val2");
+    cc::Property::appendEnumValue(enumValues, "Val3");
 
-    static const QString NameMap[] = {
-        "Val1",
-        "Val2",
-        "Val3"
-    };
-
-    static const std::size_t NumOfValues = std::extent<decltype(NameMap)>::value;
-    for (auto idx = 0U; idx < NumOfValues; ++idx) {
-        enumProps.insert(cc::Property::indexedName(idx), QVariant::fromValue(NameMap[idx]));
-    }
-
-    QVariantMap props;
-    props.insert(cc::Property::name(), QVariant::fromValue(Name));
-    props.insert(cc::Property::data(), QVariant::fromValue(enumProps));
-    return props;
+    auto enumProps = cc::Property::createPropertiesMap(Name, std::move(enumValues));
+    return cc::Property::createPropertiesMap(Name, std::move(enumProps));
 }
 
 QVariantMap createOptIntProperties()
 {
     static const QString Name("Opt int");
-    QVariantMap intProps;
-    intProps.insert(cc::Property::name(), QVariant::fromValue(Name));
-
-    QVariantMap props;
-    props.insert(cc::Property::name(), QVariant::fromValue(Name));
-    props.insert(cc::Property::data(), QVariant::fromValue(intProps));
-    return props;
+    auto valProps = cc::Property::createPropertiesMap(Name);
+    return cc::Property::createPropertiesMap(Name, std::move(valProps));
 }
 
 QVariantList createFieldsProperties()

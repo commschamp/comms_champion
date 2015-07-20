@@ -80,7 +80,7 @@ void FloatValueFieldWidget::editEnabledUpdatedImpl()
 
 void FloatValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto decVar = props.value(Property::floatDecimals());
+    auto decVar = Property::getFloatDecimals(props);
     if (decVar.isValid() && decVar.canConvert<int>()) {
         m_ui.m_valueSpinBox->setDecimals(decVar.value<int>());
     }

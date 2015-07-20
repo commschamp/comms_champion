@@ -119,7 +119,7 @@ void ArrayListFieldWidget::editEnabledUpdatedImpl()
 
 void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto elemPropsVar = props.value(Property::data());
+    auto elemPropsVar = Property::getData(props);
     if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
         return;
     }

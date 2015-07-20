@@ -22,112 +22,173 @@
 namespace comms_champion
 {
 
-const char* Property::name()
+namespace
 {
-    static const char* Str = "cc.name";
+
+const QString& nameKey()
+{
+    static const QString Str("cc.name");
     return Str;
 }
 
-void Property::setNameVal(QObject& obj, const QString& val)
+const QString& dataKey()
 {
-    obj.setProperty(name(), QVariant::fromValue(val));
-}
-
-const QString& Property::indexedNamePrefix()
-{
-    static const QString Str("cc.name_");
+    static const QString Str("cc.data");
     return Str;
 }
 
-QString Property::indexedName(unsigned idx)
+const QString& serialisedHiddenKey()
 {
-    return indexedNamePrefix() + QString("%1").arg(idx);
-}
-
-void Property::setIndexedNameVal(QObject& obj, unsigned idx, const QString& val)
-{
-    obj.setProperty(indexedName(idx).toUtf8().data(), QVariant::fromValue(val));
-}
-
-const QString& Property::indexedDataPrefix()
-{
-    static const QString Str("cc.data_");
+    static const QString Str("cc.ser_hidden");
     return Str;
 }
 
-QString Property::indexedData(unsigned idx)
+const QString& fieldHiddenKey()
 {
-    return indexedDataPrefix() + QString("%1").arg(idx);
-}
-
-void Property::setIndexedDataVal(QObject& obj, unsigned idx, const QVariantMap& val)
-{
-    obj.setProperty(indexedData(idx).toUtf8().data(), QVariant::fromValue(val));
-}
-
-QVariant Property::getIndexedDataVal(QObject& obj, unsigned idx)
-{
-    return obj.property(indexedData(idx).toUtf8().data());
-}
-
-const char* Property::data()
-{
-    static const char* Str = "cc.data";
+    static const QString Str("cc.field_hidden");
     return Str;
 }
 
-void Property::setDataVal(QObject& obj, const QVariantMap& val)
-{
-    obj.setProperty(data(), QVariant::fromValue(val));
-}
-
-QVariant Property::getDataVal(QObject& obj)
-{
-    return obj.property(data());
-}
-
-const char* Property::serialisedHidden()
-{
-    static const char* Str = "cc.ser_hidden";
-    return Str;
-}
-
-void Property::setSerialisedHiddenVal(QObject& obj, bool val)
-{
-    obj.setProperty(serialisedHidden(), QVariant::fromValue(val));
-}
-
-QVariant Property::getSerialisedHiddenVal(QObject& obj)
-{
-    return obj.property(serialisedHidden());
-}
-
-const char* Property::fieldHidden()
-{
-    static const char* Str = "cc.field_hidden";
-    return Str;
-}
-
-void Property::setFieldHiddenVal(QObject& obj, bool val)
-{
-    obj.setProperty(fieldHidden(), QVariant::fromValue(val));
-}
-
-QVariant Property::getFieldHiddenVal(QObject& obj)
-{
-    return obj.property(fieldHidden());
-}
-
-const QString& Property::readOnly()
+const QString& readOnlyKey()
 {
     static const QString Str("cc.read_only");
     return Str;
 }
 
-const QString& Property::floatDecimals()
+const QString& floatDecimalsKey()
 {
     static const QString Str("cc.float_dec");
     return Str;
+}
+
+}  // namespace
+
+QVariantMap Property::createPropertiesMap(const QString& name)
+{
+    QVariantMap props;
+    props.insert(nameKey(), name);
+    return props;
+}
+
+QVariantMap Property::createPropertiesMap(const char* name)
+{
+    QVariantMap props;
+    props.insert(nameKey(), name);
+    return props;
+}
+
+QVariantMap Property::createPropertiesMap(const QString& name, QVariant&& data)
+{
+    QVariantMap props;
+    props.insert(nameKey(), name);
+    props.insert(dataKey(), std::move(data));
+    return props;
+}
+
+QVariant Property::getName(const QVariantMap& props)
+{
+    return props.value(nameKey());
+}
+
+void Property::setName(QVariantMap& props, const QString& value)
+{
+    props.insert(nameKey(), value);
+}
+
+QVariant Property::getData(const QVariantMap& props)
+{
+    return props.value(dataKey());
+}
+
+void Property::setData(QVariantMap& props, const QVariantMap& data)
+{
+    props.insert(dataKey(), data);
+}
+
+void Property::setData(QVariantMap& props, QVariantMap&& data)
+{
+    props.insert(dataKey(), std::move(data));
+}
+
+void Property::setData(QVariantMap& props, const QVariantList& data)
+{
+    props.insert(dataKey(), data);
+}
+
+void Property::setData(QVariantMap& props, QVariantList&& data)
+{
+    props.insert(dataKey(), std::move(data));
+}
+
+bool Property::getSerialisedHidden(const QVariantMap& props)
+{
+    auto serHiddenVar = props.value(serialisedHiddenKey());
+    return
+        (serHiddenVar.isValid()) &&
+        (serHiddenVar.canConvert<bool>()) &&
+        (serHiddenVar.value<bool>());
+}
+
+void Property::setSerialisedHidden(QVariantMap& props, bool value)
+{
+    props.insert(serialisedHiddenKey(), value);
+}
+
+bool Property::getFieldHidden(const QVariantMap& props)
+{
+    auto serHiddenVar = props.value(fieldHiddenKey());
+    return
+        (serHiddenVar.isValid()) &&
+        (serHiddenVar.canConvert<bool>()) &&
+        (serHiddenVar.value<bool>());
+}
+
+void Property::setFieldHidden(QVariantMap& props, bool value)
+{
+    props.insert(fieldHiddenKey(), value);
+}
+
+bool Property::getReadOnly(const QVariantMap& props)
+{
+    auto serHiddenVar = props.value(readOnlyKey());
+    return
+        (serHiddenVar.isValid()) &&
+        (serHiddenVar.canConvert<bool>()) &&
+        (serHiddenVar.value<bool>());
+}
+
+void Property::setReadOnly(QVariantMap& props, bool value)
+{
+    props.insert(readOnlyKey(), value);
+}
+
+QVariant Property::getFloatDecimals(const QVariantMap& props)
+{
+    return props.value(floatDecimalsKey());
+}
+
+void Property::setFloatDecimals(QVariantMap& props, int value)
+{
+    props.insert(floatDecimalsKey(), value);
+}
+
+void Property::appendEnumValue(
+    QVariantList& elemsList,
+    const QString& elemName,
+    long long int elemValue)
+{
+    auto elemProps = createPropertiesMap(elemName);
+    elemProps.insert(dataKey(), elemValue);
+    elemsList.append(elemProps);
+}
+
+void Property::appendEnumValue(
+    QVariantList& elemsList,
+    const QString& elemName)
+{
+    auto elemProps = createPropertiesMap(elemName);
+    elemProps.insert(dataKey(), elemsList.size());
+    elemsList.append(elemProps);
 }
 
 }  // namespace comms_champion

@@ -148,14 +148,10 @@ void FieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void FieldWidget::performUiElementsVisibilityCheck(const QVariantMap& props)
 {
-    auto allHiddenVar = props.value(Property::fieldHidden());
-    if (allHiddenVar.isValid() && allHiddenVar.canConvert<bool>()) {
-        auto allHidden = allHiddenVar.toBool();
-        setHidden(allHidden);
-
-        if (allHidden) {
-            return;
-        }
+    auto allHidden = Property::getFieldHidden(props);
+    setHidden(allHidden);
+    if (allHidden) {
+        return;
     }
 
     if ((m_valueWidget == nullptr) &&
@@ -172,19 +168,16 @@ void FieldWidget::performUiElementsVisibilityCheck(const QVariantMap& props)
             }
         };
 
-    auto serHiddenVar = props.value(Property::serialisedHidden());
-    if (serHiddenVar.isValid() && serHiddenVar.canConvert<bool>()) {
-        auto serHidden = serHiddenVar.toBool();
-        setWidgetHiddenFunc(m_sepWidget, serHidden);
-        setWidgetHiddenFunc(m_serValueWidget, serHidden);
-    }
+    auto serHidden = Property::getSerialisedHidden(props);
+    setWidgetHiddenFunc(m_sepWidget, serHidden);
+    setWidgetHiddenFunc(m_serValueWidget, serHidden);
 }
 
 void FieldWidget::performUiReadOnlyCheck(const QVariantMap& props)
 {
-    auto readOnlyVar = props.value(Property::readOnly());
-    if (readOnlyVar.isValid() && readOnlyVar.canConvert<bool>()) {
-        m_forcedReadOnly = readOnlyVar.value<bool>();
+    auto readOnly = Property::getReadOnly(props);
+    if (m_forcedReadOnly != readOnly) {
+        m_forcedReadOnly = readOnly;
         editEnabledUpdatedImpl();
     }
 }
@@ -195,7 +188,7 @@ void FieldWidget::performNameLabelUpdate(const QVariantMap& props)
         return;
     }
 
-    auto nameProperty = props.value(Property::name());
+    auto nameProperty = Property::getName(props);
     if ((!nameProperty.isValid()) || (!nameProperty.canConvert<QString>())) {
         return;
     }

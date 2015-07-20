@@ -28,26 +28,39 @@ namespace comms_champion
 class Property
 {
 public:
-    static const char* name();
-    static void setNameVal(QObject& obj, const QString& val);
-    static const QString& indexedNamePrefix();
-    static QString indexedName(unsigned idx);
-    static void setIndexedNameVal(QObject& obj, unsigned idx, const QString& val);
-    static const QString& indexedDataPrefix();
-    static QString indexedData(unsigned idx);
-    static void setIndexedDataVal(QObject& obj, unsigned idx, const QVariantMap& val);
-    static QVariant getIndexedDataVal(QObject& obj, unsigned idx);
-    static const char* data();
-    static void setDataVal(QObject& obj, const QVariantMap& val);
-    static QVariant getDataVal(QObject& obj);
-    static const char* serialisedHidden();
-    static void setSerialisedHiddenVal(QObject& obj, bool val);
-    static QVariant getSerialisedHiddenVal(QObject& obj);
-    static const char* fieldHidden();
-    static void setFieldHiddenVal(QObject& obj, bool val);
-    static QVariant getFieldHiddenVal(QObject& obj);
-    static const QString& readOnly();
-    static const QString& floatDecimals();
+    static QVariantMap createPropertiesMap(const QString& name);
+    static QVariantMap createPropertiesMap(const char* name);
+    static QVariantMap createPropertiesMap(const QString& name, QVariant&& data);
+
+    static QVariant getName(const QVariantMap& props);
+    static void setName(QVariantMap& props, const QString& value);
+
+    static QVariant getData(const QVariantMap& props);
+    static void setData(QVariantMap& props, const QVariantMap& data);
+    static void setData(QVariantMap& props, QVariantMap&& data);
+    static void setData(QVariantMap& props, const QVariantList& data);
+    static void setData(QVariantMap& props, QVariantList&& data);
+
+    static bool getSerialisedHidden(const QVariantMap& props);
+    static void setSerialisedHidden(QVariantMap& props, bool value = true);
+
+    static bool getFieldHidden(const QVariantMap& props);
+    static void setFieldHidden(QVariantMap& props, bool value = true);
+
+    static bool getReadOnly(const QVariantMap& props);
+    static void setReadOnly(QVariantMap& props, bool value = true);
+
+    static QVariant getFloatDecimals(const QVariantMap& props);
+    static void setFloatDecimals(QVariantMap& props, int value);
+
+    static void appendEnumValue(
+        QVariantList& elemsList,
+        const QString& elemName,
+        long long int elemValue);
+
+    static void appendEnumValue(
+        QVariantList& elemsList,
+        const QString& elemName);
 
 };
 

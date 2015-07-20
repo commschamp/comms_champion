@@ -94,8 +94,7 @@ private:
     static QVariantMap createDataProperties()
     {
         static const QString Name("Data");
-        QVariantMap props;
-        props.insert(Property::name(), Name);
+        QVariantMap props = Property::createPropertiesMap(Name);
         return props;
     }
 

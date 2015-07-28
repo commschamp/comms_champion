@@ -135,6 +135,12 @@ struct SequenceSizeForcingEnabled
 {
 };
 
+template <std::size_t TSize>
+struct SequenceFixedSize
+{
+    static const std::size_t Value = TSize;
+};
+
 template <typename T>
 struct DefaultValueInitialiser
 {

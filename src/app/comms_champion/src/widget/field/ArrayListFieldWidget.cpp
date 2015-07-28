@@ -57,17 +57,23 @@ void ArrayListElementWidget::setEditEnabled(bool enabled)
     updateUi();
 }
 
+void ArrayListElementWidget::setDeletable(bool deletable)
+{
+    m_deletable = deletable;
+    updateUi();
+}
+
 void ArrayListElementWidget::updateProperties(const QVariantMap& props)
 {
     assert(m_fieldWidget != nullptr);
-
     m_fieldWidget->updateProperties(props);
 }
 
 void ArrayListElementWidget::updateUi()
 {
-    m_ui.m_buttonWidget->setVisible(m_editEnabled);
-    m_ui.m_sepLine->setVisible(m_editEnabled);
+    bool deleteButtonVisible = m_editEnabled && m_deletable;
+    m_ui.m_buttonWidget->setVisible(deleteButtonVisible);
+    m_ui.m_sepLine->setVisible(deleteButtonVisible);
 }
 
 ArrayListFieldWidget::ArrayListFieldWidget(
@@ -170,6 +176,7 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
 {
     auto* wrapperWidget = new ArrayListElementWidget(dataFieldWidget);
     wrapperWidget->setEditEnabled(isEditEnabled());
+    wrapperWidget->setDeletable(!m_wrapper->hasFixedSize());
     wrapperWidget->updateProperties(m_elemProperties);
 
     connect(
@@ -209,9 +216,9 @@ void ArrayListFieldWidget::refreshInternal()
 
 void ArrayListFieldWidget::updateUi()
 {
-    bool enabled = isEditEnabled();
-    m_ui.m_addSepLine->setVisible(enabled);
-    m_ui.m_addFieldPushButton->setVisible(enabled);
+    bool addButtonVisible = isEditEnabled() && (!m_wrapper->hasFixedSize());
+    m_ui.m_addSepLine->setVisible(addButtonVisible);
+    m_ui.m_addFieldPushButton->setVisible(addButtonVisible);
 }
 
 void ArrayListFieldWidget::addMissingFields()

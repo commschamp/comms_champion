@@ -44,6 +44,7 @@ public:
 
     void refresh();
     void setEditEnabled(bool enabled);
+    void setDeletable(bool deletable);
     void updateProperties(const QVariantMap& props);
 
 signals:
@@ -56,6 +57,7 @@ private:
     Ui::ArrayListElementWidget m_ui;
     FieldWidget* m_fieldWidget = nullptr;
     bool m_editEnabled = true;
+    bool m_deletable = true;
 };
 
 class ArrayListFieldWidget : public FieldWidget

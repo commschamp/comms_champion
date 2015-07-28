@@ -65,6 +65,8 @@ public:
     void test33();
     void test34();
     void test35();
+    void test36();
+    void test37();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1322,6 +1324,59 @@ void FieldsTestSuite::test35()
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT(fpEquals(field.value(), 1.23f));
 }
+
+void FieldsTestSuite::test36()
+{
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::SequenceFixedSize<5>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.value().size(), 5U);
+    TS_ASSERT_EQUALS(Field::minLength(), 5U);
+    TS_ASSERT_EQUALS(Field::maxLength(), 5U);
+
+    static const char Buf[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), BufSize);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.value().size(), BufSize);
+}
+
+void FieldsTestSuite::test37()
+{
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint16_t
+        >,
+        comms::option::SequenceFixedSize<3>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.value().size(), 3U);
+
+    static const char Buf[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 6U);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.value().size(), 3U);
+    TS_ASSERT_EQUALS((field.value())[0].value(), 0x1);
+    TS_ASSERT_EQUALS((field.value())[1].value(), 0x203);
+    TS_ASSERT_EQUALS((field.value())[2].value(), 0x405);
+}
+
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

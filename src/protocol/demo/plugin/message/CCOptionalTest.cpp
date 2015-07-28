@@ -69,12 +69,19 @@ QVariantMap createOptIntProperties()
     return cc::Property::createPropertiesMap(Name, std::move(valProps));
 }
 
+QVariantMap createDataProperties()
+{
+    return cc::Property::createPropertiesMap("Data");
+}
+
+
 QVariantList createFieldsProperties()
 {
     QVariantList props;
     props.append(QVariant::fromValue(createFlagsProperties()));
     props.append(QVariant::fromValue(createOptEnumProperties()));
     props.append(QVariant::fromValue(createOptIntProperties()));
+    props.append(QVariant::fromValue(createDataProperties()));
 
     assert(props.size() == CCOptionalTest::FieldId_NumOfFields);
     return props;

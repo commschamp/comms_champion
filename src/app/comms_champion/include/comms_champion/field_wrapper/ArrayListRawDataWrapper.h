@@ -59,10 +59,16 @@ public:
         return maxSizeImpl();
     }
 
+    int minSize() const
+    {
+        return minSizeImpl();
+    }
+
 protected:
     virtual QString getValueImpl() const = 0;
     virtual void setValueImpl(const QString& val) = 0;
     virtual int maxSizeImpl() const = 0;
+    virtual int minSizeImpl() const = 0;
 };
 
 template <typename TField>
@@ -149,15 +155,25 @@ protected:
         return maxSizeInternal(SizeExistanceTag());
     }
 
+    virtual int minSizeImpl() const override
+    {
+        return minSizeInternal(SizeExistanceTag());
+    }
+
 private:
     struct SizeFieldExistsTag {};
-    struct NoSizeFieldTag {};
+    struct FixedSizeTag {};
+    struct NoLimitsTag {};
 
     typedef typename Field::ParsedOptions FieldOptions;
     typedef typename std::conditional<
         FieldOptions::HasSequenceSizeFieldPrefix,
         SizeFieldExistsTag,
-        NoSizeFieldTag
+        typename std::conditional<
+            FieldOptions::HasSequenceFixedSize,
+            FixedSizeTag,
+            NoLimitsTag
+        >::type
     >::type SizeExistanceTag;
 
     static int maxSizeInternal(SizeFieldExistsTag)
@@ -173,13 +189,33 @@ private:
         return static_cast<int>((1U << shift) - 1);
     }
 
-    int maxSizeInternal(NoSizeFieldTag) const
+    static int maxSizeInternal(FixedSizeTag)
+    {
+        return static_cast<int>(FieldOptions::SequenceFixedSize);
+    }
+
+    int maxSizeInternal(NoLimitsTag) const
     {
         return
             static_cast<int>(
                 std::min(
                     static_cast<std::size_t>(std::numeric_limits<int>::max()),
                     Base::field().value().max_size()));
+    }
+
+    static int minSizeInternal(SizeFieldExistsTag)
+    {
+        return 0;
+    }
+
+    static int minSizeInternal(FixedSizeTag)
+    {
+        return static_cast<int>(FieldOptions::SequenceFixedSize);
+    }
+
+    int minSizeInternal(NoLimitsTag) const
+    {
+        return 0;
     }
 };
 

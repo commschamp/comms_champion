@@ -66,6 +66,17 @@ public:
         Base::next().clear();
     }
 
+    static constexpr std::size_t minElementLength()
+    {
+        return Next::minElementLength();
+    }
+
+    static constexpr std::size_t maxElementLength()
+    {
+        return Next::maxElementLength();
+    }
+
+
     template <typename TIter>
     static ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len)
     {

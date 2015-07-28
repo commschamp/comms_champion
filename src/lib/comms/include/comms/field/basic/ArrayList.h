@@ -159,6 +159,17 @@ public:
         return validInternal(ElemTag());
     }
 
+    static constexpr std::size_t minElementLength()
+    {
+        return minElemLengthInternal(ElemTag());
+    }
+
+    static constexpr std::size_t maxElementLength()
+    {
+        return maxElemLengthInternal(ElemTag());
+    }
+
+
     template <typename TIter>
     static ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len)
     {
@@ -373,6 +384,26 @@ private:
     static constexpr bool validInternal(IntegralElemTag)
     {
         return true;
+    }
+
+    static constexpr std::size_t minElemLengthInternal(IntegralElemTag)
+    {
+        return sizeof(ElementType);
+    }
+
+    static constexpr std::size_t minElemLengthInternal(FieldElemTag)
+    {
+        return sizeof(ElementType::minLength());
+    }
+
+    static constexpr std::size_t maxElemLengthInternal(IntegralElemTag)
+    {
+        return sizeof(ElementType);
+    }
+
+    static constexpr std::size_t maxElemLengthInternal(FieldElemTag)
+    {
+        return sizeof(ElementType::maxLength());
     }
 
     ValueType value_;

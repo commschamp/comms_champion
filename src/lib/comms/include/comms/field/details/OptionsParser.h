@@ -42,6 +42,7 @@ struct OptionsParser<>
     static const bool HasVarLengthLimits = false;
     static const bool HasSequenceSizeFieldPrefix = false;
     static const bool HasSequenceSizeForcing = false;
+    static const bool HasSequenceFixedSize = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
     static const bool HasFailOnInvalid = false;
@@ -121,6 +122,10 @@ class OptionsParser<
         "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
         "mustn't be used together");
 
+    static_assert(!Base::HasSequenceFixedSize,
+        "SequenceSizeFieldPrefix and SequenceFixedSize are incompatible options, "
+        "mustn't be used together");
+
 public:
     static const bool HasSequenceSizeFieldPrefix = true;
     typedef typename Option::Type SequenceSizeFieldPrefix;
@@ -135,9 +140,35 @@ class OptionsParser<
     static_assert(!Base::HasSequenceSizeFieldPrefix,
         "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
         "mustn't be used together");
+
+    static_assert(!Base::HasSequenceFixedSize,
+        "SequenceSizeForcingEnabled and SequenceFixedSize are incompatible options, "
+        "mustn't be used together");
+
 public:
     static const bool HasSequenceSizeForcing = true;
 };
+
+template <std::size_t TSize, typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceFixedSize<TSize>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::SequenceFixedSize<TSize> Option;
+    typedef OptionsParser<TOptions...> Base;
+    static_assert(!Base::HasSequenceSizeFieldPrefix,
+        "SequenceFixedSize and SequenceSizeFieldPrefix are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceFixedSize,
+        "SequenceFixedSize and SequenceSizeForcing are incompatible options, "
+        "mustn't be used together");
+
+public:
+    static const bool HasSequenceFixedSize = true;
+    static const auto SequenceFixedSize = Option::Value;
+};
+
 
 template <typename TInitialiser, typename... TOptions>
 class OptionsParser<

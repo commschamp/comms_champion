@@ -57,10 +57,16 @@ public:
         return sizeImpl();
     }
 
+    bool hasFixedSize() const
+    {
+        return hasFixedSizeImpl();
+    }
+
 protected:
     virtual void addFieldImpl() = 0;
     virtual void removeFieldImpl(int idx) = 0;
     virtual unsigned sizeImpl() const = 0;
+    virtual bool hasFixedSizeImpl() const = 0;
 };
 
 template <typename TField>
@@ -112,9 +118,14 @@ protected:
         return false;
     }
 
-    virtual unsigned sizeImpl() const
+    virtual unsigned sizeImpl() const override
     {
         return Base::field().value().size();
+    }
+
+    virtual bool hasFixedSizeImpl() const override
+    {
+        return Field::ParsedOptions::HasSequenceFixedSize;
     }
 };
 

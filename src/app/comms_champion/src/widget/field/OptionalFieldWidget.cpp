@@ -37,6 +37,10 @@ OptionalFieldWidget::OptionalFieldWidget(
     m_ui.setupUi(this);
     setNameLabelWidget(m_ui.m_nameLabel);
 
+    if (m_wrapper->getMode() == Mode::Tentative) {
+        m_wrapper->setMode(Mode::Missing);
+    }
+
     connect(m_ui.m_optCheckBox, SIGNAL(stateChanged(int)),
             this, SLOT(availabilityChanged(int)));
 }

@@ -87,7 +87,7 @@ public:
 
     std::size_t length() const
     {
-        if (mode_ == Mode::Missing) {
+        if (mode_ != Mode::Exists) {
             return 0U;
         }
 

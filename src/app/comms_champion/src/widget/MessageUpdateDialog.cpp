@@ -316,7 +316,7 @@ void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)
 
     for (auto& msgInfo : m_allMsgs) {
         auto msgName = getMessageNameForList(msgInfo);
-        if (searchText.isEmpty() || msgName.contains(searchText)) {
+        if (searchText.isEmpty() || msgName.contains(searchText, Qt::CaseInsensitive)) {
             m_ui.m_msgListWidget->addItem(msgName);
             auto* item = m_ui.m_msgListWidget->item(m_ui.m_msgListWidget->count() - 1);
             item->setData(

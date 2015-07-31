@@ -61,6 +61,13 @@ const QString& floatDecimalsKey()
     return Str;
 }
 
+const QString& uncheckableKey()
+{
+    static const QString Str("cc.uncheckable");
+    return Str;
+}
+
+
 }  // namespace
 
 QVariantMap Property::createPropertiesMap(const QString& name)
@@ -170,6 +177,20 @@ QVariant Property::getFloatDecimals(const QVariantMap& props)
 void Property::setFloatDecimals(QVariantMap& props, int value)
 {
     props.insert(floatDecimalsKey(), value);
+}
+
+bool Property::getUncheckable(const QVariantMap& props)
+{
+    auto var = props.value(uncheckableKey());
+    return
+        (var.isValid()) &&
+        (var.canConvert<bool>()) &&
+        (var.value<bool>());
+}
+
+void Property::setUncheckable(QVariantMap& props, bool value)
+{
+    props.insert(uncheckableKey(), value);
 }
 
 void Property::appendEnumValue(

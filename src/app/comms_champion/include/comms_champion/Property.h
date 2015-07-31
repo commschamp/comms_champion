@@ -53,6 +53,9 @@ public:
     static QVariant getFloatDecimals(const QVariantMap& props);
     static void setFloatDecimals(QVariantMap& props, int value);
 
+    static bool getUncheckable(const QVariantMap& props);
+    static void setUncheckable(QVariantMap& props, bool value = true);
+
     static void appendEnumValue(
         QVariantList& elemsList,
         const QString& elemName,

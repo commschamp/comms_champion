@@ -81,6 +81,10 @@ void OptionalFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         m_field->updateProperties(wrappedPropsVar.value<QVariantMap>());
         refreshInternal();
     }
+
+    bool uncheckable = Property::getUncheckable(props);
+    m_ui.m_optCheckBox->setHidden(uncheckable);
+    m_ui.m_optSep->setHidden(uncheckable);
 }
 
 void OptionalFieldWidget::fieldUpdated()

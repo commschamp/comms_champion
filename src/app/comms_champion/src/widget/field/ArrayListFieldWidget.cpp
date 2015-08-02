@@ -126,14 +126,18 @@ void ArrayListFieldWidget::editEnabledUpdatedImpl()
 void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     auto elemPropsVar = Property::getData(props);
-    if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
+    if (!elemPropsVar.isValid()) {
         return;
     }
 
-    m_elemProperties = elemPropsVar.value<QVariantMap>();
+    if (elemPropsVar.canConvert<QVariantMap>()) {
+        updateElementsProperties(elemPropsVar.value<QVariantMap>());
+        return;
+    }
 
-    for (auto* elem : m_elements) {
-        elem->updateProperties(m_elemProperties);
+    if (elemPropsVar.canConvert<QVariantList>()) {
+        updateElementsProperties(elemPropsVar.value<QVariantList>());
+        return;
     }
 }
 
@@ -177,7 +181,13 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
     auto* wrapperWidget = new ArrayListElementWidget(dataFieldWidget);
     wrapperWidget->setEditEnabled(isEditEnabled());
     wrapperWidget->setDeletable(!m_wrapper->hasFixedSize());
-    wrapperWidget->updateProperties(m_elemProperties);
+
+    if (!m_elemProperties.empty()) {
+        auto elemPropsIdx = m_elements.size() % m_elemProperties.size();
+        assert(elemPropsIdx < m_elemProperties.size());
+        auto& elemProps = m_elemProperties[elemPropsIdx];
+        wrapperWidget->updateProperties(elemProps);
+    }
 
     connect(
         wrapperWidget, SIGNAL(sigFieldUpdated()),
@@ -235,6 +245,46 @@ void ArrayListFieldWidget::addMissingFields()
     assert(m_elements.size() == m_wrapper->size());
     assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
 }
+
+void ArrayListFieldWidget::updateElementsProperties(const QVariantMap& props)
+{
+    m_elemProperties.clear();
+    m_elemProperties.push_back(props);
+
+    for (auto* elem : m_elements) {
+        elem->updateProperties(props);
+    }
+}
+
+void ArrayListFieldWidget::updateElementsProperties(const QVariantList& propsList)
+{
+    decltype(m_elemProperties) props;
+    for (auto idx = 0; idx < propsList.size(); ++idx) {
+        auto& elemPropsVar = propsList[idx];
+        if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
+            return;
+        }
+
+        props.push_back(elemPropsVar.value<QVariantMap>());
+    }
+
+    m_elemProperties.swap(props);
+    if (m_elemProperties.empty()) {
+        return;
+    }
+
+    auto propIdx = 0U;
+    for (auto* elemWidget : m_elements) {
+        auto& elemProps = m_elemProperties[propIdx];
+        elemWidget->updateProperties(elemProps);
+
+        ++propIdx;
+        if (m_elemProperties.size() <= propIdx) {
+            propIdx = 0U;
+        }
+    }
+}
+
 
 }  // namespace comms_champion
 

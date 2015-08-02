@@ -98,12 +98,14 @@ private:
     void refreshInternal();
     void updateUi();
     void addMissingFields();
+    void updateElementsProperties(const QVariantMap& props);
+    void updateElementsProperties(const QVariantList& propsList);
 
     Ui::ArrayListFieldWidget m_ui;
     WrapperPtr m_wrapper;
     std::vector<ArrayListElementWidget*> m_elements;
     CreateMissingDataFieldsFunc m_createMissingDataFieldsCallback;
-    QVariantMap m_elemProperties;
+    std::vector<QVariantMap> m_elemProperties;
 };
 
 }  // namespace comms_champion

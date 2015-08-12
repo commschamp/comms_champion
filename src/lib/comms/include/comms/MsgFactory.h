@@ -121,42 +121,37 @@ public:
                 }));
     }
 
-    MsgPtr createMsg(MsgIdParamType id) const
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
     {
-        auto iter =
-            std::lower_bound(
+        auto range =
+            std::equal_range(
                 registry_.begin(), registry_.end(), id,
-                [](FactoryMethod* method1, MsgIdParamType idParam) -> bool
+                [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
                 {
-                    GASSERT(method1 != nullptr);
-                    return method1->getId() < idParam;
+                    return idWrapper1.getId() < idWrapper2.getId();
                 });
 
-        if ((iter == registry_.end()) ||
-            ((*iter)->getId() != id)) {
+        auto dist = static_cast<unsigned>(std::distance(range.first, range.second));
+        if (dist <= idx) {
             return MsgPtr();
         }
 
+        auto iter = range.first + idx;
+        GASSERT(*iter);
         return (*iter)->create(*this);
     }
 
-    bool msgRegistered(MsgIdParamType id) const
+    std::size_t msgCount(MsgIdParamType id) const
     {
-        auto iter =
-            std::lower_bound(
+        auto range =
+            std::equal_range(
                 registry_.begin(), registry_.end(), id,
-                [](FactoryMethod* method1, MsgIdParamType idParam) -> bool
+                [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
                 {
-                    GASSERT(method1 != nullptr);
-                    return method1->getId() < idParam;
+                    return idWrapper1.getId() < idWrapper2.getId();
                 });
 
-        if ((iter == registry_.end()) ||
-            ((*iter)->getId() != id)) {
-            return false;
-        }
-
-        return true;
+        return static_cast<std::size_t>(std::distance(range.first, range.second));
     }
 
 private:
@@ -246,6 +241,30 @@ private:
         std::tuple_size<AllMessages>::value;
 
     typedef std::array<FactoryMethod*, NumOfMessages> MethodsRegistry;
+
+    class CompWrapper
+    {
+    public:
+
+        CompWrapper(MsgIdParamType id)
+          : m_id(id)
+        {
+        }
+
+        CompWrapper(const FactoryMethod* method)
+          : m_id(method->getId())
+        {
+        }
+
+
+        MsgIdParamType getId() const
+        {
+            return m_id;
+        }
+
+    private:
+        MsgIdParamType m_id;
+    };
 
     void initRegistryInternal(StaticNumericIdTag)
     {

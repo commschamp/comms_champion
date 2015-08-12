@@ -141,9 +141,9 @@ public:
         return updateFieldsCachedInternal<TIdx>(allFields, iter, size, LengthTag());
     }
 
-    MsgPtr createMsg(MsgIdParamType id)
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
     {
-        return nextLayer_.createMsg(id);
+        return nextLayer_.createMsg(id, idx);
     }
 
 protected:

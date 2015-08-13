@@ -84,10 +84,11 @@ protected:
         assert(!"Mustn't be called");
     }
 
-    virtual void assignImpl(const comms_champion::Message& other) override
+    virtual bool assignImpl(const comms_champion::Message& other) override
     {
         static_cast<void>(other);
         assert(!"Mustn't be called");
+        return false;
     }
 
 private:

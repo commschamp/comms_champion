@@ -105,12 +105,13 @@ void CCOptionalTest::resetImpl()
     fields() = Base::AllFields();
 }
 
-void CCOptionalTest::assignImpl(const comms_champion::Message& other)
+bool CCOptionalTest::assignImpl(const comms_champion::Message& other)
 {
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCOptionalTest*>(&other);
     assert(castedOther != nullptr);
     fields() = castedOther->fields();
+    return true;
 }
 
 }  // namespace message

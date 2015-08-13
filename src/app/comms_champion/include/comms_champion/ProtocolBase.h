@@ -313,18 +313,30 @@ protected:
         return createAllMessagesInTuple<AllMessages>();
     }
 
-    virtual MessageInfoPtr createMessageImpl(const QString& idAsString) override
+    virtual MessageInfoPtr createMessageImpl(const QString& idAsString, unsigned idx) override
     {
-        return createMessageInternal(idAsString, MsgIdTypeTag());
+        return createMessageInternal(idAsString, idx, MsgIdTypeTag());
     }
 
     virtual MessageInfo::MessagePtr cloneMessageImpl(
         const Message& msg)
     {
-        auto msgId = msg.getId();
-        auto clonedMsg = m_protStack.createMsg(msgId);
-        assert(clonedMsg);
-        clonedMsg->assign(msg);
+        MessageInfo::MessagePtr clonedMsg;
+        unsigned idx = 0;
+        while (true) {
+            auto msgId = msg.getId();
+            clonedMsg = m_protStack.createMsg(msgId, idx);
+            if (!clonedMsg) {
+                break;
+            }
+
+            if (clonedMsg->assign(msg)) {
+                break;
+            }
+
+            clonedMsg.reset();
+            ++idx;
+        }
         return std::move(clonedMsg);
     }
 
@@ -338,10 +350,10 @@ protected:
         return m_protStack;
     }
 
-    MessageInfoPtr createMessage(MsgIdParamType id)
+    MessageInfoPtr createMessage(MsgIdParamType id, unsigned idx = 0)
     {
         auto msgInfo = makeMessageInfo();
-        auto msgPtr = m_protStack.createMsg(id);
+        auto msgPtr = m_protStack.createMsg(id, idx);
         if (!msgPtr) {
             return MessageInfoPtr();
         }
@@ -402,9 +414,10 @@ private:
     class MsgCreateHelper
     {
     public:
-        MsgCreateHelper(const std::string& protName, const QString& id, MessageInfoPtr& msgInfo)
+        MsgCreateHelper(const std::string& protName, const QString& id, unsigned idx, MessageInfoPtr& msgInfo)
           : m_protName(protName),
             m_id(id),
+            m_reqIdx(idx),
             m_msgInfo(msgInfo)
         {
         }
@@ -417,20 +430,29 @@ private:
             }
 
             MessageInfo::MessagePtr msgPtr(new TMsg());
-            if (m_id == msgPtr->idAsString()) {
+            if (m_id != msgPtr->idAsString()) {
+                return;
+            }
+
+            if (m_currIdx == m_reqIdx) {
                 m_msgInfo = makeMessageInfo();
                 m_msgInfo->setProtocolName(m_protName);
                 m_msgInfo->setAppMessage(std::move(msgPtr));
+                return;
             }
+
+            ++m_currIdx;
         }
 
     private:
         const std::string& m_protName;
         const QString& m_id;
+        unsigned m_reqIdx;
         MessageInfoPtr& m_msgInfo;
+        unsigned m_currIdx = 0;
     };
 
-    MessageInfoPtr createMessageInternal(const QString& idAsString, NumericIdTag)
+    MessageInfoPtr createMessageInternal(const QString& idAsString, unsigned idx, NumericIdTag)
     {
         MessageInfoPtr result;
         do {
@@ -443,15 +465,15 @@ private:
                 }
             }
 
-            result = createMessage(static_cast<MsgIdType>(numId));
+            result = createMessage(static_cast<MsgIdType>(numId), idx);
         } while (false);
         return result;
     }
 
-    MessageInfoPtr createMessageInternal(const QString& idAsString, OtherIdTag)
+    MessageInfoPtr createMessageInternal(const QString& idAsString, unsigned idx, OtherIdTag)
     {
         MessageInfoPtr result;
-        comms::util::tupleForEachType(MsgCreateHelper(name(), idAsString, result));
+        comms::util::tupleForEachType(MsgCreateHelper(name(), idAsString, idx, result));
         if (result) {
             updateMessageInfo(*result);
         }

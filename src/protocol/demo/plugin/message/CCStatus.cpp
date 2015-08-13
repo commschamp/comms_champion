@@ -93,12 +93,13 @@ void CCStatus::resetImpl()
     fields() = Base::AllFields();
 }
 
-void CCStatus::assignImpl(const comms_champion::Message& other)
+bool CCStatus::assignImpl(const comms_champion::Message& other)
 {
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCStatus*>(&other);
     assert(castedOther != nullptr);
     fields() = castedOther->fields();
+    return true;
 }
 
 

@@ -56,9 +56,9 @@ void Message::reset()
     resetImpl();
 }
 
-void Message::assign(const Message& other)
+bool Message::assign(const Message& other)
 {
-    assignImpl(other);
+    return assignImpl(other);
 }
 
 bool Message::isValid() const

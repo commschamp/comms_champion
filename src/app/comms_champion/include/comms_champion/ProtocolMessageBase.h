@@ -48,18 +48,18 @@ protected:
         actObj = ActualMsg();
     }
 
-    virtual void assignImpl(const comms_champion::Message& other) override
+    virtual bool assignImpl(const comms_champion::Message& other) override
     {
         auto* castedOther = dynamic_cast<const ActualMsg*>(&other);
         if (castedOther == nullptr) {
-            assert(!"Wrong assignment");
-            return;
+            return false;
         }
+
         assert(other.idAsString() == Base::idAsString());
         auto& actObj = static_cast<ActualMsg&>(*this);
         actObj = *castedOther;
+        return true;
     }
-
 };
 
 }  // namespace comms_champion

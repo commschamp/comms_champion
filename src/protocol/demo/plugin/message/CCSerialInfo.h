@@ -46,7 +46,7 @@ protected:
     virtual const char* nameImpl() const override;
     virtual const QVariantList& fieldsPropertiesImpl() const override;
     virtual void resetImpl() override;
-    virtual void assignImpl(const comms_champion::Message& other) override;
+    virtual bool assignImpl(const comms_champion::Message& other) override;
 };
 
 }  // namespace message

@@ -172,12 +172,13 @@ void CCSerialInfo::resetImpl()
     fields() = Base::AllFields();
 }
 
-void CCSerialInfo::assignImpl(const comms_champion::Message& other)
+bool CCSerialInfo::assignImpl(const comms_champion::Message& other)
 {
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCSerialInfo*>(&other);
     assert(castedOther != nullptr);
     fields() = castedOther->fields();
+    return true;
 }
 
 }  // namespace message

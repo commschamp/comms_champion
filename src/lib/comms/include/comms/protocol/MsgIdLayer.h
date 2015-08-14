@@ -235,12 +235,17 @@ private:
                 break;
             }
 
+            typedef typename std::decay<decltype(iter)>::type DecayedIter;
+            static_assert(std::is_same<typename std::iterator_traits<DecayedIter>::iterator_category, std::random_access_iterator_tag>::value,
+                "ReadIterator is expected to be random access one");
+            DecayedIter readStart = iter;
             es = reader.read(msgPtr, iter, size - field.length(), missingSize);
             if (es == ErrorStatus::Success) {
                 return es;
             }
 
             msgPtr.reset();
+            iter = readStart;
             ++idx;
         }
 

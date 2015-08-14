@@ -386,6 +386,9 @@ private:
         OtherIdTag
     >::type MsgIdTypeTag;
 
+    static_assert(std::is_same<MsgIdTypeTag, NumericIdTag>::value,
+        "Non-numeric IDs are not supported properly yet.");
+
     class AllMsgsCreateHelper
     {
     public:
@@ -473,7 +476,7 @@ private:
     MessageInfoPtr createMessageInternal(const QString& idAsString, unsigned idx, OtherIdTag)
     {
         MessageInfoPtr result;
-        comms::util::tupleForEachType(MsgCreateHelper(name(), idAsString, idx, result));
+        comms::util::tupleForEachType<AllMessages>(MsgCreateHelper(name(), idAsString, idx, result));
         if (result) {
             updateMessageInfo(*result);
         }

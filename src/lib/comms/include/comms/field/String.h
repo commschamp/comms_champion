@@ -130,7 +130,9 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        return str_.read(iter, len);
+        auto es = str_.read(iter, len);
+        adjustValue(AdjustmentTag());
+        return es;
     }
 
     template <typename TIter>
@@ -150,6 +152,30 @@ public:
     }
 
 private:
+    struct NoAdjustment {};
+    struct AdjustmentNeeded {};
+    typedef typename std::conditional<
+        ParsedOptions::HasSequenceFixedSize,
+        AdjustmentNeeded,
+        NoAdjustment
+    >::type AdjustmentTag;
+
+    void adjustValue(NoAdjustment)
+    {
+    }
+
+    void adjustValue(AdjustmentNeeded)
+    {
+        std::size_t count = 0;
+        for (auto iter = value().begin(); iter != value().end(); ++iter) {
+            if (*iter == 0) {
+                break;
+            }
+            ++count;
+        }
+
+        value().resize(count);
+    }
 
     ThisField str_;
 };

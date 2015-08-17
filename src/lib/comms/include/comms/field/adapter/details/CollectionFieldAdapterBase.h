@@ -76,6 +76,10 @@ public:
         return Next::maxElementLength();
     }
 
+    static constexpr std::size_t elementLength(const ElementType& elem)
+    {
+        return Next::elementLength(elem);
+    }
 
     template <typename TIter>
     static ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len)
@@ -90,9 +94,15 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t len)
+    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
     {
         return Base::next().readN(count, iter, len);
+    }
+
+    template <typename TIter>
+    ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
+    {
+        return Base::next().writeN(count, iter, len);
     }
 
     void forceReadElemCount(std::size_t count)

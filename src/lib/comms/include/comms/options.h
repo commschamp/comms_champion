@@ -131,6 +131,12 @@ struct SequenceSizeFieldPrefix
     typedef TField Type;
 };
 
+template <typename TField>
+struct SequenceTrailingFieldSuffix
+{
+    typedef TField Type;
+};
+
 struct SequenceSizeForcingEnabled
 {
 };
@@ -180,7 +186,7 @@ struct NumValueRangeValidator
         "Min value must be not greater than Max value");
 
     template <typename TField>
-    constexpr bool operator()(TField&& field) const
+    constexpr bool operator()(const TField& field) const
     {
         typedef typename std::conditional<
             (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
@@ -202,25 +208,27 @@ private:
     struct CompareTag {};
 
     template <typename TValue>
-    static constexpr bool aboveMin(TValue&& value, CompareTag)
+    static constexpr bool aboveMin(const TValue& value, CompareTag)
     {
-        return (MinValue <= static_cast<decltype(MinValue)>(value));
+        typedef typename std::decay<decltype(value)>::type ValueType;
+        return (static_cast<ValueType>(MinValue) <= value);
     }
 
     template <typename TValue>
-    static constexpr bool aboveMin(TValue&&, ReturnTrueTag)
+    static constexpr bool aboveMin(const TValue&, ReturnTrueTag)
     {
         return true;
     }
 
     template <typename TValue>
-    static constexpr bool belowMax(TValue&& value, CompareTag)
+    static constexpr bool belowMax(const TValue& value, CompareTag)
     {
-        return (static_cast<decltype(MaxValue)>(value) <= MaxValue);
+        typedef typename std::decay<decltype(value)>::type ValueType;
+        return (value <= static_cast<ValueType>(MaxValue));
     }
 
     template <typename TValue>
-    static constexpr bool belowMax(TValue&&, ReturnTrueTag)
+    static constexpr bool belowMax(const TValue&, ReturnTrueTag)
     {
         return true;
     }

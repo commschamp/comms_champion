@@ -116,25 +116,6 @@ template <typename TField, typename TOpts>
 using AdaptBasicFieldVarLengthT =
     typename AdaptBasicFieldVarLength<TField, TOpts, TOpts::HasVarLengthLimits>::Type;
 
-template <typename TField, typename TOpts, bool THasSequenceSizeFieldPrefix>
-struct AdaptBasicFieldSequenceSizeFieldPrefix;
-
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, true>
-{
-    typedef comms::field::adapter::SequenceSizeFieldPrefix<typename TOpts::SequenceSizeFieldPrefix, TField> Type;
-};
-
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, false>
-{
-    typedef TField Type;
-};
-
-template <typename TField, typename TOpts>
-using AdaptBasicFieldSequenceSizeFieldPrefixT =
-    typename AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, TOpts::HasSequenceSizeFieldPrefix>::Type;
-
 template <typename TField, bool THasSequenceSizeForcing>
 struct AdaptBasicFieldSequenceSizeForcing;
 
@@ -172,6 +153,44 @@ struct AdaptBasicFieldSequenceFixedSize<TField, TOpts, false>
 template <typename TField, typename TOpts>
 using AdaptBasicFieldSequenceFixedSizeT =
     typename AdaptBasicFieldSequenceFixedSize<TField, TOpts, TOpts::HasSequenceFixedSize>::Type;
+
+template <typename TField, typename TOpts, bool THasSequenceSizeFieldPrefix>
+struct AdaptBasicFieldSequenceSizeFieldPrefix;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, true>
+{
+    typedef comms::field::adapter::SequenceSizeFieldPrefix<typename TOpts::SequenceSizeFieldPrefix, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts>
+using AdaptBasicFieldSequenceSizeFieldPrefixT =
+    typename AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, TOpts::HasSequenceSizeFieldPrefix>::Type;
+
+template <typename TField, typename TOpts, bool THasSequenceTrailingFieldSuffix>
+struct AdaptBasicFieldSequenceTrailingFieldSuffix;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldSequenceTrailingFieldSuffix<TField, TOpts, true>
+{
+    typedef comms::field::adapter::SequenceTrailingFieldSuffix<typename TOpts::SequenceTrailingFieldSuffix, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldSequenceTrailingFieldSuffix<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts>
+using AdaptBasicFieldSequenceTrailingFieldSuffixT =
+    typename AdaptBasicFieldSequenceTrailingFieldSuffix<TField, TOpts, TOpts::HasSequenceTrailingFieldSuffix>::Type;
 
 
 template <typename TField, typename TOpts, bool THasDefaultValueInitialiser>
@@ -262,14 +281,16 @@ class AdaptBasicField
         FixedLengthAdapted, ParsedOptions> FixedBitLengthAdapted;
     typedef AdaptBasicFieldVarLengthT<
         FixedBitLengthAdapted, ParsedOptions> VarLengthAdapted;
-    typedef AdaptBasicFieldSequenceSizeFieldPrefixT<
-        VarLengthAdapted, ParsedOptions> SequenceSizeFieldPrefixAdapted;
     typedef AdaptBasicFieldSequenceSizeForcingT<
-        SequenceSizeFieldPrefixAdapted, ParsedOptions> SequenceSizeForcingAdapted;
+        VarLengthAdapted, ParsedOptions> SequenceSizeForcingAdapted;
     typedef AdaptBasicFieldSequenceFixedSizeT<
         SequenceSizeForcingAdapted, ParsedOptions> SequenceFixedSizeAdapted;
+    typedef AdaptBasicFieldSequenceSizeFieldPrefixT<
+        SequenceFixedSizeAdapted, ParsedOptions> SequenceSizeFieldPrefixAdapted;
+    typedef AdaptBasicFieldSequenceTrailingFieldSuffixT<
+        SequenceSizeFieldPrefixAdapted, ParsedOptions> SequenceTrailingFieldSuffixAdapted;
     typedef AdaptBasicFieldDefaultValueInitialiserT<
-        SequenceFixedSizeAdapted, ParsedOptions> DefaultValueInitialiserAdapted;
+        SequenceTrailingFieldSuffixAdapted, ParsedOptions> DefaultValueInitialiserAdapted;
     typedef AdaptBasicFieldCustomValidatorT<
         DefaultValueInitialiserAdapted, ParsedOptions> CustomValidatorAdapted;
     typedef AdaptBasicFieldFailOnInvalidT<

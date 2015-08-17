@@ -169,6 +169,10 @@ public:
         return maxElemLengthInternal(ElemTag());
     }
 
+    static constexpr std::size_t elementLength(const ElementType& elem)
+    {
+        return elementLengthInternal(elem, ElemTag());
+    }
 
     template <typename TIter>
     static ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len)
@@ -195,13 +199,12 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t len)
+    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
     {
         value_.clear();
-        auto remLen = len;
         while (0 < count) {
             auto elem = ElementType();
-            auto es = readElement(elem, iter, remLen);
+            auto es = readElement(elem, iter, len);
             if (es != ErrorStatus::Success) {
                 return es;
             }
@@ -237,6 +240,31 @@ public:
 
         return es;
     }
+
+    template <typename TIter>
+    ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
+    {
+        if ((value_.size() <= count) && (len < length())) {
+            return ErrorStatus::BufferOverflow;
+        }
+
+        auto es = ErrorStatus::Success;
+        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
+            if (count == 0) {
+                break;
+            }
+
+            es = writeElement(*fieldIter, iter, len);
+            if (es != ErrorStatus::Success) {
+                break;
+            }
+
+            --count;
+        }
+
+        return es;
+    }
+
 
     void forceReadElemCount(std::size_t)
     {
@@ -405,6 +433,17 @@ private:
     {
         return sizeof(ElementType::maxLength());
     }
+
+    static constexpr std::size_t elementLengthInternal(const ElementType&, IntegralElemTag)
+    {
+        return sizeof(ElementType);
+    }
+
+    static constexpr std::size_t elementLengthInternal(const ElementType& elem, FieldElemTag)
+    {
+        return elem.length();
+    }
+
 
     ValueType value_;
 };

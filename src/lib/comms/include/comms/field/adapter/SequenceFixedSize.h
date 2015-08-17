@@ -64,6 +64,25 @@ public:
     SequenceFixedSizeBase& operator=(const SequenceFixedSizeBase&) = default;
     SequenceFixedSizeBase& operator=(SequenceFixedSizeBase&&) = default;
 
+    std::size_t length() const
+    {
+        auto currSize = Base::value().size();
+        if (currSize == fixedSize_) {
+            return Base::length();
+        }
+
+        if (currSize < fixedSize_) {
+            auto remSize = fixedSize_ - currSize;
+            auto dummyElem = ElementType();
+            return Base::length() + (remSize * Base::elementLength(dummyElem));
+        }
+
+        typedef typename Base::Next Next;
+        ValueType copy(Base::value());
+        copy.resize(fixedSize_);
+        return Next(std::move(copy)).length();
+    }
+
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
@@ -73,8 +92,28 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        GASSERT(Base::value().size() == fixedSize_);
-        return Base::write(iter, len);
+        auto writeCount = std::min(Base::value().size(), fixedSize_);
+        auto es = Base::writeN(writeCount, iter, len);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        auto remCount = fixedSize_ - writeCount;
+        if (remCount == 0) {
+            return es;
+        }
+
+        auto dummyElem = ElementType();
+        while (0 < remCount) {
+            es = Base::writeElement(dummyElem, iter, len);
+            if (es != ErrorStatus::Success) {
+                break;
+            }
+
+            --remCount;
+        }
+
+        return es;
     }
 
 private:
@@ -127,9 +166,6 @@ public:
     {
         return (Base::value().size() == TSize) && Base::valid();
     }
-
-private:
-
 };
 
 

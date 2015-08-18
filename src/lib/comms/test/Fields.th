@@ -68,6 +68,7 @@ public:
     void test36();
     void test37();
     void test38();
+    void test39();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1416,6 +1417,25 @@ void FieldsTestSuite::test38()
 
     field = readWriteField<Field>(&ExpectedBuf2[0], ExpectedBufSize2);
     TS_ASSERT_EQUALS(field.value(), "foo");
+}
+
+void FieldsTestSuite::test39()
+{
+    typedef comms::field::FloatValue<
+        comms::Field<BigEndianOpt>,
+        float,
+        comms::option::ValidNumValueRange<5, 10>
+    > Field;
+
+    Field field;
+    TS_ASSERT(fpEquals(field.value(), 0.0f));
+    TS_ASSERT(!field.valid());
+    field.value() = 4.999999;
+    TS_ASSERT(fpEquals(field.value(), 4.999999f));
+    TS_ASSERT(!field.valid());
+    field.value() = 5.00001;
+    TS_ASSERT(fpEquals(field.value(), 5.00001f));
+    TS_ASSERT(field.valid());
 }
 
 template <typename TField>

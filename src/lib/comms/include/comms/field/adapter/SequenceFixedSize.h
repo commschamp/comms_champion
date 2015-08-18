@@ -116,6 +116,29 @@ public:
         return es;
     }
 
+    bool valid() const
+    {
+        if (!Base::valid()) {
+            return false;
+        }
+
+        if (fixedSize_ == Base::value().size()) {
+            return true;
+        }
+
+        if (fixedSize_ < Base::value().size()) {
+            return false;
+        }
+
+        auto valCopy = Base::value();
+        auto sizeDiff = fixedSize_ - valCopy.size();
+        std::fill_n(std::back_inserter(valCopy), sizeDiff, ElementType());
+
+        typedef typename Base::Next Next;
+        Next next(std::move(valCopy));
+        return next.valid();
+    }
+
 private:
     std::size_t fixedSize_ = 0;
 };
@@ -160,11 +183,6 @@ public:
     static constexpr std::size_t maxLength()
     {
         return Base::maxElementLength() * TSize;
-    }
-
-    bool valid() const
-    {
-        return (Base::value().size() == TSize) && Base::valid();
     }
 };
 

@@ -21,7 +21,6 @@
 #include <cassert>
 
 #include "widget/field/IntValueFieldWidget.h"
-#include "widget/field/LongIntValueFieldWidget.h"
 #include "widget/field/BitmaskValueFieldWidget.h"
 #include "widget/field/EnumValueFieldWidget.h"
 #include "widget/field/StringFieldWidget.h"
@@ -83,16 +82,6 @@ FieldWidgetCreator::createIntValueFieldWidget(
         FieldWidgetPtr(
             new IntValueFieldWidget(std::move(fieldWrapper)));
 }
-
-FieldWidgetPtr
-FieldWidgetCreator::createLongIntValueFieldWidget(
-    field_wrapper::LongIntValueWrapperPtr fieldWrapper)
-{
-    return
-        FieldWidgetPtr(
-            new LongIntValueFieldWidget(std::move(fieldWrapper)));
-}
-
 
 FieldWidgetPtr
 FieldWidgetCreator::createBitmaskValueFieldWidget(

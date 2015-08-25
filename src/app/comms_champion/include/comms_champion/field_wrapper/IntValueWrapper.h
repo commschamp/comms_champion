@@ -31,12 +31,12 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class IntValueWrapper : public NumericValueWrapper<int>
+class IntValueWrapper : public NumericValueWrapper<long long int>
 {
-    typedef NumericValueWrapper<int> Base;
+    typedef NumericValueWrapper<long long int> Base;
 public:
 
-    typedef Base::UnderlyingType UnderlyingType;
+    typedef typename Base::UnderlyingType UnderlyingType;
 
     using Base::NumericValueWrapper;
 
@@ -52,17 +52,33 @@ public:
         return maxValueImpl();
     }
 
-    template <typename TField>
-    static constexpr bool canHandleField()
+    double getScaled() const
     {
-        return
-            (sizeof(typename TField::ValueType) < sizeof(UnderlyingType)) ||
-            ((sizeof(typename TField::ValueType) == sizeof(UnderlyingType)) && (std::is_signed<typename TField::ValueType>::value));
+        return getScaledImpl();
+    }
+
+    void setScaled(double value)
+    {
+        setScaledImpl(value);
+    }
+
+    double scaleValue(UnderlyingType value) const
+    {
+        return scaleValueImpl(value);
+    }
+
+    bool isShortInt() const
+    {
+        return isShortIntImpl();
     }
 
 protected:
     virtual UnderlyingType minValueImpl() const = 0;
     virtual UnderlyingType maxValueImpl() const = 0;
+    virtual double getScaledImpl() const = 0;
+    virtual void setScaledImpl(double value) = 0;
+    virtual double scaleValueImpl(UnderlyingType value) const = 0;
+    virtual bool isShortIntImpl() const = 0;
 };
 
 template <typename TField>
@@ -96,6 +112,36 @@ protected:
     virtual UnderlyingType maxValueImpl() const override
     {
         return std::numeric_limits<typename Field::ValueType>::max();
+    }
+
+    virtual double getScaledImpl() const override
+    {
+        return Base::field().template scaleAs<double>();
+    }
+
+    virtual void setScaledImpl(double value) override
+    {
+        Base::field().setScaled(value);
+    }
+
+    virtual double scaleValueImpl(UnderlyingType value) const
+    {
+        Field fieldTmp(value);
+        return fieldTmp.template scaleAs<double>();
+    }
+
+    virtual bool isShortIntImpl() const override
+    {
+        typedef typename Field::ValueType ValueType;
+        if (sizeof(ValueType) < sizeof(int)) {
+            return true;
+        }
+
+        if (sizeof(int) < sizeof(ValueType)) {
+            return false;
+        }
+
+        return std::is_signed<ValueType>::value;
     }
 
 };

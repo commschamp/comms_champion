@@ -19,7 +19,7 @@
 #pragma once
 
 #include "comms_champion/FieldWidget.h"
-#include "comms_champion/field_wrapper/LongIntValueWrapper.h"
+#include "comms_champion/field_wrapper/IntValueWrapper.h"
 
 #include "ui_LongIntValueFieldWidget.h"
 
@@ -31,7 +31,7 @@ class LongIntValueFieldWidget : public FieldWidget
     Q_OBJECT
     typedef FieldWidget Base;
 public:
-    using WrapperPtr = field_wrapper::LongIntValueWrapperPtr;
+    using WrapperPtr = field_wrapper::IntValueWrapperPtr;
 
     explicit LongIntValueFieldWidget(
         WrapperPtr wrapper,

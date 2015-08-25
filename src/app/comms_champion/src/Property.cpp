@@ -55,6 +55,12 @@ const QString& readOnlyKey()
     return Str;
 }
 
+const QString& displayScaledKey()
+{
+    static const QString Str("cc.display_scaled");
+    return Str;
+}
+
 const QString& floatDecimalsKey()
 {
     static const QString Str("cc.float_dec");
@@ -167,6 +173,20 @@ bool Property::getReadOnly(const QVariantMap& props)
 void Property::setReadOnly(QVariantMap& props, bool value)
 {
     props.insert(readOnlyKey(), value);
+}
+
+bool Property::getDisplayScaled(const QVariantMap& props)
+{
+    auto var = props.value(displayScaledKey());
+    return
+        (var.isValid()) &&
+        (var.canConvert<bool>()) &&
+        (var.value<bool>());
+}
+
+void Property::setDisplayScaled(QVariantMap& props, bool value)
+{
+    props.insert(displayScaledKey(), value);
 }
 
 QVariant Property::getFloatDecimals(const QVariantMap& props)

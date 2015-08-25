@@ -50,6 +50,9 @@ public:
     static bool getReadOnly(const QVariantMap& props);
     static void setReadOnly(QVariantMap& props, bool value = true);
 
+    static bool getDisplayScaled(const QVariantMap& props);
+    static void setDisplayScaled(QVariantMap& props, bool value = true);
+
     static QVariant getFloatDecimals(const QVariantMap& props);
     static void setFloatDecimals(QVariantMap& props, int value);
 

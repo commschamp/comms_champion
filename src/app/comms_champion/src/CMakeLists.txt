@@ -36,8 +36,10 @@ function (bin_comms_champion)
         widget/ProtocolsStackWidget.cpp
         widget/MessageUpdateDialog.cpp
         widget/PluginConfigDialog.cpp
-        widget/field/IntValueFieldWidget.cpp
+        widget/field/ShortIntValueFieldWidget.cpp
         widget/field/LongIntValueFieldWidget.cpp
+        widget/field/ScaledIntValueFieldWidget.cpp
+        widget/field/IntValueFieldWidget.cpp
         widget/field/BitmaskValueFieldWidget.cpp
         widget/field/EnumValueFieldWidget.cpp
         widget/field/StringFieldWidget.cpp
@@ -66,8 +68,9 @@ function (bin_comms_champion)
         widget/PluginConfigDialog.h
         widget/MainWindowWidget.h
         widget/DefaultMessageDisplayWidget.h
-        widget/field/IntValueFieldWidget.h
+        widget/field/ShortIntValueFieldWidget.h
         widget/field/LongIntValueFieldWidget.h
+        widget/field/ScaledIntValueFieldWidget.h
         widget/field/BitmaskValueFieldWidget.h
         widget/field/EnumValueFieldWidget.h
         widget/field/StringFieldWidget.h
@@ -94,7 +97,7 @@ function (bin_comms_champion)
         ui/ProtocolsStackWidget.ui
         ui/MessageUpdateDialog.ui
         ui/PluginConfigDialog.ui
-        ui/IntValueFieldWidget.ui
+        ui/ShortIntValueFieldWidget.ui
         ui/LongIntValueFieldWidget.ui
         ui/BitmaskValueFieldWidget.ui
         ui/EnumValueFieldWidget.ui

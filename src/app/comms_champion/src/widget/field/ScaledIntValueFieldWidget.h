@@ -18,37 +18,42 @@
 
 #pragma once
 
-#include <memory>
-
 #include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
+
+#include "ui_LongIntValueFieldWidget.h"
 
 namespace comms_champion
 {
 
-class IntValueFieldWidget : public FieldWidget
+class ScaledIntValueFieldWidget : public FieldWidget
 {
+    Q_OBJECT
     typedef FieldWidget Base;
 public:
     using WrapperPtr = field_wrapper::IntValueWrapperPtr;
 
-    explicit IntValueFieldWidget(
+    explicit ScaledIntValueFieldWidget(
         WrapperPtr wrapper,
         QWidget* parent = nullptr);
 
-    ~IntValueFieldWidget();
+    ~ScaledIntValueFieldWidget();
 
 protected:
     virtual void refreshImpl() override;
     virtual void editEnabledUpdatedImpl() override;
     virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
+private slots:
+    void serialisedValueUpdated(const QString& value);
+    void valueUpdated(double value);
+
 private:
     using WrapperType = typename WrapperPtr::element_type;
     using UnderlyingType = typename WrapperType::UnderlyingType;
 
+    Ui::LongIntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
-    std::unique_ptr<FieldWidget> m_childWidget;
 };
 
 

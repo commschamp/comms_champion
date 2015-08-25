@@ -24,7 +24,6 @@
 
 #include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
-#include "comms_champion/field_wrapper/LongIntValueWrapper.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 #include "comms_champion/field_wrapper/EnumValueWrapper.h"
 #include "comms_champion/field_wrapper/StringWrapper.h"
@@ -208,9 +207,6 @@ private:
     using FloatValueTag = details::FloatValueTag;
     using UnknownValueTag = details::UnknownValueTag;
 
-    struct IntValueWrapperTag {};
-    struct LongIntValueWrapperTag {};
-
     struct RawDataArrayListTag {};
     struct CollectionOfFieldsArrayListTag {};
 
@@ -239,14 +235,7 @@ private:
     template <typename TField>
     static FieldWidgetPtr createWidgetInternal(TField& field, IntValueTag)
     {
-        typedef typename std::decay<decltype(field)>::type DecayedField;
-        typedef typename std::conditional<
-            field_wrapper::IntValueWrapper::canHandleField<DecayedField>(),
-            IntValueWrapperTag,
-            LongIntValueWrapperTag
-        >::type Tag;
-
-        return createIntValueFieldWidgetInternal(field, Tag());
+        return createIntValueFieldWidget(field_wrapper::makeIntValueWrapper(field));
     }
 
     template <typename TField>
@@ -348,20 +337,6 @@ private:
     }
 
     template <typename TField>
-    static FieldWidgetPtr createIntValueFieldWidgetInternal(TField& field, IntValueWrapperTag)
-    {
-        return createIntValueFieldWidget(
-            field_wrapper::makeIntValueWrapper(field));
-    }
-
-    template <typename TField>
-    static FieldWidgetPtr createIntValueFieldWidgetInternal(TField& field, LongIntValueWrapperTag)
-    {
-        return createLongIntValueFieldWidget(
-            field_wrapper::makeLongIntValueWrapper(field));
-    }
-
-    template <typename TField>
     static FieldWidgetPtr createArrayListFieldWidgetInternal(TField& field, RawDataArrayListTag)
     {
         return createArrayListRawDataFieldWidget(
@@ -395,9 +370,6 @@ private:
 
     static FieldWidgetPtr createIntValueFieldWidget(
         field_wrapper::IntValueWrapperPtr fieldWrapper);
-
-    static FieldWidgetPtr createLongIntValueFieldWidget(
-        field_wrapper::LongIntValueWrapperPtr fieldWrapper);
 
     static FieldWidgetPtr createBitmaskValueFieldWidget(
         field_wrapper::BitmaskValueWrapperPtr fieldWrapper);

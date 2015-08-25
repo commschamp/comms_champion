@@ -30,3 +30,4 @@
 #include "adapter/CustomValidator.h"
 #include "adapter/FailOnInvalid.h"
 #include "adapter/IgnoreInvalid.h"
+#include "adapter/Scaling.h"

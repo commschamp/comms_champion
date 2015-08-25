@@ -21,6 +21,7 @@
 #include <tuple>
 #include <type_traits>
 #include <limits>
+#include <ratio>
 
 #include "comms/traits.h"
 #include "comms/ErrorStatus.h"
@@ -121,6 +122,12 @@ template <std::size_t TSize>
 struct FixedSizeStorage
 {
     static const std::size_t Value = TSize;
+};
+
+template <std::intmax_t TNum, std::intmax_t TDenom>
+struct ScalingRatio
+{
+    typedef std::ratio<TNum, TDenom> Type;
 };
 
 struct InPlaceAllocation {};

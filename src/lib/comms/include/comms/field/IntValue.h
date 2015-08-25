@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <ratio>
+
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
 #include "comms/options.h"
@@ -97,6 +99,22 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return field_.write(iter, size);
+    }
+
+    template <typename TRet>
+    constexpr TRet scaleAs() const
+    {
+        static_assert(std::is_floating_point<TRet>::value,
+            "TRet is expected to be floating point type");
+        return static_cast<TRet>(value()) * (static_cast<TRet>(ThisField::ScalingRatio::num) / static_cast<TRet>(ThisField::ScalingRatio::den));
+    }
+
+    template <typename TScaled>
+    void setScaled(TScaled val)
+    {
+        value() =
+            static_cast<ValueType>(
+                (val * static_cast<TScaled>(ThisField::ScalingRatio::den)) / static_cast<TScaled>(ThisField::ScalingRatio::num));
     }
 
 private:

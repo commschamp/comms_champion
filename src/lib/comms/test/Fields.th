@@ -69,6 +69,7 @@ public:
     void test37();
     void test38();
     void test39();
+    void test40();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1436,6 +1437,32 @@ void FieldsTestSuite::test39()
     field.value() = 5.00001;
     TS_ASSERT(fpEquals(field.value(), 5.00001f));
     TS_ASSERT(field.valid());
+}
+
+void FieldsTestSuite::test40()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<1, 100>
+    > Field;
+
+    Field field;
+    TS_ASSERT_EQUALS(field.value(), 0U);
+    TS_ASSERT_EQUALS(field.scaleAs<double>(), 0.0);
+
+    field.setScaled(0.15);
+    TS_ASSERT_EQUALS(field.value(), 15U);
+
+
+    static const char Buf[] = {
+        115
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.value(), 115);
+    TS_ASSERT(fpEquals(field.scaleAs<float>(), 1.15f));
 }
 
 template <typename TField>

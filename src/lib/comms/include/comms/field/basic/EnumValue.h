@@ -58,6 +58,8 @@ public:
 
     typedef typename IntValueField::ValueType SerialisedType;
 
+    typedef typename IntValueField::ScalingRatio ScalingRatio;
+
 
     EnumValue() = default;
 

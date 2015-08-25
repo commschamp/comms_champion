@@ -49,6 +49,7 @@ struct OptionsParser<>
     static const bool HasFailOnInvalid = false;
     static const bool HasIgnoreInvalid = false;
     static const bool HasFixedSizeStorage = false;
+    static const bool HasScalingRatio = false;
 };
 
 template <long long int TOffset, typename... TOptions>
@@ -240,12 +241,25 @@ public:
     static const std::size_t FixedSizeStorage = Option::Value;
 };
 
+template <std::intmax_t TNum, std::intmax_t TDenom, typename... TOptions>
+class OptionsParser<
+    comms::option::ScalingRatio<TNum, TDenom>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::ScalingRatio<TNum, TDenom> Option;
+public:
+    static const bool HasScalingRatio = true;
+    typedef typename Option::Type ScalingRatio;
+};
+
 template <typename... TTupleOptions, typename... TOptions>
 class OptionsParser<
     std::tuple<TTupleOptions...>,
     TOptions...> : public OptionsParser<TTupleOptions..., TOptions...>
 {
 };
+
+
 
 
 }  // namespace details

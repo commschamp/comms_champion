@@ -19,6 +19,7 @@
 #pragma once
 
 #include <type_traits>
+#include <ratio>
 
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
@@ -46,6 +47,8 @@ public:
     typedef T ValueType;
 
     typedef typename comms::util::SizeToType<sizeof(ValueType), false>::Type SerialisedType;
+
+    typedef std::ratio<1, 1> ScalingRatio;
 
     FloatValue() = default;
 

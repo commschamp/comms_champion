@@ -45,6 +45,7 @@ public:
     typedef T ValueType;
 
     typedef ValueType SerialisedType;
+    typedef std::ratio<1, 1> ScalingRatio;
 
 
     IntValue() = default;

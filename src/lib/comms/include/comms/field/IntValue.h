@@ -19,6 +19,8 @@
 #pragma once
 
 #include <ratio>
+#include <limits>
+#include <type_traits>
 
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
@@ -112,9 +114,20 @@ public:
     template <typename TScaled>
     void setScaled(TScaled val)
     {
+        typedef typename std::decay<decltype(val)>::type DecayedType;
+        auto mul = 10;
+        if ((ThisField::ScalingRatio::den & (ThisField::ScalingRatio::den - 1)) == 0) {
+            mul = 2;
+        }
+
+        auto epsilon = static_cast<TScaled>(ThisField::ScalingRatio::num) / static_cast<TScaled>(ThisField::ScalingRatio::den * mul);
+        if (val < static_cast<DecayedType>(0)) {
+            epsilon = -epsilon;
+        }
+
         value() =
             static_cast<ValueType>(
-                (val * static_cast<TScaled>(ThisField::ScalingRatio::den)) / static_cast<TScaled>(ThisField::ScalingRatio::num));
+                ((val + epsilon) * static_cast<TScaled>(ThisField::ScalingRatio::den)) / static_cast<TScaled>(ThisField::ScalingRatio::num));
     }
 
 private:

@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <cmath>
 
 #include "comms_champion/Property.h"
 
@@ -101,12 +102,13 @@ void ScaledIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 
 void ScaledIntValueFieldWidget::valueUpdated(double value)
 {
-    if (value == m_wrapper->getScaled()) {
+    if (std::abs(value - m_wrapper->getScaled()) < std::numeric_limits<double>::epsilon()) {
         return;
     }
 
     assert(isEditEnabled());
     m_wrapper->setScaled(value);
+
     refresh();
     emitFieldUpdated();
 }

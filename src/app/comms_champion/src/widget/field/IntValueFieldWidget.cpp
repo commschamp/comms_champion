@@ -44,7 +44,6 @@ IntValueFieldWidget::~IntValueFieldWidget()
 
 void IntValueFieldWidget::refreshImpl()
 {
-    assert(m_childWidget);
     if (m_childWidget) {
         m_childWidget->refresh();
     }
@@ -52,7 +51,6 @@ void IntValueFieldWidget::refreshImpl()
 
 void IntValueFieldWidget::editEnabledUpdatedImpl()
 {
-    assert(m_childWidget);
     if (m_childWidget) {
         m_childWidget->setEditEnabled(isEditEnabled());
     }
@@ -73,9 +71,11 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     }
 
     auto* layout = new QVBoxLayout();
+    layout->setSpacing(0);
     layout->addWidget(m_childWidget.get());
     setLayout(layout);
     m_childWidget->updateProperties(props);
+    m_childWidget->setEditEnabled(isEditEnabled());
 }
 
 }  // namespace comms_champion

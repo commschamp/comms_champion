@@ -71,8 +71,9 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     }
 
     auto* layout = new QVBoxLayout();
-    layout->setSpacing(0);
     layout->addWidget(m_childWidget.get());
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
     setLayout(layout);
     m_childWidget->updateProperties(props);
     m_childWidget->setEditEnabled(isEditEnabled());

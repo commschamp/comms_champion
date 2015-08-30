@@ -77,6 +77,10 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     setLayout(layout);
     m_childWidget->updateProperties(props);
     m_childWidget->setEditEnabled(isEditEnabled());
+
+    connect(
+        m_childWidget.get(), SIGNAL(sigFieldUpdated()),
+        this, SIGNAL(sigFieldUpdated()));
 }
 
 }  // namespace comms_champion

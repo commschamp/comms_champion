@@ -126,13 +126,7 @@ MessageUpdateDialog::MessageUpdateDialog(
             auto appMsgTmp = msgInfoTmp->getAppMessage();
             assert(appMsgTmp);
             auto idTmp = appMsgTmp->idAsString();
-            if (idTmp == id) {
-                auto appMsgTmp = msgInfoTmp->getAppMessage();
-                assert(appMsgTmp);
-                auto appMsg = m_msgInfo->getAppMessage();
-                assert(appMsg);
-                appMsgTmp->assign(*appMsg);
-
+            if ((idTmp == id) && appMsgTmp->assign(*providedAppMsg)) {
                 m_protocol->updateMessageInfo(*msgInfoTmp);
 
                 msgIdx = msgIdxTmp;

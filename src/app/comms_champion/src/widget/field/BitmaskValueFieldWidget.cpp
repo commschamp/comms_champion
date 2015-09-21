@@ -94,6 +94,7 @@ void BitmaskValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
     auto bitNamesListVar = Property::getData(props);
     if ((!bitNamesListVar.isValid()) || (!bitNamesListVar.canConvert<QVariantList>())) {
+        refresh();
         return;
     }
 

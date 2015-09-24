@@ -163,6 +163,10 @@ private:
 
     static SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType value)
     {
+        static_assert(
+            BitLength < std::numeric_limits<UnsignedSerialisedType>::digits,
+            "BitLength is expected to be less than number of bits in the value type");
+
         static const UnsignedSerialisedType SignExtMask =
             ~((static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1);
         static const auto SignMask =

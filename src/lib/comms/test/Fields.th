@@ -981,15 +981,14 @@ void FieldsTestSuite::test27()
             comms::option::FixedBitLength<4>
         >
 
-    > BitfileMembers;
+    > BitfildMembers;
 
     typedef comms::field::Bitfield<
         comms::Field<BigEndianOpt>,
-        BitfileMembers
+        BitfildMembers
     > Field;
 
     Field field;
-    static_cast<void>(field);
     TS_ASSERT_EQUALS(field.length(), 2U);
     TS_ASSERT_EQUALS(field.memberBitLength<0>(), 4U);
     TS_ASSERT_EQUALS(field.memberBitLength<1>(), 8U);

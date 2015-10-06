@@ -151,6 +151,17 @@ public:
         return ThisField::maxLength();
     }
 
+    void forceReadElemCount(std::size_t count)
+    {
+        str_.forceReadElemCount(count);
+    }
+
+    void clearReadElemCount()
+    {
+        str_.clearReadElemCount();
+    }
+
+
 private:
     struct NoAdjustment {};
     struct AdjustmentNeeded {};

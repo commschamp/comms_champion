@@ -56,7 +56,6 @@ class MessageBase<TMessage, option::StaticNumIdImpl<TId>, TRest...> :
     typedef option::StaticNumIdImpl<TId> Option;
 
 public:
-    typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
     static const auto MsgId = static_cast<typename Base::MsgIdType>(TId);
 
 protected:
@@ -79,15 +78,14 @@ class MessageBase<TMessage, option::DispatchImpl<TActual>, TRest...> :
     typedef typename DispatchOption::MsgType MsgType;
 
 public:
-    typedef comms::util::TupleCatT<std::tuple<DispatchOption>, typename Base::AllOptions> AllOptions;
 
 protected:
     using Base::MessageBase;
 
 #ifndef COMMS_NO_DISPATCH
-    virtual void dispatchImpl(typename Base::Handler& handler) override
+    virtual void dispatchImpl(typename Base::Handler& handler) const override
     {
-        handler.handle(static_cast<MsgType&>(*this));
+        handler.handle(static_cast<const MsgType&>(*this));
     }
 #endif // #ifndef COMMS_NO_DISPATCH
 };
@@ -102,7 +100,6 @@ class MessageBase<TMessage, option::FieldsImpl<TFields>, TRest...> :
     typedef option::FieldsImpl<TFields> FieldsOption;
 
 public:
-    typedef comms::util::TupleCatT<std::tuple<FieldsOption>, typename Base::AllOptions> AllOptions;
     typedef typename FieldsOption::Fields AllFields;
 
     AllFields& fields()
@@ -311,7 +308,6 @@ class MessageBase<TMessage, option::NoFieldsImpl, TRest...> :
     typedef option::NoFieldsImpl Option;
 
 public:
-    typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 
 protected:
     using Base::MessageBase;
@@ -327,7 +323,6 @@ class MessageBase<TMessage, option::NoIdImpl, TRest...> :
     typedef option::NoIdImpl Option;
 public:
     static const auto MsgId = typename Base::MsgIdType();
-    typedef comms::util::TupleCatT<std::tuple<Option>, typename Base::AllOptions> AllOptions;
 
 protected:
     using Base::MessageBase;

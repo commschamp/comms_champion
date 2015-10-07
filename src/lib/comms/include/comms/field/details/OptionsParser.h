@@ -252,15 +252,19 @@ public:
     typedef typename Option::Type ScalingRatio;
 };
 
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::EmptyOption,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+};
+
 template <typename... TTupleOptions, typename... TOptions>
 class OptionsParser<
     std::tuple<TTupleOptions...>,
     TOptions...> : public OptionsParser<TTupleOptions..., TOptions...>
 {
 };
-
-
-
 
 }  // namespace details
 

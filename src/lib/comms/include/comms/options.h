@@ -32,6 +32,48 @@ namespace comms
 namespace option
 {
 
+// Message/Field common options
+
+template <typename TEndian>
+struct Endian
+{
+    typedef TEndian Type;
+};
+
+using BigEndian = Endian<comms::traits::endian::Big>;
+
+using LittleEndian = Endian<comms::traits::endian::Little>;
+
+struct EmptyOption {};
+
+// Message interface options
+template <typename T>
+struct MsgIdType
+{
+    typedef T Type;
+};
+
+template <typename TIter>
+struct ReadIterator
+{
+    typedef TIter Type;
+};
+
+template <typename TIter>
+struct WriteIterator
+{
+    typedef TIter Type;
+};
+
+template <typename T>
+struct Handler
+{
+    typedef T Type;
+};
+
+struct ValidCheckInterface {};
+
+
 template <long long int TId>
 struct StaticNumIdImpl
 {
@@ -56,40 +98,6 @@ struct FieldsImpl<std::tuple<TFields...> >
 struct NoFieldsImpl {};
 
 struct NoIdImpl {};
-
-template <typename TEndian>
-struct Endian
-{
-    typedef TEndian Type;
-};
-
-using BigEndian = Endian<comms::traits::endian::Big>;
-
-using LittleEndian = Endian<comms::traits::endian::Little>;
-
-template <typename T>
-struct MsgIdType
-{
-    typedef T Type;
-};
-
-template <typename TIter>
-struct ReadIterator
-{
-    typedef TIter Type;
-};
-
-template <typename TIter>
-struct WriteIterator
-{
-    typedef TIter Type;
-};
-
-template <typename T>
-struct Handler
-{
-    typedef T Type;
-};
 
 template<std::size_t TLen>
 struct FixedLength

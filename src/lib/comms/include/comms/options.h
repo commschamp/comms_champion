@@ -95,7 +95,7 @@ struct FieldsImpl<std::tuple<TFields...> >
     typedef std::tuple<TFields...> Fields;
 };
 
-struct NoFieldsImpl {};
+using NoFieldsImpl = FieldsImpl<std::tuple<> >;
 
 struct NoIdImpl {};
 

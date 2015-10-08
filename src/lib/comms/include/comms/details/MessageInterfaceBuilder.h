@@ -266,12 +266,12 @@ class MessageInterfaceBuilder
     typedef MessageInterfaceEndianBaseT<ParsedOptions> EndianBase;
     typedef MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions> IdTypeBase;
     typedef MessageInterfaceReadWriteBaseT<IdTypeBase, ParsedOptions> ReadWriteBase;
-    typedef MessageInterfaceHandlerBaseT<ReadWriteBase, ParsedOptions> HandlerBase;
-    typedef MessageInterfaceValidBaseT<HandlerBase, ParsedOptions> ValidBase;
+    typedef MessageInterfaceValidBaseT<ReadWriteBase, ParsedOptions> ValidBase;
+    typedef MessageInterfaceHandlerBaseT<ValidBase, ParsedOptions> HandlerBase;
 
 public:
     typedef ParsedOptions Options;
-    typedef ValidBase Type;
+    typedef HandlerBase Type;
 };
 
 template <typename... TOptions>

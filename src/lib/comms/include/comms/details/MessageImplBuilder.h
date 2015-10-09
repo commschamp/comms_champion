@@ -424,9 +424,9 @@ template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
 protected:
-    virtual void dispatchImpl(typename TBase::Handler& handler) const
+    virtual void dispatchImpl(typename TBase::Handler& handler) override
     {
-        handler.handle(static_cast<const TActual&>(*this));
+        handler.handle(static_cast<TActual&>(*this));
     }
 };
 

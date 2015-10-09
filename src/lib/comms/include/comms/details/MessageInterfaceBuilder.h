@@ -191,13 +191,13 @@ class MessageInterfaceHandlerBase : public TBase
 public:
     typedef THandler Handler;
 
-    void dispatch(Handler& handler) const
+    void dispatch(Handler& handler)
     {
         dispatchImpl(handler);
     }
 
 protected:
-    virtual void dispatchImpl(Handler& handler) const = 0;
+    virtual void dispatchImpl(Handler& handler) = 0;
 };
 
 template <typename TBase, typename TOpt, bool THasHandler>

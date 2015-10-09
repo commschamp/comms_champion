@@ -29,7 +29,7 @@ class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
 {
     typedef details::MessageImplBuilderT<TMessage, TOptions...> Base;
 public:
-
+    typedef details::MessageImplOptionsParser<TOptions...> ImplOptions;
 };
 
 

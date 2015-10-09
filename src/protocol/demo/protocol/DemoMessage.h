@@ -40,7 +40,8 @@ typedef std::tuple<
     comms::option::MsgIdType<MsgId>,
     comms::option::LittleEndian,
     comms::option::ReadIterator<const std::uint8_t*>,
-    comms::option::WriteIterator<std::uint8_t*>
+    comms::option::WriteIterator<std::uint8_t*>,
+    comms::option::ValidCheckInterface
 > DemoDefaultTraits;
 
 template <typename... TOptions>

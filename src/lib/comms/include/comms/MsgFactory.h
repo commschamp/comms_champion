@@ -26,77 +26,6 @@
 namespace comms
 {
 
-namespace details
-{
-
-template <std::size_t TSize>
-struct MsgFactoryCreateHelper
-{
-    template <typename TAllMessages,
-              template <class> class TMethod,
-              typename TMethodsRegistry>
-    static void create(TMethodsRegistry& registry)
-    {
-        static const std::size_t Idx = TSize - 1;
-        MsgFactoryCreateHelper<Idx>::template
-                            create<TAllMessages, TMethod>(registry);
-
-        typedef typename std::tuple_element<Idx, TAllMessages>::type Message;
-        static TMethod<Message> method;
-        registry[Idx] = &method;
-    }
-};
-
-template <>
-struct MsgFactoryCreateHelper<0>
-{
-    template <typename TAllMessages,
-        template <class> class TMethod,
-        typename TMethodsRegistry>
-    static void create(TMethodsRegistry& registry)
-    {
-        static_cast<void>(registry);
-    }
-};
-
-template <typename TOption>
-struct MsgFactoryIsNumIdImplOpt
-{
-    static const bool Value = false;
-};
-
-template <long long int TId>
-struct MsgFactoryIsNumIdImplOpt<comms::option::StaticNumIdImpl<TId> >
-{
-    static const bool Value = true;
-};
-
-template <typename TOptions>
-struct MsgFactoryHasNumIdImplOpt;
-
-template <typename TFirst, typename... TRest>
-struct MsgFactoryHasNumIdImplOpt<std::tuple<TFirst, TRest...> >
-{
-    static const bool Value =
-        MsgFactoryIsNumIdImplOpt<TFirst>::Value ||
-        MsgFactoryHasNumIdImplOpt<std::tuple<TRest...> >::Value;
-};
-
-template <>
-struct MsgFactoryHasNumIdImplOpt<std::tuple<> >
-{
-    static const bool Value = false;
-};
-
-template <typename TMessage>
-struct MsgFactoryHasStaticId
-{
-    static const bool Value = MsgFactoryHasNumIdImplOpt<typename TMessage::AllOptions>::Value;
-};
-
-
-}  // namespace details
-
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactory : public details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
@@ -110,10 +39,10 @@ public:
 
     MsgFactory()
     {
-        initRegistryInternal(MethodTypeTag());
+        initRegistry();
         GASSERT(
             std::is_sorted(registry_.begin(), registry_.end(),
-                [](FactoryMethod* methodPtr1, FactoryMethod* methodPtr2) -> bool
+                [](const FactoryMethod* methodPtr1, const FactoryMethod* methodPtr2) -> bool
                 {
                     GASSERT(methodPtr1 != nullptr);
                     GASSERT(methodPtr2 != nullptr);
@@ -225,22 +154,57 @@ private:
     template <typename TMessage>
     friend class MsgFactory<TMsgBase, TAllMessages, TOptions...>::GenericFactoryMethod;
 
-    struct StaticNumericIdTag {};
-    struct OtherIdTag {};
-
-    typedef typename std::conditional<
-        details::MsgFactoryHasStaticId<Message>::Value,
-        StaticNumericIdTag,
-        OtherIdTag
-    >::type MethodTypeTag;
-
     static_assert(comms::util::IsTuple<AllMessages>::Value,
         "TAllMessages is expected to be a tuple.");
 
     static const std::size_t NumOfMessages =
         std::tuple_size<AllMessages>::value;
 
-    typedef std::array<FactoryMethod*, NumOfMessages> MethodsRegistry;
+    typedef std::array<const FactoryMethod*, NumOfMessages> MethodsRegistry;
+
+    class MsgFactoryCreator
+    {
+    public:
+        MsgFactoryCreator(MethodsRegistry& registry)
+          : registry_(registry)
+        {
+        }
+
+        template <typename TMessage>
+        void operator()()
+        {
+            typedef typename std::conditional<
+                TMessage::ImplOptions::HasStaticMsgId,
+                StaticNumericIdTag,
+                OtherIdTag
+            >::type Tag;
+
+            registry_[idx_] = createFactory<TMessage>(Tag());
+            ++idx_;
+        }
+
+    private:
+        struct StaticNumericIdTag {};
+        struct OtherIdTag {};
+
+        template <typename TMessage>
+        static const FactoryMethod* createFactory(StaticNumericIdTag)
+        {
+            static const NumIdFactoryMethod<TMessage> Factory;
+            return &Factory;
+        }
+
+        template <typename TMessage>
+        const FactoryMethod* createFactory(OtherIdTag)
+        {
+            static const GenericFactoryMethod<TMessage> Factory;
+            return &Factory;
+        }
+
+        MethodsRegistry& registry_;
+        unsigned idx_ = 0;
+    };
+
 
     class CompWrapper
     {
@@ -266,16 +230,9 @@ private:
         MsgIdParamType m_id;
     };
 
-    void initRegistryInternal(StaticNumericIdTag)
+    void initRegistry()
     {
-        details::MsgFactoryCreateHelper<NumOfMessages>::template
-                        create<AllMessages, NumIdFactoryMethod>(registry_);
-    }
-
-    void initRegistryInternal(OtherIdTag)
-    {
-        details::MsgFactoryCreateHelper<NumOfMessages>::template
-                        create<AllMessages, GenericFactoryMethod>(registry_);
+        util::tupleForEachType<AllMessages>(MsgFactoryCreator(registry_));
     }
 
     MethodsRegistry registry_;

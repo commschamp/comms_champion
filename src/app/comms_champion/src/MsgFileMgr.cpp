@@ -289,7 +289,7 @@ MsgInfosList MsgFileMgr::convertMsgList(
                     ((QChar('a') <= ch) && (ch <= QChar('f')));
             });
 
-        if ((dataStr.size() & 0x1) != 0) {
+        if ((stripedDataStr.size() & 0x1) != 0) {
             stripedDataStr.prepend(QChar('0'));
         }
 
@@ -311,19 +311,31 @@ MsgInfosList MsgFileMgr::convertMsgList(
             num.clear();
         }
 
+
         auto msgId = msgIdVar.value<QString>();
-        auto msgInfo = protocol.createMessage(msgId);
+        MessageInfoPtr msgInfo;
+        unsigned idx = 0;
+        while (!msgInfo) {
+            msgInfo = protocol.createMessage(msgId, idx);
+            if (!msgInfo) {
+                break;
+            }
+
+            ++idx;
+            auto appMsg = msgInfo->getAppMessage();
+
+            if (appMsg && appMsg->decodeData(data)) {
+                break;
+            }
+
+            if (!appMsg) {
+                assert(!"Message wasn't properly created by the protocol");
+            }
+
+            msgInfo.reset();
+        }
+
         if (!msgInfo) {
-            continue;
-        }
-
-        auto appMsg = msgInfo->getAppMessage();
-        if (!appMsg) {
-            assert(!"Message wasn't properly created by the protocol");
-            continue;
-        }
-
-        if (!appMsg->decodeData(data)) {
             continue;
         }
 

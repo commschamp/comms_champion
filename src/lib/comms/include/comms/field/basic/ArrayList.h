@@ -159,6 +159,21 @@ public:
         return validInternal(ElemTag());
     }
 
+    static constexpr std::size_t minElementLength()
+    {
+        return minElemLengthInternal(ElemTag());
+    }
+
+    static constexpr std::size_t maxElementLength()
+    {
+        return maxElemLengthInternal(ElemTag());
+    }
+
+    static constexpr std::size_t elementLength(const ElementType& elem)
+    {
+        return elementLengthInternal(elem, ElemTag());
+    }
+
     template <typename TIter>
     static ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len)
     {
@@ -178,6 +193,24 @@ public:
             }
 
             value_.push_back(std::move(elem));
+        }
+
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
+    {
+        value_.clear();
+        while (0 < count) {
+            auto elem = ElementType();
+            auto es = readElement(elem, iter, len);
+            if (es != ErrorStatus::Success) {
+                return es;
+            }
+
+            value_.push_back(std::move(elem));
+            --count;
         }
 
         return ErrorStatus::Success;
@@ -206,6 +239,41 @@ public:
         }
 
         return es;
+    }
+
+    template <typename TIter>
+    ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
+    {
+        if ((value_.size() <= count) && (len < length())) {
+            return ErrorStatus::BufferOverflow;
+        }
+
+        auto es = ErrorStatus::Success;
+        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
+            if (count == 0) {
+                break;
+            }
+
+            es = writeElement(*fieldIter, iter, len);
+            if (es != ErrorStatus::Success) {
+                break;
+            }
+
+            --count;
+        }
+
+        return es;
+    }
+
+
+    void forceReadElemCount(std::size_t)
+    {
+        GASSERT(!"Not supported, use SequenceSizeForcingEnabled option");
+    }
+
+    void clearReadElemCount()
+    {
+        GASSERT(!"Not supported, use SequenceSizeForcingEnabled option");
     }
 
 private:
@@ -345,6 +413,37 @@ private:
     {
         return true;
     }
+
+    static constexpr std::size_t minElemLengthInternal(IntegralElemTag)
+    {
+        return sizeof(ElementType);
+    }
+
+    static constexpr std::size_t minElemLengthInternal(FieldElemTag)
+    {
+        return sizeof(ElementType::minLength());
+    }
+
+    static constexpr std::size_t maxElemLengthInternal(IntegralElemTag)
+    {
+        return sizeof(ElementType);
+    }
+
+    static constexpr std::size_t maxElemLengthInternal(FieldElemTag)
+    {
+        return sizeof(ElementType::maxLength());
+    }
+
+    static constexpr std::size_t elementLengthInternal(const ElementType&, IntegralElemTag)
+    {
+        return sizeof(ElementType);
+    }
+
+    static constexpr std::size_t elementLengthInternal(const ElementType& elem, FieldElemTag)
+    {
+        return elem.length();
+    }
+
 
     ValueType value_;
 };

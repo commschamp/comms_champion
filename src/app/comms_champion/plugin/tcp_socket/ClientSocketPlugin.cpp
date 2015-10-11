@@ -18,7 +18,6 @@
 #include "ClientSocketPlugin.h"
 
 #include <memory>
-#include <iostream>
 #include <cassert>
 
 #include "ClientSocketConfigWidget.h"

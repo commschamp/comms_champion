@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <tuple>
 #include "comms/options.h"
 
 namespace comms
@@ -39,12 +40,16 @@ struct OptionsParser<>
     static const bool HasFixedLengthLimit = false;
     static const bool HasFixedBitLengthLimit = false;
     static const bool HasVarLengthLimits = false;
-    static const bool HasSequenceSizeFieldPrefix=false;
+    static const bool HasSequenceSizeForcing = false;
+    static const bool HasSequenceFixedSize = false;
+    static const bool HasSequenceSizeFieldPrefix = false;
+    static const bool HasSequenceTrailingFieldSuffix = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
     static const bool HasFailOnInvalid = false;
     static const bool HasIgnoreInvalid = false;
     static const bool HasFixedSizeStorage = false;
+    static const bool HasScalingRatio = false;
 };
 
 template <long long int TOffset, typename... TOptions>
@@ -108,15 +113,75 @@ public:
     static const std::size_t MaxVarLength = Option::MaxValue;
 };
 
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceSizeForcingEnabled,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef OptionsParser<TOptions...> Base;
+    static_assert(!Base::HasSequenceSizeFieldPrefix,
+        "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceFixedSize,
+        "SequenceSizeForcingEnabled and SequenceFixedSize are incompatible options, "
+        "mustn't be used together");
+
+public:
+    static const bool HasSequenceSizeForcing = true;
+};
+
+template <std::size_t TSize, typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceFixedSize<TSize>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::SequenceFixedSize<TSize> Option;
+    typedef OptionsParser<TOptions...> Base;
+    static_assert(!Base::HasSequenceSizeFieldPrefix,
+        "SequenceFixedSize and SequenceSizeFieldPrefix are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceFixedSize,
+        "SequenceFixedSize and SequenceSizeForcing are incompatible options, "
+        "mustn't be used together");
+
+public:
+    static const bool HasSequenceFixedSize = true;
+    static const auto SequenceFixedSize = Option::Value;
+};
+
 template <typename TSizeField, typename... TOptions>
 class OptionsParser<
     comms::option::SequenceSizeFieldPrefix<TSizeField>,
     TOptions...> : public OptionsParser<TOptions...>
 {
     typedef comms::option::SequenceSizeFieldPrefix<TSizeField> Option;
+    typedef OptionsParser<TOptions...> Base;
+    static_assert(!Base::HasSequenceSizeForcing,
+        "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceFixedSize,
+        "SequenceSizeFieldPrefix and SequenceFixedSize are incompatible options, "
+        "mustn't be used together");
+
 public:
     static const bool HasSequenceSizeFieldPrefix = true;
     typedef typename Option::Type SequenceSizeFieldPrefix;
+};
+
+template <typename TTrailField, typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceTrailingFieldSuffix<TTrailField>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::SequenceTrailingFieldSuffix<TTrailField> Option;
+    typedef OptionsParser<TOptions...> Base;
+
+public:
+    static const bool HasSequenceTrailingFieldSuffix = true;
+    typedef typename Option::Type SequenceTrailingFieldSuffix;
 };
 
 template <typename TInitialiser, typename... TOptions>
@@ -174,6 +239,31 @@ class OptionsParser<
 public:
     static const bool HasFixedSizeStorage = true;
     static const std::size_t FixedSizeStorage = Option::Value;
+};
+
+template <std::intmax_t TNum, std::intmax_t TDenom, typename... TOptions>
+class OptionsParser<
+    comms::option::ScalingRatio<TNum, TDenom>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::ScalingRatio<TNum, TDenom> Option;
+public:
+    static const bool HasScalingRatio = true;
+    typedef typename Option::Type ScalingRatio;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::EmptyOption,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+};
+
+template <typename... TTupleOptions, typename... TOptions>
+class OptionsParser<
+    std::tuple<TTupleOptions...>,
+    TOptions...> : public OptionsParser<TTupleOptions..., TOptions...>
+{
 };
 
 }  // namespace details

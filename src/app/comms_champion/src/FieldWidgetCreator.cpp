@@ -21,7 +21,6 @@
 #include <cassert>
 
 #include "widget/field/IntValueFieldWidget.h"
-#include "widget/field/LongIntValueFieldWidget.h"
 #include "widget/field/BitmaskValueFieldWidget.h"
 #include "widget/field/EnumValueFieldWidget.h"
 #include "widget/field/StringFieldWidget.h"
@@ -30,6 +29,7 @@
 #include "widget/field/BundleFieldWidget.h"
 #include "widget/field/ArrayListRawDataFieldWidget.h"
 #include "widget/field/ArrayListFieldWidget.h"
+#include "widget/field/FloatValueFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -82,16 +82,6 @@ FieldWidgetCreator::createIntValueFieldWidget(
         FieldWidgetPtr(
             new IntValueFieldWidget(std::move(fieldWrapper)));
 }
-
-FieldWidgetPtr
-FieldWidgetCreator::createLongIntValueFieldWidget(
-    field_wrapper::LongIntValueWrapperPtr fieldWrapper)
-{
-    return
-        FieldWidgetPtr(
-            new LongIntValueFieldWidget(std::move(fieldWrapper)));
-}
-
 
 FieldWidgetPtr
 FieldWidgetCreator::createBitmaskValueFieldWidget(
@@ -163,6 +153,14 @@ FieldWidgetPtr FieldWidgetCreator::createArrayListFieldWidget(
                 std::move(updateFunc)));
 }
 
+FieldWidgetPtr FieldWidgetCreator::createFloatValueFieldWidget(
+    field_wrapper::FloatValueWrapperPtr fieldWrapper)
+{
+    return
+        FieldWidgetPtr(
+            new FloatValueFieldWidget(
+                std::move(fieldWrapper)));
+}
 
 FieldWidgetPtr
 FieldWidgetCreator::createUnknownValueFieldWidget(

@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <limits>
+#include <iterator>
 
 namespace comms
 {

@@ -58,6 +58,11 @@ using OptionalTestFields =
                 TFieldBase,
                 std::uint16_t
             >
+        >,
+        comms::field::ArrayList<
+            TFieldBase,
+            std::uint8_t,
+            comms::option::SequenceFixedSize<5>
         >
     >;
 
@@ -80,6 +85,7 @@ public:
         FieldId_Flags,
         FieldId_OptEnum,
         FieldId_OptInt,
+        FieldId_Data,
         FieldId_NumOfFields
     };
 

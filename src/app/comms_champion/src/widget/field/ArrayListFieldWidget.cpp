@@ -57,17 +57,23 @@ void ArrayListElementWidget::setEditEnabled(bool enabled)
     updateUi();
 }
 
+void ArrayListElementWidget::setDeletable(bool deletable)
+{
+    m_deletable = deletable;
+    updateUi();
+}
+
 void ArrayListElementWidget::updateProperties(const QVariantMap& props)
 {
     assert(m_fieldWidget != nullptr);
-
     m_fieldWidget->updateProperties(props);
 }
 
 void ArrayListElementWidget::updateUi()
 {
-    m_ui.m_buttonWidget->setVisible(m_editEnabled);
-    m_ui.m_sepLine->setVisible(m_editEnabled);
+    bool deleteButtonVisible = m_editEnabled && m_deletable;
+    m_ui.m_buttonWidget->setVisible(deleteButtonVisible);
+    m_ui.m_sepLine->setVisible(deleteButtonVisible);
 }
 
 ArrayListFieldWidget::ArrayListFieldWidget(
@@ -109,25 +115,29 @@ void ArrayListFieldWidget::refreshImpl()
     assert(m_elements.size() == m_wrapper->size());
 }
 
-void ArrayListFieldWidget::setEditEnabledImpl(bool enabled)
+void ArrayListFieldWidget::editEnabledUpdatedImpl()
 {
     for (auto* elem : m_elements) {
-        elem->setEditEnabled(enabled);
+        elem->setEditEnabled(isEditEnabled());
     }
     updateUi();
 }
 
 void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto elemPropsVar = props.value(Property::data());
-    if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
+    auto elemPropsVar = Property::getData(props);
+    if (!elemPropsVar.isValid()) {
         return;
     }
 
-    m_elemProperties = elemPropsVar.value<QVariantMap>();
+    if (elemPropsVar.canConvert<QVariantMap>()) {
+        updateElementsProperties(elemPropsVar.value<QVariantMap>());
+        return;
+    }
 
-    for (auto* elem : m_elements) {
-        elem->updateProperties(m_elemProperties);
+    if (elemPropsVar.canConvert<QVariantList>()) {
+        updateElementsProperties(elemPropsVar.value<QVariantList>());
+        return;
     }
 }
 
@@ -170,7 +180,14 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
 {
     auto* wrapperWidget = new ArrayListElementWidget(dataFieldWidget);
     wrapperWidget->setEditEnabled(isEditEnabled());
-    wrapperWidget->updateProperties(m_elemProperties);
+    wrapperWidget->setDeletable(!m_wrapper->hasFixedSize());
+
+    if (!m_elemProperties.empty()) {
+        auto elemPropsIdx = m_elements.size() % m_elemProperties.size();
+        assert(elemPropsIdx < m_elemProperties.size());
+        auto& elemProps = m_elemProperties[elemPropsIdx];
+        wrapperWidget->updateProperties(elemProps);
+    }
 
     connect(
         wrapperWidget, SIGNAL(sigFieldUpdated()),
@@ -209,9 +226,9 @@ void ArrayListFieldWidget::refreshInternal()
 
 void ArrayListFieldWidget::updateUi()
 {
-    bool enabled = isEditEnabled();
-    m_ui.m_addSepLine->setVisible(enabled);
-    m_ui.m_addFieldPushButton->setVisible(enabled);
+    bool addButtonVisible = isEditEnabled() && (!m_wrapper->hasFixedSize());
+    m_ui.m_addSepLine->setVisible(addButtonVisible);
+    m_ui.m_addFieldPushButton->setVisible(addButtonVisible);
 }
 
 void ArrayListFieldWidget::addMissingFields()
@@ -228,6 +245,46 @@ void ArrayListFieldWidget::addMissingFields()
     assert(m_elements.size() == m_wrapper->size());
     assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
 }
+
+void ArrayListFieldWidget::updateElementsProperties(const QVariantMap& props)
+{
+    m_elemProperties.clear();
+    m_elemProperties.push_back(props);
+
+    for (auto* elem : m_elements) {
+        elem->updateProperties(props);
+    }
+}
+
+void ArrayListFieldWidget::updateElementsProperties(const QVariantList& propsList)
+{
+    decltype(m_elemProperties) props;
+    for (auto idx = 0; idx < propsList.size(); ++idx) {
+        auto& elemPropsVar = propsList[idx];
+        if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
+            return;
+        }
+
+        props.push_back(elemPropsVar.value<QVariantMap>());
+    }
+
+    m_elemProperties.swap(props);
+    if (m_elemProperties.empty()) {
+        return;
+    }
+
+    auto propIdx = 0U;
+    for (auto* elemWidget : m_elements) {
+        auto& elemProps = m_elemProperties[propIdx];
+        elemWidget->updateProperties(elemProps);
+
+        ++propIdx;
+        if (m_elemProperties.size() <= propIdx) {
+            propIdx = 0U;
+        }
+    }
+}
+
 
 }  // namespace comms_champion
 

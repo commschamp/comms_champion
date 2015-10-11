@@ -126,13 +126,7 @@ MessageUpdateDialog::MessageUpdateDialog(
             auto appMsgTmp = msgInfoTmp->getAppMessage();
             assert(appMsgTmp);
             auto idTmp = appMsgTmp->idAsString();
-            if (idTmp == id) {
-                auto appMsgTmp = msgInfoTmp->getAppMessage();
-                assert(appMsgTmp);
-                auto appMsg = m_msgInfo->getAppMessage();
-                assert(appMsg);
-                appMsgTmp->assign(*appMsg);
-
+            if ((idTmp == id) && appMsgTmp->assign(*providedAppMsg)) {
                 m_protocol->updateMessageInfo(*msgInfoTmp);
 
                 msgIdx = msgIdxTmp;
@@ -316,7 +310,7 @@ void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)
 
     for (auto& msgInfo : m_allMsgs) {
         auto msgName = getMessageNameForList(msgInfo);
-        if (searchText.isEmpty() || msgName.contains(searchText)) {
+        if (searchText.isEmpty() || msgName.contains(searchText, Qt::CaseInsensitive)) {
             m_ui.m_msgListWidget->addItem(msgName);
             auto* item = m_ui.m_msgListWidget->item(m_ui.m_msgListWidget->count() - 1);
             item->setData(

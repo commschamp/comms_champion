@@ -45,11 +45,11 @@ class TransportMessageImpl : public
 
 }  // namespace details
 
-template <typename TProtStack>
+template <typename TMessage, typename TAllFields>
 class TransportMessageBase : public
     ProtocolMessageBase<
-        details::TransportMessageImpl<typename TProtStack::Message, typename TProtStack::AllFields>,
-        TransportMessageBase<TProtStack>
+        details::TransportMessageImpl<TMessage, TAllFields>,
+        TransportMessageBase<TMessage, TAllFields>
     >
 {
 public:
@@ -80,10 +80,11 @@ protected:
         assert(!"Mustn't be called");
     }
 
-    virtual void assignImpl(const comms_champion::Message& other) override
+    virtual bool assignImpl(const comms_champion::Message& other) override
     {
         static_cast<void>(other);
         assert(!"Mustn't be called");
+        return false;
     }
 };
 

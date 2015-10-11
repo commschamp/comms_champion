@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
 #include "GlobalConstants.h"
 
@@ -96,9 +97,9 @@ void ArrayListRawDataFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void ArrayListRawDataFieldWidget::setEditEnabledImpl(bool enabled)
+void ArrayListRawDataFieldWidget::editEnabledUpdatedImpl()
 {
-    bool readonly = !enabled;
+    bool readonly = !isEditEnabled();
     m_ui.m_valuePlainTextEdit->setReadOnly(readonly);
 }
 
@@ -106,8 +107,22 @@ void ArrayListRawDataFieldWidget::valueChanged()
 {
     auto str = m_ui.m_valuePlainTextEdit->toPlainText();
 
-    if (m_wrapper->maxSize() < str.size()) {
-        str.resize(m_wrapper->maxSize());
+    auto maxLen = std::numeric_limits<int>::max();
+    if (m_wrapper->maxSize() < (maxLen / 2)) {
+        maxLen = m_wrapper->maxSize() * 2;
+    }
+    auto minLen = m_wrapper->minSize() * 2;
+
+    assert(0 <= maxLen);
+    assert(0 <= minLen);
+    assert(minLen <= maxLen);
+
+    if (maxLen < str.size()) {
+        str.resize(maxLen);
+    }
+
+    while (str.size() < minLen) {
+        str.append('0');
     }
 
     m_wrapper->setValue(str);

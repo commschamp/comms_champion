@@ -41,9 +41,7 @@ enum FieldIdx
 
 QVariantMap createDataProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Data");
-    return props;
+    return cc::Property::createPropertiesMap("Data");
 }
 
 QVariantList createFieldsProperties()

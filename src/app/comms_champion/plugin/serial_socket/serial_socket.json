@@ -1,0 +1,6 @@
+{
+    "name" : "Serial Socket",
+    "desc" : [
+        "I/O socket that allows communication via local serial port."
+    ]
+}

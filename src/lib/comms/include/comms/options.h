@@ -21,6 +21,7 @@
 #include <tuple>
 #include <type_traits>
 #include <limits>
+#include <ratio>
 
 #include "comms/traits.h"
 #include "comms/ErrorStatus.h"
@@ -31,30 +32,7 @@ namespace comms
 namespace option
 {
 
-template <long long int TId>
-struct StaticNumIdImpl
-{
-    static const auto Value = TId;
-};
-
-template <typename TActual>
-struct DispatchImpl
-{
-    typedef TActual MsgType;
-};
-
-template <typename TFields>
-struct FieldsImpl;
-
-template <typename... TFields>
-struct FieldsImpl<std::tuple<TFields...> >
-{
-    typedef std::tuple<TFields...> Fields;
-};
-
-struct NoFieldsImpl {};
-
-struct NoIdImpl {};
+// Message/Field common options
 
 template <typename TEndian>
 struct Endian
@@ -66,6 +44,9 @@ using BigEndian = Endian<comms::traits::endian::Big>;
 
 using LittleEndian = Endian<comms::traits::endian::Little>;
 
+struct EmptyOption {};
+
+// Message interface options
 template <typename T>
 struct MsgIdType
 {
@@ -89,6 +70,34 @@ struct Handler
 {
     typedef T Type;
 };
+
+struct ValidCheckInterface {};
+
+
+template <long long int TId>
+struct StaticNumIdImpl
+{
+    static const auto Value = TId;
+};
+
+template <typename TActual>
+struct DispatchImpl
+{
+    typedef TActual MsgType;
+};
+
+template <typename TFields>
+struct FieldsImpl;
+
+template <typename... TFields>
+struct FieldsImpl<std::tuple<TFields...> >
+{
+    typedef std::tuple<TFields...> Fields;
+};
+
+using NoFieldsImpl = FieldsImpl<std::tuple<> >;
+
+struct NoIdImpl {};
 
 template<std::size_t TLen>
 struct FixedLength
@@ -123,12 +132,34 @@ struct FixedSizeStorage
     static const std::size_t Value = TSize;
 };
 
+template <std::intmax_t TNum, std::intmax_t TDenom>
+struct ScalingRatio
+{
+    typedef std::ratio<TNum, TDenom> Type;
+};
+
 struct InPlaceAllocation {};
 
 template <typename TField>
 struct SequenceSizeFieldPrefix
 {
     typedef TField Type;
+};
+
+template <typename TField>
+struct SequenceTrailingFieldSuffix
+{
+    typedef TField Type;
+};
+
+struct SequenceSizeForcingEnabled
+{
+};
+
+template <std::size_t TSize>
+struct SequenceFixedSize
+{
+    static const std::size_t Value = TSize;
 };
 
 template <typename T>
@@ -170,7 +201,7 @@ struct NumValueRangeValidator
         "Min value must be not greater than Max value");
 
     template <typename TField>
-    constexpr bool operator()(TField&& field) const
+    constexpr bool operator()(const TField& field) const
     {
         typedef typename std::conditional<
             (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
@@ -192,25 +223,27 @@ private:
     struct CompareTag {};
 
     template <typename TValue>
-    static constexpr bool aboveMin(TValue&& value, CompareTag)
+    static constexpr bool aboveMin(const TValue& value, CompareTag)
     {
-        return (MinValue <= static_cast<decltype(MinValue)>(value));
+        typedef typename std::decay<decltype(value)>::type ValueType;
+        return (static_cast<ValueType>(MinValue) <= value);
     }
 
     template <typename TValue>
-    static constexpr bool aboveMin(TValue&&, ReturnTrueTag)
+    static constexpr bool aboveMin(const TValue&, ReturnTrueTag)
     {
         return true;
     }
 
     template <typename TValue>
-    static constexpr bool belowMax(TValue&& value, CompareTag)
+    static constexpr bool belowMax(const TValue& value, CompareTag)
     {
-        return (static_cast<decltype(MaxValue)>(value) <= MaxValue);
+        typedef typename std::decay<decltype(value)>::type ValueType;
+        return (value <= static_cast<ValueType>(MaxValue));
     }
 
     template <typename TValue>
-    static constexpr bool belowMax(TValue&&, ReturnTrueTag)
+    static constexpr bool belowMax(const TValue&, ReturnTrueTag)
     {
         return true;
     }

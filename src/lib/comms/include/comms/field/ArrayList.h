@@ -143,6 +143,15 @@ public:
         return ThisField::maxLength();
     }
 
+    void forceReadElemCount(std::size_t count)
+    {
+        field_.forceReadElemCount(count);
+    }
+
+    void clearReadElemCount()
+    {
+        field_.clearReadElemCount();
+    }
 
 private:
     ThisField field_;

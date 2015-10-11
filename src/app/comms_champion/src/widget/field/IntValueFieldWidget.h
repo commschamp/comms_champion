@@ -18,17 +18,16 @@
 
 #pragma once
 
+#include <memory>
+
 #include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
-
-#include "ui_IntValueFieldWidget.h"
 
 namespace comms_champion
 {
 
 class IntValueFieldWidget : public FieldWidget
 {
-    Q_OBJECT
     typedef FieldWidget Base;
 public:
     using WrapperPtr = field_wrapper::IntValueWrapperPtr;
@@ -41,19 +40,15 @@ public:
 
 protected:
     virtual void refreshImpl() override;
-    virtual void setEditEnabledImpl(bool enabled) override;
-
-private slots:
-    void serialisedValueUpdated(const QString& value);
-    void valueUpdated(int value);
+    virtual void editEnabledUpdatedImpl() override;
+    virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private:
     using WrapperType = typename WrapperPtr::element_type;
     using UnderlyingType = typename WrapperType::UnderlyingType;
 
-
-    Ui::IntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
+    std::unique_ptr<FieldWidget> m_childWidget;
 };
 
 

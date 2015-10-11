@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <utility>
 #include <tuple>
+#include <limits>
 
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
@@ -199,9 +200,9 @@ public:
                 Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
     }
 
-    MsgPtr createMsg(MsgIdParamType id)
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
     {
-        return factory_.createMsg(id);
+        return factory_.createMsg(id, idx);
     }
 
 private:
@@ -227,22 +228,37 @@ private:
 
         auto id = field.value();
 
-        msgPtr = createMsg(id);
-
-        if (!msgPtr) {
-            if (!factory_.msgRegistered(id)) {
-                return ErrorStatus::InvalidMsgId;
+        unsigned idx = 0;
+        while (true) {
+            msgPtr = createMsg(id, idx);
+            if (!msgPtr) {
+                break;
             }
 
-            return ErrorStatus::MsgAllocFaulure;
-        }
+            typedef typename std::decay<decltype(iter)>::type DecayedIter;
+            static_assert(std::is_same<typename std::iterator_traits<DecayedIter>::iterator_category, std::random_access_iterator_tag>::value,
+                "ReadIterator is expected to be random access one");
+            DecayedIter readStart = iter;
+            es = reader.read(msgPtr, iter, size - field.length(), missingSize);
+            if (es == ErrorStatus::Success) {
+                return es;
+            }
 
-        es = reader.read(msgPtr, iter, size - field.length(), missingSize);
-        if (es != ErrorStatus::Success) {
             msgPtr.reset();
+            iter = readStart;
+            ++idx;
         }
 
-        return es;
+        auto idxLimit = factory_.msgCount(id);
+        if (idxLimit == 0U) {
+            return ErrorStatus::InvalidMsgId;
+        }
+
+        if (idxLimit <= idx) {
+            return es;
+        }
+
+        return ErrorStatus::MsgAllocFaulure;
     }
 
     template <typename TWriter>

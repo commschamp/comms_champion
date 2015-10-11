@@ -1,5 +1,6 @@
 # Find the QtWidgets library
 find_package(Qt5Network REQUIRED)
+find_package(Qt5SerialPort REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 

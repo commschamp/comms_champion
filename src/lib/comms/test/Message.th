@@ -49,31 +49,23 @@ private:
         std::size_t bufSize,
         comms::ErrorStatus expectedErrStatus = comms::ErrorStatus::Success);
 
-    struct CommonTraits {
-        typedef MessageType MsgIdType;
-        typedef const std::uint8_t* ReadIterator;
-        typedef std::uint8_t* WriteIterator;
-    };
-
-    struct BigEndianTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Big Endianness;
-    };
-
-    struct LittleEndianTraits : public CommonTraits
-    {
-        typedef comms::traits::endian::Little Endianness;
-    };
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::ReadIterator<const std::uint8_t*>,
+        comms::option::WriteIterator<std::uint8_t*>,
+        comms::option::ValidCheckInterface,
+        comms::option::Handler<comms::EmptyHandler>
+    > CommonOptions;
 
     typedef
         comms::Message<
             comms::option::BigEndian,
-            comms::option::MsgIdType<MessageType>
+            CommonOptions
         > BeMessageBase;
     typedef
         comms::Message<
             comms::option::LittleEndian,
-            comms::option::MsgIdType<MessageType>
+            CommonOptions
         > LeMessageBase;
 
     typedef Message1<BeMessageBase> BeMsg1;

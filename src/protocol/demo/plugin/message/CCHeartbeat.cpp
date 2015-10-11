@@ -39,23 +39,11 @@ namespace message
 namespace
 {
 
-const char* HeartbeatName = "Heartbeat";
-
-const char* FieldNames[] = {
-    "Counter"
-};
-
-static_assert(std::extent<decltype(FieldNames)>::value == CCHeartbeat::FieldId_NumOfFields,
-    "CCHeartbeat::FieldId enum has changed");
-
 QVariantList createFieldsProperties()
 {
     QVariantList list;
-    for (auto idx = 0U; idx < std::extent<decltype(FieldNames)>::value; ++idx) {
-        QVariantMap fieldMap;
-        fieldMap.insert(cc::Property::name(), QVariant::fromValue(QString(FieldNames[idx])));
-        list.append(QVariant::fromValue(fieldMap));
-    }
+    list.append(cc::Property::createPropertiesMap("Counter"));
+    GASSERT(list.size() == CCHeartbeat::FieldId_NumOfFields);
     return list;
 }
 
@@ -63,6 +51,7 @@ QVariantList createFieldsProperties()
 
 const char* CCHeartbeat::nameImpl() const
 {
+    static const char* HeartbeatName = "Heartbeat";
     return HeartbeatName;
 }
 
@@ -77,12 +66,13 @@ void CCHeartbeat::resetImpl()
     fields() = Base::AllFields();
 }
 
-void CCHeartbeat::assignImpl(const comms_champion::Message& other)
+bool CCHeartbeat::assignImpl(const comms_champion::Message& other)
 {
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCHeartbeat*>(&other);
     assert(castedOther != nullptr);
     fields() = castedOther->fields();
+    return true;
 }
 
 }  // namespace message

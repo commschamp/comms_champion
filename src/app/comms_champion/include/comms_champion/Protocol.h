@@ -70,9 +70,9 @@ public:
         return createAllMessagesImpl();
     }
 
-    MessageInfoPtr createMessage(const QString& idAsString)
+    MessageInfoPtr createMessage(const QString& idAsString, unsigned idx = 0)
     {
-        return createMessageImpl(idAsString);
+        return createMessageImpl(idAsString, idx);
     }
 
     UpdateStatus updateMessageInfo(MessageInfo& msgInfo)
@@ -94,7 +94,7 @@ protected:
 
     virtual MessagesList createAllMessagesImpl() = 0;
 
-    virtual MessageInfoPtr createMessageImpl(const QString& idAsString) = 0;
+    virtual MessageInfoPtr createMessageImpl(const QString& idAsString, unsigned idx) = 0;
 
     virtual UpdateStatus updateMessageInfoImpl(MessageInfo& msgInfo) = 0;
 

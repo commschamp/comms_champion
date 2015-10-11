@@ -22,4 +22,6 @@
 #include "protocol/MsgIdLayer.h"
 #include "protocol/MsgSizeLayer.h"
 #include "protocol/SyncPrefixLayer.h"
+#include "protocol/ChecksumLayer.h"
 
+#include "protocol/checksum/BasicSum.h"

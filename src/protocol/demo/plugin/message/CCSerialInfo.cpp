@@ -44,80 +44,46 @@ const char* SerialInfoName = "Serial Info";
 
 QVariantMap getParityMemberData()
 {
-    QVariantMap map;
-    map.insert(cc::Property::name(), QVariant::fromValue(QString("Parity")));
-    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
+    QVariantList valuesData;
+    cc::Property::appendEnumValue(valuesData, "None", (int)demo::message::Parity::None);
+    cc::Property::appendEnumValue(valuesData, "Odd", (int)demo::message::Parity::Odd);
+    cc::Property::appendEnumValue(valuesData, "Even", (int)demo::message::Parity::Even);
+    GASSERT(valuesData.size() == (int)demo::message::Parity::NumOfValues);
 
-    static const QString ValueMap[] = {
-        "None",
-        "Odd",
-        "Even"
-    };
-
-    static const std::size_t NumOfValues = std::extent<decltype(ValueMap)>::value;
-    static_assert(
-        NumOfValues == (std::size_t)demo::message::Parity::NumOfValues,
-        "Incorrect value mapping");
-
-    for (auto idx = 0U; idx < NumOfValues; ++idx) {
-        map.insert(cc::Property::indexedName(idx), QVariant::fromValue(ValueMap[idx]));
-    }
-    return map;
+    auto props = cc::Property::createPropertiesMap("Parity", std::move(valuesData));
+    cc::Property::setSerialisedHidden(props, true);
+    return props;
 }
 
 QVariantMap getStopBitsMemberData()
 {
-    QVariantMap map;
-    map.insert(cc::Property::name(), QVariant::fromValue(QString("Stop Bits")));
-    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
+    QVariantList valuesData;
+    cc::Property::appendEnumValue(valuesData, "None", (int)demo::message::StopBit::None);
+    cc::Property::appendEnumValue(valuesData, "One", (int)demo::message::StopBit::One);
+    cc::Property::appendEnumValue(valuesData, "One and a Half", (int)demo::message::StopBit::OneAndHalf);
+    cc::Property::appendEnumValue(valuesData, "Two", (int)demo::message::StopBit::Two);
+    GASSERT(valuesData.size() == (int)demo::message::StopBit::NumOfValues);
 
-    static const QString ValueMap[] = {
-        "None",
-        "One",
-        "One and a Half",
-        "Two"
-    };
-
-    static const std::size_t NumOfValues = std::extent<decltype(ValueMap)>::value;
-    static_assert(
-        NumOfValues == (std::size_t)demo::message::StopBit::NumOfValues,
-        "Incorrect value mapping");
-
-    for (auto idx = 0U; idx < NumOfValues; ++idx) {
-        map.insert(cc::Property::indexedName(idx), QVariant::fromValue(ValueMap[idx]));
-    }
-    return map;
+    auto props = cc::Property::createPropertiesMap("Stop Bits", std::move(valuesData));
+    cc::Property::setSerialisedHidden(props, true);
+    return props;
 }
 
 QVariantMap getFlagsMemberData()
 {
-    QVariantMap map;
-    map.insert(cc::Property::name(), QVariant::fromValue(QString("Flags")));
-    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
-
-    static const QString ValueMap[] = {
-        QString(),
-        "HW FLOW CTRL"
-    };
-
-    static const std::size_t NumOfValues = std::extent<decltype(ValueMap)>::value;
-    for (auto idx = 0U; idx < NumOfValues; ++idx) {
-        auto& value = ValueMap[idx];
-        if (value.isEmpty()) {
-            continue;
-        }
-
-        map.insert(cc::Property::indexedName(idx), QVariant::fromValue(value));
-    }
-    return map;
+    QVariantList bitNames;
+    bitNames.append(QVariant());
+    bitNames.append("HW_FLOW_CTRL");
+    auto props = cc::Property::createPropertiesMap("Flags", std::move(bitNames));
+    cc::Property::setSerialisedHidden(props, true);
+    return props;
 }
 
 QVariantMap getQosMemberData()
 {
-    QVariantMap map;
-    map.insert(cc::Property::name(), QVariant::fromValue(QString("QoS")));
-    map.insert(cc::Property::serialisedHidden(), QVariant::fromValue(true));
-    return map;
+    auto props = cc::Property::createPropertiesMap("QoS");
+    cc::Property::setSerialisedHidden(props, true);
+    return props;
 }
 
 const QVariantMap& getMemberData(std::size_t idx)
@@ -152,33 +118,29 @@ const QVariantMap& getMemberData(std::size_t idx)
 
 QVariantMap getDeviceProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Device");
-    return props;
+    return cc::Property::createPropertiesMap("Device");
 }
 
 QVariantMap getBaudProperties()
 {
-    QVariantMap props;
-    props.insert(cc::Property::name(), "Baud");
-    return props;
+    return cc::Property::createPropertiesMap("Baud");
 }
 
 QVariantMap getFlagsProperties()
 {
-    QVariantMap props;
+    QVariantList membersData;
+    membersData.append(getParityMemberData());
+    membersData.append(getStopBitsMemberData());
+    membersData.append(getQosMemberData());
+    membersData.append(getFlagsMemberData());
 
     typedef CCSerialInfo::AllFields AllFields;
     typedef std::decay<decltype(std::get<CCSerialInfo::FieldId_Flags>(std::declval<AllFields>()))>::type FlagsType;
     typedef std::decay<decltype(std::declval<FlagsType>().value())>::type MembersType;
     static const std::size_t NumOfMembers = std::tuple_size<MembersType>::value;
 
-    for (std::size_t idx = 0U; idx < NumOfMembers; ++idx) {
-        props.insert(cc::Property::indexedData(idx), getMemberData(idx));
-    }
-
-    props.insert(cc::Property::name(), "Flags");
-    return props;
+    GASSERT(membersData.size() == (int)NumOfMembers);
+    return cc::Property::createPropertiesMap("Flags", std::move(membersData));
 }
 
 QVariantList createFieldsProperties()
@@ -210,12 +172,13 @@ void CCSerialInfo::resetImpl()
     fields() = Base::AllFields();
 }
 
-void CCSerialInfo::assignImpl(const comms_champion::Message& other)
+bool CCSerialInfo::assignImpl(const comms_champion::Message& other)
 {
     assert(other.idAsString() == idAsString());
     auto* castedOther = dynamic_cast<const CCSerialInfo*>(&other);
     assert(castedOther != nullptr);
     fields() = castedOther->fields();
+    return true;
 }
 
 }  // namespace message

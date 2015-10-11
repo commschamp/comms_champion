@@ -37,6 +37,10 @@ OptionalFieldWidget::OptionalFieldWidget(
     m_ui.setupUi(this);
     setNameLabelWidget(m_ui.m_nameLabel);
 
+    if (m_wrapper->getMode() == Mode::Tentative) {
+        m_wrapper->setMode(Mode::Missing);
+    }
+
     connect(m_ui.m_optCheckBox, SIGNAL(stateChanged(int)),
             this, SLOT(availabilityChanged(int)));
 }
@@ -64,19 +68,23 @@ void OptionalFieldWidget::refreshImpl()
     refreshField();
 }
 
-void OptionalFieldWidget::setEditEnabledImpl(bool enabled)
+void OptionalFieldWidget::editEnabledUpdatedImpl()
 {
     assert(m_field != nullptr);
-    m_field->setEditEnabled(enabled);
+    m_field->setEditEnabled(isEditEnabled());
 }
 
 void OptionalFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto wrappedPropsVar = props.value(Property::data());
+    auto wrappedPropsVar = Property::getData(props);
     if (wrappedPropsVar.isValid() && wrappedPropsVar.canConvert<QVariantMap>()) {
         m_field->updateProperties(wrappedPropsVar.value<QVariantMap>());
         refreshInternal();
     }
+
+    bool uncheckable = Property::getUncheckable(props);
+    m_ui.m_optCheckBox->setHidden(uncheckable);
+    m_ui.m_optSep->setHidden(uncheckable);
 }
 
 void OptionalFieldWidget::fieldUpdated()

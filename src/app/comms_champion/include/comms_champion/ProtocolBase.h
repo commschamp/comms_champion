@@ -89,16 +89,13 @@ protected:
                 });
 
         while (true) {
-            using AllFields = typename ProtocolStack::AllFields;
             using ProtocolMsgPtr = typename ProtocolStack::MsgPtr;
 
-            AllFields fields;
             ProtocolMsgPtr msgPtr;
 
             auto readIterCur = readIterBeg;
             auto es =
-                m_protStack.template readFieldsCached<0>(
-                    fields,
+                m_protStack.read(
                     msgPtr,
                     readIterCur,
                     remainingSizeCalc(readIterCur));
@@ -118,23 +115,23 @@ protected:
                         allInfos.push_back(std::move(msgInfo));
                     });
 
-            auto setTransportMsgFunc =
-                [&fields, &msgInfo]()
-                {
-                    std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
-                    transportMsgPtr->fields() = fields;
-                    msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
-                };
-
-            auto setRawDataMsgFunc =
+            auto setTransportAndRawMsgsFunc =
                 [readIterBeg, &readIterCur, &msgInfo]()
                 {
-                    auto readIterBegTmp = readIterBeg;
                     // readIterBeg is captured by value on purpose
-                    std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
                     auto dataSize = static_cast<std::size_t>(
-                                    std::distance(readIterBegTmp, readIterCur));
-                    auto es = rawDataMsgPtr->read(readIterBegTmp, dataSize);
+                                std::distance(readIterBeg, readIterCur));
+
+                    auto readTransportIterBegTmp = readIterBeg;
+                    std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
+                    auto es = transportMsgPtr->read(readTransportIterBegTmp, dataSize);
+                    static_cast<void>(es);
+                    assert(es == comms::ErrorStatus::Success);
+                    msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+
+                    auto readRawIterBegTmp = readIterBeg;
+                    std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
+                    es = rawDataMsgPtr->read(readRawIterBegTmp, dataSize);
                     static_cast<void>(es);
                     assert(es == comms::ErrorStatus::Success);
                     msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
@@ -163,16 +160,14 @@ protected:
                 msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
                 assert(msgInfo->getAppMessage());
 
-                setTransportMsgFunc();
-                setRawDataMsgFunc();
+                setTransportAndRawMsgsFunc();
                 readIterBeg = readIterCur;
                 continue;
             }
 
             if (es == comms::ErrorStatus::InvalidMsgData) {
                 checkGarbageFunc();
-                setTransportMsgFunc();
-                setRawDataMsgFunc();
+                setTransportAndRawMsgsFunc();
                 readIterBeg = readIterCur;
                 continue;
             }
@@ -237,20 +232,17 @@ protected:
             auto msgPtr = msgInfo.getAppMessage();
             assert(msgPtr);
 
-            using AllFields = typename ProtocolStack::AllFields;
-            AllFields fields;
             std::vector<std::uint8_t> data;
 
             auto writeIter = std::back_inserter(data);
             auto es =
-                m_protStack.template writeFieldsCached<0>(
-                    fields,
+                m_protStack.write(
                     static_cast<const Message&>(*msgPtr),
                     writeIter,
                     data.max_size());
             if (es == comms::ErrorStatus::UpdateRequired) {
                 auto updateIter = &data[0];
-                es = m_protStack.template updateFieldsCached<0>(fields, updateIter, data.size());
+                es = m_protStack.template update(updateIter, data.size());
             }
 
             if (es != comms::ErrorStatus::Success) {
@@ -258,15 +250,26 @@ protected:
                 break;
             }
 
+            auto readMessageFunc =
+                [&data](Message& msg) -> bool
+                {
+                    typename Message::ReadIterator iter = &data[0];
+                    auto es = msg.read(iter, data.size());
+                    if (es != comms::ErrorStatus::Success) {
+                        return false;
+                    }
+
+                    return true;
+                };
+
             std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
-            transportMsgPtr->fields() = fields;
+            if (!readMessageFunc(*transportMsgPtr)) {
+                assert(!"Unexpected failure to read transport message");
+                break;
+            }
 
             std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
-
-            typedef typename RawDataMsg::ReadIterator ReadIterator;
-            ReadIterator rawDataReadIter = &data[0];
-            es = rawDataMsgPtr->read(rawDataReadIter, data.size());
-            if (es != comms::ErrorStatus::Success) {
+            if (!readMessageFunc(*rawDataMsgPtr)) {
                 assert(!"Unexpected failure to read raw data of the message");
                 break;
             }
@@ -290,9 +293,7 @@ protected:
             return MessageInfoPtr();
         }
 
-        auto msgId = actualAppMsg->getId();
-        auto clonedAppMsg = m_protStack.createMsg(msgId);
-        clonedAppMsg->assign(*actualAppMsg);
+        auto clonedAppMsg = cloneMessageInternal(*actualAppMsg);
         assert(clonedAppMsg);
 
         auto clonedMsgInfo = makeMessageInfo();
@@ -307,6 +308,38 @@ protected:
         return clonedMsgInfo;
     }
 
+    virtual MessagesList createAllMessagesImpl() override
+    {
+        return createAllMessagesInTuple<AllMessages>();
+    }
+
+    virtual MessageInfoPtr createMessageImpl(const QString& idAsString, unsigned idx) override
+    {
+        return createMessageInternal(idAsString, idx, MsgIdTypeTag());
+    }
+
+    virtual MessageInfo::MessagePtr cloneMessageImpl(
+        const Message& msg)
+    {
+        MessageInfo::MessagePtr clonedMsg;
+        unsigned idx = 0;
+        while (true) {
+            auto msgId = msg.getId();
+            clonedMsg = m_protStack.createMsg(msgId, idx);
+            if (!clonedMsg) {
+                break;
+            }
+
+            if (clonedMsg->assign(msg)) {
+                break;
+            }
+
+            clonedMsg.reset();
+            ++idx;
+        }
+        return std::move(clonedMsg);
+    }
+
     ProtocolStack& protocolStack()
     {
         return m_protStack;
@@ -317,10 +350,10 @@ protected:
         return m_protStack;
     }
 
-    MessageInfoPtr createMessage(MsgIdParamType id)
+    MessageInfoPtr createMessage(MsgIdParamType id, unsigned idx = 0)
     {
         auto msgInfo = makeMessageInfo();
-        auto msgPtr = m_protStack.createMsg(id);
+        auto msgPtr = m_protStack.createMsg(id, idx);
         if (!msgPtr) {
             return MessageInfoPtr();
         }
@@ -332,19 +365,15 @@ protected:
         return msgInfo;
     }
 
-    virtual MessagesList createAllMessagesImpl() override
+    template <typename TMsgsTuple>
+    MessagesList createAllMessagesInTuple()
     {
         MessagesList allMsgs;
-        comms::util::tupleForEachType<AllMessages>(AllMsgsCreateHelper(name(), allMsgs));
+        comms::util::tupleForEachType<TMsgsTuple>(AllMsgsCreateHelper(name(), allMsgs));
         for (auto& msgInfoPtr : allMsgs) {
             updateMessageInfo(*msgInfoPtr);
         }
         return allMsgs;
-    }
-
-    virtual MessageInfoPtr createMessageImpl(const QString& idAsString) override
-    {
-        return createMessageInternal(idAsString, MsgIdTypeTag());
     }
 
 private:
@@ -356,6 +385,9 @@ private:
         NumericIdTag,
         OtherIdTag
     >::type MsgIdTypeTag;
+
+    static_assert(std::is_same<MsgIdTypeTag, NumericIdTag>::value,
+        "Non-numeric IDs are not supported properly yet.");
 
     class AllMsgsCreateHelper
     {
@@ -385,9 +417,10 @@ private:
     class MsgCreateHelper
     {
     public:
-        MsgCreateHelper(const std::string& protName, const QString& id, MessageInfoPtr& msgInfo)
+        MsgCreateHelper(const std::string& protName, const QString& id, unsigned idx, MessageInfoPtr& msgInfo)
           : m_protName(protName),
             m_id(id),
+            m_reqIdx(idx),
             m_msgInfo(msgInfo)
         {
         }
@@ -400,20 +433,29 @@ private:
             }
 
             MessageInfo::MessagePtr msgPtr(new TMsg());
-            if (m_id == msgPtr->idAsString()) {
+            if (m_id != msgPtr->idAsString()) {
+                return;
+            }
+
+            if (m_currIdx == m_reqIdx) {
                 m_msgInfo = makeMessageInfo();
                 m_msgInfo->setProtocolName(m_protName);
                 m_msgInfo->setAppMessage(std::move(msgPtr));
+                return;
             }
+
+            ++m_currIdx;
         }
 
     private:
         const std::string& m_protName;
         const QString& m_id;
+        unsigned m_reqIdx;
         MessageInfoPtr& m_msgInfo;
+        unsigned m_currIdx = 0;
     };
 
-    MessageInfoPtr createMessageInternal(const QString& idAsString, NumericIdTag)
+    MessageInfoPtr createMessageInternal(const QString& idAsString, unsigned idx, NumericIdTag)
     {
         MessageInfoPtr result;
         do {
@@ -426,19 +468,25 @@ private:
                 }
             }
 
-            result = createMessage(static_cast<MsgIdType>(numId));
+            result = createMessage(static_cast<MsgIdType>(numId), idx);
         } while (false);
         return result;
     }
 
-    MessageInfoPtr createMessageInternal(const QString& idAsString, OtherIdTag)
+    MessageInfoPtr createMessageInternal(const QString& idAsString, unsigned idx, OtherIdTag)
     {
         MessageInfoPtr result;
-        comms::util::tupleForEachType(MsgCreateHelper(name(), idAsString, result));
+        comms::util::tupleForEachType<AllMessages>(MsgCreateHelper(name(), idAsString, idx, result));
         if (result) {
             updateMessageInfo(*result);
         }
         return result;
+    }
+
+    MessageInfo::MessagePtr cloneMessageInternal(
+        const Message& msg)
+    {
+        return cloneMessageImpl(msg);
     }
 
     ProtocolStack m_protStack;

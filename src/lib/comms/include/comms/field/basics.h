@@ -23,3 +23,4 @@
 #include "basic/ArrayList.h"
 #include "basic/Bundle.h"
 #include "basic/Bitfield.h"
+#include "basic/FloatValue.h"

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -15,87 +15,73 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 #include "IntValueFieldWidget.h"
 
-#include <algorithm>
 #include <cassert>
-#include <limits>
+
+#include <QtWidgets/QVBoxLayout>
 
 #include "comms_champion/Property.h"
+
+#include "ShortIntValueFieldWidget.h"
+#include "LongIntValueFieldWidget.h"
+#include "ScaledIntValueFieldWidget.h"
 
 namespace comms_champion
 {
 
-IntValueFieldWidget::IntValueFieldWidget(
-    WrapperPtr wrapper,
-    QWidget* parent)
+IntValueFieldWidget::IntValueFieldWidget(WrapperPtr wrapper, QWidget* parent)
   : Base(parent),
     m_wrapper(std::move(wrapper))
 {
-    m_ui.setupUi(this);
-    setNameLabelWidget(m_ui.m_nameLabel);
-    setValueWidget(m_ui.m_valueWidget);
-    setSeparatorWidget(m_ui.m_sepLine);
-    setSerialisedValueWidget(m_ui.m_serValueWidget);
-
-    assert(m_ui.m_serValueLineEdit != nullptr);
-    setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
-
-    m_ui.m_valueSpinBox->setRange(m_wrapper->minValue(), m_wrapper->maxValue());
-
-    connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(int)),
-            this, SLOT(valueUpdated(int)));
-
-    connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
-            this, SLOT(serialisedValueUpdated(const QString&)));
-
-    refresh();
 }
 
-IntValueFieldWidget::~IntValueFieldWidget() = default;
+IntValueFieldWidget::~IntValueFieldWidget()
+{
+    m_childWidget.release();
+}
 
 void IntValueFieldWidget::refreshImpl()
 {
-    assert(m_ui.m_serValueLineEdit != nullptr);
-    updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
+    if (m_childWidget) {
+        m_childWidget->refresh();
+    }
+}
 
-    auto value = m_wrapper->getValue();
-    assert(m_ui.m_valueSpinBox);
-    if (m_ui.m_valueSpinBox->value() != value) {
-        m_ui.m_valueSpinBox->setValue(value);
+void IntValueFieldWidget::editEnabledUpdatedImpl()
+{
+    if (m_childWidget) {
+        m_childWidget->setEditEnabled(isEditEnabled());
+    }
+}
+
+void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    assert(m_wrapper);
+    assert(!m_childWidget);
+    if (Property::getDisplayScaled(props)) {
+        m_childWidget.reset(new ScaledIntValueFieldWidget(std::move(m_wrapper)));
+    }
+    else if (m_wrapper->isShortInt()) {
+        m_childWidget.reset(new ShortIntValueFieldWidget(std::move(m_wrapper)));
+    }
+    else {
+        m_childWidget.reset(new LongIntValueFieldWidget(std::move(m_wrapper)));
     }
 
-    bool valid = m_wrapper->valid();
-    setValidityStyleSheet(*m_ui.m_nameLabel, valid);
-    setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
-    setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
-    setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
-}
+    auto* layout = new QVBoxLayout();
+    layout->addWidget(m_childWidget.get());
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    setLayout(layout);
+    m_childWidget->updateProperties(props);
+    m_childWidget->setEditEnabled(isEditEnabled());
 
-void IntValueFieldWidget::setEditEnabledImpl(bool enabled)
-{
-    bool readonly = !enabled;
-    m_ui.m_valueSpinBox->setReadOnly(readonly);
-    m_ui.m_serValueLineEdit->setReadOnly(readonly);
-}
-
-void IntValueFieldWidget::serialisedValueUpdated(const QString& value)
-{
-    handleNumericSerialisedValueUpdate(value, *m_wrapper);
-}
-
-void IntValueFieldWidget::valueUpdated(int value)
-{
-    if (value == m_wrapper->getValue()) {
-        return;
-    }
-
-    assert(isEditEnabled());
-    m_wrapper->setValue(value);
-    refresh();
-    emitFieldUpdated();
+    connect(
+        m_childWidget.get(), SIGNAL(sigFieldUpdated()),
+        this, SIGNAL(sigFieldUpdated()));
 }
 
 }  // namespace comms_champion
-
 

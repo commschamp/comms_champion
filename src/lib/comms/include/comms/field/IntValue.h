@@ -18,6 +18,10 @@
 
 #pragma once
 
+#include <ratio>
+#include <limits>
+#include <type_traits>
+
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
 #include "comms/options.h"
@@ -97,6 +101,33 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return field_.write(iter, size);
+    }
+
+    template <typename TRet>
+    constexpr TRet scaleAs() const
+    {
+        static_assert(std::is_floating_point<TRet>::value,
+            "TRet is expected to be floating point type");
+        return static_cast<TRet>(value()) * (static_cast<TRet>(ThisField::ScalingRatio::num) / static_cast<TRet>(ThisField::ScalingRatio::den));
+    }
+
+    template <typename TScaled>
+    void setScaled(TScaled val)
+    {
+        typedef typename std::decay<decltype(val)>::type DecayedType;
+        auto mul = 10;
+        if ((ThisField::ScalingRatio::den & (ThisField::ScalingRatio::den - 1)) == 0) {
+            mul = 2;
+        }
+
+        auto epsilon = static_cast<TScaled>(ThisField::ScalingRatio::num) / static_cast<TScaled>(ThisField::ScalingRatio::den * mul);
+        if (val < static_cast<DecayedType>(0)) {
+            epsilon = -epsilon;
+        }
+
+        value() =
+            static_cast<ValueType>(
+                ((val + epsilon) * static_cast<TScaled>(ThisField::ScalingRatio::den)) / static_cast<TScaled>(ThisField::ScalingRatio::num));
     }
 
 private:

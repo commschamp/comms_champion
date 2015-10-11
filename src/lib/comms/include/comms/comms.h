@@ -21,6 +21,7 @@
 #include "ErrorStatus.h"
 #include "Assert.h"
 #include "Message.h"
+#include "EmptyHandler.h"
 #include "MessageBase.h"
 #include "MsgFactory.h"
 #include "fields.h"

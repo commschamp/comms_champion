@@ -31,9 +31,6 @@ namespace traits
 {
 
 /// @ingroup comms
-/// @brief Type used for message IDs
-/// @headerfile comms/traits.h "comms/traits.h"
-typedef unsigned MsgIdType;
 
 namespace endian
 {

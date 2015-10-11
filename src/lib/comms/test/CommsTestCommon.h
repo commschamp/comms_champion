@@ -265,7 +265,15 @@ typename TProtStack::MsgPtr vectorBackInsertReadWriteMsgTest(
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(outCheckBuf.size(), actualBufSize);
     TS_ASSERT_EQUALS(outCheckBuf.size(), stack.length(*msg));
-    TS_ASSERT(std::equal(buf, buf + actualBufSize, &outCheckBuf[0]));
+    bool resultAsExpected = std::equal(buf, buf + actualBufSize, &outCheckBuf[0]);
+    if (!resultAsExpected) {
+        std::cout << "Original buffer:\n\t" << std::hex;
+        std::copy_n(buf, actualBufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << "\n\nWritten buffer:\n\t";
+        std::copy_n(&outCheckBuf[0], actualBufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << std::dec << std::endl;
+    }
+    TS_ASSERT(resultAsExpected);
     return std::move(msg);
 }
 

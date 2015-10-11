@@ -41,20 +41,41 @@ namespace basic
 namespace details
 {
 
+template <typename TField, bool THasFixedBitLength>
+struct BitfieldMemberLengthRetrieveHelper;
+
+template <typename TField>
+struct BitfieldMemberLengthRetrieveHelper<TField, true>
+{
+    typedef typename TField::ParsedOptions FieldOptions;
+    static const std::size_t Value = FieldOptions::FixedBitLength;
+};
+
+template <typename TField>
+struct BitfieldMemberLengthRetrieveHelper<TField, false>
+{
+    typedef typename TField::ValueType ValueType;
+    static const std::size_t Value = std::numeric_limits<ValueType>::digits;
+};
+
+template <typename TField>
+struct BitfieldMemberLengthRetriever
+{
+    typedef typename TField::ParsedOptions FieldOptions;
+    static const auto Value =
+        BitfieldMemberLengthRetrieveHelper<TField, FieldOptions::HasFixedBitLengthLimit>::Value;
+};
+
 template <std::size_t TRem, typename TMembers>
 class BitfieldBitLengthCalcHelper
 {
     static const auto Idx = std::tuple_size<TMembers>::value - TRem;
     typedef typename std::tuple_element<Idx, TMembers>::type FieldType;
-    typedef typename FieldType::ParsedOptions FieldOptions;
-
-    static_assert(FieldOptions::HasFixedBitLengthLimit,
-        "Expects every bitfield member to define its length in bits. Use FixedBitLength option.");
-
-    static const auto ThisFieldSize = FieldOptions::FixedBitLength;
 
 public:
-    static const auto Value = BitfieldBitLengthCalcHelper<TRem - 1, TMembers>::Value + ThisFieldSize;
+    static const std::size_t Value =
+        BitfieldBitLengthCalcHelper<TRem - 1, TMembers>::Value +
+        BitfieldMemberLengthRetriever<FieldType>::Value;
 };
 
 template <typename TMembers>

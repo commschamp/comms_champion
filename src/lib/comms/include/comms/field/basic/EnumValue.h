@@ -58,6 +58,8 @@ public:
 
     typedef typename IntValueField::ValueType SerialisedType;
 
+    typedef typename IntValueField::ScalingRatio ScalingRatio;
+
 
     EnumValue() = default;
 
@@ -116,7 +118,12 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return IntValueField(static_cast<IntValueType>(value_)).read(iter, size);
+        IntValueField intField;
+        auto es = intField.read(iter, size);
+        if (es == ErrorStatus::Success) {
+            value_ = static_cast<decltype(value_)>(intField.value());
+        }
+        return es;
     }
 
     template <typename TIter>

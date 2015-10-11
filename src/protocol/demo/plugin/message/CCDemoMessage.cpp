@@ -37,10 +37,11 @@ void CCDemoMessage::resetImpl()
     assert(!"Mustn't be called");
 }
 
-void CCDemoMessage::assignImpl(const comms_champion::Message& other)
+bool CCDemoMessage::assignImpl(const comms_champion::Message& other)
 {
     static_cast<void>(other);
     assert(!"Mustn't be called");
+    return false;
 }
 
 }  // namespace plugin

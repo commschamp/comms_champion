@@ -43,23 +43,26 @@ private:
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
-        comms::option::BigEndian,
         comms::option::ReadIterator<const char*>,
-        comms::option::WriteIterator<char*>
+        comms::option::ValidCheckInterface
+    > CommonOptions;
+
+    typedef std::tuple<
+        comms::option::BigEndian,
+        comms::option::WriteIterator<char*>,
+        CommonOptions
     > BeTraits;
 
     typedef std::tuple<
-        comms::option::MsgIdType<MessageType>,
         comms::option::BigEndian,
-        comms::option::ReadIterator<const char*>,
-        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >,
+        CommonOptions
     > BeBackInsertTraits;
 
     typedef std::tuple<
-        comms::option::MsgIdType<MessageType>,
         comms::option::LittleEndian,
-        comms::option::ReadIterator<const char*>,
-        comms::option::WriteIterator<char*>
+        comms::option::WriteIterator<char*>,
+        CommonOptions
     > LeTraits;
 
 

@@ -48,7 +48,7 @@ public:
     void display(MessageDisplayHandler& handler);
     QString idAsString() const;
     void reset();
-    void assign(const Message& other);
+    bool assign(const Message& other);
     bool isValid() const;
     DataSeq encodeData() const;
     bool decodeData(const DataSeq& data);
@@ -60,7 +60,7 @@ protected:
     virtual void displayImpl(MessageDisplayHandler& handler) = 0;
     virtual QString idAsStringImpl() const = 0;
     virtual void resetImpl() = 0;
-    virtual void assignImpl(const Message& other) = 0;
+    virtual bool assignImpl(const Message& other) = 0;
     virtual bool isValidImpl() const = 0;
     virtual DataSeq encodeDataImpl() const = 0;
     virtual bool decodeDataImpl(const DataSeq& data) = 0;

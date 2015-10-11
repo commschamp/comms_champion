@@ -45,6 +45,7 @@ public:
     typedef T ValueType;
 
     typedef ValueType SerialisedType;
+    typedef std::ratio<1, 1> ScalingRatio;
 
 
     IntValue() = default;
@@ -121,7 +122,7 @@ public:
             return ErrorStatus::BufferOverflow;
         }
 
-        Base::template writeData(toSerialised(value_), iter);
+        Base::writeData(toSerialised(value_), iter);
         return ErrorStatus::Success;
     }
 

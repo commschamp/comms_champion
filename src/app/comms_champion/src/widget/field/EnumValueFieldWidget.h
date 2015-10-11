@@ -41,7 +41,7 @@ public:
 
 protected:
     virtual void refreshImpl() override;
-    virtual void setEditEnabledImpl(bool enabled) override;
+    virtual void editEnabledUpdatedImpl() override;
     virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private slots:
@@ -55,6 +55,7 @@ private:
     Ui::EnumValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
     bool m_signalsConnected = false;
+    int m_idxOffset = 0;
 };
 
 

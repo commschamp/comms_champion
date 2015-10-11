@@ -44,6 +44,7 @@ public:
     typedef typename Base::Next Next;
     typedef typename Base::ValueType ValueType;
     typedef typename Next::SerialisedType SerialisedType;
+    typedef typename Next::ScalingRatio ScalingRatio;
 
     static_assert(
         std::is_base_of<comms::field::category::NumericValueField, Category>::value,

@@ -52,7 +52,7 @@ struct OptionsParser<>
     static const bool HasScalingRatio = false;
 };
 
-template <long long int TOffset, typename... TOptions>
+template <std::intmax_t TOffset, typename... TOptions>
 class OptionsParser<
     comms::option::NumValueSerOffset<TOffset>,
     TOptions...> : public OptionsParser<TOptions...>

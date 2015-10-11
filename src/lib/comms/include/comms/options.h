@@ -74,7 +74,7 @@ struct Handler
 struct ValidCheckInterface {};
 
 
-template <long long int TId>
+template <std::intmax_t TId>
 struct StaticNumIdImpl
 {
     static const auto Value = TId;
@@ -120,7 +120,7 @@ struct VarLength
 };
 
 
-template<long long int TOffset>
+template<std::intmax_t TOffset>
 struct NumValueSerOffset
 {
     static const auto Value = TOffset;
@@ -181,7 +181,7 @@ struct IgnoreInvalid {};
 namespace details
 {
 
-template<long long int TVal>
+template<std::intmax_t TVal>
 struct DefaultNumValueInitialiser
 {
     template <typename TField>
@@ -193,7 +193,7 @@ struct DefaultNumValueInitialiser
     }
 };
 
-template<long long int TMinValue, long long int TMaxValue>
+template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
 struct NumValueRangeValidator
 {
     static_assert(
@@ -253,7 +253,7 @@ private:
     static const auto MaxValue = TMaxValue;
 };
 
-template<long long int TMask, long long int TValue>
+template<std::uintmax_t TMask, std::uintmax_t TValue>
 struct BitmaskReservedBitsValidator
 {
     template <typename TField>
@@ -268,13 +268,13 @@ struct BitmaskReservedBitsValidator
 
 }  // namespace details
 
-template<long long int TVal>
+template<std::intmax_t TVal>
 using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitialiser<TVal> >;
 
-template<long long int TMinValue, long long int TMaxValue>
+template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
 using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMinValue, TMaxValue> >;
 
-template<long long unsigned TMask, long long unsigned TValue>
+template<std::uintmax_t TMask, std::uintmax_t TValue>
 using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValidator<TMask, TValue> >;
 
 

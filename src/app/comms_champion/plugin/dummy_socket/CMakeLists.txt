@@ -4,7 +4,6 @@ function (plugin_dummy_socket)
     
     set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/dummy_socket.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/refresh_stamp.txt")
-    set (refresh_plugin_header TRUE)
     if ((NOT EXISTS ${stamp_file}) OR (${meta_file} IS_NEWER_THAN ${stamp_file}))
         execute_process(
             COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_SOURCE_DIR}/DummySocketPlugin.h)

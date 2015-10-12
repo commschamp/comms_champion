@@ -18,6 +18,9 @@
 #include "PluginMgr.h"
 
 #include <cassert>
+#include <algorithm>
+#include <type_traits>
+#include <iostream>
 
 #include <QtCore/QString>
 #include <QtCore/QVariantList>
@@ -38,6 +41,7 @@ const QString IidMetaKey("IID");
 const QString MetaDataMetaKey("MetaData");
 const QString NameMetaKey("name");
 const QString DescMetaKey("desc");
+const QString TypeMetaKey("type");
 
 struct PluginLoaderDeleter
 {
@@ -54,6 +58,26 @@ struct PluginLoaderDeleter
 Plugin* getPlugin(QPluginLoader& loader)
 {
     return qobject_cast<Plugin*>(loader.instance());
+}
+
+PluginMgr::PluginInfo::Type parseType(const QString& val)
+{
+    static const QString Values[] = {
+        QString(),
+        "socket",
+        "filter",
+        "protocol"
+    };
+
+    static_assert(std::extent<decltype(Values)>::value == (std::size_t)PluginMgr::PluginInfo::Type::NumOfValues,
+        "The Values array must be adjusted.");
+
+    auto iter = std::find(std::begin(Values), std::end(Values), val);
+    if (iter == std::end(Values)) {
+        return PluginMgr::PluginInfo::Type::Invalid;
+    }
+
+    return static_cast<PluginMgr::PluginInfo::Type>(std::distance(std::begin(Values), iter));
 }
 
 }  // namespace
@@ -98,9 +122,17 @@ const PluginMgr::ListOfPluginInfos& PluginMgr::getAvailablePlugins()
 
         for (auto& f : files) {
             auto infoPtr = readPluginInfo(f);
-            if (infoPtr) {
-                m_plugins.push_back(std::move(infoPtr));
+            if (!infoPtr) {
+                continue;
             }
+
+            if (infoPtr->getType() == PluginInfo::Type::Invalid) {
+                std::cerr << "WARNING: plugin " << f.toStdString() << " doesn't specify its type, use either "
+                    "\"socket\", or \"filter\", or \"protocol\"."<< std::endl;
+                continue;
+            }
+
+            m_plugins.push_back(std::move(infoPtr));
         }
     } while (false);
 
@@ -303,6 +335,9 @@ PluginMgr::PluginInfoPtr PluginMgr::readPluginInfo(const QString& filename)
                 }
             }
         }
+
+        auto typeJsonVal = extraMetaObj.value(TypeMetaKey);
+        ptr->m_type = parseType(typeJsonVal.toString().toLower());
 
     } while (false);
     return ptr;

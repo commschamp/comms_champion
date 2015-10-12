@@ -51,6 +51,15 @@ public:
         friend class PluginMgr;
 
     public:
+        enum class Type
+        {
+            Invalid,
+            Socket,
+            Filter,
+            Protocol,
+            NumOfValues
+        };
+
         const QString& getName() const
         {
             return m_name;
@@ -61,6 +70,11 @@ public:
             return m_desc;
         }
 
+        Type getType() const
+        {
+            return m_type;
+        }
+
     private:
         PluginInfo() = default;
 
@@ -68,6 +82,7 @@ public:
         QString m_iid;
         QString m_name;
         QString m_desc;
+        Type m_type;
         bool m_applied = false;
     };
 

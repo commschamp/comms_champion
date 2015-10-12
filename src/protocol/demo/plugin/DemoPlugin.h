@@ -31,7 +31,7 @@ namespace plugin
 class DemoPlugin : public comms_champion::Plugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
+    Q_PLUGIN_METADATA(IID "cc.DemoPlugin" FILE "demo_protocol.json")
     Q_INTERFACES(comms_champion::Plugin)
 
 public:

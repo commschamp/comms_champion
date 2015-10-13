@@ -67,19 +67,21 @@ public:
     }
 
 protected:
+    typedef std::unique_ptr<PluginControlInterface> PluginControlInterfacePtr;
+
     virtual void applyImpl() = 0;
     virtual void getCurrentConfigImpl(QVariantMap& config);
     virtual void reconfigureImpl(const QVariantMap& config);
     virtual WidgetPtr getConfigWidgetImpl();
 
-    PluginControlInterface* getCtrlInterface()
+    PluginControlInterfacePtr& getCtrlInterface()
     {
-        return m_ctrlInterface.get();
+        return m_ctrlInterface;
     }
 
 private:
+    PluginControlInterfacePtr m_ctrlInterface;
     bool m_applied = false;
-    std::unique_ptr<PluginControlInterface> m_ctrlInterface;
 };
 
 }  // namespace comms_champion

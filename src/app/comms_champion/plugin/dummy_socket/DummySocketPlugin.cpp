@@ -46,8 +46,8 @@ DummySocketPlugin::DummySocketPlugin()
 DummySocketPlugin::~DummySocketPlugin()
 {
     if (isApplied()) {
-        auto interface = getCtrlInterface();
-        assert(interface != nullptr);
+        auto& interface = getCtrlInterface();
+        assert(interface);
         assert(m_socket);
         interface->clearSocket();
         m_socket.reset();
@@ -57,9 +57,9 @@ DummySocketPlugin::~DummySocketPlugin()
 void DummySocketPlugin::applyImpl()
 {
     assert(!isApplied());
-    auto interface = getCtrlInterface();
+    auto& interface = getCtrlInterface();
     m_socket.reset(new DummySocket());
-    if (interface != nullptr) {
+    if (interface) {
         interface->setSocket(m_socket);
     }
 

@@ -44,10 +44,10 @@ public:
         return m_applied;
     }
 
-    void apply(PluginControlInterface& controlInterface)
+    void apply(PluginControlInterface controlInterface)
     {
         assert(!isApplied());
-        m_ctrlInterface = &controlInterface;
+        m_ctrlInterface.reset(new PluginControlInterface(controlInterface));
         applyImpl();
         m_applied = true;
     }
@@ -74,12 +74,12 @@ protected:
 
     PluginControlInterface* getCtrlInterface()
     {
-        return m_ctrlInterface;
+        return m_ctrlInterface.get();
     }
 
 private:
     bool m_applied = false;
-    PluginControlInterface* m_ctrlInterface = nullptr;
+    std::unique_ptr<PluginControlInterface> m_ctrlInterface;
 };
 
 }  // namespace comms_champion

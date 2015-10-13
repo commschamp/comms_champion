@@ -30,8 +30,8 @@
 namespace comms_champion
 {
 
-PluginControlInterface::PluginControlInterface()
-  : m_pImpl(new PluginControlInterfaceImpl())
+PluginControlInterface::PluginControlInterface(PluginControlInterfaceImpl& impl)
+  : m_impl(impl)
 {
 }
 
@@ -44,38 +44,32 @@ unsigned PluginControlInterface::version()
 
 void PluginControlInterface::setProtocol(ProtocolPtr protocol)
 {
-    assert(m_pImpl);
-    m_pImpl->setProtocol(std::move(protocol));
+    m_impl.setProtocol(std::move(protocol));
 }
 
 void PluginControlInterface::clearProtocol()
 {
-    assert(m_pImpl);
-    m_pImpl->clearProtocol();
+    m_impl.clearProtocol();
 }
 
-void PluginControlInterface::addSocket(SocketPtr socket)
+void PluginControlInterface::setSocket(SocketPtr socket)
 {
-    assert(m_pImpl);
-    m_pImpl->addSocket(std::move(socket));
+    m_impl.setSocket(std::move(socket));
 }
 
-void PluginControlInterface::removeSocket(SocketPtr socket)
+void PluginControlInterface::clearSocket()
 {
-    assert(m_pImpl);
-    m_pImpl->removeSocket(std::move(socket));
+    m_impl.clearSocket();
 }
 
 void PluginControlInterface::addMainToolbarAction(ActionPtr action)
 {
-    assert(m_pImpl);
-    m_pImpl->addMainToolbarAction(std::move(action));
+    m_impl.addMainToolbarAction(std::move(action));
 }
 
 void PluginControlInterface::removeMainToolbarAction(ActionPtr action)
 {
-    assert(m_pImpl);
-    m_pImpl->removeMainToolbarAction(std::move(action));
+    m_impl.removeMainToolbarAction(std::move(action));
 }
 
 }  // namespace comms_champion

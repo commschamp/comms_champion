@@ -228,16 +228,20 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
         emit sigStateChanged(static_cast<int>(PluginsState::Clear));
     }
 
-    if (!m_controlInterface) {
-        m_controlInterface.reset(new PluginControlInterface());
-    }
-
     for (auto& reqInfo : infos) {
         assert(reqInfo);
         assert(reqInfo->m_loader);
         auto* pluginPtr = getPlugin(*reqInfo->m_loader);
+
+        auto typeIdx = static_cast<unsigned>(reqInfo->getType());
+        assert(typeIdx < m_ctrlInterfaces.size());
+        auto* ctrlInterface = m_ctrlInterfaces[typeIdx];
+        if (ctrlInterface == nullptr) {
+            continue;
+        }
+
         if (m_appliedPlugins.empty() || reapply) {
-            pluginPtr->apply(*m_controlInterface);
+            pluginPtr->apply(PluginControlInterface(*ctrlInterface));
         }
     }
 
@@ -277,6 +281,9 @@ PluginMgr::WidgetPtr PluginMgr::getPluginConfigWidget(const PluginInfo& info)
 
 PluginMgr::PluginMgr()
 {
+    std::fill(m_ctrlInterfaces.begin(), m_ctrlInterfaces.end(), nullptr);
+    m_ctrlInterfaces[(unsigned)PluginInfo::Type::Socket] = &m_socketCtrlInterface;
+    m_ctrlInterfaces[(unsigned)PluginInfo::Type::Protocol] = &m_protocolCtrlInterface;
 }
 
 PluginMgr::PluginInfoPtr PluginMgr::readPluginInfo(const QString& filename)

@@ -181,8 +181,17 @@ const MsgMgr::MsgsList& MsgMgr::getAllMsgs() const
     return m_allMsgs;
 }
 
-void MsgMgr::addSocket(SocketPtr socket)
+void MsgMgr::setSocket(SocketPtr socket)
 {
+    if (!socket) {
+        for (auto& s : m_sockets) {
+            s->disconnect();
+        }
+        return;
+    }
+
+    // TODO: add filter
+
     if (!m_sockets.empty()) {
         auto& lastSocket = m_sockets.back();
 
@@ -210,60 +219,60 @@ void MsgMgr::addSocket(SocketPtr socket)
     m_sockets.push_back(std::move(socket));
 }
 
-void MsgMgr::removeSocket(SocketPtr socket)
-{
-    auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
-    if (iter == m_sockets.end()) {
-        assert(!"Removing sockets that wasn't added before");
-        return;
-    }
-
-    do {
-        socket->disconnect();
-        bool prevExists = (iter != m_sockets.begin());
-        auto prevIter = iter;
-        std::advance(prevIter, -1);
-
-        auto nextIter = iter;
-        std::advance(nextIter, 1);
-        bool nextExists = (nextIter != m_sockets.end());
-
-        if (prevExists) {
-            disconnect(
-                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-                socket.get(), SLOT(feedInData(DataInfoPtr)));
-        }
-
-        if (nextExists) {
-            disconnect(
-                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
-                socket.get(), SLOT(sendData(DataInfoPtr)));
-        }
-
-        if (prevExists && nextExists) {
-            connect(
-                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-                (*nextIter).get(), SLOT(feedInData(DataInfoPtr)));
-
-            connect(
-                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
-                (*prevIter).get(), SLOT(sendData(DataInfoPtr)));
-
-            break;
-        }
-
-        if (prevExists) {
-            // Next doesn't exist
-            connect(
-                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-                this, SLOT(socketDataReceived(DataInfoPtr)));
-            break;
-        }
-
-    } while (false);
-
-    m_sockets.erase(iter);
-}
+//void MsgMgr::removeSocket(SocketPtr socket)
+//{
+//    auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
+//    if (iter == m_sockets.end()) {
+//        assert(!"Removing sockets that wasn't added before");
+//        return;
+//    }
+//
+//    do {
+//        socket->disconnect();
+//        bool prevExists = (iter != m_sockets.begin());
+//        auto prevIter = iter;
+//        std::advance(prevIter, -1);
+//
+//        auto nextIter = iter;
+//        std::advance(nextIter, 1);
+//        bool nextExists = (nextIter != m_sockets.end());
+//
+//        if (prevExists) {
+//            disconnect(
+//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+//                socket.get(), SLOT(feedInData(DataInfoPtr)));
+//        }
+//
+//        if (nextExists) {
+//            disconnect(
+//                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
+//                socket.get(), SLOT(sendData(DataInfoPtr)));
+//        }
+//
+//        if (prevExists && nextExists) {
+//            connect(
+//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+//                (*nextIter).get(), SLOT(feedInData(DataInfoPtr)));
+//
+//            connect(
+//                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
+//                (*prevIter).get(), SLOT(sendData(DataInfoPtr)));
+//
+//            break;
+//        }
+//
+//        if (prevExists) {
+//            // Next doesn't exist
+//            connect(
+//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+//                this, SLOT(socketDataReceived(DataInfoPtr)));
+//            break;
+//        }
+//
+//    } while (false);
+//
+//    m_sockets.erase(iter);
+//}
 
 void MsgMgr::setProtocol(ProtocolPtr protocol)
 {

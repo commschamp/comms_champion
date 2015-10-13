@@ -55,7 +55,7 @@ SerialSocketPlugin::~SerialSocketPlugin()
         auto* interface = getCtrlInterface();
         assert(interface != nullptr);
         assert(m_socket);
-        interface->removeSocket(m_socket);
+        interface->clearSocket();
         m_socket.reset();
     }
 }
@@ -67,7 +67,7 @@ void SerialSocketPlugin::applyImpl()
 
     auto* interface = getCtrlInterface();
     if (interface != nullptr) {
-        interface->addSocket(m_socket);
+        interface->setSocket(m_socket);
     }
     assert(m_socket);
 }

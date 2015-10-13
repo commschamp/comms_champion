@@ -33,11 +33,8 @@ PluginControlInterfaceImpl::PluginControlInterfaceImpl()
         this, SIGNAL(sigSetProtocol(ProtocolPtr)),
         msgMgr, SLOT(setProtocol(ProtocolPtr)));
     connect(
-        this, SIGNAL(sigAddSocket(SocketPtr)),
-        msgMgr, SLOT(addSocket(SocketPtr)));
-    connect(
-        this, SIGNAL(sigRemoveSocket(SocketPtr)),
-        msgMgr, SLOT(removeSocket(SocketPtr)));
+        this, SIGNAL(sigSetSocket(SocketPtr)),
+        msgMgr, SLOT(setSocket(SocketPtr)));
 
     auto* guiAppMgr = GuiAppMgr::instance();
     assert(guiAppMgr != nullptr);
@@ -47,26 +44,6 @@ PluginControlInterfaceImpl::PluginControlInterfaceImpl()
     connect(
         this, SIGNAL(sigRemoveMainToolbarAction(ActionPtr)),
         guiAppMgr, SLOT(removeMainToolbarAction(ActionPtr)));
-}
-
-void PluginControlInterfaceImpl::setProtocol(ProtocolPtr protocol)
-{
-    emit sigSetProtocol(std::move(protocol));
-}
-
-void PluginControlInterfaceImpl::clearProtocol()
-{
-    emit sigSetProtocol(ProtocolPtr());
-}
-
-void PluginControlInterfaceImpl::addSocket(SocketPtr socket)
-{
-    emit sigAddSocket(std::move(socket));
-}
-
-void PluginControlInterfaceImpl::removeSocket(SocketPtr socket)
-{
-    emit sigRemoveSocket(std::move(socket));
 }
 
 void PluginControlInterfaceImpl::addMainToolbarAction(ActionPtr action)
@@ -79,7 +56,35 @@ void PluginControlInterfaceImpl::removeMainToolbarAction(ActionPtr action)
     emit sigRemoveMainToolbarAction(std::move(action));
 }
 
+void PluginControlInterfaceImpl::setProtocolImpl(ProtocolPtr)
+{
+    assert(!"The non-protocol plugin is not permitted to set protocol.");
+}
 
+void PluginControlInterfaceImpl::clearProtocolImpl()
+{
+    assert(!"The non-protocol plugin is not permitted to clear protocol.");
+}
+
+void PluginControlInterfaceImpl::setSocketImpl(SocketPtr)
+{
+    assert(!"The non-socket plugin is not permitted to set socket.");
+}
+
+void PluginControlInterfaceImpl::clearSocketImpl()
+{
+    assert(!"The non-socket plugin is not permitted to clear socket.");
+}
+
+void PluginControlInterfaceImpl::emitSigSetProtocol(ProtocolPtr protocol)
+{
+    emit sigSetProtocol(std::move(protocol));
+}
+
+void PluginControlInterfaceImpl::emitSigSetSocket(SocketPtr socket)
+{
+    emit sigSetSocket(std::move(socket));
+}
 
 }  // namespace comms_champion
 

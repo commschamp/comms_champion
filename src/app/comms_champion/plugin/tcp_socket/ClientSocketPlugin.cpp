@@ -50,7 +50,7 @@ ClientSocketPlugin::~ClientSocketPlugin()
         auto interface = getCtrlInterface();
         assert(interface != nullptr);
         assert(m_socket);
-        interface->removeSocket(m_socket);
+        interface->clearSocket();
         m_socket.reset();
 
         assert(m_connectAction);
@@ -66,7 +66,7 @@ void ClientSocketPlugin::applyImpl()
 
     auto* interface = getCtrlInterface();
     if (interface != nullptr) {
-        interface->addSocket(m_socket);
+        interface->setSocket(m_socket);
         interface->addMainToolbarAction(m_connectAction);
     }
 

@@ -49,7 +49,7 @@ DummySocketPlugin::~DummySocketPlugin()
         auto interface = getCtrlInterface();
         assert(interface != nullptr);
         assert(m_socket);
-        interface->removeSocket(m_socket);
+        interface->clearSocket();
         m_socket.reset();
     }
 }
@@ -60,7 +60,7 @@ void DummySocketPlugin::applyImpl()
     auto interface = getCtrlInterface();
     m_socket.reset(new DummySocket());
     if (interface != nullptr) {
-        interface->addSocket(m_socket);
+        interface->setSocket(m_socket);
     }
 
     assert(m_socket);

@@ -15,40 +15,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-#pragma once
-
-#include <memory>
-
-#include <QtWidgets/QAction>
-
-#include "Protocol.h"
-#include "Socket.h"
+#include "PluginControlInterfaceSocket.h"
 
 namespace comms_champion
 {
 
-class PluginControlInterfaceImpl;
-class PluginControlInterface
+void PluginControlInterfaceSocket::setSocketImpl(SocketPtr socket)
 {
-public:
-    typedef std::shared_ptr<QAction> ActionPtr;
+    emitSigSetSocket(std::move(socket));
+}
 
-    explicit PluginControlInterface(PluginControlInterfaceImpl& impl);
-    PluginControlInterface(const PluginControlInterface&) = default;
-    ~PluginControlInterface();
-
-    static unsigned version();
-    void setProtocol(ProtocolPtr protocol);
-    void clearProtocol();
-    void setSocket(SocketPtr socket);
-    void clearSocket();
-    void addMainToolbarAction(ActionPtr action);
-    void removeMainToolbarAction(ActionPtr action);
-
-private:
-    PluginControlInterfaceImpl& m_impl;
-};
+void PluginControlInterfaceSocket::clearSocketImpl()
+{
+    emitSigSetSocket(SocketPtr());
+}
 
 }  // namespace comms_champion
 

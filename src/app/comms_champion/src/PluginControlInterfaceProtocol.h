@@ -18,36 +18,16 @@
 
 #pragma once
 
-#include <memory>
-
-#include <QtWidgets/QAction>
-
-#include "Protocol.h"
-#include "Socket.h"
+#include "PluginControlInterfaceImpl.h"
 
 namespace comms_champion
 {
 
-class PluginControlInterfaceImpl;
-class PluginControlInterface
+class PluginControlInterfaceProtocol : public PluginControlInterfaceImpl
 {
-public:
-    typedef std::shared_ptr<QAction> ActionPtr;
-
-    explicit PluginControlInterface(PluginControlInterfaceImpl& impl);
-    PluginControlInterface(const PluginControlInterface&) = default;
-    ~PluginControlInterface();
-
-    static unsigned version();
-    void setProtocol(ProtocolPtr protocol);
-    void clearProtocol();
-    void setSocket(SocketPtr socket);
-    void clearSocket();
-    void addMainToolbarAction(ActionPtr action);
-    void removeMainToolbarAction(ActionPtr action);
-
-private:
-    PluginControlInterfaceImpl& m_impl;
+protected:
+    virtual void setProtocolImpl(ProtocolPtr protocol) override;
+    virtual void clearProtocolImpl() override;
 };
 
 }  // namespace comms_champion

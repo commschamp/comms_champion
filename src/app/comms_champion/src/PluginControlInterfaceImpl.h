@@ -34,21 +34,44 @@ public:
     typedef std::shared_ptr<QAction> ActionPtr;
 
     PluginControlInterfaceImpl();
-    ~PluginControlInterfaceImpl() = default;
 
-    void setProtocol(ProtocolPtr protocol);
-    void clearProtocol();
-    void addSocket(SocketPtr socket);
-    void removeSocket(SocketPtr socket);
+    void setProtocol(ProtocolPtr protocol)
+    {
+        setProtocolImpl(std::move(protocol));
+    }
+
+    void clearProtocol()
+    {
+        clearProtocolImpl();
+    }
+
+    void setSocket(SocketPtr socket)
+    {
+        setSocketImpl(std::move(socket));
+    }
+
+    void clearSocket()
+    {
+        clearSocketImpl();
+    }
+
     void addMainToolbarAction(ActionPtr action);
     void removeMainToolbarAction(ActionPtr action);
 
 signals:
     void sigSetProtocol(ProtocolPtr protocol);
-    void sigAddSocket(SocketPtr socket);
-    void sigRemoveSocket(SocketPtr socket);
+    void sigSetSocket(SocketPtr socket);
     void sigAddMainToolbarAction(ActionPtr action);
     void sigRemoveMainToolbarAction(ActionPtr action);
+
+protected:
+    virtual void setProtocolImpl(ProtocolPtr protocol);
+    virtual void clearProtocolImpl();
+    virtual void setSocketImpl(SocketPtr socket);
+    virtual void clearSocketImpl();
+
+    void emitSigSetProtocol(ProtocolPtr protocol);
+    void emitSigSetSocket(SocketPtr socket);
 };
 
 }  // namespace comms_champion

@@ -28,6 +28,8 @@
 
 #include "comms_champion/PluginControlInterface.h"
 #include "comms_champion/Plugin.h"
+#include "PluginControlInterfaceSocket.h"
+#include "PluginControlInterfaceProtocol.h"
 
 namespace comms_champion
 {
@@ -119,7 +121,9 @@ private:
     ListOfPluginInfos m_plugins;
     ListOfPluginInfos m_appliedPlugins;
     PluginsState m_state = PluginsState::Clear;
-    std::unique_ptr<PluginControlInterface> m_controlInterface;
+    PluginControlInterfaceSocket m_socketCtrlInterface;
+    PluginControlInterfaceProtocol m_protocolCtrlInterface;
+    std::array<PluginControlInterfaceImpl*, (unsigned)PluginInfo::Type::NumOfValues> m_ctrlInterfaces;
 };
 
 }  // namespace comms_champion

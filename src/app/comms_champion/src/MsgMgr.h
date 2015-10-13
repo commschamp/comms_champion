@@ -69,8 +69,7 @@ public:
     const MsgsList& getAllMsgs() const;
 
 public slots:
-    void addSocket(SocketPtr socket);
-    void removeSocket(SocketPtr socket);
+    void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
 
 signals:

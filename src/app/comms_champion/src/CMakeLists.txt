@@ -18,6 +18,8 @@ function (bin_comms_champion)
         MsgFileMgr.cpp
         PluginControlInterface.cpp
         PluginControlInterfaceImpl.cpp
+        PluginControlInterfaceSocket.cpp
+        PluginControlInterfaceProtocol.cpp
         PluginMgr.cpp
         Plugin.cpp
         icon.cpp

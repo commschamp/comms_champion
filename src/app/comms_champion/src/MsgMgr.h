@@ -89,7 +89,7 @@ private:
     MsgsList m_allMsgs;
     bool m_recvEnabled = false;
 
-    SocketsList m_sockets;
+    SocketPtr m_socket;
     ProtocolPtr m_protocol;
     MsgNumberType m_nextMsgNum = 1;
     bool m_running = false;

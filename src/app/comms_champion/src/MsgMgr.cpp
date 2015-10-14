@@ -71,9 +71,10 @@ void MsgMgr::start()
         return;
     }
 
-    for (auto& s : m_sockets) {
-        s->start();
+    if (m_socket) {
+        m_socket->start();
     }
+
     m_running = true;
 }
 
@@ -84,9 +85,10 @@ void MsgMgr::stop()
         return;
     }
 
-    for (auto& s : m_sockets) {
-        s->stop();
+    if (m_socket) {
+        m_socket->stop();
     }
+
     m_running = false;
 }
 
@@ -97,7 +99,7 @@ void MsgMgr::clear()
         stop();
     }
 
-    m_sockets.clear();
+    m_socket.reset();
     m_protocol.reset();
 }
 
@@ -152,18 +154,17 @@ void MsgMgr::deleteAllMsgs()
 
 void MsgMgr::sendMsgs(const MsgInfosList& msgs)
 {
-    if (msgs.empty() || m_sockets.empty() || (!m_protocol)) {
+    if (msgs.empty() || (!m_socket) || (!m_protocol)) {
         return;
     }
 
-    assert(!m_sockets.empty());
-    auto& lastSocket = m_sockets.back();
-
     auto dataInfos = m_protocol->write(msgs);
     auto now = DataInfo::TimestampClock::now();
+
+    // TODO: write to the last filter instead of socket
     for (auto& dInfo: dataInfos) {
         dInfo->m_timestamp = now;
-        lastSocket->sendData(std::move(dInfo));
+        m_socket->sendData(std::move(dInfo));
     }
 
     for (auto& msgInfo : msgs) {
@@ -184,30 +185,14 @@ const MsgMgr::MsgsList& MsgMgr::getAllMsgs() const
 void MsgMgr::setSocket(SocketPtr socket)
 {
     if (!socket) {
-        for (auto& s : m_sockets) {
-            s->disconnect();
+        if (m_socket) {
+            m_socket->disconnect();
         }
-        m_sockets.clear();
+
+        m_socket.reset();
         return;
     }
 
-    // TODO: add filter
-
-    if (!m_sockets.empty()) {
-        auto& lastSocket = m_sockets.back();
-
-        disconnect(
-            lastSocket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-            this, SLOT(socketDataReceived(DataInfoPtr)));
-
-        connect(
-            lastSocket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-            socket.get(), SLOT(feedInData(DataInfoPtr)));
-
-        connect(
-            socket.get(), SIGNAL(sigDataToSend(DataInfoPtr)),
-            lastSocket.get(), SLOT(sendData(DataInfoPtr)));
-    }
 
     connect(
         socket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
@@ -217,7 +202,7 @@ void MsgMgr::setSocket(SocketPtr socket)
         socket.get(), SIGNAL(sigErrorReport(const QString&)),
         this, SIGNAL(sigErrorReported(const QString&)));
 
-    m_sockets.push_back(std::move(socket));
+    m_socket = std::move(socket);
 }
 
 //void MsgMgr::removeSocket(SocketPtr socket)

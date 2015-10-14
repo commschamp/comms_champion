@@ -18,35 +18,53 @@
 
 #pragma once
 
-#include "comms_champion/Socket.h"
+#include <cstdint>
+#include <cstddef>
+#include <vector>
+
+#include <QtCore/QObject>
+
+#include "DataInfo.h"
 
 namespace comms_champion
 {
 
-class DummySocket : public Socket
+class Filter : public QObject
 {
     Q_OBJECT
+
 public:
-    DummySocket();
+    Filter() = default;
+    virtual ~Filter() {}
+
+public slots:
+
+    void feedInData(DataInfoPtr dataPtr)
+    {
+        feedInDataImpl(std::move(dataPtr));
+    }
+
+signals:
+    void sigDataToSend(DataInfoPtr dataPtr);
+    void sigErrorReport(const QString& msg);
 
 protected:
-    virtual bool startImpl() override;
-    virtual void stopImpl() override;
-    virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
-private slots:
-    void timeout();
+    virtual void sendDataImpl(DataInfoPtr dataPtr) = 0;
+    virtual void feedInDataImpl(DataInfoPtr dataPtr) = 0;
 
-private:
-    bool m_running = false;
+    void reportDataToSend(DataInfoPtr dataPtr)
+    {
+        emit sigDataToSend(std::move(dataPtr));
+    }
+
+    void reportError(const QString& msg)
+    {
+        emit sigErrorReport(msg);
+    }
 };
 
-inline
-SocketPtr makeDummySocket()
-{
-    return SocketPtr(new DummySocket());
-}
+typedef std::shared_ptr<Filter> FilterPtr;
 
 }  // namespace comms_champion
-
 

@@ -107,12 +107,6 @@ void ClientSocket::sendDataImpl(DataInfoPtr dataPtr)
         dataPtr->m_data.size());
 }
 
-void ClientSocket::feedInDataImpl(DataInfoPtr dataPtr)
-{
-    static_cast<void>(dataPtr);
-    assert(!"Expected to be bottom socket, should not be called");
-}
-
 void ClientSocket::socketConnected()
 {
     m_connected = true;

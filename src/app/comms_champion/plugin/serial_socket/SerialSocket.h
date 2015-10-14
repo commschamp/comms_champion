@@ -84,7 +84,6 @@ protected:
     virtual bool startImpl() override;
     virtual void stopImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
-    virtual void feedInDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:
     void performRead();

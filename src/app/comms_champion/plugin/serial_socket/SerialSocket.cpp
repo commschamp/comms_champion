@@ -87,12 +87,6 @@ void SerialSocket::sendDataImpl(DataInfoPtr dataPtr)
         dataPtr->m_data.size());
 }
 
-void SerialSocket::feedInDataImpl(DataInfoPtr dataPtr)
-{
-    static_cast<void>(dataPtr);
-    assert(!"Expected to be bottom socket, should not be called");
-}
-
 void SerialSocket::performRead()
 {
     assert(sender() == &m_serial);

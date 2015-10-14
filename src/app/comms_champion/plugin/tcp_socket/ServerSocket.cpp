@@ -75,12 +75,6 @@ void ServerSocket::sendDataImpl(DataInfoPtr dataPtr)
     }
 }
 
-void ServerSocket::feedInDataImpl(DataInfoPtr dataPtr)
-{
-    static_cast<void>(dataPtr);
-    assert(!"Expected to be bottom socket, should not be called");
-}
-
 void ServerSocket::newConnection()
 {
     auto *newConnSocket = m_server.nextPendingConnection();

@@ -54,14 +54,8 @@ public slots:
         sendDataImpl(std::move(dataPtr));
     }
 
-    void feedInData(DataInfoPtr dataPtr)
-    {
-        feedInDataImpl(std::move(dataPtr));
-    }
-
 signals:
     void sigDataReceived(DataInfoPtr dataPtr);
-    void sigDataToSend(DataInfoPtr dataPtr);
     void sigErrorReport(const QString& msg);
 
 protected:
@@ -69,16 +63,10 @@ protected:
     virtual bool startImpl() = 0;
     virtual void stopImpl() = 0;
     virtual void sendDataImpl(DataInfoPtr dataPtr) = 0;
-    virtual void feedInDataImpl(DataInfoPtr dataPtr) = 0;
 
     void reportDataReceived(DataInfoPtr dataPtr)
     {
         emit sigDataReceived(std::move(dataPtr));
-    }
-
-    void reportDataToSend(DataInfoPtr dataPtr)
-    {
-        emit sigDataToSend(std::move(dataPtr));
     }
 
     void reportError(const QString& msg)

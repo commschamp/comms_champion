@@ -47,12 +47,6 @@ void DummySocket::sendDataImpl(DataInfoPtr dataPtr)
     static_cast<void>(dataPtr);
 }
 
-void DummySocket::feedInDataImpl(DataInfoPtr dataPtr)
-{
-    static_cast<void>(dataPtr);
-    assert(!"Feed in data is called");
-}
-
 void DummySocket::timeout()
 {
     if (!m_running) {

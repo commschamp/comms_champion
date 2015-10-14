@@ -187,6 +187,7 @@ void MsgMgr::setSocket(SocketPtr socket)
         for (auto& s : m_sockets) {
             s->disconnect();
         }
+        m_sockets.clear();
         return;
     }
 

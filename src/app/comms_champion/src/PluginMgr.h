@@ -113,17 +113,25 @@ signals:
 private:
     typedef std::list<PluginLoaderPtr> PluginLoadersList;
 
+    struct PluginControls
+    {
+        PluginControls();
+
+        PluginControlInterfaceSocket m_socketCtrlInterface;
+        PluginControlInterfaceProtocol m_protocolCtrlInterface;
+        std::array<PluginControlInterfaceImpl*, (unsigned)PluginInfo::Type::NumOfValues> m_ctrlInterfaces;
+    };
+
     PluginMgr();
 
     static PluginInfoPtr readPluginInfo(const QString& filename);
+    PluginControlInterfaceImpl* getPluginControl(PluginInfo::Type type);
 
     QString m_pluginDir;
     ListOfPluginInfos m_plugins;
     ListOfPluginInfos m_appliedPlugins;
     PluginsState m_state = PluginsState::Clear;
-    PluginControlInterfaceSocket m_socketCtrlInterface;
-    PluginControlInterfaceProtocol m_protocolCtrlInterface;
-    std::array<PluginControlInterfaceImpl*, (unsigned)PluginInfo::Type::NumOfValues> m_ctrlInterfaces;
+    std::unique_ptr<PluginControls> m_pluginControls;
 };
 
 }  // namespace comms_champion

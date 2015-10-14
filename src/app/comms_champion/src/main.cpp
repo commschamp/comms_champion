@@ -47,8 +47,8 @@ void initSingletons()
 {
     static_cast<void>(cc::MsgMgr::instanceRef());
     static_cast<void>(cc::ConfigMgr::instanceRef());
-    static_cast<void>(cc::PluginMgr::instanceRef());
     static_cast<void>(cc::GuiAppMgr::instance());
+    static_cast<void>(cc::PluginMgr::instanceRef());
 }
 
 }  // namespace

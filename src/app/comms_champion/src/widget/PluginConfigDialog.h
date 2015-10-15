@@ -23,6 +23,7 @@
 #include <QtWidgets/QPushButton>
 
 #include "PluginMgr.h"
+#include "PluginsListWidget.h"
 
 #include "ui_PluginConfigDialog.h"
 
@@ -39,9 +40,11 @@ public:
     virtual void accept();
 
 private slots:
-    void availPluginClicked(QListWidgetItem* item);
-    void availPluginDoubleClicked(QListWidgetItem* item);
-    void selectedPluginClicked(QListWidgetItem* item);
+    void availSocketPluginClicked(QListWidgetItem* item);
+    void availFilterPluginClicked(QListWidgetItem* item);
+    void availProtocolPluginClicked(QListWidgetItem* item);
+//    void availPluginDoubleClicked(QListWidgetItem* item);
+//    void selectedPluginClicked(QListWidgetItem* item);
     void addClicked();
     void searchTextChanged(const QString& text);
     void searchClearClicked();
@@ -56,30 +59,37 @@ private slots:
 
 private:
 
+    void availPluginClicked(
+        QListWidgetItem* item,
+        PluginsListWidget* availableList,
+        PluginsListWidget* selectedList);
+
     void createAvailableToolbar();
     void createSelectedToolbar();
+    void createAvailableLists();
+    void createSelectedLists();
 
     void refreshAll();
     void refreshAvailable();
     void refreshAvailablePlugins();
     void refreshAvailableToolbar();
     void refreshSelectedToolbar();
-    void refreshSelectedPlugins();
-    void refreshSelectedPlugins(const PluginMgr::ListOfPluginInfos& infos);
-    void refreshButtonBox();
-    void refreshSaveButton();
-    void refreshRemoveButton();
-    void refreshClearButton();
-    void refreshTopButton();
-    void refreshUpBotton();
-    void refreshDownBotton();
-    void refreshBottomButton();
+//    void refreshSelectedPlugins();
+//    void refreshSelectedPlugins(const PluginMgr::ListOfPluginInfos& infos);
+//    void refreshButtonBox();
+//    void refreshSaveButton();
+//    void refreshRemoveButton();
+//    void refreshClearButton();
+//    void refreshTopButton();
+//    void refreshUpBotton();
+//    void refreshDownBotton();
+//    void refreshBottomButton();
     void clearConfiguration();
     void clearDescription();
-    void moveSelectedPlugin(int fromRow, int toRow);
+//    void moveSelectedPlugin(int fromRow, int toRow);
 
     PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item) const;
-    PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
+//    PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
 
     Ui::PluginConfigDialog m_ui;
     QLineEdit* m_availSearchLineEdit = nullptr;
@@ -93,6 +103,16 @@ private:
     QAction* m_downButton = nullptr;
     QAction* m_bottomButton = nullptr;
     QPushButton* m_applyButton = nullptr;
+
+    PluginsListWidget* m_availableSocketsWidget = nullptr;
+    PluginsListWidget* m_availableFiltersWidget = nullptr;
+    PluginsListWidget* m_availableProtocolsWidget = nullptr;
+    PluginsListWidget* m_currentAvailableList = nullptr;
+
+    PluginsListWidget* m_selectedSocketsWidget = nullptr;
+    PluginsListWidget* m_selectedFiltersWidget = nullptr;
+    PluginsListWidget* m_selectedProtocolsWidget = nullptr;
+    PluginsListWidget* m_currentSelectedList = nullptr;
 };
 
 } /* namespace comms_champion */

@@ -138,17 +138,17 @@ void PluginConfigDialog::availProtocolPluginDoubleClicked(QListWidgetItem* item)
 
 void PluginConfigDialog::selectedSocketPluginClicked(QListWidgetItem* item)
 {
-    selectedPluginClicked(item, m_availableSocketsWidget, m_selectedSocketsWidget);
+    selectedPluginClicked(item, m_selectedSocketsWidget);
 }
 
 void PluginConfigDialog::selectedFilterPluginClicked(QListWidgetItem* item)
 {
-    selectedPluginClicked(item, m_availableFiltersWidget, m_selectedFiltersWidget);
+    selectedPluginClicked(item, m_selectedFiltersWidget);
 }
 
 void PluginConfigDialog::selectedProtocolPluginClicked(QListWidgetItem* item)
 {
-    selectedPluginClicked(item, m_availableProtocolsWidget, m_selectedProtocolsWidget);
+    selectedPluginClicked(item, m_selectedProtocolsWidget);
 }
 
 void PluginConfigDialog::addClicked()
@@ -179,7 +179,7 @@ void PluginConfigDialog::addClicked()
     refreshAvailablePlugins();
     refreshSelectedToolbar();
     refreshButtonBox();
-    selectedPluginClicked(selectedItem, m_currentAvailableList, selectedListWidget);
+    selectedPluginClicked(selectedItem, selectedListWidget);
 }
 
 void PluginConfigDialog::searchTextChanged(const QString& text)
@@ -196,70 +196,73 @@ void PluginConfigDialog::searchClearClicked()
 
 void PluginConfigDialog::loadClicked()
 {
-//    auto& configMgr = ConfigMgr::instanceRef();
-//    auto filename =
-//        QFileDialog::getOpenFileName(
-//            this,
-//            tr("Load Configuration File"),
-//            configMgr.getLastFile(),
-//            configMgr.getFilesFilter());
-//
-//    if (filename.isEmpty()) {
-//        return;
-//    }
-//
-//    auto config = configMgr.loadConfig(filename);
-//    if (config.isEmpty()) {
-//        QMessageBox::critical(
-//            this,
-//            tr("Configuration Load Error."),
-//            tr("Invalid configuration file."));
-//        return;
-//    }
-//
-//    auto& pluginMgr = PluginMgr::instanceRef();
-//    auto loadedPlugins = pluginMgr.loadPluginsFromConfig(config);
-//
-//    refreshSelectedPlugins(loadedPlugins);
-//    refreshSelectedToolbar();
-//    refreshAvailablePlugins();
-//    refreshAvailableToolbar();
-//    refreshButtonBox();
-//
-//    assert(m_ui.m_selectedListWidget != nullptr);
-//    assert(m_ui.m_selectedListWidget->currentItem() == nullptr);
-//    assert(m_ui.m_availListWidget != nullptr);
-//    if (m_ui.m_availListWidget->currentItem() == nullptr) {
-//        clearConfiguration();
-//        clearDescription();
-//    }
+    auto& configMgr = ConfigMgr::instanceRef();
+    auto filename =
+        QFileDialog::getOpenFileName(
+            this,
+            tr("Load Configuration File"),
+            configMgr.getLastFile(),
+            configMgr.getFilesFilter());
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    auto config = configMgr.loadConfig(filename);
+    if (config.isEmpty()) {
+        QMessageBox::critical(
+            this,
+            tr("Configuration Load Error."),
+            tr("Invalid configuration file."));
+        return;
+    }
+
+    auto& pluginMgr = PluginMgr::instanceRef();
+    auto loadedPlugins = pluginMgr.loadPluginsFromConfig(config);
+
+    refreshSelectedPlugins(loadedPlugins);
+    refreshSelectedToolbar();
+    refreshAvailablePlugins();
+    refreshAvailableToolbar();
+    refreshButtonBox();
+
+    assert(m_currentSelectedList == nullptr);
+    assert(m_selectedSocketsWidget->currentItem() == nullptr);
+    assert(m_selectedFiltersWidget->currentItem() == nullptr);
+    assert(m_selectedProtocolsWidget->currentItem() == nullptr);
+
+    if ((m_currentAvailableList == nullptr) ||
+        (m_currentAvailableList->currentItem() == nullptr)) {
+        clearConfiguration();
+        clearDescription();
+    }
 }
 
 void PluginConfigDialog::saveClicked()
 {
-//    auto& configMgr = ConfigMgr::instanceRef();
-//    auto filename =
-//        QFileDialog::getSaveFileName(
-//            this,
-//            tr("Save Configuration File"),
-//            configMgr.getLastFile(),
-//            configMgr.getFilesFilter());
-//
-//    if (filename.isEmpty()) {
-//        return;
-//    }
-//
-//    auto& pluginMgr = PluginMgr::instanceRef();
-//    auto infos = getSelectedPlugins();
-//    auto config = pluginMgr.getConfigForPlugins(infos);
-//
-//    bool saveResult = configMgr.saveConfig(filename, config);
-//    if (!saveResult) {
-//        QMessageBox::critical(
-//            this,
-//            tr("File system error!"),
-//            tr("Failed to save plugins configuration."));
-//    }
+    auto& configMgr = ConfigMgr::instanceRef();
+    auto filename =
+        QFileDialog::getSaveFileName(
+            this,
+            tr("Save Configuration File"),
+            configMgr.getLastFile(),
+            configMgr.getFilesFilter());
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    auto& pluginMgr = PluginMgr::instanceRef();
+    auto infos = getSelectedPlugins();
+    auto config = pluginMgr.getConfigForPlugins(infos);
+
+    bool saveResult = configMgr.saveConfig(filename, config);
+    if (!saveResult) {
+        QMessageBox::critical(
+            this,
+            tr("File system error!"),
+            tr("Failed to save plugins configuration."));
+    }
 }
 
 void PluginConfigDialog::removeClicked()
@@ -374,7 +377,6 @@ void PluginConfigDialog::availPluginClicked(
 
 void PluginConfigDialog::selectedPluginClicked(
     QListWidgetItem* item,
-    PluginsListWidget* availableList,
     PluginsListWidget* selectedList)
 {
     assert(item != nullptr);
@@ -391,14 +393,6 @@ void PluginConfigDialog::selectedPluginClicked(
 
     auto pluginInfoPtr = getPluginInfo(item);
     assert(pluginInfoPtr);
-
-    typedef PluginMgr::PluginInfo::Type PluginType;
-    auto type = pluginInfoPtr->getType();
-    if ((type == PluginType::Socket) ||
-        (type == PluginType::Protocol)) {
-        assert(availableList != nullptr);
-        availableList->setDisabled(true);
-    }
 
     assert(selectedList != nullptr);
     selectedList->setCurrentItem(item);
@@ -581,7 +575,7 @@ void PluginConfigDialog::createSelectedLists()
 
 void PluginConfigDialog::refreshAll()
 {
-//    refreshSelectedPlugins();
+    refreshSelectedPlugins();
     refreshSelectedToolbar();
     refreshAvailablePlugins();
     refreshAvailableToolbar();
@@ -655,6 +649,13 @@ void PluginConfigDialog::refreshAvailablePlugins()
                     availableList->setCurrentRow(availableList->count() - 1);
                 }
             }
+
+            bool disabled = false;
+            if (((type == PluginType::Socket) || (type == PluginType::Protocol)) &&
+                (0 < selectedList->count())) {
+                disabled = true;
+            }
+            availableList->setDisabled(disabled);
         };
 
     refreshListsFunc(m_availableSocketsWidget, m_selectedSocketsWidget, PluginType::Socket);
@@ -680,29 +681,44 @@ void PluginConfigDialog::refreshSelectedToolbar()
     refreshDownBotton();
     refreshBottomButton();
 }
-//
-//void PluginConfigDialog::refreshSelectedPlugins()
-//{
-//    refreshSelectedPlugins(PluginMgr::instanceRef().getAppliedPlugins());
-//}
-//
-//void PluginConfigDialog::refreshSelectedPlugins(
-//    const PluginMgr::ListOfPluginInfos& infos)
-//{
-//    m_ui.m_selectedListWidget->clear();
-//    for (auto& pluginInfoPtr : infos) {
-//        auto& name = pluginInfoPtr->getName();
-//        m_ui.m_selectedListWidget->addItem(name);
-//        auto* item = m_ui.m_selectedListWidget->item(
-//            m_ui.m_selectedListWidget->count() - 1);
-//
-//        item->setData(
-//            Qt::UserRole,
-//            QVariant::fromValue(pluginInfoPtr));
-//    }
-//
-//}
-//
+
+void PluginConfigDialog::refreshSelectedPlugins()
+{
+    refreshSelectedPlugins(PluginMgr::instanceRef().getAppliedPlugins());
+}
+
+void PluginConfigDialog::refreshSelectedPlugins(
+    const PluginMgr::ListOfPluginInfos& infos)
+{
+    typedef PluginMgr::PluginInfo::Type PluginType;
+    auto refreshListFunc =
+        [&infos](PluginsListWidget* list, PluginType type)
+        {
+            list->clear();
+
+            for (auto& pluginInfoPtr : infos) {
+                assert(pluginInfoPtr);
+                if (pluginInfoPtr->getType() != type) {
+                    continue;
+                }
+
+                auto& name = pluginInfoPtr->getName();
+                list->addItem(name);
+                auto* item = list->item(list->count() - 1);
+
+                item->setData(
+                    Qt::UserRole,
+                    QVariant::fromValue(pluginInfoPtr));
+            }
+
+        };
+
+    m_currentSelectedList = nullptr;
+    refreshListFunc(m_selectedSocketsWidget, PluginType::Socket);
+    refreshListFunc(m_selectedFiltersWidget, PluginType::Filter);
+    refreshListFunc(m_selectedProtocolsWidget, PluginType::Protocol);
+}
+
 void PluginConfigDialog::refreshButtonBox()
 {
 //    bool applyEnabled = (0 < m_ui.m_selectedListWidget->count());
@@ -815,21 +831,28 @@ PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
     return pluginInfoPtrVar.value<PluginMgr::PluginInfoPtr>();
 }
 
-//PluginMgr::ListOfPluginInfos PluginConfigDialog::getSelectedPlugins() const
-//{
-//    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
-//    ListOfPluginInfos infos;
-//
-//    assert(0 < m_ui.m_selectedListWidget->count());
-//    for (auto idx = 0; idx < m_ui.m_selectedListWidget->count(); ++idx) {
-//        auto* item = m_ui.m_selectedListWidget->item(idx);
-//        assert(item != nullptr);
-//        auto pluginInfo = getPluginInfo(item);
-//        assert(pluginInfo);
-//        infos.push_back(std::move(pluginInfo));
-//    }
-//    return infos;
-//}
+PluginMgr::ListOfPluginInfos PluginConfigDialog::getSelectedPlugins() const
+{
+    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    ListOfPluginInfos infos;
+
+    auto appendPluginInfoFunc =
+        [this, &infos](PluginsListWidget* list)
+        {
+            for (auto idx = 0; idx < list->count(); ++idx) {
+                auto* item = list->item(idx);
+                assert(item != nullptr);
+                auto pluginInfo = getPluginInfo(item);
+                assert(pluginInfo);
+                infos.push_back(std::move(pluginInfo));
+            }
+        };
+
+    appendPluginInfoFunc(m_selectedSocketsWidget);
+    appendPluginInfoFunc(m_selectedFiltersWidget);
+    appendPluginInfoFunc(m_selectedProtocolsWidget);
+    return infos;
+}
 
 PluginsListWidget* PluginConfigDialog::getSelectedListForAvailable(
     PluginsListWidget* list)

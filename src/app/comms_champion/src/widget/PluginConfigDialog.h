@@ -74,7 +74,6 @@ private:
 
     void selectedPluginClicked(
         QListWidgetItem* item,
-        PluginsListWidget* availableList,
         PluginsListWidget* selectedList);
 
     void createAvailableToolbar();
@@ -87,8 +86,8 @@ private:
     void refreshAvailablePlugins();
     void refreshAvailableToolbar();
     void refreshSelectedToolbar();
-//    void refreshSelectedPlugins();
-//    void refreshSelectedPlugins(const PluginMgr::ListOfPluginInfos& infos);
+    void refreshSelectedPlugins();
+    void refreshSelectedPlugins(const PluginMgr::ListOfPluginInfos& infos);
     void refreshButtonBox();
     void refreshSaveButton();
     void refreshRemoveButton();
@@ -102,7 +101,7 @@ private:
 //    void moveSelectedPlugin(int fromRow, int toRow);
 
     PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item) const;
-//    PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
+    PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
     PluginsListWidget* getSelectedListForAvailable(PluginsListWidget* list);
 
     Ui::PluginConfigDialog m_ui;

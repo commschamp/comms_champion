@@ -68,14 +68,6 @@ PluginConfigDialog::PluginConfigDialog(QWidget* parent)
     auto newWidth = std::max(width(), (parent->width() * 8) / 10);
     resize(QSize(newWidth, newHeight));
 
-//    connect(
-//        m_ui.m_availListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-//        this, SLOT(availPluginDoubleClicked(QListWidgetItem*)));
-//
-//    connect(
-//        m_ui.m_selectedListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
-//        this, SLOT(selectedPluginClicked(QListWidgetItem*)));
-
     m_applyButton = m_ui.m_buttonBox->button(QDialogButtonBox::Ok);
     m_applyButton->setText(tr("Apply"));
     refreshAll();
@@ -108,7 +100,7 @@ void PluginConfigDialog::accept()
 //        return;
 //    }
 //
-//    Base::accept();
+    Base::accept();
 }
 
 void PluginConfigDialog::availSocketPluginClicked(QListWidgetItem* item)
@@ -126,65 +118,68 @@ void PluginConfigDialog::availProtocolPluginClicked(QListWidgetItem* item)
     availPluginClicked(item, m_availableProtocolsWidget, m_selectedProtocolsWidget);
 }
 
+void PluginConfigDialog::availSocketPluginDoubleClicked(QListWidgetItem* item)
+{
+    availSocketPluginClicked(item);
+    addClicked();
+}
 
-//void PluginConfigDialog::availPluginDoubleClicked(QListWidgetItem* item)
-//{
-//    assert(item != nullptr);
-//    availPluginClicked(item);
-//    addClicked();
-//}
-//
-//void PluginConfigDialog::selectedPluginClicked(QListWidgetItem* item)
-//{
-//    assert(item != nullptr);
-//    m_ui.m_availListWidget->setCurrentRow(-1);
-//    refreshAvailableToolbar();
-//
-//    m_ui.m_selectedListWidget->setCurrentItem(item);
-//    assert(m_ui.m_selectedListWidget->currentRow() == m_ui.m_selectedListWidget->row(item));
-//
-//    auto pluginInfoPtr = getPluginInfo(item);
-//    assert(pluginInfoPtr);
-//
-//    auto configWidget =
-//        PluginMgr::instanceRef().getPluginConfigWidget(*pluginInfoPtr);
-//    if (configWidget) {
-//        m_ui.m_configScrollArea->setWidget(configWidget.release());
-//    }
-//    else {
-//        clearConfiguration();
-//    }
-//
-//    m_ui.m_descLabel->setText(pluginInfoPtr->getDescription());
-//    refreshSelectedToolbar();
-//}
+void PluginConfigDialog::availFilterPluginDoubleClicked(QListWidgetItem* item)
+{
+    availFilterPluginClicked(item);
+    addClicked();
+}
+
+void PluginConfigDialog::availProtocolPluginDoubleClicked(QListWidgetItem* item)
+{
+    availProtocolPluginClicked(item);
+    addClicked();
+}
+
+void PluginConfigDialog::selectedSocketPluginClicked(QListWidgetItem* item)
+{
+    selectedPluginClicked(item, m_availableSocketsWidget, m_selectedSocketsWidget);
+}
+
+void PluginConfigDialog::selectedFilterPluginClicked(QListWidgetItem* item)
+{
+    selectedPluginClicked(item, m_availableFiltersWidget, m_selectedFiltersWidget);
+}
+
+void PluginConfigDialog::selectedProtocolPluginClicked(QListWidgetItem* item)
+{
+    selectedPluginClicked(item, m_availableProtocolsWidget, m_selectedProtocolsWidget);
+}
 
 void PluginConfigDialog::addClicked()
 {
-//    auto pluginInfoPtr = getPluginInfo(m_ui.m_availListWidget->currentItem());
-//    assert(pluginInfoPtr);
-//
-//    auto loadResult = PluginMgr::instanceRef().loadPlugin(*pluginInfoPtr);
-//    if (!loadResult) {
-//        QMessageBox::critical(
-//            this,
-//            tr("Plugin Load Error."),
-//            tr("Failed to load selected plugin."));
-//        return;
-//    }
-//
-//    m_ui.m_selectedListWidget->addItem(pluginInfoPtr->getName());
-//    auto* selectedItem = m_ui.m_selectedListWidget->item(
-//        m_ui.m_selectedListWidget->count() - 1);
-//
-//    selectedItem->setData(
-//        Qt::UserRole,
-//        QVariant::fromValue(pluginInfoPtr));
-//
-//    refreshAvailablePlugins();
-//    refreshSelectedToolbar();
-//    refreshButtonBox();
-//    selectedPluginClicked(selectedItem);
+    assert(m_currentAvailableList != nullptr);
+    auto pluginInfoPtr = getPluginInfo(m_currentAvailableList->currentItem());
+    assert(pluginInfoPtr);
+
+    auto loadResult = PluginMgr::instanceRef().loadPlugin(*pluginInfoPtr);
+    if (!loadResult) {
+        QMessageBox::critical(
+            this,
+            tr("Plugin Load Error."),
+            tr("Failed to load selected plugin."));
+        return;
+    }
+
+    auto* selectedListWidget = getSelectedListForAvailable(m_currentAvailableList);
+    assert(selectedListWidget != nullptr);
+
+    selectedListWidget->addItem(pluginInfoPtr->getName());
+    auto* selectedItem = selectedListWidget->item(selectedListWidget->count() - 1);
+
+    selectedItem->setData(
+        Qt::UserRole,
+        QVariant::fromValue(pluginInfoPtr));
+
+    refreshAvailablePlugins();
+    refreshSelectedToolbar();
+    refreshButtonBox();
+    selectedPluginClicked(selectedItem, m_currentAvailableList, selectedListWidget);
 }
 
 void PluginConfigDialog::searchTextChanged(const QString& text)
@@ -377,6 +372,51 @@ void PluginConfigDialog::availPluginClicked(
     refreshAvailableToolbar();
 }
 
+void PluginConfigDialog::selectedPluginClicked(
+    QListWidgetItem* item,
+    PluginsListWidget* availableList,
+    PluginsListWidget* selectedList)
+{
+    assert(item != nullptr);
+    if (m_currentAvailableList != nullptr) {
+        m_currentAvailableList->setCurrentRow(-1);
+        refreshAvailableToolbar();
+    }
+
+    if ((m_currentSelectedList != nullptr) &&
+        (m_currentSelectedList != selectedList)) {
+        m_currentSelectedList->setCurrentRow(-1);
+    }
+    m_currentSelectedList = selectedList;
+
+    auto pluginInfoPtr = getPluginInfo(item);
+    assert(pluginInfoPtr);
+
+    typedef PluginMgr::PluginInfo::Type PluginType;
+    auto type = pluginInfoPtr->getType();
+    if ((type == PluginType::Socket) ||
+        (type == PluginType::Protocol)) {
+        assert(availableList != nullptr);
+        availableList->setDisabled(true);
+    }
+
+    assert(selectedList != nullptr);
+    selectedList->setCurrentItem(item);
+    assert(selectedList->currentRow() == selectedList->row(item));
+
+    auto configWidget =
+        PluginMgr::instanceRef().getPluginConfigWidget(*pluginInfoPtr);
+    if (configWidget) {
+        m_ui.m_configScrollArea->setWidget(configWidget.release());
+    }
+    else {
+        clearConfiguration();
+    }
+
+    m_ui.m_descLabel->setText(pluginInfoPtr->getDescription());
+    refreshSelectedToolbar();
+}
+
 void PluginConfigDialog::createAvailableToolbar()
 {
     std::unique_ptr<QToolBar> toolbar(new QToolBar());
@@ -472,6 +512,10 @@ void PluginConfigDialog::createAvailableLists()
     connect(
         m_availableSocketsWidget, SIGNAL(itemClicked(QListWidgetItem*)),
         this, SLOT(availSocketPluginClicked(QListWidgetItem*)));
+    connect(
+        m_availableSocketsWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+        this, SLOT(availSocketPluginDoubleClicked(QListWidgetItem*)));
+
 
     addHorLine(*layout);
     std::unique_ptr<PluginsListWidget> filterPlugins(new PluginsListWidget("Filter"));
@@ -480,7 +524,9 @@ void PluginConfigDialog::createAvailableLists()
     connect(
         m_availableFiltersWidget, SIGNAL(itemClicked(QListWidgetItem*)),
         this, SLOT(availFilterPluginClicked(QListWidgetItem*)));
-
+    connect(
+        m_availableFiltersWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+        this, SLOT(availFilterPluginDoubleClicked(QListWidgetItem*)));
 
     addHorLine(*layout);
     std::unique_ptr<PluginsListWidget> protocolPlugins(new PluginsListWidget("Protocol"));
@@ -489,6 +535,9 @@ void PluginConfigDialog::createAvailableLists()
     connect(
         m_availableProtocolsWidget, SIGNAL(itemClicked(QListWidgetItem*)),
         this, SLOT(availProtocolPluginClicked(QListWidgetItem*)));
+    connect(
+        m_availableProtocolsWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+        this, SLOT(availProtocolPluginDoubleClicked(QListWidgetItem*)));
 
     layout->setContentsMargins(0, 0, 0, 0);
 }
@@ -505,16 +554,27 @@ void PluginConfigDialog::createSelectedLists()
     std::unique_ptr<PluginsListWidget> socketPlugins(new PluginsListWidget("Socket"));
     m_selectedSocketsWidget = socketPlugins.get();
     layout->addWidget(socketPlugins.release());
+    connect(
+        m_selectedSocketsWidget, SIGNAL(itemClicked(QListWidgetItem*)),
+        this, SLOT(selectedSocketPluginClicked(QListWidgetItem*)));
+
 
     addVerLine(*layout);
     std::unique_ptr<PluginsListWidget> filterPlugins(new PluginsListWidget("Filter"));
     m_selectedFiltersWidget = filterPlugins.get();
     layout->addWidget(filterPlugins.release());
+    connect(
+        m_selectedFiltersWidget, SIGNAL(itemClicked(QListWidgetItem*)),
+        this, SLOT(selectedFilterPluginClicked(QListWidgetItem*)));
+
 
     addVerLine(*layout);
     std::unique_ptr<PluginsListWidget> protocolPlugins(new PluginsListWidget("Protocol"));
     m_selectedProtocolsWidget = protocolPlugins.get();
     layout->addWidget(protocolPlugins.release());
+    connect(
+        m_selectedProtocolsWidget, SIGNAL(itemClicked(QListWidgetItem*)),
+        this, SLOT(selectedProtocolPluginClicked(QListWidgetItem*)));
 
     layout->setContentsMargins(0, 0, 0, 0);
 }
@@ -525,7 +585,7 @@ void PluginConfigDialog::refreshAll()
     refreshSelectedToolbar();
     refreshAvailablePlugins();
     refreshAvailableToolbar();
-//    refreshButtonBox();
+    refreshButtonBox();
 }
 
 void PluginConfigDialog::refreshAvailable()
@@ -612,13 +672,13 @@ void PluginConfigDialog::refreshAvailableToolbar()
 
 void PluginConfigDialog::refreshSelectedToolbar()
 {
-//    refreshSaveButton();
-//    refreshRemoveButton();
-//    refreshClearButton();
-//    refreshTopButton();
-//    refreshUpBotton();
-//    refreshDownBotton();
-//    refreshBottomButton();
+    refreshSaveButton();
+    refreshRemoveButton();
+    refreshClearButton();
+    refreshTopButton();
+    refreshUpBotton();
+    refreshDownBotton();
+    refreshBottomButton();
 }
 //
 //void PluginConfigDialog::refreshSelectedPlugins()
@@ -643,66 +703,87 @@ void PluginConfigDialog::refreshSelectedToolbar()
 //
 //}
 //
-//void PluginConfigDialog::refreshButtonBox()
-//{
+void PluginConfigDialog::refreshButtonBox()
+{
 //    bool applyEnabled = (0 < m_ui.m_selectedListWidget->count());
 //    m_applyButton->setEnabled(applyEnabled);
-//}
+}
 //
-//void PluginConfigDialog::refreshSaveButton()
-//{
-//    auto* button = m_saveButton;
-//    bool enabled = (0 < m_ui.m_selectedListWidget->count());
-//    button->setEnabled(enabled);
-//}
+void PluginConfigDialog::refreshSaveButton()
+{
+    auto* button = m_saveButton;
+    bool enabled =
+        (0 < m_selectedSocketsWidget->count()) ||
+        (0 < m_selectedFiltersWidget->count()) ||
+        (0 < m_selectedProtocolsWidget->count());
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshRemoveButton()
+{
+    auto* button = m_removeButton;
+    bool enabled =
+        (m_currentSelectedList != nullptr) &&
+        (0 <= m_currentSelectedList->currentRow());
+    button->setEnabled(enabled);
+}
 //
-//void PluginConfigDialog::refreshRemoveButton()
-//{
-//    auto* button = m_removeButton;
-//    bool enabled = (0 <= m_ui.m_selectedListWidget->currentRow());
-//    button->setEnabled(enabled);
-//}
-//
-//void PluginConfigDialog::refreshClearButton()
-//{
-//    auto* button = m_clearButton;
-//    bool enabled = (0 < m_ui.m_selectedListWidget->count());
-//    button->setEnabled(enabled);
-//}
-//
-//void PluginConfigDialog::refreshTopButton()
-//{
-//    auto* button = m_topButton;
-//    bool enabled = (0 < m_ui.m_selectedListWidget->currentRow());
-//    button->setEnabled(enabled);
-//}
-//
-//void PluginConfigDialog::refreshUpBotton()
-//{
-//    auto* button = m_upButton;
-//    bool enabled = (0 < m_ui.m_selectedListWidget->currentRow());
-//    button->setEnabled(enabled);
-//}
-//
-//void PluginConfigDialog::refreshDownBotton()
-//{
-//    auto* button = m_downButton;
-//    auto row = m_ui.m_selectedListWidget->currentRow();
-//    bool enabled =
-//        (0 <= row) &&
-//        (row < (m_ui.m_selectedListWidget->count() - 1));
-//    button->setEnabled(enabled);
-//}
-//
-//void PluginConfigDialog::refreshBottomButton()
-//{
-//    auto* button = m_bottomButton;
-//    auto row = m_ui.m_selectedListWidget->currentRow();
-//    bool enabled =
-//        (0 <= row) &&
-//        (row < (m_ui.m_selectedListWidget->count() - 1));
-//    button->setEnabled(enabled);
-//}
+void PluginConfigDialog::refreshClearButton()
+{
+    auto* button = m_clearButton;
+    bool enabled =
+        (0 < m_selectedSocketsWidget->count()) ||
+        (0 < m_selectedFiltersWidget->count()) ||
+        (0 < m_selectedProtocolsWidget->count());
+    button->setEnabled(enabled);
+}
+
+
+void PluginConfigDialog::refreshTopButton()
+{
+    auto* button = m_topButton;
+    bool enabled =
+        (m_currentSelectedList != nullptr) &&
+        (0 < m_currentSelectedList->currentRow());
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshUpBotton()
+{
+    auto* button = m_upButton;
+    bool enabled =
+        (m_currentSelectedList != nullptr) &&
+        (0 < m_currentSelectedList->currentRow());
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshDownBotton()
+{
+    auto* button = m_downButton;
+    int row = -1;
+    if (m_currentSelectedList != nullptr) {
+        row = m_currentSelectedList->currentRow();
+    }
+
+    bool enabled =
+        (0 <= row) &&
+        (row < (m_currentSelectedList->count() - 1));
+    button->setEnabled(enabled);
+}
+
+void PluginConfigDialog::refreshBottomButton()
+{
+    auto* button = m_bottomButton;
+    int row = -1;
+    if (m_currentSelectedList != nullptr) {
+        row = m_currentSelectedList->currentRow();
+    }
+
+    bool enabled =
+        (0 <= row) &&
+        (row < (m_currentSelectedList->count() - 1));
+    button->setEnabled(enabled);
+}
 
 void PluginConfigDialog::clearConfiguration()
 {
@@ -749,5 +830,24 @@ PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
 //    }
 //    return infos;
 //}
+
+PluginsListWidget* PluginConfigDialog::getSelectedListForAvailable(
+    PluginsListWidget* list)
+{
+    assert(list != nullptr);
+    if (list == m_availableSocketsWidget) {
+        return m_selectedSocketsWidget;
+    }
+
+    if (list == m_availableProtocolsWidget) {
+        return m_selectedProtocolsWidget;
+    }
+
+    if (list == m_availableFiltersWidget) {
+        return m_selectedFiltersWidget;
+    }
+
+    return nullptr;
+}
 
 } /* namespace comms_champion */

@@ -49,6 +49,7 @@ public:
 
 signals:
     void itemClicked(QListWidgetItem* item);
+    void itemDoubleClicked(QListWidgetItem* item);
 
 private:
     Ui::PluginsListWidget m_ui;

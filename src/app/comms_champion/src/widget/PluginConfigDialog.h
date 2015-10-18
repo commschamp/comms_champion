@@ -43,8 +43,16 @@ private slots:
     void availSocketPluginClicked(QListWidgetItem* item);
     void availFilterPluginClicked(QListWidgetItem* item);
     void availProtocolPluginClicked(QListWidgetItem* item);
-//    void availPluginDoubleClicked(QListWidgetItem* item);
-//    void selectedPluginClicked(QListWidgetItem* item);
+
+    void availSocketPluginDoubleClicked(QListWidgetItem* item);
+    void availFilterPluginDoubleClicked(QListWidgetItem* item);
+    void availProtocolPluginDoubleClicked(QListWidgetItem* item);
+
+    void selectedSocketPluginClicked(QListWidgetItem* item);
+    void selectedFilterPluginClicked(QListWidgetItem* item);
+    void selectedProtocolPluginClicked(QListWidgetItem* item);
+
+
     void addClicked();
     void searchTextChanged(const QString& text);
     void searchClearClicked();
@@ -64,6 +72,11 @@ private:
         PluginsListWidget* availableList,
         PluginsListWidget* selectedList);
 
+    void selectedPluginClicked(
+        QListWidgetItem* item,
+        PluginsListWidget* availableList,
+        PluginsListWidget* selectedList);
+
     void createAvailableToolbar();
     void createSelectedToolbar();
     void createAvailableLists();
@@ -76,20 +89,21 @@ private:
     void refreshSelectedToolbar();
 //    void refreshSelectedPlugins();
 //    void refreshSelectedPlugins(const PluginMgr::ListOfPluginInfos& infos);
-//    void refreshButtonBox();
-//    void refreshSaveButton();
-//    void refreshRemoveButton();
-//    void refreshClearButton();
-//    void refreshTopButton();
-//    void refreshUpBotton();
-//    void refreshDownBotton();
-//    void refreshBottomButton();
+    void refreshButtonBox();
+    void refreshSaveButton();
+    void refreshRemoveButton();
+    void refreshClearButton();
+    void refreshTopButton();
+    void refreshUpBotton();
+    void refreshDownBotton();
+    void refreshBottomButton();
     void clearConfiguration();
     void clearDescription();
 //    void moveSelectedPlugin(int fromRow, int toRow);
 
     PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item) const;
 //    PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
+    PluginsListWidget* getSelectedListForAvailable(PluginsListWidget* list);
 
     Ui::PluginConfigDialog m_ui;
     QLineEdit* m_availSearchLineEdit = nullptr;

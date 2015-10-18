@@ -31,6 +31,9 @@ PluginsListWidget::PluginsListWidget(
     connect(
         m_ui.m_listWidget, SIGNAL(itemClicked(QListWidgetItem*)),
         this, SIGNAL(itemClicked(QListWidgetItem*)));
+    connect(
+        m_ui.m_listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+        this, SIGNAL(itemDoubleClicked(QListWidgetItem*)));
 }
 
 QListWidgetItem* PluginsListWidget::currentItem()

@@ -31,7 +31,7 @@
    </property>
    <item>
     <widget class="QWidget" name="m_valueWidget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,1">
+     <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="leftMargin">
        <number>0</number>
       </property>

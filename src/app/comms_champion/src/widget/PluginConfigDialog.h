@@ -98,7 +98,7 @@ private:
     void refreshBottomButton();
     void clearConfiguration();
     void clearDescription();
-//    void moveSelectedPlugin(int fromRow, int toRow);
+    void moveSelectedPlugin(int fromRow, int toRow);
 
     PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item) const;
     PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
@@ -128,4 +128,4 @@ private:
     PluginsListWidget* m_currentSelectedList = nullptr;
 };
 
-} /* namespace comms_champion */
+} // namespace comms_champion

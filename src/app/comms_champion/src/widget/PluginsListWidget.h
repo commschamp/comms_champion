@@ -41,11 +41,13 @@ public:
     void clear();
     int count() const;
     QListWidgetItem* item(int idx);
+    QListWidgetItem* takeItem(int idx);
     void addItem(const QString& name);
     void setCurrentRow(int row);
     void setCurrentItem(QListWidgetItem* item);
     int currentRow() const;
     int row(QListWidgetItem* item) const;
+    void insertItem(int row, QListWidgetItem* item);
 
 signals:
     void itemClicked(QListWidgetItem* item);

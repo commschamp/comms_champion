@@ -56,6 +56,11 @@ QListWidgetItem* PluginsListWidget::item(int idx)
     return m_ui.m_listWidget->item(idx);
 }
 
+QListWidgetItem* PluginsListWidget::takeItem(int idx)
+{
+    return m_ui.m_listWidget->takeItem(idx);
+}
+
 void PluginsListWidget::addItem(const QString& name)
 {
     m_ui.m_listWidget->addItem(name);
@@ -81,6 +86,10 @@ int PluginsListWidget::row(QListWidgetItem* item) const
     return m_ui.m_listWidget->row(item);
 }
 
+void PluginsListWidget::insertItem(int row, QListWidgetItem* item)
+{
+    m_ui.m_listWidget->insertItem(row, item);
+}
 
 }  // namespace comms_champion
 

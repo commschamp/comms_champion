@@ -49,7 +49,6 @@ void addVerLine(QBoxLayout& layout) {
     layout.addWidget(line.release());
 }
 
-
 }  // namespace
 
 PluginConfigDialog::PluginConfigDialog(QWidget* parent)
@@ -75,31 +74,31 @@ PluginConfigDialog::PluginConfigDialog(QWidget* parent)
 
 void PluginConfigDialog::accept()
 {
-//    auto& pluginMgr = PluginMgr::instanceRef();
-//    auto infos = getSelectedPlugins();
-//    if (pluginMgr.needsReload(infos)) {
-//        auto result =
-//            QMessageBox::question(
-//                this,
-//                tr("Confirmation required!"),
-//                tr("The list of plugins was updated.\n"
-//                   "All the plugins must be reloaded and re-applied.\n"
-//                   "Proceed?"));
-//        if (result != QMessageBox::Yes) {
-//            return;
-//        }
-//    }
-//
-//    bool applyResult = pluginMgr.apply(infos);
-//    if (!applyResult) {
-//        QMessageBox::critical(
-//            this,
-//            tr("Plugins error occurred!"),
-//            tr("Failed to apply requested list of plugins."));
-//        Base::reject();
-//        return;
-//    }
-//
+    auto& pluginMgr = PluginMgr::instanceRef();
+    auto infos = getSelectedPlugins();
+    if (pluginMgr.needsReload(infos)) {
+        auto result =
+            QMessageBox::question(
+                this,
+                tr("Confirmation required!"),
+                tr("The list of plugins was updated.\n"
+                   "All the plugins must be reloaded and re-applied.\n"
+                   "Proceed?"));
+        if (result != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    bool applyResult = pluginMgr.apply(infos);
+    if (!applyResult) {
+        QMessageBox::critical(
+            this,
+            tr("Plugins error occurred!"),
+            tr("Failed to apply requested list of plugins."));
+        Base::reject();
+        return;
+    }
+
     Base::accept();
 }
 
@@ -176,10 +175,10 @@ void PluginConfigDialog::addClicked()
         Qt::UserRole,
         QVariant::fromValue(pluginInfoPtr));
 
+    selectedPluginClicked(selectedItem, selectedListWidget);
     refreshAvailablePlugins();
     refreshSelectedToolbar();
     refreshButtonBox();
-    selectedPluginClicked(selectedItem, selectedListWidget);
 }
 
 void PluginConfigDialog::searchTextChanged(const QString& text)
@@ -267,80 +266,90 @@ void PluginConfigDialog::saveClicked()
 
 void PluginConfigDialog::removeClicked()
 {
-//    auto* item = m_ui.m_selectedListWidget->currentItem();
-//    assert(item != nullptr);
-//    delete item;
-//    refreshAvailablePlugins();
-//    refreshSelectedToolbar();
-//    refreshButtonBox();
-//
-//    item = m_ui.m_selectedListWidget->currentItem();
-//    if (item == nullptr) {
-//        clearConfiguration();
-//        clearDescription();
-//        return;
-//    }
-//
-//    selectedPluginClicked(item);
+    assert(m_currentSelectedList != nullptr);
+    auto* item = m_currentSelectedList->currentItem();
+    assert(item != nullptr);
+    delete item;
+    refreshAvailablePlugins();
+    refreshSelectedToolbar();
+    refreshButtonBox();
+
+    item = m_currentSelectedList->currentItem();
+    if (item == nullptr) {
+        clearConfiguration();
+        clearDescription();
+        m_currentSelectedList = nullptr;
+        return;
+    }
+
+    selectedPluginClicked(item, m_currentSelectedList);
 }
 
 void PluginConfigDialog::clearClicked()
 {
-//    bool displayingSelected =
-//        (m_ui.m_selectedListWidget->currentItem() != nullptr);
-//    m_ui.m_selectedListWidget->clear();
-//    refreshAvailablePlugins();
-//    refreshSelectedToolbar();
-//    refreshButtonBox();
-//
-//    if (displayingSelected) {
-//        clearConfiguration();
-//        clearDescription();
-//    }
+    bool displayingSelected =
+        (m_currentSelectedList != nullptr) &&
+        (m_currentSelectedList->currentItem() != nullptr);
+    m_selectedSocketsWidget->clear();
+    m_selectedFiltersWidget->clear();
+    m_selectedProtocolsWidget->clear();
+    m_currentSelectedList = nullptr;
+    refreshAvailablePlugins();
+    refreshSelectedToolbar();
+    refreshButtonBox();
+
+    if (displayingSelected) {
+        clearConfiguration();
+        clearDescription();
+    }
 }
 
 void PluginConfigDialog::topClicked()
 {
-//    auto curRow = m_ui.m_selectedListWidget->currentRow();
-//    if (curRow <= 0) {
-//        assert(!"No item is selected or moving up top item");
-//        return;
-//    }
-//
-//    moveSelectedPlugin(curRow, 0);
+    assert(m_currentSelectedList != nullptr);
+    auto curRow = m_currentSelectedList->currentRow();
+    if (curRow <= 0) {
+        assert(!"No item is selected or moving up top item");
+        return;
+    }
+
+    moveSelectedPlugin(curRow, 0);
 }
 
 void PluginConfigDialog::upClicked()
 {
-//    auto curRow = m_ui.m_selectedListWidget->currentRow();
-//    if (curRow <= 0) {
-//        assert(!"No item is selected or moving up top item");
-//        return;
-//    }
-//
-//    moveSelectedPlugin(curRow, curRow - 1);
+    assert(m_currentSelectedList != nullptr);
+    auto curRow = m_currentSelectedList->currentRow();
+    if (curRow <= 0) {
+        assert(!"No item is selected or moving up top item");
+        return;
+    }
+
+    moveSelectedPlugin(curRow, curRow - 1);
 }
 
 void PluginConfigDialog::downClicked()
 {
-//    auto curRow = m_ui.m_selectedListWidget->currentRow();
-//    if ((m_ui.m_selectedListWidget->count() - 1) <= curRow) {
-//        assert(!"No item is selected or moving down bottom item");
-//        return;
-//    }
-//
-//    moveSelectedPlugin(curRow, curRow + 1);
+    assert(m_currentSelectedList != nullptr);
+    auto curRow = m_currentSelectedList->currentRow();
+    if ((m_currentSelectedList->count() - 1) <= curRow) {
+        assert(!"No item is selected or moving down bottom item");
+        return;
+    }
+
+    moveSelectedPlugin(curRow, curRow + 1);
 }
 
 void PluginConfigDialog::bottomClicked()
 {
-//    auto curRow = m_ui.m_selectedListWidget->currentRow();
-//    if ((m_ui.m_selectedListWidget->count() - 1) <= curRow) {
-//        assert(!"No item is selected or moving down bottom item");
-//        return;
-//    }
-//
-//    moveSelectedPlugin(curRow, m_ui.m_selectedListWidget->count() - 1);
+    assert(m_currentSelectedList != nullptr);
+    auto curRow = m_currentSelectedList->currentRow();
+    if ((m_currentSelectedList->count() - 1) <= curRow) {
+        assert(!"No item is selected or moving down bottom item");
+        return;
+    }
+
+    moveSelectedPlugin(curRow, m_currentSelectedList->count() - 1);
 }
 
 void PluginConfigDialog::availPluginClicked(
@@ -353,7 +362,7 @@ void PluginConfigDialog::availPluginClicked(
     assert(selectedList != nullptr);
 
     if (m_currentSelectedList != nullptr) {
-        selectedList->setCurrentRow(-1);
+        m_currentSelectedList->setCurrentRow(-1);
         refreshSelectedToolbar();
         m_currentSelectedList = nullptr;
     }
@@ -382,6 +391,7 @@ void PluginConfigDialog::selectedPluginClicked(
     assert(item != nullptr);
     if (m_currentAvailableList != nullptr) {
         m_currentAvailableList->setCurrentRow(-1);
+        m_currentAvailableList = nullptr;
         refreshAvailableToolbar();
     }
 
@@ -721,10 +731,12 @@ void PluginConfigDialog::refreshSelectedPlugins(
 
 void PluginConfigDialog::refreshButtonBox()
 {
-//    bool applyEnabled = (0 < m_ui.m_selectedListWidget->count());
-//    m_applyButton->setEnabled(applyEnabled);
+    bool applyEnabled =
+        (0 < m_selectedSocketsWidget->count()) &&
+        (0 < m_selectedProtocolsWidget->count());
+    m_applyButton->setEnabled(applyEnabled);
 }
-//
+
 void PluginConfigDialog::refreshSaveButton()
 {
     auto* button = m_saveButton;
@@ -743,7 +755,7 @@ void PluginConfigDialog::refreshRemoveButton()
         (0 <= m_currentSelectedList->currentRow());
     button->setEnabled(enabled);
 }
-//
+
 void PluginConfigDialog::refreshClearButton()
 {
     auto* button = m_clearButton;
@@ -753,7 +765,6 @@ void PluginConfigDialog::refreshClearButton()
         (0 < m_selectedProtocolsWidget->count());
     button->setEnabled(enabled);
 }
-
 
 void PluginConfigDialog::refreshTopButton()
 {
@@ -811,15 +822,16 @@ void PluginConfigDialog::clearDescription()
     m_ui.m_descLabel->setText(QString());
 }
 
-//void PluginConfigDialog::moveSelectedPlugin(int fromRow, int toRow)
-//{
-//    assert(fromRow < m_ui.m_selectedListWidget->count());
-//    auto* item = m_ui.m_selectedListWidget->takeItem(fromRow);
-//    assert(toRow <= m_ui.m_selectedListWidget->count());
-//    m_ui.m_selectedListWidget->insertItem(toRow, item);
-//    m_ui.m_selectedListWidget->setCurrentRow(toRow);
-//    refreshSelectedToolbar();
-//}
+void PluginConfigDialog::moveSelectedPlugin(int fromRow, int toRow)
+{
+    assert(m_currentSelectedList != nullptr);
+    assert(fromRow < m_currentSelectedList->count());
+    auto* item = m_currentSelectedList->takeItem(fromRow);
+    assert(toRow <= m_currentSelectedList->count());
+    m_currentSelectedList->insertItem(toRow, item);
+    m_currentSelectedList->setCurrentRow(toRow);
+    refreshSelectedToolbar();
+}
 
 PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
     QListWidgetItem* item) const
@@ -873,4 +885,4 @@ PluginsListWidget* PluginConfigDialog::getSelectedListForAvailable(
     return nullptr;
 }
 
-} /* namespace comms_champion */
+} // namespace comms_champion

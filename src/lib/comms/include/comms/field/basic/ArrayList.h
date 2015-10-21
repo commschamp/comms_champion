@@ -27,6 +27,7 @@
 #include "comms/field/category.h"
 #include "comms/util/access.h"
 #include "comms/util/StaticQueue.h"
+#include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 
 namespace comms
@@ -74,6 +75,12 @@ struct ArrayListMaxLengthRetrieveHelper
 
 template <typename T, std::size_t TSize>
 struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticQueue<T, TSize> >
+{
+    static const std::size_t Value = TSize;
+};
+
+template <typename T, std::size_t TSize>
+struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticVector<T, TSize> >
 {
     static const std::size_t Value = TSize;
 };

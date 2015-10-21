@@ -22,7 +22,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
-#include "comms/util/StaticQueue.h"
+#include "comms/util/StaticVector.h"
 #include "basic/ArrayList.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
@@ -42,7 +42,7 @@ struct ArrayListStorageType;
 template <typename TElement, typename TOptions>
 struct ArrayListStorageType<TElement, TOptions, true>
 {
-    typedef comms::util::StaticQueue<TElement, TOptions::FixedSizeStorage> Type;
+    typedef comms::util::StaticVector<TElement, TOptions::FixedSizeStorage> Type;
 };
 
 template <typename TElement, typename TOptions>

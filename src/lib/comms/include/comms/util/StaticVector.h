@@ -139,7 +139,7 @@ protected:
 
     T* begin()
     {
-        return elem(0);
+        return &(elem(0));
     }
 
     const T* begin() const
@@ -275,7 +275,7 @@ protected:
     T* insert(const T* pos, TIter from, TIter to)
     {
         typedef typename std::iterator_traits<TIter>::iterator_category Tag;
-        insert_internal(pos, from, to, Tag());
+        return insert_internal(pos, from, to, Tag());
     }
 
     template <typename... TArgs>
@@ -296,9 +296,9 @@ protected:
 
     T* erase(const T* from, const T* to)
     {
-        GASSERT(from < cend());
-        GASSERT(to < cend());
-        GASSERT(from < to);
+        GASSERT(from <= cend());
+        GASSERT(to <= cend());
+        GASSERT(from <= to);
 
         auto tailCount = static_cast<std::size_t>(std::distance(to, cend()));
         auto eraseCount = static_cast<std::size_t>(std::distance(from, to));
@@ -316,6 +316,7 @@ protected:
             iter->~T();
         }
         size_ -= eraseCount;
+        return moveDest;
     }
 
     template <typename U>
@@ -347,31 +348,37 @@ protected:
         }
     }
 
-    std::size_t swap(T* data, std::size_t len, std::size_t cap)
+    void swap(StaticVectorBase<T>& other)
     {
-        auto swapSize = std::min(len, size());
+        auto swapSize = std::min(other.size(), size());
         for (auto idx = 0U; idx < swapSize; ++idx) {
-            std::swap(data_[idx], data[idx]);
+            std::swap(data_[idx], other.data_[idx]);
         }
 
-        if (len < size()) {
-            auto limit = std::min(size(), cap);
+        auto otherSize = other.size();
+        auto thisSize = size();
+
+        if (otherSize == thisSize) {
+            return;
+        }
+
+        if (otherSize < thisSize) {
+            auto limit = std::min(thisSize, other.capacity());
             for (auto idx = swapSize; idx < limit; ++idx) {
-                new (&data[idx]) T(std::move(data_[idx]));
+                new (other.cellPtr(idx)) T(std::move(elem(idx)));
             }
 
-            auto retval = size();
-            erase(begin() + len, end());
-            return retval;
+            other.size_ = thisSize;
+            erase(begin() + otherSize, end());
+            return;
         }
 
-        auto retval = size();
-        auto limit = std::min(len, capacity());
+        auto limit = std::min(otherSize, capacity());
         for (auto idx = swapSize; idx < limit; ++idx) {
-            new (cellPtr(idx)) T(std::move(data[idx]));
+            new (cellPtr(idx)) T(std::move(other.elem(idx)));
         }
-        size_ = len;
-        return retval;
+        size_ = otherSize;
+        other.erase(other.begin() + thisSize, other.end());
     }
 
 private:
@@ -441,9 +448,10 @@ private:
         }
 
         auto pushValueCount = count - tailCount;
+        auto pushInsertedBegIter = to - pushValueCount;
         for (auto idx = 0U; idx < pushValueCount; ++idx) {
-            push_back(*from);
-            ++from;
+            push_back(*pushInsertedBegIter);
+            ++pushInsertedBegIter;
         }
 
         auto* pushBegIter = posIter;
@@ -479,13 +487,13 @@ private:
     template <typename TIter>
     T* insert_internal(const T* pos, TIter from, TIter to, std::random_access_iterator_tag)
     {
-        insert_random_access(pos, from, to);
+        return insert_random_access(pos, from, to);
     }
 
     template <typename TIter>
     T* insert_internal(const T* pos, TIter from, TIter to, std::input_iterator_tag)
     {
-        insert_input(pos, from, to);
+        return insert_input(pos, from, to);
     }
 
 
@@ -712,7 +720,7 @@ public:
 
     bool empty() const
     {
-        return Base::emtpy();
+        return Base::empty();
     }
 
     size_type size() const
@@ -811,8 +819,7 @@ public:
     template <std::size_t TOtherSize>
     void swap(StaticVector<T, TOtherSize>& other)
     {
-        auto newLen = Base::swap(other.data(), other.size(), other.capacity());
-        other.size_ = newLen;
+        Base::swap(other);
     }
 };
 

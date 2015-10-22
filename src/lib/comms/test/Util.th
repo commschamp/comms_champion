@@ -1,0 +1,131 @@
+//
+// Copyright 2015 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+#include "comms/comms.h"
+#include "cxxtest/TestSuite.h"
+
+class UtilTestSuite : public CxxTest::TestSuite
+{
+public:
+    void test1();
+    void test2();
+};
+
+void UtilTestSuite::test1()
+{
+    typedef comms::util::StaticVector<std::uint8_t, 20> Vec;
+
+    static const std::uint8_t Data[] = {
+        0, 1, 2, 3, 4, 5, 6
+    };
+    static const auto DataSize = std::extent<decltype(Data)>::value;
+
+    Vec vec;
+    TS_ASSERT(vec.empty());
+    vec.assign(std::begin(Data), std::end(Data));
+    TS_ASSERT_EQUALS(vec.size(), DataSize);
+    TS_ASSERT(std::equal(vec.begin(), vec.end(), std::begin(Data)));
+
+    static const std::uint8_t InsData1[] = {
+        7, 8, 9
+    };
+    static const auto InsData1Size = std::extent<decltype(InsData1)>::value;
+    auto iter = vec.insert(vec.end(), std::begin(InsData1), std::end(InsData1));
+    TS_ASSERT_EQUALS(iter, vec.begin() + DataSize);
+    TS_ASSERT_EQUALS(vec.size(), DataSize + InsData1Size);
+    TS_ASSERT(std::equal(std::begin(Data), std::end(Data), vec.begin()));
+    TS_ASSERT(std::equal(std::begin(InsData1), std::end(InsData1), vec.begin() + DataSize));
+
+    static const std::uint8_t InsElem = 0xff;
+    iter = vec.insert(vec.begin() + DataSize, InsElem);
+    TS_ASSERT_EQUALS(iter, vec.begin() + DataSize);
+    TS_ASSERT_EQUALS(vec.size(), DataSize + InsData1Size + 1);
+    TS_ASSERT(std::equal(std::begin(Data), std::end(Data), vec.begin()));
+    TS_ASSERT(std::equal(std::begin(InsData1), std::end(InsData1), vec.begin() + DataSize + 1));
+    TS_ASSERT_EQUALS(*iter, InsElem);
+
+    iter = vec.erase(iter);
+    TS_ASSERT_EQUALS(iter, vec.begin() + DataSize);
+    TS_ASSERT_EQUALS(vec.size(), DataSize + InsData1Size);
+    TS_ASSERT(std::equal(std::begin(Data), std::end(Data), vec.begin()));
+    TS_ASSERT(std::equal(std::begin(InsData1), std::end(InsData1), vec.begin() + DataSize));
+
+    static const std::uint8_t InsData2[] = {
+        0xaa, 0xbb
+    };
+    static const auto InsData2Size = std::extent<decltype(InsData2)>::value;
+
+    iter = vec.insert(vec.begin() + DataSize, std::begin(InsData2), std::end(InsData2));
+    TS_ASSERT_EQUALS(iter, vec.begin() + DataSize);
+    TS_ASSERT_EQUALS(vec.size(), DataSize + InsData1Size + InsData2Size);
+    TS_ASSERT(std::equal(std::begin(Data), std::end(Data), vec.begin()));
+    TS_ASSERT(std::equal(std::begin(InsData2), std::end(InsData2), vec.begin() + DataSize));
+    TS_ASSERT(std::equal(std::begin(InsData1), std::end(InsData1), vec.begin() + DataSize + InsData2Size));
+
+    iter = vec.erase(vec.begin() + DataSize, vec.begin() + DataSize + InsData2Size);
+    TS_ASSERT_EQUALS(iter, vec.begin() + DataSize);
+    TS_ASSERT_EQUALS(vec.size(), DataSize + InsData1Size);
+    TS_ASSERT(std::equal(std::begin(Data), std::end(Data), vec.begin()));
+    TS_ASSERT(std::equal(std::begin(InsData1), std::end(InsData1), vec.begin() + DataSize));
+
+    static const std::uint8_t InsData3[] = {
+        0xaa, 0xbb, 0xcc, 0xdd
+    };
+    static const auto InsData3Size = std::extent<decltype(InsData3)>::value;
+
+    iter = vec.insert(vec.begin() + DataSize, std::begin(InsData3), std::end(InsData3));
+    TS_ASSERT_EQUALS(iter, vec.begin() + DataSize);
+    TS_ASSERT_EQUALS(vec.size(), DataSize + InsData1Size + InsData3Size);
+    TS_ASSERT(std::equal(std::begin(Data), std::end(Data), vec.begin()));
+    TS_ASSERT(std::equal(std::begin(InsData3), std::end(InsData3), vec.begin() + DataSize));
+    TS_ASSERT(std::equal(std::begin(InsData1), std::end(InsData1), vec.begin() + DataSize + InsData3Size));
+}
+
+void UtilTestSuite::test2()
+{
+    typedef comms::util::StaticVector<std::uint8_t, 20> Vec1;
+    typedef comms::util::StaticVector<std::uint8_t, 40> Vec2;
+
+    static const std::uint8_t Data1[] = {
+        0, 1, 2, 3, 4, 5, 6
+    };
+
+    static const auto Data1Size = std::extent<decltype(Data1)>::value;
+
+    Vec1 v1(std::begin(Data1), std::end(Data1));
+    TS_ASSERT_EQUALS(v1.size(), Data1Size);
+
+    Vec2 v2(v1);
+    TS_ASSERT_EQUALS(v2.size(), Data1Size);
+    TS_ASSERT_EQUALS(v1, v2);
+
+    static const std::uint8_t Data2[] = {
+        0x1a, 0x1b, 0x1c
+    };
+    static const auto Data2Size = std::extent<decltype(Data2)>::value;
+
+    v2.assign(std::begin(Data2), std::end(Data2));
+    TS_ASSERT_EQUALS(v2.size(), Data2Size);
+    TS_ASSERT_LESS_THAN(v1, v2);
+
+    std::swap(v1, v2);
+    TS_ASSERT_EQUALS(v1.size(), Data2Size);
+    TS_ASSERT_EQUALS(v2.size(), Data1Size);
+    TS_ASSERT(std::equal(v1.begin(), v1.end(), std::begin(Data2)));
+    TS_ASSERT(std::equal(v2.begin(), v2.end(), std::begin(Data1)));
+}

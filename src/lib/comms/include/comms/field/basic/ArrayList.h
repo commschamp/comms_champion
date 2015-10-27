@@ -26,7 +26,6 @@
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
 #include "comms/util/access.h"
-#include "comms/util/StaticQueue.h"
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 
@@ -71,12 +70,6 @@ template <typename TStorage>
 struct ArrayListMaxLengthRetrieveHelper
 {
     static const std::size_t Value = 0xffff;
-};
-
-template <typename T, std::size_t TSize>
-struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticQueue<T, TSize> >
-{
-    static const std::size_t Value = TSize;
 };
 
 template <typename T, std::size_t TSize>

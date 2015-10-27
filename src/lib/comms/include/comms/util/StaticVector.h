@@ -37,6 +37,18 @@ namespace details
 template <typename T>
 class StaticVectorBase
 {
+public:
+    typedef T value_type;
+    typedef std::size_t size_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef T* pointer;
+    typedef const T* const_pointer;
+    typedef pointer iterator;
+    typedef const_pointer const_iterator;
+    typedef std::reverse_iterator<iterator> reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+
     typedef
         typename std::aligned_storage<
             sizeof(T),
@@ -45,7 +57,6 @@ class StaticVectorBase
 
     static_assert(sizeof(CellType) == sizeof(T), "Type T must be padded");
 
-protected:
     StaticVectorBase(CellType* data, std::size_t cap)
       : data_(data),
         capacity_(cap)
@@ -533,16 +544,17 @@ class StaticVector :
     friend class StaticVector;
 
 public:
-    typedef T value_type;
-    typedef std::size_t size_type;
-    typedef T& reference;
-    typedef const T& const_reference;
-    typedef T* pointer;
-    typedef const T* const_pointer;
-    typedef pointer iterator;
-    typedef const_pointer const_iterator;
-    typedef std::reverse_iterator<iterator> reverse_iterator;
-    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    typedef typename Base::value_type value_type;
+    typedef typename Base::size_type size_type;
+    typedef typename StorageBase::StorageType::difference_type difference_type;
+    typedef typename Base::reference reference;
+    typedef typename Base::const_reference const_reference;
+    typedef typename Base::pointer pointer;
+    typedef typename Base::const_pointer const_pointer;
+    typedef typename Base::iterator iterator;
+    typedef typename Base::const_iterator const_iterator;
+    typedef typename Base::reverse_iterator reverse_iterator;
+    typedef typename Base::const_reverse_iterator const_reverse_iterator;
 
     StaticVector()
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
@@ -585,6 +597,10 @@ public:
 
     StaticVector& operator=(const StaticVector& other)
     {
+        if (&other == this) {
+            return *this;
+        }
+
         assign(other.begin(), other.end());
         return *this;
     }
@@ -761,6 +777,11 @@ public:
     iterator insert(const_iterator iter, T&& value)
     {
         return Base::insert(iter, std::move(value));
+    }
+
+    iterator insert(const_iterator iter, size_type count, const T& value)
+    {
+        return Base::insert(iter, count, value);
     }
 
     template <typename TIter>

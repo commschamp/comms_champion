@@ -24,6 +24,21 @@ class UtilTestSuite : public CxxTest::TestSuite
 public:
     void test1();
     void test2();
+    void test3();
+    void test4();
+    void test5();
+    void test6();
+    void test7();
+    void test8();
+    void test9();
+    void test10();
+    void test11();
+    void test12();
+    void test13();
+    void test14();
+    void test15();
+    void test16();
+    void test17();
 };
 
 void UtilTestSuite::test1()
@@ -129,3 +144,445 @@ void UtilTestSuite::test2()
     TS_ASSERT(std::equal(v1.begin(), v1.end(), std::begin(Data2)));
     TS_ASSERT(std::equal(v2.begin(), v2.end(), std::begin(Data1)));
 }
+
+void UtilTestSuite::test3()
+{
+    typedef comms::util::StaticString<20> Str;
+    typedef comms::util::StaticString<30> Str2;
+
+    Str str1;
+    TS_ASSERT(str1.empty());
+
+    Str str2(5U, 'a');
+    TS_ASSERT_EQUALS(str2.size(), 5U);
+    TS_ASSERT_EQUALS(str2, "aaaaa");
+    TS_ASSERT_LESS_THAN(str2, "aaaab");
+    TS_ASSERT_LESS_THAN("aaa", str2);
+    TS_ASSERT_LESS_THAN(str2, "aab");
+
+    Str2 str3(str2, 2);
+    TS_ASSERT_EQUALS(str3.size(), 3U);
+    TS_ASSERT_EQUALS(str3, "aaa");
+
+    Str str4("hello", 100);
+    TS_ASSERT_EQUALS(str4.size(), 5U);
+    TS_ASSERT_EQUALS(str4, "hello");
+
+    Str str5("bla");
+    TS_ASSERT_EQUALS(str5.size(), 3U);
+    TS_ASSERT_EQUALS(str5, "bla");
+
+    static const std::vector<char> Data = {
+        'a', 'b', 'c', 'd'
+    };
+
+    Str str6(Data.begin(), Data.end());
+    TS_ASSERT_EQUALS(str6.size(), 4U);
+    TS_ASSERT_EQUALS(str6, "abcd");
+
+    Str2 str7(str6);
+    TS_ASSERT_EQUALS(str6, str7);
+
+    Str str8 = {'d', 'e', 'a', 'd'};
+    TS_ASSERT_EQUALS(str8.size(), 4U);
+    TS_ASSERT_EQUALS(str8, "dead");
+}
+
+void UtilTestSuite::test4()
+{
+    typedef comms::util::StaticString<20> Str1;
+    typedef comms::util::StaticString<30> Str2;
+
+    Str1 str1("bla");
+    Str2 str2("hello");
+
+    TS_ASSERT_DIFFERS(str1, str2);
+    TS_ASSERT_LESS_THAN(str1, str2);
+
+    str2 = str1;
+    TS_ASSERT_EQUALS(str1, str2);
+
+    str1 = "dead";
+    TS_ASSERT_EQUALS(str1.size(), 4U);
+    TS_ASSERT_EQUALS(str1, "dead");
+
+    str2 = 'a';
+    TS_ASSERT_EQUALS(str2.size(), 1U);
+    TS_ASSERT_EQUALS(str2, "a");
+
+    str1 = {'b', 'e', 'e'};
+    TS_ASSERT_EQUALS(str1.size(), 3U);
+    TS_ASSERT_EQUALS(str1, "bee");
+}
+
+void UtilTestSuite::test5()
+{
+    typedef comms::util::StaticString<20> Str1;
+    typedef comms::util::StaticString<30> Str2;
+
+    Str1 str1("bla");
+    Str2 str2("hello");
+
+    TS_ASSERT_DIFFERS(str1, str2);
+    TS_ASSERT_LESS_THAN(str1, str2);
+
+    str1.assign(3, 'a');
+    TS_ASSERT_EQUALS(str1.size(), 3U);
+    TS_ASSERT_EQUALS(str1, "aaa");
+
+    str2.assign(str1);
+    TS_ASSERT_EQUALS(str1, str2);
+
+    str1.assign(str2, 2);
+    TS_ASSERT_EQUALS(str1.size(), 1U);
+    TS_ASSERT_EQUALS(str1, "a");
+
+    str2.assign("abcdefgh", 4);
+    TS_ASSERT_EQUALS(str2.size(), 4U);
+    TS_ASSERT_EQUALS(str2, "abcd");
+
+    static const std::vector<char> Data = {
+        'a', 'b', 'c', 'd'
+    };
+
+    str1.assign(Data.begin(), Data.end());
+    TS_ASSERT_EQUALS(str1.size(), 4U);
+    TS_ASSERT_EQUALS(str1, "abcd");
+
+    str1.assign({'b', 'e', 'e'});
+    TS_ASSERT_EQUALS(str1.size(), 3U);
+    TS_ASSERT_EQUALS(str1.length(), 3U);
+    TS_ASSERT_EQUALS(str1, "bee");
+}
+
+void UtilTestSuite::test6()
+{
+    typedef comms::util::StaticString<20> Str;
+
+    Str str("hello");
+
+    str.at(0) = 'b';
+    TS_ASSERT_EQUALS(str, "bello");
+
+    str[4] = 'a';
+    TS_ASSERT_EQUALS(str, "bella");
+
+    TS_ASSERT_EQUALS(str.front(), 'b');
+    str.front() = 'h';
+    TS_ASSERT_EQUALS(str.front(), 'h');
+    TS_ASSERT_EQUALS(str, "hella");
+
+    TS_ASSERT_EQUALS(str.back(), 'a');
+    str.back() = 'o';
+    TS_ASSERT_EQUALS(str.back(), 'o');
+    TS_ASSERT_EQUALS(str, "hello");
+    TS_ASSERT_EQUALS(str.data(), "hello");
+    TS_ASSERT_EQUALS(str.c_str(), "hello");
+}
+
+void UtilTestSuite::test7()
+{
+    typedef comms::util::StaticString<20> Str1;
+    typedef comms::util::StaticString<10> Str2;
+
+    Str1 str1("hello");
+    Str2 str2;
+
+    TS_ASSERT(!str1.empty());
+    TS_ASSERT(str2.empty());
+
+    std::copy(str1.cbegin(), str1.cend(), std::back_inserter(str2));
+    TS_ASSERT_EQUALS(str1, str2);
+
+    str1.assign(str2.begin() + 2, str2.end());
+    TS_ASSERT_EQUALS(str1, "llo");
+
+    str1.assign(str2.rbegin() + 1, str2.rend());
+    TS_ASSERT_EQUALS(str1, "lleh");
+
+    TS_ASSERT(!str1.empty());
+    str1.clear();
+    TS_ASSERT(str1.empty());
+
+    TS_ASSERT_EQUALS(str1.max_size(), 20U);
+    TS_ASSERT_EQUALS(str2.capacity(), 10U);
+}
+
+void UtilTestSuite::test8()
+{
+    typedef comms::util::StaticString<20> Str;
+
+    static const char* OrigStr = "hello";
+    Str str(OrigStr);
+
+    str.insert(5, 2, 'a');
+    TS_ASSERT_EQUALS(str, "helloaa");
+    str.erase(5, 2);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.insert(0, "bla");
+    TS_ASSERT_EQUALS(str, "blahello");
+    str.erase(0, 3);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.insert(2, "bla", 1);
+    TS_ASSERT_EQUALS(str, "hebllo");
+    str.erase(2, 1);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    Str str2("dead");
+    str.insert(3, str2);
+    TS_ASSERT_EQUALS(str, "heldeadlo");
+    str.erase(3, 4);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.insert(3, str2, 1, 2);
+    TS_ASSERT_EQUALS(str, "helealo");
+    str.erase(3, 2);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.insert(str.begin(), 'a');
+    TS_ASSERT_EQUALS(str, "ahello");
+    str.erase(str.cbegin(), str.cbegin() + 1);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.insert(str.end(), 2, 'a');
+    TS_ASSERT_EQUALS(str, "helloaa");
+    str.erase(str.end() - 2, str.end());
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.insert(str.end() - 1, 3, 'a');
+    TS_ASSERT_EQUALS(str, "hellaaao");
+    str.erase(str.end() - 4, str.end() - 1);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.insert(str.cbegin() + 1, str2.cbegin(), str2.cend());
+    TS_ASSERT_EQUALS(str, "hdeadello");
+    str.erase(str.cbegin() + 1, str.cbegin() + 5);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.insert(str.end(), {'a', 'b', 'c'});
+    TS_ASSERT_EQUALS(str, "helloabc");
+    str.erase(str.end() - 1);
+    str.erase(str.end() - 1);
+    str.erase(str.end() - 1);
+    TS_ASSERT_EQUALS(str, OrigStr);
+
+    str.push_back('z');
+    TS_ASSERT_EQUALS(str, "helloz");
+    str.pop_back();
+    TS_ASSERT_EQUALS(str, OrigStr);
+}
+
+void UtilTestSuite::test9()
+{
+    typedef comms::util::StaticString<100> Str;
+    typedef comms::util::StaticString<20> Str2;
+
+    Str str("abc");
+    Str2 strTmp("ABCDEFGHIJK");
+    Str2 strTmp2("zzz");
+
+    str.append(2, 'd').append(strTmp2).append(strTmp, 8).
+        append("bla").append("xxx", 1).append(strTmp2.begin(), strTmp2.end()).
+        append({'d', 'e', 'a', 'd'});
+
+    TS_ASSERT_EQUALS(str, "abcddzzzIJKblaxzzzdead");
+}
+
+void UtilTestSuite::test10()
+{
+    typedef comms::util::StaticString<100> Str;
+    typedef comms::util::StaticString<20> Str2;
+
+    Str str("abc");
+    Str2 strTmp("ABCDEFGHIJK");
+
+    (((str += strTmp) += 'z') += "hello") += {'d', 'e', 'a', 'd'};
+
+    TS_ASSERT_EQUALS(str, "abcABCDEFGHIJKzhellodead");
+}
+
+void UtilTestSuite::test11()
+{
+    typedef comms::util::StaticString<100> Str;
+    typedef comms::util::StaticString<20> Str2;
+
+    Str str("abcdefghijklmnopqrst");
+    Str2 str2("fghijklm");
+
+    TS_ASSERT_LESS_THAN(str.compare(str2), 0);
+    TS_ASSERT_EQUALS(str.compare(5, 8, str2), 0);
+    TS_ASSERT_LESS_THAN(0, str.compare(5, 8, str2, 0, 7));
+    TS_ASSERT_EQUALS(str2.compare("fghijklm"), 0);
+    TS_ASSERT_LESS_THAN(0, str2.compare(1, 2, "fghijklm"));
+    TS_ASSERT_EQUALS(0, str.compare(5, 2, "fghijklm", 2));
+}
+
+void UtilTestSuite::test12()
+{
+    typedef comms::util::StaticString<100> Str;
+    typedef comms::util::StaticString<50> Str2;
+
+    Str str("abcdefg");
+    Str2 str2("HIJKLMNOP");
+
+    str.replace(2, 2, str2);
+    TS_ASSERT_EQUALS(str, "abHIJKLMNOPefg");
+
+    str.replace(str.begin() + 1, str.begin() + 11, str2);
+    TS_ASSERT_EQUALS(str, "aHIJKLMNOPefg");
+
+    str.replace(0, 5, str2, 2, 3);
+    TS_ASSERT_EQUALS(str, "JKLLMNOPefg");
+
+    str.replace(str.begin(), str.end(), str2.begin(), str2.begin() + 6);
+    TS_ASSERT_EQUALS(str, "HIJKLM");
+
+    str.replace(0, 3, "abcdefg", 4);
+    TS_ASSERT_EQUALS(str, "abcdKLM");
+
+    str.replace(str.cbegin() + 4, str.cbegin() + 7, "AAABBB", 4);
+    TS_ASSERT_EQUALS(str, "abcdAAAB");
+
+    str.replace(1, 7, "bla");
+    TS_ASSERT_EQUALS(str, "abla");
+
+    str.replace(str.end() - 2, str.end(), "hello");
+    TS_ASSERT_EQUALS(str, "abhello");
+
+    str.replace(0, 3, 2, 'z');
+    TS_ASSERT_EQUALS(str, "zzello");
+
+    str.replace(str.begin() + 2, str.begin() + 4, 3, 'x');
+    TS_ASSERT_EQUALS(str, "zzxxxlo");
+
+    str.replace(str.begin(), str.end(), {'h', 'h', 'h'});
+    TS_ASSERT_EQUALS(str, "hhh");
+}
+
+void UtilTestSuite::test13()
+{
+    typedef comms::util::StaticString<100> Str;
+
+    Str str("hello");
+    auto str2 = str.substr(2);
+    TS_ASSERT_EQUALS(str2, "llo");
+
+    str2 = str.substr(1, 3);
+    TS_ASSERT_EQUALS(str2, "ell");
+}
+
+void UtilTestSuite::test14()
+{
+    typedef comms::util::StaticString<100> Str;
+
+    Str str("hello");
+
+    char buf[100] = {0};
+
+    auto count = str.copy(&buf[0], 4, 1);
+    TS_ASSERT_EQUALS(count, 4);
+
+    TS_ASSERT(std::equal(std::begin(buf), std::begin(buf) + count, str.begin() + 1));
+}
+
+void UtilTestSuite::test15()
+{
+    typedef comms::util::StaticString<100> Str;
+
+    Str str("hello");
+
+    str.resize(4U);
+    TS_ASSERT_EQUALS(str, "hell");
+    TS_ASSERT_EQUALS(str.size(), 4U);
+
+    str.resize(6U, 'o');
+    TS_ASSERT_EQUALS(str, "helloo");
+}
+
+void UtilTestSuite::test16()
+{
+    typedef comms::util::StaticString<100> Str1;
+    typedef comms::util::StaticString<50> Str2;
+
+    Str1 str1("hello");
+    Str2 str2("dead beef");
+
+    std::swap(str1, str2);
+    TS_ASSERT_EQUALS(str1, "dead beef");
+    TS_ASSERT_EQUALS(str1.size(), 9U);
+    TS_ASSERT_EQUALS(str2, "hello");
+    TS_ASSERT_EQUALS(str2.size(), 5U);
+}
+
+
+void UtilTestSuite::test17()
+{
+    typedef comms::util::StaticString<100> Str;
+
+    Str str1("abcdefabc");
+    Str emptyStr;
+
+    Str str2("def");
+    TS_ASSERT_EQUALS(str1.find(str2), 3U);
+
+    Str str3("abc");
+    TS_ASSERT_EQUALS(str1.find(str3, 1), 6U);
+    TS_ASSERT_EQUALS(str1.find("abcdef", 2, 3), 6U);
+    TS_ASSERT_EQUALS(str1.find("abcdef", 2), Str::npos);
+    TS_ASSERT_EQUALS(str1.find('b', 2), 7U);
+    TS_ASSERT_EQUALS(emptyStr.find(str3), Str::npos);
+
+    TS_ASSERT_EQUALS(str1.rfind(str3), 6U);
+    TS_ASSERT_EQUALS(str1.rfind(str3, 5U), 0U);
+    TS_ASSERT_EQUALS(str1.rfind("defbbb", Str::npos, 3U), 3U);
+    TS_ASSERT_EQUALS(str1.rfind("abc", 6U, 3U), 6U);
+    TS_ASSERT_EQUALS(str1.rfind("bcd"), 1U);
+    TS_ASSERT_EQUALS(str1.rfind('b'), 7U);
+    TS_ASSERT_EQUALS(str1.rfind('b', 5), 1U);
+    TS_ASSERT_EQUALS(str1.rfind('c', 8U), 8U);
+    TS_ASSERT_EQUALS(emptyStr.rfind(str3), Str::npos);
+
+    Str str4("cd");
+    TS_ASSERT_EQUALS(str1.find_first_of(str4), 2U);
+    TS_ASSERT_EQUALS(str1.find_first_of(str4, 2U), 2U);
+    TS_ASSERT_EQUALS(str1.find_first_of(str4, 3U), 3U);
+    TS_ASSERT_EQUALS(str1.find_first_of("zza"), 0U);
+    TS_ASSERT_EQUALS(str1.find_first_of("zza", 0, 2), Str::npos);
+    TS_ASSERT_EQUALS(str1.find_first_of('f', 2), 5U);
+    TS_ASSERT_EQUALS(emptyStr.find_first_of(str4), Str::npos);
+
+    TS_ASSERT_EQUALS(str1.find_first_not_of(str3), 3U);
+    TS_ASSERT_EQUALS(str1.find_first_not_of("cabed", 0, 3), 3U);
+    TS_ASSERT_EQUALS(str1.find_first_not_of("def", 3), 6U);
+    TS_ASSERT_EQUALS(str1.find_first_not_of('a'), 1U);
+    TS_ASSERT_EQUALS(emptyStr.find_first_not_of(str3), Str::npos);
+
+    Str str5("bc");
+    TS_ASSERT_EQUALS(str1.find_last_of(str5), 8U);
+    TS_ASSERT_EQUALS(str1.find_last_of(str5, 8U), 8U);
+    TS_ASSERT_EQUALS(str1.find_last_of(str5, 7U), 7U);
+    TS_ASSERT_EQUALS(str1.find_last_of(str5, 5U), 2U);
+    TS_ASSERT_EQUALS(str1.find_last_of("abcdef", 4U, 3U), 2U);
+    TS_ASSERT_EQUALS(str1.find_last_of("abcdef"), 8U);
+    TS_ASSERT_EQUALS(str1.find_last_of("def"), 5U);
+    TS_ASSERT_EQUALS(str1.find_last_of("a"), 6U);
+    TS_ASSERT_EQUALS(str1.find_last_of("a", 6U), 6U);
+    TS_ASSERT_EQUALS(str1.find_last_of("a", 5U), 0U);
+    TS_ASSERT_EQUALS(emptyStr.find_last_of(str5), Str::npos);
+
+    TS_ASSERT_EQUALS(str1.find_last_not_of(str5), 6U);
+    TS_ASSERT_EQUALS(str1.find_last_not_of(str5, 6U), 6U);
+    TS_ASSERT_EQUALS(str1.find_last_not_of(str5, 3U), 3U);
+    TS_ASSERT_EQUALS(str1.find_last_not_of(str5, 2U), 0U);
+    TS_ASSERT_EQUALS(str1.find_last_not_of("abcdef", Str::npos, 3U), 5U);
+    TS_ASSERT_EQUALS(str1.find_last_not_of("cdef", 5U), 1U);
+    TS_ASSERT_EQUALS(str1.find_last_not_of("abcdef"), Str::npos);
+    TS_ASSERT_EQUALS(str1.find_last_not_of('a'), 8U);
+    TS_ASSERT_EQUALS(str1.find_last_not_of('c'), 7U);
+    TS_ASSERT_EQUALS(str1.find_last_not_of('a', 6U), 5U);
+    TS_ASSERT_EQUALS(emptyStr.find_last_not_of(str5), Str::npos);
+}
+
+

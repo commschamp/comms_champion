@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <iterator>
 #include <string>
+#include <initializer_list>
 
 #include "comms/Assert.h"
 #include "StaticVector.h"
@@ -192,37 +193,32 @@ protected:
 
     void insert(std::size_t idx, std::size_t count, TChar ch)
     {
-        GASSERT(idx < size());
+        GASSERT(idx <= size());
         vec_.insert(vec_.begin() + idx, count, ch);
     }
 
     void insert(std::size_t idx, const TChar* str)
     {
-        auto endStr = str;
-        while (*endStr != Ends) {
-            ++endStr;
-        }
-
-        GASSERT(idx < size());
-        vec_.insert(vec_.begin() + idx, str, endStr);
+        GASSERT(idx <= size());
+        vec_.insert(vec_.begin() + idx, str, str + strlen(str));
     }
 
     void insert(std::size_t idx, const TChar* str, std::size_t count)
     {
-        GASSERT(idx < size());
+        GASSERT(idx <= size());
         auto endStr = str + count;
         vec_.insert(vec_.begin() + idx, str, endStr);
     }
 
     void insert(std::size_t idx, const StaticStringBase& other)
     {
-        GASSERT(idx < size());
+        GASSERT(idx <= size());
         vec_.insert(vec_.begin() + idx, other.cbegin(), other.cend());
     }
 
     void insert(std::size_t idx, const StaticStringBase& str, std::size_t str_idx, std::size_t count)
     {
-        GASSERT(idx < size());
+        GASSERT(idx <= size());
         GASSERT(str_idx < str.size());
         auto begIter = str.cbegin() + str_idx;
         auto endIter = begIter + std::min((str.size() - str_idx), count);
@@ -256,7 +252,7 @@ protected:
 
     TChar* erase(const TChar* pos)
     {
-        return vec_.erase(pos);
+        return vec_.erase(pos, pos + 1);
     }
 
     TChar* erase(const TChar* first, const TChar* last)
@@ -266,14 +262,14 @@ protected:
 
     void push_back(TChar ch)
     {
-        GASSERT((size() < capacity()) && (!"The string is full."));
+        GASSERT((size() < capacity()) || (!"The string is full."));
         vec_.insert(end(), ch);
     }
 
     void pop_back()
     {
-        GASSERT((!empty()) && (!"The string is empty."));
-        vec_.erase(end() - 1);
+        GASSERT((!empty()) || (!"The string is empty."));
+        vec_.erase(end() - 1, end());
     }
 
     int compare(
@@ -356,9 +352,11 @@ protected:
         GASSERT(first <= end());
         GASSERT(last <= end());
         GASSERT(first <= last);
-        for (auto iter = first; iter != last; ++iter) {
+        auto begIter = begin() + std::distance(cbegin(), first);
+        auto endIter = begin() + std::distance(cbegin(), last);
+        for (auto iter = begIter; iter != endIter; ++iter) {
             if (first2 == last2) {
-                vec_.erase(iter, last);
+                vec_.erase(iter, endIter);
                 return;
             }
 
@@ -377,9 +375,11 @@ protected:
         GASSERT(first <= end());
         GASSERT(last <= end());
         GASSERT(first <= last);
-        for (auto iter = first; iter != last; ++iter) {
+        auto begIter = begin() + std::distance(cbegin(), first);
+        auto endIter = begin() + std::distance(cbegin(), last);
+        for (auto iter = begIter; iter != endIter; ++iter) {
             if (*str == Ends) {
-                vec_.erase(iter, last);
+                vec_.erase(iter, endIter);
                 return;
             }
 
@@ -389,7 +389,7 @@ protected:
 
         auto remCapacity = capacity() - size();
         auto endStr = str + remCapacity;
-        auto lastStrIter = std::find(str, endStr, Ends);
+        auto lastStrIter = std::find(str, endStr, TChar(Ends));
         vec_.insert(last, str, lastStrIter);
     }
 
@@ -404,7 +404,8 @@ protected:
         GASSERT(first <= last);
         auto dist = static_cast<std::size_t>(std::distance(first, last));
         auto fillDist = std::min(dist, count2);
-        std::fill_n(first, fillDist, ch);
+        auto fillIter = begin() + std::distance(cbegin(), first);
+        std::fill_n(fillIter, fillDist, ch);
         if (count2 <= dist) {
             vec_.erase(first + fillDist, last);
             return;
@@ -429,9 +430,9 @@ protected:
     void resize(std::size_t count, TChar ch)
     {
         if (count <= size()) {
-            auto remCount = size() - count;
-            vec_.erase(cbegin() + remCount, end());
+            vec_.erase(cbegin() + count, cend());
             GASSERT(vec_[size()] == Ends);
+            GASSERT(size() == count);
             return;
         }
 
@@ -452,10 +453,10 @@ protected:
         }
 
         auto maxPos = size() - count;
-        for (auto idx = pos; idx < maxPos; ++idx) {
+        for (auto idx = pos; idx <= maxPos; ++idx) {
             auto thisStrBeg = &vec_[idx];
             auto thisStrEnd = thisStrBeg + count;
-            if (std::equal(thisStrBeg, thisStrEnd, str, str + count)) {
+            if (std::equal(thisStrBeg, thisStrEnd, str)) {
                 return idx;
             }
         }
@@ -467,7 +468,7 @@ protected:
         GASSERT(pos <= size());
         auto maxStrCount = size() - pos;
         auto maxStrEnd = str + maxStrCount;
-        auto iter = std::find(str, maxStrEnd, Ends);
+        auto iter = std::find(str, maxStrEnd, TChar(Ends));
         if (iter == maxStrEnd) {
             return npos;
         }
@@ -485,20 +486,21 @@ protected:
             return npos;
         }
 
-        return static_cast<std::size_t>(std::distance(begIter, iter));
+        return static_cast<std::size_t>(std::distance(cbegin(), iter));
     }
 
     std::size_t rfind(const TChar* str, std::size_t pos, std::size_t count) const
     {
-        pos = std::min(pos, size());
-        if (pos < count) {
+        if ((empty()) || (size() < count)) {
             return npos;
         }
 
-        for (auto idx = static_cast<int>(pos - count); 0 <= idx; --idx) {
+        pos = std::min(pos, size() - 1);
+        auto startIdx = static_cast<int>(std::min(pos, size() - count));
+        for (auto idx = startIdx; 0 <= idx; --idx) {
             auto thisStrBeg = &vec_[idx];
             auto thisStrEnd = thisStrBeg + count;
-            if (std::equal(thisStrBeg, thisStrEnd, str, str + count)) {
+            if (std::equal(thisStrBeg, thisStrEnd, str)) {
                 return static_cast<std::size_t>(idx);
             }
         }
@@ -507,39 +509,39 @@ protected:
 
     std::size_t rfind(const TChar* str, std::size_t pos) const
     {
-        pos = std::min(pos, size());
-        auto maxStrCount = pos;
-        auto maxStrEnd = str + maxStrCount;
-        auto iter = std::find(str, maxStrEnd, Ends);
-        if (iter == maxStrEnd) {
-            return npos;
-        }
-
-        auto strCount = static_cast<std::size_t>(std::distance(str, iter));
-        return rfind(str, pos, strCount);
+        return rfind(str, pos, strlen(str));
     }
 
     std::size_t rfind(TChar ch, std::size_t pos) const
     {
-        pos = std::min(pos, size());
-        auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos);
+        if (empty()) {
+            return npos;
+        }
+
+        pos = std::min(pos, size() - 1);
+        auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos + 1);
         auto endIter = std::reverse_iterator<const TChar*>(cbegin());
+        GASSERT((std::size_t)(std::distance(begIter, endIter) == (pos + 1)));
         auto iter = std::find(begIter, endIter, ch);
         if (iter == endIter) {
             return npos;
         }
 
-        return static_cast<std::size_t>(std::distance(iter, endIter));
+        return static_cast<std::size_t>(std::distance(iter, endIter)) - 1U;
     }
 
     std::size_t find_first_of(const TChar* str, std::size_t pos, std::size_t count) const
     {
-        pos = std::min(pos, size());
+        if (empty()) {
+            return npos;
+        }
+
+        pos = std::min(pos, size() - 1);
         auto endStr = str + count;
-        for (auto iter = str; iter != endStr; ++iter) {
-            auto foundPos = find(*iter, pos);
-            if (foundPos != npos) {
-                return foundPos;
+        for (auto iter = cbegin() + pos; iter != cend(); ++iter) {
+            auto foundIter = std::find(str, endStr, *iter);
+            if (foundIter != endStr) {
+                return static_cast<std::size_t>(std::distance(cbegin(), iter));
             }
         }
 
@@ -548,20 +550,16 @@ protected:
 
     std::size_t find_first_of(const TChar* str, std::size_t pos) const
     {
-        pos = std::min(pos, size());
-        while (*str != Ends) {
-            auto foundPos = find(*str, pos);
-            if (foundPos != npos) {
-                return foundPos;
-            }
-            ++str;
-        }
-        return npos;
+        return find_first_of(str, pos, strlen(str));
     }
 
     std::size_t find_first_not_of(const TChar* str, std::size_t pos, std::size_t count) const
     {
-        pos = std::min(pos, size());
+        if (empty()) {
+            return npos;
+        }
+
+        pos = std::min(pos, size() - 1);
         auto endStr = str + count;
         for (auto iter = cbegin() + pos; iter != cend(); ++iter) {
             auto found = std::none_of(str, endStr,
@@ -580,17 +578,16 @@ protected:
 
     std::size_t find_first_not_of(const TChar* str, std::size_t pos) const
     {
-        auto* strTmp = str;
-        while (*strTmp != Ends) {
-            ++strTmp;
-        }
-        auto count = static_cast<std::size_t>(std::distance(str, strTmp));
-        return find_first_not_of(str, pos, count);
+        return find_first_not_of(str, pos, strlen(str));
     }
 
     std::size_t find_first_not_of(TChar ch, std::size_t pos) const
     {
-        pos = std::min(pos, size());
+        if (empty()) {
+            return npos;
+        }
+
+        pos = std::min(pos, size() - 1);
         auto iter = std::find_if(cbegin() + pos, cend(),
             [ch](TChar nextCh) -> bool
             {
@@ -606,12 +603,19 @@ protected:
 
     std::size_t find_last_of(const TChar* str, std::size_t pos, std::size_t count) const
     {
-        pos = std::min(pos, size());
+        if (empty()) {
+            return npos;
+        }
+
+        pos = std::min(pos, size() - 1);
         auto endStr = str + count;
-        for (auto iter = str; iter != endStr; ++iter) {
-            auto foundPos = rfind(*iter, pos);
-            if (foundPos != npos) {
-                return foundPos;
+
+        auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos + 1);
+        auto endIter = std::reverse_iterator<const TChar*>(cbegin());
+        for (auto iter = begIter; iter != endIter; ++iter) {
+            auto foundIter = std::find(str, endStr, *iter);
+            if (foundIter != endStr) {
+                return static_cast<std::size_t>(std::distance(iter, endIter)) - 1U;
             }
         }
 
@@ -620,22 +624,18 @@ protected:
 
     std::size_t find_last_of(const TChar* str, std::size_t pos) const
     {
-        pos = std::min(pos, size());
-        while (*str != Ends) {
-            auto foundPos = rfind(*str, pos);
-            if (foundPos != npos) {
-                return foundPos;
-            }
-            ++str;
-        }
-        return npos;
+        return find_last_of(str, pos, strlen(str));
     }
 
     std::size_t find_last_not_of(const TChar* str, std::size_t pos, std::size_t count) const
     {
-        pos = std::min(pos, size());
+        if (empty()) {
+            return npos;
+        }
+
+        pos = std::min(pos, size() - 1);
         auto endStr = str + count;
-        auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos);
+        auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos + 1);
         auto endIter = std::reverse_iterator<const TChar*>(cbegin());
         for (auto iter = begIter; iter != endIter; ++iter) {
             auto found = std::none_of(str, endStr,
@@ -645,7 +645,7 @@ protected:
                 });
 
             if (found) {
-                return static_cast<std::size_t>(std::distance(iter, endIter));
+                return static_cast<std::size_t>(std::distance(iter, endIter)) - 1U;
             }
         }
 
@@ -654,18 +654,17 @@ protected:
 
     std::size_t find_last_not_of(const TChar* str, std::size_t pos) const
     {
-        auto* strTmp = str;
-        while (*strTmp != Ends) {
-            ++strTmp;
-        }
-        auto count = static_cast<std::size_t>(std::distance(str, strTmp));
-        return find_last_not_of(str, pos, count);
+        return find_last_not_of(str, pos, strlen(str));
     }
 
     std::size_t find_last_not_of(TChar ch, std::size_t pos) const
     {
-        pos = std::min(pos, size());
-        auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos);
+        if (empty()) {
+            return npos;
+        }
+
+        pos = std::min(pos, size() - 1);
+        auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos + 1);
         auto endIter = std::reverse_iterator<const TChar*>(cbegin());
         auto iter = std::find_if(begIter, endIter,
             [ch](TChar nextCh) -> bool
@@ -677,16 +676,84 @@ protected:
             return npos;
         }
 
-        return static_cast<std::size_t>(std::distance(iter, endIter));
+        return static_cast<std::size_t>(std::distance(iter, endIter)) - 1U;
     }
 
+    bool operator<(const TChar* str) const
+    {
+        for (auto idx = 0U; idx < size(); ++idx) {
+            if (*str == Ends) {
+                return false;
+            }
 
-    // HERE
+            auto ch = vec_[idx];
+
+            if (ch < *str) {
+                return true;
+            }
+
+            if (ch != *str) {
+                break;
+            }
+
+            ++str;
+        }
+        return false;
+    }
+
+    bool operator>(const TChar* str) const
+    {
+        for (auto idx = 0U; idx < size(); ++idx) {
+            if (*str == Ends) {
+                return true;
+            }
+
+            auto ch = vec_[idx];
+            if (*str < ch) {
+                return true;
+            }
+
+            if (ch != *str) {
+                break;
+            }
+
+            ++str;
+        }
+        return false;
+    }
+
+    bool operator==(const TChar* str) const
+    {
+        for (auto idx = 0U; idx < size(); ++idx) {
+            if (*str == Ends) {
+                return false;
+            }
+
+            auto ch = vec_[idx];
+            if (*str != ch) {
+                return false;
+            }
+
+            ++str;
+        }
+
+        return true;
+    }
 
 private:
     void endString()
     {
         vec_.push_back(TChar(Ends));
+    }
+
+    std::size_t strlen(const TChar* str) const
+    {
+        auto* strTmp = str;
+        while (*strTmp != Ends) {
+            ++strTmp;
+
+        }
+        return static_cast<std::size_t>(std::distance(str, strTmp));
     }
 
     static const auto Ends = static_cast<TChar>('\0');
@@ -705,10 +772,10 @@ struct StaticStringStorageBase
 
 template <std::size_t TSize, typename TChar = char>
 class StaticString :
-    public details::StaticStringStorageBase<TChar, TSize>,
+    public details::StaticStringStorageBase<TChar, TSize + 1>,
     public details::StaticStringBase<TChar>
 {
-    typedef details::StaticStringStorageBase<TChar, TSize> StorageBase;
+    typedef details::StaticStringStorageBase<TChar, TSize + 1> StorageBase;
     typedef details::StaticStringBase<TChar> Base;
 
 public:
@@ -759,6 +826,13 @@ public:
         assign(str);
     }
 
+    template <typename TIter>
+    StaticString(TIter first, TIter last)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        assign(first, last);
+    }
+
     StaticString(const StaticString& other)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
@@ -771,6 +845,13 @@ public:
     {
         assign(other);
     }
+
+    StaticString(std::initializer_list<value_type> init)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        assign(init.begin(), init.end());
+    }
+
 
     StaticString& operator=(const StaticString& other)
     {
@@ -791,6 +872,11 @@ public:
     StaticString& operator=(value_type ch)
     {
         return assign(1, ch);
+    }
+
+    StaticString& operator=(std::initializer_list<value_type> init)
+    {
+        return assign(init);
     }
 
     StaticString& assign(size_type count, value_type ch)
@@ -842,6 +928,11 @@ public:
     {
         Base::assign(first, last);
         return *this;
+    }
+
+    StaticString& assign(std::initializer_list<value_type> init)
+    {
+        return assign(init.begin(), init.end());
     }
 
     reference at(size_type pos)
@@ -1044,6 +1135,11 @@ public:
         return Base::insert(pos, first, last);
     }
 
+    iterator insert(const_iterator pos, std::initializer_list<value_type> init)
+    {
+        return insert(pos, init.begin(), init.end());
+    }
+
     StaticString& erase(std::size_t idx, std::size_t count = npos)
     {
         Base::erase(idx, count);
@@ -1091,7 +1187,7 @@ public:
         return insert(size(), other, pos, count);
     }
 
-    StaticString& append(const TChar* str, size_type count = npos)
+    StaticString& append(const TChar* str, size_type count)
     {
         return insert(size(), str, count);
     }
@@ -1105,6 +1201,12 @@ public:
     StaticString& append(TIter first, TIter last)
     {
         insert(end(), first, last);
+        return *this;
+    }
+
+    StaticString& append(std::initializer_list<value_type> init)
+    {
+        insert(end(), init.begin(), init.end());
         return *this;
     }
 
@@ -1122,6 +1224,11 @@ public:
     StaticString& operator+=(const_pointer str)
     {
         return append(str);
+    }
+
+    StaticString& operator+=(std::initializer_list<value_type> init)
+    {
+        return append(init);
     }
 
     template <std::size_t TAnySize>
@@ -1227,7 +1334,7 @@ public:
     {
         GASSERT(pos <= size());
         auto begIter = cbegin() + pos;
-        auto endIter = std::min(count, size() - pos);
+        auto endIter = begIter + std::min(count, size() - pos);
         return replace(begIter, endIter, str, str + count2);
     }
 
@@ -1247,7 +1354,7 @@ public:
     {
         GASSERT(pos <= size());
         auto begIter = cbegin() + pos;
-        auto endIter = std::min(count, size() - pos);
+        auto endIter = begIter + std::min(count, size() - pos);
         return replace(begIter, endIter, str);
     }
 
@@ -1268,7 +1375,7 @@ public:
     {
         GASSERT(pos <= size());
         auto begIter = cbegin() + pos;
-        auto endIter = std::min(count, size() - pos);
+        auto endIter = begIter + std::min(count, size() - pos);
         return replace(begIter, endIter, count2, ch);
     }
 
@@ -1280,6 +1387,14 @@ public:
     {
         Base::replace(first, last, count2, ch);
         return *this;
+    }
+
+    StaticString& replace(
+        const_iterator first,
+        const_iterator last,
+        std::initializer_list<value_type> init)
+    {
+        return replace(first, last, init.begin(), init.end());
     }
 
     StaticString substr(size_type pos = 0, size_type count = npos) const
@@ -1336,7 +1451,6 @@ public:
     template <std::size_t TAnySize>
     size_type rfind(const StaticString<TAnySize, TChar>& str, size_type pos = npos) const
     {
-        GASSERT(pos <= size());
         return rfind(str.cbegin(), pos, str.size());
     }
 
@@ -1402,7 +1516,6 @@ public:
     template <std::size_t TAnySize>
     size_type find_last_of(const StaticString<TAnySize, TChar>& str, size_type pos = npos) const
     {
-        GASSERT(pos <= size());
         return find_last_of(str.cbegin(), pos, str.size());
     }
 
@@ -1424,7 +1537,6 @@ public:
     template <std::size_t TAnySize>
     size_type find_last_not_of(const StaticString<TAnySize, TChar>& str, size_type pos = npos) const
     {
-        GASSERT(pos <= size());
         return find_last_not_of(str.cbegin(), pos, str.size());
     }
 
@@ -1443,6 +1555,20 @@ public:
         return Base::find_last_not_of(ch, pos);
     }
 
+    bool operator<(const_pointer str) const
+    {
+        return Base::operator<(str);
+    }
+
+    bool operator>(const_pointer str) const
+    {
+        return Base::operator>(str);
+    }
+
+    bool operator==(const_pointer str) const
+    {
+        return Base::operator==(str);
+    }
 };
 
 template <std::size_t TSize1, std::size_t TSize2, typename TChar>
@@ -1451,8 +1577,20 @@ bool operator<(const StaticString<TSize1, TChar>& str1, const StaticString<TSize
     return std::lexicographical_compare(str1.begin(), str1.end(), str2.begin(), str2.end());
 }
 
+template <std::size_t TSize1, typename TChar>
+bool operator<(const TChar* str1, const StaticString<TSize1, TChar>& str2)
+{
+    return (str2 > str1);
+}
+
 template <std::size_t TSize1, std::size_t TSize2, typename TChar>
 bool operator<=(const StaticString<TSize1, TChar>& str1, const StaticString<TSize2, TChar>& str2)
+{
+    return !(str2 < str1);
+}
+
+template <std::size_t TSize1, typename TChar>
+bool operator<=(const TChar* str1, const StaticString<TSize1, TChar>& str2)
 {
     return !(str2 < str1);
 }
@@ -1463,8 +1601,26 @@ bool operator>(const StaticString<TSize1, TChar>& str1, const StaticString<TSize
     return (str2 < str1);
 }
 
+template <std::size_t TSize1, typename TChar>
+bool operator>(const TChar* str1, const StaticString<TSize1, TChar>& str2)
+{
+    return (str2 < str1);
+}
+
 template <std::size_t TSize1, std::size_t TSize2, typename TChar>
 bool operator>=(const StaticString<TSize1, TChar>& str1, const StaticString<TSize2, TChar>& str2)
+{
+    return !(str1 < str2);
+}
+
+template <std::size_t TSize1, typename TChar>
+bool operator>=(const TChar* str1, const StaticString<TSize1, TChar>& str2)
+{
+    return !(str1 < str2);
+}
+
+template <std::size_t TSize1, typename TChar>
+bool operator>=(const StaticString<TSize1, TChar>& str1, const TChar* str2)
 {
     return !(str1 < str2);
 }
@@ -1477,8 +1633,24 @@ bool operator==(const StaticString<TSize1, TChar>& str1, const StaticString<TSiz
         std::equal(str1.begin(), str1.end(), str2.begin());
 }
 
+template <std::size_t TSize1, typename TChar>
+bool operator==(const TChar* str1, const StaticString<TSize1, TChar>& str2)
+{
+    return str2 == str1;
+}
+
+
 }  // namespace util
 
 }  // namespace comms
 
+namespace std
+{
 
+template <std::size_t TSize1, std::size_t TSize2, typename TChar>
+void swap(comms::util::StaticString<TSize1, TChar>& str1, comms::util::StaticString<TSize2, TChar>& str2)
+{
+    str1.swap(str2);
+}
+
+}  // namespace std

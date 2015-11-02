@@ -22,6 +22,7 @@
 #include <array>
 #include <algorithm>
 #include <iterator>
+#include <initializer_list>
 
 #include "comms/Assert.h"
 
@@ -63,7 +64,10 @@ public:
     {
     }
 
-    ~StaticVectorBase() = default;
+    ~StaticVectorBase()
+    {
+        clear();
+    }
 
     StaticVectorBase(const StaticVectorBase&) = delete;
     StaticVectorBase& operator=(const StaticVectorBase&) = delete;
@@ -130,7 +134,7 @@ public:
         }
     }
 
-    void fill(const T& value, std::size_t count)
+    void fill(std::size_t count, const T& value)
     {
         clear();
         GASSERT(count <= capacity());
@@ -292,13 +296,14 @@ public:
     template <typename... TArgs>
     T* emplace(const T* iter, TArgs&&... args)
     {
+        auto* insertIter = begin() + std::distance(cbegin(), iter);
         if (iter == cend()) {
-            return emplace_back(std::forward<TArgs>(args)...);
+            emplace_back(std::forward<TArgs>(args)...);
+            return insertIter;
         }
 
         GASSERT(!empty());
         push_back(std::move(back()));
-        auto* insertIter = begin() + std::distance(cbegin(), iter);
         std::move_backward(insertIter, end() - 2, end() - 1);
         insertIter->~T();
         new (insertIter) T(std::forward<TArgs>(args)...);
@@ -354,7 +359,7 @@ public:
             return;
         }
 
-        while (count < size()) {
+        while (size() < count) {
             push_back(value);
         }
     }
@@ -564,13 +569,17 @@ public:
     StaticVector(size_type count, const T& value)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
-        assign(value, count);
+        assign(count, value);
     }
 
     explicit StaticVector(size_type count)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
-        assign(T(), count);
+        GASSERT(count < capacity());
+        while (0 < count) {
+            emplace_back();
+            --count;
+        }
     }
 
     template <typename TIter>
@@ -593,6 +602,12 @@ public:
         assign(other.begin(), other.end());
     }
 
+    StaticVector(std::initializer_list<value_type> init)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        assign(init.begin(), init.end());
+    }
+
     ~StaticVector() = default;
 
     StaticVector& operator=(const StaticVector& other)
@@ -612,6 +627,12 @@ public:
         return *this;
     }
 
+    StaticVector& operator=(std::initializer_list<value_type> init)
+    {
+        assign(init);
+        return *this;
+    }
+
     void assign(size_type count, const T& value)
     {
         GASSERT(count <= TSize);
@@ -622,6 +643,11 @@ public:
     void assign(TIter from, TIter to)
     {
         Base::assign(from, to);
+    }
+
+    void assign(std::initializer_list<value_type> init)
+    {
+        assign(init.begin(), init.end());
     }
 
     reference at(size_type pos)
@@ -788,6 +814,11 @@ public:
     iterator insert(const_iterator iter, TIter from, TIter to)
     {
         return Base::insert(iter, from, to);
+    }
+
+    iterator insert(const_iterator iter, std::initializer_list<value_type> init)
+    {
+        return Base::insert(iter, init.begin(), init.end());
     }
 
     template <typename... TArgs>

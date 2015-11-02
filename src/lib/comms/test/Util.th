@@ -39,6 +39,12 @@ public:
     void test15();
     void test16();
     void test17();
+    void test18();
+    void test19();
+    void test20();
+    void test21();
+    void test22();
+    void test23();
 };
 
 void UtilTestSuite::test1()
@@ -585,4 +591,300 @@ void UtilTestSuite::test17()
     TS_ASSERT_EQUALS(emptyStr.find_last_not_of(str5), Str::npos);
 }
 
+void UtilTestSuite::test18()
+{
+    typedef comms::util::StaticString<100> Str1;
+    typedef comms::util::StaticString<50> Str2;
+    typedef comms::util::StaticString<70> Str3;
 
+    Str1 str1("abcd");
+    Str2 str2("abce");
+    Str3 str3(str1);
+
+    TS_ASSERT(str1 < str2);
+    TS_ASSERT(str1 <= str2);
+    TS_ASSERT(str2 > str1);
+    TS_ASSERT(str2 >= str1);
+    TS_ASSERT(str1 == str3);
+    TS_ASSERT(str1 <= str3);
+    TS_ASSERT(str1 >= str3);
+}
+
+void UtilTestSuite::test19()
+{
+    typedef comms::util::StaticVector<int, 100> Vec1;
+    typedef comms::util::StaticVector<int, 50> Vec2;
+
+    Vec1 vec1;
+    TS_ASSERT(vec1.empty());
+    TS_ASSERT_EQUALS(vec1.size(), 0U);
+
+    Vec1 vec2(20U, 5);
+    TS_ASSERT_EQUALS(vec2.size(), 20U);
+    TS_ASSERT(std::all_of(vec2.begin(), vec2.end(),
+        [](int val) -> bool
+        {
+            return val == 5;
+        }))
+
+    vec1 = vec2;
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    Vec1 vec3(10U);
+    TS_ASSERT_EQUALS(vec3.size(), 10U);
+    TS_ASSERT(std::all_of(vec3.begin(), vec3.end(),
+        [](int val) -> bool
+        {
+            return val == 0;
+        }))
+
+    static const int Data[] = { 1, 2, 3, 4, 5, 6, 7 };
+    Vec1 vec4(std::begin(Data), std::end(Data));
+    TS_ASSERT_EQUALS(vec4.size(), std::extent<decltype(Data)>::value);
+    TS_ASSERT(std::equal(vec4.begin(), vec4.end(), std::begin(Data)));
+
+    Vec2 vec5(vec4);
+    TS_ASSERT_EQUALS(vec5.size(), vec4.size());
+    TS_ASSERT(std::equal(vec4.begin(), vec4.end(), vec5.begin()));
+
+    vec1 = vec5;
+    TS_ASSERT(std::equal(vec1.begin(), vec1.end(), vec5.begin()));
+
+    Vec1 vec6 = {0, 1, 2, 3};
+    TS_ASSERT_EQUALS(vec6.size(), 4U);
+    TS_ASSERT_EQUALS(vec6[0], 0);
+    TS_ASSERT_EQUALS(vec6[1], 1);
+    TS_ASSERT_EQUALS(vec6[2], 2);
+    TS_ASSERT_EQUALS(vec6[3], 3);
+}
+
+void UtilTestSuite::test20()
+{
+    typedef comms::util::StaticVector<std::string, 100> Vec1;
+    typedef comms::util::StaticVector<std::string, 50> Vec2;
+
+    Vec1 vec1;
+    TS_ASSERT(vec1.empty());
+    TS_ASSERT_EQUALS(vec1.size(), 0U);
+    TS_ASSERT_EQUALS(vec1.max_size(), 100U);
+    TS_ASSERT_EQUALS(vec1.capacity(), 100U);
+
+    static const auto* Str = "hello";
+
+    Vec1 vec2(20U, Str);
+    TS_ASSERT_EQUALS(vec2.size(), 20U);
+    TS_ASSERT(std::all_of(vec2.begin(), vec2.end(),
+        [](Vec1::const_reference val) -> bool
+        {
+            return val == Str;
+        }))
+
+    Vec1 vec3(10U);
+    TS_ASSERT_EQUALS(vec3.size(), 10U);
+    TS_ASSERT(std::all_of(vec3.begin(), vec3.end(),
+        [](Vec1::const_reference val) -> bool
+        {
+            return val.empty();
+        }))
+
+    static const std::string Data[] = {
+        "str1",
+        "str2",
+        "str3"
+    };
+    Vec1 vec4(std::begin(Data), std::end(Data));
+    TS_ASSERT_EQUALS(vec4.size(), std::extent<decltype(Data)>::value);
+    TS_ASSERT(std::equal(vec4.begin(), vec4.end(), std::begin(Data)));
+    TS_ASSERT(std::equal(std::begin(Data), std::end(Data), vec4.data()));
+
+    Vec2 vec5(vec4);
+    TS_ASSERT_EQUALS(vec5.size(), vec4.size());
+    TS_ASSERT(std::equal(vec4.begin(), vec4.end(), vec5.begin()));
+
+    Vec1 vec6 = {"str0", "str1", "str2", "str3"};
+    TS_ASSERT_EQUALS(vec6.size(), 4U);
+    TS_ASSERT_EQUALS(vec6[0], "str0");
+    TS_ASSERT_EQUALS(vec6[1], "str1");
+    TS_ASSERT_EQUALS(vec6[2], "str2");
+    TS_ASSERT_EQUALS(vec6[3], "str3");
+
+    TS_ASSERT_EQUALS(vec6.front(), "str0");
+    TS_ASSERT_EQUALS(vec6.back(), "str3");
+    vec6.front() = "bla";
+    vec6.back() = "hello";
+    TS_ASSERT_EQUALS(vec6[0], "bla");
+    TS_ASSERT_EQUALS(vec6[3], "hello");
+    TS_ASSERT_EQUALS(vec6[0], vec6.front());
+    TS_ASSERT_EQUALS(vec6[3], vec6.back());
+
+    vec6.clear();
+    TS_ASSERT_EQUALS(vec6.size(), 0U);
+    TS_ASSERT(vec6.empty());
+}
+
+void UtilTestSuite::test21()
+{
+    typedef comms::util::StaticVector<std::string, 100> Vec1;
+    typedef comms::util::StaticVector<std::string, 50> Vec2;
+    typedef comms::util::StaticVector<std::string, 70> Vec3;
+
+    const Vec1 vec1 = {
+        "str1",
+        "str2",
+        "str3"
+    };
+
+    Vec2 vec2;
+    std::copy(vec1.begin(), vec1.end(), std::back_inserter(vec2));
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    Vec3 vec3;
+    std::copy(vec2.crbegin(), vec2.crend(), std::back_inserter(vec3));
+    TS_ASSERT_EQUALS(vec3[0], vec1[2]);
+    TS_ASSERT_EQUALS(vec3[1], vec1[1]);
+    TS_ASSERT_EQUALS(vec3[2], vec1[0]);
+}
+
+void UtilTestSuite::test22()
+{
+    typedef comms::util::StaticVector<std::string, 100> Vec;
+
+    Vec vec1 = {
+        "str1",
+        "str2",
+        "str3",
+        "str4"
+    };
+
+    Vec vec2(vec1);
+
+    vec1.insert(vec1.end(), "str5");
+    TS_ASSERT_EQUALS(vec1.size(), vec2.size() + 1);
+    TS_ASSERT(std::equal(vec2.begin(), vec2.end(), vec1.begin()));
+    TS_ASSERT_EQUALS(vec1.back(), "str5");
+    vec1.erase(vec1.end() - 1);
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    vec1.emplace_back("str5");
+    TS_ASSERT_EQUALS(vec1.size(), vec2.size() + 1);
+    TS_ASSERT(std::equal(vec2.begin(), vec2.end(), vec1.begin()));
+    TS_ASSERT_EQUALS(vec1.back(), "str5");
+    vec1.erase(vec1.end() - 1);
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    Vec vec3 =  {
+        "str1",
+        "str2",
+        "bla",
+        "bla",
+        "bla",
+        "str3",
+        "str4"
+    };
+    vec1.insert(vec1.begin() + 2, 3, "bla");
+    TS_ASSERT_EQUALS(vec1, vec3);
+    vec1.erase(vec1.begin() + 2, vec1.end() - 2);
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    Vec vec4 =  {
+        "str1",
+        "str2",
+        "hello",
+        "hello",
+        "str3",
+        "str4"
+    };
+    vec1.insert(vec1.begin() + 2, vec4.begin() + 2, vec4.begin() + 4);
+    TS_ASSERT_EQUALS(vec1, vec4);
+    vec1.erase(vec1.begin() + 2, vec1.end() - 2);
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    Vec vec5 =  {
+        "str1",
+        "dead",
+        "beef",
+        "str2",
+        "str3",
+        "str4"
+    };
+    vec1.insert(vec1.begin() + 1, vec5.begin() + 1, vec5.begin() + 3);
+    TS_ASSERT_EQUALS(vec1, vec5);
+    vec1.erase(vec1.begin() + 1, vec1.end() - 3);
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    vec1.insert(vec1.begin() + 1, {"dead", "beef"});
+    TS_ASSERT_EQUALS(vec1, vec5);
+    vec1.erase(vec1.begin() + 1, vec1.end() - 3);
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    vec1.emplace(vec1.begin() + 1, "beef");
+    vec1.emplace(vec1.begin() + 1, "dead");
+    TS_ASSERT_EQUALS(vec1, vec5);
+    vec1.erase(vec1.begin() + 1, vec1.end() - 3);
+    TS_ASSERT_EQUALS(vec1, vec2);
+
+    while (!vec1.empty()) {
+        vec1.pop_back();
+    }
+
+    Vec vec6 =  {
+        "str1",
+        "str2",
+    };
+    vec1 = vec2;
+    vec1.resize(2U);
+    TS_ASSERT_EQUALS(vec1, vec6);
+
+    Vec vec7 =  {
+        "str1",
+        "str2",
+        std::string(),
+        std::string()
+    };
+    vec1.resize(4U);
+    TS_ASSERT_EQUALS(vec1.size(), 4U);
+    TS_ASSERT_EQUALS(vec1, vec7);
+}
+
+void UtilTestSuite::test23()
+{
+    typedef comms::util::StaticVector<std::string, 100> Vec1;
+    typedef comms::util::StaticVector<std::string, 50> Vec2;
+
+    const Vec1 origVec1 = {
+        "str1",
+        "str2",
+        "str3"
+    };
+
+    Vec1 vec1 = origVec1;
+
+    const Vec2 origVec2 = {
+        "hello1",
+        "hello2",
+        "hello3",
+        "hello4"
+    };
+
+    Vec2 vec2 = origVec2;
+
+    TS_ASSERT_EQUALS(vec1, origVec1);
+    TS_ASSERT_EQUALS(vec2, origVec2);
+    TS_ASSERT_DIFFERS(vec1, vec2);
+
+    TS_ASSERT(vec2 < vec1);
+    TS_ASSERT(vec2 <= vec1);
+    TS_ASSERT(vec1 > vec2);
+    TS_ASSERT(vec1 >= vec2);
+
+    TS_ASSERT(vec1 <= origVec1);
+    TS_ASSERT(vec1 >= origVec1);
+
+    TS_ASSERT(vec2 <= origVec2);
+    TS_ASSERT(vec2 >= origVec2);
+
+    std::swap(vec1, vec2);
+    TS_ASSERT_EQUALS(vec1, origVec2);
+    TS_ASSERT_EQUALS(vec2, origVec1);
+    TS_ASSERT_DIFFERS(vec1, vec2);
+}

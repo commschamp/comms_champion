@@ -332,50 +332,6 @@ using MessageImplFieldsWriteBaseT =
 
 
 template <typename TBase>
-class MessageImplFieldsLengthBase : public TBase
-{
-    typedef TBase Base;
-
-protected:
-    virtual std::size_t lengthImpl() const override
-    {
-        return util::tupleAccumulate(Base::fields(), 0U, FieldLengthRetriever());
-    }
-
-private:
-    struct FieldLengthRetriever
-    {
-        template <typename TField>
-        std::size_t operator()(std::size_t size, const TField& field) const
-        {
-            return size + field.length();
-        }
-    };
-};
-
-template <typename TBase, bool THasFieldsLengthImpl>
-struct MessageImplProcessFieldsLengthBase;
-
-template <typename TBase>
-struct MessageImplProcessFieldsLengthBase<TBase, true>
-{
-    typedef MessageImplFieldsLengthBase<TBase> Type;
-};
-
-template <typename TBase>
-struct MessageImplProcessFieldsLengthBase<TBase, false>
-{
-    typedef TBase Type;
-};
-
-template <typename TBase, typename TIntOpt, typename TImplOpt>
-using MessageImplFieldsLengthBaseT =
-    typename MessageImplProcessFieldsLengthBase<
-        TBase,
-        (TIntOpt::HasReadIterator || TIntOpt::HasWriteIterator) && TImplOpt::HasFieldsImpl
-    >::Type;
-
-template <typename TBase>
 class MessageImplFieldsValidBase : public TBase
 {
     typedef TBase Base;
@@ -419,6 +375,49 @@ using MessageImplFieldsValidBaseT =
         TIntOpt::HasValid && TImplOpt::HasFieldsImpl
     >::Type;
 
+template <typename TBase>
+class MessageImplFieldsLengthBase : public TBase
+{
+    typedef TBase Base;
+
+protected:
+    virtual std::size_t lengthImpl() const override
+    {
+        return util::tupleAccumulate(Base::fields(), 0U, FieldLengthRetriever());
+    }
+
+private:
+    struct FieldLengthRetriever
+    {
+        template <typename TField>
+        std::size_t operator()(std::size_t size, const TField& field) const
+        {
+            return size + field.length();
+        }
+    };
+};
+
+template <typename TBase, bool THasFieldsLengthImpl>
+struct MessageImplProcessFieldsLengthBase;
+
+template <typename TBase>
+struct MessageImplProcessFieldsLengthBase<TBase, true>
+{
+    typedef MessageImplFieldsLengthBase<TBase> Type;
+};
+
+template <typename TBase>
+struct MessageImplProcessFieldsLengthBase<TBase, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TIntOpt, typename TImplOpt>
+using MessageImplFieldsLengthBaseT =
+    typename MessageImplProcessFieldsLengthBase<
+        TBase,
+        TIntOpt::HasLength && TImplOpt::HasFieldsImpl
+    >::Type;
 
 template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
@@ -460,9 +459,9 @@ class MessageImplBuilder
     typedef MessageImplFieldsBaseT<NoIdBase, ParsedOptions> FieldsBase;
     typedef MessageImplFieldsReadBaseT<FieldsBase, InterfaceOptions, ParsedOptions> FieldsReadBase;
     typedef MessageImplFieldsWriteBaseT<FieldsReadBase, InterfaceOptions, ParsedOptions> FieldsWriteBase;
-    typedef MessageImplFieldsLengthBaseT<FieldsWriteBase, InterfaceOptions, ParsedOptions> FieldsLengthBase;
-    typedef MessageImplFieldsValidBaseT<FieldsLengthBase, InterfaceOptions, ParsedOptions> FieldsValidBase;
-    typedef MessageImplDispatchBaseT<FieldsValidBase, InterfaceOptions, ParsedOptions> DispatchBase;
+    typedef MessageImplFieldsValidBaseT<FieldsWriteBase, InterfaceOptions, ParsedOptions> FieldsValidBase;
+    typedef MessageImplFieldsLengthBaseT<FieldsValidBase, InterfaceOptions, ParsedOptions> FieldsLengthBase;
+    typedef MessageImplDispatchBaseT<FieldsLengthBase, InterfaceOptions, ParsedOptions> DispatchBase;
 
 public:
     typedef ParsedOptions Options;

@@ -33,7 +33,8 @@ namespace plugin
 typedef std::tuple<
     comms::option::MsgIdType<demo::message::MsgId>,
     comms::option::LittleEndian,
-    comms::option::ValidCheckInterface
+    comms::option::ValidCheckInterface,
+    comms::option::LengthInfoInterface
 >CCDemoDefaultOptions;
 
 class CCDemoMessage : public comms_champion::MessageBase<demo::message::DemoMessageT, CCDemoDefaultOptions>

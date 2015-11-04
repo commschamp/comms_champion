@@ -44,7 +44,8 @@ private:
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
         comms::option::ReadIterator<const char*>,
-        comms::option::ValidCheckInterface
+        comms::option::ValidCheckInterface,
+        comms::option::LengthInfoInterface
     > CommonOptions;
 
     typedef std::tuple<

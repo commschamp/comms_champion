@@ -73,6 +73,7 @@ struct Handler
 
 struct ValidCheckInterface {};
 
+struct LengthInfoInterface {};
 
 template <std::intmax_t TId>
 struct StaticNumIdImpl

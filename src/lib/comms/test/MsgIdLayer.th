@@ -48,7 +48,8 @@ private:
         comms::option::MsgIdType<MessageType>,
         comms::option::ReadIterator<const char*>,
         comms::option::WriteIterator<char*>,
-        comms::option::ValidCheckInterface
+        comms::option::ValidCheckInterface,
+        comms::option::LengthInfoInterface
     > CommonOptions;
 
 

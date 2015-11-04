@@ -34,31 +34,42 @@ namespace option
 
 // Message/Field common options
 
+/// @brief Options to specify endian.
+/// @tparam TEndian Endian type. Must be either comms::traits::endian::Big or
+///     comms::traits::endian::Little.
 template <typename TEndian>
 struct Endian
 {
     typedef TEndian Type;
 };
 
+/// @brief Alias option to Endian specifying Big endian.
 using BigEndian = Endian<comms::traits::endian::Big>;
 
+/// @brief Alias option to Endian specifying Little endian.
 using LittleEndian = Endian<comms::traits::endian::Little>;
 
+/// @brief No-op option, doesn't have any effect.
 struct EmptyOption {};
 
-// Message interface options
+/// @brief Option used to specify type of the ID.
+/// @tparam T Type of the message ID.
 template <typename T>
 struct MsgIdType
 {
     typedef T Type;
 };
 
+/// @brief Option used to specify type of iterator used for reading.
+/// @tparam TIter Type of the iterator.
 template <typename TIter>
 struct ReadIterator
 {
     typedef TIter Type;
 };
 
+/// @brief Option used to specify type of iterator used for writing.
+/// @tparam TIter Type of the iterator.
 template <typename TIter>
 struct WriteIterator
 {

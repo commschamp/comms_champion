@@ -1,0 +1,10 @@
+/// @namespace comms
+/// @brief Main namespace for all classes / functions of COMMS library.
+
+/// @namespace comms::util
+/// @brief Namespace for various utility classes and/or functions used by COMMS library.
+
+/// @namespace comms::option
+/// @brief Namespace that contains all the options used to define message
+///     as well as message fields.
+

@@ -49,6 +49,14 @@ namespace comms
 ///     @li comms::option::WriteIterator - an option used to specify type of iterator
 ///         used for writing. If this option is not used, then write()
 ///         member function doesn't exist.
+///     @li comms::option::ValidCheckInterface - an option used to add valid()
+///         member function to the default interface.
+///     @li comms::option::LengthInfoInterface - an option used to add length()
+///         member function to the default interface.
+///     @li comms::option::Handler - an option used to specify type of message handler
+///         object used to handle the message when it received. If this option
+///         is not used, then dispatch() member function doesn't exist. See
+///         dispatch() documentation for details.
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
 {
@@ -82,7 +90,7 @@ public:
 
     /// @brief Read message contents using provided iterator.
     /// @details The function exists only if comms::option::ReadIterator option
-    ///     was used to specify type of the ReadIterator.
+    ///     was used to specify type of the @ref ReadIterator.
     ///     The contents of the message are updated with bytes being read.
     ///     The buffer is external and maintained by the caller.
     ///     The provided iterator is advanced. The function invokes virtual
@@ -100,21 +108,107 @@ public:
 
     /// @brief Write message contents using provided iterator.
     /// @details The function exists only if comms::option::WriteIterator option
-    ///     was used to specify type of the WriteIterator.
+    ///     was used to specify type of the @ref WriteIterator.
     ///     The contents of the message are serialised into buffer. The buffer
     ///     is external and is maintained by the caller.
-    ///     The provided iterator is advanced. The function checks whether the
-    ///     write is possible by invoking length() function and comparing the
-    ///     result to the size of the provided buffer. If there is enough space
-    ///     the virtual writeImpl() function is called.
+    ///     The provided iterator is advanced. The function invokes virtual
+    ///     writeImpl() function.
     /// @param[in, out] iter Iterator used for writing the data.
     /// @param[in] size Maximum number of bytes that can be written.
     /// @return Status of the operation.
     ErrorStatus write(WriteIterator& iter, std::size_t size) const;
 
+    /// @brief Check validity of message contents.
+    /// @details The function exists only if comms::option::ValidCheckInterface option
+    ///     was used. The function invokes virtual validImpl() function.
+    /// @return true for valid contents, false otherwise.
+    bool valid() const;
+
+    /// @brief Get number of bytes required to serialise this message.
+    /// @details The function exists only if comms::option::LengthInfoInterface option
+    ///     was used. The function invokes virtual lengthImpl() function.
+    /// @return Number of bytes required to serialise this message.
+    std::size_t length() const;
+
+    /// @brief Type of the message handler object.
+    /// @details The type exists only if comms::option::Handler option
+    ///     was used to specify one. For all the message types (specified as
+    ///     MessageType1, MessageType2, ...) it is supposed to handle the Handler
+    ///     class must implement the following member functions:
+    ///     @code
+    ///     class MyHandler {
+    ///     public:
+    ///         void handle(MessageType1& msg);
+    ///         void handle(MessageType2& msg);
+    ///         ...
+    ///     }
+    ///     @endcode
+    ///     The "handle()" functions may be virtual. If the handler is capable
+    ///     of handling only limited number of messages. In this case there is
+    ///     a need to provide additional "handle()" member function for all
+    ///     other messages.
+    ///     @code
+    ///     class MyHandler {
+    ///     public:
+    ///         ...
+    ///         void handle(MessageBase& msg);
+    ///     }
+    ///     @endcode
+    ///     The "MessageBase" must be a common base class for all the possible
+    ///     messages.
+    typedef TypeProvidedWithOption Handler;
+
+    /// @brief Dispatch message to the handler for processing.
+    /// @details The function exists only if comms::option::Handler option
+    ///     was used to specify type of the handler. The function invokes
+    ///     virtual dispatchImpl() function.
+    void dispatch(Handler& handler);
+
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 protected:
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+    /// @brief Pure virtual function used to implement read operation.
+    /// @details Called by read(), must be implemented in the derived class.
+    ///     The function exists only if comms::option::ReadIterator option
+    ///     was used to specify type of the @ref ReadIterator.
+    /// @param[in, out] iter Iterator used for reading the data.
+    /// @param[in] size Maximum number of bytes that can be read.
+    /// @return Status of the operation.
+    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
+
+    /// @brief Pure virtual function used to implement write operation.
+    /// @details Called by write(), must be implemented in the derived class.
+    ///     The function exists only if comms::option::WriteIterator option
+    ///     was used to specify type of the @ref WriteIterator.
+    /// @param[in, out] iter Iterator used for writing the data.
+    /// @param[in] size Maximum number of bytes that can be written.
+    /// @return Status of the operation.
+    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
+
+    /// @brief Pure virtual function used to implement contents validity check.
+    /// @details Called by valid(), must be implemented in the derived class.
+    ///     The function exists only if comms::option::ValidCheckInterface option
+    ///     was used.
+    /// @return true for valid contents, false otherwise.
+    virtual bool validImpl() const = 0;
+
+    /// @brief Pure virtual function used to retrieve number of bytes required
+    ///     to serialise this message.
+    /// @details Called by length(), must be implemented in the derived class.
+    ///     The function exists only if comms::option::LengthInfoInterface option
+    ///     was used.
+    /// @return Number of bytes required to serialise this message.
+    virtual std::size_t lengthImpl() const = 0;
+
+    /// @brief Pure virtual function used to dispatch message to the handler
+    ///     object for processing.
+    /// @details Called by dispatch(), must be implemented in the derived class.
+    ///     The function exists only if comms::option::Handler option was used
+    ///     to specify type of the handler.
+    virtual void dispatchImpl(Handler& handler) = 0;
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
     /// @brief Write data into the output area.
     /// @details Use this function to write data to the output area using

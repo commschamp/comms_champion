@@ -76,15 +76,19 @@ struct WriteIterator
     typedef TIter Type;
 };
 
+/// @brief Option used to add valid() function into Message interface.
+struct ValidCheckInterface {};
+
+/// @brief Option used to add length() function into Message interface.
+struct LengthInfoInterface {};
+
+/// @brief Option used to specify type of the message handler.
+/// @tparam T Type of the handler.
 template <typename T>
 struct Handler
 {
     typedef T Type;
 };
-
-struct ValidCheckInterface {};
-
-struct LengthInfoInterface {};
 
 template <std::intmax_t TId>
 struct StaticNumIdImpl

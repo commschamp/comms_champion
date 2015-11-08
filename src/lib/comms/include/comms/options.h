@@ -90,30 +90,44 @@ struct Handler
     typedef T Type;
 };
 
+/// @brief Option used to specify numeric ID of the message.
+/// @tparam TId Numeric ID value.
 template <std::intmax_t TId>
 struct StaticNumIdImpl
 {
     static const auto Value = TId;
 };
 
+/// @brief Option used to specify that message doesn't have valid ID.
+struct NoIdImpl {};
+
+/// @brief Option used to force implementation of dispatch functionality.
+/// @details This option can be provided to comms::MessageBase to force the
+///     implementation of comms::MessageBase::dispatchImpl() member function.
+/// @tparam TActual Actual message type - derived from comms::MessageBase.
 template <typename TActual>
 struct DispatchImpl
 {
     typedef TActual MsgType;
 };
 
+/// @brief Option used to specify fields of the message and force implementation
+///     of default read, write, validity check, and length retrieval information
+///     of the message.
+/// @tparam TFields The fields of the message bundled in std::tuple.
 template <typename TFields>
 struct FieldsImpl;
 
+/// @cond SKIP_DOC
 template <typename... TFields>
 struct FieldsImpl<std::tuple<TFields...> >
 {
     typedef std::tuple<TFields...> Fields;
 };
+/// @endcond
 
+/// @brief Alias to FieldsImpl<std::tuple<> >
 using NoFieldsImpl = FieldsImpl<std::tuple<> >;
-
-struct NoIdImpl {};
 
 template<std::size_t TLen>
 struct FixedLength

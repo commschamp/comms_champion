@@ -36,8 +36,10 @@ namespace comms
 
 /// @brief Main interface class for all the messages.
 /// @details Provides basic interface for all the messages.
-/// @tparam TOptions Any number of options to define functionality/behaviour
-///     of the message. Supported options are:
+/// @tparam TOptions Variadic template parameter that contain any number of
+///     options to define functionality/behaviour of the message.
+///     The options may be comma separated as well as bundled
+///     into std::tuple. Supported options are:
 ///     @li comms::option::BigEndian or comms::option::LittleEndian - a "must have"
 ///         option to specify endianness of the serialisation,
 ///         without providing one the compilation will fail.
@@ -82,15 +84,19 @@ public:
     virtual ~Message() {};
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
+    /// @brief Retrieve ID of the message.
+    /// @details Invokes pure virtual getIdImpl();
+    MsgIdParamType getId() const;
+
     /// @brief Type of the iterator used for reading message contents from
     ///     sequence of bytes stored somewhere.
     /// @details The type exists only if comms::option::ReadIterator option
-    ///     was used to specify one.
+    ///     was provided to comms::Message to specify one.
     typedef TypeProvidedWithOption ReadIterator;
 
     /// @brief Read message contents using provided iterator.
     /// @details The function exists only if comms::option::ReadIterator option
-    ///     was used to specify type of the @ref ReadIterator.
+    ///     was provided to comms::Message to specify type of the @ref ReadIterator.
     ///     The contents of the message are updated with bytes being read.
     ///     The buffer is external and maintained by the caller.
     ///     The provided iterator is advanced. The function invokes virtual
@@ -103,12 +109,12 @@ public:
     /// @brief Type of the iterator used for writing message contents into
     ///     sequence of bytes stored somewhere.
     /// @details The type exists only if comms::option::WriteIterator option
-    ///     was used to specify one.
+    ///     was provided to comms::Message to specify one.
     typedef TypeProvidedWithOption WriteIterator;
 
     /// @brief Write message contents using provided iterator.
     /// @details The function exists only if comms::option::WriteIterator option
-    ///     was used to specify type of the @ref WriteIterator.
+    ///     was provided to comms::Message to specify type of the @ref WriteIterator.
     ///     The contents of the message are serialised into buffer. The buffer
     ///     is external and is maintained by the caller.
     ///     The provided iterator is advanced. The function invokes virtual
@@ -120,48 +126,25 @@ public:
 
     /// @brief Check validity of message contents.
     /// @details The function exists only if comms::option::ValidCheckInterface option
-    ///     was used. The function invokes virtual validImpl() function.
+    ///     was provided to comms::Message. The function invokes virtual validImpl() function.
     /// @return true for valid contents, false otherwise.
     bool valid() const;
 
     /// @brief Get number of bytes required to serialise this message.
     /// @details The function exists only if comms::option::LengthInfoInterface option
-    ///     was used. The function invokes virtual lengthImpl() function.
+    ///     was provided to comms::Message. The function invokes virtual lengthImpl() function.
     /// @return Number of bytes required to serialise this message.
     std::size_t length() const;
 
     /// @brief Type of the message handler object.
     /// @details The type exists only if comms::option::Handler option
-    ///     was used to specify one. For all the message types (specified as
-    ///     MessageType1, MessageType2, ...) it is supposed to handle the Handler
-    ///     class must implement the following member functions:
-    ///     @code
-    ///     class MyHandler {
-    ///     public:
-    ///         void handle(MessageType1& msg);
-    ///         void handle(MessageType2& msg);
-    ///         ...
-    ///     }
-    ///     @endcode
-    ///     The "handle()" functions may be virtual. If the handler is capable
-    ///     of handling only limited number of messages. In this case there is
-    ///     a need to provide additional "handle()" member function for all
-    ///     other messages.
-    ///     @code
-    ///     class MyHandler {
-    ///     public:
-    ///         ...
-    ///         void handle(MessageBase& msg);
-    ///     }
-    ///     @endcode
-    ///     The "MessageBase" must be a common base class for all the possible
-    ///     messages.
+    ///     was provided to comms::Message to specify one.
     typedef TypeProvidedWithOption Handler;
 
     /// @brief Dispatch message to the handler for processing.
     /// @details The function exists only if comms::option::Handler option
-    ///     was used to specify type of the handler. The function invokes
-    ///     virtual dispatchImpl() function.
+    ///     was provided to comms::Message to specify type of the handler.
+    ///     The function invokes virtual dispatchImpl() function.
     void dispatch(Handler& handler);
 
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
@@ -169,10 +152,15 @@ public:
 protected:
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
+    /// @brief Pure virtual function used to retrieve ID of the message.
+    /// @details Called by getId(), must be implemented in the derived class.
+    /// @return ID of the message
+    virtual MsgIdParamType getIdImpl() const = 0;
+
     /// @brief Pure virtual function used to implement read operation.
     /// @details Called by read(), must be implemented in the derived class.
     ///     The function exists only if comms::option::ReadIterator option
-    ///     was used to specify type of the @ref ReadIterator.
+    ///     was provided to comms::Message to specify type of the @ref ReadIterator.
     /// @param[in, out] iter Iterator used for reading the data.
     /// @param[in] size Maximum number of bytes that can be read.
     /// @return Status of the operation.
@@ -181,7 +169,7 @@ protected:
     /// @brief Pure virtual function used to implement write operation.
     /// @details Called by write(), must be implemented in the derived class.
     ///     The function exists only if comms::option::WriteIterator option
-    ///     was used to specify type of the @ref WriteIterator.
+    ///     was provided to comms::Message to specify type of the @ref WriteIterator.
     /// @param[in, out] iter Iterator used for writing the data.
     /// @param[in] size Maximum number of bytes that can be written.
     /// @return Status of the operation.
@@ -190,7 +178,7 @@ protected:
     /// @brief Pure virtual function used to implement contents validity check.
     /// @details Called by valid(), must be implemented in the derived class.
     ///     The function exists only if comms::option::ValidCheckInterface option
-    ///     was used.
+    ///     was provided to comms::Message.
     /// @return true for valid contents, false otherwise.
     virtual bool validImpl() const = 0;
 
@@ -198,15 +186,15 @@ protected:
     ///     to serialise this message.
     /// @details Called by length(), must be implemented in the derived class.
     ///     The function exists only if comms::option::LengthInfoInterface option
-    ///     was used.
+    ///     was provided to comms::Message.
     /// @return Number of bytes required to serialise this message.
     virtual std::size_t lengthImpl() const = 0;
 
     /// @brief Pure virtual function used to dispatch message to the handler
     ///     object for processing.
     /// @details Called by dispatch(), must be implemented in the derived class.
-    ///     The function exists only if comms::option::Handler option was used
-    ///     to specify type of the handler.
+    ///     The function exists only if comms::option::Handler option was
+    ///     provided to comms::Message to specify type of the handler.
     virtual void dispatchImpl(Handler& handler) = 0;
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 

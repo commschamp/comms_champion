@@ -39,6 +39,8 @@ class MessageBase :
             comms::option::ReadIterator<const std::uint8_t*>,
             comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
             comms::option::Handler<DefaultMessageDisplayHandler>,
+            comms::option::ValidCheckInterface,
+            comms::option::LengthInfoInterface,
             TOptions...>
 {
     using CCBase = Message;
@@ -47,6 +49,8 @@ class MessageBase :
             comms::option::ReadIterator<const std::uint8_t*>,
             comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
             comms::option::Handler<DefaultMessageDisplayHandler>,
+            comms::option::ValidCheckInterface,
+            comms::option::LengthInfoInterface,
             TOptions...>;
 public:
     typedef typename CommsBase::Handler Handler;

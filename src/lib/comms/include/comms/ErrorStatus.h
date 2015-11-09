@@ -23,9 +23,7 @@
 namespace comms
 {
 
-/// @ingroup comms
 /// @brief Error statuses reported by the Communication module.
-/// @headerfile comms/ErrorStatus.h "comms/ErrorStatus.h"
 enum class ErrorStatus {
     Success, ///< Used to indicate successful outcome of the operation.
     UpdateRequired, ///< Used to indicate that write operation wasn't complete,

@@ -96,6 +96,16 @@ struct FieldCastHelper<TFieldTo, TFieldFrom, false>
 
 }  // namespace details
 
+/// @brief Cast between fields.
+/// @details Sometimes the protocol may treat some specific field differently
+///     based on indication bit in some other field. This function can be
+///     used to cast one field to another type.
+/// @tparam TFieldTo Type to cast to.
+/// @tparam TFieldFrom Type to cast from.
+/// @param[in] field Original field
+/// @return Field of the new type with internal value equivalent to one of the
+///     original field.
+/// @pre Internal ValueType type of both fields is the same.
 template <typename TFieldTo, typename TFieldFrom>
 TFieldTo field_cast(const TFieldFrom& field)
 {

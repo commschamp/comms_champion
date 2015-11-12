@@ -55,14 +55,31 @@ using AllMessagesType = typename AllMessagesHelper<T>::Type;
 
 }  // namespace details
 
+/// @brief Base class for all the middle (non @ref MsgDataLayer) protocol transport layers.
+/// @details Provides all the default and/or common functionality for the
+///     middle transport layer. The inheriting actual layer class may
+///     use and/or override the provided functionality by redefining member
+///     function with the same signature. The @ref NextLayer is stored as a private
+///     data meber.
+/// @tparam TField Every middle layer will have a field containing extra
+///     information for this layer. This template parameter is a type of such
+///     field.
+/// @tparam TNextLayer Next layer this one wraps and forwards the calls to.
+/// @tparam TDerived Actual type of inheriting layer type.
 template <typename TField, typename TNextLayer, typename TDerived>
 class ProtocolLayerBase
 {
 public:
+    /// @brief Type of the field used for this layer.
     typedef TField Field;
 
+    /// @brief Type of the next transport layer
     typedef TNextLayer NextLayer;
 
+    /// @brief Type of all the fields of all the transport layers
+    ///     wrapped in std::tuple.
+    /// @details The @ref Field type is prepended to the @ref AllFields type
+    ///     of the @ref NextLayer and reported as @ref AllFields of this one.
     typedef typename std::decay<
         decltype(
             std::tuple_cat(
@@ -71,67 +88,125 @@ public:
             )
         >::type AllFields;
 
+    /// @brief All supported messages.
+    /// @details Same as NextLayer::AllMessages or void if such doesn't exist.
     typedef details::AllMessagesType<NextLayer> AllMessages;
 
+    /// @brief Type of pointer to the message.
+    /// @details Same as NextLayer::MsgPtr.
     typedef typename NextLayer::MsgPtr MsgPtr;
 
+    /// @brief Type of the custom message interface.
+    /// @details Same as NextLayer::Message.
     typedef typename NextLayer::Message Message;
 
+    /// @brief Type used for message ID.
     typedef typename Message::MsgIdType MsgIdType;
 
+    /// @brief Type used for pas message ID as a parameter.
     typedef typename Message::MsgIdParamType MsgIdParamType;
 
+    /// @brief Type of the iterator used for reading.
+    /// @details Same as NextLayer::ReadIterator.
     typedef typename NextLayer::ReadIterator ReadIterator;
 
+    /// @brief Type of the iterator used for writing.
+    /// @details Same as NextLayer::WriteIterator.
     typedef typename NextLayer::WriteIterator WriteIterator;
 
+    /// @copydoc MsgDataLayer::NumOfLayers
     static const std::size_t NumOfLayers = 1 + NextLayer::NumOfLayers;
 
+    /// @brief Copy constructor
     ProtocolLayerBase(const ProtocolLayerBase&) = default;
 
+    /// @brief Move constructor
     ProtocolLayerBase(ProtocolLayerBase&&) = default;
 
+    /// @brief Constructor.
+    /// @details Forwards all the parameters to the constructor of the embedded
+    ///     @ref NextLayer object.
     template <typename... TArgs>
-    ProtocolLayerBase(TArgs&&... args)
+    explicit ProtocolLayerBase(TArgs&&... args)
       : nextLayer_(std::forward<TArgs>(args)...)
     {
     }
 
+    /// @brief Desctructor
     ~ProtocolLayerBase() = default;
+
+    /// @brief Copy assignment
     ProtocolLayerBase& operator=(const ProtocolLayerBase&) = default;
 
+    /// @brief Get access to the next layer object.
     NextLayer& nextLayer()
     {
         return nextLayer_;
     }
 
+    /// @brief Get "const" access to the next layer object.
     const NextLayer& nextLayer() const
     {
         return nextLayer_;
     }
 
+    /// @brief Get remaining length of wrapping transport information.
+    /// @details The message data always get wrapped with transport information
+    ///     to be successfully delivered to and unpacked on the other side.
+    ///     This function return remaining length of the transport information.
+    /// @return length of the field + length reported by the next layer.
     constexpr std::size_t length() const
     {
-        return static_cast<const TDerived*>(this)->fieldLength() + nextLayer_.length();
+        return Field::minLength() + nextLayer_.length();
     }
 
+    /// @brief Get remaining length of wrapping transport information + length
+    ///     of the provided message.
+    /// @details This function usually gets called when there is a need to
+    ///     identify the size of the buffer required to write provided message
+    ///     wrapped in the transport information. This function is very similar
+    ///     to length(), but adds also length of the message.
+    /// @param[in] msg Message
+    /// @return length of the field + length reported by the next layer.
     template <typename TMsg>
     constexpr std::size_t length(const TMsg& msg) const
     {
-        return static_cast<const TDerived*>(this)->fieldLength() + nextLayer_.length(msg);
+        return Field::minLength() + nextLayer_.length(msg);
     }
 
-    static constexpr std::size_t fieldLength()
-    {
-        return Field::minLength();
-    }
-
+    /// @brief Update recently written (using write()) message contents data.
+    /// @details Sometimes, when NON random access iterator is used for writing
+    ///     (for example std::back_insert_iterator), some transport data cannot
+    ///     be properly written. In this case, write() function will return
+    ///     comms::ErrorStatus::UpdateRequired. When such status is returned
+    ///     it is necessary to call update() with random access iterator on
+    ///     the written buffer to update written dummy information with
+    ///     proper values.
+    ///     This function in this layer does nothing, just advances the iterator
+    ///     by the length of the @ref Field.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using write().
+    /// @return Status of the update operation.
     template <typename TIter>
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
         return updateInternal(iter, size, LengthTag());
     }
 
+    /// @brief Update recently written (using writeFieldsCached()) message data as
+    ///     well as cached transport information fields.
+    /// @details Very similar to update() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @tparam TUpdateIter Type of the random access iterator.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in, out] iter Random access iterator to the written data.
+    /// @param[in] size Number of bytes that have been written using writeFieldsCached().
+    /// @return Status of the update operation.
     template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
     ErrorStatus updateFieldsCached(
         TAllFields& allFields,
@@ -141,6 +216,14 @@ public:
         return updateFieldsCachedInternal<TIdx>(allFields, iter, size, LengthTag());
     }
 
+    /// @brief Create message object given the ID.
+    /// @details The default implementation is to forwards this call to the next
+    ///     layer. One of the layers (usually comms::protocol::MsgIdLayer)
+    ///     hides and overrides this implementation.
+    /// @param id ID of the message.
+    /// @param idx Relative index of the message with the same ID.
+    /// @return Smart pointer (variant of std::unique_ptr) to allocated message
+    ///     object
     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
     {
         return nextLayer_.createMsg(id, idx);
@@ -148,6 +231,7 @@ public:
 
 protected:
 
+    /// @cond SKIP_DOC
     struct FixedLengthTag {};
     struct VarLengthTag {};
     typedef typename std::conditional<
@@ -370,7 +454,7 @@ protected:
         return NextLayerCachedFieldsUpdater<TIdx, TAllFields>(nextLayer_, fields);
     }
 
-
+    /// @endcond
 private:
 
     template <typename TIter>

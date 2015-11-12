@@ -31,6 +31,11 @@ namespace comms
 namespace protocol
 {
 
+/// @brief Message data layer.
+/// @details Must always be the last layer in protocol stack.
+/// @tparam TMessage Common message interface class, must be the common base
+///     to all the custom messages.
+/// @tparam TField Field that can be used to store raw data of the message.
 template <
     typename TMessage,
     typename TField =
@@ -43,24 +48,72 @@ class MsgDataLayer
 {
 public:
 
+    /// @brief Raw data field type.
     typedef TField Field;
+
+    /// @brief All fields of the remaining transport layers, contains only @ref Field.
     typedef std::tuple<Field> AllFields;
 
+    /// @brief Type of pointer to the message.
+    /// @details At this point is unknown, will be redefined in
+    ///     comms::protocol::MsgIdLayer.
     typedef void MsgPtr;
 
+    /// @brief Type of the custom message interface.
     typedef TMessage Message;
-    typedef typename TMessage::ReadIterator ReadIterator;
-    typedef typename TMessage::WriteIterator WriteIterator;
 
+    /// @brief Type of iterator used for reading.
+    /// @details Same as comms::Message::ReadIterator if such exists, void otherwise.
+    typedef typename std::conditional<
+            Message::InterfaceOptions::HasReadIterator,
+            typename TMessage::ReadIterator,
+            void
+        >::type ReadIterator;
+
+    /// @brief Type of iterator used for writing.
+    /// @details Same as comms::Message::WriteIterator if such exists, void otherwise.
+    typedef typename std::conditional<
+            Message::InterfaceOptions::HasWriteIterator,
+            typename TMessage::WriteIterator,
+            void
+        >::type WriteIterator;
+
+    /// @brief Static constant indicating amount of transport layers used.
     static const std::size_t NumOfLayers = 1;
 
+    /// @brief Default constructor
     MsgDataLayer() = default;
+
+    /// @brief Copy constructor
     MsgDataLayer(const MsgDataLayer&) = default;
+
+    /// @brief Move constructor
     MsgDataLayer(MsgDataLayer&&) = default;
+
+    /// @brief Destructor
     ~MsgDataLayer() = default;
+
+    /// @brief Copy assignment operator
     MsgDataLayer& operator=(const MsgDataLayer&) = default;
+
+    /// @brief Move assignment operator
     MsgDataLayer& operator=(MsgDataLayer&&) = default;
 
+    /// @brief Read the message contents.
+    /// @details Calls the read() member function of the message object.
+    /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
+    /// @param[in] msgPtr Reference to the smart pointer holding message object,
+    /// @param[in, out] iter Iterator used for reading.
+    /// @param[in] size Number of bytes available for reading.
+    /// @param[out] missingSize In case there are not enough bytes in the buffer
+    ///     (the function returns comms::ErrorStatus::NotEnoughData), and this
+    ///     pointer is not nullptr, then it is used to provide information of
+    ///     minimal number of bytes that need to be provided before message could
+    ///     be successfully read.
+    /// @return Status of the read operation.
+    /// @pre msgPtr points to a valid message object.
+    /// @post missingSize output value is updated if and only if function
+    ///       returns comms::ErrorStatus::NotEnoughData.
     template <typename TMsgPtr>
     static ErrorStatus read(
         TMsgPtr& msgPtr,
@@ -82,6 +135,26 @@ public:
         return result;
     }
 
+    /// @brief Read the message contents while caching the read transport
+    ///     information fields.
+    /// @details Very similar to read() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msgPtr Reference to the smart pointer holding message object,
+    /// @param[in, out] iter Iterator used for reading.
+    /// @param[in] size Number of bytes available for reading.
+    /// @param[out] missingSize In case there are not enough bytes in the buffer
+    ///     (the function returns comms::ErrorStatus::NotEnoughData), and this
+    ///     pointer is not nullptr, then it is used to provide information of
+    ///     minimal number of bytes that need to be provided before message could
+    ///     be successfully read.
     template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
     static ErrorStatus readFieldsCached(
         TAllFields& allFields,
@@ -106,6 +179,13 @@ public:
         return readWithFieldCachedInternal(dataField, msgPtr, iter, size, missingSize, IterType());
     }
 
+    /// @brief Write the message contents.
+    /// @details Calls the write() member function of the message object.
+    /// @tparam TMessage Type of the message.
+    /// @param[in] msg Reference to the message object,
+    /// @param[in, out] iter Iterator used for writing.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
     static ErrorStatus write(
         const TMessage& msg,
         WriteIterator& iter,
@@ -114,6 +194,22 @@ public:
         return msg.write(iter, size);
     }
 
+    /// @brief Write the message contents while caching the written transport
+    ///     information fields.
+    /// @details Very similar to write() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @tparam TMessage Type of the message.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msg Reference to the message object that is being written,
+    /// @param[in, out] iter Iterator used for writing.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
     template <std::size_t TIdx, typename TAllFields>
     static ErrorStatus writeFieldsCached(
         TAllFields& allFields,
@@ -137,6 +233,19 @@ public:
         return writeWithFieldCachedInternal(dataField, msg, iter, size, IterType());
     }
 
+    /// @brief Update recently written (using write()) message contents data.
+    /// @details Sometimes, when NON random access iterator is used for writing
+    ///     (for example std::back_insert_iterator), some transport data cannot
+    ///     be properly written. In this case, write() function will return
+    ///     comms::ErrorStatus::UpdateRequired. When such status is returned
+    ///     it is necessary to call update() with random access iterator on
+    ///     the written buffer to update written dummy information with
+    ///     proper values.
+    ///     This function in this layer does nothing, just advances the iterator
+    ///     by "size".
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using write().
+    /// @return Status of the update operation.
     template <typename TIter>
     static comms::ErrorStatus update(TIter& iter, std::size_t size)
     {
@@ -144,11 +253,26 @@ public:
         return comms::ErrorStatus::Success;
     }
 
+    /// @brief Update recently written (using writeFieldsCached()) message data as
+    ///     well as cached transport information fields.
+    /// @details Very similar to update() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @tparam TUpdateIter Type of the random access iterator.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in, out] iter Random access iterator to the written data.
+    /// @param[in] size Number of bytes that have been written using writeFieldsCached().
+    /// @return Status of the update operation.
     template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
-    ErrorStatus updateFieldsCached(
+    static ErrorStatus updateFieldsCached(
         TAllFields& allFields,
         TUpdateIter& iter,
-        std::size_t size) const
+        std::size_t size)
     {
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be tuple.");
@@ -161,11 +285,24 @@ public:
         return comms::ErrorStatus::Success;
     }
 
+    /// @brief Get remaining length of wrapping transport information.
+    /// @details The message data always get wrapped with transport information
+    ///     to be successfully delivered to and unpacked on the other side.
+    ///     This function return remaining length of the transport information.
+    /// @return 0.
     static constexpr std::size_t length()
     {
         return 0U;
     }
 
+    /// @brief Get remaining length of wrapping transport information + length
+    ///     of the provided message.
+    /// @details This function usually gets called when there is a need to
+    ///     identify the size of the buffer required to write provided message
+    ///     wrapped in the transport information. This function is very similar
+    ///     to length(), but adds also length of the message.
+    /// @param[in] msg Message
+    /// @return Length of the message.
     static constexpr std::size_t length(const TMessage& msg)
     {
         return msg.length();

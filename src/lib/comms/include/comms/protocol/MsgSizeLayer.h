@@ -15,9 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file comms/protocol/MsgSizeLayer.h
-/// This file contains "Message Size" protocol layer of the "comms" module.
-
 #pragma once
 
 #include <iterator>
@@ -31,21 +28,13 @@ namespace comms
 namespace protocol
 {
 
-/// @ingroup comms
-/// @brief Protocol layer that uses uses size field as a prefix to all the
+/// @brief Protocol layer that uses size field as a prefix to all the
 ///        subsequent data written by other (next) layers.
-/// @details This layer is a mid level layer, expects other mid level layer or
-///          MsgDataLayer to be its next one.
-/// @tparam TTraits A traits class that must define:
-///         @li Endianness type. Either embxx::comms::traits::endian::Big or
-///             embxx::comms::traits::endian::Little
-///         @li MsgSizeLen static integral constant of type std::size_t
-///             specifying length of size field in bytes.
-///         @li ExtraSizeValue static integral constant of type std::size_t
-///             specifying extra value to be added to size field when
-///             serialising
-/// @tparam TNextLayer Next layer in the protocol stack
-/// @headerfile embxx/comms/protocol/MsgSizeLayer.h
+/// @details The main purpose of this layer is to provide information about
+///     the remaining size of the serialised message. This layer is a mid level
+///     layer, expects other mid level layer or MsgDataLayer to be its next one.
+/// @tparam TField Type of the field that describes the "size" field.
+/// @tparam TNextLayer Next transport layer in protocol stack.
 template <typename TField,
           typename TNextLayer>
 class MsgSizeLayer : public
@@ -55,30 +44,58 @@ class MsgSizeLayer : public
 
 public:
 
-    /// @brief Pointer to message object
+    /// @brief Type of smart pointer that will hold allocated message object.
     typedef typename Base::MsgPtr MsgPtr;
 
+    /// @brief Type of the message interface.
+    /// @details Initially provided to MsgDataLayer and propagated through all
+    ///     the layers in between to this class.
     typedef typename Base::Message Message;
 
-    /// @brief Type of read iterator
+    /// @brief Type of read iterator.
+    /// @details Initially provided to comms::Message through options, then it finds
+    ///     its way as a type in MsgDataLayer, and finally propagated through all
+    ///     the layers in between to this class
     typedef typename Base::ReadIterator ReadIterator;
 
     /// @brief Type of write iterator
+    /// @details Initially provided to comms::Message through options, then it finds
+    ///     its way as a type in MsgDataLayer, and finally propagated through all
+    ///     the layers in between to this class.
     typedef typename Base::WriteIterator WriteIterator;
 
+    /// @brief Type of the field object used to read/write remaining size value.
     typedef typename Base::Field Field;
 
     static_assert(comms::field::isIntValue<Field>(),
         "Field must be of IntValue type");
 
-    using Base::ProtocolLayerBase;
+    /// @brief Constructor of any number of arguments.
+    /// @details All the arguments are passed to the constructor of the
+    ///     ProtocolLayerBase (which is a base of this class), which it turn
+    ///     forwards them to the constructor of the next layer.
+    template <typename... TArgs>
+    explicit MsgSizeLayer(TArgs&&... args)
+       : Base(std::forward<TArgs>(args)...)
+    {
+    }
 
-    /// @brief Destructor is default
+    /// @brief Copy constructor
+    MsgSizeLayer(const MsgSizeLayer&) = default;
+
+    /// @brief Move constructor
+    MsgSizeLayer(MsgSizeLayer&&) = default;
+
+    /// @brief Destructor.
     ~MsgSizeLayer() = default;
 
-    /// @brief Copy assignment is default
+    /// @brief Copy assignment.
     MsgSizeLayer& operator=(const MsgSizeLayer&) = default;
 
+    /// @brief Move assignment.
+    MsgSizeLayer& operator=(MsgSizeLayer&&) = default;
+
+    /// @cond SKIP_DOC
     constexpr std::size_t length() const
     {
         return Base::length();
@@ -89,7 +106,7 @@ public:
     {
         return lengthInternal(msg, LengthTag());
     }
-
+    /// @endcond
 
     /// @brief Deserialise message from the input data sequence.
     /// @details Reads size of the subsequent data from the input data sequence
@@ -97,28 +114,26 @@ public:
     ///          the size specified in the size field.The function will also
     ///          compare the provided size of the data with size of the
     ///          message read from the buffer. If the latter is greater than
-    ///          former, embxx::comms::ErrorStatus::NotEnoughData will be returned.
+    ///          former, comms::ErrorStatus::NotEnoughData will be returned.
     ///          However, if buffer contains enough data, but the next layer
-    ///          reports its not enough (returns embxx::comms::ErrorStatus::NotEnoughData),
-    ///          embxx::comms::ErrorStatus::ProtocolError will be returned.
+    ///          reports it's not enough (returns comms::ErrorStatus::NotEnoughData),
+    ///          comms::ErrorStatus::ProtocolError will be returned.
     /// @param[in, out] msgPtr Reference to smart pointer that already holds or
-    ///                 will hold allocated message object
-    /// @param[in, out] iter Input iterator.
+    ///     will hold allocated message object
+    /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
-    ///             embxx::comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
-    /// @return Error status of the operation.
+    ///     comms::ErrorStatus::NotEnoughData it will contain
+    ///     minimal missing data length required for the successful
+    ///     read attempt.
+    /// @return Status of the read operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       read. In case of an error, distance between original position and
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
-    ///       returns embxx::comms::ErrorStatus::NotEnoughData.
-    /// @note Thread safety: Unsafe
-    /// @note Exception guarantee: Basic
+    ///       returns comms::ErrorStatus::NotEnoughData.
     template <typename TMsgPtr>
     ErrorStatus read(
         TMsgPtr& msgPtr,
@@ -137,6 +152,24 @@ public:
                 Base::createNextLayerReader());
     }
 
+    /// @brief Deserialise message from the input data sequence while caching
+    ///     the read transport information fields.
+    /// @details Very similar to read() member function, but adds "allFields"
+    ///     parameter to store read transport information fields.
+    /// @tparam TIdx Index of the message ID field in TAllFields tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msgPtr Reference to the smart pointer holding message object.
+    /// @param[in, out] iter Iterator used for reading.
+    /// @param[in] size Number of bytes available for reading.
+    /// @param[out] missingSize If not nullptr and return value is
+    ///             comms::ErrorStatus::NotEnoughData it will contain
+    ///             minimal missing data length required for the successful
+    ///             read attempt.
+    /// @return Status of the operation.
     template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
     ErrorStatus readFieldsCached(
         TAllFields& allFields,
@@ -158,28 +191,19 @@ public:
     }
 
     /// @brief Serialise message into the output data sequence.
-    /// @details The function will reserve space in the output data sequence
-    ///          required to write size field, then forward the write() request
-    ///          the the next layer in the protocol stack. After the latter
-    ///          finishes its write, this protocol will evaluate the size of
-    ///          the written data and update size field accordingly if such
-    ///          update is possible (output iterator is random access one). If
-    ///          update of the field is not possible (for example
-    ///          std::back_insert_iterator was used), this function will return
-    ///          embxx::comms::ErrorStatus::UpdateRequired. In this case
-    ///          it is needed to call update() member function to finalise
-    ///          the write operation.
+    /// @details The function will write number of bytes required to serialise
+    ///     the message, then invoke the write() member function of the next
+    ///     layer. The calculation of the required length is performed by invoking
+    ///     "length(msg)".
     /// @param[in] msg Reference to message object
     /// @param[in, out] iter Output iterator.
-    /// @param[in] size Available space in data sequence.
+    /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       written. In case of an error, distance between original position
     ///       and advanced will pinpoint the location of the error.
-    /// @note Thread safety: Unsafe
-    /// @note Exception guarantee: Basic
     ErrorStatus write(
             const Message& msg,
             WriteIterator& iter,
@@ -189,6 +213,21 @@ public:
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
     }
 
+    /// @brief Serialise message into output data sequence while caching the written transport
+    ///     information fields.
+    /// @details Very similar to write() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msg Reference to the message object that is being written,
+    /// @param[in, out] iter Iterator used for writing.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
     template <std::size_t TIdx, typename TAllFields>
     ErrorStatus writeFieldsCached(
         TAllFields& allFields,

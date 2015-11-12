@@ -28,34 +28,103 @@ namespace comms
 
 namespace protocol
 {
-
+/// @brief Protocol layer that is responsible to calculate checksum on the
+///     data written by all the wrapped internal layers and append it to the end of
+///     the written data. When reading, this layer is responsible to verify
+///     the checksum reported at the end of the read data.
+/// @tparam TField Type of the field that is used as to represent checksum value.
+/// @tparam TCalc The checksum calculater class that is used to calculate
+///     the checksum value on the provided buffer. It must have the operator()
+///     defined with the following signature:
+///     @code
+///     template <typename TIter>
+///     ResultType operator()(TIter& iter, std::size_t len) const;
+///     @endcode
+///     It is up to the checksum calculator to choose the "ResultType" it
+///     returns. The falue is going to be casted to Field::ValueType before
+///     assigning it as a value of the check field being read and/or written.
+/// @tparam TNextLayer Next transport layer in protocol stack.
 template <typename TField, typename TCalc, typename TNextLayer>
 class ChecksumLayer : public
     ProtocolLayerBase<TField, TNextLayer, ChecksumLayer<TField, TCalc, TNextLayer> >
 {
     typedef ProtocolLayerBase<TField, TNextLayer, ChecksumLayer<TField, TCalc, TNextLayer> > Base;
 public:
-    /// @brief Pointer to message object
+    /// @brief Type of smart pointer that will hold allocated message object.
     typedef typename Base::MsgPtr MsgPtr;
 
+    /// @brief Type of the message interface.
+    /// @details Initially provided to MsgDataLayer and propagated through all
+    ///     the layers in between to this class.
     typedef typename Base::Message Message;
 
-    /// @brief Type of read iterator
+    /// @brief Type of read iterator.
+    /// @details Initially provided to comms::Message through options, then it finds
+    ///     its way as a type in MsgDataLayer, and finally propagated through all
+    ///     the layers in between to this class
     typedef typename Base::ReadIterator ReadIterator;
 
     /// @brief Type of write iterator
+    /// @details Initially provided to comms::Message through options, then it finds
+    ///     its way as a type in MsgDataLayer, and finally propagated through all
+    ///     the layers in between to this class.
     typedef typename Base::WriteIterator WriteIterator;
 
+    /// @brief Type of the field object used to read/write checksum value.
     typedef typename Base::Field Field;
 
-    using Base::ProtocolLayerBase;
+    /// @brief Default constructor.
+    ChecksumLayer() = default;
 
-    /// @brief Destructor is default
+    /// @brief Constructor of any number of arguments.
+    /// @details All the arguments are passed to the constructor of the
+    ///     ProtocolLayerBase (which is a base of this class), which it turn
+    ///     forwards them to the constructor of the next layer.
+    template <typename... TArgs>
+    explicit ChecksumLayer(TArgs&&... args)
+      : Base(std::forward<TArgs>(args)...)
+    {
+    }
+
+    /// @brief Copy constructor
+    ChecksumLayer(const ChecksumLayer&) = default;
+
+    /// @brief Move constructor
+    ChecksumLayer(ChecksumLayer&&) = default;
+
+    /// @brief Destructor.
     ~ChecksumLayer() = default;
 
-    /// @brief Copy assignment is default
+    /// @brief Copy assignment
     ChecksumLayer& operator=(const ChecksumLayer&) = default;
 
+    /// @brief Move assignment
+    ChecksumLayer& operator=(ChecksumLayer&&) = default;
+
+    /// @brief Deserialise message from the input data sequence.
+    /// @details First, executes the read() member function of the next layer.
+    ///     If the call returns comms::ErrorStatus::Success, it calculated the
+    ///     checksum of the read data, reads the expected checksum value and
+    ///     compares it to the calculated. If checksums match,
+    ///     comms::ErrorStatus::Success is returned, otherwise
+    ///     function returns comms::ErrorStatus::ProtocolError.
+    /// @param[in, out] msgPtr Reference to smart pointer that already holds or
+    ///     will hold allocated message object
+    /// @param[in, out] iter Input iterator used for reading.
+    /// @param[in] size Size of the data in the sequence
+    /// @param[out] missingSize If not nullptr and return value is
+    ///     comms::ErrorStatus::NotEnoughData it will contain
+    ///     minimal missing data length required for the successful
+    ///     read attempt.
+    /// @return Status of the read operation.
+    /// @pre Iterator must be "random access" one.
+    /// @pre Iterator must be valid and can be dereferenced and incremented at
+    ///      least "size" times;
+    /// @post The iterator will be advanced by the number of bytes was actually
+    ///       read. In case of an error, distance between original position and
+    ///       advanced will pinpoint the location of the error.
+    /// @post missingSize output value is updated if and only if function
+    ///       returns comms::ErrorStatus::NotEnoughData.
     template <typename TMsgPtr>
     ErrorStatus read(
         TMsgPtr& msgPtr,
@@ -74,6 +143,24 @@ public:
                 Base::createNextLayerReader());
     }
 
+    /// @brief Deserialise message from the input data sequence while caching
+    ///     the read transport information fields.
+    /// @details Very similar to read() member function, but adds "allFields"
+    ///     parameter to store read transport information fields.
+    /// @tparam TIdx Index of the message ID field in TAllFields tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msgPtr Reference to the smart pointer holding message object.
+    /// @param[in, out] iter Iterator used for reading.
+    /// @param[in] size Number of bytes available for reading.
+    /// @param[out] missingSize If not nullptr and return value is
+    ///             comms::ErrorStatus::NotEnoughData it will contain
+    ///             minimal missing data length required for the successful
+    ///             read attempt.
+    /// @return Status of the operation.
     template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
     ErrorStatus readFieldsCached(
         TAllFields& allFields,
@@ -94,6 +181,26 @@ public:
                 Base::template createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
 
+    /// @brief Serialise message into the output data sequence.
+    /// @details First, executes the write() member function of the next layer.
+    ///     If the call returns comms::ErrorStatus::Success and it is possible
+    ///     to re-read what has been written (random access iterator is used
+    ///     for writing), the checksum is calculated and added to the output
+    ///     buffer using the same iterator. In case non-random access iterator
+    ///     type is used for writing (for example std::back_insert_iterator), then
+    ///     this function writes a dummy value as checksum and returns
+    ///     comms::ErrorStatus::UpdateRequired to indicate that call to
+    ///     update() with random access iterator is required in order to be
+    ///     able to update written checksum information.
+    /// @param[in] msg Reference to message object
+    /// @param[in, out] iter Output iterator.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
+    /// @pre Iterator must be valid and can be dereferenced and incremented at
+    ///      least "size" times;
+    /// @post The iterator will be advanced by the number of bytes was actually
+    ///       written. In case of an error, distance between original position
+    ///       and advanced will pinpoint the location of the error.
     ErrorStatus write(
             const Message& msg,
             WriteIterator& iter,
@@ -103,6 +210,21 @@ public:
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), WriteIteratorCategoryTag());
     }
 
+    /// @brief Serialise message into output data sequence while caching the written transport
+    ///     information fields.
+    /// @details Very similar to write() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msg Reference to the message object that is being written,
+    /// @param[in, out] iter Iterator used for writing.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
     template <std::size_t TIdx, typename TAllFields>
     ErrorStatus writeFieldsCached(
         TAllFields& allFields,
@@ -121,6 +243,11 @@ public:
                 WriteIteratorCategoryTag());
     }
 
+    /// @brief Update written dummy checksum with proper value.
+    /// @details Should be called when write() returns comms::ErrorStatus::UpdateRequired.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using write().
+    /// @return Status of the update operation.
     template <typename TIter>
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
@@ -128,6 +255,7 @@ public:
         return updateInternal(field, iter, size, Base::createNextLayerUpdater());
     }
 
+    /// @cond SKIP_DOC
     template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
     ErrorStatus updateFieldsCached(
         TAllFields& allFields,
@@ -142,6 +270,7 @@ public:
                 size,
                 Base::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
     }
+    /// @endcond
 
 private:
     typedef typename std::iterator_traits<WriteIterator>::iterator_category WriteIteratorCategoryTag;

@@ -103,7 +103,6 @@ private:
 /// @tparam TAssert Class derived from Assert that implements new custom
 ///                 behaviour of the assertion failure.
 /// @pre TAssert class must be derived from comms::Assert.
-/// @headerfile comms/Assert.h
 template < typename TAssert>
 class EnableAssert
 {

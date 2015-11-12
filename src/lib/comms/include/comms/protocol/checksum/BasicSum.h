@@ -29,10 +29,19 @@ namespace protocol
 namespace checksum
 {
 
+/// @brief Summary of all bytes checksum calculator.
+/// @details The checksum calculator class that sums all the bytes and
+///     returns the result as a checksum value.
+/// @tparam TResult Type of the checksum result value.
 template <typename TResult = std::uint8_t>
 class BasicSum
 {
 public:
+    /// @brief Operator that is invoked to calculate the checksum value
+    /// @param[in, out] iter Input iterator,
+    /// @param[in] len Number of bytes to summarise.
+    /// @return The checksum value.
+    /// @post The iterator is advanced by number of bytes read (len).
     template <typename TIter>
     TResult operator()(TIter& iter, std::size_t len) const
     {

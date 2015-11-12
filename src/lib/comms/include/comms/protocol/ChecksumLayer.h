@@ -45,10 +45,9 @@ namespace protocol
 ///     assigning it as a value of the check field being read and/or written.
 /// @tparam TNextLayer Next transport layer in protocol stack.
 template <typename TField, typename TCalc, typename TNextLayer>
-class ChecksumLayer : public
-    ProtocolLayerBase<TField, TNextLayer, ChecksumLayer<TField, TCalc, TNextLayer> >
+class ChecksumLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    typedef ProtocolLayerBase<TField, TNextLayer, ChecksumLayer<TField, TCalc, TNextLayer> > Base;
+    typedef ProtocolLayerBase<TField, TNextLayer> Base;
 public:
     /// @brief Type of smart pointer that will hold allocated message object.
     typedef typename Base::MsgPtr MsgPtr;

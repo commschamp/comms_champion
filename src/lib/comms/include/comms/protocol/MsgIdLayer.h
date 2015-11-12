@@ -54,12 +54,11 @@ template <typename TField,
           typename TAllMessages,
           typename TNextLayer,
           typename... TOptions>
-class MsgIdLayer :
-    public ProtocolLayerBase<TField, TNextLayer, MsgIdLayer<TField, TAllMessages, TNextLayer, TOptions...> >
+class MsgIdLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
     static_assert(util::IsTuple<TAllMessages>::Value,
         "TAllMessages must be of std::tuple type");
-    typedef ProtocolLayerBase<TField, TNextLayer, MsgIdLayer<TField, TAllMessages, TNextLayer, TOptions...> > Base;
+    typedef ProtocolLayerBase<TField, TNextLayer> Base;
 
     typedef comms::MsgFactory<typename Base::Message, TAllMessages, TOptions...> Factory;
 

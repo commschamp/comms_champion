@@ -37,10 +37,9 @@ namespace protocol
 /// @tparam TNextLayer Next transport layer in protocol stack.
 template <typename TField,
           typename TNextLayer>
-class MsgSizeLayer : public
-        ProtocolLayerBase<TField, TNextLayer, MsgSizeLayer<TField, TNextLayer> >
+class MsgSizeLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    typedef ProtocolLayerBase<TField, TNextLayer, MsgSizeLayer<TField, TNextLayer> > Base;
+    typedef ProtocolLayerBase<TField, TNextLayer> Base;
 
 public:
 

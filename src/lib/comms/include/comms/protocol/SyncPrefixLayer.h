@@ -36,12 +36,10 @@ namespace protocol
 ///     field type definition must use options (comms::option::DefaultNumValue)
 ///     to specify its default value to be equal to the expected "sync" value.
 /// @tparam TNextLayer Next transport layer in protocol stack.
-template <typename TField,
-          typename TNextLayer>
-class SyncPrefixLayer : public
-            ProtocolLayerBase<TField, TNextLayer, SyncPrefixLayer<TField, TNextLayer> >
+template <typename TField, typename TNextLayer>
+class SyncPrefixLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    typedef ProtocolLayerBase<TField, TNextLayer, SyncPrefixLayer<TField, TNextLayer> > Base;
+    typedef ProtocolLayerBase<TField, TNextLayer> Base;
 
 public:
     /// @brief Type of smart pointer that will hold allocated message object.

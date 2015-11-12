@@ -65,8 +65,7 @@ using AllMessagesType = typename AllMessagesHelper<T>::Type;
 ///     information for this layer. This template parameter is a type of such
 ///     field.
 /// @tparam TNextLayer Next layer this one wraps and forwards the calls to.
-/// @tparam TDerived Actual type of inheriting layer type.
-template <typename TField, typename TNextLayer, typename TDerived>
+template <typename TField, typename TNextLayer>
 class ProtocolLayerBase
 {
 public:

@@ -532,6 +532,14 @@ struct StaticVectorStorageBase
 
 }  // namespace details
 
+/// @brief Replacement to <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>
+///     when no dynamic memory allocation is allowed.
+/// @details Uses <a href="http://en.cppreference.com/w/cpp/container/array">std::array</a>
+///     in its private members to store the data. Provides
+///     almost the same interface as
+///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
+/// @tparam T Type of the stored elements.
+/// @tparam TSize Maximum number of elements that StaticVector can store.
 template <typename T, std::size_t TSize>
 class StaticVector :
     public details::StaticVectorStorageBase<T, TSize>,
@@ -549,29 +557,55 @@ class StaticVector :
     friend class StaticVector;
 
 public:
+    /// @brief Type of single element.
     typedef typename Base::value_type value_type;
+
+    /// @brief Type used for size information
     typedef typename Base::size_type size_type;
+
+    /// @brief Type used in pointer arithmetics
     typedef typename StorageBase::StorageType::difference_type difference_type;
+
+    /// @brief Reference to single element
     typedef typename Base::reference reference;
+
+    /// @brief Const reference to single element
     typedef typename Base::const_reference const_reference;
+
+    /// @brief Pointer to single element
     typedef typename Base::pointer pointer;
+
+    /// @brief Const pointer to single element
     typedef typename Base::const_pointer const_pointer;
+
+    /// @brief Type of the iterator.
     typedef typename Base::iterator iterator;
+
+    /// @brief Type of the const iterator
     typedef typename Base::const_iterator const_iterator;
+
+    /// @brief Type of the reverse iterator
     typedef typename Base::reverse_iterator reverse_iterator;
+
+    /// @brief Type of the const reverse iterator
     typedef typename Base::const_reverse_iterator const_reverse_iterator;
 
+    /// @brief Default constructor.
     StaticVector()
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
     }
 
+    /// @brief Constructor
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     StaticVector(size_type count, const T& value)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
         assign(count, value);
     }
 
+    /// @brief Constructor
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     explicit StaticVector(size_type count)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
@@ -582,6 +616,8 @@ public:
         }
     }
 
+    /// @brief Constructor
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     template <typename TIter>
     StaticVector(TIter from, TIter to)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
@@ -589,6 +625,8 @@ public:
         assign(from, to);
     }
 
+    /// @brief Copy constructor
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     template <std::size_t TOtherSize>
     StaticVector(const StaticVector<T, TOtherSize>& other)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
@@ -596,20 +634,27 @@ public:
         assign(other.begin(), other.end());
     }
 
+    /// @brief Copy constructor
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     StaticVector(const StaticVector& other)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
         assign(other.begin(), other.end());
     }
 
+    /// @brief Constructor
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     StaticVector(std::initializer_list<value_type> init)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
         assign(init.begin(), init.end());
     }
 
+    /// @brief Destructor
     ~StaticVector() = default;
 
+    /// @brief Copy assignement
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>
     StaticVector& operator=(const StaticVector& other)
     {
         if (&other == this) {
@@ -620,6 +665,8 @@ public:
         return *this;
     }
 
+    /// @brief Copy assignement
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>
     template <std::size_t TOtherSize>
     StaticVector& operator=(const StaticVector<T, TOtherSize>& other)
     {
@@ -627,247 +674,367 @@ public:
         return *this;
     }
 
+    /// @brief Copy assignement
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>
     StaticVector& operator=(std::initializer_list<value_type> init)
     {
         assign(init);
         return *this;
     }
 
+    /// @brief Assigns values to the container.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/assign">Reference</a>
     void assign(size_type count, const T& value)
     {
         GASSERT(count <= TSize);
         Base::fill(count, value);
     }
 
+    /// @brief Assigns values to the container.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/assign">Reference</a>
     template <typename TIter>
     void assign(TIter from, TIter to)
     {
         Base::assign(from, to);
     }
 
+    /// @brief Assigns values to the container.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/assign">Reference</a>
     void assign(std::initializer_list<value_type> init)
     {
         assign(init.begin(), init.end());
     }
 
+    /// @brief Access specified element with bounds checking.
+    /// @details The bounds check is performed with GASSERT() macro, which means
+    ///     it is performed only in DEBUG mode compilation. In case NDEBUG
+    ///     symbol is defined (RELEASE mode compilation), this call is equivalent
+    ///     to operator[]().
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/at">Reference</a>
     reference at(size_type pos)
     {
         return Base::at(pos);
     }
-
+    /// @brief Access specified element with bounds checking.
+    /// @details The bounds check is performed with GASSERT() macro, which means
+    ///     it is performed only in DEBUG mode compilation. In case NDEBUG
+    ///     symbol is defined (RELEASE mode compilation), this call is equivalent
+    ///     to operator[]().
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/at">Reference</a>
     const_reference at(size_type pos) const
     {
         return Base::at(pos);
     }
 
+    /// @brief Access specified element without bounds checking.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_at">Reference</a>
     reference operator[](size_type pos)
     {
         return Base::operator[](pos);
     }
 
+    /// @brief Access specified element without bounds checking.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_at">Reference</a>
     const_reference operator[](size_type pos) const
     {
         return Base::operator[](pos);
     }
 
+    /// @brief Access the first element.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/front">Reference</a>
+    /// @pre The vector is not empty.
     reference front()
     {
         return Base::front();
     }
 
+    /// @brief Access the first element.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/front">Reference</a>
+    /// @pre The vector is not empty.
     const_reference front() const
     {
         return Base::front();
     }
 
+    /// @brief Access the last element.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/back">Reference</a>
+    /// @pre The vector is not empty.
     reference back()
     {
         return Base::back();
     }
 
+    /// @brief Access the last element.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/back">Reference</a>
+    /// @pre The vector is not empty.
     const_reference back() const
     {
         return Base::back();
     }
 
+    /// @brief Direct access to the underlying array.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/data">Reference</a>
     pointer data()
     {
         return Base::data();
     }
 
+    /// @brief Direct access to the underlying array.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/data">Reference</a>
     const_pointer data() const
     {
         return Base::data();
     }
 
+    /// @brief Returns an iterator to the beginning.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/begin">Reference</a>
     iterator begin()
     {
         return Base::begin();
     }
 
+    /// @brief Returns an iterator to the beginning.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/begin">Reference</a>
     const_iterator begin() const
     {
         return cbegin();
     }
 
+    /// @brief Returns an iterator to the beginning.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/begin">Reference</a>
     const_iterator cbegin() const
     {
         return Base::cbegin();
     }
 
+    /// @brief Returns an iterator to the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/end">Reference</a>
     iterator end()
     {
         return Base::end();
     }
 
+    /// @brief Returns an iterator to the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/end">Reference</a>
     const_iterator end() const
     {
         return cend();
     }
 
+    /// @brief Returns an iterator to the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/end">Reference</a>
     const_iterator cend() const
     {
         return Base::cend();
     }
 
+    /// @brief Returns a reverse iterator to the beginning.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/rbegin">Reference</a>
     reverse_iterator rbegin()
     {
         return reverse_iterator(end());
     }
 
+    /// @brief Returns a reverse iterator to the beginning.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/rbegin">Reference</a>
     const_reverse_iterator rbegin() const
     {
         return crbegin();
     }
 
+    /// @brief Returns a reverse iterator to the beginning.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/rbegin">Reference</a>
     const_reverse_iterator crbegin() const
     {
         return const_reverse_iterator(cend());
     }
 
+    /// @brief Returns a reverse iterator to the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/rend">Reference</a>
     reverse_iterator rend()
     {
         return reverse_iterator(begin());
     }
 
+    /// @brief Returns a reverse iterator to the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/rend">Reference</a>
     const_reverse_iterator rend() const
     {
         return crend();
     }
 
+    /// @brief Returns a reverse iterator to the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/rend">Reference</a>
     const_reverse_iterator crend() const
     {
         return const_reverse_iterator(cbegin());
     }
 
+    /// @brief Checks whether the container is empty.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/empty">Reference</a>
     bool empty() const
     {
         return Base::empty();
     }
 
+    /// @brief Returns the number of elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/size">Reference</a>
     size_type size() const
     {
         return Base::size();
     }
 
+    /// @brief Returns the maximum possible number of elements.
+    /// @details Same as capacity().
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/max_size">Reference</a>
+    /// @return TSize provided as template argument.
     size_type max_size() const
     {
         return capacity();
     }
 
+    /// @brief Reserves storage.
+    /// @details Does nothing.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/reserve">Reference</a>
     void reserve(size_type new_cap)
     {
         static_cast<void>(new_cap);
         GASSERT(new_cap <= capacity());
     }
 
+    /// @brief Returns the number of elements that can be held in currently allocated storage.
+    /// @details Same as max_size().
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/capacity">Reference</a>
+    /// @return TSize provided as template argument.
     size_type capacity() const
     {
         return Base::capacity();
     }
 
+    /// @brief Reduces memory usage by freeing unused memory.
+    /// @details Does nothing.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/shrink_to_fit">Reference</a>
     void shrink_to_fit()
     {
     }
 
+    /// @brief Clears the contents.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/clear">Reference</a>
     void clear()
     {
         Base::clear();
     }
 
+    /// @brief Inserts elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/insert">Reference</a>
     iterator insert(const_iterator iter, const T& value)
     {
         return Base::insert(iter, value);
     }
 
+    /// @brief Inserts elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/insert">Reference</a>
     iterator insert(const_iterator iter, T&& value)
     {
         return Base::insert(iter, std::move(value));
     }
 
+    /// @brief Inserts elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/insert">Reference</a>
     iterator insert(const_iterator iter, size_type count, const T& value)
     {
         return Base::insert(iter, count, value);
     }
 
+    /// @brief Inserts elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/insert">Reference</a>
     template <typename TIter>
     iterator insert(const_iterator iter, TIter from, TIter to)
     {
         return Base::insert(iter, from, to);
     }
 
+    /// @brief Inserts elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/insert">Reference</a>
     iterator insert(const_iterator iter, std::initializer_list<value_type> init)
     {
         return Base::insert(iter, init.begin(), init.end());
     }
 
+    /// @brief Constructs elements in place.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/emplace">Reference</a>
     template <typename... TArgs>
     iterator emplace(const_iterator iter, TArgs&&... args)
     {
         return Base::emplace(iter, std::forward<TArgs>(args)...);
     }
 
+    /// @brief Erases elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/erase">Reference</a>
     iterator erase(const_iterator iter)
     {
         return erase(iter, iter + 1);
     }
 
+    /// @brief Erases elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/erase">Reference</a>
     iterator erase(const_iterator from, const_iterator to)
     {
         return Base::erase(from, to);
     }
 
+    /// @brief Adds an element to the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/push_back">Reference</a>
+    /// @pre The vector mustn't be full.
     void push_back(const T& value)
     {
         Base::push_back(value);
     }
 
+    /// @brief Adds an element to the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/push_back">Reference</a>
+    /// @pre The vector mustn't be full.
     void push_back(T&& value)
     {
         Base::push_back(std::move(value));
     }
 
+    /// @brief Constructs an element in place at the end.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/emplace_back">Reference</a>
+    /// @pre The vector mustn't be full.
     template <typename... TArgs>
     void emplace_back(TArgs&&... args)
     {
         Base::emplace_back(std::forward<TArgs>(args)...);
     }
 
+    /// @brief Removes the last element.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/pop_back">Reference</a>
+    /// @pre The vector mustn't be empty.
     void pop_back()
     {
         Base::pop_back();
     }
 
+    /// @brief Changes the number of elements stored.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/resize">Reference</a>
+    /// @pre New size mustn't exceed max_size().
     void resize(size_type count)
     {
         resize(count, T());
     }
 
+    /// @brief Changes the number of elements stored.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/resize">Reference</a>
+    /// @pre New size mustn't exceed max_size().
     void resize(size_type count, const value_type& value)
     {
         Base::resize(count, value);
     }
 
+    /// @brief Swaps the contents.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/resize">Reference</a>
+    /// @pre New size mustn't exceed max_size().
     template <std::size_t TOtherSize>
     void swap(StaticVector<T, TOtherSize>& other)
     {
@@ -875,30 +1042,40 @@ public:
     }
 };
 
+/// @brief Lexicographically compares the values in the vector.
+/// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator<(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
     return std::lexicographical_compare(v1.begin(), v1.end(), v2.begin(), v2.end());
 }
 
+/// @brief Lexicographically compares the values in the vector.
+/// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator<=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
     return !(v2 < v1);
 }
 
+/// @brief Lexicographically compares the values in the vector.
+/// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator>(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
     return v2 < v1;
 }
 
+/// @brief Lexicographically compares the values in the vector.
+/// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator>=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
     return !(v1 < v2);
 }
 
+/// @brief Lexicographically compares the values in the vector.
+/// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator==(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
@@ -907,6 +1084,8 @@ bool operator==(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>
            (!(v2 < v1));
 }
 
+/// @brief Lexicographically compares the values in the vector.
+/// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator!=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
@@ -920,6 +1099,9 @@ bool operator!=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>
 namespace std
 {
 
+/// @brief Specializes the std::swap algorithm.
+/// @see <a href="http://en.cppreference.com/w/cpp/container/vector/swap2">Reference</a>
+/// @related comms::util::StaticVector
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 void swap(comms::util::StaticVector<T, TSize1>& v1, comms::util::StaticVector<T, TSize2>& v2)
 {

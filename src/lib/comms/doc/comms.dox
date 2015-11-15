@@ -16,3 +16,5 @@
 /// @brief Namespace that contains definition of checksum calculator classes which
 ///     can be used with comms::protocol::ChecksumLayer transport layer class.
 
+/// @namespace std
+/// @brief Specialized versions of standard functions/algorithms.

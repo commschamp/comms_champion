@@ -35,14 +35,10 @@ namespace traits
 namespace endian
 {
 
-/// @ingroup io
 /// @brief Empty class used in traits to indicate Big Endian.
-/// @headerfile embxx/io/traits.h
 struct Big {};
 
-/// @ingroup io
 /// @brief Empty class used in traits to indicate Little Endian.
-/// @headerfile embxx/io/traits.h
 struct Little {};
 
 }  // namespace endian
@@ -525,12 +521,28 @@ struct Reader
 
 }  // namespace details
 
+/// @brief Write part of integral value into the output area using big
+///     endian notation.
+/// @tparam TSize Number of bytes to write.
+/// @param[in] value Integral type value to be written.
+/// @param[in, out] iter Output iterator.
+/// @pre TSize <= sizeof(T).
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least TSize times.
+/// @post The iterator is advanced.
 template <std::size_t TSize, typename T, typename TIter>
 void writeBig(T value, TIter& iter)
 {
     details::Writer<details::WriteHelper>::template write<traits::endian::Big, TSize>(value, iter);
 }
 
+/// @brief Write integral value into the output area using big
+///     endian notation.
+/// @param[in] value Integral type value to be written.
+/// @param[in, out] iter Output iterator.
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least sizeof(T) times.
+/// @post The iterator is advanced.
 template <typename T, typename TIter>
 void writeBig(T value, TIter& iter)
 {
@@ -538,12 +550,28 @@ void writeBig(T value, TIter& iter)
     writeBig<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
 }
 
+/// @brief Read part of integral value from the input area using big
+///     endian notation.
+/// @tparam T Type to read.
+/// @tparam TSize Number of bytes to read.
+/// @param[in, out] iter Input iterator.
+/// @pre TSize <= sizeof(T).
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least TSize times.
+/// @post The iterator is advanced.
 template <typename T, std::size_t TSize, typename TIter>
 T readBig(TIter& iter)
 {
     return details::Reader<details::ReadHelper>::template read<traits::endian::Big, T, TSize>(iter);
 }
 
+/// @brief Read integral value from the input area using big
+///     endian notation.
+/// @tparam T Type to read.
+/// @param[in, out] iter Input iterator.
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least sizeof(T) times.
+/// @post The iterator is advanced.
 template <typename T, typename TIter>
 T readBig(TIter& iter)
 {
@@ -551,12 +579,28 @@ T readBig(TIter& iter)
     return static_cast<T>(readBig<ValueType, sizeof(ValueType)>(iter));
 }
 
+/// @brief Write part of integral value into the output area using little
+///     endian notation.
+/// @tparam TSize Number of bytes to write.
+/// @param[in] value Integral type value to be written.
+/// @param[in, out] iter Output iterator.
+/// @pre TSize <= sizeof(T).
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least TSize times.
+/// @post The iterator is advanced.
 template <std::size_t TSize, typename T, typename TIter>
 void writeLittle(T value, TIter& iter)
 {
     details::Writer<details::WriteHelper>::template write<traits::endian::Little, TSize>(value, iter);
 }
 
+/// @brief Write integral value into the output area using big
+///     endian notation.
+/// @param[in] value Integral type value to be written.
+/// @param[in, out] iter Output iterator.
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least sizeof(T) times.
+/// @post The iterator is advanced.
 template <typename T, typename TIter>
 void writeLittle(T value, TIter& iter)
 {
@@ -564,12 +608,28 @@ void writeLittle(T value, TIter& iter)
     writeLittle<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
 }
 
+/// @brief Read part of integral value from the input area using little
+///     endian notation.
+/// @tparam T Type to read.
+/// @tparam TSize Number of bytes to read.
+/// @param[in, out] iter Input iterator.
+/// @pre TSize <= sizeof(T).
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least TSize times.
+/// @post The iterator is advanced.
 template <typename T, std::size_t TSize, typename TIter>
 T readLittle(TIter& iter)
 {
     return details::Reader<details::ReadHelper>::template read<traits::endian::Little, T, TSize>(iter);
 }
 
+/// @brief Read integral value from the input area using little
+///     endian notation.
+/// @tparam T Type to read.
+/// @param[in, out] iter Input iterator.
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least sizeof(T) times.
+/// @post The iterator is advanced.
 template <typename T, typename TIter>
 T readLittle(TIter& iter)
 {
@@ -577,6 +637,7 @@ T readLittle(TIter& iter)
     return static_cast<T>(readLittle<ValueType, sizeof(ValueType)>(iter));
 }
 
+/// @brief Same as writeBig<T, TIter>()
 template <typename T, typename TIter>
 void writeData(
     T value,
@@ -587,6 +648,7 @@ void writeData(
     writeBig(value, iter);
 }
 
+/// @brief Same as writeBig<TSize, T, TIter>()
 template <std::size_t TSize, typename T, typename TIter>
 void writeData(
     T value,
@@ -597,6 +659,7 @@ void writeData(
     writeBig<TSize>(value, iter);
 }
 
+/// @brief Same as writeLittle<T, TIter>()
 template <typename T, typename TIter>
 void writeData(
     T value,
@@ -607,6 +670,7 @@ void writeData(
     writeLittle(value, iter);
 }
 
+/// @brief Same as writeLittle<TSize, T, TIter>()
 template <std::size_t TSize, typename T, typename TIter>
 void writeData(
     T value,
@@ -617,6 +681,7 @@ void writeData(
     return writeLittle<TSize>(value, iter);
 }
 
+/// @brief Same as readBig<T, TIter>()
 template <typename T, typename TIter>
 T readData(TIter& iter, const traits::endian::Big& endian)
 {
@@ -624,6 +689,7 @@ T readData(TIter& iter, const traits::endian::Big& endian)
     return readBig<T>(iter);
 }
 
+/// @brief Same as readBig<T, TSize, TIter>()
 template <typename T, std::size_t TSize, typename TIter>
 T readData(TIter& iter, const traits::endian::Big& endian)
 {
@@ -631,6 +697,7 @@ T readData(TIter& iter, const traits::endian::Big& endian)
     return readBig<T, TSize>(iter);
 }
 
+/// @brief Same as readLittle<T, TIter>()
 template <typename T, typename TIter>
 T readData(TIter& iter, const traits::endian::Little& endian)
 {
@@ -638,6 +705,7 @@ T readData(TIter& iter, const traits::endian::Little& endian)
     return readLittle<T>(iter);
 }
 
+/// @brief Same as readData<T, TSize, TIter>()
 template <typename T, std::size_t TSize, typename TIter>
 T readData(TIter& iter, const traits::endian::Little& endian)
 {

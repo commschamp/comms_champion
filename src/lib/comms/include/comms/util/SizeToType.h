@@ -85,17 +85,17 @@ struct SizeToTypeHelper<7>
 
 }  // namespace details
 
+/// @cond SKIP_DOC
+
 template <std::size_t TSize, bool TSigned = false>
 class SizeToType
 {
     typedef typename SizeToType<1, TSigned>::Type ByteType;
 
 public:
-    /// Generic type definition
     typedef std::array<ByteType, TSize> Type;
 };
 
-/// @cond DOCUCMENT_SIZE_TO_TYPE_SPECIALISATION
 template <std::size_t TSize>
 struct SizeToType<TSize, false>
 {

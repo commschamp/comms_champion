@@ -1835,6 +1835,7 @@ protected:
 
 }  // namespace details
 
+/// @cond SKIP_DOC
 
 /// @brief Template class for definition of the static queues or circular
 ///        buffers.
@@ -3181,6 +3182,8 @@ public:
         return ConstIterator(queue, iter);
     }
 };
+
+/// @endcond
 
 }  // namespace util
 

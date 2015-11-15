@@ -26,6 +26,7 @@ namespace comms
 namespace util
 {
 
+/// @cond SKIP_DOC
 template <std::size_t TSize>
 struct BitSizeToByteSize
 {
@@ -58,9 +59,7 @@ struct BitSizeToByteSize<64>
     static const std::size_t Value = sizeof(std::uint64_t);
 };
 
-
-
-
+/// @endcond
 
 }  // namespace util
 

@@ -1044,6 +1044,7 @@ public:
 
 /// @brief Lexicographically compares the values in the vector.
 /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
+/// @related StaticVector
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator<(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
@@ -1052,6 +1053,7 @@ bool operator<(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>&
 
 /// @brief Lexicographically compares the values in the vector.
 /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
+/// @related StaticVector
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator<=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
@@ -1060,6 +1062,7 @@ bool operator<=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>
 
 /// @brief Lexicographically compares the values in the vector.
 /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
+/// @related StaticVector
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator>(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
@@ -1068,6 +1071,7 @@ bool operator>(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>&
 
 /// @brief Lexicographically compares the values in the vector.
 /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
+/// @related StaticVector
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator>=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
@@ -1076,6 +1080,7 @@ bool operator>=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>
 
 /// @brief Lexicographically compares the values in the vector.
 /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
+/// @related StaticVector
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator==(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {
@@ -1086,6 +1091,7 @@ bool operator==(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>
 
 /// @brief Lexicographically compares the values in the vector.
 /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator_cmp">Reference</a>
+/// @related StaticVector
 template <typename T, std::size_t TSize1, std::size_t TSize2>
 bool operator!=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>& v2)
 {

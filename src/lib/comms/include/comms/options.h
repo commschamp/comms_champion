@@ -133,18 +133,83 @@ using NoFieldsImpl = FieldsImpl<std::tuple<> >;
 ///     initialisation, instead of usage of dynamic memory allocation.
 struct InPlaceAllocation {};
 
+/// @brief Option used to specify number of bytes that is used for field serialisation.
+/// @details Applicable only to numeric fields, such as comms::field::IntValue or
+///     comms::field::EnumValue.
+///
+///     For example, protocol specifies that some field is serialised using
+///     only 3 bytes. There is no basic integral type that takes 3 bytes
+///     of space exactly. The closest alternative is std::int32_t or
+///     std::uint32_t. Such field may be defined as:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::IntValue<
+///             MyFieldBase,
+///             std::uint32_t,
+///             comms::option::FixedLength<3>
+///         >;
+///     @endcode
+/// @tparam TLen Length of the serialised value.
 template<std::size_t TLen>
 struct FixedLength
 {
     static const std::size_t Value = TLen;
 };
 
+/// @brief Option used to specify number of bits that is used for field serialisation
+///     when a field is a member of comms::field::Bitfield.
+/// @details For example, the protocol specifies that two independent integer
+///     values of 6 and 10 bits respectively packed into two bytes to save space.
+///     Such combined field may be defined as:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::Bitfield<
+///             MyFieldBase,
+///             std::tuple<
+///                 comms::field::IntValue<
+///                     MyFieldBase,
+///                     std::uint8_t,
+///                     comms::option::FixedBitLength<6>
+///                 >,
+///                 comms::field::IntValue<
+///                     MyFieldBase,
+///                     std::uint16_t,
+///                     comms::option::FixedBitLength<10>
+///                 >
+///             >
+///         >;
+///     @endcode
+/// @tparam TLen Length of the serialised value in bits.
 template<std::size_t TLen>
 struct FixedBitLength
 {
     static const std::size_t Value = TLen;
 };
 
+/// @brief Option used to specify that field may have variable serialisation length
+/// @details Applicable only to numeric fields, such as comms::field::IntValue
+///     or comms::field::EnumValue.
+///     Use this option to specify that serialised value has
+///     <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">Base-128</a>
+///     encoding, i.e. the most significant bit in the byte indicates whether
+///     the encoding of the value is complete or the next byte in
+///     sequence still encodes the current integer value. For example field
+///     which value can be serialised using between 1 and 4 bytes can be
+///     defined as:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::IntValue<
+///             MyFieldBase,
+///             std::uint32_t,
+///             comms::option::VarLength<1, 4>
+///         >;
+///         @endcode
+/// @tparam TMin Minimal length the field may consume.
+/// @tparam TMax Maximal length the field may consume.
+/// @pre TMin <= TMax
 template<std::size_t TMin, std::size_t TMax>
 struct VarLength
 {
@@ -153,7 +218,32 @@ struct VarLength
     static const std::size_t MaxValue = TMax;
 };
 
-
+/// @brief Option to specify numeric value serialisation offset.
+/// @details Applicable only to numeric fields such as comms::field::IntValue or
+///     comms::field::EnumValue.
+///     The provided value will be added to the field's value and the
+///     result will be written to the buffer when serialising. Good example
+///     for such option would be serialising a "current year" value. Most protocols
+///     now specify it as an offset from year 2000 or later and written as a
+///     single byte, i.e. to specify year 2015 is to write value 15.
+///     However it may be inconvenient to manually adjust serialised/deserialised
+///     value by predefined offset 2000. To help with such case option
+///     comms::option:: NumValueSerOffset can be used. For example:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::IntValue<
+///             MyFieldBase,
+///             std::uint16_t,
+///             comms::option::FixedLength<1>,
+///             comms::option::NumValueSerOffset<-2000>
+///         >;
+///     @endcode
+///     Note that in the example above the field value (accessible by value() member
+///     function of the field) will have type std::uint16_t and will be equal to
+///     say 2015, while when serialised it consumes only 1 byte (thanks to
+///     comms::option::FixedLength option) and reduced value of 15 is written.
+/// @tparam TOffset Offset value to be added when serialising field.
 template<std::intmax_t TOffset>
 struct NumValueSerOffset
 {
@@ -166,6 +256,33 @@ struct FixedSizeStorage
     static const std::size_t Value = TSize;
 };
 
+/// @brief Option to specify scaling ratio.
+/// @details Applicable only to comms::field::IntValue.
+///     Sometimes the protocol specifies values being transmitted in
+///     one units while when handling the message they are better to be handled
+///     in another. For example, some distance information is transmitted as
+///     integer value of millimetres, but while processing it should be handled as floating
+///     point value of meters. Such field is defined as:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::IntValue<
+///             MyFieldBase,
+///             std::int32_t,
+///             comms::option::ScalingRatio<1, 100>
+///         >;
+///     @endcode
+///     Then, to accessed the scaled value of the field use scaleAs() or
+///     setScaled() methods of comms::field::IntValue field:
+///     @code
+///     void processField(const MyField& field)
+///     {
+///         auto distInMillimetres = field.value();
+///         auto distInMeters = field.scaleAs<double>();
+///     }
+///     @endcode
+/// @tparam TNum Numerator of the scaling ratio.
+/// @tparam TDenom Denominator of the scaling ratio.
 template <std::intmax_t TNum, std::intmax_t TDenom>
 struct ScalingRatio
 {
@@ -194,20 +311,106 @@ struct SequenceFixedSize
     static const std::size_t Value = TSize;
 };
 
+/// @brief Option that specifies default initialisation class.
+/// @details Use this option when default constructor of the field must assign
+///     some special value. The initialiser class provided as template argument
+///     must define the following member function:
+///     @code
+///     struct MyInitialiser
+///     {
+///         template <typename TField>
+///         void operator()(TField& field) {...}
+///     };
+///     @endcode
+///     For example, we want string field that will have "hello" as its default
+///     value. The provided initialiser class with the option will be instantiated
+///     and its operator() is invoked which is responsible to assign proper
+///     value to the field.
+///     @code
+///     struct MyStringInitialiser
+///     {
+///         template <typename TField>
+///         void operator()(TField& field) const
+///         {
+///             field.value() = hello;
+///         }
+///     };
+///
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::String<
+///             MyFieldBase,
+///             comms::option::DefaultValueInitialiser<MyStringInitialiser>
+///         >;
+///     @endcode
+/// @tparam T Type of the initialiser class.
 template <typename T>
 struct DefaultValueInitialiser
 {
     typedef T Type;
 };
 
+/// @brief Option that specifies custom validation class.
+/// @details By default, value of every field is considered to be valid
+///     (valid() member function of the field returns true). If there is a need
+///     to validate the value of the function. Use this option to define
+///     custom validation logic for the field. The validation class provided as
+///     a template argument to this option must define the following member function:
+///     @code
+///     struct MyValidator
+///     {
+///         template <typename TField>
+///         bool operator()(const TField& field) {...}
+///     };
+///     @endcode
+///     For example, value of the string field considered to be valid if it's
+///     not empty and starts with '$' character.
+///     The provided validator class with the option will be instantiated
+///     and its operator() will be invoked.
+///     @code
+///     struct MyStringValidator
+///     {
+///         template <typename TField>
+///         bool operator()(TField& field) const
+///         {
+///             auto& str = field.value();
+///             return (!str.empty()) && (str[0] == '$');
+///         }
+///     };
+///
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::String<
+///             MyFieldBase,
+///             comms::option::ContentsValidator<MyStringValidator>
+///         >;
+///     @endcode
+///     Note that in the example above the default constructed MyField will
+///     have invalid value. To fix that you must also use
+///     comms::option::DefaultValueInitialiser option to specify proper default
+///     value.
+/// @tparam T Type of the initialiser class.
 template <typename T>
 struct ContentsValidator
 {
     typedef T Type;
 };
 
+/// @brief Option that forces field's read operation to fail if invalid value
+///     is received.
+/// @details Sometimes protocol is very strict about what field's values are
+///     allowed and forces to abandon a message if invalid value is received.
+///     If comms::option::FailOnInvalid is provided as an option to a field,
+///     the validity is going to checked automatically after the read. If invalid
+///     value is identified, error will be returned from the read() operation.
 struct FailOnInvalid {};
 
+/// @brief Option that forces field's read operation to ignore read data if invalid value
+///     is received.
+/// @details If this option is provided to the field, the read operation will
+///     check the validity of the read value. If it is identified as invalid,
+///     the read value is not assigned to the field, i.e. the field's value
+///     remains unchanged, although no error is reported.
 struct IgnoreInvalid {};
 
 namespace details
@@ -300,9 +503,21 @@ struct BitmaskReservedBitsValidator
 
 }  // namespace details
 
+/// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
+///     assigns numeric value provided as the template argument to this option.
+/// @tparam TVal Numeric value is to be assigned to the field in default constructor.
 template<std::intmax_t TVal>
 using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitialiser<TVal> >;
 
+/// @brief Alias to ContentsValidator, it defines validator class that checks
+///     that the field's value is between two numeric values provided template
+///     parameters to this option.
+/// @details Quite often numeric fields such as comms::field::IntValue or
+///     comms::option::EnumValue have a single valid values range. This alias
+///     to comms::option::ContentsValidator provides an easy way to specify
+///     such range.
+/// @tparam TMinValue Minimal valid numeric value
+/// @tparam TMaxValue Maximal valid numeric value
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
 using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMinValue, TMaxValue> >;
 

@@ -521,6 +521,16 @@ using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitiali
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
 using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMinValue, TMaxValue> >;
 
+/// @brief Alias to ContentsValidator, it defines validator class that checks
+///     that reserved bits of the field have expected values.
+/// @details It is usually used with comms::field::BitmaskValue field to
+///     specify values of the unused/reserved bits.
+///     The custom validator will return true if
+///     @code
+///     (field.value() & TMask) == TValue
+///     @endcode
+/// @tparam TMask Mask that specifies reserved bits.
+/// @tparam TValue Expected value of the reserved bits
 template<std::uintmax_t TMask, std::uintmax_t TValue>
 using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValidator<TMask, TValue> >;
 

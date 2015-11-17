@@ -40,7 +40,7 @@ namespace field
 ///     comms::Field.
 /// @tparam TEnum Enderlying enum type, can be either unscoped or scoped (enum class).
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
-///     of the field. If no option is provided The field's value is serialised as is,
+///     of the field. If no option is provided, the field's value is serialised as is,
 ///     where the length of the field is equal to the length of the underlying
 ///     enum type. For example:
 ///     @code

@@ -31,9 +31,41 @@ namespace comms
 namespace field
 {
 
-/// @addtogroup comms
-/// @{
-
+/// @brief Enumerator value field.
+/// @details Sometimes dealing with enum values is much more convenient that
+///     using integral values. comms::field::EnumValue is very similar to
+///     comms::field::IntValue, but receives underlying enum type in its
+///     template parameters instead of integral one.
+/// @tparam TFieldBase Base class for this field, expected to be a variant of
+///     comms::Field.
+/// @tparam TEnum Enderlying enum type, can be either unscoped or scoped (enum class).
+/// @tparam TOptions Zero or more options that modify/refine default behaviour
+///     of the field. If no option is provided The field's value is serialised as is,
+///     where the length of the field is equal to the length of the underlying
+///     enum type. For example:
+///     @code
+///         enum class MyEnum : std::uint16_t
+///         {
+///             Value1,
+///             Value2,
+///             Value3
+///         }
+///         using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///         using MyField =comms::field::EnumValue<MyFieldBase, MyEnum>;
+///     @endcode
+///     The serialised value of the field in the example above will consume
+///     2 bytes, because the underlying type of MyEnum is
+///     defined to be std::uint16_t. The value is serialised using big endian
+///     notation because base field class receives comms::option::BigEndian option.
+///     Supported options are:
+///     @li comms::option::FixedLength
+///     @li comms::option::FixedBitLength
+///     @li comms::option::VarLength
+///     @li comms::option::NumValueSerOffset
+///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
+///     @li comms::option::ContentsValidator or comms::option::ValidNumValueRange.
+///     @li comms::option::FailOnInvalid
+///     @li comms::option::IgnoreInvalid
 template <typename TFieldBase, typename TEnum, typename... TOptions>
 class EnumValue : public TFieldBase
 {
@@ -45,12 +77,15 @@ class EnumValue : public TFieldBase
 
 public:
 
+    /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Type of underlying enum value.
+    /// @details Same as template parameter TEnum to this class.
     typedef typename ThisField::ValueType ValueType;
 
 
     /// @brief Default constructor.
-    /// @brief Initial value is equal to LimitValue
     EnumValue() = default;
 
     /// @brief Constructor
@@ -59,58 +94,68 @@ public:
     {
     }
 
-    explicit EnumValue(ValueType&& value)
-      : field_(std::move(value))
-    {
-    }
-
-    /// @brief Copy constructor is default
+    /// @brief Copy constructor
     EnumValue(const EnumValue&) = default;
 
-    /// @brief Destructor is default
+    /// @brief Destructor
     ~EnumValue() = default;
 
-    /// @brief Copy assignment is default
+    /// @brief Copy assignment
     EnumValue& operator=(const EnumValue&) = default;
 
+    /// @brief Get access to enum value storage.
     const ValueType& value() const
     {
         return field_.value();
     }
 
+    /// @brief Get access to enum value storage.
     ValueType& value()
     {
         return field_.value();
     }
 
-    /// @copydoc ComplexIntValue::length()
+    /// @brief Get length required to serialise the current field value.
     constexpr std::size_t length() const
     {
         return field_.length();
     }
 
+    /// @brief Get minimal length that is required to serialise field of this type.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
+    /// @brief Get maximal length that is required to serialise field of this type.
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
     }
 
+    /// @brief Read field value from input data sequence
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] size Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
         return field_.read(iter, size);
     }
 
+    /// @brief Write current field value to output data sequence
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] size Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return field_.write(iter, size);
     }
 
+    /// @brief Check validity of the field value.
     bool valid() const
     {
         return field_.valid();
@@ -170,14 +215,16 @@ struct IsEnumValue<comms::field::EnumValue<TArgs...> >
 
 }  // namespace details
 
+/// @brief Compile time check function of whether a provided type is any
+///     variant of comms::field::EnumValue.
+/// @tparam T Any type.
+/// @related comms::field::EnumValue
 template <typename T>
 constexpr bool isEnumValue()
 {
     return details::IsEnumValue<T>::Value;
 }
 
-
-/// @}
 
 }  // namespace field
 

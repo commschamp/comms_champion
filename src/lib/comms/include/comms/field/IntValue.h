@@ -240,6 +240,10 @@ struct IsIntValue<comms::field::IntValue<TArgs...> >
 
 }  // namespace details
 
+/// @brief Compile time check function of whether a provided type is any
+///     variant of comms::field::IntValue.
+/// @tparam T Any type.
+/// @related comms::field::IntValue
 template <typename T>
 constexpr bool isIntValue()
 {

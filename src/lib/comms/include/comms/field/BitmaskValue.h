@@ -15,10 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file comms/field/BitmaskValue.h
-/// This file contains definition of bitmask value field that
-/// can be used in message definition.
-
 #pragma once
 
 #include <limits>

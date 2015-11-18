@@ -24,13 +24,29 @@
 #include "basic/Bundle.h"
 #include "details/AdaptBasicField.h"
 
-
 namespace comms
 {
 
 namespace field
 {
 
+/// @brief Bundles multiple fields into a single field.
+/// @details The class wraps nicely multiple fields and provides
+///     expected single field API functions, such as length(), read(), write(),
+///     valid(). It may be useful when a collection (comms::field::ArrayList) of
+///     complex fields is required.
+/// @tparam TMembers All wrapped fields bundled together in
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
+/// @tparam TOptions Zero or more options that modify/refine default behaviour
+///     of the field.
+///     Supported options are:
+///     @li comms::option::ContentsValidator - All wrapped fields may specify
+///         their independent validators. The bundle field considered to
+///         be valid if all the wrapped fields are valid. This option though,
+///         provides an ability to add extra validation logic that can
+///         observe value of more than one wrapped fields. For example,
+///         protocol specifies that if one specific field has value X, than
+///         other field is NOT allowed to have value Y.
 template <typename TMembers, typename... TOptions>
 class Bundle
 {
@@ -45,59 +61,87 @@ class Bundle
     typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
 
 public:
+    /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Value type.
+    /// @details Same as TMemebers template argument, i.e. it is std::tuple
+    ///     of all the wrapped fields.
     typedef typename ThisField::ValueType ValueType;
 
+    /// @brief Default constructor
+    /// @details Invokes default constructor of every wrapped field
     Bundle() = default;
 
+    /// @brief Constructor
     explicit Bundle(const ValueType& value)
       : field_(value)
     {
     }
 
+    /// @brief Constructor
     explicit Bundle(ValueType&& value)
       : field_(std::move(value))
     {
     }
 
-
+    /// @brief Get access to the stored tuple of fields.
     ValueType& value()
     {
         return field_.value();
     }
 
+    /// @brief Get access to the stored tuple of fields.
     const ValueType& value() const
     {
         return field_.value();
     }
 
+    /// @brief Get length required to serialise bundled fields.
+    /// @details Summarises all the results returned by the call to length() for
+    ///     every field in the bundle.
     constexpr std::size_t length() const
     {
         return field_.length();
     }
 
+    /// @brief Get minimal length that is required to serialise all bundled fields.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
+    /// @brief Get maximal length that is required to serialise all bundled fields.
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
     }
 
+    /// @brief Read field value from input data sequence
+    /// @details Invokes read() member function over every bundled field.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] size Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
         return field_.read(iter, size);
     }
 
+    /// @brief Write current field value to output data sequence
+    /// @details Invokes write() member function over every bundled field.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] size Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return field_.write(iter, size);
     }
 
+    /// @brief Check validity of all the bundled fields.
     constexpr bool valid() const {
         return field_.valid();
     }
@@ -143,6 +187,10 @@ struct IsBundle<comms::field::Bundle<TArgs...> >
 
 }  // namespace details
 
+/// @brief Compile time check function of whether a provided type is any
+///     variant of comms::field::Bundle.
+/// @tparam T Any type.
+/// @related comms::field::Bundle
 template <typename T>
 constexpr bool isBundle()
 {

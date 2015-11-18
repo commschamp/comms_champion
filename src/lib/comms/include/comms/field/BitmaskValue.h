@@ -111,9 +111,9 @@ public:
     /// @brief All the options provided to this class bundled into struct.
     typedef OptionsBundle ParsedOptions;
 
-    /// @brief Type of underlying enum value.
-    /// @details Unsigned intergral type, which depends on the length of the
-    ///     mask determinted by the comms::option::FixedLength option.
+    /// @brief Type of underlying integral value.
+    /// @details Unsigned integral type, which depends on the length of the
+    ///     mask determined by the comms::option::FixedLength option.
     typedef typename IntValueField::ValueType ValueType;
 
     /// @brief Default constructor.

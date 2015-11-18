@@ -77,7 +77,7 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.
 ///     Supported options are:
-///     @li comms::option::ContentsValidator - All fiend members may specify
+///     @li comms::option::ContentsValidator - All field members may specify
 ///         their independent validators. The bitfield field considered to
 ///         be valid if all the field members are valid. This option though,
 ///         provides an ability to add extra validation logic that can

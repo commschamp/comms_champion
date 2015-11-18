@@ -34,7 +34,7 @@ namespace comms
 namespace field
 {
 
-/// @brief Integer value field.
+/// @brief Field that represent integral value.
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
 /// @tparam T Basic underlying integral type.

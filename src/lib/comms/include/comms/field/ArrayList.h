@@ -58,6 +58,47 @@ using ArrayListStorageTypeT =
 
 }  // namespace details
 
+/// @brief Field that represents a sequential collection of fields.
+/// @details By default uses
+///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>,
+///     for internal storage, unless comms::option::FixedSizeStorage option is used,
+///     which forces usage of comms::util::StaticVector instead.
+/// @tparam TFieldBase Base class for this field, expected to be a variant of
+///     comms::Field.
+/// @tparam TElement Element of the collection, can be either basic integral value
+///     (such as std::uint8_t) or any other field from comms::field namespace.@n
+///     For example:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using RawDataSeqField =
+///         comms::field::ArrayList<
+///             MyFieldBase,
+///             std::uint8_t
+///         >;
+///     using CollectionOfBundlesField =
+///         comms::field::ArrayList<
+///             MyFieldBase,
+///             std::field::Bundle<
+///                 std::tuple<
+///                     comms::field::IntValue<MyFieldBase, std::uint16_t>
+///                     comms::field::IntValue<MyFieldBase, std::uint8_t>
+///                     comms::field::IntValue<MyFieldBase, std::uint8_t>
+///                 >
+///             >
+///         >;
+///     @endcode
+/// @tparam TOptions Zero or more options that modify/refine default behaviour
+///     of the field.@n
+///     Supported options are:
+///     @li comms::option::FixedSizeStorage
+///     @li comms::option::SequenceSizeFieldPrefix
+///     @li comms::option::SequenceTrailingFieldSuffix
+///     @li comms::option::SequenceSizeForcingEnabled
+///     @li comms::option::SequenceFixedSize
+///     @li comms::option::DefaultValueInitialiser
+///     @li comms::option::ContentsValidator
+///     @li comms::option::FailOnInvalid
+///     @li comms::option::IgnoreInvalid
 template <typename TFieldBase, typename TElement, typename... TOptions>
 class ArrayList : public TFieldBase
 {
@@ -69,42 +110,54 @@ class ArrayList : public TFieldBase
     typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
 
 public:
+
+    /// @brief All the options provided to this class bundled into struct.
     typedef ParsedOptionsInternal ParsedOptions;
-    typedef StorageTypeInternal StorageType;
-    typedef StorageType ValueType;
+
+    /// @brief Type of underlying value.
+    /// @details If comms::option::FixedSizeStorage option is NOT used, the
+    ///     ValueType is std::vector<TElement>, otherwise it becomes
+    ///     comms::util::StaticVector<TElement, TSize>, where TSize is a size
+    ///     provided to comms::option::FixedSizeStorage option.
+    typedef StorageTypeInternal ValueType;
 
     /// @brief Default constructor
-    /// @details Sets default value to be 0.
     ArrayList() = default;
 
+    /// @brief Value constructor
     explicit ArrayList(const ValueType& value)
       : field_(value)
     {
     }
 
+    /// @brief Value constructor
     explicit ArrayList(ValueType&& value)
       : field_(std::move(value))
     {
     }
 
-    /// @brief Copy constructor is default
+    /// @brief Copy constructor
     ArrayList(const ArrayList&) = default;
 
+    /// @brief Move constructor
     ArrayList(ArrayList&&) = default;
 
-    /// @brief Destructor is default
+    /// @brief Destructor
     ~ArrayList() = default;
 
-    /// @brief Copy assignment is default
+    /// @brief Copy assignment
     ArrayList& operator=(const ArrayList&) = default;
 
+    /// @brief Move assignment
     ArrayList& operator=(ArrayList&&) = default;
 
+    /// @brief Get access to the value storage.
     ValueType& value()
     {
         return field_.value();
     }
 
+    /// @brief Get access to the value storage.
     const ValueType& value() const
     {
         return field_.value();
@@ -116,38 +169,73 @@ public:
         return field_.length();
     }
 
+    /// @brief Read field value from input data sequence
+    /// @details By default, the read operation will try to consume all the
+    ///     data available, unless size limiting option (such as
+    ///     comms::option::SequenceSizeFieldPrefix, comms::option::SequenceFixedSize,
+    ///     comms::option::SequenceSizeForcingEnabled) is used.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] len Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         return field_.read(iter, len);
     }
 
+    /// @brief Write current field value to output data sequence
+    /// @details By default, the write operation will write all the
+    ///     elements it contains. If comms::option::SequenceFixedSize option
+    ///     is used, the number of elements, that is going to be written, is
+    ///     exactly as the option specifies. If underlying vector storage
+    ///     doesn't contain enough data, the default constructed elements will
+    ///     be appended to the written sequence until the required amount of
+    ///     elements is reached.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] len Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         return field_.write(iter, len);
     }
 
+    /// @brief Check validity of the field value.
+    /// @details The collection is valid if all the elements are valid. In case
+    ///     comms::option::ContentsValidator option is used, the validator,
+    ///     it provides, is invoked IN ADDITION to the validation of the elements.
     bool valid() const
     {
         return field_.valid();
     }
 
+    /// @brief Get minimal length that is required to serialise field of this type.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
+    /// @brief Get maximal length that is required to serialise field of this type.
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
     }
 
+    /// @brief Force number of elements that must be read in the next read()
+    ///     invocation.
+    /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
+    ///     used this function has no effect.
     void forceReadElemCount(std::size_t count)
     {
         field_.forceReadElemCount(count);
     }
 
+    /// @brief Clear forcing of the number of elements that must be read in the next read()
+    ///     invocation.
+    /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
+    ///     used this function has no effect.
     void clearReadElemCount()
     {
         field_.clearReadElemCount();
@@ -158,7 +246,7 @@ private:
 };
 
 /// @brief Equivalence comparison operator.
-/// @related ComplexIntValue
+/// @related ArrayList
 template <typename... TArgs>
 bool operator<(
     const ArrayList<TArgs...>& field1,
@@ -170,7 +258,7 @@ bool operator<(
 }
 
 /// @brief Non-equality comparison operator.
-/// @related ComplexIntValue
+/// @related ArrayList
 template <typename... TArgs>
 bool operator!=(
     const ArrayList<TArgs...>& field1,
@@ -180,7 +268,7 @@ bool operator!=(
 }
 
 /// @brief Equality comparison operator.
-/// @related ComplexIntValue
+/// @related ArrayList
 template <typename... TArgs>
 bool operator==(
     const ArrayList<TArgs...>& field1,
@@ -206,6 +294,10 @@ struct IsArrayList<comms::field::ArrayList<TArgs...> >
 
 }  // namespace details
 
+/// @brief Compile time check function of whether a provided type is any
+///     variant of comms::field::ArrayList.
+/// @tparam T Any type.
+/// @related comms::field::ArrayList
 template <typename T>
 constexpr bool isArrayList()
 {

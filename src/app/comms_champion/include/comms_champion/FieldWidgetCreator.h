@@ -311,7 +311,7 @@ private:
     static FieldWidgetPtr createWidgetInternal(TField& field, ArrayListTag)
     {
         typedef typename std::decay<decltype(field)>::type FieldType;
-        typedef typename FieldType::StorageType::value_type ElementType;
+        typedef typename FieldType::ValueType::value_type ElementType;
         typedef typename std::conditional<
             std::is_integral<ElementType>::value,
             RawDataArrayListTag,

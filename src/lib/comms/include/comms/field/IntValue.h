@@ -46,7 +46,7 @@ namespace field
 ///     @endcode
 ///     In the example above it will
 ///     consume 2 bytes (because sizeof(std::uint16_t) == 2) and will
-///     be serialised using big endian notation.
+///     be serialised using big endian notation.@n
 ///     Supported options are:
 ///     @li comms::option::FixedLength
 ///     @li comms::option::FixedBitLength

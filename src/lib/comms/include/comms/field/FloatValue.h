@@ -45,7 +45,7 @@ namespace field
 ///     @endcode
 ///     In the example above it will
 ///     consume 4 bytes (because sizeof(float) == 4) and will
-///     be serialised using big endian notation.
+///     be serialised using big endian notation.@n
 ///     Supported options are:
 ///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
 ///     @li comms::option::ContentsValidator or comms::option::ValidNumValueRange.

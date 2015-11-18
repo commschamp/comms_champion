@@ -56,7 +56,7 @@ namespace field
 ///     The serialised value of the field in the example above will consume
 ///     2 bytes, because the underlying type of MyEnum is
 ///     defined to be std::uint16_t. The value is serialised using big endian
-///     notation because base field class receives comms::option::BigEndian option.
+///     notation because base field class receives comms::option::BigEndian option.@n
 ///     Supported options are:
 ///     @li comms::option::FixedLength
 ///     @li comms::option::FixedBitLength

@@ -38,7 +38,7 @@ namespace field
 /// @tparam TMembers All wrapped fields bundled together in
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
-///     of the field.
+///     of the field.@n
 ///     Supported options are:
 ///     @li comms::option::ContentsValidator - All wrapped fields may specify
 ///         their independent validators. The bundle field considered to

@@ -75,7 +75,7 @@ namespace field
 /// @tparam TMembers All member fields bundled together in
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
-///     of the field.
+///     of the field.@n
 ///     Supported options are:
 ///     @li comms::option::ContentsValidator - All field members may specify
 ///         their independent validators. The bitfield field considered to

@@ -250,6 +250,16 @@ struct NumValueSerOffset
     static const auto Value = TOffset;
 };
 
+/// @brief Option that forces usage of embedded uninitialised data are instead of
+///     dynamic memory allocation.
+/// @details Applicable to fields that represent collection of raw data or other
+///     fields, such as comms::field::ArrayList or comms::field::String. By
+///     default, these fields will use
+///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> or
+///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
+///     for their internad data storage. If this option is used, it will force
+///     such fields to use comms::util::StaticVector or comms::util::StaticString
+///     with the capacity provided by this option.
 template <std::size_t TSize>
 struct FixedSizeStorage
 {
@@ -289,22 +299,70 @@ struct ScalingRatio
     typedef std::ratio<TNum, TDenom> Type;
 };
 
+/// @brief Option that modify the default behaviour of collection fields to
+///     prepend the serialised data with number of elements information.
+/// @details Quite often when collection of fields is serialised it must be
+///     prepended with one or more bytes indicating number of elements that will
+///     follow.
+///     Applicable to fields that represent collection of raw data or other
+///     fields, such as comms::field::ArrayList or comms::field::String.@n
+///     For example sequence of raw bytes must be prefixed with 2 bytes stating
+///     the size of the sequence:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::ArrayList<
+///             MyFieldBase,
+///             std::uint8_t,
+///             comms::option::SequenceSizeFieldPrefix<
+///                 comms::field::IntValue<MyFieldBase, std::uint16_t>
+///             >
+///         >;
+///     @endcode
+/// @tparam TField Type of the field that represents size
 template <typename TField>
 struct SequenceSizeFieldPrefix
 {
     typedef TField Type;
 };
 
+/// @brief Option that forces collection fields to append provides suffix every
+///     type it is serialised.
+/// @details Sometimes protocols use zero-termination for strings instead of
+///     prefixing them with their size. Below is an example of how to achieve
+///     such termination using SequenceTrailingFieldSuffix option.
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::String<
+///             MyFieldBase,
+///             comms::option::SequenceTrailingFieldSuffix<
+///                 comms::field::IntValue<MyFieldBase, char, comms::option::DefaultNumValue<0> >
+///             >
+///         >;
+///     @endcode
+/// @tparam TField Type of the field that represents suffix
 template <typename TField>
 struct SequenceTrailingFieldSuffix
 {
     typedef TField Type;
 };
 
+/// @brief Option to enable external forcing of the collection's field size.
+/// @details Sometimes the size information is detached from the data sequence
+///     itself, i.e. there may be one or more independent fields between the
+///     size field and the first byte of the collection. Usage of this function
+///     enables forceReadElemCount() and clearReadElemCount() functions in
+///     the collection fields, such as comms::field::ArrayList or comms::field::String.
 struct SequenceSizeForcingEnabled
 {
 };
 
+/// @brief Option used to define exact number of elements in the collection field.
+/// @details Protocol specification may define that there is exact number of
+///     elements in the sequence. Use SequenceFixedSize option to convey
+///     this information to the field definition, which will force read() and
+///     write() member functions of the collection field to behave as expected.
 template <std::size_t TSize>
 struct SequenceFixedSize
 {

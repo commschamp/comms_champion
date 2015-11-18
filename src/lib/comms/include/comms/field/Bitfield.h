@@ -30,6 +30,63 @@ namespace comms
 namespace field
 {
 
+/// @brief Bitfield field.
+/// @details Sometimes one or several bytes can be logically split into two
+///     or more independent values, which are packed together to save some
+///     space. For example, one enum type that has only 4 possible values, i.e
+///     only two bits are needed to encode such value. It would be a waste to
+///     allocate full byte for it. Instead, it is packed with some other, say
+///     unsigned counter that requires up to 6 bits to encode its valid
+///     range of values. The following code defines such field:
+///     @code
+///         enum class MyEnumType : std::uint8_t
+///         {
+///             Value1,
+///             Value2,
+///             Value3,
+///             Value4
+///         };
+///
+///         using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///         using MyField =
+///             comms::field::Bitfield<
+///                 MyFieldBase,
+///                 std::tuple<
+///                     comms::field::EnumValue<
+///                         MyFieldBase,
+///                         MyEnumType,
+///                         comms::option::FixedBitLength<2>
+///                     >,
+///                     comms::field::IntValue<
+///                         MyFieldBase,
+///                         std::uint8_t,
+///                         comms::option::FixedBitLength<6>
+///                     >
+///                 >
+///             >;
+///     @endcode
+///     Note, that bitfield members fields specify their length in bits using
+///     comms::option::FixedBitLength option.
+///     Also note, that all bifield member's lengths in bits combined create
+///     a round number of bytes, i.e all the bits must sum up to 8, 16, 24, 32, ...
+///     bits.
+/// @tparam TFieldBase Base class for this field, expected to be a variant of
+///     comms::Field.
+/// @tparam TMembers All member fields bundled together in
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
+/// @tparam TOptions Zero or more options that modify/refine default behaviour
+///     of the field.
+///     Supported options are:
+///     @li comms::option::ContentsValidator - All fiend members may specify
+///         their independent validators. The bitfield field considered to
+///         be valid if all the field members are valid. This option though,
+///         provides an ability to add extra validation logic that can
+///         observe value of more than one bitfield member. For example,
+///         protocol specifies that if one specific member has value X, than
+///         other member is NOT allowed to have value Y.
+/// @pre TMember is a variant of std::tuple, that contains other fields.
+/// @pre Every field member specifies its length in bits using
+///     comms::option::FixedBitLength option.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bitfield : public TFieldBase
 {
@@ -42,31 +99,46 @@ class Bitfield : public TFieldBase
         "ThisField is expected to be of BundleCategory");
 
 public:
+    /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Value type.
+    /// @details Same as TMemebers template argument, i.e. it is std::tuple
+    ///     of all the member fields.
     typedef typename ThisField::ValueType ValueType;
 
+    /// @brief Default constructor
+    /// @details All field members are initialised using their default constructors.
     Bitfield() = default;
+
+    /// @brief Constructor
     explicit Bitfield(const ValueType& value)
       : field_(value)
     {
     }
 
+    /// @brief Constructor
     explicit Bitfield(ValueType&& value)
       : field_(std::move(value))
     {
     }
 
+    /// @brief Get access to the stored tuple of fields.
     const ValueType& value() const
     {
         return field_.value();
     }
 
+    /// @brief Get access to the stored tuple of fields.
     ValueType& value()
     {
         return field_.value();
     }
 
-
+    /// @brief Retrieve number of bits specified member field consumes.
+    /// @tparam TIdx Index of the member field.
+    /// @return Number of bits, specified with comms::option::FixedBitLength option
+    ///     used with the requested member.
     template <std::size_t TIdx>
     static constexpr std::size_t memberBitLength()
     {
@@ -79,33 +151,47 @@ public:
         return FieldOptions::FixedBitLength;
     }
 
+    /// @brief Get length required to serialise the current field value.
     constexpr std::size_t length() const
     {
         return field_.length();
     }
 
+    /// @brief Get minimal length that is required to serialise field of this type.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
+    /// @brief Get maximal length that is required to serialise field of this type.
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
     }
 
+    /// @brief Read field value from input data sequence
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] size Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
         return field_.read(iter, size);
     }
 
+    /// @brief Write current field value to output data sequence
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] size Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return field_.write(iter, size);
     }
 
+    /// @brief Check validity of the field value.
     constexpr bool valid() const {
         return field_.valid();
     }
@@ -162,6 +248,10 @@ struct IsBitfield<comms::field::Bitfield<TArgs...> >
 
 }  // namespace details
 
+/// @brief Compile time check function of whether a provided type is any
+///     variant of comms::field::Bitfield.
+/// @tparam T Any type.
+/// @related comms::field::Bitfield
 template <typename T>
 constexpr bool isBitfield()
 {

@@ -298,6 +298,10 @@ struct IsBitmaskValue<comms::field::BitmaskValue<TArgs...> >
 
 }  // namespace details
 
+/// @brief Compile time check function of whether a provided type is any
+///     variant of comms::field::BitmaskValue.
+/// @tparam T Any type.
+/// @related comms::field::BitmaskValue
 template <typename T>
 constexpr bool isBitmaskValue()
 {

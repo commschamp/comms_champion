@@ -29,13 +29,14 @@ namespace comms
 namespace util
 {
 
-/// @brief Check whether provided type is a variant of std::tuple.
+/// @brief Check whether provided type is a variant of
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
 /// @tparam TType Type to check.
 template <typename TType>
 struct IsTuple
 {
     /// @brief By default Value has value false. Will be true for any
-    /// variant of std::tuple.
+    /// variant of <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
     static const bool Value = false;
 };
 
@@ -96,7 +97,8 @@ struct TupleAsAlignedUnion
     static_assert(IsTuple<TTuple>::Value, "TTuple must be std::tuple");
     /// @endcond
 
-    /// @brief Type definition is invalid for any type that is not std::tuple,
+    /// @brief Type definition is invalid for any type that is not
+    ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>,
     ///     will be specialised to proper value.
     typedef void Type;
 };

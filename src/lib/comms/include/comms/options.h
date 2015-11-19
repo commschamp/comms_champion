@@ -76,10 +76,10 @@ struct WriteIterator
     typedef TIter Type;
 };
 
-/// @brief Option used to add valid() function into Message interface.
+/// @brief Option used to add @b valid() function into Message interface.
 struct ValidCheckInterface {};
 
-/// @brief Option used to add length() function into Message interface.
+/// @brief Option used to add @b length() function into Message interface.
 struct LengthInfoInterface {};
 
 /// @brief Option used to specify type of the message handler.
@@ -239,7 +239,7 @@ struct VarLength
 ///             comms::option::NumValueSerOffset<-2000>
 ///         >;
 ///     @endcode
-///     Note that in the example above the field value (accessible by value() member
+///     Note that in the example above the field value (accessible by @b value() member
 ///     function of the field) will have type std::uint16_t and will be equal to
 ///     say 2015, while when serialised it consumes only 1 byte (thanks to
 ///     comms::option::FixedLength option) and reduced value of 15 is written.
@@ -250,8 +250,8 @@ struct NumValueSerOffset
     static const auto Value = TOffset;
 };
 
-/// @brief Option that forces usage of embedded uninitialised data are instead of
-///     dynamic memory allocation.
+/// @brief Option that forces usage of embedded uninitialised data area instead
+///     of dynamic memory allocation.
 /// @details Applicable to fields that represent collection of raw data or other
 ///     fields, such as comms::field::ArrayList or comms::field::String. By
 ///     default, these fields will use
@@ -282,8 +282,8 @@ struct FixedSizeStorage
 ///             comms::option::ScalingRatio<1, 100>
 ///         >;
 ///     @endcode
-///     Then, to accessed the scaled value of the field use scaleAs() or
-///     setScaled() methods of comms::field::IntValue field:
+///     Then, to accessed the scaled value of the field use @b scaleAs() or
+///     @b setScaled() methods of comms::field::IntValue field:
 ///     @code
 ///     void processField(const MyField& field)
 ///     {
@@ -327,7 +327,7 @@ struct SequenceSizeFieldPrefix
 };
 
 /// @brief Option that forces collection fields to append provides suffix every
-///     type it is serialised.
+///     time it is serialised.
 /// @details Sometimes protocols use zero-termination for strings instead of
 ///     prefixing them with their size. Below is an example of how to achieve
 ///     such termination using SequenceTrailingFieldSuffix option.
@@ -351,9 +351,13 @@ struct SequenceTrailingFieldSuffix
 /// @brief Option to enable external forcing of the collection's field size.
 /// @details Sometimes the size information is detached from the data sequence
 ///     itself, i.e. there may be one or more independent fields between the
-///     size field and the first byte of the collection. Usage of this function
-///     enables forceReadElemCount() and clearReadElemCount() functions in
-///     the collection fields, such as comms::field::ArrayList or comms::field::String.
+///     size field and the first byte of the collection. In such case it becomes
+///     impossible to use SequenceSizeFieldPrefix option. Instead, the size
+///     information must be provided by external calls. Usage of this option
+///     enables @b forceReadElemCount() and @b clearReadElemCount() functions in
+///     the collection fields, such as comms::field::ArrayList or comms::field::String
+///     which can be used to specify the size information after it was read
+///     independently.
 struct SequenceSizeForcingEnabled
 {
 };
@@ -361,8 +365,8 @@ struct SequenceSizeForcingEnabled
 /// @brief Option used to define exact number of elements in the collection field.
 /// @details Protocol specification may define that there is exact number of
 ///     elements in the sequence. Use SequenceFixedSize option to convey
-///     this information to the field definition, which will force read() and
-///     write() member functions of the collection field to behave as expected.
+///     this information to the field definition, which will force @b read() and
+///     @b write() member functions of the collection field to behave as expected.
 template <std::size_t TSize>
 struct SequenceFixedSize
 {
@@ -410,7 +414,7 @@ struct DefaultValueInitialiser
 
 /// @brief Option that specifies custom validation class.
 /// @details By default, value of every field is considered to be valid
-///     (valid() member function of the field returns true). If there is a need
+///     (@b valid() member function of the field returns true). If there is a need
 ///     to validate the value of the function. Use this option to define
 ///     custom validation logic for the field. The validation class provided as
 ///     a template argument to this option must define the following member function:
@@ -460,7 +464,7 @@ struct ContentsValidator
 ///     allowed and forces to abandon a message if invalid value is received.
 ///     If comms::option::FailOnInvalid is provided as an option to a field,
 ///     the validity is going to checked automatically after the read. If invalid
-///     value is identified, error will be returned from the read() operation.
+///     value is identified, error will be returned from the @b read() operation.
 struct FailOnInvalid {};
 
 /// @brief Option that forces field's read operation to ignore read data if invalid value

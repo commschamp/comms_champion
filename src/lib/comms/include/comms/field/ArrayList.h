@@ -186,7 +186,7 @@ public:
 
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the
-    ///     elements it contains. If comms::option::SequenceFixedSize option
+    ///     elements the field contains. If comms::option::SequenceFixedSize option
     ///     is used, the number of elements, that is going to be written, is
     ///     exactly as the option specifies. If underlying vector storage
     ///     doesn't contain enough data, the default constructed elements will

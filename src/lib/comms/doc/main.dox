@@ -94,11 +94,11 @@
 ///     virtual const char* nameImpl() const = 0;
 /// };
 /// @endcode
-/// From this point on @b MyMessage class is base class for all the custom messages,
-/// as well as the common interface for manipulating and handling all the messages
+/// From now on, @b MyMessage class is the base class for all the custom messages,
+/// as well as the common interface for manipulating and handling all the messages,
 /// that are going to be implemented. 
 ///  
-/// Every custom message definition that is going to follow should inherit from
+/// Every custom message definition, that is going to follow, should inherit from
 /// comms::MessageBase while providing @b MyMessage as an interface and other options
 /// that will implement most of the functionality defined in the interface.
 ///
@@ -141,19 +141,34 @@
 ///     }
 /// }
 /// @endcode
-/// Note, that the definition of the custom message class is quite simple. The
-/// main functionality of of reading, writing, dispatching, length retrieval, and
-/// validity check is implemented as templates in COMMS library and properly 
-/// instantiated by the compiler.
+/// The definition of the custom message class is more or less declarative. The 
+/// used types and/or options state what behavior is expected from the message, 
+/// with very little extra code. This makes them implementation of any cutom message 
+/// class to be quite a simple process.
+/// 
+/// One of the features, that make the implemenentation of the custom message
+/// to be that simple, is the existence of @b fields. Fields are abstractions
+/// around value storage classes (such as integral value, floating point value,
+/// strings, arrays, etc..), that expose the same predefined interface (read()
+/// write(), length(), valid(), ...), which makes it possible to generate code
+/// to read, write, calculate length, check validity of the whole message. For
+/// example, the length of the message is a summary of length values reported
+/// by every data field, that this message contains. Or the read() of the
+/// message is an invocation of read() for all the fields. Manually implementing
+/// such functionalities may be a tedious and error-prone process. The COMMS
+/// library implements them for you (in comms::field namespace), all you need 
+/// to do is to use right options the the provided comms::Message and 
+/// comms::MessageBase classes. Please refer to @ref page_field_tutorial for  
+/// details on the fields, the COMMS library provides.
 ///
 /// The rest of the custom protocol messages can be implemented in a very similar way.
-/// See the @ref page_message_examples page for other examples of various message
-/// definitions.
+/// See the @ref page_message_examples page for more details on and examples of 
+/// defining and implementing custom message classes.
 ///
-/// Also note, that custom message definition class (@b Message1) inherits from
-/// comms::MessageBase <MyMessage, ...>, which inherits from the provided message
-/// interface (@b MyMessage), which in turn inherits from comms::Message <...>.
-/// The class hierarchy will look like this:
+/// Also note, that custom message definition class (@b Message1 in the example 
+/// above) inherits from comms::MessageBase <MyMessage, ...>, which inherits 
+/// from the provided message interface (@b MyMessage), which in turn inherits 
+/// from comms::Message <...>. The class hierarchy will look like this:
 /// @diafile message_class_hierarchy.dia
 /// @n
 ///

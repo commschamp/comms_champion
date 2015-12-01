@@ -326,16 +326,42 @@ struct SequenceSizeFieldPrefix
     typedef TField Type;
 };
 
-/// @brief Option that forces collection fields to append provides suffix every
-///     time it is serialised.
+/// @brief Option that forces termination of the sequence when predefined value
+///     is encountered.
 /// @details Sometimes protocols use zero-termination for strings instead of
 ///     prefixing them with their size. Below is an example of how to achieve
-///     such termination using SequenceTrailingFieldSuffix option.
+///     such termination using SequenceTerminationFieldSuffix option.
 ///     @code
 ///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
 ///     using MyField =
 ///         comms::field::String<
 ///             MyFieldBase,
+///             comms::option::SequenceTerminationFieldSuffix<
+///                 comms::field::IntValue<MyFieldBase, char, comms::option::DefaultNumValue<0> >
+///             >
+///         >;
+///     @endcode
+/// @tparam TField Type of the field that represents suffix
+template <typename TField>
+struct SequenceTerminationFieldSuffix
+{
+    typedef TField Type;
+};
+
+/// @brief Option that forces collection fields to append provides suffix every
+///     time it is serialised.
+/// @details It is a bit looser version than SequenceTerminationFieldSuffix.
+///     Encountering the expected termination value doesn't terminate the
+///     read operation on the sequence. The size of the sequence should
+///     be defined by other means. For example, zero termination string that
+///     occupies exactly 6 bytes when serialised (padded with zeroes at the end)
+///     will be defined like this:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::String<
+///             MyFieldBase,
+///             comms::option::SequenceFixedSize<5>,
 ///             comms::option::SequenceTrailingFieldSuffix<
 ///                 comms::field::IntValue<MyFieldBase, char, comms::option::DefaultNumValue<0> >
 ///             >

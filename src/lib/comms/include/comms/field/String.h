@@ -69,9 +69,10 @@ using StringStorageTypeT =
 ///     Supported options are:
 ///     @li comms::option::FixedSizeStorage
 ///     @li comms::option::SequenceSizeFieldPrefix
-///     @li comms::option::SequenceTrailingFieldSuffix
 ///     @li comms::option::SequenceSizeForcingEnabled
 ///     @li comms::option::SequenceFixedSize
+///     @li comms::option::SequenceTerminationFieldSuffix
+///     @li comms::option::SequenceTrailingFieldSuffix
 ///     @li comms::option::DefaultValueInitialiser
 ///     @li comms::option::ContentsValidator
 ///     @li comms::option::FailOnInvalid

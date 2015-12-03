@@ -1,7 +1,7 @@
 /// @mainpage COMMS Library
 /// @tableofcontents
 /// The main purpose of the COMMS library is to make implementation of
-/// communicaiton protocols a quick and easy process.
+/// communication protocols a quick and easy process.
 ///
 /// It doesn't use @b RTTI and/or @b exceptions. It makes a significant effort to 
 /// completely eliminate or minimise usage of dynamic memory allocation in order
@@ -26,7 +26,7 @@
 /// It is, just like regular standard @b assert() macro, is compiled in if @b NDEBUG symbol
 /// is not defined. In case the provided condition doesn't hold true, the macro
 /// checks whether custom assertion failure behaviour was registered. If yes,
-/// the registed custom assertion failure report is invoked, otherwise the
+/// the registered custom assertion failure report is invoked, otherwise the
 /// standard failure report used by standard @b assert() macro is used. If COMMS
 /// library is used in bare metal environment without standard library, the
 /// @b NOSTDLIB symbol should be defined. In this case infinite loop is a default
@@ -142,11 +142,11 @@
 /// }
 /// @endcode
 /// The definition of the custom message class is more or less declarative. The 
-/// used types and/or options state what behavior is expected from the message, 
-/// with very little extra code. This makes them implementation of any cutom message 
+/// used types and/or options state what behaviour is expected from the message, 
+/// with very little extra code. This makes them implementation of any custom message 
 /// class to be quite a simple process.
 /// 
-/// One of the features, that make the implemenentation of the custom message
+/// One of the features, that make the implementation of the custom message
 /// to be that simple, is the existence of @b fields. Fields are abstractions
 /// around value storage classes (such as integral value, floating point value,
 /// strings, arrays, etc..), that expose the same predefined interface (read()
@@ -214,13 +214,13 @@
 ///
 /// As a result, the proper handler class (@b MyHandler) can override
 /// virtual "void handle(MyMessage& msg)" function to redefine default message
-/// handling behavior, and/or override any other virtual "handle(...)" function
-/// to redefine default handling behavior for every specific message.
+/// handling behaviour, and/or override any other virtual "handle(...)" function
+/// to redefine default handling behaviour for every specific message.
 ///
-/// Once the message handler type is defined, the message can be easily despatched
+/// Once the message handler type is defined, the message can be easily dispatched
 /// to its appropriate handling function. Let's assume we have proper message
-/// object that was created by the @ref protocol_stack when proper sequency of
-/// the raw bytes was received and successfull parsed. Recignising and handling
+/// object that was created by the @ref protocol_stack when proper sequence of
+/// the raw bytes was received and successful parsed. Recognising and handling
 /// the message is easy:   
 /// @code
 /// MsgPtr msg = ...; // MsgPtr is smart pointer to MyMessage.
@@ -279,7 +279,7 @@
 /// comms::protocol namespace.
 ///
 /// During read/write operation every layer has to handle the  
-/// piece of information, it is reponsible for, @b before or @b after performing
+/// piece of information, it is responsible for, @b before or @b after performing
 /// the same read/write operation on the next layer. The COMMS library implements
 /// such functionality by wrapping one layer by the other. The implementation
 /// of the example above will look like this:
@@ -377,8 +377,8 @@
 /// The @b RemSizeField is a definition of the field that is responsible to
 /// read/write remaining length of following data. Note, that it uses 
 /// comms::option::NumValueSerOffset option to add 2 (@b sizeof(std::uint16_t)) to
-/// the value being written. When reading the value, the does the oposite, it
-/// substructs 2 from the read value in order to receive amount of bytes needed
+/// the value being written. When reading the value, the does the opposite, it
+/// subtracts 2 from the read value in order to receive amount of bytes needed
 /// to read ID and PAYLOAD information this layer wraps.@n
 /// The comms::protocol::MsgSizeLayer receives two template parameters. The first one
 /// is the type of the field, that is used to read/write remaining length information, and
@@ -400,7 +400,7 @@
 /// The comms::protocol::ChecksumLayer class receives three template parameters.
 /// The first one the the type of the field, that is used to read/write the
 /// checksum value. The second one is a type of the checksum calculator, please
-/// refer to the documentaiton of comms::protocol::ChecksumLayer for descriptioin
+/// refer to the documentation of comms::protocol::ChecksumLayer for description
 /// of the types/functions it must provide. The COMMS library provides
 /// comms::protocol::checksum::BasicSum calculator, which just summarises all
 /// the bytes. The third template parameter to comms::protocol::ChecksumLayer
@@ -439,15 +439,15 @@
 ///
 /// The protocol stack type defines several types that can be used in processing
 /// the data:
-/// @li ProtStack::Message - Common inteface class for all the messages, was
+/// @li ProtStack::Message - Common interface class for all the messages, was
 ///     initially provided to innermost layer (comms::protocol::MsgDataLayer).
 /// @li ProtStack::MsgPtr - Smart pointer to message object, initially defined 
-///     by the comms::protocol::MsgIdLayer and propagated to outmost layer.
-/// @li ProtStack::ReadIterator - Iterator used for reading, initally defined
-///     the message interface class (@b MyMessage) and propagated to outmost
+///     by the comms::protocol::MsgIdLayer and propagated to outermost layer.
+/// @li ProtStack::ReadIterator - Iterator used for reading, initially defined
+///     the message interface class (@b MyMessage) and propagated to outermost
 ///     layer.
-/// @li ProtStack::WriteIterator - Iterator used for writing, initally defined
-///     the message interface class (@b MyMessage) and propagated to outmost
+/// @li ProtStack::WriteIterator - Iterator used for writing, initially defined
+///     the message interface class (@b MyMessage) and propagated to outermost
 ///     layer.
 ///
 /// See the @ref page_prot_stack_examples page for more examples and guidelines
@@ -456,7 +456,7 @@
 /// @section tutorial_summary Fitting It All Together
 /// The COMMS library doesn't make any assumptions about what I/O link is used
 /// as a communication channel, and doesn't provide any low level socket
-/// abstructions. It is a job of the library's client to manage the communication,
+/// abstractions. It is a job of the library's client to manage the communication,
 /// store accumulated data somewhere and make it available for processing.
 ///
 /// Just to remind the reader, in the examples above we defined an iterator 
@@ -469,7 +469,7 @@
 /// like this:
 /// @code
 /// std::vector<std::uint8_t> dataToProcess; // Data from I/O link is stored here
-/// ProtStack protStack; // Protocol stack defined in previoius section
+/// ProtStack protStack; // Protocol stack defined in previous section
 /// MyHandler handler; // Handler object to handle the received message
 ///
 /// // Processing loop
@@ -505,12 +505,12 @@
 /// iterator used for writing was defined to be <b>std::uint8_t*</b> using
 /// comms::option::WriteIterator option to comms::Message when defining
 /// @b MyMessage interface class. It means, that we must have appropriate storage 
-/// allocated and available. In order to identy storage size required to write
+/// allocated and available. In order to identify storage size required to write
 /// the message with all the transport related fields, use "length()" member
 /// function of the protocol stack object:
 /// @code
 /// std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
-/// ProtStack protStack; // Protocol stack defined in previoius section
+/// ProtStack protStack; // Protocol stack defined in previous section
 /// Message1 msg; // Message to be serialised and sent out
 ///
 /// auto reqLen = protStack.length(msg); // Number of bytes required to serialise the message;
@@ -544,7 +544,7 @@
 /// In this case the write functionality may be changed into following:
 /// @code
 /// std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
-/// ProtStack protStack; // Protocol stack defined in previoius section
+/// ProtStack protStack; // Protocol stack defined in previous section
 /// Message1 msg; // Message to be serialised and sent out
 ///
 /// ProtStack writeIter = std::back_inserter(dataToSend);

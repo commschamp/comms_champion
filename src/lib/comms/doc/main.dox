@@ -97,13 +97,18 @@
 /// From now on, @b MyMessage class is the base class for all the custom messages,
 /// as well as the common interface for manipulating and handling all the messages,
 /// that are going to be implemented. 
+///
+/// Please note, that comms::Message class receives variable number of
+/// template parameters, which are expected to be various options (defined
+/// in comms::option namespace) to define the interface functionality. Please
+/// refer to @ref page_message_tutorial page for full tutorial on messages.
 ///  
 /// Every custom message definition, that is going to follow, should inherit from
 /// comms::MessageBase while providing @b MyMessage as an interface and other options
 /// that will implement most of the functionality defined in the interface.
 ///
 /// Let's define a message that has 2 integral unsigned value fields: the first one
-/// will consumes 2 bytes when serialised and the second one 3 bytes:
+/// will consume 2 bytes when serialised and the second one 3 bytes:
 /// @code
 /// typedef MyMessage::Field CommonFieldBase; // Base class for all the fields
 ///
@@ -162,8 +167,6 @@
 /// details on the fields, the COMMS library provides.
 ///
 /// The rest of the custom protocol messages can be implemented in a very similar way.
-/// See the @ref page_message_examples page for more details on and examples of 
-/// defining and implementing custom message classes.
 ///
 /// Also note, that custom message definition class (@b Message1 in the example 
 /// above) inherits from comms::MessageBase <MyMessage, ...>, which inherits 

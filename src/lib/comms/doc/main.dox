@@ -182,7 +182,7 @@
 /// invisible. The COMMS library provides an easy and efficient way to downcast
 /// message object to its appropriate type.
 /// 
-/// First of all bundle all the custom message types that need to be handled 
+/// First of all bundle all the custom message types that need to be bundled 
 /// into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
 /// @code
 /// typedef std::tuple<
@@ -253,7 +253,7 @@
 ///     ...
 /// }
 /// @endcode
-/// See the @ref page_handler_examples page for more details on defining
+/// See the @ref page_handler_tutorial page for more details on defining
 /// custom message handlers.
 ///
 /// @section protocol_stack Protocol Stack

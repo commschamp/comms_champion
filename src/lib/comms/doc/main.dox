@@ -453,7 +453,7 @@
 ///     the message interface class (@b MyMessage) and propagated to outermost
 ///     layer.
 ///
-/// See the @ref page_prot_stack_examples page for more examples and guidelines
+/// See the @ref page_prot_stack_tutorial page for more examples and guidelines
 /// on how to define various protocol stacks.
 ///
 /// @section tutorial_summary Fitting It All Together

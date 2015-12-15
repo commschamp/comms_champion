@@ -174,7 +174,7 @@ protected:
 
             addMsgInfoGuard.release();
 
-            if (es == comms::ErrorStatus::MsgAllocFaulure) {
+            if (es == comms::ErrorStatus::MsgAllocFailure) {
                 assert(!"Mustn't happen");
                 break;
             }

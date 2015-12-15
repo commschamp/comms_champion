@@ -188,7 +188,7 @@ void SyncPrefixLayerTestSuite::test1()
 
     TS_ASSERT_EQUALS(msg1, msg2);
 
-    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFaulure);
+    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
 }
 
@@ -317,7 +317,7 @@ void SyncPrefixLayerTestSuite::test8()
 
     TS_ASSERT_EQUALS(msg1, msg2);
 
-    auto msgPtr3 = vectorBackInsertReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFaulure);
+    auto msgPtr3 = vectorBackInsertReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
 }
 

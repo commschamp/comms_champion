@@ -1,3 +1,440 @@
-/// @page page_prot_stack_tutorial Protocol Stack Examples
-/// TODO 
+/// @page page_prot_stack_tutorial Protocol Stack Tutorial
+/// @tableofcontents
+/// @section page_prot_stack_tutorial_intro Introduction
+/// In addition to definition of the messages and their contents, every 
+/// communication protocol must ensure that the message is successfully delivered
+/// over the I/O link to the other side. The serialised message payload must
+/// be wrapped in some kind of transport information. @n
+/// For example, let's define a custom protocol that wraps the message payload
+/// in the following way:
+/// @code
+/// SYNC | SIZE | ID | PAYLOAD | CHECKSUM 
+/// @endcode    
+/// where:
+/// @li SYNC - 2 bytes of synchronisation value to indicate beginning of the message, 
+///     must be "0xab 0xbc"
+/// @li SIZE - 2 bytes, length of remaining data including checksum and not 
+///     including SIZE field itself.
+/// @li ID - 1 byte, numeric ID of the message.
+/// @li PAYLOAD - any number of bytes, serialised message data
+/// @li CHECKSUM - 2 bytes, arithmetic summary of all bytes starting (and
+///     including) from SIZE field and ending after PAYLOAD field.
+/// 
+/// The processing of the raw bytes received over I/O link involves identifying
+/// the fields listed above and stripping them off one by one until the
+/// @b PAYLOAD is reached, where it can be read by the created proper message
+/// object (based on ID). So, these fields can be treated as <b> layers of the
+/// protocol stack.</b>.
+/// @diafile protocol_stack_layers.dia
+///
+/// Please note that @b CHECKSUM layer lays between @b SYNC and @b SIZE. This is
+/// a bit counter intuitive, because @b SIZE follows @b SYNC in the protocol
+/// description, while @b CHECKSUM appears last. The reason for such location
+/// of @b CHECKSUM layer is that it calculates and verifies checksum on the
+/// @b SIZE, @b ID, and @b PAYLOAD areas, i.e. it must wrap the all three.
+///
+/// The COMMS library provides multiple classes to define various layers when
+/// assembling the full <b>protocol stack</b> of layers. All these classes reside in
+/// comms::protocol namespace.
+///
+/// The main objective here is to be able to assemble the full protocol stack and
+/// to do the following simple steps when processing the input data:
+/// @code
+/// // Definition and instantiation of protocol stack.
+/// typedef ... ProtocolStack;
+/// ProtocolStack protStack;
+///
+/// // Smart pointer to the common message interface
+/// ProtocolStack::MsgPtr msgPtr;
+///
+/// // Messages handler 
+/// MyHandler handler;
+///
+/// // Storage for input data
+/// std::vector<std::uint8_t> inData = {...};
+///
+/// // Read the data, create the message object and dispatch it to appropriate handling function
+/// ProtocolStack::ReadIterator readIter = &inData[0]; // Get iterator to read data
+/// auto es = protStack.read(msgPtr, readIter, inData.size()); // Read data and create message
+/// if (es == comms::ErrorStatus::Success) {
+///     assert(msgPtr); // msgPtr must hold a valid message object
+///     msgPtr->dispatch(handler); // Dispatch for handling
+/// }
+/// @endcode
+/// The following sections will cover all the layer classes required to
+/// assemble the protocol stack described above.
+///
+/// @section page_prot_stack_tutorial_payload PAYLOAD Layer
+/// The top layer, that is responsible to read/write the payload of the message
+/// is called @b PAYLOAD. It is implemented by comms::protocol::MsgDataLayer
+/// class in the COMMS library. This class must receive the custom message interface
+/// class that is common for all the messages (@b MyMessage in 
+/// @ref page_message_tutorial).
+/// @code
+/// typedef comms::protocol::MsgDataLayer<MyMessage> MyMsgData;
+/// @endcode
+/// The comms::protocol::MsgDataLayer takes definition of @b ReadIterator, and @b
+/// @b WriteIterator types from the message interface class (@b MyMessage) and
+/// defines them as its own local public types. The comms::protocol::MsgDataLayer::read
+/// member function will just invoke the read() member function of the message
+/// object being read. The comms::protocol::MsgDataLayer::write
+/// member function will just invoke the write() member function of the message
+/// object being written. 
+///
+/// @section page_prot_stack_tutorial_id ID Layer
+/// The @b ID layer is responsible to process the ID of the message
+/// and based on this ID, create proper message object. The COMMS library implements
+/// this functionality in comms::protocol::MsgIdLayer class. It receives 
+/// <b>at least</b> three template parameters. The first one is a type of the
+/// field that can be used to read/write the ID information. 
+/// @code
+/// enum MyMsgId : std::uint8_t
+/// {
+///     MyMsgId_Message1,
+///     MyMsgId_Message2,
+///     MyMsgId_Message3,
+///     ...
+/// };
+///
+/// typedef MyMessage::Field CommonFieldBase;
+/// typedef comms::field::EnumValue<CommonFieldBase, MyMsgId> MsgIdField;
+/// @endcode
+/// Please refer to @ref page_field_tutorial for more details on fields.
+///
+/// The second parameter
+/// is all the types of all the custom messages, that need to handled, bundled in
+/// std::tuple. 
+/// @code
+/// typedef std::tuple<
+///     Message1,
+///     Message2,
+///     Message3,
+///     ...
+/// > AllMessages;
+/// @endcode
+/// The third template parameter is the upper layer it needs to wrap:
+/// @code
+/// typedef comms::protocol::MsgIdLayer<MsgIdField, AllMessages, MyMsgData> MyMsgId;
+/// @endcode 
+/// The comms::protocol::MsgIdLayer defines the following public types:
+/// @li comms::protocol::MsgIdLayer::ReadIterator - the same as @b ReadIterator defined in the wrapped upper
+///     layer (comms::protocol::MsgDataLayer::ReadIterator in the example above).
+/// @li comms::protocol::MsgIdLayer::WriteIterator - the same as @b WriteIterator defined in the wrapped upper
+///     layer (comms::protocol::MsgDataLayer::WriteIterator in the example above)
+/// @li comms::protocol::MsgIdLayer::MsgPtr - smart pointer (@b std::unique_ptr) to the common message interface
+///     class (@b MyMessage) defined in the wrapped upper layer (see 
+///     comms::protocol::MsgDataLayer::Message).
+///
+/// During the @b read() operation, the comms::protocol::MsgIdLayer will
+/// dynamically allocate the proper message object and will assign it to the
+/// smart pointer (of type comms::protocol::MsgIdLayer::MsgPtr), reference
+/// to which is passed as the function parameter.
+///
+/// The comms::protocol::MsgIdLayer can also be used in <b>bare metal</b> systems,
+/// that do NOT use dynamic memory allocation. In order to prevent this layer 
+/// from using dynamic memory allocation, the comms::option::InPlaceAllocation
+/// option needs to be passed as fourth template parameter to the
+/// comms::protocol::MsgIdLayer class.
+/// @code
+/// typedef comms::protocol::MsgIdLayer<
+///     MsgIdField, 
+///     AllMessages, 
+///     MyMsgData,
+///     comms::option::InPlaceAllocation
+/// > MyMsgId;
+/// @endcode
+/// In this case, the comms::protocol::MsgIdLayer will statically allocate 
+/// internal buffer in its private data members, big enough to hold any message object
+/// of any type listed in @b AllMessages bundle. It means that only one message
+/// object can be allocated and used at a time, i.e. the previous object must
+/// be deleted prior to new one being allocated. @n
+/// Also, the comms::protocol::MsgIdLayer::MsgPtr will still be a variant of
+/// @b std::unique_ptr, but with custom deleter (defined by COMMS library itself),
+/// which will make sure the proper destruction of the message object and
+/// release of the internal buffer for next allocation. In case new allocation
+/// is attempted, when internal buffer is NOT released, the new message will NOT be allocated
+/// and read operation will fail with comms::ErrorStatus::MsgAllocFailure
+/// error.
+///
+/// @b NOTE, that comms::protocol::MsgIdLayer doesn't use any dynamic memory
+/// allocation to store internal factory methods, that create proper message
+/// object given the ID of the message, which makes it possible and safe to
+/// use in bare-metal environment without any HEAP.
+///
+/// It may happen that comms::protocol::MsgIdLayer class as-is is not really
+/// suitable for implementing message identification and creatation of message
+/// object when implementing custom protocol. 
+/// It is possible to implement a new custom layer (see @ref
+/// page_prot_stack_tutorial_new_layers section below) with the required
+/// functionality. However, it is recommended
+/// to use comms::MsgFactory object internal that will help in creating the proper
+/// message object once the ID value is known.
+///
+/// @section page_prot_stack_tutorial_size SIZE Layer
+/// The @b SIZE layer is responsible to process information on the remaining
+/// message length, and forward the @b read()/write() operations to the upper layer
+/// in case it is safe to do so. The COMMS library provides 
+/// comms::protocol::MsgSizeLayer class for that purpose.
+/// @code
+/// typedef comms::field::IntValue<
+///     CommonFieldBase, 
+///     std::uint16_t, 
+///     comms::option::NumValueSerOffset<sizeof(std::uint16_t)> 
+/// > RemSizeField;
+/// typedef comms::protocol::MsgSizeLayer<RemSizeField, MyMsgId> MyMsgSize;
+/// @endcode
+/// The comms::protocol::MsgSizeLayer receives two template parameters. The first
+/// one is the definition of the @b field (see @ref page_field_tutorial for details)
+/// that is responsible to read/write the remaining length information. The
+/// second template parameter is an upper layer that is being wrapped. @n
+/// Please note the usage of comms::option::NumValueSerOffset option when
+/// defining the @b field type. If it is NOT used, the serialised length value
+/// will cover only @b ID and @b PAYLOAD. However, according to the protocol
+/// specification, the @b SIZE value must also include @b CHECKSUM. Usage of
+/// comms::option::NumValueSerOffset <sizeof(std::uint16_t)> will add 2
+/// (@b sizeof(std::uint16_t)) when serialising the length of wrapped fields.
+/// See also @ref sec_field_tutorial_int_value_ser_offset for more details.
+///
+/// @section page_prot_stack_tutorial_checksum CHECKSUM Layer
+/// The @b CHECKSUM layer is responsible to calculate and verify the checksum
+/// on the data read and/or written by the upper layers it wraps.
+/// The COMMS library provides comms::protocol::ChecksumLayer
+/// for this purpose.
+/// @code
+/// typedef comms::field::IntValue<CommonFieldBase, std::uint16_t> ChecksumField;
+/// typedef comms::protocol::ChecksumLayer<
+///     ChecksumField,
+///     comms::protocol::checksum::BasicSum<std::uint16_t>
+///     MyMsgSize
+/// > MyChecksum;
+/// @endcode
+/// The comms::protocol::ChecksumLayer receives three template parameters. The
+/// first one is a @b field that is responsible to read/write the checksum value. @n
+/// The second template parameter is a checksum calculator class which is used
+/// to calculate a checksum value. Please refer to the documentation of
+/// comms::protocol::ChecksumLayer class for the details on the interface this
+/// checksum calculator class must provide. The example above uses 
+/// comms::protocol::checksum::BasicSum, which calculates the summary of all
+/// the bytes. All the checksum calculators the COMMS library provides reside
+/// in comms::protocol::checksum namespace. @n
+/// The third template parameter is an upper layer that is being wrapped.
+///
+/// @section page_prot_stack_tutorial_sync SYNC Layer
+/// The @b SYNC layer is responsible to recognise the synchronisation byte(s)
+/// in the input stream as well as write appropriate value when the write
+/// operation takes place. The COMMS library provides comms::protocol::SyncPrefixLayer
+/// class that helps with this task.
+/// @code
+/// typedef comms::field::IntValue<
+///     CommonFieldBase, 
+///     std::uint16_t, 
+///     comms::option::DefaultNumValue<0xabcd> 
+/// > SyncField;
+/// typedef comms::protocol::SyncPrefixLayer<SyncField, MyMsgId> MySyncPrefix;
+/// @endcode
+/// The comms::protocol::SyncPrefixLayer class receives two template parameters.
+/// The first one is the type of the @b field, that is responsible to read/write
+/// the synchronisation byte(s). Please note the usage of comms::option::DefaultNumValue
+/// option when defining the @b field type. It insures that the default constructed
+/// field will have the required value. @n
+/// The second template parameter is the upper layer being wrapped.
+///
+/// @section page_prot_stack_tutorial_summary Layers Summary
+/// The earlier examples show that layer classes wrap one another, which creates
+/// the following picture:
+/// @diafile protocol_stack.dia
+///
+/// The outermost (or bottom) layer defines a full <b>protocol stack</b>. It 
+/// should be typedef-ed to avoid any confusion:
+/// @code
+/// typedef MySyncPrefix ProtocolStack;
+/// @endcode
+///
+/// In order to get an information on the available API functions as well as
+/// public types of the protocol stack please refer to the documentaiton of
+/// the outermost layer class.
+///
+/// Every layer defines appropriate types that can be used in outer processing loop:
+/// @li ReadIterator - iterator that can be used for reading
+/// @li WriteIterator - iterator that can be used for writing
+/// @li MsgPtr - smart pointer holding newly allocated message object
+/// 
+/// It allows easy implementation of the processing loop. Let's assume
+/// that @b ReadIterator is defined to be <b>const std::uint8_t*</b>.
+/// @code
+/// // Protocol stack
+/// ProtocolStack protStack;
+///
+/// // Message handler object
+/// MyHandler handler;
+///
+/// // Input data storage, the data received over I/O link is appended here
+/// std::vector<std::uint8_t> inData;
+///
+/// void processData()
+/// {
+///     while (!inData.empty()) {
+///         ProtocolStack::ReadIterator readIter = &inData[0];
+///         ProtocolStack::MsgPtr msg;
+///
+///         auto es = protStack.read(msg, readIter, inData.size());
+///         if (es == comms::ErrorStatus::NotEnoughData) {
+///             // More data is required;
+///             return;
+///         }
+///
+///         if (es == comms::ErrorStatus::Success) {
+///             assert(msgPtr); // Must hold the valid message object
+///             msgPtr->dispatch(handler); // Process message
+///
+///             // Erase consumed bytes from the buffer
+///             auto consumedBytes = std::distance(ProtocolStack::ReadIterator(&inData[0]), readIter);
+///             inData.erase(inData.begin(), inData.begin() + consumedBytes);
+///             continue;
+///         }
+///
+///         // Some error occurred, pop only one first byte and try to process again
+///         inData.erase(inData.begin());
+///     }
+/// }
+/// @endcode
+/// The processing loop above is not the most efficient one, but it demonstrates
+/// what needs to be done and how COMMS library can be used in order to
+/// identify and process the received message.
+///
+/// The @b write logic is even simpler. Let's assume that @b WriteIterator is
+/// defined to be <b>std::back_insert_iterator<std::vector<std::uint8_t> ></b>.
+/// @code
+/// 
+/// void sendMessage(const MyMessage& msg)
+/// {
+///     // Output buffer
+///     std::vector<std::uint8_t> outData; 
+///
+///     // Reserve enough space in output buffer
+///     outData.reserve(protStack.length(msg)); 
+///
+///     auto writeIter = std::back_inserter(outData);
+///     auto es = protStack.write(msg, writeIter, outData.max_size());
+///     if (es = comms::ErrorStatus::UpdateRequired) {
+///         auto updateIter = &outData[0];
+///         es = protStack.update(updateIter, outData.size());
+///     }
+///     assert(es == comms::ErrorStatus::Success); // No error is expected
+///     
+///     ... // Send written data over I/O link
+/// }
+/// @endcode
+/// Note that when non-random access iterator is used for writing, it is impossible to 
+/// seek certain location in the output buffer. In the example above, the
+/// @b std::back_insert_iterator is used to write data. When the data of 
+/// @b SIZE, @b ID, and @b PAYLOAD layers have been written, the @b CHECKSUM
+/// layer must calculate and write the checksum value. However, it is impossible to 
+/// do with non-random-access iterator. At this stage the @b CHECKSUM layer
+/// writes some dummy value and returns comms::ErrorStatus::UpdateRequired. 
+/// When this error status is returned from the @b write() function, the 
+/// random-access iterator on the written data needs to be created and 
+/// @b update() member function of the protocol stack needs to be called.
+///
+/// @section page_prot_stack_tutorial_caching Access to Processed Stack Fields
+/// All the examples above do not store the read/written protocol stack fields
+/// anywhere. In most cases it is not needed. However, if need arises they can
+/// be cached during the read/write operations and accessed later. Every
+/// layer defines @b AllFields type which is std::tuple of all the fields used by all the 
+/// layers starting from the defining one, up to the top of the stack. @n
+/// Also, every layer defines @b readFieldsCached() and writeFieldsCached()
+/// functions which are substitutes to normal read() and write(). The first
+/// parameter to these functions is reference to the @b AllFields bundle
+/// object.
+/// @code
+/// ProtocolStack::AllFields fields;
+/// auto es = protocolStack.readFieldsCached<0>(fields, msgPtr, readIter, bufSize);
+/// ...
+/// // Access the fields from the described protocol
+/// auto& syncValueField = std::get<0>(fields);
+/// auto& checksumValueField = std::get<1>(fields);
+/// auto& sizeValueField = std::get<2>(fields);
+/// auto& msgIdField = std::get<3>(fields);
+/// auto& payloadField = std::get<4>(fields);
+/// ...
+/// @endcode
+///
+/// @section page_prot_stack_tutorial_new_layers Implementing New Layers
+/// Every protocol is unique, and there is a chance that COMMS library doesn't
+/// provide all the necessary layer classes required to implement custom logic
+/// of the protocol. The COMMS library allows implementation and usage of 
+/// custom layers as long as it defines the required types and implements required
+/// functions. It is strongly recommended to inherit from comms::protocol::ProtocolLayerBase
+/// and implement missing read/write functionality
+/// @code
+/// // Must receive the next layer type as template parameter
+/// template <typename TField, typename TNextLayer>
+/// class MyLayer : public comms::protocol::ProtocolLayerBase<TField, TNextLayer>
+/// {
+///     typedef comms::protocol::ProtocolLayerBase<TField, TNextLayer> Base;
+///
+/// public:
+///     typedef typename Base::ReadIterator ReadIterator;
+///
+///     // Implement read
+///     template <typename TMsgPtr>
+///     comms::ErrorStatus read(
+///         TMsgPtr& msgPtr,
+///         ReadIterator& iter,
+///         std::size_t size,
+///         std::size_t* missingSize = nullptr) {...}
+///
+///     // Implement read with caching fields:
+///     template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
+///     comms::ErrorStatus readFieldsCached(
+///         TAllFields& allFields,
+///         TMsgPtr& msgPtr,
+///         ReadIterator& iter,
+///         std::size_t size,
+///         std::size_t* missingSize = nullptr) {...}
+///
+///     typedef typename Base::WriteIterator WriteIterator;
+///
+///     // Implement write
+///     comms::ErrorStatus write(
+///         const Message& msg,
+///         WriteIterator& iter,
+///         std::size_t size) const {...}
+///
+///     // Implement write with caching fields
+///     template <std::size_t TIdx, typename TAllFields>
+///     comms::ErrorStatus writeFieldsCached(
+///         TAllFields& allFields,
+///         const Message& msg,
+///         WriteIterator& iter,
+///         std::size_t size) const {...}
+/// };
+/// @endcode
+/// The comms::protocol::ProtocolLayerBase class provides default implementation
+/// of update functionality which does nothing. See comms::protocol::ProtocolLayerBase::update()
+/// and comms::protocol::ProtocolLayerBase::updateFieldsCached(). It also
+/// provides the default implementation @b createMsg() function (see 
+/// comms::protocol::ProtocolLayerBase::createMsg()). This function receives the
+/// message ID and returns allocated proper message object. The default implementation
+/// is to call the @b createMsg() member function of the next layer. If one or
+/// more of these default functionalities need to be changed, just override
+/// appropriate function in the custom layer class implementation:
+/// @code
+/// template <typename TField, typename TNextLayer>
+/// class MyLayer : public comms::protocol::ProtocolLayerBase<TField, TNextLayer>
+/// {
+///     typedef comms::protocol::ProtocolLayerBase<TField, TNextLayer> Base;
+///
+/// public:
+///     template <typename TIter>
+///     comms::ErrorStatus update(TIter& iter, std::size_t size) const {...}
+///
+///     template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+///     comms::ErrorStatus updateFieldsCached(
+///         TAllFields& allFields,
+///         TUpdateIter& iter,
+///         std::size_t size) const {...}
+/// };
+/// @endcode
+/// 
 

@@ -32,7 +32,7 @@ ErrorStatus transformErrorStatus(comms::ErrorStatus value)
         /* BufferOverflow */ ErrorStatus::BufferOverflow,
         /* InvalidMsgId */ ErrorStatus::InvalidMsgId,
         /* InvalidMsgData */ ErrorStatus::InvalidMsgData,
-        /* MsgAllocFaulure */ ErrorStatus::MsgAllocFaulure
+        /* MsgAllocFailure */ ErrorStatus::MsgAllocFailure
     };
 
     using UnderlyingType = typename std::underlying_type<decltype(value)>::type;

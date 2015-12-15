@@ -37,7 +37,7 @@ enum class ErrorStatus {
     InvalidMsgId, ///< Used to indicate that received message has unknown id
     InvalidMsgData, ///<Used to indicate that received message has invalid
                     /// data.
-    MsgAllocFaulure, ///<Used to indicate that message allocation has failed.
+    MsgAllocFailure, ///<Used to indicate that message allocation has failed.
     NumOfErrorStatuses ///< Number of supported error statuses, must be last.
 };
 

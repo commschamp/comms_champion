@@ -321,7 +321,7 @@ private:
             return es;
         }
 
-        return ErrorStatus::MsgAllocFaulure;
+        return ErrorStatus::MsgAllocFailure;
     }
 
     template <typename TWriter>

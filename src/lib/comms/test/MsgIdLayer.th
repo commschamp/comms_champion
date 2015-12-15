@@ -150,7 +150,7 @@ void MsgIdLayerTestSuite::test1()
 
     TS_ASSERT_EQUALS(msg1, msg2);
 
-    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFaulure);
+    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
 }
 
@@ -196,7 +196,7 @@ void MsgIdLayerTestSuite::test3()
     auto& msg2 = dynamic_cast<LeMsg2&>(*msgPtr2);
     TS_ASSERT_EQUALS(msg1, msg2);
 
-    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFaulure);
+    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
 }
 

@@ -104,17 +104,17 @@ void PluginConfigDialog::accept()
 
 void PluginConfigDialog::availSocketPluginClicked(QListWidgetItem* item)
 {
-    availPluginClicked(item, m_availableSocketsWidget, m_selectedSocketsWidget);
+    availPluginClicked(item, m_availableSocketsWidget);
 }
 
 void PluginConfigDialog::availFilterPluginClicked(QListWidgetItem* item)
 {
-    availPluginClicked(item, m_availableFiltersWidget, m_selectedFiltersWidget);
+    availPluginClicked(item, m_availableFiltersWidget);
 }
 
 void PluginConfigDialog::availProtocolPluginClicked(QListWidgetItem* item)
 {
-    availPluginClicked(item, m_availableProtocolsWidget, m_selectedProtocolsWidget);
+    availPluginClicked(item, m_availableProtocolsWidget);
 }
 
 void PluginConfigDialog::availSocketPluginDoubleClicked(QListWidgetItem* item)
@@ -354,12 +354,10 @@ void PluginConfigDialog::bottomClicked()
 
 void PluginConfigDialog::availPluginClicked(
     QListWidgetItem* item,
-    PluginsListWidget* availableList,
-    PluginsListWidget* selectedList)
+    PluginsListWidget* availableList)
 {
     assert(item != nullptr);
     assert(availableList != nullptr);
-    assert(selectedList != nullptr);
 
     if (m_currentSelectedList != nullptr) {
         m_currentSelectedList->setCurrentRow(-1);

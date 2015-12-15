@@ -138,6 +138,7 @@ QVariantMap getFlagsProperties()
     typedef std::decay<decltype(std::get<CCSerialInfo::FieldId_Flags>(std::declval<AllFields>()))>::type FlagsType;
     typedef std::decay<decltype(std::declval<FlagsType>().value())>::type MembersType;
     static const std::size_t NumOfMembers = std::tuple_size<MembersType>::value;
+    static_cast<void>(NumOfMembers);
 
     GASSERT(membersData.size() == (int)NumOfMembers);
     return cc::Property::createPropertiesMap("Flags", std::move(membersData));

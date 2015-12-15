@@ -69,8 +69,7 @@ private:
 
     void availPluginClicked(
         QListWidgetItem* item,
-        PluginsListWidget* availableList,
-        PluginsListWidget* selectedList);
+        PluginsListWidget* availableList);
 
     void selectedPluginClicked(
         QListWidgetItem* item,

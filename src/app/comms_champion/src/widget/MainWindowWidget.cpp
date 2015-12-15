@@ -201,6 +201,7 @@ void MainWindowWidget::loadSendMsgsDialog(bool askForClear)
         auto* clearButton = msgBox.addButton(tr("Clear"), QMessageBox::ActionRole);
         assert(clearButton != nullptr);
         auto* appendButton = msgBox.addButton(tr("Append"), QMessageBox::ActionRole);
+        static_cast<void>(appendButton);
         assert(appendButton != nullptr);
         msgBox.setDefaultButton(clearButton);
         assert(msgBox.clickedButton() == nullptr);

@@ -242,7 +242,7 @@ void MsgIdLayerTestSuite::test6()
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType3);
     TS_ASSERT(!msgPtr->valid());
     auto* msg3 = dynamic_cast<BeMsg3*>(msgPtr.get());
-    assert(msg3 != nullptr);
+    TS_ASSERT(msg3 != nullptr);
 }
 
 void MsgIdLayerTestSuite::test7()

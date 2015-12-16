@@ -21,10 +21,14 @@
 #include <memory>
 #include <list>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QVariantMap>
 #include <QtCore/QPluginLoader>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/PluginControlInterface.h"
 #include "comms_champion/Plugin.h"

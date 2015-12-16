@@ -21,7 +21,11 @@
 #include <cassert>
 #include <type_traits>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QCheckBox>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Property.h"
 

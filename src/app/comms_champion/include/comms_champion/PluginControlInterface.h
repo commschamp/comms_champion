@@ -20,7 +20,11 @@
 
 #include <memory>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QAction>
+CC_ENABLE_WARNINGS()
 
 #include "Protocol.h"
 #include "Socket.h"

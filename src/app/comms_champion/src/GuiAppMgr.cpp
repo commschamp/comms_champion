@@ -21,7 +21,11 @@
 #include <cassert>
 #include <memory>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/DefaultMessageDisplayHandler.h"
 #include "GlobalConstants.h"

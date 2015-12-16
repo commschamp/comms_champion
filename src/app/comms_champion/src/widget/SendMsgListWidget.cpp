@@ -19,7 +19,11 @@
 
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
+CC_ENABLE_WARNINGS()
 
 #include "SendAreaToolBar.h"
 #include "GuiAppMgr.h"

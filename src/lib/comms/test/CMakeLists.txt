@@ -70,6 +70,12 @@ endfunction ()
 
 include_directories ("${CXXTEST_INCLUDE_DIR}")
 
+if (CMAKE_COMPILER_IS_GNUCC)
+    ext_add_c_cxx_flags(
+        "-Wno-old-style-cast" "-Wno-shadow"
+    )
+endif ()
+
 test_fields()
 test_message()
 test_msg_data_layer()

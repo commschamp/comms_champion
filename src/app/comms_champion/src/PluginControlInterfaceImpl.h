@@ -18,8 +18,12 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtWidgets/QAction>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Protocol.h"
 #include "comms_champion/Socket.h"

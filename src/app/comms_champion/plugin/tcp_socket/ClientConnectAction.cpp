@@ -17,7 +17,11 @@
 
 #include "ClientConnectAction.h"
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtGui/QIcon>
+CC_ENABLE_WARNINGS()
 
 namespace comms_champion
 {
@@ -30,8 +34,8 @@ namespace tcp_socket
 
 ClientConnectAction::ClientConnectAction(
     bool connected,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_connected(connected)
 {
     refresh();

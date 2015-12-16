@@ -21,8 +21,11 @@
 #include <iterator>
 
 #include "comms/comms.h"
-#include "cxxtest/TestSuite.h"
 #include "CommsTestCommon.h"
+
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
 
 class MsgIdLayerTestSuite : public CxxTest::TestSuite
 {

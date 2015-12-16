@@ -110,8 +110,8 @@ int mapFlowControlToIdx(QSerialPort::FlowControl value)
 
 SerialSocketConfigWidget::SerialSocketConfigWidget(
     SerialSocket& socket,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_socket(socket)
 {
     m_ui.setupUi(this);

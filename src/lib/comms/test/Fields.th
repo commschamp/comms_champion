@@ -24,8 +24,10 @@
 #include <type_traits>
 
 #include "comms/comms.h"
-#include "cxxtest/TestSuite.h"
 
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
 
 class FieldsTestSuite : public CxxTest::TestSuite
 {

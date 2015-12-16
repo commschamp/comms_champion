@@ -26,8 +26,6 @@
 #include <memory>
 #include <limits>
 
-#include <QtCore/QString>
-
 #include "comms/comms.h"
 
 #include "FieldWrapper.h"

@@ -19,8 +19,12 @@
 
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtGui/QIcon>
+CC_ENABLE_WARNINGS()
 
 #include "icon.h"
 

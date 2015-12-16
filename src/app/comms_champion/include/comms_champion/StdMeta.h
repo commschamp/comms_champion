@@ -21,6 +21,10 @@
 #include <string>
 #include <chrono>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QMetaType>
+CC_ENABLE_WARNINGS()
 
 Q_DECLARE_METATYPE(std::string);

@@ -23,8 +23,12 @@
 #include <string>
 #include <list>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QMetaType>
 #include <QtCore/QVariant>
+CC_ENABLE_WARNINGS()
 
 #include "Message.h"
 

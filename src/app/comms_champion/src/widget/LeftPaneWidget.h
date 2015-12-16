@@ -18,7 +18,11 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QSplitter>
+CC_ENABLE_WARNINGS()
 
 namespace comms_champion
 {

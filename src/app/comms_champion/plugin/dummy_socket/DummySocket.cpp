@@ -17,7 +17,11 @@
 
 #include "DummySocket.h"
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
+CC_ENABLE_WARNINGS()
 
 #include <cassert>
 

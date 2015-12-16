@@ -18,8 +18,12 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QAction>
+CC_ENABLE_WARNINGS()
 
 #include "GuiAppMgr.h"
 

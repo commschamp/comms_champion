@@ -18,13 +18,16 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QDialog>
+
+#include "ui_MessageUpdateDialog.h"
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Protocol.h"
 #include "comms_champion/MessageDisplayWidget.h"
-
-#include "ui_MessageUpdateDialog.h"
-
 
 namespace comms_champion
 {

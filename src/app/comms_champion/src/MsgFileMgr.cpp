@@ -22,10 +22,14 @@
 #include <iterator>
 #include <iostream>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QFile>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonArray>
 #include <QtCore/QVariantMap>
+CC_ENABLE_WARNINGS()
 
 #include "GlobalConstants.h"
 

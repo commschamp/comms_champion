@@ -18,8 +18,13 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtCore/QtPlugin>
+CC_ENABLE_WARNINGS()
+
 #include "comms_champion/comms_champion.h"
 
 namespace demo

@@ -19,12 +19,16 @@
 
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QShortcut>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtGui/QIcon>
 #include <QtGui/QKeySequence>
+CC_ENABLE_WARNINGS()
 
 #include "LeftPaneWidget.h"
 #include "RightPaneWidget.h"

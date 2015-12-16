@@ -21,8 +21,12 @@
 #include <type_traits>
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
 #include <QtCore/QVariantMap>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Property.h"
 

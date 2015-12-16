@@ -20,13 +20,18 @@
 
 #include <list>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QToolBar>
+
+#include "ui_MainWindowWidget.h"
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Protocol.h"
 
 #include "GuiAppMgr.h"
-#include "ui_MainWindowWidget.h"
 
 namespace comms_champion
 {

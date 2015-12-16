@@ -21,13 +21,17 @@
 #include <functional>
 #include <vector>
 
-#include <QtCore/QVariantMap>
+#include "comms/CompileControl.h"
 
-#include "comms_champion/FieldWidget.h"
-#include "comms_champion/field_wrapper/ArrayListWrapper.h"
+CC_DISABLE_WARNINGS()
+#include <QtCore/QVariantMap>
 
 #include "ui_ArrayListElementWidget.h"
 #include "ui_ArrayListFieldWidget.h"
+CC_ENABLE_WARNINGS()
+
+#include "comms_champion/FieldWidget.h"
+#include "comms_champion/field_wrapper/ArrayListWrapper.h"
 
 namespace comms_champion
 {

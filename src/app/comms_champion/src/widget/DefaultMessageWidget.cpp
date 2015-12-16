@@ -20,9 +20,13 @@
 #include <memory>
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QFrame>
 #include <QtCore/QVariant>
+CC_ENABLE_WARNINGS()
 
 #include "GlobalConstants.h"
 

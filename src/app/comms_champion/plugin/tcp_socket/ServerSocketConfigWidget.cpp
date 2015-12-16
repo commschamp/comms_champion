@@ -30,8 +30,8 @@ namespace tcp_socket
 
 ServerSocketConfigWidget::ServerSocketConfigWidget(
     ServerSocket& socket,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_socket(socket)
 {
     m_ui.setupUi(this);

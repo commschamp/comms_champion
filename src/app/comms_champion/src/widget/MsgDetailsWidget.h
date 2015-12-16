@@ -19,11 +19,16 @@
 
 #include <memory>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
+
+#include "ui_MsgDetailsWidget.h"
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/MessageInfo.h"
 #include "comms_champion/MessageDisplayHandler.h"
-#include "ui_MsgDetailsWidget.h"
 
 namespace comms_champion
 {

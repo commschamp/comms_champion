@@ -17,7 +17,12 @@
 
 #include <cassert>
 #include "SerialSocket.h"
+
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtSerialPort/QSerialPortInfo>
+CC_ENABLE_WARNINGS()
 
 #include <algorithm>
 

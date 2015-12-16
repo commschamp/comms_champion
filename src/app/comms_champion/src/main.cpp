@@ -17,9 +17,13 @@
 
 #include <iostream>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QApplication>
 #include <QtCore/QPluginLoader>
 #include <QtCore/QDir>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/comms_champion.h"
 #include "GuiAppMgr.h"

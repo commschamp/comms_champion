@@ -18,10 +18,14 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
+#include "ui_ServerSocketConfigWidget.h"
+CC_ENABLE_WARNINGS()
 
 #include "ServerSocket.h"
-#include "ui_ServerSocketConfigWidget.h"
 
 namespace comms_champion
 {
@@ -41,7 +45,7 @@ public:
 
     explicit ServerSocketConfigWidget(
         ServerSocket& socket,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~ServerSocketConfigWidget();
 

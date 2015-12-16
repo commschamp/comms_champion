@@ -20,8 +20,13 @@
 
 #include <utility>
 #include <list>
+
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
 #include <QtCore/QVariantList>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/MessageInfo.h"
 #include "comms_champion/Protocol.h"

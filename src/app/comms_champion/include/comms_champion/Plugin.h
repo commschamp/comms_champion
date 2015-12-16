@@ -22,10 +22,14 @@
 #include <cassert>
 #include <memory>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtCore/QtPlugin>
 #include <QtCore/QVariantMap>
 #include <QtWidgets/QWidget>
+CC_ENABLE_WARNINGS()
 
 #include "PluginControlInterface.h"
 

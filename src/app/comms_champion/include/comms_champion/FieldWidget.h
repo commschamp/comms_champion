@@ -21,8 +21,12 @@
 #include <cassert>
 #include <memory>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantMap>
 #include <QtWidgets/QWidget>
+CC_ENABLE_WARNINGS()
 
 class QLineEdit;
 class QLabel;

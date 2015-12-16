@@ -17,7 +17,11 @@
 
 #include "comms_champion/Property.h"
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
+CC_ENABLE_WARNINGS()
 
 namespace comms_champion
 {

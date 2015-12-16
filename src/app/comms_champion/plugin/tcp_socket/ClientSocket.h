@@ -19,7 +19,11 @@
 
 #include <list>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtNetwork/QTcpSocket>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Socket.h"
 

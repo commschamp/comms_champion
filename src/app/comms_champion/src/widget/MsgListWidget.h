@@ -18,16 +18,20 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
 #include <QtCore/QString>
 #include <QtCore/qnamespace.h>
+
+#include "ui_MsgListWidget.h"
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/MessageInfo.h"
 #include "comms_champion/Protocol.h"
 
 #include "GuiAppMgr.h"
-
-#include "ui_MsgListWidget.h"
 
 namespace comms_champion
 {

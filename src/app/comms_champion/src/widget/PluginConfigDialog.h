@@ -17,15 +17,19 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QPushButton>
 
+#include "ui_PluginConfigDialog.h"
+CC_ENABLE_WARNINGS()
+
 #include "PluginMgr.h"
 #include "PluginsListWidget.h"
-
-#include "ui_PluginConfigDialog.h"
 
 namespace comms_champion
 {

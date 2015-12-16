@@ -20,9 +20,13 @@
 
 #include <utility>
 #include <list>
+
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
 #include <QtCore/QVariantMap>
-
+CC_ENABLE_WARNINGS()
 
 namespace comms_champion
 {

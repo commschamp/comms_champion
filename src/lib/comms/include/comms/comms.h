@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "CompileControl.h"
 #include "ErrorStatus.h"
 #include "Assert.h"
 #include "Message.h"

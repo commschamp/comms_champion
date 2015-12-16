@@ -18,11 +18,15 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
 
-#include "comms_champion/MessageInfo.h"
-
 #include "ui_ProtocolsStackWidget.h"
+CC_ENABLE_WARNINGS()
+
+#include "comms_champion/MessageInfo.h"
 
 namespace comms_champion
 {

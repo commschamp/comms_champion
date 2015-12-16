@@ -21,8 +21,12 @@
 #include <vector>
 #include <cstdint>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtCore/QVariantList>
+CC_ENABLE_WARNINGS()
 
 namespace comms_champion
 {

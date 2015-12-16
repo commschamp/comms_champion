@@ -23,8 +23,12 @@
 #include <type_traits>
 #include <algorithm>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QPushButton>
+CC_ENABLE_WARNINGS()
 
 #include "DefaultMessageDisplayWidget.h"
 #include "GlobalConstants.h"

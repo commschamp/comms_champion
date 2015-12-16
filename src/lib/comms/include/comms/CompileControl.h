@@ -18,46 +18,23 @@
 
 #pragma once
 
-#include "comms/CompileControl.h"
+#ifdef __GNUC__
+#define GCC_DIAG_STR(s) #s
+#define GCC_DIAG_JOINSTR(x,y) GCC_DIAG_STR(x ## y)
+#define GCC_DIAG_DO_PRAGMA(x) _Pragma (#x)
+#define GCC_DIAG_PRAGMA(x) GCC_DIAG_DO_PRAGMA(GCC diagnostic x)
+#define CC_DISABLE_WARNINGS() \
+    GCC_DIAG_PRAGMA(push) \
+    GCC_DIAG_PRAGMA(ignored "-Wpedantic") \
+    GCC_DIAG_PRAGMA(ignored "-Wctor-dtor-privacy")\
+    GCC_DIAG_PRAGMA(ignored "-Wold-style-cast")
 
-CC_DISABLE_WARNINGS()
-#include <QtWidgets/QAction>
-CC_ENABLE_WARNINGS()
+#define CC_ENABLE_WARNINGS() GCC_DIAG_PRAGMA(pop)
 
-namespace comms_champion
-{
+#else
 
-namespace plugin
-{
-
-namespace tcp_socket
-{
-
-class ClientConnectAction : public QAction
-{
-    Q_OBJECT
-    typedef QAction Base;
-public:
-    ClientConnectAction(bool connected = false, QWidget* parentObj = nullptr);
-
-    void setConnected(bool connected);
-
-signals:
-    void sigConnectStateChangeReq(bool connect);
-
-private slots:
-    void iconClicked();
-
-private:
-    void refresh();
-
-    bool m_connected = false;
-};
-
-}  // namespace tcp_socket
-
-}  // namespace plugin
-
-}  // namespace comms_champion
+#define CC_DISABLE_WARNINGS()
+#define CC_ENABLE_WARNINGS()
+#endif
 
 

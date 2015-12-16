@@ -16,7 +16,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <cassert>
+
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtNetwork/QHostAddress>
+CC_ENABLE_WARNINGS()
 
 #include "ClientSocket.h"
 

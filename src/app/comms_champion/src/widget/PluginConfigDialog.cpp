@@ -20,11 +20,15 @@
 #include <cassert>
 #include <memory>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
+CC_ENABLE_WARNINGS()
 
 #include "icon.h"
 #include "ConfigMgr.h"

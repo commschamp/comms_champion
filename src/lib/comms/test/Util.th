@@ -17,7 +17,10 @@
 
 
 #include "comms/comms.h"
+
+CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
 
 class UtilTestSuite : public CxxTest::TestSuite
 {

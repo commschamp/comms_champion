@@ -20,9 +20,12 @@
 #include <memory>
 #include <iterator>
 
-#include "cxxtest/TestSuite.h"
+#include "comms/comms.h"
 #include "CommsTestCommon.h"
 
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
 
 class MessageTestSuite : public CxxTest::TestSuite
 {

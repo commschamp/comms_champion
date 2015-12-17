@@ -24,11 +24,10 @@ endif ()
 if (CMAKE_COMPILER_IS_GNUCC)
     ext_add_c_cxx_flags(
         "-Wall" "-Wextra" "-Werror" "-Wcast-align" "-Wcast-qual" "-Wctor-dtor-privacy"
-        "-Wmissing-include-dirs" "-Wnoexcept" "-Wold-style-cast" 
-        "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow"
-        "-Wno-unknown-pragmas"
+        "-Wmissing-include-dirs" "-Wnoexcept" "-Wlogical-op" "-Wstrict-null-sentinel"
+        "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow" "-Wundef" "-Wunused"
+        "-Wno-unknown-pragmas" "-fdiagnostics-show-option"
     )
-    # "-Wpedantic"   -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op  -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wundef -Wno-unused -Wno-variadic-macros -Wno-parentheses -fdiagnostics-show-option
 endif ()
 
 

@@ -37,7 +37,7 @@ public:
 
     explicit OptionalFieldWidget(
         WrapperPtr wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~OptionalFieldWidget();
 

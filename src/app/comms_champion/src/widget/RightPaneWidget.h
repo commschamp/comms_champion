@@ -31,7 +31,7 @@ class RightPaneWidget : public QWidget
 {
     using Base = QWidget;
 public:
-    RightPaneWidget(QWidget* parent = nullptr);
+    RightPaneWidget(QWidget* parentObj = nullptr);
 };
 
 }  // namespace comms_champion

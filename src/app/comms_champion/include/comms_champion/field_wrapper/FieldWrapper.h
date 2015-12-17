@@ -90,8 +90,8 @@ public:
 
 protected:
 
-    FieldWrapperT(Field& field)
-      : m_field(field)
+    explicit FieldWrapperT(Field& fieldRef)
+      : m_field(fieldRef)
     {
     }
 

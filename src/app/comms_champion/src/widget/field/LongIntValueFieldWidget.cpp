@@ -28,8 +28,8 @@ namespace comms_champion
 
 LongIntValueFieldWidget::LongIntValueFieldWidget(
     WrapperPtr wrapper,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);

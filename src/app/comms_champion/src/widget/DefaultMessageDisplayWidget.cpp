@@ -32,8 +32,8 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
-  : Base(parent),
+DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parentObj)
+  : Base(parentObj),
     m_msgDetailsWidget(new MsgDetailsWidget()),
     m_protocolsDetailsWidget(new ProtocolsStackWidget())
 {
@@ -50,10 +50,10 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
     splitter->addWidget(m_msgDetailsWidget);
     splitter->addWidget(m_protocolsDetailsWidget);
 
-    auto* layout = new QVBoxLayout();
-    layout->addWidget(splitter);
+    auto* widgetLayout = new QVBoxLayout();
+    widgetLayout->addWidget(splitter);
 
-    setLayout(layout);
+    setLayout(widgetLayout);
 }
 
 void DefaultMessageDisplayWidget::displayMessageImpl(

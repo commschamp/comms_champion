@@ -27,8 +27,8 @@ namespace comms_champion
 
 StringFieldWidget::StringFieldWidget(
     WrapperPtr&& wrapper,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
@@ -65,11 +65,11 @@ void StringFieldWidget::refreshImpl()
     assert(m_ui.m_valuePlainTextEdit != nullptr);
     auto value = m_wrapper->getValue();
     if (m_ui.m_valuePlainTextEdit->toPlainText() != value) {
-        auto cursor = m_ui.m_valuePlainTextEdit->textCursor();
-        auto newPosition = std::min(cursor.position(), value.size());
+        auto curs = m_ui.m_valuePlainTextEdit->textCursor();
+        auto newPosition = std::min(curs.position(), value.size());
         m_ui.m_valuePlainTextEdit->setPlainText(value);
-        cursor.setPosition(newPosition);
-        m_ui.m_valuePlainTextEdit->setTextCursor(cursor);
+        curs.setPosition(newPosition);
+        m_ui.m_valuePlainTextEdit->setTextCursor(curs);
     }
 
     bool valid = m_wrapper->valid();

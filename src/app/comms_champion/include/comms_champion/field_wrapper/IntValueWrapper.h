@@ -92,8 +92,8 @@ public:
 
     typedef typename Base::UnderlyingType UnderlyingType;
 
-    IntValueWrapperT(Field& field)
-      : Base(field)
+    explicit IntValueWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 

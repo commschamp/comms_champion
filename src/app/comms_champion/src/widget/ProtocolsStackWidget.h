@@ -36,7 +36,7 @@ class ProtocolsStackWidget : public QWidget
     Q_OBJECT
     using Base = QWidget;
 public:
-    ProtocolsStackWidget(QWidget* parent = nullptr);
+    ProtocolsStackWidget(QWidget* parentObj = nullptr);
     ~ProtocolsStackWidget();
 
     void displayMessage(MessageInfoPtr msgInfo, bool force);

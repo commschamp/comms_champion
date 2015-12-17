@@ -39,7 +39,7 @@ class DefaultMessageWidget : public MessageWidget
     Q_OBJECT
     using Base = MessageWidget;
 public:
-    DefaultMessageWidget(Message& msg, QWidget* parent = nullptr);
+    DefaultMessageWidget(Message& msg, QWidget* parentObj = nullptr);
     ~DefaultMessageWidget() = default;
 
     void addFieldWidget(FieldWidget* field);

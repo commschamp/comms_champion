@@ -126,14 +126,14 @@ public:
     ArrayList() = default;
 
     /// @brief Value constructor
-    explicit ArrayList(const ValueType& value)
-      : field_(value)
+    explicit ArrayList(const ValueType& val)
+      : field_(val)
     {
     }
 
     /// @brief Value constructor
-    explicit ArrayList(ValueType&& value)
-      : field_(std::move(value))
+    explicit ArrayList(ValueType&& val)
+      : field_(std::move(val))
     {
     }
 

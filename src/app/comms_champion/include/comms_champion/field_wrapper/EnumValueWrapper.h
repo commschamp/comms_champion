@@ -53,8 +53,8 @@ class EnumValueWrapperT : public NumericValueWrapperT<EnumValueWrapper, TField>
         "This wrapper cannot handle provided field.");
 
 public:
-    EnumValueWrapperT(Field& field)
-      : Base(field)
+    explicit EnumValueWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 

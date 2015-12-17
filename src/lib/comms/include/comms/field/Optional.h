@@ -60,19 +60,19 @@ public:
     Optional() = default;
 
     /// @brief Construct the field.
-    /// @param[in] field Field to be copied from during construction.
+    /// @param[in] fieldSrc Field to be copied from during construction.
     /// @param[in] mode Mode of the field.
-    explicit Optional(const Field& field, Mode mode = Mode::Tentative)
-      : field_(field),
+    explicit Optional(const Field& fieldSrc, Mode mode = Mode::Tentative)
+      : field_(fieldSrc),
         mode_(mode)
     {
     }
 
     /// @brief Construct the field.
-    /// @param[in] field Field to be moved from during construction.
+    /// @param[in] fieldSrc Field to be moved from during construction.
     /// @param[in] mode Mode of the field.
-    explicit Optional(Field&& field, Mode mode = Mode::Tentative)
-      : field_(std::move(field)),
+    explicit Optional(Field&& fieldSrc, Mode mode = Mode::Tentative)
+      : field_(std::move(fieldSrc)),
         mode_(mode)
     {
     }
@@ -111,10 +111,10 @@ public:
     }
 
     /// @brief Get optional mode
-    void setMode(Mode value)
+    void setMode(Mode val)
     {
-        GASSERT(value < Mode::NumOfModes);
-        mode_ = value;
+        GASSERT(val < Mode::NumOfModes);
+        mode_ = val;
     }
 
     /// @brief Get length required to serialise the current field value.

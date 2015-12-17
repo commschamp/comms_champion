@@ -68,8 +68,8 @@ class BitmaskValueWrapperT : public NumericValueWrapperT<BitmaskValueWrapper, TF
     static_assert(sizeof(ValueType) <= sizeof(MaskType), "This wrapper cannot handle provided field.");
 
 public:
-    BitmaskValueWrapperT(Field& field)
-      : Base(field)
+    explicit BitmaskValueWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 

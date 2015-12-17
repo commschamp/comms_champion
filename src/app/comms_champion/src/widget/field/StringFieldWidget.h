@@ -35,7 +35,7 @@ public:
 
     explicit StringFieldWidget(
         WrapperPtr&& wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~StringFieldWidget();
 

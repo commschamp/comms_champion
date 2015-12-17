@@ -72,8 +72,8 @@ class StringWrapperT : public FieldWrapperT<StringWrapper, TField>
 public:
     using SerialisedSeq = typename Base::SerialisedSeq;
 
-    StringWrapperT(Field& field)
-      : Base(field)
+    explicit StringWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 

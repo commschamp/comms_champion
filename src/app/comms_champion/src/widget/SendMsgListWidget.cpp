@@ -33,8 +33,8 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-SendMsgListWidget::SendMsgListWidget(QWidget* parent)
-  : Base("Messages to Send", new SendAreaToolBar(), parent),
+SendMsgListWidget::SendMsgListWidget(QWidget* parentObj)
+  : Base("Messages to Send", new SendAreaToolBar(), parentObj),
     m_state(GuiAppMgr::instanceRef().sendState())
 {
     selectOnAdd(true);

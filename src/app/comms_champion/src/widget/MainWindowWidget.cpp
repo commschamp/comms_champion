@@ -57,8 +57,8 @@ void createStandardButtons(QToolBar& bar)
 
 }  // namespace
 
-MainWindowWidget::MainWindowWidget(QWidget* parent)
-  : Base(parent)
+MainWindowWidget::MainWindowWidget(QWidget* parentObj)
+  : Base(parentObj)
 {
     m_ui.setupUi(this);
 

@@ -26,7 +26,7 @@ class SendMsgListWidget: public MsgListWidget
 {
     using Base = MsgListWidget;
 public:
-    SendMsgListWidget(QWidget* parent = nullptr);
+    SendMsgListWidget(QWidget* parentObj = nullptr);
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx) override;

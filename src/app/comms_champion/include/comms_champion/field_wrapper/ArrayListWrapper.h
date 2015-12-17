@@ -78,8 +78,8 @@ class ArrayListWrapperT : public FieldWrapperT<ArrayListWrapper, TField>
 public:
     using SerialisedSeq = typename Base::SerialisedSeq;
 
-    ArrayListWrapperT(Field& field)
-      : Base(field)
+    explicit ArrayListWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 

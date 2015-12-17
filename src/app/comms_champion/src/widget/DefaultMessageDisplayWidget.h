@@ -30,7 +30,7 @@ class DefaultMessageDisplayWidget : public MessageDisplayWidget
     Q_OBJECT
     using Base = MessageDisplayWidget;
 public:
-    DefaultMessageDisplayWidget(QWidget* parent = nullptr);
+    DefaultMessageDisplayWidget(QWidget* parentObj = nullptr);
 
 protected:
     virtual void displayMessageImpl(MessageInfoPtr msgInfo, bool force) override;

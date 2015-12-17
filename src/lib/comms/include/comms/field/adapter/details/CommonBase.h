@@ -126,13 +126,13 @@ public:
 
 protected:
     CommonBase() = default;
-    explicit CommonBase(const ValueType& value)
-      : next_(value)
+    explicit CommonBase(const ValueType& val)
+      : next_(val)
     {
     }
 
-    explicit CommonBase(ValueType&& value)
-      : next_(std::move(value))
+    explicit CommonBase(ValueType&& val)
+      : next_(std::move(val))
     {
     }
 

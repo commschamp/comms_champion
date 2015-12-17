@@ -42,13 +42,13 @@ public:
 
     SequenceTerminationFieldSuffix() = default;
 
-    explicit SequenceTerminationFieldSuffix(const ValueType& value)
-      : Base(value)
+    explicit SequenceTerminationFieldSuffix(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit SequenceTerminationFieldSuffix(ValueType&& value)
-      : Base(std::move(value))
+    explicit SequenceTerminationFieldSuffix(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 

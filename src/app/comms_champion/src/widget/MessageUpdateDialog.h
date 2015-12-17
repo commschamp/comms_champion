@@ -40,7 +40,7 @@ public:
     MessageUpdateDialog(
         MessageInfoPtr& msgInfo,
         ProtocolPtr protocol,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
 private slots:
     void msgUpdated();

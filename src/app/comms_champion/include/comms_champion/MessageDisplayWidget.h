@@ -34,8 +34,8 @@ class MessageDisplayWidget : public QWidget
     Q_OBJECT
     using Base = QWidget;
 public:
-    MessageDisplayWidget(QWidget* parent = nullptr)
-      : Base(parent)
+    MessageDisplayWidget(QWidget* parentObj = nullptr)
+      : Base(parentObj)
     {
     }
 

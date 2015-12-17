@@ -58,8 +58,8 @@ public:
 
     static_assert(sizeof(CellType) == sizeof(T), "Type T must be padded");
 
-    StaticVectorBase(CellType* data, std::size_t cap)
-      : data_(data),
+    StaticVectorBase(CellType* dataPtr, std::size_t cap)
+      : data_(dataPtr),
         capacity_(cap)
     {
     }

@@ -27,8 +27,8 @@ namespace comms_champion
 
 ArrayListElementWidget::ArrayListElementWidget(
     FieldWidget* fieldWidget,
-    QWidget* parent)
-  : Base(parent)
+    QWidget* parentObj)
+  : Base(parentObj)
 {
     m_ui.setupUi(this);
     m_fieldWidget = fieldWidget;
@@ -79,8 +79,8 @@ void ArrayListElementWidget::updateUi()
 ArrayListFieldWidget::ArrayListFieldWidget(
     WrapperPtr wrapper,
     CreateMissingDataFieldsFunc&& updateFunc,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper)),
     m_createMissingDataFieldsCallback(std::move(updateFunc))
 {

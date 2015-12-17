@@ -41,13 +41,13 @@ public:
 
     FailOnInvalid() = default;
 
-    explicit FailOnInvalid(const ValueType& value)
-      : Base(value)
+    explicit FailOnInvalid(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit FailOnInvalid(ValueType&& value)
-      : Base(std::move(value))
+    explicit FailOnInvalid(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 

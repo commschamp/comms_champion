@@ -34,8 +34,8 @@ namespace comms_champion
 
 BitmaskValueFieldWidget::BitmaskValueFieldWidget(
     WrapperPtr&& wrapper,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper)),
     m_checkboxes(m_wrapper->bitIdxLimit())
 {

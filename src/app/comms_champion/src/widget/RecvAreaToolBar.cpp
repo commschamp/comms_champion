@@ -110,8 +110,8 @@ QAction* createShowSent(QToolBar& bar)
 
 }  // namespace
 
-RecvAreaToolBar::RecvAreaToolBar(QWidget* parent)
-  : Base(parent),
+RecvAreaToolBar::RecvAreaToolBar(QWidget* parentObj)
+  : Base(parentObj),
     m_startStopButton(createStartButton(*this)),
 //    m_saveButton(createSaveButton(*this)),
     m_deleteButton(createDeleteButton(*this)),

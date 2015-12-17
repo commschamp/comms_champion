@@ -113,8 +113,8 @@ int msToDurationUnits(long long unsigned value, Duration dur)
 MessageUpdateDialog::MessageUpdateDialog(
     MessageInfoPtr& msgInfo,
     ProtocolPtr protocol,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_msgInfo(msgInfo),
     m_protocol(std::move(protocol)),
     m_allMsgs(m_protocol->createAllMessages()),
@@ -212,9 +212,9 @@ MessageUpdateDialog::MessageUpdateDialog(
     refreshRepeatInfo(m_ui.m_repeatCheckBox->checkState());
     refreshButtons();
 
-    assert(parent);
-    auto newHeight = std::max(height(), (parent->height() * 9) / 10);
-    auto newWidth = std::max(width(), (parent->width() * 7) / 10);
+    assert(parentObj);
+    auto newHeight = std::max(height(), (parentObj->height() * 9) / 10);
+    auto newWidth = std::max(width(), (parentObj->width() * 7) / 10);
     resize(QSize(newWidth, newHeight));
 
     connect(

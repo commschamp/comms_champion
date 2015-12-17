@@ -175,7 +175,7 @@ private:
         Send
     };
 
-    GuiAppMgr(QObject* parent = nullptr);
+    GuiAppMgr(QObject* parentObj = nullptr);
     void emitRecvStateUpdate();
     void emitSendStateUpdate();
 

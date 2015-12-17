@@ -36,8 +36,8 @@ const QString& getTitlePrefix()
 
 }  // namespace
 
-MsgDetailsWidget::MsgDetailsWidget(QWidget* parent)
-  : Base(parent),
+MsgDetailsWidget::MsgDetailsWidget(QWidget* parentObj)
+  : Base(parentObj),
     m_msgDisplayHandler(new DefaultMessageDisplayHandler())
 {
     m_ui.setupUi(this);

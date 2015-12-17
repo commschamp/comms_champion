@@ -22,8 +22,8 @@ namespace comms_champion
 
 PluginsListWidget::PluginsListWidget(
     const QString& name,
-    QWidget* parent)
-  : Base(parent)
+    QWidget* parentObj)
+  : Base(parentObj)
 {
     m_ui.setupUi(this);
     m_ui.m_groupBox->setTitle(name);
@@ -66,14 +66,14 @@ void PluginsListWidget::addItem(const QString& name)
     m_ui.m_listWidget->addItem(name);
 }
 
-void PluginsListWidget::setCurrentRow(int row)
+void PluginsListWidget::setCurrentRow(int rowIdx)
 {
-    m_ui.m_listWidget->setCurrentRow(row);
+    m_ui.m_listWidget->setCurrentRow(rowIdx);
 }
 
-void PluginsListWidget::setCurrentItem(QListWidgetItem* item)
+void PluginsListWidget::setCurrentItem(QListWidgetItem* itemPtr)
 {
-    m_ui.m_listWidget->setCurrentItem(item);
+    m_ui.m_listWidget->setCurrentItem(itemPtr);
 }
 
 int PluginsListWidget::currentRow() const
@@ -81,14 +81,14 @@ int PluginsListWidget::currentRow() const
     return m_ui.m_listWidget->currentRow();
 }
 
-int PluginsListWidget::row(QListWidgetItem* item) const
+int PluginsListWidget::getRow(QListWidgetItem* itemPtr) const
 {
-    return m_ui.m_listWidget->row(item);
+    return m_ui.m_listWidget->row(itemPtr);
 }
 
-void PluginsListWidget::insertItem(int row, QListWidgetItem* item)
+void PluginsListWidget::insertItem(int row, QListWidgetItem* itemPtr)
 {
-    m_ui.m_listWidget->insertItem(row, item);
+    m_ui.m_listWidget->insertItem(row, itemPtr);
 }
 
 }  // namespace comms_champion

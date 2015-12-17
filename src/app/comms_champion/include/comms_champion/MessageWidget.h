@@ -32,7 +32,7 @@ class MessageWidget : public QWidget
     Q_OBJECT
     typedef QWidget Base;
 public:
-    MessageWidget(QWidget* parent = nullptr);
+    MessageWidget(QWidget* parentObj = nullptr);
     ~MessageWidget() = default;
 
 public slots:

@@ -144,8 +144,8 @@ QAction* createBottomButton(QToolBar& bar)
 
 }  // namespace
 
-SendAreaToolBar::SendAreaToolBar(QWidget* parent)
-  : Base(parent),
+SendAreaToolBar::SendAreaToolBar(QWidget* parentObj)
+  : Base(parentObj),
     m_startStopButton(createStartButton(*this)),
     m_startStopAllButton(createStartAllButton(*this)),
     m_loadButton(createLoadButton(*this)),

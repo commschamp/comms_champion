@@ -56,8 +56,8 @@ void updateValidityStyle(
 
 }  // namespace
 
-FieldWidget::FieldWidget(QWidget* parent)
-  : Base(parent)
+FieldWidget::FieldWidget(QWidget* parentObj)
+  : Base(parentObj)
 {
 }
 

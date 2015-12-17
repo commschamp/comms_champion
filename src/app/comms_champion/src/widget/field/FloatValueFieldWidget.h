@@ -35,7 +35,7 @@ public:
 
     explicit FloatValueFieldWidget(
         WrapperPtr wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~FloatValueFieldWidget();
 

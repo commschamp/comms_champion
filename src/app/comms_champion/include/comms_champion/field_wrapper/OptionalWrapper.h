@@ -56,8 +56,8 @@ class OptionalWrapperT : public OptionalWrapper
 public:
 
     typedef TField Field;
-    OptionalWrapperT(Field& field)
-      : m_field(field)
+    explicit OptionalWrapperT(Field& fieldRef)
+      : m_field(fieldRef)
     {
     }
 

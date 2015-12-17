@@ -38,7 +38,7 @@ class BundleFieldWidget : public FieldWidget
 public:
 
     explicit BundleFieldWidget(
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~BundleFieldWidget();
 

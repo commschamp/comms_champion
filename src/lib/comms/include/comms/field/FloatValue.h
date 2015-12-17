@@ -75,8 +75,8 @@ public:
     FloatValue() = default;
 
     /// @brief Constructor
-    explicit FloatValue(const ValueType& value)
-      : field_(value)
+    explicit FloatValue(const ValueType& val)
+      : field_(val)
     {
     }
 

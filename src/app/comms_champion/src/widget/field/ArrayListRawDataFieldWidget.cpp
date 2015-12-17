@@ -28,8 +28,8 @@ namespace comms_champion
 
 ArrayListRawDataFieldWidget::ArrayListRawDataFieldWidget(
     WrapperPtr&& wrapper,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
@@ -81,12 +81,12 @@ void ArrayListRawDataFieldWidget::refreshImpl()
     } while (false);
 
     if (valueUpdateNeeded) {
-        auto cursor = m_ui.m_valuePlainTextEdit->textCursor();
-        auto newPosition = std::min(cursor.position(), value.size());
+        auto curs = m_ui.m_valuePlainTextEdit->textCursor();
+        auto newPosition = std::min(curs.position(), value.size());
         assert(m_ui.m_valuePlainTextEdit != nullptr);
         m_ui.m_valuePlainTextEdit->setPlainText(value);
-        cursor.setPosition(newPosition);
-        m_ui.m_valuePlainTextEdit->setTextCursor(cursor);
+        curs.setPosition(newPosition);
+        m_ui.m_valuePlainTextEdit->setTextCursor(curs);
     }
 
     bool valid = m_wrapper->valid();

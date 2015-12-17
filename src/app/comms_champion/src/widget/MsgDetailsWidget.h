@@ -38,7 +38,7 @@ class MsgDetailsWidget: public QWidget
     Q_OBJECT
     using Base = QWidget;
 public:
-    MsgDetailsWidget(QWidget* parent = nullptr);
+    MsgDetailsWidget(QWidget* parentObj = nullptr);
 
 public slots:
     void setEditEnabled(bool enabled);

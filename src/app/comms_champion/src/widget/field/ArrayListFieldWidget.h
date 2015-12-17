@@ -44,7 +44,7 @@ public:
 
     ArrayListElementWidget(
         FieldWidget* fieldWidget,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     void refresh();
     void setEditEnabled(bool enabled);
@@ -75,7 +75,7 @@ public:
     explicit ArrayListFieldWidget(
         WrapperPtr wrapper,
         CreateMissingDataFieldsFunc&& updateFunc,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~ArrayListFieldWidget();
 

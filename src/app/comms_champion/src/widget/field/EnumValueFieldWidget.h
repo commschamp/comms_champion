@@ -35,7 +35,7 @@ public:
 
     explicit EnumValueFieldWidget(
         WrapperPtr&& wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~EnumValueFieldWidget();
 

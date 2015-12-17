@@ -34,8 +34,8 @@ namespace comms_champion
 {
 
 BundleFieldWidget::BundleFieldWidget(
-    QWidget* parent)
-  : Base(parent)
+    QWidget* parentObj)
+  : Base(parentObj)
 {
     m_membersLayout = new QVBoxLayout();
     setLayout(m_membersLayout);

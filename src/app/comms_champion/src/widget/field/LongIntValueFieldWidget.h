@@ -35,7 +35,7 @@ public:
 
     explicit LongIntValueFieldWidget(
         WrapperPtr wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~LongIntValueFieldWidget();
 

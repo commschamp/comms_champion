@@ -50,8 +50,8 @@ public:
 
     IntValue() = default;
 
-    explicit IntValue(ValueType value)
-      : value_(value)
+    explicit IntValue(ValueType val)
+      : value_(val)
     {
     }
 
@@ -87,14 +87,14 @@ public:
         return length();
     }
 
-    static constexpr SerialisedType toSerialised(ValueType value)
+    static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return static_cast<SerialisedType>(value);
+        return static_cast<SerialisedType>(val);
     }
 
-    static constexpr ValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return static_cast<ValueType>(value);
+        return static_cast<ValueType>(val);
     }
 
     static constexpr bool valid()

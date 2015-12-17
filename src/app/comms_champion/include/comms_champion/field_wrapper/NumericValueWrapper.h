@@ -101,8 +101,8 @@ protected:
         "This wrapper cannot handle provided field.");
 
 public:
-    NumericValueWrapperT(Field& field)
-      : Base(field)
+    explicit NumericValueWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
         static_assert(std::is_base_of<NumericValueWrapper<UnderlyingType>, NumericValueWrapperT<TBase, TField> >::value,
             "Must inherit from NumericValueWrapper");

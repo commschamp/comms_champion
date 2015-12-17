@@ -46,8 +46,8 @@ class UnknownValueWrapperT : public FieldWrapperT<UnknownValueWrapper, TField>
     using SerialisedSeq = typename Base::SerialisedSeq;
 
 public:
-    UnknownValueWrapperT(Field& field)
-      : Base(field)
+    explicit UnknownValueWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 

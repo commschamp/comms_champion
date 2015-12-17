@@ -121,8 +121,8 @@ public:
     BitmaskValue() = default;
 
     /// @brief Constructor
-    explicit BitmaskValue(const ValueType& value)
-       : intValue_(value)
+    explicit BitmaskValue(const ValueType& val)
+       : intValue_(val)
     {
     }
 
@@ -233,10 +233,10 @@ public:
     }
 
     /// @brief Set bit value
-    void setBitValue(unsigned bitNum, bool value)
+    void setBitValue(unsigned bitNum, bool val)
     {
         auto mask = static_cast<ValueType>(1U) << bitNum;
-        if (value) {
+        if (val) {
             setBits(mask);
         }
         else {

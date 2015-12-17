@@ -40,13 +40,13 @@ public:
 
     Scaling() = default;
 
-    explicit Scaling(const ValueType& value)
-      : Base(value)
+    explicit Scaling(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit Scaling(ValueType&& value)
-      : Base(std::move(value))
+    explicit Scaling(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 

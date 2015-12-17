@@ -35,8 +35,8 @@ namespace comms_champion
 
 DefaultMessageWidget::DefaultMessageWidget(
     Message& msg,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_msg(msg),
     m_layout(new LayoutType())
 {

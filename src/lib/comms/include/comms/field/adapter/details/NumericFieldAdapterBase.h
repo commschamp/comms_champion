@@ -55,20 +55,20 @@ public:
     NumericFieldAdapterBase& operator=(const NumericFieldAdapterBase&) = default;
     NumericFieldAdapterBase& operator=(NumericFieldAdapterBase&&) = default;
 
-    static constexpr SerialisedType toSerialised(ValueType value)
+    static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return Next::toSerialised(value);
+        return Next::toSerialised(val);
     }
 
-    static constexpr ValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return Next::fromSerialised(value);
+        return Next::fromSerialised(val);
     }
 
 protected:
     NumericFieldAdapterBase() = default;
-    explicit NumericFieldAdapterBase(const ValueType& value)
-      : Base(value)
+    explicit NumericFieldAdapterBase(const ValueType& val)
+      : Base(val)
     {
     }
 };

@@ -45,15 +45,15 @@ public:
         Base::value().resize(fixedSize_);
     }
 
-    SequenceFixedSizeBase(std::size_t maxSize, const ValueType& value)
-      : Base(value),
+    SequenceFixedSizeBase(std::size_t maxSize, const ValueType& val)
+      : Base(val),
         fixedSize_(maxSize)
     {
         GASSERT(Base::value().size() == fixedSize_);
     }
 
-    SequenceFixedSizeBase(std::size_t maxSize, ValueType&& value)
-      : Base(std::move(value)),
+    SequenceFixedSizeBase(std::size_t maxSize, ValueType&& val)
+      : Base(std::move(val)),
         fixedSize_(maxSize)
     {
         GASSERT(Base::value().size() == fixedSize_);
@@ -135,8 +135,8 @@ public:
         std::fill_n(std::back_inserter(valCopy), sizeDiff, ElementType());
 
         typedef typename Base::Next Next;
-        Next next(std::move(valCopy));
-        return next.valid();
+        Next nextAdapter(std::move(valCopy));
+        return nextAdapter.valid();
     }
 
 private:
@@ -158,14 +158,14 @@ public:
         GASSERT(Base::value().size() == TSize);
     }
 
-    explicit SequenceFixedSize(const ValueType& value)
-      : Base(TSize, value)
+    explicit SequenceFixedSize(const ValueType& val)
+      : Base(TSize, val)
     {
         GASSERT(Base::value().size() == TSize);
     }
 
-    SequenceFixedSize(ValueType&& value)
-      : Base(TSize, std::move(value))
+    SequenceFixedSize(ValueType&& val)
+      : Base(TSize, std::move(val))
     {
         GASSERT(Base::value().size() == TSize);
     }

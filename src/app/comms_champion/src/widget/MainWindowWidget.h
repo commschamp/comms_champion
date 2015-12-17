@@ -44,7 +44,7 @@ public:
     typedef GuiAppMgr::ActionPtr ActionPtr;
     typedef GuiAppMgr::ActivityState ActiveState;
 
-    MainWindowWidget(QWidget* parent = nullptr);
+    MainWindowWidget(QWidget* parentObj = nullptr);
     ~MainWindowWidget();
 
 private slots:

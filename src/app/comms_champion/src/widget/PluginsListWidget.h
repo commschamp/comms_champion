@@ -39,7 +39,7 @@ public:
 
     PluginsListWidget(
         const QString& name,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     QListWidgetItem* currentItem();
     void clear();
@@ -47,15 +47,15 @@ public:
     QListWidgetItem* item(int idx);
     QListWidgetItem* takeItem(int idx);
     void addItem(const QString& name);
-    void setCurrentRow(int row);
-    void setCurrentItem(QListWidgetItem* item);
+    void setCurrentRow(int rowIdx);
+    void setCurrentItem(QListWidgetItem* itemPtr);
     int currentRow() const;
-    int row(QListWidgetItem* item) const;
-    void insertItem(int row, QListWidgetItem* item);
+    int getRow(QListWidgetItem* itemPtr) const;
+    void insertItem(int row, QListWidgetItem* itemPtr);
 
 signals:
-    void itemClicked(QListWidgetItem* item);
-    void itemDoubleClicked(QListWidgetItem* item);
+    void itemClicked(QListWidgetItem* itemPtr);
+    void itemDoubleClicked(QListWidgetItem* itemPtr);
 
 private:
     Ui::PluginsListWidget m_ui;

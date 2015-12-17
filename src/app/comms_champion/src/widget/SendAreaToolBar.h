@@ -38,7 +38,7 @@ public:
     typedef GuiAppMgr::SendState State;
     typedef GuiAppMgr::ActivityState ActivityState;
 
-    SendAreaToolBar(QWidget* parent = nullptr);
+    SendAreaToolBar(QWidget* parentObj = nullptr);
 
 private slots:
     void sendListCountReport(unsigned count);

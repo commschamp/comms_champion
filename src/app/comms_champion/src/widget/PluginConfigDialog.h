@@ -40,7 +40,7 @@ class PluginConfigDialog: public QDialog
     using Base = QDialog;
 
 public:
-    PluginConfigDialog(QWidget* parent = nullptr);
+    PluginConfigDialog(QWidget* parentObj = nullptr);
     virtual void accept();
 
 private slots:

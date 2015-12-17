@@ -84,8 +84,8 @@ class ArrayListRawDataWrapperT : public FieldWrapperT<ArrayListRawDataWrapper, T
 public:
     using SerialisedSeq = typename Base::SerialisedSeq;
 
-    ArrayListRawDataWrapperT(Field& field)
-      : Base(field)
+    explicit ArrayListRawDataWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 
@@ -117,12 +117,12 @@ protected:
             [&data, &byteStr]() mutable
             {
                 bool ok = false;
-                auto val = byteStr.toInt(&ok, 16);
+                auto intVal = byteStr.toInt(&ok, 16);
                 if (!ok) {
                     return;
                 }
 
-                data.push_back(static_cast<typename SerialisedSeq::value_type>(val));
+                data.push_back(static_cast<typename SerialisedSeq::value_type>(intVal));
                 byteStr.clear();
             };
 

@@ -42,13 +42,13 @@ public:
 
     SequenceSizeFieldPrefix() = default;
 
-    explicit SequenceSizeFieldPrefix(const ValueType& value)
-      : Base(value)
+    explicit SequenceSizeFieldPrefix(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit SequenceSizeFieldPrefix(ValueType&& value)
-      : Base(std::move(value))
+    explicit SequenceSizeFieldPrefix(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 

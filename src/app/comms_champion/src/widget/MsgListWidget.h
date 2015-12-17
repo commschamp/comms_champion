@@ -48,7 +48,7 @@ public:
     MsgListWidget(
         const QString& title,
         QWidget* toolbar,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
 protected slots:
     void addMessage(MessageInfoPtr msgInfo);

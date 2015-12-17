@@ -38,7 +38,7 @@ public:
 
     explicit BitmaskValueFieldWidget(
         WrapperPtr&& wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~BitmaskValueFieldWidget();
 

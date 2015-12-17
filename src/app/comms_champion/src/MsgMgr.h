@@ -87,7 +87,7 @@ private slots:
 private:
     typedef std::list<SocketPtr> SocketsList;
 
-    MsgMgr(QObject* parent = nullptr);
+    MsgMgr(QObject* parentObj = nullptr);
     void updateInternalId(MessageInfo& msgInfo);
 
     MsgsList m_allMsgs;

@@ -396,8 +396,8 @@ GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
     return PluginMgr::instanceRef().getState();
 }
 
-GuiAppMgr::GuiAppMgr(QObject* parent)
-  : Base(parent),
+GuiAppMgr::GuiAppMgr(QObject* parentObj)
+  : Base(parentObj),
     m_recvState(RecvState::Idle),
     m_sendState(SendState::Idle)
 {
@@ -511,7 +511,7 @@ void GuiAppMgr::sendPendingAndWait()
 
         if (reinsert) {
             auto newDelay = repeatMs;
-            auto iter =
+            auto reinsertIter =
                 std::find_if(
                     m_msgsToSend.begin(), m_msgsToSend.end(),
                     [&newDelay, &retrieveDelayFunc](MessageInfoPtr mInfo) mutable -> bool
@@ -525,8 +525,8 @@ void GuiAppMgr::sendPendingAndWait()
                         return false;
                     });
 
-            if (iter != m_msgsToSend.end()) {
-                auto& msgToUpdate = *iter;
+            if (reinsertIter != m_msgsToSend.end()) {
+                auto& msgToUpdate = *reinsertIter;
                 assert(msgToUpdate);
                 auto mDelay = retrieveDelayFunc(*msgToUpdate);
                 msgToUpdate->setExtraProperty(
@@ -544,7 +544,7 @@ void GuiAppMgr::sendPendingAndWait()
                     QVariant::fromValue(repeatCount - 1));
             }
 
-            m_msgsToSend.insert(iter, std::move(msgToSend));
+            m_msgsToSend.insert(reinsertIter, std::move(msgToSend));
         }
     }
 

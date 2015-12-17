@@ -42,13 +42,13 @@ public:
         Initialiser()(*this);
     }
 
-    explicit DefaultValueInitialiser(const ValueType& value)
-      : Base(value)
+    explicit DefaultValueInitialiser(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit DefaultValueInitialiser(ValueType&& value)
-      : Base(std::move(value))
+    explicit DefaultValueInitialiser(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 

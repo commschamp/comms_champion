@@ -112,14 +112,14 @@ public:
     Bitfield() = default;
 
     /// @brief Constructor
-    explicit Bitfield(const ValueType& value)
-      : field_(value)
+    explicit Bitfield(const ValueType& val)
+      : field_(val)
     {
     }
 
     /// @brief Constructor
-    explicit Bitfield(ValueType&& value)
-      : field_(std::move(value))
+    explicit Bitfield(ValueType&& val)
+      : field_(std::move(val))
     {
     }
 

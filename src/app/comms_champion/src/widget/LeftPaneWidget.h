@@ -31,7 +31,7 @@ class LeftPaneWidget : public QSplitter
 {
     using Base = QSplitter;
 public:
-    LeftPaneWidget(QWidget* parent = nullptr);
+    LeftPaneWidget(QWidget* parentObj = nullptr);
 };
 
 }  // namespace comms_champion

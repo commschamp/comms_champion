@@ -29,8 +29,8 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-RightPaneWidget::RightPaneWidget(QWidget* parent)
-  : Base(parent)
+RightPaneWidget::RightPaneWidget(QWidget* parentObj)
+  : Base(parentObj)
 {
     auto* msgDisplayWidget = new DefaultMessageDisplayWidget();
     msgDisplayWidget->setEditEnabled(false);
@@ -40,9 +40,9 @@ RightPaneWidget::RightPaneWidget(QWidget* parent)
             msgDisplayWidget, SLOT(displayMessage(MessageInfoPtr)));
     connect(guiAppMgr, SIGNAL(sigClearDisplayedMsg()),
             msgDisplayWidget, SLOT(clear()));
-    auto* layout = new QVBoxLayout();
-    layout->addWidget(msgDisplayWidget);
-    setLayout(layout);
+    auto* paneLayout = new QVBoxLayout();
+    paneLayout->addWidget(msgDisplayWidget);
+    setLayout(paneLayout);
 }
 
 }  // namespace comms_champion

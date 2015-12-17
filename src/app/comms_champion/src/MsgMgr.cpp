@@ -300,8 +300,8 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_allMsgs));
 }
 
-MsgMgr::MsgMgr(QObject* parent)
-  : Base(parent)
+MsgMgr::MsgMgr(QObject* parentObj)
+  : Base(parentObj)
 {
     m_allMsgs.reserve(1024);
 }

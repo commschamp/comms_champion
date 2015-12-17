@@ -89,8 +89,8 @@ public:
     EnumValue() = default;
 
     /// @brief Constructor
-    explicit EnumValue(const ValueType& value)
-      : field_(value)
+    explicit EnumValue(const ValueType& val)
+      : field_(val)
     {
     }
 

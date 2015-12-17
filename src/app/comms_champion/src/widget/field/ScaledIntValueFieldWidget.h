@@ -35,7 +35,7 @@ public:
 
     explicit ScaledIntValueFieldWidget(
         WrapperPtr wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~ScaledIntValueFieldWidget();
 

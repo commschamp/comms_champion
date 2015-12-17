@@ -81,8 +81,8 @@ public:
     IntValue() = default;
 
     /// @brief Constructor
-    explicit IntValue(const ValueType& value)
-      : field_(value)
+    explicit IntValue(const ValueType& val)
+      : field_(val)
     {
     }
 

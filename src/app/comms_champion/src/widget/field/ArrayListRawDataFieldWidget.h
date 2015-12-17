@@ -35,7 +35,7 @@ public:
 
     explicit ArrayListRawDataFieldWidget(
         WrapperPtr&& wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~ArrayListRawDataFieldWidget();
 

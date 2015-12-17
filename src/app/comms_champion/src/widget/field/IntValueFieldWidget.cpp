@@ -35,8 +35,8 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-IntValueFieldWidget::IntValueFieldWidget(WrapperPtr wrapper, QWidget* parent)
-  : Base(parent),
+IntValueFieldWidget::IntValueFieldWidget(WrapperPtr wrapper, QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper))
 {
 }
@@ -74,11 +74,11 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         m_childWidget.reset(new LongIntValueFieldWidget(std::move(m_wrapper)));
     }
 
-    auto* layout = new QVBoxLayout();
-    layout->addWidget(m_childWidget.get());
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-    setLayout(layout);
+    auto* childLayout = new QVBoxLayout();
+    childLayout->addWidget(m_childWidget.get());
+    childLayout->setContentsMargins(0, 0, 0, 0);
+    childLayout->setSpacing(0);
+    setLayout(childLayout);
     m_childWidget->updateProperties(props);
     m_childWidget->setEditEnabled(isEditEnabled());
 

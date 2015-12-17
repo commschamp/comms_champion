@@ -26,7 +26,7 @@ class RecvMsgListWidget: public MsgListWidget
 {
     using Base = MsgListWidget;
 public:
-    RecvMsgListWidget(QWidget* parent = nullptr);
+    RecvMsgListWidget(QWidget* parentObj = nullptr);
 
 protected:
     virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx) override;

@@ -33,7 +33,7 @@ class UnknownValueFieldWidget : public FieldWidget
 public:
     explicit UnknownValueFieldWidget(
         field_wrapper::UnknownValueWrapperPtr&& wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~UnknownValueFieldWidget();
 

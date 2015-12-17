@@ -21,8 +21,8 @@
 namespace comms_champion
 {
 
-MessageWidget::MessageWidget(QWidget* parent)
-  : Base(parent)
+MessageWidget::MessageWidget(QWidget* parentObj)
+  : Base(parentObj)
 {
 }
 

@@ -48,8 +48,8 @@ class BitfieldWrapperT : public FieldWrapperT<BitfieldWrapper, TField>
 
     using UnderlyingType = typename Base::UnderlyingType;
 public:
-    BitfieldWrapperT(Field& field)
-      : Base(field)
+    explicit BitfieldWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 

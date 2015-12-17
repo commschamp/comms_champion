@@ -63,8 +63,8 @@ public:
 
     EnumValue() = default;
 
-    explicit EnumValue(ValueType value)
-      : value_(value)
+    explicit EnumValue(ValueType val)
+      : value_(val)
     {
     }
 
@@ -100,14 +100,14 @@ public:
         return length();
     }
 
-    static constexpr SerialisedType toSerialised(ValueType value)
+    static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return IntValueField::toSerialised(static_cast<IntValueType>(value));
+        return IntValueField::toSerialised(static_cast<IntValueType>(val));
     }
 
-    static constexpr ValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return static_cast<ValueType>(IntValueField::fromSerialised(value));
+        return static_cast<ValueType>(IntValueField::fromSerialised(val));
     }
 
     static constexpr bool valid()

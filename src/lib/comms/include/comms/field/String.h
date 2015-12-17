@@ -104,14 +104,14 @@ public:
     String() = default;
 
     /// @brief Constructor
-    explicit String(const ValueType& value)
-      : str_(value)
+    explicit String(const ValueType& val)
+      : str_(val)
     {
     }
 
     /// @brief Constructor
-    explicit String(ValueType&& value)
-      : str_(std::move(value))
+    explicit String(ValueType&& val)
+      : str_(std::move(val))
     {
     }
 

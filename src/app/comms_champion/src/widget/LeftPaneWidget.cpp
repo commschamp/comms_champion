@@ -29,8 +29,8 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-LeftPaneWidget::LeftPaneWidget(QWidget* parent)
-  : Base(parent)
+LeftPaneWidget::LeftPaneWidget(QWidget* parentObj)
+  : Base(parentObj)
 {
     setOrientation(Qt::Vertical);
     addWidget(new RecvMsgListWidget());

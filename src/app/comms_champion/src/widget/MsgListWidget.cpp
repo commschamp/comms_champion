@@ -41,8 +41,8 @@ const QString EmptyStr;
 MsgListWidget::MsgListWidget(
     const QString& title,
     QWidget* toolbar,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_title(title)
 {
     m_ui.setupUi(this);

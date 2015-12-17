@@ -42,7 +42,7 @@ public:
     typedef GuiAppMgr::RecvState State;
     typedef GuiAppMgr::ActivityState ActivityState;
 
-    RecvAreaToolBar(QWidget* parent = nullptr);
+    RecvAreaToolBar(QWidget* parentObj = nullptr);
 
 private slots:
     void startStopClicked();

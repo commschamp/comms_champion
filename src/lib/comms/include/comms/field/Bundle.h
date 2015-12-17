@@ -74,14 +74,14 @@ public:
     Bundle() = default;
 
     /// @brief Constructor
-    explicit Bundle(const ValueType& value)
-      : field_(value)
+    explicit Bundle(const ValueType& val)
+      : field_(val)
     {
     }
 
     /// @brief Constructor
-    explicit Bundle(ValueType&& value)
-      : field_(std::move(value))
+    explicit Bundle(ValueType&& val)
+      : field_(std::move(val))
     {
     }
 

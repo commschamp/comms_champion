@@ -33,8 +33,8 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-RecvMsgListWidget::RecvMsgListWidget(QWidget* parent)
-  : Base(getTitlePrefix(), new RecvAreaToolBar(), parent)
+RecvMsgListWidget::RecvMsgListWidget(QWidget* parentObj)
+  : Base(getTitlePrefix(), new RecvAreaToolBar(), parentObj)
 {
     auto* guiMgr = GuiAppMgr::instance();
     assert(guiMgr != nullptr);

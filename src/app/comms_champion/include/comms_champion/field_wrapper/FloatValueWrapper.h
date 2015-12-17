@@ -55,8 +55,8 @@ public:
 
     typedef typename Base::UnderlyingType UnderlyingType;
 
-    FloatValueWrapperT(Field& field)
-      : Base(field)
+    explicit FloatValueWrapperT(Field& fieldRef)
+      : Base(fieldRef)
     {
     }
 

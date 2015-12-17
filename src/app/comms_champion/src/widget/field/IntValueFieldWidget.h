@@ -34,7 +34,7 @@ public:
 
     explicit IntValueFieldWidget(
         WrapperPtr wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~IntValueFieldWidget();
 

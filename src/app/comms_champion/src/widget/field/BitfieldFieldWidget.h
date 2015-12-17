@@ -37,7 +37,7 @@ public:
 
     explicit BitfieldFieldWidget(
         WrapperPtr&& wrapper,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
     ~BitfieldFieldWidget();
 

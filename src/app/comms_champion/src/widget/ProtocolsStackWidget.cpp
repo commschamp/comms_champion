@@ -22,8 +22,8 @@
 namespace comms_champion
 {
 
-ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parent)
-  : Base(parent)
+ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parentObj)
+  : Base(parentObj)
 {
     m_ui.setupUi(this);
 

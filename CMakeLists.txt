@@ -1,6 +1,11 @@
 cmake_minimum_required (VERSION 2.8.11)
 project ("comms_champion")
 
+option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
+option (CC_COMMS_UNIT_TESTS "Build unittests of COMMS library" OFF)
+option (CC_COMMS_CHAMPION "Build CommsChampion application" ON)
+option (CC_COMMS_CHAMPION_DEMO "Build demo protocol plugin" OFF)
+
 set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/external")
 find_package (Git REQUIRED)
  
@@ -29,7 +34,6 @@ if (CMAKE_COMPILER_IS_GNUCC)
         "-Wno-unknown-pragmas" "-fdiagnostics-show-option"
     )
 endif ()
-
 
 ext_add_cpp11_support()
 

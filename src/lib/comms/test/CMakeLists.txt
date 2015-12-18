@@ -75,9 +75,7 @@ endfunction ()
 include_directories ("${CXXTEST_INCLUDE_DIR}")
 
 if (CMAKE_COMPILER_IS_GNUCC)
-    ext_add_c_cxx_flags(
-        "-Wno-old-style-cast" "-Wno-shadow"
-    )
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-old-style-cast -Wno-shadow")
 endif ()
 
 test_fields()

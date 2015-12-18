@@ -12,9 +12,6 @@ find_package (Git REQUIRED)
 execute_process (
     COMMAND ${GIT_EXECUTABLE} submodule update --init
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
- 
-set (CMAKE_MODULE_PATH "${EXTERNALS_DIR}/cmake")         
-include (AllExtras)
 
 if (NOT NO_UNITTESTS)
     set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
@@ -27,15 +24,17 @@ if (NOT NO_UNITTESTS)
 endif ()
 
 if (CMAKE_COMPILER_IS_GNUCC)
-    ext_add_c_cxx_flags(
+    set (extra_flags_list
+        "--std=c++11"
         "-Wall" "-Wextra" "-Werror" "-Wcast-align" "-Wcast-qual" "-Wctor-dtor-privacy"
         "-Wmissing-include-dirs" "-Wnoexcept" "-Wlogical-op" "-Wstrict-null-sentinel"
         "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow" "-Wundef" "-Wunused"
         "-Wno-unknown-pragmas" "-fdiagnostics-show-option"
     )
+    
+    string(REPLACE ";" " " extra_flags "${extra_flags_list}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${extra_flags}") 
 endif ()
-
-ext_add_cpp11_support()
 
 add_subdirectory (src)
 

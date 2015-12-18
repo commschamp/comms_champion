@@ -25,19 +25,19 @@ programming language with usage of features and/or STL components introduced
 in **C++11** standard.
 
 # What's Inside?
-This repository provides the [COMMS Library](#COMMS-Library), which can be used to 
+This repository provides the [COMMS Library](#comms-library), which can be used to 
 develop custom communication protocols and one generic protocol visualisation and analysis GUI tool
-called [CommsChampion](#CommsChampion-Tool)
+called [CommsChampion](#commschampion-tool)
 
 # COMMS Library
 **COMMS** is the headers only platform independent library that makes the implementation of a communication
 protocol an easy and relatively quick process. It provides all the necessary
 types and classes to make the definition of the custom messages as well as
 wrapping transport data fields to be simple declarative statements of type and
-class definitions, which specify **WHAT** needs to be implemented. The *COMMS*
+class definitions, which specify **WHAT** needs to be implemented. The **COMMS**
 library internals handle the **HOW** part. 
 
-The internals of the COMMS library is mostly template classes which use 
+The internals of the **COMMS** library is mostly template classes which use 
 multiple meta-programming techniques. As the result, only the functionality,
 required by the protocol being developed, gets compiled in, providing the best code size and
 speed performance possible. The down side is that compilation process may
@@ -55,24 +55,25 @@ or browsed online [here](https://dl.dropboxusercontent.com/u/46999418/comms_cham
 
 # CommsChampion Tool
 **CommsChampion** is a generic GUI tool for visualisation and analysis of the
-communication protocols that were developed using [COMMS Library](#COMMS-Library)
+communication protocols that were developed using [COMMS Library](#comms-library)
 mentioned above. It is plug-in based, i.e. plug-ins are used to
 define I/O socket, data filters, and the custom protocol itself. The tool
 uses [QT5](http://www.qt.io/) framework for its interface as well as loading
 and managing plug-ins.
 
-At this moment the tools is in its alpha and being extensively developed. No 
+At this moment the tool is in its alpha and being extensively developed. No 
 documentation on how to use and/or develop plug-ins is currently available,
 will be provided in the future once the API stabilises.   
 
 # Licence
-The [COMMS Library](#COMMS-Library) from this repository is licensed under
+The [COMMS Library](#comms-library) from this repository is licensed under
 GPLv3. It can be used in any product as long as its sources remain open and
 have the same or other compatible license. As an author and full copyright
 owner of this product I can provide a commercial license as well, please refer
-to [Contact Information](#Contact-Information) below if you need one.
+to [Contact Information](#contact-information) below and get in touch with
+me if you need one.
 
-The [CommsChampion](#CommsChampion-Tool) tool is licensed under LGPLv3, which
+The [CommsChampion](#commschampion-tool) tool is licensed under LGPLv3, which
 allows usage of open source QT5 libraries as well as closed-source plug-ins for
 it. 
 
@@ -81,10 +82,15 @@ This project uses [CMake](https://cmake.org) cross-platform build system to
 generate required build files native to the platform.
 
 1. Create build directory somewhere and navigate there.
+
 >$> mkdir /some/build/dir && cd /some/build/dir
+
 2. Generate Makefiles (or any other build environment) for **Release** build.
+
 >$> cmake -DCMAKE_BUILD_TYPE=Release /path/to/comms_champion/sources
+
 3. Build and install.
+
 >$> make install
 
 After the build is complete, all the binaries, headers, libraries will reside
@@ -93,13 +99,13 @@ in **install** subdirectory of the directory chosen for build (/some/build/dir) 
 In addition to built-in options of CMake, such as **CMAKE_BUILD_TYPE** or
 **CMAKE_TOOLCHAIN_FILE**, the following ones can be used:
 
-- CC_COMMS_LIB_ONLY=ON/OFF - Exclude compilation of all the tools, install only
+- **CC_COMMS_LIB_ONLY**=ON/OFF - Exclude compilation of all the tools, install only
 **COMMS** Library. Default value is **OFF**, i.e. other tools get built.
 
-- CC_COMMS_UNIT_TESTS=ON/OFF - Include/Exclude unittests of the **COMMS** library.
+- **CC_COMMS_UNIT_TESTS**=ON/OFF - Include/Exclude unittests of the **COMMS** library.
 Default value is **OFF**
 
-- CC_COMMS_CHAMPION=ON/OFF Enable/Disable build of CommsChampion tool. Default value
+- **CC_COMMS_CHAMPION**=ON/OFF Enable/Disable build of CommsChampion tool. Default value
 is **ON**.
 
 For example, discard all other tools, just install the **COMMS** library:
@@ -113,8 +119,7 @@ For example, discard all other tools, just install the **COMMS** library:
 >$> make install 
 
 The example above will skip build of any tool available, it will just install 
-the **COMMS** library headers in /path/to/comms_champion/sources/build/**install/include**
-directory
+the **COMMS** library headers in **install/include** subdirectory
 
 Another example is to build all the available tools and unit-tests:
 
@@ -127,22 +132,21 @@ Another example is to build all the available tools and unit-tests:
 >$> make install 
 
 The built **CommsChampion** tool binary will reside in
-/path/to/comms_champion/sources/build/**install/bin** directory and available
-plugins for it will reside in /path/to/comms_champion/sources/build/**install/plugin**
-directory
+**install/bin** subdirectory and available
+plugins for it will reside in **install/plugin** subdirectory.
 
 
 # How to Use
 As was mentioned earlier, the **COMMS** library is a headers only one, just
-have /path/to/comms_champion/install/dir/**include** directory and use the 
-following include statement in your sources:
+have /path/to/comms_champion/install/dir/**include** directory among your
+include paths and use the following statement in your sources:
 
 ```
 #include "comms/comms.h"
 ```
 
-To use the **CommsChampion** tool just run its binary: 
-/path/to/comms_champion/install/dir/**bin/comms_champion**. Please note that
+To use the **CommsChampion** tool just run **comms_champion** binary which resides
+in **install/bin** subdirectory. Please note that
 it will look for available plugins in the **../plugin** subdirectory relative
 to the location of the **comms_champion** binary.
 

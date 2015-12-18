@@ -135,6 +135,11 @@ The built **CommsChampion** tool binary will reside in
 **install/bin** subdirectory and available
 plugins for it will reside in **install/plugin** subdirectory.
 
+**NOTE**, that **master** branch will always point to the latest release, the
+development is performed on **develop** branch. As the result it is safe
+to just clone the sources of this repository and use it without
+any extra manipulations of looking for latest version among the tags and
+checking it out.
 
 # How to Use
 As was mentioned earlier, the **COMMS** library is a headers only one, just

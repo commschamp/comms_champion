@@ -7,13 +7,16 @@ option (CC_COMMS_CHAMPION "Build CommsChampion application" ON)
 option (CC_COMMS_CHAMPION_DEMO "Build demo protocol plugin" OFF)
 
 set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/external")
+
 find_package (Git REQUIRED)
- 
-execute_process (
+
+if (GIT_FOUND)
+    execute_process (
     COMMAND ${GIT_EXECUTABLE} submodule update --init
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+endif () 
 
-if (NOT NO_UNITTESTS)
+if (CC_COMMS_UNIT_TESTS)
     set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
     set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
     
@@ -37,5 +40,3 @@ if (CMAKE_COMPILER_IS_GNUCC)
 endif ()
 
 add_subdirectory (src)
-
-

@@ -42,13 +42,13 @@ public:
     typedef TMembers ValueType;
 
     Bundle() = default;
-    explicit Bundle(const ValueType& value)
-      : members_(value)
+    explicit Bundle(const ValueType& val)
+      : members_(val)
     {
     }
 
-    explicit Bundle(ValueType&& value)
-      : members_(std::move(value))
+    explicit Bundle(ValueType&& val)
+      : members_(std::move(val))
     {
     }
 

@@ -41,13 +41,13 @@ public:
 
     CustomValidator() = default;
 
-    explicit CustomValidator(const ValueType& value)
-      : Base(value)
+    explicit CustomValidator(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit CustomValidator(ValueType&& value)
-      : Base(std::move(value))
+    explicit CustomValidator(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 

@@ -192,6 +192,24 @@ template <typename TField, typename TOpts>
 using AdaptBasicFieldSequenceTrailingFieldSuffixT =
     typename AdaptBasicFieldSequenceTrailingFieldSuffix<TField, TOpts, TOpts::HasSequenceTrailingFieldSuffix>::Type;
 
+template <typename TField, typename TOpts, bool THasSequenceTerminationFieldSuffix>
+struct AdaptBasicFieldSequenceTerminationFieldSuffix;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldSequenceTerminationFieldSuffix<TField, TOpts, true>
+{
+    typedef comms::field::adapter::SequenceTerminationFieldSuffix<typename TOpts::SequenceTerminationFieldSuffix, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldSequenceTerminationFieldSuffix<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts>
+using AdaptBasicFieldSequenceTerminationFieldSuffixT =
+    typename AdaptBasicFieldSequenceTerminationFieldSuffix<TField, TOpts, TOpts::HasSequenceTerminationFieldSuffix>::Type;
 
 template <typename TField, typename TOpts, bool THasDefaultValueInitialiser>
 struct AdaptBasicFieldDefaultValueInitialiser;
@@ -311,8 +329,10 @@ class AdaptBasicField
         SequenceFixedSizeAdapted, ParsedOptions> SequenceSizeFieldPrefixAdapted;
     typedef AdaptBasicFieldSequenceTrailingFieldSuffixT<
         SequenceSizeFieldPrefixAdapted, ParsedOptions> SequenceTrailingFieldSuffixAdapted;
+    typedef AdaptBasicFieldSequenceTerminationFieldSuffixT<
+        SequenceTrailingFieldSuffixAdapted, ParsedOptions> SequenceTerminationFieldSuffixAdapted;
     typedef AdaptBasicFieldDefaultValueInitialiserT<
-        SequenceTrailingFieldSuffixAdapted, ParsedOptions> DefaultValueInitialiserAdapted;
+        SequenceTerminationFieldSuffixAdapted, ParsedOptions> DefaultValueInitialiserAdapted;
     typedef AdaptBasicFieldCustomValidatorT<
         DefaultValueInitialiserAdapted, ParsedOptions> CustomValidatorAdapted;
     typedef AdaptBasicFieldFailOnInvalidT<

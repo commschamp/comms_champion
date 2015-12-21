@@ -15,38 +15,27 @@
   </property>
   <layout class="QVBoxLayout" name="m_layout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,2">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,3">
      <item>
       <widget class="QGroupBox" name="m_availGroupBox">
        <property name="title">
         <string>Available Plugins</string>
        </property>
        <layout class="QVBoxLayout" name="m_availLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QScrollArea" name="m_pluginListScrollArea">
-            <property name="widgetResizable">
-             <bool>true</bool>
-            </property>
-            <widget class="QWidget" name="scrollAreaWidgetContents">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>173</width>
-               <height>468</height>
-              </rect>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout">
-              <item>
-               <widget class="QListWidget" name="m_availListWidget"/>
-              </item>
-             </layout>
-            </widget>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QWidget" name="m_availableWidget" native="true"/>
         </item>
        </layout>
       </widget>
@@ -59,34 +48,34 @@
       </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_8" stretch="1,0,1,0,1">
+      <layout class="QVBoxLayout" name="verticalLayout_8" stretch="4,0,3,0,2">
        <item>
         <widget class="QGroupBox" name="m_selectedGroupBox">
          <property name="title">
           <string>Selected Plugins</string>
          </property>
          <layout class="QVBoxLayout" name="m_selectedLayout">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QScrollArea" name="m_selectedScrollArea">
-            <property name="widgetResizable">
-             <bool>true</bool>
+           <widget class="Line" name="line_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <widget class="QWidget" name="scrollAreaWidgetContents_2">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>375</width>
-               <height>121</height>
-              </rect>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <item>
-               <widget class="QListWidget" name="m_selectedListWidget"/>
-              </item>
-             </layout>
-            </widget>
            </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="m_selectedWidget" native="true"/>
           </item>
          </layout>
         </widget>
@@ -114,15 +103,11 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>375</width>
-               <height>120</height>
+               <width>426</width>
+               <height>117</height>
               </rect>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_2">
-              <item>
-               <widget class="QWidget" name="widget" native="true"/>
-              </item>
-             </layout>
+             <layout class="QVBoxLayout" name="verticalLayout_2"/>
             </widget>
            </widget>
           </item>
@@ -152,8 +137,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>375</width>
-               <height>121</height>
+               <width>426</width>
+               <height>76</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_5">

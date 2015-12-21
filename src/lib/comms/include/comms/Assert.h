@@ -28,14 +28,10 @@
 namespace comms
 {
 
-/// @addtogroup comms
-/// @{
-
 /// @brief Base class for any custom assertion behaviour.
 /// @details In order to implement custom assertion failure behaviour it
 ///          is necessary to inherit from this class and override
 ///          fail() virtual member function.
-/// @headerfile comms/Assert.h
 class Assert
 {
 public:
@@ -107,7 +103,6 @@ private:
 /// @tparam TAssert Class derived from Assert that implements new custom
 ///                 behaviour of the assertion failure.
 /// @pre TAssert class must be derived from comms::Assert.
-/// @headerfile comms/Assert.h
 template < typename TAssert>
 class EnableAssert
 {
@@ -187,6 +182,5 @@ private:
 
 #endif // #ifndef NDEBUG
 
-/// @}
 
 }  // namespace comms

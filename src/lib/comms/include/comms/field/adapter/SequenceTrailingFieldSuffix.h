@@ -42,13 +42,13 @@ public:
 
     SequenceTrailingFieldSuffix() = default;
 
-    explicit SequenceTrailingFieldSuffix(const ValueType& value)
-      : Base(value)
+    explicit SequenceTrailingFieldSuffix(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit SequenceTrailingFieldSuffix(ValueType&& value)
-      : Base(std::move(value))
+    explicit SequenceTrailingFieldSuffix(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 

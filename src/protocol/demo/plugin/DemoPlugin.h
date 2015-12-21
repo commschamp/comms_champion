@@ -18,8 +18,13 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtCore/QtPlugin>
+CC_ENABLE_WARNINGS()
+
 #include "comms_champion/comms_champion.h"
 
 namespace demo
@@ -31,7 +36,7 @@ namespace plugin
 class DemoPlugin : public comms_champion::Plugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DemoPlugin")
+    Q_PLUGIN_METADATA(IID "cc.DemoPlugin" FILE "demo_protocol.json")
     Q_INTERFACES(comms_champion::Plugin)
 
 public:

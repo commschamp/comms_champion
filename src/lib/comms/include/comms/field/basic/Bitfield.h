@@ -167,13 +167,13 @@ public:
     typedef TMembers ValueType;
 
     Bitfield() = default;
-    explicit Bitfield(const ValueType& value)
-      : members_(value)
+    explicit Bitfield(const ValueType& val)
+      : members_(val)
     {
     }
 
-    explicit Bitfield(ValueType&& value)
-      : members_(std::move(value))
+    explicit Bitfield(ValueType&& val)
+      : members_(std::move(val))
     {
     }
 
@@ -241,8 +241,8 @@ private:
     class ReadHelper
     {
     public:
-        ReadHelper(SerialisedType value, ErrorStatus& es)
-          : value_(value),
+        ReadHelper(SerialisedType val, ErrorStatus& es)
+          : value_(val),
             es_(es) {}
 
         template <std::size_t TIdx, typename TFieldParam>
@@ -282,8 +282,8 @@ private:
     class WriteHelper
     {
     public:
-        WriteHelper(SerialisedType& value, ErrorStatus& es)
-          : value_(value),
+        WriteHelper(SerialisedType& val, ErrorStatus& es)
+          : value_(val),
             es_(es) {}
 
         template <std::size_t TIdx, typename TFieldParam>

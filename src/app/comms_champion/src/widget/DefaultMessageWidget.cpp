@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "comms_champion/DefaultMessageWidget.h"
@@ -20,9 +20,13 @@
 #include <memory>
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QFrame>
 #include <QtCore/QVariant>
+CC_ENABLE_WARNINGS()
 
 #include "GlobalConstants.h"
 
@@ -31,8 +35,8 @@ namespace comms_champion
 
 DefaultMessageWidget::DefaultMessageWidget(
     Message& msg,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_msg(msg),
     m_layout(new LayoutType())
 {

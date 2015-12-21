@@ -21,8 +21,12 @@
 #include <type_traits>
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
 #include <QtCore/QVariantMap>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Property.h"
 
@@ -138,6 +142,7 @@ QVariantMap getFlagsProperties()
     typedef std::decay<decltype(std::get<CCSerialInfo::FieldId_Flags>(std::declval<AllFields>()))>::type FlagsType;
     typedef std::decay<decltype(std::declval<FlagsType>().value())>::type MembersType;
     static const std::size_t NumOfMembers = std::tuple_size<MembersType>::value;
+    static_cast<void>(NumOfMembers);
 
     GASSERT(membersData.size() == (int)NumOfMembers);
     return cc::Property::createPropertiesMap("Flags", std::move(membersData));

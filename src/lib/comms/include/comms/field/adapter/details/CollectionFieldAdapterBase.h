@@ -56,9 +56,9 @@ public:
 
 
     template <typename U>
-    void pushBack(U&& value)
+    void pushBack(U&& val)
     {
-        Base::next().pushBack(std::forward<U>(value));
+        Base::next().pushBack(std::forward<U>(val));
     }
 
     void clear()
@@ -117,13 +117,13 @@ public:
 
 protected:
     CollectionFieldAdapterBase() = default;
-    explicit CollectionFieldAdapterBase(const ValueType& value)
-      : Base(value)
+    explicit CollectionFieldAdapterBase(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit CollectionFieldAdapterBase(ValueType&& value)
-      : Base(std::move(value))
+    explicit CollectionFieldAdapterBase(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 };

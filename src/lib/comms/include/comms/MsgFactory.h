@@ -26,17 +26,61 @@
 namespace comms
 {
 
+/// @brief Message factory class.
+/// @details It is responsible to create message objects given the ID of the
+///     message. This class @b DOESN'T use dynamic memory allocation to store its
+///     internal data structures, hence can be used in any bare-metal and other
+///     embedded environment.
+/// @tparam TMsgBase Common base class for all the messages, smart pointer to
+///     this type is returned when allocation of specify message is requested.
+/// @tparam TAllMessages All custom message types, that this factory is capable
+///     of creating, bundled in std::tuple<>. The message types must be sorted
+///     based on their IDs. Different variants of the same message (reporting
+///     same ID, but implemented as different classes) are also supported. However
+///     they must follow one another in this std::tuple, i.e. be sorted.
+/// @tparam TOptions Zero or more options. The supported options are:
+///     @li comms::option::InPlaceAllocation - Option to specify that custom
+///         message objects are @b NOT allocated using dynamic memory, instead
+///         an uninitialised area of memory in private members is used to contain
+///         any type of custom message (provided with TAllMessages template parameter) and
+///         placement "new" operator is used to initialise requested message in
+///         this area.
+///         The allocated message objects are returned from createMsg() function
+///         wrapped in the smart pointer (variant of std::unique_ptr). If
+///         comms::option::InPlaceAllocation option is used, then the smart pointer
+///         definition contains custom deleter, which will explicitly invoke
+///         destructor of the message when the smart pointer is out of scope. It
+///         means that it is @b NOT possible to create new message with this factory
+///         if previously allocated one wasn't destructed yet.
+///         If comms::option::InPlaceAllocation option is NOT used, than the
+///         requested message objects are allocated using dynamic memory and
+///         returned wrapped in std::unique_ptr without custom deleter.
+/// @pre TMsgBase is a base class for all the messages in TAllMessages.
+/// @pre Message type is TAllMessages must be sorted based on their IDs.
+/// @pre If comms::option::InPlaceAllocation option is provided, only one custom
+///     message can be allocated. The next one can be allocated only after previous
+///     message has been destructed.
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactory : public details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
     typedef details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...> Base;
 public:
 
+    /// @brief Type of the common base class of all the messages.
     typedef TMsgBase Message;
+
+    /// @brief Type of the message ID when passed as a parameter.
     typedef typename Message::MsgIdParamType MsgIdParamType;
+
+    /// @brief Smart pointer to @ref Message which holds allocated message object.
+    /// @details It is a variant of std::unique_ptr, based on whether
+    ///     comms::option::InPlaceAllocation option was used.
     typedef typename Base::MsgPtr MsgPtr;
+
+    /// @brief All messages provided as template parameter to this class.
     typedef typename Base::AllMessages AllMessages;
 
+    /// @brief Constructor.
     MsgFactory()
     {
         initRegistry();
@@ -50,6 +94,20 @@ public:
                 }));
     }
 
+    /// @brief Create message object given the ID of the message.
+    /// @param id ID of the message.
+    /// @param idx Relative index of the message with the same ID. In case
+    ///     protocol implementation contains multiple distinct message types
+    ///     that report same ID value, it must be possible to choose the
+    ///     relative index of such message from the first message type reporting
+    ///     the same ID. This parameter provides such an ability. However,
+    ///     most protocols will implement single message class for single ID.
+    ///     For such implementations, use default value of this parameter.
+    /// @return Smart pointer (variant of std::unique_ptr) to @ref Message type,
+    ///     which is a common base class of all the messages (provided as
+    ///     first template parameter to this class). If comms::option::InPlaceAllocation
+    ///     option was used and previously allocated message wasn't de-allocated
+    ///     yet, the empty (null) pointer will be returned.
     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
     {
         auto range =
@@ -70,6 +128,8 @@ public:
         return (*iter)->create(*this);
     }
 
+    /// @brief Get number of message types from @ref AllMessages, that have the specified ID.
+    /// @param id Id of the message.
     std::size_t msgCount(MsgIdParamType id) const
     {
         auto range =

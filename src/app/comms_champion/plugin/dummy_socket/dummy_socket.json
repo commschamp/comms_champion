@@ -1,7 +1,0 @@
-{
-    "name" : "Dummy Socket",
-    "desc" : [
-        "This is dummy socket that generates hard coded sequence\n",
-        "of bytes once a second."
-    ]
-}

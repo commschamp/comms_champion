@@ -28,7 +28,6 @@
 namespace comms
 {
 
-/// @ingroup comms
 /// @brief Generic common message handler.
 /// @details Will define virtual message handling functions for all the
 ///          messages bundled in TAll plus one to handle TDefault
@@ -50,7 +49,6 @@ namespace comms
 ///         be handled.
 /// @pre TAll is any variation of std::tuple
 /// @pre TDefault is a base class for all the custom messages in TAll.
-/// @headerfile comms/GenericHandler.h
 template <typename TDefault, typename TAll>
 class GenericHandler
 {
@@ -58,7 +56,7 @@ class GenericHandler
                   "TAll must be std::tuple");
 };
 
-/// @cond DOCUMENT_MESSAGE_HANDLER_SPECIALISATION
+/// @cond SKIP_DOC
 template <typename TDefault, typename TFirst, typename... TRest>
 class GenericHandler<TDefault, std::tuple<TFirst, TRest...> > :
                         public GenericHandler<TDefault, std::tuple<TRest...> >

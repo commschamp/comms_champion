@@ -18,42 +18,23 @@
 
 #pragma once
 
-#include <memory>
+#ifdef __GNUC__
+#define GCC_DIAG_STR(s) #s
+#define GCC_DIAG_JOINSTR(x,y) GCC_DIAG_STR(x ## y)
+#define GCC_DIAG_DO_PRAGMA(x) _Pragma (#x)
+#define GCC_DIAG_PRAGMA(x) GCC_DIAG_DO_PRAGMA(GCC diagnostic x)
+#define CC_DISABLE_WARNINGS() \
+    GCC_DIAG_PRAGMA(push) \
+    GCC_DIAG_PRAGMA(ignored "-Wpedantic") \
+    GCC_DIAG_PRAGMA(ignored "-Wctor-dtor-privacy")\
+    GCC_DIAG_PRAGMA(ignored "-Wold-style-cast")
 
-#include "comms_champion/Plugin.h"
-#include "comms_champion/Socket.h"
+#define CC_ENABLE_WARNINGS() GCC_DIAG_PRAGMA(pop)
 
-namespace comms_champion
-{
+#else
 
-namespace plugin
-{
-
-namespace dummy_socket
-{
-
-class DummySocketPlugin : public comms_champion::Plugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DummySocketPlugin" FILE "dummy_socket.json")
-    Q_INTERFACES(comms_champion::Plugin)
-
-public:
-    DummySocketPlugin();
-    ~DummySocketPlugin();
-
-    virtual void applyImpl() override;
-
-private:
-    comms_champion::SocketPtr m_socket;
-};
-
-}  // namespace dummy_socket
-
-}  // namespace plugin
-
-}  // namespace comms_champion
-
-
+#define CC_DISABLE_WARNINGS()
+#define CC_ENABLE_WARNINGS()
+#endif
 
 

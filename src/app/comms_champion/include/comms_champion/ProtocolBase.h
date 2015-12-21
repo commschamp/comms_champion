@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -67,12 +67,12 @@ protected:
         ReadIterator readIterBeg = &m_data[0];
 
         auto remainingSizeCalc =
-            [this](ReadIterator iter) -> std::size_t
+            [this](ReadIterator readIter) -> std::size_t
             {
                 ReadIterator const dataBegin = &m_data[0];
                 auto consumed =
                     static_cast<std::size_t>(
-                        std::distance(dataBegin, iter));
+                        std::distance(dataBegin, readIter));
                 assert(consumed <= m_data.size());
                 return m_data.size() - consumed;
             };
@@ -124,16 +124,16 @@ protected:
 
                     auto readTransportIterBegTmp = readIterBeg;
                     std::unique_ptr<TransportMsg> transportMsgPtr(new TransportMsg());
-                    auto es = transportMsgPtr->read(readTransportIterBegTmp, dataSize);
-                    static_cast<void>(es);
-                    assert(es == comms::ErrorStatus::Success);
+                    auto esTmp = transportMsgPtr->read(readTransportIterBegTmp, dataSize);
+                    static_cast<void>(esTmp);
+                    assert(esTmp == comms::ErrorStatus::Success);
                     msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
 
                     auto readRawIterBegTmp = readIterBeg;
                     std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
-                    es = rawDataMsgPtr->read(readRawIterBegTmp, dataSize);
-                    static_cast<void>(es);
-                    assert(es == comms::ErrorStatus::Success);
+                    esTmp = rawDataMsgPtr->read(readRawIterBegTmp, dataSize);
+                    static_cast<void>(esTmp);
+                    assert(esTmp == comms::ErrorStatus::Success);
                     msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
                 };
 
@@ -145,9 +145,9 @@ protected:
                         garbageMsgInfo->setProtocolName(name());
                         std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
                         ReadIterator garbageReadIterator = &m_garbage[0];
-                        auto es = rawDataMsgPtr->read(garbageReadIterator, m_garbage.size());
-                        static_cast<void>(es);
-                        assert(es == comms::ErrorStatus::Success);
+                        auto esTmp = rawDataMsgPtr->read(garbageReadIterator, m_garbage.size());
+                        static_cast<void>(esTmp);
+                        assert(esTmp == comms::ErrorStatus::Success);
                         garbageMsgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
                         allInfos.push_back(std::move(garbageMsgInfo));
                         m_garbage.clear();
@@ -174,7 +174,7 @@ protected:
 
             addMsgInfoGuard.release();
 
-            if (es == comms::ErrorStatus::MsgAllocFaulure) {
+            if (es == comms::ErrorStatus::MsgAllocFailure) {
                 assert(!"Mustn't happen");
                 break;
             }
@@ -254,8 +254,8 @@ protected:
                 [&data](Message& msg) -> bool
                 {
                     typename Message::ReadIterator iter = &data[0];
-                    auto es = msg.read(iter, data.size());
-                    if (es != comms::ErrorStatus::Success) {
+                    auto esTmp = msg.read(iter, data.size());
+                    if (esTmp != comms::ErrorStatus::Success) {
                         return false;
                     }
 

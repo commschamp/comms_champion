@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -20,7 +20,11 @@
 
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Property.h"
 
@@ -31,8 +35,8 @@
 namespace comms_champion
 {
 
-IntValueFieldWidget::IntValueFieldWidget(WrapperPtr wrapper, QWidget* parent)
-  : Base(parent),
+IntValueFieldWidget::IntValueFieldWidget(WrapperPtr wrapper, QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper))
 {
 }
@@ -70,11 +74,11 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         m_childWidget.reset(new LongIntValueFieldWidget(std::move(m_wrapper)));
     }
 
-    auto* layout = new QVBoxLayout();
-    layout->addWidget(m_childWidget.get());
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-    setLayout(layout);
+    auto* childLayout = new QVBoxLayout();
+    childLayout->addWidget(m_childWidget.get());
+    childLayout->setContentsMargins(0, 0, 0, 0);
+    childLayout->setSpacing(0);
+    setLayout(childLayout);
     m_childWidget->updateProperties(props);
     m_childWidget->setEditEnabled(isEditEnabled());
 

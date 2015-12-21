@@ -26,7 +26,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
 #include "comms/util/access.h"
-#include "comms/util/StaticQueue.h"
+#include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 
 namespace comms
@@ -73,7 +73,7 @@ struct ArrayListMaxLengthRetrieveHelper
 };
 
 template <typename T, std::size_t TSize>
-struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticQueue<T, TSize> >
+struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticVector<T, TSize> >
 {
     static const std::size_t Value = TSize;
 };
@@ -100,13 +100,13 @@ public:
 
     ArrayList() = default;
 
-    explicit ArrayList(const ValueType& value)
-      : value_(value)
+    explicit ArrayList(const ValueType& val)
+      : value_(val)
     {
     }
 
-    explicit ArrayList(ValueType&& value)
-      : value_(std::move(value))
+    explicit ArrayList(ValueType&& val)
+      : value_(std::move(val))
     {
     }
 
@@ -127,9 +127,9 @@ public:
     }
 
     template <typename U>
-    void pushBack(U&& value)
+    void pushBack(U&& val)
     {
-        value_.push_back(std::forward<U>(value));
+        value_.push_back(std::forward<U>(val));
     }
 
     void clear()

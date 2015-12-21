@@ -91,9 +91,9 @@ public:
 
     OptionalTest()
     {
-        auto& fields = Base::fields();
-        auto& optEnumField = std::get<FieldId_OptEnum>(fields);
-        auto& optIntField = std::get<FieldId_OptInt>(fields);
+        auto& allFields = Base::fields();
+        auto& optEnumField = std::get<FieldId_OptEnum>(allFields);
+        auto& optIntField = std::get<FieldId_OptInt>(allFields);
 
         optEnumField.setMode(comms::field::OptionalMode::Missing);
         optIntField.setMode(comms::field::OptionalMode::Missing);
@@ -106,10 +106,10 @@ protected:
             return false;
         }
 
-        auto& fields = Base::fields();
-        auto& flagsField = std::get<FieldId_Flags>(fields);
-        auto& optEnumField = std::get<FieldId_OptEnum>(fields);
-        auto& optIntField = std::get<FieldId_OptInt>(fields);
+        auto& allFields = Base::fields();
+        auto& flagsField = std::get<FieldId_Flags>(allFields);
+        auto& optEnumField = std::get<FieldId_OptEnum>(allFields);
+        auto& optIntField = std::get<FieldId_OptInt>(allFields);
 
         auto mask = flagsField.value();
         bool enumExists = ((mask & 0x1) != 0);

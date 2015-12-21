@@ -3,27 +3,34 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PluginMgr.h"
 
 #include <cassert>
+#include <algorithm>
+#include <type_traits>
+#include <iostream>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
 #include <QtCore/QVariantList>
 #include <QtCore/QDir>
 #include <QtCore/QJsonArray>
 #include <QtCore/QVariantList>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Plugin.h"
 
@@ -38,6 +45,7 @@ const QString IidMetaKey("IID");
 const QString MetaDataMetaKey("MetaData");
 const QString NameMetaKey("name");
 const QString DescMetaKey("desc");
+const QString TypeMetaKey("type");
 
 struct PluginLoaderDeleter
 {
@@ -54,6 +62,26 @@ struct PluginLoaderDeleter
 Plugin* getPlugin(QPluginLoader& loader)
 {
     return qobject_cast<Plugin*>(loader.instance());
+}
+
+PluginMgr::PluginInfo::Type parseType(const QString& val)
+{
+    static const QString Values[] = {
+        QString(),
+        "socket",
+        "filter",
+        "protocol"
+    };
+
+    static_assert(std::extent<decltype(Values)>::value == (std::size_t)PluginMgr::PluginInfo::Type::NumOfValues,
+        "The Values array must be adjusted.");
+
+    auto iter = std::find(std::begin(Values), std::end(Values), val);
+    if (iter == std::end(Values)) {
+        return PluginMgr::PluginInfo::Type::Invalid;
+    }
+
+    return static_cast<PluginMgr::PluginInfo::Type>(std::distance(std::begin(Values), iter));
 }
 
 }  // namespace
@@ -98,9 +126,17 @@ const PluginMgr::ListOfPluginInfos& PluginMgr::getAvailablePlugins()
 
         for (auto& f : files) {
             auto infoPtr = readPluginInfo(f);
-            if (infoPtr) {
-                m_plugins.push_back(std::move(infoPtr));
+            if (!infoPtr) {
+                continue;
             }
+
+            if (infoPtr->getType() == PluginInfo::Type::Invalid) {
+                std::cerr << "WARNING: plugin " << f.toStdString() << " doesn't specify its type, use either "
+                    "\"socket\", or \"filter\", or \"protocol\"."<< std::endl;
+                continue;
+            }
+
+            m_plugins.push_back(std::move(infoPtr));
         }
     } while (false);
 
@@ -196,16 +232,18 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
         emit sigStateChanged(static_cast<int>(PluginsState::Clear));
     }
 
-    if (!m_controlInterface) {
-        m_controlInterface.reset(new PluginControlInterface());
-    }
-
     for (auto& reqInfo : infos) {
         assert(reqInfo);
         assert(reqInfo->m_loader);
         auto* pluginPtr = getPlugin(*reqInfo->m_loader);
+
+        auto* ctrlInterface = getPluginControl(reqInfo->getType());
+        if (ctrlInterface == nullptr) {
+            continue;
+        }
+
         if (m_appliedPlugins.empty() || reapply) {
-            pluginPtr->apply(*m_controlInterface);
+            pluginPtr->apply(PluginControlInterface(*ctrlInterface));
         }
     }
 
@@ -243,9 +281,14 @@ PluginMgr::WidgetPtr PluginMgr::getPluginConfigWidget(const PluginInfo& info)
     return pluginPtr->getConfigWidget();
 }
 
-PluginMgr::PluginMgr()
+PluginMgr::PluginControls::PluginControls()
 {
+    std::fill(m_ctrlInterfaces.begin(), m_ctrlInterfaces.end(), nullptr);
+    m_ctrlInterfaces[(unsigned)PluginInfo::Type::Socket] = &m_socketCtrlInterface;
+    m_ctrlInterfaces[(unsigned)PluginInfo::Type::Protocol] = &m_protocolCtrlInterface;
 }
+
+PluginMgr::PluginMgr() = default;
 
 PluginMgr::PluginInfoPtr PluginMgr::readPluginInfo(const QString& filename)
 {
@@ -304,8 +347,22 @@ PluginMgr::PluginInfoPtr PluginMgr::readPluginInfo(const QString& filename)
             }
         }
 
+        auto typeJsonVal = extraMetaObj.value(TypeMetaKey);
+        ptr->m_type = parseType(typeJsonVal.toString().toLower());
+
     } while (false);
     return ptr;
+}
+
+PluginControlInterfaceImpl* PluginMgr::getPluginControl(PluginInfo::Type type)
+{
+    if (!m_pluginControls) {
+        m_pluginControls.reset(new PluginControls);
+    }
+
+    auto typeIdx = static_cast<unsigned>(type);
+    assert(typeIdx < m_pluginControls->m_ctrlInterfaces.size());
+    return m_pluginControls->m_ctrlInterfaces[typeIdx];
 }
 
 

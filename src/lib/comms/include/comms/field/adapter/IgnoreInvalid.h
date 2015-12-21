@@ -41,13 +41,13 @@ public:
 
     IgnoreInvalid() = default;
 
-    explicit IgnoreInvalid(const ValueType& value)
-      : Base(value)
+    explicit IgnoreInvalid(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit IgnoreInvalid(ValueType&& value)
-      : Base(std::move(value))
+    explicit IgnoreInvalid(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 

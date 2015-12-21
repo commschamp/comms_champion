@@ -1,6 +1,16 @@
 
 function (plugin_demo)
     set (name "demo")
+
+    set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/demo_protocol.json")
+    set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/refresh_stamp.txt")
+    if ((NOT EXISTS ${stamp_file}) OR (${meta_file} IS_NEWER_THAN ${stamp_file}))
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_SOURCE_DIR}/DemoPlugin.h)
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file})
+    endif ()
+    
     set (src
         DemoPlugin.cpp
         Protocol.cpp

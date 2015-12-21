@@ -27,10 +27,7 @@ namespace comms
 namespace util
 {
 
-/// @addtogroup util
-/// @{
-
-/// @brief Implements Scope Guard Idiom.
+/// @brief Implements <a href="https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Scope_Guard">Scope Guard Idiom</a>.
 /// @details Scope guard idiom allows to call
 ///          any function with any number of parameters when the guard is
 ///          destructed, unless release() method is called prior to the
@@ -46,10 +43,11 @@ namespace util
 ///          auto guard = comms::util::makeScopeGuard(&func, std::ref(arg1), arg2);
 ///
 ///          // Binding lamda function:
-///          auto guard = comms::util::makeScopeGuard([&argByRef, argByValue]()
-///                                            {
-///                                                // Some code here
-///                                            });
+///          auto guard =
+///              comms::util::makeScopeGuard([&argByRef, argByValue]()
+///                  {
+///                      ...// Some code here
+///                  });
 ///          @endcode
 ///          Note that all the bound parameters are passed by value, if
 ///          there is any need to bind function with reference to some
@@ -66,42 +64,54 @@ public:
     /// @param[in] func Functor that will be executed when the scope guard is
     ///            destructed unless it is "released." Must provide move/copy
     ///            constructor.
-    /// @note Thread safety: Safe on distinct functors.
-    /// @note Exception guarantee: No throw in case copy/move constructors of
-    ///       the bind arguments do not throw, Strong otherwise.
-    explicit ScopeGuard(TFunc&& func);
+    explicit ScopeGuard(TFunc&& func)
+        : func_(std::forward<TFunc>(func)),
+          engaged_(true)
+    {
+    }
 
-    /// @brief Copy constructor is deleted
+
+    /// @brief No copy is allowed.
     ScopeGuard(const ScopeGuard& guard) = delete;
 
     /// @brief Move constructor
     /// @details After the functor is moved, it will be released in the
     ///          provided guard.
     /// @param[in] guard The other scope guard of the same type.
-    /// @note Thread safety: Unsafe.
-    /// @note Exception guarantee: No throw in case copy/move constructors of
-    ///       the bind arguments do not throw, Strong otherwise.
-    ScopeGuard(ScopeGuard&& guard);
+    ScopeGuard(ScopeGuard&& guard)
+        : func_(std::move(guard.func_)),
+          engaged_(std::move(guard.engaged_))
+    {
+        guard.release();
+    }
+
 
     /// @brief Destructor
     /// @post The functor is called unless it was released with release()
     ///       prior to destruction.
-    ~ScopeGuard();
+    ~ScopeGuard()
+    {
+        if (!isReleased()) {
+            func_();
+        }
+    }
 
-    /// @brief Copy assignment operator is deleted
+    /// @brief No copy is allowed.
     ScopeGuard& operator=(const ScopeGuard& guard) = delete;
 
     /// @brief Release the bound functor.
     /// @post The functor won't be called when the scope guard is out of scope.
-    /// @note Thread safety: Safe on distinct objects.
-    /// @note Exception guarantee: No throw.
-    void release();
+    void release()
+    {
+        engaged_ = false;
+    }
 
     /// @brief Check whether the functor is released.
     /// @return true in case of being released.
-    /// @note Thread safety: Unsafe
-    /// @note Exception guarantee: No throw
-    bool isReleased();
+    bool isReleased() const
+    {
+        return !engaged_;
+    }
 
 private:
     typename std::remove_reference<TFunc>::type func_;
@@ -112,18 +122,16 @@ private:
 /// @details Use this function to create a scope guard with lambda function.
 ///          For example:
 ///          @code
-///          auto guard = comms::util::makeScopeGuard([&argByRef, argByValue]()
-///                                            {
-///                                                // Some code here
-///                                            });
+///          auto guard =
+///              comms::util::makeScopeGuard([&argByRef, argByValue]()
+///                  {
+///                      ...// Some code here
+///                  });
 ///          @endcode
 /// @tparam TFunctor Functor type, should be deduced automatically based on
 ///         provided argument.
 /// @param[in] func Functor
 /// @return Scope guard.
-/// @note Thread safety: Safe on distinct functors
-/// @note Exception guarantee: No throw in case copy/move constructors of
-///       the bind arguments do not throw, Basic otherwise.
 /// @related ScopeGuard
 template <typename TFunctor>
 ScopeGuard<TFunctor> makeScopeGuard(TFunctor&& func)
@@ -151,9 +159,6 @@ ScopeGuard<TFunctor> makeScopeGuard(TFunctor&& func)
 /// @param[in] func Functor
 /// @param[in] args Function arguments
 /// @return Scope guard.
-/// @note Thread safety: Unsafe
-/// @note Exception guarantee: No throw in case copy/move constructors of
-///       the bind arguments do not throw, Basic otherwise.
 /// @related ScopeGuard
 template <typename TFunc,
           typename... TParams>
@@ -165,45 +170,7 @@ ScopeGuard<decltype(std::bind(std::forward<TFunc>(func),
     return ScopeGuard<decltype(bindObj)>(std::move(bindObj));
 }
 
-/// @}
-
 // Class implementation part
-
-template <typename TFunc>
-ScopeGuard<TFunc>::ScopeGuard(TFunc&& func)
-    : func_(std::forward<TFunc>(func)),
-      engaged_(true)
-{
-}
-
-template <typename TFunc>
-ScopeGuard<TFunc>::ScopeGuard(ScopeGuard&& guard)
-    : func_(std::move(guard.func_)),
-      engaged_(std::move(guard.engaged_))
-{
-    guard.release();
-}
-
-template <typename TFunc>
-ScopeGuard<TFunc>::~ScopeGuard()
-{
-    if (!isReleased()) {
-        func_();
-    }
-}
-
-template <typename TFunc>
-void ScopeGuard<TFunc>::release()
-{
-    engaged_ = false;
-}
-
-template <typename TFunc>
-bool ScopeGuard<TFunc>::isReleased()
-{
-    return !engaged_;
-}
-
 
 }  // namespace util
 

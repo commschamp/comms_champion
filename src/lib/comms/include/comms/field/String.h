@@ -57,6 +57,26 @@ using StringStorageTypeT =
 
 } // namespace details
 
+/// @brief Field that represents a string.
+/// @details By default uses
+///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>,
+///     for internal storage, unless comms::option::FixedSizeStorage option is used,
+///     which forces usage of comms::util::StaticString instead.
+/// @tparam TFieldBase Base class for this field, expected to be a variant of
+///     comms::Field.
+/// @tparam TOptions Zero or more options that modify/refine default behaviour
+///     of the field.@n
+///     Supported options are:
+///     @li comms::option::FixedSizeStorage
+///     @li comms::option::SequenceSizeFieldPrefix
+///     @li comms::option::SequenceSizeForcingEnabled
+///     @li comms::option::SequenceFixedSize
+///     @li comms::option::SequenceTerminationFieldSuffix
+///     @li comms::option::SequenceTrailingFieldSuffix
+///     @li comms::option::DefaultValueInitialiser
+///     @li comms::option::ContentsValidator
+///     @li comms::option::FailOnInvalid
+///     @li comms::option::IgnoreInvalid
 template <typename TFieldBase, typename... TOptions>
 class String : public TFieldBase
 {
@@ -70,63 +90,85 @@ class String : public TFieldBase
 
 public:
 
+    /// @brief All the options provided to this class bundled into struct.
     typedef ParsedOptionsInternal ParsedOptions;
-    typedef StorageTypeInternal StorageType;
-    typedef StorageType ValueType;
 
+    /// @brief Type of underlying value.
+    /// @details If comms::option::FixedSizeStorage option is NOT used, the
+    ///     ValueType is std::string, otherwise it becomes
+    ///     comms::util::StaticString<TSize>, where TSize is a size
+    ///     provided to comms::option::FixedSizeStorage option.
+    typedef StorageTypeInternal ValueType;
+
+    /// @brief Default constructor
     String() = default;
 
-    explicit String(const ValueType& value)
-      : str_(value)
+    /// @brief Constructor
+    explicit String(const ValueType& val)
+      : str_(val)
     {
     }
 
-    explicit String(ValueType&& value)
-      : str_(std::move(value))
+    /// @brief Constructor
+    explicit String(ValueType&& val)
+      : str_(std::move(val))
     {
     }
 
+    /// @brief Constructor
     explicit String(const char* str)
     {
         str_.value() = str;
     }
 
+    /// @brief Copy constructor
     String(const String&) = default;
 
+    /// @brief Move constructor
     String(String&&) = default;
 
+    /// @brief Destructor
     ~String() = default;
 
+    /// @brief Copy assignment
     String& operator=(const String&) = default;
 
+    /// @brief Move assignment
     String& operator=(String&&) = default;
 
-    String& operator=(const char* str)
-    {
-        value() = str;
-        return *this;
-    }
-
+    /// @brief Get access to the value storage.
     ValueType& value()
     {
         return str_.value();
     }
 
+    /// @brief Get access to the value storage.
     const ValueType& value() const
     {
         return str_.value();
     }
 
+    /// @brief Get length of serialised data
     constexpr std::size_t length() const
     {
         return str_.length();
     }
 
+    /// @brief Check validity of the field value.
     constexpr bool valid() const
     {
         return str_.valid();
     }
 
+    /// @brief Read field value from input data sequence
+    /// @details By default, the read operation will try to consume all the
+    ///     data available, unless size limiting option (such as
+    ///     comms::option::SequenceSizeFieldPrefix, comms::option::SequenceFixedSize,
+    ///     comms::option::SequenceSizeForcingEnabled) is used.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] len Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
@@ -135,32 +177,53 @@ public:
         return es;
     }
 
+    /// @brief Write current field value to output data sequence
+    /// @details By default, the write operation will write all the
+    ///     characters the field contains. If comms::option::SequenceFixedSize option
+    ///     is used, the number of characters, that is going to be written, is
+    ///     exactly as the option specifies. If underlying string storage
+    ///     doesn't contain enough data, the '\0' characters will
+    ///     be appended to the written sequence until the required amount of
+    ///     elements is reached.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] len Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         return str_.write(iter, len);
     }
 
+    /// @brief Get minimal length that is required to serialise field of this type.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
+    /// @brief Get maximal length that is required to serialise field of this type.
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
     }
 
+    /// @brief Force number of characters that must be read in the next read()
+    ///     invocation.
+    /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
+    ///     used this function has no effect.
     void forceReadElemCount(std::size_t count)
     {
         str_.forceReadElemCount(count);
     }
 
+    /// @brief Clear forcing of the number of characters that must be read in
+    ///     the next read() invocation.
+    /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
+    ///     used this function has no effect.
     void clearReadElemCount()
     {
         str_.clearReadElemCount();
     }
-
 
 private:
     struct NoAdjustment {};
@@ -238,6 +301,10 @@ struct IsString<comms::field::String<TArgs...> >
 
 }  // namespace details
 
+/// @brief Compile time check function of whether a provided type is any
+///     variant of comms::field::String.
+/// @tparam T Any type.
+/// @related comms::field::String
 template <typename T>
 constexpr bool isString()
 {

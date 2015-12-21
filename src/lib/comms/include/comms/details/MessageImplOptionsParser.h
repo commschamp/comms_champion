@@ -36,7 +36,7 @@ struct MessageImplOptionsParser<>
     static const bool HasNoIdImpl = false;
 };
 
-template <long long int TId,
+template <std::intmax_t TId,
           typename... TOptions>
 class MessageImplOptionsParser<
     comms::option::StaticNumIdImpl<TId>,

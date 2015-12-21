@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -21,7 +21,11 @@
 #include <memory>
 #include <vector>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Message.h"
 #include "comms_champion/Protocol.h"
@@ -69,8 +73,7 @@ public:
     const MsgsList& getAllMsgs() const;
 
 public slots:
-    void addSocket(SocketPtr socket);
-    void removeSocket(SocketPtr socket);
+    void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
 
 signals:
@@ -84,13 +87,13 @@ private slots:
 private:
     typedef std::list<SocketPtr> SocketsList;
 
-    MsgMgr(QObject* parent = nullptr);
+    MsgMgr(QObject* parentObj = nullptr);
     void updateInternalId(MessageInfo& msgInfo);
 
     MsgsList m_allMsgs;
     bool m_recvEnabled = false;
 
-    SocketsList m_sockets;
+    SocketPtr m_socket;
     ProtocolPtr m_protocol;
     MsgNumberType m_nextMsgNum = 1;
     bool m_running = false;

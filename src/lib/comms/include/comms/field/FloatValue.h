@@ -30,6 +30,27 @@ namespace comms
 namespace field
 {
 
+/// @brief Field that represent floating point value.
+/// @details Represents IEEE 754 floating point value, which means the value is
+///     serialised as is (consumes 4 bytes for float, and 8 bytes for double),
+///     using big or little endian.
+/// @tparam TFieldBase Base class for this field, expected to be a variant of
+///     comms::Field.
+/// @tparam T Basic underlying floating point type, must be either float or double.
+/// @tparam TOptions Zero or more options that modify/refine default behaviour
+///     of the field. If no option is provided The field's value is serialised as is.
+///     @code
+///         using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///         using MyField =comms::field::FloatValue<MyFieldBase, float>;
+///     @endcode
+///     In the example above it will
+///     consume 4 bytes (because sizeof(float) == 4) and will
+///     be serialised using big endian notation.@n
+///     Supported options are:
+///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
+///     @li comms::option::ContentsValidator or comms::option::ValidNumValueRange.
+///     @li comms::option::FailOnInvalid
+///     @li comms::option::IgnoreInvalid
 template <typename TFieldBase, typename T, typename... TOptions>
 class FloatValue : public TFieldBase
 {
@@ -42,57 +63,75 @@ class FloatValue : public TFieldBase
         "ThisField is expected to be of NumericFieldCategory");
 public:
 
+    /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Type of underlying floating point value.
+    /// @details Same as template parameter T to this class.
     typedef typename ThisField::ValueType ValueType;
 
+    /// @brief Default constructor
+    /// @details Initialises internal value to 0.
     FloatValue() = default;
 
-    explicit FloatValue(const ValueType& value)
-      : field_(value)
+    /// @brief Constructor
+    explicit FloatValue(const ValueType& val)
+      : field_(val)
     {
     }
 
-    explicit FloatValue(ValueType&& value)
-      : field_(value)
-    {
-    }
-
+    /// @brief Get access to floating point value storage.
     const ValueType& value() const
     {
         return field_.value();
     }
 
+    /// @brief Get access to floating point value storage.
     ValueType& value()
     {
         return field_.value();
     }
 
+    /// @brief Get length required to serialise the current field value.
     constexpr std::size_t length() const
     {
         return field_.length();
     }
 
+    /// @brief Get minimal length that is required to serialise field of this type.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
+    /// @brief Get maximal length that is required to serialise field of this type.
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
     }
 
+    /// @brief Check validity of the field value.
     constexpr bool valid() const
     {
         return field_.valid();
     }
 
+    /// @brief Read field value from input data sequence
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] size Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
         return field_.read(iter, size);
     }
 
+    /// @brief Write current field value to output data sequence
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] size Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {

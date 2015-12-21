@@ -25,6 +25,7 @@ namespace comms
 namespace util
 {
 
+/// @cond SKIP_DOC
 template <typename TType, typename... TTypes>
 class AlignedUnion
 {
@@ -48,6 +49,8 @@ class AlignedUnion<TType>
 public:
     typedef typename std::aligned_storage<sizeof(TType), std::alignment_of<TType>::value>::type Type;
 };
+
+/// @endcond
 
 }  // namespace util
 

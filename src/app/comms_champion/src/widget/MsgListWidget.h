@@ -3,31 +3,35 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
 #include <QtCore/QString>
 #include <QtCore/qnamespace.h>
+
+#include "ui_MsgListWidget.h"
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/MessageInfo.h"
 #include "comms_champion/Protocol.h"
 
 #include "GuiAppMgr.h"
-
-#include "ui_MsgListWidget.h"
 
 namespace comms_champion
 {
@@ -44,7 +48,7 @@ public:
     MsgListWidget(
         const QString& title,
         QWidget* toolbar,
-        QWidget* parent = nullptr);
+        QWidget* parentObj = nullptr);
 
 protected slots:
     void addMessage(MessageInfoPtr msgInfo);

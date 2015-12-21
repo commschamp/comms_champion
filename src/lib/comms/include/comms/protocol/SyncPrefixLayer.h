@@ -26,41 +26,89 @@ namespace comms
 namespace protocol
 {
 
-template <typename TField,
-          typename TNextLayer>
-class SyncPrefixLayer : public
-            ProtocolLayerBase<TField, TNextLayer, SyncPrefixLayer<TField, TNextLayer> >
+/// @brief Protocol layer that uses "sync" field as a prefix to all the
+///        subsequent data written by other (next) layers.
+/// @details The main purpose of this layer is to provide a constant synchronisation
+///     prefix to help identify the beginning of the serialised message.
+///     This layer is a mid level layer, expects other mid level layer or
+///     MsgDataLayer to be its next one.
+/// @tparam TField Type of the field that is used as sync prefix. The "sync"
+///     field type definition must use options (comms::option::DefaultNumValue)
+///     to specify its default value to be equal to the expected "sync" value.
+/// @tparam TNextLayer Next transport layer in protocol stack.
+template <typename TField, typename TNextLayer>
+class SyncPrefixLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    typedef ProtocolLayerBase<TField, TNextLayer, SyncPrefixLayer<TField, TNextLayer> > Base;
+    typedef ProtocolLayerBase<TField, TNextLayer> Base;
 
 public:
-    /// @brief Pointer to message object
+    /// @brief Type of smart pointer that will hold allocated message object.
     typedef typename Base::MsgPtr MsgPtr;
 
+    /// @brief Type of the message interface.
+    /// @details Initially provided to MsgDataLayer and propagated through all
+    ///     the layers in between to this class.
     typedef typename Base::Message Message;
 
-    /// @brief Type of read iterator
+    /// @brief Type of read iterator.
+    /// @details Initially provided to comms::Message through options, then it finds
+    ///     its way as a type in MsgDataLayer, and finally propagated through all
+    ///     the layers in between to this class
     typedef typename Base::ReadIterator ReadIterator;
 
     /// @brief Type of write iterator
+    /// @details Initially provided to comms::Message through options, then it finds
+    ///     its way as a type in MsgDataLayer, and finally propagated through all
+    ///     the layers in between to this class.
     typedef typename Base::WriteIterator WriteIterator;
 
+    /// @brief Type of the field object used to read/write "sync" value.
     typedef typename Base::Field Field;
 
+    /// @brief Default constructor
     SyncPrefixLayer() = default;
 
+    /// @brief Constructor of any number of arguments.
+    /// @details All the arguments are passed to the constructor of the
+    ///     ProtocolLayerBase (which is a base of this class), which it turn
+    ///     forwards them to the constructor of the next layer.
     template <typename... TArgs>
     explicit SyncPrefixLayer(TArgs&&... args)
       : Base(std::forward<TArgs>(args)...)
     {
     }
 
+    /// @brief Copy constructor.
     SyncPrefixLayer(const SyncPrefixLayer&) = default;
 
+    /// @brief Move constructor.
     SyncPrefixLayer(SyncPrefixLayer&&) = default;
 
+    /// @brief Destructor
     ~SyncPrefixLayer() = default;
 
+    /// @brief Deserialise message from the input data sequence.
+    /// @details Reads the "sync" value from the input data. If the read value
+    ///     is NOT as expected (doesn't equal to the default constructed
+    ///     @ref Field), then comms::ErrorStatus::ProtocolError is returned.
+    ////    If the read "sync" value as expected, the read() member function of
+    ///     the next layer is called.
+    /// @param[in, out] msgPtr Reference to smart pointer that already holds or
+    ///     will hold allocated message object
+    /// @param[in, out] iter Input iterator used for reading.
+    /// @param[in] size Size of the data in the sequence
+    /// @param[out] missingSize If not nullptr and return value is
+    ///     comms::ErrorStatus::NotEnoughData it will contain
+    ///     minimal missing data length required for the successful
+    ///     read attempt.
+    /// @return Status of the read operation.
+    /// @pre Iterator must be valid and can be dereferenced and incremented at
+    ///      least "size" times;
+    /// @post The iterator will be advanced by the number of bytes was actually
+    ///       read. In case of an error, distance between original position and
+    ///       advanced will pinpoint the location of the error.
+    /// @post missingSize output value is updated if and only if function
+    ///       returns comms::ErrorStatus::NotEnoughData.
     template <typename TMsgPtr>
     ErrorStatus read(
         TMsgPtr& msgPtr,
@@ -79,6 +127,24 @@ public:
                 Base::createNextLayerReader());
     }
 
+    /// @brief Deserialise message from the input data sequence while caching
+    ///     the read transport information fields.
+    /// @details Very similar to read() member function, but adds "allFields"
+    ///     parameter to store read transport information fields.
+    /// @tparam TIdx Index of the message ID field in TAllFields tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msgPtr Reference to the smart pointer holding message object.
+    /// @param[in, out] iter Iterator used for reading.
+    /// @param[in] size Number of bytes available for reading.
+    /// @param[out] missingSize If not nullptr and return value is
+    ///             comms::ErrorStatus::NotEnoughData it will contain
+    ///             minimal missing data length required for the successful
+    ///             read attempt.
+    /// @return Status of the operation.
     template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
     ErrorStatus readFieldsCached(
         TAllFields& allFields,
@@ -99,6 +165,18 @@ public:
                 Base::template createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
 
+    /// @brief Serialise message into the output data sequence.
+    /// @details The function will write proper "sync" value to the output
+    ///     buffer, then call the write() function of the next layer.
+    /// @param[in] msg Reference to message object
+    /// @param[in, out] iter Output iterator.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
+    /// @pre Iterator must be valid and can be dereferenced and incremented at
+    ///      least "size" times;
+    /// @post The iterator will be advanced by the number of bytes was actually
+    ///       written. In case of an error, distance between original position
+    ///       and advanced will pinpoint the location of the error.
     ErrorStatus write(
             const Message& msg,
             WriteIterator& iter,
@@ -108,6 +186,21 @@ public:
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
     }
 
+    /// @brief Serialise message into output data sequence while caching the written transport
+    ///     information fields.
+    /// @details Very similar to write() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msg Reference to the message object that is being written,
+    /// @param[in, out] iter Iterator used for writing.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
     template <std::size_t TIdx, typename TAllFields>
     ErrorStatus writeFieldsCached(
         TAllFields& allFields,

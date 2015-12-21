@@ -23,9 +23,7 @@
 namespace comms
 {
 
-/// @ingroup comms
 /// @brief Error statuses reported by the Communication module.
-/// @headerfile comms/ErrorStatus.h "comms/ErrorStatus.h"
 enum class ErrorStatus {
     Success, ///< Used to indicate successful outcome of the operation.
     UpdateRequired, ///< Used to indicate that write operation wasn't complete,
@@ -39,7 +37,7 @@ enum class ErrorStatus {
     InvalidMsgId, ///< Used to indicate that received message has unknown id
     InvalidMsgData, ///<Used to indicate that received message has invalid
                     /// data.
-    MsgAllocFaulure, ///<Used to indicate that message allocation has failed.
+    MsgAllocFailure, ///<Used to indicate that message allocation has failed.
     NumOfErrorStatuses ///< Number of supported error statuses, must be last.
 };
 

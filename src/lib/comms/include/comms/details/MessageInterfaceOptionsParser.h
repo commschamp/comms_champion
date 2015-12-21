@@ -42,6 +42,7 @@ struct MessageInterfaceOptionsParser<>
     static const bool HasWriteIterator = false;
     static const bool HasHandler = false;
     static const bool HasValid = false;
+    static const bool HasLength = false;
 };
 
 template <typename T, typename... TOptions>
@@ -106,6 +107,15 @@ class MessageInterfaceOptionsParser<
 {
 public:
     static const bool HasValid = true;
+};
+
+template <typename... TOptions>
+class MessageInterfaceOptionsParser<
+    comms::option::LengthInfoInterface,
+    TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
+{
+public:
+    static const bool HasLength = true;
 };
 
 template <typename... TOptions>

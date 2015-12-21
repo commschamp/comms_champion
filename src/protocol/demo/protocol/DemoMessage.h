@@ -41,7 +41,8 @@ typedef std::tuple<
     comms::option::LittleEndian,
     comms::option::ReadIterator<const std::uint8_t*>,
     comms::option::WriteIterator<std::uint8_t*>,
-    comms::option::ValidCheckInterface
+    comms::option::ValidCheckInterface,
+    comms::option::LengthInfoInterface
 > DemoDefaultTraits;
 
 template <typename... TOptions>

@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PluginControlInterfaceImpl.h"
@@ -33,11 +33,8 @@ PluginControlInterfaceImpl::PluginControlInterfaceImpl()
         this, SIGNAL(sigSetProtocol(ProtocolPtr)),
         msgMgr, SLOT(setProtocol(ProtocolPtr)));
     connect(
-        this, SIGNAL(sigAddSocket(SocketPtr)),
-        msgMgr, SLOT(addSocket(SocketPtr)));
-    connect(
-        this, SIGNAL(sigRemoveSocket(SocketPtr)),
-        msgMgr, SLOT(removeSocket(SocketPtr)));
+        this, SIGNAL(sigSetSocket(SocketPtr)),
+        msgMgr, SLOT(setSocket(SocketPtr)));
 
     auto* guiAppMgr = GuiAppMgr::instance();
     assert(guiAppMgr != nullptr);
@@ -47,26 +44,6 @@ PluginControlInterfaceImpl::PluginControlInterfaceImpl()
     connect(
         this, SIGNAL(sigRemoveMainToolbarAction(ActionPtr)),
         guiAppMgr, SLOT(removeMainToolbarAction(ActionPtr)));
-}
-
-void PluginControlInterfaceImpl::setProtocol(ProtocolPtr protocol)
-{
-    emit sigSetProtocol(std::move(protocol));
-}
-
-void PluginControlInterfaceImpl::clearProtocol()
-{
-    emit sigSetProtocol(ProtocolPtr());
-}
-
-void PluginControlInterfaceImpl::addSocket(SocketPtr socket)
-{
-    emit sigAddSocket(std::move(socket));
-}
-
-void PluginControlInterfaceImpl::removeSocket(SocketPtr socket)
-{
-    emit sigRemoveSocket(std::move(socket));
 }
 
 void PluginControlInterfaceImpl::addMainToolbarAction(ActionPtr action)
@@ -79,7 +56,35 @@ void PluginControlInterfaceImpl::removeMainToolbarAction(ActionPtr action)
     emit sigRemoveMainToolbarAction(std::move(action));
 }
 
+void PluginControlInterfaceImpl::setProtocolImpl(ProtocolPtr)
+{
+    assert(!"The non-protocol plugin is not permitted to set protocol.");
+}
 
+void PluginControlInterfaceImpl::clearProtocolImpl()
+{
+    assert(!"The non-protocol plugin is not permitted to clear protocol.");
+}
+
+void PluginControlInterfaceImpl::setSocketImpl(SocketPtr)
+{
+    assert(!"The non-socket plugin is not permitted to set socket.");
+}
+
+void PluginControlInterfaceImpl::clearSocketImpl()
+{
+    assert(!"The non-socket plugin is not permitted to clear socket.");
+}
+
+void PluginControlInterfaceImpl::emitSigSetProtocol(ProtocolPtr protocol)
+{
+    emit sigSetProtocol(std::move(protocol));
+}
+
+void PluginControlInterfaceImpl::emitSigSetSocket(SocketPtr socket)
+{
+    emit sigSetSocket(std::move(socket));
+}
 
 }  // namespace comms_champion
 

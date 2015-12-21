@@ -18,6 +18,8 @@ function (bin_comms_champion)
         MsgFileMgr.cpp
         PluginControlInterface.cpp
         PluginControlInterfaceImpl.cpp
+        PluginControlInterfaceSocket.cpp
+        PluginControlInterfaceProtocol.cpp
         PluginMgr.cpp
         Plugin.cpp
         icon.cpp
@@ -35,6 +37,7 @@ function (bin_comms_champion)
         widget/DefaultMessageWidget.cpp
         widget/ProtocolsStackWidget.cpp
         widget/MessageUpdateDialog.cpp
+        widget/PluginsListWidget.cpp
         widget/PluginConfigDialog.cpp
         widget/field/ShortIntValueFieldWidget.cpp
         widget/field/LongIntValueFieldWidget.cpp
@@ -65,6 +68,7 @@ function (bin_comms_champion)
         widget/MsgDetailsWidget.h
         widget/ProtocolsStackWidget.h
         widget/MessageUpdateDialog.h
+        widget/PluginsListWidget.h
         widget/PluginConfigDialog.h
         widget/MainWindowWidget.h
         widget/DefaultMessageDisplayWidget.h
@@ -96,6 +100,7 @@ function (bin_comms_champion)
         ui/MsgDetailsWidget.ui
         ui/ProtocolsStackWidget.ui
         ui/MessageUpdateDialog.ui
+        ui/PluginsListWidget.ui
         ui/PluginConfigDialog.ui
         ui/ShortIntValueFieldWidget.ui
         ui/LongIntValueFieldWidget.ui

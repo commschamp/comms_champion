@@ -21,8 +21,11 @@
 #include <iterator>
 
 #include "comms/comms.h"
-#include "cxxtest/TestSuite.h"
 #include "CommsTestCommon.h"
+
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
 
 class SyncPrefixLayerTestSuite : public CxxTest::TestSuite
 {
@@ -40,21 +43,24 @@ private:
         comms::option::MsgIdType<MessageType>,
         comms::option::BigEndian,
         comms::option::ReadIterator<const char*>,
-        comms::option::WriteIterator<char*>
+        comms::option::WriteIterator<char*>,
+        comms::option::LengthInfoInterface
     > BeTraits;
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
         comms::option::BigEndian,
         comms::option::ReadIterator<const char*>,
-        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >,
+        comms::option::LengthInfoInterface
     > BeBackInsertTraits;
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
         comms::option::LittleEndian,
         comms::option::ReadIterator<const char*>,
-        comms::option::WriteIterator<char*>
+        comms::option::WriteIterator<char*>,
+        comms::option::LengthInfoInterface
     > LeTraits;
 
 

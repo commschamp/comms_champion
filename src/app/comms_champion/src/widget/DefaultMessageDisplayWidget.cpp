@@ -3,24 +3,28 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DefaultMessageDisplayWidget.h"
 
 #include <cassert>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QSplitter>
+CC_ENABLE_WARNINGS()
 
 #include "MsgDetailsWidget.h"
 #include "ProtocolsStackWidget.h"
@@ -28,8 +32,8 @@
 namespace comms_champion
 {
 
-DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
-  : Base(parent),
+DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parentObj)
+  : Base(parentObj),
     m_msgDetailsWidget(new MsgDetailsWidget()),
     m_protocolsDetailsWidget(new ProtocolsStackWidget())
 {
@@ -46,10 +50,10 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parent)
     splitter->addWidget(m_msgDetailsWidget);
     splitter->addWidget(m_protocolsDetailsWidget);
 
-    auto* layout = new QVBoxLayout();
-    layout->addWidget(splitter);
+    auto* widgetLayout = new QVBoxLayout();
+    widgetLayout->addWidget(splitter);
 
-    setLayout(layout);
+    setLayout(widgetLayout);
 }
 
 void DefaultMessageDisplayWidget::displayMessageImpl(

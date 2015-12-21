@@ -42,13 +42,13 @@ public:
 
     SequenceSizeForcing() = default;
 
-    explicit SequenceSizeForcing(const ValueType& value)
-      : Base(value)
+    explicit SequenceSizeForcing(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit SequenceSizeForcing(ValueType&& value)
-      : Base(std::move(value))
+    explicit SequenceSizeForcing(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 
@@ -57,10 +57,10 @@ public:
     SequenceSizeForcing& operator=(const SequenceSizeForcing&) = default;
     SequenceSizeForcing& operator=(SequenceSizeForcing&&) = default;
 
-    void forceReadElemCount(std::size_t value)
+    void forceReadElemCount(std::size_t val)
     {
-        GASSERT(value != Cleared);
-        forced_ = value;
+        GASSERT(val != Cleared);
+        forced_ = val;
     }
 
     void clearReadElemCount()

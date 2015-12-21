@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -23,8 +23,12 @@
 #include <type_traits>
 #include <algorithm>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QPushButton>
+CC_ENABLE_WARNINGS()
 
 #include "DefaultMessageDisplayWidget.h"
 #include "GlobalConstants.h"
@@ -109,8 +113,8 @@ int msToDurationUnits(long long unsigned value, Duration dur)
 MessageUpdateDialog::MessageUpdateDialog(
     MessageInfoPtr& msgInfo,
     ProtocolPtr protocol,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_msgInfo(msgInfo),
     m_protocol(std::move(protocol)),
     m_allMsgs(m_protocol->createAllMessages()),
@@ -208,9 +212,9 @@ MessageUpdateDialog::MessageUpdateDialog(
     refreshRepeatInfo(m_ui.m_repeatCheckBox->checkState());
     refreshButtons();
 
-    assert(parent);
-    auto newHeight = std::max(height(), (parent->height() * 9) / 10);
-    auto newWidth = std::max(width(), (parent->width() * 7) / 10);
+    assert(parentObj);
+    auto newHeight = std::max(height(), (parentObj->height() * 9) / 10);
+    auto newWidth = std::max(width(), (parentObj->width() * 7) / 10);
     resize(QSize(newWidth, newHeight));
 
     connect(

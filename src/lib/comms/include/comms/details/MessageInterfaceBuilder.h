@@ -73,23 +73,11 @@ public:
     typedef TReadIter ReadIterator;
     comms::ErrorStatus read(ReadIterator& iter, std::size_t size)
     {
-        auto minSize = length();
-        if (size < minSize) {
-            return ErrorStatus::NotEnoughData;
-        }
-
         return this->readImpl(iter, size);
     }
 
-    std::size_t length() const
-    {
-        return this->lengthImpl();
-    }
-
-
 protected:
     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
-    virtual std::size_t lengthImpl() const = 0;
 };
 
 template <typename TBase, typename TWriteIter>
@@ -99,22 +87,11 @@ public:
     typedef TWriteIter WriteIterator;
     comms::ErrorStatus write(WriteIterator& iter, std::size_t size) const
     {
-        if (size < length()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
         return this->writeImpl(iter, size);
     }
 
-    std::size_t length() const
-    {
-        return this->lengthImpl();
-    }
-
-
 protected:
     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
-    virtual std::size_t lengthImpl() const = 0;
 };
 
 template <typename TBase, typename TReadIter, typename TWriteIter>
@@ -124,34 +101,18 @@ public:
     typedef TReadIter ReadIterator;
     comms::ErrorStatus read(ReadIterator& iter, std::size_t size)
     {
-        auto minSize = length();
-        if (size < minSize) {
-            return ErrorStatus::NotEnoughData;
-        }
-
         return this->readImpl(iter, size);
     }
 
     typedef TWriteIter WriteIterator;
     comms::ErrorStatus write(WriteIterator& iter, std::size_t size) const
     {
-        if (size < length()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
         return this->writeImpl(iter, size);
     }
-
-    std::size_t length() const
-    {
-        return this->lengthImpl();
-    }
-
 
 protected:
     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
-    virtual std::size_t lengthImpl() const = 0;
 };
 
 template <typename TBase, typename TOpt, bool THasReadIterator, bool THasWriteIterator>
@@ -253,6 +214,40 @@ template <typename TBase, typename TOpts>
 using MessageInterfaceValidBaseT =
     typename MessageInterfaceProcessValidBase<TBase, TOpts::HasValid>::Type;
 
+template <typename TBase>
+class MessageInterfaceLengthBase : public TBase
+{
+public:
+    std::size_t length() const
+    {
+        return lengthImpl();
+    }
+
+protected:
+    virtual std::size_t lengthImpl() const = 0;
+};
+
+
+template <typename TBase, bool THasLength>
+struct MessageInterfaceProcessLengthBase;
+
+template <typename TBase>
+struct MessageInterfaceProcessLengthBase<TBase, true>
+{
+    typedef MessageInterfaceLengthBase<TBase> Type;
+};
+
+template <typename TBase>
+struct MessageInterfaceProcessLengthBase<TBase, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TOpts>
+using MessageInterfaceLengthBaseT =
+    typename MessageInterfaceProcessLengthBase<TBase, TOpts::HasLength>::Type;
+
+
 template <typename... TOptions>
 class MessageInterfaceBuilder
 {
@@ -267,7 +262,8 @@ class MessageInterfaceBuilder
     typedef MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions> IdTypeBase;
     typedef MessageInterfaceReadWriteBaseT<IdTypeBase, ParsedOptions> ReadWriteBase;
     typedef MessageInterfaceValidBaseT<ReadWriteBase, ParsedOptions> ValidBase;
-    typedef MessageInterfaceHandlerBaseT<ValidBase, ParsedOptions> HandlerBase;
+    typedef MessageInterfaceLengthBaseT<ValidBase, ParsedOptions> LengthBase;
+    typedef MessageInterfaceHandlerBaseT<LengthBase, ParsedOptions> HandlerBase;
 
 public:
     typedef ParsedOptions Options;

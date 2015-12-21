@@ -1,0 +1,841 @@
+/// @page page_message_tutorial Messages Tutorial
+/// @tableofcontents
+/// The communication protocols are all about exchanging @b messages over some
+/// I/O link between two or more nodes. This tutorial goes through and explains
+/// every stage in defining messages for any custom communication protocol.
+/// 
+/// @section page_message_tutorial_interface Interface
+/// The COMMS library provides comms::Message
+/// class that must be a base class for all the custom messages that are going
+/// to be implemented. It receives variable number of template parameters, which
+/// are expected to be functionality extension options (defined in comms::option
+/// namespace). These options define the <b>common interface</b> for all the custom
+/// messages.
+///
+/// In general, all the API functions that are being added to the interface (and described below)
+/// use <a href="https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Non-Virtual_Interface">Non-Virtual Interface</a>
+/// idiom:
+/// @code
+/// class Message
+/// {
+/// public:
+///     void someFunction(...)
+///     {
+///         ...; // Pre-conditions check and/or other common operations
+///         someFunctionImpl(...); // Invocation of polymorphic functionality
+///         ...; // Post-conditions check and/or other common operations
+///     }
+///
+/// protected:
+///     virtual void someFunctionImpl(...) = 0; // Must be implemented in the derived class
+/// };
+/// @endcode
+///
+/// When defining the common interface class for all the custom protocol messages
+/// it is recommended to typedef the comms::Message definition with all the
+/// required options:
+/// @code
+/// typedef comms::Message<.../* Required Options */> MyMessage;
+/// @endcode
+///
+/// If the default interface comms::Message provides is not enough and needs to
+/// be extended, then it can easily be done using public inheritance:
+/// @code
+/// class MyMessage : public comms::Message<...>
+/// {
+/// public:
+///     const char* name() const
+///     {
+///         return nameImpl();
+///     }
+///
+/// protected:
+///     virtual const char* nameImpl() const = 0;
+/// };
+/// @endcode
+///
+/// So, let's review all the supported options one by one:
+/// 
+/// @subsection page_message_tutorial_interface_endian Serialisation Endian
+/// Most of the messages carry some kind of payload, which needs to be
+/// serialised. Usually the protocol uses the same serialisation endian (Big or Little)
+/// for all the data in all the messages. When using comms::Message to
+/// define interface for all the messages, it is @b necessary to specify
+/// the serialisation endian using comms::option::BigEndian or 
+/// comms::option::LittleEndian options. 
+/// @code
+/// typedef comms::Message<
+///     ...
+///     comms::option::BigEndian,
+///     ...
+/// > MyMessage;
+/// @endcode
+/// The COMMS library doesn't define any
+/// default endian type. The compilation will fail if none of the options
+/// mentioned earlier is used. With the endian specification option the
+/// following functions and types are defined and can be used by external
+/// entities as well as derived classes:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // comms::Field class with the same endian option. 
+///     // Can (and should) be provided as a base class to all the
+///     // fields.
+///     typedef comms::Field<.../* Same endian option*/> Field;
+///
+/// protected:
+///     // Read serialised value of type T from input buffer using proper 
+///     // serialisation endian.
+///     template <typename T, typename TIter>
+///     static T readData(TIter& iter);
+/// 
+///     // Read serialised value of type T from input buffer using proper 
+///     // serialisation endian with number of bytes to read specified by the
+///     // template parameter TSize.
+///     template <typename T, std::size_t TSize, typename TIter>
+///     static T readData(TIter& iter);
+///
+///     // Serialise value into output buffer using proper serialisation endian.
+///     template <typename T, typename TIter>
+///     static void writeData(T value, TIter& iter);
+///
+///     // Serialise value into output buffer using proper serialisation endian
+///     // with number of bytes to write specified by the template parameter TSize.
+///     template <std::size_t TSize, typename T, typename TIter>
+///     static void writeData(T value, TIter& iter);
+/// };
+/// @endcode
+/// Every message interface may define read and/or write functionalities
+/// (described later), which will have to be implemented in the custom
+/// message class. The readData() and writeData() static member functions
+/// are provided for help in this task. @n
+/// Also note, the definition of the @b Field internal type. Later this tutorial
+/// will present information on using @b fields to define message payload. The 
+/// value of every such @b field needs to be serialised/deserialised. The comms
+/// library provides multiple built-in fields that reside in comms::field
+/// namespace and described in details in @ref page_field_tutorial page.
+/// Almost every such field will require a variant of comms::Field class that
+/// properly specifies the serialisation endian information. The @b Field internal
+/// class defined in the @b MyMessage interface may be re-used as such.
+///  
+/// @subsection page_message_tutorial_interface_id_type Type of Message ID
+/// Every message must have an ID. Most communication protocols define it
+/// as a numeric value that occupies one or two bytes when serialised. The 
+/// best and easiest way to define the type using enum:
+/// @code
+/// enum MyMsgId : std::uint8_t
+/// {
+///     MyMsgId_Message1,
+///     MyMsgId_Message2,
+///     MyMsgId_Message3,
+///     ...
+/// }; 
+/// @endcode
+/// When type, that is going to be used to store ID of the message, is defined
+/// it should be passed to the definition of the interface using 
+/// comms::option::MsgIdType option:
+/// @code
+/// typedef comms::Message<
+///     ...
+///     comms::option::MsgIdType<MyMsgId>,
+///     ...
+/// > MyMessage;
+/// @endcode
+/// After using such option the interface class (@b MyMessage) defines the 
+/// following types and functions:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Type of the ID, same as the one passed with comms::option::MsgIdType
+///     typedef ... MsgIdType;
+///
+///     // Type of the ID, when it is passed as a parameter and/or returned from the function:
+///     typedef ... MsgIdParamType;
+///
+///     // API function to retrieve ID of the function
+///     MsgIdParamType getId() const
+///     {
+///         return getIdImpl();
+///     }
+///
+/// protected:
+///     virtual MsgIdParamType getIdImpl() const = 0; // Must be implemented in the derived class
+/// }
+/// @endcode
+/// @b Note the existence of @b MsgIdType and @b MsgIdParamType. When the
+/// type used for message ID is simple integral one or enum, these types
+/// are equal, i.e. the ID is returned "by-value" from getId() function.
+/// However, if some other type is used, such as std::string, then @b MsgIdParamType
+/// is a const-reference to @b MsgIdType.
+/// Also @b note, that comms::option::MsgIdType option is a must-have one, the compilation will
+/// fail if such option is not provided.
+///
+/// @subsection page_message_tutorial_interface_read Reading Payload (Deserialisation)
+/// If the implementation requires reading and processing input messaged, the "read()"
+/// operation needs to be added to the interface. It is achieved by using 
+/// comms::option::ReadIterator option to provide a type of the iterator that
+/// is going to be used for reading:
+/// @code
+/// typedef comms::Message<
+///     ...
+///     comms::option::ReadIterator<const std::uint8_t*>,
+///     ...
+/// > MyMessage;
+/// @endcode
+/// As the result the interface class defines the following types and functions:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Type of the the iterator used for reading, the same as provided with
+///     // comms::option::ReadIterator option.
+///     typedef ... ReadIterator;
+///
+///     // API function to perform read
+///     comms::ErrorStatus read(ReadIterator& iter, std::size_t len)
+///     {
+///         return readImpl(iter, len);
+///     }
+///
+/// protected:
+///     // Must be implemented in the derived class.
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) = 0; 
+/// }
+/// @endcode
+/// Please @b note, that COMMS library doesn't impose any restrictions on
+/// how the input data is collected and stored. It is a responsibility of the 
+/// @b caller to allocate and maintain the input buffer, while providing only an 
+/// iterator for read operation. @n
+/// Also @b note, that iterator as passed by reference, which allows advancing 
+/// operator when read operation is performed. @n
+/// For example:
+/// @code
+/// typedef std::unique_ptr<MyMessage> MsgPtr;
+///
+/// MsgPtr msg(new Message1()); // Allocation of some concrete message that
+///                             // read functionality in its readImpl().
+///
+/// std::vector<std::uint8_t> inData = {...}; // Some input data;
+/// MyMessage::ReadIterator readIter = &inData[0];
+/// auto es = msg->read(readIter, inData.size()); // readIter is advanced in the read operation
+/// if (es != comms::ErrorStatus::Success) {
+///     ... // Handle error
+///     return;
+/// }
+///
+/// ... // Read is successful, handle the message
+/// 
+/// // Remove consumed bytes from the input buffer
+/// auto consumedBytes = std::distance(MyMessage::ReadIterator(&inData[0]), readIter);
+/// inData.erase(inData.begin(), inData.begin() + consumedBytes);
+/// @endcode
+///
+/// @subsection page_message_tutorial_interface_write Writing Payload (Serialisation)
+/// If the implementation requires serialising messages and sending them over I/O
+/// link, the "write()" operation needs to be added to the interface. It is 
+/// achieved by using  comms::option::WriteIterator option to provide a type of 
+/// the iterator that is going to be used for writing:
+/// @code
+/// typedef comms::Message<
+///     ...
+///     comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
+///     ...
+/// > MyMessage;
+/// @endcode
+/// As the result the interface class defines the following types and functions:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Type of the the iterator used for writing, the same as provided with
+///     // comms::option::WriteIterator option.
+///     typedef ... WriteIterator;
+///
+///     // API function to perform write
+///     comms::ErrorStatus write(WriteIterator& iter, std::size_t len)
+///     {
+///         return writeImpl(iter, len);
+///     }
+///
+/// protected:
+///     // Must be implemented in the derived class.
+///     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) = 0; 
+/// }
+/// @endcode
+/// Please @b note, that COMMS library doesn't impose any restrictions on
+/// how storage type for the output buffer. It is a responsibility of the 
+/// @b caller to allocate and maintain the output buffer, while providing only an 
+/// iterator for operation operation. In the example above the output buffer
+/// is chosen to be std::vector<std::uint8_t> and the write operation will
+/// be performed using push_back() calls on this vector (due to std::back_insert_iterator
+/// being chosen as WriteIterator). @n
+/// Also @b note, that iterator as passed by reference, which allows advancing 
+/// operator when write operation is performed. @n
+/// For example:
+/// @code
+/// Message1 msg; // Some concrete type of the custom message
+/// ...; Update message contents
+///
+///
+/// std::vector<std::uint8_t> outData; // Output buffer
+/// MyMessage::WriteIterator writeIter = std::back_inserter(outData);
+/// auto es = msg.write(writeIter, outData.max_size()); 
+/// if (es != comms::ErrorStatus::Success) {
+///     ... // Handle error
+///     return;
+/// }
+///
+/// ... // Write is successful, send outData contents over I/O link
+/// @endcode
+///
+/// @subsection page_message_tutorial_interface_handle Dispatch Message for Handling
+/// When new data arrives on I/O link, the @ref protocol_stack processes
+/// the transport information that wraps the message payload, creates the
+/// proper message object, based on the message ID information and returns it
+/// wrapped in smart pointer (std::unique_ptr) to @b MyMessage
+/// interface class. When such pointer is received by outer processing logic, 
+/// appropriate  message handling functionality needs to be executed. Using simple
+/// switch statement on message ID (returned by @b getId() interface function)
+/// can be very @b INEFFICIENT. The COMMS library provides much more efficient way
+/// to dispatch messages to appropriate handler. 
+///
+/// The handler class needs to be forward declared and passed
+/// to the definition of @b MyMessage interface via comms::option::Handler option.
+/// @code
+/// // Forward declaration
+/// class MyHandler;
+///
+/// typedef comms::Message<
+///     ...
+///     comms::option::Handler<MyHandler>,
+///     ...
+/// > MyMessage;
+/// @endcode
+/// When this option is used the @b MyMessage will define the following interface
+/// types and functions:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // The same type as passed via comms::option::Handler option     
+///     typedef ... Handler;
+///
+///     // Dispatch this message to handler
+///     void dispatch(Handler& handler)
+///     {
+///         dispatchImpl(handler);
+///     }
+///
+/// protected:
+///     virtual void dispatchImpl(Handler& handler) = 0; // Must be implemented in the derived class
+/// };
+/// @endcode
+/// More details about dispatching will be provided below in @ref 
+/// page_message_tutorial_implementation and @ref page_message_tutorial_implementation_handle
+/// sections on this page as well as @ref message_handling section of the
+/// main tutorial.
+///
+/// @subsection page_message_tutorial_interface_length Serialisation Length Retrieval
+/// Sometimes it may be needed to know the serialisation length of the message
+/// in order to be able to reserve or allocate enough space for output buffer.
+/// The COMMS library provides comms::option::LengthInfoInterface option that
+/// adds @b length() member function to the interface defined with comms::Message.
+/// @code
+/// typedef comms::Message<
+///     ...
+///     comms::option::LengthInfoInterface,
+///     ...
+/// > MyMessage;
+/// @endcode
+/// This option adds the following functions to the interface definition:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Retrieve the serialisation length
+///     std::size_t length() const
+///     {
+///         return lengthImpl();
+///     }
+///
+/// protected:
+///     virtual std::size_t lengthImpl() const = 0; // Must be implemented in the derived class
+/// };
+/// @endcode
+/// Let's add a usage of this function in the example shown in @ref
+/// page_message_tutorial_interface_write section to reserve space in the
+/// output vector before write takes place:
+/// @code
+/// Message1 msg; // Some concrete type of the custom message
+/// ...; Update message contents
+///
+///
+/// std::vector<std::uint8_t> outData; // Output buffer
+/// outData.reserve(msg.length()); // Avoid possible reallocations during write operation
+/// MyMessage::WriteIterator writeIter = std::back_inserter(outData);
+/// auto es = msg.write(writeIter, outData.max_size()); 
+/// if (es != comms::ErrorStatus::Success) {
+///     ... // Handle error
+///     return;
+/// }
+///
+/// ... // Write is successful, send outData contents over I/O link
+/// @endcode
+///
+/// @subsection page_message_tutorial_interface_valid Validity Check
+/// Sometimes it may be needed to be able to check whether the message contents
+/// (fields) have valid values. The COMMS library provides comms::option::ValidCheckInterface
+/// option that adds @b valid() member function to the interface:
+/// @code
+/// typedef comms::Message<
+///     ...
+///     comms::option::ValidInfoInterface,
+///     ...
+/// > MyMessage;
+/// @endcode
+/// This option adds the following functions to the interface definition:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Retrieve the serialisation length
+///     bool valid() const
+///     {
+///         return validImpl();
+///     }
+///
+/// protected:
+///     virtual bool validImpl() const = 0; // Must be implemented in the derived class
+/// };
+/// @endcode
+///
+/// @subsection page_message_tutorial_interface_summary Interface Options Summary
+/// All the options introduced above can be used in any order. However, they 
+/// should not be repeated. The definition below gives a full interface of all
+/// the introduced functions: @b getId(), @b read(), @b write(), @b dispatch(),
+/// @b length(), and @b valid().
+/// @code
+/// typedef comms::Message<
+///     comms::option::BigEndian, // Use big endian for serialisation
+///     comms::option::MsgIdType<MyMsgId>, // MyMsgId is an enum type defined earlier
+///     comms::option::ReadIterator<const std::uint8_t*>, // Use const std::uint8_t* as iterator for reading
+///     comms::option::WriteIterator<std::uint8_t*>, // Use std::uint8_t* as iterator for writing
+///     comms::option::Handler<MyHandler>, // My MyHandler class declared earlier as a handler for messages
+///     comms::option::LengthInfoInterface, // Add an ability to retrieve serialisation length
+///     comms::option::ValidCheckInterface // Add an ability to check contents validity;
+/// > MyMessage;
+/// @endcode
+///
+/// @section page_message_tutorial_implementation Implementation
+/// Now it's time to implement custom messages defined in some custom protocol.
+/// Let's call them @b Message1, @b Message2, @b Message3, ...
+/// Let's also assume that the required interface is a full one, just like
+/// summarised in @ref page_message_tutorial_interface_summary.
+/// If we try to implement all the required polymorphic functionality 
+/// @b WITHOUT further assistance from COMMS library the implementation will
+/// look something like that:
+/// @code
+/// // Message1 contains 2 values:
+/// //   value1 - unsigned value of 2 bytes lenth, valid values range: [0 - 1000]
+/// //   value2 - signed value of 1 byte length, all values are valid
+/// class Message1 : public MyMessage
+/// {
+///     typedef MyMessage Base;
+///
+/// public:
+///     typedef std::uint16_t Value1Type;
+///     typedef std::int8_t Value2Type;
+///
+///     Message1() = default;
+///     
+///     // Accessors for value1:
+///     Value1Type& value1() {return m_value1;}
+///     const Value1Type& value1() const {return m_value1;}
+///
+///     // Accessors for value2:
+///     Value2Type& value2() {return m_value2;}
+///     const Value2Type& value2() const {return m_value2;}
+///
+/// protected:
+///     virtual MsgIdType getIdImpl() const override
+///     {
+///         return MyMsgId_Message1; // enum value defined earlier
+///     }
+///
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) override
+///     {
+///         if (len < length()) {
+///             return comms::ErrorStatus::NotEnoughData;
+///         }
+///         
+///         // Use readData function defined in comm::Message to deserialise
+///         // values using proper (big) endian
+///         m_value1 = Base::readData<Value1Type>(iter);
+///         m_value2 = Base::readData<Value2Type>(iter);
+///         return comms::ErrorStatus::Success;
+///     }
+///
+///     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) override
+///     {
+///         if (len < length()) {
+///             return comms::ErrorStatus::BufferOverflow;
+///         }
+///         
+///         // Use writeData function defined in comm::Message to serialise
+///         // values using proper (big) endian.
+///         Base::writeData(m_value1, iter);
+///         Base::writeData(m_value2, iter);
+///         return comms::ErrorStatus::Success;
+///     }
+///
+///     virtual void dispatchImpl(Handler& handler) override
+///     {
+///         handler.handle(*this);
+///     }
+///
+///     virtual std::size_t lengthImpl() const override
+///     {
+///         return sizeof(Value1Type) + sizeof(Value2Type);
+///     }
+///
+///     virtual bool validImpl() const override
+///     {
+///         return (0 <= m_value1) && (m_value1 <= 1000); // Check only value1, value2 is always valid
+///     }
+///
+/// private:
+///     Value1Type m_value1 = 0;
+///     Value2Type m_value2 = 0;
+/// }
+/// @endcode
+/// Please pay attention to the following details in the example above.
+/// @li The body of @b getIdImpl() message of every message is more or less
+///     the same, returning numeric ID of the message being implemented.
+/// @li Usually every message will have some internal payload data @b fields.
+///     This fields can be accessed via the interface accessors. The @b read()
+///     operation is reading all the fields. The @b write() operation is
+///     writing all the fields. The @b length() information is a summary of
+///     serialisation lengths of all the fields. The message is @b valid()
+///     if all the internal fields are valid.
+/// @li If the handler interface defines the interface shown below, then
+///     the body of @b dispatchImpl() function of every message is the same.
+///     @code
+///     class MyHandler
+///     {
+///     public:
+///         void handle(Message1& msg) {...}
+///         void handle(Message2& msg) {...}
+///         void handle(Message3& msg) {...}
+///         ...
+///     };
+///     @endcode
+///     The invocation <b>"handler.handle(*this);"</b> in the body of @b handleImpl()
+///     function will invoke proper <b>"handle(...)"</b> function based on the message
+///     type being implemented.
+///
+/// It all looks more or less the same for most of the messages. The COMMS
+/// library can provide the specified default implementation for all of these
+/// virtual functions that will suite most of the cases. All you need to 
+/// do is inherit from comms::MessageBase class and provide appropriate
+/// options to specify what implementation is required. @n
+/// For example,
+/// @code
+/// typedef MyMessage::Field CommonFieldBase;
+///
+/// typedef std::tuple <
+///     comms::field::IntValue<CommonFieldBase, std::uint16_t, comms::option::ValidNumValueRange<0, 1000> >,
+///     comms::field::IntValue<CommonFieldBase, std::int8_t>
+/// > Message1Fields;
+///
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::StaticNumIdImpl<MyMsgId_Message1>, // Will implement getIdImpl()
+///         comms::option::DispatchImpl<Message1>, // Will implement dispatchImpl()
+///         comms::option::FieldsImpl<Message1Fields> // Will implement readImpl(), writeImpl(), 
+///                                                   // lengthImpl(), validImpl()
+///     >
+/// {
+///     // Fields access indices
+///     enum FieldIdx
+///     {
+///         FieldIdx_Value1,
+///         FieldIdx_Value2
+///     };
+/// };
+/// @endcode
+/// Before diving into details of every possible implementation option, please
+/// pay attention to several details. @n
+/// The comms::MessageBase base class implements all the required pure virtual
+/// functions. No extra work in the @b Message1 class definition is required, unless
+/// @b MyMessage interface has defined extra pure virtual functions (such as name
+/// message name retrieval) that need to be implemented to be able to instantiate
+/// @b Message1 object.
+///
+/// The first template parameter to comms::MessageBase class is the common
+/// interface class to all the messages. The comms::MessageBase base publicly inherit
+/// from this class. As the result the full class inheritance graph may look
+/// like this:
+/// @diafile message_class_hierarchy.dia
+/// @n
+/// The concrete message type @b Message1 inherits from comms::MessageBase <...>
+/// which inherits from common @b MyMessage interface class, which may inherit
+/// from (or simply typedef instead) comms::Message <...>.
+///
+/// Also note, that the fields of the message defined using separate classes
+/// defined in comms::field namespace. These classes provide a common interface
+/// to read, write, check serialisation length, and check validity of the
+/// field's value. These common interfaces are used to implement the default
+/// behaviour of reading, writing, serialisation length calculation, and validity
+/// check of the message itself. You may refer to @ref page_field_tutorial page
+/// for a full tutorial on the existing fields provided by the COMMS library.
+///
+/// Now, let's review all the available options one by one
+///
+/// @subsection page_message_tutorial_implementation_id Implementing Retrieval of Message ID
+/// If the message has a numeric ID that is known at compile time, it is possible
+/// to provide comms::option::StaticNumIdImpl option with this ID value to 
+/// comms::MessageBase class, which will implement @b getIdImpl() virtual function
+/// for you.
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::StaticNumIdImpl<MyMsgId_Message1>, // Will implement getIdImpl()
+///         ...
+///     >
+/// {
+///     ...
+/// };
+/// @endcode
+///
+/// Sometimes it may be useful to use dummy message objects that expose the
+/// same interface as all other message, but are note part of the protocol 
+/// being implemented. In other words, they don't have any ID and the 
+/// @b getId() member function is not supposed to ever be called. For such
+/// cases COMMS library provides comms::option::NoIdImpl option.
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::NoIdImpl, // Will implement getIdImpl()
+///         ...
+///     >
+/// {
+///     ...
+/// };
+/// @endcode
+/// In this case the implementation of @b "getIdImpl()" will try to fail using
+/// GASSERT() macro and return default constructed value of @b MyMessage::MsgIdType type.
+/// 
+/// @subsection page_message_tutorial_implementation_handle Implementing Dispatching to Handler
+/// Option comms::option::DispatchImpl provided to comms::MessageBase will force
+/// the implementation of @b dispatchImpl() virtual member function. The default
+/// implementation will invoke proper @b handle(...) member function of the
+/// handler class. The type of the handler class was provided to
+/// comms::Message class with comms::option::Handler option when defining
+/// @b MyMessage interface.
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::DispatchImpl<Message1>, // Will implement dispatchImpl()
+///         ...
+///     >
+/// {
+///     ...
+/// };
+/// @endcode
+/// Please note that comms::option::DispatchImpl option receives one template
+/// parameter which is the type of the message being defined, i.e. @b Message1.
+///
+/// The handler class is expected to define @b handle(...) member function
+/// for every possible message type it is expected to handle:
+/// @code
+/// class MyHandler
+/// {
+/// public:
+///     void handle(Message1& msg) {...}
+///     void handle(Message2& msg) {...}
+///     void handle(Message3& msg) {...}
+///     ...
+/// };
+/// @endcode
+/// Please refer to @ref message_handling section in the main tutorial for more
+/// details on the handler.
+///
+/// @subsection page_message_tutorial_implementation_fields Implementing Fields Related Functionality
+/// As was specified earlier, in most cases the implementation of read, write, 
+/// length calculation, and validity check functionalities is pretty straightforward.
+/// It is performing read, write, summarising reported lengths of, and checking
+/// validity of all the data fields, the message contains.
+/// 
+/// The COMMS library provides multiple types of fields, which are defined
+/// in comms::field namespace. Please refer to @ref page_field_tutorial page
+/// for full tutorial on fields.
+///
+/// The usage of comms::option::FieldImpl with all the relevant fields (bundled
+/// in std::tuple) provided as a template argument to the option will force
+/// the implementation of @b readImpl(), @b writeImpl(), @b lengthImpl(), and
+/// @b validImpl() functions.
+/// @code
+/// typedef MyMessage::Field CommonFieldBase;
+///
+/// typedef std::tuple <
+///     comms::field::IntValue<CommonFieldBase, std::uint16_t, comms::option::ValidNumValueRange<0, 1000> >,
+///     comms::field::IntValue<CommonFieldBase, std::int8_t>
+/// > Message1Fields;
+///
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>, // Will implement readImpl(), writeImpl(), 
+///                                                    // lengthImpl(), validImpl()
+///         ...
+///     >
+/// {
+///     // Fields access indices
+///     enum FieldIdx
+///     {
+///         FieldIdx_Value1,
+///         FieldIdx_Value2
+///     };
+/// };
+/// @endcode
+///
+/// The usage of comms::option::FieldsImpl will also provide an accessor to
+/// the tuple of the fields to be able to access the fields themselves. @n For 
+/// example, when the dispatch takes place and appropriate @b handle() member function
+/// of the handler is invoked, the fields can be accessed in the following way:
+/// @code
+/// class MyHandler
+/// {
+/// public:
+///     void handle(Message1& msg) 
+///     {
+///         auto& fields = msg.fields(); // Reference to std::tuple containing all the fields
+///         auto& value1Field = std::get<Message1::FieldIdx_Value1>(fields); // Reference to the first field
+///         auto& value2Field = std::get<Message1::FieldIdx_Value2>(fields); // Reference to the second field
+///
+///         auto value1 = value1Field.value(); // Internal value of the first field - std::uint16_t
+///         auto value2 = value2Field.value(); // Internal value of the first field - std::int8_t
+///         ... // Use the values
+///     }
+///     ...
+/// };
+/// @endcode
+///
+/// @b NOTE, that options provided to comms::MessageBase class force implementation
+/// of the relevant @b *Impl() functions <b>if and only if</b> these functions
+/// where defined in the comms::Message interface using the options of the latter. @n
+/// For example, if comms::option::ValidCheckInterface option was NOT provided
+/// to comms::Message when defining @b MyMessage interface class, the usage of
+/// comms::option::FieldsImpl option with comms::MessageBase will NOT provide
+/// redundant implementation of @b validImpl() member function.
+///
+/// There are cases when the default implementation of one or more of these
+/// functions provided by comms::MessageBase is not enough. In this case
+/// the appropriate virtual function has just to be overridden with new
+/// functionality. @n
+/// For example, @b Message2 class has three fields. The first field is a 1 byte bitmask
+/// of flags, where bit 0 indicates whether the next (second) field exists or not.
+/// The second field is an optional 2 bytes unsigned integral value (existence
+/// of which is controlled by the bit 0 in the previous flags field). And the
+/// third field is a variable length string with 1 byte length information prefix.
+/// @code
+/// typedef MyMessage::Field CommonFieldBase;
+///
+/// typedef std::tuple<
+///     comms::field::BitmaskValue<CommonFieldBase, comms::option::FixedLength<1> >,
+///     comms::field::Optional<comms::field::IntValue<CommonFieldBase, std::uint16_t> >,
+///     comms::field::String<
+///         CommonFieldBase, 
+///         comms::option::SequenceSizeFieldPrefix<
+///             comms::field::IntValue<CommonFieldBase, std::uint8_t>
+///         > 
+///     >
+/// > Message2Fields;
+///
+/// class Message2 : public
+///     comms::MessageBase<
+///         MyMessage,
+///         comms::option::StaticNumIdImpl<MyMsgId_Message2>,
+///         comms::option::DispatchImpl<Message2>,
+///         comms::option::FieldsImpl<Message2Fields>
+///     >
+/// {
+/// public:
+///     enum FieldIdx
+///     {
+///         FieldIdx_Flags,
+///         FieldIdx_OptinalInt,
+///         FieldIdx_String
+///     };
+/// 
+///     Message2()
+///     {
+///         // Set proper mode for optional value
+///         refreshOptionalInt();
+///     }
+///
+///     // Update mode of optional value according to flags
+///     void refreshOptionalInt()
+///     {
+///         auto& allFields = fields(); // Inherited accessor
+///         auto& flagsField = std::get<FieldIdx_Flags>(allFields);
+///         auto& optionalIntField = std::get<FieldIdx_OptinalInt>(allFields);
+///         
+///         auto mode = comms::field::OptionalMode::Missing;
+///         if ((flagsField.value() & 0x1) != 0) {
+///             mode = comms::field::OptionalMode::Exists;
+///         }
+///         optionalIntField.setMode(mode);
+///     }
+///
+/// protected:
+///     // Override implementation of readImpl provided by comms::MessageBase
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) override;
+///     {
+///         // Read only flags value
+///         auto es = readFieldsUntil<FieldIdx_OptinalInt>(iter, len);
+///         if (es != comms::ErrorStatus::Success) {
+///             return es;
+///         }
+///
+///         // Update missing/exists mode for the optional value based on read flags
+///         refreshOptionalInt();
+///
+///         // Continue reading, when proper mode is set for optional value
+///         return readFieldsFrom<FieldIdx_OptionalInt>(iter, len);
+///     }
+/// }
+/// @endcode
+/// @b NOTE, that @b readFieldsUntil and @b readFieldsFrom are non-virtual functions
+/// inherited from comms::MessageBase base class. The @b readFieldsUntil function
+/// was used to read fields until (not included) the optional integral value.
+/// Then the mode of the latter was updated based on the read flags. Once the
+/// mode of the optional field was updated properly, the read continued using
+/// inherited @b readFieldsFrom member function. If the optional field's mod
+/// is set to be comms::field::OptionalMode::Missing, then its @b read() operation
+/// will do nothing, otherwise (the mode is set to be comms::field::OptionalMode::Exists)
+/// the integral value will be read as expected.
+///
+/// Please refer to the documentation of comms::MessageBase for the details on
+/// all the member functions it provides.
+///
+/// Also @b note, that in the example above @b writeImpl() member function
+/// wasn't overridden. If there is a need to serialise @b Message2 object, there
+/// may be inconsistency between the flags value and the optional mode of
+/// the second integral value field. It is a responsibility of the caller
+/// to update the mode appropriately. This is why the @b refreshOptionalInt()
+/// member function was made public.
+/// @code
+/// Message2 msg;
+/// auto& fields = msg.fields();
+/// auto& flagsField = std::get<Message2::FieldIdx_Flags>(fields);
+/// flagsField.value() |= 0x1;
+/// msg.refreshOptionalInt(); // Set mode of optional field according to flags
+/// auto es = msg.write(...); // Serialise the message
+/// @endcode

@@ -63,8 +63,8 @@ public:
 
     FixedBitLength() = default;
 
-    explicit FixedBitLength(const ValueType& value)
-      : Base(fromSerialised(toSerialised(value)))
+    explicit FixedBitLength(const ValueType& val)
+      : Base(fromSerialised(toSerialised(val)))
     {
     }
 
@@ -88,14 +88,14 @@ public:
         return length();
     }
 
-    static constexpr SerialisedType toSerialised(ValueType value)
+    static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return adjustToSerialised(Base::toSerialised(value), HasSignTag());
+        return adjustToSerialised(Base::toSerialised(val), HasSignTag());
     }
 
-    static constexpr ValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return Base::fromSerialised(adjustFromSerialised(value, HasSignTag()));
+        return Base::fromSerialised(adjustFromSerialised(val, HasSignTag()));
     }
 
     template <typename TIter>
@@ -135,33 +135,33 @@ private:
 
     typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerialisedType;
 
-    static SerialisedType adjustToSerialised(NextSerialisedType value, UnsignedTag)
+    static SerialisedType adjustToSerialised(NextSerialisedType val, UnsignedTag)
     {
-        return static_cast<SerialisedType>(value & UnsignedValueMask);
+        return static_cast<SerialisedType>(val & UnsignedValueMask);
     }
 
-    static SerialisedType adjustToSerialised(NextSerialisedType value, SignedTag)
+    static SerialisedType adjustToSerialised(NextSerialisedType val, SignedTag)
     {
         auto valueTmp =
-            static_cast<UnsignedSerialisedType>(value) & UnsignedValueMask;
+            static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
 
         return signExtUnsignedSerialised(valueTmp);
     }
 
-    static NextSerialisedType adjustFromSerialised(SerialisedType value, UnsignedTag)
+    static NextSerialisedType adjustFromSerialised(SerialisedType val, UnsignedTag)
     {
-        return static_cast<NextSerialisedType>(value & UnsignedValueMask);
+        return static_cast<NextSerialisedType>(val & UnsignedValueMask);
     }
 
-    static NextSerialisedType adjustFromSerialised(SerialisedType value, SignedTag)
+    static NextSerialisedType adjustFromSerialised(SerialisedType val, SignedTag)
     {
-        auto valueTmp = static_cast<UnsignedSerialisedType>(value) & UnsignedValueMask;
+        auto valueTmp = static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
         return
             static_cast<NextSerialisedType>(
                 signExtUnsignedSerialised(valueTmp));
     }
 
-    static SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType value)
+    static SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val)
     {
         static_assert(
             BitLength < std::numeric_limits<UnsignedSerialisedType>::digits,
@@ -172,10 +172,10 @@ private:
         static const auto SignMask =
             static_cast<UnsignedSerialisedType>(1U) << (BitLength - 1);
 
-        if ((value & SignMask) != 0) {
-            value |= SignExtMask;
+        if ((val & SignMask) != 0) {
+            val |= SignExtMask;
         }
-        return static_cast<SerialisedType>(value);
+        return static_cast<SerialisedType>(val);
     }
 
 private:

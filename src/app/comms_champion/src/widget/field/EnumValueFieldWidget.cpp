@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "EnumValueFieldWidget.h"
@@ -36,8 +36,8 @@ const int EnumValuesStartIndex = 2;
 
 EnumValueFieldWidget::EnumValueFieldWidget(
     WrapperPtr&& wrapper,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
@@ -148,10 +148,10 @@ void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
             }
 
             auto name = nameVar.toString();
-            auto data = dataVar.value<long long int>();
-            m_ui.m_valueComboBox->addItem(name, data);
+            auto dataItem = dataVar.value<long long int>();
+            m_ui.m_valueComboBox->addItem(name, dataItem);
 
-            maxValue = std::max(maxValue, data);
+            maxValue = std::max(maxValue, dataItem);
         }
 
     } while (false);

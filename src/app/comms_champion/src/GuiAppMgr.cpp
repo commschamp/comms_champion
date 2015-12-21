@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -21,7 +21,11 @@
 #include <cassert>
 #include <memory>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
+CC_ENABLE_WARNINGS()
 
 #include "comms_champion/DefaultMessageDisplayHandler.h"
 #include "GlobalConstants.h"
@@ -392,8 +396,8 @@ GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
     return PluginMgr::instanceRef().getState();
 }
 
-GuiAppMgr::GuiAppMgr(QObject* parent)
-  : Base(parent),
+GuiAppMgr::GuiAppMgr(QObject* parentObj)
+  : Base(parentObj),
     m_recvState(RecvState::Idle),
     m_sendState(SendState::Idle)
 {
@@ -507,7 +511,7 @@ void GuiAppMgr::sendPendingAndWait()
 
         if (reinsert) {
             auto newDelay = repeatMs;
-            auto iter =
+            auto reinsertIter =
                 std::find_if(
                     m_msgsToSend.begin(), m_msgsToSend.end(),
                     [&newDelay, &retrieveDelayFunc](MessageInfoPtr mInfo) mutable -> bool
@@ -521,8 +525,8 @@ void GuiAppMgr::sendPendingAndWait()
                         return false;
                     });
 
-            if (iter != m_msgsToSend.end()) {
-                auto& msgToUpdate = *iter;
+            if (reinsertIter != m_msgsToSend.end()) {
+                auto& msgToUpdate = *reinsertIter;
                 assert(msgToUpdate);
                 auto mDelay = retrieveDelayFunc(*msgToUpdate);
                 msgToUpdate->setExtraProperty(
@@ -540,7 +544,7 @@ void GuiAppMgr::sendPendingAndWait()
                     QVariant::fromValue(repeatCount - 1));
             }
 
-            m_msgsToSend.insert(iter, std::move(msgToSend));
+            m_msgsToSend.insert(reinsertIter, std::move(msgToSend));
         }
     }
 

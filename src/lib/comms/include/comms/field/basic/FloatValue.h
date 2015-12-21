@@ -52,8 +52,8 @@ public:
 
     FloatValue() = default;
 
-    explicit FloatValue(ValueType value)
-      : value_(value)
+    explicit FloatValue(ValueType val)
+      : value_(val)
     {
     }
 
@@ -89,17 +89,17 @@ public:
         return length();
     }
 
-    static SerialisedType toSerialised(ValueType value)
+    static SerialisedType toSerialised(ValueType val)
     {
         CastUnion castUnion;
-        castUnion.value_ = value;
+        castUnion.value_ = val;
         return castUnion.serValue_;
     }
 
-    static ValueType fromSerialised(SerialisedType value)
+    static ValueType fromSerialised(SerialisedType val)
     {
         CastUnion castUnion;
-        castUnion.serValue_ = value;
+        castUnion.serValue_ = val;
         return castUnion.value_;
     }
 

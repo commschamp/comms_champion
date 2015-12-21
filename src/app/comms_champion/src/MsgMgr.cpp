@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -23,7 +23,11 @@
 #include <iterator>
 #include <iostream>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
+CC_ENABLE_WARNINGS()
 
 #include "GlobalConstants.h"
 
@@ -71,9 +75,10 @@ void MsgMgr::start()
         return;
     }
 
-    for (auto& s : m_sockets) {
-        s->start();
+    if (m_socket) {
+        m_socket->start();
     }
+
     m_running = true;
 }
 
@@ -84,9 +89,10 @@ void MsgMgr::stop()
         return;
     }
 
-    for (auto& s : m_sockets) {
-        s->stop();
+    if (m_socket) {
+        m_socket->stop();
     }
+
     m_running = false;
 }
 
@@ -97,7 +103,7 @@ void MsgMgr::clear()
         stop();
     }
 
-    m_sockets.clear();
+    m_socket.reset();
     m_protocol.reset();
 }
 
@@ -152,18 +158,17 @@ void MsgMgr::deleteAllMsgs()
 
 void MsgMgr::sendMsgs(const MsgInfosList& msgs)
 {
-    if (msgs.empty() || m_sockets.empty() || (!m_protocol)) {
+    if (msgs.empty() || (!m_socket) || (!m_protocol)) {
         return;
     }
 
-    assert(!m_sockets.empty());
-    auto& lastSocket = m_sockets.back();
-
     auto dataInfos = m_protocol->write(msgs);
     auto now = DataInfo::TimestampClock::now();
+
+    // TODO: write to the last filter instead of socket
     for (auto& dInfo: dataInfos) {
         dInfo->m_timestamp = now;
-        lastSocket->sendData(std::move(dInfo));
+        m_socket->sendData(std::move(dInfo));
     }
 
     for (auto& msgInfo : msgs) {
@@ -181,23 +186,17 @@ const MsgMgr::MsgsList& MsgMgr::getAllMsgs() const
     return m_allMsgs;
 }
 
-void MsgMgr::addSocket(SocketPtr socket)
+void MsgMgr::setSocket(SocketPtr socket)
 {
-    if (!m_sockets.empty()) {
-        auto& lastSocket = m_sockets.back();
+    if (!socket) {
+        if (m_socket) {
+            m_socket->disconnect();
+        }
 
-        disconnect(
-            lastSocket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-            this, SLOT(socketDataReceived(DataInfoPtr)));
-
-        connect(
-            lastSocket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-            socket.get(), SLOT(feedInData(DataInfoPtr)));
-
-        connect(
-            socket.get(), SIGNAL(sigDataToSend(DataInfoPtr)),
-            lastSocket.get(), SLOT(sendData(DataInfoPtr)));
+        m_socket.reset();
+        return;
     }
+
 
     connect(
         socket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
@@ -207,63 +206,63 @@ void MsgMgr::addSocket(SocketPtr socket)
         socket.get(), SIGNAL(sigErrorReport(const QString&)),
         this, SIGNAL(sigErrorReported(const QString&)));
 
-    m_sockets.push_back(std::move(socket));
+    m_socket = std::move(socket);
 }
 
-void MsgMgr::removeSocket(SocketPtr socket)
-{
-    auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
-    if (iter == m_sockets.end()) {
-        assert(!"Removing sockets that wasn't added before");
-        return;
-    }
-
-    do {
-        socket->disconnect();
-        bool prevExists = (iter != m_sockets.begin());
-        auto prevIter = iter;
-        std::advance(prevIter, -1);
-
-        auto nextIter = iter;
-        std::advance(nextIter, 1);
-        bool nextExists = (nextIter != m_sockets.end());
-
-        if (prevExists) {
-            disconnect(
-                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-                socket.get(), SLOT(feedInData(DataInfoPtr)));
-        }
-
-        if (nextExists) {
-            disconnect(
-                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
-                socket.get(), SLOT(sendData(DataInfoPtr)));
-        }
-
-        if (prevExists && nextExists) {
-            connect(
-                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-                (*nextIter).get(), SLOT(feedInData(DataInfoPtr)));
-
-            connect(
-                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
-                (*prevIter).get(), SLOT(sendData(DataInfoPtr)));
-
-            break;
-        }
-
-        if (prevExists) {
-            // Next doesn't exist
-            connect(
-                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-                this, SLOT(socketDataReceived(DataInfoPtr)));
-            break;
-        }
-
-    } while (false);
-
-    m_sockets.erase(iter);
-}
+//void MsgMgr::removeSocket(SocketPtr socket)
+//{
+//    auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
+//    if (iter == m_sockets.end()) {
+//        assert(!"Removing sockets that wasn't added before");
+//        return;
+//    }
+//
+//    do {
+//        socket->disconnect();
+//        bool prevExists = (iter != m_sockets.begin());
+//        auto prevIter = iter;
+//        std::advance(prevIter, -1);
+//
+//        auto nextIter = iter;
+//        std::advance(nextIter, 1);
+//        bool nextExists = (nextIter != m_sockets.end());
+//
+//        if (prevExists) {
+//            disconnect(
+//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+//                socket.get(), SLOT(feedInData(DataInfoPtr)));
+//        }
+//
+//        if (nextExists) {
+//            disconnect(
+//                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
+//                socket.get(), SLOT(sendData(DataInfoPtr)));
+//        }
+//
+//        if (prevExists && nextExists) {
+//            connect(
+//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+//                (*nextIter).get(), SLOT(feedInData(DataInfoPtr)));
+//
+//            connect(
+//                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
+//                (*prevIter).get(), SLOT(sendData(DataInfoPtr)));
+//
+//            break;
+//        }
+//
+//        if (prevExists) {
+//            // Next doesn't exist
+//            connect(
+//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
+//                this, SLOT(socketDataReceived(DataInfoPtr)));
+//            break;
+//        }
+//
+//    } while (false);
+//
+//    m_sockets.erase(iter);
+//}
 
 void MsgMgr::setProtocol(ProtocolPtr protocol)
 {
@@ -301,8 +300,8 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_allMsgs));
 }
 
-MsgMgr::MsgMgr(QObject* parent)
-  : Base(parent)
+MsgMgr::MsgMgr(QObject* parentObj)
+  : Base(parentObj)
 {
     m_allMsgs.reserve(1024);
 }

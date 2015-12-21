@@ -21,8 +21,11 @@
 #include <iterator>
 
 #include "comms/comms.h"
-#include "cxxtest/TestSuite.h"
 #include "CommsTestCommon.h"
+
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
 
 class MsgIdLayerTestSuite : public CxxTest::TestSuite
 {
@@ -48,7 +51,8 @@ private:
         comms::option::MsgIdType<MessageType>,
         comms::option::ReadIterator<const char*>,
         comms::option::WriteIterator<char*>,
-        comms::option::ValidCheckInterface
+        comms::option::ValidCheckInterface,
+        comms::option::LengthInfoInterface
     > CommonOptions;
 
 
@@ -149,7 +153,7 @@ void MsgIdLayerTestSuite::test1()
 
     TS_ASSERT_EQUALS(msg1, msg2);
 
-    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFaulure);
+    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
 }
 
@@ -195,7 +199,7 @@ void MsgIdLayerTestSuite::test3()
     auto& msg2 = dynamic_cast<LeMsg2&>(*msgPtr2);
     TS_ASSERT_EQUALS(msg1, msg2);
 
-    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFaulure);
+    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
 }
 
@@ -241,7 +245,7 @@ void MsgIdLayerTestSuite::test6()
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType3);
     TS_ASSERT(!msgPtr->valid());
     auto* msg3 = dynamic_cast<BeMsg3*>(msgPtr.get());
-    assert(msg3 != nullptr);
+    TS_ASSERT(msg3 != nullptr);
 }
 
 void MsgIdLayerTestSuite::test7()

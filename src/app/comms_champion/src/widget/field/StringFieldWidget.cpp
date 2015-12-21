@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "StringFieldWidget.h"
@@ -27,8 +27,8 @@ namespace comms_champion
 
 StringFieldWidget::StringFieldWidget(
     WrapperPtr&& wrapper,
-    QWidget* parent)
-  : Base(parent),
+    QWidget* parentObj)
+  : Base(parentObj),
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
@@ -65,11 +65,11 @@ void StringFieldWidget::refreshImpl()
     assert(m_ui.m_valuePlainTextEdit != nullptr);
     auto value = m_wrapper->getValue();
     if (m_ui.m_valuePlainTextEdit->toPlainText() != value) {
-        auto cursor = m_ui.m_valuePlainTextEdit->textCursor();
-        auto newPosition = std::min(cursor.position(), value.size());
+        auto curs = m_ui.m_valuePlainTextEdit->textCursor();
+        auto newPosition = std::min(curs.position(), value.size());
         m_ui.m_valuePlainTextEdit->setPlainText(value);
-        cursor.setPosition(newPosition);
-        m_ui.m_valuePlainTextEdit->setTextCursor(cursor);
+        curs.setPosition(newPosition);
+        m_ui.m_valuePlainTextEdit->setTextCursor(curs);
     }
 
     bool valid = m_wrapper->valid();

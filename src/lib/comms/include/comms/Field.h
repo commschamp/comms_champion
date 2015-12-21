@@ -24,18 +24,27 @@
 namespace comms
 {
 
+/// @brief Base class to all the field classes.
+/// @details Every custom "field" class should inherit from this one.
+/// @tparam TOptions Zero or more options. The supported options are:
+///     @li comms::option::BigEndian or comms::option::LittleEndian - Option to
+///         specify serialisation endian. If none is provided "Big" endian is
+///         assumed.
 template <typename... TOptions>
 class Field : public details::FieldBase<TOptions...>
 {
     typedef details::FieldBase<TOptions...> Base;
 public:
+    /// @brief Endian type
+    /// @details Equal to either comms::traits::endian::Big or
+    ///     comms::traits::endian::Little
     typedef typename Base::Endian Endian;
 
 protected:
-    /// @brief Write data into the output sequence.
-    /// @details Use this function to write data to the stream buffer.
-    ///          The endianness of the data will be as specified in the TTraits
-    ///          template parameter of the class.
+    /// @brief Write data into the output buffer.
+    /// @details Use this function to write data to the the buffer
+    ///          maintained by the caller. The endianness of the data will be
+    ///          as specified in the options provided to the class.
     /// @tparam T Type of the value to write. Must be integral.
     /// @tparam Type of output iterator
     /// @param[in] value Integral type value to be written.
@@ -50,10 +59,10 @@ protected:
         writeData<sizeof(T), T>(value, iter);
     }
 
-    /// @brief Write partial data into the output sequence.
-    /// @details Use this function to write partial data to the stream buffer.
-    ///          The endianness of the data will be as specified in the TTraits
-    ///          template parameter of the class.
+    /// @brief Write partial data into the output buffer.
+    /// @details Use this function to write partial data to the buffer maintained
+    ///          by the caller. The endianness of the data will be as specified
+    ///          the class options.
     /// @tparam TSize Length of the value in bytes known in compile time.
     /// @tparam T Type of the value to write. Must be integral.
     /// @tparam TIter Type of output iterator
@@ -72,10 +81,10 @@ protected:
         return util::writeData<TSize, T>(value, iter, Endian());
     }
 
-    /// @brief Read data from input sequence.
-    /// @details Use this function to read data from the stream buffer.
-    /// The endianness of the data will be as specified in the TTraits
-    /// template parameter of the class.
+    /// @brief Read data from input buffer.
+    /// @details Use this function to read data from the intput buffer maintained
+    ///     by the caller. The endianness of the data will be as specified in
+    ///     options of the class.
     /// @tparam T Return type
     /// @tparam TIter Type of input iterator
     /// @param[in, out] iter Input iterator.
@@ -91,10 +100,10 @@ protected:
         return readData<T, sizeof(T)>(iter);
     }
 
-    /// @brief Read partial data from input sequence.
-    /// @details Use this function to read data from the stream buffer.
-    /// The endianness of the data will be as specified in the TTraits
-    /// template parameter of the class.
+    /// @brief Read partial data from input buffer.
+    /// @details Use this function to read data from the intput buffer maintained
+    ///     by the caller. The endianness of the data will be as specified in
+    ///     options of the class.
     /// @tparam T Return type
     /// @tparam TSize number of bytes to read
     /// @tparam TIter Type of input iterator

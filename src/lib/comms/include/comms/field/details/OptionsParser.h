@@ -44,6 +44,7 @@ struct OptionsParser<>
     static const bool HasSequenceFixedSize = false;
     static const bool HasSequenceSizeFieldPrefix = false;
     static const bool HasSequenceTrailingFieldSuffix = false;
+    static const bool HasSequenceTerminationFieldSuffix = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
     static const bool HasFailOnInvalid = false;
@@ -52,7 +53,7 @@ struct OptionsParser<>
     static const bool HasScalingRatio = false;
 };
 
-template <long long int TOffset, typename... TOptions>
+template <std::intmax_t TOffset, typename... TOptions>
 class OptionsParser<
     comms::option::NumValueSerOffset<TOffset>,
     TOptions...> : public OptionsParser<TOptions...>
@@ -127,6 +128,10 @@ class OptionsParser<
         "SequenceSizeForcingEnabled and SequenceFixedSize are incompatible options, "
         "mustn't be used together");
 
+    static_assert(!Base::HasSequenceTerminationFieldSuffix,
+        "SequenceSizeForcingEnabled and SequenceTerminationFieldSuffix are incompatible options, "
+        "mustn't be used together");
+
 public:
     static const bool HasSequenceSizeForcing = true;
 };
@@ -142,8 +147,12 @@ class OptionsParser<
         "SequenceFixedSize and SequenceSizeFieldPrefix are incompatible options, "
         "mustn't be used together");
 
-    static_assert(!Base::HasSequenceFixedSize,
+    static_assert(!Base::HasSequenceSizeForcing,
         "SequenceFixedSize and SequenceSizeForcing are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceTerminationFieldSuffix,
+        "SequenceFixedSize and SequenceTerminationFieldSuffix are incompatible options, "
         "mustn't be used together");
 
 public:
@@ -166,6 +175,10 @@ class OptionsParser<
         "SequenceSizeFieldPrefix and SequenceFixedSize are incompatible options, "
         "mustn't be used together");
 
+    static_assert(!Base::HasSequenceTerminationFieldSuffix,
+        "SequenceSizeFieldPrefix and SequenceTerminationFieldSuffix are incompatible options, "
+        "mustn't be used together");
+
 public:
     static const bool HasSequenceSizeFieldPrefix = true;
     typedef typename Option::Type SequenceSizeFieldPrefix;
@@ -179,9 +192,41 @@ class OptionsParser<
     typedef comms::option::SequenceTrailingFieldSuffix<TTrailField> Option;
     typedef OptionsParser<TOptions...> Base;
 
+    static_assert(!Base::HasSequenceTerminationFieldSuffix,
+        "SequenceTerminationFieldSuffix and SequenceTrailingFieldSuffix are incompatible options, "
+        "mustn't be used together");
 public:
     static const bool HasSequenceTrailingFieldSuffix = true;
     typedef typename Option::Type SequenceTrailingFieldSuffix;
+};
+
+template <typename TTermField, typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceTerminationFieldSuffix<TTermField>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::SequenceTerminationFieldSuffix<TTermField> Option;
+    typedef OptionsParser<TOptions...> Base;
+
+    static_assert(!Base::HasSequenceSizeForcing,
+        "SequenceSizeForcingEnabled and SequenceTerminationFieldSuffix are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceFixedSize,
+        "SequenceFixedSize and SequenceTerminationFieldSuffix are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceSizeFieldPrefix,
+        "SequenceSizeFieldPrefix and SequenceTerminationFieldSuffix are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceTrailingFieldSuffix,
+        "SequenceTerminationFieldSuffix and SequenceTrailingFieldSuffix are incompatible options, "
+        "mustn't be used together");
+
+public:
+    static const bool HasSequenceTerminationFieldSuffix = true;
+    typedef typename Option::Type SequenceTerminationFieldSuffix;
 };
 
 template <typename TInitialiser, typename... TOptions>

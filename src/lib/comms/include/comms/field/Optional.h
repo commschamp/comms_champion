@@ -27,64 +27,101 @@ namespace comms
 namespace field
 {
 
+/// @brief Mode to be used by comms::field::Optional
+/// @related comms::field::Optional
 enum class OptionalMode
 {
-    Tentative,
-    Exists,
-    Missing,
-    NumOfModes // Must be last
+    Tentative, ///< The field existence is tentative, i.e. If there is enough bytes
+               /// to read the field's value, than field exists, if not
+               /// then it doesn't exist.
+    Exists, ///< Field must exist
+    Missing, ///< Field doesn't exist
+    NumOfModes ///< Number of possible modes, must be last
 };
 
+/// @brief Adaptor class to any other field, that makes the field optional.
+/// @details When field is optional, it may either exist or not. The behaviour
+///     of length(), read() and write() operations depends on the current field's mode.
+/// @tparam TField Proper type of the field that needs to be optional.
 template <typename TField>
 class Optional
 {
 public:
+
+    /// @brief Type of the field.
     typedef TField Field;
 
+    /// @brief Mode of the field.
+    /// @see OptionalMode
     typedef OptionalMode Mode;
 
+    /// @brief Default constructor
+    /// @details The mode it is created in is OptionalMode::Tentative.
     Optional() = default;
 
-    explicit Optional(const Field& field, Mode mode = Mode::Tentative)
-      : field_(field),
+    /// @brief Construct the field.
+    /// @param[in] fieldSrc Field to be copied from during construction.
+    /// @param[in] mode Mode of the field.
+    explicit Optional(const Field& fieldSrc, Mode mode = Mode::Tentative)
+      : field_(fieldSrc),
         mode_(mode)
     {
     }
 
-    explicit Optional(Field&& field, Mode mode = Mode::Tentative)
-      : field_(std::move(field)),
+    /// @brief Construct the field.
+    /// @param[in] fieldSrc Field to be moved from during construction.
+    /// @param[in] mode Mode of the field.
+    explicit Optional(Field&& fieldSrc, Mode mode = Mode::Tentative)
+      : field_(std::move(fieldSrc)),
         mode_(mode)
     {
     }
 
+    /// @brief Copy constructor
     Optional(const Optional&) = default;
+
+    /// @brief Move constructor
     Optional(Optional&&) = default;
+
+    /// @brief Destructor
     ~Optional() = default;
 
+    /// @brief Copy assignment
     Optional& operator=(const Optional&) = default;
+
+    /// @brief Move assignment
     Optional& operator=(Optional&&) = default;
 
+    /// @brief Get an access to the wrapped field object
     Field& field()
     {
         return field_;
     }
 
+    /// @brief Get an access to the wrapped field object
     const Field& field() const
     {
         return field_;
     }
 
+    /// @brief Get current optional mode
     Mode getMode() const
     {
         return mode_;
     }
 
-    void setMode(Mode value)
+    /// @brief Get optional mode
+    void setMode(Mode val)
     {
-        GASSERT(value < Mode::NumOfModes);
-        mode_ = value;
+        GASSERT(val < Mode::NumOfModes);
+        mode_ = val;
     }
 
+    /// @brief Get length required to serialise the current field value.
+    /// @return If current mode is OptionalMode::Exists, then the function
+    ///     returns whatever length() member function of the wrapped field
+    ///     returns. Otherwise (for both OptionalMode::Missing and
+    ///     OptionalMode::Tentative) 0 is returned.
     std::size_t length() const
     {
         if (mode_ != Mode::Exists) {
@@ -94,16 +131,24 @@ public:
         return field_.length();
     }
 
+    /// @brief Get minimal length that is required to serialise field of this type.
+    /// @details Same as Field::minLength()
     static constexpr std::size_t minLength()
     {
         return Field::minLength();
     }
 
+    /// @brief Get maximal length that is required to serialise field of this type.
+    /// @details Same as Field::maxLength()
     static constexpr std::size_t maxLength()
     {
         return Field::maxLength();
     }
 
+    /// @brief Check validity of the field value.
+    /// @return If field is marked to be missing (mode is OptionalMode::Missing),
+    ///     "true" is returned, otherwise valid() member function of the wrapped
+    ///     field is called.
     bool valid() const
     {
         if (mode_ == Mode::Missing) {
@@ -113,6 +158,21 @@ public:
         return field_.valid();
     }
 
+    /// @brief Read field value from input data sequence
+    /// @details If field is marked as missing (mode is OptionalMode::Missing),
+    ///     function returns comms::ErrorStatus::Success without advancing iterator.@n
+    ///     If field is marked as existing (mode is OptionalMode::Exists) the
+    ///     read() member function of the wrapped field object is invoked.@n
+    ///     If field is marked to be tentative (mode is OptionalMode::Tentative),
+    ///     the call redirected to wrapped field's read() member function if
+    ///     value of the "len" parameter is greater than 0, i.e. there are
+    ///     still bytes available for reading, and field itself is marked as
+    ///     existing.@n Otherwise, field is marked as missing and
+    ///     comms::ErrorStatus::Success is returned.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] len Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
@@ -132,6 +192,20 @@ public:
         return es;
     }
 
+    /// @brief Write current field value to output data sequence
+    /// @details If field is marked as missing (mode is OptionalMode::Missing),
+    ///     function returns comms::ErrorStatus::Success without advancing iterator.@n
+    ///     If field is marked as existing (mode is OptionalMode::Exists) the
+    ///     write() member function of the wrapped field object is invoked.@n
+    ///     If field is marked to be tentative (mode is OptionalMode::Tentative),
+    ///     the call redirected to wrapped field's write() member function if
+    ///     value of the "len" parameter is greater than 0, i.e. there is
+    ///     space available for writing.@n Otherwise, comms::ErrorStatus::Success
+    ///     is returned.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] len Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @post Iterator is advanced.
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
@@ -198,6 +272,10 @@ struct IsOptional<comms::field::Optional<TArgs...> >
 
 }  // namespace details
 
+/// @brief Compile time check function of whether a provided type is any
+///     variant of comms::field::Optional.
+/// @tparam T Any type.
+/// @related comms::field::Optional
 template <typename T>
 constexpr bool isOptional()
 {

@@ -42,13 +42,13 @@ public:
 
     SerOffset() = default;
 
-    explicit SerOffset(const ValueType& value)
-      : Base(value)
+    explicit SerOffset(const ValueType& val)
+      : Base(val)
     {
     }
 
-    explicit SerOffset(ValueType&& value)
-      : Base(std::move(value))
+    explicit SerOffset(ValueType&& val)
+      : Base(std::move(val))
     {
     }
 
@@ -82,25 +82,25 @@ public:
         return ErrorStatus::Success;
     }
 
-    static constexpr SerialisedType toSerialised(ValueType value)
+    static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return adjustToSerialised(Base::toSerialised(value));
+        return adjustToSerialised(Base::toSerialised(val));
     }
 
-    static constexpr ValueType fromSerialised(SerialisedType value)
+    static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return Base::fromSerialised(adjustFromSerialised(value));
+        return Base::fromSerialised(adjustFromSerialised(val));
     }
 
 private:
-    static SerialisedType adjustToSerialised(SerialisedType value)
+    static SerialisedType adjustToSerialised(SerialisedType val)
     {
-        return static_cast<SerialisedType>(Offset + value);
+        return static_cast<SerialisedType>(Offset + val);
     }
 
-    static SerialisedType adjustFromSerialised(SerialisedType value)
+    static SerialisedType adjustFromSerialised(SerialisedType val)
     {
-        return static_cast<SerialisedType>((-Offset) + value);
+        return static_cast<SerialisedType>((-Offset) + val);
     }
 };
 

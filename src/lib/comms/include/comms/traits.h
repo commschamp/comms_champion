@@ -30,51 +30,16 @@ namespace comms
 namespace traits
 {
 
-/// @ingroup comms
-
 namespace endian
 {
 
-/// @ingroup comms
 /// @brief Empty class used in traits to indicate Big Endian.
-/// @headerfile comms/traits.h "comms/traits.h"
 typedef util::traits::endian::Big Big;
 
-/// @ingroup comms
 /// @brief Empty class used in traits to indicate Little Endian.
-/// @headerfile comms/traits.h "comms/traits.h"
 typedef util::traits::endian::Little Little;
 
 }  // namespace endian
-
-namespace behaviour
-{
-
-struct UseValue {};
-
-struct IgnoreValue {};
-
-struct Fail {};
-
-}  // namespace behaviour
-
-namespace checksum
-{
-
-/// @ingroup comms
-/// @brief Empty class in traits to indicate that checksum verification
-///        must be done before passing data to the next protocol layer
-/// @headerfile comms/traits.h "comms/traits.h"
-struct VerifyBeforeProcessing {};
-
-/// @ingroup comms
-/// @brief Empty class in traits to indicate that checksum verification
-///        must be done after passing data to the next protocol layer
-///        and successful processing of the latter.
-/// @headerfile comms/traits.h "comms/traits.h"
-struct VerifyAfterProcessing {};
-
-} // namespace checksum
 
 }  // namespace traits
 

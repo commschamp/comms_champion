@@ -3,28 +3,33 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QPushButton>
 
-#include "PluginMgr.h"
-
 #include "ui_PluginConfigDialog.h"
+CC_ENABLE_WARNINGS()
+
+#include "PluginMgr.h"
+#include "PluginsListWidget.h"
 
 namespace comms_champion
 {
@@ -35,13 +40,23 @@ class PluginConfigDialog: public QDialog
     using Base = QDialog;
 
 public:
-    PluginConfigDialog(QWidget* parent = nullptr);
+    PluginConfigDialog(QWidget* parentObj = nullptr);
     virtual void accept();
 
 private slots:
-    void availPluginClicked(QListWidgetItem* item);
-    void availPluginDoubleClicked(QListWidgetItem* item);
-    void selectedPluginClicked(QListWidgetItem* item);
+    void availSocketPluginClicked(QListWidgetItem* item);
+    void availFilterPluginClicked(QListWidgetItem* item);
+    void availProtocolPluginClicked(QListWidgetItem* item);
+
+    void availSocketPluginDoubleClicked(QListWidgetItem* item);
+    void availFilterPluginDoubleClicked(QListWidgetItem* item);
+    void availProtocolPluginDoubleClicked(QListWidgetItem* item);
+
+    void selectedSocketPluginClicked(QListWidgetItem* item);
+    void selectedFilterPluginClicked(QListWidgetItem* item);
+    void selectedProtocolPluginClicked(QListWidgetItem* item);
+
+
     void addClicked();
     void searchTextChanged(const QString& text);
     void searchClearClicked();
@@ -56,8 +71,18 @@ private slots:
 
 private:
 
+    void availPluginClicked(
+        QListWidgetItem* item,
+        PluginsListWidget* availableList);
+
+    void selectedPluginClicked(
+        QListWidgetItem* item,
+        PluginsListWidget* selectedList);
+
     void createAvailableToolbar();
     void createSelectedToolbar();
+    void createAvailableLists();
+    void createSelectedLists();
 
     void refreshAll();
     void refreshAvailable();
@@ -80,6 +105,7 @@ private:
 
     PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item) const;
     PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
+    PluginsListWidget* getSelectedListForAvailable(PluginsListWidget* list);
 
     Ui::PluginConfigDialog m_ui;
     QLineEdit* m_availSearchLineEdit = nullptr;
@@ -93,6 +119,16 @@ private:
     QAction* m_downButton = nullptr;
     QAction* m_bottomButton = nullptr;
     QPushButton* m_applyButton = nullptr;
+
+    PluginsListWidget* m_availableSocketsWidget = nullptr;
+    PluginsListWidget* m_availableFiltersWidget = nullptr;
+    PluginsListWidget* m_availableProtocolsWidget = nullptr;
+    PluginsListWidget* m_currentAvailableList = nullptr;
+
+    PluginsListWidget* m_selectedSocketsWidget = nullptr;
+    PluginsListWidget* m_selectedFiltersWidget = nullptr;
+    PluginsListWidget* m_selectedProtocolsWidget = nullptr;
+    PluginsListWidget* m_currentSelectedList = nullptr;
 };
 
-} /* namespace comms_champion */
+} // namespace comms_champion

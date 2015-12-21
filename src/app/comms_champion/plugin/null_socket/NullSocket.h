@@ -23,28 +23,26 @@
 namespace comms_champion
 {
 
-class DummySocket : public Socket
+class NullSocket : public Socket
 {
     Q_OBJECT
 public:
-    DummySocket();
+    NullSocket();
+    ~NullSocket();
 
 protected:
     virtual bool startImpl() override;
     virtual void stopImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
-private slots:
-    void timeout();
-
 private:
     bool m_running = false;
 };
 
 inline
-SocketPtr makeDummySocket()
+SocketPtr makeNullSocket()
 {
-    return SocketPtr(new DummySocket());
+    return SocketPtr(new NullSocket());
 }
 
 }  // namespace comms_champion

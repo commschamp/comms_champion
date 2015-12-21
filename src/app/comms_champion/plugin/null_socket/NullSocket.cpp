@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -15,45 +15,42 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "NullSocket.h"
 
-#pragma once
+#include "comms/CompileControl.h"
 
-#include <memory>
+CC_DISABLE_WARNINGS()
+#include <QtCore/QTimer>
+CC_ENABLE_WARNINGS()
 
-#include "comms_champion/Plugin.h"
-#include "comms_champion/Socket.h"
+#include <cassert>
 
 namespace comms_champion
 {
 
-namespace plugin
+NullSocket::NullSocket() = default;
+NullSocket::~NullSocket() = default;
+
+bool NullSocket::startImpl()
 {
+    if (m_running) {
+        return false;
+    }
 
-namespace dummy_socket
+    m_running = true;
+    return true;
+}
+
+void NullSocket::stopImpl()
 {
+    m_running = false;
+}
 
-class DummySocketPlugin : public comms_champion::Plugin
+void NullSocket::sendDataImpl(DataInfoPtr dataPtr)
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.DummySocketPlugin" FILE "dummy_socket.json")
-    Q_INTERFACES(comms_champion::Plugin)
-
-public:
-    DummySocketPlugin();
-    ~DummySocketPlugin();
-
-    virtual void applyImpl() override;
-
-private:
-    comms_champion::SocketPtr m_socket;
-};
-
-}  // namespace dummy_socket
-
-}  // namespace plugin
+    static_cast<void>(dataPtr);
+}
 
 }  // namespace comms_champion
-
-
 
 

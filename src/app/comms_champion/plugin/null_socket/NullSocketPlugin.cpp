@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "DummySocketPlugin.h"
+#include "NullSocketPlugin.h"
 
 #include <memory>
 #include <cassert>
 
-#include "DummySocket.h"
+#include "NullSocket.h"
 
 namespace comms_champion
 {
@@ -31,19 +31,19 @@ namespace plugin
 namespace dummy_socket
 {
 
-class DummySocketPluginImpl
+class NullSocketPluginImpl
 {
 public:
-    DummySocketPluginImpl();
+    NullSocketPluginImpl();
 
 private:
 };
 
-DummySocketPlugin::DummySocketPlugin()
+NullSocketPlugin::NullSocketPlugin()
 {
 }
 
-DummySocketPlugin::~DummySocketPlugin()
+NullSocketPlugin::~NullSocketPlugin()
 {
     if (isApplied()) {
         auto& interface = getCtrlInterface();
@@ -54,11 +54,11 @@ DummySocketPlugin::~DummySocketPlugin()
     }
 }
 
-void DummySocketPlugin::applyImpl()
+void NullSocketPlugin::applyImpl()
 {
     assert(!isApplied());
     auto& interface = getCtrlInterface();
-    m_socket.reset(new DummySocket());
+    m_socket = makeNullSocket();
     if (interface) {
         interface->setSocket(m_socket);
     }

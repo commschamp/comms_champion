@@ -6,19 +6,19 @@ function (plugin_dummy_socket)
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/refresh_stamp.txt")
     if ((NOT EXISTS ${stamp_file}) OR (${meta_file} IS_NEWER_THAN ${stamp_file}))
         execute_process(
-            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_SOURCE_DIR}/DummySocketPlugin.h)
+            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_SOURCE_DIR}/NullSocketPlugin.h)
         execute_process(
             COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file})
     endif ()
     
     set (src
-        DummySocket.cpp
-        DummySocketPlugin.cpp
+        NullSocket.cpp
+        NullSocketPlugin.cpp
     )
     
     set (hdr
-        DummySocket.h
-        DummySocketPlugin.h
+        NullSocket.h
+        NullSocketPlugin.h
     )
     
     qt5_wrap_cpp(

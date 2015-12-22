@@ -5,6 +5,7 @@ option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be bui
 option (CC_COMMS_UNIT_TESTS "Build unittests of COMMS library" OFF)
 option (CC_COMMS_CHAMPION "Build CommsChampion application" ON)
 option (CC_COMMS_CHAMPION_DEMO "Build demo protocol plugin" OFF)
+option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 
 set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/external")
 
@@ -36,7 +37,21 @@ if (CMAKE_COMPILER_IS_GNUCC)
     )
     
     string(REPLACE ";" " " extra_flags "${extra_flags_list}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${extra_flags}") 
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${extra_flags}")
+    
+    if (CC_STATIC_RUNTIME)
+        SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
+    endif ()
+elseif (MSVC)
+    if (CC_STATIC_RUNTIME)
+        foreach(flag_var 
+                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+            if(${flag_var} MATCHES "/MD")
+                string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+            endif()
+        endforeach()
+    endif ()
 endif ()
 
 add_subdirectory (src)

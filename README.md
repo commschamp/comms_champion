@@ -15,7 +15,7 @@ and runtime environments. The protocols may use different serialisation rules
 different rules for wrapping message data based on the I/O link used to communicate
 this data. That's why most developers don't even try to develop something 
 generic up front and reuse it with different communication protocols.
-As the result they experience a *deja-vu* feeling, that they have dome it before, every time they
+As the result they experience a *deja-vu* feeling, that they have done it before, every time they
 have to implement a new protocol. 
 
 With this project I take up the challenge to create a library as well as
@@ -81,15 +81,15 @@ it.
 This project uses [CMake](https://cmake.org) cross-platform build system to
 generate required build files native to the platform.
 
-1. Create build directory somewhere and navigate there.
+- Create build directory somewhere and navigate there.
 
 >$> mkdir /some/build/dir && cd /some/build/dir
 
-2. Generate Makefiles (or any other build environment) for **Release** build.
+- Generate Makefiles (or any other build environment) for **Release** build.
 
 >$> cmake -DCMAKE_BUILD_TYPE=Release /path/to/comms_champion/sources
 
-3. Build and install.
+- Build and install.
 
 >$> make install
 
@@ -105,7 +105,7 @@ In addition to built-in options of CMake, such as **CMAKE_BUILD_TYPE** or
 - **CC_COMMS_UNIT_TESTS**=ON/OFF - Include/Exclude unittests of the **COMMS** library.
 Default value is **OFF**
 
-- **CC_COMMS_CHAMPION**=ON/OFF Enable/Disable build of CommsChampion tool. Default value
+- **CC_COMMS_CHAMPION**=ON/OFF - Enable/Disable build of CommsChampion tool. Default value
 is **ON**.
 
 For example, discard all other tools, just install the **COMMS** library:

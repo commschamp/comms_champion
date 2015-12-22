@@ -189,22 +189,21 @@ const MsgMgr::MsgsList& MsgMgr::getAllMsgs() const
 void MsgMgr::setSocket(SocketPtr socket)
 {
     if (!socket) {
-        if (m_socket) {
-            m_socket->disconnect();
-        }
-
         m_socket.reset();
         return;
     }
 
+    socket->setDataReceivedCallback(
+        [this](DataInfoPtr dataPtr)
+        {
+            socketDataReceived(std::move(dataPtr));
+        });
 
-    connect(
-        socket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-        this, SLOT(socketDataReceived(DataInfoPtr)));
-
-    connect(
-        socket.get(), SIGNAL(sigErrorReport(const QString&)),
-        this, SIGNAL(sigErrorReported(const QString&)));
+    socket->setErrorReportCallback(
+        [this](const QString& msg)
+        {
+            emit sigErrorReported(msg);
+        });
 
     m_socket = std::move(socket);
 }

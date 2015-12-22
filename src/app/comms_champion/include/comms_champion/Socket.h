@@ -25,7 +25,7 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
-#include <QtCore/QObject>
+#include <QtCore/QString>
 CC_ENABLE_WARNINGS()
 
 #include "DataInfo.h"
@@ -33,9 +33,8 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-class Socket : public QObject
+class Socket
 {
-    Q_OBJECT
 
 public:
     Socket() = default;
@@ -51,16 +50,25 @@ public:
         stopImpl();
     }
 
-public slots:
-
     void sendData(DataInfoPtr dataPtr)
     {
         sendDataImpl(std::move(dataPtr));
     }
 
-signals:
-    void sigDataReceived(DataInfoPtr dataPtr);
-    void sigErrorReport(const QString& msg);
+    typedef std::function<void (DataInfoPtr)> DataReceivedCallback;
+    template <typename TFunc>
+    void setDataReceivedCallback(TFunc&& func)
+    {
+        m_dataReceivedCallback = std::forward<TFunc>(func);
+    }
+
+    typedef std::function<void (const QString& msg)> ErrorReportCallback;
+    template <typename TFunc>
+    void setErrorReportCallback(TFunc&& func)
+    {
+        m_errorReportCallback = std::forward<TFunc>(func);
+    }
+
 
 protected:
 
@@ -70,13 +78,21 @@ protected:
 
     void reportDataReceived(DataInfoPtr dataPtr)
     {
-        emit sigDataReceived(std::move(dataPtr));
+        if (m_dataReceivedCallback) {
+            m_dataReceivedCallback(std::move(dataPtr));
+        }
     }
 
     void reportError(const QString& msg)
     {
-        emit sigErrorReport(msg);
+        if (m_errorReportCallback) {
+            m_errorReportCallback(msg);
+        }
     }
+
+private:
+    DataReceivedCallback m_dataReceivedCallback;
+    ErrorReportCallback m_errorReportCallback;
 };
 
 typedef std::shared_ptr<Socket> SocketPtr;

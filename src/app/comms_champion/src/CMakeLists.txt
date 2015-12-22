@@ -90,7 +90,6 @@ function (bin_comms_champion)
         ${_inc_dir}/MessageWidget.h
         ${_inc_dir}/DefaultMessageWidget.h
         ${_inc_dir}/MessageDisplayWidget.h
-        ${_inc_dir}/Socket.h
     )
     
     qt5_wrap_ui(

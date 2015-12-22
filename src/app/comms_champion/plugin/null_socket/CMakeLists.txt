@@ -1,8 +1,8 @@
 
-function (plugin_dummy_socket)
-    set (name "dummy_socket")
+function (plugin_null_socket)
+    set (name "null_socket")
     
-    set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/dummy_socket.json")
+    set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/null_socket.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/refresh_stamp.txt")
     if ((NOT EXISTS ${stamp_file}) OR (${meta_file} IS_NEWER_THAN ${stamp_file}))
         execute_process(
@@ -17,7 +17,6 @@ function (plugin_dummy_socket)
     )
     
     set (hdr
-        NullSocket.h
         NullSocketPlugin.h
     )
     
@@ -38,4 +37,4 @@ endfunction()
 
 include_directories(${Qt5Core_INCLUDE_DIRS})
 
-plugin_dummy_socket ()
+plugin_null_socket ()

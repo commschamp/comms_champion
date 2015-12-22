@@ -37,7 +37,8 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ClientSocket : public comms_champion::Socket
+class ClientSocket : public QObject,
+                     public comms_champion::Socket
 {
     Q_OBJECT
     using Base = comms_champion::Socket;

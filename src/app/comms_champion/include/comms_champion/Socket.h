@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <vector>
+#include <functional>
 
 #include "comms/CompileControl.h"
 

@@ -21,11 +21,12 @@
 #include <cstdint>
 #include <cstddef>
 #include <vector>
+#include <functional>
 
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
-#include <QtCore/QObject>
+#include <QtCore/QString>
 CC_ENABLE_WARNINGS()
 
 #include "DataInfo.h"
@@ -41,31 +42,48 @@ public:
     Filter() = default;
     virtual ~Filter() {}
 
-public slots:
-
     void feedInData(DataInfoPtr dataPtr)
     {
         feedInDataImpl(std::move(dataPtr));
     }
 
-signals:
-    void sigDataToSend(DataInfoPtr dataPtr);
-    void sigErrorReport(const QString& msg);
+
+    typedef std::function<void (DataInfoPtr)> DataReceivedCallback;
+    template <typename TFunc>
+    void setDataReceivedCallback(TFunc&& func)
+    {
+        m_dataReceivedCallback = std::forward<TFunc>(func);
+    }
+
+    typedef std::function<void (const QString& msg)> ErrorReportCallback;
+    template <typename TFunc>
+    void setErrorReportCallback(TFunc&& func)
+    {
+        m_errorReportCallback = std::forward<TFunc>(func);
+    }
 
 protected:
 
     virtual void sendDataImpl(DataInfoPtr dataPtr) = 0;
     virtual void feedInDataImpl(DataInfoPtr dataPtr) = 0;
 
-    void reportDataToSend(DataInfoPtr dataPtr)
+    void reportDataReceived(DataInfoPtr dataPtr)
     {
-        emit sigDataToSend(std::move(dataPtr));
+        if (m_dataReceivedCallback) {
+            m_dataReceivedCallback(std::move(dataPtr));
+        }
     }
 
     void reportError(const QString& msg)
     {
-        emit sigErrorReport(msg);
+        if (m_errorReportCallback) {
+            m_errorReportCallback(msg);
+        }
     }
+
+private:
+    DataReceivedCallback m_dataReceivedCallback;
+    ErrorReportCallback m_errorReportCallback;
 };
 
 typedef std::shared_ptr<Filter> FilterPtr;

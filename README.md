@@ -108,7 +108,7 @@ Default value is **OFF**
 - **CC_COMMS_CHAMPION**=ON/OFF - Enable/Disable build of CommsChampion tool. Default value
 is **ON**.
 
-- **CC_STATIC_RUNTIME**=ON/OFF - Enable/Disable static C++ runtime. Default value is **OFF**
+- **CC_STATIC_RUNTIME**=ON/OFF - Enable/Disable static link to C++ runtime. Default value is **OFF**
 
 For example, discard all other tools, just install the **COMMS** library:
 

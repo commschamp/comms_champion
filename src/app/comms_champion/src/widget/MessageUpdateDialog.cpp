@@ -281,12 +281,13 @@ void MessageUpdateDialog::msgUpdated()
 
     // Direct invocation of m_msgDisplayWidget->displayMessage(std::move(msgInfo))
     // in place here causes SIGSEGV. No idea why.
-    QMetaObject::invokeMethod(
+    /*QMetaObject::invokeMethod(
         this,
         "displayMessagePostponed",
         Qt::QueuedConnection,
         Q_ARG(comms_champion::MessageInfoPtr, std::move(msgInfo)),
-        Q_ARG(bool, forceUpdate));
+        Q_ARG(bool, forceUpdate));*/
+    m_msgDisplayWidget->displayMessage(std::move(msgInfo), forceUpdate);
 }
 
 void MessageUpdateDialog::itemClicked(QListWidgetItem* item)

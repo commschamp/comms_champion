@@ -76,7 +76,10 @@ int main(int argc, char *argv[])
     }
 
     app.addLibraryPath(dir.path());
-    cc::PluginMgr::instanceRef().setPluginsDir(dir.path());
+
+    auto& pluginMgr = cc::PluginMgr::instanceRef();
+    pluginMgr.setPluginsDir(dir.path());
+    pluginMgr.start();
 
     auto retval = app.exec();
     return retval;

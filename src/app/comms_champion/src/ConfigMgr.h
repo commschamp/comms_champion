@@ -42,7 +42,9 @@ public:
     static const QString& getFilesFilter();
 
     QVariantMap loadConfig(const QString& filename);
+    QVariantMap loadConfig(const QString& filename, bool updateAsLast);
     bool saveConfig(const QString& filename, const QVariantMap& config);
+    bool saveConfig(const QString& filename, const QVariantMap& config, bool updateAsLast);
 
 private:
     ConfigMgr() = default;

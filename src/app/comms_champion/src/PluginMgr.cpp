@@ -30,9 +30,12 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QDir>
 #include <QtCore/QJsonArray>
 #include <QtCore/QVariantList>
+#include <QtCore/QStandardPaths>
+#include <QtCore/QDir>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Plugin.h"
+#include "ConfigMgr.h"
 
 namespace comms_champion
 {
@@ -46,6 +49,7 @@ const QString MetaDataMetaKey("MetaData");
 const QString NameMetaKey("name");
 const QString DescMetaKey("desc");
 const QString TypeMetaKey("type");
+const QString AppDataStorageFileName("startup_config.json");
 
 struct PluginLoaderDeleter
 {
@@ -82,6 +86,25 @@ PluginMgr::PluginInfo::Type parseType(const QString& val)
     }
 
     return static_cast<PluginMgr::PluginInfo::Type>(std::distance(std::begin(Values), iter));
+}
+
+QString getAddDataStoragePath(bool createIfMissing)
+{
+    auto dirName = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+    QDir dir(dirName);
+    if (!dir.exists()) {
+
+        if (!createIfMissing) {
+            return QString();
+        }
+
+        if (!dir.mkpath(".")) {
+            std::cerr << "WARNING: failed to create " << dirName.toStdString() << std::endl;
+            return QString();
+        }
+    }
+
+    return dir.filePath(AppDataStorageFileName);
 }
 
 }  // namespace
@@ -154,7 +177,7 @@ PluginMgr::PluginsState PluginMgr::getState() const
 }
 
 PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
-    const QVariantMap& config) const
+    const QVariantMap& config)
 {
     ListOfPluginInfos pluginInfos;
     do {
@@ -164,6 +187,7 @@ PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
         }
 
         auto varList = listVar.value<QVariantList>();
+        auto& availPlugins = getAvailablePlugins();
         for (auto& iidVar : varList) {
             if ((!iidVar.isValid()) || (!iidVar.canConvert<QString>())) {
                 continue;
@@ -172,7 +196,7 @@ PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
             auto iid = iidVar.toString();
             auto iter =
                 std::find_if(
-                    m_plugins.begin(), m_plugins.end(),
+                    availPlugins.begin(), availPlugins.end(),
                     [&iid](const PluginInfoPtr& i) -> bool
                     {
                         return i->m_iid == iid;
@@ -250,6 +274,19 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
     m_appliedPlugins = infos;
 
     emit sigStateChanged(static_cast<int>(PluginsState::Active));
+
+    do {
+        auto filename = getAddDataStoragePath(true);
+        if (filename.isEmpty()) {
+            break;
+        }
+
+        auto config = getConfigForPlugins(m_appliedPlugins);
+
+        auto& configMgr = ConfigMgr::instanceRef();
+        configMgr.saveConfig(filename, config, false);
+    } while (false);
+
     return true;
 }
 
@@ -279,6 +316,26 @@ PluginMgr::WidgetPtr PluginMgr::getPluginConfigWidget(const PluginInfo& info)
     auto* pluginPtr = getPlugin(*info.m_loader);
     assert(pluginPtr != nullptr);
     return pluginPtr->getConfigWidget();
+}
+
+void PluginMgr::start()
+{
+    auto filename = getAddDataStoragePath(false);
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    auto& configMgr = ConfigMgr::instanceRef();
+    auto config = configMgr.loadConfig(filename, false);
+    if (config.isEmpty()) {
+        return;
+    }
+
+    auto plugins = loadPluginsFromConfig(config);
+    if (plugins.empty()) {
+        return;
+    }
+    apply(plugins);
 }
 
 PluginMgr::PluginControls::PluginControls()

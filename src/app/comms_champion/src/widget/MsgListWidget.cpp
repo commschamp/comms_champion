@@ -49,6 +49,7 @@ MsgListWidget::MsgListWidget(
     m_ui.m_groupBoxLayout->insertWidget(0, toolbar);
     updateTitle();
 
+    m_ui.m_listWidget->setUniformItemSizes(true);
     connect(m_ui.m_listWidget, SIGNAL(itemClicked(QListWidgetItem*)),
             this, SLOT(itemClicked(QListWidgetItem*)));
     connect(m_ui.m_listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),

@@ -25,6 +25,7 @@
 CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtCore/QTimer>
 #include <QtWidgets/QWidget>
 CC_ENABLE_WARNINGS()
 
@@ -184,12 +185,12 @@ private slots:
     void sendPendingAndWait();
     void activeStateChanged(int state);
     void errorReported(const QString& msg);
+    void pendingDisplayTimeout();
 
 private /*data*/:
 
     void msgClicked(MessageInfoPtr msgInfo, SelectionType selType);
     void displayMessage(MessageInfoPtr msgInfo);
-    void displayMessageIfNotClicked(MessageInfoPtr msgInfo);
     void clearDisplayedMessage();
     void refreshRecvList();
     void addMsgToRecvList(MessageInfoPtr msgInfo);
@@ -215,6 +216,10 @@ private /*data*/:
     SelectionType m_selType = SelectionType::None;
     MessageInfoPtr m_clickedMsg;
     MsgInfosList m_msgsToSend;
+
+    QTimer m_pendingDisplayTimer;
+    MessageInfoPtr m_pendingDisplayMsg;
+    bool m_pendingDisplayWaitInProgress = false;
 };
 
 }  // namespace comms_champion

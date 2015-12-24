@@ -45,6 +45,7 @@ void metaTypesRegisterAll()
     qRegisterMetaType<cc::ProtocolPtr>();
     qRegisterMetaType<cc::GuiAppMgr::ActionPtr>();
     qRegisterMetaType<cc::PluginMgr::PluginInfoPtr>();
+    qRegisterMetaType<cc::DataInfoPtr>();
 }
 
 void initSingletons()

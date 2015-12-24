@@ -1,3 +1,4 @@
 add_subdirectory (null_socket)
 add_subdirectory (tcp_socket)
 add_subdirectory (serial_socket)
+add_subdirectory (echo_socket)

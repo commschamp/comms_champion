@@ -32,6 +32,7 @@ CC_ENABLE_WARNINGS()
 #include "PluginMgr.h"
 
 #include "widget/MainWindowWidget.h"
+#include "icon.h"
 
 
 namespace
@@ -66,8 +67,8 @@ int main(int argc, char *argv[])
     metaTypesRegisterAll();
 
     cc::MainWindowWidget window;
+    window.setWindowIcon(cc::icon::appIcon());
     window.showMaximized();
-
 
     QDir dir(app.applicationDirPath());
     dir.cdUp();

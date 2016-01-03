@@ -30,6 +30,7 @@ namespace comms_champion
 namespace icon
 {
 
+const QIcon& appIcon();
 const QIcon& add();
 const QIcon& remove();
 const QIcon& clear();

@@ -40,7 +40,7 @@ if (CMAKE_COMPILER_IS_GNUCC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${extra_flags}")
     
     if (CC_STATIC_RUNTIME)
-        SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
+        SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
     endif ()
 elseif (MSVC)
     if (CC_STATIC_RUNTIME)

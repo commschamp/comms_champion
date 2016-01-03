@@ -133,6 +133,13 @@ function (bin_comms_champion)
         DIRECTORY ${_inc_dir}
         DESTINATION ${INC_INSTALL_DIR}
     )
+    
+    install (
+        FILES image/app_icon.png
+        DESTINATION ${ICON_INSTALL_DIR}
+        RENAME comms_champion.png
+    )
+    
         
 endfunction ()
 

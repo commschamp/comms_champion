@@ -1,6 +1,16 @@
 
 function (plugin_demo)
     set (name "demo")
+    
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
+    
+    if (NOT Qt5Widgets_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Widgets library")
+        return()
+    endif ()
 
     set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/demo_protocol.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/refresh_stamp.txt")
@@ -34,6 +44,7 @@ function (plugin_demo)
     )
     
     add_library (${name} SHARED ${src} ${moc})
+    qt5_use_modules(${name} Widgets Core)
     
     install (
         TARGETS ${name}
@@ -43,8 +54,10 @@ endfunction()
 
 ######################################################################
 
+find_package(Qt5Widgets)
+find_package(Qt5Core)
+
 include_directories(
-    ${Qt5Core_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR})
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0")

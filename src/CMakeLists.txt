@@ -16,11 +16,6 @@ if (CC_COMMS_LIB_ONLY)
     return ()
 endif ()
 
-# Find the QtWidgets library
-find_package(Qt5Network REQUIRED)
-find_package(Qt5SerialPort REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Core REQUIRED)
 
 include_directories (
     ${CMAKE_CURRENT_SOURCE_DIR}/app/comms_champion/include

@@ -1,5 +1,15 @@
 function (bin_comms_champion)
     set (name "comms_champion")
+    
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
+    
+    if (NOT Qt5Widgets_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Widgets library")
+        return()
+    endif ()
 
     set (src
         main.cpp
@@ -145,8 +155,10 @@ endfunction ()
 
 ###########################################################
 
+find_package(Qt5Widgets)
+find_package(Qt5Core)
+
 include_directories (
-    ${Qt5Core_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
 )

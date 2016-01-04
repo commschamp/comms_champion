@@ -1,6 +1,21 @@
 function (plugin_tcp_server_socket)
     set (name "tcp_server_socket")
     
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
+    
+    if (NOT Qt5Widgets_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Widgets library")
+        return()
+    endif ()
+    
+    if (NOT Qt5Network_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Network library")
+        return()
+    endif ()
+    
     set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/tcp_server_socket.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/server_refresh_stamp.txt")
     
@@ -48,6 +63,21 @@ endfunction()
 
 function (plugin_tcp_client_socket)
     set (name "tcp_client_socket")
+    
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
+    
+    if (NOT Qt5Widgets_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Widgets library")
+        return()
+    endif ()
+    
+    if (NOT Qt5Network_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Network library")
+        return()
+    endif ()
     
     set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/tcp_client_socket.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/client_refresh_stamp.txt")
@@ -97,8 +127,11 @@ endfunction()
 
 ######################################################################
 
+find_package(Qt5Core)
+find_package(Qt5Widgets)
+find_package(Qt5Network)
+
 include_directories (
-    ${Qt5Core_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 

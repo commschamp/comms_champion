@@ -1,6 +1,22 @@
 function (plugin_serial_socket)
     set (name "serial_socket")
     
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
+    
+    if (NOT Qt5Widgets_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Widgets library")
+        return()
+    endif ()
+    
+    if (NOT Qt5SerialPort_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5SerialPort library")
+        return()
+    endif ()
+    
+    
     set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/serial_socket.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/server_refresh_stamp.txt")
     
@@ -34,7 +50,7 @@ function (plugin_serial_socket)
     )
     
     add_library (${name} SHARED ${src} ${moc} ${ui})
-    target_link_libraries(${name} Qt5::SerialPort Qt5::Core)
+    qt5_use_modules(${name} SerialPort Widgets Core)
     
     install (
         TARGETS ${name}
@@ -44,8 +60,11 @@ endfunction()
 
 ######################################################################
 
+find_package(Qt5Core)
+find_package(Qt5Widgets)
+find_package(Qt5SerialPort)
+
 include_directories (
-    ${Qt5Core_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 

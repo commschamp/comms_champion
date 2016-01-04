@@ -36,8 +36,6 @@ namespace comms_champion
 
 class Filter : public QObject
 {
-    Q_OBJECT
-
 public:
     Filter() = default;
     virtual ~Filter() {}

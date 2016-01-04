@@ -9,7 +9,7 @@ option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 
 set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/external")
 
-find_package (Git REQUIRED)
+find_package (Git)
 
 if (GIT_FOUND)
     execute_process (

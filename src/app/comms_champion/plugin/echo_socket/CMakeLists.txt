@@ -2,6 +2,11 @@
 function (plugin_echo_socket)
     set (name "echo_socket")
     
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
+    
     set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/echo_socket.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/refresh_stamp.txt")
     if ((NOT EXISTS ${stamp_file}) OR (${meta_file} IS_NEWER_THAN ${stamp_file}))
@@ -27,6 +32,7 @@ function (plugin_echo_socket)
     )
     
     add_library (${name} SHARED ${src} ${moc})
+    qt5_use_modules(${name} Core)
     
     install (
         TARGETS ${name}
@@ -36,6 +42,6 @@ endfunction()
 
 ######################################################################
 
-include_directories(${Qt5Core_INCLUDE_DIRS})
+find_package(Qt5Core)
 
 plugin_echo_socket ()

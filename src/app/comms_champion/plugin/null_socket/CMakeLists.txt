@@ -1,6 +1,10 @@
-
 function (plugin_null_socket)
     set (name "null_socket")
+    
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
     
     set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/null_socket.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/refresh_stamp.txt")
@@ -26,6 +30,7 @@ function (plugin_null_socket)
     )
     
     add_library (${name} SHARED ${src} ${moc})
+    qt5_use_modules(${name} Core)
     
     install (
         TARGETS ${name}
@@ -35,6 +40,6 @@ endfunction()
 
 ######################################################################
 
-include_directories(${Qt5Core_INCLUDE_DIRS})
+find_package(Qt5Core)
 
 plugin_null_socket ()

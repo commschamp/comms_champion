@@ -23,7 +23,7 @@
 #include <memory>
 #include <vector>
 
-#include "comms/field/Bitfield.h"
+#include "comms/field/Bundle.h"
 #include "FieldWrapper.h"
 
 namespace comms_champion
@@ -32,7 +32,7 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class BitfieldWrapper : public FieldWrapper
+class BundleWrapper : public FieldWrapper
 {
     using Base = FieldWrapper;
 public:
@@ -61,36 +61,36 @@ private:
 };
 
 template <typename TField>
-class BitfieldWrapperT : public FieldWrapperT<BitfieldWrapper, TField>
+class BundleWrapperT : public FieldWrapperT<BundleWrapper, TField>
 {
-    using Base = FieldWrapperT<BitfieldWrapper, TField>;
+    using Base = FieldWrapperT<BundleWrapper, TField>;
     using Field = TField;
-    static_assert(comms::field::isBitfield<Field>(), "Must be of Bitfield field type");
+    static_assert(comms::field::isBundle<Field>(), "Must be of Bundle field type");
 
     using UnderlyingType = typename Base::UnderlyingType;
 public:
-    explicit BitfieldWrapperT(Field& fieldRef)
+    explicit BundleWrapperT(Field& fieldRef)
       : Base(fieldRef)
     {
     }
 
-    BitfieldWrapperT(const BitfieldWrapperT&) = default;
-    BitfieldWrapperT(BitfieldWrapperT&&) = default;
-    virtual ~BitfieldWrapperT() = default;
+    BundleWrapperT(const BundleWrapperT&) = default;
+    BundleWrapperT(BundleWrapperT&&) = default;
+    virtual ~BundleWrapperT() = default;
 
-    BitfieldWrapperT& operator=(const BitfieldWrapperT&) = delete;
+    BundleWrapperT& operator=(const BundleWrapperT&) = delete;
 
 };
 
-using BitfieldWrapperPtr = std::unique_ptr<BitfieldWrapper>;
+using BundleWrapperPtr = std::unique_ptr<BundleWrapper>;
 
 template <typename TField>
-BitfieldWrapperPtr
-makeBitfieldWrapper(TField& field)
+BundleWrapperPtr
+makeBundleWrapper(TField& field)
 {
     return
-        BitfieldWrapperPtr(
-            new BitfieldWrapperT<TField>(field));
+        BundleWrapperPtr(
+            new BundleWrapperT<TField>(field));
 }
 
 }  // namespace field_wrapper

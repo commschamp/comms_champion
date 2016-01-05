@@ -19,8 +19,10 @@
 #pragma once
 
 #include <memory>
+#include <cassert>
 
 #include "comms/field/Optional.h"
+#include "FieldWrapper.h"
 
 namespace comms_champion
 {
@@ -28,7 +30,7 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class OptionalWrapper
+class OptionalWrapper : public FieldWrapper
 {
 public:
     typedef comms::field::OptionalMode Mode;
@@ -44,36 +46,60 @@ public:
         setModeImpl(mode);
     }
 
+    bool hasFieldWrapper() const
+    {
+        return static_cast<bool>(m_fieldWrapper);
+    }
+
+    FieldWrapper& getFieldWrapper()
+    {
+        assert(hasFieldWrapper());
+        return *m_fieldWrapper;
+    }
+
+    const FieldWrapper& getFieldWrapper() const
+    {
+        assert(hasFieldWrapper());
+        return *m_fieldWrapper;
+    }
+
+    void setFieldWrapper(FieldWrapperPtr fieldWrapper)
+    {
+        m_fieldWrapper = std::move(fieldWrapper);
+    }
+
 protected:
     virtual Mode getModeImpl() const = 0;
     virtual void setModeImpl(Mode mode) = 0;
+
+private:
+    FieldWrapperPtr m_fieldWrapper;
 };
 
 template <typename TField>
-class OptionalWrapperT : public OptionalWrapper
+class OptionalWrapperT : public FieldWrapperT<OptionalWrapper, TField>
 {
-    typedef OptionalWrapper Base;
+    typedef FieldWrapperT<OptionalWrapper, TField> Base;
 public:
+
+    typedef typename Base::Mode Mode;
 
     typedef TField Field;
     explicit OptionalWrapperT(Field& fieldRef)
-      : m_field(fieldRef)
+      : Base(fieldRef)
     {
     }
 
 protected:
     virtual Mode getModeImpl() const override
     {
-        return m_field.getMode();
+        return Base::field().getMode();
     }
 
     virtual void setModeImpl(Mode mode) override
     {
-        m_field.setMode(mode);
+        Base::field().setMode(mode);
     }
-private:
-
-    Field& m_field;
 };
 
 using OptionalWrapperPtr = std::unique_ptr<OptionalWrapper>;

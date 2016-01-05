@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <cassert>
+#include <memory>
 
 #include "comms/CompileControl.h"
 
@@ -141,6 +142,8 @@ protected:
 private:
     Field& m_field;
 };
+
+typedef std::unique_ptr<FieldWrapper> FieldWrapperPtr;
 
 }  // namespace field_wrapper
 

@@ -100,6 +100,28 @@ class FieldWrapperT : public TBase
 {
     using Base = TBase;
     using Field = TField;
+
+    struct HasPrefixSuffixTag {};
+    struct NoPrefixSuffixTag {};
+
+    typedef typename std::conditional<
+        Field::ParsedOptions::HasSequenceSizeFieldPrefix,
+        HasPrefixSuffixTag,
+        NoPrefixSuffixTag
+    >::type SerialisedSizePrefixTag;
+
+    typedef typename std::conditional<
+        Field::ParsedOptions::HasSequenceTrailingFieldSuffix,
+        HasPrefixSuffixTag,
+        NoPrefixSuffixTag
+    >::type SerialisedTrailSuffixTag;
+
+    typedef typename std::conditional<
+        Field::ParsedOptions::HasSequenceTerminationFieldSuffix,
+        HasPrefixSuffixTag,
+        NoPrefixSuffixTag
+    >::type SerialisedTermSuffixTag;
+
 public:
     typedef typename Base::SerialisedSeq SerialisedSeq;
     typedef typename Base::BasePtr BasePtr;
@@ -151,8 +173,32 @@ protected:
             return false;
         }
 
-        auto iter = &value[0];
-        auto es = m_field.read(iter, value.size());
+        if ((!Field::ParsedOptions::HasSequenceSizeFieldPrefix) &&
+            (!Field::ParsedOptions::HasSequenceTrailingFieldSuffix) &&
+            (!Field::ParsedOptions::HasSequenceTerminationFieldSuffix)){
+            auto iter = &value[0];
+            auto es = m_field.read(iter, value.size());
+            return es == comms::ErrorStatus::Success;
+        }
+
+        SerialisedSeq newVal;
+        if (!writeSerialisedSize(newVal, value.size(), SerialisedSizePrefixTag())) {
+            return false;
+        }
+
+        auto writeIter = std::back_inserter(newVal);
+        std::copy(value.begin(), value.end(), writeIter);
+
+        if (!writeTrailSuffix(newVal, SerialisedTrailSuffixTag())) {
+            return false;
+        }
+
+        if (!writeTermSuffix(newVal, SerialisedTermSuffixTag())) {
+            return false;
+        }
+
+        auto iter = &newVal[0];
+        auto es = m_field.read(iter, newVal.size());
         return es == comms::ErrorStatus::Success;
     }
 
@@ -162,6 +208,54 @@ protected:
     }
 
 private:
+    bool writeSerialisedSize(SerialisedSeq& seq, std::size_t sizeVal, HasPrefixSuffixTag)
+    {
+        typedef typename Field::ParsedOptions::SequenceSizeFieldPrefix SizePrefixField;
+
+        SizePrefixField sizePrefixField(sizeVal);
+        auto writeIter = std::back_inserter(seq);
+        auto es = sizePrefixField.write(writeIter, seq.max_size() - seq.size());
+        return es == comms::ErrorStatus::Success;
+    }
+
+    bool writeSerialisedSize(SerialisedSeq& seq, std::size_t sizeVal, NoPrefixSuffixTag)
+    {
+        static_cast<void>(seq);
+        static_cast<void>(sizeVal);
+        return true;
+    }
+
+    bool writeTrailSuffix(SerialisedSeq& seq, HasPrefixSuffixTag)
+    {
+        typedef typename Field::ParsedOptions::SequenceTrailingFieldSuffix TrailingSuffixField;
+        TrailingSuffixField trailingSuffixField;
+        auto writeIter = std::back_inserter(seq);
+        auto es = trailingSuffixField.write(writeIter, seq.max_size() - seq.size());
+        return es == comms::ErrorStatus::Success;
+    }
+
+    bool writeTrailSuffix(SerialisedSeq& seq, NoPrefixSuffixTag)
+    {
+        static_cast<void>(seq);
+        return true;
+    }
+
+    bool writeTermSuffix(SerialisedSeq& seq, HasPrefixSuffixTag)
+    {
+        typedef typename Field::ParsedOptions::SequenceTerminationFieldSuffix TermSuffixField;
+        TermSuffixField termSuffixField;
+        auto writeIter = std::back_inserter(seq);
+        auto es = termSuffixField.write(writeIter, seq.max_size() - seq.size());
+        return es == comms::ErrorStatus::Success;
+    }
+
+    bool writeTermSuffix(SerialisedSeq& seq, NoPrefixSuffixTag)
+    {
+        static_cast<void>(seq);
+        return true;
+    }
+
+
     Field& m_field;
 };
 

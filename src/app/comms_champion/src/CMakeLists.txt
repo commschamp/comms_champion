@@ -21,7 +21,6 @@ function (bin_comms_champion)
         GlobalConstants.cpp
         Property.cpp
         DefaultMessageDisplayHandler.cpp
-        FieldWidget.cpp
         FieldWrapper.cpp
         ConfigMgr.cpp
         MsgFileMgr.cpp
@@ -49,6 +48,7 @@ function (bin_comms_champion)
         widget/MessageUpdateDialog.cpp
         widget/PluginsListWidget.cpp
         widget/PluginConfigDialog.cpp
+        widget/field/FieldWidget.cpp
         widget/field/ShortIntValueFieldWidget.cpp
         widget/field/LongIntValueFieldWidget.cpp
         widget/field/ScaledIntValueFieldWidget.cpp
@@ -83,6 +83,9 @@ function (bin_comms_champion)
         MsgMgr.h
         PluginMgr.h
         PluginControlInterfaceImpl.h
+        widget/MessageDisplayWidget.h
+        widget/MessageWidget.h
+        widget/DefaultMessageWidget.h
         widget/RecvAreaToolBar.h
         widget/SendAreaToolBar.h
         widget/MsgListWidget.h
@@ -93,6 +96,7 @@ function (bin_comms_champion)
         widget/PluginConfigDialog.h
         widget/MainWindowWidget.h
         widget/DefaultMessageDisplayWidget.h
+        widget/field/FieldWidget.h 
         widget/field/ShortIntValueFieldWidget.h
         widget/field/LongIntValueFieldWidget.h
         widget/field/ScaledIntValueFieldWidget.h
@@ -106,11 +110,6 @@ function (bin_comms_champion)
         widget/field/ArrayListFieldWidget.h
         widget/field/FloatValueFieldWidget.h
         widget/field/UnknownValueFieldWidget.h
-        ${_inc_dir}/Message.h      
-        ${_inc_dir}/FieldWidget.h      
-        ${_inc_dir}/MessageWidget.h
-        ${_inc_dir}/DefaultMessageWidget.h
-        ${_inc_dir}/MessageDisplayWidget.h
     )
     
     qt5_wrap_ui(

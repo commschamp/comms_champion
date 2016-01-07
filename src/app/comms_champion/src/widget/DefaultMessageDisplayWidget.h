@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "comms_champion/MessageDisplayWidget.h"
+#include "MessageDisplayWidget.h"
 
 namespace comms_champion
 {

@@ -30,8 +30,8 @@ CC_DISABLE_WARNINGS()
 #include "ui_ArrayListFieldWidget.h"
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/ArrayListWrapper.h"
+#include "FieldWidget.h"
 
 namespace comms_champion
 {

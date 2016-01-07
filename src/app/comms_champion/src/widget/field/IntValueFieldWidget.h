@@ -20,8 +20,8 @@
 
 #include <memory>
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
+#include "FieldWidget.h"
 
 namespace comms_champion
 {

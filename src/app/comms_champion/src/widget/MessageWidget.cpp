@@ -16,7 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "comms_champion/MessageWidget.h"
+#include "MessageWidget.h"
 
 namespace comms_champion
 {

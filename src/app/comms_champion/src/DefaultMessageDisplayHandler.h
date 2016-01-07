@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,28 +18,42 @@
 
 #pragma once
 
-#include <memory>
+#include <cassert>
+#include <type_traits>
 
-#include "MessageWidget.h"
+#include "comms/CompileControl.h"
 
+CC_DISABLE_WARNINGS()
+#include <QtWidgets/QVBoxLayout>
+CC_ENABLE_WARNINGS()
+
+#include "comms/comms.h"
+
+#include "comms_champion/Message.h"
+#include "comms_champion/MessageHandler.h"
+#include "widget/DefaultMessageWidget.h"
 
 namespace comms_champion
 {
 
-class MessageDisplayHandler
+class DefaultMessageDisplayHandler : public MessageHandler
 {
 public:
-    virtual ~MessageDisplayHandler() {}
-
     using MsgWidgetPtr = std::unique_ptr<MessageWidget>;
 
-    MsgWidgetPtr createMsgWidget(Message& msg)
-    {
-        return createMsgWidgetImpl(msg);
-    }
+    ~DefaultMessageDisplayHandler();
+
+    MsgWidgetPtr getMsgWidget();
 
 protected:
-    virtual MsgWidgetPtr createMsgWidgetImpl(Message& msg) = 0;
+
+    virtual void beginMsgHandlingImpl(Message& msg) override;
+    virtual void addFieldImpl(FieldWrapperPtr wrapper) override;
+
+private:
+
+    using DefaultMsgWidgetPtr = std::unique_ptr<DefaultMessageWidget>;
+    DefaultMsgWidgetPtr m_widget;
 };
 
 }  // namespace comms_champion

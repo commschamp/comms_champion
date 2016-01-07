@@ -35,8 +35,6 @@ class MessageHandler;
 class MessageWidget;
 class Message : public QObject
 {
-    Q_OBJECT
-
     typedef QObject Base;
 public:
     typedef std::vector<std::uint8_t> DataSeq;

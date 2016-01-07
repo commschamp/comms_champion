@@ -27,7 +27,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Protocol.h"
-#include "comms_champion/MessageDisplayWidget.h"
+#include "MessageDisplayWidget.h"
 
 namespace comms_champion
 {

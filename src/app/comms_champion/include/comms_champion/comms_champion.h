@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "version.h"
 #include "Message.h"
 #include "MessageHandler.h"
 #include "MessageBase.h"
@@ -27,7 +26,6 @@
 #include "ProtocolBase.h"
 #include "PluginControlInterface.h"
 #include "Plugin.h"
-#include "MessageWidget.h"
 #include "MessageInfo.h"
 #include "Property.h"
 #include "ProtocolMessageBase.h"

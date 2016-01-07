@@ -25,8 +25,6 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/version.h"
-
 #include "MsgMgr.h"
 #include "GuiAppMgr.h"
 #include "PluginControlInterfaceImpl.h"
@@ -40,11 +38,6 @@ PluginControlInterface::PluginControlInterface(PluginControlInterfaceImpl& impl)
 }
 
 PluginControlInterface::~PluginControlInterface() = default;
-
-unsigned PluginControlInterface::version()
-{
-    return COMMS_CHAMPION_VERSION;
-}
 
 void PluginControlInterface::setProtocol(ProtocolPtr protocol)
 {

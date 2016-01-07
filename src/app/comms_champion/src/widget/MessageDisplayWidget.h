@@ -24,7 +24,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
 CC_ENABLE_WARNINGS()
 
-#include "MessageInfo.h"
+#include "comms_champion/MessageInfo.h"
 
 namespace comms_champion
 {

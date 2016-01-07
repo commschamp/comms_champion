@@ -27,9 +27,9 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QFrame>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/Message.h"
 #include "MessageWidget.h"
-#include "FieldWidget.h"
-#include "Message.h"
+#include "field/FieldWidget.h"
 
 namespace comms_champion
 {

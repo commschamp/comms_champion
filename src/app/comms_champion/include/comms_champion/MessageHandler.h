@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "Message.h"
 #include "field_wrapper/FieldWrapper.h"
 #include "details/FieldWrapperCreator.h"

@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
+#include "FieldWidget.h"
 
 #include "ui_UnknownValueFieldWidget.h"
 

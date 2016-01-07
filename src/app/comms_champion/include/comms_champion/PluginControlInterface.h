@@ -42,7 +42,6 @@ public:
     PluginControlInterface(const PluginControlInterface&) = default;
     ~PluginControlInterface();
 
-    static unsigned version();
     void setProtocol(ProtocolPtr protocol);
     void clearProtocol();
     void setSocket(SocketPtr socket);

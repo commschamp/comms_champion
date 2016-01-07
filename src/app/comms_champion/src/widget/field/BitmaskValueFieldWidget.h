@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
+#include "FieldWidget.h"
 
 #include "ui_BitmaskValueFieldWidget.h"
 

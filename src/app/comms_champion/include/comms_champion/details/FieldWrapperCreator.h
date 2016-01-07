@@ -178,7 +178,17 @@ private:
     template <typename TField>
     static FieldWrapperPtr createWrapperInternal(TField& field, FieldsArrayListTag)
     {
-        return field_wrapper::makeArrayListWrapper(field);
+        typedef typename std::decay<decltype(field)>::type DecayedField;
+        typedef typename DecayedField::ValueType CollectionType;
+        typedef typename CollectionType::value_type ElementType;
+
+        auto wrapper = field_wrapper::makeDowncastedArrayListWrapper(field);
+        wrapper->setWrapFieldCallback(
+            [](ElementType& memField) -> FieldWrapperPtr
+            {
+                return FieldWrapperCreator::createWrapper(memField);
+            });
+        return std::move(wrapper);
     }
 
     template <typename TField>

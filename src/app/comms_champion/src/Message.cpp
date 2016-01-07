@@ -45,9 +45,9 @@ const QVariantList& Message::fieldsProperties() const
     return fieldsPropertiesImpl();
 }
 
-void Message::display(MessageDisplayHandler& handler)
+void Message::dispatch(MessageHandler& handler)
 {
-    displayImpl(handler);
+    dispatchImpl(handler);
 }
 
 QString Message::idAsString() const

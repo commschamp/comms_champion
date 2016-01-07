@@ -37,6 +37,7 @@ class IntValueWrapper : public NumericValueWrapper<long long int>
 public:
 
     typedef typename Base::UnderlyingType UnderlyingType;
+    typedef std::unique_ptr<IntValueWrapper> Ptr;
 
     using Base::NumericValueWrapper;
 
@@ -72,6 +73,11 @@ public:
         return isShortIntImpl();
     }
 
+    Ptr clone()
+    {
+        return cloneImpl();
+    }
+
 protected:
     virtual UnderlyingType minValueImpl() const = 0;
     virtual UnderlyingType maxValueImpl() const = 0;
@@ -79,6 +85,9 @@ protected:
     virtual void setScaledImpl(double value) = 0;
     virtual double scaleValueImpl(UnderlyingType value) const = 0;
     virtual bool isShortIntImpl() const = 0;
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
 };
 
 template <typename TField>
@@ -91,6 +100,7 @@ class IntValueWrapperT : public NumericValueWrapperT<IntValueWrapper, TField>
 public:
 
     typedef typename Base::UnderlyingType UnderlyingType;
+    typedef typename Base::Ptr Ptr;
 
     explicit IntValueWrapperT(Field& fieldRef)
       : Base(fieldRef)
@@ -144,9 +154,13 @@ protected:
         return std::is_signed<ValueType>::value;
     }
 
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new IntValueWrapperT<TField>(Base::field()));
+    }
 };
 
-using IntValueWrapperPtr = std::unique_ptr<IntValueWrapper>;
+using IntValueWrapperPtr = IntValueWrapper::Ptr;
 
 template <typename TField>
 IntValueWrapperPtr

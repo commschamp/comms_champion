@@ -36,6 +36,17 @@ class UnknownValueWrapper : public FieldWrapper
 {
 public:
     virtual ~UnknownValueWrapper() {}
+    typedef std::unique_ptr<UnknownValueWrapper> Ptr;
+
+    Ptr clone()
+    {
+        return cloneImpl();
+    }
+
+protected:
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
 };
 
 template <typename TField>
@@ -46,6 +57,8 @@ class UnknownValueWrapperT : public FieldWrapperT<UnknownValueWrapper, TField>
     using SerialisedSeq = typename Base::SerialisedSeq;
 
 public:
+    typedef typename Base::Ptr Ptr;
+
     explicit UnknownValueWrapperT(Field& fieldRef)
       : Base(fieldRef)
     {
@@ -58,10 +71,13 @@ public:
     UnknownValueWrapperT& operator=(const UnknownValueWrapperT&) = delete;
 
 protected:
-
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new UnknownValueWrapperT<TField>(Base::field()));
+    }
 };
 
-using UnknownValueWrapperPtr = std::unique_ptr<UnknownValueWrapper>;
+using UnknownValueWrapperPtr = UnknownValueWrapper::Ptr;
 
 template <typename TField>
 UnknownValueWrapperPtr

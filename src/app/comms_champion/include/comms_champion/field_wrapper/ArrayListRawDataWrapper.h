@@ -46,6 +46,8 @@ class ArrayListRawDataWrapper : public FieldWrapper
 {
 public:
 
+    typedef std::unique_ptr<ArrayListRawDataWrapper> Ptr;
+
     virtual ~ArrayListRawDataWrapper() {}
 
     QString getValue() const
@@ -68,11 +70,19 @@ public:
         return minSizeImpl();
     }
 
+    Ptr clone()
+    {
+        return cloneImpl();
+    }
+
 protected:
     virtual QString getValueImpl() const = 0;
     virtual void setValueImpl(const QString& val) = 0;
     virtual int maxSizeImpl() const = 0;
     virtual int minSizeImpl() const = 0;
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
 };
 
 template <typename TField>
@@ -83,6 +93,7 @@ class ArrayListRawDataWrapperT : public FieldWrapperT<ArrayListRawDataWrapper, T
 
 public:
     using SerialisedSeq = typename Base::SerialisedSeq;
+    typedef typename Base::Ptr Ptr;
 
     explicit ArrayListRawDataWrapperT(Field& fieldRef)
       : Base(fieldRef)
@@ -164,6 +175,11 @@ protected:
         return minSizeInternal(SizeExistanceTag());
     }
 
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new ArrayListRawDataWrapperT<TField>(Base::field()));
+    }
+
 private:
     struct SizeFieldExistsTag {};
     struct FixedSizeTag {};
@@ -223,7 +239,7 @@ private:
     }
 };
 
-using ArrayListRawDataWrapperPtr = std::unique_ptr<ArrayListRawDataWrapper>;
+using ArrayListRawDataWrapperPtr = ArrayListRawDataWrapper::Ptr;
 
 template <typename TField>
 ArrayListRawDataWrapperPtr

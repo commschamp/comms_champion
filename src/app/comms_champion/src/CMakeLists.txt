@@ -21,7 +21,6 @@ function (bin_comms_champion)
         GlobalConstants.cpp
         Property.cpp
         DefaultMessageDisplayHandler.cpp
-        FieldWidgetCreator.cpp
         FieldWidget.cpp
         FieldWrapper.cpp
         ConfigMgr.cpp
@@ -33,6 +32,7 @@ function (bin_comms_champion)
         PluginMgr.cpp
         Plugin.cpp
         icon.cpp
+        MessageHandler.cpp
         widget/MainWindowWidget.cpp
         widget/LeftPaneWidget.cpp
         widget/RightPaneWidget.cpp
@@ -63,6 +63,17 @@ function (bin_comms_champion)
         widget/field/ArrayListFieldWidget.cpp
         widget/field/FloatValueFieldWidget.cpp
         widget/field/UnknownValueFieldWidget.cpp
+        field_wrapper/IntValueWrapper.cpp
+        field_wrapper/BitmaskValueWrapper.cpp
+        field_wrapper/EnumValueWrapper.cpp
+        field_wrapper/StringWrapper.cpp
+        field_wrapper/BitfieldWrapper.cpp
+        field_wrapper/OptionalWrapper.cpp
+        field_wrapper/BundleWrapper.cpp
+        field_wrapper/ArrayListRawDataWrapper.cpp
+        field_wrapper/ArrayListWrapper.cpp
+        field_wrapper/FloatValueWrapper.cpp
+        field_wrapper/UnknownValueWrapper.cpp
     )
     
     set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/../include/comms_champion)
@@ -128,12 +139,7 @@ function (bin_comms_champion)
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)
 
     add_executable(${name} ${src} ${moc} ${ui} ${resources})
-    
-    target_link_libraries(
-        ${name}
-        ${PROTOCOL_LIB_NAME} 
-        Qt5::Widgets Qt5::Core
-    )
+    qt5_use_modules(${name} Widgets Core)
     
     install (
         TARGETS ${name}

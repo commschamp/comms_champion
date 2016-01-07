@@ -40,6 +40,8 @@ class StringWrapper : public FieldWrapper
 {
 public:
 
+    typedef std::unique_ptr<StringWrapper> Ptr;
+
     virtual ~StringWrapper() {}
 
     QString getValue() const
@@ -57,10 +59,18 @@ public:
         return maxSizeImpl();
     }
 
+    Ptr clone()
+    {
+        return cloneImpl();
+    }
+
 protected:
     virtual QString getValueImpl() const = 0;
     virtual void setValueImpl(const QString& val) = 0;
     virtual int maxSizeImpl() const = 0;
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
 };
 
 template <typename TField>
@@ -71,6 +81,7 @@ class StringWrapperT : public FieldWrapperT<StringWrapper, TField>
 
 public:
     using SerialisedSeq = typename Base::SerialisedSeq;
+    using Ptr = typename Base::Ptr;
 
     explicit StringWrapperT(Field& fieldRef)
       : Base(fieldRef)
@@ -108,6 +119,11 @@ protected:
         return maxSizeInternal(SizeExistanceTag());
     }
 
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new StringWrapperT<TField>(Base::field()));
+    }
+
 private:
     struct SizeFieldExistsTag {};
     struct NoSizeFieldTag {};
@@ -142,7 +158,7 @@ private:
     }
 };
 
-using StringWrapperPtr = std::unique_ptr<StringWrapper>;
+using StringWrapperPtr = StringWrapper::Ptr;
 
 template <typename TField>
 StringWrapperPtr

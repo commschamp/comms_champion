@@ -41,6 +41,8 @@ public:
     using Base::FieldWrapper;
     typedef unsigned long long UnderlyingType;
 
+    typedef std::unique_ptr<BundleWrapper> Ptr;
+
     Members& getMembers()
     {
         return m_members;
@@ -56,6 +58,24 @@ public:
         m_members = std::move(members);
     }
 
+    Ptr clone()
+    {
+        Members clonedMembers;
+        clonedMembers.reserve(m_members.size());
+        for (auto& mem : m_members) {
+            clonedMembers.push_back(mem->upClone());
+        }
+
+        auto ptr = cloneImpl();
+        ptr->setMembers(std::move(clonedMembers));
+        return std::move(ptr);
+    }
+
+protected:
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
+
 private:
     Members m_members;
 };
@@ -69,6 +89,8 @@ class BundleWrapperT : public FieldWrapperT<BundleWrapper, TField>
 
     using UnderlyingType = typename Base::UnderlyingType;
 public:
+    typedef typename Base::Ptr Ptr;
+
     explicit BundleWrapperT(Field& fieldRef)
       : Base(fieldRef)
     {
@@ -80,9 +102,14 @@ public:
 
     BundleWrapperT& operator=(const BundleWrapperT&) = delete;
 
+protected:
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new BundleWrapperT(Base::field()));
+    }
 };
 
-using BundleWrapperPtr = std::unique_ptr<BundleWrapper>;
+using BundleWrapperPtr = BundleWrapper::Ptr;
 
 template <typename TField>
 BundleWrapperPtr

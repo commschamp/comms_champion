@@ -28,7 +28,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/MessageInfo.h"
-#include "comms_champion/MessageDisplayHandler.h"
+#include "comms_champion/DefaultMessageDisplayHandler.h"
 
 namespace comms_champion
 {
@@ -51,9 +51,8 @@ signals:
     void sigMsgUpdated();
 
 private:
-    typedef std::unique_ptr<MessageDisplayHandler> MsgDisplayHandlerPtr;
     Ui::MsgDetailsWidget m_ui;
-    MsgDisplayHandlerPtr m_msgDisplayHandler;
+    DefaultMessageDisplayHandler m_msgDisplayHandler;
     MessageWidget* m_displayedMsgWidget = nullptr;
     bool m_editEnabled = true;
 };

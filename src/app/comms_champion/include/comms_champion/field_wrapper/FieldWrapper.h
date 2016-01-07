@@ -37,10 +37,13 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+class FieldWrapperHandler;
 class FieldWrapper
 {
 public:
     typedef std::vector<std::uint8_t> SerialisedSeq;
+
+    typedef std::unique_ptr<FieldWrapper> BasePtr;
 
     virtual ~FieldWrapper() {};
 
@@ -73,11 +76,23 @@ public:
 
     bool setSerialisedString(const QString& str);
 
+    void dispatch(FieldWrapperHandler& handler)
+    {
+        dispatchImpl(handler);
+    }
+
+    BasePtr upClone()
+    {
+        return upCloneImpl();
+    }
+
 protected:
     virtual std::size_t lengthImpl() const = 0;
     virtual bool validImpl() const = 0;
     virtual SerialisedSeq getSerialisedValueImpl() const = 0;
     virtual bool setSerialisedValueImpl(const SerialisedSeq& value) = 0;
+    virtual void dispatchImpl(FieldWrapperHandler& handler) = 0;
+    virtual BasePtr upCloneImpl() = 0;
 };
 
 template <typename TBase, typename TField>
@@ -87,6 +102,8 @@ class FieldWrapperT : public TBase
     using Field = TField;
 public:
     typedef typename Base::SerialisedSeq SerialisedSeq;
+    typedef typename Base::BasePtr BasePtr;
+
     virtual ~FieldWrapperT() = default;
 
 protected:
@@ -139,11 +156,16 @@ protected:
         return es == comms::ErrorStatus::Success;
     }
 
+    virtual BasePtr upCloneImpl() override
+    {
+        return static_cast<Base*>(this)->clone();
+    }
+
 private:
     Field& m_field;
 };
 
-typedef std::unique_ptr<FieldWrapper> FieldWrapperPtr;
+typedef FieldWrapper::BasePtr FieldWrapperPtr;
 
 }  // namespace field_wrapper
 

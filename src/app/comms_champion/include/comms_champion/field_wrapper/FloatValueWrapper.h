@@ -37,10 +37,21 @@ class FloatValueWrapper : public NumericValueWrapper<double>
 public:
 
     typedef typename Base::UnderlyingType UnderlyingType;
+    typedef std::unique_ptr<FloatValueWrapper> Ptr;
 
     using Base::NumericValueWrapper;
 
     virtual ~FloatValueWrapper() {}
+
+    Ptr clone()
+    {
+        return cloneImpl();
+    }
+
+protected:
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
 
 };
 
@@ -54,6 +65,7 @@ class FloatValueWrapperT : public NumericValueWrapperT<FloatValueWrapper, TField
 public:
 
     typedef typename Base::UnderlyingType UnderlyingType;
+    typedef typename Base::Ptr Ptr;
 
     explicit FloatValueWrapperT(Field& fieldRef)
       : Base(fieldRef)
@@ -65,9 +77,15 @@ public:
     virtual ~FloatValueWrapperT() = default;
 
     FloatValueWrapperT& operator=(const FloatValueWrapperT&) = delete;
+
+protected:
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new FloatValueWrapperT<TField>(Base::field()));
+    }
 };
 
-using FloatValueWrapperPtr = std::unique_ptr<FloatValueWrapper>;
+using FloatValueWrapperPtr = FloatValueWrapper::Ptr;
 
 template <typename TField>
 FloatValueWrapperPtr

@@ -35,6 +35,8 @@ namespace field_wrapper
 class BitmaskValueWrapper : public NumericValueWrapper<unsigned long long>
 {
 public:
+    typedef std::unique_ptr<BitmaskValueWrapper> Ptr;
+
     bool bitValue(unsigned idx) const
     {
         return bitValueImpl(idx);
@@ -50,10 +52,18 @@ public:
         return bitIdxLimitImpl();
     }
 
+    Ptr clone()
+    {
+        return cloneImpl();
+    }
+
 protected:
     virtual bool bitValueImpl(unsigned idx) const = 0;
     virtual void setBitValueImpl(unsigned idx, bool value) = 0;
     virtual unsigned bitIdxLimitImpl() const = 0;
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
 };
 
 template <typename TField>
@@ -68,6 +78,8 @@ class BitmaskValueWrapperT : public NumericValueWrapperT<BitmaskValueWrapper, TF
     static_assert(sizeof(ValueType) <= sizeof(MaskType), "This wrapper cannot handle provided field.");
 
 public:
+    typedef typename Base::Ptr Ptr;
+
     explicit BitmaskValueWrapperT(Field& fieldRef)
       : Base(fieldRef)
     {
@@ -94,9 +106,14 @@ protected:
     {
         return std::numeric_limits<ValueType>::digits;
     }
+
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new BitmaskValueWrapperT<TField>(Base::field()));
+    }
 };
 
-using BitmaskValueWrapperPtr = std::unique_ptr<BitmaskValueWrapper>;
+using BitmaskValueWrapperPtr = BitmaskValueWrapper::Ptr;
 
 template <typename TField>
 BitmaskValueWrapperPtr

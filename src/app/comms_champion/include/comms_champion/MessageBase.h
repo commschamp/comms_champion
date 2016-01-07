@@ -27,7 +27,7 @@
 #include "comms/comms.h"
 
 #include "Message.h"
-#include "DefaultMessageDisplayHandler.h"
+#include "MessageHandler.h"
 
 namespace comms_champion
 {
@@ -38,7 +38,7 @@ class MessageBase :
         public TMessageBase<
             comms::option::ReadIterator<const std::uint8_t*>,
             comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
-            comms::option::Handler<DefaultMessageDisplayHandler>,
+            comms::option::Handler<MessageHandler>,
             comms::option::ValidCheckInterface,
             comms::option::LengthInfoInterface,
             TOptions...>
@@ -48,7 +48,7 @@ class MessageBase :
         TMessageBase<
             comms::option::ReadIterator<const std::uint8_t*>,
             comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
-            comms::option::Handler<DefaultMessageDisplayHandler>,
+            comms::option::Handler<MessageHandler>,
             comms::option::ValidCheckInterface,
             comms::option::LengthInfoInterface,
             TOptions...>;
@@ -71,13 +71,6 @@ public:
         return *this;
     }
 protected:
-    virtual void displayImpl(MessageDisplayHandler& handler) override
-    {
-        auto* castedHandler = dynamic_cast<Handler*>(&handler);
-        if (castedHandler != nullptr) {
-            CommsBase::dispatch(*castedHandler);
-        }
-    }
 
     virtual bool isValidImpl() const override
     {

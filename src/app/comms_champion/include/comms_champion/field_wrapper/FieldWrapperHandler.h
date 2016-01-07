@@ -1,9 +1,9 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
@@ -18,14 +18,22 @@
 
 #pragma once
 
-#include "CompileControl.h"
-#include "ErrorStatus.h"
-#include "Assert.h"
-#include "Message.h"
-#include "EmptyHandler.h"
-#include "GenericHandler.h"
-#include "MessageBase.h"
-#include "MsgFactory.h"
-#include "fields.h"
-#include "protocols.h"
-#include "field_cast.h"
+#include "comms/comms.h"
+#include "FieldWrapper.h"
+#include "AllWrappers.h"
+
+namespace comms_champion
+{
+
+namespace field_wrapper
+{
+
+class FieldWrapperHandler : public comms::GenericHandler<FieldWrapper, AllWrappers>
+{
+};
+
+}  // namespace field_wrapper
+
+}  // namespace comms_champion
+
+

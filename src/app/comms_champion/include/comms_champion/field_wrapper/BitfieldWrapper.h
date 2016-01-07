@@ -40,6 +40,7 @@ public:
 
     using Base::FieldWrapper;
     typedef unsigned long long UnderlyingType;
+    typedef std::unique_ptr<BitfieldWrapper> Ptr;
 
     Members& getMembers()
     {
@@ -56,6 +57,16 @@ public:
         m_members = std::move(members);
     }
 
+    Ptr clone()
+    {
+        return cloneImpl();
+    }
+
+protected:
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
+
 private:
     Members m_members;
 };
@@ -69,6 +80,8 @@ class BitfieldWrapperT : public FieldWrapperT<BitfieldWrapper, TField>
 
     using UnderlyingType = typename Base::UnderlyingType;
 public:
+    typedef typename Base::Ptr Ptr;
+
     explicit BitfieldWrapperT(Field& fieldRef)
       : Base(fieldRef)
     {
@@ -80,9 +93,15 @@ public:
 
     BitfieldWrapperT& operator=(const BitfieldWrapperT&) = delete;
 
+protected:
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new BitfieldWrapperT<TField>(Base::field()));
+    }
+
 };
 
-using BitfieldWrapperPtr = std::unique_ptr<BitfieldWrapper>;
+using BitfieldWrapperPtr = BitfieldWrapper::Ptr;
 
 template <typename TField>
 BitfieldWrapperPtr

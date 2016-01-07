@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -30,56 +30,27 @@ CC_ENABLE_WARNINGS()
 #include "comms/comms.h"
 
 #include "comms_champion/Message.h"
-#include "comms_champion/MessageDisplayHandler.h"
+#include "comms_champion/MessageHandler.h"
 #include "comms_champion/DefaultMessageWidget.h"
-#include "comms_champion/FieldWidgetCreator.h"
 
 namespace comms_champion
 {
 
-class DefaultMessageDisplayHandler : public MessageDisplayHandler
+class DefaultMessageDisplayHandler : public MessageHandler
 {
 public:
+    using MsgWidgetPtr = std::unique_ptr<MessageWidget>;
 
-    template <typename TMessage>
-    void handle(TMessage& msg)
-    {
-        auto& fields = msg.fields();
-        comms::util::tupleForEach(
-            fields,
-            FieldsDisplayDispatcher(
-                [this](FieldWidgetPtr fieldWidget)
-                {
-                    m_widget->addFieldWidget(fieldWidget.release());
-                }));
-    }
+    ~DefaultMessageDisplayHandler();
+
+    MsgWidgetPtr getMsgWidget();
 
 protected:
 
-    virtual MsgWidgetPtr createMsgWidgetImpl(Message& msg) override;
+    virtual void beginMsgHandlingImpl(Message& msg) override;
+    virtual void addFieldImpl(FieldWrapperPtr wrapper) override;
 
 private:
-
-    class FieldsDisplayDispatcher
-    {
-    public:
-        typedef std::function <void (FieldWidgetPtr)> WidgetDispatchFunc;
-        FieldsDisplayDispatcher(WidgetDispatchFunc&& dispatchOp)
-          : m_dispatchOp(std::move(dispatchOp))
-        {
-        }
-
-        template <typename TField>
-        void operator()(TField&& field)
-        {
-            auto fieldWidget =
-                FieldWidgetCreator::createWidget(std::forward<TField>(field));
-            m_dispatchOp(std::move(fieldWidget));
-        }
-
-    private:
-        WidgetDispatchFunc m_dispatchOp;
-    };
 
     using DefaultMsgWidgetPtr = std::unique_ptr<DefaultMessageWidget>;
     DefaultMsgWidgetPtr m_widget;

@@ -33,6 +33,7 @@ namespace field_wrapper
 class OptionalWrapper : public FieldWrapper
 {
 public:
+    typedef std::unique_ptr<OptionalWrapper> Ptr;
     typedef comms::field::OptionalMode Mode;
 
     virtual ~OptionalWrapper() = default;
@@ -68,9 +69,19 @@ public:
         m_fieldWrapper = std::move(fieldWrapper);
     }
 
+    Ptr clone()
+    {
+        auto ptr = cloneImpl();
+        ptr->setFieldWrapper(m_fieldWrapper->upClone());
+        return std::move(ptr);
+    }
+
 protected:
     virtual Mode getModeImpl() const = 0;
     virtual void setModeImpl(Mode mode) = 0;
+    virtual Ptr cloneImpl() = 0;
+
+    void dispatchImpl(FieldWrapperHandler& handler);
 
 private:
     FieldWrapperPtr m_fieldWrapper;
@@ -83,6 +94,7 @@ class OptionalWrapperT : public FieldWrapperT<OptionalWrapper, TField>
 public:
 
     typedef typename Base::Mode Mode;
+    typedef typename Base::Ptr Ptr;
 
     typedef TField Field;
     explicit OptionalWrapperT(Field& fieldRef)
@@ -100,9 +112,14 @@ protected:
     {
         Base::field().setMode(mode);
     }
+
+    virtual Ptr cloneImpl() override
+    {
+        return Ptr(new OptionalWrapperT<TField>(Base::field()));
+    }
 };
 
-using OptionalWrapperPtr = std::unique_ptr<OptionalWrapper>;
+using OptionalWrapperPtr = OptionalWrapper::Ptr;
 
 template <typename TField>
 OptionalWrapperPtr

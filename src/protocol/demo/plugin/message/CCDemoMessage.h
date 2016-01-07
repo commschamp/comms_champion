@@ -21,7 +21,7 @@
 #include <vector>
 #include <iterator>
 
-#include "comms_champion/MessageBase.h"
+#include "comms_champion/comms_champion.h"
 #include "protocol/DemoMessage.h"
 
 namespace demo

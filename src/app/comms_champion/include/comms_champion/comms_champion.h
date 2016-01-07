@@ -20,6 +20,7 @@
 
 #include "version.h"
 #include "Message.h"
+#include "MessageHandler.h"
 #include "MessageBase.h"
 #include "ErrorStatus.h"
 #include "Protocol.h"
@@ -32,4 +33,4 @@
 #include "ProtocolMessageBase.h"
 #include "TransportMessageBase.h"
 #include "RawDataMessage.h"
-#include "FieldWidgetCreator.h"
+#include "field_wrapper/FieldWrapperHandler.h"

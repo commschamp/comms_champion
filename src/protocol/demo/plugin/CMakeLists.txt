@@ -43,7 +43,7 @@ function (plugin_demo)
         ${hdr}
     )
     
-    add_library (${name} SHARED ${src} ${moc})
+    add_library (${name} MODULE ${src} ${moc})
     qt5_use_modules(${name} Widgets Core)
     
     install (

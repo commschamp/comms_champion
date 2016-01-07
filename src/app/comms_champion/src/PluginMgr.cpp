@@ -267,7 +267,7 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
         }
 
         if (m_appliedPlugins.empty() || reapply) {
-            pluginPtr->apply(PluginControlInterface(*ctrlInterface));
+            pluginPtr->apply(*ctrlInterface);
         }
     }
 

@@ -8,6 +8,7 @@ set (ICON_INSTALL_DIR ${INSTALL_DIR}/icon)
 
 include_directories (
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/comms/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/comms_champion/include
 )
 
 add_subdirectory (lib)
@@ -15,11 +16,6 @@ add_subdirectory (lib)
 if (CC_COMMS_LIB_ONLY)
     return ()
 endif ()
-
-
-include_directories (
-    ${CMAKE_CURRENT_SOURCE_DIR}/app/comms_champion/include
-)
 
 add_subdirectory (app)
 add_subdirectory (protocol)

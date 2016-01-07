@@ -41,50 +41,29 @@ class Plugin : public QObject
 public:
     typedef std::unique_ptr<QWidget> WidgetPtr;
 
-    virtual ~Plugin() = default;
+    Plugin();
+    virtual ~Plugin();
 
-    bool isApplied() const
-    {
-        return m_applied;
-    }
+    bool isApplied() const;
 
-    void apply(PluginControlInterface controlInterface)
-    {
-        assert(!isApplied());
-        m_ctrlInterface.reset(new PluginControlInterface(controlInterface));
-        applyImpl();
-        m_applied = true;
-    }
+    void apply(PluginControlInterface& controlInterface);
 
-    void getCurrentConfig(QVariantMap& config)
-    {
-        getCurrentConfigImpl(config);
-    }
+    void getCurrentConfig(QVariantMap& config);
 
-    void reconfigure(const QVariantMap& config) {
-        reconfigureImpl(config);
-    }
+    void reconfigure(const QVariantMap& config);
 
-    WidgetPtr getConfigWidget()
-    {
-        return getConfigWidgetImpl();
-    }
+    WidgetPtr getConfigWidget();
 
 protected:
-    typedef std::unique_ptr<PluginControlInterface> PluginControlInterfacePtr;
-
     virtual void applyImpl() = 0;
     virtual void getCurrentConfigImpl(QVariantMap& config);
     virtual void reconfigureImpl(const QVariantMap& config);
     virtual WidgetPtr getConfigWidgetImpl();
 
-    PluginControlInterfacePtr& getCtrlInterface()
-    {
-        return m_ctrlInterface;
-    }
+    PluginControlInterface& getCtrlInterface();
 
 private:
-    PluginControlInterfacePtr m_ctrlInterface;
+    PluginControlInterface* m_ctrlInterface = nullptr;
     bool m_applied = false;
 };
 

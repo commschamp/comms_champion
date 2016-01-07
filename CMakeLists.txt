@@ -54,4 +54,7 @@ elseif (MSVC)
     endif ()
 endif ()
 
+set (COMMS_CHAMPION_LIB_NAME "comms_champion")
+set (COMMS_CHAMPION_LIB_TGT "${COMMS_CHAMPION_LIB_NAME}.lib")
+
 add_subdirectory (src)

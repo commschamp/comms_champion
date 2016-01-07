@@ -48,9 +48,8 @@ ServerSocketPlugin::~ServerSocketPlugin()
 {
     if (isApplied()) {
         auto& interface = getCtrlInterface();
-        assert(interface);
         assert(m_socket);
-        interface->clearSocket();
+        interface.clearSocket();
         m_socket.reset();
     }
 }
@@ -61,9 +60,7 @@ void ServerSocketPlugin::applyImpl()
     createSocketIfNeeded();
 
     auto& interface = getCtrlInterface();
-    if (interface) {
-        interface->setSocket(m_socket);
-    }
+    interface.setSocket(m_socket);
     assert(m_socket);
 }
 
@@ -114,7 +111,6 @@ void ServerSocketPlugin::createSocketIfNeeded()
 }  // namespace tcp_socket
 
 }  // namespace plugin
-
 
 }  // namespace comms_champion
 

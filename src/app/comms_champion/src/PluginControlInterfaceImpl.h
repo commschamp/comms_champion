@@ -27,11 +27,12 @@ CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Protocol.h"
 #include "comms_champion/Socket.h"
+#include "comms_champion/PluginControlInterface.h"
 
 namespace comms_champion
 {
 
-class PluginControlInterfaceImpl : public QObject
+class PluginControlInterfaceImpl : public QObject, public PluginControlInterface
 {
     Q_OBJECT
 public:
@@ -39,28 +40,16 @@ public:
 
     PluginControlInterfaceImpl();
 
-    void setProtocol(ProtocolPtr protocol)
-    {
-        setProtocolImpl(std::move(protocol));
-    }
+    virtual void setProtocol(ProtocolPtr protocol) override;
 
-    void clearProtocol()
-    {
-        clearProtocolImpl();
-    }
+    virtual void clearProtocol() override;
 
-    void setSocket(SocketPtr socket)
-    {
-        setSocketImpl(std::move(socket));
-    }
+    virtual void setSocket(SocketPtr socket) override;
 
-    void clearSocket()
-    {
-        clearSocketImpl();
-    }
+    virtual void clearSocket() override;
 
-    void addMainToolbarAction(ActionPtr action);
-    void removeMainToolbarAction(ActionPtr action);
+    virtual void addMainToolbarAction(ActionPtr action) override;
+    virtual void removeMainToolbarAction(ActionPtr action) override;
 
 signals:
     void sigSetProtocol(ProtocolPtr protocol);
@@ -69,10 +58,6 @@ signals:
     void sigRemoveMainToolbarAction(ActionPtr action);
 
 protected:
-    virtual void setProtocolImpl(ProtocolPtr protocol);
-    virtual void clearProtocolImpl();
-    virtual void setSocketImpl(SocketPtr socket);
-    virtual void clearSocketImpl();
 
     void emitSigSetProtocol(ProtocolPtr protocol);
     void emitSigSetSocket(SocketPtr socket);

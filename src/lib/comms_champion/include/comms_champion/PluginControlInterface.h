@@ -15,25 +15,39 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "comms_champion/Plugin.h"
+
+#pragma once
+
+#include <memory>
+
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
+#include <QtWidgets/QAction>
+CC_ENABLE_WARNINGS()
+
+#include "Protocol.h"
+#include "Socket.h"
 
 namespace comms_champion
 {
 
-void Plugin::getCurrentConfigImpl(QVariantMap& config)
+class PluginControlInterface
 {
-    static_cast<void>(config);
-}
+public:
+    typedef std::shared_ptr<QAction> ActionPtr;
 
-void Plugin::reconfigureImpl(const QVariantMap& config)
-{
-    static_cast<void>(config);
-}
+    PluginControlInterface();
+    PluginControlInterface(const PluginControlInterface&);
+    virtual ~PluginControlInterface();
 
-Plugin::WidgetPtr Plugin::getConfigWidgetImpl()
-{
-    return WidgetPtr();
-}
+    virtual void setProtocol(ProtocolPtr protocol) = 0;
+    virtual void clearProtocol() = 0;
+    virtual void setSocket(SocketPtr socket) = 0;
+    virtual void clearSocket() = 0;
+    virtual void addMainToolbarAction(ActionPtr action) = 0;
+    virtual void removeMainToolbarAction(ActionPtr action) = 0;
+};
 
 }  // namespace comms_champion
 

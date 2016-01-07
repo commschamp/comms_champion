@@ -25,9 +25,9 @@ namespace comms_champion
 
 class PluginControlInterfaceProtocol : public PluginControlInterfaceImpl
 {
-protected:
-    virtual void setProtocolImpl(ProtocolPtr protocol) override;
-    virtual void clearProtocolImpl() override;
+public:
+    virtual void setProtocol(ProtocolPtr protocol) override;
+    virtual void clearProtocol() override;
 };
 
 }  // namespace comms_champion

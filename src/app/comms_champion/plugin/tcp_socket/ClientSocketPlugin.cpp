@@ -48,13 +48,12 @@ ClientSocketPlugin::~ClientSocketPlugin()
 {
     if (isApplied()) {
         auto& interface = getCtrlInterface();
-        assert(interface);
         assert(m_socket);
-        interface->clearSocket();
+        interface.clearSocket();
         m_socket.reset();
 
         assert(m_connectAction);
-        interface->removeMainToolbarAction(m_connectAction);
+        interface.removeMainToolbarAction(m_connectAction);
     }
 }
 
@@ -65,11 +64,8 @@ void ClientSocketPlugin::applyImpl()
     createConnectIconIfNeeded();
 
     auto& interface = getCtrlInterface();
-    if (interface) {
-        interface->setSocket(m_socket);
-        interface->addMainToolbarAction(m_connectAction);
-    }
-
+    interface.setSocket(m_socket);
+    interface.addMainToolbarAction(m_connectAction);
     assert(m_socket);
 }
 

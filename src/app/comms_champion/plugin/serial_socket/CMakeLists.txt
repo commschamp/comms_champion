@@ -49,7 +49,7 @@ function (plugin_serial_socket)
         SerialSocketConfigWidget.ui
     )
     
-    add_library (${name} SHARED ${src} ${moc} ${ui})
+    add_library (${name} MODULE ${src} ${moc} ${ui})
     qt5_use_modules(${name} SerialPort Widgets Core)
     
     install (

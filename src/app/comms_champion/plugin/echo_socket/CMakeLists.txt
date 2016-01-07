@@ -31,7 +31,7 @@ function (plugin_echo_socket)
         ${hdr}
     )
     
-    add_library (${name} SHARED ${src} ${moc})
+    add_library (${name} MODULE ${src} ${moc})
     qt5_use_modules(${name} Core)
     
     install (

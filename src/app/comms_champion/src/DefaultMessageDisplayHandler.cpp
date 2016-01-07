@@ -123,15 +123,18 @@ public:
                 WidgetCreator otherCreator;
                 auto& memWrappers = wrap.getMembers();
                 allFieldsWidgets.reserve(memWrappers.size());
+                assert(memWrappers.size() == wrap.size());
 
                 for (auto& memWrap : memWrappers) {
                     memWrap->dispatch(otherCreator);
                     allFieldsWidgets.push_back(otherCreator.getWidget());
                 }
 
+                assert(allFieldsWidgets.size() == wrap.size());
                 return allFieldsWidgets;
             };
 
+        assert(wrapper.size() == wrapper.getMembers().size());
         m_widget.reset(new ArrayListFieldWidget(wrapper.clone(), std::move(createMembersWidgetsFunc)));
     }
 

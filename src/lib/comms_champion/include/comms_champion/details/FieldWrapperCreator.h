@@ -188,6 +188,8 @@ private:
             {
                 return FieldWrapperCreator::createWrapper(memField);
             });
+
+        wrapper->refreshMembers();
         return std::move(wrapper);
     }
 

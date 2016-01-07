@@ -92,7 +92,13 @@ public:
         ptr->setMembers(std::move(clonedMembers));
         assert(size() == ptr->size());
         assert(getMembers().size() == ptr->getMembers().size());
+        assert(size() == getMembers().size());
         return std::move(ptr);
+    }
+
+    void refreshMembers()
+    {
+        refreshMembersImpl();
     }
 
 protected:
@@ -101,6 +107,7 @@ protected:
     virtual unsigned sizeImpl() const = 0;
     virtual bool hasFixedSizeImpl() const = 0;
     virtual Ptr cloneImpl() = 0;
+    virtual void refreshMembersImpl() = 0;
 
     void dispatchImpl(FieldWrapperHandler& handler);
 
@@ -199,9 +206,7 @@ protected:
 
     virtual unsigned sizeImpl() const override
     {
-        auto val = Base::field().value().size();
-        assert(val == Base::getMembers().size());
-        return val;
+        return Base::field().value().size();
     }
 
     virtual bool hasFixedSizeImpl() const override
@@ -214,6 +219,21 @@ protected:
         std::unique_ptr<ArrayListWrapperT<TField> > ptr(new ArrayListWrapperT(Base::field()));
         ptr->m_wrapFieldFunc = m_wrapFieldFunc;
         return std::move(ptr);
+    }
+
+    virtual void refreshMembersImpl() override
+    {
+        if (!m_wrapFieldFunc) {
+            assert(!"Expected to have callback");
+        }
+
+        auto& storage = Base::field().value();
+        auto& mems = Base::getMembers();
+        mems.clear();
+        mems.reserve(storage.size());
+        for (auto& f : storage) {
+            mems.push_back(m_wrapFieldFunc(f));
+        }
     }
 
 private:

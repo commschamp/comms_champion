@@ -110,6 +110,8 @@ void ArrayListFieldWidget::refreshImpl()
         m_elements.pop_back();
     }
 
+    m_wrapper->refreshMembers();
+
     refreshInternal();
     addMissingFields();
     assert(m_elements.size() == m_wrapper->size());

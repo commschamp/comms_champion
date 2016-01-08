@@ -59,7 +59,15 @@ public:
 
     Ptr clone()
     {
-        return cloneImpl();
+        Members clonedMembers;
+        clonedMembers.reserve(m_members.size());
+        for (auto& mem : m_members) {
+            clonedMembers.push_back(mem->upClone());
+        }
+
+        auto ptr = cloneImpl();
+        ptr->setMembers(std::move(clonedMembers));
+        return std::move(ptr);
     }
 
 protected:

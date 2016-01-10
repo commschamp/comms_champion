@@ -52,7 +52,7 @@ SerialSocketPlugin::SerialSocketPlugin()
 SerialSocketPlugin::~SerialSocketPlugin()
 {
     if (isApplied()) {
-        auto& interface = getCtrlInterface();
+        auto& interface = ctrlInterface();
         assert(m_socket);
         interface.clearSocket();
         m_socket.reset();
@@ -61,10 +61,9 @@ SerialSocketPlugin::~SerialSocketPlugin()
 
 void SerialSocketPlugin::applyImpl()
 {
-    assert(!isApplied());
     createSocketIfNeeded();
 
-    auto& interface = getCtrlInterface();
+    auto& interface = ctrlInterface();
     interface.setSocket(m_socket);
     assert(m_socket);
 }

@@ -47,7 +47,7 @@ ServerSocketPlugin::ServerSocketPlugin()
 ServerSocketPlugin::~ServerSocketPlugin()
 {
     if (isApplied()) {
-        auto& interface = getCtrlInterface();
+        auto& interface = ctrlInterface();
         assert(m_socket);
         interface.clearSocket();
         m_socket.reset();
@@ -56,10 +56,9 @@ ServerSocketPlugin::~ServerSocketPlugin()
 
 void ServerSocketPlugin::applyImpl()
 {
-    assert(!isApplied());
     createSocketIfNeeded();
 
-    auto& interface = getCtrlInterface();
+    auto& interface = ctrlInterface();
     interface.setSocket(m_socket);
     assert(m_socket);
 }

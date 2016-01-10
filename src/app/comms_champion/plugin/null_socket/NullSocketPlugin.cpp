@@ -46,7 +46,7 @@ NullSocketPlugin::NullSocketPlugin()
 NullSocketPlugin::~NullSocketPlugin()
 {
     if (isApplied()) {
-        auto& interface = getCtrlInterface();
+        auto& interface = ctrlInterface();
         assert(m_socket);
         interface.clearSocket();
         m_socket.reset();
@@ -55,8 +55,7 @@ NullSocketPlugin::~NullSocketPlugin()
 
 void NullSocketPlugin::applyImpl()
 {
-    assert(!isApplied());
-    auto& interface = getCtrlInterface();
+    auto& interface = ctrlInterface();
     m_socket = makeNullSocket();
     interface.setSocket(m_socket);
     assert(m_socket);

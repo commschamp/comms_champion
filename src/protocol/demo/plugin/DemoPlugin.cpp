@@ -34,7 +34,7 @@ DemoPlugin::DemoPlugin()
 DemoPlugin::~DemoPlugin()
 {
     if (isApplied()) {
-        auto& interface = getCtrlInterface();
+        auto& interface = ctrlInterface();
         interface.clearProtocol();
     }
 }
@@ -42,7 +42,7 @@ DemoPlugin::~DemoPlugin()
 
 void DemoPlugin::applyImpl()
 {
-    auto& interface = getCtrlInterface();
+    auto& interface = ctrlInterface();
     interface.setProtocol(cc::ProtocolPtr(new Protocol()));
 }
 

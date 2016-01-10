@@ -46,7 +46,7 @@ EchoSocketPlugin::EchoSocketPlugin()
 EchoSocketPlugin::~EchoSocketPlugin()
 {
     if (isApplied()) {
-        auto& interface = getCtrlInterface();
+        auto& interface = ctrlInterface();
         assert(m_socket);
         interface.clearSocket();
         m_socket.reset();
@@ -55,8 +55,7 @@ EchoSocketPlugin::~EchoSocketPlugin()
 
 void EchoSocketPlugin::applyImpl()
 {
-    assert(!isApplied());
-    auto& interface = getCtrlInterface();
+    auto& interface = ctrlInterface();
     m_socket = makeEchoSocket();
     interface.setSocket(m_socket);
     assert(m_socket);

@@ -25,7 +25,7 @@ Plugin::~Plugin() = default;
 
 bool Plugin::isApplied() const
 {
-    return m_applied;
+    return m_ctrlInterface != nullptr;
 }
 
 void Plugin::apply(PluginControlInterface& controlInterface)
@@ -33,12 +33,18 @@ void Plugin::apply(PluginControlInterface& controlInterface)
     assert(!isApplied());
     m_ctrlInterface = &controlInterface;
     applyImpl();
-    m_applied = true;
 }
 
 void Plugin::getCurrentConfig(QVariantMap& config)
 {
     getCurrentConfigImpl(config);
+}
+
+QVariantMap Plugin::getCurrentConfig()
+{
+    QVariantMap config;
+    getCurrentConfig(config);
+    return config;
 }
 
 void Plugin::reconfigure(const QVariantMap& config)
@@ -66,9 +72,9 @@ Plugin::WidgetPtr Plugin::getConfigWidgetImpl()
     return WidgetPtr();
 }
 
-PluginControlInterface& Plugin::getCtrlInterface()
+PluginControlInterface& Plugin::ctrlInterface()
 {
-    assert(m_ctrlInterface != nullptr);
+    assert(isApplied());
     return *m_ctrlInterface;
 }
 

@@ -50,6 +50,8 @@ public:
 
     void getCurrentConfig(QVariantMap& config);
 
+    QVariantMap getCurrentConfig();
+
     void reconfigure(const QVariantMap& config);
 
     WidgetPtr getConfigWidget();
@@ -60,11 +62,10 @@ protected:
     virtual void reconfigureImpl(const QVariantMap& config);
     virtual WidgetPtr getConfigWidgetImpl();
 
-    PluginControlInterface& getCtrlInterface();
+    PluginControlInterface& ctrlInterface();
 
 private:
     PluginControlInterface* m_ctrlInterface = nullptr;
-    bool m_applied = false;
 };
 
 }  // namespace comms_champion

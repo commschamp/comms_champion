@@ -47,7 +47,7 @@ ClientSocketPlugin::ClientSocketPlugin()
 ClientSocketPlugin::~ClientSocketPlugin()
 {
     if (isApplied()) {
-        auto& interface = getCtrlInterface();
+        auto& interface = ctrlInterface();
         assert(m_socket);
         interface.clearSocket();
         m_socket.reset();
@@ -59,11 +59,10 @@ ClientSocketPlugin::~ClientSocketPlugin()
 
 void ClientSocketPlugin::applyImpl()
 {
-    assert(!isApplied());
     createSocketIfNeeded();
     createConnectIconIfNeeded();
 
-    auto& interface = getCtrlInterface();
+    auto& interface = ctrlInterface();
     interface.setSocket(m_socket);
     interface.addMainToolbarAction(m_connectAction);
     assert(m_socket);

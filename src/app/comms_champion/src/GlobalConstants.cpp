@@ -23,12 +23,6 @@
 namespace comms_champion
 {
 
-//GlobalConstants* GlobalConstants::instance()
-//{
-//    static std::unique_ptr<GlobalConstants> obj(new GlobalConstants());
-//    return obj.get();
-//}
-
 const char* GlobalConstants::indexPropertyName()
 {
     static const char* str = "index";

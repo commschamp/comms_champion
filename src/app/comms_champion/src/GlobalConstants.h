@@ -30,18 +30,6 @@ namespace comms_champion
 class GlobalConstants
 {
 public:
-
-//    enum class State
-//    {
-//        Waiting,
-//        Running,
-//        Sending,
-//        SendingAll,
-//        NumOfStates // Must be last
-//    };
-
-//    static GlobalConstants* instance();
-
     static const char* indexPropertyName();
     static const char* msgNumberPropertyName();
     static const char* msgObjPropertyName();

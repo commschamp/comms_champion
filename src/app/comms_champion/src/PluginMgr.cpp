@@ -325,6 +325,11 @@ void PluginMgr::start()
         return;
     }
 
+    QFile configFile(filename);
+    if (!configFile.exists()) {
+        return;
+    }
+
     auto& configMgr = ConfigMgr::instanceRef();
     auto config = configMgr.loadConfig(filename, false);
     if (config.isEmpty()) {
@@ -337,6 +342,20 @@ void PluginMgr::start()
     }
     apply(plugins);
 }
+
+void PluginMgr::clean()
+{
+    auto filename = getAddDataStoragePath(false);
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    QFile file(filename);
+    if (file.exists()) {
+        file.remove();
+    }
+}
+
 
 PluginMgr::PluginControls::PluginControls()
 {

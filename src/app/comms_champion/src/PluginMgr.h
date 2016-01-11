@@ -112,6 +112,7 @@ public:
     static QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos);
     static WidgetPtr getPluginConfigWidget(const PluginInfo& info);
     void start();
+    void clean();
 
 signals:
     void sigStateChanged(int value);

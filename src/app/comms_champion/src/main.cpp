@@ -23,6 +23,8 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QApplication>
 #include <QtCore/QPluginLoader>
 #include <QtCore/QDir>
+#include <QtCore/QCommandLineParser>
+#include <QtCore/QStringList>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/comms_champion.h"
@@ -34,11 +36,12 @@ CC_ENABLE_WARNINGS()
 #include "widget/MainWindowWidget.h"
 #include "icon.h"
 
+namespace cc = comms_champion;
 
 namespace
 {
 
-namespace cc = comms_champion;
+const QString CleanOptStr("clean");
 
 void metaTypesRegisterAll()
 {
@@ -57,6 +60,17 @@ void initSingletons()
     static_cast<void>(cc::PluginMgr::instanceRef());
 }
 
+void prepareCommandLineOptions(QCommandLineParser& parser)
+{
+    parser.addHelpOption();
+
+    QCommandLineOption cleanOpt(
+        QStringList() << "c" << CleanOptStr,
+        QCoreApplication::translate("main", "Clean start.")
+    );
+    parser.addOption(cleanOpt);
+}
+
 }  // namespace
 
 int main(int argc, char *argv[])
@@ -65,6 +79,10 @@ int main(int argc, char *argv[])
 
     initSingletons();
     metaTypesRegisterAll();
+
+    QCommandLineParser parser;
+    prepareCommandLineOptions(parser);
+    parser.process(app);
 
     cc::MainWindowWidget window;
     window.setWindowIcon(cc::icon::appIcon());
@@ -81,6 +99,11 @@ int main(int argc, char *argv[])
 
     auto& pluginMgr = cc::PluginMgr::instanceRef();
     pluginMgr.setPluginsDir(dir.path());
+
+    if (parser.isSet(CleanOptStr)) {
+        pluginMgr.clean();
+    }
+
     pluginMgr.start();
 
     auto retval = app.exec();

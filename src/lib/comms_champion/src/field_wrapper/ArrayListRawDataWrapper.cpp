@@ -25,6 +25,35 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+ArrayListRawDataWrapper::ArrayListRawDataWrapper() {}
+
+ArrayListRawDataWrapper::~ArrayListRawDataWrapper() {}
+
+QString ArrayListRawDataWrapper::getValue() const
+{
+    return getValueImpl();
+}
+
+void ArrayListRawDataWrapper::setValue(const QString& val)
+{
+    setValueImpl(val);
+}
+
+int ArrayListRawDataWrapper::maxSize() const
+{
+    return maxSizeImpl();
+}
+
+int ArrayListRawDataWrapper::minSize() const
+{
+    return minSizeImpl();
+}
+
+ArrayListRawDataWrapper::Ptr ArrayListRawDataWrapper::clone()
+{
+    return cloneImpl();
+}
+
 void ArrayListRawDataWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

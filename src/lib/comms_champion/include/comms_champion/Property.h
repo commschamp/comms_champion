@@ -26,10 +26,12 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantMap>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
+
 namespace comms_champion
 {
 
-class Property
+class CC_API Property
 {
 public:
     static QVariantMap createPropertiesMap(const QString& name);

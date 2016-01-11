@@ -293,8 +293,8 @@ struct IsString
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsString<comms::field::String<TArgs...> >
+template <typename TFieldBase, typename... TOptions>
+struct IsString<comms::field::String<TFieldBase, TOptions...> >
 {
     static const bool Value = true;
 };

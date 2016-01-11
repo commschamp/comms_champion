@@ -25,6 +25,45 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+IntValueWrapper::IntValueWrapper() {}
+
+IntValueWrapper::~IntValueWrapper() {}
+
+IntValueWrapper::UnderlyingType IntValueWrapper::minValue() const
+{
+    return minValueImpl();
+}
+
+IntValueWrapper::UnderlyingType IntValueWrapper::maxValue() const
+{
+    return maxValueImpl();
+}
+
+double IntValueWrapper::getScaled() const
+{
+    return getScaledImpl();
+}
+
+void IntValueWrapper::setScaled(double value)
+{
+    setScaledImpl(value);
+}
+
+double IntValueWrapper::scaleValue(UnderlyingType value) const
+{
+    return scaleValueImpl(value);
+}
+
+bool IntValueWrapper::isShortInt() const
+{
+    return isShortIntImpl();
+}
+
+IntValueWrapper::Ptr IntValueWrapper::clone()
+{
+    return cloneImpl();
+}
+
 void IntValueWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

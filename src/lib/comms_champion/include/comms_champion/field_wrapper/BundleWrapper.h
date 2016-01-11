@@ -32,7 +32,7 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class BundleWrapper : public FieldWrapper
+class CC_API BundleWrapper : public FieldWrapper
 {
     using Base = FieldWrapper;
 public:
@@ -43,33 +43,19 @@ public:
 
     typedef std::unique_ptr<BundleWrapper> Ptr;
 
-    Members& getMembers()
-    {
-        return m_members;
-    }
+    BundleWrapper();
+    BundleWrapper(const BundleWrapper&) =delete;
+    BundleWrapper& operator=(const BundleWrapper&) =delete;
 
-    const Members& getMembers() const
-    {
-        return m_members;
-    }
+    virtual ~BundleWrapper();
 
-    void setMembers(Members&& members)
-    {
-        m_members = std::move(members);
-    }
+    Members& getMembers();
 
-    Ptr clone()
-    {
-        Members clonedMembers;
-        clonedMembers.reserve(m_members.size());
-        for (auto& mem : m_members) {
-            clonedMembers.push_back(mem->upClone());
-        }
+    const Members& getMembers() const;
 
-        auto ptr = cloneImpl();
-        ptr->setMembers(std::move(clonedMembers));
-        return std::move(ptr);
-    }
+    void setMembers(Members&& members);
+
+    Ptr clone();
 
 protected:
     virtual Ptr cloneImpl() = 0;

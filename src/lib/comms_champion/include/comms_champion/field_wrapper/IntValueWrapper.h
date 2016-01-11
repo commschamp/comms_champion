@@ -31,52 +31,32 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class IntValueWrapper : public NumericValueWrapper<long long int>
+class CC_API IntValueWrapper : public NumericValueWrapper<long long int>
 {
     typedef NumericValueWrapper<long long int> Base;
 public:
 
-    typedef typename Base::UnderlyingType UnderlyingType;
+    typedef Base::UnderlyingType UnderlyingType;
     typedef std::unique_ptr<IntValueWrapper> Ptr;
 
     using Base::NumericValueWrapper;
 
-    virtual ~IntValueWrapper() {}
+    IntValueWrapper();
+    virtual ~IntValueWrapper();
 
-    UnderlyingType minValue() const
-    {
-        return minValueImpl();
-    }
+    UnderlyingType minValue() const;
 
-    UnderlyingType maxValue() const
-    {
-        return maxValueImpl();
-    }
+    UnderlyingType maxValue() const;
 
-    double getScaled() const
-    {
-        return getScaledImpl();
-    }
+    double getScaled() const;
 
-    void setScaled(double value)
-    {
-        setScaledImpl(value);
-    }
+    void setScaled(double value);
 
-    double scaleValue(UnderlyingType value) const
-    {
-        return scaleValueImpl(value);
-    }
+    double scaleValue(UnderlyingType value) const;
 
-    bool isShortInt() const
-    {
-        return isShortIntImpl();
-    }
+    bool isShortInt() const;
 
-    Ptr clone()
-    {
-        return cloneImpl();
-    }
+    Ptr clone();
 
 protected:
     virtual UnderlyingType minValueImpl() const = 0;

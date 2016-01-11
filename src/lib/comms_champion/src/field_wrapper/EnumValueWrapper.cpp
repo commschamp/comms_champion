@@ -25,6 +25,15 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+EnumValueWrapper::EnumValueWrapper() {}
+
+EnumValueWrapper::~EnumValueWrapper() {}
+
+EnumValueWrapper::Ptr EnumValueWrapper::clone()
+{
+    return cloneImpl();
+}
+
 void EnumValueWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

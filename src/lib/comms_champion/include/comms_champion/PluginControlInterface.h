@@ -26,13 +26,14 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QAction>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
 #include "Protocol.h"
 #include "Socket.h"
 
 namespace comms_champion
 {
 
-class PluginControlInterface
+class CC_API PluginControlInterface
 {
 public:
     typedef std::shared_ptr<QAction> ActionPtr;

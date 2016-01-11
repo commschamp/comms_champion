@@ -20,6 +20,7 @@
 
 #include <functional>
 
+#include "Api.h"
 #include "Message.h"
 #include "field_wrapper/FieldWrapper.h"
 #include "details/FieldWrapperCreator.h"
@@ -27,7 +28,7 @@
 namespace comms_champion
 {
 
-class MessageHandler
+class CC_API MessageHandler
 {
 public:
     typedef field_wrapper::FieldWrapperPtr FieldWrapperPtr;

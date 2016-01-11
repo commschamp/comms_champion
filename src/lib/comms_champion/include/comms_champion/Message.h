@@ -28,12 +28,14 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantList>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
+
 namespace comms_champion
 {
 
 class MessageHandler;
 class MessageWidget;
-class Message : public QObject
+class CC_API Message : public QObject
 {
     typedef QObject Base;
 public:

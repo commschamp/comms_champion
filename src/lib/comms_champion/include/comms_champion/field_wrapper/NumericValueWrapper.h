@@ -44,6 +44,8 @@ public:
     typedef TUnderlyingType UnderlyingType;
     typedef Base::SerialisedSeq SerialisedSeq;
 
+    NumericValueWrapper() {}
+
     virtual ~NumericValueWrapper() {}
 
     UnderlyingType getValue() const

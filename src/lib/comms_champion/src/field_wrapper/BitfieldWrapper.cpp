@@ -25,6 +25,38 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+BitfieldWrapper::BitfieldWrapper() {}
+
+BitfieldWrapper::~BitfieldWrapper() {}
+
+BitfieldWrapper::Members& BitfieldWrapper::getMembers()
+{
+    return m_members;
+}
+
+const BitfieldWrapper::Members& BitfieldWrapper::getMembers() const
+{
+    return m_members;
+}
+
+void BitfieldWrapper::setMembers(Members&& members)
+{
+    m_members = std::move(members);
+}
+
+BitfieldWrapper::Ptr BitfieldWrapper::clone()
+{
+    Members clonedMembers;
+    clonedMembers.reserve(m_members.size());
+    for (auto& mem : m_members) {
+        clonedMembers.push_back(mem->upClone());
+    }
+
+    auto ptr = cloneImpl();
+    ptr->setMembers(std::move(clonedMembers));
+    return std::move(ptr);
+}
+
 void BitfieldWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

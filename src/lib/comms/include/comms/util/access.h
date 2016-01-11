@@ -89,28 +89,38 @@ typename std::decay<T>::type signExtCommon(T value, std::size_t size)
 template <typename T, std::size_t TSize, typename TByteType>
 class SignExt
 {
+    struct FullSize {};
+    struct PartialSize {};
 public:
+    typedef typename std::decay<T>::type ValueType;
 
-    static typename std::decay<T>::type value(T value)
+    static ValueType value(T val)
     {
-        typedef typename std::decay<T>::type ValueType;
+        typedef typename std::conditional<
+            sizeof(ValueType) == TSize,
+            FullSize,
+            PartialSize
+        >::type Tag;
+
+        return valueInternal(val, Tag());
+    }
+
+private:
+
+    static ValueType valueInternal(T val, FullSize)
+    {
+        return val;
+    }
+
+    static ValueType valueInternal(T val, PartialSize)
+    {
         typedef typename std::make_unsigned<ValueType>::type UnsignedValueType;
-        static_assert(std::is_integral<T>::value, "T must be integer type");
+        static_assert(std::is_integral<ValueType>::value, "T must be integer type");
         typedef typename std::make_unsigned<TByteType>::type UnsignedByteType;
 
-        auto castedValue = static_cast<UnsignedValueType>(value);
+        auto castedValue = static_cast<UnsignedValueType>(val);
         return static_cast<ValueType>(
             signExtCommon<UnsignedByteType>(castedValue, TSize));
-    }
-};
-
-template <typename T, typename TByteType>
-class SignExt<T, sizeof(typename std::decay<T>::type), TByteType>
-{
-public:
-    static typename std::decay<T>::type value(T value)
-    {
-        return value;
     }
 };
 

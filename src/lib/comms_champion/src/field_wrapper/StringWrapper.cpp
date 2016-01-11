@@ -25,6 +25,30 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+StringWrapper::StringWrapper() = default;
+
+StringWrapper::~StringWrapper() {}
+
+QString StringWrapper::getValue() const
+{
+    return getValueImpl();
+}
+
+void StringWrapper::setValue(const QString& val)
+{
+    setValueImpl(val);
+}
+
+int StringWrapper::maxSize() const
+{
+    return maxSizeImpl();
+}
+
+StringWrapper::Ptr StringWrapper::clone()
+{
+    return cloneImpl();
+}
+
 void StringWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

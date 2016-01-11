@@ -300,7 +300,12 @@ public:
 
         static const std::size_t Idx = TupleSize - TRem;
         typedef typename std::tuple_element<Idx, Tuple>::type ElemType;
+#ifdef _MSC_VER
+        // VS compiler
+        func.operator()<ElemType>();
+#else // #ifdef _MSC_VER
         func.template operator()<ElemType>();
+#endif // #ifdef _MSC_VER
         TupleForEachTypeHelper<TRem - 1>::template exec<TTuple>(
             std::forward<TFunc>(func));
     }
@@ -423,7 +428,12 @@ public:
         static_assert(TRem <= TupleSize, "Incorrect TRem");
 
         static const std::size_t Idx = TupleSize - TRem;
+#ifdef _MSC_VER
+        // VS compiler
+        func.operator()<Idx>(std::get<Idx>(std::forward<TTuple>(tuple)));
+#else // #ifdef _MSC_VER
         func.template operator()<Idx>(std::get<Idx>(std::forward<TTuple>(tuple)));
+#endif // #ifdef _MSC_VER
         TupleForEachWithTemplateParamIdxHelper<TRem - 1>::exec(
             std::forward<TTuple>(tuple),
             std::forward<TFunc>(func));

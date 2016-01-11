@@ -25,6 +25,7 @@
 #include <cassert>
 #include <memory>
 #include <type_traits>
+#include <functional>
 
 #include "comms/comms.h"
 
@@ -36,70 +37,36 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class ArrayListWrapper : public FieldWrapper
+class CC_API ArrayListWrapper : public FieldWrapper
 {
 public:
 
     typedef std::vector<FieldWrapperPtr> Members;
     typedef std::unique_ptr<ArrayListWrapper> Ptr;
 
-    virtual ~ArrayListWrapper() {}
+    ArrayListWrapper();
+    ArrayListWrapper(const ArrayListWrapper&) = delete;
+    ArrayListWrapper& operator=(const ArrayListWrapper&) = delete;
 
-    void addField()
-    {
-        addFieldImpl();
-    }
+    virtual ~ArrayListWrapper();
 
-    void removeField(int idx)
-    {
-        removeFieldImpl(idx);
-    }
+    void addField();
 
-    unsigned size() const
-    {
-        return sizeImpl();
-    }
+    void removeField(int idx);
 
-    bool hasFixedSize() const
-    {
-        return hasFixedSizeImpl();
-    }
+    unsigned size() const;
 
-    Members& getMembers()
-    {
-        return m_members;
-    }
+    bool hasFixedSize() const;
 
-    const Members& getMembers() const
-    {
-        return m_members;
-    }
+    Members& getMembers();
 
-    void setMembers(Members&& members)
-    {
-        m_members = std::move(members);
-    }
+    const Members& getMembers() const;
 
-    Ptr clone()
-    {
-        Members clonedMembers;
-        clonedMembers.reserve(m_members.size());
-        for (auto& mem : m_members) {
-            clonedMembers.push_back(mem->upClone());
-        }
+    void setMembers(Members&& members);
 
-        auto ptr = cloneImpl();
-        ptr->setMembers(std::move(clonedMembers));
-        assert(size() == ptr->size());
-        assert(getMembers().size() == ptr->getMembers().size());
-        assert(size() == getMembers().size());
-        return std::move(ptr);
-    }
+    Ptr clone();
 
-    void refreshMembers()
-    {
-        refreshMembersImpl();
-    }
+    void refreshMembers();
 
 protected:
     virtual void addFieldImpl() = 0;

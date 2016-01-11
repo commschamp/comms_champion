@@ -25,6 +25,66 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+ArrayListWrapper::ArrayListWrapper() {}
+
+ArrayListWrapper::~ArrayListWrapper() {}
+
+void ArrayListWrapper::addField()
+{
+    addFieldImpl();
+}
+
+void ArrayListWrapper::removeField(int idx)
+{
+    removeFieldImpl(idx);
+}
+
+unsigned ArrayListWrapper::size() const
+{
+    return sizeImpl();
+}
+
+bool ArrayListWrapper::hasFixedSize() const
+{
+    return hasFixedSizeImpl();
+}
+
+ArrayListWrapper::Members& ArrayListWrapper::getMembers()
+{
+    return m_members;
+}
+
+const ArrayListWrapper::Members& ArrayListWrapper::getMembers() const
+{
+    return m_members;
+}
+
+void ArrayListWrapper::setMembers(Members&& members)
+{
+    m_members = std::move(members);
+}
+
+ArrayListWrapper::Ptr ArrayListWrapper::clone()
+{
+    Members clonedMembers;
+    clonedMembers.reserve(m_members.size());
+    for (auto& mem : m_members) {
+        clonedMembers.push_back(mem->upClone());
+    }
+
+    auto ptr = cloneImpl();
+    ptr->setMembers(std::move(clonedMembers));
+    assert(size() == ptr->size());
+    assert(getMembers().size() == ptr->getMembers().size());
+    assert(size() == getMembers().size());
+    return std::move(ptr);
+}
+
+void ArrayListWrapper::refreshMembers()
+{
+    refreshMembersImpl();
+}
+
 void ArrayListWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

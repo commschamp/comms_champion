@@ -268,8 +268,8 @@ struct IsOptional
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsOptional<comms::field::Optional<TArgs...> >
+template <typename TField>
+struct IsOptional<comms::field::Optional<TField> >
 {
     static const bool Value = true;
 };

@@ -1,6 +1,3 @@
-//
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
-//
 
 // This file is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -15,21 +12,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "comms_champion/DataInfo.h"
 
-#pragma once
+namespace comms_champion
+{
 
-#include "Api.h"
-#include "Message.h"
-#include "MessageHandler.h"
-#include "MessageBase.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "ProtocolBase.h"
-#include "PluginControlInterface.h"
-#include "Plugin.h"
-#include "MessageInfo.h"
-#include "Property.h"
-#include "ProtocolMessageBase.h"
-#include "TransportMessageBase.h"
-#include "RawDataMessage.h"
-#include "field_wrapper/FieldWrapperHandler.h"
+CC_API DataInfoPtr makeDataInfo()
+{
+    return DataInfoPtr(new DataInfo());
+}
+
+} // namespace comms_champion

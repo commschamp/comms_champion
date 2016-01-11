@@ -89,8 +89,7 @@ using BitmaskUndertlyingTypeT =
 ///     @li comms::option::ContentsValidator or comms::option::BitmaskReservedBits.
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
-template <typename TFieldBase,
-          typename... TOptions>
+template <typename TFieldBase, typename... TOptions>
 class BitmaskValue : public TFieldBase
 {
     typedef TFieldBase Base;
@@ -290,8 +289,8 @@ struct IsBitmaskValue
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsBitmaskValue<comms::field::BitmaskValue<TArgs...> >
+template <typename TFieldBase, typename... TOptions>
+struct IsBitmaskValue<comms::field::BitmaskValue<TFieldBase, TOptions...> >
 {
     static const bool Value = true;
 };

@@ -25,6 +25,47 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+OptionalWrapper::OptionalWrapper() = default;
+OptionalWrapper::~OptionalWrapper() = default;
+
+OptionalWrapper::Mode OptionalWrapper::getMode() const
+{
+    return getModeImpl();
+}
+
+void OptionalWrapper::setMode(Mode mode) {
+    setModeImpl(mode);
+}
+
+bool OptionalWrapper::hasFieldWrapper() const
+{
+    return static_cast<bool>(m_fieldWrapper);
+}
+
+FieldWrapper& OptionalWrapper::getFieldWrapper()
+{
+    assert(hasFieldWrapper());
+    return *m_fieldWrapper;
+}
+
+const FieldWrapper& OptionalWrapper::getFieldWrapper() const
+{
+    assert(hasFieldWrapper());
+    return *m_fieldWrapper;
+}
+
+void OptionalWrapper::setFieldWrapper(FieldWrapperPtr fieldWrapper)
+{
+    m_fieldWrapper = std::move(fieldWrapper);
+}
+
+OptionalWrapper::Ptr OptionalWrapper::clone()
+{
+    auto ptr = cloneImpl();
+    ptr->setFieldWrapper(m_fieldWrapper->upClone());
+    return std::move(ptr);
+}
+
 void OptionalWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

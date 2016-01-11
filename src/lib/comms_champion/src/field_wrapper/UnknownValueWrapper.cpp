@@ -25,6 +25,15 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+UnknownValueWrapper::UnknownValueWrapper() {}
+
+UnknownValueWrapper::~UnknownValueWrapper() {}
+
+UnknownValueWrapper::Ptr UnknownValueWrapper::clone()
+{
+    return cloneImpl();
+}
+
 void UnknownValueWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

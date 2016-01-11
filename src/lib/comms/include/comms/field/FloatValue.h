@@ -182,8 +182,8 @@ struct IsFloatValue
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsFloatValue<comms::field::FloatValue<TArgs...> >
+template <typename TFieldBase, typename T, typename... TOptions>
+struct IsFloatValue<comms::field::FloatValue<TFieldBase, T, TOptions...> >
 {
     static const bool Value = true;
 };

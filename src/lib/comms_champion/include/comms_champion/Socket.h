@@ -29,12 +29,13 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
 #include "DataInfo.h"
 
 namespace comms_champion
 {
 
-class Socket
+class CC_API Socket
 {
 
 public:

@@ -25,6 +25,15 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+FloatValueWrapper::FloatValueWrapper() {}
+
+FloatValueWrapper::~FloatValueWrapper() {}
+
+FloatValueWrapper::Ptr FloatValueWrapper::clone()
+{
+    return cloneImpl();
+}
+
 void FloatValueWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

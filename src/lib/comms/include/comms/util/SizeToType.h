@@ -61,25 +61,25 @@ struct SizeToTypeHelper<8>
 template <>
 struct SizeToTypeHelper<3>
 {
-    typedef typename SizeToTypeHelper<4>::Type Type;
+    typedef SizeToTypeHelper<4>::Type Type;
 };
 
 template <>
 struct SizeToTypeHelper<5>
 {
-    typedef typename SizeToTypeHelper<8>::Type Type;
+    typedef SizeToTypeHelper<8>::Type Type;
 };
 
 template <>
 struct SizeToTypeHelper<6>
 {
-    typedef typename SizeToTypeHelper<8>::Type Type;
+    typedef SizeToTypeHelper<8>::Type Type;
 };
 
 template <>
 struct SizeToTypeHelper<7>
 {
-    typedef typename SizeToTypeHelper<8>::Type Type;
+    typedef SizeToTypeHelper<8>::Type Type;
 };
 
 

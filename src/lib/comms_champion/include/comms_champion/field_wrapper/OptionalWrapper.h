@@ -30,51 +30,28 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class OptionalWrapper : public FieldWrapper
+class CC_API OptionalWrapper : public FieldWrapper
 {
 public:
     typedef std::unique_ptr<OptionalWrapper> Ptr;
     typedef comms::field::OptionalMode Mode;
 
-    virtual ~OptionalWrapper() = default;
+    OptionalWrapper();
+    virtual ~OptionalWrapper();
 
-    Mode getMode() const
-    {
-        return getModeImpl();
-    }
+    Mode getMode() const;
 
-    void setMode(Mode mode) {
-        setModeImpl(mode);
-    }
+    void setMode(Mode mode);
 
-    bool hasFieldWrapper() const
-    {
-        return static_cast<bool>(m_fieldWrapper);
-    }
+    bool hasFieldWrapper() const;
 
-    FieldWrapper& getFieldWrapper()
-    {
-        assert(hasFieldWrapper());
-        return *m_fieldWrapper;
-    }
+    FieldWrapper& getFieldWrapper();
 
-    const FieldWrapper& getFieldWrapper() const
-    {
-        assert(hasFieldWrapper());
-        return *m_fieldWrapper;
-    }
+    const FieldWrapper& getFieldWrapper() const;
 
-    void setFieldWrapper(FieldWrapperPtr fieldWrapper)
-    {
-        m_fieldWrapper = std::move(fieldWrapper);
-    }
+    void setFieldWrapper(FieldWrapperPtr fieldWrapper);
 
-    Ptr clone()
-    {
-        auto ptr = cloneImpl();
-        ptr->setFieldWrapper(m_fieldWrapper->upClone());
-        return std::move(ptr);
-    }
+    Ptr clone();
 
 protected:
     virtual Mode getModeImpl() const = 0;

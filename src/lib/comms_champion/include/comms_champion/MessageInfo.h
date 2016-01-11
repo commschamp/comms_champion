@@ -30,12 +30,13 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
 #include "Message.h"
 
 namespace comms_champion
 {
 
-class MessageInfo
+class CC_API MessageInfo
 {
 public:
 
@@ -77,13 +78,13 @@ using MessageInfoPtr = std::shared_ptr<MessageInfo>;
 using MsgInfosList = std::list<MessageInfoPtr>;
 
 inline
-MessageInfoPtr makeMessageInfo()
+CC_API MessageInfoPtr makeMessageInfo()
 {
     return MessageInfoPtr(new MessageInfo());
 }
 
 inline
-MessageInfoPtr makeMessageInfoCopy(const MessageInfo& msgInfo)
+CC_API MessageInfoPtr makeMessageInfoCopy(const MessageInfo& msgInfo)
 {
     return MessageInfoPtr(new MessageInfo(msgInfo));
 }

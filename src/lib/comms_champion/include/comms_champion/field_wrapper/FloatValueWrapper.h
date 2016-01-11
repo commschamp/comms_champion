@@ -31,22 +31,20 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class FloatValueWrapper : public NumericValueWrapper<double>
+class CC_API FloatValueWrapper : public NumericValueWrapper<double>
 {
     typedef NumericValueWrapper<double> Base;
 public:
 
-    typedef typename Base::UnderlyingType UnderlyingType;
+    typedef Base::UnderlyingType UnderlyingType;
     typedef std::unique_ptr<FloatValueWrapper> Ptr;
 
     using Base::NumericValueWrapper;
 
-    virtual ~FloatValueWrapper() {}
+    FloatValueWrapper();
+    virtual ~FloatValueWrapper();
 
-    Ptr clone()
-    {
-        return cloneImpl();
-    }
+    Ptr clone();
 
 protected:
     virtual Ptr cloneImpl() = 0;

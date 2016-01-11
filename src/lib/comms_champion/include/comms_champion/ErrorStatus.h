@@ -19,6 +19,7 @@
 #pragma once
 
 #include "comms/ErrorStatus.h"
+#include "Api.h"
 
 namespace comms_champion
 {
@@ -38,7 +39,7 @@ enum class ErrorStatus {
     NumOfErrorStatuses ///< Number of supported error statuses, must be last.
 };
 
-ErrorStatus transformErrorStatus(comms::ErrorStatus value);
+CC_API ErrorStatus transformErrorStatus(comms::ErrorStatus value);
 
 }  // namespace comms
 

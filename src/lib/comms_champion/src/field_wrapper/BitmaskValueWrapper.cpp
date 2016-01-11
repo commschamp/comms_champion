@@ -25,6 +25,28 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+BitmaskValueWrapper::~BitmaskValueWrapper() {}
+
+bool BitmaskValueWrapper::bitValue(unsigned idx) const
+{
+    return bitValueImpl(idx);
+}
+
+void BitmaskValueWrapper::setBitValue(unsigned idx, bool value)
+{
+    setBitValueImpl(idx, value);
+}
+
+unsigned BitmaskValueWrapper::bitIdxLimit() const
+{
+    return bitIdxLimitImpl();
+}
+
+BitmaskValueWrapper::Ptr BitmaskValueWrapper::clone()
+{
+    return cloneImpl();
+}
+
 void BitmaskValueWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

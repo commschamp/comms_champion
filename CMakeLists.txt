@@ -43,6 +43,8 @@ if (CMAKE_COMPILER_IS_GNUCC)
         SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
     endif ()
 elseif (MSVC)
+
+    add_definitions( "/wd4503" "/wd4309" "/wd4267" )
     if (CC_STATIC_RUNTIME)
         foreach(flag_var 
                 CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -56,5 +58,11 @@ endif ()
 
 set (COMMS_CHAMPION_LIB_NAME "comms_champion")
 set (COMMS_CHAMPION_LIB_TGT "${COMMS_CHAMPION_LIB_NAME}.lib")
+
+if (NOT "${QT_DIR}" STREQUAL "")
+    list (APPEND CMAKE_PREFIX_PATH ${QT_DIR})
+    link_directories ("${QT_DIR}/lib")
+    link_directories ("${QT_DIR}/plugins/platforms")
+endif ()
 
 add_subdirectory (src)

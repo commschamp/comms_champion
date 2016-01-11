@@ -30,6 +30,8 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
+
 namespace comms_champion
 {
 
@@ -47,11 +49,7 @@ struct DataInfo
 
 using DataInfoPtr = std::shared_ptr<DataInfo>;
 
-inline
-DataInfoPtr makeDataInfo()
-{
-    return DataInfoPtr(new DataInfo());
-}
+CC_API DataInfoPtr makeDataInfo();
 
 }  // namespace comms_champion
 

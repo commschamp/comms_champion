@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <list>
+#include <array>
 
 #include "comms/CompileControl.h"
 

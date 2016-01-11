@@ -26,6 +26,34 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+FieldWrapper::FieldWrapper() = default;
+
+FieldWrapper::~FieldWrapper() = default;
+
+std::size_t FieldWrapper::length() const
+{
+    return lengthImpl();
+}
+
+int FieldWrapper::width() const
+{
+    return static_cast<int>(length()) * 2;
+}
+
+bool FieldWrapper::valid() const
+{
+    return validImpl();
+}
+
+FieldWrapper::SerialisedSeq FieldWrapper::getSerialisedValue() const
+{
+    return getSerialisedValueImpl();
+}
+
+bool FieldWrapper::setSerialisedValue(const SerialisedSeq& value)
+{
+    return setSerialisedValueImpl(value);
+}
 
 QString FieldWrapper::getSerialisedString() const
 {
@@ -58,6 +86,16 @@ bool FieldWrapper::setSerialisedString(const QString& str)
     }
 
     return setSerialisedValue(seq);
+}
+
+void FieldWrapper::dispatch(FieldWrapperHandler& handler)
+{
+    dispatchImpl(handler);
+}
+
+FieldWrapper::BasePtr FieldWrapper::upClone()
+{
+    return upCloneImpl();
 }
 
 }  // namespace field_wrapper

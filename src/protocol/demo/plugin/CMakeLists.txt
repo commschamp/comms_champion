@@ -44,6 +44,7 @@ function (plugin_demo)
     )
     
     add_library (${name} MODULE ${src} ${moc})
+    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
     qt5_use_modules(${name} Widgets Core)
     
     install (
@@ -60,5 +61,8 @@ find_package(Qt5Core)
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR})
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0")
+if (CMAKE_COMPILER_IS_GNUCC)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0")
+endif ()
+
 plugin_demo ()

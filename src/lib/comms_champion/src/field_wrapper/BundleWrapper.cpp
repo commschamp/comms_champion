@@ -25,6 +25,38 @@ namespace comms_champion
 namespace field_wrapper
 {
 
+BundleWrapper::BundleWrapper() {}
+
+BundleWrapper::~BundleWrapper() {}
+
+BundleWrapper::Members& BundleWrapper::getMembers()
+{
+    return m_members;
+}
+
+const BundleWrapper::Members& BundleWrapper::getMembers() const
+{
+    return m_members;
+}
+
+void BundleWrapper::setMembers(Members&& members)
+{
+    m_members = std::move(members);
+} 
+
+BundleWrapper::Ptr BundleWrapper::clone()
+{
+    Members clonedMembers;
+    clonedMembers.reserve(m_members.size());
+    for (auto& mem : m_members) {
+        clonedMembers.push_back(mem->upClone());
+    }
+
+    auto ptr = cloneImpl();
+    ptr->setMembers(std::move(clonedMembers));
+    return std::move(ptr);
+}
+
 void BundleWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

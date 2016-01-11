@@ -232,8 +232,8 @@ struct IsIntValue
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsIntValue<comms::field::IntValue<TArgs...> >
+template <typename TFieldBase, typename T, typename... TOptions>
+struct IsIntValue<comms::field::IntValue<TFieldBase, T, TOptions...> >
 {
     static const bool Value = true;
 };

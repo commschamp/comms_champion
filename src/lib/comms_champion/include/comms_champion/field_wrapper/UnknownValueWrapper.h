@@ -32,16 +32,15 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class UnknownValueWrapper : public FieldWrapper
+class CC_API UnknownValueWrapper : public FieldWrapper
 {
 public:
-    virtual ~UnknownValueWrapper() {}
     typedef std::unique_ptr<UnknownValueWrapper> Ptr;
 
-    Ptr clone()
-    {
-        return cloneImpl();
-    }
+    UnknownValueWrapper();
+    virtual ~UnknownValueWrapper();
+
+    Ptr clone();
 
 protected:
     virtual Ptr cloneImpl() = 0;

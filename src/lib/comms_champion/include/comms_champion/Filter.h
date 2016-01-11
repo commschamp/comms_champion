@@ -30,11 +30,12 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "DataInfo.h"
+#include "Api.h"
 
 namespace comms_champion
 {
 
-class Filter : public QObject
+class CC_API Filter : public QObject
 {
 public:
     Filter() = default;

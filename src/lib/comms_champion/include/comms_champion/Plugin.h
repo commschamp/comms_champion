@@ -31,12 +31,13 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
 #include "PluginControlInterface.h"
 
 namespace comms_champion
 {
 
-class Plugin : public QObject
+class CC_API Plugin : public QObject
 {
 public:
     typedef std::unique_ptr<QWidget> WidgetPtr;

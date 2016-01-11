@@ -30,6 +30,8 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QMetaType>
 #include <QtCore/QString>
 CC_ENABLE_WARNINGS()
+
+#include "Api.h"
 #include "Message.h"
 #include "ErrorStatus.h"
 #include "MessageInfo.h"
@@ -38,7 +40,7 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-class Protocol
+class CC_API Protocol
 {
 public:
     typedef std::list<MessageInfoPtr> MessagesList;

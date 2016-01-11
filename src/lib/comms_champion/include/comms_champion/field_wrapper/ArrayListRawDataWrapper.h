@@ -42,38 +42,24 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class ArrayListRawDataWrapper : public FieldWrapper
+class CC_API ArrayListRawDataWrapper : public FieldWrapper
 {
 public:
 
     typedef std::unique_ptr<ArrayListRawDataWrapper> Ptr;
 
-    virtual ~ArrayListRawDataWrapper() {}
+    ArrayListRawDataWrapper();
+    virtual ~ArrayListRawDataWrapper();
 
-    QString getValue() const
-    {
-        return getValueImpl();
-    }
+    QString getValue() const;
 
-    void setValue(const QString& val)
-    {
-        setValueImpl(val);
-    }
+    void setValue(const QString& val);
 
-    int maxSize() const
-    {
-        return maxSizeImpl();
-    }
+    int maxSize() const;
 
-    int minSize() const
-    {
-        return minSizeImpl();
-    }
+    int minSize() const;
 
-    Ptr clone()
-    {
-        return cloneImpl();
-    }
+    Ptr clone();
 
 protected:
     virtual QString getValueImpl() const = 0;

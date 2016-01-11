@@ -207,8 +207,8 @@ struct IsEnumValue
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsEnumValue<comms::field::EnumValue<TArgs...> >
+template <typename TFieldBase, typename TEnum, typename... TOptions>
+struct IsEnumValue<comms::field::EnumValue<TFieldBase, TEnum, TOptions...> >
 {
     static const bool Value = true;
 };

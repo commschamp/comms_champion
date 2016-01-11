@@ -15,21 +15,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 #pragma once
 
-#include "Api.h"
-#include "Message.h"
-#include "MessageHandler.h"
-#include "MessageBase.h"
-#include "ErrorStatus.h"
-#include "Protocol.h"
-#include "ProtocolBase.h"
-#include "PluginControlInterface.h"
-#include "Plugin.h"
-#include "MessageInfo.h"
-#include "Property.h"
-#include "ProtocolMessageBase.h"
-#include "TransportMessageBase.h"
-#include "RawDataMessage.h"
-#include "field_wrapper/FieldWrapperHandler.h"
+#ifdef WIN32
+
+#ifdef CC_LIB_EXPORT
+#define CC_API __declspec(dllexport)
+#else // #ifdef CC_LIB_EXPORT
+#define CC_API __declspec(dllimport)
+#endif // #ifdef CC_LIB_EXPORT
+
+#else // #ifdef WIN32
+#define CC_API
+#endif // #ifdef WIN32

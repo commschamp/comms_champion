@@ -51,7 +51,8 @@ function (plugin_tcp_server_socket)
     
     
     add_library (${name} MODULE ${src} ${moc} ${ui})
-    target_link_libraries(${name} Qt5::Network Qt5::Core)
+    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
+    qt5_use_modules(${name} Network Core)
     
     install (
         TARGETS ${name}
@@ -117,7 +118,8 @@ function (plugin_tcp_client_socket)
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/client_socket.qrc)
     
     add_library (${name} MODULE ${src} ${moc} ${ui} ${resources})
-    target_link_libraries(${name} Qt5::Network Qt5::Core)
+    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
+    qt5_use_modules(${name} Network Core)
     
     install (
         TARGETS ${name}

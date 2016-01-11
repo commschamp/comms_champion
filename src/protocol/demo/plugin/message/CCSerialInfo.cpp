@@ -101,7 +101,7 @@ const QVariantMap& getMemberData(std::size_t idx)
 
     static const auto DataCount = std::extent<decltype(Map)>::value;
 
-    typedef typename
+    typedef 
         std::decay<
             decltype(
                 std::get<CCSerialInfo::FieldId_Flags>(std::declval<CCSerialInfo::AllFields>()).value())

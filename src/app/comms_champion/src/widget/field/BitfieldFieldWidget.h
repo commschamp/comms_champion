@@ -53,8 +53,8 @@ private slots:
     void memberFieldUpdated();
 
 private:
-    using WrapperType = typename WrapperPtr::element_type;
-    using UnderlyingType = typename WrapperType::UnderlyingType;
+    using WrapperType = WrapperPtr::element_type;
+    using UnderlyingType = WrapperType::UnderlyingType;
 
     void refreshInternal();
     void refreshMembers();

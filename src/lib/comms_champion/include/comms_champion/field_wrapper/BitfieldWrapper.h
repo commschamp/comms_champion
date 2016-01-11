@@ -32,7 +32,7 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class BitfieldWrapper : public FieldWrapper
+class CC_API BitfieldWrapper : public FieldWrapper
 {
     using Base = FieldWrapper;
 public:
@@ -42,33 +42,19 @@ public:
     typedef unsigned long long UnderlyingType;
     typedef std::unique_ptr<BitfieldWrapper> Ptr;
 
-    Members& getMembers()
-    {
-        return m_members;
-    }
+    BitfieldWrapper();
+    BitfieldWrapper(const BitfieldWrapper&) = delete;
+    BitfieldWrapper& operator=(const BitfieldWrapper&) = delete;
 
-    const Members& getMembers() const
-    {
-        return m_members;
-    }
+    virtual ~BitfieldWrapper();
+    
+    Members& getMembers();
 
-    void setMembers(Members&& members)
-    {
-        m_members = std::move(members);
-    }
+    const Members& getMembers() const;
 
-    Ptr clone()
-    {
-        Members clonedMembers;
-        clonedMembers.reserve(m_members.size());
-        for (auto& mem : m_members) {
-            clonedMembers.push_back(mem->upClone());
-        }
+    void setMembers(Members&& members);
 
-        auto ptr = cloneImpl();
-        ptr->setMembers(std::move(clonedMembers));
-        return std::move(ptr);
-    }
+    Ptr clone();
 
 protected:
     virtual Ptr cloneImpl() = 0;

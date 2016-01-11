@@ -242,7 +242,7 @@ protected:
                     data.max_size());
             if (es == comms::ErrorStatus::UpdateRequired) {
                 auto updateIter = &data[0];
-                es = m_protStack.template update(updateIter, data.size());
+                es = m_protStack.update(updateIter, data.size());
             }
 
             if (es != comms::ErrorStatus::Success) {

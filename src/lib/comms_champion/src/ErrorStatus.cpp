@@ -22,7 +22,7 @@
 namespace comms_champion
 {
 
-ErrorStatus transformErrorStatus(comms::ErrorStatus value)
+CC_API ErrorStatus transformErrorStatus(comms::ErrorStatus value)
 {
     static const ErrorStatus Map[] = {
         /* Success */ ErrorStatus::Success,
@@ -35,7 +35,7 @@ ErrorStatus transformErrorStatus(comms::ErrorStatus value)
         /* MsgAllocFailure */ ErrorStatus::MsgAllocFailure
     };
 
-    using UnderlyingType = typename std::underlying_type<decltype(value)>::type;
+    using UnderlyingType = std::underlying_type<decltype(value)>::type;
     static const auto castedLimit =
         static_cast<UnderlyingType>(comms::ErrorStatus::NumOfErrorStatuses);
     static_assert(std::extent<decltype(Map)>::value == castedLimit,

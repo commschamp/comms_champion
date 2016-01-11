@@ -32,30 +32,20 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class BitmaskValueWrapper : public NumericValueWrapper<unsigned long long>
+class CC_API BitmaskValueWrapper : public NumericValueWrapper<unsigned long long>
 {
 public:
     typedef std::unique_ptr<BitmaskValueWrapper> Ptr;
 
-    bool bitValue(unsigned idx) const
-    {
-        return bitValueImpl(idx);
-    }
+    virtual ~BitmaskValueWrapper();
 
-    void setBitValue(unsigned idx, bool value)
-    {
-        setBitValueImpl(idx, value);
-    }
+    bool bitValue(unsigned idx) const;
 
-    unsigned bitIdxLimit() const
-    {
-        return bitIdxLimitImpl();
-    }
+    void setBitValue(unsigned idx, bool value);
 
-    Ptr clone()
-    {
-        return cloneImpl();
-    }
+    unsigned bitIdxLimit() const;
+
+    Ptr clone();
 
 protected:
     virtual bool bitValueImpl(unsigned idx) const = 0;

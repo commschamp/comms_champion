@@ -36,33 +36,22 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class StringWrapper : public FieldWrapper
+class CC_API StringWrapper : public FieldWrapper
 {
 public:
 
     typedef std::unique_ptr<StringWrapper> Ptr;
 
-    virtual ~StringWrapper() {}
+    StringWrapper();
+    virtual ~StringWrapper();
 
-    QString getValue() const
-    {
-        return getValueImpl();
-    }
+    QString getValue() const;
 
-    void setValue(const QString& val)
-    {
-        setValueImpl(val);
-    }
+    void setValue(const QString& val);
 
-    int maxSize() const
-    {
-        return maxSizeImpl();
-    }
+    int maxSize() const;
 
-    Ptr clone()
-    {
-        return cloneImpl();
-    }
+    Ptr clone();
 
 protected:
     virtual QString getValueImpl() const = 0;

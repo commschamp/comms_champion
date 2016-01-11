@@ -60,84 +60,84 @@ struct FieldWrapperTagOf
     typedef FieldWrapperUnknownValueTag Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::IntValue<TArgs...> >
+template <typename TFieldBase, typename T, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::IntValue<TFieldBase, T, TOptions...> >
 {
     static_assert(
-        comms::field::isIntValue<comms::field::IntValue<TArgs...> >(),
+        comms::field::isIntValue<comms::field::IntValue<TFieldBase, T, TOptions...> >(),
         "isIntValue is supposed to return true");
 
     typedef FieldWrapperIntValueTag Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::BitmaskValue<TArgs...> >
+template <typename TFieldBase, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::BitmaskValue<TFieldBase, TOptions...> >
 {
     static_assert(
-        comms::field::isBitmaskValue<comms::field::BitmaskValue<TArgs...> >(),
+        comms::field::isBitmaskValue<comms::field::BitmaskValue<TFieldBase, TOptions...> >(),
         "isBitmaskValue is supposed to return true");
 
     typedef FieldWrapperBitmaskValueTag Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::EnumValue<TArgs...> >
+template <typename TFieldBase, typename TEnum, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::EnumValue<TFieldBase, TEnum, TOptions...> >
 {
     static_assert(
-        comms::field::isEnumValue<comms::field::EnumValue<TArgs...> >(),
+        comms::field::isEnumValue<comms::field::EnumValue<TFieldBase, TEnum, TOptions...> >(),
         "isEnumValue is supposed to return true");
 
     typedef FieldWrapperEnumValueTag Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::String<TArgs...> >
+template <typename TFieldBase, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::String<TFieldBase, TOptions...> >
 {
     static_assert(
-        comms::field::isString<comms::field::String<TArgs...> >(),
+        comms::field::isString<comms::field::String<TFieldBase, TOptions...> >(),
         "isString is supposed to return true");
 
     typedef FieldWrapperStringTag Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::Bitfield<TArgs...> >
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
 {
     static_assert(
-        comms::field::isBitfield<comms::field::Bitfield<TArgs...> >(),
+        comms::field::isBitfield<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >(),
         "isBitfield is supposed to return true");
 
     typedef FieldWrapperBitfieldTag Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::Optional<TArgs...> >
+template <typename TField>
+struct FieldWrapperTagOf<comms::field::Optional<TField> >
 {
     static_assert(
-        comms::field::isOptional<comms::field::Optional<TArgs...> >(),
+        comms::field::isOptional<comms::field::Optional<TField> >(),
         "isOptional is supposed to return true");
 
     typedef FieldWrapperOptionalTag Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::Bundle<TArgs...> >
+template <typename TMembers, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::Bundle<TMembers, TOptions...> >
 {
     static_assert(
-        comms::field::isBundle<comms::field::Bundle<TArgs...> >(),
+        comms::field::isBundle<comms::field::Bundle<TMembers, TOptions...> >(),
         "isBundle is supposed to return true");
 
     typedef FieldWrapperBundleTag Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::ArrayList<TArgs...> >
+template <typename TFieldBase, typename TElement, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >
 {
     static_assert(
-        comms::field::isArrayList<comms::field::ArrayList<TArgs...> >(),
+        comms::field::isArrayList<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >(),
         "isArrayList is supposed to return true");
 
-    typedef typename comms::field::ArrayList<TArgs...> FieldType;
+    typedef comms::field::ArrayList<TFieldBase, TElement, TOptions...> FieldType;
     typedef typename FieldType::ValueType::value_type ElementType;
 
     typedef typename std::conditional<
@@ -147,11 +147,11 @@ struct FieldWrapperTagOf<comms::field::ArrayList<TArgs...> >
     >::type Type;
 };
 
-template <typename... TArgs>
-struct FieldWrapperTagOf<comms::field::FloatValue<TArgs...> >
+template <typename TFieldBase, typename T, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::FloatValue<TFieldBase, T, TOptions...> >
 {
     static_assert(
-        comms::field::isFloatValue<comms::field::FloatValue<TArgs...> >(),
+        comms::field::isFloatValue<comms::field::FloatValue<TFieldBase, T, TOptions...> >(),
         "isFloatValue is supposed to return true");
 
     typedef FieldWrapperFloatValueTag Type;

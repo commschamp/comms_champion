@@ -31,18 +31,18 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class EnumValueWrapper : public NumericValueWrapper<long long int>
+class CC_API EnumValueWrapper : public NumericValueWrapper<long long int>
 {
     using Base = NumericValueWrapper<long long int>;
 public:
     using Base::NumericValueWrapper;
-    using UnderlyingType = typename Base::UnderlyingType;
+    using UnderlyingType = Base::UnderlyingType;
     typedef std::unique_ptr<EnumValueWrapper> Ptr;
 
-    Ptr clone()
-    {
-        return cloneImpl();
-    }
+    EnumValueWrapper();
+    virtual ~EnumValueWrapper();
+
+    Ptr clone();
 
 protected:
     virtual Ptr cloneImpl() = 0;

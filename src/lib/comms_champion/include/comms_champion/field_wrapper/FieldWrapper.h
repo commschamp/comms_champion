@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <cassert>
 #include <memory>
+#include <vector>
 
 #include "comms/CompileControl.h"
 
@@ -30,6 +31,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms/comms.h"
+#include "comms_champion/Api.h"
 
 namespace comms_champion
 {
@@ -38,53 +40,33 @@ namespace field_wrapper
 {
 
 class FieldWrapperHandler;
-class FieldWrapper
+class CC_API FieldWrapper
 {
 public:
     typedef std::vector<std::uint8_t> SerialisedSeq;
 
     typedef std::unique_ptr<FieldWrapper> BasePtr;
 
-    virtual ~FieldWrapper() {};
+    FieldWrapper();
+    virtual ~FieldWrapper();
 
-    std::size_t length() const
-    {
-        return lengthImpl();
-    }
+    std::size_t length() const;
 
-    int width() const
-    {
-        return static_cast<int>(length()) * 2;
-    }
+    int width() const;
 
-    bool valid() const
-    {
-        return validImpl();
-    }
+    bool valid() const;
 
-    SerialisedSeq getSerialisedValue() const
-    {
-        return getSerialisedValueImpl();
-    }
+    SerialisedSeq getSerialisedValue() const;
 
-    bool setSerialisedValue(const SerialisedSeq& value)
-    {
-        return setSerialisedValueImpl(value);
-    }
+    bool setSerialisedValue(const SerialisedSeq& value);
 
     QString getSerialisedString() const;
 
     bool setSerialisedString(const QString& str);
 
-    void dispatch(FieldWrapperHandler& handler)
-    {
-        dispatchImpl(handler);
-    }
+    void dispatch(FieldWrapperHandler& handler);
 
-    BasePtr upClone()
-    {
-        return upCloneImpl();
-    }
+    BasePtr upClone();
 
 protected:
     virtual std::size_t lengthImpl() const = 0;

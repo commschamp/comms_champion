@@ -17,10 +17,10 @@ function (lib_comms_champion)
         MessageInfo.cpp
         MessageHandler.cpp
         Property.cpp
-        FieldWrapper.cpp
         Plugin.cpp
         PluginControlInterface.cpp
         DataInfo.cpp
+        field_wrapper/FieldWrapper.cpp
         field_wrapper/IntValueWrapper.cpp
         field_wrapper/BitmaskValueWrapper.cpp
         field_wrapper/EnumValueWrapper.cpp

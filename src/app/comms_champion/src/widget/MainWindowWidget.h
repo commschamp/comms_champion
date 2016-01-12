@@ -57,6 +57,7 @@ private slots:
     void activeStateChanged(int state);
     void loadSendMsgsDialog(bool askForClear);
     void saveSendMsgsDialog();
+    void aboutInfo();
 
 private:
     void clearCustomToolbarActions();

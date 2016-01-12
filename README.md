@@ -68,7 +68,7 @@ will be provided in the future once the API stabilises.
 # Licence
 The [COMMS Library](#comms-library) from this repository is licensed under
 GPLv3. It can be used in any product as long as its sources remain open and
-have the same or other compatible license. As an author and full copyright
+have the same or other compatible license. As the author and full copyright
 owner of this product I can provide a commercial license as well, please refer
 to [Contact Information](#contact-information) below and get in touch with
 me if you need one.
@@ -110,7 +110,7 @@ is **ON**.
 
 - **CC_STATIC_RUNTIME**=ON/OFF - Enable/Disable static link to C++ runtime. Default value is **OFF**
 
-- **CC_QT_DIR**=<dir> - Directory of QT5 installation. Can be used to provide path to QT5 if
+- **CC_QT_DIR**=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
 differs from system default installation path.
 
 For example, discard all other tools, just install the **COMMS** library:

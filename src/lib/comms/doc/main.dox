@@ -518,7 +518,7 @@
 ///
 /// auto reqLen = protStack.length(msg); // Number of bytes required to serialise the message;
 /// dataToSend.resize(reqLen);
-/// ProtStack writeIter = &dataToSend[0];
+/// ProtStack::WriteIterator writeIter = &dataToSend[0];
 /// auto es = protStack.write(msg, writeIter, dataToSend.size());
 /// if (es == comms::ErrorStatus::Success) {
 ///     ... // Send contents of dataToSend via I/O link

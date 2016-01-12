@@ -161,7 +161,7 @@ and [Dia](https://wiki.gnome.org/Apps/Dia)
 being installed on your system in order to be able to properly generate the 
 documentation.
 
-# How to Use
+# How to Use COMMS Library
 As was mentioned earlier, the **COMMS** library is a headers only one, just
 have /path/to/comms_champion/install/dir/**include** directory among your
 include paths and use the following statement in your sources:
@@ -169,11 +169,22 @@ include paths and use the following statement in your sources:
 ```
 #include "comms/comms.h"
 ```
+Nothing else is required.
 
-To use the **CommsChampion** tool just run **comms_champion** binary which resides
-in **install/bin** subdirectory. Please note that
-it will look for available plugins in the **../plugin** subdirectory relative
+# How to Run CommsChampion
+On windows platforms just run **comms_champion.exe** binary which resides in 
+**install/bin** subdirectory.
+
+On Linux platforms use **comms_champion.sh** script which also resides in
+**install/bin** subdirectory.
+ 
+Please note that available plugins must reside in the **../plugin** subdirectory relative
 to the location of the **comms_champion** binary.
+
+The tool supports multiple command line options, please use "-h" or "--help" for
+the full list.
+
+>$> ./install/bin/comms_champion.sh -h
 
 # Contact Information
 For bug reports, feature requests, or any other question you may open an issue

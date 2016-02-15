@@ -63,7 +63,21 @@ and managing plug-ins.
 
 At this moment the tool is in its alpha and being extensively developed. No 
 documentation on how to use and/or develop plug-ins is currently available,
-will be provided in the future once the API stabilises.   
+will be provided in the future once the API stabilises.
+
+# Available Protocols
+The [COMMS Library](#comms-library) just provides an infrastructure for
+implementation of various communication protocols and 
+the [CommsChampion](#commschampion-tool) tool just provides consistent UI 
+environment to be able to visually analyse communication protocols that were
+developed using the [COMMS Library](#comms-library).
+
+There is [comms_all_protocols](https://github.com/arobenko/comms_all_protocols)
+project that serves as a bundle to compile all the communication protocols, that
+where developed using the [COMMS Library](#comms-library), and relevant plugins
+for [CommsChampion](#commschampion-tool) tool, all at once. The README file
+of this project contains the updated list of all the protocols that have been
+implemented and can be used as reference.
 
 # Licence
 The [COMMS Library](#comms-library) from this repository is licensed under
@@ -74,8 +88,7 @@ to [Contact Information](#contact-information) below and get in touch with
 me if you need one.
 
 The [CommsChampion](#commschampion-tool) tool is licensed under LGPLv3, which
-allows usage of open source QT5 libraries as well as closed-source plug-ins for
-it. 
+allows usage of open source QT5 libraries. 
 
 # How to Build
 This project uses [CMake](https://cmake.org) cross-platform build system to

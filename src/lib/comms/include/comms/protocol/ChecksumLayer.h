@@ -361,7 +361,7 @@ private:
         auto checksum = TCalc()(fromIter, len);
         field.value() = static_cast<FieldValueType>(checksum);
 
-        return field.write(iter, size);
+        return field.write(iter, remSize);
     }
 
     template <typename TWriter>

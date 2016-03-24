@@ -77,8 +77,8 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    initSingletons();
     metaTypesRegisterAll();
+    initSingletons();
 
     QCommandLineParser parser;
     prepareCommandLineOptions(parser);

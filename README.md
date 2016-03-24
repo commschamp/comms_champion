@@ -1,3 +1,5 @@
+![Image: CommsChampion Icon](https://github.com/arobenko/comms_champion/blob/develop/src/app/comms_champion/src/image/app_icon.png)
+
 # What It's All About?
 Almost every electronic device/component nowadays has to be able to communicate
 to other devices, components, or outside world over some I/O link. Such communication

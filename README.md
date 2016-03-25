@@ -87,14 +87,23 @@ implemented and can be used as reference.
 
 # Licence
 The [COMMS Library](#comms-library) from this repository is licensed under
-GPLv3. It can be used in any product as long as its sources remain open and
+**GPLv3**. It can be used in any product as long as its sources remain open and
 have the same or other compatible license. As the author and full copyright
 owner of this product I can provide a commercial license as well, please refer
 to [Contact Information](#contact-information) below and get in touch with
 me if you need one.
 
-The [CommsChampion](#commschampion-tool) tool is licensed under LGPLv3, which
+The [CommsChampion](#commschampion-tool) tool is licensed under **LGPLv3**, which
 allows usage of open source QT5 libraries. 
+
+Some icons, used in [CommsChampion](#commschampion-tool) tool, were taken from
+[Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter
+applies.
+
+The [application icon](src/app/comms_champion/src/image/app_icon.png) of the
+[CommsChampion](#commschampion-tool) tool must
+be replaced in any diravative work to differentiate between the original and
+the forked versions.
 
 # How to Build
 Details instructions on how to build and install all the components can be

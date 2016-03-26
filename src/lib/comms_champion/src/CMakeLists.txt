@@ -66,7 +66,7 @@ if (WIN32)
     find_library(QT5PLATFORMSUPPORT_DEB Qt5PlatformSupportd HINTS "${CC_QT_DIR}/lib")
     set(QT5PLATFORMSUPPORT optimized ${QT5PLATFORMSUPPORT_REL} debug ${QT5PLATFORMSUPPORT_DEB})
     
-    set (CC_PLATFORM_SPECIFIC ${QT5PLATFORMSUPPORT} ${QWINDOWS} Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
+    set (CC_PLATFORM_SPECIFIC ${QT5PLATFORMSUPPORT} Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
 
 endif ()   
 

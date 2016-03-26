@@ -64,31 +64,9 @@ add_definitions (-DCC_LIB_EXPORT)
 if (WIN32)
     find_library(QT5PLATFORMSUPPORT_REL Qt5PlatformSupport HINTS "${CC_QT_DIR}/lib")
     find_library(QT5PLATFORMSUPPORT_DEB Qt5PlatformSupportd HINTS "${CC_QT_DIR}/lib")
-    
-    find_library(QWINDOWS_REL qwindows HINTS "${CC_QT_DIR}/plugins/platforms")
-    find_library(QWINDOWS_DEB qwindowsd HINTS "${CC_QT_DIR}/plugins/platforms")
-    
     set(QT5PLATFORMSUPPORT optimized ${QT5PLATFORMSUPPORT_REL} debug ${QT5PLATFORMSUPPORT_DEB})
-    set(QWINDOWS optimized ${QWINDOWS_REL} debug ${QWINDOWS_DEB})
     
     set (CC_PLATFORM_SPECIFIC ${QT5PLATFORMSUPPORT} ${QWINDOWS} Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
-
-    if (MSVC14)
-        find_library(QTPCRE_REL qtpcre HINTS "${CC_QT_DIR}/lib")
-        find_library(QTPCRE_DEB qtpcred HINTS "${CC_QT_DIR}/lib")
-        set(QTPCRE optimized ${QTPCRE_REL} debug ${QTPCRE_DEB})
-        set (CC_PLATFORM_SPECIFIC ${QTPCRE} ${CC_PLATFORM_SPECIFIC})
-
-        find_library(QTFREETYPE_REL qtfreetype HINTS "${CC_QT_DIR}/lib")
-        find_library(QTFREETYPE_DEB qtfreetyped HINTS "${CC_QT_DIR}/lib")
-        set(QTFREETYPE optimized ${QTFREETYPE_REL} debug ${QTFREETYPE_DEB})
-        set (CC_PLATFORM_SPECIFIC ${QTFREETYPE} ${CC_PLATFORM_SPECIFIC})
-
-        find_library(QTHARFBUZZING_REL qtharfbuzzng HINTS "${CC_QT_DIR}/lib")
-        find_library(QTHARFBUZZING_DEB qtharfbuzzngd HINTS "${CC_QT_DIR}/lib")
-        set(QTHARFBUZZING optimized ${QTHARFBUZZING_REL} debug ${QTHARFBUZZING_DEB})
-        set (CC_PLATFORM_SPECIFIC ${QTHARFBUZZING} ${CC_PLATFORM_SPECIFIC})
-    endif ()
 
 endif ()   
 

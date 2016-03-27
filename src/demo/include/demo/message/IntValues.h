@@ -39,10 +39,12 @@ template <typename TField>
 struct IntValuesFields
 {
     /// @brief Simple 2 byte unsigned value.
+    /// @details The valid values are in range [0, 10]
     using field1 =
         comms::field::IntValue<
             TField,
-            std::uint16_t
+            std::uint16_t,
+            comms::option::ValidNumValueRange<0, 10>
     >;
 
     /// @brief Signed integer serialised using only 3 bytes
@@ -61,11 +63,25 @@ struct IntValuesFields
             comms::option::VarLength<1, 4>
         >;
 
+    /// @brief Example of serialising year information as a single byte.
+    /// @details Serialised as offset from year 2000 using 1 byte.
+    ///     Default constructed value is 2016
+    using field4 =
+        comms::field::IntValue<
+            TField,
+            std::int16_t,
+            comms::option::FixedLength<1>,
+            comms::option::NumValueSerOffset<-2000>,
+            comms::option::DefaultNumValue<2016>,
+            comms::option::ValidNumValueRange<2000, 2255>
+        >;
+
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
         field1,
         field2,
-        field3
+        field3,
+        field4
     >;
 };
 
@@ -100,6 +116,7 @@ public:
         FieldIdx_field1, ///< field1 field, see @ref IntValuesFields::field1
         FieldIdx_field2, ///< field2 field, see @ref IntValuesFields::field2
         FieldIdx_field3, ///< field3 field, see @ref IntValuesFields::field3
+        FieldIdx_field4, ///< field4 field, see @ref IntValuesFields::field4
         FieldIdx_numOfValues ///< number of available fields
     };
 

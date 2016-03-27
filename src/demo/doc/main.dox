@@ -1,5 +1,52 @@
 /// @mainpage Demo Binary Protocol
 /// @tableofcontents
-/// @section demo_overview Overview
-/// BLA BLA BLA
+/// @section demo_intro Introduction
+/// @b DEMO is a binary protocol that is provided as part of
+/// "CommsChampion" package. Its main purpose is to demonstrate 
+/// and test abilities of 
+/// <a href="https://github.com/arobenko/comms_champion#comms-library">COMMS Library</a>  
+/// as well as 
+/// <a href="https://github.com/arobenko/comms_champion#commschampion-tool">CommsChampion tool</a>.
 ///
+/// @section demo_proto_def Protocol Definition
+/// All the data in @b DEMO protocol is serialised using BIG endian. The
+/// contents (PAYLOAD) of every message is wrapped in the following
+/// transport data:
+/// @code
+/// SYNC | LENGTH | ID | PAYLOAD | CHECKSUM
+/// @endcode
+/// where
+/// @li @b SYNC (2 bytes) is synchronisation sequence <b>0xab 0xbc</b>.
+/// @li @b LENGTH (2 bytes) the length remaining data (including checksum) in bytes.
+/// @li @b ID (1 byte) is the ID of the message. See @ref comms_champion::demo::MsgId.
+/// @li @b PAYLOAD is serialised contents of the message
+/// @li @b CHECKSUM (2 bytes) is the checksum of all the bytes between @b LENGTH and
+/// @b PAYLOAD (including both). The checksum is calculated as a summary of
+/// all the bytes.
+///
+/// The transport protocol stack is defined as @ref comms_champion::demo::Stack
+/// class.
+///
+/// @section demo_messages Demo Messages
+/// All the messages of the @b DEMO protocol are defined in comms_champion::demo::message
+/// namespace.
+/// Every message may contain zero or more fields. All the fields relevant
+/// to a specific message are defined in a separate struct that has the
+/// same name as a relevant message class with @b Fields suffix. For example,
+/// all the fields for comms_champion::demo::message::IntValues message class
+/// are defined in comms_champion::demo::message::IntValuesFields struct. 
+/// All of these fields
+/// definitions containing structs have @b All type, which is defined to be
+/// @b std::tuple of all the fields the message contains. In fact, when using
+/// @b fields() member function of the message class, the reference of such
+/// tuple is returned:
+/// @code
+/// IntValues msg;
+/// IntValuesFields::All& fields = msg.fields();
+/// @endcode
+///
+/// In order to properly understand what the fields are, and how to operate with
+/// them, it is recommended to thoroughly read the 
+/// <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/page_field_tutorial.html">Fields Tutorial</a> 
+/// page in the @b COMMS library documentation.
+/// 

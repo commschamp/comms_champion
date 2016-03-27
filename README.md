@@ -71,7 +71,19 @@ At this moment the tool is in its alpha and being extensively developed. No
 documentation on how to use and/or develop plug-ins is currently available,
 will be provided in the future once the API stabilises.
 
-# Available Protocols
+# Demo Protocol
+**Demo** is a simple binary protocol which is implemented using 
+the [COMMS Library](#comms-library). The protocol definition classes are
+also extended to implement the protocol plugin for
+the [CommsChampion](#commschampion-tool) tool. The plugin is used for testing
+and demostration purposes.
+
+The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
+definition inside, can be
+downloaded as [zip archive](https://dl.dropboxusercontent.com/u/46999418/comms_champion/demo/doc_demo.zip)
+or browsed online [here](https://dl.dropboxusercontent.com/u/46999418/comms_champion/demo/html/index.html).
+
+# Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for
 implementation of various communication protocols and 
 the [CommsChampion](#commschampion-tool) tool just provides consistent UI 
@@ -93,7 +105,8 @@ owner of this product I can provide a commercial license as well, please refer
 to [Contact Information](#contact-information) below and get in touch with
 me if you need one.
 
-The [CommsChampion](#commschampion-tool) tool is licensed under **LGPLv3**, which
+The [CommsChampion](#commschampion-tool) tool and 
+[Demo Protocol](#demo-protocol) are licensed under **LGPLv3**, which
 allows usage of open source QT5 libraries. 
 
 Some icons, used in [CommsChampion](#commschampion-tool) tool, were taken from

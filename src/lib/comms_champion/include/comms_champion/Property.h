@@ -74,6 +74,9 @@ public:
         QVariantList& elemsList,
         const QString& elemName);
 
+    static long long int getNumValueDisplayOffset(const QVariantMap& props);
+    static void setNumValueDisplayOffset(QVariantMap& props, long long int offset);
+
 };
 
 }  // namespace comms_champion

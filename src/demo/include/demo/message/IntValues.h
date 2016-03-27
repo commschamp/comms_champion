@@ -33,16 +33,16 @@ namespace message
 {
 
 /// @brief Accumulates details of all the IntValues message fields.
-/// @tparam TField base class for all the fields.
+/// @tparam TFieldBase base class for all the fields.
 /// @see IntValues
-template <typename TField>
+template <typename TFieldBase>
 struct IntValuesFields
 {
     /// @brief Simple 2 byte unsigned value.
     /// @details The valid values are in range [0, 10]
     using field1 =
         comms::field::IntValue<
-            TField,
+            TFieldBase,
             std::uint16_t,
             comms::option::ValidNumValueRange<0, 10>
     >;
@@ -50,7 +50,7 @@ struct IntValuesFields
     /// @brief Signed integer serialised using only 3 bytes
     using field2 =
         comms::field::IntValue<
-            TField,
+            TFieldBase,
             std::int32_t,
             comms::option::FixedLength<3>
     >;
@@ -58,7 +58,7 @@ struct IntValuesFields
     /// @brief Variable length (base-128) encoded unsigned integer value
     using field3 =
         comms::field::IntValue<
-            TField,
+            TFieldBase,
             std::uint32_t,
             comms::option::VarLength<1, 4>
         >;
@@ -68,7 +68,7 @@ struct IntValuesFields
     ///     Default constructed value is 2016
     using field4 =
         comms::field::IntValue<
-            TField,
+            TFieldBase,
             std::int16_t,
             comms::option::FixedLength<1>,
             comms::option::NumValueSerOffset<-2000>,

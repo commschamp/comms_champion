@@ -77,6 +77,12 @@ const QString& uncheckableKey()
     return Str;
 }
 
+const QString& numValueDisplayOffsetKey()
+{
+    static const QString Str("cc.num_display_offset");
+    return Str;
+}
+
 
 }  // namespace
 
@@ -234,6 +240,21 @@ void Property::appendEnumValue(
     auto elemProps = createPropertiesMap(elemName);
     elemProps.insert(dataKey(), elemsList.size());
     elemsList.append(elemProps);
+}
+
+long long int Property::getNumValueDisplayOffset(const QVariantMap& props)
+{
+    auto var = props.value(numValueDisplayOffsetKey());
+    if ((!var.isValid()) ||
+        (!var.canConvert<long long int>())) {
+        return 0;
+    }
+    return var.value<long long int>();
+}
+
+void Property::setNumValueDisplayOffset(QVariantMap& props, long long int offset)
+{
+    props.insert(numValueDisplayOffsetKey(), offset);
 }
 
 }  // namespace comms_champion

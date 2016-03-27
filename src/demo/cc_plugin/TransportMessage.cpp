@@ -35,10 +35,19 @@ namespace cc_plugin
 namespace
 {
 
+QVariantMap createLengthProperties()
+{
+    auto props = cc::Property::createPropertiesMap("LENGTH");
+    cc::Property::setNumValueDisplayOffset(props, 2);
+    return props;
+}
+
+
 QVariantMap createMsgIdProperties()
 {
     QVariantList enumValues;
     cc::Property::appendEnumValue(enumValues, "IntValues");
+    cc::Property::appendEnumValue(enumValues, "EnumValues");
     assert(enumValues.size() == demo::MsgId_NumOfValues);
 
     return cc::Property::createPropertiesMap("ID", std::move(enumValues));
@@ -48,7 +57,7 @@ QVariantList createFieldsProperties()
 {
     QVariantList props;
     props.append(cc::Property::createPropertiesMap("SYNC"));
-    props.append(cc::Property::createPropertiesMap("LENGTH"));
+    props.append(createLengthProperties());
     props.append(createMsgIdProperties());
     props.append(cc::Property::createPropertiesMap("PAYLOAD"));
     props.append(cc::Property::createPropertiesMap("CHECKSUM"));

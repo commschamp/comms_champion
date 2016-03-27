@@ -47,7 +47,7 @@ EnumValueFieldWidget::EnumValueFieldWidget(
     setSerialisedValueWidget(m_ui.m_serValueWidget);
 
     assert(m_ui.m_serValueLineEdit != nullptr);
-    setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->width());
+    setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
 }
 
 EnumValueFieldWidget::~EnumValueFieldWidget() = default;

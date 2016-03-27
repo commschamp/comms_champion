@@ -32,6 +32,7 @@ namespace demo
 enum MsgId : std::uint8_t
 {
     MsgId_IntValues, ///< Integer values accumulating message
+    MsgId_EnumValues, ///< Enum values accumulating message
     MsgId_NumOfValues ///< Limit to valid message IDs, must be last
 };
 

@@ -57,7 +57,8 @@ template <typename TField>
 using LengthField =
     comms::field::IntValue<
         TField,
-        std::uint16_t
+        std::uint16_t,
+        comms::option::NumValueSerOffset<sizeof(std::uint16_t)>
     >;
 
 /// @brief Field representing message ID in message wrapping.

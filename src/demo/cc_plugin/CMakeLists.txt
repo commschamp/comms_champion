@@ -18,6 +18,7 @@ function (cc_plugin_demo)
         Protocol.cpp
         TransportMessage.cpp
         message/IntValues.cpp
+        message/EnumValues.cpp
     )
     
     set (hdr

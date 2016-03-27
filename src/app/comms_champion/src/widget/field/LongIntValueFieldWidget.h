@@ -42,6 +42,7 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void editEnabledUpdatedImpl() override;
+    virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private slots:
     void serialisedValueUpdated(const QString& value);
@@ -50,9 +51,12 @@ private slots:
 private:
     using WrapperType = WrapperPtr::element_type;
     using UnderlyingType = WrapperType::UnderlyingType;
+    UnderlyingType adjustDisplayedToReal(double val);
+    double adjustRealToDisplayed(UnderlyingType val);
 
     Ui::LongIntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
+    double m_offset = 0.0;
 };
 
 

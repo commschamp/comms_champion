@@ -45,9 +45,27 @@ struct IntValuesFields
             std::uint16_t
     >;
 
+    /// @brief Signed integer serialised using only 3 bytes
+    using field2 =
+        comms::field::IntValue<
+            TField,
+            std::int32_t,
+            comms::option::FixedLength<3>
+    >;
+
+    /// @brief Variable length (base-128) encoded unsigned integer value
+    using field3 =
+        comms::field::IntValue<
+            TField,
+            std::uint32_t,
+            comms::option::VarLength<1, 4>
+        >;
+
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
-        field1
+        field1,
+        field2,
+        field3
     >;
 };
 
@@ -79,7 +97,9 @@ public:
     /// @brief Index to access the fields
     enum FieldIdx
     {
-        FieldIdx_field1, ///< id field, see @ref IntValuesFields::field1
+        FieldIdx_field1, ///< field1 field, see @ref IntValuesFields::field1
+        FieldIdx_field2, ///< field2 field, see @ref IntValuesFields::field2
+        FieldIdx_field3, ///< field3 field, see @ref IntValuesFields::field3
         FieldIdx_numOfValues ///< number of available fields
     };
 

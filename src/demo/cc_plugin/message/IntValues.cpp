@@ -40,6 +40,8 @@ QVariantList createFieldsProperties()
 {
     QVariantList props;
     props.append(cc::Property::createPropertiesMap("field1"));
+    props.append(cc::Property::createPropertiesMap("field2"));
+    props.append(cc::Property::createPropertiesMap("field3"));
 
     assert(props.size() == IntValues::FieldIdx_numOfValues);
     return props;

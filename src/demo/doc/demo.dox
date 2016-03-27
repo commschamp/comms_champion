@@ -1,0 +1,8 @@
+/// @namespace comms_champion
+/// @brief Main namespace for CommsChampion tools.
+///
+/// @namespace comms_champion::demo
+/// @brief Main namespace for demo protocol.
+///
+/// @namespace comms_champion::demo::message
+/// @brief Contains definitions of all the messages defined in Demo binary protocol.

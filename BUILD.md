@@ -32,6 +32,9 @@ Default value is **OFF**
 - **CC_COMMS_CHAMPION**=ON/OFF - Enable/Disable build of CommsChampion tool. Default value
 is **ON**.
 
+- **CC_COMMS_CHAMPION_DEMO**=ON/OFF - Enable/Disable build of internal "Demo" protocol
+to demonstrate abilities of CommsChampion tool. Default value is **ON**.
+
 - **CC_STATIC_RUNTIME**=ON/OFF - Enable/Disable static link to C++ runtime. Default value is **OFF**
 
 - **CC_QT_DIR**=dir - Directory of QT5 installation. Can be used to provide path to QT5 if

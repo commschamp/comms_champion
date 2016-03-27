@@ -18,4 +18,4 @@ if (CC_COMMS_LIB_ONLY)
 endif ()
 
 add_subdirectory (app)
-add_subdirectory (protocol)
+add_subdirectory (demo)

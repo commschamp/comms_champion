@@ -139,7 +139,7 @@ struct EnumValuesFields
     >;
 };
 
-/// @brief Accumulates various integer values.
+/// @brief Accumulates various enum values.
 /// @details Inherits from
 ///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1MessageBase.html">comms::MessageBase</a>
 ///     while providing @b TMsgBase as common interface class as well as

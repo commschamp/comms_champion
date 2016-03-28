@@ -19,6 +19,7 @@ function (cc_plugin_demo)
         TransportMessage.cpp
         message/IntValues.cpp
         message/EnumValues.cpp
+        message/BitmaskValues.cpp
     )
     
     set (hdr

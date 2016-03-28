@@ -48,6 +48,7 @@ QVariantMap createMsgIdProperties()
     QVariantList enumValues;
     cc::Property::appendEnumValue(enumValues, "IntValues");
     cc::Property::appendEnumValue(enumValues, "EnumValues");
+    cc::Property::appendEnumValue(enumValues, "BitmaskValues");
     assert(enumValues.size() == demo::MsgId_NumOfValues);
 
     return cc::Property::createPropertiesMap("ID", std::move(enumValues));

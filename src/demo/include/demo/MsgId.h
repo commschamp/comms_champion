@@ -35,6 +35,7 @@ enum MsgId : std::uint8_t
     MsgId_EnumValues, ///< Enum values accumulating message
     MsgId_BitmaskValues, ///< Bitmask values accumulating message
     MsgId_Bitfields, ///< Bitfields accumulating message
+    MsgId_Strings, ///< Strings accumulating message
     MsgId_NumOfValues ///< Limit to valid message IDs, must be last
 };
 

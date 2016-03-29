@@ -21,6 +21,7 @@ function (cc_plugin_demo)
         message/EnumValues.cpp
         message/BitmaskValues.cpp
         message/Bitfields.cpp
+        message/Strings.cpp
     )
     
     set (hdr

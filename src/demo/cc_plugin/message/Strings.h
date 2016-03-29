@@ -18,14 +18,10 @@
 
 #pragma once
 
-#include <tuple>
+#include "comms_champion/comms_champion.h"
+#include "demo/message/Strings.h"
 #include "cc_plugin/Message.h"
-
-#include "cc_plugin/message/IntValues.h"
-#include "cc_plugin/message/EnumValues.h"
-#include "cc_plugin/message/BitmaskValues.h"
-#include "cc_plugin/message/Bitfields.h"
-#include "cc_plugin/message/Strings.h"
+#include "cc_plugin/ProtocolMessageBase.h"
 
 namespace comms_champion
 {
@@ -36,13 +32,29 @@ namespace demo
 namespace cc_plugin
 {
 
-typedef std::tuple<
-    cc_plugin::message::IntValues,
-    cc_plugin::message::EnumValues,
-    cc_plugin::message::BitmaskValues,
-    cc_plugin::message::Bitfields,
-    cc_plugin::message::Strings
-> AllMessages;
+namespace message
+{
+
+class Strings : public
+    ProtocolMessageBase<
+        demo::message::Strings<demo::cc_plugin::Message>,
+        Strings>
+{
+public:
+    Strings();
+    Strings(const Strings&) = delete;
+    Strings(Strings&&) = delete;
+    virtual ~Strings();
+
+    Strings& operator=(const Strings&);
+    Strings& operator=(Strings&&);
+
+protected:
+    virtual const char* nameImpl() const override;
+    virtual const QVariantList& fieldsPropertiesImpl() const override;
+};
+
+}  // namespace message
 
 }  // namespace cc_plugin
 

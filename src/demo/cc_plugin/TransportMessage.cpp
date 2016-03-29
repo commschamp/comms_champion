@@ -45,13 +45,23 @@ QVariantMap createLengthProperties()
 
 QVariantMap createMsgIdProperties()
 {
-    QVariantList enumValues;
-    cc::Property::appendEnumValue(enumValues, "IntValues");
-    cc::Property::appendEnumValue(enumValues, "EnumValues");
-    cc::Property::appendEnumValue(enumValues, "BitmaskValues");
-    cc::Property::appendEnumValue(enumValues, "Bitfields");
-    assert(enumValues.size() == demo::MsgId_NumOfValues);
+    static const char* Names[] = {
+        "IntValues",
+        "EnumValues",
+        "BitmaskValues",
+        "Bitfields",
+        "Strings"
+    };
 
+    static const auto NamesCount = std::extent<decltype(Names)>::value;
+    static_assert(NamesCount == demo::MsgId_NumOfValues, "Not all messages are added");
+
+    QVariantList enumValues;
+    for (auto name : Names) {
+        cc::Property::appendEnumValue(enumValues, name);
+    }
+
+    assert(enumValues.size() == demo::MsgId_NumOfValues);
     return cc::Property::createPropertiesMap("ID", std::move(enumValues));
 }
 

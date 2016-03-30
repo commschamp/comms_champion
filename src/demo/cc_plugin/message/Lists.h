@@ -18,15 +18,10 @@
 
 #pragma once
 
-#include <tuple>
+#include "comms_champion/comms_champion.h"
+#include "demo/message/Lists.h"
 #include "cc_plugin/Message.h"
-
-#include "cc_plugin/message/IntValues.h"
-#include "cc_plugin/message/EnumValues.h"
-#include "cc_plugin/message/BitmaskValues.h"
-#include "cc_plugin/message/Bitfields.h"
-#include "cc_plugin/message/Strings.h"
-#include "cc_plugin/message/Lists.h"
+#include "cc_plugin/ProtocolMessageBase.h"
 
 namespace comms_champion
 {
@@ -37,17 +32,29 @@ namespace demo
 namespace cc_plugin
 {
 
-typedef std::tuple<
-    cc_plugin::message::IntValues,
-    cc_plugin::message::EnumValues,
-    cc_plugin::message::BitmaskValues,
-    cc_plugin::message::Bitfields,
-    cc_plugin::message::Strings,
-    cc_plugin::message::Lists
-> AllMessages;
+namespace message
+{
 
-static_assert(std::tuple_size<AllMessages>::value == MsgId_NumOfValues,
-    "Some messages are missing");
+class Lists : public
+    ProtocolMessageBase<
+        demo::message::Lists<demo::cc_plugin::Message>,
+        Lists>
+{
+public:
+    Lists();
+    Lists(const Lists&) = delete;
+    Lists(Lists&&) = delete;
+    virtual ~Lists();
+
+    Lists& operator=(const Lists&);
+    Lists& operator=(Lists&&);
+
+protected:
+    virtual const char* nameImpl() const override;
+    virtual const QVariantList& fieldsPropertiesImpl() const override;
+};
+
+}  // namespace message
 
 }  // namespace cc_plugin
 

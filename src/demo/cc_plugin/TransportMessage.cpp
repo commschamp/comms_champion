@@ -50,7 +50,8 @@ QVariantMap createMsgIdProperties()
         "EnumValues",
         "BitmaskValues",
         "Bitfields",
-        "Strings"
+        "Strings",
+        "Lists"
     };
 
     static const auto NamesCount = std::extent<decltype(Names)>::value;

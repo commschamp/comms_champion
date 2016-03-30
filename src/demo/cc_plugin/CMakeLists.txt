@@ -22,6 +22,7 @@ function (cc_plugin_demo)
         message/BitmaskValues.cpp
         message/Bitfields.cpp
         message/Strings.cpp
+        message/Lists.cpp
     )
     
     set (hdr

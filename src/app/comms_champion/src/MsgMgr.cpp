@@ -27,6 +27,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
+#include <QtCore/QCoreApplication>
 CC_ENABLE_WARNINGS()
 
 #include "GlobalConstants.h"
@@ -299,10 +300,18 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_allMsgs));
 }
 
+void MsgMgr::aboutToQuit()
+{
+    m_allMsgs.clear();
+}
+
 MsgMgr::MsgMgr(QObject* parentObj)
   : Base(parentObj)
 {
     m_allMsgs.reserve(1024);
+    connect(
+        qApp, SIGNAL(aboutToQuit()),
+        this, SLOT(aboutToQuit()));
 }
 
 void MsgMgr::updateInternalId(MessageInfo& msgInfo)

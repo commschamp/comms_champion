@@ -82,7 +82,7 @@ signals:
 
 private slots:
     void socketDataReceived(DataInfoPtr dataInfoPtr);
-
+    void aboutToQuit();
 
 private:
     typedef std::list<SocketPtr> SocketsList;

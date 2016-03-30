@@ -568,9 +568,16 @@ public:
         static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
 
         return TupleTypeAccumulateHelper<TRem - 1>::template exec<Tuple>(
-            func.template operator()<typename std::tuple_element<std::tuple_size<Tuple>::value - TRem, Tuple>::type>(value),
+#ifdef _MSC_VER
+            func.operator()
+#else
+            func.template operator()
+#endif
+            <typename std::tuple_element<std::tuple_size<Tuple>::value - TRem, Tuple>::type>(value),
             std::forward<TFunc>(func));
+
     }
+
 };
 
 template <>

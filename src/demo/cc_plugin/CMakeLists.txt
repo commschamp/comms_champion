@@ -23,6 +23,7 @@ function (cc_plugin_demo)
         message/Bitfields.cpp
         message/Strings.cpp
         message/Lists.cpp
+        message/Optionals.cpp
     )
     
     set (hdr

@@ -18,16 +18,10 @@
 
 #pragma once
 
-#include <tuple>
+#include "comms_champion/comms_champion.h"
+#include "demo/message/Optionals.h"
 #include "cc_plugin/Message.h"
-
-#include "cc_plugin/message/IntValues.h"
-#include "cc_plugin/message/EnumValues.h"
-#include "cc_plugin/message/BitmaskValues.h"
-#include "cc_plugin/message/Bitfields.h"
-#include "cc_plugin/message/Strings.h"
-#include "cc_plugin/message/Lists.h"
-#include "cc_plugin/message/Optionals.h"
+#include "cc_plugin/ProtocolMessageBase.h"
 
 namespace comms_champion
 {
@@ -38,18 +32,29 @@ namespace demo
 namespace cc_plugin
 {
 
-typedef std::tuple<
-    cc_plugin::message::IntValues,
-    cc_plugin::message::EnumValues,
-    cc_plugin::message::BitmaskValues,
-    cc_plugin::message::Bitfields,
-    cc_plugin::message::Strings,
-    cc_plugin::message::Lists,
-    cc_plugin::message::Optionals
-> AllMessages;
+namespace message
+{
 
-static_assert(std::tuple_size<AllMessages>::value == MsgId_NumOfValues,
-    "Some messages are missing");
+class Optionals : public
+    ProtocolMessageBase<
+        demo::message::Optionals<demo::cc_plugin::Message>,
+        Optionals>
+{
+public:
+    Optionals();
+    Optionals(const Optionals&) = delete;
+    Optionals(Optionals&&) = delete;
+    virtual ~Optionals();
+
+    Optionals& operator=(const Optionals&);
+    Optionals& operator=(Optionals&&);
+
+protected:
+    virtual const char* nameImpl() const override;
+    virtual const QVariantList& fieldsPropertiesImpl() const override;
+};
+
+}  // namespace message
 
 }  // namespace cc_plugin
 

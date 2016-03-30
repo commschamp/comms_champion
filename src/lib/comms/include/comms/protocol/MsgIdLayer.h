@@ -102,15 +102,8 @@ public:
         comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>(),
         "Field must be of IntValue or EnumValue types");
 
-    /// @brief Constructor of any number of arguments.
-    /// @details All the arguments are passed to the constructor of the
-    ///     ProtocolLayerBase (which is a base of this class), which it turn
-    ///     forwards them to the constructor of the next layer.
-    template <typename... TArgs>
-    explicit MsgIdLayer(TArgs&&... args)
-       : Base(std::forward<TArgs>(args)...)
-    {
-    }
+    /// @brief Default constructor.
+    explicit MsgIdLayer() = default;
 
     /// @brief Copy constructor.
     MsgIdLayer(const MsgIdLayer&) = default;

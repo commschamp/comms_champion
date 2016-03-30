@@ -69,15 +69,8 @@ public:
     static_assert(comms::field::isIntValue<Field>(),
         "Field must be of IntValue type");
 
-    /// @brief Constructor of any number of arguments.
-    /// @details All the arguments are passed to the constructor of the
-    ///     ProtocolLayerBase (which is a base of this class), which it turn
-    ///     forwards them to the constructor of the next layer.
-    template <typename... TArgs>
-    explicit MsgSizeLayer(TArgs&&... args)
-       : Base(std::forward<TArgs>(args)...)
-    {
-    }
+    /// @brief Default constructor
+    explicit MsgSizeLayer() = default;
 
     /// @brief Copy constructor
     MsgSizeLayer(const MsgSizeLayer&) = default;

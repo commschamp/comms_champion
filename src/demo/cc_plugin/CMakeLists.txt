@@ -37,6 +37,7 @@ function (cc_plugin_demo)
     )
     
     add_library (${name} SHARED ${src} ${moc})
+    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
     
     install (
         TARGETS ${name}

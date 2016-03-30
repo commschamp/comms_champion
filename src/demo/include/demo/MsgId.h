@@ -38,6 +38,7 @@ enum MsgId : std::uint8_t
     MsgId_Strings, ///< Strings accumulating message
     MsgId_Lists, ///< Lists accumulating message
     MsgId_Optionals, ///< Message containing optional fields
+    MsgId_FloatValues, ///< Floating point values accumulating message
     MsgId_NumOfValues ///< Limit to valid message IDs, must be last
 };
 

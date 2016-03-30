@@ -24,6 +24,7 @@ function (cc_plugin_demo)
         message/Strings.cpp
         message/Lists.cpp
         message/Optionals.cpp
+        message/FloatValues.cpp
     )
     
     set (hdr

@@ -52,7 +52,8 @@ QVariantMap createMsgIdProperties()
         "Bitfields",
         "Strings",
         "Lists",
-        "Optionals"
+        "Optionals",
+        "FloatValues"
     };
 
     static const auto NamesCount = std::extent<decltype(Names)>::value;

@@ -1316,7 +1316,7 @@ void FieldsTestSuite::test35()
 
     Field field;
     TS_ASSERT(fpEquals(field.value(), 0.0f));
-    field.value() = 1.23;
+    field.value() = 1.23f;
     TS_ASSERT(fpEquals(field.value(), 1.23f));
 
     std::vector<std::uint8_t> buf;
@@ -1437,10 +1437,10 @@ void FieldsTestSuite::test39()
     Field field;
     TS_ASSERT(fpEquals(field.value(), 0.0f));
     TS_ASSERT(!field.valid());
-    field.value() = 4.999999;
+    field.value() = 4.999999f;
     TS_ASSERT(fpEquals(field.value(), 4.999999f));
     TS_ASSERT(!field.valid());
-    field.value() = 5.00001;
+    field.value() = 5.00001f;
     TS_ASSERT(fpEquals(field.value(), 5.00001f));
     TS_ASSERT(field.valid());
 }

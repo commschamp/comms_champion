@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <limits>
+#include <numeric>
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"

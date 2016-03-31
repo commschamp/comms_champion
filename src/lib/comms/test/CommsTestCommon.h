@@ -197,7 +197,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     auto writeIter = &outCheckBuf[0];
     es = stack.write(*msg, writeIter, actualBufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    TS_ASSERT(std::equal(buf, buf + actualBufSize, &outCheckBuf[0]));
+    TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
     return std::move(msg);
 }
 
@@ -228,7 +228,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     typename TProtStack::AllFields writtenFields;
     es = stack.template writeFieldsCached<0>(writtenFields, *msg, writeIter, actualBufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    TS_ASSERT(std::equal(buf, buf + actualBufSize, &outCheckBuf[0]));
+    TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
     TS_ASSERT_EQUALS(fields, writtenFields);
     return std::move(msg);
 }
@@ -265,7 +265,7 @@ typename TProtStack::MsgPtr vectorBackInsertReadWriteMsgTest(
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(outCheckBuf.size(), actualBufSize);
     TS_ASSERT_EQUALS(outCheckBuf.size(), stack.length(*msg));
-    bool resultAsExpected = std::equal(buf, buf + actualBufSize, &outCheckBuf[0]);
+    bool resultAsExpected = std::equal(buf, buf + actualBufSize, outCheckBuf.cbegin());
     if (!resultAsExpected) {
         std::cout << "Original buffer:\n\t" << std::hex;
         std::copy_n(buf, actualBufSize, std::ostream_iterator<unsigned>(std::cout, " "));
@@ -295,7 +295,8 @@ void commonWriteReadMsgTest(
     }
 
     assert(expectedBuf != nullptr);
-    TS_ASSERT(std::equal(buf, buf + bufSize, &expectedBuf[0]));
+    auto constBuf = static_cast<const char*>(buf);
+    TS_ASSERT(std::equal(constBuf, constBuf + bufSize, &expectedBuf[0]));
 
     typedef typename TProtStack::MsgPtr MsgPtr;
     MsgPtr msgPtr;
@@ -339,7 +340,7 @@ void vectorBackInsertWriteReadMsgTest(
     assert(expectedBuf != nullptr);
     TS_ASSERT_EQUALS(stack.length(msg), buf.size());
     TS_ASSERT_EQUALS(stack.length(msg), bufSize);
-    TS_ASSERT(std::equal(buf.begin(), buf.end(), &expectedBuf[0]));
+    TS_ASSERT(std::equal(buf.cbegin(), buf.cend(), &expectedBuf[0]));
 
     typedef typename TProtStack::MsgPtr MsgPtr;
     MsgPtr msgPtr;

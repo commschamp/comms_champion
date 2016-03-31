@@ -1746,7 +1746,7 @@ TField FieldsTestSuite::readWriteField(
 
     status = field.write(writeIter, diff);
     TS_ASSERT_EQUALS(status, comms::ErrorStatus::Success);
-    TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
+    TS_ASSERT(std::equal(buf, buf + diff, static_cast<const char*>(&outDataBuf[0])));
 
     auto writeDiff = static_cast<std::size_t>(std::distance(&outDataBuf[0], writeIter));
     TS_ASSERT_EQUALS(field.length(), writeDiff);

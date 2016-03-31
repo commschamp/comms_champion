@@ -161,7 +161,10 @@ void MessageTestSuite::test2()
     std::uint8_t beBuf[2] = {0};
     static const std::size_t BeBufSize = std::extent<decltype(beBuf)>::value;
     internalWriteReadTest(beMsg, &beBuf[0], BeBufSize);
-    TS_ASSERT(std::equal(&ExpectecedBeBuf[0], &ExpectecedBeBuf[0] + BeBufSize, &beBuf[0]));
+    TS_ASSERT(
+        std::equal(
+            &ExpectecedBeBuf[0], &ExpectecedBeBuf[0] + BeBufSize,
+            static_cast<const std::uint8_t*>(&beBuf[0])));
 
     static const std::uint8_t ExpectecedLeBuf[] = {
         0x02, 0x01
@@ -173,7 +176,10 @@ void MessageTestSuite::test2()
     std::uint8_t leBuf[2] = {0};
     static const std::size_t LeBufSize = std::extent<decltype(leBuf)>::value;
     internalWriteReadTest(leMsg, leBuf, LeBufSize);
-    TS_ASSERT(std::equal(&ExpectecedLeBuf[0], &ExpectecedLeBuf[0] + LeBufSize, &leBuf[0]));
+    TS_ASSERT(
+        std::equal(
+            &ExpectecedLeBuf[0], &ExpectecedLeBuf[0] + LeBufSize,
+            static_cast<const std::uint8_t*>(&leBuf[0])));
 }
 
 void MessageTestSuite::test3()
@@ -308,7 +314,7 @@ TMessage MessageTestSuite::internalReadWriteTest(
         auto writeIter = &outDataBuf[0];
         auto writeES = msg.write(writeIter, diff);
         TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
-        TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
+        TS_ASSERT(std::equal(buf, buf + diff, static_cast<const CharType*>(&outDataBuf[0])));
     }
     return msg;
 }

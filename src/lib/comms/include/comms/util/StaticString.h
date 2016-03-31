@@ -329,7 +329,7 @@ protected:
         GASSERT(pos1 <= size());
         count1 = std::min(count1, size() - pos1);
         auto minCount = std::min(count1, count2);
-        for (auto idx = 0; idx < minCount; ++idx) {
+        for (auto idx = 0U; idx < minCount; ++idx) {
             auto thisCh = (*this)[pos1 + idx];
             auto diff = static_cast<int>(thisCh) - static_cast<int>(*str);
             if (diff != 0) {

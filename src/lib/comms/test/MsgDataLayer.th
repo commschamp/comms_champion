@@ -177,6 +177,7 @@ TMessage MsgDataLayerTestSuite::internalReadWriteTest(
         >::type ProtStack;
 
     ProtStack stack;
+    static_cast<void>(stack);
     auto readIter = buf;
     std::unique_ptr<Message> msg(new Message);
     auto es = stack.read(msg, readIter, bufSize);
@@ -209,6 +210,7 @@ TMessage MsgDataLayerTestSuite::internalReadWriteToVectorTest(
         >::type ProtStack;
 
     ProtStack stack;
+    static_cast<void>(stack);
     auto readIter = buf;
     std::unique_ptr<Message> msg(new Message);
     auto es = stack.read(msg, readIter, bufSize);
@@ -245,6 +247,7 @@ void MsgDataLayerTestSuite::internalWriteReadTest(
         >::type ProtStack;
 
     ProtStack stack;
+    static_cast<void>(stack);
     auto writeIter = buf;
     auto es = stack.write(msg, writeIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedErrStatus);

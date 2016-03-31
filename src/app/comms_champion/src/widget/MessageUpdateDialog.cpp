@@ -434,7 +434,7 @@ void MessageUpdateDialog::accept()
     else {
         m_msgInfo->setAppMessage(msgInfo->getAppMessage());
         m_msgInfo->setTransportMessage(msgInfo->getTransportMessage());
-        m_msgInfo->setRawDataMessage(m_msgInfo->getRawDataMessage());
+        m_msgInfo->setRawDataMessage(msgInfo->getRawDataMessage());
     }
 
     assert(m_msgInfo);

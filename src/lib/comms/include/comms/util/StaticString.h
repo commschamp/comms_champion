@@ -284,7 +284,7 @@ protected:
         count1 = std::min(count1, size() - pos1);
         count2 = std::min(count2, other.size() - pos2);
         auto minCount = std::min(count1, count2);
-        for (auto idx = 0; idx < minCount; ++idx) {
+        for (auto idx = 0U; idx < minCount; ++idx) {
             auto thisCh = (*this)[pos1 + idx];
             auto otherCh = other[pos2 + idx];
             auto diff = static_cast<int>(thisCh) - static_cast<int>(otherCh);

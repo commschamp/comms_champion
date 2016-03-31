@@ -42,7 +42,7 @@ class StaticStringBase
     typedef typename VecType::CellType CellType;
 protected:
 
-    static const auto npos = std::string::npos;
+    static const auto npos = static_cast<std::size_t>(-1);
 
     StaticStringBase(TChar* buf, std::size_t cap)
       : vec_(reinterpret_cast<CellType*>(buf), cap)

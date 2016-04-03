@@ -13,7 +13,12 @@ get_filename_component (CC_INSTALL_PATH ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 
 find_path(CC_INCLUDE_DIR NAMES comms/comms.h PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES include)
 find_library(CC_PLUGIN_LIBRARY  NAMES "comms_champion" PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES lib)
-find_library(CC_NULL_SOCK_LIBRARY  NAMES "null_socket" PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES plugin)
+
+if (MSVC)
+    find_file(CC_NULL_SOCK_LIBRARY NAMES "null_socket.dll" PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES plugin)
+else ()
+    find_library(CC_NULL_SOCK_LIBRARY  NAMES "null_socket" PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES plugin)
+endif ()
 
 if (CC_PLUGIN_LIBRARY)
     get_filename_component  (CC_PLUGIN_LIBRARY_DIR ${CC_PLUGIN_LIBRARY} DIRECTORY)

@@ -1765,7 +1765,7 @@ void FieldsTestSuite::writeReadField(
     auto writeIter = &outDataBuf[0];
     auto es = field.write(writeIter, size);
     TS_ASSERT_EQUALS(es, expectedStatus);
-    bool bufAsExpected = std::equal(expectedBuf, expectedBuf + size, &outDataBuf[0]);
+    bool bufAsExpected = std::equal(expectedBuf, expectedBuf + size, static_cast<const char*>(&outDataBuf[0]));
     if (!bufAsExpected) {
         std::cout << "Expected buffer: " << std::hex;
         std::copy_n(expectedBuf, size, std::ostream_iterator<unsigned>(std::cout, " "));

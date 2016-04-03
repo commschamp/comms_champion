@@ -44,7 +44,7 @@ if (CMAKE_COMPILER_IS_GNUCC)
     endif ()
 elseif (MSVC)
 
-    add_definitions( "/wd4503" "/wd4309" "/wd4267" )
+    add_definitions( "/wd4503" "/wd4309" "/wd4267" "-D_SCL_SECURE_NO_WARNINGS")
     if (CC_STATIC_RUNTIME)
         foreach(flag_var 
                 CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -65,4 +65,13 @@ if (NOT "${CC_QT_DIR}" STREQUAL "")
     link_directories ("${CC_QT_DIR}/plugins/platforms")
 endif ()
 
+set (INSTALL_DIR ${CMAKE_BINARY_DIR}/install)
+set (LIB_INSTALL_DIR ${INSTALL_DIR}/lib)
+set (BIN_INSTALL_DIR ${INSTALL_DIR}/bin)
+set (INC_INSTALL_DIR ${INSTALL_DIR}/include)
+set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/plugin)
+set (DOC_INSTALL_DIR ${INSTALL_DIR}/doc)
+set (ICON_INSTALL_DIR ${INSTALL_DIR}/icon)
+
+install (DIRECTORY cmake DESTINATION ${INSTALL_DIR})
 add_subdirectory (src)

@@ -1,8 +1,12 @@
-
-function (plugin_dummy_socket)
-    set (name "dummy_socket")
+function (plugin_null_socket)
+    set (name "null_socket")
     
-    set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/dummy_socket.json")
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
+    
+    set (meta_file "${CMAKE_CURRENT_SOURCE_DIR}/null_socket.json")
     set (stamp_file "${CMAKE_CURRENT_BINARY_DIR}/refresh_stamp.txt")
     if ((NOT EXISTS ${stamp_file}) OR (${meta_file} IS_NEWER_THAN ${stamp_file}))
         execute_process(
@@ -17,7 +21,6 @@ function (plugin_dummy_socket)
     )
     
     set (hdr
-        NullSocket.h
         NullSocketPlugin.h
     )
     
@@ -26,7 +29,9 @@ function (plugin_dummy_socket)
         ${hdr}
     )
     
-    add_library (${name} SHARED ${src} ${moc})
+    add_library (${name} MODULE ${src} ${moc})
+    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
+    qt5_use_modules(${name} Core)
     
     install (
         TARGETS ${name}
@@ -36,6 +41,6 @@ endfunction()
 
 ######################################################################
 
-include_directories(${Qt5Core_INCLUDE_DIRS})
+find_package(Qt5Core)
 
-plugin_dummy_socket ()
+plugin_null_socket ()

@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <cmath>
 
 #include "comms_champion/Property.h"
 
@@ -64,8 +65,8 @@ void LongIntValueFieldWidget::refreshImpl()
 
     auto value = m_wrapper->getValue();
     assert(m_ui.m_valueSpinBox);
-    if (static_cast<UnderlyingType>(m_ui.m_valueSpinBox->value()) != value) {
-        m_ui.m_valueSpinBox->setValue(static_cast<double>(value));
+    if (adjustDisplayedToReal(m_ui.m_valueSpinBox->value()) != value) {
+        m_ui.m_valueSpinBox->setValue(adjustRealToDisplayed(value));
     }
 
     bool valid = m_wrapper->valid();
@@ -82,6 +83,16 @@ void LongIntValueFieldWidget::editEnabledUpdatedImpl()
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
+void LongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    auto offset =
+        static_cast<decltype(m_offset)>(Property::getNumValueDisplayOffset(props));
+    if (std::numeric_limits<double>::epsilon() < std::abs(m_offset - offset)) {
+        m_offset = offset;
+        refresh();
+    }
+}
+
 void LongIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);
@@ -89,15 +100,26 @@ void LongIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 
 void LongIntValueFieldWidget::valueUpdated(double value)
 {
-    auto castedValue = static_cast<UnderlyingType>(value);
-    if (castedValue == m_wrapper->getValue()) {
+    auto adjustedValue = adjustDisplayedToReal(value);
+    if (adjustedValue == m_wrapper->getValue()) {
         return;
     }
 
     assert(isEditEnabled());
-    m_wrapper->setValue(castedValue);
+    m_wrapper->setValue(adjustedValue);
     refresh();
     emitFieldUpdated();
+}
+
+LongIntValueFieldWidget::UnderlyingType
+LongIntValueFieldWidget::adjustDisplayedToReal(double val)
+{
+    return static_cast<UnderlyingType>(val - m_offset);
+}
+
+double LongIntValueFieldWidget::adjustRealToDisplayed(UnderlyingType val)
+{
+    return static_cast<double>(val + m_offset);
 }
 
 }  // namespace comms_champion

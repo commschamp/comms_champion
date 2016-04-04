@@ -287,8 +287,8 @@ struct IsArrayList
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsArrayList<comms::field::ArrayList<TArgs...> >
+template <typename TFieldBase, typename TElement, typename... TOptions>
+struct IsArrayList<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >
 {
     static const bool Value = true;
 };

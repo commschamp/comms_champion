@@ -23,6 +23,8 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QApplication>
 #include <QtCore/QPluginLoader>
 #include <QtCore/QDir>
+#include <QtCore/QCommandLineParser>
+#include <QtCore/QStringList>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/comms_champion.h"
@@ -32,12 +34,14 @@ CC_ENABLE_WARNINGS()
 #include "PluginMgr.h"
 
 #include "widget/MainWindowWidget.h"
+#include "icon.h"
 
+namespace cc = comms_champion;
 
 namespace
 {
 
-namespace cc = comms_champion;
+const QString CleanOptStr("clean");
 
 void metaTypesRegisterAll()
 {
@@ -45,6 +49,7 @@ void metaTypesRegisterAll()
     qRegisterMetaType<cc::ProtocolPtr>();
     qRegisterMetaType<cc::GuiAppMgr::ActionPtr>();
     qRegisterMetaType<cc::PluginMgr::PluginInfoPtr>();
+    qRegisterMetaType<cc::DataInfoPtr>();
 }
 
 void initSingletons()
@@ -55,18 +60,33 @@ void initSingletons()
     static_cast<void>(cc::PluginMgr::instanceRef());
 }
 
+void prepareCommandLineOptions(QCommandLineParser& parser)
+{
+    parser.addHelpOption();
+
+    QCommandLineOption cleanOpt(
+        QStringList() << "c" << CleanOptStr,
+        QCoreApplication::translate("main", "Clean start.")
+    );
+    parser.addOption(cleanOpt);
+}
+
 }  // namespace
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    initSingletons();
     metaTypesRegisterAll();
+    initSingletons();
+
+    QCommandLineParser parser;
+    prepareCommandLineOptions(parser);
+    parser.process(app);
 
     cc::MainWindowWidget window;
+    window.setWindowIcon(cc::icon::appIcon());
     window.showMaximized();
-
 
     QDir dir(app.applicationDirPath());
     dir.cdUp();
@@ -76,7 +96,15 @@ int main(int argc, char *argv[])
     }
 
     app.addLibraryPath(dir.path());
-    cc::PluginMgr::instanceRef().setPluginsDir(dir.path());
+
+    auto& pluginMgr = cc::PluginMgr::instanceRef();
+    pluginMgr.setPluginsDir(dir.path());
+
+    if (parser.isSet(CleanOptStr)) {
+        pluginMgr.clean();
+    }
+
+    pluginMgr.start();
 
     auto retval = app.exec();
     return retval;

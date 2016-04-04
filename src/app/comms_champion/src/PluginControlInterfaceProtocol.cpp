@@ -20,12 +20,12 @@
 namespace comms_champion
 {
 
-void PluginControlInterfaceProtocol::setProtocolImpl(ProtocolPtr protocol)
+void PluginControlInterfaceProtocol::setProtocol(ProtocolPtr protocol)
 {
     emitSigSetProtocol(std::move(protocol));
 }
 
-void PluginControlInterfaceProtocol::clearProtocolImpl()
+void PluginControlInterfaceProtocol::clearProtocol()
 {
     emitSigSetProtocol(ProtocolPtr());
 }

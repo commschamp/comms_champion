@@ -27,6 +27,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
+#include <QtCore/QCoreApplication>
 CC_ENABLE_WARNINGS()
 
 #include "GlobalConstants.h"
@@ -189,22 +190,21 @@ const MsgMgr::MsgsList& MsgMgr::getAllMsgs() const
 void MsgMgr::setSocket(SocketPtr socket)
 {
     if (!socket) {
-        if (m_socket) {
-            m_socket->disconnect();
-        }
-
         m_socket.reset();
         return;
     }
 
+    socket->setDataReceivedCallback(
+        [this](DataInfoPtr dataPtr)
+        {
+            socketDataReceived(std::move(dataPtr));
+        });
 
-    connect(
-        socket.get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-        this, SLOT(socketDataReceived(DataInfoPtr)));
-
-    connect(
-        socket.get(), SIGNAL(sigErrorReport(const QString&)),
-        this, SIGNAL(sigErrorReported(const QString&)));
+    socket->setErrorReportCallback(
+        [this](const QString& msg)
+        {
+            emit sigErrorReported(msg);
+        });
 
     m_socket = std::move(socket);
 }
@@ -300,10 +300,18 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_allMsgs));
 }
 
+void MsgMgr::aboutToQuit()
+{
+    m_allMsgs.clear();
+}
+
 MsgMgr::MsgMgr(QObject* parentObj)
   : Base(parentObj)
 {
     m_allMsgs.reserve(1024);
+    connect(
+        qApp, SIGNAL(aboutToQuit()),
+        this, SLOT(aboutToQuit()));
 }
 
 void MsgMgr::updateInternalId(MessageInfo& msgInfo)

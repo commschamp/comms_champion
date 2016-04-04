@@ -151,8 +151,9 @@ protected:
 
         static_assert(sizeof(TObj) <= sizeof(place_), "Object is too big");
 
+        new (&place_) TObj(std::forward<TArgs>(args)...);
         MsgPtr msg(
-            new TObj(std::forward<TArgs>(args)...),
+            reinterpret_cast<Message*>(&place_),
             Deleter<Message>(&allocated_));
         allocated_ = true;
         return std::move(msg);

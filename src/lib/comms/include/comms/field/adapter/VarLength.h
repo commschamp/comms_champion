@@ -156,35 +156,22 @@ public:
     {
         auto val = adjustToUnsignedSerialisedVarLength(Base::toSerialised(Base::value()));
         std::size_t byteCount = 0;
-        while (true) {
+        bool lastByte = false;
+        auto minLen = std::max(length(), minLength());
+        while ((!lastByte) && (byteCount < maxLength())) {
             if (size == 0) {
                 return ErrorStatus::BufferOverflow;
             }
-
-            auto byte = removeByteFromSerialisedValue(val, byteCount, Endian());
-            auto mustStop = (val == 0);
-            if (!mustStop) {
+            auto byte = removeByteFromSerialisedValue(val, byteCount, minLen, lastByte, Endian());
+            if (!lastByte) {
                 GASSERT((byte & VarLengthContinueBit) == 0);
                 byte |= VarLengthContinueBit;
             }
 
             comms::util::writeData(byte, iter, Endian());
             ++byteCount;
-
-            if (mustStop) {
-                break;
-            }
-
-            GASSERT(byteCount < maxLength());
+            GASSERT(byteCount <= maxLength());
             --size;
-        }
-
-        if (byteCount < minLength()) {
-            while ((byteCount + 1) < minLength()) {
-                comms::util::writeData(VarLengthContinueBit, iter, Endian());
-                ++byteCount;
-            }
-            comms::util::writeData(std::uint8_t(0), iter, Endian());
         }
 
         return ErrorStatus::Success;
@@ -261,9 +248,21 @@ private:
 
     static std::uint8_t removeByteFromSerialisedValueBigEndian(
         UnsignedSerialisedType& val,
-        std::size_t byteCount)
+        std::size_t byteCount,
+        std::size_t minLength,
+        bool& lastByte)
     {
-        static const auto Mask = ~(static_cast<SerialisedType>(VarLengthValueBitsMask));
+        static const auto Mask = ~(static_cast<UnsignedSerialisedType>(VarLengthValueBitsMask));
+
+        if ((byteCount + 1) < minLength) {
+            auto remLen = minLength - (byteCount + 1);
+            auto minValue =
+                (static_cast<UnsignedSerialisedType>(1U) << (VarLengthShift * remLen));
+            if (val < minValue) {
+                lastByte = false;
+                return std::uint8_t(0);
+            }
+        }
 
         auto valueTmp = val;
         std::size_t shift = 0;
@@ -274,38 +273,42 @@ private:
             ++count;
         }
 
-        if ((byteCount + count + 1) < MinLength) {
-            return 0;
-        }
-
-        auto clearMask = ~(static_cast<SerialisedType>(VarLengthValueBitsMask) << shift);
+        auto clearMask = ~(static_cast<UnsignedSerialisedType>(VarLengthValueBitsMask) << shift);
         val &= clearMask;
+        lastByte = (0U == count);
         return static_cast<std::uint8_t>(valueTmp);
     }
 
     static std::uint8_t removeByteFromSerialisedValueLittleEndian(
-        UnsignedSerialisedType& val)
+        UnsignedSerialisedType& val,
+        std::size_t byteCount,
+        std::size_t minLength,
+        bool& lastByte)
     {
         auto byte = static_cast<std::uint8_t>(val & VarLengthValueBitsMask);
         val >>= VarLengthShift;
+        lastByte = ((val == 0) && (minLength <= byteCount + 1));
         return byte;
     }
 
     static std::uint8_t removeByteFromSerialisedValue(
         UnsignedSerialisedType& val,
         std::size_t byteCount,
+        std::size_t minLength,
+        bool& lastByte,
         comms::traits::endian::Big)
     {
-        return removeByteFromSerialisedValueBigEndian(val, byteCount);
+        return removeByteFromSerialisedValueBigEndian(val, byteCount, minLength, lastByte);
     }
 
     static std::uint8_t removeByteFromSerialisedValue(
         UnsignedSerialisedType& val,
         std::size_t byteCount,
+        std::size_t minLength,
+        bool& lastByte,
         comms::traits::endian::Little)
     {
-        static_cast<void>(byteCount);
-        return removeByteFromSerialisedValueLittleEndian(val);
+        return removeByteFromSerialisedValueLittleEndian(val, byteCount, minLength, lastByte);
     }
 
     static constexpr SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val, UnsignedTag)

@@ -75,16 +75,6 @@ public:
     /// @brief Default constructor.
     ChecksumLayer() = default;
 
-    /// @brief Constructor of any number of arguments.
-    /// @details All the arguments are passed to the constructor of the
-    ///     ProtocolLayerBase (which is a base of this class), which it turn
-    ///     forwards them to the constructor of the next layer.
-    template <typename... TArgs>
-    explicit ChecksumLayer(TArgs&&... args)
-      : Base(std::forward<TArgs>(args)...)
-    {
-    }
-
     /// @brief Copy constructor
     ChecksumLayer(const ChecksumLayer&) = default;
 
@@ -361,7 +351,7 @@ private:
         auto checksum = TCalc()(fromIter, len);
         field.value() = static_cast<FieldValueType>(checksum);
 
-        return field.write(iter, size);
+        return field.write(iter, remSize);
     }
 
     template <typename TWriter>

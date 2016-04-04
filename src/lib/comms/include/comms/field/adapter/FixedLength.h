@@ -180,11 +180,12 @@ private:
     }
 
     static const std::size_t Length = TLen;
-    static const std::size_t BitLength =
-        Length * std::numeric_limits<std::uint8_t>::digits;
+    static const std::size_t BitsInByte = std::numeric_limits<std::uint8_t>::digits;
+    static const std::size_t BitLength = Length * BitsInByte;
 
     static const auto UnsignedValueMask =
-        (static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1;
+        static_cast<UnsignedSerialisedType>(
+            (static_cast<std::uintmax_t>(1U) << BitLength) - 1);
 
     static_assert(0 < Length, "Length is expected to be greater than 0");
 };

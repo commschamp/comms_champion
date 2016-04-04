@@ -24,6 +24,12 @@ namespace comms_champion
 namespace icon
 {
 
+const QIcon& appIcon()
+{
+    static const QIcon IconObj(":/image/app_icon.png");
+    return IconObj;
+}
+
 const QIcon& add()
 {
     static const QIcon iconObj(":/image/add.png");

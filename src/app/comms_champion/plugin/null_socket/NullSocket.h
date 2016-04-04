@@ -25,7 +25,6 @@ namespace comms_champion
 
 class NullSocket : public Socket
 {
-    Q_OBJECT
 public:
     NullSocket();
     ~NullSocket();

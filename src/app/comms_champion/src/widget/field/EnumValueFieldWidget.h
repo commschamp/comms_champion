@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/EnumValueWrapper.h"
+#include "FieldWidget.h"
 
 #include "ui_EnumValueFieldWidget.h"
 
@@ -49,8 +49,8 @@ private slots:
     void valueUpdated(int idx);
 
 private:
-    using WrapperType = typename WrapperPtr::element_type;
-    using UnderlyingType = typename WrapperType::UnderlyingType;
+    using WrapperType = WrapperPtr::element_type;
+    using UnderlyingType = WrapperType::UnderlyingType;
 
     Ui::EnumValueFieldWidget m_ui;
     WrapperPtr m_wrapper;

@@ -25,9 +25,9 @@ namespace comms_champion
 
 class PluginControlInterfaceSocket : public PluginControlInterfaceImpl
 {
-protected:
-    virtual void setSocketImpl(SocketPtr socket) override;
-    virtual void clearSocketImpl() override;
+public:
+    virtual void setSocket(SocketPtr socket) override;
+    virtual void clearSocket() override;
 };
 
 }  // namespace comms_champion

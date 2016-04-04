@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
+#include "FieldWidget.h"
 
 #include "ui_BitmaskValueFieldWidget.h"
 
@@ -52,8 +52,8 @@ private slots:
     void checkBoxUpdated(int value);
 
 private:
-    using WrapperType = typename WrapperPtr::element_type;
-    using UnderlyingType = typename WrapperType::UnderlyingType;
+    using WrapperType = WrapperPtr::element_type;
+    using UnderlyingType = WrapperType::UnderlyingType;
 
     Ui::BitmaskValueFieldWidget m_ui;
     WrapperPtr m_wrapper;

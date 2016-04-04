@@ -185,7 +185,7 @@ private:
     };
 
     template <typename TMessage>
-    friend class MsgFactory<TMsgBase, TAllMessages, TOptions...>::NumIdFactoryMethod;
+    friend class NumIdFactoryMethod;
 
     template <typename TMessage>
     class GenericFactoryMethod : public FactoryMethod
@@ -212,7 +212,7 @@ private:
     };
 
     template <typename TMessage>
-    friend class MsgFactory<TMsgBase, TAllMessages, TOptions...>::GenericFactoryMethod;
+    friend class GenericFactoryMethod;
 
     static_assert(comms::util::IsTuple<AllMessages>::Value,
         "TAllMessages is expected to be a tuple.");

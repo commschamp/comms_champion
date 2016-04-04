@@ -68,16 +68,6 @@ public:
     /// @brief Default constructor
     SyncPrefixLayer() = default;
 
-    /// @brief Constructor of any number of arguments.
-    /// @details All the arguments are passed to the constructor of the
-    ///     ProtocolLayerBase (which is a base of this class), which it turn
-    ///     forwards them to the constructor of the next layer.
-    template <typename... TArgs>
-    explicit SyncPrefixLayer(TArgs&&... args)
-      : Base(std::forward<TArgs>(args)...)
-    {
-    }
-
     /// @brief Copy constructor.
     SyncPrefixLayer(const SyncPrefixLayer&) = default;
 

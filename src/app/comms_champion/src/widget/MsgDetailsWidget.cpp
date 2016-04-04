@@ -19,7 +19,6 @@
 
 #include <cassert>
 
-#include "comms_champion/DefaultMessageDisplayHandler.h"
 #include "GuiAppMgr.h"
 
 namespace comms_champion
@@ -37,8 +36,7 @@ const QString& getTitlePrefix()
 }  // namespace
 
 MsgDetailsWidget::MsgDetailsWidget(QWidget* parentObj)
-  : Base(parentObj),
-    m_msgDisplayHandler(new DefaultMessageDisplayHandler())
+  : Base(parentObj)
 {
     m_ui.setupUi(this);
 }
@@ -54,7 +52,8 @@ void MsgDetailsWidget::setEditEnabled(bool enabled)
 void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
 {
     assert(msg);
-    auto msgWidget = m_msgDisplayHandler->createMsgWidget(*msg);
+    msg->dispatch(m_msgDisplayHandler);
+    auto msgWidget = m_msgDisplayHandler.getMsgWidget();
     assert(msgWidget);
     msgWidget->setEditEnabled(m_editEnabled);
 

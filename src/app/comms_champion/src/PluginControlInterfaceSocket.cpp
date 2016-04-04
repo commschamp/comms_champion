@@ -20,12 +20,12 @@
 namespace comms_champion
 {
 
-void PluginControlInterfaceSocket::setSocketImpl(SocketPtr socket)
+void PluginControlInterfaceSocket::setSocket(SocketPtr socket)
 {
     emitSigSetSocket(std::move(socket));
 }
 
-void PluginControlInterfaceSocket::clearSocketImpl()
+void PluginControlInterfaceSocket::clearSocket()
 {
     emitSigSetSocket(SocketPtr());
 }

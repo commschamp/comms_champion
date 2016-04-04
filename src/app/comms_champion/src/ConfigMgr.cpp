@@ -56,6 +56,11 @@ const QString& ConfigMgr::getFilesFilter()
 
 QVariantMap ConfigMgr::loadConfig(const QString& filename)
 {
+    return loadConfig(filename, true);
+}
+
+QVariantMap ConfigMgr::loadConfig(const QString& filename, bool updateAsLast)
+{
     QVariantMap loadedConfig;
     do {
         QFile configFile(filename);
@@ -81,13 +86,23 @@ QVariantMap ConfigMgr::loadConfig(const QString& filename)
 
         auto topObject = jsonDoc.object();
         loadedConfig = topObject.toVariantMap();
-        m_lastConfigFile = filename;
+        if (updateAsLast) {
+            m_lastConfigFile = filename;
+        }
     } while (false);
 
     return loadedConfig;
 }
 
 bool ConfigMgr::saveConfig(const QString& filename, const QVariantMap& config)
+{
+    return saveConfig(filename, config, true);
+}
+
+bool ConfigMgr::saveConfig(
+    const QString& filename,
+    const QVariantMap& config,
+    bool updateAsLast)
 {
     QString filenameTmp(filename);
     while (true) {
@@ -119,7 +134,9 @@ bool ConfigMgr::saveConfig(const QString& filename, const QVariantMap& config)
         return false;
     }
 
-    m_lastConfigFile = filename;
+    if (updateAsLast) {
+        m_lastConfigFile = filename;
+    }
     return true;
 }
 

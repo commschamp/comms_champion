@@ -287,6 +287,7 @@ void MessageUpdateDialog::msgUpdated()
         Qt::QueuedConnection,
         Q_ARG(comms_champion::MessageInfoPtr, std::move(msgInfo)),
         Q_ARG(bool, forceUpdate));
+    //m_msgDisplayWidget->displayMessage(std::move(msgInfo), forceUpdate);
 }
 
 void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
@@ -433,7 +434,7 @@ void MessageUpdateDialog::accept()
     else {
         m_msgInfo->setAppMessage(msgInfo->getAppMessage());
         m_msgInfo->setTransportMessage(msgInfo->getTransportMessage());
-        m_msgInfo->setRawDataMessage(m_msgInfo->getRawDataMessage());
+        m_msgInfo->setRawDataMessage(msgInfo->getRawDataMessage());
     }
 
     assert(m_msgInfo);

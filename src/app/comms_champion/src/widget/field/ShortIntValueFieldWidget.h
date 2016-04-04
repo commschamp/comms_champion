@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
+#include "FieldWidget.h"
 
 #include "ui_ShortIntValueFieldWidget.h"
 
@@ -42,18 +42,21 @@ public:
 protected:
     virtual void refreshImpl() override;
     virtual void editEnabledUpdatedImpl() override;
+    virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private slots:
     void serialisedValueUpdated(const QString& value);
     void valueUpdated(int value);
 
 private:
-    using WrapperType = typename WrapperPtr::element_type;
-    using UnderlyingType = typename WrapperType::UnderlyingType;
-
+    using WrapperType = WrapperPtr::element_type;
+    using UnderlyingType = WrapperType::UnderlyingType;
+    int adjustDisplayedToReal(int val);
+    int adjustRealToDisplayed(int val);
 
     Ui::ShortIntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
+    int m_offset = 0;
 };
 
 

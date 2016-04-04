@@ -1,0 +1,7 @@
+{
+    "name" : "Echo Socket",
+    "desc" : [
+        "This socket duplicated outgoing data and echoes it as an incoming one."
+    ],
+    "type" : "socket"
+}

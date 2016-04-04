@@ -12,7 +12,7 @@
 /// @endcode    
 /// where:
 /// @li SYNC - 2 bytes of synchronisation value to indicate beginning of the message, 
-///     must be "0xab 0xbc"
+///     must be "0xab 0xcd"
 /// @li SIZE - 2 bytes, length of remaining data including checksum and not 
 ///     including SIZE field itself.
 /// @li ID - 1 byte, numeric ID of the message.
@@ -230,7 +230,7 @@
 ///     std::uint16_t, 
 ///     comms::option::DefaultNumValue<0xabcd> 
 /// > SyncField;
-/// typedef comms::protocol::SyncPrefixLayer<SyncField, MyMsgId> MySyncPrefix;
+/// typedef comms::protocol::SyncPrefixLayer<SyncField, MyChecksum> MySyncPrefix;
 /// @endcode
 /// The comms::protocol::SyncPrefixLayer class receives two template parameters.
 /// The first one is the type of the @b field, that is responsible to read/write

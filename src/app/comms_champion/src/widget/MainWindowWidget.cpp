@@ -109,6 +109,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
     connect(
         m_ui.m_actionQuit, SIGNAL(triggered()),
         this, SLOT(close()));
+    connect(
+        m_ui.m_actionAbout, SIGNAL(triggered()),
+        this, SLOT(aboutInfo()));
 }
 
 MainWindowWidget::~MainWindowWidget()
@@ -225,6 +228,17 @@ void MainWindowWidget::saveSendMsgsDialog()
     }
 
     GuiAppMgr::instance()->sendSaveMsgsToFile(filename);
+}
+
+void MainWindowWidget::aboutInfo()
+{
+    static const QString AboutTxt(
+        "<p>CommsChampion is a generic"
+        "communication protocols analysis tool.</p>"
+        "The icons for this application were taken from: "
+        "<a href=\"http://www.fatcow.com/free-icons\">FatCow</a>");
+
+    QMessageBox::information(this, tr("About"), AboutTxt);
 }
 
 void MainWindowWidget::clearCustomToolbarActions()

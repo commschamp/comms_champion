@@ -179,8 +179,8 @@ struct IsBundle
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsBundle<comms::field::Bundle<TArgs...> >
+template <typename TMembers, typename... TOptions>
+struct IsBundle<comms::field::Bundle<TMembers, TOptions...> >
 {
     static const bool Value = true;
 };

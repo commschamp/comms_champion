@@ -30,8 +30,8 @@ CC_DISABLE_WARNINGS()
 #include "ui_ArrayListFieldWidget.h"
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/ArrayListWrapper.h"
+#include "FieldWidget.h"
 
 namespace comms_champion
 {
@@ -69,8 +69,9 @@ class ArrayListFieldWidget : public FieldWidget
     Q_OBJECT
     typedef FieldWidget Base;
 public:
-    using WrapperPtr = field_wrapper::ArrayListWrapperPtr;
-    typedef std::function<std::vector<FieldWidgetPtr> (std::size_t)> CreateMissingDataFieldsFunc;
+    using Wrapper = field_wrapper::ArrayListWrapper;
+    using WrapperPtr = Wrapper::Ptr;
+    typedef std::function<std::vector<FieldWidgetPtr> (Wrapper&)> CreateMissingDataFieldsFunc;
 
     explicit ArrayListFieldWidget(
         WrapperPtr wrapper,

@@ -20,8 +20,8 @@
 
 #include <memory>
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
+#include "FieldWidget.h"
 
 namespace comms_champion
 {
@@ -44,8 +44,8 @@ protected:
     virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private:
-    using WrapperType = typename WrapperPtr::element_type;
-    using UnderlyingType = typename WrapperType::UnderlyingType;
+    using WrapperType = WrapperPtr::element_type;
+    using UnderlyingType = WrapperType::UnderlyingType;
 
     WrapperPtr m_wrapper;
     std::unique_ptr<FieldWidget> m_childWidget;

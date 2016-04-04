@@ -240,8 +240,8 @@ struct IsBitfield
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsBitfield<comms::field::Bitfield<TArgs...> >
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+struct IsBitfield<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
 {
     static const bool Value = true;
 };

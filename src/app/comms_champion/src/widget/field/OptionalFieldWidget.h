@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "comms_champion/FieldWidget.h"
 #include "comms_champion/field_wrapper/OptionalWrapper.h"
+#include "FieldWidget.h"
 
 #include "ui_OptionalFieldWidget.h"
 

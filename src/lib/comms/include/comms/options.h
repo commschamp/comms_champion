@@ -228,7 +228,7 @@ struct VarLength
 ///     single byte, i.e. to specify year 2015 is to write value 15.
 ///     However it may be inconvenient to manually adjust serialised/deserialised
 ///     value by predefined offset 2000. To help with such case option
-///     comms::option:: NumValueSerOffset can be used. For example:
+///     comms::option::NumValueSerOffset can be used. For example:
 ///     @code
 ///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
 ///     using MyField =

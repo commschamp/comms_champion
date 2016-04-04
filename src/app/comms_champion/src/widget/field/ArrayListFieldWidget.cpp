@@ -110,6 +110,8 @@ void ArrayListFieldWidget::refreshImpl()
         m_elements.pop_back();
     }
 
+    m_wrapper->refreshMembers();
+
     refreshInternal();
     addMissingFields();
     assert(m_elements.size() == m_wrapper->size());
@@ -234,14 +236,16 @@ void ArrayListFieldWidget::updateUi()
 void ArrayListFieldWidget::addMissingFields()
 {
     if (!m_createMissingDataFieldsCallback) {
+        assert(!"Callback should exist");
         return;
     }
 
-    assert(m_elements.size() <= m_wrapper->size());
-    auto fieldWidgets = m_createMissingDataFieldsCallback(m_elements.size());
+    assert(m_elements.empty());
+    auto fieldWidgets = m_createMissingDataFieldsCallback(*m_wrapper);
     for (auto& fieldWidgetPtr : fieldWidgets) {
         addDataField(fieldWidgetPtr.release());
     }
+
     assert(m_elements.size() == m_wrapper->size());
     assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
 }

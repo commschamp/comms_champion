@@ -62,7 +62,7 @@ class OptionsParser<
 
 public:
     static const bool HasSerOffset = true;
-    static const std::size_t SerOffset = Option::Value;
+    static const auto SerOffset = Option::Value;
 };
 
 template <std::size_t TLen, typename... TOptions>

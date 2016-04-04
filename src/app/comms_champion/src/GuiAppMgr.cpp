@@ -27,7 +27,7 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/DefaultMessageDisplayHandler.h"
+#include "DefaultMessageDisplayHandler.h"
 #include "GlobalConstants.h"
 
 #include <iostream>
@@ -401,6 +401,8 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
     m_recvState(RecvState::Idle),
     m_sendState(SendState::Idle)
 {
+    m_pendingDisplayTimer.setSingleShot(true);
+
     connect(
         MsgMgr::instance(), SIGNAL(sigMsgAdded(MessageInfoPtr)),
         this, SLOT(msgAdded(MessageInfoPtr)));
@@ -410,6 +412,10 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
     connect(
         PluginMgr::instance(), SIGNAL(sigStateChanged(int)),
         this, SLOT(activeStateChanged(int)));
+    connect(
+        &m_pendingDisplayTimer, SIGNAL(timeout()),
+        this, SLOT(pendingDisplayTimeout()));
+
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -453,10 +459,26 @@ void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
     }
 #endif
 
-    if (canAddToRecvList(*msgInfo, type)) {
-        addMsgToRecvList(msgInfo);
-        displayMessageIfNotClicked(msgInfo);
+    if (!canAddToRecvList(*msgInfo, type)) {
+        return;
     }
+
+    addMsgToRecvList(msgInfo);
+
+    if (m_clickedMsg) {
+        return;
+    }
+
+    if (m_pendingDisplayWaitInProgress) {
+        m_pendingDisplayMsg = std::move(msgInfo);
+        return;
+    }
+
+    displayMessage(std::move(msgInfo));
+
+    static const int DisplayTimeout = 250;
+    m_pendingDisplayWaitInProgress = true;
+    m_pendingDisplayTimer.start(DisplayTimeout);
 }
 
 void GuiAppMgr::sendPendingAndWait()
@@ -584,6 +606,14 @@ void GuiAppMgr::errorReported(const QString& msg)
     emit sigErrorReported(msg + tr("\nThe tool may not work properly!"));
 }
 
+void GuiAppMgr::pendingDisplayTimeout()
+{
+    m_pendingDisplayWaitInProgress = false;
+    if (m_pendingDisplayMsg) {
+        displayMessage(std::move(m_pendingDisplayMsg));
+    }
+}
+
 void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
 {
     assert(msgInfo);
@@ -603,14 +633,8 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
 
 void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)
 {
+    m_pendingDisplayMsg.reset();
     emit sigDisplayMsg(msgInfo);
-}
-
-void GuiAppMgr::displayMessageIfNotClicked(MessageInfoPtr msgInfo)
-{
-    if (!m_clickedMsg) {
-        displayMessage(msgInfo);
-    }
 }
 
 void GuiAppMgr::clearDisplayedMessage()

@@ -38,7 +38,8 @@ namespace plugin
 namespace serial_socket
 {
 
-class SerialSocket : public comms_champion::Socket
+class SerialSocket : public QObject,
+                     public comms_champion::Socket
 {
     Q_OBJECT
     using Base = comms_champion::Socket;

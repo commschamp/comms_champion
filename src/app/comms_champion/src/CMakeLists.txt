@@ -1,27 +1,28 @@
 function (bin_comms_champion)
     set (name "comms_champion")
+    
+    if (NOT Qt5Core_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
+        return()
+    endif ()
+    
+    if (NOT Qt5Widgets_FOUND)
+        message(WARNING "Can NOT build ${name} due to missing Qt5Widgets library")
+        return()
+    endif ()
 
     set (src
         main.cpp
-        ErrorStatus.cpp
         MsgMgr.cpp
         GuiAppMgr.cpp
-        Message.cpp
-        MessageInfo.cpp
         GlobalConstants.cpp
-        Property.cpp
         DefaultMessageDisplayHandler.cpp
-        FieldWidgetCreator.cpp
-        FieldWidget.cpp
-        FieldWrapper.cpp
         ConfigMgr.cpp
         MsgFileMgr.cpp
-        PluginControlInterface.cpp
+        PluginMgr.cpp
         PluginControlInterfaceImpl.cpp
         PluginControlInterfaceSocket.cpp
         PluginControlInterfaceProtocol.cpp
-        PluginMgr.cpp
-        Plugin.cpp
         icon.cpp
         widget/MainWindowWidget.cpp
         widget/LeftPaneWidget.cpp
@@ -39,6 +40,7 @@ function (bin_comms_champion)
         widget/MessageUpdateDialog.cpp
         widget/PluginsListWidget.cpp
         widget/PluginConfigDialog.cpp
+        widget/field/FieldWidget.cpp
         widget/field/ShortIntValueFieldWidget.cpp
         widget/field/LongIntValueFieldWidget.cpp
         widget/field/ScaledIntValueFieldWidget.cpp
@@ -55,13 +57,15 @@ function (bin_comms_champion)
         widget/field/UnknownValueFieldWidget.cpp
     )
     
-    set (_inc_dir ${CMAKE_CURRENT_SOURCE_DIR}/../include/comms_champion)
     qt5_wrap_cpp(
         moc
         GuiAppMgr.h
         MsgMgr.h
         PluginMgr.h
         PluginControlInterfaceImpl.h
+        widget/MessageDisplayWidget.h
+        widget/MessageWidget.h
+        widget/DefaultMessageWidget.h
         widget/RecvAreaToolBar.h
         widget/SendAreaToolBar.h
         widget/MsgListWidget.h
@@ -72,6 +76,7 @@ function (bin_comms_champion)
         widget/PluginConfigDialog.h
         widget/MainWindowWidget.h
         widget/DefaultMessageDisplayWidget.h
+        widget/field/FieldWidget.h 
         widget/field/ShortIntValueFieldWidget.h
         widget/field/LongIntValueFieldWidget.h
         widget/field/ScaledIntValueFieldWidget.h
@@ -85,12 +90,6 @@ function (bin_comms_champion)
         widget/field/ArrayListFieldWidget.h
         widget/field/FloatValueFieldWidget.h
         widget/field/UnknownValueFieldWidget.h
-        ${_inc_dir}/Message.h      
-        ${_inc_dir}/FieldWidget.h      
-        ${_inc_dir}/MessageWidget.h
-        ${_inc_dir}/DefaultMessageWidget.h
-        ${_inc_dir}/MessageDisplayWidget.h
-        ${_inc_dir}/Socket.h
     )
     
     qt5_wrap_ui(
@@ -119,28 +118,28 @@ function (bin_comms_champion)
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)
 
     add_executable(${name} ${src} ${moc} ${ui} ${resources})
-    
-    target_link_libraries(
-        ${name}
-        ${PROTOCOL_LIB_NAME} 
-        Qt5::Widgets Qt5::Core
-    )
+    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
+    qt5_use_modules(${name} Widgets Core)
     
     install (
         TARGETS ${name}
         DESTINATION ${BIN_INSTALL_DIR})
         
     install (
-        DIRECTORY ${_inc_dir}
-        DESTINATION ${INC_INSTALL_DIR}
+        FILES image/app_icon.png
+        DESTINATION ${ICON_INSTALL_DIR}
+        RENAME comms_champion.png
     )
+    
         
 endfunction ()
 
 ###########################################################
 
+find_package(Qt5Widgets)
+find_package(Qt5Core)
+
 include_directories (
-    ${Qt5Core_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
 )

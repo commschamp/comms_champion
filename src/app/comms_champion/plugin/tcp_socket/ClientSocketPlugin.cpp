@@ -47,29 +47,24 @@ ClientSocketPlugin::ClientSocketPlugin()
 ClientSocketPlugin::~ClientSocketPlugin()
 {
     if (isApplied()) {
-        auto& interface = getCtrlInterface();
-        assert(interface);
+        auto& interface = ctrlInterface();
         assert(m_socket);
-        interface->clearSocket();
+        interface.clearSocket();
         m_socket.reset();
 
         assert(m_connectAction);
-        interface->removeMainToolbarAction(m_connectAction);
+        interface.removeMainToolbarAction(m_connectAction);
     }
 }
 
 void ClientSocketPlugin::applyImpl()
 {
-    assert(!isApplied());
     createSocketIfNeeded();
     createConnectIconIfNeeded();
 
-    auto& interface = getCtrlInterface();
-    if (interface) {
-        interface->setSocket(m_socket);
-        interface->addMainToolbarAction(m_connectAction);
-    }
-
+    auto& interface = ctrlInterface();
+    interface.setSocket(m_socket);
+    interface.addMainToolbarAction(m_connectAction);
     assert(m_socket);
 }
 

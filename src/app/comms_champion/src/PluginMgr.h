@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <list>
+#include <array>
 
 #include "comms/CompileControl.h"
 
@@ -104,12 +105,14 @@ public:
     const ListOfPluginInfos& getAvailablePlugins();
     const ListOfPluginInfos& getAppliedPlugins() const;
     PluginsState getState() const;
-    ListOfPluginInfos loadPluginsFromConfig(const QVariantMap& config) const;
+    ListOfPluginInfos loadPluginsFromConfig(const QVariantMap& config);
     bool loadPlugin(const PluginInfo& info);
     bool needsReload(const ListOfPluginInfos& infos) const;
     bool apply(const ListOfPluginInfos& infos);
     static QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos);
     static WidgetPtr getPluginConfigWidget(const PluginInfo& info);
+    void start();
+    void clean();
 
 signals:
     void sigStateChanged(int value);

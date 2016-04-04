@@ -20,6 +20,7 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
+#include "details/OptionsParser.h"
 
 namespace comms
 {
@@ -47,6 +48,9 @@ template <typename TField>
 class Optional
 {
 public:
+
+    /// @brief All the options provided to this class bundled into struct.
+    typedef details::OptionsParser<> ParsedOptions;
 
     /// @brief Type of the field.
     typedef TField Field;
@@ -264,8 +268,8 @@ struct IsOptional
     static const bool Value = false;
 };
 
-template <typename... TArgs>
-struct IsOptional<comms::field::Optional<TArgs...> >
+template <typename TField>
+struct IsOptional<comms::field::Optional<TField> >
 {
     static const bool Value = true;
 };

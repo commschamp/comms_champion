@@ -46,6 +46,27 @@ PluginControlInterfaceImpl::PluginControlInterfaceImpl()
         guiAppMgr, SLOT(removeMainToolbarAction(ActionPtr)));
 }
 
+
+void PluginControlInterfaceImpl::setProtocol(ProtocolPtr)
+{
+    assert(!"The non-protocol plugin is not permitted to set protocol.");
+}
+
+void PluginControlInterfaceImpl::clearProtocol()
+{
+    assert(!"The non-protocol plugin is not permitted to clear protocol.");
+}
+
+void PluginControlInterfaceImpl::setSocket(SocketPtr)
+{
+    assert(!"The non-socket plugin is not permitted to set socket.");
+}
+
+void PluginControlInterfaceImpl::clearSocket()
+{
+    assert(!"The non-socket plugin is not permitted to clear socket.");
+}
+
 void PluginControlInterfaceImpl::addMainToolbarAction(ActionPtr action)
 {
     emit sigAddMainToolbarAction(std::move(action));
@@ -54,26 +75,6 @@ void PluginControlInterfaceImpl::addMainToolbarAction(ActionPtr action)
 void PluginControlInterfaceImpl::removeMainToolbarAction(ActionPtr action)
 {
     emit sigRemoveMainToolbarAction(std::move(action));
-}
-
-void PluginControlInterfaceImpl::setProtocolImpl(ProtocolPtr)
-{
-    assert(!"The non-protocol plugin is not permitted to set protocol.");
-}
-
-void PluginControlInterfaceImpl::clearProtocolImpl()
-{
-    assert(!"The non-protocol plugin is not permitted to clear protocol.");
-}
-
-void PluginControlInterfaceImpl::setSocketImpl(SocketPtr)
-{
-    assert(!"The non-socket plugin is not permitted to set socket.");
-}
-
-void PluginControlInterfaceImpl::clearSocketImpl()
-{
-    assert(!"The non-socket plugin is not permitted to clear socket.");
 }
 
 void PluginControlInterfaceImpl::emitSigSetProtocol(ProtocolPtr protocol)

@@ -74,9 +74,9 @@ private:
     typedef TestMessageBase<LeTraits> LeMsgBase;
     typedef TestMessageBase<BeBackInsertTraits> BeBackInsertMsgBase;
 
-    typedef typename BeMsgBase::Field BeField;
-    typedef typename LeMsgBase::Field LeField;
-    typedef typename BeBackInsertMsgBase::Field BeBackInsertField;
+    typedef BeMsgBase::Field BeField;
+    typedef LeMsgBase::Field LeField;
+    typedef BeBackInsertMsgBase::Field BeBackInsertField;
 
     typedef Message1<BeMsgBase> BeMsg1;
     typedef Message1<LeMsgBase> LeMsg1;

@@ -26,7 +26,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/FieldWidget.h"
+#include "FieldWidget.h"
 
 namespace comms_champion
 {

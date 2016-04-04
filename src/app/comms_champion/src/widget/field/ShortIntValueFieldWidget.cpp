@@ -59,7 +59,7 @@ void ShortIntValueFieldWidget::refreshImpl()
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
-    auto value = m_wrapper->getValue();
+    auto value = adjustRealToDisplayed(m_wrapper->getValue());
     assert(m_ui.m_valueSpinBox);
     if (m_ui.m_valueSpinBox->value() != value) {
         m_ui.m_valueSpinBox->setValue(value);
@@ -79,6 +79,16 @@ void ShortIntValueFieldWidget::editEnabledUpdatedImpl()
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
+void ShortIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+{
+    auto offset =
+        static_cast<decltype(m_offset)>(Property::getNumValueDisplayOffset(props));
+    if (m_offset != offset) {
+        m_offset = offset;
+        refresh();
+    }
+}
+
 void ShortIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);
@@ -86,15 +96,26 @@ void ShortIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 
 void ShortIntValueFieldWidget::valueUpdated(int value)
 {
-    if (value == m_wrapper->getValue()) {
+    if (value == adjustRealToDisplayed(m_wrapper->getValue())) {
         return;
     }
 
     assert(isEditEnabled());
-    m_wrapper->setValue(value);
+    m_wrapper->setValue(adjustDisplayedToReal(value));
     refresh();
     emitFieldUpdated();
 }
+
+int ShortIntValueFieldWidget::adjustDisplayedToReal(int val)
+{
+    return val - m_offset;
+}
+
+int ShortIntValueFieldWidget::adjustRealToDisplayed(int val)
+{
+    return val + m_offset;
+}
+
 
 }  // namespace comms_champion
 

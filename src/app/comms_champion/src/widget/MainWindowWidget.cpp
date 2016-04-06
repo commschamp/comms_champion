@@ -35,7 +35,6 @@ CC_ENABLE_WARNINGS()
 #include "MessageUpdateDialog.h"
 #include "PluginConfigDialog.h"
 #include "GuiAppMgr.h"
-#include "ConfigMgr.h"
 #include "MsgFileMgr.h"
 #include "icon.h"
 

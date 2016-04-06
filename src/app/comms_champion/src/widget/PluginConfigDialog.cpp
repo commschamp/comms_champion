@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -31,7 +31,6 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "icon.h"
-#include "ConfigMgr.h"
 
 namespace comms_champion
 {
@@ -199,29 +198,26 @@ void PluginConfigDialog::searchClearClicked()
 
 void PluginConfigDialog::loadClicked()
 {
-    auto& configMgr = ConfigMgr::instanceRef();
+    auto& pluginMgr = PluginMgr::instanceRef();
     auto filename =
         QFileDialog::getOpenFileName(
             this,
             tr("Load Configuration File"),
-            configMgr.getLastFile(),
-            configMgr.getFilesFilter());
+            pluginMgr.getLastFile(),
+            pluginMgr.getFilesFilter());
 
     if (filename.isEmpty()) {
         return;
     }
 
-    auto config = configMgr.loadConfig(filename);
-    if (config.isEmpty()) {
+    auto loadedPlugins = pluginMgr.loadPluginsFromConfigFile(filename);
+    if (loadedPlugins.empty()) {
         QMessageBox::critical(
             this,
             tr("Configuration Load Error."),
             tr("Invalid configuration file."));
         return;
     }
-
-    auto& pluginMgr = PluginMgr::instanceRef();
-    auto loadedPlugins = pluginMgr.loadPluginsFromConfig(config);
 
     refreshSelectedPlugins(loadedPlugins);
     refreshSelectedToolbar();
@@ -243,23 +239,21 @@ void PluginConfigDialog::loadClicked()
 
 void PluginConfigDialog::saveClicked()
 {
-    auto& configMgr = ConfigMgr::instanceRef();
+    auto& pluginMgr = PluginMgr::instanceRef();
     auto filename =
         QFileDialog::getSaveFileName(
             this,
             tr("Save Configuration File"),
-            configMgr.getLastFile(),
-            configMgr.getFilesFilter());
+            pluginMgr.getLastFile(),
+            pluginMgr.getFilesFilter());
 
     if (filename.isEmpty()) {
         return;
     }
 
-    auto& pluginMgr = PluginMgr::instanceRef();
     auto infos = getSelectedPlugins();
-    auto config = pluginMgr.getConfigForPlugins(infos);
 
-    bool saveResult = configMgr.saveConfig(filename, config);
+    bool saveResult = pluginMgr.savePluginsToConfigFile(infos, filename);
     if (!saveResult) {
         QMessageBox::critical(
             this,

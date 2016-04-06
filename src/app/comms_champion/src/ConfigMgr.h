@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -35,8 +35,8 @@ class ConfigMgr
 {
 public:
 
-    static ConfigMgr* instance();
-    static ConfigMgr& instanceRef();
+    ConfigMgr();
+    ~ConfigMgr();
 
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
@@ -47,7 +47,6 @@ public:
     bool saveConfig(const QString& filename, const QVariantMap& config, bool updateAsLast);
 
 private:
-    ConfigMgr() = default;
 
     QString m_lastConfigFile;
 };

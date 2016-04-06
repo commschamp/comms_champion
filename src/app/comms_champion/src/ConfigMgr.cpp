@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -32,16 +32,8 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-ConfigMgr* ConfigMgr::instance()
-{
-    static ConfigMgr mgr;
-    return &mgr;
-}
-
-ConfigMgr& ConfigMgr::instanceRef()
-{
-    return *(instance());
-}
+ConfigMgr::ConfigMgr() = default;
+ConfigMgr::~ConfigMgr() = default;
 
 const QString& ConfigMgr::getLastFile() const
 {

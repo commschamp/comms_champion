@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -35,7 +35,6 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Plugin.h"
-#include "ConfigMgr.h"
 
 namespace comms_champion
 {
@@ -221,6 +220,25 @@ PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
     return pluginInfos;
 }
 
+PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfigFile(
+    const QString& filename)
+{
+    auto config = m_configMgr.loadConfig(filename);
+    if (config.isEmpty()) {
+        return ListOfPluginInfos();
+    }
+
+    return loadPluginsFromConfig(config);
+}
+
+bool PluginMgr::savePluginsToConfigFile(
+    const ListOfPluginInfos& infos,
+    const QString& filename)
+{
+    auto config = getConfigForPlugins(infos);
+    return m_configMgr.saveConfig(filename, config);
+}
+
 bool PluginMgr::loadPlugin(const PluginInfo& info)
 {
     assert(info.m_loader);
@@ -283,8 +301,7 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
 
         auto config = getConfigForPlugins(m_appliedPlugins);
 
-        auto& configMgr = ConfigMgr::instanceRef();
-        configMgr.saveConfig(filename, config, false);
+        m_configMgr.saveConfig(filename, config, false);
     } while (false);
 
     return true;
@@ -330,8 +347,7 @@ void PluginMgr::start()
         return;
     }
 
-    auto& configMgr = ConfigMgr::instanceRef();
-    auto config = configMgr.loadConfig(filename, false);
+    auto config = m_configMgr.loadConfig(filename, false);
     if (config.isEmpty()) {
         return;
     }
@@ -356,6 +372,15 @@ void PluginMgr::clean()
     }
 }
 
+const QString& PluginMgr::getLastFile() const
+{
+    return m_configMgr.getLastFile();
+}
+
+const QString& PluginMgr::getFilesFilter()
+{
+    return ConfigMgr::getFilesFilter();
+}
 
 PluginMgr::PluginControls::PluginControls()
 {

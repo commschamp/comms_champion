@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -30,7 +30,6 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/comms_champion.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
-#include "ConfigMgr.h"
 #include "PluginMgr.h"
 
 #include "widget/MainWindowWidget.h"
@@ -55,7 +54,6 @@ void metaTypesRegisterAll()
 void initSingletons()
 {
     static_cast<void>(cc::MsgMgr::instanceRef());
-    static_cast<void>(cc::ConfigMgr::instanceRef());
     static_cast<void>(cc::GuiAppMgr::instance());
     static_cast<void>(cc::PluginMgr::instanceRef());
 }

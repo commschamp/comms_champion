@@ -35,6 +35,7 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/Plugin.h"
 #include "PluginControlInterfaceSocket.h"
 #include "PluginControlInterfaceProtocol.h"
+#include "ConfigMgr.h"
 
 namespace comms_champion
 {
@@ -89,7 +90,7 @@ public:
         QString m_iid;
         QString m_name;
         QString m_desc;
-        Type m_type;
+        Type m_type = Type::Invalid;
         bool m_applied = false;
     };
 
@@ -106,6 +107,8 @@ public:
     const ListOfPluginInfos& getAppliedPlugins() const;
     PluginsState getState() const;
     ListOfPluginInfos loadPluginsFromConfig(const QVariantMap& config);
+    ListOfPluginInfos loadPluginsFromConfigFile(const QString& filename);
+    bool savePluginsToConfigFile(const ListOfPluginInfos& infos, const QString& filename);
     bool loadPlugin(const PluginInfo& info);
     bool needsReload(const ListOfPluginInfos& infos) const;
     bool apply(const ListOfPluginInfos& infos);
@@ -113,6 +116,9 @@ public:
     static WidgetPtr getPluginConfigWidget(const PluginInfo& info);
     void start();
     void clean();
+    const QString& getLastFile() const;
+    static const QString& getFilesFilter();
+
 
 signals:
     void sigStateChanged(int value);
@@ -139,6 +145,7 @@ private:
     ListOfPluginInfos m_appliedPlugins;
     PluginsState m_state = PluginsState::Clear;
     std::unique_ptr<PluginControls> m_pluginControls;
+    ConfigMgr m_configMgr;
 };
 
 }  // namespace comms_champion

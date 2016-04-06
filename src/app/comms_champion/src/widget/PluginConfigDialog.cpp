@@ -54,8 +54,11 @@ void addVerLine(QBoxLayout& layout) {
 
 }  // namespace
 
-PluginConfigDialog::PluginConfigDialog(QWidget* parentObj)
+PluginConfigDialog::PluginConfigDialog(
+    ListOfPluginInfos& outputInfos,
+    QWidget* parentObj)
   : Base(parentObj),
+    m_outputInfos(outputInfos),
     m_availSearchLineEdit(new QLineEdit())
 {
     m_ui.setupUi(this);
@@ -88,21 +91,14 @@ void PluginConfigDialog::accept()
                    "All the plugins must be reloaded and re-applied.\n"
                    "Proceed?"));
         if (answer != QMessageBox::Yes) {
+            Base::reject();
             return;
         }
     }
 
-    bool applyResult = pluginMgr.apply(infos);
-    if (!applyResult) {
-        QMessageBox::critical(
-            this,
-            tr("Plugins error occurred!"),
-            tr("Failed to apply requested list of plugins."));
-        Base::reject();
-        return;
-    }
-
+    m_outputInfos = infos;
     Base::accept();
+    return;
 }
 
 void PluginConfigDialog::availSocketPluginClicked(QListWidgetItem* item)

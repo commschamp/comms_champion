@@ -25,6 +25,8 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
+#include <QtCore/QStandardPaths>
+#include <QtCore/QDir>
 CC_ENABLE_WARNINGS()
 
 #include "DefaultMessageDisplayHandler.h"
@@ -38,6 +40,8 @@ namespace comms_champion
 namespace
 {
 
+const QString AppDataStorageFileName("startup_config.json");
+
 GuiAppMgr::MsgType getMsgType(const MessageInfo& msgInfo)
 {
     auto msgTypeVar =
@@ -45,6 +49,25 @@ GuiAppMgr::MsgType getMsgType(const MessageInfo& msgInfo)
     assert(msgTypeVar.isValid());
     assert(msgTypeVar.canConvert<int>());
     return static_cast<GuiAppMgr::MsgType>(msgTypeVar.value<int>());
+}
+
+QString getAddDataStoragePath(bool createIfMissing)
+{
+    auto dirName = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+    QDir dir(dirName);
+    if (!dir.exists()) {
+
+        if (!createIfMissing) {
+            return QString();
+        }
+
+        if (!dir.mkpath(".")) {
+            std::cerr << "WARNING: failed to create " << dirName.toStdString() << std::endl;
+            return QString();
+        }
+    }
+
+    return dir.filePath(AppDataStorageFileName);
 }
 
 }  // namespace
@@ -61,6 +84,40 @@ GuiAppMgr& GuiAppMgr::instanceRef()
 }
 
 GuiAppMgr::~GuiAppMgr() = default;
+
+void GuiAppMgr::start()
+{
+    auto filename = getAddDataStoragePath(false);
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    QFile configFile(filename);
+    if (!configFile.exists()) {
+        return;
+    }
+
+    auto& pluginMgr = PluginMgr::instanceRef();
+    auto plugins = pluginMgr.loadPluginsFromConfigFile(filename);
+    if (plugins.empty()) {
+        return;
+    }
+
+    applyNewPlugins(plugins);
+}
+
+void GuiAppMgr::clean()
+{
+    auto filename = getAddDataStoragePath(false);
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    QFile file(filename);
+    if (file.exists()) {
+        file.remove();
+    }
+}
 
 void GuiAppMgr::pluginsEditClicked()
 {
@@ -393,7 +450,51 @@ void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
 
 GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
 {
-    return PluginMgr::instanceRef().getState();
+    auto& pluginMgr = PluginMgr::instanceRef();
+    if (!pluginMgr.hasAppliedPlugins()) {
+        return ActivityState::Inactive;
+    }
+
+    return ActivityState::Active;
+}
+
+bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
+{
+    auto& pluginMgr = PluginMgr::instanceRef();
+    auto& msgMgr = MsgMgr::instanceRef();
+    bool hasApplied = pluginMgr.hasAppliedPlugins();
+    if (hasApplied) {
+        msgMgr.stop();
+        emit sigActivityStateChanged((int)ActivityState::Inactive);
+    }
+
+    bool needsReload = pluginMgr.needsReload(plugins);
+    if (needsReload) {
+        assert(hasApplied);
+        pluginMgr.unloadApplied();
+        msgMgr.clear();
+        emit sigActivityStateChanged((int)ActivityState::Clear);
+    }
+
+    bool result = true;
+    if ((!hasApplied) || (needsReload)) {
+        result = pluginMgr.apply(plugins);
+    }
+
+    if (!result) {
+        return result;
+    }
+
+    msgMgr.start();
+    emit sigActivityStateChanged((int)ActivityState::Active);
+
+    auto filename = getAddDataStoragePath(true);
+    if (filename.isEmpty()) {
+        return true;
+    }
+
+    pluginMgr.savePluginsToConfigFile(plugins, filename);
+    return true;
 }
 
 GuiAppMgr::GuiAppMgr(QObject* parentObj)
@@ -403,19 +504,16 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
 {
     m_pendingDisplayTimer.setSingleShot(true);
 
+    auto msgMgr = MsgMgr::instance();
     connect(
-        MsgMgr::instance(), SIGNAL(sigMsgAdded(MessageInfoPtr)),
+        msgMgr, SIGNAL(sigMsgAdded(MessageInfoPtr)),
         this, SLOT(msgAdded(MessageInfoPtr)));
     connect(
-        MsgMgr::instance(), SIGNAL(sigErrorReported(const QString&)),
+        msgMgr, SIGNAL(sigErrorReported(const QString&)),
         this, SLOT(errorReported(const QString&)));
-    connect(
-        PluginMgr::instance(), SIGNAL(sigStateChanged(int)),
-        this, SLOT(activeStateChanged(int)));
     connect(
         &m_pendingDisplayTimer, SIGNAL(timeout()),
         this, SLOT(pendingDisplayTimeout()));
-
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -582,23 +680,6 @@ void GuiAppMgr::sendPendingAndWait()
     else {
         sendStopClicked();
     }
-}
-
-void GuiAppMgr::activeStateChanged(int state)
-{
-    auto castedState = static_cast<ActivityState>(state);
-    auto& msgMgr = MsgMgr::instanceRef();
-    if (castedState == ActivityState::Active) {
-        msgMgr.start();
-    }
-    else if (castedState == ActivityState::Clear) {
-        msgMgr.clear();
-    }
-    else {
-        assert(castedState == ActivityState::Inactive);
-        msgMgr.stop();
-    }
-    emit sigActivityStateChanged(state);
 }
 
 void GuiAppMgr::errorReported(const QString& msg)

@@ -40,7 +40,8 @@ class PluginConfigDialog: public QDialog
     using Base = QDialog;
 
 public:
-    PluginConfigDialog(QWidget* parentObj = nullptr);
+    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    PluginConfigDialog(ListOfPluginInfos& outputInfos, QWidget* parentObj = nullptr);
     virtual void accept();
 
 private slots:
@@ -107,6 +108,7 @@ private:
     PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
     PluginsListWidget* getSelectedListForAvailable(PluginsListWidget* list);
 
+    ListOfPluginInfos& m_outputInfos;
     Ui::PluginConfigDialog m_ui;
     QLineEdit* m_availSearchLineEdit = nullptr;
     QAction* m_addButton = nullptr;

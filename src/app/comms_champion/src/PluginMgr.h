@@ -40,17 +40,9 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-class PluginMgr : public QObject
+class PluginMgr
 {
-    Q_OBJECT
 public:
-
-    enum class PluginsState
-    {
-        Clear,
-        Inactive,
-        Active,
-    };
 
     typedef std::shared_ptr<QPluginLoader> PluginLoaderPtr;
 
@@ -105,23 +97,18 @@ public:
     void setPluginsDir(const QString& pluginDir);
     const ListOfPluginInfos& getAvailablePlugins();
     const ListOfPluginInfos& getAppliedPlugins() const;
-    PluginsState getState() const;
     ListOfPluginInfos loadPluginsFromConfig(const QVariantMap& config);
     ListOfPluginInfos loadPluginsFromConfigFile(const QString& filename);
     bool savePluginsToConfigFile(const ListOfPluginInfos& infos, const QString& filename);
     bool loadPlugin(const PluginInfo& info);
+    bool hasAppliedPlugins() const;
     bool needsReload(const ListOfPluginInfos& infos) const;
+    void unloadApplied();
     bool apply(const ListOfPluginInfos& infos);
     static QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos);
     static WidgetPtr getPluginConfigWidget(const PluginInfo& info);
-    void start();
-    void clean();
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
-
-
-signals:
-    void sigStateChanged(int value);
 
 private:
     typedef std::list<PluginLoaderPtr> PluginLoadersList;
@@ -143,7 +130,6 @@ private:
     QString m_pluginDir;
     ListOfPluginInfos m_plugins;
     ListOfPluginInfos m_appliedPlugins;
-    PluginsState m_state = PluginsState::Clear;
     std::unique_ptr<PluginControls> m_pluginControls;
     ConfigMgr m_configMgr;
 };

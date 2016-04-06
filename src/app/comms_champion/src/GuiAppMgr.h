@@ -65,13 +65,22 @@ public:
 
     typedef MsgMgr::MsgType MsgType;
     typedef MsgMgr::Timestamp Timestamp;
-    typedef PluginMgr::PluginsState ActivityState;
     typedef PluginControlInterface::ActionPtr ActionPtr;
+    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    enum class ActivityState
+    {
+        Clear,
+        Inactive,
+        Active,
+    };
 
     static GuiAppMgr* instance();
     static GuiAppMgr& instanceRef();
 
     ~GuiAppMgr();
+
+    void start();
+    void clean();
 
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();
@@ -93,6 +102,7 @@ public:
     void sendMessages(MsgInfosList&& msgs);
 
     static ActivityState getActivityState();
+    bool applyNewPlugins(const ListOfPluginInfos& plugins);
 
 public slots:
     void pluginsEditClicked();
@@ -183,7 +193,6 @@ private:
 private slots:
     void msgAdded(MessageInfoPtr msgInfo);
     void sendPendingAndWait();
-    void activeStateChanged(int state);
     void errorReported(const QString& msg);
     void pendingDisplayTimeout();
 

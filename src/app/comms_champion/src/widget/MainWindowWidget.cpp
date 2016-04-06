@@ -143,8 +143,20 @@ void MainWindowWidget::updateSendMsgDialog(
 
 void MainWindowWidget::pluginsEditDialog()
 {
-    PluginConfigDialog dialog(this);
-    dialog.exec();
+    PluginMgr::ListOfPluginInfos selectedPlugins;
+    PluginConfigDialog dialog(selectedPlugins, this);
+    auto result = dialog.exec();
+    if (result != QDialog::Accepted) {
+        return;
+    }
+
+    bool applyResult = GuiAppMgr::instanceRef().applyNewPlugins(selectedPlugins);
+    if (!applyResult) {
+        QMessageBox::critical(
+            this,
+            tr("Plugins error occurred!"),
+            tr("Failed to apply requested list of plugins."));
+    }
 }
 
 void MainWindowWidget::displayErrorMsg(const QString& msg)

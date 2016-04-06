@@ -30,8 +30,6 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QDir>
 #include <QtCore/QJsonArray>
 #include <QtCore/QVariantList>
-#include <QtCore/QStandardPaths>
-#include <QtCore/QDir>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Plugin.h"
@@ -48,7 +46,6 @@ const QString MetaDataMetaKey("MetaData");
 const QString NameMetaKey("name");
 const QString DescMetaKey("desc");
 const QString TypeMetaKey("type");
-const QString AppDataStorageFileName("startup_config.json");
 
 struct PluginLoaderDeleter
 {
@@ -85,25 +82,6 @@ PluginMgr::PluginInfo::Type parseType(const QString& val)
     }
 
     return static_cast<PluginMgr::PluginInfo::Type>(std::distance(std::begin(Values), iter));
-}
-
-QString getAddDataStoragePath(bool createIfMissing)
-{
-    auto dirName = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-    QDir dir(dirName);
-    if (!dir.exists()) {
-
-        if (!createIfMissing) {
-            return QString();
-        }
-
-        if (!dir.mkpath(".")) {
-            std::cerr << "WARNING: failed to create " << dirName.toStdString() << std::endl;
-            return QString();
-        }
-    }
-
-    return dir.filePath(AppDataStorageFileName);
 }
 
 }  // namespace
@@ -168,11 +146,6 @@ const PluginMgr::ListOfPluginInfos& PluginMgr::getAvailablePlugins()
 const PluginMgr::ListOfPluginInfos& PluginMgr::getAppliedPlugins() const
 {
     return m_appliedPlugins;
-}
-
-PluginMgr::PluginsState PluginMgr::getState() const
-{
-    return m_state;
 }
 
 PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
@@ -250,6 +223,11 @@ bool PluginMgr::loadPlugin(const PluginInfo& info)
     return plugin != nullptr;
 }
 
+bool PluginMgr::hasAppliedPlugins() const
+{
+    return !m_appliedPlugins.empty();
+}
+
 bool PluginMgr::needsReload(const ListOfPluginInfos& infos) const
 {
     assert(!infos.empty());
@@ -257,22 +235,20 @@ bool PluginMgr::needsReload(const ListOfPluginInfos& infos) const
            (m_appliedPlugins != infos);
 }
 
+void PluginMgr::unloadApplied()
+{
+    for (auto& pluginInfo : m_appliedPlugins) {
+        assert(pluginInfo);
+        assert(pluginInfo->m_loader);
+        assert (pluginInfo->m_loader->isLoaded());
+        pluginInfo->m_loader->unload();
+    }
+    m_appliedPlugins.clear();
+}
+
 bool PluginMgr::apply(const ListOfPluginInfos& infos)
 {
-    if (!m_appliedPlugins.empty()) {
-        emit sigStateChanged(static_cast<int>(PluginsState::Inactive));
-    }
-
-    bool reapply = needsReload(infos);
-    if (reapply) {
-        for (auto& pluginInfo : m_appliedPlugins) {
-            assert(pluginInfo);
-            assert(pluginInfo->m_loader);
-            assert (pluginInfo->m_loader->isLoaded());
-            pluginInfo->m_loader->unload();
-        }
-        emit sigStateChanged(static_cast<int>(PluginsState::Clear));
-    }
+    assert(!hasAppliedPlugins());
 
     for (auto& reqInfo : infos) {
         assert(reqInfo);
@@ -284,26 +260,10 @@ bool PluginMgr::apply(const ListOfPluginInfos& infos)
             continue;
         }
 
-        if (m_appliedPlugins.empty() || reapply) {
-            pluginPtr->apply(*ctrlInterface);
-        }
+        pluginPtr->apply(*ctrlInterface);
     }
 
     m_appliedPlugins = infos;
-
-    emit sigStateChanged(static_cast<int>(PluginsState::Active));
-
-    do {
-        auto filename = getAddDataStoragePath(true);
-        if (filename.isEmpty()) {
-            break;
-        }
-
-        auto config = getConfigForPlugins(m_appliedPlugins);
-
-        m_configMgr.saveConfig(filename, config, false);
-    } while (false);
-
     return true;
 }
 
@@ -333,43 +293,6 @@ PluginMgr::WidgetPtr PluginMgr::getPluginConfigWidget(const PluginInfo& info)
     auto* pluginPtr = getPlugin(*info.m_loader);
     assert(pluginPtr != nullptr);
     return pluginPtr->getConfigWidget();
-}
-
-void PluginMgr::start()
-{
-    auto filename = getAddDataStoragePath(false);
-    if (filename.isEmpty()) {
-        return;
-    }
-
-    QFile configFile(filename);
-    if (!configFile.exists()) {
-        return;
-    }
-
-    auto config = m_configMgr.loadConfig(filename, false);
-    if (config.isEmpty()) {
-        return;
-    }
-
-    auto plugins = loadPluginsFromConfig(config);
-    if (plugins.empty()) {
-        return;
-    }
-    apply(plugins);
-}
-
-void PluginMgr::clean()
-{
-    auto filename = getAddDataStoragePath(false);
-    if (filename.isEmpty()) {
-        return;
-    }
-
-    QFile file(filename);
-    if (file.exists()) {
-        file.remove();
-    }
 }
 
 const QString& PluginMgr::getLastFile() const

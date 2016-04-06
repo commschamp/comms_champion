@@ -53,9 +53,9 @@ void metaTypesRegisterAll()
 
 void initSingletons()
 {
+    static_cast<void>(cc::PluginMgr::instanceRef());
     static_cast<void>(cc::MsgMgr::instanceRef());
     static_cast<void>(cc::GuiAppMgr::instance());
-    static_cast<void>(cc::PluginMgr::instanceRef());
 }
 
 void prepareCommandLineOptions(QCommandLineParser& parser)
@@ -98,11 +98,12 @@ int main(int argc, char *argv[])
     auto& pluginMgr = cc::PluginMgr::instanceRef();
     pluginMgr.setPluginsDir(dir.path());
 
+    auto& guiAppMgr = cc::GuiAppMgr::instanceRef();
     if (parser.isSet(CleanOptStr)) {
-        pluginMgr.clean();
+        guiAppMgr.clean();
     }
 
-    pluginMgr.start();
+    guiAppMgr.start();
 
     auto retval = app.exec();
     return retval;

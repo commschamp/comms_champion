@@ -61,7 +61,6 @@ function (bin_comms_champion)
         moc
         GuiAppMgr.h
         MsgMgr.h
-        PluginMgr.h
         PluginControlInterfaceImpl.h
         widget/MessageDisplayWidget.h
         widget/MessageWidget.h

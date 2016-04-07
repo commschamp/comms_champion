@@ -80,7 +80,7 @@ PluginConfigDialog::PluginConfigDialog(
 
 void PluginConfigDialog::accept()
 {
-    auto& pluginMgr = PluginMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     auto infos = getSelectedPlugins();
     if (pluginMgr.needsReload(infos)) {
         auto answer =
@@ -155,7 +155,7 @@ void PluginConfigDialog::addClicked()
     auto pluginInfoPtr = getPluginInfo(m_currentAvailableList->currentItem());
     assert(pluginInfoPtr);
 
-    auto loadResult = PluginMgr::instanceRef().loadPlugin(*pluginInfoPtr);
+    auto loadResult = PluginMgrG::instanceRef().loadPlugin(*pluginInfoPtr);
     if (!loadResult) {
         QMessageBox::critical(
             this,
@@ -194,7 +194,7 @@ void PluginConfigDialog::searchClearClicked()
 
 void PluginConfigDialog::loadClicked()
 {
-    auto& pluginMgr = PluginMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     auto filename =
         QFileDialog::getOpenFileName(
             this,
@@ -235,7 +235,7 @@ void PluginConfigDialog::loadClicked()
 
 void PluginConfigDialog::saveClicked()
 {
-    auto& pluginMgr = PluginMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     auto filename =
         QFileDialog::getSaveFileName(
             this,
@@ -401,7 +401,7 @@ void PluginConfigDialog::selectedPluginClicked(
     assert(selectedList->currentRow() == selectedList->getRow(item));
 
     auto configWidget =
-        PluginMgr::instanceRef().getPluginConfigWidget(*pluginInfoPtr);
+        PluginMgrG::instanceRef().getPluginConfigWidget(*pluginInfoPtr);
     if (configWidget) {
         m_ui.m_configScrollArea->setWidget(configWidget.release());
     }
@@ -609,7 +609,7 @@ void PluginConfigDialog::refreshAvailablePlugins()
             }
 
             availableList->clear();
-            auto& availablePlugins = PluginMgr::instanceRef().getAvailablePlugins();
+            auto& availablePlugins = PluginMgrG::instanceRef().getAvailablePlugins();
 
             for (auto& pluginInfoPtr : availablePlugins) {
                 auto& name = pluginInfoPtr->getName();
@@ -686,11 +686,11 @@ void PluginConfigDialog::refreshSelectedToolbar()
 
 void PluginConfigDialog::refreshSelectedPlugins()
 {
-    refreshSelectedPlugins(PluginMgr::instanceRef().getAppliedPlugins());
+    refreshSelectedPlugins(PluginMgrG::instanceRef().getAppliedPlugins());
 }
 
 void PluginConfigDialog::refreshSelectedPlugins(
-    const PluginMgr::ListOfPluginInfos& infos)
+    const ListOfPluginInfos& infos)
 {
     typedef PluginMgr::PluginInfo::Type PluginType;
     auto refreshListFunc =
@@ -825,7 +825,7 @@ void PluginConfigDialog::moveSelectedPlugin(int fromRow, int toRow)
     refreshSelectedToolbar();
 }
 
-PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
+PluginConfigDialog::PluginInfoPtr PluginConfigDialog::getPluginInfo(
     QListWidgetItem* item) const
 {
     assert(item != nullptr);
@@ -835,7 +835,7 @@ PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
     return pluginInfoPtrVar.value<PluginMgr::PluginInfoPtr>();
 }
 
-PluginMgr::ListOfPluginInfos PluginConfigDialog::getSelectedPlugins() const
+PluginConfigDialog::ListOfPluginInfos PluginConfigDialog::getSelectedPlugins() const
 {
     typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
     ListOfPluginInfos infos;

@@ -41,6 +41,7 @@ class PluginConfigDialog: public QDialog
 
 public:
     typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    typedef PluginMgr::PluginInfoPtr PluginInfoPtr;
     PluginConfigDialog(ListOfPluginInfos& outputInfos, QWidget* parentObj = nullptr);
     virtual void accept();
 
@@ -91,7 +92,7 @@ private:
     void refreshAvailableToolbar();
     void refreshSelectedToolbar();
     void refreshSelectedPlugins();
-    void refreshSelectedPlugins(const PluginMgr::ListOfPluginInfos& infos);
+    void refreshSelectedPlugins(const ListOfPluginInfos& infos);
     void refreshButtonBox();
     void refreshSaveButton();
     void refreshRemoveButton();
@@ -104,8 +105,8 @@ private:
     void clearDescription();
     void moveSelectedPlugin(int fromRow, int toRow);
 
-    PluginMgr::PluginInfoPtr getPluginInfo(QListWidgetItem* item) const;
-    PluginMgr::ListOfPluginInfos getSelectedPlugins() const;
+    PluginInfoPtr getPluginInfo(QListWidgetItem* item) const;
+    ListOfPluginInfos getSelectedPlugins() const;
     PluginsListWidget* getSelectedListForAvailable(PluginsListWidget* list);
 
     ListOfPluginInfos& m_outputInfos;

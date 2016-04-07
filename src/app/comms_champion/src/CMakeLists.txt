@@ -17,8 +17,9 @@ function (bin_comms_champion)
         GuiAppMgr.cpp
         GlobalConstants.cpp
         DefaultMessageDisplayHandler.cpp
-        ConfigMgr.cpp
         MsgFileMgr.cpp
+        ConfigMgr.cpp
+        PluginMgrImpl.cpp
         PluginMgr.cpp
         PluginControlInterfaceImpl.cpp
         PluginControlInterfaceSocket.cpp

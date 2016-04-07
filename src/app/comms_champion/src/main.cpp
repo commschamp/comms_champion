@@ -28,9 +28,9 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/comms_champion.h"
+#include "PluginMgr.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
-#include "PluginMgr.h"
 
 #include "widget/MainWindowWidget.h"
 #include "icon.h"
@@ -53,7 +53,7 @@ void metaTypesRegisterAll()
 
 void initSingletons()
 {
-    static_cast<void>(cc::PluginMgr::instanceRef());
+    static_cast<void>(cc::PluginMgrG::instanceRef());
     static_cast<void>(cc::MsgMgr::instanceRef());
     static_cast<void>(cc::GuiAppMgr::instance());
 }
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     app.addLibraryPath(dir.path());
 
-    auto& pluginMgr = cc::PluginMgr::instanceRef();
+    auto& pluginMgr = cc::PluginMgrG::instanceRef();
     pluginMgr.setPluginsDir(dir.path());
 
     auto& guiAppMgr = cc::GuiAppMgr::instanceRef();

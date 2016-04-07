@@ -25,6 +25,7 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
+#include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QVariantMap>
 #include <QtCore/QPluginLoader>
@@ -32,65 +33,27 @@ CC_ENABLE_WARNINGS()
 
 #include "comms_champion/PluginControlInterface.h"
 #include "comms_champion/Plugin.h"
-#include "comms_champion/StaticSingleton.h"
+#include "PluginMgr.h"
+#include "ConfigMgr.h"
+#include "PluginControlInterfaceSocket.h"
+#include "PluginControlInterfaceProtocol.h"
+
 
 namespace comms_champion
 {
 
-class PluginMgrImpl;
-class PluginMgr
+class PluginMgrImpl
 {
 public:
 
-    typedef std::shared_ptr<QPluginLoader> PluginLoaderPtr;
-
-    class PluginInfo
-    {
-        friend class PluginMgr;
-        friend class PluginMgrImpl;
-
-    public:
-        enum class Type
-        {
-            Invalid,
-            Socket,
-            Filter,
-            Protocol,
-            NumOfValues
-        };
-
-        const QString& getName() const
-        {
-            return m_name;
-        }
-
-        const QString& getDescription() const
-        {
-            return m_desc;
-        }
-
-        Type getType() const
-        {
-            return m_type;
-        }
-
-    private:
-        PluginInfo() = default;
-
-        PluginLoaderPtr m_loader;
-        QString m_iid;
-        QString m_name;
-        QString m_desc;
-        Type m_type = Type::Invalid;
-        bool m_applied = false;
-    };
-
-    typedef std::shared_ptr<PluginInfo> PluginInfoPtr;
-    typedef std::list<PluginInfoPtr> ListOfPluginInfos;
+    typedef PluginMgr::PluginLoaderPtr PluginLoaderPtr;
+    typedef PluginMgr::PluginInfo PluginInfo;
+    typedef PluginMgr::PluginInfoPtr PluginInfoPtr;
+    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
     typedef Plugin::WidgetPtr WidgetPtr;
 
-    PluginMgr();
-    ~PluginMgr();
+    PluginMgrImpl();
+    ~PluginMgrImpl();
 
     void setPluginsDir(const QString& pluginDir);
     const ListOfPluginInfos& getAvailablePlugins();
@@ -109,15 +72,27 @@ public:
     static const QString& getFilesFilter();
 
 private:
+    typedef std::list<PluginLoaderPtr> PluginLoadersList;
 
-    std::unique_ptr<PluginMgrImpl> m_impl;
+    struct PluginControls
+    {
+        PluginControls();
+
+        PluginControlInterfaceSocket m_socketCtrlInterface;
+        PluginControlInterfaceProtocol m_protocolCtrlInterface;
+        std::array<PluginControlInterfaceImpl*, (unsigned)PluginInfo::Type::NumOfValues> m_ctrlInterfaces;
+    };
+
+    static PluginInfoPtr readPluginInfo(const QString& filename);
+    PluginControlInterfaceImpl* getPluginControl(PluginInfo::Type type);
+
+    QString m_pluginDir;
+    ListOfPluginInfos m_plugins;
+    ListOfPluginInfos m_appliedPlugins;
+    std::unique_ptr<PluginControls> m_pluginControls;
+    ConfigMgr m_configMgr;
 };
-
-using PluginMgrG = StaticSingleton<PluginMgr>;
 
 }  // namespace comms_champion
 
-extern template class comms_champion::StaticSingleton<comms_champion::PluginMgr>;
-
-Q_DECLARE_METATYPE(comms_champion::PluginMgr::PluginInfoPtr);
 

@@ -97,7 +97,7 @@ void GuiAppMgr::start()
         return;
     }
 
-    auto& pluginMgr = PluginMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     auto plugins = pluginMgr.loadPluginsFromConfigFile(filename);
     if (plugins.empty()) {
         return;
@@ -450,7 +450,7 @@ void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
 
 GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
 {
-    auto& pluginMgr = PluginMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     if (!pluginMgr.hasAppliedPlugins()) {
         return ActivityState::Inactive;
     }
@@ -460,7 +460,7 @@ GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
 
 bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 {
-    auto& pluginMgr = PluginMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     auto& msgMgr = MsgMgr::instanceRef();
     bool hasApplied = pluginMgr.hasAppliedPlugins();
     if (hasApplied) {

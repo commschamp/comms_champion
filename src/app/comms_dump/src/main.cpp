@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
     app.addLibraryPath(dir.path());
 
-//    auto& pluginMgr = cc::PluginMgr::instanceRef();
+//    auto& pluginMgr = cc::PluginMgrG::instanceRef();
 //    pluginMgr.setPluginsDir(dir.path());
 //
 //    if (parser.isSet(CleanOptStr)) {

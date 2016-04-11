@@ -18,8 +18,8 @@ function (lib_comms_champion)
         MessageHandler.cpp
         Property.cpp
         Plugin.cpp
-        PluginControlInterface.cpp
         DataInfo.cpp
+        PluginProperties.cpp
         field_wrapper/FieldWrapper.cpp
         field_wrapper/IntValueWrapper.cpp
         field_wrapper/BitmaskValueWrapper.cpp

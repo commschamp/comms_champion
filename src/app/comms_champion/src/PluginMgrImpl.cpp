@@ -139,6 +139,11 @@ const PluginMgrImpl::ListOfPluginInfos& PluginMgrImpl::getAppliedPlugins() const
     return m_appliedPlugins;
 }
 
+void PluginMgrImpl::setAppliedPlugins(const ListOfPluginInfos& plugins)
+{
+    m_appliedPlugins = plugins;
+}
+
 PluginMgrImpl::ListOfPluginInfos PluginMgrImpl::loadPluginsFromConfig(
     const QVariantMap& config)
 {
@@ -203,15 +208,9 @@ bool PluginMgrImpl::savePluginsToConfigFile(
     return m_configMgr.saveConfig(filename, config);
 }
 
-bool PluginMgrImpl::loadPlugin(const PluginInfo& info)
+Plugin* PluginMgrImpl::loadPlugin(const PluginInfo& info)
 {
-    assert(info.m_loader);
-    if (info.m_loader->isLoaded()) {
-        return true;
-    }
-
-    auto* plugin = getPlugin(*info.m_loader);
-    return plugin != nullptr;
+    return getPlugin(*info.m_loader);
 }
 
 bool PluginMgrImpl::hasAppliedPlugins() const
@@ -237,27 +236,6 @@ void PluginMgrImpl::unloadApplied()
     m_appliedPlugins.clear();
 }
 
-bool PluginMgrImpl::apply(const ListOfPluginInfos& infos)
-{
-    assert(!hasAppliedPlugins());
-
-    for (auto& reqInfo : infos) {
-        assert(reqInfo);
-        assert(reqInfo->m_loader);
-        auto* pluginPtr = getPlugin(*reqInfo->m_loader);
-
-        auto* ctrlInterface = getPluginControl(reqInfo->getType());
-        if (ctrlInterface == nullptr) {
-            continue;
-        }
-
-        pluginPtr->apply(*ctrlInterface);
-    }
-
-    m_appliedPlugins = infos;
-    return true;
-}
-
 QVariantMap PluginMgrImpl::getConfigForPlugins(
     const ListOfPluginInfos& infos)
 {
@@ -278,14 +256,6 @@ QVariantMap PluginMgrImpl::getConfigForPlugins(
     return config;
 }
 
-PluginMgrImpl::WidgetPtr PluginMgrImpl::getPluginConfigWidget(const PluginInfo& info)
-{
-    assert(info.m_loader);
-    auto* pluginPtr = getPlugin(*info.m_loader);
-    assert(pluginPtr != nullptr);
-    return pluginPtr->getConfigWidget();
-}
-
 const QString& PluginMgrImpl::getLastFile() const
 {
     return m_configMgr.getLastFile();
@@ -294,13 +264,6 @@ const QString& PluginMgrImpl::getLastFile() const
 const QString& PluginMgrImpl::getFilesFilter()
 {
     return ConfigMgr::getFilesFilter();
-}
-
-PluginMgrImpl::PluginControls::PluginControls()
-{
-    std::fill(m_ctrlInterfaces.begin(), m_ctrlInterfaces.end(), nullptr);
-    m_ctrlInterfaces[(unsigned)PluginInfo::Type::Socket] = &m_socketCtrlInterface;
-    m_ctrlInterfaces[(unsigned)PluginInfo::Type::Protocol] = &m_protocolCtrlInterface;
 }
 
 PluginMgrImpl::PluginInfoPtr PluginMgrImpl::readPluginInfo(const QString& filename)
@@ -366,18 +329,6 @@ PluginMgrImpl::PluginInfoPtr PluginMgrImpl::readPluginInfo(const QString& filena
     } while (false);
     return ptr;
 }
-
-PluginControlInterfaceImpl* PluginMgrImpl::getPluginControl(PluginInfo::Type type)
-{
-    if (!m_pluginControls) {
-        m_pluginControls.reset(new PluginControls);
-    }
-
-    auto typeIdx = static_cast<unsigned>(type);
-    assert(typeIdx < m_pluginControls->m_ctrlInterfaces.size());
-    return m_pluginControls->m_ctrlInterfaces[typeIdx];
-}
-
 
 }  // namespace comms_champion
 

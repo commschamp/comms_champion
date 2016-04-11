@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -94,8 +94,8 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
         guiAppMgr, SIGNAL(sigAddMainToolbarAction(ActionPtr)),
         this, SLOT(addMainToolbarAction(ActionPtr)));
     connect(
-        guiAppMgr, SIGNAL(sigRemoveMainToolbarAction(ActionPtr)),
-        this, SLOT(removeMainToolbarAction(ActionPtr)));
+        guiAppMgr, SIGNAL(sigClearAllMainToolbarActions()),
+        this, SLOT(clearAllMainToolbarActions()));
     connect(
         guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
         this, SLOT(activeStateChanged(int)));
@@ -181,18 +181,12 @@ void MainWindowWidget::addMainToolbarAction(ActionPtr action)
     m_customActions.push_back(action);
 }
 
-void MainWindowWidget::removeMainToolbarAction(ActionPtr action)
+void MainWindowWidget::clearAllMainToolbarActions()
 {
-    auto iter = std::find(m_customActions.begin(), m_customActions.end(), action);
-    if (iter == m_customActions.end())
-    {
-        assert(!"Removing action that wasn't added");
-        return;
+    for (auto& action : m_customActions) {
+        m_toolbar->removeAction(action.get());
     }
-
-    assert(m_toolbar != nullptr);
-    m_toolbar->removeAction(action.get());
-    m_customActions.erase(iter);
+    m_customActions.clear();
 }
 
 void MainWindowWidget::activeStateChanged(int state)

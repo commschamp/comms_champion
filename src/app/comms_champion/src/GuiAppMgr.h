@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -27,10 +27,10 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
 #include <QtCore/QTimer>
 #include <QtWidgets/QWidget>
+#include <QtWidgets/QAction>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Message.h"
-#include "comms_champion/PluginControlInterface.h"
 #include "PluginMgr.h"
 
 #include "MsgMgr.h"
@@ -65,7 +65,7 @@ public:
 
     typedef MsgMgr::MsgType MsgType;
     typedef MsgMgr::Timestamp Timestamp;
-    typedef PluginControlInterface::ActionPtr ActionPtr;
+    typedef std::shared_ptr<QAction> ActionPtr;
     typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
     enum class ActivityState
     {
@@ -137,8 +137,6 @@ public slots:
     void sendSelectedMsgMoved(int idx);
 
     void addMainToolbarAction(ActionPtr action);
-    void removeMainToolbarAction(ActionPtr action);
-
 
 signals:
     void sigAddRecvMsg(MessageInfoPtr msgInfo);
@@ -173,7 +171,7 @@ signals:
     void sigActivityStateChanged(int value);
     void sigErrorReported(const QString& msg);
     void sigAddMainToolbarAction(ActionPtr action);
-    void sigRemoveMainToolbarAction(ActionPtr action);
+    void sigClearAllMainToolbarActions();
     void sigSendLoadMsgs(bool clear, const QString& filename, ProtocolPtr protocol);
     void sigSendSaveMsgs(const QString& filename);
 

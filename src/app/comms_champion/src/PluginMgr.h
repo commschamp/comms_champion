@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -30,7 +30,6 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QPluginLoader>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/PluginControlInterface.h"
 #include "comms_champion/Plugin.h"
 #include "comms_champion/StaticSingleton.h"
 
@@ -95,21 +94,19 @@ public:
     void setPluginsDir(const QString& pluginDir);
     const ListOfPluginInfos& getAvailablePlugins();
     const ListOfPluginInfos& getAppliedPlugins() const;
+    void setAppliedPlugins(const ListOfPluginInfos& plugins);
     ListOfPluginInfos loadPluginsFromConfig(const QVariantMap& config);
     ListOfPluginInfos loadPluginsFromConfigFile(const QString& filename);
     bool savePluginsToConfigFile(const ListOfPluginInfos& infos, const QString& filename);
-    bool loadPlugin(const PluginInfo& info);
+    Plugin* loadPlugin(const PluginInfo& info);
     bool hasAppliedPlugins() const;
     bool needsReload(const ListOfPluginInfos& infos) const;
     void unloadApplied();
-    bool apply(const ListOfPluginInfos& infos);
     static QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos);
-    static WidgetPtr getPluginConfigWidget(const PluginInfo& info);
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
 
 private:
-
     std::unique_ptr<PluginMgrImpl> m_impl;
 };
 

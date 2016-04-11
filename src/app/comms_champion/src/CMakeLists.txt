@@ -21,9 +21,6 @@ function (bin_comms_champion)
         ConfigMgr.cpp
         PluginMgrImpl.cpp
         PluginMgr.cpp
-        PluginControlInterfaceImpl.cpp
-        PluginControlInterfaceSocket.cpp
-        PluginControlInterfaceProtocol.cpp
         icon.cpp
         widget/MainWindowWidget.cpp
         widget/LeftPaneWidget.cpp
@@ -62,7 +59,6 @@ function (bin_comms_champion)
         moc
         GuiAppMgr.h
         MsgMgr.h
-        PluginControlInterfaceImpl.h
         widget/MessageDisplayWidget.h
         widget/MessageWidget.h
         widget/DefaultMessageWidget.h

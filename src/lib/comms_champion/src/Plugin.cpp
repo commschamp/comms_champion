@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -20,20 +20,25 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+template <typename TFunc>
+auto invokeCreationFunc(TFunc&& func) -> decltype(func())
+{
+    typedef decltype(func()) RetType;
+
+    if (!func) {
+        return RetType();
+    }
+
+    return func();
+}
+
+}  // namespace
+
 Plugin::Plugin() = default;
 Plugin::~Plugin() = default;
-
-bool Plugin::isApplied() const
-{
-    return m_ctrlInterface != nullptr;
-}
-
-void Plugin::apply(PluginControlInterface& controlInterface)
-{
-    assert(!isApplied());
-    m_ctrlInterface = &controlInterface;
-    applyImpl();
-}
 
 void Plugin::getCurrentConfig(QVariantMap& config)
 {
@@ -52,9 +57,39 @@ void Plugin::reconfigure(const QVariantMap& config)
     reconfigureImpl(config);
 }
 
-Plugin::WidgetPtr Plugin::getConfigWidget()
+SocketPtr Plugin::createSocket() const
 {
-    return getConfigWidgetImpl();
+    return invokeCreationFunc(m_props.getSocketCreateFunc());
+}
+
+Plugin::ListOfFilters Plugin::createFilters() const
+{
+    return invokeCreationFunc(m_props.getFiltersCreateFunc());
+}
+
+ProtocolPtr Plugin::createProtocol() const
+{
+    return invokeCreationFunc(m_props.getProtocolCreateFunc());
+}
+
+Plugin::ListOfGuiActions Plugin::createGuiActions() const
+{
+    return invokeCreationFunc(m_props.getGuiActionsCreateFunc());
+}
+
+QWidget* Plugin::createConfiguarionWidget() const
+{
+    auto func = m_props.getConfigWidgetCreateFunc();
+    if (!func) {
+        return nullptr;
+    }
+
+    return func();
+}
+
+QVariant Plugin::getCustomProperty(const QString& name)
+{
+    return m_props.getCustomProperty(name);
 }
 
 void Plugin::getCurrentConfigImpl(QVariantMap& config)
@@ -67,15 +102,9 @@ void Plugin::reconfigureImpl(const QVariantMap& config)
     static_cast<void>(config);
 }
 
-Plugin::WidgetPtr Plugin::getConfigWidgetImpl()
+PluginProperties& Plugin::pluginProperties()
 {
-    return WidgetPtr();
-}
-
-PluginControlInterface& Plugin::ctrlInterface()
-{
-    assert(isApplied());
-    return *m_ctrlInterface;
+    return m_props;
 }
 
 }  // namespace comms_champion

@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -41,25 +41,15 @@ private:
 
 NullSocketPlugin::NullSocketPlugin()
 {
+    pluginProperties()
+        .setSocketCreateFunc(
+            [this]()
+            {
+                return makeNullSocket();
+            });
 }
 
-NullSocketPlugin::~NullSocketPlugin()
-{
-    if (isApplied()) {
-        auto& interface = ctrlInterface();
-        assert(m_socket);
-        interface.clearSocket();
-        m_socket.reset();
-    }
-}
-
-void NullSocketPlugin::applyImpl()
-{
-    auto& interface = ctrlInterface();
-    m_socket = makeNullSocket();
-    interface.setSocket(m_socket);
-    assert(m_socket);
-}
+NullSocketPlugin::~NullSocketPlugin() = default;
 
 }  // namespace dummy_socket
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -42,26 +42,22 @@ const QString PortSubKey("port");
 
 ServerSocketPlugin::ServerSocketPlugin()
 {
+    pluginProperties()
+        .setSocketCreateFunc(
+            [this]()
+            {
+                createSocketIfNeeded();
+                return m_socket;
+            })
+        .setConfigWidgetCreateFunc(
+            [this]()
+            {
+                createSocketIfNeeded();
+                return new ServerSocketConfigWidget(*m_socket);
+            });
 }
 
-ServerSocketPlugin::~ServerSocketPlugin()
-{
-    if (isApplied()) {
-        auto& interface = ctrlInterface();
-        assert(m_socket);
-        interface.clearSocket();
-        m_socket.reset();
-    }
-}
-
-void ServerSocketPlugin::applyImpl()
-{
-    createSocketIfNeeded();
-
-    auto& interface = ctrlInterface();
-    interface.setSocket(m_socket);
-    assert(m_socket);
-}
+ServerSocketPlugin::~ServerSocketPlugin() = default;
 
 void ServerSocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 {
@@ -91,13 +87,6 @@ void ServerSocketPlugin::reconfigureImpl(const QVariantMap& config)
     createSocketIfNeeded();
 
     m_socket->setPort(port);
-}
-
-ServerSocketPlugin::WidgetPtr ServerSocketPlugin::getConfigWidgetImpl()
-{
-    createSocketIfNeeded();
-    assert(m_socket);
-    return WidgetPtr(new ServerSocketConfigWidget(*m_socket));
 }
 
 void ServerSocketPlugin::createSocketIfNeeded()

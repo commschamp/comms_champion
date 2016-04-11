@@ -46,6 +46,11 @@ const PluginMgr::ListOfPluginInfos& PluginMgr::getAppliedPlugins() const
     return m_impl->getAppliedPlugins();
 }
 
+void PluginMgr::setAppliedPlugins(const ListOfPluginInfos& plugins)
+{
+    m_impl->setAppliedPlugins(plugins);
+}
+
 PluginMgr::ListOfPluginInfos PluginMgr::loadPluginsFromConfig(
     const QVariantMap& config)
 {
@@ -65,7 +70,7 @@ bool PluginMgr::savePluginsToConfigFile(
     return m_impl->savePluginsToConfigFile(infos, filename);
 }
 
-bool PluginMgr::loadPlugin(const PluginInfo& info)
+Plugin* PluginMgr::loadPlugin(const PluginInfo& info)
 {
     return m_impl->loadPlugin(info);
 }
@@ -85,20 +90,10 @@ void PluginMgr::unloadApplied()
     m_impl->unloadApplied();
 }
 
-bool PluginMgr::apply(const ListOfPluginInfos& infos)
-{
-    return m_impl->apply(infos);
-}
-
 QVariantMap PluginMgr::getConfigForPlugins(
     const ListOfPluginInfos& infos)
 {
     return PluginMgrImpl::getConfigForPlugins(infos);
-}
-
-PluginMgr::WidgetPtr PluginMgr::getPluginConfigWidget(const PluginInfo& info)
-{
-    return PluginMgrImpl::getPluginConfigWidget(info);
 }
 
 const QString& PluginMgr::getLastFile() const

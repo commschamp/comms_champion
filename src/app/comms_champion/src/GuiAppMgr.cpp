@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -320,12 +320,6 @@ void GuiAppMgr::addMainToolbarAction(ActionPtr action)
     emit sigAddMainToolbarAction(std::move(action));
 }
 
-void GuiAppMgr::removeMainToolbarAction(ActionPtr action)
-{
-    emit sigRemoveMainToolbarAction(std::move(action));
-}
-
-
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
     return m_recvState;
@@ -462,6 +456,8 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 {
     auto& pluginMgr = PluginMgrG::instanceRef();
     auto& msgMgr = MsgMgr::instanceRef();
+
+    emit sigClearAllMainToolbarActions();
     bool hasApplied = pluginMgr.hasAppliedPlugins();
     if (hasApplied) {
         msgMgr.stop();
@@ -471,22 +467,71 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     bool needsReload = pluginMgr.needsReload(plugins);
     if (needsReload) {
         assert(hasApplied);
-        pluginMgr.unloadApplied();
         msgMgr.clear();
+        pluginMgr.unloadApplied();
         emit sigActivityStateChanged((int)ActivityState::Clear);
     }
 
-    bool result = true;
-    if ((!hasApplied) || (needsReload)) {
-        result = pluginMgr.apply(plugins);
+    typedef Plugin::ListOfFilters ListOfFilters;
+    typedef QList<ActionPtr> ListOfGuiActions;
+
+    struct ApplyInfo
+    {
+        SocketPtr m_socket;
+        ListOfFilters m_filters;
+        ProtocolPtr m_protocol;
+        ListOfGuiActions m_actions;
+    };
+
+    auto applyInfo = ApplyInfo();
+    for (auto& info : plugins) {
+        Plugin* plugin = pluginMgr.loadPlugin(*info);
+        if (plugin == nullptr) {
+            assert(!"Failed to load plugin");
+            continue;
+        }
+
+        if (!applyInfo.m_socket) {
+            applyInfo.m_socket = plugin->createSocket();
+        }
+
+        applyInfo.m_filters.append(plugin->createFilters());
+
+        if (!applyInfo.m_protocol) {
+            applyInfo.m_protocol = plugin->createProtocol();
+        }
+
+        auto guiActions = plugin->createGuiActions();
+        for (auto* action : guiActions) {
+            applyInfo.m_actions.append(ActionPtr(action));
+        }
     }
 
-    if (!result) {
-        return result;
+    if (!applyInfo.m_socket) {
+        std::cerr << "Socket hasn't been set!" << std::endl;
+        return false;
     }
+
+    if (!applyInfo.m_protocol) {
+        std::cerr << "Protocol hasn't been set!" << std::endl;
+        return false;
+    }
+
+    msgMgr.setSocket(std::move(applyInfo.m_socket));
+
+    if (!applyInfo.m_filters.isEmpty()) {
+        assert(!"Filters support hasn't been implemented yet");
+        // TODO: add filters
+    }
+
+    msgMgr.setProtocol(std::move(applyInfo.m_protocol));
 
     msgMgr.start();
     emit sigActivityStateChanged((int)ActivityState::Active);
+
+    for (auto& action : applyInfo.m_actions) {
+        emit sigAddMainToolbarAction(std::move(action));
+    }
 
     auto filename = getAddDataStoragePath(true);
     if (filename.isEmpty()) {
@@ -494,6 +539,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     }
 
     pluginMgr.savePluginsToConfigFile(plugins, filename);
+    pluginMgr.setAppliedPlugins(plugins);
     return true;
 }
 

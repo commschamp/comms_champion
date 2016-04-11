@@ -30,6 +30,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QMessageBox>
 CC_ENABLE_WARNINGS()
 
+#include "comms/util/ScopeGuard.h"
 #include "icon.h"
 
 namespace comms_champion
@@ -400,14 +401,27 @@ void PluginConfigDialog::selectedPluginClicked(
     selectedList->setCurrentItem(item);
     assert(selectedList->currentRow() == selectedList->getRow(item));
 
-    auto configWidget =
-        PluginMgrG::instanceRef().getPluginConfigWidget(*pluginInfoPtr);
-    if (configWidget) {
-        m_ui.m_configScrollArea->setWidget(configWidget.release());
-    }
-    else {
-        clearConfiguration();
-    }
+    do {
+        auto clearGuard =
+            comms::util::makeScopeGuard(
+                [this]()
+                {
+                    clearConfiguration();
+                });
+
+        auto* plugin = PluginMgrG::instanceRef().loadPlugin(*pluginInfoPtr);
+        if (plugin == nullptr) {
+            break;
+        }
+
+        auto* configWidget = plugin->createConfiguarionWidget();
+        if (configWidget == nullptr) {
+            break;
+        }
+
+        clearGuard.release();
+        m_ui.m_configScrollArea->setWidget(configWidget);
+    } while (false);
 
     m_ui.m_descLabel->setText(pluginInfoPtr->getDescription());
     refreshSelectedToolbar();

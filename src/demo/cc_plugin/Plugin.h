@@ -40,11 +40,6 @@ class Plugin : public comms_champion::Plugin
 public:
     Plugin();
     ~Plugin();
-
-protected:
-
-    virtual void applyImpl() override;
-private:
 };
 
 }  // namespace cc_plugin

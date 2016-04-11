@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -31,12 +31,9 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QPluginLoader>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/PluginControlInterface.h"
 #include "comms_champion/Plugin.h"
 #include "PluginMgr.h"
 #include "ConfigMgr.h"
-#include "PluginControlInterfaceSocket.h"
-#include "PluginControlInterfaceProtocol.h"
 
 
 namespace comms_champion
@@ -58,38 +55,26 @@ public:
     void setPluginsDir(const QString& pluginDir);
     const ListOfPluginInfos& getAvailablePlugins();
     const ListOfPluginInfos& getAppliedPlugins() const;
+    void setAppliedPlugins(const ListOfPluginInfos& plugins);
     ListOfPluginInfos loadPluginsFromConfig(const QVariantMap& config);
     ListOfPluginInfos loadPluginsFromConfigFile(const QString& filename);
     bool savePluginsToConfigFile(const ListOfPluginInfos& infos, const QString& filename);
-    bool loadPlugin(const PluginInfo& info);
+    Plugin* loadPlugin(const PluginInfo& info);
     bool hasAppliedPlugins() const;
     bool needsReload(const ListOfPluginInfos& infos) const;
     void unloadApplied();
-    bool apply(const ListOfPluginInfos& infos);
     static QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos);
-    static WidgetPtr getPluginConfigWidget(const PluginInfo& info);
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
 
 private:
     typedef std::list<PluginLoaderPtr> PluginLoadersList;
 
-    struct PluginControls
-    {
-        PluginControls();
-
-        PluginControlInterfaceSocket m_socketCtrlInterface;
-        PluginControlInterfaceProtocol m_protocolCtrlInterface;
-        std::array<PluginControlInterfaceImpl*, (unsigned)PluginInfo::Type::NumOfValues> m_ctrlInterfaces;
-    };
-
-    static PluginInfoPtr readPluginInfo(const QString& filename);
-    PluginControlInterfaceImpl* getPluginControl(PluginInfo::Type type);
+    PluginInfoPtr readPluginInfo(const QString& filename);
 
     QString m_pluginDir;
     ListOfPluginInfos m_plugins;
     ListOfPluginInfos m_appliedPlugins;
-    std::unique_ptr<PluginControls> m_pluginControls;
     ConfigMgr m_configMgr;
 };
 

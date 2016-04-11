@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -43,10 +43,8 @@ public:
     SerialSocketPlugin();
     ~SerialSocketPlugin();
 
-    virtual void applyImpl() override;
     virtual void getCurrentConfigImpl(QVariantMap& config) override;
     virtual void reconfigureImpl(const QVariantMap& config) override;
-    virtual WidgetPtr getConfigWidgetImpl() override;
 
 private:
 

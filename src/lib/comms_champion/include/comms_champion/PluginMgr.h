@@ -110,11 +110,7 @@ private:
     std::unique_ptr<PluginMgrImpl> m_impl;
 };
 
-using PluginMgrG = StaticSingleton<PluginMgr>;
-
 }  // namespace comms_champion
-
-extern template class comms_champion::StaticSingleton<comms_champion::PluginMgr>;
 
 Q_DECLARE_METATYPE(comms_champion::PluginMgr::PluginInfoPtr);
 

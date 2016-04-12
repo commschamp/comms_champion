@@ -28,7 +28,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/comms_champion.h"
-#include "PluginMgr.h"
+#include "PluginMgrG.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
 

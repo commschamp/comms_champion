@@ -18,9 +18,7 @@ function (bin_comms_champion)
         GlobalConstants.cpp
         DefaultMessageDisplayHandler.cpp
         MsgFileMgr.cpp
-        ConfigMgr.cpp
-        PluginMgrImpl.cpp
-        PluginMgr.cpp
+        PluginMgrG.cpp
         icon.cpp
         widget/MainWindowWidget.cpp
         widget/LeftPaneWidget.cpp

@@ -31,6 +31,7 @@ CC_ENABLE_WARNINGS()
 
 #include "DefaultMessageDisplayHandler.h"
 #include "GlobalConstants.h"
+#include "PluginMgrG.h"
 
 #include <iostream>
 

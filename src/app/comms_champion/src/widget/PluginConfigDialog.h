@@ -28,7 +28,7 @@ CC_DISABLE_WARNINGS()
 #include "ui_PluginConfigDialog.h"
 CC_ENABLE_WARNINGS()
 
-#include "PluginMgr.h"
+#include "comms_champion/PluginMgr.h"
 #include "PluginsListWidget.h"
 
 namespace comms_champion

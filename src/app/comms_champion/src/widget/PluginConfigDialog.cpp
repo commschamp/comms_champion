@@ -31,6 +31,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms/util/ScopeGuard.h"
+#include "PluginMgrG.h"
 #include "icon.h"
 
 namespace comms_champion

@@ -15,11 +15,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "PluginMgr.h"
+#include "comms_champion/PluginMgr.h"
 
 #include "PluginMgrImpl.h"
-
-template class comms_champion::StaticSingleton<comms_champion::PluginMgr>;
 
 namespace comms_champion
 {

@@ -32,8 +32,8 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Plugin.h"
-#include "PluginMgr.h"
-#include "ConfigMgr.h"
+#include "comms_champion/PluginMgr.h"
+#include "comms_champion/ConfigMgr.h"
 
 
 namespace comms_champion

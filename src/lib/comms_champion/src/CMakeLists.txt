@@ -20,6 +20,9 @@ function (lib_comms_champion)
         Plugin.cpp
         DataInfo.cpp
         PluginProperties.cpp
+        ConfigMgr.cpp
+        PluginMgr.cpp
+        PluginMgrImpl.cpp
         field_wrapper/FieldWrapper.cpp
         field_wrapper/IntValueWrapper.cpp
         field_wrapper/BitmaskValueWrapper.cpp

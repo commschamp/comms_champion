@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "MsgFileMgr.h"
+#include "comms_champion/MsgFileMgr.h"
 
 #include <cassert>
 #include <algorithm>
@@ -55,106 +55,8 @@ const QString& getPropsKeyStr()
     return Str;
 }
 
-}  // namespace
 
-MsgFileMgr* MsgFileMgr::instance()
-{
-    static MsgFileMgr mgr;
-    return &mgr;
-}
-
-MsgFileMgr& MsgFileMgr::instanceRef()
-{
-    return *(instance());
-}
-
-const QString& MsgFileMgr::getLastFile() const
-{
-    return m_lastFile;
-}
-
-MsgInfosList MsgFileMgr::load(
-    Type type,
-    const QString& filename,
-    Protocol& protocol)
-{
-    MsgInfosList allMsgs;
-    do {
-        QFile msgsFile(filename);
-        if (!msgsFile.open(QIODevice::ReadOnly)) {
-            std::cerr << "ERROR: Failed to load the file " <<
-                filename.toStdString() << std::endl;
-            break;
-        }
-
-        auto data = msgsFile.readAll();
-
-        auto jsonError = QJsonParseError();
-        auto jsonDoc = QJsonDocument::fromJson(data, &jsonError);
-        if (jsonError.error != QJsonParseError::NoError) {
-            std::cerr << "ERROR: Invalid contents of messages file!" << std::endl;
-            break;
-        }
-
-        if (!jsonDoc.isArray()) {
-            std::cerr << "ERROR: Invalid contents of messages file!" << std::endl;
-            break;
-        }
-
-        auto topArray = jsonDoc.array();
-        auto varList = topArray.toVariantList();
-        allMsgs = convertMsgList(type, varList, protocol);
-        m_lastFile = filename;
-    } while (false);
-
-    return allMsgs;
-}
-
-bool MsgFileMgr::save(Type type, const QString& filename, const MsgInfosList& msgs)
-{
-    QString filenameTmp(filename);
-    while (true) {
-        filenameTmp.append(".tmp");
-        if (!QFile::exists(filenameTmp)) {
-            break;
-        }
-    }
-
-    QFile msgsFile(filenameTmp);
-    if (!msgsFile.open(QIODevice::WriteOnly)) {
-        return false;
-    }
-
-    auto convertedList = convertMsgList(type, msgs);
-
-    auto jsonArray = QJsonArray::fromVariantList(convertedList);
-    QJsonDocument jsonDoc(jsonArray);
-    auto data = jsonDoc.toJson();
-
-    msgsFile.write(data);
-
-    if ((QFile::exists(filename)) &&
-        (!QFile::remove(filename))) {
-        msgsFile.close();
-        QFile::remove(filenameTmp);
-        return false;
-    }
-
-    if (!msgsFile.rename(filename)) {
-        return false;
-    }
-
-    m_lastFile = filename;
-    return true;
-}
-
-const QString& MsgFileMgr::getFilesFilter()
-{
-    static const QString Str(QObject::tr("All Files (*)"));
-    return Str;
-}
-
-QVariantList MsgFileMgr::convertMsgList(Type type, const MsgInfosList& msgs)
+QVariantList convertMsgList(MsgFileMgr::Type type, const MsgInfosList& msgs)
 {
     static_cast<void>(type);
     QVariantList convertedList;
@@ -188,8 +90,8 @@ QVariantList MsgFileMgr::convertMsgList(Type type, const MsgInfosList& msgs)
     return convertedList;
 }
 
-MsgInfosList MsgFileMgr::convertMsgList(
-    Type type,
+MsgInfosList convertMsgList(
+    MsgFileMgr::Type type,
     const QVariantList& msgs,
     Protocol& protocol)
 {
@@ -284,6 +186,101 @@ MsgInfosList MsgFileMgr::convertMsgList(
         convertedList.push_back(std::move(msgInfo));
     }
     return convertedList;
+}
+
+}  // namespace
+
+MsgFileMgr::MsgFileMgr() = default;
+MsgFileMgr::~MsgFileMgr() = default;
+MsgFileMgr::MsgFileMgr(const MsgFileMgr&) = default;
+MsgFileMgr::MsgFileMgr(MsgFileMgr&&) = default;
+MsgFileMgr& MsgFileMgr::operator=(const MsgFileMgr&) = default;
+MsgFileMgr& MsgFileMgr::operator=(MsgFileMgr&&) = default;
+
+const QString& MsgFileMgr::getLastFile() const
+{
+    return m_lastFile;
+}
+
+MsgInfosList MsgFileMgr::load(
+    Type type,
+    const QString& filename,
+    Protocol& protocol)
+{
+    MsgInfosList allMsgs;
+    do {
+        QFile msgsFile(filename);
+        if (!msgsFile.open(QIODevice::ReadOnly)) {
+            std::cerr << "ERROR: Failed to load the file " <<
+                filename.toStdString() << std::endl;
+            break;
+        }
+
+        auto data = msgsFile.readAll();
+
+        auto jsonError = QJsonParseError();
+        auto jsonDoc = QJsonDocument::fromJson(data, &jsonError);
+        if (jsonError.error != QJsonParseError::NoError) {
+            std::cerr << "ERROR: Invalid contents of messages file!" << std::endl;
+            break;
+        }
+
+        if (!jsonDoc.isArray()) {
+            std::cerr << "ERROR: Invalid contents of messages file!" << std::endl;
+            break;
+        }
+
+        auto topArray = jsonDoc.array();
+        auto varList = topArray.toVariantList();
+        allMsgs = convertMsgList(type, varList, protocol);
+        m_lastFile = filename;
+    } while (false);
+
+    return allMsgs;
+}
+
+bool MsgFileMgr::save(Type type, const QString& filename, const MsgInfosList& msgs)
+{
+    QString filenameTmp(filename);
+    while (true) {
+        filenameTmp.append(".tmp");
+        if (!QFile::exists(filenameTmp)) {
+            break;
+        }
+    }
+
+    QFile msgsFile(filenameTmp);
+    if (!msgsFile.open(QIODevice::WriteOnly)) {
+        return false;
+    }
+
+    auto convertedList = convertMsgList(type, msgs);
+
+    auto jsonArray = QJsonArray::fromVariantList(convertedList);
+    QJsonDocument jsonDoc(jsonArray);
+    auto data = jsonDoc.toJson();
+
+    msgsFile.write(data);
+
+    if ((QFile::exists(filename)) &&
+        (!QFile::remove(filename))) {
+        msgsFile.close();
+        QFile::remove(filenameTmp);
+        return false;
+    }
+
+    if (!msgsFile.rename(filename)) {
+        return false;
+    }
+
+    m_lastFile = filename;
+    return true;
+}
+
+const QString& MsgFileMgr::getFilesFilter()
+{
+    static const QString Str(QObject::tr("All Files (*)"));
+    return Str;
 }
 
 

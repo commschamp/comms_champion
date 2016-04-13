@@ -19,13 +19,13 @@
 #pragma once
 
 #include "comms_champion/StaticSingleton.h"
-#include "comms_champion/PluginMgr.h"
+#include "comms_champion/MsgFileMgr.h"
 
 namespace comms_champion
 {
 
-using PluginMgrG = StaticSingleton<PluginMgr>;
+using MsgFileMgrG = StaticSingleton<MsgFileMgr>;
 
 }  // namespace comms_champion
 
-extern template class comms_champion::StaticSingleton<comms_champion::PluginMgr>;
+extern template class comms_champion::StaticSingleton<comms_champion::MsgFileMgr>;

@@ -28,7 +28,7 @@ CC_ENABLE_WARNINGS()
 #include "SendAreaToolBar.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
-#include "MsgFileMgr.h"
+#include "MsgFileMgrG.h"
 
 namespace comms_champion
 {
@@ -150,7 +150,7 @@ void SendMsgListWidget::msgMovedImpl(int idx)
 void SendMsgListWidget::loadMessagesImpl(const QString& filename, Protocol& protocol)
 {
     static_cast<void>(filename);
-    auto msgs = MsgFileMgr::instanceRef().load(MsgFileMgr::Type::Send, filename, protocol);
+    auto msgs = MsgFileMgrG::instanceRef().load(MsgFileMgr::Type::Send, filename, protocol);
     for (auto& m : msgs) {
         addMessage(m);
     }
@@ -159,7 +159,7 @@ void SendMsgListWidget::loadMessagesImpl(const QString& filename, Protocol& prot
 
 void SendMsgListWidget::saveMessagesImpl(const QString& filename)
 {
-    MsgFileMgr::instanceRef().save(MsgFileMgr::Type::Send, filename, allMsgs());
+    MsgFileMgrG::instanceRef().save(MsgFileMgr::Type::Send, filename, allMsgs());
 }
 
 } // namespace comms_champion

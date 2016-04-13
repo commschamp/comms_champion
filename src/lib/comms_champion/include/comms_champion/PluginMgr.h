@@ -32,7 +32,6 @@ CC_ENABLE_WARNINGS()
 
 #include "Api.h"
 #include "Plugin.h"
-#include "StaticSingleton.h"
 
 namespace comms_champion
 {

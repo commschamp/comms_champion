@@ -28,8 +28,8 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantList>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/MessageInfo.h"
-#include "comms_champion/Protocol.h"
+#include "MessageInfo.h"
+#include "Protocol.h"
 
 namespace comms_champion
 {
@@ -44,8 +44,14 @@ public:
         Send
     };
 
-    static MsgFileMgr* instance();
-    static MsgFileMgr& instanceRef();
+    MsgFileMgr();
+    ~MsgFileMgr();
+    MsgFileMgr(const MsgFileMgr&);
+    MsgFileMgr(MsgFileMgr&&);
+
+    MsgFileMgr& operator=(const MsgFileMgr&);
+    MsgFileMgr& operator=(MsgFileMgr&&);
+
 
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
@@ -54,10 +60,6 @@ public:
     bool save(Type type, const QString& filename, const MsgInfosList& msgs);
 
 private:
-    MsgFileMgr() = default;
-    static QVariantList convertMsgList(Type type, const MsgInfosList& msgs);
-    static MsgInfosList convertMsgList(Type type, const QVariantList& msgs, Protocol& protocol);
-
     QString m_lastFile;
 };
 

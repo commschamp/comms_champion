@@ -17,7 +17,7 @@ function (bin_comms_champion)
         GuiAppMgr.cpp
         GlobalConstants.cpp
         DefaultMessageDisplayHandler.cpp
-        MsgFileMgr.cpp
+        MsgFileMgrG.cpp
         PluginMgrG.cpp
         icon.cpp
         widget/MainWindowWidget.cpp

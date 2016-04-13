@@ -35,7 +35,7 @@ CC_ENABLE_WARNINGS()
 #include "MessageUpdateDialog.h"
 #include "PluginConfigDialog.h"
 #include "GuiAppMgr.h"
-#include "MsgFileMgr.h"
+#include "MsgFileMgrG.h"
 #include "icon.h"
 
 namespace comms_champion
@@ -257,7 +257,7 @@ void MainWindowWidget::clearCustomToolbarActions()
 
 QString MainWindowWidget::loadMsgsDialog()
 {
-    auto& msgsFileMgr = MsgFileMgr::instanceRef();
+    auto& msgsFileMgr = MsgFileMgrG::instanceRef();
     return
         QFileDialog::getOpenFileName(
             this,
@@ -269,7 +269,7 @@ QString MainWindowWidget::loadMsgsDialog()
 
 QString MainWindowWidget::saveMsgsDialog()
 {
-    auto& msgsFileMgr = MsgFileMgr::instanceRef();
+    auto& msgsFileMgr = MsgFileMgrG::instanceRef();
     return
         QFileDialog::getSaveFileName(
             this,

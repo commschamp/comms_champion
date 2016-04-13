@@ -15,17 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "MsgFileMgrG.h"
 
-#pragma once
+template class comms_champion::StaticSingleton<comms_champion::MsgFileMgr>;
 
-#include "comms_champion/StaticSingleton.h"
-#include "comms_champion/PluginMgr.h"
-
-namespace comms_champion
-{
-
-using PluginMgrG = StaticSingleton<PluginMgr>;
-
-}  // namespace comms_champion
-
-extern template class comms_champion::StaticSingleton<comms_champion::PluginMgr>;

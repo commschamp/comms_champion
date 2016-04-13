@@ -23,6 +23,7 @@ function (lib_comms_champion)
         ConfigMgr.cpp
         PluginMgr.cpp
         PluginMgrImpl.cpp
+        MsgFileMgr.cpp
         field_wrapper/FieldWrapper.cpp
         field_wrapper/IntValueWrapper.cpp
         field_wrapper/BitmaskValueWrapper.cpp

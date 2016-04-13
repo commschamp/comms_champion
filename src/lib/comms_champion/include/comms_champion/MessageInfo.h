@@ -28,6 +28,8 @@
 CC_DISABLE_WARNINGS()
 #include <QtCore/QMetaType>
 #include <QtCore/QVariant>
+#include <QtCore/QVariantMap>
+#include <QtCore/QString>
 CC_ENABLE_WARNINGS()
 
 #include "Api.h"
@@ -42,12 +44,12 @@ public:
 
     using  MessagePtr = std::shared_ptr<Message>;
 
-    MessageInfo() = default;
-    MessageInfo(const MessageInfo&) = default;
-    MessageInfo(MessageInfo&&) = default;
-    ~MessageInfo() = default;
-    MessageInfo& operator=(const MessageInfo&) = default;
-    MessageInfo& operator=(MessageInfo&&) = default;
+    MessageInfo();
+    MessageInfo(const MessageInfo&);
+    MessageInfo(MessageInfo&&);
+    ~MessageInfo();
+    MessageInfo& operator=(const MessageInfo&);
+    MessageInfo& operator=(MessageInfo&&);
 
     MessagePtr getAppMessage() const;
     void setAppMessage(MessagePtr msg);
@@ -58,19 +60,36 @@ public:
     MessagePtr getRawDataMessage() const;
     void setRawDataMessage(MessagePtr msg);
 
-    std::string getProtocolName() const;
-    void setProtocolName(const std::string& value);
+    QString getProtocolName() const;
+    void setProtocolName(const QString& value);
 
-    QVariant getExtraProperty(const std::string& property) const;
-    bool setExtraProperty(const std::string& property, QVariant&& value);
+    unsigned long long getDelay() const;
+    void setDelay(unsigned long long value);
 
+    QString getDelayUnits() const;
+    void setDelayUnits(const QString& value);
+
+    unsigned long long getRepeatDuration() const;
+    void setRepeatDuration(unsigned long long value);
+
+    QString getRepeatDurationUnits() const;
+    void setRepeatDurationUnits(const QString& value);
+
+    unsigned long long getRepeatCount() const;
+    void setRepeatCount(unsigned long long value);
+
+    QVariant getExtraProperty(const QString& name) const;
+    bool setExtraProperty(const QString& name, QVariant&& value);
+
+    const QVariantMap& getAllProperties() const;
+    void setAllProperties(const QVariantMap& props);
+    void setAllProperties(QVariantMap&& props);
 
 private:
-    MessagePtr getMessage(const std::string& property) const;
-    void setMessage(const std::string& property, MessagePtr msg);
-
-    typedef std::map<std::string, QVariant> PropertiesMap;
-    PropertiesMap m_map;
+    MessagePtr m_appMsg;
+    MessagePtr m_transportMsg;
+    MessagePtr m_rawDataMsg;
+    QVariantMap m_props;
 };
 
 using MessageInfoPtr = std::shared_ptr<MessageInfo>;

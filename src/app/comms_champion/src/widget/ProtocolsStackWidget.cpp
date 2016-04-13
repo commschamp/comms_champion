@@ -67,7 +67,7 @@ void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo, bool force)
 
     assert(msgInfo);
     m_ui.m_protocolsTreeWidget->clear();
-    QStringList colValues(QString(msgInfo->getProtocolName().c_str()));
+    QStringList colValues(msgInfo->getProtocolName());
     auto* topLevelItem = new QTreeWidgetItem(colValues);
 
     auto addMsgFunc =

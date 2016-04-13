@@ -29,161 +29,177 @@ namespace comms_champion
 namespace
 {
 
-const std::string EmptyStr;
-const std::string AppMsgProperty("AppMsg");
-const std::string TransportMsgProperty("TransportMsg");
-const std::string RawDataMsgProperty("RawDataMsg");
-const std::string ProtocolNameProperty("ProtName");
+const QString PropPrefix("cc.msg_");
+const QString ProtocolNamePropName = PropPrefix + "prot_name";
+const QString DelayPropName = PropPrefix + "delay";
+const QString DelayUnitsPropName = PropPrefix + "delay_units";
+const QString RepeatPropName = PropPrefix + "repeat";
+const QString RepeatUnitsPropName = PropPrefix + "repeat_units";
+const QString RepeatCountPropName = PropPrefix + "repeat_count";
 
-const std::string* ReservedProperties[] = {
-    &AppMsgProperty,
-    &TransportMsgProperty,
-    &RawDataMsgProperty,
-    &ProtocolNameProperty
-};
-
-bool isReservedProperty(const std::string& property)
+template <typename T>
+T getPropertyAs(const QVariantMap& map, const QString& name)
 {
-    return std::any_of(
-        std::begin(ReservedProperties),
-        std::end(ReservedProperties),
-        [&property](const std::string* str) -> bool
-        {
-            assert(str != nullptr);
-            return (property == *str);
-        });
+    auto iter = map.find(name);
+    if (iter == map.end()) {
+        return T();
+    }
+
+    auto var = iter.value();
+    assert(var.isValid());
+    assert(var.canConvert<T>());
+    return var.value<T>();
+}
+
+void setStringProperty(QVariantMap& map, const QString& name, const QString& value)
+{
+    if (value.isEmpty()) {
+        map.remove(name);
+        return;
+    }
+
+    map.insert(name, QVariant::fromValue(value));
 }
 
 }  // namespace
 
+MessageInfo::MessageInfo() = default;
+MessageInfo::MessageInfo(const MessageInfo&) = default;
+MessageInfo::MessageInfo(MessageInfo&&) = default;
+MessageInfo::~MessageInfo() = default;
+MessageInfo& MessageInfo::operator=(const MessageInfo&) = default;
+MessageInfo& MessageInfo::operator=(MessageInfo&&) = default;
+
+
 MessageInfo::MessagePtr MessageInfo::getAppMessage() const
 {
-    return getMessage(AppMsgProperty);
+    return m_appMsg;
 }
 
 void MessageInfo::setAppMessage(MessagePtr msg)
 {
-    setMessage(AppMsgProperty, std::move(msg));
+    m_appMsg = std::move(msg);
 }
 
 MessageInfo::MessagePtr MessageInfo::getTransportMessage() const
 {
-    return getMessage(TransportMsgProperty);
+    return m_transportMsg;
 }
 
 void MessageInfo::setTransportMessage(MessagePtr msg)
 {
-    setMessage(TransportMsgProperty, std::move(msg));
+    m_transportMsg = std::move(msg);
 }
 
 MessageInfo::MessagePtr MessageInfo::getRawDataMessage() const
 {
-    return getMessage(RawDataMsgProperty);
+    return m_rawDataMsg;
 }
 
 void MessageInfo::setRawDataMessage(MessagePtr msg)
 {
-    setMessage(RawDataMsgProperty, std::move(msg));
+    m_rawDataMsg = std::move(msg);
 }
 
-std::string MessageInfo::getProtocolName() const
+QString MessageInfo::getProtocolName() const
 {
-    auto iter = m_map.find(ProtocolNameProperty);
-    if (iter == m_map.end()) {
-        return std::string();
-    }
-
-    auto var = iter->second;
-    assert(var.isValid());
-    assert(var.canConvert<std::string>());
-    return var.value<std::string>();
+    return getPropertyAs<QString>(m_props, ProtocolNamePropName);
 }
 
-void MessageInfo::setProtocolName(const std::string& value)
+void MessageInfo::setProtocolName(const QString& value)
 {
-    auto iter = m_map.find(ProtocolNameProperty);
-    if (iter != m_map.end()) {
-        if (value.empty()) {
-            m_map.erase(iter);
-            return;
-        }
-
-        iter->second = QVariant::fromValue(value);
-        return;
-    }
-
-    if (value.empty()) {
-        return;
-    }
-
-    m_map.insert(std::make_pair(ProtocolNameProperty, QVariant::fromValue(value)));
-
+    setStringProperty(m_props, ProtocolNamePropName, value);
 }
 
-QVariant MessageInfo::getExtraProperty(const std::string& property) const
+unsigned long long MessageInfo::getDelay() const
 {
-    auto iter = m_map.find(property);
-    if (iter == m_map.end()) {
+    return getPropertyAs<unsigned long long>(m_props, DelayPropName);
+}
+
+void MessageInfo::setDelay(unsigned long long value)
+{
+    m_props.insert(DelayPropName, value);
+}
+
+QString MessageInfo::getDelayUnits() const
+{
+    return getPropertyAs<QString>(m_props, DelayUnitsPropName);
+}
+
+void MessageInfo::setDelayUnits(const QString& value)
+{
+    setStringProperty(m_props, DelayUnitsPropName, value);
+}
+
+unsigned long long MessageInfo::getRepeatDuration() const
+{
+    return getPropertyAs<unsigned long long>(m_props, RepeatPropName);
+}
+
+void MessageInfo::setRepeatDuration(unsigned long long value)
+{
+    m_props.insert(RepeatPropName, value);
+}
+
+QString MessageInfo::getRepeatDurationUnits() const
+{
+    return getPropertyAs<QString>(m_props, RepeatUnitsPropName);
+}
+
+void MessageInfo::setRepeatDurationUnits(const QString& value)
+{
+    setStringProperty(m_props, RepeatUnitsPropName, value);
+}
+
+unsigned long long MessageInfo::getRepeatCount() const
+{
+    return getPropertyAs<unsigned long long>(m_props, RepeatCountPropName);
+}
+
+void MessageInfo::setRepeatCount(unsigned long long value)
+{
+    m_props.insert(RepeatCountPropName, value);
+}
+
+QVariant MessageInfo::getExtraProperty(const QString& name) const
+{
+    if (name.startsWith(PropPrefix)) {
+        assert(!"Cannot retrieve built-in property directly, use proper functions");
         return QVariant();
     }
 
-    return iter->second;
+    auto iter = m_props.find(name);
+    if (iter == m_props.end()) {
+        return QVariant();
+    }
+
+    return iter.value();
 }
 
-bool MessageInfo::setExtraProperty(const std::string& property, QVariant&& value)
+bool MessageInfo::setExtraProperty(const QString& name, QVariant&& value)
 {
-    if (isReservedProperty(property)) {
+    if (name.startsWith(PropPrefix)) {
+        assert(!"Cannot set built-in property directly, use proper functions");
         return false;
     }
 
-    auto iter = m_map.find(property);
-    if (iter != m_map.end()) {
-        if (!value.isValid()) {
-            m_map.erase(iter);
-            return true;
-        }
-
-
-        iter->second = std::move(value);
-        return true;
-    }
-
-    m_map.insert(std::make_pair(property, value));
+    m_props.insert(name, std::move(value));
     return true;
 }
 
-
-MessageInfo::MessagePtr MessageInfo::getMessage(const std::string& property) const
+const QVariantMap& MessageInfo::getAllProperties() const
 {
-    auto iter = m_map.find(property);
-    if (iter == m_map.end()) {
-        return MessagePtr();
-    }
-
-    auto var = iter->second;
-    assert(var.isValid());
-    assert(var.canConvert<MessagePtr>());
-    return var.value<MessagePtr>();
+    return m_props;
 }
 
-void MessageInfo::setMessage(const std::string& property, MessagePtr msg)
+void MessageInfo::setAllProperties(const QVariantMap& props)
 {
-    auto iter = m_map.find(property);
-    if (iter != m_map.end()) {
-        if (!msg) {
-            m_map.erase(iter);
-            return;
-        }
+    m_props = props;
+}
 
-        iter->second = QVariant::fromValue(std::move(msg));
-        return;
-    }
-
-    if (!msg) {
-        return;
-    }
-
-    m_map.insert(std::make_pair(property, QVariant::fromValue(std::move(msg))));
+void MessageInfo::setAllProperties(QVariantMap&& props)
+{
+    m_props = std::move(props);
 }
 
 }  // namespace comms_champion

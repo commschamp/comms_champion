@@ -30,14 +30,15 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QPluginLoader>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/Plugin.h"
-#include "comms_champion/StaticSingleton.h"
+#include "Api.h"
+#include "Plugin.h"
+#include "StaticSingleton.h"
 
 namespace comms_champion
 {
 
 class PluginMgrImpl;
-class PluginMgr
+class CC_API PluginMgr
 {
 public:
 

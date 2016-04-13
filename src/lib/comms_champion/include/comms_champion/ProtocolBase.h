@@ -392,7 +392,7 @@ private:
     class AllMsgsCreateHelper
     {
     public:
-        AllMsgsCreateHelper(const std::string& protName, MessagesList& allMsgs)
+        AllMsgsCreateHelper(const QString& protName, MessagesList& allMsgs)
           : m_protName(protName),
             m_allMsgs(allMsgs)
         {
@@ -410,14 +410,14 @@ private:
         }
 
     private:
-        const std::string& m_protName;
+        const QString& m_protName;
         MessagesList& m_allMsgs;
     };
 
     class MsgCreateHelper
     {
     public:
-        MsgCreateHelper(const std::string& protName, const QString& id, unsigned idx, MessageInfoPtr& msgInfo)
+        MsgCreateHelper(const QString& protName, const QString& id, unsigned idx, MessageInfoPtr& msgInfo)
           : m_protName(protName),
             m_id(id),
             m_reqIdx(idx),
@@ -448,7 +448,7 @@ private:
         }
 
     private:
-        const std::string& m_protName;
+        const QString& m_protName;
         const QString& m_id;
         unsigned m_reqIdx;
         MessageInfoPtr& m_msgInfo;

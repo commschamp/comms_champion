@@ -99,24 +99,9 @@ QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
 {
     QString str;
     do {
-        auto delayVar = msgInfo.getExtraProperty(GlobalConstants::msgDelayPropertyName());
-        auto repeatDurVar = msgInfo.getExtraProperty(GlobalConstants::msgRepeatDurationPropertyName());
-        auto repeatCountVar = msgInfo.getExtraProperty(GlobalConstants::msgRepeatCountPropertyName());
-
-        if ((!delayVar.isValid()) ||
-            (!repeatDurVar.isValid()) ||
-            (!repeatCountVar.isValid())) {
-            assert(!"The message info doesn't contain expected properties");
-            break;
-        }
-
-        assert(delayVar.canConvert<long long unsigned>());
-        assert(repeatDurVar.canConvert<long long unsigned>());
-        assert(repeatCountVar.canConvert<long long unsigned>());
-
-        auto delay = delayVar.value<int>();
-        auto repeatDur = repeatDurVar.value<int>();
-        auto repeatCount = repeatCountVar.value<int>();
+        auto delay = msgInfo.getDelay();
+        auto repeatDur = msgInfo.getRepeatDuration();
+        auto repeatCount = msgInfo.getRepeatCount();
 
         str =
             QString("(%1:%2:%3)").

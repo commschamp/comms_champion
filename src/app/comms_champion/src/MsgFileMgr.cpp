@@ -31,8 +31,6 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantMap>
 CC_ENABLE_WARNINGS()
 
-#include "GlobalConstants.h"
-
 namespace comms_champion
 {
 
@@ -51,33 +49,9 @@ const QString& getDataKeyStr()
     return Str;
 }
 
-const QString& getDelayKeyStr()
+const QString& getPropsKeyStr()
 {
-    static const QString Str("delay_ms");
-    return Str;
-}
-
-const QString& getDelayUnitsKeyStr()
-{
-    static const QString Str("orig_delay_units");
-    return Str;
-}
-
-const QString& getRepeatDurationKeyStr()
-{
-    static const QString Str("repeat_duration_ms");
-    return Str;
-}
-
-const QString& getRepeatUnitsKeyStr()
-{
-    static const QString Str("orig_repeat_units");
-    return Str;
-}
-
-const QString& getRepeatCountKeyStr()
-{
-    static const QString Str("orig_repeat_count");
+    static const QString Str("props");
     return Str;
 }
 
@@ -202,55 +176,12 @@ QVariantList MsgFileMgr::convertMsgList(Type type, const MsgInfosList& msgs)
                     static_cast<unsigned>(dataByte), 2, 16, QChar('0')));
         }
 
-        auto delayVar = msgInfo->getExtraProperty(GlobalConstants::msgDelayPropertyName());
-        unsigned long long delay = 0;
-        if (delayVar.isValid() && delayVar.canConvert<decltype(delay)>()) {
-            delay = delayVar.value<decltype(delay)>();
-        }
-
-        auto delayUnitsVar =
-            msgInfo->getExtraProperty(GlobalConstants::msgDelayUnitsPropertyName());
-        int delayUnits = 0;
-        if (delayUnitsVar.isValid() && delayUnitsVar.canConvert<decltype(delayUnits)>()) {
-            delayUnits = delayUnitsVar.value<decltype(delayUnits)>();
-        }
-
-        auto repeatDurationVar =
-            msgInfo->getExtraProperty(GlobalConstants::msgRepeatDurationPropertyName());
-        unsigned long long repeatDuration = 0;
-        if (repeatDurationVar.isValid() && repeatDurationVar.canConvert<decltype(repeatDuration)>()) {
-            repeatDuration = repeatDurationVar.value<decltype(repeatDuration)>();
-        }
-
-        auto repeatUnitsVar =
-            msgInfo->getExtraProperty(GlobalConstants::msgRepeatUnitsPropertyName());
-        int repeatUnits = 0;
-        if (repeatUnitsVar.isValid() && repeatUnitsVar.canConvert<decltype(repeatUnits)>()) {
-            repeatUnits = repeatUnitsVar.value<decltype(repeatUnits)>();
-        }
-
-        auto repeatCountVar =
-            msgInfo->getExtraProperty(GlobalConstants::msgRepeatCountPropertyName());
-        int repeatCount = 0;
-        if (repeatCountVar.isValid() && repeatCountVar.canConvert<decltype(repeatCount)>()) {
-            repeatCount = repeatCountVar.value<decltype(repeatCount)>();
-        }
+        auto& props = msgInfo->getAllProperties();
 
         QVariantMap msgInfoMap;
-        msgInfoMap.insert(
-            getIdKeyStr(), QVariant::fromValue(appMsg->idAsString()));
-        msgInfoMap.insert(
-            getDataKeyStr(), QVariant::fromValue(msgDataStr));
-        msgInfoMap.insert(
-            getDelayKeyStr(), QVariant::fromValue(delay));
-        msgInfoMap.insert(
-            getDelayUnitsKeyStr(), QVariant::fromValue(delayUnits));
-        msgInfoMap.insert(
-            getRepeatDurationKeyStr(), QVariant::fromValue(repeatDuration));
-        msgInfoMap.insert(
-            getRepeatUnitsKeyStr(), QVariant::fromValue(repeatUnits));
-        msgInfoMap.insert(
-            getRepeatCountKeyStr(), QVariant::fromValue(repeatCount));
+        msgInfoMap.insert(getIdKeyStr(), QVariant::fromValue(appMsg->idAsString()));
+        msgInfoMap.insert(getDataKeyStr(), QVariant::fromValue(msgDataStr));
+        msgInfoMap.insert(getPropsKeyStr(), QVariant::fromValue(props));
 
         convertedList.append(QVariant::fromValue(msgInfoMap));
     }
@@ -345,50 +276,10 @@ MsgInfosList MsgFileMgr::convertMsgList(
 
         protocol.updateMessageInfo(*msgInfo);
 
-        unsigned long long delay = 0;
-        auto delayVar = msgMap.value(getDelayKeyStr());
-        if (delayVar.isValid() && delayVar.canConvert<decltype(delay)>()) {
-            delay = delayVar.value<decltype(delay)>();
+        auto propsVar = msgMap.value(getPropsKeyStr());
+        if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
+            msgInfo->setAllProperties(propsVar.value<QVariantMap>());
         }
-        msgInfo->setExtraProperty(
-            GlobalConstants::msgDelayPropertyName(),
-            QVariant::fromValue(delay));
-
-        int delayUnits = 0;
-        auto delayUnitsVar = msgMap.value(getDelayUnitsKeyStr());
-        if (delayUnitsVar.isValid() && delayUnitsVar.canConvert<decltype(delayUnits)>()) {
-            delayUnits = delayUnitsVar.value<decltype(delayUnits)>();
-        }
-        msgInfo->setExtraProperty(
-            GlobalConstants::msgDelayUnitsPropertyName(),
-            QVariant::fromValue(delayUnits));
-
-        unsigned long long repeatDuration = 0;
-        auto repeatDurationVar = msgMap.value(getRepeatDurationKeyStr());
-        if (repeatDurationVar.isValid() && repeatDurationVar.canConvert<decltype(repeatDuration)>()) {
-            repeatDuration = repeatDurationVar.value<decltype(repeatDuration)>();
-        }
-        msgInfo->setExtraProperty(
-            GlobalConstants::msgRepeatDurationPropertyName(),
-            QVariant::fromValue(repeatDuration));
-
-        int repeatUnits = 0;
-        auto repeatUnitsVar = msgMap.value(getRepeatUnitsKeyStr());
-        if (repeatUnitsVar.isValid() && repeatUnitsVar.canConvert<decltype(repeatUnits)>()) {
-            repeatUnits = repeatUnitsVar.value<decltype(repeatUnits)>();
-        }
-        msgInfo->setExtraProperty(
-            GlobalConstants::msgRepeatUnitsPropertyName(),
-            QVariant::fromValue(repeatUnits));
-
-        int repeatCount = 0;
-        auto repeatCountVar = msgMap.value(getRepeatCountKeyStr());
-        if (repeatCountVar.isValid() && repeatCountVar.canConvert<decltype(repeatCount)>()) {
-            repeatCount = repeatCountVar.value<decltype(repeatCount)>();
-        }
-        msgInfo->setExtraProperty(
-            GlobalConstants::msgRepeatCountPropertyName(),
-            QVariant::fromValue(repeatCount));
 
         convertedList.push_back(std::move(msgInfo));
     }

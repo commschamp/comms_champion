@@ -628,29 +628,12 @@ void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
 
 void GuiAppMgr::sendPendingAndWait()
 {
-    auto retrieveIntPropertyFunc =
-        [](const MessageInfo& mInfo, const char* property) -> int
-        {
-            auto delayVar =
-                mInfo.getExtraProperty(property);
-            assert(delayVar.isValid());
-            assert(delayVar.canConvert<int>());
-            return delayVar.value<int>();
-        };
-
-    auto retrieveDelayFunc =
-        [&](const MessageInfo& mInfo) -> int
-        {
-            return retrieveIntPropertyFunc(
-                mInfo, GlobalConstants::msgDelayPropertyName());
-        };
-
     auto iter = m_msgsToSend.begin();
     for (; iter != m_msgsToSend.end(); ++iter) {
         auto& msgInfo = *iter;
         assert(msgInfo);
-        auto delay = retrieveDelayFunc(*msgInfo);
-        if (delay != 0) {
+        auto delay = msgInfo->getDelay();
+        if (delay != 0U) {
             break;
         }
     }
@@ -662,29 +645,22 @@ void GuiAppMgr::sendPendingAndWait()
     MsgMgr::instanceRef().sendMsgs(nextMsgsToSend);
 
     for (auto& msgToSend : nextMsgsToSend) {
-        auto repeatMs =
-            retrieveIntPropertyFunc(
-                *msgToSend,
-                GlobalConstants::msgRepeatDurationPropertyName());
-
-        auto repeatCount =
-            retrieveIntPropertyFunc(
-                *msgToSend,
-                GlobalConstants::msgRepeatCountPropertyName());
+        auto repeatMs = msgToSend->getRepeatDuration();
+        auto repeatCount = msgToSend->getRepeatCount();
 
         bool reinsert =
-            (0 < repeatMs) &&
-            ((repeatCount == 0) || (1 < repeatCount));
+            (0U < repeatMs) &&
+            ((repeatCount == 0U) || (1U < repeatCount));
 
         if (reinsert) {
             auto newDelay = repeatMs;
             auto reinsertIter =
                 std::find_if(
                     m_msgsToSend.begin(), m_msgsToSend.end(),
-                    [&newDelay, &retrieveDelayFunc](MessageInfoPtr mInfo) mutable -> bool
+                    [&newDelay](MessageInfoPtr mInfo) mutable -> bool
                     {
                         assert(mInfo);
-                        auto mDelay = retrieveDelayFunc(*mInfo);
+                        auto mDelay = mInfo->getDelay();
                         if (newDelay < mDelay) {
                             return true;
                         }
@@ -695,20 +671,14 @@ void GuiAppMgr::sendPendingAndWait()
             if (reinsertIter != m_msgsToSend.end()) {
                 auto& msgToUpdate = *reinsertIter;
                 assert(msgToUpdate);
-                auto mDelay = retrieveDelayFunc(*msgToUpdate);
-                msgToUpdate->setExtraProperty(
-                    GlobalConstants::msgDelayPropertyName(),
-                    QVariant::fromValue(mDelay - newDelay));
+                auto mDelay = msgToUpdate->getDelay();
+                msgToUpdate->setDelay(mDelay - newDelay);
             }
 
-            msgToSend->setExtraProperty(
-                GlobalConstants::msgDelayPropertyName(),
-                QVariant::fromValue(newDelay));
+            msgToSend->setDelay(newDelay);
 
             if (repeatCount != 0) {
-                msgToSend->setExtraProperty(
-                    GlobalConstants::msgRepeatCountPropertyName(),
-                    QVariant::fromValue(repeatCount - 1));
+                msgToSend->setRepeatCount(repeatCount - 1);
             }
 
             m_msgsToSend.insert(reinsertIter, std::move(msgToSend));
@@ -718,10 +688,9 @@ void GuiAppMgr::sendPendingAndWait()
     if (!m_msgsToSend.empty()) {
         auto& msgInfo = m_msgsToSend.front();
         assert(msgInfo);
-        auto delay = retrieveDelayFunc(*msgInfo);
+        auto delay = msgInfo->getDelay();
         assert(0 < delay);
-        msgInfo->setExtraProperty(
-            GlobalConstants::msgDelayPropertyName(), QVariant::fromValue(0));
+        msgInfo->setDelay(0);
         QTimer::singleShot(delay, this, SLOT(sendPendingAndWait()));
     }
     else {

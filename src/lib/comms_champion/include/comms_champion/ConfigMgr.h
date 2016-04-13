@@ -28,10 +28,12 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantMap>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
+
 namespace comms_champion
 {
 
-class ConfigMgr
+class CC_API ConfigMgr
 {
 public:
 

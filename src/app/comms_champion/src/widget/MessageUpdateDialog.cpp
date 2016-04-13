@@ -22,6 +22,8 @@
 #include <limits>
 #include <type_traits>
 #include <algorithm>
+#include <map>
+#include <utility>
 
 #include "comms/CompileControl.h"
 
@@ -31,7 +33,6 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "DefaultMessageDisplayWidget.h"
-#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -54,6 +55,60 @@ enum class Duration
     Days,
     NumOfDurations
 };
+
+const QString& durationToString(Duration value)
+{
+    static const QString Map[] = {
+        "millisec",
+        "sec",
+        "min",
+        "hours",
+        "days"
+    };
+
+    static const std::size_t MapSize = std::extent<decltype(Map)>::value;
+
+    static_assert(MapSize == static_cast<unsigned>(Duration::NumOfDurations),
+        "Incorrect map");
+
+    auto castedValue = static_cast<unsigned>(value);
+    if (MapSize <= castedValue) {
+        castedValue = 0;
+    }
+
+    return Map[castedValue];
+}
+
+Duration stringToDuration(const QString& value)
+{
+    static const std::map<QString, Duration> Map = {
+        std::make_pair("milliseconds", Duration::Milliseconds),
+        std::make_pair("millisecond", Duration::Milliseconds),
+        std::make_pair("millisec", Duration::Milliseconds),
+        std::make_pair("ms", Duration::Milliseconds),
+        std::make_pair("seconds", Duration::Seconds),
+        std::make_pair("second", Duration::Seconds),
+        std::make_pair("sec", Duration::Seconds),
+        std::make_pair("s", Duration::Seconds),
+        std::make_pair("minutes", Duration::Minutes),
+        std::make_pair("minute", Duration::Minutes),
+        std::make_pair("min", Duration::Minutes),
+        std::make_pair("m", Duration::Minutes),
+        std::make_pair("hours", Duration::Hours),
+        std::make_pair("hour", Duration::Hours),
+        std::make_pair("h", Duration::Hours),
+        std::make_pair("days", Duration::Days),
+        std::make_pair("day", Duration::Days),
+        std::make_pair("d", Duration::Days)
+    };
+
+    auto iter = Map.find(value);
+    if (iter == Map.end()) {
+        return Duration::Milliseconds;
+    }
+
+    return iter->second;
+}
 
 void fillDurationComboBox(QComboBox& box)
 {
@@ -163,44 +218,28 @@ MessageUpdateDialog::MessageUpdateDialog(
         m_msgDisplayWidget->displayMessage(
             getMsgFromItem(m_ui.m_msgListWidget->currentItem()));
 
-        auto delayVar = m_msgInfo->getExtraProperty(GlobalConstants::msgDelayPropertyName());
-        auto delayUnitsVar = m_msgInfo->getExtraProperty(GlobalConstants::msgDelayUnitsPropertyName());
-        assert(delayVar.isValid());
-        assert(delayVar.canConvert<long long unsigned>());
-        assert(delayUnitsVar.isValid());
-        assert(delayUnitsVar.canConvert<int>());
-        auto delayUnits = delayUnitsVar.value<int>();
-        auto delay =
-            msToDurationUnits(
-                delayVar.value<long long unsigned>(),
-                static_cast<Duration>(delayUnits));
+        auto delayVal = m_msgInfo->getDelay();
+        auto delayUnits = stringToDuration(m_msgInfo->getDelayUnits());
+        auto delay = msToDurationUnits(delayVal, delayUnits);
         if (delay != 0) {
             m_prevDelay = delay;
-            m_ui.m_delayUnitsComboBox->setCurrentIndex(delayUnits);
+            m_ui.m_delayUnitsComboBox->setCurrentIndex(static_cast<int>(delayUnits));
             m_ui.m_delayCheckBox->setCheckState(Qt::Checked);
         }
 
-        auto repeatVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatDurationPropertyName());
-        auto repeatUnitsVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatUnitsPropertyName());
-        assert(repeatVar.isValid());
-        assert(repeatVar.canConvert<long long unsigned>());
-        assert(repeatUnitsVar.isValid());
-        assert(repeatUnitsVar.canConvert<int>());
-        auto repeatUnits = repeatUnitsVar.value<int>();
+        auto repeatVal = m_msgInfo->getRepeatDuration();
+        auto repeatUnits =  stringToDuration(m_msgInfo->getRepeatDurationUnits());
         auto repeatDuration =
             msToDurationUnits(
-                repeatVar.value<long long unsigned>(),
-                static_cast<Duration>(repeatUnits));
+                repeatVal,
+                repeatUnits);
         if (repeatDuration != 0) {
             m_prevRepeatDuration = repeatDuration;
-            m_ui.m_repeatUnitsComboBox->setCurrentIndex(repeatUnits);
+            m_ui.m_repeatUnitsComboBox->setCurrentIndex(static_cast<int>(repeatUnits));
             m_ui.m_repeatCheckBox->setCheckState(Qt::Checked);
         }
 
-        auto repeatCountVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatCountPropertyName());
-        assert(repeatCountVar.isValid());
-        assert(repeatCountVar.canConvert<int>());
-        auto repeatCount = repeatCountVar.value<int>();
+        auto repeatCount = static_cast<int>(m_msgInfo->getRepeatCount());
         if (repeatCount != 0) {
             m_prevRepeatCount = repeatCount;
         }
@@ -439,31 +478,17 @@ void MessageUpdateDialog::accept()
 
     assert(m_msgInfo);
 
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgDelayPropertyName(),
-        QVariant::fromValue(
-            durationToMs(
-                m_ui.m_delaySpinBox->value(),
-                static_cast<Duration>(m_ui.m_delayUnitsComboBox->currentIndex()))));
+    auto delayUnits =
+        static_cast<Duration>(m_ui.m_delayUnitsComboBox->currentIndex());
+    m_msgInfo->setDelay(durationToMs(m_ui.m_delaySpinBox->value(), delayUnits));
+    m_msgInfo->setDelayUnits(durationToString(delayUnits));
 
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgDelayUnitsPropertyName(),
-        QVariant::fromValue(m_ui.m_delayUnitsComboBox->currentIndex()));
-
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgRepeatDurationPropertyName(),
-        QVariant::fromValue(
-            durationToMs(
-                m_ui.m_repeatSpinBox->value(),
-                static_cast<Duration>(m_ui.m_repeatUnitsComboBox->currentIndex()))));
-
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgRepeatUnitsPropertyName(),
-        QVariant::fromValue(m_ui.m_repeatUnitsComboBox->currentIndex()));
-
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgRepeatCountPropertyName(),
-        QVariant::fromValue(m_ui.m_repeatCountSpinBox->value()));
+    auto repeatUnits =
+        static_cast<Duration>(m_ui.m_repeatUnitsComboBox->currentIndex());
+    m_msgInfo->setRepeatDuration(
+        durationToMs(m_ui.m_repeatSpinBox->value(), repeatUnits));
+    m_msgInfo->setRepeatDurationUnits(durationToString(repeatUnits));
+    m_msgInfo->setRepeatCount(m_ui.m_repeatCountSpinBox->value());
     Base::accept();
 }
 

@@ -22,7 +22,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <list>
-#include <string>
 
 #include "comms/CompileControl.h"
 
@@ -54,7 +53,7 @@ public:
 
     virtual ~Protocol() {}
 
-    const std::string& name() const
+    const QString& name() const
     {
         return nameImpl();
     }
@@ -91,7 +90,7 @@ public:
     }
 
 protected:
-    virtual const std::string& nameImpl() const = 0;
+    virtual const QString& nameImpl() const = 0;
 
     virtual MessagesList readImpl(const DataInfo& dataInfo) = 0;
 

@@ -32,6 +32,7 @@ CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Message.h"
 #include "comms_champion/PluginMgr.h"
+#include "comms_champion/MsgSendMgr.h"
 
 #include "MsgMgr.h"
 
@@ -190,7 +191,6 @@ private:
 
 private slots:
     void msgAdded(MessageInfoPtr msgInfo);
-    void sendPendingAndWait();
     void errorReported(const QString& msg);
     void pendingDisplayTimeout();
 
@@ -222,11 +222,12 @@ private /*data*/:
 
     SelectionType m_selType = SelectionType::None;
     MessageInfoPtr m_clickedMsg;
-    MsgInfosList m_msgsToSend;
 
     QTimer m_pendingDisplayTimer;
     MessageInfoPtr m_pendingDisplayMsg;
     bool m_pendingDisplayWaitInProgress = false;
+
+    MsgSendMgr m_sendMgr;
 };
 
 }  // namespace comms_champion

@@ -193,7 +193,7 @@ void GuiAppMgr::sendStartAllClicked()
 void GuiAppMgr::sendStopClicked()
 {
     m_sendState = SendState::Idle;
-    m_msgsToSend.clear();
+    m_sendMgr.stop();
     emitSendStateUpdate();
 }
 
@@ -434,13 +434,7 @@ void GuiAppMgr::deleteMessages(MsgInfosList&& msgs)
 
 void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
 {
-    assert(m_msgsToSend.empty());
-    for (auto& msgInfo : msgs) {
-        m_msgsToSend.push_back(makeMessageInfoCopy(*msgInfo));
-    }
-
-    assert(!m_msgsToSend.empty());
-    sendPendingAndWait();
+    m_sendMgr.start(MsgMgr::instanceRef().getProtocol(), std::move(msgs));
 }
 
 GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
@@ -561,6 +555,18 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
     connect(
         &m_pendingDisplayTimer, SIGNAL(timeout()),
         this, SLOT(pendingDisplayTimeout()));
+
+    m_sendMgr.setSendMsgsCallbackFunc(
+        [this](MsgInfosList&& msgsToSend)
+        {
+            MsgMgr::instanceRef().sendMsgs(msgsToSend);
+        });
+
+    m_sendMgr.setSendCompeteCallbackFunc(
+        [this]()
+        {
+            sendStopClicked();
+        });
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -624,78 +630,6 @@ void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
     static const int DisplayTimeout = 250;
     m_pendingDisplayWaitInProgress = true;
     m_pendingDisplayTimer.start(DisplayTimeout);
-}
-
-void GuiAppMgr::sendPendingAndWait()
-{
-    auto iter = m_msgsToSend.begin();
-    for (; iter != m_msgsToSend.end(); ++iter) {
-        auto& msgInfo = *iter;
-        assert(msgInfo);
-        auto delay = msgInfo->getDelay();
-        if (delay != 0U) {
-            break;
-        }
-    }
-
-    MsgInfosList nextMsgsToSend;
-    nextMsgsToSend.splice(
-        nextMsgsToSend.end(), m_msgsToSend, m_msgsToSend.begin(), iter);
-
-    MsgMgr::instanceRef().sendMsgs(nextMsgsToSend);
-
-    for (auto& msgToSend : nextMsgsToSend) {
-        auto repeatMs = msgToSend->getRepeatDuration();
-        auto repeatCount = msgToSend->getRepeatCount();
-
-        bool reinsert =
-            (0U < repeatMs) &&
-            ((repeatCount == 0U) || (1U < repeatCount));
-
-        if (reinsert) {
-            auto newDelay = repeatMs;
-            auto reinsertIter =
-                std::find_if(
-                    m_msgsToSend.begin(), m_msgsToSend.end(),
-                    [&newDelay](MessageInfoPtr mInfo) mutable -> bool
-                    {
-                        assert(mInfo);
-                        auto mDelay = mInfo->getDelay();
-                        if (newDelay < mDelay) {
-                            return true;
-                        }
-                        newDelay -= mDelay;
-                        return false;
-                    });
-
-            if (reinsertIter != m_msgsToSend.end()) {
-                auto& msgToUpdate = *reinsertIter;
-                assert(msgToUpdate);
-                auto mDelay = msgToUpdate->getDelay();
-                msgToUpdate->setDelay(mDelay - newDelay);
-            }
-
-            msgToSend->setDelay(newDelay);
-
-            if (repeatCount != 0) {
-                msgToSend->setRepeatCount(repeatCount - 1);
-            }
-
-            m_msgsToSend.insert(reinsertIter, std::move(msgToSend));
-        }
-    }
-
-    if (!m_msgsToSend.empty()) {
-        auto& msgInfo = m_msgsToSend.front();
-        assert(msgInfo);
-        auto delay = msgInfo->getDelay();
-        assert(0 < delay);
-        msgInfo->setDelay(0);
-        QTimer::singleShot(delay, this, SLOT(sendPendingAndWait()));
-    }
-    else {
-        sendStopClicked();
-    }
 }
 
 void GuiAppMgr::errorReported(const QString& msg)

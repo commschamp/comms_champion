@@ -64,12 +64,7 @@ void setStringProperty(QVariantMap& map, const QString& name, const QString& val
 }  // namespace
 
 MessageInfo::MessageInfo() = default;
-MessageInfo::MessageInfo(const MessageInfo&) = default;
-MessageInfo::MessageInfo(MessageInfo&&) = default;
 MessageInfo::~MessageInfo() = default;
-MessageInfo& MessageInfo::operator=(const MessageInfo&) = default;
-MessageInfo& MessageInfo::operator=(MessageInfo&&) = default;
-
 
 MessageInfo::MessagePtr MessageInfo::getAppMessage() const
 {

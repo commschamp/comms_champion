@@ -24,6 +24,8 @@ function (lib_comms_champion)
         PluginMgr.cpp
         PluginMgrImpl.cpp
         MsgFileMgr.cpp
+        MsgSendMgr.cpp
+        MsgSendMgrImpl.cpp
         field_wrapper/FieldWrapper.cpp
         field_wrapper/IntValueWrapper.cpp
         field_wrapper/BitmaskValueWrapper.cpp
@@ -38,7 +40,12 @@ function (lib_comms_champion)
         field_wrapper/UnknownValueWrapper.cpp
     )
     
-    add_library(${name} SHARED ${src})
+    qt5_wrap_cpp(
+        moc
+        MsgSendMgrImpl.h
+    )
+    
+    add_library(${name} SHARED ${src} ${moc})
     qt5_use_modules(${name} Widgets Core)
     target_link_libraries(${name} ${CC_PLATFORM_SPECIFIC})
     

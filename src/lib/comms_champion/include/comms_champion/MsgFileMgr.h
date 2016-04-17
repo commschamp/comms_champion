@@ -28,13 +28,14 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantList>
 CC_ENABLE_WARNINGS()
 
+#include "Api.h"
 #include "MessageInfo.h"
 #include "Protocol.h"
 
 namespace comms_champion
 {
 
-class MsgFileMgr
+class CC_API MsgFileMgr
 {
 public:
 

@@ -45,11 +45,12 @@ public:
     using  MessagePtr = std::shared_ptr<Message>;
 
     MessageInfo();
-    MessageInfo(const MessageInfo&);
-    MessageInfo(MessageInfo&&);
     ~MessageInfo();
-    MessageInfo& operator=(const MessageInfo&);
-    MessageInfo& operator=(MessageInfo&&);
+
+    MessageInfo(const MessageInfo&) = delete;
+    MessageInfo(MessageInfo&&) = delete;
+    MessageInfo& operator=(const MessageInfo&) = delete;
+    MessageInfo& operator=(MessageInfo&&) = delete;
 
     MessagePtr getAppMessage() const;
     void setAppMessage(MessagePtr msg);
@@ -101,13 +102,6 @@ CC_API MessageInfoPtr makeMessageInfo()
 {
     return MessageInfoPtr(new MessageInfo());
 }
-
-inline
-CC_API MessageInfoPtr makeMessageInfoCopy(const MessageInfo& msgInfo)
-{
-    return MessageInfoPtr(new MessageInfo(msgInfo));
-}
-
 
 }  // namespace comms_champion
 

@@ -69,11 +69,8 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
         valid = appMsgPtr->isValid();
     }
 
-    auto typeVar =
-        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
-    if (typeVar.isValid()) {
-        assert(typeVar.canConvert<int>());
-        auto type = static_cast<MsgType>(typeVar.value<int>());
+    auto type = msgInfo->getMsgType();
+    if (type != MsgType::Invalid) {
         item->setForeground(getItemColourImpl(type, valid));
     }
     else {
@@ -115,11 +112,8 @@ void MsgListWidget::updateCurrentMessage()
         valid = appMsgPtr->isValid();
     }
 
-    auto typeVar =
-        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
-    if (typeVar.isValid()) {
-        assert(typeVar.canConvert<int>());
-        auto type = static_cast<MsgType>(typeVar.value<int>());
+    auto type = msgInfo->getMsgType();
+    if (type != MsgType::Invalid) {
         item->setForeground(getItemColourImpl(type, valid));
     }
     else {

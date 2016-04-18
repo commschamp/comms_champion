@@ -54,6 +54,5 @@ CC_API DataInfoPtr makeDataInfo();
 }  // namespace comms_champion
 
 Q_DECLARE_METATYPE(comms_champion::DataInfoPtr);
-Q_DECLARE_METATYPE(comms_champion::DataInfo::Timestamp);
 
 

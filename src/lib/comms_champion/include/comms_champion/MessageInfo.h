@@ -44,6 +44,12 @@ public:
 
     using  MessagePtr = std::shared_ptr<Message>;
 
+    enum class MsgType {
+        Invalid,
+        Received,
+        Sent
+    };
+
     MessageInfo();
     ~MessageInfo();
 
@@ -79,6 +85,15 @@ public:
     unsigned long long getRepeatCount() const;
     void setRepeatCount(unsigned long long value);
 
+    MsgType getMsgType() const;
+    void setMsgType(MsgType value);
+
+    unsigned long long getTimestamp() const;
+    void setTimestamp(unsigned long long value);
+
+    unsigned long long getMsgNum() const;
+    void setMsgNum(unsigned long long value);
+
     QVariant getExtraProperty(const QString& name) const;
     bool setExtraProperty(const QString& name, QVariant&& value);
 
@@ -107,5 +122,6 @@ CC_API MessageInfoPtr makeMessageInfo()
 
 Q_DECLARE_METATYPE(comms_champion::MessageInfo::MessagePtr);
 Q_DECLARE_METATYPE(comms_champion::MessageInfoPtr);
+Q_DECLARE_METATYPE(comms_champion::MessageInfo::MsgType);
 
 

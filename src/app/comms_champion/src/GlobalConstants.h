@@ -31,10 +31,7 @@ class GlobalConstants
 {
 public:
     static const char* indexPropertyName();
-    static const char* msgNumberPropertyName();
     static const char* msgObjPropertyName();
-    static const char* timestampPropertyName();
-    static const char* msgTypePropertyName();
 
 private:
     GlobalConstants() = default;

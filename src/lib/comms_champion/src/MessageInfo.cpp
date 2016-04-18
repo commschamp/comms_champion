@@ -36,13 +36,16 @@ const QString DelayUnitsPropName = PropPrefix + "delay_units";
 const QString RepeatPropName = PropPrefix + "repeat";
 const QString RepeatUnitsPropName = PropPrefix + "repeat_units";
 const QString RepeatCountPropName = PropPrefix + "repeat_count";
+const QString TypePropName = PropPrefix + "type";
+const QString TimestampPropName = PropPrefix + "timestamp";
+const QString NumPropName = PropPrefix + "num";
 
 template <typename T>
-T getPropertyAs(const QVariantMap& map, const QString& name)
+T getPropertyAs(const QVariantMap& map, const QString& name, const T& defaultVal = T())
 {
     auto iter = map.find(name);
     if (iter == map.end()) {
-        return T();
+        return defaultVal;
     }
 
     auto var = iter.value();
@@ -154,6 +157,37 @@ unsigned long long MessageInfo::getRepeatCount() const
 void MessageInfo::setRepeatCount(unsigned long long value)
 {
     m_props.insert(RepeatCountPropName, value);
+}
+
+MessageInfo::MsgType MessageInfo::getMsgType() const
+{
+    return getPropertyAs<MsgType>(m_props, TypePropName, MsgType::Invalid);
+}
+
+void MessageInfo::setMsgType(MsgType value)
+{
+    assert((value == MsgType::Received) || (value == MsgType::Sent));
+    m_props.insert(TypePropName, QVariant::fromValue(value));
+}
+
+unsigned long long MessageInfo::getTimestamp() const
+{
+    return getPropertyAs<unsigned long long>(m_props, TimestampPropName);
+}
+
+void MessageInfo::setTimestamp(unsigned long long value)
+{
+    m_props.insert(TimestampPropName, value);
+}
+
+unsigned long long MessageInfo::getMsgNum() const
+{
+    return getPropertyAs<unsigned long long>(m_props, NumPropName);
+}
+
+void MessageInfo::setMsgNum(unsigned long long value)
+{
+    m_props.insert(NumPropName, value);
 }
 
 QVariant MessageInfo::getExtraProperty(const QString& name) const

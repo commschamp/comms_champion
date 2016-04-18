@@ -29,27 +29,9 @@ const char* GlobalConstants::indexPropertyName()
     return str;
 }
 
-const char* GlobalConstants::msgNumberPropertyName()
-{
-    static const char* str = "msg_num";
-    return str;
-}
-
 const char* GlobalConstants::msgObjPropertyName()
 {
     static const char* str = "msg_obj";
-    return str;
-}
-
-const char* GlobalConstants::timestampPropertyName()
-{
-    static const char* str = "timestamp";
-    return str;
-}
-
-const char* GlobalConstants::msgTypePropertyName()
-{
-    static const char* str = "msg_type";
     return str;
 }
 

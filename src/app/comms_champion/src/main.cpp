@@ -105,6 +105,13 @@ int main(int argc, char *argv[])
 
     guiAppMgr.start();
 
+    QObject::connect(
+        &app, &QCoreApplication::aboutToQuit,
+        []()
+        {
+            cc::MsgMgr::instanceRef().deleteAllMsgs();
+        });
+
     auto retval = app.exec();
     return retval;
 }

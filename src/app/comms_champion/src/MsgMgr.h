@@ -35,23 +35,14 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-class MsgMgr : public QObject
+class MsgMgr
 {
-    Q_OBJECT
-
-    typedef QObject Base;
 public:
-    typedef unsigned long long MsgNumberType;
-
     typedef std::vector<MessageInfoPtr> MsgsList;
 
     typedef DataInfo::Timestamp Timestamp;
 
-    enum class MsgType {
-        Received,
-        Sent
-    };
-
+    typedef MessageInfo::MsgType MsgType;
 
     static MsgMgr* instance();
     static MsgMgr& instanceRef();
@@ -68,27 +59,28 @@ public:
     void deleteMsg(MessageInfoPtr msgInfo);
     void deleteAllMsgs();
 
-    void sendMsgs(const MsgInfosList& msgs);
+    void sendMsgs(MsgInfosList&& msgs);
 
     const MsgsList& getAllMsgs() const;
 
-public slots:
     void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
 
-signals:
-    void sigMsgAdded(MessageInfoPtr msgInfo);
-    void sigErrorReported(const QString& msg);
+    typedef std::function<void (MessageInfoPtr msgInfo)> MsgAddedCallbackFunc;
+    typedef std::function<void (const QString& error)> ErrorReportCallbackFunc;
 
-private slots:
+    void setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func);
+    void setErrorReportCallbackFunc(ErrorReportCallbackFunc&& func);
+
     void socketDataReceived(DataInfoPtr dataInfoPtr);
-    void aboutToQuit();
 
 private:
-    typedef std::list<SocketPtr> SocketsList;
+    typedef unsigned long long MsgNumberType;
 
-    MsgMgr(QObject* parentObj = nullptr);
+    MsgMgr();
     void updateInternalId(MessageInfo& msgInfo);
+    void reportMsgAdded(MessageInfoPtr msgInfo);
+    void reportError(const QString& error);
 
     MsgsList m_allMsgs;
     bool m_recvEnabled = false;
@@ -97,6 +89,9 @@ private:
     ProtocolPtr m_protocol;
     MsgNumberType m_nextMsgNum = 1;
     bool m_running = false;
+
+    MsgAddedCallbackFunc m_msgAddedCallback;
+    ErrorReportCallbackFunc m_errorReportCallback;
 };
 
 }  // namespace comms_champion

@@ -56,7 +56,6 @@ function (bin_comms_champion)
     qt5_wrap_cpp(
         moc
         GuiAppMgr.h
-        MsgMgr.h
         widget/MessageDisplayWidget.h
         widget/MessageWidget.h
         widget/DefaultMessageWidget.h

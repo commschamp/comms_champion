@@ -43,15 +43,6 @@ namespace
 
 const QString AppDataStorageFileName("startup_config.json");
 
-GuiAppMgr::MsgType getMsgType(const MessageInfo& msgInfo)
-{
-    auto msgTypeVar =
-        msgInfo.getExtraProperty(GlobalConstants::msgTypePropertyName());
-    assert(msgTypeVar.isValid());
-    assert(msgTypeVar.canConvert<int>());
-    return static_cast<GuiAppMgr::MsgType>(msgTypeVar.value<int>());
-}
-
 QString getAddDataStoragePath(bool createIfMissing)
 {
     auto dirName = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
@@ -545,13 +536,6 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
 {
     m_pendingDisplayTimer.setSingleShot(true);
 
-    auto msgMgr = MsgMgr::instance();
-    connect(
-        msgMgr, SIGNAL(sigMsgAdded(MessageInfoPtr)),
-        this, SLOT(msgAdded(MessageInfoPtr)));
-    connect(
-        msgMgr, SIGNAL(sigErrorReported(const QString&)),
-        this, SLOT(errorReported(const QString&)));
     connect(
         &m_pendingDisplayTimer, SIGNAL(timeout()),
         this, SLOT(pendingDisplayTimeout()));
@@ -559,13 +543,26 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
     m_sendMgr.setSendMsgsCallbackFunc(
         [this](MsgInfosList&& msgsToSend)
         {
-            MsgMgr::instanceRef().sendMsgs(msgsToSend);
+            MsgMgr::instanceRef().sendMsgs(std::move(msgsToSend));
         });
 
     m_sendMgr.setSendCompeteCallbackFunc(
         [this]()
         {
             sendStopClicked();
+        });
+
+    auto& msgMgr = MsgMgr::instanceRef();
+    msgMgr.setMsgAddedCallbackFunc(
+        [this](MessageInfoPtr info)
+        {
+            msgAdded(std::move(info));
+        });
+
+    msgMgr.setErrorReportCallbackFunc(
+        [this](const QString& error)
+        {
+            errorReported(error);
         });
 }
 
@@ -582,7 +579,7 @@ void GuiAppMgr::emitSendStateUpdate()
 void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
 {
     assert(msgInfo);
-    auto type = getMsgType(*msgInfo);
+    auto type = msgInfo->getMsgType();
     assert((type == MsgType::Received) || (type == MsgType::Sent));
 
 #ifndef NDEBUG
@@ -692,7 +689,8 @@ void GuiAppMgr::refreshRecvList()
 
     auto& allMsgs = MsgMgr::instanceRef().getAllMsgs();
     for (auto& msgInfo : allMsgs) {
-        auto type = getMsgType(*msgInfo);
+        assert(msgInfo);
+        auto type = msgInfo->getMsgType();
 
         if (canAddToRecvList(*msgInfo, type)) {
             addMsgToRecvList(msgInfo);

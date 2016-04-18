@@ -27,10 +27,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
-#include <QtCore/QCoreApplication>
 CC_ENABLE_WARNINGS()
-
-#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -38,20 +35,12 @@ namespace comms_champion
 namespace
 {
 
-void updateMsgType(MessageInfo& msgInfo, MsgMgr::MsgType type)
+void updateMsgTimestamp(MessageInfo& msgInfo, const DataInfo::Timestamp& timestamp)
 {
-    assert((type == MsgMgr::MsgType::Received) || (type == MsgMgr::MsgType::Sent));
-    msgInfo.setExtraProperty(
-        GlobalConstants::msgTypePropertyName(),
-        QVariant::fromValue(static_cast<int>(type)));
-
-}
-
-void updateMsgTimestamp(MessageInfo& msgInfo, DataInfo::Timestamp timestamp)
-{
-    msgInfo.setExtraProperty(
-        GlobalConstants::timestampPropertyName(),
-        QVariant::fromValue(timestamp));
+    auto sinceEpoch = timestamp.time_since_epoch();
+    auto milliseconds =
+        std::chrono::duration_cast<std::chrono::milliseconds>(sinceEpoch);
+    msgInfo.setTimestamp(milliseconds.count());
 }
 
 }  // namespace
@@ -123,25 +112,15 @@ void MsgMgr::deleteMsg(MessageInfoPtr msgInfo)
     assert(!m_allMsgs.empty());
     assert(msgInfo);
 
-    auto msgNumFromMsgInfoFunc =
-        [](const MessageInfo& info) -> MsgNumberType
-        {
-            auto msgNumVar = info.getExtraProperty(
-                GlobalConstants::msgNumberPropertyName());
-            assert(msgNumVar.isValid());
-            assert(msgNumVar.canConvert<MsgNumberType>());
-            return msgNumVar.value<MsgNumberType>();
-        };
-
-    auto msgNum = msgNumFromMsgInfoFunc(*msgInfo);
+    auto msgNum = msgInfo->getMsgNum();
 
     auto iter = std::lower_bound(
         m_allMsgs.begin(),
         m_allMsgs.end(),
         msgNum,
-        [&msgNumFromMsgInfoFunc](const MessageInfoPtr& msgInfoTmp, MsgNumberType val) -> bool
+        [](const MessageInfoPtr& msgInfoTmp, MsgNumberType val) -> bool
         {
-            return msgNumFromMsgInfoFunc(*msgInfoTmp) < val;
+            return msgInfoTmp->getMsgNum() < val;
         });
 
     if (iter == m_allMsgs.end()) {
@@ -157,7 +136,7 @@ void MsgMgr::deleteAllMsgs()
     m_allMsgs.clear();
 }
 
-void MsgMgr::sendMsgs(const MsgInfosList& msgs)
+void MsgMgr::sendMsgs(MsgInfosList&& msgs)
 {
     if (msgs.empty() || (!m_socket) || (!m_protocol)) {
         return;
@@ -172,13 +151,14 @@ void MsgMgr::sendMsgs(const MsgInfosList& msgs)
         m_socket->sendData(std::move(dInfo));
     }
 
+    m_allMsgs.reserve(m_allMsgs.size() + msgs.size());
     for (auto& msgInfo : msgs) {
-        auto msgInfoToSend = m_protocol->cloneMessage(*msgInfo);
-        updateInternalId(*msgInfoToSend);
-        updateMsgType(*msgInfoToSend, MsgType::Sent);
-        updateMsgTimestamp(*msgInfoToSend, now);
-        m_allMsgs.push_back(msgInfoToSend);
-        emit sigMsgAdded(msgInfoToSend);
+        assert(msgInfo);
+        updateInternalId(*msgInfo);
+        msgInfo->setMsgType(MsgType::Sent);
+        updateMsgTimestamp(*msgInfo, now);
+        m_allMsgs.push_back(msgInfo);
+        reportMsgAdded(msgInfo);
     }
 }
 
@@ -203,7 +183,7 @@ void MsgMgr::setSocket(SocketPtr socket)
     socket->setErrorReportCallback(
         [this](const QString& msg)
         {
-            emit sigErrorReported(msg);
+            reportError(msg);
         });
 
     m_socket = std::move(socket);
@@ -269,6 +249,16 @@ void MsgMgr::setProtocol(ProtocolPtr protocol)
     m_protocol = std::move(protocol);
 }
 
+void MsgMgr::setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func)
+{
+    m_msgAddedCallback = std::move(func);
+}
+
+void MsgMgr::setErrorReportCallbackFunc(ErrorReportCallbackFunc&& func)
+{
+    m_errorReportCallback = std::move(func);
+}
+
 void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
     if ((!m_recvEnabled) || !(m_protocol)) {
@@ -282,8 +272,9 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
     }
 
     for (auto& msgInfo : msgsList) {
+        assert(msgInfo);
         updateInternalId(*msgInfo);
-        updateMsgType(*msgInfo, MsgType::Received);
+        msgInfo->setMsgType(MsgType::Received);
 
         static const DataInfo::Timestamp DefaultTimestamp;
         if (dataInfoPtr->m_timestamp != DefaultTimestamp) {
@@ -293,36 +284,39 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
             auto now = DataInfo::TimestampClock::now();
             updateMsgTimestamp(*msgInfo, now);
         }
-        emit sigMsgAdded(msgInfo);
+
+        reportMsgAdded(msgInfo);
     }
 
     m_allMsgs.reserve(m_allMsgs.size() + msgsList.size());
     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_allMsgs));
 }
 
-void MsgMgr::aboutToQuit()
-{
-    m_allMsgs.clear();
-}
-
-MsgMgr::MsgMgr(QObject* parentObj)
-  : Base(parentObj)
+MsgMgr::MsgMgr()
 {
     m_allMsgs.reserve(1024);
-    connect(
-        qApp, SIGNAL(aboutToQuit()),
-        this, SLOT(aboutToQuit()));
 }
 
 void MsgMgr::updateInternalId(MessageInfo& msgInfo)
 {
-    msgInfo.setExtraProperty(
-        GlobalConstants::msgNumberPropertyName(),
-        QVariant::fromValue(m_nextMsgNum));
+    msgInfo.setMsgNum(m_nextMsgNum);
     ++m_nextMsgNum;
     assert(0 < m_nextMsgNum); // wrap around is not supported
 }
 
+void MsgMgr::reportMsgAdded(MessageInfoPtr msgInfo)
+{
+    if (m_msgAddedCallback) {
+        m_msgAddedCallback(std::move(msgInfo));
+    }
+}
+
+void MsgMgr::reportError(const QString& error)
+{
+    if (m_errorReportCallback) {
+        m_errorReportCallback(error);
+    }
+}
 
 }  // namespace comms_champion
 

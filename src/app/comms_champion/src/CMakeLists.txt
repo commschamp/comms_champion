@@ -13,12 +13,12 @@ function (bin_comms_champion)
 
     set (src
         main.cpp
-        MsgMgr.cpp
         GuiAppMgr.cpp
         GlobalConstants.cpp
         DefaultMessageDisplayHandler.cpp
         MsgFileMgrG.cpp
         PluginMgrG.cpp
+        MsgMgrG.cpp
         icon.cpp
         widget/MainWindowWidget.cpp
         widget/LeftPaneWidget.cpp

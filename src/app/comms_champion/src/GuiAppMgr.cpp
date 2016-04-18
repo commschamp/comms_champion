@@ -118,14 +118,14 @@ void GuiAppMgr::pluginsEditClicked()
 
 void GuiAppMgr::recvStartClicked()
 {
-    MsgMgr::instanceRef().setRecvEnabled(true);
+    MsgMgrG::instanceRef().setRecvEnabled(true);
     m_recvState = RecvState::Running;
     emitRecvStateUpdate();
 }
 
 void GuiAppMgr::recvStopClicked()
 {
-    MsgMgr::instanceRef().setRecvEnabled(false);
+    MsgMgrG::instanceRef().setRecvEnabled(false);
     m_recvState = RecvState::Idle;
     emitRecvStateUpdate();
 }
@@ -141,7 +141,7 @@ void GuiAppMgr::recvDeleteClicked()
     assert(m_selType == SelectionType::Recv);
     assert(m_clickedMsg);
 
-    MsgMgr::instanceRef().deleteMsg(m_clickedMsg);
+    MsgMgrG::instanceRef().deleteMsg(m_clickedMsg);
 
     clearDisplayedMessage();
     emit sigRecvDeleteSelectedMsg();
@@ -200,13 +200,13 @@ void GuiAppMgr::sendSaveClicked()
 
 void GuiAppMgr::sendAddClicked()
 {
-    emit sigNewSendMsgDialog(MsgMgr::instanceRef().getProtocol());
+    emit sigNewSendMsgDialog(MsgMgrG::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendEditClicked()
 {
     assert(m_clickedMsg);
-    emit sigUpdateSendMsgDialog(m_clickedMsg, MsgMgr::instanceRef().getProtocol());
+    emit sigUpdateSendMsgDialog(m_clickedMsg, MsgMgrG::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendDeleteClicked()
@@ -378,7 +378,7 @@ bool GuiAppMgr::sendListEmpty() const
 
 void GuiAppMgr::sendLoadMsgsFromFile(bool clear, const QString& filename)
 {
-    emit sigSendLoadMsgs(clear, filename, MsgMgr::instanceRef().getProtocol());
+    emit sigSendLoadMsgs(clear, filename, MsgMgrG::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendSaveMsgsToFile(const QString& filename)
@@ -414,7 +414,7 @@ void GuiAppMgr::sendUpdateList(const MsgInfosList& msgs)
 
 void GuiAppMgr::deleteMessages(MsgInfosList&& msgs)
 {
-    auto& msgMgr = MsgMgr::instanceRef();
+    auto& msgMgr = MsgMgrG::instanceRef();
     for (auto& msgInfo : msgs) {
         assert(msgInfo);
         assert(msgInfo != m_clickedMsg);
@@ -425,7 +425,7 @@ void GuiAppMgr::deleteMessages(MsgInfosList&& msgs)
 
 void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
 {
-    m_sendMgr.start(MsgMgr::instanceRef().getProtocol(), std::move(msgs));
+    m_sendMgr.start(MsgMgrG::instanceRef().getProtocol(), std::move(msgs));
 }
 
 GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
@@ -441,7 +441,7 @@ GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
 bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 {
     auto& pluginMgr = PluginMgrG::instanceRef();
-    auto& msgMgr = MsgMgr::instanceRef();
+    auto& msgMgr = MsgMgrG::instanceRef();
 
     emit sigClearAllMainToolbarActions();
     bool hasApplied = pluginMgr.hasAppliedPlugins();
@@ -543,7 +543,7 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
     m_sendMgr.setSendMsgsCallbackFunc(
         [this](MsgInfosList&& msgsToSend)
         {
-            MsgMgr::instanceRef().sendMsgs(std::move(msgsToSend));
+            MsgMgrG::instanceRef().sendMsgs(std::move(msgsToSend));
         });
 
     m_sendMgr.setSendCompeteCallbackFunc(
@@ -552,7 +552,7 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
             sendStopClicked();
         });
 
-    auto& msgMgr = MsgMgr::instanceRef();
+    auto& msgMgr = MsgMgrG::instanceRef();
     msgMgr.setMsgAddedCallbackFunc(
         [this](MessageInfoPtr info)
         {
@@ -687,7 +687,7 @@ void GuiAppMgr::refreshRecvList()
 
     clearRecvList(false);
 
-    auto& allMsgs = MsgMgr::instanceRef().getAllMsgs();
+    auto& allMsgs = MsgMgrG::instanceRef().getAllMsgs();
     for (auto& msgInfo : allMsgs) {
         assert(msgInfo);
         auto type = msgInfo->getMsgType();

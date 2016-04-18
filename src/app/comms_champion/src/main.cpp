@@ -54,7 +54,7 @@ void metaTypesRegisterAll()
 void initSingletons()
 {
     static_cast<void>(cc::PluginMgrG::instanceRef());
-    static_cast<void>(cc::MsgMgr::instanceRef());
+    static_cast<void>(cc::MsgMgrG::instanceRef());
     static_cast<void>(cc::GuiAppMgr::instance());
 }
 
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
         &app, &QCoreApplication::aboutToQuit,
         []()
         {
-            cc::MsgMgr::instanceRef().deleteAllMsgs();
+            cc::MsgMgrG::instanceRef().deleteAllMsgs();
         });
 
     auto retval = app.exec();

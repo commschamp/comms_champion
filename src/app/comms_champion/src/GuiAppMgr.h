@@ -34,7 +34,7 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/PluginMgr.h"
 #include "comms_champion/MsgSendMgr.h"
 
-#include "MsgMgr.h"
+#include "MsgMgrG.h"
 
 namespace comms_champion
 {
@@ -65,7 +65,6 @@ public:
     };
 
     typedef MsgMgr::MsgType MsgType;
-    typedef MsgMgr::Timestamp Timestamp;
     typedef std::shared_ptr<QAction> ActionPtr;
     typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
     enum class ActivityState

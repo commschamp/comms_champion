@@ -26,6 +26,8 @@ function (lib_comms_champion)
         MsgFileMgr.cpp
         MsgSendMgr.cpp
         MsgSendMgrImpl.cpp
+        MsgMgr.cpp
+        MsgMgrImpl.cpp
         field_wrapper/FieldWrapper.cpp
         field_wrapper/IntValueWrapper.cpp
         field_wrapper/BitmaskValueWrapper.cpp

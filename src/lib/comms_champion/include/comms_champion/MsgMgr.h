@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -21,32 +21,24 @@
 #include <memory>
 #include <vector>
 
-#include "comms/CompileControl.h"
-
-CC_DISABLE_WARNINGS()
-#include <QtCore/QObject>
-CC_ENABLE_WARNINGS()
-
-#include "comms_champion/Message.h"
-#include "comms_champion/Protocol.h"
-#include "comms_champion/MessageInfo.h"
-#include "comms_champion/Socket.h"
+#include "Api.h"
+#include "Message.h"
+#include "Protocol.h"
+#include "MessageInfo.h"
+#include "Socket.h"
 
 namespace comms_champion
 {
 
-class MsgMgr
+class MsgMgrImpl;
+class CC_API MsgMgr
 {
 public:
     typedef std::vector<MessageInfoPtr> MsgsList;
 
-    typedef DataInfo::Timestamp Timestamp;
-
     typedef MessageInfo::MsgType MsgType;
 
-    static MsgMgr* instance();
-    static MsgMgr& instanceRef();
-
+    MsgMgr();
     ~MsgMgr();
 
     void start();
@@ -72,26 +64,8 @@ public:
     void setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func);
     void setErrorReportCallbackFunc(ErrorReportCallbackFunc&& func);
 
-    void socketDataReceived(DataInfoPtr dataInfoPtr);
-
 private:
-    typedef unsigned long long MsgNumberType;
-
-    MsgMgr();
-    void updateInternalId(MessageInfo& msgInfo);
-    void reportMsgAdded(MessageInfoPtr msgInfo);
-    void reportError(const QString& error);
-
-    MsgsList m_allMsgs;
-    bool m_recvEnabled = false;
-
-    SocketPtr m_socket;
-    ProtocolPtr m_protocol;
-    MsgNumberType m_nextMsgNum = 1;
-    bool m_running = false;
-
-    MsgAddedCallbackFunc m_msgAddedCallback;
-    ErrorReportCallbackFunc m_errorReportCallback;
+    std::unique_ptr<MsgMgrImpl> m_impl;
 };
 
 }  // namespace comms_champion

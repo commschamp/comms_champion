@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#include "MsgMgr.h"
+#include "MsgMgrImpl.h"
 
 #include <cassert>
 #include <algorithm>
@@ -45,20 +45,14 @@ void updateMsgTimestamp(MessageInfo& msgInfo, const DataInfo::Timestamp& timesta
 
 }  // namespace
 
-MsgMgr* MsgMgr::instance()
+MsgMgrImpl::MsgMgrImpl()
 {
-    return &(instanceRef());
+    m_allMsgs.reserve(1024);
 }
 
-MsgMgr& MsgMgr::instanceRef()
-{
-    static MsgMgr mgr;
-    return mgr;
-}
+MsgMgrImpl::~MsgMgrImpl() = default;
 
-MsgMgr::~MsgMgr() = default;
-
-void MsgMgr::start()
+void MsgMgrImpl::start()
 {
     if (m_running) {
         assert(!"Already running");
@@ -72,7 +66,7 @@ void MsgMgr::start()
     m_running = true;
 }
 
-void MsgMgr::stop()
+void MsgMgrImpl::stop()
 {
     if (!m_running) {
         assert(!"Already stopped.");
@@ -86,7 +80,7 @@ void MsgMgr::stop()
     m_running = false;
 }
 
-void MsgMgr::clear()
+void MsgMgrImpl::clear()
 {
     if (m_running) {
         assert(!"Still running");
@@ -97,17 +91,17 @@ void MsgMgr::clear()
     m_protocol.reset();
 }
 
-ProtocolPtr MsgMgr::getProtocol() const
+ProtocolPtr MsgMgrImpl::getProtocol() const
 {
     return m_protocol;
 }
 
-void MsgMgr::setRecvEnabled(bool enabled)
+void MsgMgrImpl::setRecvEnabled(bool enabled)
 {
     m_recvEnabled = enabled;
 }
 
-void MsgMgr::deleteMsg(MessageInfoPtr msgInfo)
+void MsgMgrImpl::deleteMsg(MessageInfoPtr msgInfo)
 {
     assert(!m_allMsgs.empty());
     assert(msgInfo);
@@ -131,12 +125,12 @@ void MsgMgr::deleteMsg(MessageInfoPtr msgInfo)
     m_allMsgs.erase(iter);
 }
 
-void MsgMgr::deleteAllMsgs()
+void MsgMgrImpl::deleteAllMsgs()
 {
     m_allMsgs.clear();
 }
 
-void MsgMgr::sendMsgs(MsgInfosList&& msgs)
+void MsgMgrImpl::sendMsgs(MsgInfosList&& msgs)
 {
     if (msgs.empty() || (!m_socket) || (!m_protocol)) {
         return;
@@ -162,12 +156,12 @@ void MsgMgr::sendMsgs(MsgInfosList&& msgs)
     }
 }
 
-const MsgMgr::MsgsList& MsgMgr::getAllMsgs() const
+const MsgMgrImpl::MsgsList& MsgMgrImpl::getAllMsgs() const
 {
     return m_allMsgs;
 }
 
-void MsgMgr::setSocket(SocketPtr socket)
+void MsgMgrImpl::setSocket(SocketPtr socket)
 {
     if (!socket) {
         m_socket.reset();
@@ -189,7 +183,7 @@ void MsgMgr::setSocket(SocketPtr socket)
     m_socket = std::move(socket);
 }
 
-//void MsgMgr::removeSocket(SocketPtr socket)
+//void MsgMgrImpl::removeSocket(SocketPtr socket)
 //{
 //    auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
 //    if (iter == m_sockets.end()) {
@@ -244,22 +238,12 @@ void MsgMgr::setSocket(SocketPtr socket)
 //    m_sockets.erase(iter);
 //}
 
-void MsgMgr::setProtocol(ProtocolPtr protocol)
+void MsgMgrImpl::setProtocol(ProtocolPtr protocol)
 {
     m_protocol = std::move(protocol);
 }
 
-void MsgMgr::setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func)
-{
-    m_msgAddedCallback = std::move(func);
-}
-
-void MsgMgr::setErrorReportCallbackFunc(ErrorReportCallbackFunc&& func)
-{
-    m_errorReportCallback = std::move(func);
-}
-
-void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
+void MsgMgrImpl::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
     if ((!m_recvEnabled) || !(m_protocol)) {
         return;
@@ -292,26 +276,21 @@ void MsgMgr::socketDataReceived(DataInfoPtr dataInfoPtr)
     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_allMsgs));
 }
 
-MsgMgr::MsgMgr()
-{
-    m_allMsgs.reserve(1024);
-}
-
-void MsgMgr::updateInternalId(MessageInfo& msgInfo)
+void MsgMgrImpl::updateInternalId(MessageInfo& msgInfo)
 {
     msgInfo.setMsgNum(m_nextMsgNum);
     ++m_nextMsgNum;
     assert(0 < m_nextMsgNum); // wrap around is not supported
 }
 
-void MsgMgr::reportMsgAdded(MessageInfoPtr msgInfo)
+void MsgMgrImpl::reportMsgAdded(MessageInfoPtr msgInfo)
 {
     if (m_msgAddedCallback) {
         m_msgAddedCallback(std::move(msgInfo));
     }
 }
 
-void MsgMgr::reportError(const QString& error)
+void MsgMgrImpl::reportError(const QString& error)
 {
     if (m_errorReportCallback) {
         m_errorReportCallback(error);

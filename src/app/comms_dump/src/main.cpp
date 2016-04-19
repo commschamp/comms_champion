@@ -27,12 +27,30 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QStringList>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/comms_champion.h"
+#include "comms_champion/MessageInfo.h"
+#include "comms_champion/Protocol.h"
+#include "comms_champion/PluginMgr.h"
+#include "comms_champion/DataInfo.h"
+
+#include "AppMgr.h"
+
+namespace cc = comms_champion;
 
 namespace
 {
 
 const QString PluginsOptStr("plugins");
+const QString OutMsgsOptStr("msgs-to-send");
+const QString InMsgsOptStr("received-msgs");
+const QString LastWaitOptStr("last-wait");
+
+void metaTypesRegisterAll()
+{
+    qRegisterMetaType<cc::MessageInfoPtr>();
+    qRegisterMetaType<cc::ProtocolPtr>();
+    qRegisterMetaType<cc::PluginMgr::PluginInfoPtr>();
+    qRegisterMetaType<cc::DataInfoPtr>();
+}
 
 void prepareCommandLineOptions(QCommandLineParser& parser)
 {
@@ -41,9 +59,33 @@ void prepareCommandLineOptions(QCommandLineParser& parser)
     QCommandLineOption pluginsOpt(
         QStringList() << "p" << PluginsOptStr,
         QCoreApplication::translate("main", "Provide plugins configuration file."),
-        QCoreApplication::translate("main", "plugins_config_file")
+        QCoreApplication::translate("main", "filename")
     );
     parser.addOption(pluginsOpt);
+
+    QCommandLineOption outMsgsOpt(
+        QStringList() << "s" << OutMsgsOptStr,
+        QCoreApplication::translate("main", "Messages to send configuration file."),
+        QCoreApplication::translate("main", "filename")
+    );
+    parser.addOption(outMsgsOpt);
+
+    QCommandLineOption inMsgsOpt(
+        QStringList() << "r" << InMsgsOptStr,
+        QCoreApplication::translate("main", "Receives messages storage file."),
+        QCoreApplication::translate("main", "filename")
+    );
+    parser.addOption(inMsgsOpt);
+
+    QCommandLineOption lastWaitOpt(
+        QStringList() << "w" << LastWaitOptStr,
+        QCoreApplication::translate("main", "Wait period (in milliseconds) from "
+                                            "last sent message till dump termination."
+                                            "Default is 100 ms."),
+        QCoreApplication::translate("main", "ms")
+    );
+    parser.addOption(lastWaitOpt);
+
 }
 
 }  // namespace
@@ -52,8 +94,7 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-//    metaTypesRegisterAll();
-//    initSingletons();
+    metaTypesRegisterAll();
 
     QCommandLineParser parser;
     prepareCommandLineOptions(parser);
@@ -65,8 +106,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    std::cout << "Plugins file is: " << parser.value(PluginsOptStr).toStdString() << std::endl;
-
     QDir dir(app.applicationDirPath());
     dir.cdUp();
     if (!dir.cd("plugin")) {
@@ -76,14 +115,36 @@ int main(int argc, char *argv[])
 
     app.addLibraryPath(dir.path());
 
-//    auto& pluginMgr = cc::PluginMgrG::instanceRef();
-//    pluginMgr.setPluginsDir(dir.path());
-//
-//    if (parser.isSet(CleanOptStr)) {
-//        pluginMgr.clean();
-//    }
-//
-//    pluginMgr.start();
+    auto config = comms_dump::AppMgr::Config();
+    config.m_pluginsDir = dir.path();
+
+    if (parser.isSet(PluginsOptStr)) {
+        config.m_pluginConfigFile = parser.value(PluginsOptStr);
+    }
+
+    if (parser.isSet(OutMsgsOptStr)) {
+        config.m_outMsgsFile = parser.value(OutMsgsOptStr);
+    }
+
+    if (parser.isSet(InMsgsOptStr)) {
+        config.m_inMsgsFile = parser.value(InMsgsOptStr);
+    }
+
+    config.m_lastWait = 100;
+    if (parser.isSet(LastWaitOptStr)) {
+        auto valueStr = parser.value(LastWaitOptStr);
+        bool ok = false;
+        unsigned value = valueStr.toUInt(&ok);
+        if (ok) {
+            config.m_lastWait = value;
+        }
+    }
+
+    comms_dump::AppMgr appMgr;
+    if (!appMgr.start(config)) {
+        std::cerr << "Failed to start!" << std::endl;
+        return -1;
+    }
 
     auto retval = app.exec();
     return retval;

@@ -8,6 +8,7 @@ function (bin_comms_dump)
     
     set (src
         main.cpp
+        AppMgr.cpp
     )
     
     #qt5_wrap_cpp(

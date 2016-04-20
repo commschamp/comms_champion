@@ -22,6 +22,7 @@
 CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtCore/QTimer>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/PluginMgr.h"
@@ -29,12 +30,14 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/MsgFileMgr.h"
 #include "comms_champion/MsgSendMgr.h"
 
+#include "CsvDumpMessageHandler.h"
+
 namespace comms_dump
 {
 
-class AppMgr // : public QObject
+class AppMgr  : public QObject
 {
-    //Q_OBJECT
+    Q_OBJECT
 public:
     struct Config
     {
@@ -50,6 +53,9 @@ public:
 
     bool start(const Config& config);
 
+private slots:
+    void flushOutput();
+
 private:
     typedef comms_champion::PluginMgr::ListOfPluginInfos ListOfPluginInfos;
 
@@ -60,6 +66,8 @@ private:
     comms_champion::MsgFileMgr m_msgFileMgr;
     comms_champion::MsgSendMgr m_msgSendMgr;
     unsigned m_lastWait = 0;
+    CsvDumpMessageHandler m_csvDump;
+    QTimer m_flushTimer;
 };
 
 } /* namespace comms_dump */

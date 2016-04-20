@@ -9,15 +9,17 @@ function (bin_comms_dump)
     set (src
         main.cpp
         AppMgr.cpp
+        CsvDumpMessageHandler.cpp
     )
     
-    #qt5_wrap_cpp(
-    #    moc
-    #)
+    qt5_wrap_cpp(
+        moc
+        AppMgr.h
+    )
     
     #qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)
 
-    add_executable(${name} ${src})
+    add_executable(${name} ${src} ${moc})
     target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
     qt5_use_modules(${name} Core)
     

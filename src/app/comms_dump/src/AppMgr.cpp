@@ -22,7 +22,6 @@
 CC_DISABLE_WARNINGS()
 #include <QtCore/QDir>
 #include <QtCore/QCoreApplication>
-#include <QtCore/QTimer>
 CC_ENABLE_WARNINGS()
 
 namespace cc = comms_champion;
@@ -30,14 +29,32 @@ namespace cc = comms_champion;
 namespace comms_dump
 {
 
+namespace
+{
+
+const std::string Sep(", ");
+const int FlushInterval = 1000;
+
+}  // namespace
+
 AppMgr::AppMgr()
+  : m_csvDump(std::cout, Sep)
 {
     m_msgMgr.setMsgAddedCallbackFunc(
         [this](cc::MessageInfoPtr msgInfo)
         {
-            static_cast<void>(msgInfo);
-            std::cout << "Message added " << std::endl;
-            // TODO:
+            auto appMsg = msgInfo->getAppMessage();
+            if (!appMsg) {
+                assert(!"Application message wasn't provided");
+                return;
+            }
+
+            auto timestamp = msgInfo->getTimestamp();
+            if (timestamp != 0) {
+                m_csvDump.outStream() << timestamp << Sep;
+            }
+
+            appMsg->dispatch(m_csvDump);
         });
 
     m_msgSendMgr.setSendMsgsCallbackFunc(
@@ -51,6 +68,10 @@ AppMgr::AppMgr()
         {
             QTimer::singleShot(m_lastWait, qApp, SLOT(quit()));
         });
+
+    connect(
+        &m_flushTimer, SIGNAL(timeout()),
+        this, SLOT(flushOutput()));
 }
 
 AppMgr::~AppMgr() = default;
@@ -101,7 +122,16 @@ bool AppMgr::start(const Config& config)
         QTimer::singleShot(m_lastWait, qApp, SLOT(quit()));
     }
 
+    m_flushTimer.start(FlushInterval);
     return true;
+}
+
+void AppMgr::flushOutput()
+{
+    auto& outStream = m_csvDump.outStream();
+    if (outStream) {
+        outStream.flush();
+    }
 }
 
 bool AppMgr::applyPlugins(const ListOfPluginInfos& plugins)

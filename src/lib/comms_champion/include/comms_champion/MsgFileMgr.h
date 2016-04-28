@@ -29,7 +29,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "Api.h"
-#include "MessageInfo.h"
+#include "Message.h"
 #include "Protocol.h"
 
 namespace comms_champion
@@ -38,6 +38,8 @@ namespace comms_champion
 class CC_API MsgFileMgr
 {
 public:
+
+    typedef Protocol::MessagesList MessagesList;
 
     enum class Type
     {
@@ -57,8 +59,8 @@ public:
     const QString& getLastFile() const;
     static const QString& getFilesFilter();
 
-    MsgInfosList load(Type type, const QString& filename, Protocol& protocol);
-    bool save(Type type, const QString& filename, const MsgInfosList& msgs);
+    MessagesList load(Type type, const QString& filename, Protocol& protocol);
+    bool save(Type type, const QString& filename, const MessagesList& msgs);
 
 private:
     QString m_lastFile;

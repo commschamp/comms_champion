@@ -24,7 +24,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/MessageInfo.h"
+#include "comms_champion/Message.h"
 
 namespace comms_champion
 {
@@ -41,9 +41,9 @@ public:
 
 public slots:
 
-    void displayMessage(MessageInfoPtr msgInfo, bool force = false)
+    void displayMessage(MessagePtr msg, bool force = false)
     {
-        displayMessageImpl(msgInfo, force);
+        displayMessageImpl(msg, force);
     }
 
     void setEditEnabled(bool enabled)
@@ -65,7 +65,7 @@ signals:
     void sigMsgUpdated();
 
 protected:
-    virtual void displayMessageImpl(MessageInfoPtr msgInfo, bool force) = 0;
+    virtual void displayMessageImpl(MessagePtr msg, bool force) = 0;
     virtual void setEditEnabledImpl(bool enabled) = 0;
     virtual void clearImpl() = 0;
     virtual void refreshImpl() = 0;

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -38,8 +38,8 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parentObj)
     m_protocolsDetailsWidget(new ProtocolsStackWidget())
 {
     connect(
-        m_protocolsDetailsWidget, SIGNAL(sigMessageSelected(MessageInfo::MessagePtr, bool)),
-        this, SLOT(msgSelectedInProtocol(MessageInfo::MessagePtr, bool)));
+        m_protocolsDetailsWidget, SIGNAL(sigMessageSelected(MessagePtr, bool)),
+        this, SLOT(msgSelectedInProtocol(MessagePtr, bool)));
 
     connect(
         m_msgDetailsWidget, SIGNAL(sigMsgUpdated()),
@@ -57,18 +57,12 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parentObj)
 }
 
 void DefaultMessageDisplayWidget::displayMessageImpl(
-    MessageInfoPtr msgInfo,
+    MessagePtr msg,
     bool force)
 {
-    assert(msgInfo);
-    auto appMsg = msgInfo->getAppMessage();
-    if (appMsg) {
-        m_msgDetailsWidget->updateTitle(appMsg);
-    }
-    else {
-        m_msgDetailsWidget->clear();
-    }
-    m_protocolsDetailsWidget->displayMessage(std::move(msgInfo), force);
+    assert(msg);
+    m_msgDetailsWidget->updateTitle(msg);
+    m_protocolsDetailsWidget->displayMessage(std::move(msg), force);
 }
 
 void DefaultMessageDisplayWidget::setEditEnabledImpl(bool enabled)
@@ -91,9 +85,10 @@ void DefaultMessageDisplayWidget::refreshImpl()
 }
 
 void DefaultMessageDisplayWidget::msgSelectedInProtocol(
-    MessageInfo::MessagePtr msg,
+    MessagePtr msg,
     bool editEnabled)
 {
+    assert(msg);
     m_msgDetailsWidget->displayMessage(msg);
     m_msgDetailsWidget->setEditEnabled(m_globalEditEnabled && editEnabled);
 }

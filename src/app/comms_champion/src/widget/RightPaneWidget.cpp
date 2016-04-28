@@ -36,8 +36,8 @@ RightPaneWidget::RightPaneWidget(QWidget* parentObj)
     msgDisplayWidget->setEditEnabled(false);
 
     auto* guiAppMgr = GuiAppMgr::instance();
-    connect(guiAppMgr, SIGNAL(sigDisplayMsg(MessageInfoPtr)),
-            msgDisplayWidget, SLOT(displayMessage(MessageInfoPtr)));
+    connect(guiAppMgr, SIGNAL(sigDisplayMsg(MessagePtr)),
+            msgDisplayWidget, SLOT(displayMessage(MessagePtr)));
     connect(guiAppMgr, SIGNAL(sigClearDisplayedMsg()),
             msgDisplayWidget, SLOT(clear()));
     auto* paneLayout = new QVBoxLayout();

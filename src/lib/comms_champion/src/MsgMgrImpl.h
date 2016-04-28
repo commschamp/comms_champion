@@ -26,7 +26,8 @@ namespace comms_champion
 class MsgMgrImpl
 {
 public:
-    typedef MsgMgr::MsgsList MsgsList;
+    typedef MsgMgr::AllMessages AllMessages;
+    typedef MsgMgr::MessagesList MessagesList;
 
     typedef MsgMgr::MsgType MsgType;
 
@@ -40,12 +41,18 @@ public:
     ProtocolPtr getProtocol() const;
     void setRecvEnabled(bool enabled);
 
-    void deleteMsg(MessageInfoPtr msgInfo);
-    void deleteAllMsgs();
+    void deleteMsg(MessagePtr msg);
+    void deleteAllMsgs()
+    {
+        m_allMsgs.clear();
+    }
 
-    void sendMsgs(MsgInfosList&& msgs);
+    void sendMsgs(MessagesList&& msgs);
 
-    const MsgsList& getAllMsgs() const;
+    const AllMessages& getAllMsgs() const
+    {
+        return m_allMsgs;
+    }
 
     void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
@@ -69,11 +76,11 @@ private:
     typedef unsigned long long MsgNumberType;
 
     void socketDataReceived(DataInfoPtr dataInfoPtr);
-    void updateInternalId(MessageInfo& msgInfo);
-    void reportMsgAdded(MessageInfoPtr msgInfo);
+    void updateInternalId(Message& msg);
+    void reportMsgAdded(MessagePtr msg);
     void reportError(const QString& error);
 
-    MsgsList m_allMsgs;
+    AllMessages m_allMsgs;
     bool m_recvEnabled = false;
 
     SocketPtr m_socket;

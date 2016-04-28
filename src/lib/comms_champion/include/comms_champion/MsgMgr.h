@@ -24,7 +24,7 @@
 #include "Api.h"
 #include "Message.h"
 #include "Protocol.h"
-#include "MessageInfo.h"
+#include "Message.h"
 #include "Socket.h"
 
 namespace comms_champion
@@ -34,9 +34,10 @@ class MsgMgrImpl;
 class CC_API MsgMgr
 {
 public:
-    typedef std::vector<MessageInfoPtr> MsgsList;
+    typedef std::vector<MessagePtr> AllMessages;
+    typedef Protocol::MessagesList MessagesList;
 
-    typedef MessageInfo::MsgType MsgType;
+    typedef Message::Type MsgType;
 
     MsgMgr();
     ~MsgMgr();
@@ -48,17 +49,17 @@ public:
     ProtocolPtr getProtocol() const;
     void setRecvEnabled(bool enabled);
 
-    void deleteMsg(MessageInfoPtr msgInfo);
+    void deleteMsg(MessagePtr msg);
     void deleteAllMsgs();
 
-    void sendMsgs(MsgInfosList&& msgs);
+    void sendMsgs(MessagesList&& msgs);
 
-    const MsgsList& getAllMsgs() const;
+    const AllMessages& getAllMsgs() const;
 
     void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
 
-    typedef std::function<void (MessageInfoPtr msgInfo)> MsgAddedCallbackFunc;
+    typedef std::function<void (MessagePtr msg)> MsgAddedCallbackFunc;
     typedef std::function<void (const QString& error)> ErrorReportCallbackFunc;
 
     void setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func);

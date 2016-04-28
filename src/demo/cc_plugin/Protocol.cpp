@@ -38,22 +38,18 @@ const QString& Protocol::nameImpl() const
     return Str;
 }
 
-Protocol::UpdateStatus Protocol::updateMessageInfoImpl(cc::MessageInfo& msgInfo)
+Protocol::UpdateStatus Protocol::updateMessageImpl(cc::Message& msg)
 {
-    auto msgPtr = msgInfo.getAppMessage();
-    if (!msgPtr) {
-        return UpdateStatus::NoChangeToAppMsg;
-    }
-
-    auto* castedMsgPtr = dynamic_cast<Message*>(msgPtr.get());
+    auto* castedMsgPtr = dynamic_cast<demo::cc_plugin::Message*>(&msg);
     if (castedMsgPtr == nullptr) {
-        return UpdateStatus::NoChangeToAppMsg;
+        assert(!"Should not happen");
+        return UpdateStatus::NoChange;
     }
 
     bool updated = castedMsgPtr->refresh();
-    auto parentStatus = Base::updateMessageInfoImpl(msgInfo);
+    auto parentStatus = Base::updateMessageImpl(msg);
     if (updated) {
-        return UpdateStatus::AppMsgWasChanged;
+        return UpdateStatus::Changed;
     }
     return parentStatus;
 }

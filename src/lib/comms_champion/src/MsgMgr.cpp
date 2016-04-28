@@ -23,19 +23,6 @@
 namespace comms_champion
 {
 
-namespace
-{
-
-void updateMsgTimestamp(MessageInfo& msgInfo, const DataInfo::Timestamp& timestamp)
-{
-    auto sinceEpoch = timestamp.time_since_epoch();
-    auto milliseconds =
-        std::chrono::duration_cast<std::chrono::milliseconds>(sinceEpoch);
-    msgInfo.setTimestamp(milliseconds.count());
-}
-
-}  // namespace
-
 MsgMgr::MsgMgr()
   : m_impl(new MsgMgrImpl())
 {
@@ -68,9 +55,9 @@ void MsgMgr::setRecvEnabled(bool enabled)
     m_impl->setRecvEnabled(enabled);
 }
 
-void MsgMgr::deleteMsg(MessageInfoPtr msgInfo)
+void MsgMgr::deleteMsg(MessagePtr msg)
 {
-    m_impl->deleteMsg(std::move(msgInfo));
+    m_impl->deleteMsg(std::move(msg));
 }
 
 void MsgMgr::deleteAllMsgs()
@@ -78,12 +65,12 @@ void MsgMgr::deleteAllMsgs()
     m_impl->deleteAllMsgs();
 }
 
-void MsgMgr::sendMsgs(MsgInfosList&& msgs)
+void MsgMgr::sendMsgs(MessagesList&& msgs)
 {
     m_impl->sendMsgs(std::move(msgs));
 }
 
-const MsgMgr::MsgsList& MsgMgr::getAllMsgs() const
+const MsgMgr::AllMessages& MsgMgr::getAllMsgs() const
 {
     return m_impl->getAllMsgs();
 }

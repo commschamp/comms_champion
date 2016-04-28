@@ -27,7 +27,7 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QStringList>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/MessageInfo.h"
+#include "comms_champion/Message.h"
 #include "comms_champion/Protocol.h"
 #include "comms_champion/PluginMgr.h"
 #include "comms_champion/DataInfo.h"
@@ -46,7 +46,7 @@ const QString LastWaitOptStr("last-wait");
 
 void metaTypesRegisterAll()
 {
-    qRegisterMetaType<cc::MessageInfoPtr>();
+    qRegisterMetaType<cc::MessagePtr>();
     qRegisterMetaType<cc::ProtocolPtr>();
     qRegisterMetaType<cc::PluginMgr::PluginInfoPtr>();
     qRegisterMetaType<cc::DataInfoPtr>();

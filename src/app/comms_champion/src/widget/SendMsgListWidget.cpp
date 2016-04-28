@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -25,9 +25,9 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
 #include "SendAreaToolBar.h"
 #include "GuiAppMgr.h"
-#include "GlobalConstants.h"
 #include "MsgFileMgrG.h"
 
 namespace comms_champion
@@ -42,11 +42,11 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parentObj)
     auto* guiMgr = GuiAppMgr::instance();
     assert(guiMgr != nullptr);
     connect(
-        guiMgr, SIGNAL(sigAddSendMsg(MessageInfoPtr)),
-        this, SLOT(addMessage(MessageInfoPtr)));
+        guiMgr, SIGNAL(sigAddSendMsg(MessagePtr)),
+        this, SLOT(addMessage(MessagePtr)));
     connect(
-        guiMgr, SIGNAL(sigSendMsgUpdated()),
-        this, SLOT(updateCurrentMessage()));
+        guiMgr, SIGNAL(sigSendMsgUpdated(MessagePtr)),
+        this, SLOT(updateCurrentMessage(MessagePtr)));
     connect(
         guiMgr, SIGNAL(sigSendDeleteSelectedMsg()),
         this, SLOT(deleteCurrentMessage()));
@@ -82,26 +82,26 @@ SendMsgListWidget::SendMsgListWidget(QWidget* parentObj)
         this, SLOT(selectMsg(int)));
 }
 
-void SendMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
+void SendMsgListWidget::msgClickedImpl(MessagePtr msg, int idx)
 {
-    GuiAppMgr::instance()->sendMsgClicked(std::move(msgInfo), idx);
+    GuiAppMgr::instance()->sendMsgClicked(std::move(msg), idx);
 }
 
-void SendMsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx)
+void SendMsgListWidget::msgDoubleClickedImpl(MessagePtr msg, int idx)
 {
     if (m_state != State::Idle) {
         return;
     }
-    GuiAppMgr::instance()->sendMsgDoubleClicked(std::move(msgInfo), idx);
+    GuiAppMgr::instance()->sendMsgDoubleClicked(std::move(msg), idx);
 }
 
-QString SendMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
+QString SendMsgListWidget::msgPrefixImpl(const Message& msg) const
 {
     QString str;
     do {
-        auto delay = msgInfo.getDelay();
-        auto repeatDur = msgInfo.getRepeatDuration();
-        auto repeatCount = msgInfo.getRepeatCount();
+        auto delay = property::message::Delay().getFrom(msg);
+        auto repeatDur = property::message::RepeatDuration().getFrom(msg);
+        auto repeatCount = property::message::RepeatCount().getFrom(msg);
 
         str =
             QString("(%1:%2:%3)").
@@ -128,10 +128,10 @@ void SendMsgListWidget::stateChangedImpl(int state)
     }
 
     if (m_state == State::SendingSingle) {
-        auto msgInfo = currentMsg();
-        assert(msgInfo);
-        MsgInfosList allMsgsList;
-        allMsgsList.push_back(std::move(msgInfo));
+        auto msg = currentMsg();
+        assert(msg);
+        MessagesList allMsgsList;
+        allMsgsList.push_back(std::move(msg));
         GuiAppMgr::instanceRef().sendMessages(std::move(allMsgsList));
         return;
     }

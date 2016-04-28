@@ -67,6 +67,7 @@ public:
     typedef MsgMgr::MsgType MsgType;
     typedef std::shared_ptr<QAction> ActionPtr;
     typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    typedef Protocol::MessagesList MessagesList;
     enum class ActivityState
     {
         Clear,
@@ -91,15 +92,15 @@ public:
     unsigned recvListModeMask() const;
 
     SendState sendState() const;
-    void sendAddNewMessage(MessageInfoPtr msgInfo);
-    void sendUpdateMessage(MessageInfoPtr msgInfo);
+    void sendAddNewMessage(MessagePtr msg);
+    void sendUpdateMessage(MessagePtr msg);
     bool sendListEmpty() const;
     void sendLoadMsgsFromFile(bool clear, const QString& filename);
     void sendSaveMsgsToFile(const QString& filename);
-    void sendUpdateList(const MsgInfosList& msgs);
+    void sendUpdateList(const MessagesList& msgs);
 
-    void deleteMessages(MsgInfosList&& msgs);
-    void sendMessages(MsgInfosList&& msgs);
+    void deleteMessages(MessagesList&& msgs);
+    void sendMessages(MessagesList&& msgs);
 
     static ActivityState getActivityState();
     bool applyNewPlugins(const ListOfPluginInfos& plugins);
@@ -130,25 +131,25 @@ public slots:
     void sendDownClicked();
     void sendBottomClicked();
 
-    void recvMsgClicked(MessageInfoPtr msgInfo, int idx);
+    void recvMsgClicked(MessagePtr msg, int idx);
 
-    void sendMsgClicked(MessageInfoPtr msgInfo, int idx);
-    void sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx);
+    void sendMsgClicked(MessagePtr msg, int idx);
+    void sendMsgDoubleClicked(MessagePtr msg, int idx);
     void sendSelectedMsgMoved(int idx);
 
     void addMainToolbarAction(ActionPtr action);
 
 signals:
-    void sigAddRecvMsg(MessageInfoPtr msgInfo);
-    void sigAddSendMsg(MessageInfoPtr msgInfo);
-    void sigSendMsgUpdated();
+    void sigAddRecvMsg(MessagePtr msg);
+    void sigAddSendMsg(MessagePtr msg);
+    void sigSendMsgUpdated(MessagePtr msg);
     void sigSetRecvState(int state);
     void sigSetSendState(int state);
     void sigDisplayMsgDetailsWidget(QWidget* widget);
     void sigRecvMsgListSelectOnAddEnabled(bool enabled);
     void sigRecvMsgListClearSelection();
     void sigSendMsgListClearSelection();
-    void sigDisplayMsg(MessageInfoPtr msgInfo);
+    void sigDisplayMsg(MessagePtr msg);
     void sigClearDisplayedMsg();
     void sigRecvMsgSelected(int index);
     void sigSendMsgSelected(int index);
@@ -164,7 +165,7 @@ signals:
     void sigSendMoveSelectedBottom();
     void sigRecvListTitleNeedsUpdate();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
-    void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
+    void sigUpdateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
     void sigLoadSendMsgsDialog(bool askForClear);
     void sigSaveSendMsgsDialog();
     void sigPluginsEditDialog();
@@ -189,19 +190,19 @@ private:
     void emitSendStateUpdate();
 
 private slots:
-    void msgAdded(MessageInfoPtr msgInfo);
+    void msgAdded(MessagePtr msg);
     void errorReported(const QString& msg);
     void pendingDisplayTimeout();
 
 private /*data*/:
 
-    void msgClicked(MessageInfoPtr msgInfo, SelectionType selType);
-    void displayMessage(MessageInfoPtr msgInfo);
+    void msgClicked(MessagePtr msg, SelectionType selType);
+    void displayMessage(MessagePtr msg);
     void clearDisplayedMessage();
     void refreshRecvList();
-    void addMsgToRecvList(MessageInfoPtr msgInfo);
+    void addMsgToRecvList(MessagePtr msg);
     void clearRecvList(bool reportDeleted);
-    bool canAddToRecvList(const MessageInfo& msgInfo, MsgType type) const;
+    bool canAddToRecvList(const Message& msg, MsgType type) const;
     void decRecvListCount();
     void decSendListCount();
     void emitRecvNotSelected();
@@ -220,10 +221,10 @@ private /*data*/:
     unsigned m_sendListCount = 0;
 
     SelectionType m_selType = SelectionType::None;
-    MessageInfoPtr m_clickedMsg;
+    MessagePtr m_clickedMsg;
 
     QTimer m_pendingDisplayTimer;
-    MessageInfoPtr m_pendingDisplayMsg;
+    MessagePtr m_pendingDisplayMsg;
     bool m_pendingDisplayWaitInProgress = false;
 
     MsgSendMgr m_sendMgr;

@@ -39,7 +39,7 @@ void MsgSendMgr::setSendCompeteCallbackFunc(SendCompleteCallbackFunc&& func)
     m_impl->setSendCompleteCallbackFunc(std::move(func));
 }
 
-void MsgSendMgr::start(ProtocolPtr protocol, const MsgInfosList& msgs)
+void MsgSendMgr::start(ProtocolPtr protocol, const MessagesList& msgs)
 {
     m_impl->start(std::move(protocol), msgs);
 }

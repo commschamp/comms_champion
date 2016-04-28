@@ -19,6 +19,8 @@
 
 #include <cassert>
 
+#include "comms_champion/property/message.h"
+
 namespace comms_champion
 {
 
@@ -32,13 +34,19 @@ MsgSendMgrImpl::MsgSendMgrImpl()
 
 MsgSendMgrImpl::~MsgSendMgrImpl() = default;
 
-void MsgSendMgrImpl::start(ProtocolPtr protocol, const MsgInfosList& msgs)
+void MsgSendMgrImpl::start(ProtocolPtr protocol, const MessagesList& msgs)
 {
     assert(m_msgsToSend.empty() || !"The previous sending must be stopped first.");
     m_protocol = std::move(protocol);
     for (auto& m : msgs) {
         auto clonedMsg = m_protocol->cloneMessage(*m);
-        clonedMsg->setAllProperties(m->getAllProperties());
+        property::message::Delay().copyFromTo(*m, *clonedMsg);
+        property::message::DelayUnits().copyFromTo(*m, *clonedMsg);
+        property::message::RepeatDuration().copyFromTo(*m, *clonedMsg);
+        property::message::RepeatDurationUnits().copyFromTo(*m, *clonedMsg);
+        property::message::RepeatCount().copyFromTo(*m, *clonedMsg);
+
+        // TODO: copy custom properties
         m_msgsToSend.push_back(std::move(clonedMsg));
     }
     sendPendingAndWait();
@@ -56,21 +64,21 @@ void MsgSendMgrImpl::sendPendingAndWait()
     m_timer.stop();
     auto iter = m_msgsToSend.begin();
     for (; iter != m_msgsToSend.end(); ++iter) {
-        auto& msgInfo = *iter;
-        assert(msgInfo);
-        auto delay = msgInfo->getDelay();
+        auto& msg = *iter;
+        assert(msg);
+        auto delay = property::message::Delay().getFrom(*msg);
         if (delay != 0U) {
             break;
         }
     }
 
-    MsgInfosList nextMsgsToSend;
+    decltype(m_msgsToSend) nextMsgsToSend;
     nextMsgsToSend.splice(
         nextMsgsToSend.end(), m_msgsToSend, m_msgsToSend.begin(), iter);
 
     for (auto& msgToSend : nextMsgsToSend) {
-        auto repeatMs = msgToSend->getRepeatDuration();
-        auto repeatCount = msgToSend->getRepeatCount();
+        auto repeatMs = property::message::RepeatDuration().getFrom(*msgToSend);
+        auto repeatCount = property::message::RepeatCount().getFrom(*msgToSend);
 
         bool reinsert =
             (0U < repeatMs) &&
@@ -86,10 +94,10 @@ void MsgSendMgrImpl::sendPendingAndWait()
             auto reinsertIter =
                 std::find_if(
                     m_msgsToSend.begin(), m_msgsToSend.end(),
-                    [&newDelay](MessageInfoPtr mInfo) mutable -> bool
+                    [&newDelay](MessagePtr mPtr) mutable -> bool
                     {
-                        assert(mInfo);
-                        auto mDelay = mInfo->getDelay();
+                        assert(mPtr);
+                        auto mDelay = property::message::Delay().getFrom(*mPtr);
                         if (newDelay < mDelay) {
                             return true;
                         }
@@ -100,18 +108,18 @@ void MsgSendMgrImpl::sendPendingAndWait()
             if (reinsertIter != m_msgsToSend.end()) {
                 auto& msgToUpdate = *reinsertIter;
                 assert(msgToUpdate);
-                auto mDelay = msgToUpdate->getDelay();
-                msgToUpdate->setDelay(mDelay - newDelay);
+                auto mDelay = property::message::Delay().getFrom(*msgToUpdate);
+                property::message::Delay().setTo(mDelay - newDelay, *msgToUpdate);
             }
 
             auto clonedMsg = m_protocol->cloneMessage(*msgToSend);
             // TODO copy extra properties
 
             std::swap(clonedMsg, msgToSend);
-            clonedMsg->setDelay(newDelay);
+            property::message::Delay().setTo(newDelay, *clonedMsg);
 
             if (repeatCount != 0) {
-                clonedMsg->setRepeatCount(repeatCount - 1);
+                property::message::RepeatCount().setTo(repeatCount - 1, *clonedMsg);
             }
 
             m_msgsToSend.insert(reinsertIter, std::move(clonedMsg));
@@ -119,11 +127,11 @@ void MsgSendMgrImpl::sendPendingAndWait()
     }
 
     if (!m_msgsToSend.empty()) {
-        auto& msgInfo = m_msgsToSend.front();
-        assert(msgInfo);
-        auto delay = msgInfo->getDelay();
+        auto& msg = m_msgsToSend.front();
+        assert(msg);
+        auto delay = property::message::Delay().getFrom(*msg);
         assert(0 < delay);
-        msgInfo->setDelay(0);
+        property::message::Delay().setTo(0, *msg);
         m_timer.setSingleShot(true);
         m_timer.start(static_cast<int>(delay));
     }

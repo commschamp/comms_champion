@@ -29,18 +29,34 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
+
 namespace comms_champion
 {
 
 namespace
 {
 
-void updateMsgTimestamp(MessageInfo& msgInfo, const DataInfo::Timestamp& timestamp)
+class SeqNumber : public property::message::PropBase<unsigned long long>
+{
+    typedef property::message::PropBase<unsigned long long> Base;
+public:
+    SeqNumber() : Base(Name, PropName) {};
+
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString SeqNumber::Name("cc.msg_num");
+const QByteArray SeqNumber::PropName = SeqNumber::Name.toUtf8();
+
+void updateMsgTimestamp(Message& msg, const DataInfo::Timestamp& timestamp)
 {
     auto sinceEpoch = timestamp.time_since_epoch();
     auto milliseconds =
         std::chrono::duration_cast<std::chrono::milliseconds>(sinceEpoch);
-    msgInfo.setTimestamp(milliseconds.count());
+    property::message::Timestamp().setTo(milliseconds.count(), msg);
 }
 
 }  // namespace
@@ -101,20 +117,20 @@ void MsgMgrImpl::setRecvEnabled(bool enabled)
     m_recvEnabled = enabled;
 }
 
-void MsgMgrImpl::deleteMsg(MessageInfoPtr msgInfo)
+void MsgMgrImpl::deleteMsg(MessagePtr msg)
 {
     assert(!m_allMsgs.empty());
-    assert(msgInfo);
+    assert(msg);
 
-    auto msgNum = msgInfo->getMsgNum();
+    auto msgNum = SeqNumber().getFrom(*msg);
 
     auto iter = std::lower_bound(
         m_allMsgs.begin(),
         m_allMsgs.end(),
         msgNum,
-        [](const MessageInfoPtr& msgInfoTmp, MsgNumberType val) -> bool
+        [](const MessagePtr& msgTmp, MsgNumberType val) -> bool
         {
-            return msgInfoTmp->getMsgNum() < val;
+            return SeqNumber().getFrom(*msgTmp) < val;
         });
 
     if (iter == m_allMsgs.end()) {
@@ -122,15 +138,11 @@ void MsgMgrImpl::deleteMsg(MessageInfoPtr msgInfo)
         return;
     }
 
+    assert(msg.get() == iter->get()); // Make sure that the right message is found
     m_allMsgs.erase(iter);
 }
 
-void MsgMgrImpl::deleteAllMsgs()
-{
-    m_allMsgs.clear();
-}
-
-void MsgMgrImpl::sendMsgs(MsgInfosList&& msgs)
+void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
 {
     if (msgs.empty() || (!m_socket) || (!m_protocol)) {
         return;
@@ -146,19 +158,14 @@ void MsgMgrImpl::sendMsgs(MsgInfosList&& msgs)
     }
 
     m_allMsgs.reserve(m_allMsgs.size() + msgs.size());
-    for (auto& msgInfo : msgs) {
-        assert(msgInfo);
-        updateInternalId(*msgInfo);
-        msgInfo->setMsgType(MsgType::Sent);
-        updateMsgTimestamp(*msgInfo, now);
-        m_allMsgs.push_back(msgInfo);
-        reportMsgAdded(msgInfo);
+    for (auto& m : msgs) {
+        assert(m);
+        updateInternalId(*m);
+        property::message::Type().setTo(MsgType::Sent, *m);
+        updateMsgTimestamp(*m, now);
+        m_allMsgs.push_back(m);
+        reportMsgAdded(m);
     }
-}
-
-const MsgMgrImpl::MsgsList& MsgMgrImpl::getAllMsgs() const
-{
-    return m_allMsgs;
 }
 
 void MsgMgrImpl::setSocket(SocketPtr socket)
@@ -183,61 +190,6 @@ void MsgMgrImpl::setSocket(SocketPtr socket)
     m_socket = std::move(socket);
 }
 
-//void MsgMgrImpl::removeSocket(SocketPtr socket)
-//{
-//    auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
-//    if (iter == m_sockets.end()) {
-//        assert(!"Removing sockets that wasn't added before");
-//        return;
-//    }
-//
-//    do {
-//        socket->disconnect();
-//        bool prevExists = (iter != m_sockets.begin());
-//        auto prevIter = iter;
-//        std::advance(prevIter, -1);
-//
-//        auto nextIter = iter;
-//        std::advance(nextIter, 1);
-//        bool nextExists = (nextIter != m_sockets.end());
-//
-//        if (prevExists) {
-//            disconnect(
-//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-//                socket.get(), SLOT(feedInData(DataInfoPtr)));
-//        }
-//
-//        if (nextExists) {
-//            disconnect(
-//                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
-//                socket.get(), SLOT(sendData(DataInfoPtr)));
-//        }
-//
-//        if (prevExists && nextExists) {
-//            connect(
-//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-//                (*nextIter).get(), SLOT(feedInData(DataInfoPtr)));
-//
-//            connect(
-//                (*nextIter).get(), SIGNAL(sigDataToSend(DataInfoPtr)),
-//                (*prevIter).get(), SLOT(sendData(DataInfoPtr)));
-//
-//            break;
-//        }
-//
-//        if (prevExists) {
-//            // Next doesn't exist
-//            connect(
-//                (*prevIter).get(), SIGNAL(sigDataReceived(DataInfoPtr)),
-//                this, SLOT(socketDataReceived(DataInfoPtr)));
-//            break;
-//        }
-//
-//    } while (false);
-//
-//    m_sockets.erase(iter);
-//}
-
 void MsgMgrImpl::setProtocol(ProtocolPtr protocol)
 {
     m_protocol = std::move(protocol);
@@ -255,38 +207,38 @@ void MsgMgrImpl::socketDataReceived(DataInfoPtr dataInfoPtr)
         return;
     }
 
-    for (auto& msgInfo : msgsList) {
-        assert(msgInfo);
-        updateInternalId(*msgInfo);
-        msgInfo->setMsgType(MsgType::Received);
+    for (auto& m : msgsList) {
+        assert(m);
+        updateInternalId(*m);
+        property::message::Type().setTo(MsgType::Received, *m);
 
         static const DataInfo::Timestamp DefaultTimestamp;
         if (dataInfoPtr->m_timestamp != DefaultTimestamp) {
-            updateMsgTimestamp(*msgInfo, dataInfoPtr->m_timestamp);
+            updateMsgTimestamp(*m, dataInfoPtr->m_timestamp);
         }
         else {
             auto now = DataInfo::TimestampClock::now();
-            updateMsgTimestamp(*msgInfo, now);
+            updateMsgTimestamp(*m, now);
         }
 
-        reportMsgAdded(msgInfo);
+        reportMsgAdded(m);
     }
 
     m_allMsgs.reserve(m_allMsgs.size() + msgsList.size());
     std::move(msgsList.begin(), msgsList.end(), std::back_inserter(m_allMsgs));
 }
 
-void MsgMgrImpl::updateInternalId(MessageInfo& msgInfo)
+void MsgMgrImpl::updateInternalId(Message& msg)
 {
-    msgInfo.setMsgNum(m_nextMsgNum);
+    SeqNumber().setTo(m_nextMsgNum, msg);
     ++m_nextMsgNum;
     assert(0 < m_nextMsgNum); // wrap around is not supported
 }
 
-void MsgMgrImpl::reportMsgAdded(MessageInfoPtr msgInfo)
+void MsgMgrImpl::reportMsgAdded(MessagePtr msg)
 {
     if (m_msgAddedCallback) {
-        m_msgAddedCallback(std::move(msgInfo));
+        m_msgAddedCallback(std::move(msg));
     }
 }
 

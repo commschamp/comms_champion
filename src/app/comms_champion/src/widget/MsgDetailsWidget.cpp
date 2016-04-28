@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -49,7 +49,7 @@ void MsgDetailsWidget::setEditEnabled(bool enabled)
     }
 }
 
-void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
+void MsgDetailsWidget::displayMessage(MessagePtr msg)
 {
     assert(msg);
     msg->dispatch(m_msgDisplayHandler);
@@ -65,7 +65,7 @@ void MsgDetailsWidget::displayMessage(MessageInfo::MessagePtr msg)
     m_ui.m_scrollArea->setWidget(msgWidget.release());
 }
 
-void MsgDetailsWidget::updateTitle(MessageInfo::MessagePtr msg)
+void MsgDetailsWidget::updateTitle(MessagePtr msg)
 {
     auto title = getTitlePrefix();
     title.append(": ");

@@ -18,37 +18,22 @@
 
 #pragma once
 
-#include <functional>
-
-#include "Api.h"
-#include "Message.h"
-#include "Protocol.h"
+#include "comms_champion/comms_champion.h"
+#include "cc_plugin/Message.h"
 
 namespace comms_champion
 {
 
-class MsgSendMgrImpl;
-class CC_API MsgSendMgr
+namespace demo
 {
-public:
-    typedef Protocol::MessagesList MessagesList;
-    typedef std::function<void (MessagesList&&)> SendMsgsCallbackFunc;
-    typedef std::function<void ()> SendCompleteCallbackFunc;
 
-    MsgSendMgr();
-    ~MsgSendMgr();
+namespace cc_plugin
+{
 
-    void setSendMsgsCallbackFunc(SendMsgsCallbackFunc&& func);
-    void setSendCompeteCallbackFunc(SendCompleteCallbackFunc&& func);
+typedef comms_champion::InvalidMessage<cc_plugin::Message> InvalidMessage;
 
-    void start(ProtocolPtr protocol, const MessagesList& msgs);
+}  // namespace cc_plugin
 
-    void stop();
-
-private:
-    std::unique_ptr<MsgSendMgrImpl> m_impl;
-};
+}  // namespace demo
 
 }  // namespace comms_champion
-
-

@@ -24,6 +24,8 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QCoreApplication>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
+
 namespace cc = comms_champion;
 
 namespace comms_dump
@@ -41,24 +43,23 @@ AppMgr::AppMgr()
   : m_csvDump(std::cout, Sep)
 {
     m_msgMgr.setMsgAddedCallbackFunc(
-        [this](cc::MessageInfoPtr msgInfo)
+        [this](cc::MessagePtr msg)
         {
-            auto appMsg = msgInfo->getAppMessage();
-            if (!appMsg) {
+            if (!msg) {
                 assert(!"Application message wasn't provided");
                 return;
             }
 
-            auto timestamp = msgInfo->getTimestamp();
+            auto timestamp = cc::property::message::Timestamp().getFrom(*msg);
             if (timestamp != 0) {
                 m_csvDump.outStream() << timestamp << Sep;
             }
 
-            appMsg->dispatch(m_csvDump);
+            msg->dispatch(m_csvDump);
         });
 
     m_msgSendMgr.setSendMsgsCallbackFunc(
-        [this](cc::MsgInfosList&& msgs)
+        [this](cc::MsgSendMgr::MessagesList&& msgs)
         {
             m_msgMgr.sendMsgs(std::move(msgs));
         });
@@ -99,7 +100,6 @@ bool AppMgr::start(const Config& config)
         return false;
     }
 
-    // TODO: start writing
     m_msgMgr.setRecvEnabled(true);
     m_msgMgr.start();
     m_lastWait = config.m_lastWait;

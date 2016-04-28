@@ -29,8 +29,8 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QDir>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
 #include "DefaultMessageDisplayHandler.h"
-#include "GlobalConstants.h"
 #include "PluginMgrG.h"
 
 #include <iostream>
@@ -258,12 +258,12 @@ void GuiAppMgr::sendBottomClicked()
     emit sigSendMoveSelectedBottom();
 }
 
-void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo, int idx)
+void GuiAppMgr::recvMsgClicked(MessagePtr msg, int idx)
 {
     emit sigSendMsgListClearSelection();
     emitSendNotSelected();
 
-    msgClicked(msgInfo, SelectionType::Recv);
+    msgClicked(msg, SelectionType::Recv);
     if (!m_clickedMsg) {
         emit sigRecvMsgListClearSelection();
         emitRecvNotSelected();
@@ -273,12 +273,12 @@ void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo, int idx)
     }
 }
 
-void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo, int idx)
+void GuiAppMgr::sendMsgClicked(MessagePtr msg, int idx)
 {
     emit sigRecvMsgListClearSelection();
     emitRecvNotSelected();
 
-    msgClicked(msgInfo, SelectionType::Send);
+    msgClicked(msg, SelectionType::Send);
     if (!m_clickedMsg) {
         emit sigSendMsgListClearSelection();
         emitSendNotSelected();
@@ -288,14 +288,14 @@ void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo, int idx)
     }
 }
 
-void GuiAppMgr::sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx)
+void GuiAppMgr::sendMsgDoubleClicked(MessagePtr msg, int idx)
 {
     // Equivalent to selection + edit
-    assert(msgInfo);
-    if (msgInfo != m_clickedMsg) {
-        sendMsgClicked(msgInfo, idx);
+    assert(msg);
+    if (msg != m_clickedMsg) {
+        sendMsgClicked(msg, idx);
     }
-    assert(m_clickedMsg == msgInfo);
+    assert(m_clickedMsg == msg);
     sendEditClicked();
 }
 
@@ -352,23 +352,24 @@ GuiAppMgr::SendState GuiAppMgr::sendState() const
     return m_sendState;
 }
 
-void GuiAppMgr::sendAddNewMessage(MessageInfoPtr msgInfo)
+void GuiAppMgr::sendAddNewMessage(MessagePtr msg)
 {
     ++m_sendListCount;
-    emit sigAddSendMsg(msgInfo);
+    emit sigAddSendMsg(msg);
     emit sigSendListCountReport(m_sendListCount);
-    sendMsgClicked(msgInfo, m_sendListCount - 1);
+    sendMsgClicked(msg, m_sendListCount - 1);
     assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg);
 }
 
-void GuiAppMgr::sendUpdateMessage(MessageInfoPtr msgInfo)
+void GuiAppMgr::sendUpdateMessage(MessagePtr msg)
 {
     assert(!sendListEmpty());
+    assert(msg);
     assert(m_clickedMsg);
-    assert(m_clickedMsg == msgInfo);
-    emit sigSendMsgUpdated();
-    displayMessage(std::move(msgInfo));
+    m_clickedMsg = msg;
+    emit sigSendMsgUpdated(msg);
+    displayMessage(std::move(msg));
 }
 
 bool GuiAppMgr::sendListEmpty() const
@@ -386,7 +387,7 @@ void GuiAppMgr::sendSaveMsgsToFile(const QString& filename)
     emit sigSendSaveMsgs(filename);
 }
 
-void GuiAppMgr::sendUpdateList(const MsgInfosList& msgs)
+void GuiAppMgr::sendUpdateList(const MessagesList& msgs)
 {
     decltype(m_clickedMsg) clickedMsg;
     if (m_selType == SelectionType::Send) {
@@ -398,8 +399,8 @@ void GuiAppMgr::sendUpdateList(const MsgInfosList& msgs)
     }
 
     int clickedIdx = 0;
-    for (auto& msgInfo : msgs) {
-        if (msgInfo == clickedMsg) {
+    for (auto& m : msgs) {
+        if (m == clickedMsg) {
             break;
         }
         ++clickedIdx;
@@ -412,18 +413,18 @@ void GuiAppMgr::sendUpdateList(const MsgInfosList& msgs)
     }
 }
 
-void GuiAppMgr::deleteMessages(MsgInfosList&& msgs)
+void GuiAppMgr::deleteMessages(MessagesList&& msgs)
 {
     auto& msgMgr = MsgMgrG::instanceRef();
-    for (auto& msgInfo : msgs) {
-        assert(msgInfo);
-        assert(msgInfo != m_clickedMsg);
+    for (auto& m : msgs) {
+        assert(m);
+        assert(m != m_clickedMsg);
 
-        msgMgr.deleteMsg(std::move(msgInfo));
+        msgMgr.deleteMsg(std::move(m));
     }
 }
 
-void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
+void GuiAppMgr::sendMessages(MessagesList&& msgs)
 {
     m_sendMgr.start(MsgMgrG::instanceRef().getProtocol(), std::move(msgs));
 }
@@ -541,7 +542,7 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
         this, SLOT(pendingDisplayTimeout()));
 
     m_sendMgr.setSendMsgsCallbackFunc(
-        [this](MsgInfosList&& msgsToSend)
+        [this](MessagesList&& msgsToSend)
         {
             MsgMgrG::instanceRef().sendMsgs(std::move(msgsToSend));
         });
@@ -554,9 +555,9 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
 
     auto& msgMgr = MsgMgrG::instanceRef();
     msgMgr.setMsgAddedCallbackFunc(
-        [this](MessageInfoPtr info)
+        [this](MessagePtr msg)
         {
-            msgAdded(std::move(info));
+            msgAdded(std::move(msg));
         });
 
     msgMgr.setErrorReportCallbackFunc(
@@ -576,10 +577,10 @@ void GuiAppMgr::emitSendStateUpdate()
     emit sigSetSendState(static_cast<int>(m_sendState));
 }
 
-void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
+void GuiAppMgr::msgAdded(MessagePtr msg)
 {
-    assert(msgInfo);
-    auto type = msgInfo->getMsgType();
+    assert(msg);
+    auto type = property::message::Type().getFrom(*msg);
     assert((type == MsgType::Received) || (type == MsgType::Sent));
 
 #ifndef NDEBUG
@@ -592,37 +593,25 @@ void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
         prefix = SentPrefix;
     }
 
-    auto msg = msgInfo->getAppMessage();
-    if (msg) {
-        std::cout << prefix << msg->name() << std::endl;
-    }
-    else if (msgInfo->getTransportMessage()) {
-        std:: cout << prefix << "???" << std::endl;
-    }
-    else if (msgInfo->getRawDataMessage()) {
-        std:: cout << prefix << "-#-" << std::endl;
-    }
-    else {
-        assert(!"Should not happen");
-    }
+    std::cout << prefix << msg->name() << std::endl;
 #endif
 
-    if (!canAddToRecvList(*msgInfo, type)) {
+    if (!canAddToRecvList(*msg, type)) {
         return;
     }
 
-    addMsgToRecvList(msgInfo);
+    addMsgToRecvList(msg);
 
     if (m_clickedMsg) {
         return;
     }
 
     if (m_pendingDisplayWaitInProgress) {
-        m_pendingDisplayMsg = std::move(msgInfo);
+        m_pendingDisplayMsg = std::move(msg);
         return;
     }
 
-    displayMessage(std::move(msgInfo));
+    displayMessage(std::move(msg));
 
     static const int DisplayTimeout = 250;
     m_pendingDisplayWaitInProgress = true;
@@ -642,10 +631,10 @@ void GuiAppMgr::pendingDisplayTimeout()
     }
 }
 
-void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
+void GuiAppMgr::msgClicked(MessagePtr msg, SelectionType selType)
 {
-    assert(msgInfo);
-    if (m_clickedMsg == msgInfo) {
+    assert(msg);
+    if (m_clickedMsg == msg) {
 
         assert(selType == m_selType);
         clearDisplayedMessage();
@@ -654,15 +643,15 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
     }
 
     m_selType = selType;
-    m_clickedMsg = msgInfo;
+    m_clickedMsg = msg;
     displayMessage(m_clickedMsg);
     emit sigRecvMsgListSelectOnAddEnabled(false);
 }
 
-void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)
+void GuiAppMgr::displayMessage(MessagePtr msg)
 {
     m_pendingDisplayMsg.reset();
-    emit sigDisplayMsg(msgInfo);
+    emit sigDisplayMsg(msg);
 }
 
 void GuiAppMgr::clearDisplayedMessage()
@@ -688,15 +677,15 @@ void GuiAppMgr::refreshRecvList()
     clearRecvList(false);
 
     auto& allMsgs = MsgMgrG::instanceRef().getAllMsgs();
-    for (auto& msgInfo : allMsgs) {
-        assert(msgInfo);
-        auto type = msgInfo->getMsgType();
+    for (auto& msg : allMsgs) {
+        assert(msg);
+        auto type = property::message::Type().getFrom(*msg);
 
-        if (canAddToRecvList(*msgInfo, type)) {
-            addMsgToRecvList(msgInfo);
-            if (msgInfo == clickedMsg) {
+        if (canAddToRecvList(*msg, type)) {
+            addMsgToRecvList(msg);
+            if (msg == clickedMsg) {
                 assert(0 < m_recvListCount);
-                recvMsgClicked(msgInfo, m_recvListCount - 1);
+                recvMsgClicked(msg, m_recvListCount - 1);
             }
         }
     }
@@ -706,11 +695,11 @@ void GuiAppMgr::refreshRecvList()
     }
 }
 
-void GuiAppMgr::addMsgToRecvList(MessageInfoPtr msgInfo)
+void GuiAppMgr::addMsgToRecvList(MessagePtr msg)
 {
-    assert(msgInfo);
+    assert(msg);
     ++m_recvListCount;
-    emit sigAddRecvMsg(msgInfo);
+    emit sigAddRecvMsg(msg);
     emit sigRecvListCountReport(m_recvListCount);
 }
 
@@ -737,29 +726,19 @@ void GuiAppMgr::clearRecvList(bool reportDeleted)
 }
 
 bool GuiAppMgr::canAddToRecvList(
-    const MessageInfo& msgInfo,
+    const Message& msg,
     MsgType type) const
 {
     assert((type == MsgType::Received) || (type == MsgType::Sent));
 
-    bool typeBasedResult =
-        ((type == MsgType::Received) && recvListShowsReceived()) ||
-        ((type == MsgType::Sent) && recvListShowsSent());
-
-    if (!typeBasedResult) {
-        return false;
-    }
-
     if (type == MsgType::Sent) {
-        assert(msgInfo.getAppMessage()); // Cannot be garbage
-        return true;
+        return recvListShowsSent();
     }
 
-    if (msgInfo.getAppMessage()) {
-        return true; // Show valid message
+    if (!msg.idAsString().isEmpty()) {
+        return recvListShowsReceived();
     }
 
-    // Garbage
     return recvListShowsGarbage();
 }
 

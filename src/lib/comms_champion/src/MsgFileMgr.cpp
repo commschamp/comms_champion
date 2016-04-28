@@ -31,43 +31,124 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantMap>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
+
 namespace comms_champion
 {
 
 namespace
 {
 
-const QString& getIdKeyStr()
+class IdProp : public property::message::PropBase<QString>
 {
-    static const QString Str("id");
+    typedef property::message::PropBase<QString> Base;
+public:
+    IdProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString IdProp::Name("id");
+const QByteArray IdProp::PropName = IdProp::Name.toUtf8();
+
+class DataProp : public property::message::PropBase<QString>
+{
+    typedef property::message::PropBase<QString> Base;
+public:
+    DataProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString DataProp::Name("data");
+const QByteArray DataProp::PropName = DataProp::Name.toUtf8();
+
+class DelayProp : public property::message::PropBase<unsigned long long>
+{
+    typedef property::message::PropBase<unsigned long long> Base;
+public:
+    DelayProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString DelayProp::Name("delay");
+const QByteArray DelayProp::PropName = DelayProp::Name.toUtf8();
+
+class DelayUnitsProp : public property::message::PropBase<QString>
+{
+    typedef property::message::PropBase<QString> Base;
+public:
+    DelayUnitsProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString DelayUnitsProp::Name("delay_units");
+const QByteArray DelayUnitsProp::PropName = DelayUnitsProp::Name.toUtf8();
+
+class RepeatProp : public property::message::PropBase<unsigned long long>
+{
+    typedef property::message::PropBase<unsigned long long> Base;
+public:
+    RepeatProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString RepeatProp::Name("repeat");
+const QByteArray RepeatProp::PropName = RepeatProp::Name.toUtf8();
+
+class RepeatUnitsProp : public property::message::PropBase<QString>
+{
+    typedef property::message::PropBase<QString> Base;
+public:
+    RepeatUnitsProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString RepeatUnitsProp::Name("repeat_units");
+const QByteArray RepeatUnitsProp::PropName = RepeatUnitsProp::Name.toUtf8();
+
+class RepeatCountProp : public property::message::PropBase<unsigned>
+{
+    typedef property::message::PropBase<unsigned> Base;
+public:
+    RepeatCountProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString RepeatCountProp::Name("repeat_count");
+const QByteArray RepeatCountProp::PropName = RepeatCountProp::Name.toUtf8();
+
+const QString& getRepeatCountKeyStr()
+{
+    static const QString Str("repeat_count");
     return Str;
 }
 
-const QString& getDataKeyStr()
-{
-    static const QString Str("data");
-    return Str;
-}
-
-const QString& getPropsKeyStr()
-{
-    static const QString Str("props");
-    return Str;
-}
-
-
-QVariantList convertMsgList(MsgFileMgr::Type type, const MsgInfosList& msgs)
+QVariantList convertMsgList(
+    MsgFileMgr::Type type,
+    const MsgFileMgr::MessagesList& allMsgs)
 {
     static_cast<void>(type);
     QVariantList convertedList;
-    for (auto& msgInfo : msgs) {
-        assert(msgInfo);
-        auto appMsg = msgInfo->getAppMessage();
-        if (!appMsg) {
+    for (auto& msg : allMsgs) {
+        if (!msg) {
+            assert(!"Message is expected to exist");
             continue;
         }
 
-        auto msgData = appMsg->encodeData();
+        auto msgData = msg->encodeData();
         QString msgDataStr;
         for (auto dataByte : msgData) {
             if (!msgDataStr.isEmpty()) {
@@ -78,42 +159,41 @@ QVariantList convertMsgList(MsgFileMgr::Type type, const MsgInfosList& msgs)
                     static_cast<unsigned>(dataByte), 2, 16, QChar('0')));
         }
 
-        auto& props = msgInfo->getAllProperties();
-
         QVariantMap msgInfoMap;
-        msgInfoMap.insert(getIdKeyStr(), QVariant::fromValue(appMsg->idAsString()));
-        msgInfoMap.insert(getDataKeyStr(), QVariant::fromValue(msgDataStr));
-        msgInfoMap.insert(getPropsKeyStr(), QVariant::fromValue(props));
+        IdProp().setTo(msg->idAsString(), msgInfoMap);
+        DataProp().setTo(msgDataStr, msgInfoMap);
+        DelayProp().setTo(property::message::Delay().getFrom(*msg), msgInfoMap);
+        DelayUnitsProp().setTo(property::message::DelayUnits().getFrom(*msg), msgInfoMap);
+        RepeatProp().setTo(property::message::RepeatDuration().getFrom(*msg), msgInfoMap);
+        RepeatUnitsProp().setTo(property::message::RepeatDurationUnits().getFrom(*msg), msgInfoMap);
+        RepeatCountProp().setTo(property::message::RepeatCount().getFrom(*msg), msgInfoMap);
+
+        // TODO: record custom properties
 
         convertedList.append(QVariant::fromValue(msgInfoMap));
     }
     return convertedList;
 }
 
-MsgInfosList convertMsgList(
+MsgFileMgr::MessagesList convertMsgList(
     MsgFileMgr::Type type,
     const QVariantList& msgs,
     Protocol& protocol)
 {
     static_cast<void>(type);
-    MsgInfosList convertedList;
+    MsgFileMgr::MessagesList convertedList;
     for (auto& msgMapVar : msgs) {
         if ((!msgMapVar.isValid()) || (!msgMapVar.canConvert<QVariantMap>())) {
             continue;
         }
 
         auto msgMap = msgMapVar.value<QVariantMap>();
-        auto msgIdVar = msgMap.value(getIdKeyStr());
-        if ((!msgIdVar.isValid()) || (!msgIdVar.canConvert<QString>())) {
+        auto msgId = IdProp().getFrom(msgMap);
+        if (msgId.isEmpty()) {
             continue;
         }
 
-        auto dataVar = msgMap.value(getDataKeyStr());
-        if ((!dataVar.isValid()) || (!dataVar.canConvert<QString>())) {
-            continue;
-        }
-
-        auto dataStr = dataVar.value<QString>();
+        auto dataStr = DataProp().getFrom(msgMap);
         QString stripedDataStr;
         stripedDataStr.reserve(dataStr.size());
         std::copy_if(
@@ -148,42 +228,36 @@ MsgInfosList convertMsgList(
             num.clear();
         }
 
-
-        auto msgId = msgIdVar.value<QString>();
-        MessageInfoPtr msgInfo;
+        MessagePtr msg;
         unsigned idx = 0;
-        while (!msgInfo) {
-            msgInfo = protocol.createMessage(msgId, idx);
-            if (!msgInfo) {
+        while (!msg) {
+            msg = protocol.createMessage(msgId, idx);
+            if (!msg) {
                 break;
             }
 
             ++idx;
-            auto appMsg = msgInfo->getAppMessage();
-
-            if (appMsg && appMsg->decodeData(data)) {
+            if (msg->decodeData(data)) {
                 break;
             }
 
-            if (!appMsg) {
-                assert(!"Message wasn't properly created by the protocol");
-            }
-
-            msgInfo.reset();
+            msg.reset();
         }
 
-        if (!msgInfo) {
+        if (!msg) {
             continue;
         }
 
-        protocol.updateMessageInfo(*msgInfo);
+        protocol.updateMessage(*msg);
 
-        auto propsVar = msgMap.value(getPropsKeyStr());
-        if (propsVar.isValid() && propsVar.canConvert<QVariantMap>()) {
-            msgInfo->setAllProperties(propsVar.value<QVariantMap>());
-        }
+        property::message::Delay().setTo(DelayProp().getFrom(msgMap), *msg);
+        property::message::DelayUnits().setTo(DelayUnitsProp().getFrom(msgMap), *msg);
+        property::message::RepeatDuration().setTo(RepeatProp().getFrom(msgMap), *msg);
+        property::message::RepeatDurationUnits().setTo(RepeatUnitsProp().getFrom(msgMap), *msg);
+        property::message::RepeatCount().setTo(RepeatCountProp().getFrom(msgMap), *msg);
+        // TODO: support custom properties
 
-        convertedList.push_back(std::move(msgInfo));
+        convertedList.push_back(std::move(msg));
     }
     return convertedList;
 }
@@ -202,12 +276,12 @@ const QString& MsgFileMgr::getLastFile() const
     return m_lastFile;
 }
 
-MsgInfosList MsgFileMgr::load(
+MsgFileMgr::MessagesList MsgFileMgr::load(
     Type type,
     const QString& filename,
     Protocol& protocol)
 {
-    MsgInfosList allMsgs;
+    MessagesList allMsgs;
     do {
         QFile msgsFile(filename);
         if (!msgsFile.open(QIODevice::ReadOnly)) {
@@ -239,7 +313,7 @@ MsgInfosList MsgFileMgr::load(
     return allMsgs;
 }
 
-bool MsgFileMgr::save(Type type, const QString& filename, const MsgInfosList& msgs)
+bool MsgFileMgr::save(Type type, const QString& filename, const MessagesList& msgs)
 {
     QString filenameTmp(filename);
     while (true) {

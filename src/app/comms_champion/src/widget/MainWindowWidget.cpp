@@ -82,8 +82,8 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
         guiAppMgr, SIGNAL(sigNewSendMsgDialog(ProtocolPtr)),
         this, SLOT(newSendMsgDialog(ProtocolPtr)));
     connect(
-        guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessageInfoPtr, ProtocolPtr)),
-        this, SLOT(updateSendMsgDialog(MessageInfoPtr, ProtocolPtr)));
+        guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessagePtr, ProtocolPtr)),
+        this, SLOT(updateSendMsgDialog(MessagePtr, ProtocolPtr)));
     connect(
         guiAppMgr, SIGNAL(sigPluginsEditDialog()),
         this, SLOT(pluginsEditDialog()));
@@ -120,24 +120,24 @@ MainWindowWidget::~MainWindowWidget()
 
 void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
 {
-    MessageInfoPtr msgInfo;
-    MessageUpdateDialog dialog(msgInfo, std::move(protocol), this);
+    MessagePtr msg;
+    MessageUpdateDialog dialog(msg, std::move(protocol), this);
     dialog.exec();
-    if (msgInfo) {
-        GuiAppMgr::instance()->sendAddNewMessage(std::move(msgInfo));
+    if (msg) {
+        GuiAppMgr::instance()->sendAddNewMessage(std::move(msg));
     }
 }
 
 void MainWindowWidget::updateSendMsgDialog(
-    MessageInfoPtr msgInfo,
+    MessagePtr msg,
     ProtocolPtr protocol)
 {
-    assert(msgInfo);
-    MessageUpdateDialog dialog(msgInfo, std::move(protocol), this);
+    assert(msg);
+    MessageUpdateDialog dialog(msg, std::move(protocol), this);
     int result = dialog.exec();
-    assert(msgInfo);
+    assert(msg);
     if (result != 0) {
-        GuiAppMgr::instance()->sendUpdateMessage(std::move(msgInfo));
+        GuiAppMgr::instance()->sendUpdateMessage(std::move(msg));
     }
 }
 

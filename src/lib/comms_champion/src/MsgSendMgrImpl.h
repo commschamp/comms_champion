@@ -36,6 +36,7 @@ class MsgSendMgrImpl : public QObject
 {
     Q_OBJECT
 public:
+    typedef MsgSendMgr::MessagesList MessagesList;
     typedef MsgSendMgr::SendMsgsCallbackFunc SendMsgsCallbackFunc;
     typedef MsgSendMgr::SendCompleteCallbackFunc SendCompleteCallbackFunc;
 
@@ -54,7 +55,7 @@ public:
         m_sendCompleteCallback = std::forward<TFunc>(func);
     }
 
-    void start(ProtocolPtr protocol, const MsgInfosList& msgs);
+    void start(ProtocolPtr protocol, const MessagesList& msgs);
 
     void stop();
 
@@ -65,7 +66,7 @@ private:
     SendMsgsCallbackFunc m_sendCallback;
     SendCompleteCallbackFunc m_sendCompleteCallback;
     ProtocolPtr m_protocol;
-    MsgInfosList m_msgsToSend;
+    MessagesList m_msgsToSend;
     QTimer m_timer;
 };
 

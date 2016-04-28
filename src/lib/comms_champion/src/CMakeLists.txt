@@ -14,7 +14,8 @@ function (lib_comms_champion)
     set (src
         ErrorStatus.cpp
         Message.cpp
-        MessageInfo.cpp
+        Protocol.cpp
+#        MessageInfo.cpp
         MessageHandler.cpp
         Property.cpp
         Plugin.cpp
@@ -40,6 +41,7 @@ function (lib_comms_champion)
         field_wrapper/ArrayListWrapper.cpp
         field_wrapper/FloatValueWrapper.cpp
         field_wrapper/UnknownValueWrapper.cpp
+        property/message.cpp
     )
     
     qt5_wrap_cpp(

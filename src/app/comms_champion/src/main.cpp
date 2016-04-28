@@ -44,7 +44,7 @@ const QString CleanOptStr("clean");
 
 void metaTypesRegisterAll()
 {
-    qRegisterMetaType<cc::MessageInfoPtr>();
+    qRegisterMetaType<cc::MessagePtr>();
     qRegisterMetaType<cc::ProtocolPtr>();
     qRegisterMetaType<cc::GuiAppMgr::ActionPtr>();
     qRegisterMetaType<cc::PluginMgr::PluginInfoPtr>();

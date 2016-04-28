@@ -49,7 +49,7 @@ public:
 
 private slots:
     void newSendMsgDialog(ProtocolPtr protocol);
-    void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
+    void updateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
     void pluginsEditDialog();
     void displayErrorMsg(const QString& msg);
     void addMainToolbarAction(ActionPtr action);

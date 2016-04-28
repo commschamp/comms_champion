@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -38,14 +38,14 @@ class MessageUpdateDialog : public QDialog
     using Base = QDialog;
 public:
     MessageUpdateDialog(
-        MessageInfoPtr& msgInfo,
+        MessagePtr& msg,
         ProtocolPtr protocol,
         QWidget* parentObj = nullptr);
 
 private slots:
     void msgUpdated();
     void itemClicked(QListWidgetItem* item);
-    void displayMessagePostponed(comms_champion::MessageInfoPtr msgInfo, bool force);
+    void displayMessagePostponed(comms_champion::MessagePtr msg, bool force);
     void refreshDisplayedList(const QString& searchText);
     void refreshDelayInfo(int checkboxValue);
     void delayUpdated(int value);
@@ -57,10 +57,10 @@ private slots:
     void reset();
 
 private:
-    MessageInfoPtr getMsgFromItem(QListWidgetItem* item);
+    MessagePtr getMsgFromItem(QListWidgetItem* item);
     void refreshButtons();
 
-    MessageInfoPtr& m_msgInfo;
+    MessagePtr& m_msg;
     ProtocolPtr m_protocol;
     Protocol::MessagesList m_allMsgs;
     MessageDisplayWidget* m_msgDisplayWidget = nullptr;

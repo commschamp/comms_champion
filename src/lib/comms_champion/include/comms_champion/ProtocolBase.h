@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -28,28 +28,29 @@
 
 #include "Protocol.h"
 #include "Message.h"
+#include "RawDataMessage.h"
+#include "InvalidMessage.h"
 
 namespace comms_champion
 {
 
 template <
     typename TProtStack,
-    typename TInvalidMsg,
     typename TTransportMsg,
-    typename TRawDataMsg>
+    typename TRawDataMsg = RawDataMessage<TProtStack> >
 class ProtocolBase : public Protocol
 {
 protected:
     ProtocolBase() = default;
 
     typedef TProtStack ProtocolStack;
-    typedef TInvalidMsg InvalidMsg;
     typedef TTransportMsg TransportMsg;
     typedef TRawDataMsg RawDataMsg;
     typedef typename ProtocolStack::Message ProtocolMessage;
     typedef typename ProtocolMessage::MsgIdType MsgIdType;
     typedef typename ProtocolMessage::MsgIdParamType MsgIdParamType;
     typedef typename ProtocolStack::AllMessages AllMessages;
+    typedef InvalidMessage<ProtocolMessage> InvalidMsg;
 
     static_assert(
         !std::is_void<AllMessages>::value,

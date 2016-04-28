@@ -20,9 +20,7 @@
 
 #include "comms_champion/comms_champion.h"
 #include "cc_plugin/Stack.h"
-#include "cc_plugin/InvalidMessage.h"
 #include "cc_plugin/TransportMessage.h"
-#include "cc_plugin/RawDataMessage.h"
 
 namespace comms_champion
 {
@@ -36,15 +34,13 @@ namespace cc_plugin
 class Protocol : public
     comms_champion::ProtocolBase<
         cc_plugin::Stack,
-        InvalidMessage,
-        TransportMessage,
-        RawDataMessage >
+        TransportMessage
+    >
 {
     typedef comms_champion::ProtocolBase<
         cc_plugin::Stack,
-        InvalidMessage,
-        TransportMessage,
-        RawDataMessage > Base;
+        TransportMessage
+    > Base;
 public:
     typedef typename Base::UpdateStatus UpdateStatus;
 

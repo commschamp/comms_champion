@@ -46,7 +46,7 @@ signals:
     void sigMessageSelected(MessagePtr msg, bool editEnabled);
 
 private slots:
-    void itemClicked(QTreeWidgetItem* item, int column);
+    void newItemSelected();
 
 private:
     void reportMessageSelected(QTreeWidgetItem* item);

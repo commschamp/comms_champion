@@ -29,8 +29,8 @@ ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parentObj)
 {
     m_ui.setupUi(this);
 
-    connect(m_ui.m_protocolsTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)),
-            this, SLOT(itemClicked(QTreeWidgetItem*, int)));
+    connect(m_ui.m_protocolsTreeWidget, SIGNAL(itemSelectionChanged()),
+            this, SLOT(newItemSelected()));
 }
 
 ProtocolsStackWidget::~ProtocolsStackWidget() = default;
@@ -108,9 +108,11 @@ void ProtocolsStackWidget::clear()
     m_ui.m_protocolsTreeWidget->clear();
 }
 
-void ProtocolsStackWidget::itemClicked(QTreeWidgetItem* item, int column)
+void ProtocolsStackWidget::newItemSelected()
 {
-    static_cast<void>(column);
+    assert(m_ui.m_protocolsTreeWidget != nullptr);
+    auto* item = m_ui.m_protocolsTreeWidget->currentItem();
+    assert(item != nullptr);
 
     auto msgPtrVar = item->data(0, Qt::UserRole);
     if (!msgPtrVar.isValid()) {
@@ -119,6 +121,7 @@ void ProtocolsStackWidget::itemClicked(QTreeWidgetItem* item, int column)
         assert(item != nullptr);
         msgPtrVar = item->data(0, Qt::UserRole);
         m_ui.m_protocolsTreeWidget->setCurrentItem(item);
+        assert(m_ui.m_protocolsTreeWidget->isItemSelected(item));
     }
 
     assert(msgPtrVar.isValid());

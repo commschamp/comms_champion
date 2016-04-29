@@ -262,8 +262,8 @@ MessageUpdateDialog::MessageUpdateDialog(
         this, SLOT(msgUpdated()));
 
     connect(
-        m_ui.m_msgListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
-        this, SLOT(itemClicked(QListWidgetItem*)));
+        m_ui.m_msgListWidget, SIGNAL(itemSelectionChanged()),
+        this, SLOT(newItemSelected()));
 
     connect(
         m_ui.m_searchLineEdit, SIGNAL(textChanged(const QString&)),
@@ -330,8 +330,12 @@ void MessageUpdateDialog::msgUpdated()
     //m_msgDisplayWidget->displayMessage(std::move(msg), forceUpdate);
 }
 
-void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
+void MessageUpdateDialog::newItemSelected()
 {
+    assert(m_ui.m_msgListWidget != nullptr);
+    auto* item = m_ui.m_msgListWidget->currentItem();
+    assert(item != nullptr);
+
     auto msg = getMsgFromItem(item);
     assert(msg);
 

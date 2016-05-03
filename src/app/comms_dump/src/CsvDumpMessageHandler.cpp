@@ -21,6 +21,7 @@
 #include <iomanip>
 
 #include "comms_champion/field_wrapper/FieldWrapperHandler.h"
+#include "comms_champion/property/message.h"
 
 namespace cc = comms_champion;
 
@@ -134,6 +135,7 @@ CsvDumpMessageHandler::CsvDumpMessageHandler(
     std::ostream& out,
     const std::string& sep)
   : m_out(out),
+    m_sep(sep),
     m_fieldsDump(new CsvDumpFieldsHandler(out, sep))
 {
 }
@@ -143,6 +145,35 @@ CsvDumpMessageHandler::~CsvDumpMessageHandler() = default;
 
 void CsvDumpMessageHandler::beginMsgHandlingImpl(cc::Message& msg)
 {
+    if (m_showType) {
+        static const std::string DirMap[] = {
+            "Unknown",
+            "Received",
+            "Sent"
+        };
+
+        static const auto DirMapSize =
+                                std::extent<decltype(DirMap)>::value;
+
+        static_assert(DirMapSize == static_cast<unsigned>(cc::Message::Type::NumOfValues),
+            "The map above is incorrect");
+
+        auto type = cc::property::message::Type().getFrom(msg);
+        assert((type == cc::Message::Type::Sent) ||
+               (type == cc::Message::Type::Received));
+
+        if (DirMapSize <= static_cast<unsigned>(type)) {
+            type = cc::Message::Type::Invalid;
+        }
+
+        m_out << DirMap[static_cast<unsigned>(type)] << m_sep;
+    }
+
+    auto timestamp = cc::property::message::Timestamp().getFrom(msg);
+    if (timestamp != 0) {
+        m_out << timestamp << m_sep;
+    }
+
     m_out << msg.idAsString().toStdString();
 }
 

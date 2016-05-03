@@ -41,8 +41,9 @@ namespace
 
 const QString PluginsOptStr("plugins");
 const QString OutMsgsOptStr("msgs-to-send");
-const QString InMsgsOptStr("received-msgs");
+//const QString InMsgsOptStr("received-msgs");
 const QString LastWaitOptStr("last-wait");
+const QString DumpSentOptStr("dump-sent");
 
 void metaTypesRegisterAll()
 {
@@ -70,21 +71,27 @@ void prepareCommandLineOptions(QCommandLineParser& parser)
     );
     parser.addOption(outMsgsOpt);
 
-    QCommandLineOption inMsgsOpt(
-        QStringList() << "r" << InMsgsOptStr,
-        QCoreApplication::translate("main", "Receives messages storage file."),
-        QCoreApplication::translate("main", "filename")
-    );
-    parser.addOption(inMsgsOpt);
+//    QCommandLineOption inMsgsOpt(
+//        QStringList() << "r" << InMsgsOptStr,
+//        QCoreApplication::translate("main", "Received messages storage file."),
+//        QCoreApplication::translate("main", "filename")
+//    );
+//    parser.addOption(inMsgsOpt);
 
     QCommandLineOption lastWaitOpt(
         QStringList() << "w" << LastWaitOptStr,
         QCoreApplication::translate("main", "Wait period (in milliseconds) from "
-                                            "last sent message till dump termination."
-                                            "Default is 100 ms."),
+                                            "last sent message till dump termination. "
+                                            "Default is 100 ms. 0 means infinite wait."),
         QCoreApplication::translate("main", "ms")
     );
     parser.addOption(lastWaitOpt);
+
+    QCommandLineOption dumpSentOpt(
+        DumpSentOptStr,
+        QCoreApplication::translate("main", "Dump sent messages as well.")
+    );
+    parser.addOption(dumpSentOpt);
 
 }
 
@@ -126,9 +133,9 @@ int main(int argc, char *argv[])
         config.m_outMsgsFile = parser.value(OutMsgsOptStr);
     }
 
-    if (parser.isSet(InMsgsOptStr)) {
-        config.m_inMsgsFile = parser.value(InMsgsOptStr);
-    }
+//    if (parser.isSet(InMsgsOptStr)) {
+//        config.m_inMsgsFile = parser.value(InMsgsOptStr);
+//    }
 
     config.m_lastWait = 100;
     if (parser.isSet(LastWaitOptStr)) {
@@ -140,6 +147,10 @@ int main(int argc, char *argv[])
         }
     }
 
+    if (parser.isSet(DumpSentOptStr)) {
+        config.m_showOutgoing = true;
+    }
+
     comms_dump::AppMgr appMgr;
     if (!appMgr.start(config)) {
         std::cerr << "Failed to start!" << std::endl;
@@ -149,5 +160,4 @@ int main(int argc, char *argv[])
     auto retval = app.exec();
     return retval;
 }
-
 

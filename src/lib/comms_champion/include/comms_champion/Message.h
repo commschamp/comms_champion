@@ -46,7 +46,8 @@ public:
     enum class Type {
         Invalid,
         Received,
-        Sent
+        Sent,
+        NumOfValues // Must be last
     };
 
     Message() = default;

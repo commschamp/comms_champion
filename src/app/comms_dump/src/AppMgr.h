@@ -45,7 +45,8 @@ public:
         QString m_pluginConfigFile;
         QString m_outMsgsFile;
         QString m_inMsgsFile;
-        unsigned m_lastWait;
+        unsigned m_lastWait = 0U;
+        bool m_showOutgoing = false;
     };
 
     AppMgr();
@@ -65,7 +66,7 @@ private:
     comms_champion::MsgMgr m_msgMgr;
     comms_champion::MsgFileMgr m_msgFileMgr;
     comms_champion::MsgSendMgr m_msgSendMgr;
-    unsigned m_lastWait = 0;
+    Config m_config;
     CsvDumpMessageHandler m_csvDump;
     QTimer m_flushTimer;
 };

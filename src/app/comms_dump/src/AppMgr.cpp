@@ -18,6 +18,8 @@
 #include "AppMgr.h"
 
 #include <iostream>
+#include <type_traits>
+#include <string>
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QDir>
@@ -50,9 +52,12 @@ AppMgr::AppMgr()
                 return;
             }
 
-            auto timestamp = cc::property::message::Timestamp().getFrom(*msg);
-            if (timestamp != 0) {
-                m_csvDump.outStream() << timestamp << Sep;
+            auto type = cc::property::message::Type().getFrom(*msg);
+            assert((type == cc::Message::Type::Sent) ||
+                   (type == cc::Message::Type::Received));
+            if ((type == cc::Message::Type::Sent) &&
+                (!m_config.m_showOutgoing)) {
+                return;
             }
 
             msg->dispatch(m_csvDump);
@@ -67,7 +72,11 @@ AppMgr::AppMgr()
     m_msgSendMgr.setSendCompeteCallbackFunc(
         [this]()
         {
-            QTimer::singleShot(m_lastWait, qApp, SLOT(quit()));
+            if (m_config.m_lastWait == 0U) {
+                return;
+            }
+
+            QTimer::singleShot(m_config.m_lastWait, qApp, SLOT(quit()));
         });
 
     connect(
@@ -100,9 +109,10 @@ bool AppMgr::start(const Config& config)
         return false;
     }
 
+    m_config = config;
+    m_csvDump.setShowType(m_config.m_showOutgoing);
     m_msgMgr.setRecvEnabled(true);
     m_msgMgr.start();
-    m_lastWait = config.m_lastWait;
 
     if (!config.m_outMsgsFile.isEmpty()) {
         auto protocol = m_msgMgr.getProtocol();
@@ -118,8 +128,8 @@ bool AppMgr::start(const Config& config)
             m_msgSendMgr.start(protocol, msgsToSend);
         }
     }
-    else if (0 < m_lastWait) {
-        QTimer::singleShot(m_lastWait, qApp, SLOT(quit()));
+    else if (0 < m_config.m_lastWait) {
+        QTimer::singleShot(m_config.m_lastWait, qApp, SLOT(quit()));
     }
 
     m_flushTimer.start(FlushInterval);

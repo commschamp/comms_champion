@@ -30,12 +30,20 @@ class CsvDumpFieldsHandler;
 class CsvDumpMessageHandler : public comms_champion::MessageHandler
 {
 public:
-    CsvDumpMessageHandler(std::ostream& out, const std::string& sep);
+    CsvDumpMessageHandler(
+        std::ostream& out,
+        const std::string& sep);
+
     virtual ~CsvDumpMessageHandler();
 
     std::ostream& outStream()
     {
         return m_out;
+    }
+
+    void setShowType(bool enabled)
+    {
+        m_showType = enabled;
     }
 
 protected:
@@ -45,7 +53,9 @@ protected:
 
 private:
     std::ostream& m_out;
+    std::string m_sep;
     std::unique_ptr<CsvDumpFieldsHandler> m_fieldsDump;
+    bool m_showType = false;
 };
 
 }  // namespace comms_dump

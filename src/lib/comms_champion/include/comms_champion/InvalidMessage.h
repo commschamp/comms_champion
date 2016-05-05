@@ -30,7 +30,6 @@ CC_ENABLE_WARNINGS()
 #include "comms/comms.h"
 #include "property/message.h"
 #include "ProtocolMessageBase.h"
-#include "Property.h"
 
 namespace comms_champion
 {

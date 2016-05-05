@@ -21,7 +21,7 @@
 #include <cassert>
 #include <limits>
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -80,10 +80,7 @@ void FloatValueFieldWidget::editEnabledUpdatedImpl()
 
 void FloatValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto decVar = Property::getFloatDecimals(props);
-    if (decVar.isValid() && decVar.canConvert<int>()) {
-        m_ui.m_valueSpinBox->setDecimals(decVar.value<int>());
-    }
+    m_ui.m_valueSpinBox->setDecimals(property::field::FloatValue(props).decimals());
 }
 
 void FloatValueFieldWidget::serialisedValueUpdated(const QString& value)

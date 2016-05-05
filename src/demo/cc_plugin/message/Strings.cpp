@@ -36,12 +36,14 @@ namespace message
 namespace
 {
 
+typedef demo::message::StringsFields<Strings::Field> StringsFields;
+
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(cc::Property::createPropertiesMap("field1"));
-    props.append(cc::Property::createPropertiesMap("field2"));
-    props.append(cc::Property::createPropertiesMap("field3"));
+    props.append(cc::property::field::ForField<StringsFields::field1>().name("field1").asMap());
+    props.append(cc::property::field::ForField<StringsFields::field2>().name("field2").asMap());
+    props.append(cc::property::field::ForField<StringsFields::field3>().name("field3").asMap());
 
     assert(props.size() == Strings::FieldIdx_numOfValues);
     return props;

@@ -27,7 +27,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QCheckBox>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -80,13 +80,13 @@ void OptionalFieldWidget::editEnabledUpdatedImpl()
 
 void OptionalFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto wrappedPropsVar = Property::getData(props);
-    if (wrappedPropsVar.isValid() && wrappedPropsVar.canConvert<QVariantMap>()) {
-        m_field->updateProperties(wrappedPropsVar.value<QVariantMap>());
-        refreshInternal();
-    }
+    property::field::Optional optProps(props);
+    auto& fieldPropsMap = optProps.field();
+    assert(m_field);
+    m_field->updateProperties(fieldPropsMap);
+    refreshInternal();
 
-    bool uncheckable = Property::getUncheckable(props);
+    bool uncheckable = optProps.isUncheckable();
     m_ui.m_optCheckBox->setHidden(uncheckable);
     m_ui.m_optSep->setHidden(uncheckable);
 }

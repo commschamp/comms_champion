@@ -22,7 +22,7 @@
 #include <limits>
 #include <cmath>
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -86,7 +86,8 @@ void LongIntValueFieldWidget::editEnabledUpdatedImpl()
 void LongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     auto offset =
-        static_cast<decltype(m_offset)>(Property::getNumValueDisplayOffset(props));
+        static_cast<decltype(m_offset)>(
+            property::field::IntValue(props).displayOffset());
     if (std::numeric_limits<double>::epsilon() < std::abs(m_offset - offset)) {
         m_offset = offset;
         refresh();

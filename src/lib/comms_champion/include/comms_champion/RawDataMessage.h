@@ -28,8 +28,8 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms/comms.h"
+#include "property/field.h"
 #include "ProtocolMessageBase.h"
-#include "Property.h"
 
 namespace comms_champion
 {
@@ -96,17 +96,12 @@ protected:
     }
 
 private:
-    static QVariantMap createDataProperties()
-    {
-        static const QString Name("Data");
-        QVariantMap props = Property::createPropertiesMap(Name);
-        return props;
-    }
 
     static QVariantList createFieldsProperties()
     {
         QVariantList props;
-        props.append(createDataProperties());
+        props.append(
+            property::field::ArrayList().name("Data").asMap());
         return props;
     }
 };

@@ -32,8 +32,6 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QSpinBox>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/Property.h"
-
 namespace comms_champion
 {
 
@@ -74,10 +72,11 @@ void FieldWidget::setEditEnabled(bool enabled)
 
 void FieldWidget::updateProperties(const QVariantMap& props)
 {
-    performNameLabelUpdate(props);
+    property::field::Common commonProps(props);
+    performNameLabelUpdate(commonProps);
     updatePropertiesImpl(props);
-    performUiElementsVisibilityCheck(props);
-    performUiReadOnlyCheck(props);
+    performUiElementsVisibilityCheck(commonProps);
+    performUiReadOnlyCheck(commonProps);
 }
 
 void FieldWidget::emitFieldUpdated()
@@ -150,9 +149,9 @@ void FieldWidget::updatePropertiesImpl(const QVariantMap& props)
     static_cast<void>(props);
 }
 
-void FieldWidget::performUiElementsVisibilityCheck(const QVariantMap& props)
+void FieldWidget::performUiElementsVisibilityCheck(const property::field::Common& props)
 {
-    auto allHidden = Property::getFieldHidden(props);
+    auto allHidden = props.isHidden();
     setHidden(allHidden);
     if (allHidden) {
         return;
@@ -172,32 +171,27 @@ void FieldWidget::performUiElementsVisibilityCheck(const QVariantMap& props)
             }
         };
 
-    auto serHidden = Property::getSerialisedHidden(props);
+    auto serHidden = props.isSerialisedHidden();
     setWidgetHiddenFunc(m_sepWidget, serHidden);
     setWidgetHiddenFunc(m_serValueWidget, serHidden);
 }
 
-void FieldWidget::performUiReadOnlyCheck(const QVariantMap& props)
+void FieldWidget::performUiReadOnlyCheck(const property::field::Common& props)
 {
-    auto readOnly = Property::getReadOnly(props);
+    auto readOnly = props.isReadOnly();
     if (m_forcedReadOnly != readOnly) {
         m_forcedReadOnly = readOnly;
         editEnabledUpdatedImpl();
     }
 }
 
-void FieldWidget::performNameLabelUpdate(const QVariantMap& props)
+void FieldWidget::performNameLabelUpdate(const property::field::Common& props)
 {
     if (m_nameLabel == nullptr) {
         return;
     }
 
-    auto nameProperty = Property::getName(props);
-    if ((!nameProperty.isValid()) || (!nameProperty.canConvert<QString>())) {
-        return;
-    }
-
-    auto str = nameProperty.toString();
+    auto str = props.name();
     if (str.isEmpty()) {
         m_nameLabel->hide();
         return;

@@ -38,40 +38,35 @@ namespace
 
 typedef demo::message::BitmaskValuesFields<BitmaskValues::Field> BitmaskValuesFields;
 
-QVariantMap createField1Properties()
-{
-    QVariantList bitNames;
-    bitNames.append("bit0");
-    bitNames.append("bit1");
-    bitNames.append("bit2");
-    bitNames.append("bit3");
-    bitNames.append("bit4");
-    assert(bitNames.size() == (int)BitmaskValuesFields::field1_NumOfValues);
-    return cc::Property::createPropertiesMap("field1", std::move(bitNames));
-}
-
-QVariantMap createField2Properties()
-{
-    QVariantList bitNames;
-    bitNames.append("bit0");
-    bitNames.append(QVariant());
-    bitNames.append(QVariant());
-    bitNames.append("bit3");
-    bitNames.append(QVariant());
-    bitNames.append(QVariant());
-    bitNames.append(QVariant());
-    bitNames.append(QVariant());
-    bitNames.append("bit8");
-    bitNames.append("bit9");
-    assert(bitNames.size() == (int)BitmaskValuesFields::field2_NumOfValues);
-    return cc::Property::createPropertiesMap("field2", std::move(bitNames));
-}
 
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(createField1Properties());
-    props.append(createField2Properties());
+    props.append(
+        cc::property::field::ForField<BitmaskValuesFields::field1>()
+            .name("field1")
+            .add("bit0")
+            .add("bit1")
+            .add("bit2")
+            .add("bit3")
+            .add("bit4")
+            .asMap());
+
+    assert(
+        cc::property::field::BitmaskValue(props.back())
+            .bits().size() == (int)BitmaskValuesFields::field1_NumOfValues);
+
+    props.append(
+        cc::property::field::ForField<BitmaskValuesFields::field2>()
+            .name("field2")
+            .add("bit0")
+            .add(3, "bit3")
+            .add(8, "bit8")
+            .add("bit9")
+            .asMap());
+    assert(
+        cc::property::field::BitmaskValue(props.back())
+            .bits().size() == (int)BitmaskValuesFields::field2_NumOfValues);
 
     assert(props.size() == BitmaskValues::FieldIdx_numOfValues);
     return props;

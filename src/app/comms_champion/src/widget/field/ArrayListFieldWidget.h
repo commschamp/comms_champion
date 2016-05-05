@@ -103,8 +103,6 @@ private:
     void refreshInternal();
     void updateUi();
     void addMissingFields();
-    void updateElementsProperties(const QVariantMap& props);
-    void updateElementsProperties(const QVariantList& propsList);
 
     Ui::ArrayListFieldWidget m_ui;
     WrapperPtr m_wrapper;

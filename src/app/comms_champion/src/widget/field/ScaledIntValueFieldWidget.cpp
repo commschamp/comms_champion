@@ -22,7 +22,7 @@
 #include <limits>
 #include <cmath>
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -85,14 +85,14 @@ void ScaledIntValueFieldWidget::editEnabledUpdatedImpl()
 
 void ScaledIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    assert(Property::getDisplayScaled(props));
-    auto floatDecimalsVar = Property::getFloatDecimals(props);
-    if ((!floatDecimalsVar.isValid()) ||
-        (!floatDecimalsVar.canConvert<int>())) {
+    auto decimals = property::field::IntValue(props).scaledDecimals();
+    if (decimals <= 0) {
+        assert(!"Should not happen");
+        m_ui.m_valueSpinBox->setDecimals(0);
         return;
     }
 
-    m_ui.m_valueSpinBox->setDecimals(floatDecimalsVar.value<int>());
+    m_ui.m_valueSpinBox->setDecimals(decimals);
 }
 
 void ScaledIntValueFieldWidget::serialisedValueUpdated(const QString& value)

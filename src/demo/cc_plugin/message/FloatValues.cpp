@@ -36,20 +36,24 @@ namespace message
 namespace
 {
 
-QVariantMap createField3Properties()
-{
-    auto props = cc::Property::createPropertiesMap("field3");
-    cc::Property::setDisplayScaled(props);
-    cc::Property::setFloatDecimals(props, 2);
-    return props;
-}
+typedef demo::message::FloatValuesFields<FloatValues::Field> FloatValuesFields;
 
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(cc::Property::createPropertiesMap("field1"));
-    props.append(cc::Property::createPropertiesMap("field2"));
-    props.append(createField3Properties());
+    props.append(
+        cc::property::field::ForField<FloatValuesFields::field1>()
+            .name("field1")
+            .asMap());
+    props.append(
+        cc::property::field::ForField<FloatValuesFields::field2>()
+            .name("field2")
+            .asMap());
+    props.append(
+        cc::property::field::ForField<FloatValuesFields::field3>()
+            .name("field3")
+            .scaledDecimals(2)
+            .asMap());
 
     assert(props.size() == FloatValues::FieldIdx_numOfValues);
     return props;

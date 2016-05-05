@@ -28,7 +28,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QFrame>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -80,23 +80,13 @@ void BundleFieldWidget::editEnabledUpdatedImpl()
 
 void BundleFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto dataListVar = Property::getData(props);
-    if ((!dataListVar.isValid()) || (!dataListVar.canConvert<QVariantList>())) {
-        return;
-    }
-
-    auto dataList = dataListVar.value<QVariantList>();
-    auto count = std::min((std::size_t)dataList.size(), m_members.size());
+    property::field::Bundle bundleProps(props);
+    auto& membersProps = bundleProps.members();
+    auto count = std::min((std::size_t)membersProps.size(), m_members.size());
     for (auto idx = 0U; idx < count; ++idx) {
         auto* memberFieldWidget = m_members[idx];
         assert(memberFieldWidget != nullptr);
-
-        auto& memberPropsVar = dataList[idx];
-        if ((!memberPropsVar.isValid()) || (!memberPropsVar.canConvert<QVariantMap>())) {
-            continue;
-        }
-
-        memberFieldWidget->updateProperties(memberPropsVar.value<QVariantMap>());
+        memberFieldWidget->updateProperties(membersProps[idx]);
     }
 }
 

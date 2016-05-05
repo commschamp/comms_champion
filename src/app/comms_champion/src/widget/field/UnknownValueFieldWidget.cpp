@@ -20,8 +20,6 @@
 #include <algorithm>
 #include <cassert>
 
-#include "comms_champion/Property.h"
-
 namespace comms_champion
 {
 

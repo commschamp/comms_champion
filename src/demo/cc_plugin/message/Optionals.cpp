@@ -40,29 +40,41 @@ typedef demo::message::OptionalsFields<Optionals::Field> OptionalsFields;
 
 QVariantMap createField1Properties()
 {
-    QVariantList bitNames;
-    bitNames.append("enable field2");
-    bitNames.append("enable field3");
-    assert(bitNames.size() == OptionalsFields::field1_numOfBits);
-    return cc::Property::createPropertiesMap("field1", std::move(bitNames));
+    cc::property::field::ForField<OptionalsFields::field1> props;
+    props.name("field1")
+         .add("enable_field2")
+         .add("enable_field3");
+
+    assert(props.bits().size() == OptionalsFields::field1_numOfBits);
+    return props.asMap();
 }
 
 QVariantMap createField2Properties()
 {
     static const char* Name = "field2";
-    auto fieldProps = cc::Property::createPropertiesMap(Name);
-    auto props = cc::Property::createPropertiesMap(Name, std::move(fieldProps));
-    cc::Property::setUncheckable(props);
-    return props;
+    return
+        cc::property::field::ForField<OptionalsFields::field2>()
+            .name(Name)
+            .field(
+                cc::property::field::ForField<OptionalsFields::field2::Field>()
+                    .name(Name)
+                    .asMap())
+            .setUncheckable()
+            .asMap();
 }
 
 QVariantMap createField3Properties()
 {
     static const char* Name = "field3";
-    auto fieldProps = cc::Property::createPropertiesMap(Name);
-    auto props = cc::Property::createPropertiesMap(Name, std::move(fieldProps));
-    cc::Property::setUncheckable(props);
-    return props;
+    return
+        cc::property::field::ForField<OptionalsFields::field3>()
+            .name(Name)
+            .field(
+                cc::property::field::ForField<OptionalsFields::field3::Field>()
+                    .name(Name)
+                    .asMap())
+            .setUncheckable()
+            .asMap();
 }
 
 QVariantList createFieldsProperties()

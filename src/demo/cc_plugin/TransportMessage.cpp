@@ -35,13 +35,12 @@ namespace cc_plugin
 namespace
 {
 
-QVariantMap createLengthProperties()
-{
-    auto props = cc::Property::createPropertiesMap("LENGTH");
-    cc::Property::setNumValueDisplayOffset(props, 2);
-    return props;
-}
-
+typedef TransportMessage::Field FieldBase;
+typedef cc::demo::SyncField<FieldBase> SyncField;
+typedef cc::demo::ChecksumField<FieldBase> ChecksumField;
+typedef cc::demo::LengthField<FieldBase> LengthField;
+typedef cc::demo::MsgIdField<FieldBase> MsgIdField;
+typedef cc::demo::DataField<FieldBase> DataField;
 
 QVariantMap createMsgIdProperties()
 {
@@ -59,23 +58,30 @@ QVariantMap createMsgIdProperties()
     static const auto NamesCount = std::extent<decltype(Names)>::value;
     static_assert(NamesCount == demo::MsgId_NumOfValues, "Not all messages are added");
 
+    cc::property::field::ForField<MsgIdField> props;
+    props.name("ID");
+
     QVariantList enumValues;
     for (auto name : Names) {
-        cc::Property::appendEnumValue(enumValues, name);
+        props.add(name);
     }
 
-    assert(enumValues.size() == demo::MsgId_NumOfValues);
-    return cc::Property::createPropertiesMap("ID", std::move(enumValues));
+    assert(props.values().size() == demo::MsgId_NumOfValues);
+    return props.asMap();
 }
 
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(cc::Property::createPropertiesMap("SYNC"));
-    props.append(createLengthProperties());
+    props.append(cc::property::field::ForField<SyncField>().name("SYNC").asMap());
+    props.append(
+        cc::property::field::ForField<SyncField>()
+            .name("LENGTH")
+            .displayOffset(2)
+            .asMap());
     props.append(createMsgIdProperties());
-    props.append(cc::Property::createPropertiesMap("PAYLOAD"));
-    props.append(cc::Property::createPropertiesMap("CHECKSUM"));
+    props.append(cc::property::field::ForField<SyncField>().name("PAYLOAD").asMap());
+    props.append(cc::property::field::ForField<SyncField>().name("CHECKSUM").asMap());
     assert(props.size() == TransportMessage::FieldIdx_NumOfValues);
     return props;
 }

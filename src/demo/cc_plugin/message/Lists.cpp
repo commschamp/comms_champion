@@ -40,44 +40,43 @@ typedef demo::message::ListsFields<Lists::Field> ListsFields;
 
 QVariantMap createField2Properties()
 {
-    auto createElemPropsFunc =
-        [](unsigned idx) -> QVariantMap
-        {
-            auto elemProps = cc::Property::createPropertiesMap(QString("element %1").arg(idx));
-            cc::Property::setSerialisedHidden(elemProps);
-            return elemProps;
-        };
-
     typedef ListsFields::field2 Field2;
     static const auto ElemCount =
         Field2::ParsedOptions::SequenceFixedSize;
 
-    QVariantList members;
+    cc::property::field::ForField<ListsFields::field2> props;
+    props.name("field2");
+
     for (auto idx = 0U; idx < ElemCount; ++idx) {
-        members.append(createElemPropsFunc(idx));
+        props.add(
+            cc::property::field::IntValue()
+                .name(QString("element %1").arg(idx))
+                .serialisedHidden()
+                .asMap());
     }
-    return cc::Property::createPropertiesMap("field2", std::move(members));
+    return props.asMap();
 }
 
 QVariantMap createField3Properties()
 {
-    QVariantList members;
-    members.append(cc::Property::createPropertiesMap("member1"));
-    members.append(cc::Property::createPropertiesMap("member2"));
-
-    auto bundleProps = cc::Property::createPropertiesMap("bundle", std::move(members));
-    cc::Property::setSerialisedHidden(bundleProps);
-
-    auto props = cc::Property::createPropertiesMap("field3", std::move(bundleProps));
-    cc::Property::setSerialisedHidden(props);
-    return props;
+    return
+        cc::property::field::ForField<ListsFields::field3>()
+            .name("field3")
+            .add(
+                cc::property::field::ForField<ListsFields::field3::ValueType::value_type>()
+                    .name("element")
+                    .add(cc::property::field::IntValue().name("memeber1").asMap())
+                    .add(cc::property::field::IntValue().name("memeber2").asMap())
+                    .serialisedHidden()
+                    .asMap())
+            .serialisedHidden()
+            .asMap();
 }
-
 
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(cc::Property::createPropertiesMap("field1"));
+    props.append(cc::property::field::ForField<ListsFields::field1>().name("field1").asMap());
     props.append(createField2Properties());
     props.append(createField3Properties());
 

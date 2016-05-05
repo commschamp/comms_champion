@@ -27,7 +27,6 @@
 #include "ProtocolBase.h"
 #include "PluginProperties.h"
 #include "Plugin.h"
-#include "Property.h"
 #include "ProtocolMessageBase.h"
 #include "InvalidMessage.h"
 #include "TransportMessageBase.h"
@@ -39,3 +38,4 @@
 #include "MsgSendMgr.h"
 #include "StaticSingleton.h"
 #include "property/message.h"
+#include "property/field.h"

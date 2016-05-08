@@ -26,6 +26,13 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+const int DefaultDecimals = 6;
+
+}  // namespace
+
 FloatValueFieldWidget::FloatValueFieldWidget(
     WrapperPtr wrapper,
     QWidget* parentObj)
@@ -40,6 +47,9 @@ FloatValueFieldWidget::FloatValueFieldWidget(
 
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
+    m_ui.m_valueSpinBox->setDecimals(DefaultDecimals);
+
+    refresh();
 
     connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(double)),
             this, SLOT(valueUpdated(double)));
@@ -47,7 +57,6 @@ FloatValueFieldWidget::FloatValueFieldWidget(
     connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
-    refresh();
 }
 
 FloatValueFieldWidget::~FloatValueFieldWidget() = default;
@@ -80,7 +89,11 @@ void FloatValueFieldWidget::editEnabledUpdatedImpl()
 
 void FloatValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    m_ui.m_valueSpinBox->setDecimals(property::field::FloatValue(props).decimals());
+    auto decimals = property::field::FloatValue(props).decimals();
+    if (decimals == 0) {
+        decimals = DefaultDecimals;
+    }
+    m_ui.m_valueSpinBox->setDecimals(decimals);
 }
 
 void FloatValueFieldWidget::serialisedValueUpdated(const QString& value)

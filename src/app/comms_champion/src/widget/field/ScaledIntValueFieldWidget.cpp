@@ -27,6 +27,13 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+const int DefaultInitialDecimals = 6;
+
+} // namespace
+
 ScaledIntValueFieldWidget::ScaledIntValueFieldWidget(
     WrapperPtr wrapper,
     QWidget* parentObj)
@@ -45,15 +52,15 @@ ScaledIntValueFieldWidget::ScaledIntValueFieldWidget(
     m_ui.m_valueSpinBox->setRange(
         m_wrapper->scaleValue(m_wrapper->minValue()),
         m_wrapper->scaleValue(m_wrapper->maxValue()));
-    m_ui.m_valueSpinBox->setDecimals(1);
+    m_ui.m_valueSpinBox->setDecimals(DefaultInitialDecimals);
+
+    refresh();
 
     connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(double)),
             this, SLOT(valueUpdated(double)));
 
     connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
-
-    refresh();
 }
 
 ScaledIntValueFieldWidget::~ScaledIntValueFieldWidget() = default;

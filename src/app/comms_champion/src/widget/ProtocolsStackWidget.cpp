@@ -65,6 +65,28 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
         }
 
         selectionChanged = false;
+
+        auto* secondChild = topProtocolItem->child(1);
+        if (secondChild == nullptr) {
+            assert(!"Should not happen");
+            break;
+        }
+
+        secondChild->setData(
+            0, Qt::UserRole,
+            QVariant::fromValue(property::message::TransportMsg().getFrom(*msg)));
+
+        auto* thirdChild = topProtocolItem->child(2);
+        if (thirdChild == nullptr) {
+            assert(!"Should not happen");
+            break;
+        }
+
+        thirdChild->setData(
+            0, Qt::UserRole,
+            QVariant::fromValue(property::message::RawDataMsg().getFrom(*msg)));
+
+        return;
     } while (false);
 
     assert(msg);
@@ -95,7 +117,7 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
     auto* topProtocolItem = m_ui.m_protocolsTreeWidget->topLevelItem(0);
     assert(topProtocolItem != nullptr);
     auto* firstMsgItem = topProtocolItem->child(0);
-    if (firstMsgItem != 0) {
+    if (firstMsgItem != nullptr) {
         m_ui.m_protocolsTreeWidget->setCurrentItem(firstMsgItem);
         if (selectionChanged) {
             reportMessageSelected(firstMsgItem);

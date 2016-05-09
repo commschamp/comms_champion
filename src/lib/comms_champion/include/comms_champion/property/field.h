@@ -353,7 +353,7 @@ public:
     Optional& field(QVariantMap&& fieldProps);
 
     bool isUncheckable() const;
-    Optional& setUncheckable(bool uncheckable = true);
+    Optional& uncheckable(bool value = true);
 
     QVariantMap asMap() const;
 

@@ -59,7 +59,7 @@ QVariantMap createField2Properties()
                 cc::property::field::ForField<OptionalsFields::field2::Field>()
                     .name(Name)
                     .asMap())
-            .setUncheckable()
+            .uncheckable()
             .asMap();
 }
 
@@ -73,7 +73,7 @@ QVariantMap createField3Properties()
                 cc::property::field::ForField<OptionalsFields::field3::Field>()
                     .name(Name)
                     .asMap())
-            .setUncheckable()
+            .uncheckable()
             .asMap();
 }
 

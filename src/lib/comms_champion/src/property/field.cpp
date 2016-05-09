@@ -532,9 +532,9 @@ bool Optional::isUncheckable() const
     return m_uncheckable;
 }
 
-Optional& Optional::setUncheckable(bool uncheckable)
+Optional& Optional::uncheckable(bool value)
 {
-    m_uncheckable = uncheckable;
+    m_uncheckable = value;
     return *this;
 }
 

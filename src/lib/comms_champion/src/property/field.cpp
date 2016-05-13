@@ -374,6 +374,12 @@ Bitfield& Bitfield::add(QVariantMap&& memberProps)
     return *this;
 }
 
+Bitfield& Bitfield::add(const QVariantMap& memberProps)
+{
+    m_members.append(memberProps);
+    return *this;
+}
+
 QVariantMap Bitfield::asMap() const
 {
     QVariantMap props;
@@ -415,6 +421,12 @@ const Bundle::MembersList& Bundle::members() const
 Bundle& Bundle::add(QVariantMap&& memberProps)
 {
     m_members.append(std::move(memberProps));
+    return *this;
+}
+
+Bundle& Bundle::add(const QVariantMap& memberProps)
+{
+    m_members.append(memberProps);
     return *this;
 }
 
@@ -481,6 +493,12 @@ ArrayList& ArrayList::add(QVariantMap&& elemProps)
     return *this;
 }
 
+ArrayList& ArrayList::add(const QVariantMap& elemProps)
+{
+    m_elems.append(elemProps);
+    return *this;
+}
+
 QVariantMap ArrayList::asMap() const
 {
     QVariantMap props;
@@ -524,6 +542,12 @@ const QVariantMap& Optional::field() const
 Optional& Optional::field(QVariantMap&& fieldProps)
 {
     m_field = std::move(fieldProps);
+    return *this;
+}
+
+Optional& Optional::field(const QVariantMap& fieldProps)
+{
+    m_field = fieldProps;
     return *this;
 }
 

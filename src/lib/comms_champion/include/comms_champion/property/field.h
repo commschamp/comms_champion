@@ -255,6 +255,7 @@ public:
     const MembersList& members() const;
 
     Bitfield& add(QVariantMap&& memberProps);
+    Bitfield& add(const QVariantMap& memberProps);
 
     QVariantMap asMap() const;
 private:
@@ -283,6 +284,7 @@ public:
     const MembersList& members() const;
 
     Bundle& add(QVariantMap&& memberProps);
+    Bundle& add(const QVariantMap& memberProps);
 
     QVariantMap asMap() const;
 private:
@@ -326,6 +328,7 @@ public:
 
     const ElemsList& elements() const;
     ArrayList& add(QVariantMap&& elemProps);
+    ArrayList& add(const QVariantMap& elemProps);
 
     QVariantMap asMap() const;
 
@@ -351,6 +354,7 @@ public:
 
     const QVariantMap& field() const;
     Optional& field(QVariantMap&& fieldProps);
+    Optional& field(const QVariantMap& fieldProps);
 
     bool isUncheckable() const;
     Optional& uncheckable(bool value = true);

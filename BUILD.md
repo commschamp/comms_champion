@@ -29,7 +29,10 @@ In addition to built-in options/variables of CMake, such as **CMAKE_BUILD_TYPE**
 - **CC_COMMS_UNIT_TESTS**=ON/OFF - Include/Exclude unittests of the **COMMS** library.
 Default value is **OFF**
 
-- **CC_COMMS_CHAMPION**=ON/OFF - Enable/Disable build of CommsChampion tool. Default value
+- **CC_COMMS_CHAMPION**=ON/OFF - Enable/Disable build of **comms_champion** application. Default value
+is **ON**.
+
+- **CC_COMMS_DUMP**=ON/OFF - Enable/Disable build of **comms_dump** application. Default value
 is **ON**.
 
 - **CC_COMMS_CHAMPION_DEMO**=ON/OFF - Enable/Disable build of internal "Demo" protocol

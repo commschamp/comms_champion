@@ -84,7 +84,7 @@ GUI application.
 **Demo** is a simple binary protocol which is implemented using 
 the [COMMS Library](#comms-library). The protocol definition classes are
 also extended to implement the protocol plugin for
-the [CommsChampion](#commschampion-tools) tool. The plugin is used for testing
+the [CommsChampion](#commschampion-tools) application. The plugin is used for testing
 and demostration purposes.
 
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
@@ -95,14 +95,14 @@ or browsed online [here](https://dl.dropboxusercontent.com/u/46999418/comms_cham
 # Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for
 implementation of various communication protocols and 
-the [CommsChampion](#commschampion-tools) tool just provides consistent UI 
-environment to be able to visually analyse communication protocols that were
+the [CommsChampion](#commschampion-tools) tools just provide consistent 
+environment to be able to analyse and debug communication protocols, that were
 developed using the [COMMS Library](#comms-library).
 
 There is [comms_all_protocols](https://github.com/arobenko/comms_all_protocols)
 project that serves as a bundle to compile all the communication protocols, that
 where developed using the [COMMS Library](#comms-library), and relevant plugins
-for [CommsChampion](#commschampion-tools) tool, all at once. The README file
+for [CommsChampion](#commschampion-tools) tools, all at once. The README file
 of this project contains the updated list of all the protocols that have been
 implemented and can be used as reference.
 
@@ -147,7 +147,7 @@ include paths and use the following statement in your sources:
 Nothing else is required.
 
 # How to Run CommsChampion applications
-On windows platforms just run the executable binary (**comms_champion.exe**
+On Windows platforms just run the executable binary (**comms_champion.exe**
 or **comms_dump.exe**), which resides in 
 **install/bin** subdirectory. Make sure that the directory of your QT5 dlls can 
 be found in your %PATH%.
@@ -163,6 +163,7 @@ The tools support multiple command line options, please use "-h" or "--help" for
 the full list.
 
 >$> ./install/bin/comms_champion.sh -h
+
 >$> ./install/bin/comms_dump.sh -h
 
 # Branching Model

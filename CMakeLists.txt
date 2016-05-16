@@ -3,7 +3,8 @@ project ("comms_champion")
 
 option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
 option (CC_COMMS_UNIT_TESTS "Build unittests of COMMS library" OFF)
-option (CC_COMMS_CHAMPION "Build CommsChampion application" ON)
+option (CC_COMMS_CHAMPION "Build comms_champion application" ON)
+option (CC_COMMS_DUMP "Build comms_dump application" ON)
 option (CC_COMMS_CHAMPION_DEMO "Build demo protocol plugin" ON)
 option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 

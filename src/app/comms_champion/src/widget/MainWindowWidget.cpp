@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -35,8 +35,7 @@ CC_ENABLE_WARNINGS()
 #include "MessageUpdateDialog.h"
 #include "PluginConfigDialog.h"
 #include "GuiAppMgr.h"
-#include "ConfigMgr.h"
-#include "MsgFileMgr.h"
+#include "MsgFileMgrG.h"
 #include "icon.h"
 
 namespace comms_champion
@@ -83,8 +82,8 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
         guiAppMgr, SIGNAL(sigNewSendMsgDialog(ProtocolPtr)),
         this, SLOT(newSendMsgDialog(ProtocolPtr)));
     connect(
-        guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessageInfoPtr, ProtocolPtr)),
-        this, SLOT(updateSendMsgDialog(MessageInfoPtr, ProtocolPtr)));
+        guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessagePtr, ProtocolPtr)),
+        this, SLOT(updateSendMsgDialog(MessagePtr, ProtocolPtr)));
     connect(
         guiAppMgr, SIGNAL(sigPluginsEditDialog()),
         this, SLOT(pluginsEditDialog()));
@@ -95,8 +94,8 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
         guiAppMgr, SIGNAL(sigAddMainToolbarAction(ActionPtr)),
         this, SLOT(addMainToolbarAction(ActionPtr)));
     connect(
-        guiAppMgr, SIGNAL(sigRemoveMainToolbarAction(ActionPtr)),
-        this, SLOT(removeMainToolbarAction(ActionPtr)));
+        guiAppMgr, SIGNAL(sigClearAllMainToolbarActions()),
+        this, SLOT(clearAllMainToolbarActions()));
     connect(
         guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
         this, SLOT(activeStateChanged(int)));
@@ -121,31 +120,43 @@ MainWindowWidget::~MainWindowWidget()
 
 void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
 {
-    MessageInfoPtr msgInfo;
-    MessageUpdateDialog dialog(msgInfo, std::move(protocol), this);
+    MessagePtr msg;
+    MessageUpdateDialog dialog(msg, std::move(protocol), this);
     dialog.exec();
-    if (msgInfo) {
-        GuiAppMgr::instance()->sendAddNewMessage(std::move(msgInfo));
+    if (msg) {
+        GuiAppMgr::instance()->sendAddNewMessage(std::move(msg));
     }
 }
 
 void MainWindowWidget::updateSendMsgDialog(
-    MessageInfoPtr msgInfo,
+    MessagePtr msg,
     ProtocolPtr protocol)
 {
-    assert(msgInfo);
-    MessageUpdateDialog dialog(msgInfo, std::move(protocol), this);
+    assert(msg);
+    MessageUpdateDialog dialog(msg, std::move(protocol), this);
     int result = dialog.exec();
-    assert(msgInfo);
+    assert(msg);
     if (result != 0) {
-        GuiAppMgr::instance()->sendUpdateMessage(std::move(msgInfo));
+        GuiAppMgr::instance()->sendUpdateMessage(std::move(msg));
     }
 }
 
 void MainWindowWidget::pluginsEditDialog()
 {
-    PluginConfigDialog dialog(this);
-    dialog.exec();
+    PluginMgr::ListOfPluginInfos selectedPlugins;
+    PluginConfigDialog dialog(selectedPlugins, this);
+    auto result = dialog.exec();
+    if (result != QDialog::Accepted) {
+        return;
+    }
+
+    bool applyResult = GuiAppMgr::instanceRef().applyNewPlugins(selectedPlugins);
+    if (!applyResult) {
+        QMessageBox::critical(
+            this,
+            tr("Plugins error occurred!"),
+            tr("Failed to apply requested list of plugins."));
+    }
 }
 
 void MainWindowWidget::displayErrorMsg(const QString& msg)
@@ -170,18 +181,12 @@ void MainWindowWidget::addMainToolbarAction(ActionPtr action)
     m_customActions.push_back(action);
 }
 
-void MainWindowWidget::removeMainToolbarAction(ActionPtr action)
+void MainWindowWidget::clearAllMainToolbarActions()
 {
-    auto iter = std::find(m_customActions.begin(), m_customActions.end(), action);
-    if (iter == m_customActions.end())
-    {
-        assert(!"Removing action that wasn't added");
-        return;
+    for (auto& action : m_customActions) {
+        m_toolbar->removeAction(action.get());
     }
-
-    assert(m_toolbar != nullptr);
-    m_toolbar->removeAction(action.get());
-    m_customActions.erase(iter);
+    m_customActions.clear();
 }
 
 void MainWindowWidget::activeStateChanged(int state)
@@ -252,7 +257,7 @@ void MainWindowWidget::clearCustomToolbarActions()
 
 QString MainWindowWidget::loadMsgsDialog()
 {
-    auto& msgsFileMgr = MsgFileMgr::instanceRef();
+    auto& msgsFileMgr = MsgFileMgrG::instanceRef();
     return
         QFileDialog::getOpenFileName(
             this,
@@ -264,7 +269,7 @@ QString MainWindowWidget::loadMsgsDialog()
 
 QString MainWindowWidget::saveMsgsDialog()
 {
-    auto& msgsFileMgr = MsgFileMgr::instanceRef();
+    auto& msgsFileMgr = MsgFileMgrG::instanceRef();
     return
         QFileDialog::getSaveFileName(
             this,

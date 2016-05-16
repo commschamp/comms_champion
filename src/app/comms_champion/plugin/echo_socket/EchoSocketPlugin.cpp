@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -41,30 +41,19 @@ private:
 
 EchoSocketPlugin::EchoSocketPlugin()
 {
+    pluginProperties()
+        .setSocketCreateFunc(
+            [this]()
+            {
+                return makeEchoSocket();
+            });
 }
 
-EchoSocketPlugin::~EchoSocketPlugin()
-{
-    if (isApplied()) {
-        auto& interface = ctrlInterface();
-        assert(m_socket);
-        interface.clearSocket();
-        m_socket.reset();
-    }
-}
-
-void EchoSocketPlugin::applyImpl()
-{
-    auto& interface = ctrlInterface();
-    m_socket = makeEchoSocket();
-    interface.setSocket(m_socket);
-    assert(m_socket);
-}
+EchoSocketPlugin::~EchoSocketPlugin() = default;
 
 }  // namespace dummy_socket
 
 }  // namespace plugin
-
 
 }  // namespace comms_champion
 

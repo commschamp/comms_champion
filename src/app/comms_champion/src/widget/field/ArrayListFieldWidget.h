@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -103,8 +103,6 @@ private:
     void refreshInternal();
     void updateUi();
     void addMissingFields();
-    void updateElementsProperties(const QVariantMap& props);
-    void updateElementsProperties(const QVariantList& propsList);
 
     Ui::ArrayListFieldWidget m_ui;
     WrapperPtr m_wrapper;

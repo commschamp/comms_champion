@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -19,6 +19,8 @@
 
 #include <cassert>
 
+#include "comms_champion/property/message.h"
+
 namespace comms_champion
 {
 
@@ -27,13 +29,13 @@ ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parentObj)
 {
     m_ui.setupUi(this);
 
-    connect(m_ui.m_protocolsTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)),
-            this, SLOT(itemClicked(QTreeWidgetItem*, int)));
+    connect(m_ui.m_protocolsTreeWidget, SIGNAL(itemSelectionChanged()),
+            this, SLOT(newItemSelected()));
 }
 
 ProtocolsStackWidget::~ProtocolsStackWidget() = default;
 
-void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo, bool force)
+void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
 {
     bool selectionChanged = true;
     do {
@@ -58,40 +60,64 @@ void ProtocolsStackWidget::displayMessage(MessageInfoPtr msgInfo, bool force)
         }
 
         auto storedAppMsg = msgFromItem(firstChild);
-        if (storedAppMsg != msgInfo->getAppMessage()) {
+        if (storedAppMsg != msg) {
             break;
         }
 
         selectionChanged = false;
+
+        auto* secondChild = topProtocolItem->child(1);
+        if (secondChild == nullptr) {
+            assert(!"Should not happen");
+            break;
+        }
+
+        secondChild->setData(
+            0, Qt::UserRole,
+            QVariant::fromValue(property::message::TransportMsg().getFrom(*msg)));
+
+        auto* thirdChild = topProtocolItem->child(2);
+        if (thirdChild == nullptr) {
+            assert(!"Should not happen");
+            break;
+        }
+
+        thirdChild->setData(
+            0, Qt::UserRole,
+            QVariant::fromValue(property::message::RawDataMsg().getFrom(*msg)));
+
+        return;
     } while (false);
 
-    assert(msgInfo);
+    assert(msg);
     m_ui.m_protocolsTreeWidget->clear();
-    QStringList colValues(QString(msgInfo->getProtocolName().c_str()));
+    QStringList colValues(property::message::ProtocolName().getFrom(*msg));
     auto* topLevelItem = new QTreeWidgetItem(colValues);
 
     auto addMsgFunc =
-        [&msgInfo, topLevelItem](MessageInfo::MessagePtr msg, const char* name)
+        [topLevelItem](MessagePtr msgParam, const char* name)
         {
-            if (msg) {
+            if (msgParam) {
                 QString nameStr(name);
                 QStringList msgColValues(nameStr);
                 auto* msgItem = new QTreeWidgetItem(msgColValues);
-                msgItem->setData(0, Qt::UserRole, QVariant::fromValue(msg));
+                msgItem->setData(0, Qt::UserRole, QVariant::fromValue(msgParam));
                 topLevelItem->addChild(msgItem);
             }
         };
 
-    addMsgFunc(msgInfo->getAppMessage(), "Application");
-    addMsgFunc(msgInfo->getTransportMessage(), "Transport");
-    addMsgFunc(msgInfo->getRawDataMessage(), "Raw Data");
+    if (!msg->idAsString().isEmpty()) {
+        addMsgFunc(msg, "Application");
+    }
+    addMsgFunc(property::message::TransportMsg().getFrom(*msg), "Transport");
+    addMsgFunc(property::message::RawDataMsg().getFrom(*msg), "Raw Data");
 
     m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
 
     auto* topProtocolItem = m_ui.m_protocolsTreeWidget->topLevelItem(0);
     assert(topProtocolItem != nullptr);
     auto* firstMsgItem = topProtocolItem->child(0);
-    if (firstMsgItem != 0) {
+    if (firstMsgItem != nullptr) {
         m_ui.m_protocolsTreeWidget->setCurrentItem(firstMsgItem);
         if (selectionChanged) {
             reportMessageSelected(firstMsgItem);
@@ -104,9 +130,11 @@ void ProtocolsStackWidget::clear()
     m_ui.m_protocolsTreeWidget->clear();
 }
 
-void ProtocolsStackWidget::itemClicked(QTreeWidgetItem* item, int column)
+void ProtocolsStackWidget::newItemSelected()
 {
-    static_cast<void>(column);
+    assert(m_ui.m_protocolsTreeWidget != nullptr);
+    auto* item = m_ui.m_protocolsTreeWidget->currentItem();
+    assert(item != nullptr);
 
     auto msgPtrVar = item->data(0, Qt::UserRole);
     if (!msgPtrVar.isValid()) {
@@ -115,6 +143,7 @@ void ProtocolsStackWidget::itemClicked(QTreeWidgetItem* item, int column)
         assert(item != nullptr);
         msgPtrVar = item->data(0, Qt::UserRole);
         m_ui.m_protocolsTreeWidget->setCurrentItem(item);
+        assert(m_ui.m_protocolsTreeWidget->isItemSelected(item));
     }
 
     assert(msgPtrVar.isValid());
@@ -124,16 +153,17 @@ void ProtocolsStackWidget::itemClicked(QTreeWidgetItem* item, int column)
 void ProtocolsStackWidget::reportMessageSelected(QTreeWidgetItem* item)
 {
     auto msgPtr = msgFromItem(item);
+    assert(msgPtr);
     bool editEnabled = (item == m_ui.m_protocolsTreeWidget->topLevelItem(0)->child(0));
     emit sigMessageSelected(msgPtr, editEnabled);
 }
 
-MessageInfo::MessagePtr ProtocolsStackWidget::msgFromItem(QTreeWidgetItem* item)
+MessagePtr ProtocolsStackWidget::msgFromItem(QTreeWidgetItem* item)
 {
     auto msgPtrVar = item->data(0, Qt::UserRole);
     assert(msgPtrVar.isValid());
-    assert(msgPtrVar.canConvert<MessageInfo::MessagePtr>());
-    return msgPtrVar.value<MessageInfo::MessagePtr>();
+    assert(msgPtrVar.canConvert<MessagePtr>());
+    return msgPtrVar.value<MessagePtr>();
 }
 
 }  // namespace comms_champion

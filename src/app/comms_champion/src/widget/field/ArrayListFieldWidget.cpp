@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <cassert>
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -127,19 +127,21 @@ void ArrayListFieldWidget::editEnabledUpdatedImpl()
 
 void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto elemPropsVar = Property::getData(props);
-    if (!elemPropsVar.isValid()) {
+    property::field::ArrayList arrayListProps(props);
+    auto& elementsProps = arrayListProps.elements();
+
+    m_elemProperties.clear();
+    m_elemProperties.reserve(elementsProps.size());
+    m_elemProperties.assign(elementsProps.begin(), elementsProps.end());
+
+    if (m_elemProperties.empty()) {
         return;
     }
 
-    if (elemPropsVar.canConvert<QVariantMap>()) {
-        updateElementsProperties(elemPropsVar.value<QVariantMap>());
-        return;
-    }
-
-    if (elemPropsVar.canConvert<QVariantList>()) {
-        updateElementsProperties(elemPropsVar.value<QVariantList>());
-        return;
+    unsigned idx = 0;
+    for (auto* elem : m_elements) {
+        elem->updateProperties(m_elemProperties[idx]);
+        idx = ((idx + 1) % m_elemProperties.size());
     }
 }
 
@@ -249,46 +251,6 @@ void ArrayListFieldWidget::addMissingFields()
     assert(m_elements.size() == m_wrapper->size());
     assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
 }
-
-void ArrayListFieldWidget::updateElementsProperties(const QVariantMap& props)
-{
-    m_elemProperties.clear();
-    m_elemProperties.push_back(props);
-
-    for (auto* elem : m_elements) {
-        elem->updateProperties(props);
-    }
-}
-
-void ArrayListFieldWidget::updateElementsProperties(const QVariantList& propsList)
-{
-    decltype(m_elemProperties) props;
-    for (auto idx = 0; idx < propsList.size(); ++idx) {
-        auto& elemPropsVar = propsList[idx];
-        if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
-            return;
-        }
-
-        props.push_back(elemPropsVar.value<QVariantMap>());
-    }
-
-    m_elemProperties.swap(props);
-    if (m_elemProperties.empty()) {
-        return;
-    }
-
-    auto propIdx = 0U;
-    for (auto* elemWidget : m_elements) {
-        auto& elemProps = m_elemProperties[propIdx];
-        elemWidget->updateProperties(elemProps);
-
-        ++propIdx;
-        if (m_elemProperties.size() <= propIdx) {
-            propIdx = 0U;
-        }
-    }
-}
-
 
 }  // namespace comms_champion
 

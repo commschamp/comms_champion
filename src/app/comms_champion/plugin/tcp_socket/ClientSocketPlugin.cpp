@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -42,31 +42,33 @@ const QString PortSubKey("port");
 
 ClientSocketPlugin::ClientSocketPlugin()
 {
+    pluginProperties()
+        .setSocketCreateFunc(
+            [this]()
+            {
+                createSocketIfNeeded();
+                return m_socket;
+            })
+        .setConfigWidgetCreateFunc(
+            [this]()
+            {
+                createSocketIfNeeded();
+                return new ClientSocketConfigWidget(*m_socket);
+            })
+        .setGuiActionsCreateFunc(
+            [this]() -> ListOfGuiActions
+            {
+                ListOfGuiActions list;
+                m_connectAction = new ClientConnectAction();
+                connect(
+                    m_connectAction, SIGNAL(sigConnectStateChangeReq(bool)),
+                    this, SLOT(connectStatusChangeRequest(bool)));
+                list.append(m_connectAction);
+                return list;
+            });
 }
 
-ClientSocketPlugin::~ClientSocketPlugin()
-{
-    if (isApplied()) {
-        auto& interface = ctrlInterface();
-        assert(m_socket);
-        interface.clearSocket();
-        m_socket.reset();
-
-        assert(m_connectAction);
-        interface.removeMainToolbarAction(m_connectAction);
-    }
-}
-
-void ClientSocketPlugin::applyImpl()
-{
-    createSocketIfNeeded();
-    createConnectIconIfNeeded();
-
-    auto& interface = ctrlInterface();
-    interface.setSocket(m_socket);
-    interface.addMainToolbarAction(m_connectAction);
-    assert(m_socket);
-}
+ClientSocketPlugin::~ClientSocketPlugin() = default;
 
 void ClientSocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 {
@@ -105,13 +107,6 @@ void ClientSocketPlugin::reconfigureImpl(const QVariantMap& config)
     }
 }
 
-ClientSocketPlugin::WidgetPtr ClientSocketPlugin::getConfigWidgetImpl()
-{
-    createSocketIfNeeded();
-    assert(m_socket);
-    return WidgetPtr(new ClientSocketConfigWidget(*m_socket));
-}
-
 void ClientSocketPlugin::connectStatusChangeRequest(bool connected)
 {
     assert(m_socket);
@@ -120,7 +115,7 @@ void ClientSocketPlugin::connectStatusChangeRequest(bool connected)
 
 void ClientSocketPlugin::connectionStatusChanged(bool connected)
 {
-    assert(m_connectAction);
+    assert(m_connectAction != nullptr);
     m_connectAction->setConnected(connected);
 }
 
@@ -131,16 +126,6 @@ void ClientSocketPlugin::createSocketIfNeeded()
         connect(
             m_socket.get(), SIGNAL(sigConnectionStatus(bool)),
             this, SLOT(connectionStatusChanged(bool)));
-    }
-}
-
-void ClientSocketPlugin::createConnectIconIfNeeded()
-{
-    if (!m_connectAction) {
-        m_connectAction.reset(new ClientConnectAction());
-        connect(
-            m_connectAction.get(), SIGNAL(sigConnectStateChangeReq(bool)),
-            this, SLOT(connectStatusChangeRequest(bool)));
     }
 }
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "Api.h"
-#include "PluginControlInterface.h"
+#include "PluginProperties.h"
 
 namespace comms_champion
 {
@@ -41,32 +41,30 @@ class CC_API Plugin : public QObject
 {
 public:
     typedef std::unique_ptr<QWidget> WidgetPtr;
+    typedef PluginProperties::ListOfFilters ListOfFilters;
+    typedef PluginProperties::ListOfGuiActions ListOfGuiActions;
 
     Plugin();
     virtual ~Plugin();
 
-    bool isApplied() const;
-
-    void apply(PluginControlInterface& controlInterface);
-
     void getCurrentConfig(QVariantMap& config);
-
     QVariantMap getCurrentConfig();
-
     void reconfigure(const QVariantMap& config);
 
-    WidgetPtr getConfigWidget();
+    SocketPtr createSocket() const;
+    ListOfFilters createFilters() const;
+    ProtocolPtr createProtocol() const;
+    ListOfGuiActions createGuiActions() const;
+    QWidget* createConfiguarionWidget() const;
+    QVariant getCustomProperty(const QString& name);
 
 protected:
-    virtual void applyImpl() = 0;
     virtual void getCurrentConfigImpl(QVariantMap& config);
     virtual void reconfigureImpl(const QVariantMap& config);
-    virtual WidgetPtr getConfigWidgetImpl();
-
-    PluginControlInterface& ctrlInterface();
+    PluginProperties& pluginProperties();
 
 private:
-    PluginControlInterface* m_ctrlInterface = nullptr;
+    PluginProperties m_props;
 };
 
 }  // namespace comms_champion

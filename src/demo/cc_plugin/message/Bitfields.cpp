@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -40,51 +40,59 @@ typedef demo::message::BitfieldsFields<Bitfields::Field> BitfieldsFields;
 
 QVariantMap createField1BitmaskProperties()
 {
-    QVariantList bitNames;
-    bitNames.append("bit0");
-    bitNames.append("bit1");
-    bitNames.append("bit2");
-    assert(bitNames.size() == BitfieldsFields::field1_numOfValues);
-    auto props = cc::Property::createPropertiesMap("field1_bitmask", std::move(bitNames));
-    cc::Property::setSerialisedHidden(props);
-    return props;
+    cc::property::field::BitmaskValue props;
+    props.name("field1_bitmask")
+         .serialisedHidden()
+         .add("bit0")
+         .add("bit1")
+         .add("bit2");
+
+    assert(props.bits().size() == BitfieldsFields::field1_numOfValues);
+    return props.asMap();
 }
 
 QVariantMap createField1EnumProperties()
 {
-    QVariantList enumValues;
-    cc::Property::appendEnumValue(enumValues, "Value1");
-    cc::Property::appendEnumValue(enumValues, "Value2");
-    cc::Property::appendEnumValue(enumValues, "Value3");
-    assert(enumValues.size() == (int)BitfieldsFields::Field1Enum::NumOfValues);
-    auto props = cc::Property::createPropertiesMap("field1_enum", std::move(enumValues));
-    cc::Property::setSerialisedHidden(props);
-    return props;
+    cc::property::field::EnumValue props;
+    props.name("field1_enum")
+         .serialisedHidden()
+         .add("Value1")
+         .add("Value2")
+         .add("Value3");
+
+    assert(props.values().size() == (int)BitfieldsFields::Field1Enum::NumOfValues);
+    return props.asMap();
 }
 
 QVariantMap createField1Int1Properties()
 {
-    auto props = cc::Property::createPropertiesMap("field1_int1");
-    cc::Property::setSerialisedHidden(props);
-    return props;
+    return
+        cc::property::field::IntValue()
+            .name("field1_int1")
+            .serialisedHidden()
+            .asMap();
 }
 
 QVariantMap createField1Int2Properties()
 {
-    auto props = cc::Property::createPropertiesMap("field1_int2");
-    cc::Property::setSerialisedHidden(props);
-    return props;
+    return
+        cc::property::field::IntValue()
+            .name("field1_int2")
+            .serialisedHidden()
+            .asMap();
 }
 
 QVariantMap createField1Properties()
 {
-    QVariantList members;
-    members.append(createField1BitmaskProperties());
-    members.append(createField1EnumProperties());
-    members.append(createField1Int1Properties());
-    members.append(createField1Int2Properties());
-    assert(members.size() == BitfieldsFields::field1_numOfMembers);
-    return cc::Property::createPropertiesMap("field1", std::move(members));
+    cc::property::field::Bitfield props;
+    props.name("field1")
+         .add(createField1BitmaskProperties())
+         .add(createField1EnumProperties())
+         .add(createField1Int1Properties())
+         .add(createField1Int2Properties());
+
+    assert(props.members().size() == BitfieldsFields::field1_numOfMembers);
+    return props.asMap();
 }
 
 QVariantList createFieldsProperties()

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -22,6 +22,8 @@
 #include <limits>
 #include <type_traits>
 #include <algorithm>
+#include <map>
+#include <utility>
 
 #include "comms/CompileControl.h"
 
@@ -30,8 +32,8 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QPushButton>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
 #include "DefaultMessageDisplayWidget.h"
-#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -39,10 +41,10 @@ namespace comms_champion
 namespace
 {
 
-QString getMessageNameForList(MessageInfoPtr msgInfo)
+QString getMessageNameForList(MessagePtr msg)
 {
-    auto msgPtr = msgInfo->getAppMessage();
-    return QString("(%1) %2").arg(msgPtr->idAsString()).arg(msgPtr->name());
+    assert(msg);
+    return QString("(%1) %2").arg(msg->idAsString()).arg(msg->name());
 }
 
 enum class Duration
@@ -54,6 +56,60 @@ enum class Duration
     Days,
     NumOfDurations
 };
+
+const QString& durationToString(Duration value)
+{
+    static const QString Map[] = {
+        "millisec",
+        "sec",
+        "min",
+        "hours",
+        "days"
+    };
+
+    static const std::size_t MapSize = std::extent<decltype(Map)>::value;
+
+    static_assert(MapSize == static_cast<unsigned>(Duration::NumOfDurations),
+        "Incorrect map");
+
+    auto castedValue = static_cast<unsigned>(value);
+    if (MapSize <= castedValue) {
+        castedValue = 0;
+    }
+
+    return Map[castedValue];
+}
+
+Duration stringToDuration(const QString& value)
+{
+    static const std::map<QString, Duration> Map = {
+        std::make_pair("milliseconds", Duration::Milliseconds),
+        std::make_pair("millisecond", Duration::Milliseconds),
+        std::make_pair("millisec", Duration::Milliseconds),
+        std::make_pair("ms", Duration::Milliseconds),
+        std::make_pair("seconds", Duration::Seconds),
+        std::make_pair("second", Duration::Seconds),
+        std::make_pair("sec", Duration::Seconds),
+        std::make_pair("s", Duration::Seconds),
+        std::make_pair("minutes", Duration::Minutes),
+        std::make_pair("minute", Duration::Minutes),
+        std::make_pair("min", Duration::Minutes),
+        std::make_pair("m", Duration::Minutes),
+        std::make_pair("hours", Duration::Hours),
+        std::make_pair("hour", Duration::Hours),
+        std::make_pair("h", Duration::Hours),
+        std::make_pair("days", Duration::Days),
+        std::make_pair("day", Duration::Days),
+        std::make_pair("d", Duration::Days)
+    };
+
+    auto iter = Map.find(value);
+    if (iter == Map.end()) {
+        return Duration::Milliseconds;
+    }
+
+    return iter->second;
+}
 
 void fillDurationComboBox(QComboBox& box)
 {
@@ -111,27 +167,24 @@ int msToDurationUnits(long long unsigned value, Duration dur)
 }  // namespace
 
 MessageUpdateDialog::MessageUpdateDialog(
-    MessageInfoPtr& msgInfo,
+    MessagePtr& msg,
     ProtocolPtr protocol,
     QWidget* parentObj)
   : Base(parentObj),
-    m_msgInfo(msgInfo),
+    m_msg(msg),
     m_protocol(std::move(protocol)),
     m_allMsgs(m_protocol->createAllMessages()),
     m_msgDisplayWidget(new DefaultMessageDisplayWidget())
 {
     int msgIdx = -1;
-    if (m_msgInfo) {
-        auto providedAppMsg = m_msgInfo->getAppMessage();
-        assert(providedAppMsg);
-        auto id = providedAppMsg->idAsString();
+    if (m_msg) {
+        auto id = m_msg->idAsString();
         int msgIdxTmp = 0;
-        for (auto& msgInfoTmp : m_allMsgs) {
-            auto appMsgTmp = msgInfoTmp->getAppMessage();
-            assert(appMsgTmp);
-            auto idTmp = appMsgTmp->idAsString();
-            if ((idTmp == id) && appMsgTmp->assign(*providedAppMsg)) {
-                m_protocol->updateMessageInfo(*msgInfoTmp);
+        for (auto& msgTmp : m_allMsgs) {
+            assert(msgTmp);
+            auto idTmp = msgTmp->idAsString();
+            if ((idTmp == id) && msgTmp->assign(*m_msg)) {
+                m_protocol->updateMessage(*msgTmp);
 
                 msgIdx = msgIdxTmp;
                 break;
@@ -163,44 +216,31 @@ MessageUpdateDialog::MessageUpdateDialog(
         m_msgDisplayWidget->displayMessage(
             getMsgFromItem(m_ui.m_msgListWidget->currentItem()));
 
-        auto delayVar = m_msgInfo->getExtraProperty(GlobalConstants::msgDelayPropertyName());
-        auto delayUnitsVar = m_msgInfo->getExtraProperty(GlobalConstants::msgDelayUnitsPropertyName());
-        assert(delayVar.isValid());
-        assert(delayVar.canConvert<long long unsigned>());
-        assert(delayUnitsVar.isValid());
-        assert(delayUnitsVar.canConvert<int>());
-        auto delayUnits = delayUnitsVar.value<int>();
-        auto delay =
-            msToDurationUnits(
-                delayVar.value<long long unsigned>(),
-                static_cast<Duration>(delayUnits));
+        auto delayUnits =
+            stringToDuration(property::message::DelayUnits().getFrom(*m_msg));
+        auto delay = msToDurationUnits(property::message::Delay().getFrom(*m_msg), delayUnits);
         if (delay != 0) {
             m_prevDelay = delay;
-            m_ui.m_delayUnitsComboBox->setCurrentIndex(delayUnits);
+            m_ui.m_delayUnitsComboBox->setCurrentIndex(static_cast<int>(delayUnits));
             m_ui.m_delayCheckBox->setCheckState(Qt::Checked);
         }
 
-        auto repeatVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatDurationPropertyName());
-        auto repeatUnitsVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatUnitsPropertyName());
-        assert(repeatVar.isValid());
-        assert(repeatVar.canConvert<long long unsigned>());
-        assert(repeatUnitsVar.isValid());
-        assert(repeatUnitsVar.canConvert<int>());
-        auto repeatUnits = repeatUnitsVar.value<int>();
+        auto repeatVal = property::message::RepeatDuration().getFrom(*m_msg);
+        auto repeatUnits =
+            stringToDuration(
+                property::message::RepeatDurationUnits().getFrom(*m_msg));
         auto repeatDuration =
             msToDurationUnits(
-                repeatVar.value<long long unsigned>(),
-                static_cast<Duration>(repeatUnits));
+                repeatVal,
+                repeatUnits);
         if (repeatDuration != 0) {
             m_prevRepeatDuration = repeatDuration;
-            m_ui.m_repeatUnitsComboBox->setCurrentIndex(repeatUnits);
+            m_ui.m_repeatUnitsComboBox->setCurrentIndex(static_cast<int>(repeatUnits));
             m_ui.m_repeatCheckBox->setCheckState(Qt::Checked);
         }
 
-        auto repeatCountVar = m_msgInfo->getExtraProperty(GlobalConstants::msgRepeatCountPropertyName());
-        assert(repeatCountVar.isValid());
-        assert(repeatCountVar.canConvert<int>());
-        auto repeatCount = repeatCountVar.value<int>();
+        auto repeatCount = static_cast<int>(
+            property::message::RepeatCount().getFrom(*m_msg));
         if (repeatCount != 0) {
             m_prevRepeatCount = repeatCount;
         }
@@ -222,8 +262,8 @@ MessageUpdateDialog::MessageUpdateDialog(
         this, SLOT(msgUpdated()));
 
     connect(
-        m_ui.m_msgListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
-        this, SLOT(itemClicked(QListWidgetItem*)));
+        m_ui.m_msgListWidget, SIGNAL(itemSelectionChanged()),
+        this, SLOT(newItemSelected()));
 
     connect(
         m_ui.m_searchLineEdit, SIGNAL(textChanged(const QString&)),
@@ -268,61 +308,65 @@ MessageUpdateDialog::MessageUpdateDialog(
 void MessageUpdateDialog::msgUpdated()
 {
     auto* item = m_ui.m_msgListWidget->currentItem();
-    auto msgInfoVar = item->data(Qt::UserRole);
-    assert(msgInfoVar.isValid());
-    assert(msgInfoVar.canConvert<MessageInfoPtr>());
-    auto msgInfo = msgInfoVar.value<MessageInfoPtr>();
+    auto msgVar = item->data(Qt::UserRole);
+    assert(msgVar.isValid());
+    assert(msgVar.canConvert<MessagePtr>());
+    auto msg = msgVar.value<MessagePtr>();
 
     assert(m_protocol);
-    assert(msgInfo);
-    auto status = m_protocol->updateMessageInfo(*msgInfo);
-    bool forceUpdate = (status == Protocol::UpdateStatus::AppMsgWasChanged);
+    assert(msg);
+    auto status = m_protocol->updateMessage(*msg);
+    bool forceUpdate = (status == Protocol::UpdateStatus::Changed);
     assert(m_msgDisplayWidget);
 
-    // Direct invocation of m_msgDisplayWidget->displayMessage(std::move(msgInfo))
+    // Direct invocation of m_msgDisplayWidget->displayMessage(std::move(msg))
     // in place here causes SIGSEGV. No idea why.
     QMetaObject::invokeMethod(
         this,
         "displayMessagePostponed",
         Qt::QueuedConnection,
-        Q_ARG(comms_champion::MessageInfoPtr, std::move(msgInfo)),
+        Q_ARG(comms_champion::MessagePtr, std::move(msg)),
         Q_ARG(bool, forceUpdate));
-    //m_msgDisplayWidget->displayMessage(std::move(msgInfo), forceUpdate);
+    //m_msgDisplayWidget->displayMessage(std::move(msg), forceUpdate);
 }
 
-void MessageUpdateDialog::itemClicked(QListWidgetItem* item)
+void MessageUpdateDialog::newItemSelected()
 {
-    auto msgInfo = getMsgFromItem(item);
-    assert(msgInfo);
+    assert(m_ui.m_msgListWidget != nullptr);
+    auto* item = m_ui.m_msgListWidget->currentItem();
+    assert(item != nullptr);
 
-    m_msgDisplayWidget->displayMessage(std::move(msgInfo));
+    auto msg = getMsgFromItem(item);
+    assert(msg);
+
+    m_msgDisplayWidget->displayMessage(std::move(msg));
     refreshButtons();
 }
 
-void MessageUpdateDialog::displayMessagePostponed(MessageInfoPtr msgInfo, bool force)
+void MessageUpdateDialog::displayMessagePostponed(MessagePtr msg, bool force)
 {
-    m_msgDisplayWidget->displayMessage(std::move(msgInfo), force);
+    m_msgDisplayWidget->displayMessage(std::move(msg), force);
 }
 
 void MessageUpdateDialog::refreshDisplayedList(const QString& searchText)
 {
-    MessageInfoPtr selectedInfo;
+    MessagePtr selected;
     if (0 <= m_ui.m_msgListWidget->currentRow()) {
-        selectedInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
+        selected = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
     }
 
     m_ui.m_msgListWidget->clear();
 
-    for (auto& msgInfo : m_allMsgs) {
-        auto msgName = getMessageNameForList(msgInfo);
+    for (auto& msg : m_allMsgs) {
+        auto msgName = getMessageNameForList(msg);
         if (searchText.isEmpty() || msgName.contains(searchText, Qt::CaseInsensitive)) {
             m_ui.m_msgListWidget->addItem(msgName);
             auto* item = m_ui.m_msgListWidget->item(m_ui.m_msgListWidget->count() - 1);
             item->setData(
                 Qt::UserRole,
-                QVariant::fromValue(msgInfo));
+                QVariant::fromValue(msg));
 
-            if (selectedInfo && (msgInfo.get() == selectedInfo.get())) {
+            if (selected && (msg.get() == selected.get())) {
                 m_ui.m_msgListWidget->setCurrentItem(item);
             }
         }
@@ -427,65 +471,46 @@ void MessageUpdateDialog::indefinitelyUpdated(int checkboxValue)
 
 void MessageUpdateDialog::accept()
 {
-    auto msgInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
-    if (!m_msgInfo) {
-        m_msgInfo = std::move(msgInfo);
-    }
-    else {
-        m_msgInfo->setAppMessage(msgInfo->getAppMessage());
-        m_msgInfo->setTransportMessage(msgInfo->getTransportMessage());
-        m_msgInfo->setRawDataMessage(msgInfo->getRawDataMessage());
-    }
+    auto msg = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
+    assert(msg);
 
-    assert(m_msgInfo);
+    auto delayUnits =
+        static_cast<Duration>(m_ui.m_delayUnitsComboBox->currentIndex());
+    property::message::Delay().setTo(
+        durationToMs(m_ui.m_delaySpinBox->value(), delayUnits), *msg);
+    property::message::DelayUnits().setTo(durationToString(delayUnits), *msg);
 
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgDelayPropertyName(),
-        QVariant::fromValue(
-            durationToMs(
-                m_ui.m_delaySpinBox->value(),
-                static_cast<Duration>(m_ui.m_delayUnitsComboBox->currentIndex()))));
+    auto repeatUnits =
+        static_cast<Duration>(m_ui.m_repeatUnitsComboBox->currentIndex());
+    property::message::RepeatDuration().setTo(
+        durationToMs(m_ui.m_repeatSpinBox->value(), repeatUnits), *msg);
+    property::message::RepeatDurationUnits().setTo(
+        durationToString(repeatUnits), *msg);
+    property::message::RepeatCount().setTo(
+        m_ui.m_repeatCountSpinBox->value(), *msg);
 
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgDelayUnitsPropertyName(),
-        QVariant::fromValue(m_ui.m_delayUnitsComboBox->currentIndex()));
-
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgRepeatDurationPropertyName(),
-        QVariant::fromValue(
-            durationToMs(
-                m_ui.m_repeatSpinBox->value(),
-                static_cast<Duration>(m_ui.m_repeatUnitsComboBox->currentIndex()))));
-
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgRepeatUnitsPropertyName(),
-        QVariant::fromValue(m_ui.m_repeatUnitsComboBox->currentIndex()));
-
-    m_msgInfo->setExtraProperty(
-        GlobalConstants::msgRepeatCountPropertyName(),
-        QVariant::fromValue(m_ui.m_repeatCountSpinBox->value()));
+    m_msg = std::move(msg);
+    assert(m_msg);
     Base::accept();
 }
 
 void MessageUpdateDialog::reset()
 {
-    auto msgInfo = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
-    assert(msgInfo);
-    auto msgPtr = msgInfo->getAppMessage();
-    assert(msgPtr);
-    msgPtr->reset();
-    m_protocol->updateMessageInfo(*msgInfo);
+    auto msg = getMsgFromItem(m_ui.m_msgListWidget->currentItem());
+    assert(msg);
+    msg->reset();
+    m_protocol->updateMessage(*msg);
     assert(m_msgDisplayWidget);
     m_msgDisplayWidget->refresh();
-    m_msgDisplayWidget->displayMessage(std::move(msgInfo));
+    m_msgDisplayWidget->displayMessage(std::move(msg));
 }
 
-MessageInfoPtr MessageUpdateDialog::getMsgFromItem(QListWidgetItem* item)
+MessagePtr MessageUpdateDialog::getMsgFromItem(QListWidgetItem* item)
 {
     assert(item);
     auto var = item->data(Qt::UserRole);
-    assert(var.canConvert<MessageInfoPtr>());
-    return var.value<MessageInfoPtr>();
+    assert(var.canConvert<MessagePtr>());
+    return var.value<MessagePtr>();
 }
 
 void MessageUpdateDialog::refreshButtons()

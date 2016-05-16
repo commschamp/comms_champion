@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -30,8 +30,9 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QMessageBox>
 CC_ENABLE_WARNINGS()
 
+#include "comms/util/ScopeGuard.h"
+#include "PluginMgrG.h"
 #include "icon.h"
-#include "ConfigMgr.h"
 
 namespace comms_champion
 {
@@ -55,8 +56,11 @@ void addVerLine(QBoxLayout& layout) {
 
 }  // namespace
 
-PluginConfigDialog::PluginConfigDialog(QWidget* parentObj)
+PluginConfigDialog::PluginConfigDialog(
+    ListOfPluginInfos& outputInfos,
+    QWidget* parentObj)
   : Base(parentObj),
+    m_outputInfos(outputInfos),
     m_availSearchLineEdit(new QLineEdit())
 {
     m_ui.setupUi(this);
@@ -78,7 +82,7 @@ PluginConfigDialog::PluginConfigDialog(QWidget* parentObj)
 
 void PluginConfigDialog::accept()
 {
-    auto& pluginMgr = PluginMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     auto infos = getSelectedPlugins();
     if (pluginMgr.needsReload(infos)) {
         auto answer =
@@ -89,21 +93,14 @@ void PluginConfigDialog::accept()
                    "All the plugins must be reloaded and re-applied.\n"
                    "Proceed?"));
         if (answer != QMessageBox::Yes) {
+            Base::reject();
             return;
         }
     }
 
-    bool applyResult = pluginMgr.apply(infos);
-    if (!applyResult) {
-        QMessageBox::critical(
-            this,
-            tr("Plugins error occurred!"),
-            tr("Failed to apply requested list of plugins."));
-        Base::reject();
-        return;
-    }
-
+    m_outputInfos = infos;
     Base::accept();
+    return;
 }
 
 void PluginConfigDialog::availSocketPluginClicked(QListWidgetItem* item)
@@ -160,7 +157,7 @@ void PluginConfigDialog::addClicked()
     auto pluginInfoPtr = getPluginInfo(m_currentAvailableList->currentItem());
     assert(pluginInfoPtr);
 
-    auto loadResult = PluginMgr::instanceRef().loadPlugin(*pluginInfoPtr);
+    auto loadResult = PluginMgrG::instanceRef().loadPlugin(*pluginInfoPtr);
     if (!loadResult) {
         QMessageBox::critical(
             this,
@@ -199,29 +196,26 @@ void PluginConfigDialog::searchClearClicked()
 
 void PluginConfigDialog::loadClicked()
 {
-    auto& configMgr = ConfigMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     auto filename =
         QFileDialog::getOpenFileName(
             this,
             tr("Load Configuration File"),
-            configMgr.getLastFile(),
-            configMgr.getFilesFilter());
+            pluginMgr.getLastFile(),
+            pluginMgr.getFilesFilter());
 
     if (filename.isEmpty()) {
         return;
     }
 
-    auto config = configMgr.loadConfig(filename);
-    if (config.isEmpty()) {
+    auto loadedPlugins = pluginMgr.loadPluginsFromConfigFile(filename);
+    if (loadedPlugins.empty()) {
         QMessageBox::critical(
             this,
             tr("Configuration Load Error."),
             tr("Invalid configuration file."));
         return;
     }
-
-    auto& pluginMgr = PluginMgr::instanceRef();
-    auto loadedPlugins = pluginMgr.loadPluginsFromConfig(config);
 
     refreshSelectedPlugins(loadedPlugins);
     refreshSelectedToolbar();
@@ -243,23 +237,21 @@ void PluginConfigDialog::loadClicked()
 
 void PluginConfigDialog::saveClicked()
 {
-    auto& configMgr = ConfigMgr::instanceRef();
+    auto& pluginMgr = PluginMgrG::instanceRef();
     auto filename =
         QFileDialog::getSaveFileName(
             this,
             tr("Save Configuration File"),
-            configMgr.getLastFile(),
-            configMgr.getFilesFilter());
+            pluginMgr.getLastFile(),
+            pluginMgr.getFilesFilter());
 
     if (filename.isEmpty()) {
         return;
     }
 
-    auto& pluginMgr = PluginMgr::instanceRef();
     auto infos = getSelectedPlugins();
-    auto config = pluginMgr.getConfigForPlugins(infos);
 
-    bool saveResult = configMgr.saveConfig(filename, config);
+    bool saveResult = pluginMgr.savePluginsToConfigFile(infos, filename);
     if (!saveResult) {
         QMessageBox::critical(
             this,
@@ -410,14 +402,27 @@ void PluginConfigDialog::selectedPluginClicked(
     selectedList->setCurrentItem(item);
     assert(selectedList->currentRow() == selectedList->getRow(item));
 
-    auto configWidget =
-        PluginMgr::instanceRef().getPluginConfigWidget(*pluginInfoPtr);
-    if (configWidget) {
-        m_ui.m_configScrollArea->setWidget(configWidget.release());
-    }
-    else {
-        clearConfiguration();
-    }
+    do {
+        auto clearGuard =
+            comms::util::makeScopeGuard(
+                [this]()
+                {
+                    clearConfiguration();
+                });
+
+        auto* plugin = PluginMgrG::instanceRef().loadPlugin(*pluginInfoPtr);
+        if (plugin == nullptr) {
+            break;
+        }
+
+        auto* configWidget = plugin->createConfiguarionWidget();
+        if (configWidget == nullptr) {
+            break;
+        }
+
+        clearGuard.release();
+        m_ui.m_configScrollArea->setWidget(configWidget);
+    } while (false);
 
     m_ui.m_descLabel->setText(pluginInfoPtr->getDescription());
     refreshSelectedToolbar();
@@ -619,7 +624,7 @@ void PluginConfigDialog::refreshAvailablePlugins()
             }
 
             availableList->clear();
-            auto& availablePlugins = PluginMgr::instanceRef().getAvailablePlugins();
+            auto& availablePlugins = PluginMgrG::instanceRef().getAvailablePlugins();
 
             for (auto& pluginInfoPtr : availablePlugins) {
                 auto& name = pluginInfoPtr->getName();
@@ -696,11 +701,11 @@ void PluginConfigDialog::refreshSelectedToolbar()
 
 void PluginConfigDialog::refreshSelectedPlugins()
 {
-    refreshSelectedPlugins(PluginMgr::instanceRef().getAppliedPlugins());
+    refreshSelectedPlugins(PluginMgrG::instanceRef().getAppliedPlugins());
 }
 
 void PluginConfigDialog::refreshSelectedPlugins(
-    const PluginMgr::ListOfPluginInfos& infos)
+    const ListOfPluginInfos& infos)
 {
     typedef PluginMgr::PluginInfo::Type PluginType;
     auto refreshListFunc =
@@ -835,7 +840,7 @@ void PluginConfigDialog::moveSelectedPlugin(int fromRow, int toRow)
     refreshSelectedToolbar();
 }
 
-PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
+PluginConfigDialog::PluginInfoPtr PluginConfigDialog::getPluginInfo(
     QListWidgetItem* item) const
 {
     assert(item != nullptr);
@@ -845,7 +850,7 @@ PluginMgr::PluginInfoPtr PluginConfigDialog::getPluginInfo(
     return pluginInfoPtrVar.value<PluginMgr::PluginInfoPtr>();
 }
 
-PluginMgr::ListOfPluginInfos PluginConfigDialog::getSelectedPlugins() const
+PluginConfigDialog::ListOfPluginInfos PluginConfigDialog::getSelectedPlugins() const
 {
     typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
     ListOfPluginInfos infos;

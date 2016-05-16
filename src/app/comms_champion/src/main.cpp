@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -28,10 +28,9 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/comms_champion.h"
+#include "PluginMgrG.h"
 #include "GuiAppMgr.h"
 #include "GlobalConstants.h"
-#include "ConfigMgr.h"
-#include "PluginMgr.h"
 
 #include "widget/MainWindowWidget.h"
 #include "icon.h"
@@ -45,7 +44,7 @@ const QString CleanOptStr("clean");
 
 void metaTypesRegisterAll()
 {
-    qRegisterMetaType<cc::MessageInfoPtr>();
+    qRegisterMetaType<cc::MessagePtr>();
     qRegisterMetaType<cc::ProtocolPtr>();
     qRegisterMetaType<cc::GuiAppMgr::ActionPtr>();
     qRegisterMetaType<cc::PluginMgr::PluginInfoPtr>();
@@ -54,10 +53,9 @@ void metaTypesRegisterAll()
 
 void initSingletons()
 {
-    static_cast<void>(cc::MsgMgr::instanceRef());
-    static_cast<void>(cc::ConfigMgr::instanceRef());
+    static_cast<void>(cc::PluginMgrG::instanceRef());
+    static_cast<void>(cc::MsgMgrG::instanceRef());
     static_cast<void>(cc::GuiAppMgr::instance());
-    static_cast<void>(cc::PluginMgr::instanceRef());
 }
 
 void prepareCommandLineOptions(QCommandLineParser& parser)
@@ -97,14 +95,22 @@ int main(int argc, char *argv[])
 
     app.addLibraryPath(dir.path());
 
-    auto& pluginMgr = cc::PluginMgr::instanceRef();
+    auto& pluginMgr = cc::PluginMgrG::instanceRef();
     pluginMgr.setPluginsDir(dir.path());
 
+    auto& guiAppMgr = cc::GuiAppMgr::instanceRef();
     if (parser.isSet(CleanOptStr)) {
-        pluginMgr.clean();
+        guiAppMgr.clean();
     }
 
-    pluginMgr.start();
+    guiAppMgr.start();
+
+    QObject::connect(
+        &app, &QCoreApplication::aboutToQuit,
+        []()
+        {
+            cc::MsgMgrG::instanceRef().deleteAllMsgs();
+        });
 
     auto retval = app.exec();
     return retval;

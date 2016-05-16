@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Message.h"
-#include "GlobalConstants.h"
+#include "comms_champion/property/message.h"
 
 namespace comms_champion
 {
@@ -56,24 +56,17 @@ MsgListWidget::MsgListWidget(
             this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 }
 
-void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
+void MsgListWidget::addMessage(MessagePtr msg)
 {
-    assert(msgInfo);
-    m_ui.m_listWidget->addItem(getMsgNameText(msgInfo));
+    assert(msg);
+    m_ui.m_listWidget->addItem(getMsgNameText(msg));
     auto* item = m_ui.m_listWidget->item(m_ui.m_listWidget->count() - 1);
     item->setToolTip(msgTooltipImpl());
 
-    bool valid = false;
-    auto appMsgPtr = msgInfo->getAppMessage();
-    if (appMsgPtr) {
-        valid = appMsgPtr->isValid();
-    }
+    bool valid = msg->isValid();
 
-    auto typeVar =
-        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
-    if (typeVar.isValid()) {
-        assert(typeVar.canConvert<int>());
-        auto type = static_cast<MsgType>(typeVar.value<int>());
+    auto type = property::message::Type().getFrom(*msg);
+    if ((type != MsgType::Invalid) && (!msg->idAsString().isEmpty())) {
         item->setForeground(getItemColourImpl(type, valid));
     }
     else {
@@ -82,10 +75,9 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
 
     item->setData(
         Qt::UserRole,
-        QVariant::fromValue(msgInfo));
+        QVariant::fromValue(msg));
 
     if (m_selectOnAdd) {
-//        m_ui.m_listWidget->setCurrentItem(item);
         m_ui.m_listWidget->setCurrentRow(m_ui.m_listWidget->count() - 1);
         assert(m_ui.m_listWidget->currentItem() == item);
     }
@@ -97,7 +89,7 @@ void MsgListWidget::addMessage(MessageInfoPtr msgInfo)
     updateTitle();
 }
 
-void MsgListWidget::updateCurrentMessage()
+void MsgListWidget::updateCurrentMessage(MessagePtr msg)
 {
     auto* item = m_ui.m_listWidget->currentItem();
     if (item == nullptr) {
@@ -105,21 +97,21 @@ void MsgListWidget::updateCurrentMessage()
         return;
     }
 
-    auto msgInfo = getMsgFromItem(item);
-    assert(msgInfo);
-    item->setText(getMsgNameText(msgInfo));
+    item->setData(
+        Qt::UserRole,
+        QVariant::fromValue(msg));
 
-    bool valid = false;
-    auto appMsgPtr = msgInfo->getAppMessage();
-    if (appMsgPtr) {
-        valid = appMsgPtr->isValid();
+    item->setText(getMsgNameText(msg));
+
+    if ((!msg) || (msg->idAsString().isEmpty())) {
+        item->setForeground(defaultItemColour(false));
+        return;
     }
 
-    auto typeVar =
-        msgInfo->getExtraProperty(GlobalConstants::msgTypePropertyName());
-    if (typeVar.isValid()) {
-        assert(typeVar.canConvert<int>());
-        auto type = static_cast<MsgType>(typeVar.value<int>());
+    bool valid = msg->isValid();
+
+    auto type = property::message::Type().getFrom(*msg);
+    if (type != MsgType::Invalid) {
         item->setForeground(getItemColourImpl(type, valid));
     }
     else {
@@ -159,20 +151,20 @@ void MsgListWidget::clearSelection()
 
 void MsgListWidget::clearList(bool reportDeleted)
 {
-    MsgInfosList msgInfosList;
+    MessagesList msgsList;
     if (reportDeleted) {
         auto count = m_ui.m_listWidget->count();
         for (auto idx = 0; idx < count; ++idx) {
             auto* item = m_ui.m_listWidget->item(idx);
-            auto msgInfo = getMsgFromItem(item);
-            msgInfosList.push_back(std::move(msgInfo));
+            auto msg = getMsgFromItem(item);
+            msgsList.push_back(std::move(msg));
         }
     }
 
     clearList();
 
     if (reportDeleted) {
-        msgListClearedImpl(std::move(msgInfosList));
+        msgListClearedImpl(std::move(msgsList));
     }
 }
 
@@ -260,26 +252,26 @@ void MsgListWidget::selectMsg(int idx)
     m_ui.m_listWidget->setCurrentRow(idx);
 }
 
-void MsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
+void MsgListWidget::msgClickedImpl(MessagePtr msg, int idx)
 {
-    static_cast<void>(msgInfo);
+    static_cast<void>(msg);
     static_cast<void>(idx);
 }
 
-void MsgListWidget::msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx)
+void MsgListWidget::msgDoubleClickedImpl(MessagePtr msg, int idx)
 {
-    static_cast<void>(msgInfo);
+    static_cast<void>(msg);
     static_cast<void>(idx);
 }
 
-void MsgListWidget::msgListClearedImpl(MsgInfosList&& msgInfosList)
+void MsgListWidget::msgListClearedImpl(MessagesList&& msgs)
 {
-    static_cast<void>(msgInfosList);
+    static_cast<void>(msgs);
 }
 
-QString MsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
+QString MsgListWidget::msgPrefixImpl(const Message& msg) const
 {
-    static_cast<void>(msgInfo);
+    static_cast<void>(msg);
     return QString();
 }
 
@@ -321,21 +313,21 @@ void MsgListWidget::saveMessagesImpl(const QString& filename)
     static_cast<void>(filename);
 }
 
-MessageInfoPtr MsgListWidget::currentMsg() const
+MessagePtr MsgListWidget::currentMsg() const
 {
     auto* item = m_ui.m_listWidget->currentItem();
     assert(item != nullptr);
     return getMsgFromItem(item);
 }
 
-MsgInfosList MsgListWidget::allMsgs() const
+MsgListWidget::MessagesList MsgListWidget::allMsgs() const
 {
-    MsgInfosList allMsgsList;
+    MessagesList allMsgsList;
     for (auto idx = 0; idx < m_ui.m_listWidget->count(); ++idx) {
         auto* item = m_ui.m_listWidget->item(idx);
-        auto msgInfoPtr = getMsgFromItem(item);
-        assert(msgInfoPtr);
-        allMsgsList.push_back(std::move(msgInfoPtr));
+        auto msgPtr = getMsgFromItem(item);
+        assert(msgPtr);
+        allMsgsList.push_back(std::move(msgPtr));
     }
     return allMsgsList;
 }
@@ -354,39 +346,21 @@ void MsgListWidget::itemDoubleClicked(QListWidgetItem* item)
         m_ui.m_listWidget->row(item));
 }
 
-MessageInfoPtr MsgListWidget::getMsgFromItem(QListWidgetItem* item) const
+MessagePtr MsgListWidget::getMsgFromItem(QListWidgetItem* item) const
 {
     auto var = item->data(Qt::UserRole);
-    assert(var.canConvert<MessageInfoPtr>());
-    return var.value<MessageInfoPtr>();
+    assert(var.canConvert<MessagePtr>());
+    return var.value<MessagePtr>();
 }
 
-QString MsgListWidget::getMsgNameText(MessageInfoPtr msgInfo)
+QString MsgListWidget::getMsgNameText(MessagePtr msg)
 {
-    assert(msgInfo);
-    auto itemStr = msgPrefixImpl(*msgInfo);
+    assert(msg);
+    auto itemStr = msgPrefixImpl(*msg);
     if (!itemStr.isEmpty()) {
         itemStr.append(": ");
     }
-
-    do {
-        auto appMsg = msgInfo->getAppMessage();
-        if (appMsg) {
-            itemStr.append(appMsg->name());
-            break;
-        }
-
-        if (msgInfo->getTransportMessage()) {
-            static const QString UnknownMsgName("???");
-            itemStr.append(UnknownMsgName);
-            break;
-        }
-
-        assert(msgInfo->getRawDataMessage());
-        static const QString GarbageMsgName("-#-");
-        itemStr.append(GarbageMsgName);
-    } while (false);
-
+    itemStr.append(msg->name());
     return itemStr;
 }
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QFrame>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -92,24 +92,13 @@ void BitfieldFieldWidget::editEnabledUpdatedImpl()
 
 void BitfieldFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto dataListVar = Property::getData(props);
-    if ((!dataListVar.isValid()) || (!dataListVar.canConvert<QVariantList>())) {
-        return;
-    }
-
-    auto dataList = dataListVar.value<QVariantList>();
-    auto count = std::min((std::size_t)dataList.size(), m_members.size());
+    property::field::Bitfield bitfieldProps(props);
+    auto& membersProps = bitfieldProps.members();
+    auto count = std::min((std::size_t)membersProps.size(), m_members.size());
     for (auto idx = 0U; idx < count; ++idx) {
-        auto& memberPropsVar = dataList[idx];
-        if ((!memberPropsVar.isValid()) || (!memberPropsVar.canConvert<QVariantMap>())) {
-            continue;
-        }
-
-        auto memberProps = memberPropsVar.value<QVariantMap>();
-
         auto* memberFieldWidget = m_members[idx];
         assert(memberFieldWidget != nullptr);
-        memberFieldWidget->updateProperties(memberProps);
+        memberFieldWidget->updateProperties(membersProps[idx]);
     }
 }
 

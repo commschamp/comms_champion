@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -47,26 +47,22 @@ const QString FlowControlSubKey("flow");
 
 SerialSocketPlugin::SerialSocketPlugin()
 {
+    pluginProperties()
+        .setSocketCreateFunc(
+            [this]()
+            {
+                createSocketIfNeeded();
+                return m_socket;
+            })
+        .setConfigWidgetCreateFunc(
+            [this]()
+            {
+                createSocketIfNeeded();
+                return new SerialSocketConfigWidget(*m_socket);
+            });
 }
 
-SerialSocketPlugin::~SerialSocketPlugin()
-{
-    if (isApplied()) {
-        auto& interface = ctrlInterface();
-        assert(m_socket);
-        interface.clearSocket();
-        m_socket.reset();
-    }
-}
-
-void SerialSocketPlugin::applyImpl()
-{
-    createSocketIfNeeded();
-
-    auto& interface = ctrlInterface();
-    interface.setSocket(m_socket);
-    assert(m_socket);
-}
+SerialSocketPlugin::~SerialSocketPlugin() = default;
 
 void SerialSocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 {
@@ -138,13 +134,6 @@ void SerialSocketPlugin::reconfigureImpl(const QVariantMap& config)
             m_socket->flowControl() = flow;
         }
     }
-}
-
-SerialSocketPlugin::WidgetPtr SerialSocketPlugin::getConfigWidgetImpl()
-{
-    createSocketIfNeeded();
-    assert(m_socket);
-    return WidgetPtr(new SerialSocketConfigWidget(*m_socket));
 }
 
 void SerialSocketPlugin::createSocketIfNeeded()

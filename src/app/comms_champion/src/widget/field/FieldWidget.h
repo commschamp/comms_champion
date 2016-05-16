@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -27,6 +27,8 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantMap>
 #include <QtWidgets/QWidget>
 CC_ENABLE_WARNINGS()
+
+#include "comms_champion/property/field.h"
 
 class QLineEdit;
 class QLabel;
@@ -108,9 +110,9 @@ protected:
     virtual void updatePropertiesImpl(const QVariantMap& props);
 
 private:
-    void performUiElementsVisibilityCheck(const QVariantMap& props);
-    void performUiReadOnlyCheck(const QVariantMap& props);
-    void performNameLabelUpdate(const QVariantMap& props);
+    void performUiElementsVisibilityCheck(const property::field::Common& props);
+    void performUiReadOnlyCheck(const property::field::Common& props);
+    void performNameLabelUpdate(const property::field::Common& props);
 
     bool m_forcedReadOnly = false;
     bool m_editEnabled = true;

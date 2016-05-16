@@ -13,16 +13,12 @@ function (bin_comms_champion)
 
     set (src
         main.cpp
-        MsgMgr.cpp
         GuiAppMgr.cpp
         GlobalConstants.cpp
         DefaultMessageDisplayHandler.cpp
-        ConfigMgr.cpp
-        MsgFileMgr.cpp
-        PluginMgr.cpp
-        PluginControlInterfaceImpl.cpp
-        PluginControlInterfaceSocket.cpp
-        PluginControlInterfaceProtocol.cpp
+        MsgFileMgrG.cpp
+        PluginMgrG.cpp
+        MsgMgrG.cpp
         icon.cpp
         widget/MainWindowWidget.cpp
         widget/LeftPaneWidget.cpp
@@ -60,9 +56,6 @@ function (bin_comms_champion)
     qt5_wrap_cpp(
         moc
         GuiAppMgr.h
-        MsgMgr.h
-        PluginMgr.h
-        PluginControlInterfaceImpl.h
         widget/MessageDisplayWidget.h
         widget/MessageWidget.h
         widget/DefaultMessageWidget.h

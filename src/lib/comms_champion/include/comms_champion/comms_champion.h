@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -25,11 +25,17 @@
 #include "ErrorStatus.h"
 #include "Protocol.h"
 #include "ProtocolBase.h"
-#include "PluginControlInterface.h"
+#include "PluginProperties.h"
 #include "Plugin.h"
-#include "MessageInfo.h"
-#include "Property.h"
 #include "ProtocolMessageBase.h"
+#include "InvalidMessage.h"
 #include "TransportMessageBase.h"
 #include "RawDataMessage.h"
 #include "field_wrapper/FieldWrapperHandler.h"
+#include "InvalidMessage.h"
+#include "MsgMgr.h"
+#include "MsgFileMgr.h"
+#include "MsgSendMgr.h"
+#include "StaticSingleton.h"
+#include "property/message.h"
+#include "property/field.h"

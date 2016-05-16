@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -33,15 +33,15 @@ public:
     DefaultMessageDisplayWidget(QWidget* parentObj = nullptr);
 
 protected:
-    virtual void displayMessageImpl(MessageInfoPtr msgInfo, bool force) override;
+    virtual void displayMessageImpl(MessagePtr msg, bool force) override;
     virtual void setEditEnabledImpl(bool enabled) override;
     virtual void clearImpl() override;
     virtual void refreshImpl() override;
 
 private slots:
-    void msgSelectedInProtocol(MessageInfo::MessagePtr msg, bool editEnabled);
+    void msgSelectedInProtocol(MessagePtr msg, bool editEnabled);
 private:
-    MessageInfoPtr m_currMsg;
+    MessagePtr m_currMsg;
     MsgDetailsWidget* m_msgDetailsWidget = nullptr;
     ProtocolsStackWidget* m_protocolsDetailsWidget = nullptr;
     bool m_globalEditEnabled = true;

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #include <cassert>
 #include <limits>
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -82,7 +82,8 @@ void ShortIntValueFieldWidget::editEnabledUpdatedImpl()
 void ShortIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     auto offset =
-        static_cast<decltype(m_offset)>(Property::getNumValueDisplayOffset(props));
+        static_cast<decltype(m_offset)>(
+            property::field::IntValue(props).displayOffset());
     if (m_offset != offset) {
         m_offset = offset;
         refresh();

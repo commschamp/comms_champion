@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -41,8 +41,6 @@ class NullSocketPlugin : public comms_champion::Plugin
 public:
     NullSocketPlugin();
     ~NullSocketPlugin();
-
-    virtual void applyImpl() override;
 
 private:
     comms_champion::SocketPtr m_socket;

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -20,12 +20,14 @@
 
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QObject>
 #include <QtCore/QVariantList>
+#include <QtCore/QVariantMap>
 CC_ENABLE_WARNINGS()
 
 #include "Api.h"
@@ -40,6 +42,13 @@ class CC_API Message : public QObject
     typedef QObject Base;
 public:
     typedef std::vector<std::uint8_t> DataSeq;
+
+    enum class Type {
+        Invalid,
+        Received,
+        Sent,
+        NumOfValues // Must be last
+    };
 
     Message() = default;
     Message(const Message&) = default;
@@ -70,4 +79,9 @@ protected:
     virtual bool decodeDataImpl(const DataSeq& data) = 0;
 };
 
+typedef std::shared_ptr<Message> MessagePtr;
+
 }  // namespace comms_champion
+
+Q_DECLARE_METATYPE(comms_champion::MessagePtr);
+Q_DECLARE_METATYPE(comms_champion::Message::DataSeq);

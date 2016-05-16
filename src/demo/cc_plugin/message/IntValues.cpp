@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -36,13 +36,15 @@ namespace message
 namespace
 {
 
+typedef demo::message::IntValuesFields<IntValues::Field> IntValuesFields;
+
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(cc::Property::createPropertiesMap("field1"));
-    props.append(cc::Property::createPropertiesMap("field2"));
-    props.append(cc::Property::createPropertiesMap("field3"));
-    props.append(cc::Property::createPropertiesMap("field4"));
+    props.append(cc::property::field::ForField<IntValuesFields::field1>().name("field1").asMap());
+    props.append(cc::property::field::ForField<IntValuesFields::field2>().name("field2").asMap());
+    props.append(cc::property::field::ForField<IntValuesFields::field2>().name("field3").asMap());
+    props.append(cc::property::field::ForField<IntValuesFields::field2>().name("field4").asMap());
 
     assert(props.size() == IntValues::FieldIdx_numOfValues);
     return props;

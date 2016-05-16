@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QCheckBox>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -96,13 +96,9 @@ void BitmaskValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         delete checkbox;
     }
 
-    auto bitNamesListVar = Property::getData(props);
-    if ((!bitNamesListVar.isValid()) || (!bitNamesListVar.canConvert<QVariantList>())) {
-        refresh();
-        return;
-    }
+    property::field::BitmaskValue bitmaskProps(props);
 
-    auto bitNamesList = bitNamesListVar.value<QVariantList>();
+    auto& bitNamesList = bitmaskProps.bits();
 
     m_checkboxes.clear();
 

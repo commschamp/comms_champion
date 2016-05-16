@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -29,57 +29,9 @@ const char* GlobalConstants::indexPropertyName()
     return str;
 }
 
-const char* GlobalConstants::msgNumberPropertyName()
-{
-    static const char* str = "msg_num";
-    return str;
-}
-
 const char* GlobalConstants::msgObjPropertyName()
 {
     static const char* str = "msg_obj";
-    return str;
-}
-
-const char* GlobalConstants::msgDelayPropertyName()
-{
-    static const char* str = "msg_delay";
-    return str;
-}
-
-const char* GlobalConstants::msgDelayUnitsPropertyName()
-{
-    static const char* str = "msg_delay_units";
-    return str;
-}
-
-const char* GlobalConstants::msgRepeatDurationPropertyName()
-{
-    static const char* str = "msg_repeat_duration";
-    return str;
-}
-
-const char* GlobalConstants::msgRepeatUnitsPropertyName()
-{
-    static const char* str = "msg_repeat_units";
-    return str;
-}
-
-const char* GlobalConstants::msgRepeatCountPropertyName()
-{
-    static const char* str = "msg_repeat_count";
-    return str;
-}
-
-const char* GlobalConstants::timestampPropertyName()
-{
-    static const char* str = "timestamp";
-    return str;
-}
-
-const char* GlobalConstants::msgTypePropertyName()
-{
-    static const char* str = "msg_type";
     return str;
 }
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -29,9 +29,9 @@ public:
     RecvMsgListWidget(QWidget* parentObj = nullptr);
 
 protected:
-    virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx) override;
-    virtual void msgListClearedImpl(MsgInfosList&& msgInfosList) override;
-    virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const override;
+    virtual void msgClickedImpl(MessagePtr msg, int idx) override;
+    virtual void msgListClearedImpl(MessagesList&& msgs) override;
+    virtual QString msgPrefixImpl(const Message& msg) const override;
     virtual const QString& msgTooltipImpl() const override;
     virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const override;
     virtual QString getTitleImpl() const override;

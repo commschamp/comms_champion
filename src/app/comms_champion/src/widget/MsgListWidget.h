@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ CC_DISABLE_WARNINGS()
 #include "ui_MsgListWidget.h"
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/MessageInfo.h"
+#include "comms_champion/Message.h"
 #include "comms_champion/Protocol.h"
 
 #include "GuiAppMgr.h"
@@ -44,6 +44,7 @@ class MsgListWidget : public QWidget
     using Base = QWidget;
 public:
     typedef GuiAppMgr::MsgType MsgType;
+    typedef GuiAppMgr::MessagesList MessagesList;
 
     MsgListWidget(
         const QString& title,
@@ -51,8 +52,8 @@ public:
         QWidget* parentObj = nullptr);
 
 protected slots:
-    void addMessage(MessageInfoPtr msgInfo);
-    void updateCurrentMessage();
+    void addMessage(MessagePtr msg);
+    void updateCurrentMessage(MessagePtr msg);
     void deleteCurrentMessage();
     void selectOnAdd(bool enabled);
     void clearSelection();
@@ -69,10 +70,10 @@ protected slots:
     void selectMsg(int idx);
 
 protected:
-    virtual void msgClickedImpl(MessageInfoPtr msgInfo, int idx);
-    virtual void msgDoubleClickedImpl(MessageInfoPtr msgInfo, int idx);
-    virtual void msgListClearedImpl(MsgInfosList&& msgInfosList);
-    virtual QString msgPrefixImpl(const MessageInfo& msgInfo) const;
+    virtual void msgClickedImpl(MessagePtr msg, int idx);
+    virtual void msgDoubleClickedImpl(MessagePtr msg, int idx);
+    virtual void msgListClearedImpl(MessagesList&& msgsList);
+    virtual QString msgPrefixImpl(const Message& msg) const;
     virtual const QString& msgTooltipImpl() const;
     virtual void stateChangedImpl(int state);
     virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const;
@@ -81,16 +82,16 @@ protected:
     virtual void loadMessagesImpl(const QString& filename, Protocol& protocol);
     virtual void saveMessagesImpl(const QString& filename);
 
-    MessageInfoPtr currentMsg() const;
-    MsgInfosList allMsgs() const;
+    MessagePtr currentMsg() const;
+    MessagesList allMsgs() const;
 
 private slots:
     void itemClicked(QListWidgetItem* item);
     void itemDoubleClicked(QListWidgetItem* item);
 
 private:
-    MessageInfoPtr getMsgFromItem(QListWidgetItem* item) const;
-    QString getMsgNameText(MessageInfoPtr msgInfo);
+    MessagePtr getMsgFromItem(QListWidgetItem* item) const;
+    QString getMsgNameText(MessagePtr msg);
     Qt::GlobalColor defaultItemColour(bool valid) const;
     void moveItem(int fromRow, int toRow);
     void updateTitle();

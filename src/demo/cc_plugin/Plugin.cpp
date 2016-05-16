@@ -32,23 +32,15 @@ namespace cc_plugin
 
 Plugin::Plugin()
 {
+    pluginProperties()
+        .setProtocolCreateFunc(
+            [this]()
+            {
+                return cc::ProtocolPtr(new Protocol());
+            });
 }
 
-Plugin::~Plugin()
-{
-    if (isApplied()) {
-        auto& interface = ctrlInterface();
-        interface.clearProtocol();
-    }
-}
-
-
-void Plugin::applyImpl()
-{
-    auto& interface = ctrlInterface();
-    interface.setProtocol(cc::ProtocolPtr(new Protocol()));
-}
-
+Plugin::~Plugin() = default;
 
 }  // namespace cc_plugin
 

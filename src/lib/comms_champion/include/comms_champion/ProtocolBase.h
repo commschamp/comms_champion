@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -20,18 +20,24 @@
 
 #include <algorithm>
 #include <iterator>
+#include <cassert>
 
 #include "comms_champion/ErrorStatus.h"
 #include "comms/util/ScopeGuard.h"
 #include "comms/util/Tuple.h"
 
 #include "Protocol.h"
-#include "MessageInfo.h"
+#include "Message.h"
+#include "RawDataMessage.h"
+#include "InvalidMessage.h"
 
 namespace comms_champion
 {
 
-template <typename TProtStack, typename TTransportMsg, typename TRawDataMsg>
+template <
+    typename TProtStack,
+    typename TTransportMsg,
+    typename TRawDataMsg = RawDataMessage<TProtStack> >
 class ProtocolBase : public Protocol
 {
 protected:
@@ -40,10 +46,11 @@ protected:
     typedef TProtStack ProtocolStack;
     typedef TTransportMsg TransportMsg;
     typedef TRawDataMsg RawDataMsg;
-    typedef typename ProtocolStack::Message Message;
-    typedef typename Message::MsgIdType MsgIdType;
-    typedef typename Message::MsgIdParamType MsgIdParamType;
+    typedef typename ProtocolStack::Message ProtocolMessage;
+    typedef typename ProtocolMessage::MsgIdType MsgIdType;
+    typedef typename ProtocolMessage::MsgIdParamType MsgIdParamType;
     typedef typename ProtocolStack::AllMessages AllMessages;
+    typedef InvalidMessage<ProtocolMessage> InvalidMsg;
 
     static_assert(
         !std::is_void<AllMessages>::value,
@@ -59,7 +66,7 @@ protected:
         const std::uint8_t* iter = &dataInfo.m_data[0];
         auto size = dataInfo.m_data.size();
 
-        MessagesList allInfos;
+        MessagesList allMsgs;
         m_data.reserve(m_data.size() + size);
         std::copy_n(iter, size, std::back_inserter(m_data));
 
@@ -104,19 +111,17 @@ protected:
                 break;
             }
 
-            using MessageInfoMsgPtr = MessageInfo::MessagePtr;
-            auto msgInfo = makeMessageInfo();
-            msgInfo->setProtocolName(name());
-
             auto addMsgInfoGuard =
                 comms::util::makeScopeGuard(
-                    [&allInfos, &msgInfo]()
+                    [this, &allMsgs, &msgPtr]()
                     {
-                        allInfos.push_back(std::move(msgInfo));
+                        assert(msgPtr);
+                        setNameToMessageProperties(*msgPtr);
+                        allMsgs.push_back(MessagePtr(std::move(msgPtr)));
                     });
 
             auto setTransportAndRawMsgsFunc =
-                [readIterBeg, &readIterCur, &msgInfo]()
+                [readIterBeg, &readIterCur, &msgPtr]()
                 {
                     // readIterBeg is captured by value on purpose
                     auto dataSize = static_cast<std::size_t>(
@@ -127,29 +132,29 @@ protected:
                     auto esTmp = transportMsgPtr->read(readTransportIterBegTmp, dataSize);
                     static_cast<void>(esTmp);
                     assert(esTmp == comms::ErrorStatus::Success);
-                    msgInfo->setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
+                    setTransportToMessageProperties(MessagePtr(transportMsgPtr.release()), *msgPtr);
 
                     auto readRawIterBegTmp = readIterBeg;
                     std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
                     esTmp = rawDataMsgPtr->read(readRawIterBegTmp, dataSize);
                     static_cast<void>(esTmp);
                     assert(esTmp == comms::ErrorStatus::Success);
-                    msgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+                    setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *msgPtr);
                 };
 
             auto checkGarbageFunc =
-                [this, &allInfos]()
+                [this, &allMsgs]()
                 {
                     if (!m_garbage.empty()) {
-                        auto garbageMsgInfo = makeMessageInfo();
-                        garbageMsgInfo->setProtocolName(name());
+                        MessagePtr invalidMsgPtr(new InvalidMsg());
+                        setNameToMessageProperties(*invalidMsgPtr);
                         std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
                         ReadIterator garbageReadIterator = &m_garbage[0];
                         auto esTmp = rawDataMsgPtr->read(garbageReadIterator, m_garbage.size());
                         static_cast<void>(esTmp);
                         assert(esTmp == comms::ErrorStatus::Success);
-                        garbageMsgInfo->setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
-                        allInfos.push_back(std::move(garbageMsgInfo));
+                        setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *invalidMsgPtr);
+                        allMsgs.push_back(std::move(invalidMsgPtr));
                         m_garbage.clear();
                     }
                 };
@@ -157,9 +162,6 @@ protected:
             if (es == comms::ErrorStatus::Success) {
                 checkGarbageFunc();
                 assert(msgPtr);
-                msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
-                assert(msgInfo->getAppMessage());
-
                 setTransportAndRawMsgsFunc();
                 readIterBeg = readIterCur;
                 continue;
@@ -167,6 +169,7 @@ protected:
 
             if (es == comms::ErrorStatus::InvalidMsgData) {
                 checkGarbageFunc();
+                msgPtr.reset(new InvalidMsg());
                 setTransportAndRawMsgsFunc();
                 readIterBeg = readIterCur;
                 continue;
@@ -188,21 +191,20 @@ protected:
             ++readIterBeg;
         }
 
-        return allInfos;
+        return allMsgs;
     }
 
     virtual DataInfosList writeImpl(const MessagesList& msgs) override
     {
         DataInfosList dataList;
-        for (auto& msgInfo : msgs) {
-            auto msgPtr = msgInfo->getAppMessage();
+        for (auto& msgPtr : msgs) {
             assert(msgPtr);
 
             DataInfo::DataSeq data;
             auto writeIter = std::back_inserter(data);
             auto es =
                 m_protStack.write(
-                    static_cast<const Message&>(*msgPtr),
+                    static_cast<const ProtocolMessage&>(*msgPtr),
                     writeIter,
                     data.max_size());
             if (es == comms::ErrorStatus::UpdateRequired) {
@@ -226,18 +228,15 @@ protected:
         return dataList;
     }
 
-    virtual UpdateStatus updateMessageInfoImpl(MessageInfo& msgInfo) override
+    virtual UpdateStatus updateMessageImpl(Message& msg) override
     {
         do {
-            auto msgPtr = msgInfo.getAppMessage();
-            assert(msgPtr);
-
             std::vector<std::uint8_t> data;
 
             auto writeIter = std::back_inserter(data);
             auto es =
                 m_protStack.write(
-                    static_cast<const Message&>(*msgPtr),
+                    static_cast<const ProtocolMessage&>(msg),
                     writeIter,
                     data.max_size());
             if (es == comms::ErrorStatus::UpdateRequired) {
@@ -251,10 +250,10 @@ protected:
             }
 
             auto readMessageFunc =
-                [&data](Message& msg) -> bool
+                [&data](ProtocolMessage& msgToRead) -> bool
                 {
-                    typename Message::ReadIterator iter = &data[0];
-                    auto esTmp = msg.read(iter, data.size());
+                    typename ProtocolMessage::ReadIterator iter = &data[0];
+                    auto esTmp = msgToRead.read(iter, data.size());
                     if (esTmp != comms::ErrorStatus::Success) {
                         return false;
                     }
@@ -274,57 +273,19 @@ protected:
                 break;
             }
 
-            using MessageInfoMsgPtr = MessageInfo::MessagePtr;
-            msgInfo.setTransportMessage(MessageInfoMsgPtr(transportMsgPtr.release()));
-            msgInfo.setRawDataMessage(MessageInfoMsgPtr(rawDataMsgPtr.release()));
+            setTransportToMessageProperties(MessagePtr(transportMsgPtr.release()), msg);
+            setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), msg);
         } while (false);
 
-        return UpdateStatus::NoChangeToAppMsg;
+        return UpdateStatus::NoChange;
     }
 
-    virtual MessageInfoPtr cloneMessageImpl(
-            const MessageInfo& msgInfo) override
+    virtual MessagePtr cloneMessageImpl(const Message& msg) override
     {
-        auto appMsgPtr = msgInfo.getAppMessage();
-        assert(appMsgPtr);
-        auto* actualAppMsg = dynamic_cast<Message*>(appMsgPtr.get());
-        if (actualAppMsg == nullptr) {
-            assert(!"Invalid message provided for cloning");
-            return MessageInfoPtr();
-        }
-
-        auto clonedAppMsg = cloneMessageInternal(*actualAppMsg);
-        assert(clonedAppMsg);
-
-        auto clonedMsgInfo = makeMessageInfo();
-        clonedMsgInfo->setAppMessage(
-            MessageInfo::MessagePtr(std::move(clonedAppMsg)));
-
-        updateMessageInfo(*clonedMsgInfo);
-        clonedMsgInfo->setProtocolName(name());
-        assert(clonedMsgInfo->getTransportMessage());
-        assert(clonedMsgInfo->getRawDataMessage());
-
-        return clonedMsgInfo;
-    }
-
-    virtual MessagesList createAllMessagesImpl() override
-    {
-        return createAllMessagesInTuple<AllMessages>();
-    }
-
-    virtual MessageInfoPtr createMessageImpl(const QString& idAsString, unsigned idx) override
-    {
-        return createMessageInternal(idAsString, idx, MsgIdTypeTag());
-    }
-
-    virtual MessageInfo::MessagePtr cloneMessageImpl(
-        const Message& msg)
-    {
-        MessageInfo::MessagePtr clonedMsg;
+        MessagePtr clonedMsg;
         unsigned idx = 0;
         while (true) {
-            auto msgId = msg.getId();
+            auto msgId = static_cast<const ProtocolMessage&>(msg).getId();
             clonedMsg = m_protStack.createMsg(msgId, idx);
             if (!clonedMsg) {
                 break;
@@ -340,6 +301,16 @@ protected:
         return std::move(clonedMsg);
     }
 
+    virtual MessagesList createAllMessagesImpl() override
+    {
+        return createAllMessagesInTuple<AllMessages>();
+    }
+
+    virtual MessagePtr createMessageImpl(const QString& idAsString, unsigned idx) override
+    {
+        return createMessageInternal(idAsString, idx, MsgIdTypeTag());
+    }
+
     ProtocolStack& protocolStack()
     {
         return m_protStack;
@@ -350,28 +321,24 @@ protected:
         return m_protStack;
     }
 
-    MessageInfoPtr createMessage(MsgIdParamType id, unsigned idx = 0)
+    MessagePtr createMessage(MsgIdParamType id, unsigned idx = 0)
     {
-        auto msgInfo = makeMessageInfo();
         auto msgPtr = m_protStack.createMsg(id, idx);
-        if (!msgPtr) {
-            return MessageInfoPtr();
+        if (msgPtr) {
+            setNameToMessageProperties(*msgPtr);
+            updateMessage(*msgPtr);
         }
-
-        using MessageInfoMsgPtr = MessageInfo::MessagePtr;
-        msgInfo->setProtocolName(name());
-        msgInfo->setAppMessage(MessageInfoMsgPtr(std::move(msgPtr)));
-        updateMessageInfo(*msgInfo);
-        return msgInfo;
+        return MessagePtr(std::move(msgPtr));
     }
 
     template <typename TMsgsTuple>
     MessagesList createAllMessagesInTuple()
     {
         MessagesList allMsgs;
-        comms::util::tupleForEachType<TMsgsTuple>(AllMsgsCreateHelper(name(), allMsgs));
-        for (auto& msgInfoPtr : allMsgs) {
-            updateMessageInfo(*msgInfoPtr);
+        comms::util::tupleForEachType<TMsgsTuple>(AllMsgsCreateHelper(allMsgs));
+        for (auto& msgPtr : allMsgs) {
+            setNameToMessageProperties(*msgPtr);
+            updateMessage(*msgPtr);
         }
         return allMsgs;
     }
@@ -392,55 +359,45 @@ private:
     class AllMsgsCreateHelper
     {
     public:
-        AllMsgsCreateHelper(const std::string& protName, MessagesList& allMsgs)
-          : m_protName(protName),
-            m_allMsgs(allMsgs)
+        AllMsgsCreateHelper(MessagesList& allMsgs)
+          : m_allMsgs(allMsgs)
         {
         }
 
         template <typename TMsg>
         void operator()()
         {
-            MessageInfo::MessagePtr msgPtr(new TMsg());
-            auto msgInfo = makeMessageInfo();
-            assert(msgInfo);
-            msgInfo->setProtocolName(m_protName);
-            msgInfo->setAppMessage(std::move(msgPtr));
-            m_allMsgs.push_back(std::move(msgInfo));
+            m_allMsgs.push_back(MessagePtr(new TMsg()));
         }
 
     private:
-        const std::string& m_protName;
         MessagesList& m_allMsgs;
     };
 
     class MsgCreateHelper
     {
     public:
-        MsgCreateHelper(const std::string& protName, const QString& id, unsigned idx, MessageInfoPtr& msgInfo)
-          : m_protName(protName),
-            m_id(id),
+        MsgCreateHelper(const QString& id, unsigned idx, MessagePtr& msg)
+          : m_id(id),
             m_reqIdx(idx),
-            m_msgInfo(msgInfo)
+            m_msg(msg)
         {
         }
 
         template <typename TMsg>
         void operator()()
         {
-            if (m_msgInfo) {
+            if (m_msg) {
                 return;
             }
 
-            MessageInfo::MessagePtr msgPtr(new TMsg());
+            MessagePtr msgPtr(new TMsg());
             if (m_id != msgPtr->idAsString()) {
                 return;
             }
 
             if (m_currIdx == m_reqIdx) {
-                m_msgInfo = makeMessageInfo();
-                m_msgInfo->setProtocolName(m_protName);
-                m_msgInfo->setAppMessage(std::move(msgPtr));
+                m_msg = std::move(msgPtr);
                 return;
             }
 
@@ -448,16 +405,15 @@ private:
         }
 
     private:
-        const std::string& m_protName;
         const QString& m_id;
         unsigned m_reqIdx;
-        MessageInfoPtr& m_msgInfo;
+        MessagePtr& m_msg;
         unsigned m_currIdx = 0;
     };
 
-    MessageInfoPtr createMessageInternal(const QString& idAsString, unsigned idx, NumericIdTag)
+    MessagePtr createMessageInternal(const QString& idAsString, unsigned idx, NumericIdTag)
     {
-        MessageInfoPtr result;
+        MessagePtr result;
         do {
             bool ok = false;
             int numId = idAsString.toInt(&ok, 10);
@@ -473,20 +429,14 @@ private:
         return result;
     }
 
-    MessageInfoPtr createMessageInternal(const QString& idAsString, unsigned idx, OtherIdTag)
+    MessagePtr createMessageInternal(const QString& idAsString, unsigned idx, OtherIdTag)
     {
-        MessageInfoPtr result;
+        MessagePtr result;
         comms::util::tupleForEachType<AllMessages>(MsgCreateHelper(name(), idAsString, idx, result));
         if (result) {
-            updateMessageInfo(*result);
+            updateMessage(*result);
         }
         return result;
-    }
-
-    MessageInfo::MessagePtr cloneMessageInternal(
-        const Message& msg)
-    {
-        return cloneMessageImpl(msg);
     }
 
     ProtocolStack m_protStack;

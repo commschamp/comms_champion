@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ CC_DISABLE_WARNINGS()
 #include "ui_ProtocolsStackWidget.h"
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/MessageInfo.h"
+#include "comms_champion/Message.h"
 
 namespace comms_champion
 {
@@ -39,18 +39,18 @@ public:
     ProtocolsStackWidget(QWidget* parentObj = nullptr);
     ~ProtocolsStackWidget();
 
-    void displayMessage(MessageInfoPtr msgInfo, bool force);
+    void displayMessage(MessagePtr msg, bool force);
     void clear();
 
 signals:
-    void sigMessageSelected(MessageInfo::MessagePtr msgInfo, bool editEnabled);
+    void sigMessageSelected(MessagePtr msg, bool editEnabled);
 
 private slots:
-    void itemClicked(QTreeWidgetItem* item, int column);
+    void newItemSelected();
 
 private:
     void reportMessageSelected(QTreeWidgetItem* item);
-    static MessageInfo::MessagePtr msgFromItem(QTreeWidgetItem* item);
+    static MessagePtr msgFromItem(QTreeWidgetItem* item);
 
     Ui::ProtocolsStackWidget m_ui;
 };

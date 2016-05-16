@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -49,11 +49,11 @@ public:
 
 private slots:
     void newSendMsgDialog(ProtocolPtr protocol);
-    void updateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
+    void updateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
     void pluginsEditDialog();
     void displayErrorMsg(const QString& msg);
     void addMainToolbarAction(ActionPtr action);
-    void removeMainToolbarAction(ActionPtr action);
+    void clearAllMainToolbarActions();
     void activeStateChanged(int state);
     void loadSendMsgsDialog(bool askForClear);
     void saveSendMsgsDialog();

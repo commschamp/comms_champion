@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -54,6 +54,5 @@ CC_API DataInfoPtr makeDataInfo();
 }  // namespace comms_champion
 
 Q_DECLARE_METATYPE(comms_champion::DataInfoPtr);
-Q_DECLARE_METATYPE(comms_champion::DataInfo::Timestamp);
 
 

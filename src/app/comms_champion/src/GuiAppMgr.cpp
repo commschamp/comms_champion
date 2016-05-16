@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -25,10 +25,13 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
+#include <QtCore/QStandardPaths>
+#include <QtCore/QDir>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
 #include "DefaultMessageDisplayHandler.h"
-#include "GlobalConstants.h"
+#include "PluginMgrG.h"
 
 #include <iostream>
 
@@ -38,13 +41,25 @@ namespace comms_champion
 namespace
 {
 
-GuiAppMgr::MsgType getMsgType(const MessageInfo& msgInfo)
+const QString AppDataStorageFileName("startup_config.json");
+
+QString getAddDataStoragePath(bool createIfMissing)
 {
-    auto msgTypeVar =
-        msgInfo.getExtraProperty(GlobalConstants::msgTypePropertyName());
-    assert(msgTypeVar.isValid());
-    assert(msgTypeVar.canConvert<int>());
-    return static_cast<GuiAppMgr::MsgType>(msgTypeVar.value<int>());
+    auto dirName = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+    QDir dir(dirName);
+    if (!dir.exists()) {
+
+        if (!createIfMissing) {
+            return QString();
+        }
+
+        if (!dir.mkpath(".")) {
+            std::cerr << "WARNING: failed to create " << dirName.toStdString() << std::endl;
+            return QString();
+        }
+    }
+
+    return dir.filePath(AppDataStorageFileName);
 }
 
 }  // namespace
@@ -62,6 +77,40 @@ GuiAppMgr& GuiAppMgr::instanceRef()
 
 GuiAppMgr::~GuiAppMgr() = default;
 
+void GuiAppMgr::start()
+{
+    auto filename = getAddDataStoragePath(false);
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    QFile configFile(filename);
+    if (!configFile.exists()) {
+        return;
+    }
+
+    auto& pluginMgr = PluginMgrG::instanceRef();
+    auto plugins = pluginMgr.loadPluginsFromConfigFile(filename);
+    if (plugins.empty()) {
+        return;
+    }
+
+    applyNewPlugins(plugins);
+}
+
+void GuiAppMgr::clean()
+{
+    auto filename = getAddDataStoragePath(false);
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    QFile file(filename);
+    if (file.exists()) {
+        file.remove();
+    }
+}
+
 void GuiAppMgr::pluginsEditClicked()
 {
     emit sigPluginsEditDialog();
@@ -69,14 +118,14 @@ void GuiAppMgr::pluginsEditClicked()
 
 void GuiAppMgr::recvStartClicked()
 {
-    MsgMgr::instanceRef().setRecvEnabled(true);
+    MsgMgrG::instanceRef().setRecvEnabled(true);
     m_recvState = RecvState::Running;
     emitRecvStateUpdate();
 }
 
 void GuiAppMgr::recvStopClicked()
 {
-    MsgMgr::instanceRef().setRecvEnabled(false);
+    MsgMgrG::instanceRef().setRecvEnabled(false);
     m_recvState = RecvState::Idle;
     emitRecvStateUpdate();
 }
@@ -92,7 +141,7 @@ void GuiAppMgr::recvDeleteClicked()
     assert(m_selType == SelectionType::Recv);
     assert(m_clickedMsg);
 
-    MsgMgr::instanceRef().deleteMsg(m_clickedMsg);
+    MsgMgrG::instanceRef().deleteMsg(m_clickedMsg);
 
     clearDisplayedMessage();
     emit sigRecvDeleteSelectedMsg();
@@ -135,7 +184,7 @@ void GuiAppMgr::sendStartAllClicked()
 void GuiAppMgr::sendStopClicked()
 {
     m_sendState = SendState::Idle;
-    m_msgsToSend.clear();
+    m_sendMgr.stop();
     emitSendStateUpdate();
 }
 
@@ -151,13 +200,13 @@ void GuiAppMgr::sendSaveClicked()
 
 void GuiAppMgr::sendAddClicked()
 {
-    emit sigNewSendMsgDialog(MsgMgr::instanceRef().getProtocol());
+    emit sigNewSendMsgDialog(MsgMgrG::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendEditClicked()
 {
     assert(m_clickedMsg);
-    emit sigUpdateSendMsgDialog(m_clickedMsg, MsgMgr::instanceRef().getProtocol());
+    emit sigUpdateSendMsgDialog(m_clickedMsg, MsgMgrG::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendDeleteClicked()
@@ -209,12 +258,12 @@ void GuiAppMgr::sendBottomClicked()
     emit sigSendMoveSelectedBottom();
 }
 
-void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo, int idx)
+void GuiAppMgr::recvMsgClicked(MessagePtr msg, int idx)
 {
     emit sigSendMsgListClearSelection();
     emitSendNotSelected();
 
-    msgClicked(msgInfo, SelectionType::Recv);
+    msgClicked(msg, SelectionType::Recv);
     if (!m_clickedMsg) {
         emit sigRecvMsgListClearSelection();
         emitRecvNotSelected();
@@ -224,12 +273,12 @@ void GuiAppMgr::recvMsgClicked(MessageInfoPtr msgInfo, int idx)
     }
 }
 
-void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo, int idx)
+void GuiAppMgr::sendMsgClicked(MessagePtr msg, int idx)
 {
     emit sigRecvMsgListClearSelection();
     emitRecvNotSelected();
 
-    msgClicked(msgInfo, SelectionType::Send);
+    msgClicked(msg, SelectionType::Send);
     if (!m_clickedMsg) {
         emit sigSendMsgListClearSelection();
         emitSendNotSelected();
@@ -239,14 +288,14 @@ void GuiAppMgr::sendMsgClicked(MessageInfoPtr msgInfo, int idx)
     }
 }
 
-void GuiAppMgr::sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx)
+void GuiAppMgr::sendMsgDoubleClicked(MessagePtr msg, int idx)
 {
     // Equivalent to selection + edit
-    assert(msgInfo);
-    if (msgInfo != m_clickedMsg) {
-        sendMsgClicked(msgInfo, idx);
+    assert(msg);
+    if (msg != m_clickedMsg) {
+        sendMsgClicked(msg, idx);
     }
-    assert(m_clickedMsg == msgInfo);
+    assert(m_clickedMsg == msg);
     sendEditClicked();
 }
 
@@ -262,12 +311,6 @@ void GuiAppMgr::addMainToolbarAction(ActionPtr action)
 {
     emit sigAddMainToolbarAction(std::move(action));
 }
-
-void GuiAppMgr::removeMainToolbarAction(ActionPtr action)
-{
-    emit sigRemoveMainToolbarAction(std::move(action));
-}
-
 
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
@@ -309,23 +352,24 @@ GuiAppMgr::SendState GuiAppMgr::sendState() const
     return m_sendState;
 }
 
-void GuiAppMgr::sendAddNewMessage(MessageInfoPtr msgInfo)
+void GuiAppMgr::sendAddNewMessage(MessagePtr msg)
 {
     ++m_sendListCount;
-    emit sigAddSendMsg(msgInfo);
+    emit sigAddSendMsg(msg);
     emit sigSendListCountReport(m_sendListCount);
-    sendMsgClicked(msgInfo, m_sendListCount - 1);
+    sendMsgClicked(msg, m_sendListCount - 1);
     assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg);
 }
 
-void GuiAppMgr::sendUpdateMessage(MessageInfoPtr msgInfo)
+void GuiAppMgr::sendUpdateMessage(MessagePtr msg)
 {
     assert(!sendListEmpty());
+    assert(msg);
     assert(m_clickedMsg);
-    assert(m_clickedMsg == msgInfo);
-    emit sigSendMsgUpdated();
-    displayMessage(std::move(msgInfo));
+    m_clickedMsg = msg;
+    emit sigSendMsgUpdated(msg);
+    displayMessage(std::move(msg));
 }
 
 bool GuiAppMgr::sendListEmpty() const
@@ -335,7 +379,7 @@ bool GuiAppMgr::sendListEmpty() const
 
 void GuiAppMgr::sendLoadMsgsFromFile(bool clear, const QString& filename)
 {
-    emit sigSendLoadMsgs(clear, filename, MsgMgr::instanceRef().getProtocol());
+    emit sigSendLoadMsgs(clear, filename, MsgMgrG::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendSaveMsgsToFile(const QString& filename)
@@ -343,7 +387,7 @@ void GuiAppMgr::sendSaveMsgsToFile(const QString& filename)
     emit sigSendSaveMsgs(filename);
 }
 
-void GuiAppMgr::sendUpdateList(const MsgInfosList& msgs)
+void GuiAppMgr::sendUpdateList(const MessagesList& msgs)
 {
     decltype(m_clickedMsg) clickedMsg;
     if (m_selType == SelectionType::Send) {
@@ -355,8 +399,8 @@ void GuiAppMgr::sendUpdateList(const MsgInfosList& msgs)
     }
 
     int clickedIdx = 0;
-    for (auto& msgInfo : msgs) {
-        if (msgInfo == clickedMsg) {
+    for (auto& m : msgs) {
+        if (m == clickedMsg) {
             break;
         }
         ++clickedIdx;
@@ -369,31 +413,121 @@ void GuiAppMgr::sendUpdateList(const MsgInfosList& msgs)
     }
 }
 
-void GuiAppMgr::deleteMessages(MsgInfosList&& msgs)
+void GuiAppMgr::deleteMessages(MessagesList&& msgs)
 {
-    auto& msgMgr = MsgMgr::instanceRef();
-    for (auto& msgInfo : msgs) {
-        assert(msgInfo);
-        assert(msgInfo != m_clickedMsg);
+    auto& msgMgr = MsgMgrG::instanceRef();
+    for (auto& m : msgs) {
+        assert(m);
+        assert(m != m_clickedMsg);
 
-        msgMgr.deleteMsg(std::move(msgInfo));
+        msgMgr.deleteMsg(std::move(m));
     }
 }
 
-void GuiAppMgr::sendMessages(MsgInfosList&& msgs)
+void GuiAppMgr::sendMessages(MessagesList&& msgs)
 {
-    assert(m_msgsToSend.empty());
-    for (auto& msgInfo : msgs) {
-        m_msgsToSend.push_back(makeMessageInfoCopy(*msgInfo));
-    }
-
-    assert(!m_msgsToSend.empty());
-    sendPendingAndWait();
+    m_sendMgr.start(MsgMgrG::instanceRef().getProtocol(), std::move(msgs));
 }
 
 GuiAppMgr::ActivityState GuiAppMgr::getActivityState()
 {
-    return PluginMgr::instanceRef().getState();
+    auto& pluginMgr = PluginMgrG::instanceRef();
+    if (!pluginMgr.hasAppliedPlugins()) {
+        return ActivityState::Inactive;
+    }
+
+    return ActivityState::Active;
+}
+
+bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
+{
+    auto& pluginMgr = PluginMgrG::instanceRef();
+    auto& msgMgr = MsgMgrG::instanceRef();
+
+    emit sigClearAllMainToolbarActions();
+    bool hasApplied = pluginMgr.hasAppliedPlugins();
+    if (hasApplied) {
+        msgMgr.stop();
+        emit sigActivityStateChanged((int)ActivityState::Inactive);
+    }
+
+    bool needsReload = pluginMgr.needsReload(plugins);
+    if (needsReload) {
+        assert(hasApplied);
+        msgMgr.clear();
+        pluginMgr.unloadApplied();
+        emit sigActivityStateChanged((int)ActivityState::Clear);
+    }
+
+    typedef Plugin::ListOfFilters ListOfFilters;
+    typedef QList<ActionPtr> ListOfGuiActions;
+
+    struct ApplyInfo
+    {
+        SocketPtr m_socket;
+        ListOfFilters m_filters;
+        ProtocolPtr m_protocol;
+        ListOfGuiActions m_actions;
+    };
+
+    auto applyInfo = ApplyInfo();
+    for (auto& info : plugins) {
+        Plugin* plugin = pluginMgr.loadPlugin(*info);
+        if (plugin == nullptr) {
+            assert(!"Failed to load plugin");
+            continue;
+        }
+
+        if (!applyInfo.m_socket) {
+            applyInfo.m_socket = plugin->createSocket();
+        }
+
+        applyInfo.m_filters.append(plugin->createFilters());
+
+        if (!applyInfo.m_protocol) {
+            applyInfo.m_protocol = plugin->createProtocol();
+        }
+
+        auto guiActions = plugin->createGuiActions();
+        for (auto* action : guiActions) {
+            applyInfo.m_actions.append(ActionPtr(action));
+        }
+    }
+
+    if (!applyInfo.m_socket) {
+        std::cerr << "Socket hasn't been set!" << std::endl;
+        return false;
+    }
+
+    if (!applyInfo.m_protocol) {
+        std::cerr << "Protocol hasn't been set!" << std::endl;
+        return false;
+    }
+
+    msgMgr.setSocket(std::move(applyInfo.m_socket));
+
+    if (!applyInfo.m_filters.isEmpty()) {
+        assert(!"Filters support hasn't been implemented yet");
+        // TODO: add filters
+    }
+
+    msgMgr.setProtocol(std::move(applyInfo.m_protocol));
+
+    msgMgr.start();
+    emit sigActivityStateChanged((int)ActivityState::Active);
+
+    for (auto& action : applyInfo.m_actions) {
+        emit sigAddMainToolbarAction(std::move(action));
+    }
+
+    auto filename = getAddDataStoragePath(true);
+    if (filename.isEmpty()) {
+        return true;
+    }
+
+    pluginMgr.savePluginsToConfigFile(plugins, filename);
+    pluginMgr.setAppliedPlugins(plugins);
+    return true;
 }
 
 GuiAppMgr::GuiAppMgr(QObject* parentObj)
@@ -404,18 +538,33 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
     m_pendingDisplayTimer.setSingleShot(true);
 
     connect(
-        MsgMgr::instance(), SIGNAL(sigMsgAdded(MessageInfoPtr)),
-        this, SLOT(msgAdded(MessageInfoPtr)));
-    connect(
-        MsgMgr::instance(), SIGNAL(sigErrorReported(const QString&)),
-        this, SLOT(errorReported(const QString&)));
-    connect(
-        PluginMgr::instance(), SIGNAL(sigStateChanged(int)),
-        this, SLOT(activeStateChanged(int)));
-    connect(
         &m_pendingDisplayTimer, SIGNAL(timeout()),
         this, SLOT(pendingDisplayTimeout()));
 
+    m_sendMgr.setSendMsgsCallbackFunc(
+        [this](MessagesList&& msgsToSend)
+        {
+            MsgMgrG::instanceRef().sendMsgs(std::move(msgsToSend));
+        });
+
+    m_sendMgr.setSendCompeteCallbackFunc(
+        [this]()
+        {
+            sendStopClicked();
+        });
+
+    auto& msgMgr = MsgMgrG::instanceRef();
+    msgMgr.setMsgAddedCallbackFunc(
+        [this](MessagePtr msg)
+        {
+            msgAdded(std::move(msg));
+        });
+
+    msgMgr.setErrorReportCallbackFunc(
+        [this](const QString& error)
+        {
+            errorReported(error);
+        });
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -428,10 +577,10 @@ void GuiAppMgr::emitSendStateUpdate()
     emit sigSetSendState(static_cast<int>(m_sendState));
 }
 
-void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
+void GuiAppMgr::msgAdded(MessagePtr msg)
 {
-    assert(msgInfo);
-    auto type = getMsgType(*msgInfo);
+    assert(msg);
+    auto type = property::message::Type().getFrom(*msg);
     assert((type == MsgType::Received) || (type == MsgType::Sent));
 
 #ifndef NDEBUG
@@ -444,161 +593,29 @@ void GuiAppMgr::msgAdded(MessageInfoPtr msgInfo)
         prefix = SentPrefix;
     }
 
-    auto msg = msgInfo->getAppMessage();
-    if (msg) {
-        std::cout << prefix << msg->name() << std::endl;
-    }
-    else if (msgInfo->getTransportMessage()) {
-        std:: cout << prefix << "???" << std::endl;
-    }
-    else if (msgInfo->getRawDataMessage()) {
-        std:: cout << prefix << "-#-" << std::endl;
-    }
-    else {
-        assert(!"Should not happen");
-    }
+    std::cout << prefix << msg->name() << std::endl;
 #endif
 
-    if (!canAddToRecvList(*msgInfo, type)) {
+    if (!canAddToRecvList(*msg, type)) {
         return;
     }
 
-    addMsgToRecvList(msgInfo);
+    addMsgToRecvList(msg);
 
     if (m_clickedMsg) {
         return;
     }
 
     if (m_pendingDisplayWaitInProgress) {
-        m_pendingDisplayMsg = std::move(msgInfo);
+        m_pendingDisplayMsg = std::move(msg);
         return;
     }
 
-    displayMessage(std::move(msgInfo));
+    displayMessage(std::move(msg));
 
     static const int DisplayTimeout = 250;
     m_pendingDisplayWaitInProgress = true;
     m_pendingDisplayTimer.start(DisplayTimeout);
-}
-
-void GuiAppMgr::sendPendingAndWait()
-{
-    auto retrieveIntPropertyFunc =
-        [](const MessageInfo& mInfo, const char* property) -> int
-        {
-            auto delayVar =
-                mInfo.getExtraProperty(property);
-            assert(delayVar.isValid());
-            assert(delayVar.canConvert<int>());
-            return delayVar.value<int>();
-        };
-
-    auto retrieveDelayFunc =
-        [&](const MessageInfo& mInfo) -> int
-        {
-            return retrieveIntPropertyFunc(
-                mInfo, GlobalConstants::msgDelayPropertyName());
-        };
-
-    auto iter = m_msgsToSend.begin();
-    for (; iter != m_msgsToSend.end(); ++iter) {
-        auto& msgInfo = *iter;
-        assert(msgInfo);
-        auto delay = retrieveDelayFunc(*msgInfo);
-        if (delay != 0) {
-            break;
-        }
-    }
-
-    MsgInfosList nextMsgsToSend;
-    nextMsgsToSend.splice(
-        nextMsgsToSend.end(), m_msgsToSend, m_msgsToSend.begin(), iter);
-
-    MsgMgr::instanceRef().sendMsgs(nextMsgsToSend);
-
-    for (auto& msgToSend : nextMsgsToSend) {
-        auto repeatMs =
-            retrieveIntPropertyFunc(
-                *msgToSend,
-                GlobalConstants::msgRepeatDurationPropertyName());
-
-        auto repeatCount =
-            retrieveIntPropertyFunc(
-                *msgToSend,
-                GlobalConstants::msgRepeatCountPropertyName());
-
-        bool reinsert =
-            (0 < repeatMs) &&
-            ((repeatCount == 0) || (1 < repeatCount));
-
-        if (reinsert) {
-            auto newDelay = repeatMs;
-            auto reinsertIter =
-                std::find_if(
-                    m_msgsToSend.begin(), m_msgsToSend.end(),
-                    [&newDelay, &retrieveDelayFunc](MessageInfoPtr mInfo) mutable -> bool
-                    {
-                        assert(mInfo);
-                        auto mDelay = retrieveDelayFunc(*mInfo);
-                        if (newDelay < mDelay) {
-                            return true;
-                        }
-                        newDelay -= mDelay;
-                        return false;
-                    });
-
-            if (reinsertIter != m_msgsToSend.end()) {
-                auto& msgToUpdate = *reinsertIter;
-                assert(msgToUpdate);
-                auto mDelay = retrieveDelayFunc(*msgToUpdate);
-                msgToUpdate->setExtraProperty(
-                    GlobalConstants::msgDelayPropertyName(),
-                    QVariant::fromValue(mDelay - newDelay));
-            }
-
-            msgToSend->setExtraProperty(
-                GlobalConstants::msgDelayPropertyName(),
-                QVariant::fromValue(newDelay));
-
-            if (repeatCount != 0) {
-                msgToSend->setExtraProperty(
-                    GlobalConstants::msgRepeatCountPropertyName(),
-                    QVariant::fromValue(repeatCount - 1));
-            }
-
-            m_msgsToSend.insert(reinsertIter, std::move(msgToSend));
-        }
-    }
-
-    if (!m_msgsToSend.empty()) {
-        auto& msgInfo = m_msgsToSend.front();
-        assert(msgInfo);
-        auto delay = retrieveDelayFunc(*msgInfo);
-        assert(0 < delay);
-        msgInfo->setExtraProperty(
-            GlobalConstants::msgDelayPropertyName(), QVariant::fromValue(0));
-        QTimer::singleShot(delay, this, SLOT(sendPendingAndWait()));
-    }
-    else {
-        sendStopClicked();
-    }
-}
-
-void GuiAppMgr::activeStateChanged(int state)
-{
-    auto castedState = static_cast<ActivityState>(state);
-    auto& msgMgr = MsgMgr::instanceRef();
-    if (castedState == ActivityState::Active) {
-        msgMgr.start();
-    }
-    else if (castedState == ActivityState::Clear) {
-        msgMgr.clear();
-    }
-    else {
-        assert(castedState == ActivityState::Inactive);
-        msgMgr.stop();
-    }
-    emit sigActivityStateChanged(state);
 }
 
 void GuiAppMgr::errorReported(const QString& msg)
@@ -614,10 +631,10 @@ void GuiAppMgr::pendingDisplayTimeout()
     }
 }
 
-void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
+void GuiAppMgr::msgClicked(MessagePtr msg, SelectionType selType)
 {
-    assert(msgInfo);
-    if (m_clickedMsg == msgInfo) {
+    assert(msg);
+    if (m_clickedMsg == msg) {
 
         assert(selType == m_selType);
         clearDisplayedMessage();
@@ -626,15 +643,15 @@ void GuiAppMgr::msgClicked(MessageInfoPtr msgInfo, SelectionType selType)
     }
 
     m_selType = selType;
-    m_clickedMsg = msgInfo;
+    m_clickedMsg = msg;
     displayMessage(m_clickedMsg);
     emit sigRecvMsgListSelectOnAddEnabled(false);
 }
 
-void GuiAppMgr::displayMessage(MessageInfoPtr msgInfo)
+void GuiAppMgr::displayMessage(MessagePtr msg)
 {
     m_pendingDisplayMsg.reset();
-    emit sigDisplayMsg(msgInfo);
+    emit sigDisplayMsg(msg);
 }
 
 void GuiAppMgr::clearDisplayedMessage()
@@ -659,15 +676,16 @@ void GuiAppMgr::refreshRecvList()
 
     clearRecvList(false);
 
-    auto& allMsgs = MsgMgr::instanceRef().getAllMsgs();
-    for (auto& msgInfo : allMsgs) {
-        auto type = getMsgType(*msgInfo);
+    auto& allMsgs = MsgMgrG::instanceRef().getAllMsgs();
+    for (auto& msg : allMsgs) {
+        assert(msg);
+        auto type = property::message::Type().getFrom(*msg);
 
-        if (canAddToRecvList(*msgInfo, type)) {
-            addMsgToRecvList(msgInfo);
-            if (msgInfo == clickedMsg) {
+        if (canAddToRecvList(*msg, type)) {
+            addMsgToRecvList(msg);
+            if (msg == clickedMsg) {
                 assert(0 < m_recvListCount);
-                recvMsgClicked(msgInfo, m_recvListCount - 1);
+                recvMsgClicked(msg, m_recvListCount - 1);
             }
         }
     }
@@ -677,11 +695,11 @@ void GuiAppMgr::refreshRecvList()
     }
 }
 
-void GuiAppMgr::addMsgToRecvList(MessageInfoPtr msgInfo)
+void GuiAppMgr::addMsgToRecvList(MessagePtr msg)
 {
-    assert(msgInfo);
+    assert(msg);
     ++m_recvListCount;
-    emit sigAddRecvMsg(msgInfo);
+    emit sigAddRecvMsg(msg);
     emit sigRecvListCountReport(m_recvListCount);
 }
 
@@ -708,29 +726,19 @@ void GuiAppMgr::clearRecvList(bool reportDeleted)
 }
 
 bool GuiAppMgr::canAddToRecvList(
-    const MessageInfo& msgInfo,
+    const Message& msg,
     MsgType type) const
 {
     assert((type == MsgType::Received) || (type == MsgType::Sent));
 
-    bool typeBasedResult =
-        ((type == MsgType::Received) && recvListShowsReceived()) ||
-        ((type == MsgType::Sent) && recvListShowsSent());
-
-    if (!typeBasedResult) {
-        return false;
-    }
-
     if (type == MsgType::Sent) {
-        assert(msgInfo.getAppMessage()); // Cannot be garbage
-        return true;
+        return recvListShowsSent();
     }
 
-    if (msgInfo.getAppMessage()) {
-        return true; // Show valid message
+    if (!msg.idAsString().isEmpty()) {
+        return recvListShowsReceived();
     }
 
-    // Garbage
     return recvListShowsGarbage();
 }
 

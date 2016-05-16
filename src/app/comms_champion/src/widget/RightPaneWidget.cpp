@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -36,8 +36,8 @@ RightPaneWidget::RightPaneWidget(QWidget* parentObj)
     msgDisplayWidget->setEditEnabled(false);
 
     auto* guiAppMgr = GuiAppMgr::instance();
-    connect(guiAppMgr, SIGNAL(sigDisplayMsg(MessageInfoPtr)),
-            msgDisplayWidget, SLOT(displayMessage(MessageInfoPtr)));
+    connect(guiAppMgr, SIGNAL(sigDisplayMsg(MessagePtr)),
+            msgDisplayWidget, SLOT(displayMessage(MessagePtr)));
     connect(guiAppMgr, SIGNAL(sigClearDisplayedMsg()),
             msgDisplayWidget, SLOT(clear()));
     auto* paneLayout = new QVBoxLayout();

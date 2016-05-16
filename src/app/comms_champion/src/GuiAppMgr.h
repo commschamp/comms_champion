@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -27,13 +27,14 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
 #include <QtCore/QTimer>
 #include <QtWidgets/QWidget>
+#include <QtWidgets/QAction>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Message.h"
-#include "comms_champion/PluginControlInterface.h"
+#include "comms_champion/PluginMgr.h"
+#include "comms_champion/MsgSendMgr.h"
 
-#include "MsgMgr.h"
-#include "PluginMgr.h"
+#include "MsgMgrG.h"
 
 namespace comms_champion
 {
@@ -64,14 +65,23 @@ public:
     };
 
     typedef MsgMgr::MsgType MsgType;
-    typedef MsgMgr::Timestamp Timestamp;
-    typedef PluginMgr::PluginsState ActivityState;
-    typedef PluginControlInterface::ActionPtr ActionPtr;
+    typedef std::shared_ptr<QAction> ActionPtr;
+    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    typedef Protocol::MessagesList MessagesList;
+    enum class ActivityState
+    {
+        Clear,
+        Inactive,
+        Active,
+    };
 
     static GuiAppMgr* instance();
     static GuiAppMgr& instanceRef();
 
     ~GuiAppMgr();
+
+    void start();
+    void clean();
 
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();
@@ -82,17 +92,18 @@ public:
     unsigned recvListModeMask() const;
 
     SendState sendState() const;
-    void sendAddNewMessage(MessageInfoPtr msgInfo);
-    void sendUpdateMessage(MessageInfoPtr msgInfo);
+    void sendAddNewMessage(MessagePtr msg);
+    void sendUpdateMessage(MessagePtr msg);
     bool sendListEmpty() const;
     void sendLoadMsgsFromFile(bool clear, const QString& filename);
     void sendSaveMsgsToFile(const QString& filename);
-    void sendUpdateList(const MsgInfosList& msgs);
+    void sendUpdateList(const MessagesList& msgs);
 
-    void deleteMessages(MsgInfosList&& msgs);
-    void sendMessages(MsgInfosList&& msgs);
+    void deleteMessages(MessagesList&& msgs);
+    void sendMessages(MessagesList&& msgs);
 
     static ActivityState getActivityState();
+    bool applyNewPlugins(const ListOfPluginInfos& plugins);
 
 public slots:
     void pluginsEditClicked();
@@ -120,27 +131,25 @@ public slots:
     void sendDownClicked();
     void sendBottomClicked();
 
-    void recvMsgClicked(MessageInfoPtr msgInfo, int idx);
+    void recvMsgClicked(MessagePtr msg, int idx);
 
-    void sendMsgClicked(MessageInfoPtr msgInfo, int idx);
-    void sendMsgDoubleClicked(MessageInfoPtr msgInfo, int idx);
+    void sendMsgClicked(MessagePtr msg, int idx);
+    void sendMsgDoubleClicked(MessagePtr msg, int idx);
     void sendSelectedMsgMoved(int idx);
 
     void addMainToolbarAction(ActionPtr action);
-    void removeMainToolbarAction(ActionPtr action);
-
 
 signals:
-    void sigAddRecvMsg(MessageInfoPtr msgInfo);
-    void sigAddSendMsg(MessageInfoPtr msgInfo);
-    void sigSendMsgUpdated();
+    void sigAddRecvMsg(MessagePtr msg);
+    void sigAddSendMsg(MessagePtr msg);
+    void sigSendMsgUpdated(MessagePtr msg);
     void sigSetRecvState(int state);
     void sigSetSendState(int state);
     void sigDisplayMsgDetailsWidget(QWidget* widget);
     void sigRecvMsgListSelectOnAddEnabled(bool enabled);
     void sigRecvMsgListClearSelection();
     void sigSendMsgListClearSelection();
-    void sigDisplayMsg(MessageInfoPtr msgInfo);
+    void sigDisplayMsg(MessagePtr msg);
     void sigClearDisplayedMsg();
     void sigRecvMsgSelected(int index);
     void sigSendMsgSelected(int index);
@@ -156,14 +165,14 @@ signals:
     void sigSendMoveSelectedBottom();
     void sigRecvListTitleNeedsUpdate();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
-    void sigUpdateSendMsgDialog(MessageInfoPtr msgInfo, ProtocolPtr protocol);
+    void sigUpdateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
     void sigLoadSendMsgsDialog(bool askForClear);
     void sigSaveSendMsgsDialog();
     void sigPluginsEditDialog();
     void sigActivityStateChanged(int value);
     void sigErrorReported(const QString& msg);
     void sigAddMainToolbarAction(ActionPtr action);
-    void sigRemoveMainToolbarAction(ActionPtr action);
+    void sigClearAllMainToolbarActions();
     void sigSendLoadMsgs(bool clear, const QString& filename, ProtocolPtr protocol);
     void sigSendSaveMsgs(const QString& filename);
 
@@ -181,21 +190,19 @@ private:
     void emitSendStateUpdate();
 
 private slots:
-    void msgAdded(MessageInfoPtr msgInfo);
-    void sendPendingAndWait();
-    void activeStateChanged(int state);
+    void msgAdded(MessagePtr msg);
     void errorReported(const QString& msg);
     void pendingDisplayTimeout();
 
 private /*data*/:
 
-    void msgClicked(MessageInfoPtr msgInfo, SelectionType selType);
-    void displayMessage(MessageInfoPtr msgInfo);
+    void msgClicked(MessagePtr msg, SelectionType selType);
+    void displayMessage(MessagePtr msg);
     void clearDisplayedMessage();
     void refreshRecvList();
-    void addMsgToRecvList(MessageInfoPtr msgInfo);
+    void addMsgToRecvList(MessagePtr msg);
     void clearRecvList(bool reportDeleted);
-    bool canAddToRecvList(const MessageInfo& msgInfo, MsgType type) const;
+    bool canAddToRecvList(const Message& msg, MsgType type) const;
     void decRecvListCount();
     void decSendListCount();
     void emitRecvNotSelected();
@@ -214,12 +221,13 @@ private /*data*/:
     unsigned m_sendListCount = 0;
 
     SelectionType m_selType = SelectionType::None;
-    MessageInfoPtr m_clickedMsg;
-    MsgInfosList m_msgsToSend;
+    MessagePtr m_clickedMsg;
 
     QTimer m_pendingDisplayTimer;
-    MessageInfoPtr m_pendingDisplayMsg;
+    MessagePtr m_pendingDisplayMsg;
     bool m_pendingDisplayWaitInProgress = false;
+
+    MsgSendMgr m_sendMgr;
 };
 
 }  // namespace comms_champion

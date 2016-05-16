@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #include <cassert>
 #include <limits>
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
@@ -123,38 +123,13 @@ void EnumValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
     m_ui.m_valueComboBox->clear();
 
-    auto dataListVar = Property::getData(props);
+    property::field::EnumValue enumProps(props);
+    auto& values = enumProps.values();
     auto maxValue = std::numeric_limits<long long int>::min();
-    do {
-        if ((!dataListVar.isValid()) || (!dataListVar.canConvert<QVariantList>())) {
-            break;
-        }
-
-        auto dataList = dataListVar.value<QVariantList>();
-        for (auto& elemPropsVar : dataList) {
-            if ((!elemPropsVar.isValid()) || (!elemPropsVar.canConvert<QVariantMap>())) {
-                continue;
-            }
-
-            auto elemProps = elemPropsVar.value<QVariantMap>();
-            auto nameVar = Property::getName(elemProps);
-            auto dataVar = Property::getData(elemProps);
-
-            if ((!nameVar.isValid()) ||
-                (!dataVar.isValid()) ||
-                (!nameVar.canConvert<QString>()) ||
-                (!dataVar.canConvert<long long int>())) {
-                continue;
-            }
-
-            auto name = nameVar.toString();
-            auto dataItem = dataVar.value<long long int>();
-            m_ui.m_valueComboBox->addItem(name, dataItem);
-
-            maxValue = std::max(maxValue, dataItem);
-        }
-
-    } while (false);
+    for (auto& val : values) {
+        m_ui.m_valueComboBox->addItem(val.first, val.second);
+        maxValue = std::max(maxValue, val.second);
+    }
 
     auto invValue = maxValue + 1;
     auto len = m_wrapper->length();

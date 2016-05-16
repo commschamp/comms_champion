@@ -28,8 +28,9 @@ in **C++11** standard.
 
 # What's Inside?
 This repository provides the [COMMS Library](#comms-library), which can be used to 
-develop custom communication protocols and one generic protocol visualisation and analysis GUI tool
-called [CommsChampion](#commschampion-tool).
+develop custom communication protocols. It also provides a set of various applications and 
+utilities, called [CommsChampion](#commschampion-tools), that can help in 
+protocol development, visualisation and analysis.
 
 # COMMS Library
 **COMMS** is the headers only, platform independent library, 
@@ -59,23 +60,31 @@ Full [doxygen](www.doxygen.org) generated documentation with the full tutorial i
 downloaded as [zip archive](https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/doc_comms.zip)
 or browsed online [here](https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/index.html).
 
-# CommsChampion Tool
-**CommsChampion** is a generic GUI tool for visualisation and analysis of the
-communication protocols that were developed using [COMMS Library](#comms-library)
-mentioned above. It is plug-in based, i.e. plug-ins are used to
-define I/O socket, data filters, and the custom protocol itself. The tool
-uses [QT5](http://www.qt.io/) framework for its interface as well as loading
+# CommsChampion Tools
+**CommsChampion** is a name for set of tool applications, which can be used to 
+develop, monitor and debug custom binary communication protocols. 
+All the applications are plug-in based, i.e. plug-ins are used to define 
+I/O socket, data filters, and the custom protocol itself. The tools
+use [QT5](http://www.qt.io/) framework for GUI interfaces as well as loading
 and managing plug-ins.
 
-At this moment the tool is in its alpha and being extensively developed. No 
-documentation on how to use and/or develop plug-ins is currently available,
-will be provided in the future once the API stabilises.
+The current list of available applications is:
+
+- **comms_champion** is the main generic GUI application for visualisation and analysis of the
+communication protocols, that were developed using [COMMS Library](#comms-library)
+mentioned above.  
+
+- **comms_dump** is a command line utility that recognises all the received
+custom binary protocol messages and dumps them all in CSV format to standard output.
+The tool can receive a file with definition of outgoing messages and send them
+when instructed. Such file can easily be created with **comms_champion**
+GUI application. 
 
 # Demo Protocol
 **Demo** is a simple binary protocol which is implemented using 
 the [COMMS Library](#comms-library). The protocol definition classes are
 also extended to implement the protocol plugin for
-the [CommsChampion](#commschampion-tool) tool. The plugin is used for testing
+the [CommsChampion](#commschampion-tools) application. The plugin is used for testing
 and demostration purposes.
 
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
@@ -86,16 +95,22 @@ or browsed online [here](https://dl.dropboxusercontent.com/u/46999418/comms_cham
 # Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for
 implementation of various communication protocols and 
-the [CommsChampion](#commschampion-tool) tool just provides consistent UI 
-environment to be able to visually analyse communication protocols that were
+the [CommsChampion](#commschampion-tools) tools just provide consistent 
+environment to be able to analyse and debug communication protocols, that were
 developed using the [COMMS Library](#comms-library).
 
 There is [comms_all_protocols](https://github.com/arobenko/comms_all_protocols)
 project that serves as a bundle to compile all the communication protocols, that
 where developed using the [COMMS Library](#comms-library), and relevant plugins
-for [CommsChampion](#commschampion-tool) tool, all at once. The README file
+for [CommsChampion](#commschampion-tools) tools, all at once. The README file
 of this project contains the updated list of all the protocols that have been
 implemented and can be used as reference.
+
+# Developing Custom Socket/Filter/Protocol Plugin
+At this moment the [CommsChampion](#commschampion-tools) tools are in their alpha 
+and being extensively developed. No 
+documentation on how to use and/or develop plug-ins is currently available,
+will be provided in the future once the API stabilises.
 
 # Licence
 The [COMMS Library](#comms-library) from this repository is licensed under
@@ -105,16 +120,16 @@ owner of this product I can provide a commercial license as well, please refer
 to [Contact Information](#contact-information) below and get in touch with
 me if you need one.
 
-The [CommsChampion](#commschampion-tool) tool and 
+The [CommsChampion](#commschampion-tools) tools and 
 [Demo Protocol](#demo-protocol) are licensed under **LGPLv3**, which
 allows usage of open source QT5 libraries. 
 
-Some icons, used in [CommsChampion](#commschampion-tool) tool, were taken from
+Some icons, used in [CommsChampion](#commschampion-tools) tools, were taken from
 [Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter
 applies.
 
 The [application icon](src/app/comms_champion/src/image/app_icon.png) of the
-[CommsChampion](#commschampion-tool) tool must
+[CommsChampion](#commschampion-tools) tool must
 be replaced in any diravative work to differentiate between the original and
 the forked versions.
 
@@ -132,21 +147,25 @@ include paths and use the following statement in your sources:
 ```
 Nothing else is required.
 
-# How to Run CommsChampion
-On windows platforms just run **comms_champion.exe** binary which resides in 
+# How to Run CommsChampion applications
+On Windows platforms just run the executable binary (**comms_champion.exe**
+or **comms_dump.exe**), which resides in 
 **install/bin** subdirectory. Make sure that the directory of your QT5 dlls can 
 be found in your %PATH%.
 
-On Linux platforms use **comms_champion.sh** script which also resides in
+On Linux platforms use the appropriate shell script 
+(**comms_champion.sh** or **comms_dump.sh**), which also resides in
 **install/bin** subdirectory.
  
 Please note that available plugins must reside in the **../plugin** subdirectory relative
-to the location of the **comms_champion** binary.
+to the location of the binaries.
 
-The tool supports multiple command line options, please use "-h" or "--help" for
+The tools support multiple command line options, please use "-h" or "--help" for
 the full list.
 
 >$> ./install/bin/comms_champion.sh -h
+
+>$> ./install/bin/comms_dump.sh -h
 
 # Branching Model
 This repository will follow the 

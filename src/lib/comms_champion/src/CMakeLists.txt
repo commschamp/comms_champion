@@ -14,12 +14,19 @@ function (lib_comms_champion)
     set (src
         ErrorStatus.cpp
         Message.cpp
-        MessageInfo.cpp
+        Protocol.cpp
         MessageHandler.cpp
-        Property.cpp
         Plugin.cpp
-        PluginControlInterface.cpp
         DataInfo.cpp
+        PluginProperties.cpp
+        ConfigMgr.cpp
+        PluginMgr.cpp
+        PluginMgrImpl.cpp
+        MsgFileMgr.cpp
+        MsgSendMgr.cpp
+        MsgSendMgrImpl.cpp
+        MsgMgr.cpp
+        MsgMgrImpl.cpp
         field_wrapper/FieldWrapper.cpp
         field_wrapper/IntValueWrapper.cpp
         field_wrapper/BitmaskValueWrapper.cpp
@@ -32,9 +39,16 @@ function (lib_comms_champion)
         field_wrapper/ArrayListWrapper.cpp
         field_wrapper/FloatValueWrapper.cpp
         field_wrapper/UnknownValueWrapper.cpp
+        property/message.cpp
+        property/field.cpp
     )
     
-    add_library(${name} SHARED ${src})
+    qt5_wrap_cpp(
+        moc
+        MsgSendMgrImpl.h
+    )
+    
+    add_library(${name} SHARED ${src} ${moc})
     qt5_use_modules(${name} Widgets Core)
     target_link_libraries(${name} ${CC_PLATFORM_SPECIFIC})
     

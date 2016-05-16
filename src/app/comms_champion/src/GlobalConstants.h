@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -31,15 +31,7 @@ class GlobalConstants
 {
 public:
     static const char* indexPropertyName();
-    static const char* msgNumberPropertyName();
     static const char* msgObjPropertyName();
-    static const char* msgDelayPropertyName();
-    static const char* msgDelayUnitsPropertyName();
-    static const char* msgRepeatDurationPropertyName();
-    static const char* msgRepeatUnitsPropertyName();
-    static const char* msgRepeatCountPropertyName();
-    static const char* timestampPropertyName();
-    static const char* msgTypePropertyName();
 
 private:
     GlobalConstants() = default;

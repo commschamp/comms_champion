@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -22,7 +22,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <list>
-#include <string>
 
 #include "comms/CompileControl.h"
 
@@ -34,7 +33,6 @@ CC_ENABLE_WARNINGS()
 #include "Api.h"
 #include "Message.h"
 #include "ErrorStatus.h"
-#include "MessageInfo.h"
 #include "DataInfo.h"
 
 namespace comms_champion
@@ -43,55 +41,33 @@ namespace comms_champion
 class CC_API Protocol
 {
 public:
-    typedef std::list<MessageInfoPtr> MessagesList;
+    typedef std::list<MessagePtr> MessagesList;
     typedef std::list<DataInfoPtr> DataInfosList;
 
     enum class UpdateStatus
     {
-        NoChangeToAppMsg,
-        AppMsgWasChanged
+        NoChange,
+        Changed
     };
 
-    virtual ~Protocol() {}
+    virtual ~Protocol();
 
-    const std::string& name() const
-    {
-        return nameImpl();
-    }
+    const QString& name() const;
 
-    MessagesList read(
-        const DataInfo& dataInfo)
-    {
-        return readImpl(dataInfo);
-    }
+    MessagesList read(const DataInfo& dataInfo);
 
-    DataInfosList write(const MessagesList& msgs)
-    {
-        return writeImpl(msgs);
-    }
+    DataInfosList write(const MessagesList& msgs);
 
-    MessagesList createAllMessages()
-    {
-        return createAllMessagesImpl();
-    }
+    MessagesList createAllMessages();
 
-    MessageInfoPtr createMessage(const QString& idAsString, unsigned idx = 0)
-    {
-        return createMessageImpl(idAsString, idx);
-    }
+    MessagePtr createMessage(const QString& idAsString, unsigned idx = 0);
 
-    UpdateStatus updateMessageInfo(MessageInfo& msgInfo)
-    {
-        return updateMessageInfoImpl(msgInfo);
-    }
+    UpdateStatus updateMessage(Message& msg);
 
-    MessageInfoPtr cloneMessage(const MessageInfo& msgInfo)
-    {
-        return cloneMessageImpl(msgInfo);
-    }
+    MessagePtr cloneMessage(const Message& msg);
 
 protected:
-    virtual const std::string& nameImpl() const = 0;
+    virtual const QString& nameImpl() const = 0;
 
     virtual MessagesList readImpl(const DataInfo& dataInfo) = 0;
 
@@ -99,11 +75,15 @@ protected:
 
     virtual MessagesList createAllMessagesImpl() = 0;
 
-    virtual MessageInfoPtr createMessageImpl(const QString& idAsString, unsigned idx) = 0;
+    virtual MessagePtr createMessageImpl(const QString& idAsString, unsigned idx) = 0;
 
-    virtual UpdateStatus updateMessageInfoImpl(MessageInfo& msgInfo) = 0;
+    virtual UpdateStatus updateMessageImpl(Message& msg) = 0;
 
-    virtual MessageInfoPtr cloneMessageImpl(const MessageInfo& msgInfo) = 0;
+    virtual MessagePtr cloneMessageImpl(const Message& msg) = 0;
+
+    void setNameToMessageProperties(Message& msg);
+    static void setTransportToMessageProperties(MessagePtr transportMsg, Message& msg);
+    static void setRawDataToMessageProperties(MessagePtr rawDataMsg, Message& msg);
 };
 
 typedef std::shared_ptr<Protocol> ProtocolPtr;

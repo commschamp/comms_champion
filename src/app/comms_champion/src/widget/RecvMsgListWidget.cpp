@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -26,9 +26,9 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
 #include "RecvAreaToolBar.h"
 #include "GuiAppMgr.h"
-#include "GlobalConstants.h"
 
 namespace comms_champion
 {
@@ -42,8 +42,8 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parentObj)
     selectOnAdd(guiMgr->recvMsgListSelectOnAddEnabled());
 
     connect(
-        guiMgr, SIGNAL(sigAddRecvMsg(MessageInfoPtr)),
-        this, SLOT(addMessage(MessageInfoPtr)));
+        guiMgr, SIGNAL(sigAddRecvMsg(MessagePtr)),
+        this, SLOT(addMessage(MessagePtr)));
     connect(
         guiMgr, SIGNAL(sigRecvMsgListSelectOnAddEnabled(bool)),
         this, SLOT(selectOnAdd(bool)));
@@ -62,33 +62,24 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parentObj)
 
 }
 
-void RecvMsgListWidget::msgClickedImpl(MessageInfoPtr msgInfo, int idx)
+void RecvMsgListWidget::msgClickedImpl(MessagePtr msg, int idx)
 {
-    GuiAppMgr::instance()->recvMsgClicked(msgInfo, idx);
+    GuiAppMgr::instance()->recvMsgClicked(msg, idx);
 }
 
-void RecvMsgListWidget::msgListClearedImpl(MsgInfosList&& msgInfosList)
+void RecvMsgListWidget::msgListClearedImpl(MessagesList&& msgs)
 {
-    GuiAppMgr::instance()->deleteMessages(std::move(msgInfosList));
+    GuiAppMgr::instance()->deleteMessages(std::move(msgs));
 }
 
-QString RecvMsgListWidget::msgPrefixImpl(const MessageInfo& msgInfo) const
+QString RecvMsgListWidget::msgPrefixImpl(const Message& msg) const
 {
-    auto timestampVar =
-        msgInfo.getExtraProperty(GlobalConstants::timestampPropertyName());
-
-    if (!timestampVar.isValid()) {
+    auto timestamp = property::message::Timestamp().getFrom(msg);
+    if (timestamp == 0U) {
         return QString();
     }
 
-    typedef GuiAppMgr::Timestamp TimestampType;
-    assert(timestampVar.canConvert<TimestampType>());
-
-    auto timestamp = timestampVar.value<TimestampType>();
-    auto timestampMs =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            timestamp.time_since_epoch()).count();
-    return QString("[%1]").arg(timestampMs, 1, 10, QChar('0'));
+    return QString("[%1]").arg(timestamp, 1, 10, QChar('0'));
 }
 
 

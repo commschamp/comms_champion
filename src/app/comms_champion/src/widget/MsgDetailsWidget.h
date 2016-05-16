@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ CC_DISABLE_WARNINGS()
 #include "ui_MsgDetailsWidget.h"
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/MessageInfo.h"
+#include "comms_champion/Message.h"
 #include "DefaultMessageDisplayHandler.h"
 
 namespace comms_champion
@@ -42,8 +42,8 @@ public:
 
 public slots:
     void setEditEnabled(bool enabled);
-    void displayMessage(MessageInfo::MessagePtr msg);
-    void updateTitle(MessageInfo::MessagePtr msg);
+    void displayMessage(MessagePtr msg);
+    void updateTitle(MessagePtr msg);
     void clear();
     void refresh();
 

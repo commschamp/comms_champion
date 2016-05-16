@@ -1,5 +1,5 @@
 //
-// Copyright 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
 CC_ENABLE_WARNINGS()
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 #include "ShortIntValueFieldWidget.h"
 #include "LongIntValueFieldWidget.h"
@@ -64,7 +64,7 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     assert(m_wrapper);
     assert(!m_childWidget);
-    if (Property::getDisplayScaled(props)) {
+    if (property::field::IntValue(props).hasScaledDecimals()) {
         m_childWidget.reset(new ScaledIntValueFieldWidget(std::move(m_wrapper)));
     }
     else if (m_wrapper->isShortInt()) {

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -22,10 +22,17 @@
 #include <limits>
 #include <cmath>
 
-#include "comms_champion/Property.h"
+#include "comms_champion/property/field.h"
 
 namespace comms_champion
 {
+
+namespace
+{
+
+const int DefaultInitialDecimals = 6;
+
+} // namespace
 
 ScaledIntValueFieldWidget::ScaledIntValueFieldWidget(
     WrapperPtr wrapper,
@@ -45,15 +52,15 @@ ScaledIntValueFieldWidget::ScaledIntValueFieldWidget(
     m_ui.m_valueSpinBox->setRange(
         m_wrapper->scaleValue(m_wrapper->minValue()),
         m_wrapper->scaleValue(m_wrapper->maxValue()));
-    m_ui.m_valueSpinBox->setDecimals(1);
+    m_ui.m_valueSpinBox->setDecimals(DefaultInitialDecimals);
+
+    refresh();
 
     connect(m_ui.m_valueSpinBox, SIGNAL(valueChanged(double)),
             this, SLOT(valueUpdated(double)));
 
     connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
-
-    refresh();
 }
 
 ScaledIntValueFieldWidget::~ScaledIntValueFieldWidget() = default;
@@ -85,14 +92,14 @@ void ScaledIntValueFieldWidget::editEnabledUpdatedImpl()
 
 void ScaledIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    assert(Property::getDisplayScaled(props));
-    auto floatDecimalsVar = Property::getFloatDecimals(props);
-    if ((!floatDecimalsVar.isValid()) ||
-        (!floatDecimalsVar.canConvert<int>())) {
+    auto decimals = property::field::IntValue(props).scaledDecimals();
+    if (decimals <= 0) {
+        assert(!"Should not happen");
+        m_ui.m_valueSpinBox->setDecimals(0);
         return;
     }
 
-    m_ui.m_valueSpinBox->setDecimals(floatDecimalsVar.value<int>());
+    m_ui.m_valueSpinBox->setDecimals(decimals);
 }
 
 void ScaledIntValueFieldWidget::serialisedValueUpdated(const QString& value)

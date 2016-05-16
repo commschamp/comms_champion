@@ -107,7 +107,8 @@ of this project contains the updated list of all the protocols that have been
 implemented and can be used as reference.
 
 # Developing Custom Socket/Filter/Protocol Plugin
-At this moment the tool is in its alpha and being extensively developed. No 
+At this moment the [CommsChampion](#commschampion-tools) tools are in their alpha 
+and being extensively developed. No 
 documentation on how to use and/or develop plug-ins is currently available,
 will be provided in the future once the API stabilises.
 

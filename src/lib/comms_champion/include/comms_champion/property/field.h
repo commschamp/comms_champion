@@ -29,6 +29,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms/comms.h"
+#include "comms_champion/Api.h"
 
 namespace comms_champion
 {
@@ -39,7 +40,7 @@ namespace property
 namespace field
 {
 
-class Common
+class CC_API Common
 {
 public:
     Common();
@@ -146,7 +147,7 @@ public:
     }
 };
 
-class IntValue : public CommonBase<IntValue>
+class CC_API IntValue : public CommonBase<IntValue>
 {
     typedef CommonBase<IntValue> Base;
 public:
@@ -176,7 +177,7 @@ private:
     int m_scaledDecimals = 0;
 };
 
-class EnumValue : public CommonBase<EnumValue>
+class CC_API EnumValue : public CommonBase<EnumValue>
 {
     typedef CommonBase<EnumValue> Base;
 public:
@@ -206,7 +207,7 @@ private:
     ElemsList m_elems;
 };
 
-class BitmaskValue : public CommonBase<BitmaskValue>
+class CC_API BitmaskValue : public CommonBase<BitmaskValue>
 {
     typedef CommonBase<BitmaskValue> Base;
 public:
@@ -235,7 +236,7 @@ private:
     BitsList m_bits;
 };
 
-class Bitfield : public CommonBase<Bitfield>
+class CC_API Bitfield : public CommonBase<Bitfield>
 {
     typedef CommonBase<Bitfield> Base;
 public:
@@ -264,7 +265,7 @@ private:
     MembersList m_members;
 };
 
-class Bundle : public CommonBase<Bundle>
+class CC_API Bundle : public CommonBase<Bundle>
 {
     typedef CommonBase<Bundle> Base;
 public:
@@ -293,7 +294,7 @@ private:
     MembersList m_members;
 };
 
-class String : public CommonBase<String>
+class CC_API String : public CommonBase<String>
 {
     typedef CommonBase<String> Base;
 public:
@@ -310,7 +311,7 @@ public:
     QVariantMap asMap() const;
 };
 
-class ArrayList : public CommonBase<ArrayList>
+class CC_API ArrayList : public CommonBase<ArrayList>
 {
     typedef CommonBase<ArrayList> Base;
 public:
@@ -338,7 +339,7 @@ private:
     ElemsList m_elems;
 };
 
-class Optional : public CommonBase<Optional>
+class CC_API Optional : public CommonBase<Optional>
 {
     typedef CommonBase<Optional> Base;
 public:
@@ -368,7 +369,7 @@ private:
     bool m_uncheckable = false;
 };
 
-class FloatValue : public CommonBase<FloatValue>
+class CC_API FloatValue : public CommonBase<FloatValue>
 {
     typedef CommonBase<FloatValue> Base;
 public:

@@ -28,6 +28,7 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariantMap>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/Api.h"
 #include "comms_champion/Message.h"
 
 namespace comms_champion
@@ -98,7 +99,7 @@ private:
     const QByteArray& m_propName;
 };
 
-class Type : public PropBase<unsigned>
+class CC_API Type : public PropBase<unsigned>
 {
     typedef PropBase<unsigned> Base;
 public:
@@ -123,7 +124,7 @@ private:
     static const QByteArray PropName;
 };
 
-class Timestamp : public PropBase<unsigned long long>
+class CC_API Timestamp : public PropBase<unsigned long long>
 {
     typedef PropBase<unsigned long long> Base;
 public:
@@ -134,7 +135,7 @@ private:
     static const QByteArray PropName;
 };
 
-class ProtocolName : public PropBase<QString>
+class CC_API ProtocolName : public PropBase<QString>
 {
     typedef PropBase<QString> Base;
 public:
@@ -145,7 +146,7 @@ private:
     static const QByteArray PropName;
 };
 
-class TransportMsg : public PropBase<MessagePtr>
+class CC_API TransportMsg : public PropBase<MessagePtr>
 {
     typedef PropBase<MessagePtr> Base;
 public:
@@ -156,7 +157,7 @@ private:
     static const QByteArray PropName;
 };
 
-class RawDataMsg : public PropBase<MessagePtr>
+class CC_API RawDataMsg : public PropBase<MessagePtr>
 {
     typedef PropBase<MessagePtr> Base;
 public:
@@ -167,7 +168,7 @@ private:
     static const QByteArray PropName;
 };
 
-class Delay : public PropBase<unsigned long long>
+class CC_API Delay : public PropBase<unsigned long long>
 {
     typedef PropBase<unsigned long long> Base;
 public:
@@ -178,7 +179,7 @@ private:
     static const QByteArray PropName;
 };
 
-class DelayUnits : public PropBase<QString>
+class CC_API DelayUnits : public PropBase<QString>
 {
     typedef PropBase<QString> Base;
 public:
@@ -190,7 +191,7 @@ private:
 };
 
 
-class RepeatDuration : public PropBase<unsigned long long>
+class CC_API RepeatDuration : public PropBase<unsigned long long>
 {
     typedef PropBase<unsigned long long> Base;
 public:
@@ -201,7 +202,7 @@ private:
     static const QByteArray PropName;
 };
 
-class RepeatDurationUnits : public PropBase<QString>
+class CC_API RepeatDurationUnits : public PropBase<QString>
 {
     typedef PropBase<QString> Base;
 public:
@@ -212,7 +213,7 @@ private:
     static const QByteArray PropName;
 };
 
-class RepeatCount : public PropBase<unsigned>
+class CC_API RepeatCount : public PropBase<unsigned>
 {
     typedef PropBase<unsigned> Base;
 public:

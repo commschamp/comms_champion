@@ -42,7 +42,7 @@ class Protocol : public
         TransportMessage
     > Base;
 public:
-    typedef typename Base::UpdateStatus UpdateStatus;
+    typedef Base::UpdateStatus UpdateStatus;
 
     Protocol() = default;
     virtual ~Protocol();

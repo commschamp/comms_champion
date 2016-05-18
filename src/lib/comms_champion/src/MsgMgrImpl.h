@@ -54,6 +54,8 @@ public:
         return m_allMsgs;
     }
 
+    void addMsgs(const MessagesList& msgs, bool reportAdded);
+
     void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
 

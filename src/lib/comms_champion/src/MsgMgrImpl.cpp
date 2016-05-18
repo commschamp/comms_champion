@@ -168,6 +168,17 @@ void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
     }
 }
 
+void MsgMgrImpl::addMsgs(const MessagesList& msgs, bool reportAdded)
+{
+    m_allMsgs.reserve(m_allMsgs.size() + msgs.size());
+    m_allMsgs.insert(m_allMsgs.end(), msgs.begin(), msgs.end());
+    if (reportAdded) {
+        for (auto& msgPtr : msgs) {
+            reportMsgAdded(msgPtr);
+        }
+    }
+}
+
 void MsgMgrImpl::setSocket(SocketPtr socket)
 {
     if (!socket) {

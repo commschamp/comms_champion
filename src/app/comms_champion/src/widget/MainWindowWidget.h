@@ -19,6 +19,7 @@
 #pragma once
 
 #include <list>
+#include <tuple>
 
 #include "comms/CompileControl.h"
 
@@ -55,13 +56,15 @@ private slots:
     void addMainToolbarAction(ActionPtr action);
     void clearAllMainToolbarActions();
     void activeStateChanged(int state);
+    void loadRecvMsgsDialog(bool askForClear);
+    void saveRecvMsgsDialog();
     void loadSendMsgsDialog(bool askForClear);
     void saveSendMsgsDialog();
     void aboutInfo();
 
 private:
     void clearCustomToolbarActions();
-    QString loadMsgsDialog();
+    std::tuple<QString, bool> loadMsgsDialog(bool askForClear);
     QString saveMsgsDialog();
 
     Ui::MainWindowWidget m_ui;

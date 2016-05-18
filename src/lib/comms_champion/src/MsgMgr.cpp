@@ -75,6 +75,11 @@ const MsgMgr::AllMessages& MsgMgr::getAllMsgs() const
     return m_impl->getAllMsgs();
 }
 
+void MsgMgr::addMsgs(const MessagesList& msgs, bool reportAdded)
+{
+    m_impl->addMsgs(msgs, reportAdded);
+}
+
 void MsgMgr::setSocket(SocketPtr socket)
 {
     m_impl->setSocket(std::move(socket));

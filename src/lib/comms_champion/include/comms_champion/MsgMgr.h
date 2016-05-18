@@ -55,6 +55,7 @@ public:
     void sendMsgs(MessagesList&& msgs);
 
     const AllMessages& getAllMsgs() const;
+    void addMsgs(const MessagesList& msgs, bool reportAdded = true);
 
     void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);

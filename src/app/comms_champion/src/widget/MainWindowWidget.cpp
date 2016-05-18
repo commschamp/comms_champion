@@ -100,6 +100,12 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
         guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
         this, SLOT(activeStateChanged(int)));
     connect(
+        guiAppMgr, SIGNAL(sigLoadRecvMsgsDialog(bool)),
+        this, SLOT(loadRecvMsgsDialog(bool)));
+    connect(
+        guiAppMgr, SIGNAL(sigSaveRecvMsgsDialog()),
+        this, SLOT(saveRecvMsgsDialog()));
+    connect(
         guiAppMgr, SIGNAL(sigLoadSendMsgsDialog(bool)),
         this, SLOT(loadSendMsgsDialog(bool)));
     connect(
@@ -197,31 +203,39 @@ void MainWindowWidget::activeStateChanged(int state)
     }
 }
 
-void MainWindowWidget::loadSendMsgsDialog(bool askForClear)
+void MainWindowWidget::loadRecvMsgsDialog(bool askForClear)
 {
-    auto filename = loadMsgsDialog();
+    auto result = loadMsgsDialog(askForClear);
+    auto& filename = std::get<0>(result);
+
     if (filename.isEmpty()) {
         return;
     }
 
-    bool clear = false;
-    if (askForClear) {
-        QMessageBox msgBox;
-        msgBox.setText(
-            tr("The list of messages is not empty.\n"
-               "Do you want to CLEAR it first or APPEND new messages to it?"));
-        auto* clearButton = msgBox.addButton(tr("Clear"), QMessageBox::ActionRole);
-        assert(clearButton != nullptr);
-        auto* appendButton = msgBox.addButton(tr("Append"), QMessageBox::ActionRole);
-        static_cast<void>(appendButton);
-        assert(appendButton != nullptr);
-        msgBox.setDefaultButton(clearButton);
-        assert(msgBox.clickedButton() == nullptr);
-        msgBox.exec();
-        assert(msgBox.clickedButton() != nullptr);
-        clear = (msgBox.clickedButton() == clearButton);
+    auto clear = std::get<1>(result);
+    GuiAppMgr::instanceRef().recvLoadMsgsFromFile(clear, filename);
+}
+
+void MainWindowWidget::saveRecvMsgsDialog()
+{
+    auto filename = saveMsgsDialog();
+    if (filename.isEmpty()) {
+        return;
     }
 
+    GuiAppMgr::instance()->recvSaveMsgsToFile(filename);
+}
+
+void MainWindowWidget::loadSendMsgsDialog(bool askForClear)
+{
+    auto result = loadMsgsDialog(askForClear);
+    auto& filename = std::get<0>(result);
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    auto clear = std::get<1>(result);
     GuiAppMgr::instanceRef().sendLoadMsgsFromFile(clear, filename);
 }
 
@@ -255,16 +269,35 @@ void MainWindowWidget::clearCustomToolbarActions()
     m_customActions.clear();
 }
 
-QString MainWindowWidget::loadMsgsDialog()
+std::tuple<QString, bool> MainWindowWidget::loadMsgsDialog(bool askForClear)
 {
     auto& msgsFileMgr = MsgFileMgrG::instanceRef();
-    return
+    QString filename =
         QFileDialog::getOpenFileName(
             this,
             tr("Load Messages from File"),
             msgsFileMgr.getLastFile(),
             msgsFileMgr.getFilesFilter());
 
+    bool clear = false;
+    if (askForClear) {
+        QMessageBox msgBox;
+        msgBox.setText(
+            tr("The list of messages is not empty.\n"
+               "Do you want to CLEAR it first or APPEND new messages to it?"));
+        auto* clearButton = msgBox.addButton(tr("Clear"), QMessageBox::ActionRole);
+        assert(clearButton != nullptr);
+        auto* appendButton = msgBox.addButton(tr("Append"), QMessageBox::ActionRole);
+        static_cast<void>(appendButton);
+        assert(appendButton != nullptr);
+        msgBox.setDefaultButton(clearButton);
+        assert(msgBox.clickedButton() == nullptr);
+        msgBox.exec();
+        assert(msgBox.clickedButton() != nullptr);
+        clear = (msgBox.clickedButton() == clearButton);
+    }
+
+    return std::make_tuple(std::move(filename), clear);
 }
 
 QString MainWindowWidget::saveMsgsDialog()

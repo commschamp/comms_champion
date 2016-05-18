@@ -44,14 +44,24 @@ QAction* createStartButton(QToolBar& bar)
     return action;
 }
 
-//QAction* createSaveButton(QToolBar& bar)
-//{
-//    auto* action = bar.addAction(icon::save(), "Save Messages");
-//    QObject::connect(action, SIGNAL(triggered()),
-//                     GuiAppMgr::instance(), SLOT(recvSaveClicked()));
-//
-//    return action;
-//}
+QAction* createLoadButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(icon::upload(), "Load Messages");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(recvLoadClicked()));
+
+    return action;
+}
+
+
+QAction* createSaveButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(icon::save(), "Save Messages");
+    QObject::connect(action, SIGNAL(triggered()),
+                     GuiAppMgr::instance(), SLOT(recvSaveClicked()));
+
+    return action;
+}
 
 QAction* createDeleteButton(QToolBar& bar)
 {
@@ -113,13 +123,15 @@ QAction* createShowSent(QToolBar& bar)
 RecvAreaToolBar::RecvAreaToolBar(QWidget* parentObj)
   : Base(parentObj),
     m_startStopButton(createStartButton(*this)),
-//    m_saveButton(createSaveButton(*this)),
+    m_loadButton(createLoadButton(*this)),
+    m_saveButton(createSaveButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
     m_showGarbageButton(createShowGarbage(*this)),
     m_showRecvButton(createShowReceived(*this)),
     m_showSentButton(createShowSent(*this)),
     m_state(GuiAppMgr::instance()->recvState()),
+    m_sendState(GuiAppMgr::instance()->sendState()),
     m_activeState(GuiAppMgr::instance()->getActivityState())
 {
     insertSeparator(m_showGarbageButton);
@@ -143,6 +155,10 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parentObj)
     connect(
         guiAppMgr, SIGNAL(sigSetRecvState(int)),
         this, SLOT(recvStateChanged(int)));
+
+    connect(
+        guiAppMgr, SIGNAL(sigSetSendState(int)),
+        this, SLOT(sendStateChanged(int)));
 
     connect(
         guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
@@ -186,6 +202,18 @@ void RecvAreaToolBar::recvStateChanged(int state)
     return;
 }
 
+void RecvAreaToolBar::sendStateChanged(int state)
+{
+    auto castedState = static_cast<SendState>(state);
+    if (m_sendState == castedState) {
+        return;
+    }
+
+    m_sendState = castedState;
+    refresh();
+    return;
+}
+
 void RecvAreaToolBar::activeStateChanged(int state)
 {
     auto castedState = static_cast<ActivityState>(state);
@@ -200,7 +228,8 @@ void RecvAreaToolBar::activeStateChanged(int state)
 void RecvAreaToolBar::refresh()
 {
     refreshStartStopButton();
-//    refreshSaveButton();
+    refreshLoadButton();
+    refreshSaveButton();
     refreshDeleteButton();
     refreshClearButton();
 }
@@ -221,16 +250,48 @@ void RecvAreaToolBar::refreshStartStopButton()
     button->setEnabled(enabled);
 }
 
-//void RecvAreaToolBar::refreshSaveButton()
-//{
-//    auto* button = m_saveButton;
-//    assert(button != nullptr);
-//    bool enabled =
-//        (m_activeState == ActivityState::Active) &&
-//        (m_state == State::Idle) &&
-//        (!listEmpty());
-//    button->setEnabled(enabled);
-//}
+void RecvAreaToolBar::refreshLoadButton()
+{
+    auto* button = m_loadButton;
+    assert(button != nullptr);
+    bool enabled = false;
+    do {
+        if ((m_activeState != ActivityState::Active) ||
+            (m_state != State::Idle)) {
+            break;
+        }
+
+        if ((m_showSentButton->isChecked()) &&
+            (m_sendState != SendState::Idle)) {
+            break;
+        }
+
+        enabled = true;
+    } while (false);
+    button->setEnabled(enabled);
+}
+
+void RecvAreaToolBar::refreshSaveButton()
+{
+    auto* button = m_saveButton;
+    assert(button != nullptr);
+    bool enabled = false;
+    do {
+        if ((m_activeState != ActivityState::Active) ||
+            (m_state != State::Idle) ||
+            (listEmpty())) {
+            break;
+        }
+
+        if ((m_showSentButton->isChecked()) &&
+            (m_sendState != SendState::Idle)) {
+            break;
+        }
+
+        enabled = true;
+    } while (false);
+    button->setEnabled(enabled);
+}
 
 void RecvAreaToolBar::refreshDeleteButton()
 {

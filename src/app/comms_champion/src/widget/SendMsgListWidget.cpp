@@ -149,7 +149,6 @@ void SendMsgListWidget::msgMovedImpl(int idx)
 
 void SendMsgListWidget::loadMessagesImpl(const QString& filename, Protocol& protocol)
 {
-    static_cast<void>(filename);
     auto msgs = MsgFileMgrG::instanceRef().load(MsgFileMgr::Type::Send, filename, protocol);
     for (auto& m : msgs) {
         addMessage(m);

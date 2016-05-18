@@ -32,6 +32,7 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/property/message.h"
 #include "DefaultMessageDisplayHandler.h"
 #include "PluginMgrG.h"
+#include "MsgFileMgrG.h"
 
 #include <iostream>
 
@@ -130,9 +131,14 @@ void GuiAppMgr::recvStopClicked()
     emitRecvStateUpdate();
 }
 
+void GuiAppMgr::recvLoadClicked()
+{
+    emit sigLoadRecvMsgsDialog(0 < m_recvListCount);
+}
+
 void GuiAppMgr::recvSaveClicked()
 {
-    assert(!"Recv save clicked");
+    emit sigSaveRecvMsgsDialog();
 }
 
 void GuiAppMgr::recvDeleteClicked()
@@ -325,6 +331,24 @@ bool GuiAppMgr::recvMsgListSelectOnAddEnabled()
 bool GuiAppMgr::recvListEmpty() const
 {
     return m_recvListCount == 0;
+}
+
+void GuiAppMgr::recvLoadMsgsFromFile(bool clear, const QString& filename)
+{
+    auto& msgMgr = MsgMgrG::instanceRef();
+    auto msgs = MsgFileMgrG::instanceRef().load(MsgFileMgr::Type::Recv, filename, *msgMgr.getProtocol());
+
+    if (clear) {
+        clearRecvList(false);
+        msgMgr.deleteAllMsgs();
+    }
+
+    msgMgr.addMsgs(msgs);
+}
+
+void GuiAppMgr::recvSaveMsgsToFile(const QString& filename)
+{
+    emit sigRecvSaveMsgs(filename);
 }
 
 bool GuiAppMgr::recvListShowsReceived() const

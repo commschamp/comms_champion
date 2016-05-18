@@ -29,6 +29,7 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/property/message.h"
 #include "RecvAreaToolBar.h"
 #include "GuiAppMgr.h"
+#include "MsgFileMgrG.h"
 
 namespace comms_champion
 {
@@ -59,6 +60,9 @@ RecvMsgListWidget::RecvMsgListWidget(QWidget* parentObj)
     connect(
         guiMgr, SIGNAL(sigRecvListTitleNeedsUpdate()),
         this, SLOT(titleNeedsUpdate()));
+    connect(
+        guiMgr, SIGNAL(sigRecvSaveMsgs(const QString&)),
+        this, SLOT(saveMessages(const QString&)));
 
 }
 
@@ -105,6 +109,11 @@ Qt::GlobalColor RecvMsgListWidget::getItemColourImpl(MsgType type, bool valid) c
 QString RecvMsgListWidget::getTitleImpl() const
 {
     return getTitlePrefix();
+}
+
+void RecvMsgListWidget::saveMessagesImpl(const QString& filename)
+{
+    MsgFileMgrG::instanceRef().save(MsgFileMgr::Type::Recv, filename, allMsgs());
 }
 
 QString RecvMsgListWidget::getTitlePrefix()

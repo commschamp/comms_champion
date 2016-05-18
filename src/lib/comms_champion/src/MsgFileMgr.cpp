@@ -130,17 +130,125 @@ private:
 const QString RepeatCountProp::Name("repeat_count");
 const QByteArray RepeatCountProp::PropName = RepeatCountProp::Name.toUtf8();
 
-const QString& getRepeatCountKeyStr()
+class TimestampProp : public property::message::PropBase<unsigned long long>
 {
-    static const QString Str("repeat_count");
-    return Str;
+    typedef property::message::PropBase<unsigned long long> Base;
+public:
+    TimestampProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString TimestampProp::Name("timestamp");
+const QByteArray TimestampProp::PropName = TimestampProp::Name.toUtf8();
+
+class TypeProp : public property::message::PropBase<unsigned>
+{
+    typedef property::message::PropBase<unsigned> Base;
+public:
+    TypeProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString TypeProp::Name("type");
+const QByteArray TypeProp::PropName = TypeProp::Name.toUtf8();
+
+
+QString encodeMsgData(MsgFileMgr::MessagesList::const_reference msg)
+{
+    assert(msg);
+    auto msgData = msg->encodeData();
+    QString msgDataStr;
+    for (auto dataByte : msgData) {
+        if (!msgDataStr.isEmpty()) {
+            msgDataStr.append(' ');
+        }
+        msgDataStr.append(
+            QString("%1").arg(
+                static_cast<unsigned>(dataByte), 2, 16, QChar('0')));
+    }
+
+    return msgDataStr;
 }
 
-QVariantList convertMsgList(
-    MsgFileMgr::Type type,
+MessagePtr createMsgObjectFrom(
+    const QVariant& msgMapVar,
+    Protocol& protocol)
+{
+    if ((!msgMapVar.isValid()) || (!msgMapVar.canConvert<QVariantMap>())) {
+        return MessagePtr();
+    }
+
+    auto msgMap = msgMapVar.value<QVariantMap>();
+    auto msgId = IdProp().getFrom(msgMap);
+    if (msgId.isEmpty()) {
+        return MessagePtr();
+    }
+
+    auto dataStr = DataProp().getFrom(msgMap);
+    QString stripedDataStr;
+    stripedDataStr.reserve(dataStr.size());
+    std::copy_if(
+        dataStr.begin(), dataStr.end(), std::back_inserter(stripedDataStr),
+        [](QChar ch) -> bool
+        {
+            return
+                ch.isDigit() ||
+                ((QChar('A') <= ch) && (ch <= QChar('F'))) ||
+                ((QChar('a') <= ch) && (ch <= QChar('f')));
+        });
+
+    if ((stripedDataStr.size() & 0x1) != 0) {
+        stripedDataStr.prepend(QChar('0'));
+    }
+
+    Message::DataSeq data;
+    QString num;
+    for (auto ch : stripedDataStr) {
+        num.append(ch);
+        if (num.size() == 1) {
+            continue;
+        }
+
+        assert(num.size() == 2);
+        bool ok = false;
+        auto byte = num.toInt(&ok, 16);
+        static_cast<void>(ok);
+        assert(ok);
+        assert((0 <= byte) && (byte <= 0xff));
+        data.push_back(static_cast<Message::DataSeq::value_type>(byte));
+        num.clear();
+    }
+
+    MessagePtr msg;
+    unsigned idx = 0;
+    while (!msg) {
+        msg = protocol.createMessage(msgId, idx);
+        if (!msg) {
+            break;
+        }
+
+        ++idx;
+        if (msg->decodeData(data)) {
+            break;
+        }
+
+        msg.reset();
+    }
+
+    if (msg) {
+        protocol.updateMessage(*msg);
+    }
+
+    return msg;
+}
+
+QVariantList convertRecvMsgList(
     const MsgFileMgr::MessagesList& allMsgs)
 {
-    static_cast<void>(type);
     QVariantList convertedList;
     for (auto& msg : allMsgs) {
         if (!msg) {
@@ -148,20 +256,64 @@ QVariantList convertMsgList(
             continue;
         }
 
-        auto msgData = msg->encodeData();
-        QString msgDataStr;
-        for (auto dataByte : msgData) {
-            if (!msgDataStr.isEmpty()) {
-                msgDataStr.append(' ');
-            }
-            msgDataStr.append(
-                QString("%1").arg(
-                    static_cast<unsigned>(dataByte), 2, 16, QChar('0')));
+        QVariantMap msgInfoMap;
+        IdProp().setTo(msg->idAsString(), msgInfoMap);
+        DataProp().setTo(encodeMsgData(msg), msgInfoMap);
+        TimestampProp().setTo(property::message::Timestamp().getFrom(*msg), msgInfoMap);
+        TypeProp().setTo(static_cast<unsigned>(property::message::Type().getFrom(*msg)), msgInfoMap);
+
+        // TODO: record custom properties
+
+        convertedList.append(QVariant::fromValue(msgInfoMap));
+    }
+    return convertedList;
+}
+
+MsgFileMgr::MessagesList convertRecvMsgList(
+    const QVariantList& msgs,
+    Protocol& protocol)
+{
+    MsgFileMgr::MessagesList convertedList;
+
+    for (auto& msgMapVar : msgs) {
+        auto msg = createMsgObjectFrom(msgMapVar, protocol);
+        if (!msg) {
+            continue;
+        }
+
+        assert(msgMapVar.isValid() && msgMapVar.canConvert<QVariantMap>());
+
+        auto msgMap = msgMapVar.value<QVariantMap>();
+        auto timestamp = TimestampProp().getFrom(msgMap);
+        if (timestamp == 0) {
+            // Not a receive list, skip message
+            continue;
+        }
+
+        auto type = static_cast<Message::Type>(TypeProp().getFrom(msgMap));
+
+        property::message::Timestamp().setTo(timestamp, *msg);
+        property::message::Type().setTo(type, *msg);
+        // TODO: support custom properties
+
+        convertedList.push_back(std::move(msg));
+    }
+    return convertedList;
+}
+
+QVariantList convertSendMsgList(
+    const MsgFileMgr::MessagesList& allMsgs)
+{
+    QVariantList convertedList;
+    for (auto& msg : allMsgs) {
+        if (!msg) {
+            assert(!"Message is expected to exist");
+            continue;
         }
 
         QVariantMap msgInfoMap;
         IdProp().setTo(msg->idAsString(), msgInfoMap);
-        DataProp().setTo(msgDataStr, msgInfoMap);
+        DataProp().setTo(encodeMsgData(msg), msgInfoMap);
         DelayProp().setTo(property::message::Delay().getFrom(*msg), msgInfoMap);
         DelayUnitsProp().setTo(property::message::DelayUnits().getFrom(*msg), msgInfoMap);
         RepeatProp().setTo(property::message::RepeatDuration().getFrom(*msg), msgInfoMap);
@@ -175,91 +327,89 @@ QVariantList convertMsgList(
     return convertedList;
 }
 
-MsgFileMgr::MessagesList convertMsgList(
-    MsgFileMgr::Type type,
+MsgFileMgr::MessagesList convertSendMsgList(
     const QVariantList& msgs,
     Protocol& protocol)
 {
-    static_cast<void>(type);
     MsgFileMgr::MessagesList convertedList;
+    unsigned long long prevTimestamp = 0;
+
     for (auto& msgMapVar : msgs) {
-        if ((!msgMapVar.isValid()) || (!msgMapVar.canConvert<QVariantMap>())) {
-            continue;
-        }
-
-        auto msgMap = msgMapVar.value<QVariantMap>();
-        auto msgId = IdProp().getFrom(msgMap);
-        if (msgId.isEmpty()) {
-            continue;
-        }
-
-        auto dataStr = DataProp().getFrom(msgMap);
-        QString stripedDataStr;
-        stripedDataStr.reserve(dataStr.size());
-        std::copy_if(
-            dataStr.begin(), dataStr.end(), std::back_inserter(stripedDataStr),
-            [](QChar ch) -> bool
-            {
-                return
-                    ch.isDigit() ||
-                    ((QChar('A') <= ch) && (ch <= QChar('F'))) ||
-                    ((QChar('a') <= ch) && (ch <= QChar('f')));
-            });
-
-        if ((stripedDataStr.size() & 0x1) != 0) {
-            stripedDataStr.prepend(QChar('0'));
-        }
-
-        Message::DataSeq data;
-        QString num;
-        for (auto ch : stripedDataStr) {
-            num.append(ch);
-            if (num.size() == 1) {
-                continue;
-            }
-
-            assert(num.size() == 2);
-            bool ok = false;
-            auto byte = num.toInt(&ok, 16);
-            static_cast<void>(ok);
-            assert(ok);
-            assert((0 <= byte) && (byte <= 0xff));
-            data.push_back(static_cast<Message::DataSeq::value_type>(byte));
-            num.clear();
-        }
-
-        MessagePtr msg;
-        unsigned idx = 0;
-        while (!msg) {
-            msg = protocol.createMessage(msgId, idx);
-            if (!msg) {
-                break;
-            }
-
-            ++idx;
-            if (msg->decodeData(data)) {
-                break;
-            }
-
-            msg.reset();
-        }
-
+        auto msg = createMsgObjectFrom(msgMapVar, protocol);
         if (!msg) {
             continue;
         }
 
-        protocol.updateMessage(*msg);
+        assert(msgMapVar.isValid() && msgMapVar.canConvert<QVariantMap>());
 
-        property::message::Delay().setTo(DelayProp().getFrom(msgMap), *msg);
-        property::message::DelayUnits().setTo(DelayUnitsProp().getFrom(msgMap), *msg);
-        property::message::RepeatDuration().setTo(RepeatProp().getFrom(msgMap), *msg);
-        property::message::RepeatDurationUnits().setTo(RepeatUnitsProp().getFrom(msgMap), *msg);
-        property::message::RepeatCount().setTo(RepeatCountProp().getFrom(msgMap), *msg);
+        auto msgMap = msgMapVar.value<QVariantMap>();
+        auto delay = DelayProp().getFrom(msgMap);
+        auto delayUnits = DelayUnitsProp().getFrom(msgMap);
+        auto repeatDuration = RepeatProp().getFrom(msgMap);
+        auto repeatDurationUnits = RepeatUnitsProp().getFrom(msgMap);
+        auto repeatCount = RepeatCountProp().getFrom(msgMap);
+
+        if ((repeatDuration == 0) && (repeatCount == 0)) {
+            repeatCount = 1;
+
+            do {
+                if (delay != 0) {
+                    break;
+                }
+
+                // Probably receive list is loaded
+                auto timestamp = TimestampProp().getFrom(msgMap);
+                if (timestamp == 0) {
+                    break;
+                }
+
+                if (prevTimestamp == 0) {
+                    prevTimestamp = timestamp;
+                    break;
+                }
+
+                auto delayTmp = timestamp - prevTimestamp;
+                if (delayTmp <= 0) {
+                    break;
+                }
+
+                delay = delayTmp;
+            } while (false);
+        }
+
+        property::message::Delay().setTo(delay, *msg);
+        property::message::DelayUnits().setTo(std::move(delayUnits), *msg);
+        property::message::RepeatDuration().setTo(repeatDuration, *msg);
+        property::message::RepeatDurationUnits().setTo(std::move(repeatDurationUnits), *msg);
+        property::message::RepeatCount().setTo(repeatCount, *msg);
         // TODO: support custom properties
 
         convertedList.push_back(std::move(msg));
     }
     return convertedList;
+}
+
+QVariantList convertMsgList(
+    MsgFileMgr::Type type,
+    const MsgFileMgr::MessagesList& allMsgs)
+{
+    if (type == MsgFileMgr::Type::Recv) {
+        return convertRecvMsgList(allMsgs);
+    }
+
+    return convertSendMsgList(allMsgs);
+}
+
+MsgFileMgr::MessagesList convertMsgList(
+    MsgFileMgr::Type type,
+    const QVariantList& msgs,
+    Protocol& protocol)
+{
+    if (type == MsgFileMgr::Type::Recv) {
+        return convertRecvMsgList(msgs, protocol);
+    }
+
+    return convertSendMsgList(msgs, protocol);
 }
 
 }  // namespace

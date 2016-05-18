@@ -86,6 +86,8 @@ public:
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();
     bool recvListEmpty() const;
+    void recvLoadMsgsFromFile(bool clear, const QString& filename);
+    void recvSaveMsgsToFile(const QString& filename);
     bool recvListShowsReceived() const;
     bool recvListShowsSent() const;
     bool recvListShowsGarbage() const;
@@ -110,6 +112,7 @@ public slots:
 
     void recvStartClicked();
     void recvStopClicked();
+    void recvLoadClicked();
     void recvSaveClicked();
     void recvDeleteClicked();
     void recvClearClicked();
@@ -166,6 +169,8 @@ signals:
     void sigRecvListTitleNeedsUpdate();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
+    void sigLoadRecvMsgsDialog(bool askForClear);
+    void sigSaveRecvMsgsDialog();
     void sigLoadSendMsgsDialog(bool askForClear);
     void sigSaveSendMsgsDialog();
     void sigPluginsEditDialog();
@@ -173,6 +178,7 @@ signals:
     void sigErrorReported(const QString& msg);
     void sigAddMainToolbarAction(ActionPtr action);
     void sigClearAllMainToolbarActions();
+    void sigRecvSaveMsgs(const QString& filename);
     void sigSendLoadMsgs(bool clear, const QString& filename, ProtocolPtr protocol);
     void sigSendSaveMsgs(const QString& filename);
 

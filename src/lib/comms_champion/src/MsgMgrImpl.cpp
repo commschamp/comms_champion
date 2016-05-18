@@ -171,11 +171,28 @@ void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
 void MsgMgrImpl::addMsgs(const MessagesList& msgs, bool reportAdded)
 {
     m_allMsgs.reserve(m_allMsgs.size() + msgs.size());
-    m_allMsgs.insert(m_allMsgs.end(), msgs.begin(), msgs.end());
-    if (reportAdded) {
-        for (auto& msgPtr : msgs) {
-            reportMsgAdded(msgPtr);
+
+    for (auto& m : msgs) {
+        if (!m) {
+            assert(!"Invalid message in the list");
+            continue;
         }
+
+        if (property::message::Type().getFrom(*m) == MsgType::Invalid) {
+            assert(!"Invalid type of the message");
+            continue;
+        }
+
+        if (property::message::Timestamp().getFrom(*m) == 0) {
+            auto now = DataInfo::TimestampClock::now();
+            updateMsgTimestamp(*m, now);
+        }
+
+        updateInternalId(*m);
+        if (reportAdded) {
+            reportMsgAdded(m);
+        }
+        m_allMsgs.push_back(m);
     }
 }
 

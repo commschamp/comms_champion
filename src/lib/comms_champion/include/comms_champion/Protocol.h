@@ -66,6 +66,10 @@ public:
 
     MessagePtr cloneMessage(const Message& msg);
 
+    MessagePtr createInvalidMessage();
+
+    MessagePtr createRawDataMessage();
+
 protected:
     virtual const QString& nameImpl() const = 0;
 
@@ -80,6 +84,10 @@ protected:
     virtual UpdateStatus updateMessageImpl(Message& msg) = 0;
 
     virtual MessagePtr cloneMessageImpl(const Message& msg) = 0;
+
+    virtual MessagePtr createInvalidMessageImpl() = 0;
+
+    virtual MessagePtr createRawDataMessageImpl() = 0;
 
     void setNameToMessageProperties(Message& msg);
     static void setTransportToMessageProperties(MessagePtr transportMsg, Message& msg);

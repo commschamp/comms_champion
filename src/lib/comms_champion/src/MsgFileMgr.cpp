@@ -160,7 +160,22 @@ const QByteArray TypeProp::PropName = TypeProp::Name.toUtf8();
 QString encodeMsgData(MsgFileMgr::MessagesList::const_reference msg)
 {
     assert(msg);
-    auto msgData = msg->encodeData();
+
+    Message::DataSeq msgData;
+    do {
+        if (!msg->idAsString().isEmpty()) {
+            msgData = msg->encodeData();
+            break;
+        }
+
+        auto rawDataMsg = property::message::RawDataMsg().getFrom(*msg);
+        if (!rawDataMsg) {
+            break;
+        }
+
+        msgData = rawDataMsg->encodeData();
+    } while (false);
+
     QString msgDataStr;
     for (auto dataByte : msgData) {
         if (!msgDataStr.isEmpty()) {
@@ -184,11 +199,12 @@ MessagePtr createMsgObjectFrom(
 
     auto msgMap = msgMapVar.value<QVariantMap>();
     auto msgId = IdProp().getFrom(msgMap);
-    if (msgId.isEmpty()) {
+    auto dataStr = DataProp().getFrom(msgMap);
+
+    if (msgId.isEmpty() && dataStr.isEmpty()) {
         return MessagePtr();
     }
 
-    auto dataStr = DataProp().getFrom(msgMap);
     QString stripedDataStr;
     stripedDataStr.reserve(dataStr.size());
     std::copy_if(
@@ -224,6 +240,19 @@ MessagePtr createMsgObjectFrom(
     }
 
     MessagePtr msg;
+    if (msgId.isEmpty()) {
+        msg = protocol.createInvalidMessage();
+        auto rawDataMsg = protocol.createRawDataMessage();
+        bool decodeResult = rawDataMsg->decodeData(data);
+        if (!decodeResult) {
+            msg.reset();
+            return msg;
+        }
+
+        property::message::RawDataMsg().setTo(std::move(rawDataMsg), *msg);
+        return msg;
+    }
+
     unsigned idx = 0;
     while (!msg) {
         msg = protocol.createMessage(msgId, idx);
@@ -257,8 +286,16 @@ QVariantList convertRecvMsgList(
         }
 
         QVariantMap msgInfoMap;
-        IdProp().setTo(msg->idAsString(), msgInfoMap);
-        DataProp().setTo(encodeMsgData(msg), msgInfoMap);
+        auto idStr = msg->idAsString();
+        auto dataStr = encodeMsgData(msg);
+        if (idStr.isEmpty() && dataStr.isEmpty()) {
+            continue;
+        }
+
+        if (!idStr.isEmpty()) {
+            IdProp().setTo(std::move(idStr), msgInfoMap);
+        }
+        DataProp().setTo(std::move(dataStr), msgInfoMap);
         TimestampProp().setTo(property::message::Timestamp().getFrom(*msg), msgInfoMap);
         TypeProp().setTo(static_cast<unsigned>(property::message::Type().getFrom(*msg)), msgInfoMap);
 
@@ -365,7 +402,6 @@ MsgFileMgr::MessagesList convertSendMsgList(
 
                 if (prevTimestamp == 0) {
                     prevTimestamp = timestamp;
-                    break;
                 }
 
                 auto delayTmp = timestamp - prevTimestamp;
@@ -373,6 +409,7 @@ MsgFileMgr::MessagesList convertSendMsgList(
                     break;
                 }
 
+                prevTimestamp = timestamp;
                 delay = delayTmp;
             } while (false);
         }

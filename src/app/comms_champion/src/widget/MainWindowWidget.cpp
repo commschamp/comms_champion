@@ -100,8 +100,8 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
         guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
         this, SLOT(activeStateChanged(int)));
     connect(
-        guiAppMgr, SIGNAL(sigLoadRecvMsgsDialog(bool)),
-        this, SLOT(loadRecvMsgsDialog(bool)));
+        guiAppMgr, SIGNAL(sigLoadRecvMsgsDialog()),
+        this, SLOT(loadRecvMsgsDialog()));
     connect(
         guiAppMgr, SIGNAL(sigSaveRecvMsgsDialog()),
         this, SLOT(saveRecvMsgsDialog()));
@@ -203,17 +203,16 @@ void MainWindowWidget::activeStateChanged(int state)
     }
 }
 
-void MainWindowWidget::loadRecvMsgsDialog(bool askForClear)
+void MainWindowWidget::loadRecvMsgsDialog()
 {
-    auto result = loadMsgsDialog(askForClear);
+    auto result = loadMsgsDialog(false);
     auto& filename = std::get<0>(result);
 
     if (filename.isEmpty()) {
         return;
     }
 
-    auto clear = std::get<1>(result);
-    GuiAppMgr::instanceRef().recvLoadMsgsFromFile(clear, filename);
+    GuiAppMgr::instanceRef().recvLoadMsgsFromFile(filename);
 }
 
 void MainWindowWidget::saveRecvMsgsDialog()

@@ -56,7 +56,7 @@ private slots:
     void addMainToolbarAction(ActionPtr action);
     void clearAllMainToolbarActions();
     void activeStateChanged(int state);
-    void loadRecvMsgsDialog(bool askForClear);
+    void loadRecvMsgsDialog();
     void saveRecvMsgsDialog();
     void loadSendMsgsDialog(bool askForClear);
     void saveSendMsgsDialog();

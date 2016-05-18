@@ -64,6 +64,16 @@ MessagePtr Protocol::cloneMessage(const Message& msg)
     return clonedMsg;
 }
 
+MessagePtr Protocol::createInvalidMessage()
+{
+    return createInvalidMessageImpl();
+}
+
+MessagePtr Protocol::createRawDataMessage()
+{
+    return createRawDataMessageImpl();
+}
+
 void Protocol::setNameToMessageProperties(Message& msg)
 {
     property::message::ProtocolName().setTo(name(), msg);

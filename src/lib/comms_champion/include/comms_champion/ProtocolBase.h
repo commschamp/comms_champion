@@ -301,6 +301,16 @@ protected:
         return std::move(clonedMsg);
     }
 
+    virtual MessagePtr createInvalidMessageImpl() override
+    {
+        return MessagePtr(new InvalidMsg());
+    }
+
+    virtual MessagePtr createRawDataMessageImpl() override
+    {
+        return MessagePtr(new RawDataMsg());
+    }
+
     virtual MessagesList createAllMessagesImpl() override
     {
         return createAllMessagesInTuple<AllMessages>();

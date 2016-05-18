@@ -86,7 +86,7 @@ public:
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();
     bool recvListEmpty() const;
-    void recvLoadMsgsFromFile(bool clear, const QString& filename);
+    void recvLoadMsgsFromFile(const QString& filename);
     void recvSaveMsgsToFile(const QString& filename);
     bool recvListShowsReceived() const;
     bool recvListShowsSent() const;
@@ -169,7 +169,7 @@ signals:
     void sigRecvListTitleNeedsUpdate();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
-    void sigLoadRecvMsgsDialog(bool askForClear);
+    void sigLoadRecvMsgsDialog();
     void sigSaveRecvMsgsDialog();
     void sigLoadSendMsgsDialog(bool askForClear);
     void sigSaveSendMsgsDialog();

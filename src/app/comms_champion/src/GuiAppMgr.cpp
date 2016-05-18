@@ -133,7 +133,7 @@ void GuiAppMgr::recvStopClicked()
 
 void GuiAppMgr::recvLoadClicked()
 {
-    emit sigLoadRecvMsgsDialog(0 < m_recvListCount);
+    emit sigLoadRecvMsgsDialog();
 }
 
 void GuiAppMgr::recvSaveClicked()
@@ -333,15 +333,13 @@ bool GuiAppMgr::recvListEmpty() const
     return m_recvListCount == 0;
 }
 
-void GuiAppMgr::recvLoadMsgsFromFile(bool clear, const QString& filename)
+void GuiAppMgr::recvLoadMsgsFromFile(const QString& filename)
 {
     auto& msgMgr = MsgMgrG::instanceRef();
     auto msgs = MsgFileMgrG::instanceRef().load(MsgFileMgr::Type::Recv, filename, *msgMgr.getProtocol());
 
-    if (clear) {
-        clearRecvList(false);
-        msgMgr.deleteAllMsgs();
-    }
+    clearRecvList(false);
+    msgMgr.deleteAllMsgs();
 
     msgMgr.addMsgs(msgs);
 }

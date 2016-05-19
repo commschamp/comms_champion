@@ -25,9 +25,9 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
-#include <QtCore/QFile>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonArray>
+#include <QtCore/QJsonObject>
 #include <QtCore/QVariantMap>
 CC_ENABLE_WARNINGS()
 
@@ -157,18 +157,16 @@ const QString TypeProp::Name("type");
 const QByteArray TypeProp::PropName = TypeProp::Name.toUtf8();
 
 
-QString encodeMsgData(MsgFileMgr::MessagesList::const_reference msg)
+QString encodeMsgData(const Message& msg)
 {
-    assert(msg);
-
     Message::DataSeq msgData;
     do {
-        if (!msg->idAsString().isEmpty()) {
-            msgData = msg->encodeData();
+        if (!msg.idAsString().isEmpty()) {
+            msgData = msg.encodeData();
             break;
         }
 
-        auto rawDataMsg = property::message::RawDataMsg().getFrom(*msg);
+        auto rawDataMsg = property::message::RawDataMsg().getFrom(msg);
         if (!rawDataMsg) {
             break;
         }
@@ -275,6 +273,24 @@ MessagePtr createMsgObjectFrom(
     return msg;
 }
 
+QVariantMap convertRecvMsg(const Message& msg)
+{
+    QVariantMap msgInfoMap;
+    auto idStr = msg.idAsString();
+    auto dataStr = encodeMsgData(msg);
+    if (idStr.isEmpty() && dataStr.isEmpty()) {
+        return msgInfoMap;
+    }
+
+    if (!idStr.isEmpty()) {
+        IdProp().setTo(std::move(idStr), msgInfoMap);
+    }
+    DataProp().setTo(std::move(dataStr), msgInfoMap);
+    TimestampProp().setTo(property::message::Timestamp().getFrom(msg), msgInfoMap);
+    TypeProp().setTo(static_cast<unsigned>(property::message::Type().getFrom(msg)), msgInfoMap);
+    return msgInfoMap;
+}
+
 QVariantList convertRecvMsgList(
     const MsgFileMgr::MessagesList& allMsgs)
 {
@@ -285,19 +301,10 @@ QVariantList convertRecvMsgList(
             continue;
         }
 
-        QVariantMap msgInfoMap;
-        auto idStr = msg->idAsString();
-        auto dataStr = encodeMsgData(msg);
-        if (idStr.isEmpty() && dataStr.isEmpty()) {
+        QVariantMap msgInfoMap = convertRecvMsg(*msg);
+        if (msgInfoMap.isEmpty()) {
             continue;
         }
-
-        if (!idStr.isEmpty()) {
-            IdProp().setTo(std::move(idStr), msgInfoMap);
-        }
-        DataProp().setTo(std::move(dataStr), msgInfoMap);
-        TimestampProp().setTo(property::message::Timestamp().getFrom(*msg), msgInfoMap);
-        TypeProp().setTo(static_cast<unsigned>(property::message::Type().getFrom(*msg)), msgInfoMap);
 
         // TODO: record custom properties
 
@@ -350,7 +357,7 @@ QVariantList convertSendMsgList(
 
         QVariantMap msgInfoMap;
         IdProp().setTo(msg->idAsString(), msgInfoMap);
-        DataProp().setTo(encodeMsgData(msg), msgInfoMap);
+        DataProp().setTo(encodeMsgData(*msg), msgInfoMap);
         DelayProp().setTo(property::message::Delay().getFrom(*msg), msgInfoMap);
         DelayUnitsProp().setTo(property::message::DelayUnits().getFrom(*msg), msgInfoMap);
         RepeatProp().setTo(property::message::RepeatDuration().getFrom(*msg), msgInfoMap);
@@ -544,7 +551,58 @@ const QString& MsgFileMgr::getFilesFilter()
     return Str;
 }
 
+MsgFileMgr::FileSaveHandler MsgFileMgr::startRecvSave(const QString& filename)
+{
+    auto handler = std::unique_ptr<QFile>(new QFile(filename));
+    if (!handler->open(QIODevice::WriteOnly)) {
+        handler.reset();
+        return FileSaveHandler();
+    }
 
+    handler->write("[\n");
+    return
+        FileSaveHandler(
+            handler.release(),
+            [](QFile* ptr)
+            {
+                ptr->write("\n]\n");
+                delete ptr;
+            });
+}
+
+void MsgFileMgr::addToRecvSave(
+    FileSaveHandler handler,
+    const Message& msg,
+    bool flush)
+{
+    assert(handler);
+    auto msgMap = convertRecvMsg(msg);
+    if (!msgMap.isEmpty()) {
+        auto jsonObj = QJsonObject::fromVariantMap(msgMap);
+        QJsonDocument jsonDoc(jsonObj);
+        auto data = jsonDoc.toJson();
+
+        static const char* IndicatorPropName = "first_write_performed";
+        auto indicatorVar = handler->property(IndicatorPropName);
+        bool firstWritePerformed = indicatorVar.isValid();
+
+        if (firstWritePerformed) {
+            handler->write(",\n");
+        }
+
+        handler->write(data);
+    }
+
+    if (flush) {
+        handler->flush();
+    }
+}
+
+void MsgFileMgr::flushRecvFile(FileSaveHandler handler)
+{
+    assert(handler);
+    handler->flush();
+}
 }  // namespace comms_champion
 
 

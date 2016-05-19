@@ -46,6 +46,10 @@ public:
         m_showType = enabled;
     }
 
+    void flush() {
+        m_out.flush();
+    }
+
 protected:
     virtual void beginMsgHandlingImpl(comms_champion::Message& msg) override;
     virtual void addFieldImpl(FieldWrapperPtr wrapper) override;

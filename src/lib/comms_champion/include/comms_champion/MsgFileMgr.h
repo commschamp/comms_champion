@@ -20,12 +20,14 @@
 
 #include <utility>
 #include <list>
+#include <memory>
 
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
 #include <QtCore/QVariantList>
+#include <QtCore/QFile>
 CC_ENABLE_WARNINGS()
 
 #include "Api.h"
@@ -61,6 +63,11 @@ public:
 
     MessagesList load(Type type, const QString& filename, Protocol& protocol);
     bool save(Type type, const QString& filename, const MessagesList& msgs);
+
+    typedef std::shared_ptr<QFile> FileSaveHandler;
+    FileSaveHandler startRecvSave(const QString& filename);
+    void addToRecvSave(FileSaveHandler handler, const Message& msg, bool flush = false);
+    void flushRecvFile(FileSaveHandler handler);
 
 private:
     QString m_lastFile;

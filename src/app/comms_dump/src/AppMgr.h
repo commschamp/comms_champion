@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
@@ -46,7 +48,8 @@ public:
         QString m_outMsgsFile;
         QString m_inMsgsFile;
         unsigned m_lastWait = 0U;
-        bool m_showOutgoing = false;
+        bool m_recordOutgoing = false;
+        bool m_quiet = false;
     };
 
     AppMgr();
@@ -59,15 +62,17 @@ private slots:
 
 private:
     typedef comms_champion::PluginMgr::ListOfPluginInfos ListOfPluginInfos;
+    typedef std::unique_ptr<CsvDumpMessageHandler> CsvDumpMessageHandlerPtr;
 
     bool applyPlugins(const ListOfPluginInfos& plugins);
+    void dispatchMsg(comms_champion::Message& msg);
 
     comms_champion::PluginMgr m_pluginMgr;
     comms_champion::MsgMgr m_msgMgr;
     comms_champion::MsgFileMgr m_msgFileMgr;
     comms_champion::MsgSendMgr m_msgSendMgr;
     Config m_config;
-    CsvDumpMessageHandler m_csvDump;
+    CsvDumpMessageHandlerPtr m_csvDump;
     QTimer m_flushTimer;
 };
 

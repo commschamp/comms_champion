@@ -65,9 +65,9 @@ public:
     bool save(Type type, const QString& filename, const MessagesList& msgs);
 
     typedef std::shared_ptr<QFile> FileSaveHandler;
-    FileSaveHandler startRecvSave(const QString& filename);
-    void addToRecvSave(FileSaveHandler handler, const Message& msg, bool flush = false);
-    void flushRecvFile(FileSaveHandler handler);
+    static FileSaveHandler startRecvSave(const QString& filename);
+    static void addToRecvSave(FileSaveHandler handler, const Message& msg, bool flush = false);
+    static void flushRecvFile(FileSaveHandler handler);
 
 private:
     QString m_lastFile;

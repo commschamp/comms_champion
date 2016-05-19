@@ -10,6 +10,7 @@ function (bin_comms_dump)
         main.cpp
         AppMgr.cpp
         CsvDumpMessageHandler.cpp
+        RecordMessageHandler.cpp
     )
     
     qt5_wrap_cpp(

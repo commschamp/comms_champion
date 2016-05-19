@@ -33,6 +33,7 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/MsgSendMgr.h"
 
 #include "CsvDumpMessageHandler.h"
+#include "RecordMessageHandler.h"
 
 namespace comms_dump
 {
@@ -63,6 +64,7 @@ private slots:
 private:
     typedef comms_champion::PluginMgr::ListOfPluginInfos ListOfPluginInfos;
     typedef std::unique_ptr<CsvDumpMessageHandler> CsvDumpMessageHandlerPtr;
+    typedef std::unique_ptr<RecordMessageHandler> RecordMessageHandlerPtr;
 
     bool applyPlugins(const ListOfPluginInfos& plugins);
     void dispatchMsg(comms_champion::Message& msg);
@@ -73,6 +75,7 @@ private:
     comms_champion::MsgSendMgr m_msgSendMgr;
     Config m_config;
     CsvDumpMessageHandlerPtr m_csvDump;
+    RecordMessageHandlerPtr m_record;
     QTimer m_flushTimer;
 };
 

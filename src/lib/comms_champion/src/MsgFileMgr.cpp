@@ -581,6 +581,10 @@ void MsgFileMgr::addToRecvSave(
         auto jsonObj = QJsonObject::fromVariantMap(msgMap);
         QJsonDocument jsonDoc(jsonObj);
         auto data = jsonDoc.toJson();
+        assert(!data.isEmpty());
+        if (data[data.size() - 1] == '\n') {
+            data.resize(data.size() - 1);
+        }
 
         static const char* IndicatorPropName = "first_write_performed";
         auto indicatorVar = handler->property(IndicatorPropName);
@@ -588,6 +592,9 @@ void MsgFileMgr::addToRecvSave(
 
         if (firstWritePerformed) {
             handler->write(",\n");
+        }
+        else {
+            handler->setProperty(IndicatorPropName, true);
         }
 
         handler->write(data);

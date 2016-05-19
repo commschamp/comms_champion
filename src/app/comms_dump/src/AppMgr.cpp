@@ -117,6 +117,10 @@ bool AppMgr::start(const Config& config)
         }
     }
 
+    if (!m_config.m_inMsgsFile.isEmpty()) {
+        m_record.reset(new RecordMessageHandler(m_config.m_inMsgsFile));
+    }
+
     m_msgMgr.setRecvEnabled(true);
     m_msgMgr.start();
 
@@ -146,6 +150,10 @@ void AppMgr::flushOutput()
 {
     if (m_csvDump) {
         m_csvDump->flush();
+    }
+
+    if (m_record) {
+        m_record->flush();
     }
 }
 
@@ -206,6 +214,10 @@ void AppMgr::dispatchMsg(comms_champion::Message& msg)
 {
     if (m_csvDump) {
         msg.dispatch(*m_csvDump);
+    }
+
+    if (m_record) {
+        msg.dispatch(*m_record);
     }
 }
 

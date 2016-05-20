@@ -19,6 +19,11 @@
 
 #include <cassert>
 
+CC_DISABLE_WARNINGS()
+#include <QtWidgets/QScrollBar>
+CC_ENABLE_WARNINGS()
+
+#include "comms_champion/property/message.h"
 #include "GuiAppMgr.h"
 
 namespace comms_champion
@@ -39,6 +44,11 @@ MsgDetailsWidget::MsgDetailsWidget(QWidget* parentObj)
   : Base(parentObj)
 {
     m_ui.setupUi(this);
+    auto* scrollBar = m_ui.m_scrollArea->verticalScrollBar();
+    assert(scrollBar != nullptr);
+    connect(
+        scrollBar, SIGNAL(valueChanged(int)),
+        this, SLOT(widgetScrolled(int)));
 }
 
 void MsgDetailsWidget::setEditEnabled(bool enabled)
@@ -62,7 +72,16 @@ void MsgDetailsWidget::displayMessage(MessagePtr msg)
         this, SIGNAL(sigMsgUpdated()));
 
     m_displayedMsgWidget = msgWidget.get();
+
+    auto* scrollBar = m_ui.m_scrollArea->verticalScrollBar();
+    assert(scrollBar != nullptr);
+    scrollBar->blockSignals(true);
     m_ui.m_scrollArea->setWidget(msgWidget.release());
+    scrollBar->blockSignals(false);
+
+    auto scrollValue = property::message::ScrollPos().getFrom(*msg);
+    scrollBar->setValue(scrollValue);
+    m_displayedMsg = std::move(msg);
 }
 
 void MsgDetailsWidget::updateTitle(MessagePtr msg)
@@ -93,4 +112,13 @@ void MsgDetailsWidget::refresh()
     }
 }
 
-} /* namespace comms_champion */
+void MsgDetailsWidget::widgetScrolled(int value)
+{
+    if (m_displayedMsg == nullptr) {
+        return;
+    }
+
+    property::message::ScrollPos().setTo(value, *m_displayedMsg);
+}
+
+} // namespace comms_champion

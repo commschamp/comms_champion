@@ -69,6 +69,7 @@ private:
     int m_prevRepeatDuration = DisabledRepeatDuration + 1;
     int m_prevRepeatCount = EnabledMinRepeatCount;
     Qt::CheckState m_sendIndefinitelyState = DisabledSendIndefinitelyState;
+    int m_origScrollPos = 0;
 
     static const int DisabledDelayValue = 0;
     static const int DisabledRepeatDuration = 0;

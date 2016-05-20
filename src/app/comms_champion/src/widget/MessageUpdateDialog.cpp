@@ -178,6 +178,7 @@ MessageUpdateDialog::MessageUpdateDialog(
 {
     int msgIdx = -1;
     if (m_msg) {
+        m_origScrollPos = property::message::ScrollPos().getFrom(*m_msg);
         auto id = m_msg->idAsString();
         int msgIdxTmp = 0;
         for (auto& msgTmp : m_allMsgs) {
@@ -185,6 +186,7 @@ MessageUpdateDialog::MessageUpdateDialog(
             auto idTmp = msgTmp->idAsString();
             if ((idTmp == id) && msgTmp->assign(*m_msg)) {
                 m_protocol->updateMessage(*msgTmp);
+                property::message::ScrollPos().setTo(m_origScrollPos, *msgTmp);
 
                 msgIdx = msgIdxTmp;
                 break;
@@ -488,6 +490,8 @@ void MessageUpdateDialog::accept()
         durationToString(repeatUnits), *msg);
     property::message::RepeatCount().setTo(
         m_ui.m_repeatCountSpinBox->value(), *msg);
+
+    property::message::ScrollPos().setTo(m_origScrollPos, *msg);
 
     m_msg = std::move(msg);
     assert(m_msg);

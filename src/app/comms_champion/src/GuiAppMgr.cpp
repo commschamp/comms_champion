@@ -657,7 +657,6 @@ void GuiAppMgr::msgClicked(MessagePtr msg, SelectionType selType)
 {
     assert(msg);
     if (m_clickedMsg == msg) {
-
         assert(selType == m_selType);
         clearDisplayedMessage();
         emit sigRecvMsgListSelectOnAddEnabled(true);

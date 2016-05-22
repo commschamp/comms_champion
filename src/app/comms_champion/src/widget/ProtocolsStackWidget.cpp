@@ -124,7 +124,9 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
 
 void ProtocolsStackWidget::clear()
 {
+    m_ui.m_protocolsTreeWidget->blockSignals(true);
     m_ui.m_protocolsTreeWidget->clear();
+    m_ui.m_protocolsTreeWidget->blockSignals(false);
 }
 
 void ProtocolsStackWidget::newItemSelected()

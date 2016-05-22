@@ -100,7 +100,9 @@ void MsgDetailsWidget::updateTitle(MessagePtr msg)
 
 void MsgDetailsWidget::clear()
 {
+    delete m_displayedMsgWidget;
     m_displayedMsgWidget = nullptr;
+    m_displayedMsg.reset();
     m_ui.m_scrollArea->setWidget(new QWidget());
     m_ui.m_groupBox->setTitle(getTitlePrefix());
 }

@@ -30,7 +30,6 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/comms_champion.h"
 #include "PluginMgrG.h"
 #include "GuiAppMgr.h"
-#include "GlobalConstants.h"
 
 #include "widget/MainWindowWidget.h"
 #include "icon.h"

@@ -14,7 +14,6 @@ function (bin_comms_champion)
     set (src
         main.cpp
         GuiAppMgr.cpp
-        GlobalConstants.cpp
         DefaultMessageDisplayHandler.cpp
         MsgFileMgrG.cpp
         PluginMgrG.cpp

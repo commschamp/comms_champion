@@ -94,3 +94,10 @@ The HTML documentation will reside in **install/doc/demo/html** subdirectory.
 and [Dia](https://wiki.gnome.org/Apps/Dia) 
 being installed on your system in order to be able to properly generate the 
 documentation.
+
+# Working Builds
+The build hast been tested with the following compilers:
+
+- GCC v4.8.4 on Ubuntu 14.04
+- GCC v5.3.1 on Ubuntu 16.04
+- Visual Studio 2015 on Windows 7

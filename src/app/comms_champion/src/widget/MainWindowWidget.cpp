@@ -284,16 +284,24 @@ std::tuple<QString, bool> MainWindowWidget::loadMsgsDialog(bool askForClear)
         msgBox.setText(
             tr("The list of messages is not empty.\n"
                "Do you want to CLEAR it first or APPEND new messages to it?"));
+        auto* cancelButton = msgBox.addButton(tr("Cancel"), QMessageBox::ActionRole);
+        assert(cancelButton != nullptr);
         auto* clearButton = msgBox.addButton(tr("Clear"), QMessageBox::ActionRole);
         assert(clearButton != nullptr);
         auto* appendButton = msgBox.addButton(tr("Append"), QMessageBox::ActionRole);
         static_cast<void>(appendButton);
         assert(appendButton != nullptr);
         msgBox.setDefaultButton(clearButton);
+        msgBox.setEscapeButton(cancelButton);
         assert(msgBox.clickedButton() == nullptr);
         msgBox.exec();
         assert(msgBox.clickedButton() != nullptr);
-        clear = (msgBox.clickedButton() == clearButton);
+        if (msgBox.clickedButton() == cancelButton) {
+            filename.clear();
+        }
+        else {
+            clear = (msgBox.clickedButton() == clearButton);
+        }
     }
 
     return std::make_tuple(std::move(filename), clear);

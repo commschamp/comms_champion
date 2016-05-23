@@ -59,12 +59,6 @@ const QString& readOnlyKey()
     return Str;
 }
 
-const QString& displayScaledKey()
-{
-    static const QString Str("cc.display_scaled");
-    return Str;
-}
-
 const QString& floatDecimalsKey()
 {
     static const QString Str("cc.float_dec");

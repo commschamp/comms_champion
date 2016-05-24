@@ -30,9 +30,10 @@ const QString& Protocol::name() const
 }
 
 Protocol::MessagesList Protocol::read(
-    const DataInfo& dataInfo)
+    const DataInfo& dataInfo,
+    bool final)
 {
-    return readImpl(dataInfo);
+    return readImpl(dataInfo, final);
 }
 
 Protocol::DataInfosList Protocol::write(const MessagesList& msgs)

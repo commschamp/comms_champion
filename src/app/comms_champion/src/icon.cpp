@@ -36,6 +36,12 @@ const QIcon& add()
     return iconObj;
 }
 
+const QIcon& addRaw()
+{
+    static const QIcon iconObj(":/image/add_raw.png");
+    return iconObj;
+}
+
 const QIcon& remove()
 {
     static const QIcon iconObj(":/image/delete.png");

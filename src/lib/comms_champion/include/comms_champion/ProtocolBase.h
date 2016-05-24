@@ -61,7 +61,7 @@ protected:
         "AllMessages is expected to be a tuple.");
 
 
-    virtual MessagesList readImpl(const DataInfo& dataInfo)
+    virtual MessagesList readImpl(const DataInfo& dataInfo, bool final)
     {
         const std::uint8_t* iter = &dataInfo.m_data[0];
         auto size = dataInfo.m_data.size();
@@ -94,6 +94,23 @@ protected:
                             std::distance(dataBegin, readIterBeg));
                     m_data.erase(m_data.begin(), m_data.begin() + dist);
                 });
+
+        auto checkGarbageFunc =
+            [this, &allMsgs]()
+            {
+                if (!m_garbage.empty()) {
+                    MessagePtr invalidMsgPtr(new InvalidMsg());
+                    setNameToMessageProperties(*invalidMsgPtr);
+                    std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
+                    ReadIterator garbageReadIterator = &m_garbage[0];
+                    auto esTmp = rawDataMsgPtr->read(garbageReadIterator, m_garbage.size());
+                    static_cast<void>(esTmp);
+                    assert(esTmp == comms::ErrorStatus::Success);
+                    setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *invalidMsgPtr);
+                    allMsgs.push_back(std::move(invalidMsgPtr));
+                    m_garbage.clear();
+                }
+            };
 
         while (true) {
             using ProtocolMsgPtr = typename ProtocolStack::MsgPtr;
@@ -142,23 +159,6 @@ protected:
                     setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *msgPtr);
                 };
 
-            auto checkGarbageFunc =
-                [this, &allMsgs]()
-                {
-                    if (!m_garbage.empty()) {
-                        MessagePtr invalidMsgPtr(new InvalidMsg());
-                        setNameToMessageProperties(*invalidMsgPtr);
-                        std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
-                        ReadIterator garbageReadIterator = &m_garbage[0];
-                        auto esTmp = rawDataMsgPtr->read(garbageReadIterator, m_garbage.size());
-                        static_cast<void>(esTmp);
-                        assert(esTmp == comms::ErrorStatus::Success);
-                        setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *invalidMsgPtr);
-                        allMsgs.push_back(std::move(invalidMsgPtr));
-                        m_garbage.clear();
-                    }
-                };
-
             if (es == comms::ErrorStatus::Success) {
                 checkGarbageFunc();
                 assert(msgPtr);
@@ -191,6 +191,15 @@ protected:
             ++readIterBeg;
         }
 
+        if (final) {
+            ReadIterator dataBegin = &m_data[0];
+            auto consumed =
+                static_cast<std::size_t>(std::distance(dataBegin, readIterBeg));
+            auto remDataCount = m_data.size() - consumed;
+            m_garbage.insert(m_garbage.end(), m_data.begin() + consumed, m_data.end());
+            std::advance(readIterBeg, remDataCount);
+            checkGarbageFunc();
+        }
         return allMsgs;
     }
 
@@ -303,7 +312,9 @@ protected:
 
     virtual MessagePtr createInvalidMessageImpl() override
     {
-        return MessagePtr(new InvalidMsg());
+        MessagePtr msg(new InvalidMsg());
+        setNameToMessageProperties(*msg);
+        return msg;
     }
 
     virtual MessagePtr createRawDataMessageImpl() override

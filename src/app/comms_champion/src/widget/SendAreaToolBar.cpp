@@ -79,6 +79,15 @@ QAction* createAddButton(QToolBar& bar)
     return action;
 }
 
+QAction* createAddRawButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(icon::addRaw(), "Add From Raw Data");
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendAddRawClicked()));
+    return action;
+}
+
 QAction* createEditButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::edit(), "Edit Selected Message");
@@ -151,6 +160,7 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parentObj)
     m_loadButton(createLoadButton(*this)),
     m_saveButton(createSaveButton(*this)),
     m_addButton(createAddButton(*this)),
+    m_addRawButton(createAddRawButton(*this)),
     m_editButton(createEditButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
@@ -252,7 +262,7 @@ void SendAreaToolBar::refresh()
     refreshStartStopAllButton();
     refreshLoadButton();
     refreshSaveButton();
-    refreshAddButton();
+    refreshAddButtons();
     refreshEditButton();
     refreshDeleteButton();
     refreshClearButton();
@@ -326,14 +336,21 @@ void SendAreaToolBar::refreshSaveButton()
     button->setEnabled(enabled);
 }
 
-void SendAreaToolBar::refreshAddButton()
+void SendAreaToolBar::refreshAddButtons()
 {
-    auto* button = m_addButton;
-    assert(button);
     bool enabled =
         (m_activeState == ActivityState::Active) &&
         (m_state == State::Idle);
-    button->setEnabled(enabled);
+
+    auto setEnabledFunc =
+        [enabled](QAction* button)
+        {
+            assert(button);
+            button->setEnabled(enabled);
+        };
+
+    setEnabledFunc(m_addButton);
+    setEnabledFunc(m_addRawButton);
 }
 
 void SendAreaToolBar::refreshEditButton()

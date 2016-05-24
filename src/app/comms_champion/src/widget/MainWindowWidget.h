@@ -50,6 +50,7 @@ public:
 
 private slots:
     void newSendMsgDialog(ProtocolPtr protocol);
+    void sendRawMsgDialog(ProtocolPtr protocol);
     void updateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
     void pluginsEditDialog();
     void displayErrorMsg(const QString& msg);

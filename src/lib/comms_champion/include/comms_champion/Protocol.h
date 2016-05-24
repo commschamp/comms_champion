@@ -54,7 +54,7 @@ public:
 
     const QString& name() const;
 
-    MessagesList read(const DataInfo& dataInfo);
+    MessagesList read(const DataInfo& dataInfo, bool final = false);
 
     DataInfosList write(const MessagesList& msgs);
 
@@ -73,7 +73,7 @@ public:
 protected:
     virtual const QString& nameImpl() const = 0;
 
-    virtual MessagesList readImpl(const DataInfo& dataInfo) = 0;
+    virtual MessagesList readImpl(const DataInfo& dataInfo, bool final) = 0;
 
     virtual DataInfosList writeImpl(const MessagesList& msgs) = 0;
 

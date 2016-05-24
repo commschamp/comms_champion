@@ -30,6 +30,7 @@ function (bin_comms_champion)
         widget/SendMsgListWidget.cpp
         widget/MessageWidget.cpp
         widget/MsgDetailsWidget.cpp
+        widget/RawHexDataDialog.cpp
         widget/DefaultMessageWidget.cpp
         widget/ProtocolsStackWidget.cpp
         widget/MessageUpdateDialog.cpp
@@ -64,6 +65,7 @@ function (bin_comms_champion)
         widget/MsgDetailsWidget.h
         widget/ProtocolsStackWidget.h
         widget/MessageUpdateDialog.h
+        widget/RawHexDataDialog.h
         widget/PluginsListWidget.h
         widget/PluginConfigDialog.h
         widget/MainWindowWidget.h
@@ -91,6 +93,7 @@ function (bin_comms_champion)
         ui/MsgDetailsWidget.ui
         ui/ProtocolsStackWidget.ui
         ui/MessageUpdateDialog.ui
+        ui/RawHexDataDialog.ui
         ui/PluginsListWidget.ui
         ui/PluginConfigDialog.ui
         ui/ShortIntValueFieldWidget.ui

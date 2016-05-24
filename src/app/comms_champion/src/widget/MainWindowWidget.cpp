@@ -30,9 +30,11 @@ CC_DISABLE_WARNINGS()
 #include <QtGui/QKeySequence>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
 #include "LeftPaneWidget.h"
 #include "RightPaneWidget.h"
 #include "MessageUpdateDialog.h"
+#include "RawHexDataDialog.h"
 #include "PluginConfigDialog.h"
 #include "GuiAppMgr.h"
 #include "MsgFileMgrG.h"
@@ -68,7 +70,7 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
     auto* splitter = new QSplitter();
     auto* leftPane = new LeftPaneWidget();
     auto* rightPane = new RightPaneWidget();
-    rightPane->resize(leftPane->width() / 2, rightPane->height());
+    rightPane->resize((leftPane->width() * 3) / 4, rightPane->height());
     splitter->addWidget(leftPane);
     splitter->addWidget(rightPane);
     splitter->setStretchFactor(0, 1);
@@ -81,6 +83,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
     connect(
         guiAppMgr, SIGNAL(sigNewSendMsgDialog(ProtocolPtr)),
         this, SLOT(newSendMsgDialog(ProtocolPtr)));
+    connect(
+        guiAppMgr, SIGNAL(sigSendRawMsgDialog(ProtocolPtr)),
+        this, SLOT(sendRawMsgDialog(ProtocolPtr)));
     connect(
         guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessagePtr, ProtocolPtr)),
         this, SLOT(updateSendMsgDialog(MessagePtr, ProtocolPtr)));
@@ -131,6 +136,18 @@ void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
     dialog.exec();
     if (msg) {
         GuiAppMgr::instance()->sendAddNewMessage(std::move(msg));
+    }
+}
+
+void MainWindowWidget::sendRawMsgDialog(ProtocolPtr protocol)
+{
+    static_cast<void>(protocol);
+    RawHexDataDialog::MessagesList msgs;
+    RawHexDataDialog dialog(msgs, std::move(protocol), this);
+    dialog.exec();
+    for (auto& msgPtr : msgs) {
+        property::message::RepeatCount().setTo(1, *msgPtr);
+        GuiAppMgr::instance()->sendAddNewMessage(std::move(msgPtr));
     }
 }
 

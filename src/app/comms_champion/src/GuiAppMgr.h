@@ -126,6 +126,7 @@ public slots:
     void sendLoadClicked();
     void sendSaveClicked();
     void sendAddClicked();
+    void sendAddRawClicked();
     void sendEditClicked();
     void sendDeleteClicked();
     void sendClearClicked();
@@ -168,6 +169,7 @@ signals:
     void sigSendMoveSelectedBottom();
     void sigRecvListTitleNeedsUpdate();
     void sigNewSendMsgDialog(ProtocolPtr protocol);
+    void sigSendRawMsgDialog(ProtocolPtr protocol);
     void sigUpdateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
     void sigLoadRecvMsgsDialog();
     void sigSaveRecvMsgsDialog();

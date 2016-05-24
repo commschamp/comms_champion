@@ -209,6 +209,11 @@ void GuiAppMgr::sendAddClicked()
     emit sigNewSendMsgDialog(MsgMgrG::instanceRef().getProtocol());
 }
 
+void GuiAppMgr::sendAddRawClicked()
+{
+    emit sigSendRawMsgDialog(MsgMgrG::instanceRef().getProtocol());
+}
+
 void GuiAppMgr::sendEditClicked()
 {
     assert(m_clickedMsg);

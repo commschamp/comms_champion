@@ -38,7 +38,38 @@ Protocol::MessagesList Protocol::read(
 
 Protocol::DataInfosList Protocol::write(const MessagesList& msgs)
 {
-    return writeImpl(msgs);
+    DataInfosList dataInfos;
+    for (auto& msgPtr : msgs) {
+        if (!msgPtr) {
+            continue;
+        }
+
+        if (msgPtr->idAsString().isEmpty()) {
+
+            auto rawDataMsg = property::message::RawDataMsg().getFrom(*msgPtr);
+            if (!rawDataMsg) {
+                continue;
+            }
+
+            auto dataInfoPtr = makeDataInfo();
+            assert(dataInfoPtr);
+
+            dataInfoPtr->m_timestamp = DataInfo::TimestampClock::now();
+            dataInfoPtr->m_data = rawDataMsg->encodeData();
+
+            if (!dataInfoPtr->m_data.empty()) {
+                dataInfos.push_back(std::move(dataInfoPtr));
+            }
+            continue;
+        }
+
+        auto dataInfoPtr = writeImpl(*msgPtr);
+        if (dataInfoPtr) {
+            dataInfos.push_back(std::move(dataInfoPtr));
+        }
+    }
+
+    return dataInfos;
 }
 
 Protocol::MessagesList Protocol::createAllMessages()
@@ -58,6 +89,26 @@ Protocol::UpdateStatus Protocol::updateMessage(Message& msg)
 
 MessagePtr Protocol::cloneMessage(const Message& msg)
 {
+    if (msg.idAsString().isEmpty()) {
+        auto clonedMsg = createInvalidMessage();
+
+        auto rawDataMsg = property::message::RawDataMsg().getFrom(msg);
+        if (rawDataMsg) {
+            auto clonedRawDataMsg = createRawDataMessage();
+            if (!clonedRawDataMsg) {
+                assert(!"Raw Data Message wasn't created properly");
+                return clonedMsg;
+            }
+
+            auto data = rawDataMsg->encodeData();
+            bool decodeResult = clonedRawDataMsg->decodeData(data);
+            static_cast<void>(decodeResult);
+            assert(decodeResult);
+            setRawDataToMessageProperties(std::move(clonedRawDataMsg), *clonedMsg);
+        }
+        return clonedMsg;
+    }
+
     auto clonedMsg = cloneMessageImpl(msg);
     if (clonedMsg) {
         updateMessage(*clonedMsg);

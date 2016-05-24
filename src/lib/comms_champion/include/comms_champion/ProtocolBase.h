@@ -203,38 +203,31 @@ protected:
         return allMsgs;
     }
 
-    virtual DataInfosList writeImpl(const MessagesList& msgs) override
+    virtual DataInfoPtr writeImpl(const Message& msg) override
     {
-        DataInfosList dataList;
-        for (auto& msgPtr : msgs) {
-            assert(msgPtr);
-
-            DataInfo::DataSeq data;
-            auto writeIter = std::back_inserter(data);
-            auto es =
-                m_protStack.write(
-                    static_cast<const ProtocolMessage&>(*msgPtr),
-                    writeIter,
-                    data.max_size());
-            if (es == comms::ErrorStatus::UpdateRequired) {
-                auto updateIter = &data[0];
-                es = m_protStack.update(updateIter, data.size());
-            }
-
-            if (es != comms::ErrorStatus::Success) {
-                assert(!"Unexpected write/update failure");
-                break;
-            }
-
-            auto dataInfo = makeDataInfo();
-            assert(dataInfo);
-
-            dataInfo->m_timestamp = DataInfo::TimestampClock::now();
-            dataInfo->m_data = std::move(data);
-
-            dataList.push_back(std::move(dataInfo));
+        DataInfo::DataSeq data;
+        auto writeIter = std::back_inserter(data);
+        auto es =
+            m_protStack.write(
+                static_cast<const ProtocolMessage&>(msg),
+                writeIter,
+                data.max_size());
+        if (es == comms::ErrorStatus::UpdateRequired) {
+            auto updateIter = &data[0];
+            es = m_protStack.update(updateIter, data.size());
         }
-        return dataList;
+
+        if (es != comms::ErrorStatus::Success) {
+            assert(!"Unexpected write/update failure");
+            return DataInfoPtr();
+        }
+
+        auto dataInfo = makeDataInfo();
+        assert(dataInfo);
+
+        dataInfo->m_timestamp = DataInfo::TimestampClock::now();
+        dataInfo->m_data = std::move(data);
+        return dataInfo;
     }
 
     virtual UpdateStatus updateMessageImpl(Message& msg) override

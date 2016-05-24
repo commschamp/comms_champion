@@ -75,7 +75,7 @@ protected:
 
     virtual MessagesList readImpl(const DataInfo& dataInfo, bool final) = 0;
 
-    virtual DataInfosList writeImpl(const MessagesList& msgs) = 0;
+    virtual DataInfoPtr writeImpl(const Message& msg) = 0;
 
     virtual MessagesList createAllMessagesImpl() = 0;
 

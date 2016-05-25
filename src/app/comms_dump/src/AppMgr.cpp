@@ -199,9 +199,8 @@ bool AppMgr::applyPlugins(const ListOfPluginInfos& plugins)
 
     m_msgMgr.setSocket(std::move(applyInfo.m_socket));
 
-    if (!applyInfo.m_filters.isEmpty()) {
-        assert(!"Filters support hasn't been implemented yet");
-        // TODO: add filters
+    for (auto& filter : applyInfo.m_filters) {
+        m_msgMgr.addFilter(std::move(filter));
     }
 
     m_msgMgr.setProtocol(std::move(applyInfo.m_protocol));

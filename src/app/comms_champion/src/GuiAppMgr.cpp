@@ -533,9 +533,8 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 
     msgMgr.setSocket(std::move(applyInfo.m_socket));
 
-    if (!applyInfo.m_filters.isEmpty()) {
-        assert(!"Filters support hasn't been implemented yet");
-        // TODO: add filters
+    for (auto& filter : applyInfo.m_filters) {
+        msgMgr.addFilter(std::move(filter));
     }
 
     msgMgr.setProtocol(std::move(applyInfo.m_protocol));

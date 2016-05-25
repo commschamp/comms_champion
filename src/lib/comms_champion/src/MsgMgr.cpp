@@ -90,6 +90,11 @@ void MsgMgr::setProtocol(ProtocolPtr protocol)
     m_impl->setProtocol(std::move(protocol));
 }
 
+void MsgMgr::addFilter(FilterPtr filter)
+{
+    m_impl->addFilter(std::move(filter));
+}
+
 void MsgMgr::setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func)
 {
     m_impl->setMsgAddedCallbackFunc(std::move(func));

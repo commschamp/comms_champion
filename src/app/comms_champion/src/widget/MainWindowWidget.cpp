@@ -30,9 +30,11 @@ CC_DISABLE_WARNINGS()
 #include <QtGui/QKeySequence>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/property/message.h"
 #include "LeftPaneWidget.h"
 #include "RightPaneWidget.h"
 #include "MessageUpdateDialog.h"
+#include "RawHexDataDialog.h"
 #include "PluginConfigDialog.h"
 #include "GuiAppMgr.h"
 #include "MsgFileMgrG.h"
@@ -68,7 +70,7 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
     auto* splitter = new QSplitter();
     auto* leftPane = new LeftPaneWidget();
     auto* rightPane = new RightPaneWidget();
-    rightPane->resize(leftPane->width() / 2, rightPane->height());
+    rightPane->resize((leftPane->width() * 3) / 4, rightPane->height());
     splitter->addWidget(leftPane);
     splitter->addWidget(rightPane);
     splitter->setStretchFactor(0, 1);
@@ -81,6 +83,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
     connect(
         guiAppMgr, SIGNAL(sigNewSendMsgDialog(ProtocolPtr)),
         this, SLOT(newSendMsgDialog(ProtocolPtr)));
+    connect(
+        guiAppMgr, SIGNAL(sigSendRawMsgDialog(ProtocolPtr)),
+        this, SLOT(sendRawMsgDialog(ProtocolPtr)));
     connect(
         guiAppMgr, SIGNAL(sigUpdateSendMsgDialog(MessagePtr, ProtocolPtr)),
         this, SLOT(updateSendMsgDialog(MessagePtr, ProtocolPtr)));
@@ -99,6 +104,12 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
     connect(
         guiAppMgr, SIGNAL(sigActivityStateChanged(int)),
         this, SLOT(activeStateChanged(int)));
+    connect(
+        guiAppMgr, SIGNAL(sigLoadRecvMsgsDialog()),
+        this, SLOT(loadRecvMsgsDialog()));
+    connect(
+        guiAppMgr, SIGNAL(sigSaveRecvMsgsDialog()),
+        this, SLOT(saveRecvMsgsDialog()));
     connect(
         guiAppMgr, SIGNAL(sigLoadSendMsgsDialog(bool)),
         this, SLOT(loadSendMsgsDialog(bool)));
@@ -125,6 +136,18 @@ void MainWindowWidget::newSendMsgDialog(ProtocolPtr protocol)
     dialog.exec();
     if (msg) {
         GuiAppMgr::instance()->sendAddNewMessage(std::move(msg));
+    }
+}
+
+void MainWindowWidget::sendRawMsgDialog(ProtocolPtr protocol)
+{
+    static_cast<void>(protocol);
+    RawHexDataDialog::MessagesList msgs;
+    RawHexDataDialog dialog(msgs, std::move(protocol), this);
+    dialog.exec();
+    for (auto& msgPtr : msgs) {
+        property::message::RepeatCount().setTo(1, *msgPtr);
+        GuiAppMgr::instance()->sendAddNewMessage(std::move(msgPtr));
     }
 }
 
@@ -197,31 +220,38 @@ void MainWindowWidget::activeStateChanged(int state)
     }
 }
 
-void MainWindowWidget::loadSendMsgsDialog(bool askForClear)
+void MainWindowWidget::loadRecvMsgsDialog()
 {
-    auto filename = loadMsgsDialog();
+    auto result = loadMsgsDialog(false);
+    auto& filename = std::get<0>(result);
+
     if (filename.isEmpty()) {
         return;
     }
 
-    bool clear = false;
-    if (askForClear) {
-        QMessageBox msgBox;
-        msgBox.setText(
-            tr("The list of messages is not empty.\n"
-               "Do you want to CLEAR it first or APPEND new messages to it?"));
-        auto* clearButton = msgBox.addButton(tr("Clear"), QMessageBox::ActionRole);
-        assert(clearButton != nullptr);
-        auto* appendButton = msgBox.addButton(tr("Append"), QMessageBox::ActionRole);
-        static_cast<void>(appendButton);
-        assert(appendButton != nullptr);
-        msgBox.setDefaultButton(clearButton);
-        assert(msgBox.clickedButton() == nullptr);
-        msgBox.exec();
-        assert(msgBox.clickedButton() != nullptr);
-        clear = (msgBox.clickedButton() == clearButton);
+    GuiAppMgr::instanceRef().recvLoadMsgsFromFile(filename);
+}
+
+void MainWindowWidget::saveRecvMsgsDialog()
+{
+    auto filename = saveMsgsDialog();
+    if (filename.isEmpty()) {
+        return;
     }
 
+    GuiAppMgr::instance()->recvSaveMsgsToFile(filename);
+}
+
+void MainWindowWidget::loadSendMsgsDialog(bool askForClear)
+{
+    auto result = loadMsgsDialog(askForClear);
+    auto& filename = std::get<0>(result);
+
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    auto clear = std::get<1>(result);
     GuiAppMgr::instanceRef().sendLoadMsgsFromFile(clear, filename);
 }
 
@@ -255,16 +285,43 @@ void MainWindowWidget::clearCustomToolbarActions()
     m_customActions.clear();
 }
 
-QString MainWindowWidget::loadMsgsDialog()
+std::tuple<QString, bool> MainWindowWidget::loadMsgsDialog(bool askForClear)
 {
     auto& msgsFileMgr = MsgFileMgrG::instanceRef();
-    return
+    QString filename =
         QFileDialog::getOpenFileName(
             this,
             tr("Load Messages from File"),
             msgsFileMgr.getLastFile(),
             msgsFileMgr.getFilesFilter());
 
+    bool clear = false;
+    if (askForClear) {
+        QMessageBox msgBox;
+        msgBox.setText(
+            tr("The list of messages is not empty.\n"
+               "Do you want to CLEAR it first or APPEND new messages to it?"));
+        auto* cancelButton = msgBox.addButton(tr("Cancel"), QMessageBox::ActionRole);
+        assert(cancelButton != nullptr);
+        auto* clearButton = msgBox.addButton(tr("Clear"), QMessageBox::ActionRole);
+        assert(clearButton != nullptr);
+        auto* appendButton = msgBox.addButton(tr("Append"), QMessageBox::ActionRole);
+        static_cast<void>(appendButton);
+        assert(appendButton != nullptr);
+        msgBox.setDefaultButton(clearButton);
+        msgBox.setEscapeButton(cancelButton);
+        assert(msgBox.clickedButton() == nullptr);
+        msgBox.exec();
+        assert(msgBox.clickedButton() != nullptr);
+        if (msgBox.clickedButton() == cancelButton) {
+            filename.clear();
+        }
+        else {
+            clear = (msgBox.clickedButton() == clearButton);
+        }
+    }
+
+    return std::make_tuple(std::move(filename), clear);
 }
 
 QString MainWindowWidget::saveMsgsDialog()

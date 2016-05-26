@@ -35,6 +35,7 @@ protected:
     virtual const QString& msgTooltipImpl() const override;
     virtual Qt::GlobalColor getItemColourImpl(MsgType type, bool valid) const override;
     virtual QString getTitleImpl() const override;
+    virtual void saveMessagesImpl(const QString& filename) override;
 
 private:
     static QString getTitlePrefix();

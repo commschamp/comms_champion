@@ -42,7 +42,6 @@ const int FlushInterval = 1000;
 }  // namespace
 
 AppMgr::AppMgr()
-  : m_csvDump(std::cout, Sep)
 {
     m_msgMgr.setMsgAddedCallbackFunc(
         [this](cc::MessagePtr msg)
@@ -56,11 +55,11 @@ AppMgr::AppMgr()
             assert((type == cc::Message::Type::Sent) ||
                    (type == cc::Message::Type::Received));
             if ((type == cc::Message::Type::Sent) &&
-                (!m_config.m_showOutgoing)) {
+                (!m_config.m_recordOutgoing)) {
                 return;
             }
 
-            msg->dispatch(m_csvDump);
+            dispatchMsg(*msg);
         });
 
     m_msgSendMgr.setSendMsgsCallbackFunc(
@@ -110,7 +109,18 @@ bool AppMgr::start(const Config& config)
     }
 
     m_config = config;
-    m_csvDump.setShowType(m_config.m_showOutgoing);
+    if (!m_config.m_quiet) {
+        m_csvDump.reset(new CsvDumpMessageHandler(std::cout, Sep));
+
+        if (m_config.m_recordOutgoing) {
+            m_csvDump->setShowType(m_config.m_recordOutgoing);
+        }
+    }
+
+    if (!m_config.m_inMsgsFile.isEmpty()) {
+        m_record.reset(new RecordMessageHandler(m_config.m_inMsgsFile));
+    }
+
     m_msgMgr.setRecvEnabled(true);
     m_msgMgr.start();
 
@@ -138,9 +148,12 @@ bool AppMgr::start(const Config& config)
 
 void AppMgr::flushOutput()
 {
-    auto& outStream = m_csvDump.outStream();
-    if (outStream) {
-        outStream.flush();
+    if (m_csvDump) {
+        m_csvDump->flush();
+    }
+
+    if (m_record) {
+        m_record->flush();
     }
 }
 
@@ -186,15 +199,25 @@ bool AppMgr::applyPlugins(const ListOfPluginInfos& plugins)
 
     m_msgMgr.setSocket(std::move(applyInfo.m_socket));
 
-    if (!applyInfo.m_filters.isEmpty()) {
-        assert(!"Filters support hasn't been implemented yet");
-        // TODO: add filters
+    for (auto& filter : applyInfo.m_filters) {
+        m_msgMgr.addFilter(std::move(filter));
     }
 
     m_msgMgr.setProtocol(std::move(applyInfo.m_protocol));
 
     m_pluginMgr.setAppliedPlugins(plugins);
     return true;
+}
+
+void AppMgr::dispatchMsg(comms_champion::Message& msg)
+{
+    if (m_csvDump) {
+        msg.dispatch(*m_csvDump);
+    }
+
+    if (m_record) {
+        msg.dispatch(*m_record);
+    }
 }
 
 } /* namespace comms_dump */

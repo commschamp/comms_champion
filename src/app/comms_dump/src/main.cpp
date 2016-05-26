@@ -41,9 +41,10 @@ namespace
 
 const QString PluginsOptStr("plugins");
 const QString OutMsgsOptStr("msgs-to-send");
-//const QString InMsgsOptStr("received-msgs");
+const QString InMsgsOptStr("received-msgs");
 const QString LastWaitOptStr("last-wait");
-const QString DumpSentOptStr("dump-sent");
+const QString RecordSentOptStr("record-sent");
+const QString QuietOptStr("quiet");
 
 void metaTypesRegisterAll()
 {
@@ -71,12 +72,12 @@ void prepareCommandLineOptions(QCommandLineParser& parser)
     );
     parser.addOption(outMsgsOpt);
 
-//    QCommandLineOption inMsgsOpt(
-//        QStringList() << "r" << InMsgsOptStr,
-//        QCoreApplication::translate("main", "Received messages storage file."),
-//        QCoreApplication::translate("main", "filename")
-//    );
-//    parser.addOption(inMsgsOpt);
+    QCommandLineOption inMsgsOpt(
+        QStringList() << "r" << InMsgsOptStr,
+        QCoreApplication::translate("main", "Received messages storage file."),
+        QCoreApplication::translate("main", "filename")
+    );
+    parser.addOption(inMsgsOpt);
 
     QCommandLineOption lastWaitOpt(
         QStringList() << "w" << LastWaitOptStr,
@@ -87,11 +88,17 @@ void prepareCommandLineOptions(QCommandLineParser& parser)
     );
     parser.addOption(lastWaitOpt);
 
-    QCommandLineOption dumpSentOpt(
-        DumpSentOptStr,
-        QCoreApplication::translate("main", "Dump sent messages as well.")
+    QCommandLineOption recordSentOpt(
+        RecordSentOptStr,
+        QCoreApplication::translate("main", "Record/Show sent messages as well.")
     );
-    parser.addOption(dumpSentOpt);
+    parser.addOption(recordSentOpt);
+
+    QCommandLineOption quietOpt(
+        QStringList() << "q" << QuietOptStr,
+        QCoreApplication::translate("main", "Quiet mode, don't dump CSV output to stdout.")
+    );
+    parser.addOption(quietOpt);
 
 }
 
@@ -133,9 +140,9 @@ int main(int argc, char *argv[])
         config.m_outMsgsFile = parser.value(OutMsgsOptStr);
     }
 
-//    if (parser.isSet(InMsgsOptStr)) {
-//        config.m_inMsgsFile = parser.value(InMsgsOptStr);
-//    }
+    if (parser.isSet(InMsgsOptStr)) {
+        config.m_inMsgsFile = parser.value(InMsgsOptStr);
+    }
 
     config.m_lastWait = 100;
     if (parser.isSet(LastWaitOptStr)) {
@@ -147,8 +154,12 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (parser.isSet(DumpSentOptStr)) {
-        config.m_showOutgoing = true;
+    if (parser.isSet(RecordSentOptStr)) {
+        config.m_recordOutgoing = true;
+    }
+
+    if (parser.isSet(QuietOptStr)) {
+        config.m_quiet = true;
     }
 
     comms_dump::AppMgr appMgr;

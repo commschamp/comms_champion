@@ -54,7 +54,7 @@ public:
 
     const QString& name() const;
 
-    MessagesList read(const DataInfo& dataInfo);
+    MessagesList read(const DataInfo& dataInfo, bool final = false);
 
     DataInfosList write(const MessagesList& msgs);
 
@@ -66,12 +66,16 @@ public:
 
     MessagePtr cloneMessage(const Message& msg);
 
+    MessagePtr createInvalidMessage();
+
+    MessagePtr createRawDataMessage();
+
 protected:
     virtual const QString& nameImpl() const = 0;
 
-    virtual MessagesList readImpl(const DataInfo& dataInfo) = 0;
+    virtual MessagesList readImpl(const DataInfo& dataInfo, bool final) = 0;
 
-    virtual DataInfosList writeImpl(const MessagesList& msgs) = 0;
+    virtual DataInfoPtr writeImpl(const Message& msg) = 0;
 
     virtual MessagesList createAllMessagesImpl() = 0;
 
@@ -80,6 +84,10 @@ protected:
     virtual UpdateStatus updateMessageImpl(Message& msg) = 0;
 
     virtual MessagePtr cloneMessageImpl(const Message& msg) = 0;
+
+    virtual MessagePtr createInvalidMessageImpl() = 0;
+
+    virtual MessagePtr createRawDataMessageImpl() = 0;
 
     void setNameToMessageProperties(Message& msg);
     static void setTransportToMessageProperties(MessagePtr transportMsg, Message& msg);

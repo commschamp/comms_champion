@@ -18,48 +18,36 @@
 
 #pragma once
 
-#include <iostream>
 #include <memory>
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
+#include <QtCore/QString>
+CC_ENABLE_WARNINGS()
+
 #include "comms_champion/MessageHandler.h"
+#include "comms_champion/MsgFileMgr.h"
 
 namespace comms_dump
 {
 
-class CsvDumpFieldsHandler;
-class CsvDumpMessageHandler : public comms_champion::MessageHandler
+class RecordMessageHandler : public comms_champion::MessageHandler
 {
 public:
-    CsvDumpMessageHandler(
-        std::ostream& out,
-        const std::string& sep);
+    RecordMessageHandler(const QString& filename);
 
-    virtual ~CsvDumpMessageHandler();
+    virtual ~RecordMessageHandler();
 
-    std::ostream& outStream()
-    {
-        return m_out;
-    }
-
-    void setShowType(bool enabled)
-    {
-        m_showType = enabled;
-    }
-
-    void flush() {
-        m_out.flush();
-    }
+    void flush();
 
 protected:
     virtual void beginMsgHandlingImpl(comms_champion::Message& msg) override;
-    virtual void addFieldImpl(FieldWrapperPtr wrapper) override;
-    virtual void endMsgHandlingImpl() override;
 
 private:
-    std::ostream& m_out;
-    std::string m_sep;
-    std::unique_ptr<CsvDumpFieldsHandler> m_fieldsDump;
-    bool m_showType = false;
+    typedef comms_champion::MsgFileMgr::FileSaveHandler FileSaveHandler;
+    FileSaveHandler m_saveHandler;
+
 };
 
 }  // namespace comms_dump

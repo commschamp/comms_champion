@@ -19,6 +19,7 @@
 #pragma once
 
 #include <list>
+#include <tuple>
 
 #include "comms/CompileControl.h"
 
@@ -49,19 +50,22 @@ public:
 
 private slots:
     void newSendMsgDialog(ProtocolPtr protocol);
+    void sendRawMsgDialog(ProtocolPtr protocol);
     void updateSendMsgDialog(MessagePtr msg, ProtocolPtr protocol);
     void pluginsEditDialog();
     void displayErrorMsg(const QString& msg);
     void addMainToolbarAction(ActionPtr action);
     void clearAllMainToolbarActions();
     void activeStateChanged(int state);
+    void loadRecvMsgsDialog();
+    void saveRecvMsgsDialog();
     void loadSendMsgsDialog(bool askForClear);
     void saveSendMsgsDialog();
     void aboutInfo();
 
 private:
     void clearCustomToolbarActions();
-    QString loadMsgsDialog();
+    std::tuple<QString, bool> loadMsgsDialog(bool askForClear);
     QString saveMsgsDialog();
 
     Ui::MainWindowWidget m_ui;

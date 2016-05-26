@@ -32,6 +32,7 @@ CC_ENABLE_WARNINGS()
 #include "comms_champion/property/message.h"
 #include "DefaultMessageDisplayHandler.h"
 #include "PluginMgrG.h"
+#include "MsgFileMgrG.h"
 
 #include <iostream>
 
@@ -130,9 +131,14 @@ void GuiAppMgr::recvStopClicked()
     emitRecvStateUpdate();
 }
 
+void GuiAppMgr::recvLoadClicked()
+{
+    emit sigLoadRecvMsgsDialog();
+}
+
 void GuiAppMgr::recvSaveClicked()
 {
-    assert(!"Recv save clicked");
+    emit sigSaveRecvMsgsDialog();
 }
 
 void GuiAppMgr::recvDeleteClicked()
@@ -201,6 +207,11 @@ void GuiAppMgr::sendSaveClicked()
 void GuiAppMgr::sendAddClicked()
 {
     emit sigNewSendMsgDialog(MsgMgrG::instanceRef().getProtocol());
+}
+
+void GuiAppMgr::sendAddRawClicked()
+{
+    emit sigSendRawMsgDialog(MsgMgrG::instanceRef().getProtocol());
 }
 
 void GuiAppMgr::sendEditClicked()
@@ -327,6 +338,22 @@ bool GuiAppMgr::recvListEmpty() const
     return m_recvListCount == 0;
 }
 
+void GuiAppMgr::recvLoadMsgsFromFile(const QString& filename)
+{
+    auto& msgMgr = MsgMgrG::instanceRef();
+    auto msgs = MsgFileMgrG::instanceRef().load(MsgFileMgr::Type::Recv, filename, *msgMgr.getProtocol());
+
+    clearRecvList(false);
+    msgMgr.deleteAllMsgs();
+
+    msgMgr.addMsgs(msgs);
+}
+
+void GuiAppMgr::recvSaveMsgsToFile(const QString& filename)
+{
+    emit sigRecvSaveMsgs(filename);
+}
+
 bool GuiAppMgr::recvListShowsReceived() const
 {
     return (m_recvListMode & RecvListMode_ShowReceived) != 0;
@@ -355,11 +382,11 @@ GuiAppMgr::SendState GuiAppMgr::sendState() const
 void GuiAppMgr::sendAddNewMessage(MessagePtr msg)
 {
     ++m_sendListCount;
-    emit sigAddSendMsg(msg);
     emit sigSendListCountReport(m_sendListCount);
-    sendMsgClicked(msg, m_sendListCount - 1);
-    assert(m_selType == SelectionType::Send);
-    assert(m_clickedMsg);
+    emit sigAddSendMsg(msg);
+    //sendMsgClicked(msg, m_sendListCount - 1);
+    //assert(m_selType == SelectionType::Send);
+    //assert(m_clickedMsg);
 }
 
 void GuiAppMgr::sendUpdateMessage(MessagePtr msg)
@@ -506,9 +533,8 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 
     msgMgr.setSocket(std::move(applyInfo.m_socket));
 
-    if (!applyInfo.m_filters.isEmpty()) {
-        assert(!"Filters support hasn't been implemented yet");
-        // TODO: add filters
+    for (auto& filter : applyInfo.m_filters) {
+        msgMgr.addFilter(std::move(filter));
     }
 
     msgMgr.setProtocol(std::move(applyInfo.m_protocol));
@@ -635,7 +661,6 @@ void GuiAppMgr::msgClicked(MessagePtr msg, SelectionType selType)
 {
     assert(msg);
     if (m_clickedMsg == msg) {
-
         assert(selType == m_selType);
         clearDisplayedMessage();
         emit sigRecvMsgListSelectOnAddEnabled(true);

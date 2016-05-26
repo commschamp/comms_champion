@@ -50,10 +50,14 @@ public slots:
 signals:
     void sigMsgUpdated();
 
+private slots:
+    void widgetScrolled(int value);
+
 private:
     Ui::MsgDetailsWidget m_ui;
     DefaultMessageDisplayHandler m_msgDisplayHandler;
     MessageWidget* m_displayedMsgWidget = nullptr;
+    MessagePtr m_displayedMsg;
     bool m_editEnabled = true;
 };
 

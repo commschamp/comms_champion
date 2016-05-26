@@ -105,6 +105,7 @@ void MsgMgrImpl::clear()
 
     m_socket.reset();
     m_protocol.reset();
+    m_filters.clear();
 }
 
 ProtocolPtr MsgMgrImpl::getProtocol() const
@@ -151,10 +152,23 @@ void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
     auto dataInfos = m_protocol->write(msgs);
     auto now = DataInfo::TimestampClock::now();
 
-    // TODO: write to the last filter instead of socket
-    for (auto& dInfo: dataInfos) {
-        dInfo->m_timestamp = now;
-        m_socket->sendData(std::move(dInfo));
+    for (auto& dInfo : dataInfos) {
+        auto dataInfoPtr = dInfo; // copy pointer
+        assert(dataInfoPtr);
+
+        for (auto& filter : m_filters) {
+            dataInfoPtr = filter->sendData(dataInfoPtr);
+            if (!dataInfoPtr) {
+                break;
+            }
+        }
+
+        if (!dataInfoPtr) {
+            continue;
+        }
+
+        dataInfoPtr->m_timestamp = now;
+        m_socket->sendData(std::move(dataInfoPtr));
     }
 
     m_allMsgs.reserve(m_allMsgs.size() + msgs.size());
@@ -165,6 +179,34 @@ void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
         updateMsgTimestamp(*m, now);
         m_allMsgs.push_back(m);
         reportMsgAdded(m);
+    }
+}
+
+void MsgMgrImpl::addMsgs(const MessagesList& msgs, bool reportAdded)
+{
+    m_allMsgs.reserve(m_allMsgs.size() + msgs.size());
+
+    for (auto& m : msgs) {
+        if (!m) {
+            assert(!"Invalid message in the list");
+            continue;
+        }
+
+        if (property::message::Type().getFrom(*m) == MsgType::Invalid) {
+            assert(!"Invalid type of the message");
+            continue;
+        }
+
+        if (property::message::Timestamp().getFrom(*m) == 0) {
+            auto now = DataInfo::TimestampClock::now();
+            updateMsgTimestamp(*m, now);
+        }
+
+        updateInternalId(*m);
+        if (reportAdded) {
+            reportMsgAdded(m);
+        }
+        m_allMsgs.push_back(m);
     }
 }
 
@@ -195,10 +237,55 @@ void MsgMgrImpl::setProtocol(ProtocolPtr protocol)
     m_protocol = std::move(protocol);
 }
 
+void MsgMgrImpl::addFilter(FilterPtr filter)
+{
+    if (!filter) {
+        return;
+    }
+
+    auto filterIdx = m_filters.size();
+    filter->setDataToSendCallback(
+        [this, filterIdx](DataInfoPtr data)
+        {
+            if (!data) {
+                return;
+            }
+            assert(filterIdx < m_filters.size());
+            auto revIdx = m_filters.size() - filterIdx;
+            for (auto iter = m_filters.rbegin() + revIdx; iter != m_filters.rend(); ++iter) {
+                auto nextFilter = *iter;
+                data = nextFilter->sendData(data);
+                if (!data) {
+                    break;
+                }
+            }
+
+            if (data && m_socket) {
+                m_socket->sendData(data);
+            }
+        });
+
+    filter->setErrorReportCallback(
+        [this](const QString& msg)
+        {
+            reportError(msg);
+        });
+
+    m_filters.push_back(std::move(filter));
+}
+
 void MsgMgrImpl::socketDataReceived(DataInfoPtr dataInfoPtr)
 {
-    if ((!m_recvEnabled) || !(m_protocol)) {
+    if ((!m_recvEnabled) || !(m_protocol) || (!dataInfoPtr)) {
         return;
+    }
+
+    for (auto filt : m_filters) {
+        assert(filt);
+        dataInfoPtr = filt->recvData(dataInfoPtr);
+        if (!dataInfoPtr) {
+            return;
+        }
     }
 
     assert(dataInfoPtr);

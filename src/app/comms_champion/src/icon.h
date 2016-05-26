@@ -32,6 +32,7 @@ namespace icon
 
 const QIcon& appIcon();
 const QIcon& add();
+const QIcon& addRaw();
 const QIcon& remove();
 const QIcon& clear();
 const QIcon& editClear();

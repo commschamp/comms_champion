@@ -87,6 +87,7 @@ protected:
 
 private slots:
     void itemClicked(QListWidgetItem* item);
+    void currentItemChanged(QListWidgetItem* current, QListWidgetItem* prev);
     void itemDoubleClicked(QListWidgetItem* item);
 
 private:
@@ -95,10 +96,13 @@ private:
     Qt::GlobalColor defaultItemColour(bool valid) const;
     void moveItem(int fromRow, int toRow);
     void updateTitle();
+    void processClick(QListWidgetItem* item);
 
     Ui::MsgListWidget m_ui;
     bool m_selectOnAdd = false;
     QString m_title;
+    qint64 m_lastSelectionTimestamp = 0;
+    QListWidgetItem* m_selectedItem = nullptr;
 };
 
 }  // namespace comms_champion

@@ -521,7 +521,7 @@ protected:
         pos = std::min(pos, size() - 1);
         auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos + 1);
         auto endIter = std::reverse_iterator<const TChar*>(cbegin());
-        GASSERT((std::size_t)(std::distance(begIter, endIter) == (pos + 1)));
+        GASSERT(static_cast<std::size_t>(std::distance(begIter, endIter)) == (pos + 1));
         auto iter = std::find(begIter, endIter, ch);
         if (iter == endIter) {
             return npos;

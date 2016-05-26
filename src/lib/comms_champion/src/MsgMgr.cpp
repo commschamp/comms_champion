@@ -75,6 +75,11 @@ const MsgMgr::AllMessages& MsgMgr::getAllMsgs() const
     return m_impl->getAllMsgs();
 }
 
+void MsgMgr::addMsgs(const MessagesList& msgs, bool reportAdded)
+{
+    m_impl->addMsgs(msgs, reportAdded);
+}
+
 void MsgMgr::setSocket(SocketPtr socket)
 {
     m_impl->setSocket(std::move(socket));
@@ -83,6 +88,11 @@ void MsgMgr::setSocket(SocketPtr socket)
 void MsgMgr::setProtocol(ProtocolPtr protocol)
 {
     m_impl->setProtocol(std::move(protocol));
+}
+
+void MsgMgr::addFilter(FilterPtr filter)
+{
+    m_impl->addFilter(std::move(filter));
 }
 
 void MsgMgr::setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func)

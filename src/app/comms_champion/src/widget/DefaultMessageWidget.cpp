@@ -28,8 +28,6 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
 CC_ENABLE_WARNINGS()
 
-#include "GlobalConstants.h"
-
 namespace comms_champion
 {
 

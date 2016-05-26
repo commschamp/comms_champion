@@ -37,7 +37,6 @@ ProtocolsStackWidget::~ProtocolsStackWidget() = default;
 
 void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
 {
-    bool selectionChanged = true;
     do {
         if (force) {
             break;
@@ -64,8 +63,6 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
             break;
         }
 
-        selectionChanged = false;
-
         auto* secondChild = topProtocolItem->child(1);
         if (secondChild == nullptr) {
             assert(!"Should not happen");
@@ -90,6 +87,7 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
     } while (false);
 
     assert(msg);
+    m_ui.m_protocolsTreeWidget->blockSignals(true);
     m_ui.m_protocolsTreeWidget->clear();
     QStringList colValues(property::message::ProtocolName().getFrom(*msg));
     auto* topLevelItem = new QTreeWidgetItem(colValues);
@@ -114,20 +112,21 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
 
     m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
 
+    m_ui.m_protocolsTreeWidget->blockSignals(false);
+
     auto* topProtocolItem = m_ui.m_protocolsTreeWidget->topLevelItem(0);
     assert(topProtocolItem != nullptr);
     auto* firstMsgItem = topProtocolItem->child(0);
     if (firstMsgItem != nullptr) {
         m_ui.m_protocolsTreeWidget->setCurrentItem(firstMsgItem);
-        if (selectionChanged) {
-            reportMessageSelected(firstMsgItem);
-        }
     }
 }
 
 void ProtocolsStackWidget::clear()
 {
+    m_ui.m_protocolsTreeWidget->blockSignals(true);
     m_ui.m_protocolsTreeWidget->clear();
+    m_ui.m_protocolsTreeWidget->blockSignals(false);
 }
 
 void ProtocolsStackWidget::newItemSelected()

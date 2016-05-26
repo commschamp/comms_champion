@@ -56,6 +56,9 @@ const QByteArray RepeatDurationUnits::PropName = RepeatDurationUnits::Name.toUtf
 const QString RepeatCount::Name("cc.msg_repeat_count");
 const QByteArray RepeatCount::PropName = RepeatCount::Name.toUtf8();
 
+const QString ScrollPos::Name("cc.msg_scroll_pos");
+const QByteArray ScrollPos::PropName = ScrollPos::Name.toUtf8();
+
 }  // namespace message
 
 }  // namespace property

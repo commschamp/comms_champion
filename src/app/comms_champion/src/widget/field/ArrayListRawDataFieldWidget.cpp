@@ -21,8 +21,6 @@
 #include <cassert>
 #include <limits>
 
-#include "GlobalConstants.h"
-
 namespace comms_champion
 {
 

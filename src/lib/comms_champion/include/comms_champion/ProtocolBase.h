@@ -61,7 +61,7 @@ protected:
         "AllMessages is expected to be a tuple.");
 
 
-    virtual MessagesList readImpl(const DataInfo& dataInfo)
+    virtual MessagesList readImpl(const DataInfo& dataInfo, bool final)
     {
         const std::uint8_t* iter = &dataInfo.m_data[0];
         auto size = dataInfo.m_data.size();
@@ -94,6 +94,23 @@ protected:
                             std::distance(dataBegin, readIterBeg));
                     m_data.erase(m_data.begin(), m_data.begin() + dist);
                 });
+
+        auto checkGarbageFunc =
+            [this, &allMsgs]()
+            {
+                if (!m_garbage.empty()) {
+                    MessagePtr invalidMsgPtr(new InvalidMsg());
+                    setNameToMessageProperties(*invalidMsgPtr);
+                    std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
+                    ReadIterator garbageReadIterator = &m_garbage[0];
+                    auto esTmp = rawDataMsgPtr->read(garbageReadIterator, m_garbage.size());
+                    static_cast<void>(esTmp);
+                    assert(esTmp == comms::ErrorStatus::Success);
+                    setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *invalidMsgPtr);
+                    allMsgs.push_back(std::move(invalidMsgPtr));
+                    m_garbage.clear();
+                }
+            };
 
         while (true) {
             using ProtocolMsgPtr = typename ProtocolStack::MsgPtr;
@@ -142,23 +159,6 @@ protected:
                     setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *msgPtr);
                 };
 
-            auto checkGarbageFunc =
-                [this, &allMsgs]()
-                {
-                    if (!m_garbage.empty()) {
-                        MessagePtr invalidMsgPtr(new InvalidMsg());
-                        setNameToMessageProperties(*invalidMsgPtr);
-                        std::unique_ptr<RawDataMsg> rawDataMsgPtr(new RawDataMsg());
-                        ReadIterator garbageReadIterator = &m_garbage[0];
-                        auto esTmp = rawDataMsgPtr->read(garbageReadIterator, m_garbage.size());
-                        static_cast<void>(esTmp);
-                        assert(esTmp == comms::ErrorStatus::Success);
-                        setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *invalidMsgPtr);
-                        allMsgs.push_back(std::move(invalidMsgPtr));
-                        m_garbage.clear();
-                    }
-                };
-
             if (es == comms::ErrorStatus::Success) {
                 checkGarbageFunc();
                 assert(msgPtr);
@@ -191,41 +191,43 @@ protected:
             ++readIterBeg;
         }
 
+        if (final) {
+            ReadIterator dataBegin = &m_data[0];
+            auto consumed =
+                static_cast<std::size_t>(std::distance(dataBegin, readIterBeg));
+            auto remDataCount = m_data.size() - consumed;
+            m_garbage.insert(m_garbage.end(), m_data.begin() + consumed, m_data.end());
+            std::advance(readIterBeg, remDataCount);
+            checkGarbageFunc();
+        }
         return allMsgs;
     }
 
-    virtual DataInfosList writeImpl(const MessagesList& msgs) override
+    virtual DataInfoPtr writeImpl(const Message& msg) override
     {
-        DataInfosList dataList;
-        for (auto& msgPtr : msgs) {
-            assert(msgPtr);
-
-            DataInfo::DataSeq data;
-            auto writeIter = std::back_inserter(data);
-            auto es =
-                m_protStack.write(
-                    static_cast<const ProtocolMessage&>(*msgPtr),
-                    writeIter,
-                    data.max_size());
-            if (es == comms::ErrorStatus::UpdateRequired) {
-                auto updateIter = &data[0];
-                es = m_protStack.update(updateIter, data.size());
-            }
-
-            if (es != comms::ErrorStatus::Success) {
-                assert(!"Unexpected write/update failure");
-                break;
-            }
-
-            auto dataInfo = makeDataInfo();
-            assert(dataInfo);
-
-            dataInfo->m_timestamp = DataInfo::TimestampClock::now();
-            dataInfo->m_data = std::move(data);
-
-            dataList.push_back(std::move(dataInfo));
+        DataInfo::DataSeq data;
+        auto writeIter = std::back_inserter(data);
+        auto es =
+            m_protStack.write(
+                static_cast<const ProtocolMessage&>(msg),
+                writeIter,
+                data.max_size());
+        if (es == comms::ErrorStatus::UpdateRequired) {
+            auto updateIter = &data[0];
+            es = m_protStack.update(updateIter, data.size());
         }
-        return dataList;
+
+        if (es != comms::ErrorStatus::Success) {
+            assert(!"Unexpected write/update failure");
+            return DataInfoPtr();
+        }
+
+        auto dataInfo = makeDataInfo();
+        assert(dataInfo);
+
+        dataInfo->m_timestamp = DataInfo::TimestampClock::now();
+        dataInfo->m_data = std::move(data);
+        return dataInfo;
     }
 
     virtual UpdateStatus updateMessageImpl(Message& msg) override
@@ -299,6 +301,18 @@ protected:
             ++idx;
         }
         return std::move(clonedMsg);
+    }
+
+    virtual MessagePtr createInvalidMessageImpl() override
+    {
+        MessagePtr msg(new InvalidMsg());
+        setNameToMessageProperties(*msg);
+        return msg;
+    }
+
+    virtual MessagePtr createRawDataMessageImpl() override
+    {
+        return MessagePtr(new RawDataMsg());
     }
 
     virtual MessagesList createAllMessagesImpl() override

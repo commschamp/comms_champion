@@ -26,6 +26,7 @@
 #include "Protocol.h"
 #include "Message.h"
 #include "Socket.h"
+#include "Filter.h"
 
 namespace comms_champion
 {
@@ -55,9 +56,11 @@ public:
     void sendMsgs(MessagesList&& msgs);
 
     const AllMessages& getAllMsgs() const;
+    void addMsgs(const MessagesList& msgs, bool reportAdded = true);
 
     void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
+    void addFilter(FilterPtr filter);
 
     typedef std::function<void (MessagePtr msg)> MsgAddedCallbackFunc;
     typedef std::function<void (const QString& error)> ErrorReportCallbackFunc;

@@ -224,6 +224,18 @@ private:
     static const QByteArray PropName;
 };
 
+class CC_API ScrollPos : public PropBase<int>
+{
+    typedef PropBase<int> Base;
+public:
+    ScrollPos() : Base(Name, PropName) {};
+
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+
+};
+
 }  // namespace message
 
 }  // namespace property

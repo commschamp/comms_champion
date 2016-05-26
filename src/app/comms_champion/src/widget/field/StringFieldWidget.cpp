@@ -20,8 +20,6 @@
 #include <algorithm>
 #include <cassert>
 
-#include "GlobalConstants.h"
-
 namespace comms_champion
 {
 

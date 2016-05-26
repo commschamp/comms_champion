@@ -41,17 +41,21 @@ public:
     Filter() = default;
     virtual ~Filter() {}
 
-    void feedInData(DataInfoPtr dataPtr)
+    DataInfoPtr recvData(DataInfoPtr dataPtr)
     {
-        feedInDataImpl(std::move(dataPtr));
+        return recvDataImpl(std::move(dataPtr));
     }
 
-
-    typedef std::function<void (DataInfoPtr)> DataReceivedCallback;
-    template <typename TFunc>
-    void setDataReceivedCallback(TFunc&& func)
+    DataInfoPtr sendData(DataInfoPtr dataPtr)
     {
-        m_dataReceivedCallback = std::forward<TFunc>(func);
+        return sendDataImpl(std::move(dataPtr));
+    }
+
+    typedef std::function<void (DataInfoPtr)> DataToSendCallback;
+    template <typename TFunc>
+    void setDataToSendCallback(TFunc&& func)
+    {
+        m_dataToSendCallback = std::forward<TFunc>(func);
     }
 
     typedef std::function<void (const QString& msg)> ErrorReportCallback;
@@ -62,14 +66,13 @@ public:
     }
 
 protected:
+    virtual DataInfoPtr recvDataImpl(DataInfoPtr dataPtr) = 0;
+    virtual DataInfoPtr sendDataImpl(DataInfoPtr dataPtr) = 0;
 
-    virtual void sendDataImpl(DataInfoPtr dataPtr) = 0;
-    virtual void feedInDataImpl(DataInfoPtr dataPtr) = 0;
-
-    void reportDataReceived(DataInfoPtr dataPtr)
+    void reportDataToSend(DataInfoPtr dataPtr)
     {
-        if (m_dataReceivedCallback) {
-            m_dataReceivedCallback(std::move(dataPtr));
+        if (m_dataToSendCallback) {
+            m_dataToSendCallback(std::move(dataPtr));
         }
     }
 
@@ -81,7 +84,7 @@ protected:
     }
 
 private:
-    DataReceivedCallback m_dataReceivedCallback;
+    DataToSendCallback m_dataToSendCallback;
     ErrorReportCallback m_errorReportCallback;
 };
 

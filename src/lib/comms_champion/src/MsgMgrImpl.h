@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "comms_champion/MsgMgr.h"
 
 namespace comms_champion
@@ -54,8 +56,11 @@ public:
         return m_allMsgs;
     }
 
+    void addMsgs(const MessagesList& msgs, bool reportAdded);
+
     void setSocket(SocketPtr socket);
     void setProtocol(ProtocolPtr protocol);
+    void addFilter(FilterPtr filter);
 
     typedef MsgMgr::MsgAddedCallbackFunc MsgAddedCallbackFunc;
     typedef MsgMgr::ErrorReportCallbackFunc ErrorReportCallbackFunc;
@@ -74,6 +79,7 @@ public:
 
 private:
     typedef unsigned long long MsgNumberType;
+    typedef std::vector<FilterPtr> FiltersList;
 
     void socketDataReceived(DataInfoPtr dataInfoPtr);
     void updateInternalId(Message& msg);
@@ -85,6 +91,7 @@ private:
 
     SocketPtr m_socket;
     ProtocolPtr m_protocol;
+    FiltersList m_filters;
     MsgNumberType m_nextMsgNum = 1;
     bool m_running = false;
 

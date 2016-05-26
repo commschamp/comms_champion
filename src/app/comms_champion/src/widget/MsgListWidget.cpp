@@ -23,6 +23,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
+#include <QtCore/QDateTime>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Message.h"
@@ -50,10 +51,15 @@ MsgListWidget::MsgListWidget(
     updateTitle();
 
     m_ui.m_listWidget->setUniformItemSizes(true);
-    connect(m_ui.m_listWidget, SIGNAL(itemClicked(QListWidgetItem*)),
-            this, SLOT(itemClicked(QListWidgetItem*)));
-    connect(m_ui.m_listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-            this, SLOT(itemDoubleClicked(QListWidgetItem*)));
+    connect(
+        m_ui.m_listWidget, SIGNAL(itemClicked(QListWidgetItem*)),
+        this, SLOT(itemClicked(QListWidgetItem*)));
+    connect(
+        m_ui.m_listWidget, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)),
+        this, SLOT(currentItemChanged(QListWidgetItem*, QListWidgetItem*)));
+    connect(
+        m_ui.m_listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+        this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 }
 
 void MsgListWidget::addMessage(MessagePtr msg)
@@ -334,9 +340,30 @@ MsgListWidget::MessagesList MsgListWidget::allMsgs() const
 
 void MsgListWidget::itemClicked(QListWidgetItem* item)
 {
-    msgClickedImpl(
-        getMsgFromItem(item),
-        m_ui.m_listWidget->row(item));
+    if (m_selectedItem == item) {
+        assert(0 < m_lastSelectionTimestamp);
+        auto timestamp = QDateTime::currentMSecsSinceEpoch();
+        static const decltype(timestamp) MinThreshold = 250;
+        if (timestamp < (m_lastSelectionTimestamp + MinThreshold)) {
+            return;
+        }
+    }
+
+    processClick(item);
+}
+
+void MsgListWidget::currentItemChanged(QListWidgetItem* current, QListWidgetItem* prev)
+{
+    static_cast<void>(prev);
+    m_selectedItem = current;
+
+    if (m_selectedItem == nullptr) {
+        m_lastSelectionTimestamp = 0;
+        return;
+    }
+
+    m_lastSelectionTimestamp = QDateTime::currentMSecsSinceEpoch();
+    processClick(current);
 }
 
 void MsgListWidget::itemDoubleClicked(QListWidgetItem* item)
@@ -388,6 +415,13 @@ void MsgListWidget::updateTitle()
         m_title +
         QString(" [%1]").arg(m_ui.m_listWidget->count(), 1, 10, QChar('0'));
     m_ui.m_groupBox->setTitle(title);
+}
+
+void MsgListWidget::processClick(QListWidgetItem* item)
+{
+    msgClickedImpl(
+        getMsgFromItem(item),
+        m_ui.m_listWidget->row(item));
 }
 
 

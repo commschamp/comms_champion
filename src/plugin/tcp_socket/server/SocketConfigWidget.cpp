@@ -15,15 +15,9 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "SocketConfigWidget.h"
 
-#pragma once
-
-#include <memory>
-
-#include "comms_champion/Plugin.h"
-
-#include "ClientSocket.h"
-#include "ClientConnectAction.h"
+#include <limits>
 
 namespace comms_champion
 {
@@ -34,37 +28,37 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ClientSocketPlugin : public comms_champion::Plugin
+SocketConfigWidget::SocketConfigWidget(
+    Socket& socket,
+    QWidget* parentObj)
+  : Base(parentObj),
+    m_socket(socket)
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.TcpClientSocketPlugin" FILE "tcp_client_socket.json")
-    Q_INTERFACES(comms_champion::Plugin)
+    m_ui.setupUi(this);
 
-public:
-    ClientSocketPlugin();
-    ~ClientSocketPlugin();
+    m_ui.m_portSpinBox->setRange(
+        1,
+        static_cast<int>(std::numeric_limits<PortType>::max()));
 
-    virtual void getCurrentConfigImpl(QVariantMap& config) override;
-    virtual void reconfigureImpl(const QVariantMap& config) override;
+    m_ui.m_portSpinBox->setValue(
+        static_cast<int>(m_socket.getPort()));
 
-private slots:
-    void connectStatusChangeRequest(bool connected);
-    void connectionStatusChanged(bool connected);
+    connect(
+        m_ui.m_portSpinBox, SIGNAL(valueChanged(int)),
+        this, SLOT(portValueChanged(int)));
+}
 
-private:
+SocketConfigWidget::~SocketConfigWidget() = default;
 
-    void createSocketIfNeeded();
-
-    std::shared_ptr<ClientSocket> m_socket;
-    ClientConnectAction* m_connectAction = nullptr;
-};
+void SocketConfigWidget::portValueChanged(int value)
+{
+    m_socket.setPort(static_cast<PortType>(value));
+}
 
 }  // namespace tcp_socket
 
 }  // namespace plugin
 
 }  // namespace comms_champion
-
-
 
 

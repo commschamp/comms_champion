@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "ClientConnectAction.h"
+#include "ConnectAction.h"
 
 #include "comms/CompileControl.h"
 
@@ -32,7 +32,10 @@ namespace plugin
 namespace tcp_socket
 {
 
-ClientConnectAction::ClientConnectAction(
+namespace client
+{
+
+ConnectAction::ConnectAction(
     bool connected,
     QWidget* parentObj)
   : Base(parentObj),
@@ -45,18 +48,18 @@ ClientConnectAction::ClientConnectAction(
         this, SLOT(iconClicked()));
 }
 
-void ClientConnectAction::setConnected(bool connected)
+void ConnectAction::setConnected(bool connected)
 {
     m_connected = connected;
     refresh();
 }
 
-void ClientConnectAction::iconClicked()
+void ConnectAction::iconClicked()
 {
     emit sigConnectStateChangeReq(!m_connected);
 }
 
-void ClientConnectAction::refresh()
+void ConnectAction::refresh()
 {
     if (m_connected) {
         static const QIcon disconnectIcon(":/image/disconnect.png");
@@ -71,6 +74,8 @@ void ClientConnectAction::refresh()
         setToolTip(connectTooltip);
     }
 }
+
+}  // namespace client
 
 }  // namespace tcp_socket
 

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "ClientSocketConfigWidget.h"
+#include "SocketConfigWidget.h"
 
 #include <limits>
 
@@ -28,8 +28,11 @@ namespace plugin
 namespace tcp_socket
 {
 
-ClientSocketConfigWidget::ClientSocketConfigWidget(
-    ClientSocket& socket,
+namespace client
+{
+
+SocketConfigWidget::SocketConfigWidget(
+    Socket& socket,
     QWidget* parentObj)
   : Base(parentObj),
     m_socket(socket)
@@ -54,17 +57,19 @@ ClientSocketConfigWidget::ClientSocketConfigWidget(
         this, SLOT(portValueChanged(int)));
 }
 
-ClientSocketConfigWidget::~ClientSocketConfigWidget() = default;
+SocketConfigWidget::~SocketConfigWidget() = default;
 
-void ClientSocketConfigWidget::hostValueChanged(const QString& value)
+void SocketConfigWidget::hostValueChanged(const QString& value)
 {
     m_socket.setHost(value);
 }
 
-void ClientSocketConfigWidget::portValueChanged(int value)
+void SocketConfigWidget::portValueChanged(int value)
 {
     m_socket.setPort(static_cast<PortType>(value));
 }
+
+}  // namespace client
 
 }  // namespace tcp_socket
 

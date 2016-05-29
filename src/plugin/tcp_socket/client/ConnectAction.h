@@ -15,9 +15,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "ServerSocketConfigWidget.h"
 
-#include <limits>
+#pragma once
+
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
+#include <QtWidgets/QAction>
+CC_ENABLE_WARNINGS()
 
 namespace comms_champion
 {
@@ -28,32 +33,31 @@ namespace plugin
 namespace tcp_socket
 {
 
-ServerSocketConfigWidget::ServerSocketConfigWidget(
-    ServerSocket& socket,
-    QWidget* parentObj)
-  : Base(parentObj),
-    m_socket(socket)
+namespace client
 {
-    m_ui.setupUi(this);
 
-    m_ui.m_portSpinBox->setRange(
-        1,
-        static_cast<int>(std::numeric_limits<PortType>::max()));
-
-    m_ui.m_portSpinBox->setValue(
-        static_cast<int>(m_socket.getPort()));
-
-    connect(
-        m_ui.m_portSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(portValueChanged(int)));
-}
-
-ServerSocketConfigWidget::~ServerSocketConfigWidget() = default;
-
-void ServerSocketConfigWidget::portValueChanged(int value)
+class ConnectAction : public QAction
 {
-    m_socket.setPort(static_cast<PortType>(value));
-}
+    Q_OBJECT
+    typedef QAction Base;
+public:
+    ConnectAction(bool connected = false, QWidget* parentObj = nullptr);
+
+    void setConnected(bool connected);
+
+signals:
+    void sigConnectStateChangeReq(bool connect);
+
+private slots:
+    void iconClicked();
+
+private:
+    void refresh();
+
+    bool m_connected = false;
+};
+
+}  // namespace client
 
 }  // namespace tcp_socket
 

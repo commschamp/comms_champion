@@ -23,23 +23,23 @@ function (plugin_tcp_client_socket)
     set (refresh_plugin_header TRUE)
     if ((NOT EXISTS ${stamp_file}) OR (${meta_file} IS_NEWER_THAN ${stamp_file}))
         execute_process(
-            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_SOURCE_DIR}/ClientSocketPlugin.h)
+            COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_CURRENT_SOURCE_DIR}/SocketPlugin.h)
         execute_process(
             COMMAND ${CMAKE_COMMAND} -E touch ${stamp_file})
     endif ()
     
     set (src
-        ClientSocket.cpp
-        ClientSocketPlugin.cpp
-        ClientSocketConfigWidget.cpp
-        ClientConnectAction.cpp
+        Socket.cpp
+        SocketPlugin.cpp
+        SocketConfigWidget.cpp
+        ConnectAction.cpp
     )
     
     set (hdr
-        ClientSocket.h
-        ClientSocketPlugin.h
-        ClientSocketConfigWidget.h
-        ClientConnectAction.h
+        Socket.h
+        SocketPlugin.h
+        SocketConfigWidget.h
+        ConnectAction.h
     )
     
     qt5_wrap_cpp(
@@ -49,7 +49,7 @@ function (plugin_tcp_client_socket)
     
     qt5_wrap_ui(
         ui
-        ClientSocketConfigWidget.ui
+        SocketConfigWidget.ui
     )
     
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/client_socket.qrc)

@@ -18,11 +18,12 @@
 
 #pragma once
 
-#include "comms/CompileControl.h"
+#include <memory>
 
-CC_DISABLE_WARNINGS()
-#include <QtWidgets/QAction>
-CC_ENABLE_WARNINGS()
+#include "comms_champion/Plugin.h"
+
+#include "Socket.h"
+#include "ConnectAction.h"
 
 namespace comms_champion
 {
@@ -33,31 +34,42 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ClientConnectAction : public QAction
+namespace client
+{
+
+class SocketPlugin : public comms_champion::Plugin
 {
     Q_OBJECT
-    typedef QAction Base;
+    Q_PLUGIN_METADATA(IID "cc.TcpClientSocketPlugin" FILE "tcp_client_socket.json")
+    Q_INTERFACES(comms_champion::Plugin)
+
 public:
-    ClientConnectAction(bool connected = false, QWidget* parentObj = nullptr);
+    SocketPlugin();
+    ~SocketPlugin();
 
-    void setConnected(bool connected);
-
-signals:
-    void sigConnectStateChangeReq(bool connect);
+    virtual void getCurrentConfigImpl(QVariantMap& config) override;
+    virtual void reconfigureImpl(const QVariantMap& config) override;
 
 private slots:
-    void iconClicked();
+    void connectStatusChangeRequest(bool connected);
+    void connectionStatusChanged(bool connected);
 
 private:
-    void refresh();
 
-    bool m_connected = false;
+    void createSocketIfNeeded();
+
+    std::shared_ptr<Socket> m_socket;
+    ConnectAction* m_connectAction = nullptr;
 };
+
+}  // namespace client
 
 }  // namespace tcp_socket
 
 }  // namespace plugin
 
 }  // namespace comms_champion
+
+
 
 

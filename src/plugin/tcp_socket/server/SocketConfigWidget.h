@@ -22,10 +22,10 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtWidgets/QWidget>
-#include "ui_ServerSocketConfigWidget.h"
+#include "ui_SocketConfigWidget.h"
 CC_ENABLE_WARNINGS()
 
-#include "ServerSocket.h"
+#include "Socket.h"
 
 namespace comms_champion
 {
@@ -36,24 +36,24 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ServerSocketConfigWidget : public QWidget
+class SocketConfigWidget : public QWidget
 {
     Q_OBJECT
     typedef QWidget Base;
 public:
-    typedef ServerSocket::PortType PortType;
+    typedef Socket::PortType PortType;
 
-    explicit ServerSocketConfigWidget(
-        ServerSocket& socket,
+    explicit SocketConfigWidget(
+        Socket& socket,
         QWidget* parentObj = nullptr);
 
-    ~ServerSocketConfigWidget();
+    ~SocketConfigWidget();
 
 private slots:
     void portValueChanged(int value);
 
 private:
-    ServerSocket& m_socket;
+    Socket& m_socket;
     Ui::ServerSocketConfigWidget m_ui;
 };
 

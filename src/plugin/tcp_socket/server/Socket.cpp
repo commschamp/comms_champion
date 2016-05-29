@@ -23,7 +23,7 @@ CC_DISABLE_WARNINGS()
 #include <QtNetwork/QHostAddress>
 CC_ENABLE_WARNINGS()
 
-#include "ServerSocket.h"
+#include "Socket.h"
 
 namespace comms_champion
 {
@@ -34,16 +34,16 @@ namespace plugin
 namespace tcp_socket
 {
 
-ServerSocket::ServerSocket()
+Socket::Socket()
 {
     connect(
         &m_server, SIGNAL(newConnection()),
         this, SLOT(newConnection()));
 }
 
-ServerSocket::~ServerSocket() = default;
+Socket::~Socket() = default;
 
-bool ServerSocket::startImpl()
+bool Socket::startImpl()
 {
     if (m_server.isListening()) {
         assert(!"Already listening");
@@ -63,12 +63,12 @@ bool ServerSocket::startImpl()
     return true;
 }
 
-void ServerSocket::stopImpl()
+void Socket::stopImpl()
 {
     m_server.close();
 }
 
-void ServerSocket::sendDataImpl(DataInfoPtr dataPtr)
+void Socket::sendDataImpl(DataInfoPtr dataPtr)
 {
     assert(dataPtr);
     for (auto* socketTmp : m_sockets) {
@@ -80,7 +80,7 @@ void ServerSocket::sendDataImpl(DataInfoPtr dataPtr)
     }
 }
 
-void ServerSocket::newConnection()
+void Socket::newConnection()
 {
     auto *newConnSocket = m_server.nextPendingConnection();
     m_sockets.push_back(newConnSocket);
@@ -98,7 +98,7 @@ void ServerSocket::newConnection()
         this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
 }
 
-void ServerSocket::connectionTerminated()
+void Socket::connectionTerminated()
 {
     auto* socket = sender();
     auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
@@ -110,7 +110,7 @@ void ServerSocket::connectionTerminated()
     m_sockets.erase(iter);
 }
 
-void ServerSocket::readFromSocket()
+void Socket::readFromSocket()
 {
     auto* socket = qobject_cast<QTcpSocket*>(sender());
     assert(socket != nullptr);
@@ -130,7 +130,7 @@ void ServerSocket::readFromSocket()
     reportDataReceived(std::move(dataPtr));
 }
 
-void ServerSocket::socketErrorOccurred(QAbstractSocket::SocketError err)
+void Socket::socketErrorOccurred(QAbstractSocket::SocketError err)
 {
     if (err == QAbstractSocket::RemoteHostClosedError) {
         // Ignore remote client disconnection

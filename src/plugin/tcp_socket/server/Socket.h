@@ -22,6 +22,7 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
+#include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 CC_ENABLE_WARNINGS()
 
@@ -37,7 +38,7 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ClientSocket : public QObject,
+class Socket : public QObject,
                      public comms_champion::Socket
 {
     Q_OBJECT
@@ -46,18 +47,8 @@ class ClientSocket : public QObject,
 public:
     typedef unsigned short PortType;
 
-    ClientSocket();
-    ~ClientSocket();
-
-    void setHost(const QString& value)
-    {
-        m_host = value;
-    }
-
-    const QString& getHost() const
-    {
-        return m_host;
-    }
+    Socket();
+    ~Socket();
 
     void setPort(PortType value)
     {
@@ -69,35 +60,22 @@ public:
         return m_port;
     }
 
-    bool setConnected(bool connected);
-
-    bool connectToServer();
-
-    bool disconnectFromServer();
-
-signals:
-    void sigConnectionStatus(bool connected);
-
 protected:
     virtual bool startImpl() override;
     virtual void stopImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:
-    void socketConnected();
-    void socketDisconnected();
+    void newConnection();
+    void connectionTerminated();
     void readFromSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);
 
 private:
     static const PortType DefaultPort = 20000;
-    QString m_host;
     PortType m_port = DefaultPort;
-    QTcpSocket m_socket;
-    bool m_connected = false;
-    bool m_tryingToConnect = false;
-    bool m_connectOnStart = false;
-    bool m_forcedDisconnection = false;
+    QTcpServer m_server;
+    std::list<QTcpSocket*> m_sockets;
 };
 
 }  // namespace tcp_socket

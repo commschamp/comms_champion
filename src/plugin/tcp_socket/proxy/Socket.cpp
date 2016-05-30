@@ -197,9 +197,15 @@ void Socket::connectionSocketConnected()
     auto iter = findByConnection(socket);
     assert(iter != m_sockets.end());
     assert(iter->first != nullptr);
+
     connect(
         iter->first, SIGNAL(readyRead()),
         this, SLOT(readFromClientSocket()));
+
+    if (0 < iter->first->bytesAvailable()) {
+        assert(iter->second);
+        performReadWrite(*iter->first, *iter->second);
+    }
 }
 
 void Socket::connectionSocketDisconnected()
@@ -275,6 +281,10 @@ void Socket::removeConnection(SocketsList::iterator iter)
 
 void Socket::performReadWrite(QTcpSocket& readFromSocket, QTcpSocket& writeToSocket)
 {
+    if (readFromSocket.bytesAvailable() == 0) {
+        return;
+    }
+
     auto dataPtr = makeDataInfo();
     dataPtr->m_timestamp = DataInfo::TimestampClock::now();
 

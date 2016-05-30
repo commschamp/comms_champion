@@ -34,6 +34,9 @@ namespace plugin
 namespace tcp_socket
 {
 
+namespace server
+{
+
 Socket::Socket()
 {
     connect(
@@ -143,6 +146,8 @@ void Socket::socketErrorOccurred(QAbstractSocket::SocketError err)
 
     reportError(socket->errorString());
 }
+
+}  // namespace server
 
 }  // namespace tcp_socket
 

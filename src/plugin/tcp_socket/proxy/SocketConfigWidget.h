@@ -18,9 +18,12 @@
 
 #pragma once
 
-#include <memory>
+#include "comms/CompileControl.h"
 
-#include "comms_champion/Plugin.h"
+CC_DISABLE_WARNINGS()
+#include <QtWidgets/QWidget>
+#include "ui_SocketConfigWidget.h"
+CC_ENABLE_WARNINGS()
 
 #include "Socket.h"
 
@@ -33,38 +36,38 @@ namespace plugin
 namespace tcp_socket
 {
 
-namespace server
+namespace proxy
 {
 
-
-class SocketPlugin : public comms_champion::Plugin
+class SocketConfigWidget : public QWidget
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.TcpServerSocketPlugin" FILE "tcp_server_socket.json")
-    Q_INTERFACES(comms_champion::Plugin)
-
+    typedef QWidget Base;
 public:
-    SocketPlugin();
-    ~SocketPlugin();
+    typedef Socket::PortType PortType;
 
-    virtual void getCurrentConfigImpl(QVariantMap& config) override;
-    virtual void reconfigureImpl(const QVariantMap& config) override;
+    explicit SocketConfigWidget(
+        Socket& socket,
+        QWidget* parentObj = nullptr);
+
+    ~SocketConfigWidget();
+
+private slots:
+    void localPortValueChanged(int value);
+    void remoteHostValueChanged(const QString& value);
+    void remotePortValueChanged(int value);
 
 private:
-
-    void createSocketIfNeeded();
-
-    std::shared_ptr<Socket> m_socket;
+    Socket& m_socket;
+    Ui::ProxySocketConfigWidget m_ui;
 };
 
-}  // namespace server
+}  // namespace proxy
 
 }  // namespace tcp_socket
 
 }  // namespace plugin
 
 }  // namespace comms_champion
-
-
 
 

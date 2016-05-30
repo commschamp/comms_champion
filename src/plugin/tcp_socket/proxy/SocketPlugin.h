@@ -33,14 +33,14 @@ namespace plugin
 namespace tcp_socket
 {
 
-namespace server
+namespace proxy
 {
 
 
 class SocketPlugin : public comms_champion::Plugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "cc.TcpServerSocketPlugin" FILE "tcp_server_socket.json")
+    Q_PLUGIN_METADATA(IID "cc.TcpProxySocketPlugin" FILE "tcp_proxy_socket.json")
     Q_INTERFACES(comms_champion::Plugin)
 
 public:
@@ -57,7 +57,7 @@ private:
     std::shared_ptr<Socket> m_socket;
 };
 
-}  // namespace server
+}  // namespace proxy
 
 }  // namespace tcp_socket
 

@@ -724,8 +724,8 @@ void GuiAppMgr::addMsgToRecvList(MessagePtr msg)
 {
     assert(msg);
     ++m_recvListCount;
-    emit sigAddRecvMsg(msg);
     emit sigRecvListCountReport(m_recvListCount);
+    emit sigAddRecvMsg(msg);
 }
 
 void GuiAppMgr::clearRecvList(bool reportDeleted)

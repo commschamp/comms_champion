@@ -32,14 +32,16 @@ namespace plugin
 namespace tcp_socket
 {
 
-namespace server
+namespace proxy
 {
 
 namespace
 {
 
-const QString MainConfigKey("cc_tcp_server_socket");
-const QString PortSubKey("port");
+const QString MainConfigKey("cc_tcp_proxy_socket");
+const QString LocalPortSubKey("local_port");
+const QString RemoteHostSubKey("remote_host");
+const QString RemotePortSubKey("remote_port");
 
 }  // namespace
 
@@ -67,7 +69,9 @@ void SocketPlugin::getCurrentConfigImpl(QVariantMap& config)
     createSocketIfNeeded();
 
     QVariantMap subConfig;
-    subConfig.insert(PortSubKey, QVariant::fromValue(m_socket->getPort()));
+    subConfig.insert(LocalPortSubKey, QVariant::fromValue(m_socket->getPort()));
+    subConfig.insert(RemoteHostSubKey, QVariant::fromValue(m_socket->getRemoteHost()));
+    subConfig.insert(RemotePortSubKey, QVariant::fromValue(m_socket->getRemotePort()));
     config.insert(MainConfigKey, QVariant::fromValue(subConfig));
 }
 
@@ -80,16 +84,30 @@ void SocketPlugin::reconfigureImpl(const QVariantMap& config)
 
     typedef Socket::PortType PortType;
     auto subConfig = subConfigVar.value<QVariantMap>();
-    auto portVar = subConfig.value(PortSubKey);
-    if ((!portVar.isValid()) || (!portVar.canConvert<PortType>())) {
+    auto localPortVar = subConfig.value(LocalPortSubKey);
+    if ((!localPortVar.isValid()) || (!localPortVar.canConvert<PortType>())) {
         return;
     }
 
-    auto port = portVar.value<PortType>();
+    auto remoteHostVar = subConfig.value(RemoteHostSubKey);
+    if ((!remoteHostVar.isValid()) || (!remoteHostVar.canConvert<QString>())) {
+        return;
+    }
+
+    auto remotePortVar = subConfig.value(RemotePortSubKey);
+    if ((!remotePortVar.isValid()) || (!remotePortVar.canConvert<PortType>())) {
+        return;
+    }
+
+    auto localPort = localPortVar.value<PortType>();
+    auto remoteHost = remoteHostVar.value<QString>();
+    auto remotePort = remotePortVar.value<PortType>();
 
     createSocketIfNeeded();
 
-    m_socket->setPort(port);
+    m_socket->setPort(localPort);
+    m_socket->setRemoteHost(remoteHost);
+    m_socket->setRemotePort(remotePort);
 }
 
 void SocketPlugin::createSocketIfNeeded()
@@ -99,7 +117,7 @@ void SocketPlugin::createSocketIfNeeded()
     }
 }
 
-}  // namespace server
+}  // namespace proxy
 
 }  // namespace tcp_socket
 

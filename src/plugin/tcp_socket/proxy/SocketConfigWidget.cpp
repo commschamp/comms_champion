@@ -28,7 +28,7 @@ namespace plugin
 namespace tcp_socket
 {
 
-namespace server
+namespace proxy
 {
 
 SocketConfigWidget::SocketConfigWidget(
@@ -39,26 +39,53 @@ SocketConfigWidget::SocketConfigWidget(
 {
     m_ui.setupUi(this);
 
-    m_ui.m_portSpinBox->setRange(
+    m_ui.m_localPortSpinBox->setRange(
         1,
         static_cast<int>(std::numeric_limits<PortType>::max()));
 
-    m_ui.m_portSpinBox->setValue(
+    m_ui.m_localPortSpinBox->setValue(
         static_cast<int>(m_socket.getPort()));
 
+    m_ui.m_remoteHostLineEdit->setText(m_socket.getRemoteHost());
+
+    m_ui.m_remotePortSpinBox->setRange(
+        1,
+        static_cast<int>(std::numeric_limits<PortType>::max()));
+
+    m_ui.m_remotePortSpinBox->setValue(
+        static_cast<int>(m_socket.getRemotePort()));
+
     connect(
-        m_ui.m_portSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(portValueChanged(int)));
+        m_ui.m_localPortSpinBox, SIGNAL(valueChanged(int)),
+        this, SLOT(localPortValueChanged(int)));
+
+    connect(
+        m_ui.m_remoteHostLineEdit, SIGNAL(textChanged(const QString&)),
+        this, SLOT(remoteHostValueChanged(const QString&)));
+
+    connect(
+        m_ui.m_remotePortSpinBox, SIGNAL(valueChanged(int)),
+        this, SLOT(remotePortValueChanged(int)));
 }
 
 SocketConfigWidget::~SocketConfigWidget() = default;
 
-void SocketConfigWidget::portValueChanged(int value)
+void SocketConfigWidget::localPortValueChanged(int value)
 {
     m_socket.setPort(static_cast<PortType>(value));
 }
 
-}  // namespace server
+void SocketConfigWidget::remoteHostValueChanged(const QString& value)
+{
+    m_socket.setRemoteHost(value);
+}
+
+void SocketConfigWidget::remotePortValueChanged(int value)
+{
+    m_socket.setRemotePort(static_cast<PortType>(value));
+}
+
+}  // namespace proxy
 
 }  // namespace tcp_socket
 

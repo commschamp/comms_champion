@@ -36,6 +36,9 @@ namespace plugin
 namespace tcp_socket
 {
 
+namespace server
+{
+
 class SocketConfigWidget : public QWidget
 {
     Q_OBJECT
@@ -57,8 +60,7 @@ private:
     Ui::ServerSocketConfigWidget m_ui;
 };
 
-
-
+}  // namespace server
 
 }  // namespace tcp_socket
 

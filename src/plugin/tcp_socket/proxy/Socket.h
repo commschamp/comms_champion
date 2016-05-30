@@ -38,7 +38,7 @@ namespace plugin
 namespace tcp_socket
 {
 
-namespace server
+namespace proxy
 {
 
 class Socket : public QObject,
@@ -63,6 +63,26 @@ public:
         return m_port;
     }
 
+    void setRemoteHost(const QString& value)
+    {
+        m_remoteHost = value;
+    }
+
+    const QString& getRemoteHost() const
+    {
+        return m_remoteHost;
+    }
+
+    void setRemotePort(PortType value)
+    {
+        m_remotePort = value;
+    }
+
+    PortType getRemotePort() const
+    {
+        return m_remotePort;
+    }
+
 protected:
     virtual bool startImpl() override;
     virtual void stopImpl() override;
@@ -70,18 +90,34 @@ protected:
 
 private slots:
     void newConnection();
-    void connectionTerminated();
-    void readFromSocket();
+    void clientConnectionTerminated();
+    void readFromClientSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);
+    void connectionSocketConnected();
+    void connectionSocketDisconnected();
+    void readFromConnectionSocket();
 
 private:
+    typedef QTcpSocket* ClientSocketPtr;
+    typedef std::unique_ptr<QTcpSocket> ConnectionSocketPtr;
+    typedef std::pair<ClientSocketPtr, ConnectionSocketPtr> ConnectedPair;
+    typedef std::list<ConnectedPair> SocketsList;
+
+    SocketsList::iterator findByClient(QTcpSocket* socket);
+    SocketsList::iterator findByConnection(QTcpSocket* socket);
+    void removeConnection(SocketsList::iterator iter);
+    void performReadWrite(QTcpSocket& readFromSocket, QTcpSocket& writeToSocket);
+
     static const PortType DefaultPort = 20000;
     PortType m_port = DefaultPort;
+    QString m_remoteHost;
+    PortType m_remotePort = DefaultPort;
+
     QTcpServer m_server;
-    std::list<QTcpSocket*> m_sockets;
+    SocketsList m_sockets;
 };
 
-}  // namespace server
+}  // namespace proxy
 
 }  // namespace tcp_socket
 

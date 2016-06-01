@@ -264,6 +264,7 @@ protected:
 
     virtual UpdateStatus updateMessageImpl(Message& msg) override
     {
+        assert(!msg.idAsString().isEmpty());
         do {
             std::vector<std::uint8_t> data;
 
@@ -362,6 +363,11 @@ protected:
     virtual MessagePtr createRawDataMessageImpl() override
     {
         return MessagePtr(new RawDataMsg());
+    }
+
+    virtual MessagePtr createExtraInfoMessageImpl() override
+    {
+        return MessagePtr(new ExtraInfoMsg());
     }
 
     virtual MessagesList createAllMessagesImpl() override

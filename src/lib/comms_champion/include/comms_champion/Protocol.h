@@ -43,6 +43,7 @@ class CC_API Protocol
 public:
     typedef std::list<MessagePtr> MessagesList;
     typedef std::list<DataInfoPtr> DataInfosList;
+    typedef Message::DataSeq MsgDataSeq;
 
     enum class UpdateStatus
     {
@@ -66,9 +67,7 @@ public:
 
     MessagePtr cloneMessage(const Message& msg);
 
-    MessagePtr createInvalidMessage();
-
-    MessagePtr createRawDataMessage();
+    MessagePtr createInvalidMessage(const MsgDataSeq& data);
 
 protected:
     virtual const QString& nameImpl() const = 0;
@@ -88,6 +87,8 @@ protected:
     virtual MessagePtr createInvalidMessageImpl() = 0;
 
     virtual MessagePtr createRawDataMessageImpl() = 0;
+
+    virtual MessagePtr createExtraInfoMessageImpl() = 0;
 
     void setNameToMessageProperties(Message& msg);
     static void setTransportToMessageProperties(MessagePtr transportMsg, Message& msg);

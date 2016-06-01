@@ -17,6 +17,14 @@
 
 #include "comms_champion/Protocol.h"
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QByteArray>
+CC_ENABLE_WARNINGS()
+
 #include "comms_champion/property/message.h"
 
 namespace comms_champion
@@ -70,28 +78,65 @@ MessagePtr Protocol::createMessage(const QString& idAsString, unsigned idx)
 
 Protocol::UpdateStatus Protocol::updateMessage(Message& msg)
 {
-    return updateMessageImpl(msg);
+    if (!msg.idAsString().isEmpty()) {
+        return updateMessageImpl(msg);
+    }
+
+    auto extraInfo = getExtraInfoFromMessageProperties(msg);
+    if (extraInfo.isEmpty()) {
+        if (!property::message::ExtraInfoMsg().getFrom(msg)) {
+            return UpdateStatus::NoChange;
+        }
+
+        setExtraInfoMsgToMessageProperties(MessagePtr(), msg);
+        return UpdateStatus::NoChange;
+    }
+
+    auto infoMsg = createExtraInfoMessageImpl();
+    if (!infoMsg) {
+        assert(!"Extra Info message wan't created");
+        return UpdateStatus::NoChange;
+    }
+
+    auto jsonObj = QJsonObject::fromVariantMap(extraInfo);
+    QJsonDocument doc(jsonObj);
+    auto jsonByteArray = doc.toJson();
+    MsgDataSeq dataSeq;
+    dataSeq.reserve(jsonByteArray.size());
+    std::copy_n(jsonByteArray.constData(), jsonByteArray.size(), std::back_inserter(dataSeq));
+    if (!infoMsg->decodeData(dataSeq)) {
+        setExtraInfoMsgToMessageProperties(MessagePtr(), msg);
+        return UpdateStatus::NoChange;
+    }
+
+    setExtraInfoMsgToMessageProperties(std::move(infoMsg), msg);
+    return UpdateStatus::NoChange;
 }
 
 MessagePtr Protocol::cloneMessage(const Message& msg)
 {
     if (msg.idAsString().isEmpty()) {
-        auto clonedMsg = createInvalidMessage();
+        MessagePtr clonedMsg;
 
         auto rawDataMsg = property::message::RawDataMsg().getFrom(msg);
         if (rawDataMsg) {
-            auto clonedRawDataMsg = createRawDataMessage();
-            if (!clonedRawDataMsg) {
-                assert(!"Raw Data Message wasn't created properly");
-                return clonedMsg;
-            }
-
             auto data = rawDataMsg->encodeData();
-            bool decodeResult = clonedRawDataMsg->decodeData(data);
-            static_cast<void>(decodeResult);
-            assert(decodeResult);
-            setRawDataToMessageProperties(std::move(clonedRawDataMsg), *clonedMsg);
+            clonedMsg = createInvalidMessage(data);
         }
+        else {
+            clonedMsg = createInvalidMessageImpl();
+        }
+
+        if (!clonedMsg) {
+            return clonedMsg;
+        }
+
+        auto extraInfoMap = getExtraInfoFromMessageProperties(msg);
+        if (!extraInfoMap.isEmpty()) {
+            setExtraInfoToMessageProperties(extraInfoMap, *clonedMsg);
+            updateMessage(*clonedMsg);
+        }
+
         return clonedMsg;
     }
 
@@ -102,14 +147,24 @@ MessagePtr Protocol::cloneMessage(const Message& msg)
     return clonedMsg;
 }
 
-MessagePtr Protocol::createInvalidMessage()
+MessagePtr Protocol::createInvalidMessage(const MsgDataSeq& data)
 {
-    return createInvalidMessageImpl();
-}
+    auto rawDataMsg = createRawDataMessageImpl();
+    if (!rawDataMsg) {
+        return MessagePtr();
+    }
 
-MessagePtr Protocol::createRawDataMessage()
-{
-    return createRawDataMessageImpl();
+    if (!rawDataMsg->decodeData(data)) {
+        return MessagePtr();
+    }
+
+    auto invalidMsg = createInvalidMessageImpl();
+    if (!invalidMsg) {
+        return invalidMsg;
+    }
+
+    setRawDataToMessageProperties(std::move(rawDataMsg), *invalidMsg);
+    return invalidMsg;
 }
 
 void Protocol::setNameToMessageProperties(Message& msg)

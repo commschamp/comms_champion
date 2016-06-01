@@ -83,6 +83,13 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
             0, Qt::UserRole,
             QVariant::fromValue(property::message::RawDataMsg().getFrom(*msg)));
 
+        auto* fourthChild = topProtocolItem->child(3);
+        if (fourthChild != nullptr) {
+            fourthChild->setData(
+                0, Qt::UserRole,
+                QVariant::fromValue(property::message::ExtraInfoMsg().getFrom(*msg)));
+        }
+
         return;
     } while (false);
 
@@ -109,6 +116,7 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
     }
     addMsgFunc(property::message::TransportMsg().getFrom(*msg), "Transport");
     addMsgFunc(property::message::RawDataMsg().getFrom(*msg), "Raw Data");
+    addMsgFunc(property::message::ExtraInfoMsg().getFrom(*msg), "Extra Info");
 
     m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
 

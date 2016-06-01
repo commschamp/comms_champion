@@ -36,40 +36,26 @@ Protocol::MessagesList Protocol::read(
     return readImpl(dataInfo, final);
 }
 
-Protocol::DataInfosList Protocol::write(const MessagesList& msgs)
+DataInfoPtr Protocol::write(Message& msg)
 {
-    DataInfosList dataInfos;
-    for (auto& msgPtr : msgs) {
-        if (!msgPtr) {
-            continue;
+
+    if (msg.idAsString().isEmpty()) {
+
+        auto rawDataMsg = property::message::RawDataMsg().getFrom(msg);
+        if (!rawDataMsg) {
+            return DataInfoPtr();
         }
 
-        if (msgPtr->idAsString().isEmpty()) {
+        auto dataInfoPtr = makeDataInfo();
+        assert(dataInfoPtr);
 
-            auto rawDataMsg = property::message::RawDataMsg().getFrom(*msgPtr);
-            if (!rawDataMsg) {
-                continue;
-            }
+        dataInfoPtr->m_timestamp = DataInfo::TimestampClock::now();
+        dataInfoPtr->m_data = rawDataMsg->encodeData();
 
-            auto dataInfoPtr = makeDataInfo();
-            assert(dataInfoPtr);
-
-            dataInfoPtr->m_timestamp = DataInfo::TimestampClock::now();
-            dataInfoPtr->m_data = rawDataMsg->encodeData();
-
-            if (!dataInfoPtr->m_data.empty()) {
-                dataInfos.push_back(std::move(dataInfoPtr));
-            }
-            continue;
-        }
-
-        auto dataInfoPtr = writeImpl(*msgPtr);
-        if (dataInfoPtr) {
-            dataInfos.push_back(std::move(dataInfoPtr));
-        }
+        return dataInfoPtr;
     }
 
-    return dataInfos;
+    return writeImpl(msg);
 }
 
 Protocol::MessagesList Protocol::createAllMessages()
@@ -141,6 +127,33 @@ void Protocol::setRawDataToMessageProperties(MessagePtr rawDataMsg, Message& msg
     property::message::RawDataMsg().setTo(std::move(rawDataMsg), msg);
 }
 
+void Protocol::setExtraInfoMsgToMessageProperties(MessagePtr extraInfoMsg, Message& msg)
+{
+    property::message::ExtraInfoMsg().setTo(std::move(extraInfoMsg), msg);
+}
+
+QVariantMap Protocol::getExtraInfoFromMessageProperties(const Message& msg)
+{
+    return property::message::ExtraInfo().getFrom(msg);
+}
+
+void Protocol::setExtraInfoToMessageProperties(
+    const QVariantMap& extraInfo,
+    Message& msg)
+{
+    property::message::ExtraInfo().setTo(extraInfo, msg);
+}
+
+void Protocol::mergeExtraInfoToMessageProperties(
+    const QVariantMap& extraInfo,
+    Message& msg)
+{
+    auto map = getExtraInfoFromMessageProperties(msg);
+    for (auto& key : extraInfo.keys()) {
+        map.insert(key, extraInfo.value(key));
+    }
+    setExtraInfoToMessageProperties(map, msg);
+}
 
 }  // namespace comms_champion
 

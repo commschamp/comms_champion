@@ -29,6 +29,7 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
 CC_ENABLE_WARNINGS()
 
+#include "comms/util/ScopeGuard.h"
 #include "comms_champion/property/message.h"
 
 namespace comms_champion
@@ -149,12 +150,27 @@ void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
         return;
     }
 
-    auto dataInfos = m_protocol->write(msgs);
-    auto now = DataInfo::TimestampClock::now();
+    for (auto& msgPtr : msgs) {
+        if (!msgPtr) {
+            continue;
+        }
 
-    for (auto& dInfo : dataInfos) {
-        auto dataInfoPtr = dInfo; // copy pointer
-        assert(dataInfoPtr);
+        auto updateMsgGuard =
+            comms::util::makeScopeGuard(
+                [this, &msgPtr]()
+                {
+                    updateInternalId(*msgPtr);
+                    property::message::Type().setTo(MsgType::Sent, *msgPtr);
+                    auto now = DataInfo::TimestampClock::now();
+                    updateMsgTimestamp(*msgPtr, now);
+                    m_allMsgs.push_back(msgPtr);
+                    reportMsgAdded(msgPtr);
+                });
+
+        auto dataInfoPtr = m_protocol->write(*msgPtr);
+        if (!dataInfoPtr) {
+            continue;
+        }
 
         for (auto& filter : m_filters) {
             dataInfoPtr = filter->sendData(dataInfoPtr);
@@ -167,18 +183,16 @@ void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
             continue;
         }
 
-        dataInfoPtr->m_timestamp = now;
-        m_socket->sendData(std::move(dataInfoPtr));
-    }
+        m_socket->sendData(dataInfoPtr);
 
-    m_allMsgs.reserve(m_allMsgs.size() + msgs.size());
-    for (auto& m : msgs) {
-        assert(m);
-        updateInternalId(*m);
-        property::message::Type().setTo(MsgType::Sent, *m);
-        updateMsgTimestamp(*m, now);
-        m_allMsgs.push_back(m);
-        reportMsgAdded(m);
+        if (!dataInfoPtr->m_extraProperties.isEmpty()) {
+            auto map = property::message::ExtraInfo().getFrom(*msgPtr);
+            for (auto& key : dataInfoPtr->m_extraProperties.keys()) {
+                map.insert(key, dataInfoPtr->m_extraProperties.value(key));
+            }
+            property::message::ExtraInfo().setTo(std::move(map), *msgPtr);
+            m_protocol->updateMessage(*msgPtr);
+        }
     }
 }
 

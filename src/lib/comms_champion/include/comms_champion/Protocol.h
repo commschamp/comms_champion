@@ -56,7 +56,7 @@ public:
 
     MessagesList read(const DataInfo& dataInfo, bool final = false);
 
-    DataInfosList write(const MessagesList& msgs);
+    DataInfoPtr write(Message& msg);
 
     MessagesList createAllMessages();
 
@@ -75,7 +75,7 @@ protected:
 
     virtual MessagesList readImpl(const DataInfo& dataInfo, bool final) = 0;
 
-    virtual DataInfoPtr writeImpl(const Message& msg) = 0;
+    virtual DataInfoPtr writeImpl(Message& msg) = 0;
 
     virtual MessagesList createAllMessagesImpl() = 0;
 
@@ -92,6 +92,10 @@ protected:
     void setNameToMessageProperties(Message& msg);
     static void setTransportToMessageProperties(MessagePtr transportMsg, Message& msg);
     static void setRawDataToMessageProperties(MessagePtr rawDataMsg, Message& msg);
+    static void setExtraInfoMsgToMessageProperties(MessagePtr extraInfoMsg, Message& msg);
+    static QVariantMap getExtraInfoFromMessageProperties(const Message& msg);
+    static void setExtraInfoToMessageProperties(const QVariantMap& extraInfo, Message& msg);
+    static void mergeExtraInfoToMessageProperties(const QVariantMap& extraInfo, Message& msg);
 };
 
 typedef std::shared_ptr<Protocol> ProtocolPtr;

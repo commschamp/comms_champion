@@ -77,8 +77,8 @@ private slots:
 private:
     static const PortType DefaultPort = 20000;
     PortType m_port = DefaultPort;
-    QTcpServer m_server;
     std::list<QTcpSocket*> m_sockets;
+    QTcpServer m_server;
 };
 
 }  // namespace server

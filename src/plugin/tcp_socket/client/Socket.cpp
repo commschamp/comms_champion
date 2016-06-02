@@ -37,6 +37,15 @@ namespace tcp_socket
 namespace client
 {
 
+namespace
+{
+
+const QString FromPropName("tcp.from");
+const QString ToPropName("tcp.to");
+
+}  // namespace
+
+
 Socket::Socket()
 {
     connect(
@@ -53,7 +62,10 @@ Socket::Socket()
         this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
 }
 
-Socket::~Socket() = default;
+Socket::~Socket()
+{
+    m_socket.blockSignals(true);
+}
 
 bool Socket::setConnected(bool connected)
 {
@@ -113,6 +125,18 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
     m_socket.write(
         reinterpret_cast<const char*>(&dataPtr->m_data[0]),
         dataPtr->m_data.size());
+
+    QString from =
+        m_socket.localAddress().toString() + ':' +
+                    QString("%1").arg(m_socket.localPort());
+    QString to =
+        m_socket.peerAddress().toString() + ':' +
+                    QString("%1").arg(m_socket.peerPort());
+
+
+    dataPtr->m_extraProperties.insert(FromPropName, from);
+    dataPtr->m_extraProperties.insert(ToPropName, to);
+
 }
 
 void Socket::socketConnected()
@@ -153,7 +177,15 @@ void Socket::readFromSocket()
         dataPtr->m_data.resize(result);
     }
 
-    // TODO: provide origin information
+    QString from =
+        m_socket.peerAddress().toString() + ':' +
+                    QString("%1").arg(m_socket.peerPort());
+    QString to =
+        m_socket.localAddress().toString() + ':' +
+                    QString("%1").arg(m_socket.localPort());
+
+    dataPtr->m_extraProperties.insert(FromPropName, from);
+    dataPtr->m_extraProperties.insert(ToPropName, to);
     reportDataReceived(std::move(dataPtr));
 }
 

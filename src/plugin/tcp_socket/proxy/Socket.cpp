@@ -37,6 +37,14 @@ namespace tcp_socket
 namespace proxy
 {
 
+namespace
+{
+
+const QString FromPropName("tcp.from");
+const QString ToPropName("tcp.to");
+
+}  // namespace
+
 Socket::Socket()
 {
     connect(
@@ -96,6 +104,7 @@ void Socket::stopImpl()
 void Socket::sendDataImpl(DataInfoPtr dataPtr)
 {
     assert(dataPtr);
+    QVariantList toList;
     for (auto& connectedPair : m_sockets) {
         assert(connectedPair.first != nullptr);
         assert(connectedPair.second);
@@ -105,7 +114,21 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
         connectedPair.second->write(
             reinterpret_cast<const char*>(&dataPtr->m_data[0]),
             dataPtr->m_data.size());
+
+        toList.append(
+            connectedPair.first->peerAddress().toString() + ':' +
+                        QString("%1").arg(connectedPair.first->peerPort()));
+
+        toList.append(
+            connectedPair.second->peerAddress().toString() + ':' +
+                        QString("%1").arg(connectedPair.second->peerPort()));
     }
+    QString from =
+        m_server.serverAddress().toString() + ':' +
+                    QString("%1").arg(m_server.serverPort());
+
+    dataPtr->m_extraProperties.insert(FromPropName, from);
+    dataPtr->m_extraProperties.insert(ToPropName, toList);
 }
 
 void Socket::newConnection()
@@ -300,7 +323,17 @@ void Socket::performReadWrite(QTcpSocket& readFromSocket, QTcpSocket& writeToSoc
         reinterpret_cast<const char*>(&dataPtr->m_data[0]),
         dataPtr->m_data.size());
 
-    // TODO: provide origin information
+    QString from =
+        readFromSocket.peerAddress().toString() + ':' +
+                    QString("%1").arg(readFromSocket.peerPort());
+    QString to =
+        writeToSocket.peerAddress().toString() + ':' +
+                    QString("%1").arg(writeToSocket.peerPort());
+
+
+    dataPtr->m_extraProperties.insert(FromPropName, from);
+    dataPtr->m_extraProperties.insert(ToPropName, to);
+
     reportDataReceived(std::move(dataPtr));
 }
 

@@ -37,7 +37,8 @@ namespace demo
 ///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1Message.html" target="_black">comms::Message</a>
 ///     class while providing the following default options:
 ///     @li @b comms::option::MsgIdType<MsgId> > - use @ref MsgId as the type of message ID.
-///     @li @b comms::option::BigEndian - use big endian for serialisation
+///     @li @b comms::option::BigEndian - use big endian for serialisation.
+///     @li @b comms::option::RefreshInterface - add refresh() member function to interface.
 ///
 ///     All other options provided with TOptions template parameter will also be passed
 ///     to the @b comms::Message base class to define the interface.
@@ -92,7 +93,8 @@ protected:
     /// @details Invoked by non-virtual refresh() interface function. By default
     ///     does nothing and returns false. It may be overridden by the
     ///     derived class.
-    /// @return Default implementation always returns false.
+    /// @return Default implementation always returns @b false.
+    virtual bool refreshImpl();
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 

@@ -264,6 +264,8 @@ protected:
 
     virtual UpdateStatus updateMessageImpl(Message& msg) override
     {
+        bool refreshed = msg.refresh();
+
         assert(!msg.idAsString().isEmpty());
         do {
             std::vector<std::uint8_t> data;
@@ -328,6 +330,10 @@ protected:
                 msg);
 
         } while (false);
+
+        if (refreshed) {
+            return UpdateStatus::Changed;
+        }
 
         return UpdateStatus::NoChange;
     }

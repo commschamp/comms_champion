@@ -59,6 +59,7 @@ public:
     const char* name() const;
     const QVariantList& fieldsProperties() const;
     void dispatch(MessageHandler& handler);
+    bool refresh();
     QString idAsString() const;
     void reset();
     bool assign(const Message& other);
@@ -71,6 +72,7 @@ protected:
     virtual const char* nameImpl() const = 0;
     virtual const QVariantList& fieldsPropertiesImpl() const = 0;
     virtual void dispatchImpl(MessageHandler& handler) = 0;
+    virtual bool refreshMsgImpl() = 0;
     virtual QString idAsStringImpl() const = 0;
     virtual void resetImpl() = 0;
     virtual bool assignImpl(const Message& other) = 0;

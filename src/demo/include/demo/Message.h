@@ -48,7 +48,8 @@ class MessageT : public
     comms::Message<
         TOptions...,
         comms::option::BigEndian,
-        comms::option::MsgIdType<MsgId> >
+        comms::option::MsgIdType<MsgId> >,
+        comms::option::RefreshInterface
 {
 public:
 
@@ -70,6 +71,7 @@ public:
     /// @brief Move assignment operator
     MessageT& operator=(MessageT&&) = default;
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Refresh the contents of the message.
     /// @details In Demo binary protocol in some messages contents of specific
     ///     fields may limit the value of other field(s). A call to this function
@@ -80,23 +82,18 @@ public:
     ///     in the derived classes is to return @b true if value of at least one
     ///     field was modified, and @b false if values of all the fields remained intact.
     /// @return Whatever call to virtual refreshImpl() returns.
-    bool refresh()
-    {
-        return refreshImpl();
-    }
+    bool refresh();
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 protected:
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Polymorphic refresh functionality.
     /// @details Invoked by non-virtual refresh() interface function. By default
     ///     does nothing and returns false. It may be overridden by the
     ///     derived class.
-    /// @return Always false.
-    virtual bool refreshImpl()
-    {
-        return false;
-    }
-
+    /// @return Default implementation always returns false.
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
 /// @brief Default Demo interface class.

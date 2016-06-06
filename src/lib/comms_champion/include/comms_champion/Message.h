@@ -59,7 +59,7 @@ public:
     const char* name() const;
     const QVariantList& fieldsProperties() const;
     void dispatch(MessageHandler& handler);
-    bool refresh();
+    bool refreshMsg();
     QString idAsString() const;
     void reset();
     bool assign(const Message& other);

@@ -264,7 +264,7 @@ protected:
 
     virtual UpdateStatus updateMessageImpl(Message& msg) override
     {
-        bool refreshed = msg.refresh();
+        bool refreshed = msg.refreshMsg();
 
         assert(!msg.idAsString().isEmpty());
         do {

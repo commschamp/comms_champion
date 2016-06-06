@@ -47,7 +47,7 @@ void Message::dispatch(MessageHandler& handler)
     dispatchImpl(handler);
 }
 
-bool Message::refresh()
+bool Message::refreshMsg()
 {
     return refreshMsgImpl();
 }

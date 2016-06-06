@@ -247,6 +247,43 @@ template <typename TBase, typename TOpts>
 using MessageInterfaceLengthBaseT =
     typename MessageInterfaceProcessLengthBase<TBase, TOpts::HasLength>::Type;
 
+template <typename TBase>
+class MessageInterfaceRefreshBase : public TBase
+{
+public:
+    bool refresh()
+    {
+        return refreshImpl();
+    }
+
+protected:
+    virtual bool refreshImpl()
+    {
+        return false;
+    }
+};
+
+
+template <typename TBase, bool THasRefresh>
+struct MessageInterfaceProcessRefreshBase;
+
+template <typename TBase>
+struct MessageInterfaceProcessRefreshBase<TBase, true>
+{
+    typedef MessageInterfaceRefreshBase<TBase> Type;
+};
+
+template <typename TBase>
+struct MessageInterfaceProcessRefreshBase<TBase, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TOpts>
+using MessageInterfaceRefreshBaseT =
+    typename MessageInterfaceProcessRefreshBase<TBase, TOpts::HasRefresh>::Type;
+
+
 
 template <typename... TOptions>
 class MessageInterfaceBuilder
@@ -264,10 +301,11 @@ class MessageInterfaceBuilder
     typedef MessageInterfaceValidBaseT<ReadWriteBase, ParsedOptions> ValidBase;
     typedef MessageInterfaceLengthBaseT<ValidBase, ParsedOptions> LengthBase;
     typedef MessageInterfaceHandlerBaseT<LengthBase, ParsedOptions> HandlerBase;
+    typedef MessageInterfaceRefreshBaseT<HandlerBase, ParsedOptions> RefreshBase;
 
 public:
     typedef ParsedOptions Options;
-    typedef HandlerBase Type;
+    typedef RefreshBase Type;
 };
 
 template <typename... TOptions>

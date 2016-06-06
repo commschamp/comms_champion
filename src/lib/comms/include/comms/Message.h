@@ -55,6 +55,8 @@ namespace comms
 ///         member function to the default interface.
 ///     @li comms::option::LengthInfoInterface - an option used to add length()
 ///         member function to the default interface.
+///     @li comms::option::RefreshInterface - an option used to add refresh()
+///         member function to the default interface.
 ///     @li comms::option::Handler - an option used to specify type of message handler
 ///         object used to handle the message when it received. If this option
 ///         is not used, then dispatch() member function doesn't exist. See
@@ -136,6 +138,24 @@ public:
     /// @return Number of bytes required to serialise this message.
     std::size_t length() const;
 
+    /// @brief Refresh to contents of the message.
+    /// @details Many protocols define their messages in a way that the content
+    ///     of some fields may depend on the value of the other field(s). For
+    ///     example, providing in one field the information about number of
+    ///     elements in the list that will follow later. Another example is
+    ///     having bits in a bitmask field specifying whether other optional
+    ///     fields exist. In this case, directly modifying value of some
+    ///     fields may leave a message contents in an inconsistent state.
+    ///     Having refresh() member function allows the developer to bring
+    ///     the message into a consistent state prior to sending it over
+    ///     I/O link . @n
+    ///     The function exists only if comms::option::RefreshInterface option
+    ///     was provided to comms::Message. The function invokes virtual
+    ///     refreshImpl() function.
+    /// @return true in case the contents of the message were modified, false if
+    ///     all the fields of the message remained unchanged.
+    bool refresh();
+
     /// @brief Type of the message handler object.
     /// @details The type exists only if comms::option::Handler option
     ///     was provided to comms::Message to specify one.
@@ -189,6 +209,17 @@ protected:
     ///     was provided to comms::Message.
     /// @return Number of bytes required to serialise this message.
     virtual std::size_t lengthImpl() const = 0;
+
+    /// @brief Virtual function used to bring contents of the message
+    ///     into a consistent state.
+    /// @details Called by refresh(), can be overridden in the derived class.
+    ///     If not overridden, does nothing and returns false indicating that
+    ///     contents of the message haven't been changed.
+    ///     The function exists only if comms::option::RefreshInterface option
+    ///     was provided to comms::Message.
+    /// @return true in case the contents of the message were modified, false if
+    ///     all the fields of the message remained unchanged.
+    virtual bool refreshImpl();
 
     /// @brief Pure virtual function used to dispatch message to the handler
     ///     object for processing.

@@ -82,6 +82,9 @@ struct ValidCheckInterface {};
 /// @brief Option used to add @b length() function into Message interface.
 struct LengthInfoInterface {};
 
+/// @brief Option used to add @b refresh() function into Message interface.
+struct RefreshInterface {};
+
 /// @brief Option used to specify type of the message handler.
 /// @tparam T Type of the handler.
 template <typename T>

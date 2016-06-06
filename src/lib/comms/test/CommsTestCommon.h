@@ -30,7 +30,8 @@ enum MessageType {
     MessageType2,
     UnusedValue2,
     UnusedValue3,
-    MessageType3
+    MessageType3,
+    MessageType4
 };
 
 template <typename TTraits>
@@ -162,6 +163,80 @@ bool operator==(
 {
     return msg1.fields() == msg2.fields();
 }
+
+template <typename TField>
+using Message4Fields =
+    std::tuple<
+        comms::field::BitmaskValue<
+            TField,
+            comms::option::FixedLength<1> >,
+        comms::field::Optional<
+            comms::field::IntValue<
+                TField,
+                std::uint16_t
+            >
+        >
+    >;
+
+
+template <typename TMessage>
+class Message4 : public
+    comms::MessageBase<
+        TMessage,
+        comms::option::StaticNumIdImpl<MessageType4>,
+        comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
+        comms::option::DispatchImpl<Message4<TMessage> >
+    >
+{
+    typedef
+        comms::MessageBase<
+                TMessage,
+                comms::option::StaticNumIdImpl<MessageType4>,
+                comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
+                comms::option::DispatchImpl<Message4<TMessage> >
+            > Base;
+public:
+    Message4()
+    {
+        auto& optField = std::get<1>(Base::fields());
+        optField.setMode(comms::field::OptionalMode::Missing);
+    }
+
+    virtual ~Message4() = default;
+
+protected:
+    virtual const std::string& getNameImpl() const
+    {
+        static const std::string str("Message4");
+        return str;
+    }
+
+    virtual bool refreshImpl() override
+    {
+        auto& mask = std::get<0>(Base::fields());
+        auto expectedNextFieldMode = comms::field::OptionalMode::Missing;
+        if ((mask.value() & 0x1) != 0) {
+            expectedNextFieldMode = comms::field::OptionalMode::Exists;
+        }
+
+        auto& optField = std::get<1>(Base::fields());
+        if (optField.getMode() == expectedNextFieldMode) {
+            return false;
+        }
+
+        optField.setMode(expectedNextFieldMode);
+        return true;
+    }
+};
+
+template <typename... TArgs>
+bool operator==(
+    const Message4<TArgs...>& msg1,
+    const Message4<TArgs...>& msg2)
+{
+    return msg1.fields() == msg2.fields();
+}
+
 
 template <typename TMessage>
 using AllMessages =

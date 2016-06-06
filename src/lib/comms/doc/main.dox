@@ -1,7 +1,7 @@
 /// @mainpage COMMS Library
 /// @tableofcontents
-/// The main purpose of the COMMS library is to make implementation of
-/// communication protocols a quick and easy process.
+/// The main purpose of the COMMS library is to make an implementation of
+/// binary communication protocols to be quick and easy process.
 ///
 /// It doesn't use @b RTTI and/or @b exceptions. It makes a significant effort to 
 /// completely eliminate or minimise usage of dynamic memory allocation in order
@@ -43,7 +43,7 @@
 /// and handled appropriately.
 /// 
 /// The COMMS library provides comms::Message - a basic interface for any 
-/// message object. Depending on the options provided to the comms::Message it
+/// message object. Depending on the options provided to the comms::Message, it
 /// provides the following public interface:
 /// @li comms::Message::getId() - Retrieval of the ID of the message.
 /// @li comms::Message::read() - Read message data from the stream of raw bytes
@@ -52,6 +52,8 @@
 /// @li comms::Message::length() - Get number of bytes required to serialise
 ///     the message having the current state.
 /// @li comms::Message::valid() - Check the validity of the message data.
+/// @li comms::Message::refresh() - Bring the message contents into a consistent 
+///     state.
 ///
 /// For most cases this interface is enough. However, there may be a need to
 /// extend this basic interface. In order to define extended interface, just
@@ -223,7 +225,7 @@
 /// Once the message handler type is defined, the message can be easily dispatched
 /// to its appropriate handling function. Let's assume we have proper message
 /// object that was created by the @ref protocol_stack when proper sequence of
-/// the raw bytes was received and successful parsed. Recognising and handling
+/// the raw bytes was received and successfully parsed. Recognising and handling
 /// the message is easy:   
 /// @code
 /// MsgPtr msg = ...; // MsgPtr is smart pointer to MyMessage.
@@ -231,11 +233,11 @@
 /// 
 /// msg->dispatch(handler); // Call appropriate handle() function of the MyHandler.
 /// @endcode
-/// The call to dispatch() member function of the message object will invoke 
-/// proper handle() function of the handler.
+/// The call to @b dispatch() member function of the message object will invoke 
+/// proper @b handle() function of the handler.
 /// 
 /// Once we have a reference to proper message type, the message data fields
-/// are accessible via call to fields() member function implemented by
+/// are accessible via call to @b fields() member function implemented by
 /// comms::MessageBase class when comms::option::FieldsImpl option was provided:
 /// @code
 /// class MyHandler : public comms::GenericHandler<MyMessage, AllMessages>
@@ -288,57 +290,57 @@
 /// of the example above will look like this:
 /// @diafile protocol_stack.dia
 ///
-/// The SYNC layer is outermost one. It reads first 2 bytes of available data.
-/// If they have the expected value of "0xabcd", then it calls the read()
+/// The @b SYNC layer is outermost one. It reads first 2 bytes of available data.
+/// If they have the expected value of "0xabcd", then it calls the @b read()
 /// member function of the next layer.
 /// 
 /// Although next information in the raw bytes sequence is the length of the
-/// remaining data, the next layer is CHECKSUM. This is because it needs to 
-/// calculate and verify checksum on all the bytes between SIZE and PAYLOAD information. 
-/// First, the CHECKSUM layer records the current location of the data in the
+/// remaining data, the next layer is @b CHECKSUM. This is because it needs to 
+/// calculate and verify checksum on all the bytes between @b SIZE and @b PAYLOAD information. 
+/// First, the @b CHECKSUM layer records the current location of the data in the
 /// input buffer (stores the value of the iterator used for reading). Then it 
-/// calls the read() member function of the next layer (which is SIZE).
+/// calls the @b read() member function of the next layer (which is @b SIZE).
 /// If the latter reports successful processing of the data when it returns, 
-/// the checksum on the processed bytes (between the recorded start of the SIZE
+/// the checksum on the processed bytes (between the recorded start of the @b SIZE
 /// information and the current location of the still unprocessed data in the 
-/// input buffer) is calculated by the CHECKSUM layer. After calculation is 
+/// input buffer) is calculated by the @b CHECKSUM layer. After calculation is 
 /// complete, the next 2 bytes of the expected checksum is read. If the "calculated"
 /// and "expected" values match, then success is reported as the result of the
-/// CHECKSUM layer read operation.
+/// @b CHECKSUM layer read operation.
 ///  
-/// The next layer is responsible to process SIZE information. It reads the
+/// The next layer is responsible to process @b SIZE information. It reads the
 /// remaining length value and checks whether there are enough remaining bytes
 /// in the input buffer to process rest of the fields.
 ///
-/// The next layer is responsible to process ID information. When the ID value
+/// The next layer is responsible to process @b ID information. When the @b ID value
 /// is read, it uses its internal logic to create and default construct 
-/// proper custom message object (based on ID information). Once the proper
-/// message object is created, the next layer's read() member function is called.
+/// proper custom message object (based on @b ID information). Once the proper
+/// message object is created, the next layer's @b read() member function is called.
 ///
-/// The last layer is responsible to handle the message data (PAYLOAD). It
-/// just invokes read() member function of the message object created in the
-/// upper layer (ID).
+/// The last layer is responsible to handle the message data (@b PAYLOAD). It
+/// just invokes @b read() member function of the message object created in the
+/// upper layer (@b ID).
 ///
-/// The write operation is very similar to read. First the SYNC layer writes
+/// The write operation is very similar to read. First the @b SYNC layer writes
 /// the sync value (0xabcd) to the output buffer, then invokes the write
-/// operation of the CHECKSUM. The checksum layer first invokes the write
-/// operation of the next layer (SIZE), then calculates the checksum on the
+/// operation of the @b CHECKSUM. The checksum layer first invokes the write
+/// operation of the next layer (@b SIZE), then calculates the checksum on the
 /// data written by the inner layers and writes the value to the output buffer.
-/// The SIZE layer reserves the space (2 bytes) for the size information, then
-/// invokes the write operation of the next layer (ID). Once it returns, the
-/// SIZE layer calculates number of bytes written, adds 2 (length of the
-/// CHECKSUM value that will be appended later) to the calculated result and
-/// writes the value in the reserved earlier area. The ID layer will write the
+/// The @b SIZE layer reserves the space (2 bytes) for the size information, then
+/// invokes the write operation of the next layer (@b ID). Once it returns, the
+/// @b SIZE layer calculates number of bytes written, adds 2 (length of the
+/// @b CHECKSUM value that will be appended later) to the calculated result and
+/// writes the value in the reserved earlier area. The @b ID layer will write the
 /// ID of the message being written and invoke the write operation of the next
-/// layer (PAYLOAD). The PAYLOAD layer will just call write() member function
+/// layer (@b PAYLOAD). The @b PAYLOAD layer will just call @b write() member function
 /// of the message object being written, which will write the contents of the
 /// message to the output buffer.
 ///   
 /// In order to implement such protocol stack with COMMS library, we need to
-/// start with innermost layer (PAYLOAD) and than wrap them one-by-one until
-/// we reach the outermost one (SYNC).
+/// start with innermost layer (@b PAYLOAD) and then wrap them one-by-one until
+/// we reach the outermost one (@b SYNC).
 /// 
-/// The serialised message data (PAYLOAD) is handled by comms::protocol::MsgDataLayer:
+/// The serialised message data (@b PAYLOAD) is handled by comms::protocol::MsgDataLayer:
 /// @code
 /// typedef comms::protocol::MsgDataLayer<MyMessage> MyMsgData;
 /// @endcode
@@ -426,7 +428,7 @@
 /// used. 
 /// The comms::protocol::SyncPrefixLayer layer class receives two template
 /// parameters. The first one is the type of the field used to read/write 
-/// SYNC value. The second one is the inner protocol layer being wrapped.
+/// @b SYNC value. The second one is the inner protocol layer being wrapped.
 /// When performing read operation this layer will compare the value read
 /// from the input buffer to the value of default constructed @b SyncField.
 /// If they are equal, means the SYNC characters are found and read operation
@@ -442,14 +444,14 @@
 ///
 /// The protocol stack type defines several types that can be used in processing
 /// the data:
-/// @li ProtStack::Message - Common interface class for all the messages, was
+/// @li @b ProtStack::Message - Common interface class for all the messages, was
 ///     initially provided to innermost layer (comms::protocol::MsgDataLayer).
-/// @li ProtStack::MsgPtr - Smart pointer to message object, initially defined 
+/// @li @b ProtStack::MsgPtr - Smart pointer to message object, initially defined 
 ///     by the comms::protocol::MsgIdLayer and propagated to outermost layer.
-/// @li ProtStack::ReadIterator - Iterator used for reading, initially defined
+/// @li @b ProtStack::ReadIterator - Iterator used for reading, initially defined
 ///     the message interface class (@b MyMessage) and propagated to outermost
 ///     layer.
-/// @li ProtStack::WriteIterator - Iterator used for writing, initially defined
+/// @li @b ProtStack::WriteIterator - Iterator used for writing, initially defined
 ///     the message interface class (@b MyMessage) and propagated to outermost
 ///     layer.
 ///

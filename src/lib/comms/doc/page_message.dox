@@ -173,7 +173,7 @@
 /// fail if such option is not provided.
 ///
 /// @subsection page_message_tutorial_interface_read Reading Payload (Deserialisation)
-/// If the implementation requires reading and processing input messaged, the "read()"
+/// If the implementation requires reading and processing input messages, the @b read()
 /// operation needs to be added to the interface. It is achieved by using 
 /// comms::option::ReadIterator option to provide a type of the iterator that
 /// is going to be used for reading:
@@ -234,7 +234,7 @@
 ///
 /// @subsection page_message_tutorial_interface_write Writing Payload (Serialisation)
 /// If the implementation requires serialising messages and sending them over I/O
-/// link, the "write()" operation needs to be added to the interface. It is 
+/// link, the @b write() operation needs to be added to the interface. It is 
 /// achieved by using  comms::option::WriteIterator option to provide a type of 
 /// the iterator that is going to be used for writing:
 /// @code
@@ -411,11 +411,67 @@
 /// };
 /// @endcode
 ///
+/// @subsection page_message_tutorial_interface_refresh Keeping Message Contents in a Consistent State
+/// Some communication protocol may define fields that depend on other fields.
+/// For example, bits in a bitmask field may be used to define whether some
+/// optional fields exist. Or the information about amount of elements in 
+/// the list to follow may reside in an independent numeric field. @n 
+/// After updating such fields directly, using the interface of the message object,
+/// the message contents may end up being in an inconsistent (or invalid) state.
+/// There must be a way to normalise the state of the message object. The
+/// COMMS library provides comms::option::RefreshInterface option, that adds
+/// @b refresh() member function to the message interface.
+/// @code
+/// typedef comms::Message<
+///     ...
+///     comms::option::RefreshInterface,
+///     ...
+/// > MyMessage;
+/// @endcode
+/// This option adds the following functions to the interface definition:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Refresh message contents
+///     bool refresh()
+///     {
+///         return validImpl();
+///     }
+///
+/// protected:
+///     virtual bool refreshImpl()
+///     {
+///         return false;
+///     }
+/// };
+/// @endcode
+/// Note, that the @b refresh() member function returns boolean value, which
+/// is expected to be "true" in case at least one of the internal fields has
+/// been updated, and "false" if message state remains unchanged.@n
+/// Also note, that interface provide default implementation of @b readImpl()
+/// virtual function. The message object that require proper "refresh" functionality
+/// may just override it with proper implementation.
+///
 /// @subsection page_message_tutorial_interface_summary Interface Options Summary
-/// All the options introduced above can be used in any order. However, they 
-/// should not be repeated. The definition below gives a full interface of all
+/// All the options introduced above can be used in any order. They can also
+/// be repeated multiple times. However, the option that was defined first takes
+/// priority over (or overrides) the same option defined later. @n 
+/// For example, the definition below defines @b WriteIterator to be
+/// <b>std::uint8_t*</b>, because it was defined with first 
+/// comms::option::WriteIterator option:
+/// @code
+/// typedef comms::Message<
+///     ...
+///     comms::option::WriteIterator<std::uint8_t*>, 
+///     ...
+///     comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> >,
+///     ...
+/// > MyMessage;
+/// @endcode  
+/// The definition below gives a full interface of all
 /// the introduced functions: @b getId(), @b read(), @b write(), @b dispatch(),
-/// @b length(), and @b valid().
+/// @b length(), @b valid(), and @b refresh.
 /// @code
 /// typedef comms::Message<
 ///     comms::option::BigEndian, // Use big endian for serialisation
@@ -424,7 +480,8 @@
 ///     comms::option::WriteIterator<std::uint8_t*>, // Use std::uint8_t* as iterator for writing
 ///     comms::option::Handler<MyHandler>, // My MyHandler class declared earlier as a handler for messages
 ///     comms::option::LengthInfoInterface, // Add an ability to retrieve serialisation length
-///     comms::option::ValidCheckInterface // Add an ability to check contents validity;
+///     comms::option::ValidCheckInterface, // Add an ability to check contents validity
+///     comms::option::RefreshInterface  // Add an ability to refresh message contents
 /// > MyMessage;
 /// @endcode
 ///
@@ -584,7 +641,7 @@
 /// which inherits from common @b MyMessage interface class, which may inherit
 /// from (or simply typedef instead) comms::Message <...>.
 ///
-/// Also note, that the fields of the message defined using separate classes
+/// Also note, that the fields of the message are defined using separate classes
 /// defined in comms::field namespace. These classes provide a common interface
 /// to read, write, check serialisation length, and check validity of the
 /// field's value. These common interfaces are used to implement the default
@@ -612,7 +669,7 @@
 /// @endcode
 ///
 /// Sometimes it may be useful to use dummy message objects that expose the
-/// same interface as all other message, but are note part of the protocol 
+/// same interface as all other message, but are not part of the protocol 
 /// being implemented. In other words, they don't have any ID and the 
 /// @b getId() member function is not supposed to ever be called. For such
 /// cases COMMS library provides comms::option::NoIdImpl option.
@@ -780,20 +837,6 @@
 ///         refreshOptionalInt();
 ///     }
 ///
-///     // Update mode of optional value according to flags
-///     void refreshOptionalInt()
-///     {
-///         auto& allFields = fields(); // Inherited accessor
-///         auto& flagsField = std::get<FieldIdx_Flags>(allFields);
-///         auto& optionalIntField = std::get<FieldIdx_OptinalInt>(allFields);
-///         
-///         auto mode = comms::field::OptionalMode::Missing;
-///         if ((flagsField.value() & 0x1) != 0) {
-///             mode = comms::field::OptionalMode::Exists;
-///         }
-///         optionalIntField.setMode(mode);
-///     }
-///
 /// protected:
 ///     // Override implementation of readImpl provided by comms::MessageBase
 ///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) override;
@@ -810,6 +853,33 @@
 ///         // Continue reading, when proper mode is set for optional value
 ///         return readFieldsFrom<FieldIdx_OptionalInt>(iter, len);
 ///     }
+///
+///     // Override implementation of refreshImpl() provided by comms::Message
+///     virtual bool refreshImpl()
+///     {
+///         return refreshOptionalInt()
+///     }
+///
+/// private:
+///     // Update mode of optional value according to flags
+///     bool refreshOptionalInt()
+///     {
+///         auto& allFields = fields(); // Inherited accessor
+///         auto& flagsField = std::get<FieldIdx_Flags>(allFields);
+///         auto& optionalIntField = std::get<FieldIdx_OptinalInt>(allFields);
+///         
+///         auto mode = comms::field::OptionalMode::Missing;
+///         if ((flagsField.value() & 0x1) != 0) {
+///             mode = comms::field::OptionalMode::Exists;
+///         }
+///         
+///         if (optionalIntField.getMode() == mode) {
+///             return false; // Field is note updated
+///         }
+/// 
+///         optionalIntField.setMode(mode);
+///         return true; // The field has been updated;
+///     }
 /// }
 /// @endcode
 /// @b NOTE, that @b readFieldsUntil and @b readFieldsFrom are non-virtual functions
@@ -817,7 +887,7 @@
 /// was used to read fields until (not included) the optional integral value.
 /// Then the mode of the latter was updated based on the read flags. Once the
 /// mode of the optional field was updated properly, the read continued using
-/// inherited @b readFieldsFrom member function. If the optional field's mod
+/// inherited @b readFieldsFrom member function. If the optional field's mode
 /// is set to be comms::field::OptionalMode::Missing, then its @b read() operation
 /// will do nothing, otherwise (the mode is set to be comms::field::OptionalMode::Exists)
 /// the integral value will be read as expected.
@@ -825,17 +895,18 @@
 /// Please refer to the documentation of comms::MessageBase for the details on
 /// all the member functions it provides.
 ///
-/// Also @b note, that in the example above @b writeImpl() member function
-/// wasn't overridden. If there is a need to serialise @b Message2 object, there
-/// may be inconsistency between the flags value and the optional mode of
-/// the second integral value field. It is a responsibility of the caller
-/// to update the mode appropriately. This is why the @b refreshOptionalInt()
-/// member function was made public.
+/// Also @b note, that after manipulating the message fields directly, the message
+/// may end up being in an inconsistent state, where the first bit of the bitmask
+/// is set, for example, and the state of the second optional field is set 
+/// to be "missing". The call to the @b refresh() interface function will remedy
+/// that, it will modify the state of the optional field to be in accordance with
+/// the value of the bitmask. Such "refresh" operation should usually be
+/// performed prior to executing "write".
 /// @code
 /// Message2 msg;
 /// auto& fields = msg.fields();
 /// auto& flagsField = std::get<Message2::FieldIdx_Flags>(fields);
 /// flagsField.value() |= 0x1;
-/// msg.refreshOptionalInt(); // Set mode of optional field according to flags
+/// msg.refresh(); // Set mode of optional field according to flags
 /// auto es = msg.write(...); // Serialise the message
 /// @endcode

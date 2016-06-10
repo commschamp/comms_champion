@@ -142,7 +142,9 @@ MessagePtr Protocol::cloneMessage(const Message& msg)
 
     auto clonedMsg = cloneMessageImpl(msg);
     if (clonedMsg) {
+        setNameToMessageProperties(*clonedMsg);
         updateMessage(*clonedMsg);
+        property::message::ExtraInfo().copyFromTo(msg, *clonedMsg);
     }
     return clonedMsg;
 }

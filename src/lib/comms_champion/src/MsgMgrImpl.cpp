@@ -21,7 +21,6 @@
 #include <cassert>
 #include <algorithm>
 #include <iterator>
-#include <iostream>
 
 #include "comms/CompileControl.h"
 

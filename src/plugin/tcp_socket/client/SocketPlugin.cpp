@@ -40,6 +40,7 @@ namespace
 const QString MainConfigKey("cc_tcp_client_socket");
 const QString HostSubKey("host");
 const QString PortSubKey("port");
+const QString AutoConnectSubKey("auto_connect");
 
 }  // namespace
 
@@ -61,6 +62,7 @@ SocketPlugin::SocketPlugin()
         .setGuiActionsCreateFunc(
             [this]() -> ListOfGuiActions
             {
+                createSocketIfNeeded();
                 ListOfGuiActions list;
                 m_connectAction = new ConnectAction();
                 connect(
@@ -79,8 +81,9 @@ void SocketPlugin::getCurrentConfigImpl(QVariantMap& config)
     createSocketIfNeeded();
 
     QVariantMap subConfig;
-    subConfig.insert(HostSubKey, QVariant::fromValue(m_socket->getHost()));
-    subConfig.insert(PortSubKey, QVariant::fromValue(m_socket->getPort()));
+    subConfig.insert(HostSubKey, m_socket->getHost());
+    subConfig.insert(PortSubKey, m_socket->getPort());
+    subConfig.insert(AutoConnectSubKey, m_socket->getAutoConnect());
     config.insert(MainConfigKey, QVariant::fromValue(subConfig));
 }
 
@@ -107,6 +110,11 @@ void SocketPlugin::reconfigureImpl(const QVariantMap& config)
     if (portVar.isValid() && portVar.canConvert<PortType>()) {
         auto port = portVar.value<PortType>();
         m_socket->setPort(port);
+    }
+
+    auto autoConnectVar = subConfig.value(AutoConnectSubKey);
+    if (autoConnectVar.isValid() && autoConnectVar.canConvert<bool>()) {
+        m_socket->setAutoConnect(autoConnectVar.value<bool>());
     }
 }
 

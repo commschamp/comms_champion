@@ -72,6 +72,16 @@ public:
         return m_port;
     }
 
+    void setAutoConnect(bool value)
+    {
+        m_connectOnStart = value;
+    }
+
+    bool getAutoConnect() const
+    {
+        return m_connectOnStart;
+    }
+
     bool setConnected(bool connected);
 
     bool connectToServer();

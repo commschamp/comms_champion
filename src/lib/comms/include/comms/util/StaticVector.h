@@ -368,7 +368,7 @@ public:
     {
         auto swapSize = std::min(other.size(), size());
         for (auto idx = 0U; idx < swapSize; ++idx) {
-            std::swap(data_[idx], other.data_[idx]);
+            std::swap(this->operator[](idx), other[idx]);
         }
 
         auto otherSize = other.size();

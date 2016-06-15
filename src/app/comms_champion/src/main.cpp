@@ -40,6 +40,8 @@ namespace
 {
 
 const QString CleanOptStr("clean");
+const QString ConfigOptStr("config");
+const QString PluginsOptStr("plugins");
 
 void metaTypesRegisterAll()
 {
@@ -62,10 +64,25 @@ void prepareCommandLineOptions(QCommandLineParser& parser)
     parser.addHelpOption();
 
     QCommandLineOption cleanOpt(
-        QStringList() << "c" << CleanOptStr,
+        CleanOptStr,
         QCoreApplication::translate("main", "Clean start.")
     );
     parser.addOption(cleanOpt);
+
+    QCommandLineOption configOpt(
+        QStringList() << "c" << ConfigOptStr,
+        QCoreApplication::translate("main", "Load configuration file from \"config\" subdirectory. "
+                                            "If not specified, \"default\" configuration is loaded."),
+        QCoreApplication::translate("main", "config_name")
+    );
+    parser.addOption(configOpt);
+
+    QCommandLineOption pluginsOpt(
+        QStringList() << "p" << PluginsOptStr,
+        QCoreApplication::translate("main", "Provide plugins configuration file."),
+        QCoreApplication::translate("main", "filename")
+    );
+    parser.addOption(pluginsOpt);
 }
 
 }  // namespace
@@ -98,11 +115,21 @@ int main(int argc, char *argv[])
     pluginMgr.setPluginsDir(dir.path());
 
     auto& guiAppMgr = cc::GuiAppMgr::instanceRef();
-    if (parser.isSet(CleanOptStr)) {
-        guiAppMgr.clean();
-    }
+    do {
+        if (parser.isSet(CleanOptStr) && guiAppMgr.startClean()) {
+            break;
+        }
 
-    guiAppMgr.start();
+        if (guiAppMgr.startFromFile(parser.value(PluginsOptStr))) {
+            break;
+        }
+
+        if (guiAppMgr.startFromConfig(parser.value(ConfigOptStr))) {
+            break;
+        }
+
+        guiAppMgr.startClean();
+    } while (false);
 
     QObject::connect(
         &app, &QCoreApplication::aboutToQuit,

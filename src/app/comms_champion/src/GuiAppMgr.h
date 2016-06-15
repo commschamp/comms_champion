@@ -80,8 +80,9 @@ public:
 
     ~GuiAppMgr();
 
-    void start();
-    void clean();
+    bool startClean();
+    bool startFromConfig(const QString& configName);
+    bool startFromFile(const QString& filename);
 
     RecvState recvState() const;
     bool recvMsgListSelectOnAddEnabled();

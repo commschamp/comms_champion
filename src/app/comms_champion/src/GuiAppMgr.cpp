@@ -25,6 +25,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
+#include <QtCore/QCoreApplication>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
 CC_ENABLE_WARNINGS()
@@ -44,23 +45,19 @@ namespace
 
 const QString AppDataStorageFileName("startup_config.json");
 
-QString getAddDataStoragePath(bool createIfMissing)
+QString getConfigPath(const QString& configName)
 {
-    auto dirName = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-    QDir dir(dirName);
-    if (!dir.exists()) {
-
-        if (!createIfMissing) {
-            return QString();
-        }
-
-        if (!dir.mkpath(".")) {
-            std::cerr << "WARNING: failed to create " << dirName.toStdString() << std::endl;
-            return QString();
-        }
+    QDir dir(qApp->applicationDirPath());
+    dir.cdUp();
+    if (!dir.cd("config")) {
+        return QString();
     }
 
-    return dir.filePath(AppDataStorageFileName);
+    if (configName.isEmpty()) {
+        return dir.absoluteFilePath("default.cfg");
+    }
+
+    return dir.absoluteFilePath(configName + ".cfg");
 }
 
 }  // namespace
@@ -78,38 +75,34 @@ GuiAppMgr& GuiAppMgr::instanceRef()
 
 GuiAppMgr::~GuiAppMgr() = default;
 
-void GuiAppMgr::start()
+bool GuiAppMgr::startClean()
 {
-    auto filename = getAddDataStoragePath(false);
+    return true;
+}
+
+bool GuiAppMgr::startFromConfig(const QString& configName)
+{
+    return startFromFile(getConfigPath(configName));
+}
+
+bool GuiAppMgr::startFromFile(const QString& filename)
+{
     if (filename.isEmpty()) {
-        return;
+        return false;
     }
 
     QFile configFile(filename);
     if (!configFile.exists()) {
-        return;
+        return false;
     }
 
     auto& pluginMgr = PluginMgrG::instanceRef();
     auto plugins = pluginMgr.loadPluginsFromConfigFile(filename);
     if (plugins.empty()) {
-        return;
+        return false;
     }
 
-    applyNewPlugins(plugins);
-}
-
-void GuiAppMgr::clean()
-{
-    auto filename = getAddDataStoragePath(false);
-    if (filename.isEmpty()) {
-        return;
-    }
-
-    QFile file(filename);
-    if (file.exists()) {
-        file.remove();
-    }
+    return applyNewPlugins(plugins);
 }
 
 void GuiAppMgr::pluginsEditClicked()
@@ -546,12 +539,6 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
         emit sigAddMainToolbarAction(std::move(action));
     }
 
-    auto filename = getAddDataStoragePath(true);
-    if (filename.isEmpty()) {
-        return true;
-    }
-
-    pluginMgr.savePluginsToConfigFile(plugins, filename);
     pluginMgr.setAppliedPlugins(plugins);
     return true;
 }

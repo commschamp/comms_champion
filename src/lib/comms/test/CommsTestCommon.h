@@ -31,7 +31,8 @@ enum MessageType {
     UnusedValue2,
     UnusedValue3,
     MessageType3,
-    MessageType4
+    MessageType4,
+    MessageType5,
 };
 
 template <typename TTraits>
@@ -237,6 +238,45 @@ bool operator==(
     return msg1.fields() == msg2.fields();
 }
 
+
+template <typename TField>
+using FieldsMessage5 =
+    std::tuple<
+        comms::field::IntValue<TField, std::uint16_t>,
+        comms::field::IntValue<TField, std::int8_t>
+    >;
+
+template <typename TMessage>
+class Message5 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType5>,
+            comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
+            comms::option::DispatchImpl<Message1<TMessage> >
+        >
+{
+public:
+
+    Message5() = default;
+
+    virtual ~Message5() = default;
+
+protected:
+
+    virtual const std::string& getNameImpl() const
+    {
+        static const std::string str("Message5");
+        return str;
+    }
+};
+
+template <typename... TArgs>
+bool operator==(
+    const Message5<TArgs...>& msg1,
+    const Message5<TArgs...>& msg2)
+{
+    return msg1.fields() == msg2.fields();
+}
 
 template <typename TMessage>
 using AllMessages =

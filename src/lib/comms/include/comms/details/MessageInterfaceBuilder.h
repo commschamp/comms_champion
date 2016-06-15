@@ -32,16 +32,64 @@ namespace comms
 namespace details
 {
 
+class MessageInterfaceEmptyBase {};
+
 template <typename TEndian>
 class MessageInterfaceEndianBase
 {
 public:
     typedef TEndian Endian;
+
+    typedef comms::Field<comms::option::Endian<Endian> > Field;
+
+protected:
+    template <typename T, typename TIter>
+    static void writeData(T value, TIter& iter)
+    {
+        writeData<sizeof(T), T>(value, iter);
+    }
+
+    template <std::size_t TSize, typename T, typename TIter>
+    static void writeData(T value, TIter& iter)
+    {
+        static_assert(TSize <= sizeof(T),
+                                    "Cannot put more bytes than type contains");
+        return util::writeData<TSize, T>(value, iter, Endian());
+    }
+
+    template <typename T, typename TIter>
+    static T readData(TIter& iter)
+    {
+        return readData<T, sizeof(T)>(iter);
+    }
+
+    template <typename T, std::size_t TSize, typename TIter>
+    static T readData(TIter& iter)
+    {
+        static_assert(TSize <= sizeof(T),
+            "Cannot get more bytes than type contains");
+        return util::readData<T, TSize>(iter, Endian());
+    }
 };
 
+template <typename TOpt, bool THasEndian>
+struct MessageInterfaceProcessEndianBase;
 
 template <typename TOpt>
-using MessageInterfaceEndianBaseT = MessageInterfaceEndianBase<typename TOpt::Endian>;
+struct MessageInterfaceProcessEndianBase<TOpt, true>
+{
+    typedef MessageInterfaceEndianBase<typename TOpt::Endian> Type;
+};
+
+template <typename TOpt>
+struct MessageInterfaceProcessEndianBase<TOpt, false>
+{
+    typedef MessageInterfaceEmptyBase Type;
+};
+
+template <typename TOpt>
+using MessageInterfaceEndianBaseT =
+    typename MessageInterfaceProcessEndianBase<TOpt, TOpt::HasEndian>::Type;
 
 template <typename TBase, typename TId>
 class MessageInterfaceIdTypeBase : public TBase
@@ -63,8 +111,24 @@ protected:
     virtual MsgIdParamType getIdImpl() const = 0;
 };
 
+template <typename TBase, typename TOpt, bool THasIdType>
+struct MessageInterfaceProcessIdTypeBase;
+
 template <typename TBase, typename TOpt>
-using MessageInterfaceIdTypeBaseT = MessageInterfaceIdTypeBase<TBase, typename TOpt::MsgIdType>;
+struct MessageInterfaceProcessIdTypeBase<TBase, TOpt, true>
+{
+    typedef MessageInterfaceIdTypeBase<TBase, typename TOpt::MsgIdType> Type;
+};
+
+template <typename TBase, typename TOpt>
+struct MessageInterfaceProcessIdTypeBase<TBase, TOpt, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TOpt>
+using MessageInterfaceIdTypeBaseT =
+    typename MessageInterfaceProcessIdTypeBase<TBase, TOpt, TOpt::HasMsgIdType>::Type;
 
 template <typename TBase, typename TReadIter>
 class MessageInterfaceReadOnlyBase : public TBase
@@ -292,8 +356,6 @@ class MessageInterfaceBuilder
 
     static_assert(ParsedOptions::HasEndian,
         "The Message interface must specify Endian in its options");
-    static_assert(ParsedOptions::HasMsgIdType,
-        "The Message interface must specify MsgIdType in its options");
 
     typedef MessageInterfaceEndianBaseT<ParsedOptions> EndianBase;
     typedef MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions> IdTypeBase;

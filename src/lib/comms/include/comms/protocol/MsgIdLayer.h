@@ -335,6 +335,10 @@ private:
     }
 
     Factory factory_;
+
+    static_assert(Message::InterfaceOptions::HasMsgIdType,
+        "Usage of MsgIdLayer requires support for ID type. "
+        "Use comms::option::MsgIdType option in message interface type definition.");
 };
 
 

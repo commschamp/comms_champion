@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -15,20 +15,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "Protocol.h"
 
-#pragma once
+#include "comms/comms.h"
 
-#include "field/IntValue.h"
-#include "field/BitmaskValue.h"
-#include "field/EnumValue.h"
-#include "field/ArrayList.h"
-#include "field/String.h"
-#include "field/Bitfield.h"
-#include "field/Optional.h"
-#include "field/Bundle.h"
-#include "field/FloatValue.h"
-#include "field/NoValue.h"
+namespace cc = comms_champion;
 
-#include "field/adapters.h"
-#include "field/basics.h"
+namespace comms_champion
+{
 
+namespace plugin
+{
+
+namespace raw_data_protocol
+{
+
+namespace cc_plugin
+{
+
+Protocol::~Protocol() = default;
+
+const QString& Protocol::nameImpl() const
+{
+    static const QString& Str("Raw Data Protocol");
+    return Str;
+}
+
+}  // namespace cc_plugin
+
+}  // namespace raw_data_protocol
+
+}  // namespace plugin
+
+}  // namespace comms_champion

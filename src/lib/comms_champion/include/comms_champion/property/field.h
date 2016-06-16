@@ -395,6 +395,24 @@ private:
 };
 
 
+class CC_API NoValue : public CommonBase<NoValue>
+{
+    typedef CommonBase<NoValue> Base;
+public:
+    NoValue();
+    NoValue(const NoValue&);
+    NoValue(NoValue&&);
+    NoValue(const QVariantMap& props);
+    NoValue(const QVariant& props);
+    ~NoValue();
+
+    NoValue& operator=(const NoValue&);
+    NoValue& operator=(NoValue&&);
+
+    QVariantMap asMap() const;
+};
+
+
 namespace details
 {
 
@@ -455,6 +473,11 @@ struct ForField<comms::field::FloatValue<TFieldBase, T, TOptions...> >
     typedef comms_champion::property::field::FloatValue Type;
 };
 
+template <typename TFieldBase>
+struct ForField<comms::field::NoValue<TFieldBase> >
+{
+    typedef comms_champion::property::field::NoValue Type;
+};
 
 }  // namespace details
 

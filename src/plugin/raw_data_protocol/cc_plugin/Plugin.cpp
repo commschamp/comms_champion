@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -16,19 +16,39 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#pragma once
+#include "Plugin.h"
+#include "Protocol.h"
 
-#include "field/IntValue.h"
-#include "field/BitmaskValue.h"
-#include "field/EnumValue.h"
-#include "field/ArrayList.h"
-#include "field/String.h"
-#include "field/Bitfield.h"
-#include "field/Optional.h"
-#include "field/Bundle.h"
-#include "field/FloatValue.h"
-#include "field/NoValue.h"
+namespace cc = comms_champion;
 
-#include "field/adapters.h"
-#include "field/basics.h"
+namespace comms_champion
+{
 
+namespace plugin
+{
+
+namespace raw_data_protocol
+{
+
+namespace cc_plugin
+{
+
+Plugin::Plugin()
+{
+    pluginProperties()
+        .setProtocolCreateFunc(
+            [this]()
+            {
+                return cc::ProtocolPtr(new Protocol());
+            });
+}
+
+Plugin::~Plugin() = default;
+
+}  // namespace cc_plugin
+
+}  // namespace raw_data_protocol
+
+}  // namespace plugin
+
+}  // namespace comms_champion

@@ -1,0 +1,114 @@
+//
+// Copyright 2016 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+#pragma once
+
+#include <type_traits>
+
+#include "comms/ErrorStatus.h"
+#include "comms/field/category.h"
+
+namespace comms
+{
+
+namespace field
+{
+
+namespace basic
+{
+
+template <typename TFieldBase>
+class NoValue : public TFieldBase
+{
+    typedef TFieldBase Base;
+public:
+
+    typedef comms::field::category::NumericValueField Category;
+
+    typedef unsigned ValueType;
+    typedef ValueType SerialisedType;
+
+    NoValue() = default;
+
+    NoValue(const NoValue&) = default;
+    NoValue(NoValue&&) = default;
+    ~NoValue() = default;
+
+    NoValue& operator=(const NoValue&) = default;
+    NoValue& operator=(NoValue&&) = default;
+
+    static ValueType& value()
+    {
+        static ValueType value;
+        return value;
+    }
+
+    static constexpr std::size_t length()
+    {
+        return 0U;
+    }
+
+    static constexpr std::size_t minLength()
+    {
+        return length();
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return length();
+    }
+
+    static constexpr SerialisedType toSerialised(ValueType val)
+    {
+        return static_cast<SerialisedType>(val);
+    }
+
+    static constexpr ValueType fromSerialised(SerialisedType val)
+    {
+        return static_cast<ValueType>(val);
+    }
+
+    static constexpr bool valid()
+    {
+        return true;
+    }
+
+    template <typename TIter>
+    static ErrorStatus read(TIter& iter, std::size_t size)
+    {
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    static ErrorStatus write(TIter& iter, std::size_t size)
+    {
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        return ErrorStatus::Success;
+    }
+};
+
+}  // namespace basic
+
+}  // namespace field
+
+}  // namespace comms
+
+

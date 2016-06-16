@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,17 +18,37 @@
 
 #pragma once
 
-#include "field/IntValue.h"
-#include "field/BitmaskValue.h"
-#include "field/EnumValue.h"
-#include "field/ArrayList.h"
-#include "field/String.h"
-#include "field/Bitfield.h"
-#include "field/Optional.h"
-#include "field/Bundle.h"
-#include "field/FloatValue.h"
-#include "field/NoValue.h"
+#include <QtCore/QObject>
+#include <QtCore/QtPlugin>
+#include "comms_champion/comms_champion.h"
 
-#include "field/adapters.h"
-#include "field/basics.h"
+namespace comms_champion
+{
 
+namespace plugin
+{
+
+namespace raw_data_protocol
+{
+
+namespace cc_plugin
+{
+
+class Plugin : public comms_champion::Plugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "cc.RawDataProtocol" FILE "raw_data_protocol.json")
+    Q_INTERFACES(comms_champion::Plugin)
+
+public:
+    Plugin();
+    ~Plugin();
+};
+
+}  // namespace cc_plugin
+
+}  // namespace raw_data_protocol
+
+}  // namespace plugin
+
+}  // namespace comms_champion

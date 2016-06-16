@@ -72,7 +72,7 @@ protected:
         "AllMessages is expected to be a tuple.");
 
 
-    virtual MessagesList readImpl(const DataInfo& dataInfo, bool final)
+    virtual MessagesList readImpl(const DataInfo& dataInfo, bool final) override
     {
         const std::uint8_t* iter = &dataInfo.m_data[0];
         auto size = dataInfo.m_data.size();
@@ -149,11 +149,16 @@ protected:
             ProtocolMsgPtr msgPtr;
 
             auto readIterCur = readIterBeg;
+            auto remainingSize = remainingSizeCalc(readIterCur);
+            if (remainingSize == 0U) {
+                break;
+            }
+
             auto es =
                 m_protStack.read(
                     msgPtr,
                     readIterCur,
-                    remainingSizeCalc(readIterCur));
+                    remainingSize);
 
             if (es == comms::ErrorStatus::NotEnoughData) {
                 break;

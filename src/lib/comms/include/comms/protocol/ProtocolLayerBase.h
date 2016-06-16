@@ -68,6 +68,10 @@ using AllMessagesType = typename AllMessagesHelper<T>::Type;
 template <typename TField, typename TNextLayer>
 class ProtocolLayerBase
 {
+    static_assert(TNextLayer::Message::InterfaceOptions::HasMsgIdType,
+        "Usage of ProtocolLayerBase requires Message interface to provide ID type. "
+        "Use comms::option::MsgIdType option in message interface type definition.");
+
 public:
     /// @brief Type of the field used for this layer.
     typedef TField Field;

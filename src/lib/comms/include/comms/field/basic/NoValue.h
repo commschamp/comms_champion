@@ -54,7 +54,7 @@ public:
 
     static ValueType& value()
     {
-        static ValueType value;
+        static ValueType value = ValueType();
         return value;
     }
 

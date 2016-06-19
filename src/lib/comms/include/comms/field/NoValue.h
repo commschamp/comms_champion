@@ -133,7 +133,6 @@ public:
     }
 };
 
-
 /// @brief Equality comparison operator.
 /// @details To @ref NoValue fields are always equal.
 /// @return Always true.
@@ -194,7 +193,6 @@ constexpr bool isNoValue()
 {
     return details::IsNoValue<T>::Value;
 }
-
 
 }  // namespace field
 

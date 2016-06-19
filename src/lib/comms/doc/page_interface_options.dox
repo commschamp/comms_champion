@@ -1,0 +1,200 @@
+/// @page page_interface_options Parsed Message Interface Options
+/// @tableofcontents
+/// The comms::Message class is used to define common interface for all the
+/// custom protocol messages. The class receives various options from
+/// comms::option namespace and defines its interface functions accordingly.
+/// The comms::Message class also defines @b InterfaceOptions internal type
+/// which summarises the provided options into meta-programming friendly
+/// structure.
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     typedef ... InterfaceOptions;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// The @b InterfaceOptions struct defines the following static const boolean
+/// variables:
+/// @code
+/// struct InterfaceOptions
+/// {
+///     static const bool HasMsgIdType = ...;
+///     static const bool HasEndian = ...;
+///     static const bool HasReadIterator = ...;
+///     static const bool HasWriteIterator = ...;
+///     static const bool HasHandler = ...;
+///     static const bool HasValid = ...;
+///     static const bool HasLength = ...;
+///     static const bool HasRefresh = ...;
+/// };
+/// @endcode
+///
+/// Every such boolean value provides an information about available interface
+/// functions and/or types.
+///
+/// @section page_interface_options_id Message ID
+/// If @b HasMsgIdType of comms::Message::InterfaceOptions is @b true, then the
+/// following types and functions are defined and can be used:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     typedef ... MsgIdType;
+///     typedef ... MsgIdParamType;
+///     MsgIdParamType getId() const;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @section page_interface_options_endian Serialisation Endian
+/// If @b HasEndian of comms::Message::InterfaceOptions is @b true, then the
+/// following types and functions are defined and can be used:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     typedef ... Endian;
+///     typedef ... Field;
+///
+/// protected:
+///     template <typename T, typename TIter>
+///     static void writeData(T value, TIter& iter);
+///
+///     template <std::size_t TSize, typename T, typename TIter>
+///     static void writeData(T value, TIter& iter);
+///
+///     template <typename T, typename TIter>
+///     static T readData(TIter& iter);
+///
+///     template <typename T, std::size_t TSize, typename TIter>
+///     static T readData(TIter& iter);
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @section page_interface_options_read Read Operation
+/// If @b HasReadIterator of comms::Message::InterfaceOptions is @b true, then the
+/// following types and functions are defined and can be used:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     typedef ... ReadIterator;
+///
+///     ErrorStatus read(ReadIterator& iter, std::size_t size);
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @section page_interface_options_write Write Operation
+/// If @b HasWriteIterator of comms::Message::InterfaceOptions is @b true, then the
+/// following types and functions are defined and can be used:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     typedef ... WriteIterator;
+///
+///     ErrorStatus write(WriteIterator& iter, std::size_t size) const;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @section page_interface_options_handler Dispatching to Handler
+/// If @b HasHandler of comms::Message::InterfaceOptions is @b true, then the
+/// following types and functions are defined and can be used:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     typedef ... Handler;
+///
+///     void dispatch(Handler& handler);
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @section page_interface_options_valid Validity Check
+/// If @b HasValid of comms::Message::InterfaceOptions is @b true, then the
+/// following function is defined and can be used:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     bool valid() const;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @section page_interface_options_length Serialisation Length
+/// If @b HasLength of comms::Message::InterfaceOptions is @b true, then the
+/// following function is defined and can be used:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     std::size_t length() const;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @section page_interface_options_refresh Refresh Operation
+/// If @b HasRefresh of comms::Message::InterfaceOptions is @b true, then the
+/// following function is defined and can be used:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename... TOptions>
+/// class Message
+/// {
+/// public:
+///     bool refresh();
+/// };
+///
+/// } // namespace comms
+/// @endcode
+
+

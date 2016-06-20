@@ -1731,8 +1731,7 @@ void FieldsTestSuite::test46()
     Field field;
 
     static const char ExpectedBuf[] = {0};
-    static const auto ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
-    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+    writeReadField(field, ExpectedBuf, 0);
 }
 
 template <typename TField>

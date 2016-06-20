@@ -21,7 +21,6 @@
 #include "comms_champion/comms_champion.h"
 #include "demo/message/EnumValues.h"
 #include "cc_plugin/Message.h"
-#include "cc_plugin/ProtocolMessageBase.h"
 
 namespace comms_champion
 {
@@ -36,7 +35,7 @@ namespace message
 {
 
 class EnumValues : public
-    ProtocolMessageBase<
+    comms_champion::ProtocolMessageBase<
         demo::message::EnumValues<demo::cc_plugin::Message>,
         EnumValues>
 {

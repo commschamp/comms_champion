@@ -1,5 +1,6 @@
-/// @page page_interface_options Parsed Message Interface Options
+/// @page page_message_options Parsed Message Options
 /// @tableofcontents
+/// @section page_message_options_interface Interface Options
 /// The comms::Message class is used to define common interface for all the
 /// custom protocol messages. The class receives various options from
 /// comms::option namespace and defines its interface functions accordingly.
@@ -39,7 +40,7 @@
 /// Every such boolean value provides an information about available interface
 /// functions and/or types.
 ///
-/// @section page_interface_options_id Message ID
+/// @subsection page_message_options_interface_id Message ID
 /// If @b HasMsgIdType of comms::Message::InterfaceOptions is @b true, then the
 /// following types and functions are defined and can be used:
 /// @code
@@ -52,13 +53,19 @@
 /// public:
 ///     typedef ... MsgIdType;
 ///     typedef ... MsgIdParamType;
+///
 ///     MsgIdParamType getId() const;
+///
+/// protected:
+///     virtual MsgIdParamType getIdImpl() const = 0;
 /// };
 ///
 /// } // namespace comms
 /// @endcode
+/// The @b HasMsgIdType value of comms::Message::InterfaceOptions is set to @b true
+/// when comms::option::MsgIdType option is provided to comms::Message class.
 ///
-/// @section page_interface_options_endian Serialisation Endian
+/// @subsection page_message_options_interface_endian Serialisation Endian
 /// If @b HasEndian of comms::Message::InterfaceOptions is @b true, then the
 /// following types and functions are defined and can be used:
 /// @code
@@ -88,8 +95,11 @@
 ///
 /// } // namespace comms
 /// @endcode
+/// The @b HasEndian value of comms::Message::InterfaceOptions is set to @b true
+/// when comms::option::BigEndian or comms::option::LittleEndian option is 
+/// provided to comms::Message class.
 ///
-/// @section page_interface_options_read Read Operation
+/// @subsection page_message_options_interface_read Read Operation
 /// If @b HasReadIterator of comms::Message::InterfaceOptions is @b true, then the
 /// following types and functions are defined and can be used:
 /// @code
@@ -103,12 +113,17 @@
 ///     typedef ... ReadIterator;
 ///
 ///     ErrorStatus read(ReadIterator& iter, std::size_t size);
+///
+/// protected:
+///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
 /// };
 ///
 /// } // namespace comms
 /// @endcode
+/// The @b HasReadIterator value of comms::Message::InterfaceOptions is set to @b true
+/// when comms::option::ReadIterator option is provided to comms::Message class.
 ///
-/// @section page_interface_options_write Write Operation
+/// @subsection page_message_options_interface_write Write Operation
 /// If @b HasWriteIterator of comms::Message::InterfaceOptions is @b true, then the
 /// following types and functions are defined and can be used:
 /// @code
@@ -122,12 +137,17 @@
 ///     typedef ... WriteIterator;
 ///
 ///     ErrorStatus write(WriteIterator& iter, std::size_t size) const;
+///
+/// protected:
+///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
 /// };
 ///
 /// } // namespace comms
 /// @endcode
+/// The @b HasWriteIterator value of comms::Message::InterfaceOptions is set to @b true
+/// when comms::option::WriteIterator option is provided to comms::Message class.
 ///
-/// @section page_interface_options_handler Dispatching to Handler
+/// @subsection page_message_options_interface_handler Dispatching to Handler
 /// If @b HasHandler of comms::Message::InterfaceOptions is @b true, then the
 /// following types and functions are defined and can be used:
 /// @code
@@ -141,14 +161,19 @@
 ///     typedef ... Handler;
 ///
 ///     void dispatch(Handler& handler);
+///
+/// protected:
+///     virtual void dispatchImpl(Handler& handler) = 0;
 /// };
 ///
 /// } // namespace comms
 /// @endcode
+/// The @b HasHandler value of comms::Message::InterfaceOptions is set to @b true
+/// when comms::option::Handler option is provided to comms::Message class.
 ///
-/// @section page_interface_options_valid Validity Check
+/// @subsection page_message_options_interface_valid Validity Check
 /// If @b HasValid of comms::Message::InterfaceOptions is @b true, then the
-/// following function is defined and can be used:
+/// following functions are defined and can be used:
 /// @code
 /// namespace comms
 /// {
@@ -158,14 +183,19 @@
 /// {
 /// public:
 ///     bool valid() const;
+///
+/// protected:
+///     virtual bool validImpl() const = 0;
 /// };
 ///
 /// } // namespace comms
 /// @endcode
+/// The @b HasValid value of comms::Message::InterfaceOptions is set to @b true
+/// when comms::option::ValidCheckInterface option is provided to comms::Message class.
 ///
-/// @section page_interface_options_length Serialisation Length
+/// @subsection page_message_options_interface_length Serialisation Length
 /// If @b HasLength of comms::Message::InterfaceOptions is @b true, then the
-/// following function is defined and can be used:
+/// following functions are defined and can be used:
 /// @code
 /// namespace comms
 /// {
@@ -175,14 +205,19 @@
 /// {
 /// public:
 ///     std::size_t length() const;
+///
+/// protected:
+///     virtual std::size_t lengthImpl() const;
 /// };
 ///
 /// } // namespace comms
 /// @endcode
+/// The @b HasLength value of comms::Message::InterfaceOptions is set to @b true
+/// when comms::option::LengthInfoInterface option is provided to comms::Message class.
 ///
-/// @section page_interface_options_refresh Refresh Operation
+/// @subsection page_message_options_interface_refresh Refresh Operation
 /// If @b HasRefresh of comms::Message::InterfaceOptions is @b true, then the
-/// following function is defined and can be used:
+/// following functions are defined and can be used:
 /// @code
 /// namespace comms
 /// {
@@ -192,9 +227,217 @@
 /// {
 /// public:
 ///     bool refresh();
+///
+/// protected:
+///     virtual bool refreshImpl()
+///     {
+///         return false;
+///     }
 /// };
 ///
 /// } // namespace comms
 /// @endcode
+/// The @b HasRefresh value of comms::Message::InterfaceOptions is set to @b true
+/// when comms::option::RefreshInterface option is provided to comms::Message class.
+///
+/// @section page_message_options_impl Implementation Options
+/// The comms::MessageBase class is used to provide default implementation for
+/// various virtual functions defined in the comms::Message interface class. 
+/// it receives various options from
+/// comms::option namespace and implements the virtual functions when possible. @n
+/// The comms::MessageBase class defines @b ImplOptions internal type
+/// which summarises the provided options into meta-programming friendly
+/// structure.
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// public:
+///     typedef ... ImplOptions;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// The @b ImplOptions struct defines the following static const boolean variables: 
+/// @code
+/// struct ImplOptions
+/// {
+///     static const bool HasStaticMsgId = ...;
+///     static const bool HasDispatchImpl = ...;
+///     static const bool HasFieldsImpl = ...;
+///     static const bool HasNoIdImpl = ...;
+/// };
+/// @endcode
+///
+/// Every such boolean value provides an information about whether the default
+/// implementation was provided to a relevant virtual function defined in the
+/// interface.
+///
+/// @subsection page_message_options_impl_id Message ID
+/// The @b HasStaticMsgId value of comms::MessageBase::ImplOptions is set to @b true
+/// when comms::option::StaticNumIdImpl option is provided to comms::MessageBase class. @n
+/// If both @b HasMsgIdType of comms::Message::InterfaceOptions and 
+/// @b HasStaticMsgId of comms::MessageBase::ImplOptions are @b true, then the
+/// following variables and functions are defined:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// public:
+///     static const MsgIdType MsgId = ...;
+///
+/// protected:
+///     virtual MsgIdParamType getIdImpl() const override
+///     {
+///         return MsgId;
+///     }
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// The @b HasNoIdImpl value of comms::MessageBase::ImplOptions is set to @b true
+/// when comms::option::NoIdImpl option is provided to comms::MessageBase class. @n
+/// If both @b HasMsgIdType of comms::Message::InterfaceOptions and 
+/// @b HasNoIdImpl of comms::MessageBase::ImplOptions are @b true, then the
+/// following variables and functions are defined:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// public:
+///     static const MsgIdType MsgId = MsgIdType();
+///
+/// protected:
+///     virtual MsgIdParamType getIdImpl() const override
+///     {
+///         assert(!"The message id is not supposed to be retrieved");
+///         return MsgId;
+///     }
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @subsection page_message_options_impl_dispatch Dispatching to Handler
+/// The @b HasDispatchImpl value of comms::MessageBase::ImplOptions is set to @b true
+/// when comms::option::DispatchImpl option is provided to comms::MessageBase class. @n
+/// If both @b HasHandler of comms::Message::InterfaceOptions and 
+/// @b HasDispatchImpl of comms::MessageBase::ImplOptions are @b true, then the
+/// following functions are defined:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual void dispatchImpl(Handler& handler) override;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// @subsection page_message_options_impl_fields Fields
+/// The @b HasFields value of comms::MessageBase::ImplOptions is set to @b true
+/// when comms::option::FieldsImpl option is provided to comms::MessageBase class. @n
+/// When it is set to @b true, then the comms::MessageBase class defines following
+/// types and functions:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// public:
+///     typedef ... AllFields;
+/// 
+///     AllFields& fields();
+///     const AllFields& fields() const;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// If both @b HasFields of comms::MessageBase::ImplOptions and 
+/// @b HasReadIterator of comms::Message::InterfaceOptions are @b true, then the
+/// following functions are defined:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// If both @b HasFields of comms::MessageBase::ImplOptions and 
+/// @b HasWriteIterator of comms::Message::InterfaceOptions are @b true, then the
+/// following functions are defined:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const override;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// If both @b HasFields of comms::MessageBase::ImplOptions and 
+/// @b HasLength of comms::Message::InterfaceOptions are @b true, then the
+/// following functions are defined:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual std::size_t lengthImpl() const override;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// If both @b HasFields of comms::MessageBase::ImplOptions and 
+/// @b HasValid of comms::Message::InterfaceOptions are @b true, then the
+/// following functions are defined:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual bool validImpl() const override;
+/// };
+///
+/// } // namespace comms
+/// @endcode
+
 
 

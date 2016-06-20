@@ -66,13 +66,13 @@ namespace comms
 ///         always report success doing nothing, validImpl() will always return
 ///         true, and lengthImpl() will always return 0.
 /// @extends Message
-template <typename TMessage,
-          typename... TOptions>
+template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
 {
     typedef details::MessageImplBuilderT<TMessage, TOptions...> Base;
 public:
     /// @brief All the options provided to this class bundled into struct.
+    /// @details See @ref page_message_options_impl for reference.
     typedef details::MessageImplOptionsParser<TOptions...> ImplOptions;
 
 #ifdef FOR_DOXYGEN_DOC_ONLY

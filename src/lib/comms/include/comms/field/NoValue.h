@@ -131,6 +131,12 @@ public:
     {
         return ThisField::write(iter, size);
     }
+
+private:
+#ifdef _MSC_VER
+    // VS compiler has problems having 0 size objects in tuple.
+    int dummy_ = 0;
+#endif
 };
 
 /// @brief Equality comparison operator.

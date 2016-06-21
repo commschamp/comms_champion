@@ -22,8 +22,8 @@
 
 #include "comms_champion/Plugin.h"
 
-#include "ClientSocket.h"
-#include "ClientConnectAction.h"
+#include "Socket.h"
+#include "ConnectAction.h"
 
 namespace comms_champion
 {
@@ -34,15 +34,18 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ClientSocketPlugin : public comms_champion::Plugin
+namespace client
+{
+
+class SocketPlugin : public comms_champion::Plugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "cc.TcpClientSocketPlugin" FILE "tcp_client_socket.json")
     Q_INTERFACES(comms_champion::Plugin)
 
 public:
-    ClientSocketPlugin();
-    ~ClientSocketPlugin();
+    SocketPlugin();
+    ~SocketPlugin();
 
     virtual void getCurrentConfigImpl(QVariantMap& config) override;
     virtual void reconfigureImpl(const QVariantMap& config) override;
@@ -55,9 +58,11 @@ private:
 
     void createSocketIfNeeded();
 
-    std::shared_ptr<ClientSocket> m_socket;
-    ClientConnectAction* m_connectAction = nullptr;
+    std::shared_ptr<Socket> m_socket;
+    ConnectAction* m_connectAction = nullptr;
 };
+
+}  // namespace client
 
 }  // namespace tcp_socket
 

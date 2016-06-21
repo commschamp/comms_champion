@@ -23,7 +23,7 @@ CC_DISABLE_WARNINGS()
 #include <QtNetwork/QHostAddress>
 CC_ENABLE_WARNINGS()
 
-#include "ServerSocket.h"
+#include "Socket.h"
 
 namespace comms_champion
 {
@@ -34,16 +34,27 @@ namespace plugin
 namespace tcp_socket
 {
 
-ServerSocket::ServerSocket()
+namespace server
+{
+
+namespace
+{
+
+const QString FromPropName("tcp.from");
+const QString ToPropName("tcp.to");
+
+}  // namespace
+
+Socket::Socket()
 {
     connect(
         &m_server, SIGNAL(newConnection()),
         this, SLOT(newConnection()));
 }
 
-ServerSocket::~ServerSocket() = default;
+Socket::~Socket() = default;
 
-bool ServerSocket::startImpl()
+bool Socket::startImpl()
 {
     if (m_server.isListening()) {
         assert(!"Already listening");
@@ -63,24 +74,39 @@ bool ServerSocket::startImpl()
     return true;
 }
 
-void ServerSocket::stopImpl()
+void Socket::stopImpl()
 {
     m_server.close();
 }
 
-void ServerSocket::sendDataImpl(DataInfoPtr dataPtr)
+void Socket::sendDataImpl(DataInfoPtr dataPtr)
 {
     assert(dataPtr);
+
+    QVariantList toList;
+
     for (auto* socketTmp : m_sockets) {
         auto* socket = qobject_cast<QTcpSocket*>(socketTmp);
         assert(socket != nullptr);
         socket->write(
             reinterpret_cast<const char*>(&dataPtr->m_data[0]),
             dataPtr->m_data.size());
+
+        QString to =
+            socket->peerAddress().toString() + ':' +
+                        QString("%1").arg(socket->peerPort());
+        toList.append(to);
     }
+
+    QString from =
+        m_server.serverAddress().toString() + ':' +
+                    QString("%1").arg(m_server.serverPort());
+
+    dataPtr->m_extraProperties.insert(FromPropName, from);
+    dataPtr->m_extraProperties.insert(ToPropName, toList);
 }
 
-void ServerSocket::newConnection()
+void Socket::newConnection()
 {
     auto *newConnSocket = m_server.nextPendingConnection();
     m_sockets.push_back(newConnSocket);
@@ -98,7 +124,7 @@ void ServerSocket::newConnection()
         this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
 }
 
-void ServerSocket::connectionTerminated()
+void Socket::connectionTerminated()
 {
     auto* socket = sender();
     auto iter = std::find(m_sockets.begin(), m_sockets.end(), socket);
@@ -110,7 +136,7 @@ void ServerSocket::connectionTerminated()
     m_sockets.erase(iter);
 }
 
-void ServerSocket::readFromSocket()
+void Socket::readFromSocket()
 {
     auto* socket = qobject_cast<QTcpSocket*>(sender());
     assert(socket != nullptr);
@@ -126,11 +152,20 @@ void ServerSocket::readFromSocket()
         dataPtr->m_data.resize(result);
     }
 
-    // TODO: provide origin information
+    QString from =
+        socket->peerAddress().toString() + ':' +
+                    QString("%1").arg(socket->peerPort());
+    dataPtr->m_extraProperties.insert(FromPropName, from);
+
+    QString to =
+        m_server.serverAddress().toString() + ':' +
+                    QString("%1").arg(m_server.serverPort());
+    dataPtr->m_extraProperties.insert(ToPropName, to);
+
     reportDataReceived(std::move(dataPtr));
 }
 
-void ServerSocket::socketErrorOccurred(QAbstractSocket::SocketError err)
+void Socket::socketErrorOccurred(QAbstractSocket::SocketError err)
 {
     if (err == QAbstractSocket::RemoteHostClosedError) {
         // Ignore remote client disconnection
@@ -143,6 +178,8 @@ void ServerSocket::socketErrorOccurred(QAbstractSocket::SocketError err)
 
     reportError(socket->errorString());
 }
+
+}  // namespace server
 
 }  // namespace tcp_socket
 

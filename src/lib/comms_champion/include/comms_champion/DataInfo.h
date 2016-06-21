@@ -20,7 +20,6 @@
 
 #include <chrono>
 #include <vector>
-#include <map>
 #include <string>
 #include <memory>
 
@@ -28,6 +27,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QVariant>
+#include <QtCore/QVariantMap>
 CC_ENABLE_WARNINGS()
 
 #include "Api.h"
@@ -40,7 +40,7 @@ struct DataInfo
     typedef std::chrono::high_resolution_clock TimestampClock;
     typedef std::chrono::time_point<TimestampClock> Timestamp;
     typedef std::vector<std::uint8_t> DataSeq;
-    typedef std::map<std::string, QVariant> PropertiesMap;
+    typedef QVariantMap PropertiesMap;
 
     Timestamp m_timestamp;
     DataSeq m_data;

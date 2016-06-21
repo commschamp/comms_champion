@@ -22,6 +22,7 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
+#include <QtNetwork/QTcpServer>
 #include <QtNetwork/QTcpSocket>
 CC_ENABLE_WARNINGS()
 
@@ -37,7 +38,10 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ClientSocket : public QObject,
+namespace proxy
+{
+
+class Socket : public QObject,
                      public comms_champion::Socket
 {
     Q_OBJECT
@@ -46,18 +50,8 @@ class ClientSocket : public QObject,
 public:
     typedef unsigned short PortType;
 
-    ClientSocket();
-    ~ClientSocket();
-
-    void setHost(const QString& value)
-    {
-        m_host = value;
-    }
-
-    const QString& getHost() const
-    {
-        return m_host;
-    }
+    Socket();
+    ~Socket();
 
     void setPort(PortType value)
     {
@@ -69,14 +63,25 @@ public:
         return m_port;
     }
 
-    bool setConnected(bool connected);
+    void setRemoteHost(const QString& value)
+    {
+        m_remoteHost = value;
+    }
 
-    bool connectToServer();
+    const QString& getRemoteHost() const
+    {
+        return m_remoteHost;
+    }
 
-    bool disconnectFromServer();
+    void setRemotePort(PortType value)
+    {
+        m_remotePort = value;
+    }
 
-signals:
-    void sigConnectionStatus(bool connected);
+    PortType getRemotePort() const
+    {
+        return m_remotePort;
+    }
 
 protected:
     virtual bool startImpl() override;
@@ -84,21 +89,35 @@ protected:
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:
-    void socketConnected();
-    void socketDisconnected();
-    void readFromSocket();
+    void newConnection();
+    void clientConnectionTerminated();
+    void readFromClientSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);
+    void connectionSocketConnected();
+    void connectionSocketDisconnected();
+    void readFromConnectionSocket();
 
 private:
+    typedef QTcpSocket* ClientSocketPtr;
+    typedef std::unique_ptr<QTcpSocket> ConnectionSocketPtr;
+    typedef std::pair<ClientSocketPtr, ConnectionSocketPtr> ConnectedPair;
+    typedef std::list<ConnectedPair> SocketsList;
+
+    SocketsList::iterator findByClient(QTcpSocket* socket);
+    SocketsList::iterator findByConnection(QTcpSocket* socket);
+    void removeConnection(SocketsList::iterator iter);
+    void performReadWrite(QTcpSocket& readFromSocket, QTcpSocket& writeToSocket);
+
     static const PortType DefaultPort = 20000;
-    QString m_host;
     PortType m_port = DefaultPort;
-    QTcpSocket m_socket;
-    bool m_connected = false;
-    bool m_tryingToConnect = false;
-    bool m_connectOnStart = false;
-    bool m_forcedDisconnection = false;
+    QString m_remoteHost;
+    PortType m_remotePort = DefaultPort;
+
+    SocketsList m_sockets;
+    QTcpServer m_server;
 };
+
+}  // namespace proxy
 
 }  // namespace tcp_socket
 

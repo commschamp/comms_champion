@@ -23,7 +23,7 @@ CC_DISABLE_WARNINGS()
 #include <QtNetwork/QHostAddress>
 CC_ENABLE_WARNINGS()
 
-#include "ClientSocket.h"
+#include "Socket.h"
 
 namespace comms_champion
 {
@@ -34,7 +34,19 @@ namespace plugin
 namespace tcp_socket
 {
 
-ClientSocket::ClientSocket()
+namespace client
+{
+
+namespace
+{
+
+const QString FromPropName("tcp.from");
+const QString ToPropName("tcp.to");
+
+}  // namespace
+
+
+Socket::Socket()
 {
     connect(
         &m_socket, SIGNAL(connected()),
@@ -50,9 +62,12 @@ ClientSocket::ClientSocket()
         this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
 }
 
-ClientSocket::~ClientSocket() = default;
+Socket::~Socket()
+{
+    m_socket.blockSignals(true);
+}
 
-bool ClientSocket::setConnected(bool connected)
+bool Socket::setConnected(bool connected)
 {
     if (connected) {
         return connectToServer();
@@ -61,7 +76,7 @@ bool ClientSocket::setConnected(bool connected)
     return disconnectFromServer();
 }
 
-bool ClientSocket::connectToServer()
+bool Socket::connectToServer()
 {
     if (m_tryingToConnect || m_connected) {
         assert(!"Already connected or trying to connect.");
@@ -81,7 +96,7 @@ bool ClientSocket::connectToServer()
     return true;
 }
 
-bool ClientSocket::disconnectFromServer()
+bool Socket::disconnectFromServer()
 {
     m_tryingToConnect = false;
     m_forcedDisconnection = true;
@@ -89,7 +104,7 @@ bool ClientSocket::disconnectFromServer()
     return true;
 }
 
-bool ClientSocket::startImpl()
+bool Socket::startImpl()
 {
     if (m_connectOnStart) {
         return connectToServer();
@@ -97,29 +112,41 @@ bool ClientSocket::startImpl()
     return true;
 }
 
-void ClientSocket::stopImpl()
+void Socket::stopImpl()
 {
     disconnectFromServer();
     disconnect(&m_socket);
     m_socket.close();
 }
 
-void ClientSocket::sendDataImpl(DataInfoPtr dataPtr)
+void Socket::sendDataImpl(DataInfoPtr dataPtr)
 {
     assert(dataPtr);
     m_socket.write(
         reinterpret_cast<const char*>(&dataPtr->m_data[0]),
         dataPtr->m_data.size());
+
+    QString from =
+        m_socket.localAddress().toString() + ':' +
+                    QString("%1").arg(m_socket.localPort());
+    QString to =
+        m_socket.peerAddress().toString() + ':' +
+                    QString("%1").arg(m_socket.peerPort());
+
+
+    dataPtr->m_extraProperties.insert(FromPropName, from);
+    dataPtr->m_extraProperties.insert(ToPropName, to);
+
 }
 
-void ClientSocket::socketConnected()
+void Socket::socketConnected()
 {
     m_connected = true;
     m_tryingToConnect = false;
     emit sigConnectionStatus(true);
 }
 
-void ClientSocket::socketDisconnected()
+void Socket::socketDisconnected()
 {
     bool mustReport = !m_forcedDisconnection;
     m_connected = false;
@@ -134,7 +161,7 @@ void ClientSocket::socketDisconnected()
     }
 }
 
-void ClientSocket::readFromSocket()
+void Socket::readFromSocket()
 {
     auto* socket = qobject_cast<QTcpSocket*>(sender());
     assert(socket != nullptr);
@@ -150,11 +177,19 @@ void ClientSocket::readFromSocket()
         dataPtr->m_data.resize(result);
     }
 
-    // TODO: provide origin information
+    QString from =
+        m_socket.peerAddress().toString() + ':' +
+                    QString("%1").arg(m_socket.peerPort());
+    QString to =
+        m_socket.localAddress().toString() + ':' +
+                    QString("%1").arg(m_socket.localPort());
+
+    dataPtr->m_extraProperties.insert(FromPropName, from);
+    dataPtr->m_extraProperties.insert(ToPropName, to);
     reportDataReceived(std::move(dataPtr));
 }
 
-void ClientSocket::socketErrorOccurred(QAbstractSocket::SocketError err)
+void Socket::socketErrorOccurred(QAbstractSocket::SocketError err)
 {
     static_cast<void>(err);
     auto* socket = qobject_cast<QTcpSocket*>(sender());
@@ -163,6 +198,8 @@ void ClientSocket::socketErrorOccurred(QAbstractSocket::SocketError err)
     reportError(socket->errorString());
     disconnectFromServer();
 }
+
+}  // namespace client
 
 }  // namespace tcp_socket
 

@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "ClientSocketPlugin.h"
+#include "SocketPlugin.h"
 
 #include <memory>
 #include <cassert>
 
-#include "ClientSocketConfigWidget.h"
+#include "SocketConfigWidget.h"
 
 namespace comms_champion
 {
@@ -31,16 +31,20 @@ namespace plugin
 namespace tcp_socket
 {
 
+namespace client
+{
+
 namespace
 {
 
 const QString MainConfigKey("cc_tcp_client_socket");
 const QString HostSubKey("host");
 const QString PortSubKey("port");
+const QString AutoConnectSubKey("auto_connect");
 
 }  // namespace
 
-ClientSocketPlugin::ClientSocketPlugin()
+SocketPlugin::SocketPlugin()
 {
     pluginProperties()
         .setSocketCreateFunc(
@@ -53,13 +57,14 @@ ClientSocketPlugin::ClientSocketPlugin()
             [this]()
             {
                 createSocketIfNeeded();
-                return new ClientSocketConfigWidget(*m_socket);
+                return new SocketConfigWidget(*m_socket);
             })
         .setGuiActionsCreateFunc(
             [this]() -> ListOfGuiActions
             {
+                createSocketIfNeeded();
                 ListOfGuiActions list;
-                m_connectAction = new ClientConnectAction();
+                m_connectAction = new ConnectAction();
                 connect(
                     m_connectAction, SIGNAL(sigConnectStateChangeReq(bool)),
                     this, SLOT(connectStatusChangeRequest(bool)));
@@ -68,20 +73,21 @@ ClientSocketPlugin::ClientSocketPlugin()
             });
 }
 
-ClientSocketPlugin::~ClientSocketPlugin() = default;
+SocketPlugin::~SocketPlugin() = default;
 
-void ClientSocketPlugin::getCurrentConfigImpl(QVariantMap& config)
+void SocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 {
     static_cast<void>(config);
     createSocketIfNeeded();
 
     QVariantMap subConfig;
-    subConfig.insert(HostSubKey, QVariant::fromValue(m_socket->getHost()));
-    subConfig.insert(PortSubKey, QVariant::fromValue(m_socket->getPort()));
+    subConfig.insert(HostSubKey, m_socket->getHost());
+    subConfig.insert(PortSubKey, m_socket->getPort());
+    subConfig.insert(AutoConnectSubKey, m_socket->getAutoConnect());
     config.insert(MainConfigKey, QVariant::fromValue(subConfig));
 }
 
-void ClientSocketPlugin::reconfigureImpl(const QVariantMap& config)
+void SocketPlugin::reconfigureImpl(const QVariantMap& config)
 {
     static_cast<void>(config);
     auto subConfigVar = config.value(MainConfigKey);
@@ -99,40 +105,46 @@ void ClientSocketPlugin::reconfigureImpl(const QVariantMap& config)
         m_socket->setHost(host);
     }
 
-    typedef ClientSocket::PortType PortType;
+    typedef Socket::PortType PortType;
     auto portVar = subConfig.value(PortSubKey);
     if (portVar.isValid() && portVar.canConvert<PortType>()) {
         auto port = portVar.value<PortType>();
         m_socket->setPort(port);
     }
+
+    auto autoConnectVar = subConfig.value(AutoConnectSubKey);
+    if (autoConnectVar.isValid() && autoConnectVar.canConvert<bool>()) {
+        m_socket->setAutoConnect(autoConnectVar.value<bool>());
+    }
 }
 
-void ClientSocketPlugin::connectStatusChangeRequest(bool connected)
+void SocketPlugin::connectStatusChangeRequest(bool connected)
 {
     assert(m_socket);
     m_socket->setConnected(connected);
 }
 
-void ClientSocketPlugin::connectionStatusChanged(bool connected)
+void SocketPlugin::connectionStatusChanged(bool connected)
 {
     assert(m_connectAction != nullptr);
     m_connectAction->setConnected(connected);
 }
 
-void ClientSocketPlugin::createSocketIfNeeded()
+void SocketPlugin::createSocketIfNeeded()
 {
     if (!m_socket) {
-        m_socket.reset(new ClientSocket());
+        m_socket.reset(new Socket());
         connect(
             m_socket.get(), SIGNAL(sigConnectionStatus(bool)),
             this, SLOT(connectionStatusChanged(bool)));
     }
 }
 
+}  // namespace client
+
 }  // namespace tcp_socket
 
 }  // namespace plugin
-
 
 }  // namespace comms_champion
 

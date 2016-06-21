@@ -355,13 +355,13 @@ void MsgListWidget::itemClicked(QListWidgetItem* item)
 void MsgListWidget::currentItemChanged(QListWidgetItem* current, QListWidgetItem* prev)
 {
     static_cast<void>(prev);
-    m_selectedItem = current;
 
     if (m_selectedItem == nullptr) {
         m_lastSelectionTimestamp = 0;
         return;
     }
 
+    m_selectedItem = current;
     m_lastSelectionTimestamp = QDateTime::currentMSecsSinceEpoch();
     processClick(current);
 }

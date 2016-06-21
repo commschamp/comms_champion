@@ -168,6 +168,28 @@ private:
     static const QByteArray PropName;
 };
 
+class CC_API ExtraInfoMsg : public PropBase<MessagePtr>
+{
+    typedef PropBase<MessagePtr> Base;
+public:
+    ExtraInfoMsg() : Base(Name, PropName) {};
+
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+class CC_API ExtraInfo : public PropBase<QVariantMap>
+{
+    typedef PropBase<QVariantMap> Base;
+public:
+    ExtraInfo() : Base(Name, PropName) {};
+
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
 class CC_API Delay : public PropBase<unsigned long long>
 {
     typedef PropBase<unsigned long long> Base;

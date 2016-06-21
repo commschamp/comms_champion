@@ -24,3 +24,4 @@
 #include "basic/Bundle.h"
 #include "basic/Bitfield.h"
 #include "basic/FloatValue.h"
+#include "basic/NoValue.h"

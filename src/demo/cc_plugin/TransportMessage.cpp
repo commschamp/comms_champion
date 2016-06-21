@@ -75,13 +75,13 @@ QVariantList createFieldsProperties()
     QVariantList props;
     props.append(cc::property::field::ForField<SyncField>().name("SYNC").asMap());
     props.append(
-        cc::property::field::ForField<SyncField>()
+        cc::property::field::ForField<LengthField>()
             .name("LENGTH")
             .displayOffset(2)
             .asMap());
     props.append(createMsgIdProperties());
-    props.append(cc::property::field::ForField<SyncField>().name("PAYLOAD").asMap());
-    props.append(cc::property::field::ForField<SyncField>().name("CHECKSUM").asMap());
+    props.append(cc::property::field::ForField<DataField>().name("PAYLOAD").asMap());
+    props.append(cc::property::field::ForField<ChecksumField>().name("CHECKSUM").asMap());
     assert(props.size() == TransportMessage::FieldIdx_NumOfValues);
     return props;
 }

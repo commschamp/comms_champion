@@ -38,22 +38,6 @@ const QString& Protocol::nameImpl() const
     return Str;
 }
 
-Protocol::UpdateStatus Protocol::updateMessageImpl(cc::Message& msg)
-{
-    auto* castedMsgPtr = dynamic_cast<demo::cc_plugin::Message*>(&msg);
-    if (castedMsgPtr == nullptr) {
-        assert(!"Should not happen");
-        return UpdateStatus::NoChange;
-    }
-
-    bool updated = castedMsgPtr->refresh();
-    auto parentStatus = Base::updateMessageImpl(msg);
-    if (updated) {
-        return UpdateStatus::Changed;
-    }
-    return parentStatus;
-}
-
 }  // namespace cc_plugin
 
 }  // namespace demo

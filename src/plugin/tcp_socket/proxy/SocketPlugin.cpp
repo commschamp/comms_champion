@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "ServerSocketPlugin.h"
+#include "SocketPlugin.h"
 
 #include <memory>
 #include <cassert>
 
-#include "ServerSocket.h"
-#include "ServerSocketConfigWidget.h"
+#include "Socket.h"
+#include "SocketConfigWidget.h"
 
 namespace comms_champion
 {
@@ -32,15 +32,20 @@ namespace plugin
 namespace tcp_socket
 {
 
+namespace proxy
+{
+
 namespace
 {
 
-const QString MainConfigKey("cc_tcp_server_socket");
-const QString PortSubKey("port");
+const QString MainConfigKey("cc_tcp_proxy_socket");
+const QString LocalPortSubKey("local_port");
+const QString RemoteHostSubKey("remote_host");
+const QString RemotePortSubKey("remote_port");
 
 }  // namespace
 
-ServerSocketPlugin::ServerSocketPlugin()
+SocketPlugin::SocketPlugin()
 {
     pluginProperties()
         .setSocketCreateFunc(
@@ -53,48 +58,66 @@ ServerSocketPlugin::ServerSocketPlugin()
             [this]()
             {
                 createSocketIfNeeded();
-                return new ServerSocketConfigWidget(*m_socket);
+                return new SocketConfigWidget(*m_socket);
             });
 }
 
-ServerSocketPlugin::~ServerSocketPlugin() = default;
+SocketPlugin::~SocketPlugin() = default;
 
-void ServerSocketPlugin::getCurrentConfigImpl(QVariantMap& config)
+void SocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 {
     createSocketIfNeeded();
 
     QVariantMap subConfig;
-    subConfig.insert(PortSubKey, QVariant::fromValue(m_socket->getPort()));
+    subConfig.insert(LocalPortSubKey, QVariant::fromValue(m_socket->getPort()));
+    subConfig.insert(RemoteHostSubKey, QVariant::fromValue(m_socket->getRemoteHost()));
+    subConfig.insert(RemotePortSubKey, QVariant::fromValue(m_socket->getRemotePort()));
     config.insert(MainConfigKey, QVariant::fromValue(subConfig));
 }
 
-void ServerSocketPlugin::reconfigureImpl(const QVariantMap& config)
+void SocketPlugin::reconfigureImpl(const QVariantMap& config)
 {
     auto subConfigVar = config.value(MainConfigKey);
     if ((!subConfigVar.isValid()) || (!subConfigVar.canConvert<QVariantMap>())) {
         return;
     }
 
-    typedef ServerSocket::PortType PortType;
+    typedef Socket::PortType PortType;
     auto subConfig = subConfigVar.value<QVariantMap>();
-    auto portVar = subConfig.value(PortSubKey);
-    if ((!portVar.isValid()) || (!portVar.canConvert<PortType>())) {
+    auto localPortVar = subConfig.value(LocalPortSubKey);
+    if ((!localPortVar.isValid()) || (!localPortVar.canConvert<PortType>())) {
         return;
     }
 
-    auto port = portVar.value<PortType>();
+    auto remoteHostVar = subConfig.value(RemoteHostSubKey);
+    if ((!remoteHostVar.isValid()) || (!remoteHostVar.canConvert<QString>())) {
+        return;
+    }
+
+    auto remotePortVar = subConfig.value(RemotePortSubKey);
+    if ((!remotePortVar.isValid()) || (!remotePortVar.canConvert<PortType>())) {
+        return;
+    }
+
+    auto localPort = localPortVar.value<PortType>();
+    auto remoteHost = remoteHostVar.value<QString>();
+    auto remotePort = remotePortVar.value<PortType>();
 
     createSocketIfNeeded();
 
-    m_socket->setPort(port);
+    m_socket->setPort(localPort);
+    m_socket->setRemoteHost(remoteHost);
+    m_socket->setRemotePort(remotePort);
 }
 
-void ServerSocketPlugin::createSocketIfNeeded()
+void SocketPlugin::createSocketIfNeeded()
 {
     if (!m_socket) {
-        m_socket.reset(new ServerSocket());
+        m_socket.reset(new Socket());
     }
 }
+
+}  // namespace proxy
 
 }  // namespace tcp_socket
 

@@ -37,6 +37,9 @@ public:
     void test5();
     void test6();
     void test7();
+    void test8();
+    void test9();
+    void test10();
 
 private:
 
@@ -127,7 +130,31 @@ private:
     typedef Message3<BeMessageBase> BeMsg3;
     typedef Message3<LeMessageBase> LeMsg3;
 
+    typedef
+        comms::Message<
+            CommonOptions,
+            comms::option::BigEndian,
+            comms::option::RefreshInterface
+        > BeRefreshableMessageBase;
 
+    typedef Message4<BeRefreshableMessageBase> BeMsg4;
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::ReadIterator<const std::uint8_t*>,
+            comms::option::WriteIterator<std::uint8_t*>
+        > NoIdMsgBase;
+
+    typedef Message1<NoIdMsgBase> NoIdMsg1;
+
+    typedef
+        comms::Message<
+            comms::option::ReadIterator<const std::uint8_t*>,
+            comms::option::WriteIterator<std::uint8_t*>
+        > NoEndianMsgBase;
+
+    typedef Message5<NoIdMsgBase> NoEndianMsg5;
 };
 
 void MessageTestSuite::test1()
@@ -289,6 +316,59 @@ void MessageTestSuite::test7()
     BeLengthOnlyMsg1 msg4;
     TS_ASSERT_EQUALS(msg4.getId(), MessageType1);
     TS_ASSERT_EQUALS(msg4.length(), 2U);
+}
+
+void MessageTestSuite::test8()
+{
+    BeMsg4 msg;
+    TS_ASSERT_EQUALS(msg.getId(), MessageType4);
+    TS_ASSERT_EQUALS(msg.length(), 1U);
+
+    std::vector<std::uint8_t> outData;
+    outData.resize(msg.length());
+    BeMsg4::WriteIterator writeIter = &outData[0];
+
+    internalWriteReadTest(msg, writeIter, outData.size());
+
+    auto& mask = std::get<0>(msg.fields());
+    mask.value() = 0x1;
+    bool refreshResult = msg.refresh();
+    TS_ASSERT(refreshResult);
+    TS_ASSERT_EQUALS(msg.length(), 3U);
+
+    outData.clear();
+    outData.resize(msg.length());
+    writeIter = &outData[0];
+    internalWriteReadTest(msg, writeIter, outData.size());
+}
+
+
+void MessageTestSuite::test9()
+{
+    static const std::uint8_t Buf[] = {
+        0x12, 0x34
+    };
+    static const std::size_t BufSize =
+        std::extent<decltype(Buf)>::value;
+
+    auto msg1 = internalReadWriteTest<NoIdMsg1>(&Buf[0], BufSize);
+    auto value = std::get<0>(msg1.fields()).value();
+    TS_ASSERT_EQUALS(value, 0x1234);
+}
+
+void MessageTestSuite::test10()
+{
+    static const std::uint8_t Buf[] = {
+        0x12, 0x34, 0xff
+    };
+    static const std::size_t BufSize =
+        std::extent<decltype(Buf)>::value;
+
+    auto msg = internalReadWriteTest<NoEndianMsg5>(&Buf[0], BufSize);
+    auto value1 = std::get<0>(msg.fields()).value();
+    auto value2 = std::get<1>(msg.fields()).value();
+    TS_ASSERT_EQUALS(value1, 0x1234);
+    TS_ASSERT_EQUALS(value2, -1);
 }
 
 template <typename TMessage>

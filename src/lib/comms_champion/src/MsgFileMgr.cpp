@@ -156,6 +156,19 @@ private:
 const QString TypeProp::Name("type");
 const QByteArray TypeProp::PropName = TypeProp::Name.toUtf8();
 
+class ExtraPropsProp : public property::message::PropBase<QVariantMap>
+{
+    typedef property::message::PropBase<QVariantMap> Base;
+public:
+    ExtraPropsProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString ExtraPropsProp::Name("extra_info");
+const QByteArray ExtraPropsProp::PropName = ExtraPropsProp::Name.toUtf8();
+
 
 QString encodeMsgData(const Message& msg)
 {
@@ -237,17 +250,19 @@ MessagePtr createMsgObjectFrom(
         num.clear();
     }
 
+    auto extraInfo = ExtraPropsProp().getFrom(msgMap);
+
     MessagePtr msg;
     if (msgId.isEmpty()) {
-        msg = protocol.createInvalidMessage();
-        auto rawDataMsg = protocol.createRawDataMessage();
-        bool decodeResult = rawDataMsg->decodeData(data);
-        if (!decodeResult) {
-            msg.reset();
+        msg = protocol.createInvalidMessage(data);
+        if (!msg) {
             return msg;
         }
 
-        property::message::RawDataMsg().setTo(std::move(rawDataMsg), *msg);
+        if (!extraInfo.isEmpty()) {
+            property::message::ExtraInfo().setTo(std::move(extraInfo), *msg);
+            protocol.updateMessage(*msg);
+        }
         return msg;
     }
 
@@ -267,6 +282,10 @@ MessagePtr createMsgObjectFrom(
     }
 
     if (msg) {
+        if (!extraInfo.isEmpty()) {
+            property::message::ExtraInfo().setTo(std::move(extraInfo), *msg);
+        }
+
         protocol.updateMessage(*msg);
     }
 
@@ -288,6 +307,12 @@ QVariantMap convertRecvMsg(const Message& msg)
     DataProp().setTo(std::move(dataStr), msgInfoMap);
     TimestampProp().setTo(property::message::Timestamp().getFrom(msg), msgInfoMap);
     TypeProp().setTo(static_cast<unsigned>(property::message::Type().getFrom(msg)), msgInfoMap);
+
+    auto extraInfo = property::message::ExtraInfo().getFrom(msg);
+    if (!extraInfo.isEmpty()) {
+        ExtraPropsProp().setTo(std::move(extraInfo), msgInfoMap);
+    }
+
     return msgInfoMap;
 }
 
@@ -305,8 +330,6 @@ QVariantList convertRecvMsgList(
         if (msgInfoMap.isEmpty()) {
             continue;
         }
-
-        // TODO: record custom properties
 
         convertedList.append(QVariant::fromValue(msgInfoMap));
     }
@@ -338,7 +361,6 @@ MsgFileMgr::MessagesList convertRecvMsgList(
 
         property::message::Timestamp().setTo(timestamp, *msg);
         property::message::Type().setTo(type, *msg);
-        // TODO: support custom properties
 
         convertedList.push_back(std::move(msg));
     }
@@ -364,7 +386,10 @@ QVariantList convertSendMsgList(
         RepeatUnitsProp().setTo(property::message::RepeatDurationUnits().getFrom(*msg), msgInfoMap);
         RepeatCountProp().setTo(property::message::RepeatCount().getFrom(*msg), msgInfoMap);
 
-        // TODO: record custom properties
+        auto extraInfo = property::message::ExtraInfo().getFrom(*msg);
+        if (!extraInfo.isEmpty()) {
+            ExtraPropsProp().setTo(std::move(extraInfo), msgInfoMap);
+        }
 
         convertedList.append(QVariant::fromValue(msgInfoMap));
     }
@@ -426,7 +451,6 @@ MsgFileMgr::MessagesList convertSendMsgList(
         property::message::RepeatDuration().setTo(repeatDuration, *msg);
         property::message::RepeatDurationUnits().setTo(std::move(repeatDurationUnits), *msg);
         property::message::RepeatCount().setTo(repeatCount, *msg);
-        // TODO: support custom properties
 
         convertedList.push_back(std::move(msg));
     }

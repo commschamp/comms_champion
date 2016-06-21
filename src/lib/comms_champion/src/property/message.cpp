@@ -41,6 +41,12 @@ const QByteArray TransportMsg::PropName = TransportMsg::Name.toUtf8();
 const QString RawDataMsg::Name("cc.msg_raw_data");
 const QByteArray RawDataMsg::PropName = RawDataMsg::Name.toUtf8();
 
+const QString ExtraInfoMsg::Name("cc.msg_extra_info");
+const QByteArray ExtraInfoMsg::PropName = ExtraInfoMsg::Name.toUtf8();
+
+const QString ExtraInfo::Name("cc.msg_extra_info_map");
+const QByteArray ExtraInfo::PropName = ExtraInfo::Name.toUtf8();
+
 const QString Delay::Name("cc.msg_delay");
 const QByteArray Delay::PropName = Delay::Name.toUtf8();
 

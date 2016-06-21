@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -19,35 +19,43 @@
 #pragma once
 
 #include "comms_champion/comms_champion.h"
+#include "cc_plugin/Stack.h"
+#include "cc_plugin/TransportMessage.h"
 
 namespace comms_champion
 {
 
-namespace demo
+namespace plugin
+{
+
+namespace raw_data_protocol
 {
 
 namespace cc_plugin
 {
 
-template <typename TMsgBase, typename TActualMsg>
-class ProtocolMessageBase : public comms_champion::ProtocolMessageBase<TMsgBase, TActualMsg>
+class Protocol : public
+    comms_champion::ProtocolBase<
+        cc_plugin::Stack,
+        TransportMessage
+    >
 {
-    typedef comms_champion::ProtocolMessageBase<TMsgBase, TActualMsg> Base;
+    typedef comms_champion::ProtocolBase<
+        cc_plugin::Stack,
+        TransportMessage
+    > Base;
 public:
-    ProtocolMessageBase() = default;
-    ProtocolMessageBase(const ProtocolMessageBase&) = default;
-    ProtocolMessageBase(ProtocolMessageBase&&) = default;
-    virtual ~ProtocolMessageBase() = default;
-
-    ProtocolMessageBase& operator=(const ProtocolMessageBase&) = default;
-    ProtocolMessageBase& operator=(ProtocolMessageBase&&) = default;
+    Protocol() = default;
+    virtual ~Protocol();
 
 protected:
-
+    virtual const QString& nameImpl() const override;
 };
 
 }  // namespace cc_plugin
 
-}  // namespace demo
+}  // namespace raw_data_protocol
+
+}  // namespace plugin
 
 }  // namespace comms_champion

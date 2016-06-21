@@ -43,6 +43,7 @@ struct MessageInterfaceOptionsParser<>
     static const bool HasHandler = false;
     static const bool HasValid = false;
     static const bool HasLength = false;
+    static const bool HasRefresh = false;
 };
 
 template <typename T, typename... TOptions>
@@ -116,6 +117,15 @@ class MessageInterfaceOptionsParser<
 {
 public:
     static const bool HasLength = true;
+};
+
+template <typename... TOptions>
+class MessageInterfaceOptionsParser<
+    comms::option::RefreshInterface,
+    TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
+{
+public:
+    static const bool HasRefresh = true;
 };
 
 template <typename... TOptions>

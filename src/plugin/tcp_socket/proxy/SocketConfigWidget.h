@@ -21,8 +21,11 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
-#include <QtWidgets/QAction>
+#include <QtWidgets/QWidget>
+#include "ui_SocketConfigWidget.h"
 CC_ENABLE_WARNINGS()
+
+#include "Socket.h"
 
 namespace comms_champion
 {
@@ -33,26 +36,33 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ClientConnectAction : public QAction
+namespace proxy
+{
+
+class SocketConfigWidget : public QWidget
 {
     Q_OBJECT
-    typedef QAction Base;
+    typedef QWidget Base;
 public:
-    ClientConnectAction(bool connected = false, QWidget* parentObj = nullptr);
+    typedef Socket::PortType PortType;
 
-    void setConnected(bool connected);
+    explicit SocketConfigWidget(
+        Socket& socket,
+        QWidget* parentObj = nullptr);
 
-signals:
-    void sigConnectStateChangeReq(bool connect);
+    ~SocketConfigWidget();
 
 private slots:
-    void iconClicked();
+    void localPortValueChanged(int value);
+    void remoteHostValueChanged(const QString& value);
+    void remotePortValueChanged(int value);
 
 private:
-    void refresh();
-
-    bool m_connected = false;
+    Socket& m_socket;
+    Ui::ProxySocketConfigWidget m_ui;
 };
+
+}  // namespace proxy
 
 }  // namespace tcp_socket
 

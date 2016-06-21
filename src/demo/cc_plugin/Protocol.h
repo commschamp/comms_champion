@@ -49,7 +49,6 @@ public:
 
 protected:
     virtual const QString& nameImpl() const override;
-    virtual UpdateStatus updateMessageImpl(comms_champion::Message& msg) override;
 };
 
 }  // namespace cc_plugin

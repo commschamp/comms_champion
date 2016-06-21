@@ -15,9 +15,14 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "ServerSocketConfigWidget.h"
 
-#include <limits>
+#pragma once
+
+#include <memory>
+
+#include "comms_champion/Plugin.h"
+
+#include "Socket.h"
 
 namespace comms_champion
 {
@@ -28,37 +33,38 @@ namespace plugin
 namespace tcp_socket
 {
 
-ServerSocketConfigWidget::ServerSocketConfigWidget(
-    ServerSocket& socket,
-    QWidget* parentObj)
-  : Base(parentObj),
-    m_socket(socket)
+namespace server
 {
-    m_ui.setupUi(this);
 
-    m_ui.m_portSpinBox->setRange(
-        1,
-        static_cast<int>(std::numeric_limits<PortType>::max()));
 
-    m_ui.m_portSpinBox->setValue(
-        static_cast<int>(m_socket.getPort()));
-
-    connect(
-        m_ui.m_portSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(portValueChanged(int)));
-}
-
-ServerSocketConfigWidget::~ServerSocketConfigWidget() = default;
-
-void ServerSocketConfigWidget::portValueChanged(int value)
+class SocketPlugin : public comms_champion::Plugin
 {
-    m_socket.setPort(static_cast<PortType>(value));
-}
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "cc.TcpServerSocketPlugin" FILE "tcp_server_socket.json")
+    Q_INTERFACES(comms_champion::Plugin)
+
+public:
+    SocketPlugin();
+    ~SocketPlugin();
+
+    virtual void getCurrentConfigImpl(QVariantMap& config) override;
+    virtual void reconfigureImpl(const QVariantMap& config) override;
+
+private:
+
+    void createSocketIfNeeded();
+
+    std::shared_ptr<Socket> m_socket;
+};
+
+}  // namespace server
 
 }  // namespace tcp_socket
 
 }  // namespace plugin
 
 }  // namespace comms_champion
+
+
 
 

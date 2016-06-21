@@ -62,6 +62,10 @@ class MsgIdLayer : public ProtocolLayerBase<TField, TNextLayer>
 
     typedef comms::MsgFactory<typename Base::Message, TAllMessages, TOptions...> Factory;
 
+    static_assert(Base::Message::InterfaceOptions::HasMsgIdType,
+        "Usage of MsgIdLayer requires support for ID type. "
+        "Use comms::option::MsgIdType option in message interface type definition.");
+
 public:
 
     /// @brief All supported message types bundled in std::tuple.
@@ -99,7 +103,7 @@ public:
     typedef typename Base::Field Field;
 
     static_assert(
-        comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>(),
+        comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
         "Field must be of IntValue or EnumValue types");
 
     /// @brief Default constructor.
@@ -335,6 +339,7 @@ private:
     }
 
     Factory factory_;
+
 };
 
 

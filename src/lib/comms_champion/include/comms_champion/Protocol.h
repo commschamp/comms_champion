@@ -43,6 +43,7 @@ class CC_API Protocol
 public:
     typedef std::list<MessagePtr> MessagesList;
     typedef std::list<DataInfoPtr> DataInfosList;
+    typedef Message::DataSeq MsgDataSeq;
 
     enum class UpdateStatus
     {
@@ -56,7 +57,7 @@ public:
 
     MessagesList read(const DataInfo& dataInfo, bool final = false);
 
-    DataInfosList write(const MessagesList& msgs);
+    DataInfoPtr write(Message& msg);
 
     MessagesList createAllMessages();
 
@@ -66,16 +67,14 @@ public:
 
     MessagePtr cloneMessage(const Message& msg);
 
-    MessagePtr createInvalidMessage();
-
-    MessagePtr createRawDataMessage();
+    MessagePtr createInvalidMessage(const MsgDataSeq& data);
 
 protected:
     virtual const QString& nameImpl() const = 0;
 
     virtual MessagesList readImpl(const DataInfo& dataInfo, bool final) = 0;
 
-    virtual DataInfoPtr writeImpl(const Message& msg) = 0;
+    virtual DataInfoPtr writeImpl(Message& msg) = 0;
 
     virtual MessagesList createAllMessagesImpl() = 0;
 
@@ -89,9 +88,15 @@ protected:
 
     virtual MessagePtr createRawDataMessageImpl() = 0;
 
+    virtual MessagePtr createExtraInfoMessageImpl() = 0;
+
     void setNameToMessageProperties(Message& msg);
     static void setTransportToMessageProperties(MessagePtr transportMsg, Message& msg);
     static void setRawDataToMessageProperties(MessagePtr rawDataMsg, Message& msg);
+    static void setExtraInfoMsgToMessageProperties(MessagePtr extraInfoMsg, Message& msg);
+    static QVariantMap getExtraInfoFromMessageProperties(const Message& msg);
+    static void setExtraInfoToMessageProperties(const QVariantMap& extraInfo, Message& msg);
+    static void mergeExtraInfoToMessageProperties(const QVariantMap& extraInfo, Message& msg);
 };
 
 typedef std::shared_ptr<Protocol> ProtocolPtr;

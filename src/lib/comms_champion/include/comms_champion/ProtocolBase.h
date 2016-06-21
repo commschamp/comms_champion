@@ -22,6 +22,15 @@
 #include <iterator>
 #include <cassert>
 
+
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QByteArray>
+CC_ENABLE_WARNINGS()
+
 #include "comms_champion/ErrorStatus.h"
 #include "comms/util/ScopeGuard.h"
 #include "comms/util/Tuple.h"
@@ -30,6 +39,7 @@
 #include "Message.h"
 #include "RawDataMessage.h"
 #include "InvalidMessage.h"
+#include "ExtraInfoMessage.h"
 
 namespace comms_champion
 {
@@ -51,6 +61,7 @@ protected:
     typedef typename ProtocolMessage::MsgIdParamType MsgIdParamType;
     typedef typename ProtocolStack::AllMessages AllMessages;
     typedef InvalidMessage<ProtocolMessage> InvalidMsg;
+    typedef ExtraInfoMessage<ProtocolMessage> ExtraInfoMsg;
 
     static_assert(
         !std::is_void<AllMessages>::value,
@@ -61,7 +72,7 @@ protected:
         "AllMessages is expected to be a tuple.");
 
 
-    virtual MessagesList readImpl(const DataInfo& dataInfo, bool final)
+    virtual MessagesList readImpl(const DataInfo& dataInfo, bool final) override
     {
         const std::uint8_t* iter = &dataInfo.m_data[0];
         auto size = dataInfo.m_data.size();
@@ -95,8 +106,27 @@ protected:
                     m_data.erase(m_data.begin(), m_data.begin() + dist);
                 });
 
+        auto setExtraInfoFunc =
+            [&dataInfo](Message& msg)
+            {
+                if (dataInfo.m_extraProperties.isEmpty()) {
+                    return;
+                }
+
+                auto jsonObj = QJsonObject::fromVariantMap(dataInfo.m_extraProperties);
+                QJsonDocument doc(jsonObj);
+
+                std::unique_ptr<ExtraInfoMsg> extraInfoMsgPtr(new ExtraInfoMsg());
+                auto& str = std::get<0>(extraInfoMsgPtr->fields());
+                str.value() = doc.toJson().constData();
+                setExtraInfoToMessageProperties(dataInfo.m_extraProperties, msg);
+                setExtraInfoMsgToMessageProperties(
+                    MessagePtr(extraInfoMsgPtr.release()),
+                    msg);
+            };
+
         auto checkGarbageFunc =
-            [this, &allMsgs]()
+            [this, &allMsgs, &setExtraInfoFunc]()
             {
                 if (!m_garbage.empty()) {
                     MessagePtr invalidMsgPtr(new InvalidMsg());
@@ -107,6 +137,7 @@ protected:
                     static_cast<void>(esTmp);
                     assert(esTmp == comms::ErrorStatus::Success);
                     setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *invalidMsgPtr);
+                    setExtraInfoFunc(*invalidMsgPtr);
                     allMsgs.push_back(std::move(invalidMsgPtr));
                     m_garbage.clear();
                 }
@@ -118,11 +149,16 @@ protected:
             ProtocolMsgPtr msgPtr;
 
             auto readIterCur = readIterBeg;
+            auto remainingSize = remainingSizeCalc(readIterCur);
+            if (remainingSize == 0U) {
+                break;
+            }
+
             auto es =
                 m_protStack.read(
                     msgPtr,
                     readIterCur,
-                    remainingSizeCalc(readIterCur));
+                    remainingSize);
 
             if (es == comms::ErrorStatus::NotEnoughData) {
                 break;
@@ -137,8 +173,8 @@ protected:
                         allMsgs.push_back(MessagePtr(std::move(msgPtr)));
                     });
 
-            auto setTransportAndRawMsgsFunc =
-                [readIterBeg, &readIterCur, &msgPtr]()
+            auto setExtrasFunc =
+                [readIterBeg, &readIterCur, &msgPtr, &setExtraInfoFunc]()
                 {
                     // readIterBeg is captured by value on purpose
                     auto dataSize = static_cast<std::size_t>(
@@ -157,12 +193,13 @@ protected:
                     static_cast<void>(esTmp);
                     assert(esTmp == comms::ErrorStatus::Success);
                     setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), *msgPtr);
+                    setExtraInfoFunc(*msgPtr);
                 };
 
             if (es == comms::ErrorStatus::Success) {
                 checkGarbageFunc();
                 assert(msgPtr);
-                setTransportAndRawMsgsFunc();
+                setExtrasFunc();
                 readIterBeg = readIterCur;
                 continue;
             }
@@ -170,7 +207,7 @@ protected:
             if (es == comms::ErrorStatus::InvalidMsgData) {
                 checkGarbageFunc();
                 msgPtr.reset(new InvalidMsg());
-                setTransportAndRawMsgsFunc();
+                setExtrasFunc();
                 readIterBeg = readIterCur;
                 continue;
             }
@@ -203,7 +240,7 @@ protected:
         return allMsgs;
     }
 
-    virtual DataInfoPtr writeImpl(const Message& msg) override
+    virtual DataInfoPtr writeImpl(Message& msg) override
     {
         DataInfo::DataSeq data;
         auto writeIter = std::back_inserter(data);
@@ -232,6 +269,9 @@ protected:
 
     virtual UpdateStatus updateMessageImpl(Message& msg) override
     {
+        bool refreshed = msg.refreshMsg();
+
+        assert(!msg.idAsString().isEmpty());
         do {
             std::vector<std::uint8_t> data;
 
@@ -277,7 +317,28 @@ protected:
 
             setTransportToMessageProperties(MessagePtr(transportMsgPtr.release()), msg);
             setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), msg);
+
+            auto extraProps = getExtraInfoFromMessageProperties(msg);
+            if (extraProps.isEmpty()) {
+                setExtraInfoMsgToMessageProperties(MessagePtr(), msg);
+                break;
+            }
+
+            auto jsonObj = QJsonObject::fromVariantMap(extraProps);
+            QJsonDocument doc(jsonObj);
+
+            std::unique_ptr<ExtraInfoMsg> extraInfoMsgPtr(new ExtraInfoMsg());
+            auto& str = std::get<0>(extraInfoMsgPtr->fields());
+            str.value() = doc.toJson().constData();
+            setExtraInfoMsgToMessageProperties(
+                MessagePtr(extraInfoMsgPtr.release()),
+                msg);
+
         } while (false);
+
+        if (refreshed) {
+            return UpdateStatus::Changed;
+        }
 
         return UpdateStatus::NoChange;
     }
@@ -313,6 +374,11 @@ protected:
     virtual MessagePtr createRawDataMessageImpl() override
     {
         return MessagePtr(new RawDataMsg());
+    }
+
+    virtual MessagePtr createExtraInfoMessageImpl() override
+    {
+        return MessagePtr(new ExtraInfoMsg());
     }
 
     virtual MessagesList createAllMessagesImpl() override

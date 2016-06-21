@@ -15,17 +15,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 #pragma once
+
+#include <list>
 
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
-#include <QtWidgets/QWidget>
-#include "ui_ServerSocketConfigWidget.h"
+#include <QtNetwork/QTcpServer>
+#include <QtNetwork/QTcpSocket>
 CC_ENABLE_WARNINGS()
 
-#include "ServerSocket.h"
+#include "comms_champion/Socket.h"
+
 
 namespace comms_champion
 {
@@ -36,34 +38,53 @@ namespace plugin
 namespace tcp_socket
 {
 
-class ServerSocketConfigWidget : public QWidget
+namespace server
+{
+
+class Socket : public QObject,
+                     public comms_champion::Socket
 {
     Q_OBJECT
-    typedef QWidget Base;
+    using Base = comms_champion::Socket;
+
 public:
-    typedef ServerSocket::PortType PortType;
+    typedef unsigned short PortType;
 
-    explicit ServerSocketConfigWidget(
-        ServerSocket& socket,
-        QWidget* parentObj = nullptr);
+    Socket();
+    ~Socket();
 
-    ~ServerSocketConfigWidget();
+    void setPort(PortType value)
+    {
+        m_port = value;
+    }
+
+    PortType getPort() const
+    {
+        return m_port;
+    }
+
+protected:
+    virtual bool startImpl() override;
+    virtual void stopImpl() override;
+    virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:
-    void portValueChanged(int value);
+    void newConnection();
+    void connectionTerminated();
+    void readFromSocket();
+    void socketErrorOccurred(QAbstractSocket::SocketError err);
 
 private:
-    ServerSocket& m_socket;
-    Ui::ServerSocketConfigWidget m_ui;
+    static const PortType DefaultPort = 20000;
+    PortType m_port = DefaultPort;
+    std::list<QTcpSocket*> m_sockets;
+    QTcpServer m_server;
 };
 
-
-
+}  // namespace server
 
 }  // namespace tcp_socket
 
-}  // namespace plugin
+} // namespace plugin
 
-}  // namespace comms_champion
-
-
+} // namespace comms_champion

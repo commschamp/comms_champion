@@ -17,6 +17,14 @@
 
 #include "comms_champion/Protocol.h"
 
+#include "comms/CompileControl.h"
+
+CC_DISABLE_WARNINGS()
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QByteArray>
+CC_ENABLE_WARNINGS()
+
 #include "comms_champion/property/message.h"
 
 namespace comms_champion
@@ -36,40 +44,26 @@ Protocol::MessagesList Protocol::read(
     return readImpl(dataInfo, final);
 }
 
-Protocol::DataInfosList Protocol::write(const MessagesList& msgs)
+DataInfoPtr Protocol::write(Message& msg)
 {
-    DataInfosList dataInfos;
-    for (auto& msgPtr : msgs) {
-        if (!msgPtr) {
-            continue;
+
+    if (msg.idAsString().isEmpty()) {
+
+        auto rawDataMsg = property::message::RawDataMsg().getFrom(msg);
+        if (!rawDataMsg) {
+            return DataInfoPtr();
         }
 
-        if (msgPtr->idAsString().isEmpty()) {
+        auto dataInfoPtr = makeDataInfo();
+        assert(dataInfoPtr);
 
-            auto rawDataMsg = property::message::RawDataMsg().getFrom(*msgPtr);
-            if (!rawDataMsg) {
-                continue;
-            }
+        dataInfoPtr->m_timestamp = DataInfo::TimestampClock::now();
+        dataInfoPtr->m_data = rawDataMsg->encodeData();
 
-            auto dataInfoPtr = makeDataInfo();
-            assert(dataInfoPtr);
-
-            dataInfoPtr->m_timestamp = DataInfo::TimestampClock::now();
-            dataInfoPtr->m_data = rawDataMsg->encodeData();
-
-            if (!dataInfoPtr->m_data.empty()) {
-                dataInfos.push_back(std::move(dataInfoPtr));
-            }
-            continue;
-        }
-
-        auto dataInfoPtr = writeImpl(*msgPtr);
-        if (dataInfoPtr) {
-            dataInfos.push_back(std::move(dataInfoPtr));
-        }
+        return dataInfoPtr;
     }
 
-    return dataInfos;
+    return writeImpl(msg);
 }
 
 Protocol::MessagesList Protocol::createAllMessages()
@@ -84,46 +78,95 @@ MessagePtr Protocol::createMessage(const QString& idAsString, unsigned idx)
 
 Protocol::UpdateStatus Protocol::updateMessage(Message& msg)
 {
-    return updateMessageImpl(msg);
+    if (!msg.idAsString().isEmpty()) {
+        return updateMessageImpl(msg);
+    }
+
+    auto extraInfo = getExtraInfoFromMessageProperties(msg);
+    if (extraInfo.isEmpty()) {
+        if (!property::message::ExtraInfoMsg().getFrom(msg)) {
+            return UpdateStatus::NoChange;
+        }
+
+        setExtraInfoMsgToMessageProperties(MessagePtr(), msg);
+        return UpdateStatus::NoChange;
+    }
+
+    auto infoMsg = createExtraInfoMessageImpl();
+    if (!infoMsg) {
+        assert(!"Extra Info message wan't created");
+        return UpdateStatus::NoChange;
+    }
+
+    auto jsonObj = QJsonObject::fromVariantMap(extraInfo);
+    QJsonDocument doc(jsonObj);
+    auto jsonByteArray = doc.toJson();
+    MsgDataSeq dataSeq;
+    dataSeq.reserve(jsonByteArray.size());
+    std::copy_n(jsonByteArray.constData(), jsonByteArray.size(), std::back_inserter(dataSeq));
+    if (!infoMsg->decodeData(dataSeq)) {
+        setExtraInfoMsgToMessageProperties(MessagePtr(), msg);
+        return UpdateStatus::NoChange;
+    }
+
+    setExtraInfoMsgToMessageProperties(std::move(infoMsg), msg);
+    return UpdateStatus::NoChange;
 }
 
 MessagePtr Protocol::cloneMessage(const Message& msg)
 {
     if (msg.idAsString().isEmpty()) {
-        auto clonedMsg = createInvalidMessage();
+        MessagePtr clonedMsg;
 
         auto rawDataMsg = property::message::RawDataMsg().getFrom(msg);
         if (rawDataMsg) {
-            auto clonedRawDataMsg = createRawDataMessage();
-            if (!clonedRawDataMsg) {
-                assert(!"Raw Data Message wasn't created properly");
-                return clonedMsg;
-            }
-
             auto data = rawDataMsg->encodeData();
-            bool decodeResult = clonedRawDataMsg->decodeData(data);
-            static_cast<void>(decodeResult);
-            assert(decodeResult);
-            setRawDataToMessageProperties(std::move(clonedRawDataMsg), *clonedMsg);
+            clonedMsg = createInvalidMessage(data);
         }
+        else {
+            clonedMsg = createInvalidMessageImpl();
+        }
+
+        if (!clonedMsg) {
+            return clonedMsg;
+        }
+
+        auto extraInfoMap = getExtraInfoFromMessageProperties(msg);
+        if (!extraInfoMap.isEmpty()) {
+            setExtraInfoToMessageProperties(extraInfoMap, *clonedMsg);
+            updateMessage(*clonedMsg);
+        }
+
         return clonedMsg;
     }
 
     auto clonedMsg = cloneMessageImpl(msg);
     if (clonedMsg) {
+        setNameToMessageProperties(*clonedMsg);
         updateMessage(*clonedMsg);
+        property::message::ExtraInfo().copyFromTo(msg, *clonedMsg);
     }
     return clonedMsg;
 }
 
-MessagePtr Protocol::createInvalidMessage()
+MessagePtr Protocol::createInvalidMessage(const MsgDataSeq& data)
 {
-    return createInvalidMessageImpl();
-}
+    auto rawDataMsg = createRawDataMessageImpl();
+    if (!rawDataMsg) {
+        return MessagePtr();
+    }
 
-MessagePtr Protocol::createRawDataMessage()
-{
-    return createRawDataMessageImpl();
+    if (!rawDataMsg->decodeData(data)) {
+        return MessagePtr();
+    }
+
+    auto invalidMsg = createInvalidMessageImpl();
+    if (!invalidMsg) {
+        return invalidMsg;
+    }
+
+    setRawDataToMessageProperties(std::move(rawDataMsg), *invalidMsg);
+    return invalidMsg;
 }
 
 void Protocol::setNameToMessageProperties(Message& msg)
@@ -141,6 +184,33 @@ void Protocol::setRawDataToMessageProperties(MessagePtr rawDataMsg, Message& msg
     property::message::RawDataMsg().setTo(std::move(rawDataMsg), msg);
 }
 
+void Protocol::setExtraInfoMsgToMessageProperties(MessagePtr extraInfoMsg, Message& msg)
+{
+    property::message::ExtraInfoMsg().setTo(std::move(extraInfoMsg), msg);
+}
+
+QVariantMap Protocol::getExtraInfoFromMessageProperties(const Message& msg)
+{
+    return property::message::ExtraInfo().getFrom(msg);
+}
+
+void Protocol::setExtraInfoToMessageProperties(
+    const QVariantMap& extraInfo,
+    Message& msg)
+{
+    property::message::ExtraInfo().setTo(extraInfo, msg);
+}
+
+void Protocol::mergeExtraInfoToMessageProperties(
+    const QVariantMap& extraInfo,
+    Message& msg)
+{
+    auto map = getExtraInfoFromMessageProperties(msg);
+    for (auto& key : extraInfo.keys()) {
+        map.insert(key, extraInfo.value(key));
+    }
+    setExtraInfoToMessageProperties(map, msg);
+}
 
 }  // namespace comms_champion
 

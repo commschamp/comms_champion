@@ -128,25 +128,13 @@ void RawHexDataDialog::accept()
     }
 
     if (!m_ui.m_convertCheckBox->isChecked()) {
-        auto rawDataMsg = m_protocol->createRawDataMessage();
-        if (!rawDataMsg) {
-            assert(!"Raw Data message was not created by the protocol");
-            Base::accept();
-            return;
-        }
-
-        bool decodeResult = rawDataMsg->decodeData(dataInfo.m_data);
-        static_cast<void>(decodeResult);
-        assert(decodeResult);
-
-        auto msg = m_protocol->createInvalidMessage();
+        auto msg = m_protocol->createInvalidMessage(dataInfo.m_data);
         if (!msg) {
             assert(!"Invalid message was not created by the protocol");
             Base::accept();
             return;
         }
 
-        property::message::RawDataMsg().setTo(std::move(rawDataMsg), *msg);
         m_msgs.push_back(std::move(msg));
         Base::accept();
         return;

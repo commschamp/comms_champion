@@ -34,7 +34,7 @@ protocol development, visualisation and analysis.
 
 # COMMS Library
 **COMMS** is the headers only, platform independent library, 
-wbich makes the implementation of a communication
+which makes the implementation of a communication
 protocol an easy and relatively quick process. It provides all the necessary
 types and classes to make the definition of the custom messages, as well as
 wrapping transport data fields, to be simple declarative statements of type and
@@ -74,11 +74,33 @@ The current list of available applications is:
 communication protocols, that were developed using [COMMS Library](#comms-library)
 mentioned above.  
 
-- **comms_dump** is a command line utility that recognises all the received
+- **comms_dump** is a command line utility, that recognises all the received
 custom binary protocol messages and dumps them all in CSV format to standard output.
-The tool can receive a file with definition of outgoing messages and send them
-when instructed. Such file can easily be created with **comms_champion**
-GUI application. 
+It can also record the incoming message into the file, which can be opened
+lately for visual analysis using **comms_champion** GUI application. 
+The tool has an ability to receive a file with definition of outgoing messages, 
+created using **comms_champion** GUI application, and send them one by one in
+in parallel to dumping/recording the incoming messages.
+
+The [CommsChampion Tools](#commschampion-tools) package provides the following
+plugins that can be used with any application:
+
+- **null_socket** - NULL socket, that doesn't produce any incoming data and
+discards any outgoing data.
+- **echo_socket** - Echo socket, all the data being sent immediatelly reports
+as incoming data.
+- **serial_socket** - Low level socket that sends and receives data over serial
+(RS-232) I/O link.
+- **tcp_client_socket** - Client TCP/IP socket, that connects to remote 
+server, sends and receives data over TCP/IP network link.
+- **tcp_server_socket** - Server TCP/IP socket, waits for and accepts all
+connections from TCP/IP clients, sends and receives data to/from them.
+- **tcp_proxy_socket** - Proxy server TCP/IP socket, combines Server and Client
+side of TCP/IP connection, can be used to monitor traffic of the messages between
+remote a client and a server.
+- **raw_data_protocol** - Protocol definition that defines only a single message
+type with one field of unlimited length data. It can be used to review the
+raw data being received from I/O socket.
 
 # Demo Protocol
 **Demo** is a simple binary protocol which is implemented using 

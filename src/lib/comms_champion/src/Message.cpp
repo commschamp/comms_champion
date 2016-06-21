@@ -47,6 +47,11 @@ void Message::dispatch(MessageHandler& handler)
     dispatchImpl(handler);
 }
 
+bool Message::refreshMsg()
+{
+    return refreshMsgImpl();
+}
+
 QString Message::idAsString() const
 {
     return idAsStringImpl();

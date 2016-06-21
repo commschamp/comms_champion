@@ -21,7 +21,6 @@
 #include "comms_champion/comms_champion.h"
 #include "demo/message/IntValues.h"
 #include "cc_plugin/Message.h"
-#include "cc_plugin/ProtocolMessageBase.h"
 
 namespace comms_champion
 {
@@ -36,7 +35,7 @@ namespace message
 {
 
 class IntValues : public
-    ProtocolMessageBase<
+    comms_champion::ProtocolMessageBase<
         demo::message::IntValues<demo::cc_plugin::Message>,
         IntValues>
 {

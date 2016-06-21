@@ -64,7 +64,8 @@ struct MessageImplProcessStaticNumIdBase<TBase, TOpt, false>
 
 template <typename TBase, typename TOpt>
 using MessageImplStaticNumIdBaseT =
-    typename MessageImplProcessStaticNumIdBase<TBase, TOpt, TOpt::HasStaticMsgId>::Type;
+    typename MessageImplProcessStaticNumIdBase<
+        TBase, TOpt, TBase::InterfaceOptions::HasMsgIdType && TOpt::HasStaticMsgId>::Type;
 
 template <typename TBase>
 class MessageImplNoIdBase : public TBase
@@ -97,7 +98,8 @@ struct MessageImplProcessNoIdBase<TBase, false>
 
 template <typename TBase, typename TOpt>
 using MessageImplNoIdBaseT =
-    typename MessageImplProcessNoIdBase<TBase, TOpt::HasNoIdImpl>::Type;
+    typename MessageImplProcessNoIdBase<
+        TBase, TBase::InterfaceOptions::HasMsgIdType && TOpt::HasNoIdImpl>::Type;
 
 template <typename TBase, typename TAllFields>
 class MessageImplFieldsBase : public TBase
@@ -229,9 +231,10 @@ struct MessageImplProcessFieldsReadBase<TBase, false>
     typedef TBase Type;
 };
 
-template <typename TBase, typename TIntOpt, typename TImplOpt>
+template <typename TBase, typename TImplOpt>
 using MessageImplFieldsReadBaseT =
-    typename MessageImplProcessFieldsReadBase<TBase, TIntOpt::HasReadIterator && TImplOpt::HasFieldsImpl>::Type;
+    typename MessageImplProcessFieldsReadBase<
+        TBase, TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasFieldsImpl>::Type;
 
 template <typename TBase>
 class MessageImplFieldsWriteBase : public TBase
@@ -326,9 +329,10 @@ struct MessageImplProcessFieldsWriteBase<TBase, false>
     typedef TBase Type;
 };
 
-template <typename TBase, typename TIntOpt, typename TImplOpt>
+template <typename TBase, typename TImplOpt>
 using MessageImplFieldsWriteBaseT =
-    typename MessageImplProcessFieldsWriteBase<TBase, TIntOpt::HasWriteIterator && TImplOpt::HasFieldsImpl>::Type;
+    typename MessageImplProcessFieldsWriteBase<
+        TBase, TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasFieldsImpl>::Type;
 
 
 template <typename TBase>
@@ -368,11 +372,11 @@ struct MessageImplProcessFieldsValidBase<TBase, false>
     typedef TBase Type;
 };
 
-template <typename TBase, typename TIntOpt, typename TImplOpt>
+template <typename TBase, typename TImplOpt>
 using MessageImplFieldsValidBaseT =
     typename MessageImplProcessFieldsValidBase<
         TBase,
-        TIntOpt::HasValid && TImplOpt::HasFieldsImpl
+        TBase::InterfaceOptions::HasValid && TImplOpt::HasFieldsImpl
     >::Type;
 
 template <typename TBase>
@@ -412,11 +416,11 @@ struct MessageImplProcessFieldsLengthBase<TBase, false>
     typedef TBase Type;
 };
 
-template <typename TBase, typename TIntOpt, typename TImplOpt>
+template <typename TBase, typename TImplOpt>
 using MessageImplFieldsLengthBaseT =
     typename MessageImplProcessFieldsLengthBase<
         TBase,
-        TIntOpt::HasLength && TImplOpt::HasFieldsImpl
+        TBase::InterfaceOptions::HasLength && TImplOpt::HasFieldsImpl
     >::Type;
 
 template <typename TBase, typename TActual>
@@ -444,9 +448,10 @@ struct MessageImplProcessDispatchBase<TBase, TOpt, false>
     typedef TBase Type;
 };
 
-template <typename TBase, typename TIntOpt, typename TImplOpt>
+template <typename TBase, typename TImplOpt>
 using MessageImplDispatchBaseT =
-    typename MessageImplProcessDispatchBase<TBase, TImplOpt, TIntOpt::HasHandler && TImplOpt::HasDispatchImpl>::Type;
+    typename MessageImplProcessDispatchBase<
+        TBase, TImplOpt, TBase::InterfaceOptions::HasHandler && TImplOpt::HasDispatchImpl>::Type;
 
 template <typename TMessage, typename... TOptions>
 class MessageImplBuilder
@@ -457,11 +462,11 @@ class MessageImplBuilder
     typedef MessageImplStaticNumIdBaseT<TMessage, ParsedOptions> StaticNumIdBase;
     typedef MessageImplNoIdBaseT<StaticNumIdBase, ParsedOptions> NoIdBase;
     typedef MessageImplFieldsBaseT<NoIdBase, ParsedOptions> FieldsBase;
-    typedef MessageImplFieldsReadBaseT<FieldsBase, InterfaceOptions, ParsedOptions> FieldsReadBase;
-    typedef MessageImplFieldsWriteBaseT<FieldsReadBase, InterfaceOptions, ParsedOptions> FieldsWriteBase;
-    typedef MessageImplFieldsValidBaseT<FieldsWriteBase, InterfaceOptions, ParsedOptions> FieldsValidBase;
-    typedef MessageImplFieldsLengthBaseT<FieldsValidBase, InterfaceOptions, ParsedOptions> FieldsLengthBase;
-    typedef MessageImplDispatchBaseT<FieldsLengthBase, InterfaceOptions, ParsedOptions> DispatchBase;
+    typedef MessageImplFieldsReadBaseT<FieldsBase, ParsedOptions> FieldsReadBase;
+    typedef MessageImplFieldsWriteBaseT<FieldsReadBase, ParsedOptions> FieldsWriteBase;
+    typedef MessageImplFieldsValidBaseT<FieldsWriteBase, ParsedOptions> FieldsValidBase;
+    typedef MessageImplFieldsLengthBaseT<FieldsValidBase, ParsedOptions> FieldsLengthBase;
+    typedef MessageImplDispatchBaseT<FieldsLengthBase, ParsedOptions> DispatchBase;
 
 public:
     typedef ParsedOptions Options;

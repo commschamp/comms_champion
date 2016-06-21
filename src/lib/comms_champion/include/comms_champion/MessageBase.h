@@ -41,6 +41,7 @@ class MessageBase :
             comms::option::Handler<MessageHandler>,
             comms::option::ValidCheckInterface,
             comms::option::LengthInfoInterface,
+            comms::option::RefreshInterface,
             TOptions...>
 {
     using CCBase = comms_champion::Message;
@@ -51,6 +52,7 @@ class MessageBase :
             comms::option::Handler<MessageHandler>,
             comms::option::ValidCheckInterface,
             comms::option::LengthInfoInterface,
+            comms::option::RefreshInterface,
             TOptions...>;
 public:
     typedef typename CommsBase::Handler Handler;
@@ -71,6 +73,11 @@ public:
         return *this;
     }
 protected:
+
+    virtual bool refreshMsgImpl() override
+    {
+        return CommsBase::refresh();
+    }
 
     virtual bool isValidImpl() const override
     {

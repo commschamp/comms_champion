@@ -77,6 +77,7 @@ public:
     void test43();
     void test44();
     void test45();
+    void test46();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1719,6 +1720,18 @@ void FieldsTestSuite::test45()
 
     static const std::size_t ExpectedBuf3Size = std::extent<decltype(ExpectedBuf3)>::value;
     writeReadField(field, ExpectedBuf3, ExpectedBuf3Size);
+}
+
+void FieldsTestSuite::test46()
+{
+    typedef comms::field::NoValue<
+        comms::Field<BigEndianOpt>
+    > Field;
+
+    Field field;
+
+    static const char ExpectedBuf[] = {0};
+    writeReadField(field, ExpectedBuf, 0);
 }
 
 template <typename TField>

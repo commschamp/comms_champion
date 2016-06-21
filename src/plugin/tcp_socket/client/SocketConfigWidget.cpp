@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "ClientSocketConfigWidget.h"
+#include "SocketConfigWidget.h"
 
 #include <limits>
 
@@ -28,8 +28,11 @@ namespace plugin
 namespace tcp_socket
 {
 
-ClientSocketConfigWidget::ClientSocketConfigWidget(
-    ClientSocket& socket,
+namespace client
+{
+
+SocketConfigWidget::SocketConfigWidget(
+    Socket& socket,
     QWidget* parentObj)
   : Base(parentObj),
     m_socket(socket)
@@ -45,6 +48,8 @@ ClientSocketConfigWidget::ClientSocketConfigWidget(
     m_ui.m_portSpinBox->setValue(
         static_cast<int>(m_socket.getPort()));
 
+    m_ui.m_autoConnectCheckBox->setChecked(m_socket.getAutoConnect());
+
     connect(
         m_ui.m_hostLineEdit, SIGNAL(textChanged(const QString&)),
         this, SLOT(hostValueChanged(const QString&)));
@@ -52,19 +57,31 @@ ClientSocketConfigWidget::ClientSocketConfigWidget(
     connect(
         m_ui.m_portSpinBox, SIGNAL(valueChanged(int)),
         this, SLOT(portValueChanged(int)));
+
+    connect(
+        m_ui.m_autoConnectCheckBox, SIGNAL(stateChanged(int)),
+        this, SLOT(autoConnectChanged(int)));
 }
 
-ClientSocketConfigWidget::~ClientSocketConfigWidget() = default;
+SocketConfigWidget::~SocketConfigWidget() = default;
 
-void ClientSocketConfigWidget::hostValueChanged(const QString& value)
+void SocketConfigWidget::hostValueChanged(const QString& value)
 {
     m_socket.setHost(value);
 }
 
-void ClientSocketConfigWidget::portValueChanged(int value)
+void SocketConfigWidget::portValueChanged(int value)
 {
     m_socket.setPort(static_cast<PortType>(value));
 }
+
+void SocketConfigWidget::autoConnectChanged(int value)
+{
+    bool checked = (value != Qt::Unchecked);
+    m_socket.setAutoConnect(checked);
+}
+
+}  // namespace client
 
 }  // namespace tcp_socket
 

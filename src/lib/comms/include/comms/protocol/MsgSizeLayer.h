@@ -252,6 +252,11 @@ private:
         std::size_t* missingSize,
         TReader&& reader)
     {
+        typedef typename std::iterator_traits<ReadIterator>::iterator_category IterTag;
+        static_assert(
+            std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
+            "Current implementation of MsgSizeLayer requires ReadIterator to be random-access one.");
+
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
             Base::updateMissingSize(field, size, missingSize);
@@ -261,6 +266,7 @@ private:
             return es;
         }
 
+        auto fromIter = iter;
         auto actualRemainingSize = (size - field.length());
         auto requiredRemainingSize = static_cast<std::size_t>(field.value());
 
@@ -275,6 +281,13 @@ private:
         es = reader.read(msgPtr, iter, requiredRemainingSize, nullptr);
         if (es == ErrorStatus::NotEnoughData) {
             return ErrorStatus::ProtocolError;
+        }
+
+        auto consumed =
+            static_cast<std::size_t>(std::distance(fromIter, iter));
+        if (consumed < requiredRemainingSize) {
+            auto diff = requiredRemainingSize - consumed;
+            std::advance(iter, diff);
         }
         return es;
     }

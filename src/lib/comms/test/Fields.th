@@ -78,6 +78,7 @@ public:
     void test44();
     void test45();
     void test46();
+    void test47();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1181,6 +1182,7 @@ void FieldsTestSuite::test32()
 {
 
     typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
         std::tuple<
             comms::field::IntValue<
                 comms::Field<BigEndianOpt>,
@@ -1732,6 +1734,47 @@ void FieldsTestSuite::test46()
 
     static const char ExpectedBuf[] = {0};
     writeReadField(field, ExpectedBuf, 0);
+}
+
+struct BundleInitialiserTest47
+{
+    template <typename TField>
+    void operator()(TField& field) const
+    {
+        auto& members = field.value();
+        auto& first = std::get<0>(members);
+        auto& second = std::get<1>(members);
+        first.value() = 1;
+        second.value() = 2;
+    }
+};
+
+void FieldsTestSuite::test47()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t
+            >,
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t            >
+        >,
+        comms::option::DefaultValueInitialiser<BundleInitialiserTest47>
+    > Field;
+
+    TS_ASSERT_EQUALS(Field::minLength(), 3U);
+    TS_ASSERT_EQUALS(Field::maxLength(), 3U);
+
+    Field field;
+
+    static const char ExpectedBuf[] = {
+        (char)0x0, (char)0x1, (char)0x2
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
 }
 
 template <typename TField>

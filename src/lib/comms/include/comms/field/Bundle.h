@@ -35,11 +35,18 @@ namespace field
 ///     expected single field API functions, such as length(), read(), write(),
 ///     valid(). It may be useful when a collection (comms::field::ArrayList) of
 ///     complex fields is required.
+/// @tparam TFieldBase Base class for this field, expected to be a variant of
+///     comms::Field.
 /// @tparam TMembers All wrapped fields bundled together in
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
+///     @li comms::option::DefaultValueInitialiser - All wrapped fields may
+///         specify their independent default value initialisers. It is
+///         also possible to provide initialiser for the Bundle field which
+///         will set appropriate values to the fields based on some
+///         internal logic.
 ///     @li comms::option::ContentsValidator - All wrapped fields may specify
 ///         their independent validators. The bundle field considered to
 ///         be valid if all the wrapped fields are valid. This option though,
@@ -47,7 +54,7 @@ namespace field
 ///         observe value of more than one wrapped fields. For example,
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
-template <typename TMembers, typename... TOptions>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bundle
 {
     static_assert(comms::util::IsTuple<TMembers>::Value,
@@ -57,7 +64,7 @@ class Bundle
         1U < std::tuple_size<TMembers>::value,
         "Number of members is expected to be at least 2.");
 
-    typedef basic::Bundle<TMembers> BasicField;
+    typedef basic::Bundle<TFieldBase, TMembers> BasicField;
     typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
 
 public:
@@ -179,8 +186,8 @@ struct IsBundle
     static const bool Value = false;
 };
 
-template <typename TMembers, typename... TOptions>
-struct IsBundle<comms::field::Bundle<TMembers, TOptions...> >
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+struct IsBundle<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
 {
     static const bool Value = true;
 };

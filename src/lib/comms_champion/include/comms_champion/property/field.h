@@ -443,8 +443,8 @@ struct ForField<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
     typedef comms_champion::property::field::Bitfield Type;
 };
 
-template <typename TMembers, typename... TOptions>
-struct ForField<comms::field::Bundle<TMembers, TOptions...> >
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+struct ForField<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
 {
     typedef comms_champion::property::field::Bundle Type;
 };

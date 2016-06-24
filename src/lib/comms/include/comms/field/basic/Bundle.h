@@ -34,8 +34,8 @@ namespace field
 namespace basic
 {
 
-template <typename TMembers>
-class Bundle
+template <typename TFieldBase, typename TMembers>
+class Bundle : public TFieldBase
 {
 public:
     typedef comms::field::category::BundleField Category;

@@ -120,11 +120,11 @@ struct FieldWrapperTagOf<comms::field::Optional<TField> >
     typedef FieldWrapperOptionalTag Type;
 };
 
-template <typename TMembers, typename... TOptions>
-struct FieldWrapperTagOf<comms::field::Bundle<TMembers, TOptions...> >
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
 {
     static_assert(
-        comms::field::isBundle<comms::field::Bundle<TMembers, TOptions...> >(),
+        comms::field::isBundle<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >(),
         "isBundle is supposed to return true");
 
     typedef FieldWrapperBundleTag Type;

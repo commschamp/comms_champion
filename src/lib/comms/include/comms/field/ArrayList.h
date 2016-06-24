@@ -79,6 +79,7 @@ using ArrayListStorageTypeT =
 ///         comms::field::ArrayList<
 ///             MyFieldBase,
 ///             std::field::Bundle<
+///                 MyFieldBase,
 ///                 std::tuple<
 ///                     comms::field::IntValue<MyFieldBase, std::uint16_t>
 ///                     comms::field::IntValue<MyFieldBase, std::uint8_t>

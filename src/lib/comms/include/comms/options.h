@@ -25,6 +25,7 @@
 
 #include "comms/traits.h"
 #include "comms/ErrorStatus.h"
+#include "comms/field/OptionalMode.h"
 
 namespace comms
 {
@@ -592,6 +593,16 @@ struct BitmaskReservedBitsValidator
     }
 };
 
+template <comms::field::OptionalMode TVal>
+struct DefaultOptModeInitialiser
+{
+    template <typename TField>
+    void operator()(TField& field) const
+    {
+        field.setMode(TVal);
+    }
+};
+
 }  // namespace details
 
 /// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
@@ -624,6 +635,12 @@ using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMi
 /// @tparam TValue Expected value of the reserved bits
 template<std::uintmax_t TMask, std::uintmax_t TValue>
 using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValidator<TMask, TValue> >;
+
+/// @brief Alias to DefaultValueInitialiser, it sets default mode
+///     to field::Optional field.
+/// @tparam TVal Optional mode value is to be assigned to the field in default constructor.
+template<comms::field::OptionalMode TVal>
+using DefaultOptionalMode = DefaultValueInitialiser<details::DefaultOptModeInitialiser<TVal> >;
 
 
 }  // namespace option

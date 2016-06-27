@@ -79,6 +79,7 @@ public:
     void test45();
     void test46();
     void test47();
+    void test48();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1775,6 +1776,35 @@ void FieldsTestSuite::test47()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test48()
+{
+
+    typedef comms::field::Optional<
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint16_t
+        >,
+        comms::option::DefaultOptionalMode<comms::field::OptionalMode::Exists>
+    > Field;
+
+    typedef Field::Mode Mode;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.field().value(), 0U);
+    TS_ASSERT_EQUALS(field.getMode(), Mode::Exists);
+
+    field.field().value() = 0xff0;
+
+    static const char Buf[] = {
+        0x0f, (char)0xf0
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    writeReadField(field, Buf, BufSize);
 }
 
 template <typename TField>

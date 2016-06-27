@@ -21,6 +21,9 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "details/OptionsParser.h"
+#include "OptionalMode.h"
+#include "basic/Optional.h"
+#include "details/AdaptBasicField.h"
 
 namespace comms
 {
@@ -28,32 +31,30 @@ namespace comms
 namespace field
 {
 
-/// @brief Mode to be used by comms::field::Optional
-/// @related comms::field::Optional
-enum class OptionalMode
-{
-    Tentative, ///< The field existence is tentative, i.e. If there is enough bytes
-               /// to read the field's value, than field exists, if not
-               /// then it doesn't exist.
-    Exists, ///< Field must exist
-    Missing, ///< Field doesn't exist
-    NumOfModes ///< Number of possible modes, must be last
-};
-
 /// @brief Adaptor class to any other field, that makes the field optional.
 /// @details When field is optional, it may either exist or not. The behaviour
 ///     of length(), read() and write() operations depends on the current field's mode.
 /// @tparam TField Proper type of the field that needs to be optional.
-template <typename TField>
+/// @tparam TOptions Zero or more options that modify/refine default behaviour
+///     of the field.@n
+///     Supported options are:
+///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultOptionalMode.
+///     @li comms::option::ContentsValidator.
+template <typename TField, typename... TOptions>
 class Optional
 {
+    typedef basic::Optional<TField> BasicField;
+    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef details::OptionsParser<> ParsedOptions;
+    typedef details::OptionsParser<TOptions...> ParsedOptions;
 
     /// @brief Type of the field.
     typedef TField Field;
+
+    /// @brief Value type of this field, equal to @ref Field
+    typedef Field ValueType;
 
     /// @brief Mode of the field.
     /// @see OptionalMode
@@ -65,19 +66,15 @@ public:
 
     /// @brief Construct the field.
     /// @param[in] fieldSrc Field to be copied from during construction.
-    /// @param[in] mode Mode of the field.
-    explicit Optional(const Field& fieldSrc, Mode mode = Mode::Tentative)
-      : field_(fieldSrc),
-        mode_(mode)
+    explicit Optional(const Field& fieldSrc)
+      : field_(fieldSrc)
     {
     }
 
     /// @brief Construct the field.
     /// @param[in] fieldSrc Field to be moved from during construction.
-    /// @param[in] mode Mode of the field.
-    explicit Optional(Field&& fieldSrc, Mode mode = Mode::Tentative)
-      : field_(std::move(fieldSrc)),
-        mode_(mode)
+    explicit Optional(Field&& fieldSrc)
+      : field_(std::move(fieldSrc))
     {
     }
 
@@ -99,26 +96,38 @@ public:
     /// @brief Get an access to the wrapped field object
     Field& field()
     {
-        return field_;
+        return field_.field();
     }
 
     /// @brief Get an access to the wrapped field object
     const Field& field() const
     {
-        return field_;
+        return field_.field();
+    }
+
+    /// @brief Get an access to the wrapped field object
+    ValueType& value()
+    {
+        return field_.value();
+    }
+
+    /// @brief Get an access to the wrapped field object
+    const ValueType& value() const
+    {
+        return field_.value();
     }
 
     /// @brief Get current optional mode
     Mode getMode() const
     {
-        return mode_;
+        return field_.getMode();
     }
 
     /// @brief Get optional mode
     void setMode(Mode val)
     {
         GASSERT(val < Mode::NumOfModes);
-        mode_ = val;
+        field_.setMode(val);
     }
 
     /// @brief Get length required to serialise the current field value.
@@ -128,10 +137,6 @@ public:
     ///     OptionalMode::Tentative) 0 is returned.
     std::size_t length() const
     {
-        if (mode_ != Mode::Exists) {
-            return 0U;
-        }
-
         return field_.length();
     }
 
@@ -139,14 +144,14 @@ public:
     /// @details Same as Field::minLength()
     static constexpr std::size_t minLength()
     {
-        return Field::minLength();
+        return ThisField::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @details Same as Field::maxLength()
     static constexpr std::size_t maxLength()
     {
-        return Field::maxLength();
+        return ThisField::maxLength();
     }
 
     /// @brief Check validity of the field value.
@@ -155,10 +160,6 @@ public:
     ///     field is called.
     bool valid() const
     {
-        if (mode_ == Mode::Missing) {
-            return true;
-        }
-
         return field_.valid();
     }
 
@@ -180,20 +181,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        if (mode_ == Mode::Missing) {
-            return comms::ErrorStatus::Success;
-        }
-
-        if ((mode_ == Mode::Tentative) && (0U == len)) {
-            mode_ = Mode::Missing;
-            return comms::ErrorStatus::Success;
-        }
-
-        auto es = field_.read(iter, len);
-        if (es == comms::ErrorStatus::Success) {
-            mode_ = Mode::Exists;
-        }
-        return es;
+        return field_.read(iter, len);
     }
 
     /// @brief Write current field value to output data sequence
@@ -213,48 +201,39 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        if (mode_ == Mode::Missing) {
-            return comms::ErrorStatus::Success;
-        }
-
-        if ((mode_ == Mode::Tentative) && (0U == len)) {
-            return comms::ErrorStatus::Success;
-        }
-
         return field_.write(iter, len);
     }
 
 private:
-    Field field_;
-    Mode mode_ = Mode::Tentative;
+    ThisField field_;
 };
 
 /// @brief Equality comparison operator.
 /// @related Optional
-template <typename... TArgs>
+template <typename TField, typename... TOptions>
 bool operator==(
-    const Optional<TArgs...>& field1,
-    const Optional<TArgs...>& field2)
+    const Optional<TField, TOptions...>& field1,
+    const Optional<TField, TOptions...>& field2)
 {
     return field1.field() == field2.field();
 }
 
 /// @brief Non-equality comparison operator.
 /// @related Optional
-template <typename... TArgs>
+template <typename TField, typename... TOptions>
 bool operator!=(
-    const Optional<TArgs...>& field1,
-    const Optional<TArgs...>& field2)
+    const Optional<TField, TOptions...>& field1,
+    const Optional<TField, TOptions...>& field2)
 {
     return field1.field() != field2.field();
 }
 
 /// @brief Equivalence comparison operator.
 /// @related Optional
-template <typename... TArgs>
+template <typename TField, typename... TOptions>
 bool operator<(
-    const Optional<TArgs...>& field1,
-    const Optional<TArgs...>& field2)
+    const Optional<TField, TOptions...>& field1,
+    const Optional<TField, TOptions...>& field2)
 {
     return field1.field() < field2.field();
 }
@@ -268,8 +247,8 @@ struct IsOptional
     static const bool Value = false;
 };
 
-template <typename TField>
-struct IsOptional<comms::field::Optional<TField> >
+template <typename TField, typename... TOptions>
+struct IsOptional<comms::field::Optional<TField, TOptions...> >
 {
     static const bool Value = true;
 };
@@ -285,7 +264,6 @@ constexpr bool isOptional()
 {
     return details::IsOptional<T>::Value;
 }
-
 
 }  // namespace field
 

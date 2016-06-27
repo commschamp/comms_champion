@@ -31,6 +31,25 @@ namespace field
 namespace details
 {
 
+template <typename TField, typename TOpts, bool THasCustomValueReader>
+struct AdaptBasicFieldCustomValueReader;
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldCustomValueReader<TField, TOpts, true>
+{
+    typedef comms::field::adapter::CustomValueReader<typename TOpts::CustomValueReader, TField> Type;
+};
+
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldCustomValueReader<TField, TOpts, false>
+{
+    typedef TField Type;
+};
+
+template <typename TField, typename TOpts>
+using AdaptBasicFieldCustomValueReaderT =
+    typename AdaptBasicFieldCustomValueReader<TField, TOpts, TOpts::HasCustomValueReader>::Type;
+
 template <typename TField, typename TOpts, bool THasSerOffset>
 struct AdaptBasicFieldSerOffset;
 
@@ -313,8 +332,10 @@ template <typename TBasic, typename... TOptions>
 class AdaptBasicField
 {
     typedef OptionsParser<TOptions...> ParsedOptions;
+    typedef AdaptBasicFieldCustomValueReaderT<
+        TBasic, ParsedOptions> CustomReaderAdapted;
     typedef AdaptBasicFieldSerOffsetT<
-        TBasic, ParsedOptions> SerOffsetAdapted;
+        CustomReaderAdapted, ParsedOptions> SerOffsetAdapted;
     typedef AdaptBasicFieldFixedLengthT<
         SerOffsetAdapted, ParsedOptions> FixedLengthAdapted;
     typedef AdaptBasicFieldFixedBitLengthT<

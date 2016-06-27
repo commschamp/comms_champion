@@ -488,6 +488,80 @@ struct ContentsValidator
     typedef T Type;
 };
 
+/// @brief Option that specifies custom value reader class.
+/// @details It may be useful to override default reading functionality for complex
+///     fields, such as comms::field::Bundle, where how members are read are
+///     defined by the values of other members. For example, bundle of two integer
+///     fields, the first one is normal, and the second one is optional.
+///     The optional mode of the latter is determined by
+///     the value of the first field. If its value is 0, than the second
+///     member exists, otherwise it's missing.
+///     @code
+///     typedef comms::field::Bundle<
+///         comms::Field<BigEndianOpt>,
+///         std::tuple<
+///             comms::field::IntValue<
+///                 comms::Field<BigEndianOpt>,
+///                 std::uint8_t
+///             >,
+///             comms::field::Optional<
+///                 comms::field::IntValue<
+///                     comms::Field<BigEndianOpt>,
+///                     std::uint16_t
+///                 >
+///             >
+///         >,
+///         comms::option::CustomValueReader<MyCustomReader>
+///     > Field;
+///     @endcode
+///     The @b MyCustomReader custom reading class may implement required
+///     functionality of reading the first member, analysing its value, setting
+///     appropriate mode for the second one and read the second member.
+///
+///     The custom value reader class provided as template argument
+///     must define the following member function:
+///     @code
+///     struct MyCustomReader
+///     {
+///         template <typename TField, typename TIter>
+///         comms::ErrorStatus operator()(TField& field, TIter& iter, std::size_t len) {...}
+///     };
+///     @endcode
+///
+///     The custom reader for the example above may be implemented as:
+///     @code
+///     struct MyCustomReader
+///     {
+///         template <typename TField, typename TIter>
+///         comms::ErrorStatus operator()(TField& field, TIter& iter, std::size_t len) const
+///         {
+///             auto& members = field.value();
+///             auto& first = std::get<0>(members);
+///             auto& second = std::get<1>(members);
+///
+///             auto es = first.read(iter, len);
+///             if (es != comms::ErrorStatus::Success) {
+///                 return es;
+///             }
+///
+///             if (first.value() != 0) {
+///                 second.setMode(comms::field::OptionalMode::Missing);
+///             }
+///             else {
+///                 second.setMode(comms::field::OptionalMode::Exists);
+///             }
+///
+///             return second.read(iter, len - first.length());
+///         }
+///     };
+///     @endcode
+/// @tparam T Type of the custom reader class.
+template <typename T>
+struct CustomValueReader
+{
+    typedef T Type;
+};
+
 /// @brief Option that forces field's read operation to fail if invalid value
 ///     is received.
 /// @details Sometimes protocol is very strict about what field's values are

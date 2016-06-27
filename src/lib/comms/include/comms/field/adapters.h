@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "adapter/CustomValueReader.h"
 #include "adapter/SerOffset.h"
 #include "adapter/FixedLength.h"
 #include "adapter/FixedBitLength.h"

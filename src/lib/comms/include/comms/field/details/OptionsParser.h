@@ -36,6 +36,7 @@ struct OptionsParser;
 template <>
 struct OptionsParser<>
 {
+    static const bool HasCustomValueReader = false;
     static const bool HasSerOffset = false;
     static const bool HasFixedLengthLimit = false;
     static const bool HasFixedBitLengthLimit = false;
@@ -53,13 +54,55 @@ struct OptionsParser<>
     static const bool HasScalingRatio = false;
 };
 
+template <typename T, typename... TOptions>
+class OptionsParser<
+    comms::option::CustomValueReader<T>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef OptionsParser<TOptions...> Base;
+    typedef comms::option::CustomValueReader<T> Option;
+
+    static_assert(!Base::HasSerOffset,
+        "Cannot mix NumValueSerOffset and CustomValueReader options.");
+
+    static_assert(!Base::HasFixedLengthLimit,
+        "Cannot mix FixedLength and CustomValueReader options.");
+
+    static_assert(!Base::HasFixedBitLengthLimit,
+        "Cannot mix FixedBitLength and CustomValueReader options.");
+
+    static_assert(!Base::HasVarLengthLimits,
+        "Cannot mix VarLength and CustomValueReader options.");
+
+    static_assert(!Base::HasSequenceSizeForcing,
+        "Cannot mix SequenceSizeForcing and CustomValueReader options.");
+
+    static_assert(!Base::HasSequenceFixedSize,
+        "Cannot mix SequenceFixedSize and CustomValueReader options.");
+
+    static_assert(!Base::HasSequenceSizeFieldPrefix,
+        "Cannot mix SequenceSizeFieldPrefix and CustomValueReader options.");
+
+    static_assert(!Base::HasSequenceTrailingFieldSuffix,
+        "Cannot mix SequenceTrailingFieldSuffix and CustomValueReader options.");
+
+    static_assert(!Base::HasSequenceTerminationFieldSuffix,
+        "Cannot mix SequenceTerminationFieldSuffix and CustomValueReader options.");
+public:
+    static const bool HasCustomValueReader = true;
+    typedef typename Option::Type CustomValueReader;
+};
+
 template <std::intmax_t TOffset, typename... TOptions>
 class OptionsParser<
     comms::option::NumValueSerOffset<TOffset>,
     TOptions...> : public OptionsParser<TOptions...>
 {
+    typedef OptionsParser<TOptions...> Base;
     typedef comms::option::NumValueSerOffset<TOffset> Option;
 
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix NumValueSerOffset and CustomValueReader options.");
 public:
     static const bool HasSerOffset = true;
     static const auto SerOffset = Option::Value;
@@ -75,6 +118,9 @@ class OptionsParser<
 
     static_assert(!Base::HasVarLengthLimits,
         "Cannot mix FixedLength and VarLength options.");
+
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix FixedLength and CustomValueReader options.");
 public:
     static const bool HasFixedLengthLimit = true;
     static const std::size_t FixedLength = Option::Value;
@@ -89,7 +135,10 @@ class OptionsParser<
     typedef comms::option::FixedBitLength<TLen> Option;
 
     static_assert(!Base::HasVarLengthLimits,
-        "Cannot mix FixedLength and VarLength options.");
+        "Cannot mix FixedBitLength and VarLength options.");
+
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix FixedBitLength and CustomValueReader options.");
 public:
     static const bool HasFixedBitLengthLimit = true;
     static const std::size_t FixedBitLength = Option::Value;
@@ -108,6 +157,9 @@ class OptionsParser<
         "Cannot mix FixedLength and VarLength options.");
     static_assert(!Base::HasFixedBitLengthLimit,
         "Cannot mix FixedBitLength and VarLength options.");
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix VarLength and CustomValueReader options.");
+
 public:
     static const bool HasVarLengthLimits = true;
     static const std::size_t MinVarLength = Option::MinValue;
@@ -132,6 +184,9 @@ class OptionsParser<
         "SequenceSizeForcingEnabled and SequenceTerminationFieldSuffix are incompatible options, "
         "mustn't be used together");
 
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix SequenceSizeForcingEnabled and CustomValueReader options.");
+
 public:
     static const bool HasSequenceSizeForcing = true;
 };
@@ -155,6 +210,8 @@ class OptionsParser<
         "SequenceFixedSize and SequenceTerminationFieldSuffix are incompatible options, "
         "mustn't be used together");
 
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix SequenceFixedSize and CustomValueReader options.");
 public:
     static const bool HasSequenceFixedSize = true;
     static const auto SequenceFixedSize = Option::Value;
@@ -179,6 +236,8 @@ class OptionsParser<
         "SequenceSizeFieldPrefix and SequenceTerminationFieldSuffix are incompatible options, "
         "mustn't be used together");
 
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix SequenceSizeFieldPrefix and CustomValueReader options.");
 public:
     static const bool HasSequenceSizeFieldPrefix = true;
     typedef typename Option::Type SequenceSizeFieldPrefix;
@@ -195,6 +254,10 @@ class OptionsParser<
     static_assert(!Base::HasSequenceTerminationFieldSuffix,
         "SequenceTerminationFieldSuffix and SequenceTrailingFieldSuffix are incompatible options, "
         "mustn't be used together");
+
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix SequenceTrailingFieldSuffix and CustomValueReader options.");
+
 public:
     static const bool HasSequenceTrailingFieldSuffix = true;
     typedef typename Option::Type SequenceTrailingFieldSuffix;
@@ -224,6 +287,8 @@ class OptionsParser<
         "SequenceTerminationFieldSuffix and SequenceTrailingFieldSuffix are incompatible options, "
         "mustn't be used together");
 
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix SequenceTerminationFieldSuffix and CustomValueReader options.");
 public:
     static const bool HasSequenceTerminationFieldSuffix = true;
     typedef typename Option::Type SequenceTerminationFieldSuffix;

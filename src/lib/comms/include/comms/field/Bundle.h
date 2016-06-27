@@ -54,6 +54,11 @@ namespace field
 ///         observe value of more than one wrapped fields. For example,
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
+///     @li comms::option::CustomValueReader - It may be required to implement
+///         custom reading functionality instead of default behaviour of
+///         invoking read() member function of every member field. It is possible
+///         to provide cusom reader functionality using comms::option::CustomValueReader
+///         option.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bundle
 {
@@ -159,20 +164,20 @@ private:
 
 /// @brief Equality comparison operator.
 /// @related Bundle
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator==(
-    const Bundle<TArgs...>& field1,
-    const Bundle<TArgs...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
 /// @related Bundle
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator!=(
-    const Bundle<TArgs...>& field1,
-    const Bundle<TArgs...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }

@@ -87,7 +87,6 @@ public:
         return field();
     }
 
-
     Mode getMode() const
     {
         return mode_;

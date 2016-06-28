@@ -110,11 +110,11 @@ struct FieldWrapperTagOf<comms::field::Bitfield<TFieldBase, TMembers, TOptions..
     typedef FieldWrapperBitfieldTag Type;
 };
 
-template <typename TField>
-struct FieldWrapperTagOf<comms::field::Optional<TField> >
+template <typename TField, typename... TOptions>
+struct FieldWrapperTagOf<comms::field::Optional<TField, TOptions...> >
 {
     static_assert(
-        comms::field::isOptional<comms::field::Optional<TField> >(),
+        comms::field::isOptional<comms::field::Optional<TField, TOptions...> >(),
         "isOptional is supposed to return true");
 
     typedef FieldWrapperOptionalTag Type;

@@ -461,8 +461,8 @@ struct ForField<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >
     typedef comms_champion::property::field::ArrayList Type;
 };
 
-template <typename TField>
-struct ForField<comms::field::Optional<TField> >
+template <typename TField, typename... TOptions>
+struct ForField<comms::field::Optional<TField, TOptions...> >
 {
     typedef comms_champion::property::field::Optional Type;
 };

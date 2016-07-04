@@ -121,6 +121,9 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
+        static_assert(Message::InterfaceOptions::HasLength,
+            "Message interface class is expected to provide length() interface function.");
+
         GASSERT(msgPtr);
         auto result = msgPtr->read(iter, size);
         if ((result == ErrorStatus::NotEnoughData) &&

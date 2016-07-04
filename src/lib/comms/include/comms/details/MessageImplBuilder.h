@@ -41,6 +41,7 @@ public:
     static const auto MsgId = static_cast<typename TBase::MsgIdType>(TId);
 
 protected:
+    ~MessageImplStaticNumIdBase() = default;
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
         return MsgId;
@@ -74,6 +75,7 @@ public:
     static const auto MsgId = typename TBase::MsgIdType();
 
 protected:
+    ~MessageImplNoIdBase() = default;
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
         GASSERT(!"The message id is not supposed to be retrieved");
@@ -117,6 +119,9 @@ public:
         return fields_;
     }
 
+protected:
+    ~MessageImplFieldsBase() = default;
+
 private:
     AllFields fields_;
 };
@@ -145,6 +150,7 @@ class MessageImplFieldsReadBase : public TBase
 {
     typedef TBase Base;
 protected:
+    ~MessageImplFieldsReadBase() = default;
     virtual comms::ErrorStatus readImpl(
         typename Base::ReadIterator& iter,
         std::size_t size) override
@@ -242,6 +248,7 @@ class MessageImplFieldsWriteBase : public TBase
     typedef TBase Base;
 
 protected:
+    ~MessageImplFieldsWriteBase() = default;
     virtual comms::ErrorStatus writeImpl(
         typename Base::WriteIterator& iter,
         std::size_t size) const override
@@ -341,6 +348,7 @@ class MessageImplFieldsValidBase : public TBase
     typedef TBase Base;
 
 protected:
+    ~MessageImplFieldsValidBase() = default;
     virtual bool validImpl() const override
     {
         return util::tupleAccumulate(Base::fields(), true, FieldValidityRetriever());
@@ -385,6 +393,7 @@ class MessageImplFieldsLengthBase : public TBase
     typedef TBase Base;
 
 protected:
+    ~MessageImplFieldsLengthBase() = default;
     virtual std::size_t lengthImpl() const override
     {
         return util::tupleAccumulate(Base::fields(), 0U, FieldLengthRetriever());
@@ -427,6 +436,7 @@ template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
 protected:
+    ~MessageImplDispatchBase() = default;
     virtual void dispatchImpl(typename TBase::Handler& handler) override
     {
         handler.handle(static_cast<TActual&>(*this));

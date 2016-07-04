@@ -43,6 +43,8 @@ public:
     typedef comms::Field<comms::option::Endian<Endian> > Field;
 
 protected:
+    ~MessageInterfaceEndianBase() = default;
+
     template <typename T, typename TIter>
     static void writeData(T value, TIter& iter)
     {
@@ -108,6 +110,7 @@ public:
     }
 
 protected:
+    ~MessageInterfaceIdTypeBase() = default;
     virtual MsgIdParamType getIdImpl() const = 0;
 };
 
@@ -141,6 +144,7 @@ public:
     }
 
 protected:
+    ~MessageInterfaceReadOnlyBase() = default;
     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
 };
 
@@ -155,6 +159,7 @@ public:
     }
 
 protected:
+    ~MessageInterfaceWriteOnlyBase() = default;
     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
 };
 
@@ -175,6 +180,7 @@ public:
     }
 
 protected:
+    ~MessageInterfaceReadWriteBase() = default;
     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
 };
@@ -222,6 +228,7 @@ public:
     }
 
 protected:
+    ~MessageInterfaceHandlerBase() = default;
     virtual void dispatchImpl(Handler& handler) = 0;
 };
 
@@ -255,6 +262,7 @@ public:
     }
 
 protected:
+    ~MessageInterfaceValidBase() = default;
     virtual bool validImpl() const = 0;
 };
 
@@ -288,6 +296,7 @@ public:
     }
 
 protected:
+    ~MessageInterfaceLengthBase() = default;
     virtual std::size_t lengthImpl() const = 0;
 };
 
@@ -321,6 +330,7 @@ public:
     }
 
 protected:
+    ~MessageInterfaceRefreshBase() = default;
     virtual bool refreshImpl()
     {
         return false;

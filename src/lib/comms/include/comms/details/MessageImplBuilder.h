@@ -469,14 +469,14 @@ class MessageImplBuilder
     typedef MessageImplOptionsParser<TOptions...> ParsedOptions;
     typedef typename TMessage::InterfaceOptions InterfaceOptions;
 
-    typedef MessageImplStaticNumIdBaseT<TMessage, ParsedOptions> StaticNumIdBase;
-    typedef MessageImplNoIdBaseT<StaticNumIdBase, ParsedOptions> NoIdBase;
-    typedef MessageImplFieldsBaseT<NoIdBase, ParsedOptions> FieldsBase;
+    typedef MessageImplFieldsBaseT<TMessage, ParsedOptions> FieldsBase;
     typedef MessageImplFieldsReadBaseT<FieldsBase, ParsedOptions> FieldsReadBase;
     typedef MessageImplFieldsWriteBaseT<FieldsReadBase, ParsedOptions> FieldsWriteBase;
     typedef MessageImplFieldsValidBaseT<FieldsWriteBase, ParsedOptions> FieldsValidBase;
     typedef MessageImplFieldsLengthBaseT<FieldsValidBase, ParsedOptions> FieldsLengthBase;
-    typedef MessageImplDispatchBaseT<FieldsLengthBase, ParsedOptions> DispatchBase;
+    typedef MessageImplStaticNumIdBaseT<FieldsLengthBase, ParsedOptions> StaticNumIdBase;
+    typedef MessageImplNoIdBaseT<StaticNumIdBase, ParsedOptions> NoIdBase;
+    typedef MessageImplDispatchBaseT<NoIdBase, ParsedOptions> DispatchBase;
 
 public:
     typedef ParsedOptions Options;

@@ -133,6 +133,10 @@ struct FieldsImpl<std::tuple<TFields...> >
 /// @brief Alias to FieldsImpl<std::tuple<> >
 using NoFieldsImpl = FieldsImpl<std::tuple<> >;
 
+/// @brief Option that suppresses implementation of @b readImpl() member function
+///     in comms::MessageBase when @ref FieldsImpl option is used.
+struct NoDefaultFieldsReadImpl {};
+
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.
 struct InPlaceAllocation {};

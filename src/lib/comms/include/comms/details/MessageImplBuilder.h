@@ -151,15 +151,6 @@ class MessageImplFieldsReadBase : public TBase
     typedef TBase Base;
 protected:
     ~MessageImplFieldsReadBase() = default;
-    virtual comms::ErrorStatus readImpl(
-        typename Base::ReadIterator& iter,
-        std::size_t size) override
-    {
-        auto status = comms::ErrorStatus::Success;
-        std::size_t remainingSize = size;
-        util::tupleForEach(Base::fields(), FieldReader(iter, status, remainingSize));
-        return status;
-    }
 
     template <std::size_t TIdx>
     comms::ErrorStatus readFieldsUntil(
@@ -241,6 +232,42 @@ template <typename TBase, typename TImplOpt>
 using MessageImplFieldsReadBaseT =
     typename MessageImplProcessFieldsReadBase<
         TBase, TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasFieldsImpl>::Type;
+
+template <typename TBase>
+class MessageImplFieldsReadImplBase : public TBase
+{
+    typedef TBase Base;
+protected:
+    ~MessageImplFieldsReadImplBase() = default;
+    virtual comms::ErrorStatus readImpl(
+        typename Base::ReadIterator& iter,
+        std::size_t size) override
+    {
+        return Base::template readFieldsFrom<0>(iter, size);
+    }
+};
+
+template <typename TBase, bool THasFieldsReadImpl>
+struct MessageImplProcessFieldsReadImplBase;
+
+template <typename TBase>
+struct MessageImplProcessFieldsReadImplBase<TBase, true>
+{
+    typedef MessageImplFieldsReadImplBase<TBase> Type;
+};
+
+template <typename TBase>
+struct MessageImplProcessFieldsReadImplBase<TBase, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TImplOpt>
+using MessageImplFieldsReadImplBaseT =
+    typename MessageImplProcessFieldsReadImplBase<
+        TBase,
+        TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasFieldsImpl && (!TImplOpt::HasNoDefaultFieldsReadImpl)
+    >::Type;
 
 template <typename TBase>
 class MessageImplFieldsWriteBase : public TBase
@@ -471,7 +498,8 @@ class MessageImplBuilder
 
     typedef MessageImplFieldsBaseT<TMessage, ParsedOptions> FieldsBase;
     typedef MessageImplFieldsReadBaseT<FieldsBase, ParsedOptions> FieldsReadBase;
-    typedef MessageImplFieldsWriteBaseT<FieldsReadBase, ParsedOptions> FieldsWriteBase;
+    typedef MessageImplFieldsReadImplBaseT<FieldsReadBase, ParsedOptions> FieldsReadImplBase;
+    typedef MessageImplFieldsWriteBaseT<FieldsReadImplBase, ParsedOptions> FieldsWriteBase;
     typedef MessageImplFieldsValidBaseT<FieldsWriteBase, ParsedOptions> FieldsValidBase;
     typedef MessageImplFieldsLengthBaseT<FieldsValidBase, ParsedOptions> FieldsLengthBase;
     typedef MessageImplStaticNumIdBaseT<FieldsLengthBase, ParsedOptions> StaticNumIdBase;

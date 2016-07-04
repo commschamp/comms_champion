@@ -221,9 +221,6 @@ void tupleForEachUntil(TTuple&& tuple, TFunc&& func)
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
 
-    static_assert(0U < TIdx,
-        "The index must be greater than 0.");
-
     details::TupleForEachHelper<TIdx, TupleSize - TIdx>::exec(
         std::forward<TTuple>(tuple),
         std::forward<TFunc>(func));
@@ -242,7 +239,7 @@ void tupleForEachFrom(TTuple&& tuple, TFunc&& func)
 {
     typedef typename std::decay<TTuple>::type Tuple;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
-    static_assert(TIdx < TupleSize,
+    static_assert(TIdx <= TupleSize,
         "The index is too big.");
 
     details::TupleForEachHelper<TupleSize - TIdx>::exec(
@@ -266,13 +263,13 @@ void tupleForEachFromUntil(TTuple&& tuple, TFunc&& func)
 {
     typedef typename std::decay<TTuple>::type Tuple;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
-    static_assert(TFromIdx < TupleSize,
+    static_assert(TFromIdx <= TupleSize,
         "The from index is too big.");
 
     static_assert(TUntilIdx <= TupleSize,
         "The until index is too big.");
 
-    static_assert(TFromIdx < TUntilIdx,
+    static_assert(TFromIdx <= TUntilIdx,
         "The from index must be less than until index.");
 
     static const std::size_t FieldsCount = TUntilIdx - TFromIdx;

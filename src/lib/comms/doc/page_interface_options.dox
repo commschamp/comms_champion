@@ -270,6 +270,7 @@
 ///     static const bool HasDispatchImpl = ...;
 ///     static const bool HasFieldsImpl = ...;
 ///     static const bool HasNoIdImpl = ...;
+///     static const bool HasNoDefaultFieldsReadImpl = ...;
 /// };
 /// @endcode
 ///
@@ -372,7 +373,9 @@
 /// @endcode
 ///
 /// If both @b HasFields of comms::MessageBase::ImplOptions and 
-/// @b HasReadIterator of comms::Message::InterfaceOptions are @b true, then the
+/// @b HasReadIterator of comms::Message::InterfaceOptions are @b true, as
+/// well as @b HasNoDefaultFieldsReadImpl of comms::MessageBase::ImplOptions is
+/// @b false (default implementation of the @b readImpl() wasn't suppressed) then the
 /// following functions are defined:
 /// @code
 /// namespace comms

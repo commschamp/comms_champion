@@ -34,6 +34,7 @@ struct MessageImplOptionsParser<>
     static const bool HasDispatchImpl = false;
     static const bool HasFieldsImpl = false;
     static const bool HasNoIdImpl = false;
+    static const bool HasNoDefaultFieldsReadImpl = false;
 };
 
 template <std::intmax_t TId,
@@ -99,6 +100,15 @@ class MessageImplOptionsParser<
         "comms::option::NoIdImpl and comms::option::StaticNumIdImpl options cannot be used together");
 public:
     static const bool HasNoIdImpl = true;
+};
+
+template <typename... TOptions>
+class MessageImplOptionsParser<
+    comms::option::NoDefaultFieldsReadImpl,
+    TOptions...> : public MessageImplOptionsParser<TOptions...>
+{
+public:
+    static const bool HasNoDefaultFieldsReadImpl = true;
 };
 
 template <typename... TOptions>

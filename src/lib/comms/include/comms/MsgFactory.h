@@ -76,6 +76,9 @@ public:
     /// @brief Type of the message ID when passed as a parameter.
     typedef typename Message::MsgIdParamType MsgIdParamType;
 
+    /// @brief Type of the message ID.
+    typedef typename Message::MsgIdType MsgIdType;
+
     /// @brief Smart pointer to @ref Message which holds allocated message object.
     /// @details It is a variant of std::unique_ptr, based on whether
     ///     comms::option::InPlaceAllocation option was used.
@@ -291,7 +294,7 @@ private:
         }
 
     private:
-        MsgIdParamType m_id;
+        MsgIdType m_id;
     };
 
     void initRegistry()

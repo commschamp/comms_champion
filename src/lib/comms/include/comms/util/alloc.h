@@ -136,6 +136,19 @@ public:
             "TObj does not inherit from TInterface");
         return Ptr(new TObj(std::forward<TArgs>(args)...));
     }
+
+    /// @brief Function used to wrap raw pointer into a smart one
+    /// @tparam Type of the object, expected to be the
+    ///     same as or derived from TInterface.
+    /// @param[in] obj Pointer to previously allocated object.
+    /// @return Smart pointer to the wrapped object.
+    template <typename TObj>
+    static Ptr wrap(TObj* obj)
+    {
+        static_assert(std::is_base_of<TInterface, TObj>::value,
+            "TObj does not inherit from TInterface");
+        return Ptr(obj);
+    }
 };
 
 /// @brief In-place single object allocator.
@@ -198,6 +211,33 @@ public:
         return allocated_;
     }
 
+    /// @brief Get address of the objects being allocated using this allocator
+    const void* allocAddr() const
+    {
+        return &place_;
+    }
+
+    /// @brief Function used to wrap raw pointer into a smart one
+    /// @tparam Type of the object, expected to be the
+    ///     same as or derived from TInterface.
+    /// @param[in] obj Pointer to previously allocated object.
+    /// @return Smart pointer to the wrapped object.
+    template <typename TObj>
+    Ptr wrap(TObj* obj)
+    {
+        if (obj == nullptr) {
+            return Ptr();
+        }
+
+        static_assert(std::is_base_of<TInterface, TObj>::value,
+            "TObj does not inherit from TInterface");
+        GASSERT(obj == reinterpret_cast<TInterface*>(&place_)); // Wrong object if fails
+        GASSERT(allocated_); // Error if not set
+        return Ptr(
+            reinterpret_cast<TInterface*>(&place_),
+            details::InPlaceDeleter<TInterface>(&allocated_));
+    }
+
 private:
     typedef typename TupleAsAlignedUnion<TAllTypes>::Type AlignedStorage;
 
@@ -241,6 +281,29 @@ public:
         }
 
         return iter->alloc<TObj>(std::forward<TArgs>(args)...);
+    }
+
+    /// @brief Function used to wrap raw pointer into a smart one
+    /// @tparam Type of the object, expected to be the
+    ///     same as or derived from TInterface.
+    /// @param[in] obj Pointer to previously allocated object.
+    /// @return Smart pointer to the wrapped object.
+    template <typename TObj>
+    Ptr wrap(TObj* obj)
+    {
+        auto iter =
+            std::find_if(
+                pool_.begin(), pool_.end(),
+                [obj](const PoolElem& elem) -> bool
+                {
+                    return elem.allocated() && (elem.allocAddr() == obj);
+                });
+
+        if (iter == pool_.end()) {
+            return Ptr();
+        }
+
+        return iter->wrap(obj);
     }
 
 private:

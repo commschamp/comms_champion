@@ -15,6 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file comms/util/alloc.h
+/// This file contains various generic allocator classes that may be used
+/// to allocate objects using dynamic memory or "in-place" allocations.
+
 
 #pragma once
 
@@ -108,12 +112,23 @@ private:
 
 }  // namespace details
 
+/// @brief Dynamic memory allocator
+/// @details Uses standard operator "new" to allocate and initialise requested
+///     object.
+/// @tparam TInterface Common interface class for all objects being allocated
+///     with this allocator.
 template <typename TInterface>
 class DynMemory
 {
 public:
+    /// @brief Smart pointer (std::unique_ptr) to the allocated object
     typedef std::unique_ptr<TInterface> Ptr;
 
+    /// @brief Allocation function
+    /// @tparam TObj Type of the object being allocated, expected to be the
+    ///     same as or derived from TInterface.
+    /// @tparam TArgs types of arguments to be passed to the constructor.
+    /// @return Smart pointer to the allocated object.
     template <typename TObj, typename... TArgs>
     static Ptr alloc(TArgs&&... args)
     {
@@ -123,13 +138,32 @@ public:
     }
 };
 
+/// @brief In-place single object allocator.
+/// @details May allocate only single object at a time. In order to be able
+///     to allocate new object, previous one must be destructed first. The
+///     allocator contains uninitialised storage area in its private data,
+///     which is used to contain allocated object.
+/// @tparam TInterface Common interface class for all objects being allocated
+///     with this allocator.
+/// @tparam TAllTypes All the possible types that can be allocated with this
+///     allocator bundled in @b std::tuple. They are used to identify the
+///     size required to allocate any of the provided objects.
 template <typename TInterface, typename TAllTypes>
 class InPlaceSingle
 {
 public:
-
+    /// @brief Smart pointer (std::unique_ptr) to the allocated object.
+    /// @details The custom deleter makes sure the destructor of the
+    ///     allocated object is called.
     typedef std::unique_ptr<TInterface, details::InPlaceDeleter<TInterface> > Ptr;
 
+    /// @brief Allocation function
+    /// @tparam TObj Type of the object being allocated, expected to be the
+    ///     same as or derived from @b TInterface.
+    /// @tparam TArgs types of arguments to be passed to the constructor.
+    /// @return Smart pointer to the allocated object.
+    /// @pre If @b TObj is NOT the same as @b TInterface, i.e. @b TInterface is a base
+    ///     class of @b TObj, then @b TInterface must have virtual destructor.
     template <typename TObj, typename... TArgs>
     Ptr alloc(TArgs&&... args)
     {
@@ -158,6 +192,7 @@ public:
         return std::move(obj);
     }
 
+    /// @brief Inquire whether the object is already allocated.
     bool allocated() const
     {
         return allocated_;
@@ -171,6 +206,14 @@ private:
 
 };
 
+/// @brief In-place object pool allocator.
+/// @details Similar to @ref InPlaceSingle allocator, but allows multiple
+///     allocations at the same time, limited by TSize template parameter.
+/// @tparam TInterface Common interface class for all objects being allocated
+///     with this allocator.
+/// @tparam TSize Number of objects this allocator is allowed to allocate.
+/// @tparam TAllTypes All the possible types that can be allocated with this
+///     allocator bundled in @b std::tuple.
 template <typename TInterface, std::size_t TSize, typename TAllTypes = std::tuple<TInterface> >
 class InPlacePool
 {
@@ -178,8 +221,11 @@ class InPlacePool
     typedef std::array<PoolElem, TSize> Pool;
 public:
 
+    /// @brief Smart pointer (std::unique_ptr) to the allocated object.
+    /// @details Same as InPlaceSingle::Ptr;
     typedef typename PoolElem::Ptr Ptr;
 
+    /// @copydoc InPlaceSingle::alloc
     template <typename TObj, typename... TArgs>
     Ptr alloc(TArgs&&... args)
     {

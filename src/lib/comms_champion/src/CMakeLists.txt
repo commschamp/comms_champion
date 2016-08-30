@@ -15,6 +15,8 @@ function (lib_comms_champion)
         ErrorStatus.cpp
         Message.cpp
         Protocol.cpp
+        Filter.cpp
+        Socket.cpp
         MessageHandler.cpp
         Plugin.cpp
         DataInfo.cpp

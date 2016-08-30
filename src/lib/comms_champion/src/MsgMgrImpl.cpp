@@ -79,6 +79,10 @@ void MsgMgrImpl::start()
         m_socket->start();
     }
 
+    for (auto& f : m_filters) {
+        f->start();
+    }
+
     m_running = true;
 }
 
@@ -87,6 +91,10 @@ void MsgMgrImpl::stop()
     if (!m_running) {
         assert(!"Already stopped.");
         return;
+    }
+
+    for (auto& f : m_filters) {
+        f->stop();
     }
 
     if (m_socket) {

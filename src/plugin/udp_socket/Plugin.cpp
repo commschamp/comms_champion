@@ -113,8 +113,6 @@ void Plugin::reconfigureImpl(const QVariantMap& config)
         auto propName = broadcastBroadcastNameVar.value<QString>();
         m_socket->setBroadcastPropName(propName);
     }
-
-    m_socket->apply();
 }
 
 void Plugin::createSocketIfNeeded()

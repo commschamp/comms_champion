@@ -468,13 +468,13 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     bool hasApplied = pluginMgr.hasAppliedPlugins();
     if (hasApplied) {
         msgMgr.stop();
+        msgMgr.clear();
         emit sigActivityStateChanged((int)ActivityState::Inactive);
     }
 
     bool needsReload = pluginMgr.needsReload(plugins);
     if (needsReload) {
         assert(hasApplied);
-        msgMgr.clear();
         pluginMgr.unloadApplied();
         emit sigActivityStateChanged((int)ActivityState::Clear);
     }

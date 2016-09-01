@@ -71,14 +71,25 @@ Socket::~Socket()
     m_socket.blockSignals(true);
 }
 
-void Socket::apply()
+bool Socket::startImpl()
 {
-    if (!m_running) {
-        return;
+    if ((!m_host.isEmpty()) && (m_port == 0)) {
+        static const QString Error =
+            "Remote port must be greater than 0.";
+        reportError(Error);
+        return false;
     }
 
-    m_socket.close();
-    m_broadcastSocket.close();
+    if ((m_host.isEmpty()) && (m_localPort == 0)) {
+        static const QString Error =
+            "If no remote host specified, provide a local port information.";
+        reportError(Error);
+        return false;
+    }
+
+    assert(!m_socket.isOpen());
+    assert(!m_broadcastSocket.isOpen());
+    m_running = true;
 
     do {
         if (m_localPort == 0) {
@@ -105,26 +116,6 @@ void Socket::apply()
             reportError("Failed to connect UDP socket to " + QString("%1:%2").arg(m_host).arg(m_port));
         }
     } while (false);
-}
-
-bool Socket::startImpl()
-{
-    if ((!m_host.isEmpty()) && (m_port == 0)) {
-        static const QString Error =
-            "Remote port must be greater than 0.";
-        reportError(Error);
-        return false;
-    }
-
-    if ((m_host.isEmpty()) && (m_localPort == 0)) {
-        static const QString Error =
-            "If no remote host specified, provide a local port information.";
-        reportError(Error);
-        return false;
-    }
-
-    m_running = true;
-    apply();
     return true;
 }
 

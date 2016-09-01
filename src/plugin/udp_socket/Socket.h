@@ -92,8 +92,6 @@ public:
         return m_broadcastPropName;
     }
 
-    void apply();
-
 protected:
     virtual bool startImpl() override;
     virtual void stopImpl() override;

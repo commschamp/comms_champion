@@ -179,26 +179,36 @@ void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
             continue;
         }
 
+        QList <DataInfoPtr> data;
+        data.append(std::move(dataInfoPtr));
         for (auto& filter : m_filters) {
-            dataInfoPtr = filter->sendData(dataInfoPtr);
-            if (!dataInfoPtr) {
+            if (!data.isEmpty()) {
                 break;
             }
+
+            QList <DataInfoPtr> dataTmp;
+            for (auto& d : data) {
+                dataTmp.append(filter->sendData(d));
+            }
+
+            data.swap(dataTmp);
         }
 
-        if (!dataInfoPtr) {
+        if (data.isEmpty()) {
             continue;
         }
 
-        m_socket->sendData(dataInfoPtr);
+        for (auto& d : data) {
+            m_socket->sendData(d);
 
-        if (!dataInfoPtr->m_extraProperties.isEmpty()) {
-            auto map = property::message::ExtraInfo().getFrom(*msgPtr);
-            for (auto& key : dataInfoPtr->m_extraProperties.keys()) {
-                map.insert(key, dataInfoPtr->m_extraProperties.value(key));
+            if (!d->m_extraProperties.isEmpty()) {
+                auto map = property::message::ExtraInfo().getFrom(*msgPtr);
+                for (auto& key : d->m_extraProperties.keys()) {
+                    map.insert(key, d->m_extraProperties.value(key));
+                }
+                property::message::ExtraInfo().setTo(std::move(map), *msgPtr);
+                m_protocol->updateMessage(*msgPtr);
             }
-            property::message::ExtraInfo().setTo(std::move(map), *msgPtr);
-            m_protocol->updateMessage(*msgPtr);
         }
     }
 }
@@ -266,23 +276,39 @@ void MsgMgrImpl::addFilter(FilterPtr filter)
 
     auto filterIdx = m_filters.size();
     filter->setDataToSendCallback(
-        [this, filterIdx](DataInfoPtr data)
+        [this, filterIdx](DataInfoPtr dataPtr)
         {
-            if (!data) {
+            if (!dataPtr) {
                 return;
             }
+
             assert(filterIdx < m_filters.size());
             auto revIdx = m_filters.size() - filterIdx;
+
+            QList<DataInfoPtr> data;
+            data.append(std::move(dataPtr));
             for (auto iter = m_filters.rbegin() + revIdx; iter != m_filters.rend(); ++iter) {
-                auto nextFilter = *iter;
-                data = nextFilter->sendData(data);
-                if (!data) {
+
+                if (!data.isEmpty()) {
                     break;
                 }
+
+                auto nextFilter = *iter;
+
+                QList<DataInfoPtr> dataTmp;
+                for (auto& d : data) {
+                    dataTmp.append(nextFilter->sendData(d));
+                }
+
+                data.swap(dataTmp);
             }
 
-            if (data && m_socket) {
-                m_socket->sendData(data);
+            if (!m_socket) {
+                return;
+            }
+
+            for (auto& d : data) {
+                m_socket->sendData(std::move(d));
             }
         });
 
@@ -301,16 +327,36 @@ void MsgMgrImpl::socketDataReceived(DataInfoPtr dataInfoPtr)
         return;
     }
 
+    QList<DataInfoPtr> data;
+    data.append(std::move(dataInfoPtr));
     for (auto filt : m_filters) {
         assert(filt);
-        dataInfoPtr = filt->recvData(dataInfoPtr);
-        if (!dataInfoPtr) {
+
+        if (data.isEmpty()) {
             return;
         }
+
+        QList<DataInfoPtr> dataTmp;
+        for (auto& d : data) {
+            dataTmp.append(filt->recvData(d));
+        }
+
+        data.swap(dataTmp);
     }
 
-    assert(dataInfoPtr);
-    auto msgsList = m_protocol->read(*dataInfoPtr);
+    if (data.isEmpty()) {
+        return;
+    }
+
+    MessagesList msgsList;
+    while (!data.isEmpty()) {
+        auto nextDataPtr = data.front();
+        data.pop_front();
+
+        auto msgs = m_protocol->read(*nextDataPtr);
+        msgsList.insert(msgsList.end(), msgs.begin(), msgs.end());
+    }
+
     if (msgsList.empty()) {
         return;
     }

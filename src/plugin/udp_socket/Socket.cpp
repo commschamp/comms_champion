@@ -16,6 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <cassert>
+#include <iostream>
 
 #include "comms/CompileControl.h"
 
@@ -206,7 +207,7 @@ void Socket::readFromBroadcastSocket()
 void Socket::socketErrorOccurred(QAbstractSocket::SocketError err)
 {
     static_cast<void>(err);
-    reportError(m_socket.errorString());
+    std::cout << "ERROR: UDP Socket: " << m_socket.errorString().toStdString() << std::endl;
 }
 
 void Socket::readData(QUdpSocket& socket)
@@ -235,10 +236,11 @@ void Socket::readData(QUdpSocket& socket)
         dataPtr->m_extraProperties.insert(ToPropName, to);
         reportDataReceived(std::move(dataPtr));
 
-        if (!m_socket.isOpen()) {
+        if (m_socket.state() != QUdpSocket::ConnectedState) {
             m_socket.connectToHost(senderAddress, senderPort);
             m_socket.waitForConnected();
             assert(m_socket.isOpen());
+            assert(m_socket.state() == QUdpSocket::ConnectedState);
         }
     }
 }

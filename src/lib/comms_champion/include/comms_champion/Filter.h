@@ -27,6 +27,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
+#include <QtCore/QList>
 CC_ENABLE_WARNINGS()
 
 #include "DataInfo.h"
@@ -45,9 +46,9 @@ public:
 
     void stop();
 
-    DataInfoPtr recvData(DataInfoPtr dataPtr);
+    QList<DataInfoPtr> recvData(DataInfoPtr dataPtr);
 
-    DataInfoPtr sendData(DataInfoPtr dataPtr);
+    QList<DataInfoPtr> sendData(DataInfoPtr dataPtr);
 
     typedef std::function<void (DataInfoPtr)> DataToSendCallback;
     template <typename TFunc>
@@ -66,8 +67,8 @@ public:
 protected:
     virtual bool startImpl();
     virtual void stopImpl();
-    virtual DataInfoPtr recvDataImpl(DataInfoPtr dataPtr) = 0;
-    virtual DataInfoPtr sendDataImpl(DataInfoPtr dataPtr) = 0;
+    virtual QList<DataInfoPtr> recvDataImpl(DataInfoPtr dataPtr) = 0;
+    virtual QList<DataInfoPtr> sendDataImpl(DataInfoPtr dataPtr) = 0;
 
     void reportDataToSend(DataInfoPtr dataPtr);
 

@@ -33,12 +33,12 @@ void Filter::stop()
     stopImpl();
 }
 
-DataInfoPtr Filter::recvData(DataInfoPtr dataPtr)
+QList<DataInfoPtr> Filter::recvData(DataInfoPtr dataPtr)
 {
     return recvDataImpl(std::move(dataPtr));
 }
 
-DataInfoPtr Filter::sendData(DataInfoPtr dataPtr)
+QList<DataInfoPtr> Filter::sendData(DataInfoPtr dataPtr)
 {
     return sendDataImpl(std::move(dataPtr));
 }

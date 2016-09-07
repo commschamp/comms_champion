@@ -182,7 +182,7 @@ void MsgMgrImpl::sendMsgs(MessagesList&& msgs)
         QList <DataInfoPtr> data;
         data.append(std::move(dataInfoPtr));
         for (auto& filter : m_filters) {
-            if (!data.isEmpty()) {
+            if (data.isEmpty()) {
                 break;
             }
 

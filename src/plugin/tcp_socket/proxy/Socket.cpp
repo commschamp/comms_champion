@@ -179,7 +179,9 @@ void Socket::clientConnectionTerminated()
         return;
     }
 
-    removeConnection(iter);
+    assert(iter->second);
+    iter->second->blockSignals(true);
+    m_sockets.erase(iter);
 }
 
 void Socket::readFromClientSocket()
@@ -291,6 +293,9 @@ void Socket::removeConnection(SocketsList::iterator iter)
     assert(!iter->second);
 
     m_sockets.erase(iter);
+
+    clientSocket->blockSignals(true);
+    connectionSocket->blockSignals(true);
 
     if (clientSocket->state() == QTcpSocket::ConnectedState) {
         clientSocket->disconnectFromHost();

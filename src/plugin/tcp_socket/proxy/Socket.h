@@ -113,8 +113,8 @@ private:
     QString m_remoteHost;
     PortType m_remotePort = DefaultPort;
 
-    SocketsList m_sockets;
     QTcpServer m_server;
+    SocketsList m_sockets;
 };
 
 }  // namespace proxy

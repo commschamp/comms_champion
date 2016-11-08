@@ -136,9 +136,6 @@ void Socket::newConnection()
     auto *newConnSocket = m_server.nextPendingConnection();
     connect(
         newConnSocket, SIGNAL(disconnected()),
-        newConnSocket, SLOT(deleteLater()));
-    connect(
-        newConnSocket, SIGNAL(disconnected()),
         this, SLOT(clientConnectionTerminated()));
     connect(
         newConnSocket, SIGNAL(error(QAbstractSocket::SocketError)),
@@ -180,8 +177,10 @@ void Socket::clientConnectionTerminated()
     }
 
     assert(iter->second);
+    socket->blockSignals(true);
     iter->second->blockSignals(true);
     m_sockets.erase(iter);
+    socket->deleteLater();
 }
 
 void Socket::readFromClientSocket()
@@ -246,7 +245,13 @@ void Socket::connectionSocketDisconnected()
         return;
     }
 
-    removeConnection(iter);
+    assert(iter->first);
+    iter->first->blockSignals(true);
+    delete iter->first;
+
+    assert(iter->second);
+    iter->second.release()->deleteLater();
+    m_sockets.erase(iter);
 }
 
 void Socket::readFromConnectionSocket()

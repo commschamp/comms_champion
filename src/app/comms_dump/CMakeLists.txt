@@ -1,7 +1,3 @@
-if (NOT CC_COMMS_DUMP)
-    return ()
-endif ()
-
 add_subdirectory (src)
 
 if (UNIX)

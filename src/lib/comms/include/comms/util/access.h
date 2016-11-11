@@ -565,6 +565,7 @@ void writeBig(T value, TIter& iter)
 /// @tparam T Type to read.
 /// @tparam TSize Number of bytes to read.
 /// @param[in, out] iter Input iterator.
+/// @return Read value
 /// @pre TSize <= sizeof(T).
 /// @pre The iterator must be valid and can be successfully dereferenced
 ///      and incremented at least TSize times.
@@ -579,6 +580,7 @@ T readBig(TIter& iter)
 ///     endian notation.
 /// @tparam T Type to read.
 /// @param[in, out] iter Input iterator.
+/// @return Read value
 /// @pre The iterator must be valid and can be successfully dereferenced
 ///      and incremented at least sizeof(T) times.
 /// @post The iterator is advanced.
@@ -623,6 +625,7 @@ void writeLittle(T value, TIter& iter)
 /// @tparam T Type to read.
 /// @tparam TSize Number of bytes to read.
 /// @param[in, out] iter Input iterator.
+/// @return Read value
 /// @pre TSize <= sizeof(T).
 /// @pre The iterator must be valid and can be successfully dereferenced
 ///      and incremented at least TSize times.
@@ -637,6 +640,7 @@ T readLittle(TIter& iter)
 ///     endian notation.
 /// @tparam T Type to read.
 /// @param[in, out] iter Input iterator.
+/// @return Read value
 /// @pre The iterator must be valid and can be successfully dereferenced
 ///      and incremented at least sizeof(T) times.
 /// @post The iterator is advanced.

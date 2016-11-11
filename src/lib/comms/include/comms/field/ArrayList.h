@@ -208,6 +208,7 @@ public:
     /// @details The collection is valid if all the elements are valid. In case
     ///     comms::option::ContentsValidator option is used, the validator,
     ///     it provides, is invoked IN ADDITION to the validation of the elements.
+    /// @return true in case the field's value is valid, false otherwise.
     bool valid() const
     {
         return field_.valid();
@@ -229,6 +230,7 @@ public:
     ///     invocation.
     /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
     ///     used this function has no effect.
+    /// @param[in] count Number of elements to read during following read operation.
     void forceReadElemCount(std::size_t count)
     {
         field_.forceReadElemCount(count);
@@ -248,6 +250,10 @@ private:
 };
 
 /// @brief Equivalence comparison operator.
+/// @details Performs lexicographical compare of two array fields.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case first field is less than second field.
 /// @related ArrayList
 template <typename... TArgs>
 bool operator<(
@@ -260,6 +266,9 @@ bool operator<(
 }
 
 /// @brief Non-equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are NOT equal, false otherwise.
 /// @related ArrayList
 template <typename... TArgs>
 bool operator!=(
@@ -270,6 +279,9 @@ bool operator!=(
 }
 
 /// @brief Equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are equal, false otherwise.
 /// @related ArrayList
 template <typename... TArgs>
 bool operator==(
@@ -299,6 +311,7 @@ struct IsArrayList<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::ArrayList.
 /// @tparam T Any type.
+/// @return true in case provided type is any variant of @ref ArrayList
 /// @related comms::field::ArrayList
 template <typename T>
 constexpr bool isArrayList()

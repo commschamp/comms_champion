@@ -93,11 +93,13 @@ public:
     /// @brief Get an access to the fields of the message.
     /// @details The function doesn't exist if comms::option::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
+    /// @return Reference to the fields of the message.
     AllFields& fields();
 
     /// @brief Get an access to the fields of the message.
     /// @details The function doesn't exist if comms::option::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
+    /// @return Const reference to the fields of the message.
     const AllFields& fields() const;
 
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY

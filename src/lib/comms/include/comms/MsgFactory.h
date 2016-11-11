@@ -136,7 +136,8 @@ public:
     }
 
     /// @brief Get number of message types from @ref AllMessages, that have the specified ID.
-    /// @param id Id of the message.
+    /// @param id ID of the message.
+    /// @return Number of message classes that report same ID.
     std::size_t msgCount(MsgIdParamType id) const
     {
         auto range =

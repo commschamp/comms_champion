@@ -129,6 +129,7 @@ public:
     /// @brief Constructor.
     /// @details Forwards all the parameters to the constructor of the embedded
     ///     @ref NextLayer object.
+    /// @param args Arguments to be passed to the constructor of the next layer
     template <typename... TArgs>
     explicit ProtocolLayerBase(TArgs&&... args)
       : nextLayer_(std::forward<TArgs>(args)...)

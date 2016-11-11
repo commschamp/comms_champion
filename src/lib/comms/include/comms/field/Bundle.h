@@ -112,18 +112,21 @@ public:
     /// @brief Get length required to serialise bundled fields.
     /// @details Summarises all the results returned by the call to length() for
     ///     every field in the bundle.
+    /// @return Number of bytes it will take to serialise the field value.
     constexpr std::size_t length() const
     {
         return field_.length();
     }
 
     /// @brief Get minimal length that is required to serialise all bundled fields.
+    /// @return Minimal number of bytes required serialise the field value.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise all bundled fields.
+    /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
@@ -163,6 +166,9 @@ private:
 };
 
 /// @brief Equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are equal, false otherwise.
 /// @related Bundle
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator==(
@@ -173,6 +179,9 @@ bool operator==(
 }
 
 /// @brief Non-equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are NOT equal, false otherwise.
 /// @related Bundle
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator!=(
@@ -202,6 +211,7 @@ struct IsBundle<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::Bundle.
 /// @tparam T Any type.
+/// @return true in case provided type is any variant of @ref Bundle
 /// @related comms::field::Bundle
 template <typename T>
 constexpr bool isBundle()

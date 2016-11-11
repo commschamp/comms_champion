@@ -116,6 +116,7 @@ public:
     /// @details Registers new assertion failure behaviour. It forwards
     ///          all the provided parameters to the constructor of embedded
     ///          assertion object of type TAssert.
+    /// @param args Arguments to pass to the assertion class constructor.
     template<typename... TParams>
     EnableAssert(TParams&&... args)
         : assert_(std::forward<TParams>(args)...),

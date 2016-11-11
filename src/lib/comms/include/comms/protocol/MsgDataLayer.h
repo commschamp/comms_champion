@@ -196,6 +196,7 @@ public:
     ///     pointer is not nullptr, then it is used to provide information of
     ///     minimal number of bytes that need to be provided before message could
     ///     be successfully read.
+    /// @return Status of the read operation.
     template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
     static ErrorStatus readFieldsCached(
         TAllFields& allFields,

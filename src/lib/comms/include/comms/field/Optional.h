@@ -141,14 +141,14 @@ public:
     }
 
     /// @brief Get minimal length that is required to serialise field of this type.
-    /// @details Same as Field::minLength()
+    /// @return Same as Field::minLength()
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise field of this type.
-    /// @details Same as Field::maxLength()
+    /// @return Same as Field::maxLength()
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
@@ -209,6 +209,9 @@ private:
 };
 
 /// @brief Equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return Result of the equality comparison of the contained fields.
 /// @related Optional
 template <typename TField, typename... TOptions>
 bool operator==(
@@ -219,6 +222,9 @@ bool operator==(
 }
 
 /// @brief Non-equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return Result of the non-equality comparison of the contained fields.
 /// @related Optional
 template <typename TField, typename... TOptions>
 bool operator!=(
@@ -229,6 +235,9 @@ bool operator!=(
 }
 
 /// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return Result of the equivalence comparison of the contained fields.
 /// @related Optional
 template <typename TField, typename... TOptions>
 bool operator<(
@@ -258,6 +267,7 @@ struct IsOptional<comms::field::Optional<TField, TOptions...> >
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::Optional.
 /// @tparam T Any type.
+/// @return true in case provided type is any variant of @ref Optional
 /// @related comms::field::Optional
 template <typename T>
 constexpr bool isOptional()

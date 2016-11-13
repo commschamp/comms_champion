@@ -39,23 +39,14 @@ class CC_API Socket
 {
 
 public:
-    Socket() = default;
-    virtual ~Socket() {}
+    Socket();
+    virtual ~Socket();
 
-    bool start()
-    {
-        return startImpl();
-    }
+    bool start();
 
-    void stop()
-    {
-        stopImpl();
-    }
+    void stop();
 
-    void sendData(DataInfoPtr dataPtr)
-    {
-        sendDataImpl(std::move(dataPtr));
-    }
+    void sendData(DataInfoPtr dataPtr);
 
     typedef std::function<void (DataInfoPtr)> DataReceivedCallback;
     template <typename TFunc>
@@ -74,23 +65,12 @@ public:
 
 protected:
 
-    virtual bool startImpl() = 0;
-    virtual void stopImpl() = 0;
+    virtual bool startImpl();
+    virtual void stopImpl();
     virtual void sendDataImpl(DataInfoPtr dataPtr) = 0;
 
-    void reportDataReceived(DataInfoPtr dataPtr)
-    {
-        if (m_dataReceivedCallback) {
-            m_dataReceivedCallback(std::move(dataPtr));
-        }
-    }
-
-    void reportError(const QString& msg)
-    {
-        if (m_errorReportCallback) {
-            m_errorReportCallback(msg);
-        }
-    }
+    void reportDataReceived(DataInfoPtr dataPtr);
+    void reportError(const QString& msg);
 
 private:
     DataReceivedCallback m_dataReceivedCallback;

@@ -120,6 +120,7 @@ public:
     BitmaskValue() = default;
 
     /// @brief Constructor
+    /// @param[in] val Value of the field to initialise it with.
     explicit BitmaskValue(const ValueType& val)
        : intValue_(val)
     {
@@ -135,30 +136,35 @@ public:
     BitmaskValue& operator=(const BitmaskValue&) = default;
 
     /// @brief Get access to underlying mask value storage.
+    /// @return Const reference to the underlying stored value.
     const ValueType& value() const
     {
         return intValue_.value();
     }
 
     /// @brief Get access to underlying mask value storage.
+    /// @return Reference to the underlying stored value.
     ValueType& value()
     {
         return intValue_.value();
     }
 
     /// @brief Get length required to serialise the current field value.
+    /// @return Number of bytes it will take to serialise the field value.
     constexpr std::size_t length() const
     {
         return intValue_.length();
     }
 
     /// @brief Get maximal length that is required to serialise field of this type.
+    /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
         return IntValueField::maxLength();
     }
 
     /// @brief Get minimal length that is required to serialise field of this type.
+    /// @return Minimal number of bytes required serialise the field value.
     static constexpr std::size_t minLength()
     {
         return IntValueField::minLength();
@@ -251,6 +257,9 @@ private:
 // Implementation
 
 /// @brief Equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are equal, false otherwise.
 /// @related BitmaskValue
 template <typename... TArgs>
 bool operator==(
@@ -261,6 +270,9 @@ bool operator==(
 }
 
 /// @brief Non-equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are NOT equal, false otherwise.
 /// @related BitmaskValue
 template <typename... TArgs>
 bool operator!=(
@@ -271,6 +283,9 @@ bool operator!=(
 }
 
 /// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case value of the first field is lower than than the value of the second.
 /// @related BitmaskValue
 template <typename... TArgs>
 bool operator<(
@@ -300,6 +315,7 @@ struct IsBitmaskValue<comms::field::BitmaskValue<TFieldBase, TOptions...> >
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::BitmaskValue.
 /// @tparam T Any type.
+/// @return true in case provided type is any variant of @ref BitmaskValue
 /// @related comms::field::BitmaskValue
 template <typename T>
 constexpr bool isBitmaskValue()

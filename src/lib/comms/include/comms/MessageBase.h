@@ -59,12 +59,20 @@ namespace comms
 ///         readImpl(), writeImpl(), validImpl(), lengthImpl() virtual functions
 ///         declared as pure in comms::Message interface. The option also
 ///         provides an accessor functions to the all the field objects: fields().
-///     @li comms::option::NoFieldsImpl - This option is a an alias to
+///     @li comms::option::NoFieldsImpl - This option is an alias to
 ///         comms::option::FieldsImpl<std::tuple<> >, which provides implementation
 ///         readImpl(), writeImpl(), validImpl(), lengthImpl() virtual functions
 ///         when message contains no fields, i.e. readImpl() and writeImple() will
 ///         always report success doing nothing, validImpl() will always return
 ///         true, and lengthImpl() will always return 0.
+///     @li comms::option::NoDefaultFieldsReadImpl - Quite often the actual
+///         message class that inherits from comms::MessageBase implements its
+///         own version of readImpl() member function. In this case the default
+///         implementation is not needed. Usage of
+///         comms::option::NoDefaultFieldsReadImpl option will suppress
+///         generation of the default readImpl() member function. It may be
+///         used to reduce compilation time and decrease the final binary code
+///         size.
 /// @extends Message
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
@@ -85,11 +93,13 @@ public:
     /// @brief Get an access to the fields of the message.
     /// @details The function doesn't exist if comms::option::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
+    /// @return Reference to the fields of the message.
     AllFields& fields();
 
     /// @brief Get an access to the fields of the message.
     /// @details The function doesn't exist if comms::option::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
+    /// @return Const reference to the fields of the message.
     const AllFields& fields() const;
 
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
@@ -171,8 +181,10 @@ protected:
     virtual void dispatchImpl(Handler& handler) override;
 
     /// @brief Implementation of read functionality.
-    /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase
+    /// @details This function exists only if comms::option::FieldsImpl (or
+    ///     comms::option::NoFieldsImpl) option WAS provided and
+    ///     comms::option::NoDefaultFieldsReadImpl option WASN'T provided
+    ///     to comms::MessageBase
     ///     as well as comms::option::ReadIterator option was provided to
     ///     comms::Message class when specifying interface.
     ///     To make this function works, every field class must provide "read"

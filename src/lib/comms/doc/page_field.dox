@@ -342,7 +342,7 @@
 /// when a message contains sequence (see @ref sec_field_tutorial_array_list) 
 /// of such bundles/structs. The COMMS library provides comms::field::Bundle
 /// field for this purpose. It is quite similar to comms::field::Bitfield described
-/// earlier, but it doesn't receive common base class and every member field
+/// earlier. The difference is that every member field
 /// doesn't specify any length in bits, just bytes. For example:
 /// @code
 /// typedef comms::Field<comms::option::BigEndian> MyFieldBase;
@@ -356,6 +356,7 @@
 /// }
 ///
 /// typedef comms::field::Bundle<
+///     MyFieldBase,
 ///     std::tuple<
 ///         comms::field::IntValue<MyFieldBase, std::int16_t> // 2 bytes int value
 ///         comms::field::EnumValue<MyFieldBase, SomeEnum>, // 1 byte enum value
@@ -381,7 +382,7 @@
 /// assert(outData.size() == 4); // Expected 2 bytes for IntValue, 1 byte for EnumValue and 1 byte for BitmaskValue
 /// @endcode 
 /// The default behaviour of comms::field::Bundle may be extended with options.
-/// At this moment only comms::option::ContentsValidator option is supported.
+/// Please refer to the class documentation for the list of supported options.
 /// See @ref sec_field_tutorial_common_options_validation for details.
 ///
 /// @section sec_field_tutorial_array_list Array List Fields

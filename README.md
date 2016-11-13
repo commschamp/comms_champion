@@ -57,8 +57,7 @@ Core ideas and architecture of the **COMMS** library is described in
 [Guide to Implementing Communication Protocols in C++](https://www.gitbook.com/book/arobenko/comms-protocols-cpp/details) free e-book.
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
-downloaded as [zip archive](https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/doc_comms.zip)
-or browsed online [here](https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/index.html).
+downloaded as [zip archive](https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/doc_comms.zip).
 
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 

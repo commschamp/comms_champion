@@ -443,8 +443,8 @@ struct ForField<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
     typedef comms_champion::property::field::Bitfield Type;
 };
 
-template <typename TMembers, typename... TOptions>
-struct ForField<comms::field::Bundle<TMembers, TOptions...> >
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+struct ForField<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
 {
     typedef comms_champion::property::field::Bundle Type;
 };
@@ -461,8 +461,8 @@ struct ForField<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >
     typedef comms_champion::property::field::ArrayList Type;
 };
 
-template <typename TField>
-struct ForField<comms::field::Optional<TField> >
+template <typename TField, typename... TOptions>
+struct ForField<comms::field::Optional<TField, TOptions...> >
 {
     typedef comms_champion::property::field::Optional Type;
 };

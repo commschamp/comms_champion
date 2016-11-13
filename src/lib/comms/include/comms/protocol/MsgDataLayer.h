@@ -31,6 +31,49 @@ namespace comms
 namespace protocol
 {
 
+namespace details
+{
+
+template <typename TMessage, bool THasDefined>
+struct ReadIteratorFrom;
+
+template <typename TMessage>
+struct ReadIteratorFrom<TMessage, true>
+{
+    typedef typename TMessage::ReadIterator Type;
+};
+
+template <typename TMessage>
+struct ReadIteratorFrom<TMessage, false>
+{
+    typedef const std::uint8_t* Type;
+};
+
+template <typename TMessage>
+using ReadIteratorFromT =
+    typename ReadIteratorFrom<TMessage, TMessage::InterfaceOptions::HasReadIterator>::Type;
+
+template <typename TMessage, bool THasDefined>
+struct WriteIteratorFrom;
+
+template <typename TMessage>
+struct WriteIteratorFrom<TMessage, true>
+{
+    typedef typename TMessage::WriteIterator Type;
+};
+
+template <typename TMessage>
+struct WriteIteratorFrom<TMessage, false>
+{
+    typedef std::uint8_t Type;
+};
+
+template <typename TMessage>
+using WriteIteratorFromT =
+    typename WriteIteratorFrom<TMessage, TMessage::InterfaceOptions::HasWriteIterator>::Type;
+
+}  // namespace details
+
 /// @brief Message data layer.
 /// @details Must always be the last layer in protocol stack.
 /// @tparam TMessage Common message interface class, must be the common base
@@ -63,20 +106,12 @@ public:
     typedef TMessage Message;
 
     /// @brief Type of iterator used for reading.
-    /// @details Same as comms::Message::ReadIterator if such exists, void otherwise.
-    typedef typename std::conditional<
-            Message::InterfaceOptions::HasReadIterator,
-            typename TMessage::ReadIterator,
-            void
-        >::type ReadIterator;
+    /// @details Same as comms::Message::ReadIterator if such exists.
+    typedef details::ReadIteratorFromT<Message> ReadIterator;
 
     /// @brief Type of iterator used for writing.
-    /// @details Same as comms::Message::WriteIterator if such exists, void otherwise.
-    typedef typename std::conditional<
-            Message::InterfaceOptions::HasWriteIterator,
-            typename TMessage::WriteIterator,
-            void
-        >::type WriteIterator;
+    /// @details Same as comms::Message::WriteIterator if such exists.
+    typedef details::WriteIteratorFromT<Message> WriteIterator;
 
     /// @brief Static constant indicating amount of transport layers used.
     static const std::size_t NumOfLayers = 1;
@@ -121,6 +156,12 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
+        static_assert(Message::InterfaceOptions::HasReadIterator,
+            "Message interface must support read operation");
+
+        static_assert(Message::InterfaceOptions::HasLength,
+            "Message interface class is expected to provide length() interface function.");
+
         GASSERT(msgPtr);
         auto result = msgPtr->read(iter, size);
         if ((result == ErrorStatus::NotEnoughData) &&
@@ -155,6 +196,7 @@ public:
     ///     pointer is not nullptr, then it is used to provide information of
     ///     minimal number of bytes that need to be provided before message could
     ///     be successfully read.
+    /// @return Status of the read operation.
     template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
     static ErrorStatus readFieldsCached(
         TAllFields& allFields,
@@ -163,6 +205,9 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
+        static_assert(Message::InterfaceOptions::HasReadIterator,
+            "Message interface must support read operation");
+
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be tuple.");
 
@@ -191,6 +236,9 @@ public:
         WriteIterator& iter,
         std::size_t size)
     {
+        static_assert(Message::InterfaceOptions::HasWriteIterator,
+            "Message interface must support write operation");
+
         return msg.write(iter, size);
     }
 
@@ -217,6 +265,9 @@ public:
         WriteIterator& iter,
         std::size_t size)
     {
+        static_assert(Message::InterfaceOptions::HasWriteIterator,
+            "Message interface must support write operation");
+
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be tuple.");
 

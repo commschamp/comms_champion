@@ -26,19 +26,10 @@ In addition to built-in options/variables of CMake, such as **CMAKE_BUILD_TYPE**
 - **CC_COMMS_LIB_ONLY**=ON/OFF - Exclude compilation of all the tools, install only
 **COMMS** Library. Default value is **OFF**, i.e. other tools get built.
 
-- **CC_COMMS_UNIT_TESTS**=ON/OFF - Include/Exclude unittests of the **COMMS** library.
-Default value is **OFF**
-
-- **CC_COMMS_CHAMPION**=ON/OFF - Enable/Disable build of **comms_champion** application. Default value
-is **ON**.
-
-- **CC_COMMS_DUMP**=ON/OFF - Enable/Disable build of **comms_dump** application. Default value
-is **ON**.
-
-- **CC_COMMS_CHAMPION_DEMO**=ON/OFF - Enable/Disable build of internal "Demo" protocol
-to demonstrate abilities of CommsChampion tool. Default value is **ON**.
-
 - **CC_STATIC_RUNTIME**=ON/OFF - Enable/Disable static link to C++ runtime. Default value is **OFF**
+
+- **CC_INSTALL_DIR**=dir - Custom installation directory. If not provided defaults to
+**install** subdirectory of the directory chosen for build (**${CMAKE_BINARY_DIR}/install**).
 
 - **CC_QT_DIR**=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
 differs from system default installation path.
@@ -56,21 +47,18 @@ differs from system default installation path.
 The example above will skip build of any tool available, it will just install 
 the **COMMS** library headers in **install/include** subdirectory.
 
-## Include Unit Tests to Build Example
+## Custom Install Directory Example
 
 >$> cd /path/to/comms_champion/sources
 
 >$> mkdir build && cd build
 
->$> cmake -DCMAKE_BUILD_TYPE=Release -DCC_COMMS_UNIT_TESTS=ON ..
+>$> cmake -DCMAKE_BUILD_TYPE=Release -DCC_INSTALL_DIR=/some/custom/dir ..
 
->$> make install
+>$> make install 
 
-The example above builds and installs all the tools. 
-
-The built **CommsChampion** tool binary will reside in
-**install/bin** subdirectory and available
-plugins for it will reside in **install/plugin** subdirectory.
+The example above will install all the produced files into the provided sustom
+install directory (**/some/custom/dir**).
 
 ## Building Documentation
 The documentation is not created during normal build process. The documentation of

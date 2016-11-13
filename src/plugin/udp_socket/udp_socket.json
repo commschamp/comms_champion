@@ -1,0 +1,7 @@
+{
+    "name" : "UDP/IP Socket",
+    "desc" : [
+        "I/O socket that allows communication via UDP/IP connection."
+    ],
+    "type" : "socket"
+}

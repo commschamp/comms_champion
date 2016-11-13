@@ -27,6 +27,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
+#include <QtCore/QList>
 CC_ENABLE_WARNINGS()
 
 #include "DataInfo.h"
@@ -38,18 +39,16 @@ namespace comms_champion
 class CC_API Filter : public QObject
 {
 public:
-    Filter() = default;
-    virtual ~Filter() {}
+    Filter();
+    virtual ~Filter();
 
-    DataInfoPtr recvData(DataInfoPtr dataPtr)
-    {
-        return recvDataImpl(std::move(dataPtr));
-    }
+    bool start();
 
-    DataInfoPtr sendData(DataInfoPtr dataPtr)
-    {
-        return sendDataImpl(std::move(dataPtr));
-    }
+    void stop();
+
+    QList<DataInfoPtr> recvData(DataInfoPtr dataPtr);
+
+    QList<DataInfoPtr> sendData(DataInfoPtr dataPtr);
 
     typedef std::function<void (DataInfoPtr)> DataToSendCallback;
     template <typename TFunc>
@@ -66,22 +65,14 @@ public:
     }
 
 protected:
-    virtual DataInfoPtr recvDataImpl(DataInfoPtr dataPtr) = 0;
-    virtual DataInfoPtr sendDataImpl(DataInfoPtr dataPtr) = 0;
+    virtual bool startImpl();
+    virtual void stopImpl();
+    virtual QList<DataInfoPtr> recvDataImpl(DataInfoPtr dataPtr) = 0;
+    virtual QList<DataInfoPtr> sendDataImpl(DataInfoPtr dataPtr) = 0;
 
-    void reportDataToSend(DataInfoPtr dataPtr)
-    {
-        if (m_dataToSendCallback) {
-            m_dataToSendCallback(std::move(dataPtr));
-        }
-    }
+    void reportDataToSend(DataInfoPtr dataPtr);
 
-    void reportError(const QString& msg)
-    {
-        if (m_errorReportCallback) {
-            m_errorReportCallback(msg);
-        }
-    }
+    void reportError(const QString& msg);
 
 private:
     DataToSendCallback m_dataToSendCallback;

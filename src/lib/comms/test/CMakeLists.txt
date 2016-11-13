@@ -1,7 +1,3 @@
-if (NOT CC_COMMS_UNIT_TESTS)
-    return ()
-endif ()
-
 # In order to run the unittests the following conditions must be true:
 #   - find_package (CxxTest) was exectued, CXXTEST_FOUND is defined and has true value.
 

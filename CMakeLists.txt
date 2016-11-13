@@ -2,10 +2,6 @@ cmake_minimum_required (VERSION 2.8.11)
 project ("comms_champion")
 
 option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
-option (CC_COMMS_UNIT_TESTS "Build unittests of COMMS library" OFF)
-option (CC_COMMS_CHAMPION "Build comms_champion application" ON)
-option (CC_COMMS_DUMP "Build comms_dump application" ON)
-option (CC_COMMS_CHAMPION_DEMO "Build demo protocol plugin" ON)
 option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 
 set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/external")
@@ -18,14 +14,12 @@ if (GIT_FOUND)
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 endif () 
 
-if (CC_COMMS_UNIT_TESTS)
-    set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
-    set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
-    
-    find_package (CxxTest)
-    if (CXXTEST_FOUND)
-        enable_testing ()
-    endif ()
+set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
+set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
+
+find_package (CxxTest)
+if (CXXTEST_FOUND)
+    enable_testing ()
 endif ()
 
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -57,6 +51,14 @@ elseif (MSVC)
     endif ()
 endif ()
 
+if ((UNIX) AND (NOT CC_NO_CCACHE))
+    find_program(CCACHE_FOUND ccache)
+    if(CCACHE_FOUND)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+    endif(CCACHE_FOUND)
+endif ()    
+
 set (COMMS_CHAMPION_LIB_NAME "comms_champion")
 set (COMMS_CHAMPION_LIB_TGT "${COMMS_CHAMPION_LIB_NAME}.lib")
 
@@ -67,6 +69,10 @@ if (NOT "${CC_QT_DIR}" STREQUAL "")
 endif ()
 
 set (INSTALL_DIR ${CMAKE_BINARY_DIR}/install)
+if (NOT "${CC_INSTALL_DIR}" STREQUAL "")
+    set (INSTALL_DIR "${CC_INSTALL_DIR}")
+endif ()
+
 set (LIB_INSTALL_DIR ${INSTALL_DIR}/lib)
 set (BIN_INSTALL_DIR ${INSTALL_DIR}/bin)
 set (INC_INSTALL_DIR ${INSTALL_DIR}/include)

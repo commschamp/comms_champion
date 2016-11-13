@@ -67,6 +67,7 @@ struct ListsFields
         comms::field::ArrayList<
             TFieldBase,
             comms::field::Bundle<
+                TFieldBase,
                 std::tuple<
                     comms::field::IntValue<
                         TFieldBase,

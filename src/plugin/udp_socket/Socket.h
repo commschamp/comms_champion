@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -22,8 +22,7 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
-#include <QtNetwork/QTcpServer>
-#include <QtNetwork/QTcpSocket>
+#include <QtNetwork/QUdpSocket>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Socket.h"
@@ -35,14 +34,14 @@ namespace comms_champion
 namespace plugin
 {
 
-namespace tcp_socket
+namespace udp_socket
 {
 
-namespace proxy
+namespace client
 {
 
 class Socket : public QObject,
-                     public comms_champion::Socket
+               public comms_champion::Socket
 {
     Q_OBJECT
     using Base = comms_champion::Socket;
@@ -52,6 +51,16 @@ public:
 
     Socket();
     ~Socket();
+
+    void setHost(const QString& value)
+    {
+        m_host = value;
+    }
+
+    const QString& getHost() const
+    {
+        return m_host;
+    }
 
     void setPort(PortType value)
     {
@@ -63,24 +72,24 @@ public:
         return m_port;
     }
 
-    void setRemoteHost(const QString& value)
+    void setLocalPort(PortType value)
     {
-        m_remoteHost = value;
+        m_localPort = value;
     }
 
-    const QString& getRemoteHost() const
+    PortType getLocalPort() const
     {
-        return m_remoteHost;
+        return m_localPort;
     }
 
-    void setRemotePort(PortType value)
+    void setBroadcastPropName(const QString& value)
     {
-        m_remotePort = value;
+        m_broadcastPropName = value;
     }
 
-    PortType getRemotePort() const
+    const QString& getBroadcastPropName() const
     {
-        return m_remotePort;
+        return m_broadcastPropName;
     }
 
 protected:
@@ -89,37 +98,28 @@ protected:
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:
-    void newConnection();
-    void clientConnectionTerminated();
-    void readFromClientSocket();
+    void readFromSocket();
+    void readFromBroadcastSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);
-    void connectionSocketConnected();
-    void connectionSocketDisconnected();
-    void readFromConnectionSocket();
 
 private:
-    typedef QTcpSocket* ClientSocketPtr;
-    typedef std::unique_ptr<QTcpSocket> ConnectionSocketPtr;
-    typedef std::pair<ClientSocketPtr, ConnectionSocketPtr> ConnectedPair;
-    typedef std::list<ConnectedPair> SocketsList;
-
-    SocketsList::iterator findByClient(QTcpSocket* socket);
-    SocketsList::iterator findByConnection(QTcpSocket* socket);
-    void removeConnection(SocketsList::iterator iter);
-    void performReadWrite(QTcpSocket& readFromSocket, QTcpSocket& writeToSocket);
+    void readData(QUdpSocket& socket);
+    bool bindSocket(QUdpSocket& socket);
 
     static const PortType DefaultPort = 20000;
-    PortType m_port = DefaultPort;
-    QString m_remoteHost;
-    PortType m_remotePort = DefaultPort;
 
-    QTcpServer m_server;
-    SocketsList m_sockets;
+    QString m_host;
+    PortType m_port = DefaultPort;
+    PortType m_localPort = 0;
+    QString m_broadcastPropName;
+    QUdpSocket m_socket;
+    QUdpSocket m_broadcastSocket;
+    bool m_running = false;
 };
 
-}  // namespace proxy
+}  // namespace client
 
-}  // namespace tcp_socket
+}  // namespace udp_socket
 
 } // namespace plugin
 

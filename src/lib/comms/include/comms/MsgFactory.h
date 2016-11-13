@@ -76,6 +76,9 @@ public:
     /// @brief Type of the message ID when passed as a parameter.
     typedef typename Message::MsgIdParamType MsgIdParamType;
 
+    /// @brief Type of the message ID.
+    typedef typename Message::MsgIdType MsgIdType;
+
     /// @brief Smart pointer to @ref Message which holds allocated message object.
     /// @details It is a variant of std::unique_ptr, based on whether
     ///     comms::option::InPlaceAllocation option was used.
@@ -133,7 +136,8 @@ public:
     }
 
     /// @brief Get number of message types from @ref AllMessages, that have the specified ID.
-    /// @param id Id of the message.
+    /// @param id ID of the message.
+    /// @return Number of message classes that report same ID.
     std::size_t msgCount(MsgIdParamType id) const
     {
         auto range =
@@ -291,7 +295,7 @@ private:
         }
 
     private:
-        MsgIdParamType m_id;
+        MsgIdType m_id;
     };
 
     void initRegistry()

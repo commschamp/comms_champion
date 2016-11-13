@@ -103,6 +103,7 @@ public:
     /// @details Invokes pure virtual getIdImpl(). This function exists
     ///     only if comms::option::MsgIdType option was used to specify type
     ///     of the ID value.
+    /// @return ID of the message.
     MsgIdParamType getId() const;
 
     /// @brief Type of the iterator used for reading message contents from
@@ -180,6 +181,7 @@ public:
     /// @details The function exists only if comms::option::Handler option
     ///     was provided to comms::Message to specify type of the handler.
     ///     The function invokes virtual dispatchImpl() function.
+    /// @param handler Handler object to dispatch message to.
     void dispatch(Handler& handler);
 
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
@@ -244,6 +246,7 @@ protected:
     /// @details Called by dispatch(), must be implemented in the derived class.
     ///     The function exists only if comms::option::Handler option was
     ///     provided to comms::Message to specify type of the handler.
+    /// @param handler Handler object to dispatch message to.
     virtual void dispatchImpl(Handler& handler) = 0;
 
     /// @brief Write data into the output area.

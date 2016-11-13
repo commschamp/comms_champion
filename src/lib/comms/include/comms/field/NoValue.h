@@ -105,6 +105,7 @@ public:
 
     /// @brief Check validity of the field value.
     /// @details Always reported as valid.
+    /// @return true.
     static constexpr bool valid()
     {
         return ThisField::valid();
@@ -141,6 +142,8 @@ private:
 
 /// @brief Equality comparison operator.
 /// @details To @ref NoValue fields are always equal.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
 /// @return Always true.
 /// @related NoValue
 template <typename TFieldBase>
@@ -153,6 +156,8 @@ bool operator==(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& fi
 
 /// @brief Non-equality comparison operator.
 /// @details To @ref NoValue fields are always equal.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
 /// @return Always false.
 /// @related NoValue
 template <typename TFieldBase>
@@ -163,6 +168,8 @@ bool operator!=(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& fi
 
 /// @brief Equivalence comparison operator.
 /// @details To @ref NoValue fields are always equal.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
 /// @return Always false.
 /// @related NoValue
 template <typename TFieldBase>
@@ -193,6 +200,7 @@ struct IsNoValue<comms::field::NoValue<TFieldBase> >
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::NoValue.
 /// @tparam T Any type.
+/// @return true in case provided type is any variant of @ref NoValue
 /// @related comms::field::NoValue
 template <typename T>
 constexpr bool isNoValue()

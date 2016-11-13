@@ -35,11 +35,18 @@ namespace field
 ///     expected single field API functions, such as length(), read(), write(),
 ///     valid(). It may be useful when a collection (comms::field::ArrayList) of
 ///     complex fields is required.
+/// @tparam TFieldBase Base class for this field, expected to be a variant of
+///     comms::Field.
 /// @tparam TMembers All wrapped fields bundled together in
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
+///     @li comms::option::DefaultValueInitialiser - All wrapped fields may
+///         specify their independent default value initialisers. It is
+///         also possible to provide initialiser for the Bundle field which
+///         will set appropriate values to the fields based on some
+///         internal logic.
 ///     @li comms::option::ContentsValidator - All wrapped fields may specify
 ///         their independent validators. The bundle field considered to
 ///         be valid if all the wrapped fields are valid. This option though,
@@ -47,7 +54,12 @@ namespace field
 ///         observe value of more than one wrapped fields. For example,
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
-template <typename TMembers, typename... TOptions>
+///     @li comms::option::CustomValueReader - It may be required to implement
+///         custom reading functionality instead of default behaviour of
+///         invoking read() member function of every member field. It is possible
+///         to provide cusom reader functionality using comms::option::CustomValueReader
+///         option.
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bundle
 {
     static_assert(comms::util::IsTuple<TMembers>::Value,
@@ -57,7 +69,7 @@ class Bundle
         1U < std::tuple_size<TMembers>::value,
         "Number of members is expected to be at least 2.");
 
-    typedef basic::Bundle<TMembers> BasicField;
+    typedef basic::Bundle<TFieldBase, TMembers> BasicField;
     typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
 
 public:
@@ -100,18 +112,21 @@ public:
     /// @brief Get length required to serialise bundled fields.
     /// @details Summarises all the results returned by the call to length() for
     ///     every field in the bundle.
+    /// @return Number of bytes it will take to serialise the field value.
     constexpr std::size_t length() const
     {
         return field_.length();
     }
 
     /// @brief Get minimal length that is required to serialise all bundled fields.
+    /// @return Minimal number of bytes required serialise the field value.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise all bundled fields.
+    /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
         return ThisField::maxLength();
@@ -151,21 +166,27 @@ private:
 };
 
 /// @brief Equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are equal, false otherwise.
 /// @related Bundle
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator==(
-    const Bundle<TArgs...>& field1,
-    const Bundle<TArgs...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
 
 /// @brief Non-equality comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return true in case fields are NOT equal, false otherwise.
 /// @related Bundle
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator!=(
-    const Bundle<TArgs...>& field1,
-    const Bundle<TArgs...>& field2)
+    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }
@@ -179,8 +200,8 @@ struct IsBundle
     static const bool Value = false;
 };
 
-template <typename TMembers, typename... TOptions>
-struct IsBundle<comms::field::Bundle<TMembers, TOptions...> >
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+struct IsBundle<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
 {
     static const bool Value = true;
 };
@@ -190,6 +211,7 @@ struct IsBundle<comms::field::Bundle<TMembers, TOptions...> >
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::Bundle.
 /// @tparam T Any type.
+/// @return true in case provided type is any variant of @ref Bundle
 /// @related comms::field::Bundle
 template <typename T>
 constexpr bool isBundle()

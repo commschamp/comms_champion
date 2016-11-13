@@ -259,6 +259,7 @@ public:
     ///     data member of this class.
     /// @param[in] id ID of the message
     /// @param[in] idx Relative index of the message with the same ID.
+    /// @return Smart pointer to the created message object.
     /// @see comms::MsgFactory::createMsg()
     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
     {

@@ -78,6 +78,9 @@ public:
     void test44();
     void test45();
     void test46();
+    void test47();
+    void test48();
+    void test49();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1181,6 +1184,7 @@ void FieldsTestSuite::test32()
 {
 
     typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
         std::tuple<
             comms::field::IntValue<
                 comms::Field<BigEndianOpt>,
@@ -1732,6 +1736,150 @@ void FieldsTestSuite::test46()
 
     static const char ExpectedBuf[] = {0};
     writeReadField(field, ExpectedBuf, 0);
+}
+
+struct BundleInitialiserTest47
+{
+    template <typename TField>
+    void operator()(TField& field) const
+    {
+        auto& members = field.value();
+        auto& first = std::get<0>(members);
+        auto& second = std::get<1>(members);
+        first.value() = 1;
+        second.value() = 2;
+    }
+};
+
+void FieldsTestSuite::test47()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t
+            >,
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t            >
+        >,
+        comms::option::DefaultValueInitialiser<BundleInitialiserTest47>
+    > Field;
+
+    TS_ASSERT_EQUALS(Field::minLength(), 3U);
+    TS_ASSERT_EQUALS(Field::maxLength(), 3U);
+
+    Field field;
+
+    static const char ExpectedBuf[] = {
+        (char)0x0, (char)0x1, (char)0x2
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test48()
+{
+
+    typedef comms::field::Optional<
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint16_t
+        >,
+        comms::option::DefaultOptionalMode<comms::field::OptionalMode::Exists>
+    > Field;
+
+    typedef Field::Mode Mode;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.field().value(), 0U);
+    TS_ASSERT_EQUALS(field.getMode(), Mode::Exists);
+
+    field.field().value() = 0xff0;
+
+    static const char Buf[] = {
+        0x0f, (char)0xf0
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    writeReadField(field, Buf, BufSize);
+}
+
+struct BundleCustomReaderTest49
+{
+    template <typename TField, typename TIter>
+    comms::ErrorStatus operator()(TField& field, TIter& iter, std::size_t len) const
+    {
+        auto& members = field.value();
+        auto& first = std::get<0>(members);
+        auto& second = std::get<1>(members);
+
+        auto es = first.read(iter, len);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        if (first.value() != 0) {
+            second.setMode(comms::field::OptionalMode::Missing);
+        }
+        else {
+            second.setMode(comms::field::OptionalMode::Exists);
+        }
+
+        return second.read(iter, len - first.length());
+    }
+};
+
+void FieldsTestSuite::test49()
+{
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >,
+            comms::field::Optional<
+                comms::field::IntValue<
+                    comms::Field<BigEndianOpt>,
+                    std::uint16_t
+                >
+            >
+        >,
+        comms::option::CustomValueReader<BundleCustomReaderTest49>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    auto& mem1 = std::get<0>(field.value());
+    auto& mem2 = std::get<1>(field.value());
+
+    static const char Buf[] = {
+        0x00, 0x10, 0x20, (char)0xff
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT_EQUALS(mem1.value(), 0U);
+    TS_ASSERT_EQUALS(mem2.field().value(), 0x1020);
+    TS_ASSERT_EQUALS(mem2.getMode(), comms::field::OptionalMode::Exists);
+
+    static const char Buf2[] = {
+        0x01, 0x10, 0x20, (char)0xff
+    };
+
+    static const std::size_t Buf2Size = std::extent<decltype(Buf2)>::value;
+
+    field = readWriteField<Field>(Buf2, Buf2Size);
+    TS_ASSERT_EQUALS(field.length(), 1U);
+    TS_ASSERT_EQUALS(mem1.value(), 1U);
+    TS_ASSERT_EQUALS(mem2.getMode(), comms::field::OptionalMode::Missing);
 }
 
 template <typename TField>

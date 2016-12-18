@@ -155,7 +155,7 @@ be replaced in any diravative work to differentiate between the original and
 the forked versions.
 
 # How to Build
-Details instructions on how to build and install all the components can be
+Detailed instructions on how to build and install all the components can be
 found in [BUILD.md](BUILD.md) file.
 
 # How to Use COMMS Library

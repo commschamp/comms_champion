@@ -283,6 +283,11 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
+        if (es != ErrorStatus::ProtocolError) {
+            iter = fromIter;
+            std::advance(iter, requiredRemainingSize);
+        }
+
         auto consumed =
             static_cast<std::size_t>(std::distance(fromIter, iter));
         if (consumed < requiredRemainingSize) {

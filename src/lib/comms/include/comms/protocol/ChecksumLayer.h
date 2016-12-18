@@ -289,21 +289,26 @@ private:
         auto fromIter = iter;
 
         auto es = nextLayerReader.read(msgPtr, iter, size - Field::minLength(), missingSize);
-        if (es != ErrorStatus::Success) {
+        if ((es == ErrorStatus::NotEnoughData) ||
+            (es == ErrorStatus::ProtocolError)) {
             return es;
         }
+
+//        if (es != ErrorStatus::Success) {
+//            return es;
+//        }
 
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
         GASSERT(len <= size);
         auto remSize = size - len;
-        es = field.read(iter, remSize);
-        if (es == ErrorStatus::NotEnoughData) {
+        auto checksumEs = field.read(iter, remSize);
+        if (checksumEs == ErrorStatus::NotEnoughData) {
             Base::updateMissingSize(field, remSize, missingSize);
         }
 
-        if (es != ErrorStatus::Success) {
+        if (checksumEs != ErrorStatus::Success) {
             msgPtr.reset();
-            return es;
+            return checksumEs;
         }
 
         auto checksum = TCalc()(fromIter, len);
@@ -314,7 +319,7 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
-        return ErrorStatus::Success;
+        return es;
     }
 
     template <typename TWriter>

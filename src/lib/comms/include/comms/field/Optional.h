@@ -130,6 +130,54 @@ public:
         field_.setMode(val);
     }
 
+    /// @brief Check whether mode is equivalent to Mode::Tentative
+    /// @details Convenience wrapper for getMode(), equivalent to
+    ///     @code return getMode() == Mode::Tentative; @endcode
+    bool isTentative() const
+    {
+        return getMode() == Mode::Tentative;
+    }
+
+    /// @brief Set mode to Mode::Tentative
+    /// @details Convenience wrapper for setMode(), equivalent to
+    ///     @code setMode(Mode::Tentative); @endcode
+    void setTentative()
+    {
+        setMode(Mode::Tentative);
+    }
+
+    /// @brief Check whether mode is equivalent to Mode::Missing
+    /// @details Convenience wrapper for getMode(), equivalent to
+    ///     @code return getMode() == Mode::Missing; @endcode
+    bool isMissing() const
+    {
+        return getMode() == Mode::Missing;
+    }
+
+    /// @brief Set mode to Mode::Missing
+    /// @details Convenience wrapper for setMode(), equivalent to
+    ///     @code setMode(Mode::Missing); @endcode
+    void setMissing()
+    {
+        setMode(Mode::Missing);
+    }
+
+    /// @brief Check whether mode is equivalent to Mode::Exists
+    /// @details Convenience wrapper for getMode(), equivalent to
+    ///     @code return getMode() == Mode::Exists; @endcode
+    bool doesExist() const
+    {
+        return getMode() == Mode::Exists;
+    }
+
+    /// @brief Set mode to Mode::Exists
+    /// @details Convenience wrapper for setMode(), equivalent to
+    ///     @code setMode(Mode::Exists); @endcode
+    void setExists()
+    {
+        setMode(Mode::Exists);
+    }
+
     /// @brief Get length required to serialise the current field value.
     /// @return If current mode is OptionalMode::Exists, then the function
     ///     returns whatever length() member function of the wrapped field

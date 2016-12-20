@@ -36,25 +36,35 @@ namespace field
 namespace details
 {
 
-template <typename TElement, typename TOptions, bool THasFixedStorage>
+template <typename TElement, typename TOptions, bool THasCustomStorageType, bool THasFixedStorage>
 struct ArrayListStorageType;
 
+template <typename TElement, typename TOptions, bool THasFixedStorage>
+struct ArrayListStorageType<TElement, TOptions, true, THasFixedStorage>
+{
+    typedef typename TOptions::CustomStorageType Type;
+};
+
 template <typename TElement, typename TOptions>
-struct ArrayListStorageType<TElement, TOptions, true>
+struct ArrayListStorageType<TElement, TOptions, false, true>
 {
     typedef comms::util::StaticVector<TElement, TOptions::FixedSizeStorage> Type;
 };
 
 template <typename TElement, typename TOptions>
-struct ArrayListStorageType<TElement, TOptions, false>
+struct ArrayListStorageType<TElement, TOptions, false, false>
 {
     typedef std::vector<TElement> Type;
 };
 
 template <typename TElement, typename TOptions>
 using ArrayListStorageTypeT =
-    typename ArrayListStorageType<TElement, TOptions, TOptions::HasFixedSizeStorage>::Type;
-
+    typename ArrayListStorageType<
+        TElement,
+        TOptions,
+        TOptions::HasCustomStorageType,
+        TOptions::HasFixedSizeStorage
+    >::Type;
 
 }  // namespace details
 
@@ -92,6 +102,7 @@ using ArrayListStorageTypeT =
 ///     of the field.@n
 ///     Supported options are:
 ///     @li comms::option::FixedSizeStorage
+///     @li comms::option::CustomStorageType
 ///     @li comms::option::SequenceSizeFieldPrefix
 ///     @li comms::option::SequenceSizeForcingEnabled
 ///     @li comms::option::SequenceFixedSize

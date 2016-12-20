@@ -51,6 +51,7 @@ struct OptionsParser<>
     static const bool HasFailOnInvalid = false;
     static const bool HasIgnoreInvalid = false;
     static const bool HasFixedSizeStorage = false;
+    static const bool HasCustomStorageType = false;
     static const bool HasScalingRatio = false;
 };
 
@@ -349,6 +350,17 @@ class OptionsParser<
 public:
     static const bool HasFixedSizeStorage = true;
     static const std::size_t FixedSizeStorage = Option::Value;
+};
+
+template <typename TType, typename... TOptions>
+class OptionsParser<
+    comms::option::CustomStorageType<TType>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    typedef comms::option::CustomStorageType<TType> Option;
+public:
+    static const bool HasCustomStorageType = true;
+    typedef typename Option::Type CustomStorageType;
 };
 
 template <std::intmax_t TNum, std::intmax_t TDenom, typename... TOptions>

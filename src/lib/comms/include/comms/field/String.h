@@ -36,24 +36,34 @@ namespace field
 namespace details
 {
 
-template <typename TOptions, bool THasFixedStorage>
+template <typename TOptions, bool THasCustomStorageType, bool THasFixedStorage>
 struct StringStorageType;
 
+template <typename TOptions, bool THasFixedStorage>
+struct StringStorageType<TOptions, true, THasFixedStorage>
+{
+    typedef typename TOptions::CustomStorageType Type;
+};
+
 template <typename TOptions>
-struct StringStorageType<TOptions, true>
+struct StringStorageType<TOptions, false, true>
 {
     typedef comms::util::StaticString<TOptions::FixedSizeStorage> Type;
 };
 
 template <typename TOptions>
-struct StringStorageType<TOptions, false>
+struct StringStorageType<TOptions, false, false>
 {
     typedef std::string Type;
 };
 
 template <typename TOptions>
 using StringStorageTypeT =
-    typename StringStorageType<TOptions, TOptions::HasFixedSizeStorage>::Type;
+    typename StringStorageType<
+        TOptions,
+        TOptions::HasCustomStorageType,
+        TOptions::HasFixedSizeStorage
+    >::Type;
 
 } // namespace details
 
@@ -68,6 +78,7 @@ using StringStorageTypeT =
 ///     of the field.@n
 ///     Supported options are:
 ///     @li comms::option::FixedSizeStorage
+///     @li comms::option::CustomStorageType
 ///     @li comms::option::SequenceSizeFieldPrefix
 ///     @li comms::option::SequenceSizeForcingEnabled
 ///     @li comms::option::SequenceFixedSize

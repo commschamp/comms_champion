@@ -202,6 +202,9 @@
 /// class MyHandler : public comms::GenericHandler<MyMessage, AllMessages>
 /// {
 /// public:
+///     // Enable polymorphic delete
+///     virtual ~MyHandler() {}
+///
 ///     // Overriding the "fall back" handling function
 ///     virtual handle(MyMessage& msg) override
 ///     {
@@ -215,3 +218,6 @@
 ///     }
 /// };
 /// @endcode
+/// @b NOTE, that comms::GenericHandler doesn't declare its destructor as virtual.
+/// If the handler object requires support for polymorphic delete (destruction),
+/// make sure to declare its destructor as virtual.

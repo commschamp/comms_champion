@@ -366,8 +366,9 @@ struct MessageImplProcessFieldsWriteBase<TBase, false>
 template <typename TBase, typename TImplOpt>
 using MessageImplFieldsWriteBaseT =
     typename MessageImplProcessFieldsWriteBase<
-        TBase, TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasFieldsImpl>::Type;
-
+        TBase,
+        TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasFieldsImpl && (!TImplOpt::HasNoDefaultFieldsWriteImpl)
+    >::Type;
 
 template <typename TBase>
 class MessageImplFieldsValidBase : public TBase

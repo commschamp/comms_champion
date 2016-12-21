@@ -38,6 +38,7 @@ enum class ErrorStatus {
     InvalidMsgData, ///<Used to indicate that received message has invalid
                     /// data.
     MsgAllocFailure, ///<Used to indicate that message allocation has failed.
+    NotSupported, ///< The operation is not supported.
     NumOfErrorStatuses ///< Number of supported error statuses, must be last.
 };
 

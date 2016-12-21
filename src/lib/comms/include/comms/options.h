@@ -137,6 +137,10 @@ using NoFieldsImpl = FieldsImpl<std::tuple<> >;
 ///     in comms::MessageBase when @ref FieldsImpl option is used.
 struct NoDefaultFieldsReadImpl {};
 
+/// @brief Option that suppresses implementation of @b writeImpl() member function
+///     in comms::MessageBase when @ref FieldsImpl option is used.
+struct NoDefaultFieldsWriteImpl {};
+
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.
 struct InPlaceAllocation {};

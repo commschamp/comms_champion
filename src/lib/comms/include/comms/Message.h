@@ -197,23 +197,25 @@ protected:
     /// @return ID of the message.
     virtual MsgIdParamType getIdImpl() const = 0;
 
-    /// @brief Pure virtual function used to implement read operation.
-    /// @details Called by read(), must be implemented in the derived class.
+    /// @brief Virtual function used to implement read operation.
+    /// @details Called by read(), expected be implemented in the derived class.
     ///     The function exists only if comms::option::ReadIterator option
     ///     was provided to comms::Message to specify type of the @ref ReadIterator.
     /// @param[in, out] iter Iterator used for reading the data.
     /// @param[in] size Maximum number of bytes that can be read.
-    /// @return Status of the operation.
-    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
+    /// @return Status of the operation. If not overridden returns
+    ///     comms::ErrorStatus::NotSupported.
+    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size);
 
-    /// @brief Pure virtual function used to implement write operation.
-    /// @details Called by write(), must be implemented in the derived class.
+    /// @brief Virtual function used to implement write operation.
+    /// @details Called by write(), expected be implemented in the derived class.
     ///     The function exists only if comms::option::WriteIterator option
     ///     was provided to comms::Message to specify type of the @ref WriteIterator.
     /// @param[in, out] iter Iterator used for writing the data.
     /// @param[in] size Maximum number of bytes that can be written.
-    /// @return Status of the operation.
-    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
+    /// @return Status of the operation. If not overridden returns
+    ///     comms::ErrorStatus::NotSupported.
+    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const;
 
     /// @brief Pure virtual function used to implement contents validity check.
     /// @details Called by valid(), must be implemented in the derived class.

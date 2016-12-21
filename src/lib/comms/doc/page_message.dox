@@ -201,7 +201,10 @@
 ///
 /// protected:
 ///     // Must be implemented in the derived class.
-///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) = 0; 
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) 
+///     {
+///         return comms::ErrorStatus::NotSupported;
+///     }
 /// }
 /// @endcode
 /// Please @b note, that COMMS library doesn't impose any restrictions on
@@ -261,7 +264,10 @@
 ///
 /// protected:
 ///     // Must be implemented in the derived class.
-///     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) = 0; 
+///     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len)
+///     {
+///         return comms::ErrorStatus::NotSupported;
+///     }
 /// }
 /// @endcode
 /// Please @b note, that COMMS library doesn't impose any restrictions on

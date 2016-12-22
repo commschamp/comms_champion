@@ -159,15 +159,14 @@ public:
         static_assert(Message::InterfaceOptions::HasReadIterator,
             "Message interface must support read operation");
 
-        static_assert(Message::InterfaceOptions::HasLength,
-            "Message interface class is expected to provide length() interface function.");
-
         GASSERT(msgPtr);
         auto result = msgPtr->read(iter, size);
         if ((result == ErrorStatus::NotEnoughData) &&
             (missingSize != nullptr)) {
-            if (size < msgPtr->length()) {
-                *missingSize = msgPtr->length() - size;
+            typedef typename std::decay<decltype(*msgPtr)>::type MsgType;
+            auto msgLen = getMsgLength(*msgPtr, MsgLengthTag<MsgType>());
+            if (size < msgLen) {
+                *missingSize = msgLen - size;
             }
             else {
                 *missingSize = 1;
@@ -360,6 +359,16 @@ public:
     }
 
 private:
+
+    struct MsgHasLengthTag {};
+    struct MsgNoLengthTag {};
+
+    template <typename TMsg>
+    using MsgLengthTag = typename std::conditional<
+        TMsg::InterfaceOptions::HasLength,
+        MsgHasLengthTag,
+        MsgNoLengthTag>::type ;
+
     template <typename TMsgPtr>
     static ErrorStatus readWithFieldCachedInternal(
         Field& field,
@@ -466,6 +475,19 @@ private:
         static_cast<void>(dataReadEs);
 
         return comms::ErrorStatus::Success;
+    }
+
+    template <typename TMsg>
+    static std::size_t getMsgLength(const TMsg& msg, MsgHasLengthTag)
+    {
+        return msg.length();
+    }
+
+    template <typename TMsg>
+    static std::size_t getMsgLength(const TMsg& msg, MsgNoLengthTag)
+    {
+        static_cast<void>(msg);
+        return 0U;
     }
 };
 

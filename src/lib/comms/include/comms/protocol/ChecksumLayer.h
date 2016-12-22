@@ -244,11 +244,24 @@ public:
         return updateInternal(field, iter, size, Base::createNextLayerUpdater());
     }
 
-    /// @cond SKIP_DOC
-    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    /// @brief Update written dummy checksum with proper value while caching the written transport
+    ///     information fields.
+    /// @details Very similar to update() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the update operation.
+    template <std::size_t TIdx, typename TAllFields, typename TIter>
     ErrorStatus updateFieldsCached(
         TAllFields& allFields,
-        TUpdateIter& iter,
+        TIter& iter,
         std::size_t size) const
     {
         auto& field = Base::template getField<TIdx>(allFields);
@@ -259,7 +272,6 @@ public:
                 size,
                 Base::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
     }
-    /// @endcond
 
 private:
     typedef typename std::iterator_traits<WriteIterator>::iterator_category WriteIteratorCategoryTag;

@@ -355,6 +355,7 @@ public:
     /// @return Length of the message.
     static constexpr std::size_t length(const TMessage& msg)
     {
+        static_assert(TMessage::InterfaceOptions::HasLength, "Message interface must define length()");
         return msg.length();
     }
 
@@ -445,7 +446,8 @@ private:
             return es;
         }
 
-        auto dataEs = field.read(dataReadIter, msg.length());
+        auto writtenCount = static_cast<std::size_t>(std::distance(dataReadIter, iter));
+        auto dataEs = field.read(dataReadIter, writtenCount);
         GASSERT(dataEs == comms::ErrorStatus::Success);
         static_cast<void>(dataEs);
         return comms::ErrorStatus::Success;

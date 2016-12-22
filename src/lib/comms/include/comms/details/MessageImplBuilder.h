@@ -467,6 +467,8 @@ protected:
     ~MessageImplDispatchBase() = default;
     virtual void dispatchImpl(typename TBase::Handler& handler) override
     {
+        static_assert(std::is_base_of<TBase, TActual>::value,
+            "TActual is not derived class");
         handler.handle(static_cast<TActual&>(*this));
     }
 };

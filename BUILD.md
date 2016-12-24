@@ -26,6 +26,14 @@ In addition to built-in options/variables of CMake, such as **CMAKE_BUILD_TYPE**
 - **CC_COMMS_LIB_ONLY**=ON/OFF - Exclude compilation of all the tools, install only
 **COMMS** Library. Default value is **OFF**, i.e. other tools get built.
 
+- **CC_NO_UNIT_TESTS**=ON/OFF - Exclude build of unit tests. Default value is 
+**OFF**, i.e. the unit tests get built.
+
+- **CC_NO_WARN_AS_ERR**=ON/OFF - By default, all warnings are treated as
+errors. Enable this option in case the compiler generates warning and fails the
+compilation. Please open the issue when such scenario occurs. Default value is 
+**OFF**.
+
 - **CC_STATIC_RUNTIME**=ON/OFF - Enable/Disable static link to C++ runtime. Default value is **OFF**
 
 - **CC_INSTALL_DIR**=dir - Custom installation directory. If not provided defaults to
@@ -86,6 +94,5 @@ documentation.
 # Working Builds
 The build hast been tested with the following compilers:
 
-- GCC v4.8.4 on Ubuntu 14.04
 - GCC v5.3.1 on Ubuntu 16.04
 - Visual Studio 2015 on Windows 7

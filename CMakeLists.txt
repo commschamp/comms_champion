@@ -3,33 +3,56 @@ project ("comms_champion")
 
 option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
 option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
+option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
+option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
 
-set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/external")
-
-find_package (Git)
-
-if (GIT_FOUND)
-    execute_process (
-    COMMAND ${GIT_EXECUTABLE} submodule update --init
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-endif () 
-
-set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
-set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
-
-find_package (CxxTest)
-if (CXXTEST_FOUND)
+while (TRUE)
+    if (CC_NO_UNIT_TESTS)
+        message (STATUS "Unittests are disabled")
+        break()
+    endif ()
+    
+    find_package (Git)
+    if (NOT GIT_FOUND)
+        message (WARNING "Git is required to check out cxxtest")
+        break()
+    endif ()
+    
+    set (cxx_tag "4.4")
+    if (EXISTS "${CMAKE_BINARY_DIR}/cxxtest")
+        execute_process (
+            COMMAND ${GIT_EXECUTABLE} checkout ${cxx_tag}
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest)
+    else ()
+        execute_process (
+            COMMAND ${GIT_EXECUTABLE} clone -b ${cxx_tag} --depth 1 https://github.com/CxxTest/cxxtest.git
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    endif ()
+    
+    set (CXXTEST_INCLUDE_DIR "${CMAKE_BINARY_DIR}/cxxtest")
+    set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
+    
+    find_package (CxxTest)
+    if (NOT CXXTEST_FOUND)
+        message (FATAL_ERROR "Wrong cxxtest paths, must be fixed")
+    endif ()
+    
     enable_testing ()
-endif ()
+    break()
+endwhile ()
 
 if (CMAKE_COMPILER_IS_GNUCC)
     set (extra_flags_list
         "--std=c++11"
-        "-Wall" "-Wextra" "-Werror" "-Wcast-align" "-Wcast-qual" "-Wctor-dtor-privacy"
+        "-Wall" "-Wextra" "-Wcast-align" "-Wcast-qual" "-Wctor-dtor-privacy"
         "-Wmissing-include-dirs" "-Wnoexcept" "-Wlogical-op" "-Wstrict-null-sentinel"
         "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow" "-Wundef" "-Wunused"
         "-Wno-unknown-pragmas" "-fdiagnostics-show-option"
     )
+    
+    if (NOT CC_NO_WARN_AS_ERR)
+        list (APPEND extra_flags_list "-Werror")
+    endif ()
     
     string(REPLACE ";" " " extra_flags "${extra_flags_list}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${extra_flags}")

@@ -366,8 +366,9 @@ struct MessageImplProcessFieldsWriteBase<TBase, false>
 template <typename TBase, typename TImplOpt>
 using MessageImplFieldsWriteBaseT =
     typename MessageImplProcessFieldsWriteBase<
-        TBase, TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasFieldsImpl>::Type;
-
+        TBase,
+        TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasFieldsImpl && (!TImplOpt::HasNoDefaultFieldsWriteImpl)
+    >::Type;
 
 template <typename TBase>
 class MessageImplFieldsValidBase : public TBase
@@ -466,6 +467,8 @@ protected:
     ~MessageImplDispatchBase() = default;
     virtual void dispatchImpl(typename TBase::Handler& handler) override
     {
+        static_assert(std::is_base_of<TBase, TActual>::value,
+            "TActual is not derived class");
         handler.handle(static_cast<TActual&>(*this));
     }
 };

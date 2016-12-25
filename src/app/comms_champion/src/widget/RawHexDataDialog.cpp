@@ -103,28 +103,42 @@ void RawHexDataDialog::valueChanged()
 void RawHexDataDialog::accept()
 {
     auto str = m_ui.m_rawDataText->toPlainText();
-    str.replace(' ', "");
-    if ((static_cast<std::size_t>(str.size()) & 0x1) != 0) {
-        str.append('0');
-    }
 
     DataInfo dataInfo;
     dataInfo.m_timestamp = DataInfo::TimestampClock::now();
     dataInfo.m_data.reserve(str.size() / 2);
 
     QString numStr;
+    auto addValueFunc =
+        [&dataInfo, &numStr]()
+        {
+            bool ok = false;
+            auto byte = static_cast<DataInfo::DataSeq::value_type>(numStr.toUInt(&ok, 16));
+            static_cast<void>(ok);
+            assert(ok);
+            dataInfo.m_data.push_back(byte);
+            numStr.clear();
+        };
+
     for (auto ch : str) {
+        if (ch.isSpace()) {
+           if (!numStr.isEmpty()) {
+               addValueFunc();
+           }
+
+           continue;
+        }
+
         numStr.append(ch);
         if (numStr.size() < 2) {
             continue;
         }
 
-        bool ok = false;
-        auto byte = static_cast<DataInfo::DataSeq::value_type>(numStr.toUInt(&ok, 16));
-        static_cast<void>(ok);
-        assert(ok);
-        dataInfo.m_data.push_back(byte);
-        numStr.clear();
+        addValueFunc();
+    }
+
+    if (!numStr.isEmpty()) {
+        addValueFunc();
     }
 
     if (!m_ui.m_convertCheckBox->isChecked()) {

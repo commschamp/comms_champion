@@ -73,6 +73,14 @@ namespace comms
 ///         generation of the default readImpl() member function. It may be
 ///         used to reduce compilation time and decrease the final binary code
 ///         size.
+///     @li comms::option::NoDefaultFieldsWriteImpl - There can be cases when the actual
+///         message class that inherits from comms::MessageBase implements its
+///         own version of writeImpl() member function. In this case the default
+///         implementation is not needed. Usage of
+///         comms::option::NoDefaultFieldsReadImpl option will suppress
+///         generation of the default writeImpl() member function. It may be
+///         used to reduce compilation time and decrease the final binary code
+///         size.
 /// @extends Message
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
@@ -276,7 +284,9 @@ protected:
 
     /// @brief Implementation of write functionality.
     /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase
+    ///     comms::option::NoFieldsImpl option was provided, and
+    ///     comms::option::NoDefaultFieldsWriteImpl option WASN'T provided
+    ///     to comms::MessageBase
     ///     as well as comms::option::WriteIterator option was provided to
     ///     comms::Message class when specifying interface.
     ///     To make this function works, every field class must provide "write"

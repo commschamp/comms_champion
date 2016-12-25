@@ -27,7 +27,7 @@ CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
 CC_ENABLE_WARNINGS()
 
-class SyncPrefixLayerTestSuite : public CxxTest::TestSuite
+class MsgSizeLayerTestSuite : public CxxTest::TestSuite
 {
 public:
     void test1();
@@ -41,6 +41,8 @@ public:
     void test9();
     void test10();
     void test11();
+    void test12();
+    void test13();
 
 private:
 
@@ -52,6 +54,12 @@ private:
     > CommonOptions;
 
     typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::ReadIterator<const char*>,
+        comms::option::ValidCheckInterface
+    > NoLengthOptions;
+
+    typedef std::tuple<
         comms::option::BigEndian,
         comms::option::WriteIterator<char*>,
         CommonOptions
@@ -59,9 +67,21 @@ private:
 
     typedef std::tuple<
         comms::option::BigEndian,
+        comms::option::WriteIterator<char*>,
+        NoLengthOptions
+    > BeNoLengthTraits;
+
+    typedef std::tuple<
+        comms::option::BigEndian,
         comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >,
         CommonOptions
     > BeBackInsertTraits;
+
+    typedef std::tuple<
+        comms::option::BigEndian,
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >,
+        NoLengthOptions
+    > BeNoLengthBackInsertTraits;
 
     typedef std::tuple<
         comms::option::LittleEndian,
@@ -71,14 +91,18 @@ private:
 
 
     typedef TestMessageBase<BeTraits> BeMsgBase;
+    typedef TestMessageBase<BeNoLengthTraits> BeNoLengthMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;
     typedef TestMessageBase<BeBackInsertTraits> BeBackInsertMsgBase;
+    typedef TestMessageBase<BeNoLengthBackInsertTraits> BeNoLengthBackInsertMsgBase;
 
     typedef BeMsgBase::Field BeField;
     typedef LeMsgBase::Field LeField;
     typedef BeBackInsertMsgBase::Field BeBackInsertField;
 
     typedef Message1<BeMsgBase> BeMsg1;
+    typedef Message1<BeNoLengthMsgBase> BeNoLengthMsg1;
+    typedef Message1<BeNoLengthBackInsertMsgBase> BeNoLengthBackInsertMsg1;
     typedef Message1<LeMsgBase> LeMsg1;
     typedef Message1<BeBackInsertMsgBase> BeBackInsertMsg1;
     typedef Message2<BeMsgBase> BeMsg2;
@@ -167,7 +191,7 @@ private:
         >;
 };
 
-void SyncPrefixLayerTestSuite::test1()
+void MsgSizeLayerTestSuite::test1()
 {
     static const char Buf[] = {
         0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
@@ -195,7 +219,7 @@ void SyncPrefixLayerTestSuite::test1()
     TS_ASSERT(!msgPtr3);
 }
 
-void SyncPrefixLayerTestSuite::test2()
+void MsgSizeLayerTestSuite::test2()
 {
     LeMsg1 msg;
     std::get<0>(msg.fields()).value() = 0x0304;
@@ -214,8 +238,7 @@ void SyncPrefixLayerTestSuite::test2()
     commonWriteReadMsgTest(inPlaceStack, msg, buf, BufSize, &ExpectedBuf[0]);
 }
 
-
-void SyncPrefixLayerTestSuite::test3()
+void MsgSizeLayerTestSuite::test3()
 {
     static const char Buf[] = {
         0x0, 0x2, MessageType1, 0x00, 0x00
@@ -232,7 +255,7 @@ void SyncPrefixLayerTestSuite::test3()
     TS_ASSERT(!msgPtr2);
 }
 
-void SyncPrefixLayerTestSuite::test4()
+void MsgSizeLayerTestSuite::test4()
 {
     static const char Buf[] = {
         0x0
@@ -249,7 +272,7 @@ void SyncPrefixLayerTestSuite::test4()
     TS_ASSERT(!msgPtr2);
 }
 
-void SyncPrefixLayerTestSuite::test5()
+void MsgSizeLayerTestSuite::test5()
 {
     LeMsg1 msg;
     std::get<0>(msg.fields()).value() = 0x0203;
@@ -264,7 +287,7 @@ void SyncPrefixLayerTestSuite::test5()
     commonWriteReadMsgTest(inPlaceStack, msg, buf, BufSize, nullptr, comms::ErrorStatus::BufferOverflow);
 }
 
-void SyncPrefixLayerTestSuite::test6()
+void MsgSizeLayerTestSuite::test6()
 {
     static const char Buf[] = {
         MessageType1, 0x0, 0x2, 0x01, 0x02, static_cast<char>(0x3f)
@@ -280,7 +303,7 @@ void SyncPrefixLayerTestSuite::test6()
     TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
 }
 
-void SyncPrefixLayerTestSuite::test7()
+void MsgSizeLayerTestSuite::test7()
 {
     static const char Buf[] = {
         MessageType1, 0x0, 0x4, 0x01, 0x02
@@ -296,7 +319,7 @@ void SyncPrefixLayerTestSuite::test7()
     TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
 }
 
-void SyncPrefixLayerTestSuite::test8()
+void MsgSizeLayerTestSuite::test8()
 {
     static const char Buf[] = {
         0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
@@ -324,7 +347,7 @@ void SyncPrefixLayerTestSuite::test8()
     TS_ASSERT(!msgPtr3);
 }
 
-void SyncPrefixLayerTestSuite::test9()
+void MsgSizeLayerTestSuite::test9()
 {
     BeBackInsertMsg3 msg;
     TS_ASSERT(!msg.valid());
@@ -343,7 +366,7 @@ void SyncPrefixLayerTestSuite::test9()
     vectorBackInsertWriteReadMsgTest(stack, msg, ExpectedBuf, BufSize);
 }
 
-void SyncPrefixLayerTestSuite::test10()
+void MsgSizeLayerTestSuite::test10()
 {
     RevProtocolStack<BeIdField1, BeSizeField22, BeMsgBase> stack;
     auto msgPtr1 = stack.createMsg(MessageType1);
@@ -357,7 +380,7 @@ void SyncPrefixLayerTestSuite::test10()
     TS_ASSERT_EQUALS(msgPtr3->getId(), MessageType3);
 }
 
-void SyncPrefixLayerTestSuite::test11()
+void MsgSizeLayerTestSuite::test11()
 {
     static const char Buf[] = {
         0x0, 0xb, MessageType3, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa
@@ -385,3 +408,32 @@ void SyncPrefixLayerTestSuite::test11()
     TS_ASSERT_EQUALS(std::get<3>(msgFields).value(), 0x08090a);
 }
 
+void MsgSizeLayerTestSuite::test12()
+{
+    BeNoLengthMsg1 msg;
+    std::get<0>(msg.fields()).value() = 0x0304;
+
+    static const char ExpectedBuf[] = {
+        0x0, 0x3, MessageType1, 0x03, 0x04
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
+    char buf[BufSize] = {0};
+
+    ProtocolStack<BeSizeField20, BeIdField1, BeNoLengthMsgBase> stack;
+    commonWriteReadMsgTest(stack, msg, buf, BufSize, &ExpectedBuf[0]);
+}
+
+void MsgSizeLayerTestSuite::test13()
+{
+    BeNoLengthBackInsertMsg1 msg;
+    std::get<0>(msg.fields()).value() = 0x0304;
+
+    static const char ExpectedBuf[] = {
+        0x0, 0x4, 0x0, MessageType1, 0x03, 0x04
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
+    ProtocolStack<BeSizeField20, BeIdField2, BeNoLengthBackInsertMsgBase> stack;
+    vectorBackInsertWriteReadMsgTest(stack, msg, ExpectedBuf, BufSize);
+}

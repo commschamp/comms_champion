@@ -32,7 +32,8 @@ CC_API ErrorStatus transformErrorStatus(comms::ErrorStatus value)
         /* BufferOverflow */ ErrorStatus::BufferOverflow,
         /* InvalidMsgId */ ErrorStatus::InvalidMsgId,
         /* InvalidMsgData */ ErrorStatus::InvalidMsgData,
-        /* MsgAllocFailure */ ErrorStatus::MsgAllocFailure
+        /* MsgAllocFailure */ ErrorStatus::MsgAllocFailure,
+        /* NotSupported */ ErrorStatus::NumOfErrorStatuses,
     };
 
     using UnderlyingType = std::underlying_type<decltype(value)>::type;

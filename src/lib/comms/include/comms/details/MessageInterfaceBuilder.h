@@ -145,7 +145,12 @@ public:
 
 protected:
     ~MessageInterfaceReadOnlyBase() = default;
-    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
+    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size)
+    {
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        return comms::ErrorStatus::NotSupported;
+    }
 };
 
 template <typename TBase, typename TWriteIter>
@@ -160,7 +165,12 @@ public:
 
 protected:
     ~MessageInterfaceWriteOnlyBase() = default;
-    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
+    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const
+    {
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        return comms::ErrorStatus::NotSupported;
+    }
 };
 
 template <typename TBase, typename TReadIter, typename TWriteIter>
@@ -181,8 +191,19 @@ public:
 
 protected:
     ~MessageInterfaceReadWriteBase() = default;
-    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
-    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
+    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size)
+    {
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        return comms::ErrorStatus::NotSupported;
+    }
+
+    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const
+    {
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        return comms::ErrorStatus::NotSupported;
+    }
 };
 
 template <typename TBase, typename TOpt, bool THasReadIterator, bool THasWriteIterator>

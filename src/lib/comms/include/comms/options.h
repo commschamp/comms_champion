@@ -137,6 +137,10 @@ using NoFieldsImpl = FieldsImpl<std::tuple<> >;
 ///     in comms::MessageBase when @ref FieldsImpl option is used.
 struct NoDefaultFieldsReadImpl {};
 
+/// @brief Option that suppresses implementation of @b writeImpl() member function
+///     in comms::MessageBase when @ref FieldsImpl option is used.
+struct NoDefaultFieldsWriteImpl {};
+
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.
 struct InPlaceAllocation {};
@@ -265,13 +269,34 @@ struct NumValueSerOffset
 ///     default, these fields will use
 ///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> or
 ///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
-///     for their internad data storage. If this option is used, it will force
+///     for their internal data storage. If this option is used, it will force
 ///     such fields to use comms::util::StaticVector or comms::util::StaticString
 ///     with the capacity provided by this option.
+/// @tparam TSize Size of the storage area, for strings it does @b NOT include
+///     the '\0' terminating character.
 template <std::size_t TSize>
 struct FixedSizeStorage
 {
     static const std::size_t Value = TSize;
+};
+
+/// @brief Set custom storage type for fields like comms::field::String or
+///     comms::field::ArrayList.
+/// @details By default comms::field::String uses
+///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
+///     and comms::field::ArrayList uses
+///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> as
+///     their internal storage types. The @ref FixedSizeStorage option forces
+///     them to use comms::util::StaticString and comms::util::StaticVector
+///     instead. This option can be used to provide any other third party type.
+///     Such type must define the same public interface as @b std::string (when used
+///     with comms::field::String) or @b std::vector (when used with
+///     comms::field::ArrayList).
+/// @tparam TType Custom storage type
+template <typename TType>
+struct CustomStorageType
+{
+    typedef TType Type;
 };
 
 /// @brief Option to specify scaling ratio.

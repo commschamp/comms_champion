@@ -21,6 +21,7 @@
 #include <tuple>
 #include <vector>
 #include <iterator>
+#include <iostream>
 
 #include "comms/comms.h"
 
@@ -435,7 +436,7 @@ void vectorBackInsertWriteReadMsgTest(
 {
     std::vector<char> buf;
     auto writeIter = std::back_inserter(buf);
-    auto es = stack.write(msg, writeIter, stack.length(msg));
+    auto es = stack.write(msg, writeIter, buf.max_size());
     if (expectedEs != comms::ErrorStatus::Success) {
         TS_ASSERT_EQUALS(es, expectedEs);
         return;
@@ -443,7 +444,7 @@ void vectorBackInsertWriteReadMsgTest(
 
     if (es == comms::ErrorStatus::UpdateRequired) {
         auto updateIter = &buf[0];
-        es = stack.update(updateIter, stack.length(msg));
+        es = stack.update(updateIter, buf.size());
         TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     }
 
@@ -453,9 +454,16 @@ void vectorBackInsertWriteReadMsgTest(
     }
 
     assert(expectedBuf != nullptr);
-    TS_ASSERT_EQUALS(stack.length(msg), buf.size());
-    TS_ASSERT_EQUALS(stack.length(msg), bufSize);
-    TS_ASSERT(std::equal(buf.cbegin(), buf.cend(), &expectedBuf[0]));
+    TS_ASSERT_EQUALS(buf.size(), bufSize);
+    bool bufEquals = std::equal(buf.cbegin(), buf.cend(), &expectedBuf[0]);
+    if (!bufEquals) {
+        std::cout << "ERROR: Buffers are not equal:\nexpected: " << std::hex;
+        std::copy_n(&expectedBuf[0], bufSize, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << "\nwritten: ";
+        std::copy(buf.cbegin(), buf.cend(), std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << std::dec << std::endl;
+    }
+    TS_ASSERT(bufEquals);
 
     typedef typename TProtStack::MsgPtr MsgPtr;
     MsgPtr msgPtr;

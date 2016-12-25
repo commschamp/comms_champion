@@ -443,6 +443,25 @@
 /// auto& simpleStaticListStorage = simpleStaticList.value(); // reference to comms::util::StaticVector<std::uint8_t, 10>;
 /// @endcode
 ///
+/// @subsection sec_field_tutorial_array_list_custom_storage Using Custom Storage
+/// If neither default <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> 
+/// nor comms::util::StaticVector types (see @ref sec_field_tutorial_array_list_static_storage)
+/// are not suitable, then it is possible to provide a custom storage type.
+/// @code
+/// typedef comms::Field<comms::option::BigEndian> MyFieldBase;
+/// typedef boost::static_vector<std::uint8_t, 128> MyCustomStorage;
+/// typedef comms::field::ArrayList<
+///     MyFieldBase,
+///     std::uint8_t,
+///     comms::option::CustomStorageType<MyCustomStorage> // Use MyCustomStorage for storage
+/// > MyCustomStorageList;
+///
+/// MyCustomStorageList customStorageList;
+/// MyCustomStorage& value = customStorageList.value(); 
+/// @endcode
+/// The provide custom storage type is expected to expose the same public interface as
+/// <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
+///
 /// @subsection sec_field_tutorial_array_list_size_prefix Prefixing with Size Information
 /// Very often variable size sequences of raw bytes or other fields get
 /// prefixed with size information. The default behaviour of the 
@@ -482,7 +501,7 @@
 /// assert(std::distance(&InputBuffer[0], readIter) == 5); // Expected to consume 2 first bytes of the size + ,
 ///                                                        // number of elements size specified (=3). Overall 5 bytes consumed 
 ///
-
+///
 /// std::vector<std::uint8_t> outputBuffer;
 /// auto writeIter = std::back_inserter(outputBuffer);
 /// es = myList.write(writeIter, outputBuffer.max_size());
@@ -641,6 +660,23 @@
 /// MyStaticString myStaticStr;
 /// auto& myStaticStrStorage = myStaticStr.value(); // Reference to comms::util::StaticString<32>.
 /// @endcode
+/// Just like with @ref sec_field_tutorial_array_list, if neither default
+/// <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
+/// nor comms::util::StaticString are suitable to store the string value, it is
+/// possible to provide custom storage type:
+/// @code
+/// typedef comms::Field<comms::option::BigEndian> MyFieldBase;
+/// typedef ... MyStringStorage;
+/// typedef comms::field::String<
+///     MyFieldBase, 
+///     comms::option::CustomStorageType<MyStringStorage> 
+/// > MyCustomStorageString;
+///
+/// MyCustomStorageString myCustomStorageStr;
+/// MyStringStorage& myCustomStorageStr = myStaticStr.value();
+/// @endcode
+/// The provide custom storage type is expected to expose the same public interface as
+/// <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>.
 /// 
 /// Prefixing string with single byte of the size information will look like this:
 /// @code

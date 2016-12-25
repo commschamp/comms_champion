@@ -202,7 +202,7 @@ public:
             std::size_t size) const
     {
         Field field;
-        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
+        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), MsgLengthTag());
     }
 
     /// @brief Serialise message into output data sequence while caching the written transport
@@ -234,7 +234,57 @@ public:
                 msg,
                 iter,
                 size,
-                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
+                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
+                MsgLengthTag());
+    }
+
+    /// @brief Update written dummy size with proper value.
+    /// @details Should be called when write() returns comms::ErrorStatus::UpdateRequired.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using write().
+    /// @return Status of the update operation.
+    template <typename TIter>
+    comms::ErrorStatus update(TIter& iter, std::size_t size) const
+    {
+        if (Message::InterfaceOptions::HasLength) {
+            return Base::update(iter, size);
+        }
+
+        Field field;
+        return updateInternal(field, iter, size, Base::createNextLayerUpdater());
+    }
+
+    /// @brief Update written dummy size with proper value while caching the written transport
+    ///     information fields.
+    /// @details Very similar to update() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the update operation.
+    template <std::size_t TIdx, typename TAllFields, typename TIter>
+    ErrorStatus updateFieldsCached(
+        TAllFields& allFields,
+        TIter& iter,
+        std::size_t size) const
+    {
+        if (Message::InterfaceOptions::HasLength) {
+            return Base::update(allFields, iter, size);
+        }
+
+        auto& field = Base::template getField<TIdx>(allFields);
+        return
+            updateInternal(
+                field,
+                iter,
+                size,
+                Base::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
     }
 
 private:
@@ -242,6 +292,15 @@ private:
     using FixedLengthTag = typename Base::FixedLengthTag;
     using VarLengthTag = typename Base::VarLengthTag;
     using LengthTag = typename Base::LengthTag;
+    struct MsgHasLengthTag {};
+    struct MsgNoLengthTag {};
+
+    using MsgLengthTag =
+        typename std::conditional<
+            Message::InterfaceOptions::HasLength,
+            MsgHasLengthTag,
+            MsgNoLengthTag
+        >::type;
 
     template <typename TMsgPtr, typename TReader>
     ErrorStatus readInternal(
@@ -283,6 +342,11 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
+        if (es != ErrorStatus::ProtocolError) {
+            iter = fromIter;
+            std::advance(iter, requiredRemainingSize);
+        }
+
         auto consumed =
             static_cast<std::size_t>(std::distance(fromIter, iter));
         if (consumed < requiredRemainingSize) {
@@ -293,7 +357,7 @@ private:
     }
 
     template <typename TWriter>
-    ErrorStatus writeInternal(
+    ErrorStatus writeInternalHasLength(
         Field& field,
         const Message& msg,
         WriteIterator& iter,
@@ -312,6 +376,119 @@ private:
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
+    template <typename TWriter>
+    ErrorStatus writeInternalRandomAccess(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter) const
+    {
+        auto valueIter = iter;
+
+        field.value() = 0;
+        auto es = field.write(iter, size);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        auto dataIter = iter;
+
+        auto sizeLen = field.length();
+        es = nextLayerWriter.write(msg, iter, size - sizeLen);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        field.value() = static_cast<typename Field::ValueType>(std::distance(dataIter, iter));
+        GASSERT(field.length() == sizeLen);
+        return field.write(valueIter, sizeLen);
+    }
+
+    template <typename TWriter>
+    ErrorStatus writeInternalOutput(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter) const
+    {
+        field.value() = 0;
+        auto es = field.write(iter, size);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        es = nextLayerWriter.write(msg, iter, size - field.length());
+        if ((es != ErrorStatus::Success) &&
+            (es != ErrorStatus::UpdateRequired)) {
+            return es;
+        }
+
+        return ErrorStatus::UpdateRequired;
+    }
+
+    template <typename TWriter>
+    ErrorStatus writeInternalNoLengthTagged(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter,
+        std::random_access_iterator_tag) const
+    {
+        return writeInternalRandomAccess(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
+    }
+
+    template <typename TWriter>
+    ErrorStatus writeInternalNoLengthTagged(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter,
+        std::output_iterator_tag) const
+    {
+        return writeInternalOutput(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
+    }
+
+    template <typename TWriter>
+    ErrorStatus writeInternalNoLength(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter) const
+    {
+        typedef typename std::iterator_traits<WriteIterator>::iterator_category Tag;
+        return writeInternalNoLengthTagged(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter), Tag());
+    }
+
+
+    template <typename TWriter>
+    ErrorStatus writeInternal(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter,
+        MsgHasLengthTag) const
+    {
+        return writeInternalHasLength(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
+    }
+
+    template <typename TWriter>
+    ErrorStatus writeInternal(
+        Field& field,
+        const Message& msg,
+        WriteIterator& iter,
+        std::size_t size,
+        TWriter&& nextLayerWriter,
+        MsgNoLengthTag) const
+    {
+        return writeInternalNoLength(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
+    }
+
     template <typename TMsg>
     constexpr std::size_t lengthInternal(const TMsg& msg, FixedLengthTag) const
     {
@@ -324,6 +501,26 @@ private:
         typedef typename Field::ValueType FieldValueType;
         auto remSize = Base::nextLayer().length(msg);
         return Field(static_cast<FieldValueType>(remSize)).length() + remSize;
+    }
+
+    template <typename TIter, typename TUpdater>
+    ErrorStatus updateInternal(
+        Field& field,
+        TIter& iter,
+        std::size_t size,
+        TUpdater&& nextLayerUpdater) const
+    {
+        field.value() = size - Field::maxLength();
+        if (field.length() != Field::maxLength()) {
+            field.value() = size - field.length();
+        }
+
+        auto es = field.write(iter, size);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        return nextLayerUpdater.update(iter, size - field.length());
     }
 };
 

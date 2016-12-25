@@ -30,6 +30,8 @@ namespace field_wrapper
 
 class FieldWrapperHandler : public comms::GenericHandler<FieldWrapper, AllWrappers>
 {
+public:
+    virtual ~FieldWrapperHandler() {}
 };
 
 }  // namespace field_wrapper

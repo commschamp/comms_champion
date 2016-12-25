@@ -244,11 +244,24 @@ public:
         return updateInternal(field, iter, size, Base::createNextLayerUpdater());
     }
 
-    /// @cond SKIP_DOC
-    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    /// @brief Update written dummy checksum with proper value while caching the written transport
+    ///     information fields.
+    /// @details Very similar to update() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the update operation.
+    template <std::size_t TIdx, typename TAllFields, typename TIter>
     ErrorStatus updateFieldsCached(
         TAllFields& allFields,
-        TUpdateIter& iter,
+        TIter& iter,
         std::size_t size) const
     {
         auto& field = Base::template getField<TIdx>(allFields);
@@ -259,7 +272,6 @@ public:
                 size,
                 Base::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
     }
-    /// @endcond
 
 private:
     typedef typename std::iterator_traits<WriteIterator>::iterator_category WriteIteratorCategoryTag;
@@ -289,21 +301,26 @@ private:
         auto fromIter = iter;
 
         auto es = nextLayerReader.read(msgPtr, iter, size - Field::minLength(), missingSize);
-        if (es != ErrorStatus::Success) {
+        if ((es == ErrorStatus::NotEnoughData) ||
+            (es == ErrorStatus::ProtocolError)) {
             return es;
         }
+
+//        if (es != ErrorStatus::Success) {
+//            return es;
+//        }
 
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
         GASSERT(len <= size);
         auto remSize = size - len;
-        es = field.read(iter, remSize);
-        if (es == ErrorStatus::NotEnoughData) {
+        auto checksumEs = field.read(iter, remSize);
+        if (checksumEs == ErrorStatus::NotEnoughData) {
             Base::updateMissingSize(field, remSize, missingSize);
         }
 
-        if (es != ErrorStatus::Success) {
+        if (checksumEs != ErrorStatus::Success) {
             msgPtr.reset();
-            return es;
+            return checksumEs;
         }
 
         auto checksum = TCalc()(fromIter, len);
@@ -314,7 +331,7 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
-        return ErrorStatus::Success;
+        return es;
     }
 
     template <typename TWriter>

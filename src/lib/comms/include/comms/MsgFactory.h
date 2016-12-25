@@ -155,9 +155,7 @@ private:
     class FactoryMethod
     {
     public:
-        virtual ~FactoryMethod() {};
-
-        virtual MsgIdParamType getId() const
+        MsgIdParamType getId() const
         {
             return getIdImpl();
         }

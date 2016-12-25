@@ -6,9 +6,18 @@ option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
 option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
 
+if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
+    message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
+endif()
+
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
         message (STATUS "Unittests are disabled")
+        break()
+    endif ()
+    
+    if (CMAKE_CROSSCOMPILING)
+        message (STATUS "Not building unittests when cross-compiling")
         break()
     endif ()
     
@@ -34,7 +43,7 @@ while (TRUE)
     
     find_package (CxxTest)
     if (NOT CXXTEST_FOUND)
-        message (FATAL_ERROR "Wrong cxxtest paths, must be fixed")
+        message (WARNING "Wrong cxxtest paths, must be fixed")
     endif ()
     
     enable_testing ()

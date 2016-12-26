@@ -20,6 +20,7 @@
 
 #include "util/access.h"
 #include "details/FieldBase.h"
+#include "comms/details/fields_access.h"
 
 namespace comms
 {
@@ -123,6 +124,8 @@ protected:
     }
 
 };
+
+#define COMMS_FIELD_MEMBERS_ACCESS(base_, ...) COMMS_FIELDS_ACCESS_ALL(typename base_::ValueType, base_::value(), __VA_ARGS__)
 
 }  // namespace comms
 

@@ -19,6 +19,7 @@
 #pragma once
 
 #include "details/MessageImplBuilder.h"
+#include "details/fields_access.h"
 
 namespace comms
 {
@@ -394,6 +395,7 @@ protected:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
+#define COMMS_MSG_FIELDS_ACCESS(base_, ...) COMMS_FIELDS_ACCESS_ALL(typename base_::AllFields, base_::fields(), __VA_ARGS__)
 
 }  // namespace comms
 

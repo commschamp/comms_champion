@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// Provides common base class for the custom messages with default implementation.
 
 #pragma once
 
@@ -78,7 +80,7 @@ namespace comms
 ///         message class that inherits from comms::MessageBase implements its
 ///         own version of writeImpl() member function. In this case the default
 ///         implementation is not needed. Usage of
-///         comms::option::NoDefaultFieldsReadImpl option will suppress
+///         comms::option::NoDefaultFieldsWriteImpl option will suppress
 ///         generation of the default writeImpl() member function. It may be
 ///         used to reduce compilation time and decrease the final binary code
 ///         size.
@@ -395,6 +397,115 @@ protected:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
+/// @brief Add convenience access to message field enum, struct and functions.
+/// @details The comms::MessageBase class provides access to its fields via
+///     comms::MessageBase::fields() member function(s). The fields are bundled
+///     into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     and can be accessed using indices with
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
+///     For convenience, the fields should be named. The COMMS_MSG_FIELDS_ACCESS()
+///     macro does exactly that. @n
+///     As an example, let's assume that custom message uses 3 fields of any
+///     types:
+///     @code
+///     typedef ... Field1;
+///     typedef ... Field2;
+///     typedef ... Field3;
+///
+///     typedef std::tuple<Field1, Field2, Field3> MyMessageFields
+///
+///     class Message1 : public comms::MessageBase<MyInterface, comms::option::FieldsImpl<MyMessageFields> >
+///     {
+///         typedef comms::MessageBase<MyInterface, comms::option::FieldsImpl<MyMessageFields> > Base
+///     public:
+///         COMMS_MSG_FIELDS_ACCESS(Base, name1, name2, name3);
+///     };
+///     @endcode
+///     The usage of the COMMS_MSG_FIELDS_ACCESS() macro with type of the base
+///     class (a variant of comms::MessageBase with comms::option::FieldsImpl option)
+///     as the first parameter followed by the list of the field's names
+///     is equivalent to having the following definitions inside the message class
+///     @code
+///     class Message1 : public comms::MessageBase<...>
+///     {
+///     public:
+///         enum FieldIdx {
+///             FieldIdx_name1,
+///             FieldIdx_name2,
+///             FieldIdx_name3,
+///             FieldIdx_nameOfValues
+///         };
+///
+///         static_assert(std::tuple_size<Base::AllFields>::value == FieldIdx_nameOfValues,
+///             "Number of expected fields is incorrect");
+///
+///         struct FieldsAsStruct
+///         {
+///             Field1& name1;
+///             Field2& name2;
+///             Field3& name3;
+///         };
+///
+///         struct ConstFieldsAsStruct
+///         {
+///             const Field1& name1;
+///             const Field2& name2;
+///             const Field3& name3;
+///         };
+///
+///         FieldsAsStruct fieldsAsStruct()
+///         {
+///             return FieldsAsStruct{
+///                 std::get<0>(Base::fields()),
+///                 std::get<1>(Base::fields()),
+///                 std::get<2>(Base::fields())};
+///         }
+///
+///         ConstFieldsAsStruct fieldsAsStruct() const
+///         {
+///             return ConstFieldsAsStruct{
+///                 std::get<0>(Base::fields()),
+///                 std::get<1>(Base::fields()),
+///                 std::get<2>(Base::fields())};
+///         }
+///     };
+///     @endcode
+///     @b NOTE, that provided names @b name1, @b name2, and @b name3 have
+///     found their way to the enum @b FieldIdx and as data members of the
+///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
+///     Also note, that there is automatically added @b FieldIdx_nameOfValues
+///     value to the end of @b FieldIdx enum.
+///
+///     As the result, the fields can be accessed using @b FieldIdx enum
+///     @code
+///     void handle(Message1& msg)
+///     {
+///         auto& allFields = msg.fields();
+///         auto& field1 = std::get<MyMessage::FieldIdx_name1>(allFields);
+///         auto& field2 = std::get<MyMessage::FieldIdx_name2>(allFields);
+///         auto& field3 = std::get<MyMessage::FieldIdx_name1>(allFields);
+///
+///         auto value1 = field1.value();
+///         auto value2 = field2.value();
+///         auto value3 = field3.value();
+///     }
+///     @endcode
+///     or using provided struct(s):
+///     @code
+///     void handle(Message1& msg)
+///     {
+///         auto allFields = msg.fieldsAsStruct();
+///
+///         auto value1 = allFields.name1.value();
+///         auto value2 = allFields.name2.value();
+///         auto value3 = allFields.name3.value();
+///     }
+///     @endcode
+/// @param[in] base_ Base class of the defined message class, expected to be a
+///     variant of comms::MessageBase, with usage of  comms::option::FieldsImpl
+///     option, i.e. defines and contains internal fields as a tuple.
+/// @param[in] ... List of fields' names.
+/// @related comms::MessageBase
 #define COMMS_MSG_FIELDS_ACCESS(base_, ...) COMMS_FIELDS_ACCESS_ALL(typename base_::AllFields, base_::fields(), __VA_ARGS__)
 
 }  // namespace comms

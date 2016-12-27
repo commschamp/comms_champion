@@ -211,7 +211,7 @@
 /// how the input data is collected and stored. It is a responsibility of the 
 /// @b caller to allocate and maintain the input buffer, while providing only an 
 /// iterator for read operation. @n
-/// Also @b note, that iterator as passed by reference, which allows advancing 
+/// Also @b note, that iterator is passed by reference, which allows advancing 
 /// operator when read operation is performed. @n
 /// For example:
 /// @code
@@ -277,7 +277,7 @@
 /// is chosen to be std::vector<std::uint8_t> and the write operation will
 /// be performed using push_back() calls on this vector (due to std::back_insert_iterator
 /// being chosen as WriteIterator). @n
-/// Also @b note, that iterator as passed by reference, which allows advancing 
+/// Also @b note, that iterator is passed by reference, which allows advancing 
 /// operator when write operation is performed. @n
 /// For example:
 /// @code
@@ -477,7 +477,7 @@
 /// @endcode  
 /// The definition below gives a full interface of all
 /// the introduced functions: @b getId(), @b read(), @b write(), @b dispatch(),
-/// @b length(), @b valid(), and @b refresh.
+/// @b length(), @b valid(), and @b refresh().
 /// @code
 /// typedef comms::Message<
 ///     comms::option::BigEndian, // Use big endian for serialisation
@@ -621,12 +621,6 @@
 ///                                                   // lengthImpl(), validImpl()
 ///     >
 /// {
-///     // Fields access indices
-///     enum FieldIdx
-///     {
-///         FieldIdx_Value1,
-///         FieldIdx_Value2
-///     };
 /// };
 /// @endcode
 /// Before diving into details of every possible implementation option, please
@@ -739,7 +733,7 @@
 /// in comms::field namespace. Please refer to @ref page_field_tutorial page
 /// for full tutorial on fields.
 ///
-/// The usage of comms::option::FieldImpl with all the relevant fields (bundled
+/// The usage of comms::option::FieldsImpl with all the relevant fields (bundled
 /// in std::tuple) provided as a template argument to the option will force
 /// the implementation of @b readImpl(), @b writeImpl(), @b lengthImpl(), and
 /// @b validImpl() functions.
@@ -759,12 +753,6 @@
 ///         ...
 ///     >
 /// {
-///     // Fields access indices
-///     enum FieldIdx
-///     {
-///         FieldIdx_Value1,
-///         FieldIdx_Value2
-///     };
 /// };
 /// @endcode
 ///
@@ -779,8 +767,8 @@
 ///     void handle(Message1& msg) 
 ///     {
 ///         auto& fields = msg.fields(); // Reference to std::tuple containing all the fields
-///         auto& value1Field = std::get<Message1::FieldIdx_Value1>(fields); // Reference to the first field
-///         auto& value2Field = std::get<Message1::FieldIdx_Value2>(fields); // Reference to the second field
+///         auto& value1Field = std::get<0>(fields); // Reference to the first field
+///         auto& value2Field = std::get<1>(fields); // Reference to the second field
 ///
 ///         auto value1 = value1Field.value(); // Internal value of the first field - std::uint16_t
 ///         auto value2 = value2Field.value(); // Internal value of the first field - std::int8_t
@@ -916,3 +904,100 @@
 /// msg.refresh(); // Set mode of optional field according to flags
 /// auto es = msg.write(...); // Serialise the message
 /// @endcode
+///
+/// @subsection page_message_tutorial_impl_access Accessing the Fields
+/// The comms::MessageBase class provides access to its fields via
+/// comms::MessageBase::fields() member function(s). The fields are bundled
+/// into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+/// and can be accessed using indices with
+/// <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
+/// For convenience, the fields should be named. The COMMS_MSG_FIELDS_ACCESS()
+/// macro does exactly that when used inside the custom message definition class. 
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>,
+///         ...
+///     >
+/// {
+///     typedef comms::MessageBase<MyMessage, comms::option::FieldsImpl<Message1Fields>, ...> Base;
+/// public:
+///     COMMS_MSG_FIELDS_ACCESS(Base, name1, name2);
+///     ...
+/// };
+/// @endcode
+///
+/// The usage of the COMMS_MSG_FIELDS_ACCESS() macro with type of the base
+/// class (a variant of comms::MessageBase with comms::option::FieldsImpl option)
+/// as the first parameter followed by the list of the field's names
+/// is equivalent to having the following definitions inside the message class
+/// @code
+/// class Message1 : public comms::MessageBase<...>
+/// {
+/// public:
+///     enum FieldIdx {
+///         FieldIdx_name1,
+///         FieldIdx_name2,
+///         FieldIdx_nameOfValues
+///     };
+///
+///     static_assert(std::tuple_size<Base::AllFields>::value == FieldIdx_nameOfValues,
+///         "Number of expected fields is incorrect");
+///
+///     struct FieldsAsStruct
+///     {
+///         Field1& name1;
+///         Field2& name2;
+///     };
+///
+///     struct ConstFieldsAsStruct
+///     {
+///         const Field1& name1;
+///         const Field2& name2;
+///     };
+///
+///     FieldsAsStruct fieldsAsStruct()
+///     {
+///         return FieldsAsStruct{
+///             std::get<0>(Base::fields()),
+///             std::get<1>(Base::fields())};
+///     }
+///
+///     ConstFieldsAsStruct fieldsAsStruct() const
+///     {
+///         return ConstFieldsAsStruct{
+///             std::get<0>(Base::fields()),
+///             std::get<1>(Base::fields())};
+///     }
+/// };
+/// @endcode
+/// @b NOTE, that provided names @b name1, and @b name2, have
+/// found their way to the enum @b FieldIdx and as data members of the
+/// @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
+/// Also note, that there is automatically added @b FieldIdx_nameOfValues
+/// value to the end of @b FieldIdx enum.
+///
+/// As the result, the fields can be accessed using @b FieldIdx enum
+/// @code
+/// void handle(Message1& msg)
+/// {
+///     auto& allFields = msg.fields();
+///     auto& field1 = std::get<MyMessage::FieldIdx_name1>(allFields);
+///     auto& field2 = std::get<MyMessage::FieldIdx_name2>(allFields);
+///
+///     auto value1 = field1.value();
+///     auto value2 = field2.value();
+/// }
+/// @endcode
+/// or using provided struct(s):
+/// @code
+/// void handle(Message1& msg)
+/// {
+///     auto allFields = msg.fieldsAsStruct();
+///
+///     auto value1 = allFields.name1.value();
+///     auto value2 = allFields.name2.value();
+/// }
+/// @endcode
+///

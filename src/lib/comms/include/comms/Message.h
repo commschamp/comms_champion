@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file comms/Message.h
+/// @file
 /// Contains definition of Message object interface and various base classes
 /// for custom messages.
 

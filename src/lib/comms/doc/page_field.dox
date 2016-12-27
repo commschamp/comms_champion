@@ -335,6 +335,90 @@
 /// assert(outData[0] == 0x56); // Binary value split to 3-2-3 bits: 010|10|110
 /// @endcode
 ///
+/// It would be convenient to access the member fields by name, rather than
+/// by index with <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
+/// It can be achieved by inheriting from the field definition and using
+/// COMMS_FIELD_MEMBERS_ACCESS() macro inside.
+/// @code
+/// class AccessibleSerialConfigField : public SerialConfigField
+/// {
+///     typedef SerialConfigField Base;
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(Base, baud, parity, flags);
+/// }
+/// @endcode
+/// It is equivalent to having the following enum, structs and functions defined:
+/// @code
+/// class AccessibleSerialConfigField : public SerialConfigField
+/// {
+///     typedef SerialConfigField Base;
+/// public:
+///     enum FieldIdx {
+///         FieldIdx_baud,
+///         FieldIdx_parity,
+///         FieldIdx_flags,
+///         FieldIdx_numOfValues
+///     };
+///
+///     struct FieldsAsStruct
+///     {
+///         comms::field::EnumValue<...>& baud;
+///         comms::field::EnumValue<...>& parity;
+///         comms::field::BitmaskValue<...>& flags;
+///     };
+///
+///     struct ConstFieldsAsStruct
+///     {
+///         const comms::field::EnumValue<...>& baud;
+///         const comms::field::EnumValue<...>& parity;
+///         const comms::field::BitmaskValue<...>& flags;
+///     };
+///
+///     FieldsAsStruct fieldsAsStruct()
+///     {
+///         return FieldsAsStruct{
+///             std::get<0>(Base::value()),
+///             std::get<1>(Base::value()),
+///             std::get<2>(Base::value())};
+///     }
+///
+///     ConstFieldsAsStruct fieldsAsStruct() const
+///     {
+///         return ConstFieldsAsStruct{
+///             std::get<0>(Base::value()),
+///             std::get<1>(Base::value()),
+///             std::get<2>(Base::value())};
+///     }
+/// };
+/// @endcode
+/// @b NOTE, that provided names @b baud, @b parity, and @b flags have
+/// found their way to the enum @b FieldIdx and as data members of the
+/// @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
+/// Also note, that there is automatically added @b FieldIdx_nameOfValues
+/// value to the end of @b FieldIdx enum.
+///
+/// As the result, the fields can be accessed using @b FieldIdx enum
+/// @code
+/// AccessibleSerialConfigField field;
+/// auto& members = field.value();
+/// auto& baudField = std::get<AccessibleSerialConfigField::FieldIdx_baud>(members);
+/// auto& parityField = std::get<AccessibleSerialConfigField::FieldIdx_parity>(members);
+/// auto& flagsField = std::get<AccessibleSerialConfigField::FieldIdx_flags>(members);
+///
+/// auto baud = baudField.value();
+/// auto parity = parityField.value();
+/// auto flags = flagsField.value();
+/// @endcode
+/// or using provided struct(s):
+/// @code
+/// AccessibleSerialConfigField field;
+/// auto members = field.fieldsAsStruct();
+///
+/// auto baud = members.baud.value();
+/// auto parity = members.parity.value();
+/// auto flags = members.flags.value();
+/// @endcode
+///
 /// @section sec_field_tutorial_bundle Bundle Fields
 /// There are cases when multiple independent fields need to be bundled into
 /// a single field and expose the required interface of reading, writing,
@@ -384,6 +468,20 @@
 /// The default behaviour of comms::field::Bundle may be extended with options.
 /// Please refer to the class documentation for the list of supported options.
 /// See @ref sec_field_tutorial_common_options_validation for details.
+///
+/// Just like with the @ref sec_field_tutorial_bitfield, the names to the
+/// member fields can be provided by inheriting from the comms::field::Bundle
+/// base class and using COMMS_FIELD_MEMBERS_ACCESS() macro.
+/// @code
+/// class MyAccessibleBundle : public MyBundle
+/// {
+///     typedef MyBundle Base;
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(Base, member1, member2, member3);
+/// };
+/// @endcode
+/// It will create similar enum, structs and convenience access functions, just
+/// like described in previous @ref sec_field_tutorial_bitfield section.
 ///
 /// @section sec_field_tutorial_array_list Array List Fields
 /// Some communication protocols may define messages that transmit sequence

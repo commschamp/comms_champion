@@ -397,7 +397,7 @@ protected:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
-/// @brief Add convenience access to message field enum, struct and functions.
+/// @brief Add convenience access enum, structs and functions to message fields.
 /// @details The comms::MessageBase class provides access to its fields via
 ///     comms::MessageBase::fields() member function(s). The fields are bundled
 ///     into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>

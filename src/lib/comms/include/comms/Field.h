@@ -125,7 +125,245 @@ protected:
 
 };
 
+/// @brief Add convenience access enum, structs and functions to the members of
+///     bundle fields, such as comms::field::Bundle or comms::field::Bitfield.
+/// @details The fields of "bundle" types, such as comms::field::Bundle or
+///     comms::field::Bitfield keep their members bundled in
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     and provide access to them via @b value() member functions.
+///     The access to the specific member field can be obtained using
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>
+///     later on:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using ... Field1;
+///     using ... Field2;
+///     using ... Field3;
+///     using MyField =
+///         comms::field::Bitfield<
+///             MyFieldBase,
+///             std::tuple<Field1, Field2, Field3>
+///         >;
+///
+///     MyField field;
+///     auto& members = field.value();
+///     auto& firstMember = std::get<0>(members);
+///     auto& secondMember = std::get<1>(members);
+///     auto& thirdMember = std::get<2>(members);
+///     @endcode
+///     However, it would be convenient to provide names and easier access to
+///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exaclty
+///     that when used inside the field class definition. Just inherit from
+///     the "bundle" field and use the macro inside while providing the type
+///     of the base class as first parameter, followed by the names for the
+///     member fields:
+///     @code
+///     class MyField : public comms::field::Bitfield<...>
+///     {
+///         typedef comms::field::Bitfield<...> Base;
+///     public:
+///         COMMS_FIELD_MEMBERS_ACCESS(Base, member1, member2, member3);
+///     }
+///     @endcode
+///     It would be equivalent to having the following types and functions
+///     definitions:
+///     @code
+///     class MyField : public comms::field::Bitfield<...>
+///     {
+///         typedef comms::field::Bitfield<...> Base;
+///     public:
+///         enum FieldIdx {
+///             FieldIdx_member1,
+///             FieldIdx_member2,
+///             FieldIdx_member3,
+///             FieldIdx_numOfValues
+///         };
+///
+///         struct FieldsAsStruct
+///         {
+///             Field1& member1;
+///             Field2& member2;
+///             Field3& member3;
+///         };
+///
+///         struct ConstFieldsAsStruct
+///         {
+///             const Field1& member1;
+///             const Field2& member2;
+///             const Field3& member3;
+///         };
+///
+///         FieldsAsStruct fieldsAsStruct()
+///         {
+///             return FieldsAsStruct{
+///                 std::get<0>(Base::value()),
+///                 std::get<1>(Base::value()),
+///                 std::get<2>(Base::value())};
+///         }
+///
+///         ConstFieldsAsStruct fieldsAsStruct() const
+///         {
+///             return ConstFieldsAsStruct{
+///                 std::get<0>(Base::value()),
+///                 std::get<1>(Base::value()),
+///                 std::get<2>(Base::value())};
+///         }
+///     };
+///     @endcode
+///     @b NOTE, that provided names @b member1, @b member2, and @b member3 have
+///     found their way to the enum @b FieldIdx and as data members of the
+///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
+///     Also note, that there is automatically added @b FieldIdx_nameOfValues
+///     value to the end of @b FieldIdx enum.
+///
+///     As the result, the fields can be accessed using @b FieldIdx enum
+///     @code
+///     MyField field;
+///     auto& members = field.value();
+///     auto& firstMember = std::get<MyField::FieldIdx_member1>(members);
+///     auto& secondMember = std::get<MyField::FieldIdx_member2>(members);
+///     auto& thirdMember = std::get<MyField::FieldIdx_member3>(members);
+///
+///     auto firstValue = firstMember.value();
+///     auto secondValue = secondMember.value();
+///     auto thirdValue = thirdMember.value();
+///     @endcode
+///     or using provided struct(s):
+///     @code
+///     MyField field;
+///     auto members = field.fieldsAsStruct();
+///
+///     auto firstValue = members.member1.value();
+///     auto secondValue = members.member2.value();
+///     auto thirdValue = members.member3.value();
+///     @endcode
+/// @param[in] base_ Base class of the defined field which defines @b ValueType
+///     internal type to be <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     of field members and provides @b value() member functions to access them.
+/// @param[in] ... List of member fields' names.
+/// @related comms::field::Bitfield
 #define COMMS_FIELD_MEMBERS_ACCESS(base_, ...) COMMS_FIELDS_ACCESS_ALL(typename base_::ValueType, base_::value(), __VA_ARGS__)
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+/// @brief Add convenience access enum, structs and functions to the members of
+///     bundle fields, such as comms::field::Bundle or comms::field::Bitfield.
+/// @details The fields of "bundle" types, such as comms::field::Bundle or
+///     comms::field::Bitfield keep their members bundled in
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     and provide access to them via @b value() member functions.
+///     The access to the specific member field can be obtained using
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>
+///     later on:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using ... Field1;
+///     using ... Field2;
+///     using ... Field3;
+///     using MyField =
+///         comms::field::Bundle<
+///             MyFieldBase,
+///             std::tuple<Field1, Field2, Field3>
+///         >;
+///
+///     MyField field;
+///     auto& members = field.value();
+///     auto& firstMember = std::get<0>(members);
+///     auto& secondMember = std::get<1>(members);
+///     auto& thirdMember = std::get<2>(members);
+///     @endcode
+///     However, it would be convenient to provide names and easier access to
+///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exaclty
+///     that when used inside the field class definition. Just inherit from
+///     the "bundle" field and use the macro inside while providing the type
+///     of the base class as first parameter, followed by the names for the
+///     member fields:
+///     @code
+///     class MyField : public comms::field::Bundle<...>
+///     {
+///         typedef comms::field::Bundle<...> Base;
+///     public:
+///         COMMS_FIELD_MEMBERS_ACCESS(Base, member1, member2, member3);
+///     }
+///     @endcode
+///     It would be equivalent to having the following types and functions
+///     definitions:
+///     @code
+///     class MyField : public comms::field::Bundle<...>
+///     {
+///         typedef comms::field::Bundle<...> Base;
+///     public:
+///         enum FieldIdx {
+///             FieldIdx_member1,
+///             FieldIdx_member2,
+///             FieldIdx_member3,
+///             FieldIdx_numOfValues
+///         };
+///
+///         struct FieldsAsStruct
+///         {
+///             Field1& member1;
+///             Field2& member2;
+///             Field3& member3;
+///         };
+///
+///         struct ConstFieldsAsStruct
+///         {
+///             const Field1& member1;
+///             const Field2& member2;
+///             const Field3& member3;
+///         };
+///
+///         FieldsAsStruct fieldsAsStruct()
+///         {
+///             return FieldsAsStruct{
+///                 std::get<0>(Base::value()),
+///                 std::get<1>(Base::value()),
+///                 std::get<2>(Base::value())};
+///         }
+///
+///         ConstFieldsAsStruct fieldsAsStruct() const
+///         {
+///             return ConstFieldsAsStruct{
+///                 std::get<0>(Base::value()),
+///                 std::get<1>(Base::value()),
+///                 std::get<2>(Base::value())};
+///         }
+///     };
+///     @endcode
+///     @b NOTE, that provided names @b member1, @b member2, and @b member3 have
+///     found their way to the enum @b FieldIdx and as data members of the
+///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
+///     Also note, that there is automatically added @b FieldIdx_nameOfValues
+///     value to the end of @b FieldIdx enum.
+///
+///     As the result, the fields can be accessed using @b FieldIdx enum
+///     @code
+///     MyField field;
+///     auto& members = field.value();
+///     auto& firstMember = std::get<MyField::FieldIdx_member1>(members);
+///     auto& secondMember = std::get<MyField::FieldIdx_member2>(members);
+///     auto& thirdMember = std::get<MyField::FieldIdx_member3>(members);
+///
+///     auto firstValue = firstMember.value();
+///     auto secondValue = secondMember.value();
+///     auto thirdValue = thirdMember.value();
+///     @endcode
+///     or using provided struct(s):
+///     @code
+///     MyField field;
+///     auto members = field.fieldsAsStruct();
+///
+///     auto firstValue = members.member1.value();
+///     auto secondValue = members.member2.value();
+///     auto thirdValue = members.member3.value();
+///     @endcode
+/// @param[in] base_ Base class of the defined field which defines @b ValueType
+///     internal type to be <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     of field members and provides @b value() member functions to access them.
+/// @param[in] ... List of member fields' names.
+/// @related comms::field::Bundle
+#define COMMS_FIELD_MEMBERS_ACCESS(base_, ...)
+#endif
 
 }  // namespace comms
 

@@ -294,7 +294,11 @@ protected:
             auto readMessageFunc =
                 [&data](ProtocolMessage& msgToRead) -> bool
                 {
-                    typename ProtocolMessage::ReadIterator iter = &data[0];
+                    typename ProtocolMessage::ReadIterator iter = nullptr;
+                    if (!data.empty()) {
+                        iter = &data[0];
+                    }
+
                     auto esTmp = msgToRead.read(iter, data.size());
                     if (esTmp != comms::ErrorStatus::Success) {
                         return false;

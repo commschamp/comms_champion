@@ -324,6 +324,53 @@ constexpr bool isBitmaskValue()
     return details::IsBitmaskValue<T>::Value;
 }
 
+/// @brief Provide names for bits in comms::field::BitmaskValue field.
+/// @details Defines BitIdx enum with all the provided values prefixed with
+///     "BitIdx_". For example usage of
+///     @code
+///     COMMS_BITMASK_BITS(first, second, third, fourth);
+///     @endcode
+///     will generate the following enum type:
+///     @code
+///     enum BitIdx
+///     {
+///         BitIdx_first,
+///         BitIdx_second,
+///         BitIdx_third,
+///         BitIdx_fourth,
+///         BitIdx_numOfValues
+///     };
+///     @endcode
+///     @b NOTE, that provided names @b first, @b second, @b third, and @b fourth have
+///     found their way to the enum @b BitIdx. @n
+///     Also note, that there is automatically added @b BitIdx_nameOfValues
+///     value to the end of @b BitIdx enum.
+///
+///     It is possible to assign values to the provided names. It could be useful
+///     when skipping some unused bits. For example
+///     @code
+///     COMMS_BITMASK_BITS(first=1, third=3, fourth);
+///     @endcode
+///     will generate the following enum type:
+///     @code
+///     enum BitIdx
+///     {
+///         BitIdx_first=1,
+///         BitIdx_third=3,
+///         BitIdx_fourth,
+///         BitIdx_numOfValues
+///     };
+///     @endcode
+///
+///     The macro COMMS_BITMASK_BITS() should be used inside definition of the
+///     bitmask field to provide names for the bits for external use:
+///     @code
+///     struct MyField : public comms::field::BitmaskValue<...>
+///     {
+///         COMMS_BITMASK_BITS(first, second, third, fourth);
+///     }
+///     @endcode
+/// @related comms::field::BitmaskValue
 #define COMMS_BITMASK_BITS(...) COMMS_DEFINE_ENUM(BitIdx, __VA_ARGS__)
 
 }  // namespace field

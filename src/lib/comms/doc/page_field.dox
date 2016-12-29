@@ -251,6 +251,39 @@
 /// All the @ref sec_field_tutorial_common_options can also be used with 
 /// comms::field::BitmaskValue.
 ///
+/// Quite often there is a need to provide names for the bits in the 
+/// comms::field::BitmaskValue field. It is possible to define it as external
+/// independent enum. However, it may be convenient to define it as internal
+/// type. It is possible to do by inheriting from appropriate comms::field::BitmaskValue
+/// type and use COMMS_BITMASK_BITS() macro to define names for bits. For example
+/// @code
+/// struct MyBitmask : public comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >
+/// {
+///     COMMS_BITMASK_BITS(first, second, third, fourth, fifth, sixth, seventh, eighth);
+/// }
+/// @endcode
+/// is equivalent to defining:
+/// struct MyBitmask : public comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >
+/// {
+///     enum BitIdx
+///     {
+///         BitIdx_first,
+///         BitIdx_second,
+///         BitIdx_third,
+///         BitIdx_fourth,
+///         BitIdx_fifth,
+///         BitIdx_sixth,
+///         BitIdx_seventh,
+///         BitIdx_eighth,
+///         BitIdx_numOfValues,
+///     }
+/// }
+/// @endcode
+/// @b NOTE, that provided names have found their way to @b BitIdx enum type, and
+/// got prefixed with @b BitIdx_. @n
+/// Also note, that there is automatically generated @b BitIdx_numOfValues 
+/// value to indicate end of the names list.
+///
 /// @section sec_field_tutorial_bitfield Bitfield Fields
 /// Many communication protocols try to pack multiple independent values into
 /// a one or several bytes to save traffic on I/O link. For example, to encode

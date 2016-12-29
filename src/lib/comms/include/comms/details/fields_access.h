@@ -21,49 +21,7 @@
 #include <tuple>
 #include <type_traits>
 
-#define COMMS_WRAP_ENUM_(v_) FieldIdx_ ## v_
-#define COMMS_WRAP_ENUM(v_) COMMS_WRAP_ENUM_(v_)
-
-#define COMMS_ENUM_VAL_0(...)
-#define COMMS_ENUM_VAL_1(v_) COMMS_WRAP_ENUM(v_)
-#define COMMS_ENUM_VAL_2(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_1(__VA_ARGS__)
-#define COMMS_ENUM_VAL_3(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_2(__VA_ARGS__)
-#define COMMS_ENUM_VAL_4(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_3(__VA_ARGS__)
-#define COMMS_ENUM_VAL_5(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_4(__VA_ARGS__)
-#define COMMS_ENUM_VAL_6(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_5(__VA_ARGS__)
-#define COMMS_ENUM_VAL_7(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_6(__VA_ARGS__)
-#define COMMS_ENUM_VAL_8(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_7(__VA_ARGS__)
-#define COMMS_ENUM_VAL_9(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_8(__VA_ARGS__)
-#define COMMS_ENUM_VAL_10(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_9(__VA_ARGS__)
-#define COMMS_ENUM_VAL_11(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_10(__VA_ARGS__)
-#define COMMS_ENUM_VAL_12(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_11(__VA_ARGS__)
-#define COMMS_ENUM_VAL_13(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_12(__VA_ARGS__)
-#define COMMS_ENUM_VAL_14(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_13(__VA_ARGS__)
-#define COMMS_ENUM_VAL_15(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_14(__VA_ARGS__)
-#define COMMS_ENUM_VAL_16(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_15(__VA_ARGS__)
-#define COMMS_ENUM_VAL_17(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_16(__VA_ARGS__)
-#define COMMS_ENUM_VAL_18(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_17(__VA_ARGS__)
-#define COMMS_ENUM_VAL_19(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_18(__VA_ARGS__)
-#define COMMS_ENUM_VAL_20(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_19(__VA_ARGS__)
-#define COMMS_ENUM_VAL_21(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_20(__VA_ARGS__)
-#define COMMS_ENUM_VAL_22(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_21(__VA_ARGS__)
-#define COMMS_ENUM_VAL_23(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_22(__VA_ARGS__)
-#define COMMS_ENUM_VAL_24(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_23(__VA_ARGS__)
-#define COMMS_ENUM_VAL_25(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_24(__VA_ARGS__)
-#define COMMS_ENUM_VAL_26(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_25(__VA_ARGS__)
-#define COMMS_ENUM_VAL_27(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_26(__VA_ARGS__)
-#define COMMS_ENUM_VAL_28(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_27(__VA_ARGS__)
-#define COMMS_ENUM_VAL_29(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_28(__VA_ARGS__)
-#define COMMS_ENUM_VAL_30(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_29(__VA_ARGS__)
-#define COMMS_ENUM_VAL_31(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_30(__VA_ARGS__)
-#define COMMS_ENUM_VAL_32(v_, ...) COMMS_WRAP_ENUM(v_), COMMS_ENUM_VAL_31(__VA_ARGS__)
-
-#define COMMS_NUM_ARGS_(X,X32,X31,X30,X29,X28,X27,X26,X25,X24,X23,X22,X21,X20,X19,X18,X17,X16,X15,X14,X13,X12,X11,X10,X9,X8,X7,X6,X5,X4,X3,X2,X1,N,...) N
-#define COMMS_NUM_ARGS(...) COMMS_NUM_ARGS_(0, __VA_ARGS__ ,32,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0)
-
-#define COMMS_CHOOSE_ENUM_(N, ...) COMMS_ENUM_VAL_ ## N(__VA_ARGS__)
-#define COMMS_CHOOSE_ENUM(N, ...) COMMS_CHOOSE_ENUM_(N, __VA_ARGS__)
-#define COMMS_DO_ENUM(...) COMMS_CHOOSE_ENUM(COMMS_NUM_ARGS(__VA_ARGS__), __VA_ARGS__)
+#include "gen_enum.h"
 
 #define COMMS_WRAP_TUP_ELEM(t_, i_, n_) \
     typename std::add_lvalue_reference< \
@@ -181,11 +139,7 @@
 #define COMMS_CHOOSE_TUP_ACC(N, t_) COMMS_CHOOSE_TUP_ACC_(N, t_)
 #define COMMS_DO_TUP_ACC(t_, ...) COMMS_CHOOSE_TUP_ACC(COMMS_NUM_ARGS(__VA_ARGS__), t_)
 
-#define COMMS_DEFINE_ENUM(...) \
-    enum FieldIdx { \
-        COMMS_DO_ENUM(__VA_ARGS__) \
-        , FieldIdx_numOfValues \
-    };
+#define COMMS_DEFINE_FIELD_ENUM(...) COMMS_DEFINE_ENUM(FieldIdx, __VA_ARGS__);
 
 #define COMMS_DEFINE_FIELDS_STRUCT(t_, ...) \
     static_assert(std::tuple_size<t_>::value == COMMS_NUM_ARGS(__VA_ARGS__), \
@@ -220,7 +174,7 @@
 #define COMMS_FIELDS_ACCESS_ALL(T_, t_, ...) \
     static_assert(0U < std::tuple_size<T_>::value, \
         "Cannot use this macro with empty tuple of fields"); \
-    COMMS_DEFINE_ENUM(__VA_ARGS__) \
+    COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__) \
     COMMS_DEFINE_FIELDS_STRUCT(T_, __VA_ARGS__) \
     COMMS_DEFINE_CONST_FIELDS_STRUCT(T_, __VA_ARGS__) \
     COMMS_DEFINE_FIELDS_STRUCT_ACCESS(t_, __VA_ARGS__) \

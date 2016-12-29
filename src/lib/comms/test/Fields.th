@@ -81,6 +81,7 @@ public:
     void test47();
     void test48();
     void test49();
+    void test50();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1880,6 +1881,27 @@ void FieldsTestSuite::test49()
     TS_ASSERT_EQUALS(field.length(), 1U);
     TS_ASSERT_EQUALS(mem1.value(), 1U);
     TS_ASSERT_EQUALS(mem2.getMode(), comms::field::OptionalMode::Missing);
+}
+
+void FieldsTestSuite::test50()
+{
+    struct Field : public comms::field::BitmaskValue<
+        comms::Field<BigEndianOpt>,
+        comms::option::FixedLength<1> >
+    {
+        COMMS_BITMASK_BITS(first, second, third, fourth, sixth=5, seventh, eighth);
+    };
+
+
+    Field field;
+    field.value() = 0xaa;
+    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_first), false);
+    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_second), true);
+    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_third), false);
+    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_fourth), true);
+    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_sixth), true);
+    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_seventh), false);
+    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_eighth), true);
 }
 
 template <typename TField>

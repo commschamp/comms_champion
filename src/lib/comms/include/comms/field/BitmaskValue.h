@@ -23,6 +23,7 @@
 #include "comms/util/SizeToType.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
+#include "comms/details/gen_enum.h"
 #include "IntValue.h"
 
 namespace comms
@@ -322,6 +323,8 @@ constexpr bool isBitmaskValue()
 {
     return details::IsBitmaskValue<T>::Value;
 }
+
+#define COMMS_BITMASK_BITS(...) COMMS_DEFINE_ENUM(BitIdx, __VA_ARGS__)
 
 }  // namespace field
 

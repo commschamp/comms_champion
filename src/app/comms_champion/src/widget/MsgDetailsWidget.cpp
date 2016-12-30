@@ -77,6 +77,7 @@ void MsgDetailsWidget::displayMessage(MessagePtr msg)
     assert(scrollBar != nullptr);
     scrollBar->blockSignals(true);
     m_ui.m_scrollArea->setWidget(msgWidget.release());
+    m_displayedMsgWidget->show();
     scrollBar->blockSignals(false);
 
     auto scrollValue = property::message::ScrollPos().getFrom(*msg);

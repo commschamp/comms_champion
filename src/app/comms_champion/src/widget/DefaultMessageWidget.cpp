@@ -41,7 +41,7 @@ DefaultMessageWidget::DefaultMessageWidget(
     setLayout(m_layout);
     m_layout->addItem(
         new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
+    hide();
 }
 
 void DefaultMessageWidget::addFieldWidget(FieldWidget* field)

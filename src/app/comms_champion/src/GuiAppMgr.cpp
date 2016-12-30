@@ -378,10 +378,6 @@ void GuiAppMgr::sendAddNewMessage(MessagePtr msg)
     emit sigSendListCountReport(m_sendListCount);
     emit sigAddSendMsg(msg);
 
-    //if (!m_clickedMsg) {
-    //    emit sigDisplayMsg(msg);
-    //}
-
     sendMsgClicked(msg, m_sendListCount - 1);
     assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg);

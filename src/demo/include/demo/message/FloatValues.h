@@ -82,14 +82,16 @@ class FloatValues : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_FloatValues>,
         comms::option::FieldsImpl<typename FloatValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<FloatValues<TMsgBase> >
+        comms::option::MsgType<FloatValues<TMsgBase> >,
+        comms::option::DispatchImpl
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_FloatValues>,
         comms::option::FieldsImpl<typename FloatValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<FloatValues<TMsgBase> >
+        comms::option::MsgType<FloatValues<TMsgBase> >,
+        comms::option::DispatchImpl
     > Base;
 public:
 

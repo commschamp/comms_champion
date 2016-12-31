@@ -105,15 +105,18 @@ struct StaticNumIdImpl
 /// @brief Option used to specify that message doesn't have valid ID.
 struct NoIdImpl {};
 
+template <typename TMsg>
+struct MsgType
+{
+    typedef TMsg Type;
+};
+
 /// @brief Option used to force implementation of dispatch functionality.
 /// @details This option can be provided to comms::MessageBase to force the
 ///     implementation of comms::MessageBase::dispatchImpl() member function.
-/// @tparam TActual Actual message type - derived from comms::MessageBase.
-template <typename TActual>
-struct DispatchImpl
-{
-    typedef TActual MsgType;
-};
+///     Requires usage of @ref MsgType option as well to specify actual type
+///     of the message
+struct DispatchImpl {};
 
 /// @brief Option used to specify fields of the message and force implementation
 ///     of default read, write, validity check, and length retrieval information
@@ -141,29 +144,15 @@ struct NoDefaultFieldsReadImpl {};
 ///     in comms::MessageBase when @ref FieldsImpl option is used.
 struct NoDefaultFieldsWriteImpl {};
 
-template <typename TActual>
-struct MsgDoRead
-{
-    typedef TActual Type;
-};
+struct MsgDoRead {};
 
-template <typename TActual>
-struct MsgDoWrite
-{
-    typedef TActual Type;
-};
+struct MsgDoWrite {};
 
-template <typename TActual>
-struct MsgDoValid
-{
-    typedef TActual Type;
-};
+struct MsgDoValid {};
 
-template <typename TActual>
-struct MsgDoLength
-{
-    typedef TActual Type;
-};
+struct MsgDoLength {};
+
+struct MsgDoRefresh {};
 
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.

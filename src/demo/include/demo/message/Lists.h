@@ -104,14 +104,16 @@ class Lists : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Lists>,
         comms::option::FieldsImpl<typename ListsFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<Lists<TMsgBase> >
+        comms::option::MsgType<Lists<TMsgBase> >,
+        comms::option::DispatchImpl
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Lists>,
         comms::option::FieldsImpl<typename ListsFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<Lists<TMsgBase> >
+        comms::option::MsgType<Lists<TMsgBase> >,
+        comms::option::DispatchImpl
     > Base;
 public:
 

@@ -43,7 +43,8 @@ class InvalidMessageImpl : public
         TMsgBase,
         comms::option::NoIdImpl,
         comms::option::FieldsImpl<std::tuple<> >,
-        comms::option::DispatchImpl<InvalidMessageImpl<TMsgBase> >
+        comms::option::MsgType<InvalidMessageImpl<TMsgBase> >,
+        comms::option::DispatchImpl
     >
 {
 

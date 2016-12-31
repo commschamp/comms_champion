@@ -44,7 +44,8 @@ class ExtraInfoMessageImpl : public
         TMsgBase,
         comms::option::NoIdImpl,
         comms::option::FieldsImpl<std::tuple<comms::field::String<typename TMsgBase::Field> > >,
-        comms::option::DispatchImpl<ExtraInfoMessageImpl<TMsgBase> >
+        comms::option::MsgType<ExtraInfoMessageImpl<TMsgBase> >,
+        comms::option::DispatchImpl
     >
 {
 

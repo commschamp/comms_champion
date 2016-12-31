@@ -101,14 +101,20 @@ class Optionals : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
         comms::option::FieldsImpl<typename OptionalsFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<Optionals<TMsgBase> >
+        comms::option::MsgType<Optionals<TMsgBase> >,
+        comms::option::DispatchImpl,
+        comms::option::MsgDoRead,
+        comms::option::MsgDoRefresh
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
         comms::option::FieldsImpl<typename OptionalsFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<Optionals<TMsgBase> >
+        comms::option::MsgType<Optionals<TMsgBase> >,
+        comms::option::DispatchImpl,
+        comms::option::MsgDoRead,
+        comms::option::MsgDoRefresh
     > Base;
 public:
 
@@ -150,10 +156,8 @@ public:
     /// @brief Move assignment
     Optionals& operator=(Optionals&&) = default;
 
-protected:
-    typedef OptionalsFields<typename TMsgBase::Field> FieldsStruct;
-
-    virtual comms::ErrorStatus readImpl(typename Base::ReadIterator& iter, std::size_t len) override
+    template <typename TIter>
+    comms::ErrorStatus doRead(TIter& iter, std::size_t len)
     {
         auto es = Base::template readFieldsUntil<FieldIdx_field2>(iter, len);
         if (es != comms::ErrorStatus::Success) {
@@ -180,7 +184,7 @@ protected:
         return Base::template readFieldsFrom<FieldIdx_field2>(iter, len);
     }
 
-    virtual bool refreshImpl() override
+    bool doRefresh()
     {
         auto& allFields = Base::fields();
         auto& field1 = std::get<FieldIdx_field1>(allFields);
@@ -210,6 +214,9 @@ protected:
 
         return refreshed;
     }
+
+protected:
+    typedef OptionalsFields<typename TMsgBase::Field> FieldsStruct;
 };
 
 }  // namespace message

@@ -364,43 +364,6 @@ using MessageImplFieldsReadImplBaseT =
             (!TImplOpt::HasNoDefaultFieldsReadImpl) && (!TImplOpt::HasMsgDoRead)
     >::Type;
 
-template <typename TBase, typename TActual>
-class MessageImplDoReadBase : public TBase
-{
-    typedef TBase Base;
-protected:
-    ~MessageImplDoReadBase() = default;
-    virtual comms::ErrorStatus readImpl(
-        typename Base::ReadIterator& iter,
-        std::size_t size) override
-    {
-        return static_cast<TActual&>(*this).doRead(iter, size);
-    }
-};
-
-template <typename TBase, typename TImplOpt, bool THasMsgDoRead>
-struct MessageImplProcessDoReadBase;
-
-template <typename TBase, typename TImplOpt>
-struct MessageImplProcessDoReadBase<TBase, TImplOpt, true>
-{
-    typedef MessageImplDoReadBase<TBase, typename TImplOpt::MsgDoReadType> Type;
-};
-
-template <typename TBase, typename TImplOpt>
-struct MessageImplProcessDoReadBase<TBase, TImplOpt, false>
-{
-    typedef TBase Type;
-};
-
-template <typename TBase, typename TImplOpt>
-using MessageImplDoReadBaseT =
-    typename MessageImplProcessDoReadBase<
-        TBase,
-        TImplOpt,
-        TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasMsgDoRead
-    >::Type;
-
 template <typename TBase>
 class MessageImplFieldsWriteImplBase : public TBase
 {
@@ -439,43 +402,6 @@ using MessageImplFieldsWriteImplBaseT =
             (!TImplOpt::HasNoDefaultFieldsWriteImpl) && (!TImplOpt::HasMsgDoWrite)
     >::Type;
 
-template <typename TBase, typename TActual>
-class MessageImplDoWriteBase : public TBase
-{
-    typedef TBase Base;
-protected:
-    ~MessageImplDoWriteBase() = default;
-    virtual comms::ErrorStatus writeImpl(
-        typename Base::WriteIterator& iter,
-        std::size_t size) const override
-    {
-        return static_cast<const TActual&>(*this).doWrite(iter, size);
-    }
-};
-
-template <typename TBase, typename TImplOpt, bool THasMsgDoWrite>
-struct MessageImplProcessDoWriteBase;
-
-template <typename TBase, typename TImplOpt>
-struct MessageImplProcessDoWriteBase<TBase, TImplOpt, true>
-{
-    typedef MessageImplDoWriteBase<TBase, typename TImplOpt::MsgDoWriteType> Type;
-};
-
-template <typename TBase, typename TImplOpt>
-struct MessageImplProcessDoWriteBase<TBase, TImplOpt, false>
-{
-    typedef TBase Type;
-};
-
-template <typename TBase, typename TImplOpt>
-using MessageImplDoWriteBaseT =
-    typename MessageImplProcessDoWriteBase<
-        TBase,
-        TImplOpt,
-        TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasMsgDoWrite
-    >::Type;
-
 template <typename TBase>
 class MessageImplFieldsValidBase : public TBase
 {
@@ -509,41 +435,6 @@ using MessageImplFieldsValidBaseT =
     typename MessageImplProcessFieldsValidBase<
         TBase,
         TBase::InterfaceOptions::HasValid && TImplOpt::HasFieldsImpl && (!TImplOpt::HasMsgDoValid)
-    >::Type;
-
-template <typename TBase, typename TActual>
-class MessageImplDoValidBase : public TBase
-{
-    typedef TBase Base;
-protected:
-    ~MessageImplDoValidBase() = default;
-    virtual bool validImpl() const override
-    {
-        return static_cast<const TActual&>(*this).doValid();
-    }
-};
-
-template <typename TBase, typename TImplOpt, bool THasMsgDoValid>
-struct MessageImplProcessDoValidBase;
-
-template <typename TBase, typename TImplOpt>
-struct MessageImplProcessDoValidBase<TBase, TImplOpt, true>
-{
-    typedef MessageImplDoValidBase<TBase, typename TImplOpt::MsgDoValidType> Type;
-};
-
-template <typename TBase, typename TImplOpt>
-struct MessageImplProcessDoValidBase<TBase, TImplOpt, false>
-{
-    typedef TBase Type;
-};
-
-template <typename TBase, typename TImplOpt>
-using MessageImplDoValidBaseT =
-    typename MessageImplProcessDoValidBase<
-        TBase,
-        TImplOpt,
-        TBase::InterfaceOptions::HasValid && TImplOpt::HasMsgDoValid
     >::Type;
 
 template <typename TBase>
@@ -581,43 +472,6 @@ using MessageImplFieldsLengthBaseT =
         TBase::InterfaceOptions::HasLength && TImplOpt::HasFieldsImpl && (!TImplOpt::HasMsgDoLength)
     >::Type;
 
-
-template <typename TBase, typename TActual>
-class MessageImplDoLengthBase : public TBase
-{
-    typedef TBase Base;
-protected:
-    ~MessageImplDoLengthBase() = default;
-    virtual std::size_t lengthImpl() const override
-    {
-        return static_cast<const TActual&>(*this).doLength();
-    }
-};
-
-template <typename TBase, typename TImplOpt, bool THasMsgDoLength>
-struct MessageImplProcessDoLengthBase;
-
-template <typename TBase, typename TImplOpt>
-struct MessageImplProcessDoLengthBase<TBase, TImplOpt, true>
-{
-    typedef MessageImplDoLengthBase<TBase, typename TImplOpt::MsgDoLengthType> Type;
-};
-
-template <typename TBase, typename TImplOpt>
-struct MessageImplProcessDoLengthBase<TBase, TImplOpt, false>
-{
-    typedef TBase Type;
-};
-
-template <typename TBase, typename TImplOpt>
-using MessageImplDoLengthBaseT =
-    typename MessageImplProcessDoLengthBase<
-        TBase,
-        TImplOpt,
-        TBase::InterfaceOptions::HasLength && TImplOpt::HasMsgDoLength
-    >::Type;
-
-
 template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
@@ -649,7 +503,193 @@ struct MessageImplProcessDispatchBase<TBase, TOpt, false>
 template <typename TBase, typename TImplOpt>
 using MessageImplDispatchBaseT =
     typename MessageImplProcessDispatchBase<
-        TBase, TImplOpt, TBase::InterfaceOptions::HasHandler && TImplOpt::HasDispatchImpl>::Type;
+        TBase,
+        TImplOpt,
+        TBase::InterfaceOptions::HasHandler && TImplOpt::HasDispatchImpl && TImplOpt::HasMsgType
+    >::Type;
+
+
+template <typename TBase, typename TActual>
+class MessageImplDoReadBase : public TBase
+{
+    typedef TBase Base;
+protected:
+    ~MessageImplDoReadBase() = default;
+    virtual comms::ErrorStatus readImpl(
+        typename Base::ReadIterator& iter,
+        std::size_t size) override
+    {
+        return static_cast<TActual&>(*this).doRead(iter, size);
+    }
+};
+
+template <typename TBase, typename TImplOpt, bool THasMsgDoRead>
+struct MessageImplProcessDoReadBase;
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoReadBase<TBase, TImplOpt, true>
+{
+    typedef MessageImplDoReadBase<TBase, typename TImplOpt::MsgType> Type;
+};
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoReadBase<TBase, TImplOpt, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TImplOpt>
+using MessageImplDoReadBaseT =
+    typename MessageImplProcessDoReadBase<
+        TBase,
+        TImplOpt,
+        TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasMsgDoRead && TImplOpt::HasMsgType
+    >::Type;
+
+template <typename TBase, typename TActual>
+class MessageImplDoWriteBase : public TBase
+{
+    typedef TBase Base;
+protected:
+    ~MessageImplDoWriteBase() = default;
+    virtual comms::ErrorStatus writeImpl(
+        typename Base::WriteIterator& iter,
+        std::size_t size) const override
+    {
+        return static_cast<const TActual&>(*this).doWrite(iter, size);
+    }
+};
+
+template <typename TBase, typename TImplOpt, bool THasMsgDoWrite>
+struct MessageImplProcessDoWriteBase;
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoWriteBase<TBase, TImplOpt, true>
+{
+    typedef MessageImplDoWriteBase<TBase, typename TImplOpt::MsgType> Type;
+};
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoWriteBase<TBase, TImplOpt, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TImplOpt>
+using MessageImplDoWriteBaseT =
+    typename MessageImplProcessDoWriteBase<
+        TBase,
+        TImplOpt,
+        TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasMsgDoWrite && TImplOpt::HasMsgType
+    >::Type;
+
+
+template <typename TBase, typename TActual>
+class MessageImplDoValidBase : public TBase
+{
+    typedef TBase Base;
+protected:
+    ~MessageImplDoValidBase() = default;
+    virtual bool validImpl() const override
+    {
+        return static_cast<const TActual&>(*this).doValid();
+    }
+};
+
+template <typename TBase, typename TImplOpt, bool THasMsgDoValid>
+struct MessageImplProcessDoValidBase;
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoValidBase<TBase, TImplOpt, true>
+{
+    typedef MessageImplDoValidBase<TBase, typename TImplOpt::MsgType> Type;
+};
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoValidBase<TBase, TImplOpt, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TImplOpt>
+using MessageImplDoValidBaseT =
+    typename MessageImplProcessDoValidBase<
+        TBase,
+        TImplOpt,
+        TBase::InterfaceOptions::HasValid && TImplOpt::HasMsgDoValid && TImplOpt::HasMsgType
+    >::Type;
+
+
+template <typename TBase, typename TActual>
+class MessageImplDoLengthBase : public TBase
+{
+    typedef TBase Base;
+protected:
+    ~MessageImplDoLengthBase() = default;
+    virtual std::size_t lengthImpl() const override
+    {
+        return static_cast<const TActual&>(*this).doLength();
+    }
+};
+
+template <typename TBase, typename TImplOpt, bool THasMsgDoLength>
+struct MessageImplProcessDoLengthBase;
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoLengthBase<TBase, TImplOpt, true>
+{
+    typedef MessageImplDoLengthBase<TBase, typename TImplOpt::MsgType> Type;
+};
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoLengthBase<TBase, TImplOpt, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TImplOpt>
+using MessageImplDoLengthBaseT =
+    typename MessageImplProcessDoLengthBase<
+        TBase,
+        TImplOpt,
+        TBase::InterfaceOptions::HasLength && TImplOpt::HasMsgDoLength && TImplOpt::HasMsgType
+    >::Type;
+
+
+template <typename TBase, typename TActual>
+class MessageImplDoRefreshBase : public TBase
+{
+    typedef TBase Base;
+protected:
+    ~MessageImplDoRefreshBase() = default;
+    virtual bool refreshImpl() override
+    {
+        return static_cast<TActual&>(*this).doRefresh();
+    }
+};
+
+template <typename TBase, typename TImplOpt, bool THasMsgDoRead>
+struct MessageImplProcessDoRefreshBase;
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoRefreshBase<TBase, TImplOpt, true>
+{
+    typedef MessageImplDoRefreshBase<TBase, typename TImplOpt::MsgType> Type;
+};
+
+template <typename TBase, typename TImplOpt>
+struct MessageImplProcessDoRefreshBase<TBase, TImplOpt, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TImplOpt>
+using MessageImplDoRefreshBaseT =
+    typename MessageImplProcessDoRefreshBase<
+        TBase,
+        TImplOpt,
+        TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasMsgDoRefresh && TImplOpt::HasMsgType
+    >::Type;
 
 template <typename TMessage, typename... TOptions>
 class MessageImplBuilder
@@ -657,22 +697,43 @@ class MessageImplBuilder
     typedef MessageImplOptionsParser<TOptions...> ParsedOptions;
     typedef typename TMessage::InterfaceOptions InterfaceOptions;
 
+
+    static_assert((!ParsedOptions::HasDispatchImpl) || ParsedOptions::HasMsgType,
+        "The usage of comms::option::DispatchImpl requires also usage of comms::option::MsgType");
+
+    static_assert((!ParsedOptions::HasMsgDoRead) || ParsedOptions::HasMsgType,
+        "The usage of comms::option::MsgDoRead requires also usage of comms::option::MsgType");
+
+    static_assert((!ParsedOptions::HasMsgDoWrite) || ParsedOptions::HasMsgType,
+        "The usage of comms::option::MsgDoWrite requires also usage of comms::option::MsgType");
+
+    static_assert((!ParsedOptions::HasMsgDoValid) || ParsedOptions::HasMsgType,
+        "The usage of comms::option::MsgDoValid requires also usage of comms::option::MsgType");
+
+    static_assert((!ParsedOptions::HasMsgDoLength) || ParsedOptions::HasMsgType,
+        "The usage of comms::option::MsgDoLength requires also usage of comms::option::MsgType");
+
+    static_assert((!ParsedOptions::HasMsgDoRefresh) || ParsedOptions::HasMsgType,
+        "The usage of comms::option::MsgDoRefresh requires also usage of comms::option::MsgType");
+
+
     typedef MessageImplFieldsBaseT<TMessage, ParsedOptions> FieldsBase;
     typedef MessageImplFieldsReadImplBaseT<FieldsBase, ParsedOptions> FieldsReadImplBase;
-    typedef MessageImplDoReadBaseT<FieldsReadImplBase, ParsedOptions> DoReadBase;
-    typedef MessageImplFieldsWriteImplBaseT<DoReadBase, ParsedOptions> FieldsWriteImplBase;
-    typedef MessageImplDoWriteBaseT<FieldsWriteImplBase, ParsedOptions> DoWriteBase;
-    typedef MessageImplFieldsValidBaseT<DoWriteBase, ParsedOptions> FieldsValidBase;
-    typedef MessageImplDoValidBaseT<FieldsValidBase, ParsedOptions> DoValidBase;
-    typedef MessageImplFieldsLengthBaseT<DoValidBase, ParsedOptions> FieldsLengthBase;
-    typedef MessageImplDoLengthBaseT<FieldsLengthBase, ParsedOptions> DoLengthBase;
-    typedef MessageImplStaticNumIdBaseT<DoLengthBase, ParsedOptions> StaticNumIdBase;
+    typedef MessageImplFieldsWriteImplBaseT<FieldsReadImplBase, ParsedOptions> FieldsWriteImplBase;
+    typedef MessageImplFieldsValidBaseT<FieldsWriteImplBase, ParsedOptions> FieldsValidBase;
+    typedef MessageImplFieldsLengthBaseT<FieldsValidBase, ParsedOptions> FieldsLengthBase;
+    typedef MessageImplStaticNumIdBaseT<FieldsLengthBase, ParsedOptions> StaticNumIdBase;
     typedef MessageImplNoIdBaseT<StaticNumIdBase, ParsedOptions> NoIdBase;
     typedef MessageImplDispatchBaseT<NoIdBase, ParsedOptions> DispatchBase;
+    typedef MessageImplDoReadBaseT<DispatchBase, ParsedOptions> DoReadBase;
+    typedef MessageImplDoWriteBaseT<DoReadBase, ParsedOptions> DoWriteBase;
+    typedef MessageImplDoValidBaseT<DoWriteBase, ParsedOptions> DoValidBase;
+    typedef MessageImplDoLengthBaseT<DoValidBase, ParsedOptions> DoLengthBase;
+    typedef MessageImplDoRefreshBaseT<DoLengthBase, ParsedOptions> DoRefreshBase;
 
 public:
     typedef ParsedOptions Options;
-    typedef DispatchBase Type;
+    typedef DoRefreshBase Type;
 };
 
 template <typename TMessage, typename... TOptions>

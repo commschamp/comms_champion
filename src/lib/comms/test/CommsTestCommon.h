@@ -67,7 +67,8 @@ class Message1 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType1>,
             comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
-            comms::option::DispatchImpl<Message1<TMessage> >
+            comms::option::MsgType<Message1<TMessage> >,
+            comms::option::DispatchImpl
         >
 {
 public:
@@ -99,7 +100,8 @@ class Message2 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType2>,
         comms::option::NoFieldsImpl,
-        comms::option::DispatchImpl<Message2<TMessage> >
+        comms::option::MsgType<Message2<TMessage> >,
+        comms::option::DispatchImpl
     >
 {
 public:
@@ -141,7 +143,8 @@ class Message3 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType3>,
         comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
-        comms::option::DispatchImpl<Message3<TMessage> >
+        comms::option::MsgType<Message3<TMessage> >,
+        comms::option::DispatchImpl
     >
 {
 public:
@@ -187,7 +190,9 @@ class Message4 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType4>,
         comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
-        comms::option::DispatchImpl<Message4<TMessage> >
+        comms::option::MsgType<Message4<TMessage> >,
+        comms::option::DispatchImpl,
+        comms::option::MsgDoRefresh
     >
 {
     typedef
@@ -195,7 +200,9 @@ class Message4 : public
                 TMessage,
                 comms::option::StaticNumIdImpl<MessageType4>,
                 comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
-                comms::option::DispatchImpl<Message4<TMessage> >
+                comms::option::MsgType<Message4<TMessage> >,
+                comms::option::DispatchImpl,
+                comms::option::MsgDoRefresh
             > Base;
 public:
     Message4()
@@ -206,14 +213,7 @@ public:
 
     virtual ~Message4() = default;
 
-protected:
-    virtual const std::string& getNameImpl() const
-    {
-        static const std::string str("Message4");
-        return str;
-    }
-
-    virtual bool refreshImpl() override
+    bool doRefresh()
     {
         auto& mask = std::get<0>(Base::fields());
         auto expectedNextFieldMode = comms::field::OptionalMode::Missing;
@@ -228,6 +228,13 @@ protected:
 
         optField.setMode(expectedNextFieldMode);
         return true;
+    }
+
+protected:
+    virtual const std::string& getNameImpl() const
+    {
+        static const std::string str("Message4");
+        return str;
     }
 };
 
@@ -253,7 +260,8 @@ class Message5 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType5>,
             comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
-            comms::option::DispatchImpl<Message1<TMessage> >
+            comms::option::MsgType<Message5<TMessage> >,
+            comms::option::DispatchImpl
         >
 {
 public:

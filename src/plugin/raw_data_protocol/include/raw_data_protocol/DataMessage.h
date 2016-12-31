@@ -50,14 +50,16 @@ class DataMessage : public
         TMsgBase,
         comms::option::StaticNumIdImpl<0>,
         comms::option::FieldsImpl<typename DataMessageFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<DataMessage<TMsgBase> >
+        comms::option::MsgType<DataMessage<TMsgBase> >,
+        comms::option::DispatchImpl
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<0>,
         comms::option::FieldsImpl<typename DataMessageFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<DataMessage<TMsgBase> >
+        comms::option::MsgType<DataMessage<TMsgBase> >,
+        comms::option::DispatchImpl
     > Base;
 public:
 

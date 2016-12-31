@@ -117,6 +117,7 @@ class Lists : public
     > Base;
 public:
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Index to access the fields
     enum FieldIdx
     {
@@ -126,8 +127,31 @@ public:
         FieldIdx_numOfValues ///< number of available fields
     };
 
-    static_assert(std::tuple_size<typename Base::AllFields>::value == FieldIdx_numOfValues,
-        "Number of fields is incorrect");
+    /// @brief Access to fields, bundled into struct
+    struct FieldsAsStruct
+    {
+        ListsFields::field1& field1; ///< Access to field1
+        ListsFields::field2& field2; ///< Access to field2
+        ListsFields::field3& field3; ///< Access to field3
+    };
+
+    /// @brief Access to @b const fields, bundled into struct
+    struct ConstFieldsAsStruct
+    {
+        const ListsFields::field1& field1; ///< Access to field1
+        const ListsFields::field2& field2; ///< Access to field2
+        const ListsFields::field3& field3; ///< Access to field3
+    };
+
+    /// @brief Get access to fields, bundled into struct
+    FieldsAsStruct fieldsAsStruct();
+
+    /// @brief Get access to @b const fields, bundled into struct
+    ConstFieldsAsStruct fieldsAsStruct() const;
+
+#else
+    COMMS_MSG_FIELDS_ACCESS(Base, field1, field2, field3);
+#endif
 
     /// @brief Default constructor
     Lists() = default;

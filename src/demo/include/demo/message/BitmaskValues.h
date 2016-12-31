@@ -113,6 +113,7 @@ class BitmaskValues : public
     > Base;
 public:
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Index to access the fields
     enum FieldIdx
     {
@@ -121,8 +122,29 @@ public:
         FieldIdx_numOfValues ///< number of available fields
     };
 
-    static_assert(std::tuple_size<typename Base::AllFields>::value == FieldIdx_numOfValues,
-        "Number of fields is incorrect");
+    /// @brief Access to fields, bundled into struct
+    struct FieldsAsStruct
+    {
+        BitmaskValuesFields::field1& field1; ///< Access to field1
+        BitmaskValuesFields::field2& field2; ///< Access to field2
+    };
+
+    /// @brief Access to @b const fields, bundled into struct
+    struct ConstFieldsAsStruct
+    {
+        const BitmaskValuesFields::field1& field1; ///< Access to field1
+        const BitmaskValuesFields::field2& field2; ///< Access to field2
+    };
+
+    /// @brief Get access to fields, bundled into struct
+    FieldsAsStruct fieldsAsStruct();
+
+    /// @brief Get access to @b const fields, bundled into struct
+    ConstFieldsAsStruct fieldsAsStruct() const;
+
+#else
+    COMMS_MSG_FIELDS_ACCESS(Base, field1, field2);
+#endif
 
     /// @brief Default constructor
     BitmaskValues() = default;

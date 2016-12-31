@@ -119,8 +119,190 @@ public:
         return fields_;
     }
 
+    template <typename TIter>
+    comms::ErrorStatus doRead(
+        TIter& iter,
+        std::size_t size)
+    {
+        return readFieldsFrom<0>(iter, size);
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus doWrite(
+        TIter& iter,
+        std::size_t size) const
+    {
+        return writeFieldsFrom<0>(iter, size);
+    }
+
+    bool doValid() const
+    {
+        return util::tupleAccumulate(fields(), true, FieldValidityRetriever());
+    }
+
+    std::size_t doLength() const
+    {
+        return util::tupleAccumulate(fields(), 0U, FieldLengthRetriever());
+    }
+
 protected:
     ~MessageImplFieldsBase() = default;
+
+    template <std::size_t TIdx, typename TIter>
+    comms::ErrorStatus readFieldsUntil(
+        TIter& iter,
+        std::size_t& size)
+    {
+        auto status = comms::ErrorStatus::Success;
+        util::tupleForEachUntil<TIdx>(fields(), makeFieldReader(iter, status, size));
+        return status;
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    comms::ErrorStatus readFieldsFrom(
+        TIter& iter,
+        std::size_t& size)
+    {
+        auto status = comms::ErrorStatus::Success;
+        util::tupleForEachFrom<TIdx>(fields(), makeFieldReader(iter, status, size));
+        return status;
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    comms::ErrorStatus readFieldsFromUntil(
+        TIter& iter,
+        std::size_t& size)
+    {
+        auto status = comms::ErrorStatus::Success;
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldReader(iter, status, size));
+        return status;
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    comms::ErrorStatus writeFieldsUntil(
+        TIter& iter,
+        std::size_t size) const
+    {
+        auto status = comms::ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachUntil<TIdx>(fields(), makeFieldWriter(iter, status, remainingSize));
+        return status;
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    comms::ErrorStatus writeFieldsFrom(
+        TIter& iter,
+        std::size_t size) const
+    {
+        auto status = comms::ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachFrom<TIdx>(fields(), makeFieldWriter(iter, status, remainingSize));
+        return status;
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    comms::ErrorStatus writeFieldsFromUntil(
+        TIter& iter,
+        std::size_t size) const
+    {
+        auto status = comms::ErrorStatus::Success;
+        std::size_t remainingSize = size;
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldWriter(iter, status, remainingSize));
+        return status;
+    }
+
+private:
+    template <typename TIter>
+    class FieldReader
+    {
+    public:
+        FieldReader(TIter& iter, comms::ErrorStatus& status, std::size_t& size)
+            : iter_(iter),
+              status_(status),
+              size_(size)
+        {
+        }
+
+        template <typename TField>
+        void operator()(TField& field) {
+            if (status_ == comms::ErrorStatus::Success) {
+                status_ = field.read(iter_, size_);
+                if (status_ == comms::ErrorStatus::Success) {
+                    GASSERT(field.length() <= size_);
+                    size_ -= field.length();
+                }
+            }
+        }
+
+    private:
+        TIter& iter_;
+        comms::ErrorStatus& status_;
+        std::size_t& size_;
+    };
+
+    template <typename TIter>
+    static FieldReader<TIter> makeFieldReader(
+        TIter& iter,
+        comms::ErrorStatus& status,
+        std::size_t& size)
+    {
+        return FieldReader<TIter>(iter, status, size);
+    }
+
+    template <typename TIter>
+    class FieldWriter
+    {
+    public:
+        FieldWriter(TIter& iter, comms::ErrorStatus& status, std::size_t& size)
+            : iter_(iter),
+              status_(status),
+              size_(size)
+        {
+        }
+
+        template <typename TField>
+        void operator()(const TField& field) {
+            if (status_ == comms::ErrorStatus::Success) {
+                status_ = field.write(iter_, size_);
+                if (status_ == comms::ErrorStatus::Success) {
+                    GASSERT(field.length() <= size_);
+                    size_ -= field.length();
+                }
+            }
+        }
+
+    private:
+        TIter& iter_;
+        comms::ErrorStatus& status_;
+        std::size_t& size_;
+    };
+
+    template <typename TIter>
+    static FieldWriter<TIter> makeFieldWriter(
+        TIter& iter,
+        comms::ErrorStatus& status,
+        std::size_t& size)
+    {
+        return FieldWriter<TIter>(iter, status, size);
+    }
+
+    struct FieldValidityRetriever
+    {
+        template <typename TField>
+        bool operator()(bool valid, const TField& field) const
+        {
+            return valid && field.valid();
+        }
+    };
+
+    struct FieldLengthRetriever
+    {
+        template <typename TField>
+        std::size_t operator()(std::size_t size, const TField& field) const
+        {
+            return size + field.length();
+        }
+    };
 
 private:
     AllFields fields_;
@@ -146,94 +328,6 @@ using MessageImplFieldsBaseT =
     typename MessageImplProcessFieldsBase<TBase, TOpt, TOpt::HasFieldsImpl>::Type;
 
 template <typename TBase>
-class MessageImplFieldsReadBase : public TBase
-{
-    typedef TBase Base;
-protected:
-    ~MessageImplFieldsReadBase() = default;
-
-    template <std::size_t TIdx>
-    comms::ErrorStatus readFieldsUntil(
-        typename Base::ReadIterator& iter,
-        std::size_t& size)
-    {
-        auto status = comms::ErrorStatus::Success;
-        util::tupleForEachUntil<TIdx>(Base::fields(), FieldReader(iter, status, size));
-        return status;
-    }
-
-    template <std::size_t TIdx>
-    comms::ErrorStatus readFieldsFrom(
-        typename Base::ReadIterator& iter,
-        std::size_t& size)
-    {
-        auto status = comms::ErrorStatus::Success;
-        util::tupleForEachFrom<TIdx>(Base::fields(), FieldReader(iter, status, size));
-        return status;
-    }
-
-    template <std::size_t TFromIdx, std::size_t TUntilIdx>
-    comms::ErrorStatus readFieldsFromUntil(
-        typename Base::ReadIterator& iter,
-        std::size_t& size)
-    {
-        auto status = comms::ErrorStatus::Success;
-        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(Base::fields(), FieldReader(iter, status, size));
-        return status;
-    }
-
-private:
-    class FieldReader
-    {
-        typedef typename TBase::ReadIterator ReadIterator;
-    public:
-        FieldReader(ReadIterator& iter, comms::ErrorStatus& status, std::size_t& size)
-            : iter_(iter),
-              status_(status),
-              size_(size)
-        {
-        }
-
-        template <typename TField>
-        void operator()(TField& field) {
-            if (status_ == comms::ErrorStatus::Success) {
-                status_ = field.read(iter_, size_);
-                if (status_ == comms::ErrorStatus::Success) {
-                    GASSERT(field.length() <= size_);
-                    size_ -= field.length();
-                }
-            }
-        }
-
-    private:
-        ReadIterator& iter_;
-        comms::ErrorStatus& status_;
-        std::size_t& size_;
-    };
-
-};
-
-template <typename TBase, bool THasFieldsReadImpl>
-struct MessageImplProcessFieldsReadBase;
-
-template <typename TBase>
-struct MessageImplProcessFieldsReadBase<TBase, true>
-{
-    typedef MessageImplFieldsReadBase<TBase> Type;
-};
-
-template <typename TBase>
-struct MessageImplProcessFieldsReadBase<TBase, false>
-{
-    typedef TBase Type;
-};
-
-template <typename TBase, typename TImplOpt>
-using MessageImplFieldsReadBaseT =
-    typename MessageImplProcessFieldsReadBase<
-        TBase, TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasFieldsImpl>::Type;
-
-template <typename TBase>
 class MessageImplFieldsReadImplBase : public TBase
 {
     typedef TBase Base;
@@ -243,7 +337,7 @@ protected:
         typename Base::ReadIterator& iter,
         std::size_t size) override
     {
-        return Base::template readFieldsFrom<0>(iter, size);
+        return Base::doRead(iter, size);
     }
 };
 
@@ -269,96 +363,6 @@ using MessageImplFieldsReadImplBaseT =
         TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasFieldsImpl && (!TImplOpt::HasNoDefaultFieldsReadImpl)
     >::Type;
 
-template <typename TBase>
-class MessageImplFieldsWriteBase : public TBase
-{
-    typedef TBase Base;
-
-protected:
-    ~MessageImplFieldsWriteBase() = default;
-
-    template <std::size_t TIdx>
-    comms::ErrorStatus writeFieldsUntil(
-        typename Base::WriteIterator& iter,
-        std::size_t size) const
-    {
-        auto status = comms::ErrorStatus::Success;
-        std::size_t remainingSize = size;
-        util::tupleForEachUntil<TIdx>(Base::fields(), FieldWriter(iter, status, remainingSize));
-        return status;
-    }
-
-    template <std::size_t TIdx>
-    comms::ErrorStatus writeFieldsFrom(
-        typename Base::WriteIterator& iter,
-        std::size_t size) const
-    {
-        auto status = comms::ErrorStatus::Success;
-        std::size_t remainingSize = size;
-        util::tupleForEachFrom<TIdx>(Base::fields(), FieldWriter(iter, status, remainingSize));
-        return status;
-    }
-
-    template <std::size_t TFromIdx, std::size_t TUntilIdx>
-    comms::ErrorStatus writeFieldsFromUntil(
-        typename Base::WriteIterator& iter,
-        std::size_t size) const
-    {
-        auto status = comms::ErrorStatus::Success;
-        std::size_t remainingSize = size;
-        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(Base::fields(), FieldWriter(iter, status, remainingSize));
-        return status;
-    }
-private:
-    class FieldWriter
-    {
-    public:
-        typedef typename TBase::WriteIterator WriteIterator;
-        FieldWriter(WriteIterator& iter, comms::ErrorStatus& status, std::size_t& size)
-            : iter_(iter),
-              status_(status),
-              size_(size)
-        {
-        }
-
-        template <typename TField>
-        void operator()(TField& field) {
-            if (status_ == comms::ErrorStatus::Success) {
-                status_ = field.write(iter_, size_);
-                if (status_ == comms::ErrorStatus::Success) {
-                    GASSERT(field.length() <= size_);
-                    size_ -= field.length();
-                }
-            }
-        }
-
-    private:
-        WriteIterator& iter_;
-        comms::ErrorStatus& status_;
-        std::size_t& size_;
-    };
-};
-
-template <typename TBase, bool THasFieldsWriteImpl>
-struct MessageImplProcessFieldsWriteBase;
-
-template <typename TBase>
-struct MessageImplProcessFieldsWriteBase<TBase, true>
-{
-    typedef MessageImplFieldsWriteBase<TBase> Type;
-};
-
-template <typename TBase>
-struct MessageImplProcessFieldsWriteBase<TBase, false>
-{
-    typedef TBase Type;
-};
-
-template <typename TBase, typename TImplOpt>
-using MessageImplFieldsWriteBaseT =
-    typename MessageImplProcessFieldsWriteBase<
-        TBase, TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasFieldsImpl>::Type;
-
 
 template <typename TBase>
 class MessageImplFieldsWriteImplBase : public TBase
@@ -371,7 +375,7 @@ protected:
         typename Base::WriteIterator& iter,
         std::size_t size) const override
     {
-        return Base::template writeFieldsFrom<0>(iter, size);
+        return Base::doWrite(iter, size);
     }
 };
 
@@ -406,18 +410,8 @@ protected:
     ~MessageImplFieldsValidBase() = default;
     virtual bool validImpl() const override
     {
-        return util::tupleAccumulate(Base::fields(), true, FieldValidityRetriever());
+        return Base::doValid();
     }
-
-private:
-    struct FieldValidityRetriever
-    {
-        template <typename TField>
-        bool operator()(bool valid, const TField& field) const
-        {
-            return valid && field.valid();
-        }
-    };
 };
 
 template <typename TBase, bool THasFieldsValidImpl>
@@ -451,18 +445,8 @@ protected:
     ~MessageImplFieldsLengthBase() = default;
     virtual std::size_t lengthImpl() const override
     {
-        return util::tupleAccumulate(Base::fields(), 0U, FieldLengthRetriever());
+        return Base::doLength();
     }
-
-private:
-    struct FieldLengthRetriever
-    {
-        template <typename TField>
-        std::size_t operator()(std::size_t size, const TField& field) const
-        {
-            return size + field.length();
-        }
-    };
 };
 
 template <typename TBase, bool THasFieldsLengthImpl>
@@ -527,10 +511,8 @@ class MessageImplBuilder
     typedef typename TMessage::InterfaceOptions InterfaceOptions;
 
     typedef MessageImplFieldsBaseT<TMessage, ParsedOptions> FieldsBase;
-    typedef MessageImplFieldsReadBaseT<FieldsBase, ParsedOptions> FieldsReadBase;
-    typedef MessageImplFieldsReadImplBaseT<FieldsReadBase, ParsedOptions> FieldsReadImplBase;
-    typedef MessageImplFieldsWriteBaseT<FieldsReadImplBase, ParsedOptions> FieldsWriteBase;
-    typedef MessageImplFieldsWriteImplBaseT<FieldsWriteBase, ParsedOptions> FieldsWriteImplBase;
+    typedef MessageImplFieldsReadImplBaseT<FieldsBase, ParsedOptions> FieldsReadImplBase;
+    typedef MessageImplFieldsWriteImplBaseT<FieldsReadImplBase, ParsedOptions> FieldsWriteImplBase;
     typedef MessageImplFieldsValidBaseT<FieldsWriteImplBase, ParsedOptions> FieldsValidBase;
     typedef MessageImplFieldsLengthBaseT<FieldsValidBase, ParsedOptions> FieldsLengthBase;
     typedef MessageImplStaticNumIdBaseT<FieldsLengthBase, ParsedOptions> StaticNumIdBase;

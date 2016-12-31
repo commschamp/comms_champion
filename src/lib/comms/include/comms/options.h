@@ -141,6 +141,30 @@ struct NoDefaultFieldsReadImpl {};
 ///     in comms::MessageBase when @ref FieldsImpl option is used.
 struct NoDefaultFieldsWriteImpl {};
 
+template <typename TActual>
+struct MsgDoRead
+{
+    typedef TActual Type;
+};
+
+template <typename TActual>
+struct MsgDoWrite
+{
+    typedef TActual Type;
+};
+
+template <typename TActual>
+struct MsgDoValid
+{
+    typedef TActual Type;
+};
+
+template <typename TActual>
+struct MsgDoLength
+{
+    typedef TActual Type;
+};
+
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.
 struct InPlaceAllocation {};

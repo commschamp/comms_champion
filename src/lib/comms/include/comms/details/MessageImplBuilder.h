@@ -688,7 +688,7 @@ using MessageImplDoRefreshBaseT =
     typename MessageImplProcessDoRefreshBase<
         TBase,
         TImplOpt,
-        TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasMsgDoRefresh && TImplOpt::HasMsgType
+        TBase::InterfaceOptions::HasRefresh && TImplOpt::HasMsgDoRefresh && TImplOpt::HasMsgType
     >::Type;
 
 template <typename TMessage, typename... TOptions>

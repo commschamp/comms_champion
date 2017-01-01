@@ -115,7 +115,10 @@
 ///     ErrorStatus read(ReadIterator& iter, std::size_t size);
 ///
 /// protected:
-///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size) = 0;
+///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size)
+///     {
+///         return ErrorStatus::NotSupported;
+///     }
 /// };
 ///
 /// } // namespace comms
@@ -139,7 +142,10 @@
 ///     ErrorStatus write(WriteIterator& iter, std::size_t size) const;
 ///
 /// protected:
-///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const = 0;
+///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const
+///     {
+///         return ErrorStatus::NotSupported;
+///     }
 /// };
 ///
 /// } // namespace comms
@@ -207,7 +213,7 @@
 ///     std::size_t length() const;
 ///
 /// protected:
-///     virtual std::size_t lengthImpl() const;
+///     virtual std::size_t lengthImpl() const = 0;
 /// };
 ///
 /// } // namespace comms
@@ -271,6 +277,13 @@
 ///     static const bool HasFieldsImpl = ...;
 ///     static const bool HasNoIdImpl = ...;
 ///     static const bool HasNoDefaultFieldsReadImpl = ...;
+///     static const bool HasNoDefaultFieldsWriteImpl = ...;
+///     static const bool HasMsgType = ...;
+///     static const bool HasMsgDoRead = ...;
+///     static const bool HasMsgDoWrite = ...;
+///     static const bool HasMsgDoValid = ...;
+///     static const bool HasMsgDoLength = ...;
+///     static const bool HasMsgDoRefresh = ...;
 /// };
 /// @endcode
 ///
@@ -330,11 +343,17 @@
 /// } // namespace comms
 /// @endcode
 ///
+/// @subsection page_message_options_msg_type Message Type
+/// Some *Impl() functions (such as dispatchImpl()) may require knowledge about
+/// actual message class, that inherits from comms::MessageBase. Usage of
+/// comms::option::MsgType option will provide such knowledge and will set
+/// @b HasMsgType to @b true.
+///
 /// @subsection page_message_options_impl_dispatch Dispatching to Handler
 /// The @b HasDispatchImpl value of comms::MessageBase::ImplOptions is set to @b true
 /// when comms::option::DispatchImpl option is provided to comms::MessageBase class. @n
-/// If both @b HasHandler of comms::Message::InterfaceOptions and 
-/// @b HasDispatchImpl of comms::MessageBase::ImplOptions are @b true, then the
+/// When @b HasHandler of comms::Message::InterfaceOptions, 
+/// @b HasDispatchImpl and @b HasMsgType of comms::MessageBase::ImplOptions are @b true, then the
 /// following functions are defined:
 /// @code
 /// namespace comms
@@ -367,16 +386,46 @@
 /// 
 ///     AllFields& fields();
 ///     const AllFields& fields() const;
+///
+///     template <typename TIter>
+///     ErrorStatus doRead(TIter& iter, std::size_t len);
+///
+///     template <typename TIter>
+///     ErrorStatus doWrite(TIter& iter, std::size_t len) const;
+///
+///     bool doValid() const;
+///     std::size_t doLength() const;
+///
+/// protected:
+///     template <std::size_t TIdx, typename TIter>
+///     ErrorStatus readFieldsUntil(TIter& iter, std::size_t& size);
+///
+///     template <std::size_t TIdx, typename TIter>
+///     ErrorStatus readFieldsFrom(TIter& iter, std::size_t& size);
+///
+///     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+///     ErrorStatus readFieldsFromUntil(TIter& iter, std::size_t& size);
+///
+///     template <std::size_t TIdx, typename TIter>
+///     ErrorStatus writeFieldsUntil(TIter& iter, std::size_t size) const;
+///
+///     template <std::size_t TIdx, typename TIter>
+///     ErrorStatus writeFieldsFrom(TIter& iter, std::size_t size) const;
+///
+///     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+///     ErrorStatus writeFieldsFromUntil(TIter& iter, std::size_t size) const;
 /// };
 ///
 /// } // namespace comms
 /// @endcode
 ///
-/// If both @b HasFields of comms::MessageBase::ImplOptions and 
-/// @b HasReadIterator of comms::Message::InterfaceOptions are @b true, as
-/// well as @b HasNoDefaultFieldsReadImpl of comms::MessageBase::ImplOptions is
-/// @b false (default implementation of the @b readImpl() wasn't suppressed) then the
-/// following functions are defined:
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasReadIterator == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasFields == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasNoDefaultFieldsReadImpl == false @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoRead == false @endcode
+///
+/// then the following function is defined and implemented like this:
 /// @code
 /// namespace comms
 /// {
@@ -385,15 +434,21 @@
 /// class MessageBase : public TMessage
 /// {
 /// protected:
-///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override;
+///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override
+///     {
+///         return doRead(iter, size);
+///     }
 /// };
 ///
 /// } // namespace comms
 /// @endcode
 ///
-/// If both @b HasFields of comms::MessageBase::ImplOptions and 
-/// @b HasWriteIterator of comms::Message::InterfaceOptions are @b true, then the
-/// following functions are defined:
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasReadIterator == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgType == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoRead == true @endcode
+///
+/// then the following function is defined and implemented like this:
 /// @code
 /// namespace comms
 /// {
@@ -402,15 +457,23 @@
 /// class MessageBase : public TMessage
 /// {
 /// protected:
-///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const override;
+///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override
+///     {
+///         // downcast to actual message type
+///         return static_cast<ImplOptions::MsgType*>(this)->doRead(iter, size);
+///     }
 /// };
 ///
 /// } // namespace comms
 /// @endcode
 ///
-/// If both @b HasFields of comms::MessageBase::ImplOptions and 
-/// @b HasLength of comms::Message::InterfaceOptions are @b true, then the
-/// following functions are defined:
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasWriteIterator == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasFields == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasNoDefaultFieldsWriteImpl == false @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoWrite == false @endcode
+///
+/// then the following function is defined and implemented like this:
 /// @code
 /// namespace comms
 /// {
@@ -419,15 +482,21 @@
 /// class MessageBase : public TMessage
 /// {
 /// protected:
-///     virtual std::size_t lengthImpl() const override;
+///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const override
+///     {
+///         return doWrite(iter, size);
+///     }
 /// };
 ///
 /// } // namespace comms
 /// @endcode
 ///
-/// If both @b HasFields of comms::MessageBase::ImplOptions and 
-/// @b HasValid of comms::Message::InterfaceOptions are @b true, then the
-/// following functions are defined:
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasWriteIterator == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgType == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoWrite == true @endcode
+///
+/// then the following function is defined and implemented like this:
 /// @code
 /// namespace comms
 /// {
@@ -436,11 +505,134 @@
 /// class MessageBase : public TMessage
 /// {
 /// protected:
-///     virtual bool validImpl() const override;
+///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const override
+///     {
+///         // downcast to actual message type
+///         return static_cast<const ImplOptions::MsgType*>(this)->doWrite(iter, size);
+///     }
 /// };
 ///
 /// } // namespace comms
 /// @endcode
+///
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasLength == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasFields == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoLength == false @endcode
+///
+/// then the following function is defined and implemented like this:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual std::size_t lengthImpl() const override
+///     {
+///         return doLength();
+///     }
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasLength == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgType == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoLength == true @endcode
+///
+/// then the following function is defined and implemented like this:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual std::size_t lengthImpl() const override
+///     {
+///         // downcast to actual message type
+///         return static_cast<const ImplOptions::MsgType*>(this)->doLength();
+///     }
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasValid == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasFields == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoValid == false @endcode
+///
+/// then the following function is defined and implemented like this:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual bool validImpl() const override
+///     {
+///         return doValid();
+///     }
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasValid == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgType == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoValid == true @endcode
+///
+/// then the following function is defined and implemented like this:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual bool validImpl() const override
+///     {
+///         // downcast to actual message type
+///         return static_cast<const ImplOptions::MsgType*>(this)->doValid();
+///     }
+/// };
+///
+/// } // namespace comms
+/// @endcode
+///
+/// If all of the following conditions are @b true:
+/// @li @code comms::Message::InterfaceOptions::HasRefresh == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgType == true @endcode
+/// @li @code comms::MessageBase::ImplOptions::HasMsgDoRefresh == true @endcode
+///
+/// then the following function is defined and implemented like this:
+/// @code
+/// namespace comms
+/// {
+///
+/// template <typename TMessage, typename... TOptions>
+/// class MessageBase : public TMessage
+/// {
+/// protected:
+///     virtual bool refreshImpl() const override
+///     {
+///         // downcast to actual message type
+///         return static_cast<const ImplOptions::MsgType*>(this)->doRefresh();
+///     }
+/// };
+///
+/// } // namespace comms
+/// @endcode
+
 
 
 

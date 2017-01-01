@@ -273,7 +273,7 @@
 /// Please @b note, that COMMS library doesn't impose any restrictions on
 /// how storage type for the output buffer. It is a responsibility of the 
 /// @b caller to allocate and maintain the output buffer, while providing only an 
-/// iterator for operation operation. In the example above the output buffer
+/// iterator for write operation. In the example above the output buffer
 /// is chosen to be std::vector<std::uint8_t> and the write operation will
 /// be performed using push_back() calls on this vector (due to std::back_insert_iterator
 /// being chosen as WriteIterator). @n
@@ -616,7 +616,8 @@
 ///     comms::MessageBase<
 ///         MyMessage, // Interface class for all the messages
 ///         comms::option::StaticNumIdImpl<MyMsgId_Message1>, // Will implement getIdImpl()
-///         comms::option::DispatchImpl<Message1>, // Will implement dispatchImpl()
+///         comms::option::MsgType<Message1>, // Provide type of actual message class
+///         comms::option::DispatchImpl, // Will implement dispatchImpl()
 ///         comms::option::FieldsImpl<Message1Fields> // Will implement readImpl(), writeImpl(), 
 ///                                                   // lengthImpl(), validImpl()
 ///     >
@@ -698,15 +699,18 @@
 /// class Message1 : public
 ///     comms::MessageBase<
 ///         MyMessage, // Interface class for all the messages
-///         comms::option::DispatchImpl<Message1>, // Will implement dispatchImpl()
+///         comms::option::MsgType<Message1>
+///         comms::option::DispatchImpl, // Will implement dispatchImpl()
 ///         ...
 ///     >
 /// {
 ///     ...
 /// };
 /// @endcode
-/// Please note that comms::option::DispatchImpl option receives one template
-/// parameter which is the type of the message being defined, i.e. @b Message1.
+/// Please note that proper implementation of dispatch functionality requires
+/// knowledge about actual type of the message. To provide it the 
+/// comms::option::MsgType option needs to be used. It receives one template
+/// parameter, which specifies actual type of the message, i.e. @b Message1.
 ///
 /// The handler class is expected to define @b handle(...) member function
 /// for every possible message type it is expected to handle:
@@ -724,8 +728,10 @@
 /// details on the handler.
 ///
 /// @subsection page_message_tutorial_implementation_fields Implementing Fields Related Functionality
-/// As was specified earlier, in most cases the implementation of read, write, 
-/// length calculation, and validity check functionalities is pretty straightforward.
+/// As was specified earlier, when the types of the fields are known, 
+/// in most cases the implementation of read, write, 
+/// length calculation, and validity check functionalities is pretty straightforward
+/// and can be automatically generated.
 /// It is performing read, write, summarising reported lengths of, and checking
 /// validity of all the data fields, the message contains.
 /// 
@@ -734,8 +740,8 @@
 /// for full tutorial on fields.
 ///
 /// The usage of comms::option::FieldsImpl with all the relevant fields (bundled
-/// in std::tuple) provided as a template argument to the option will force
-/// the implementation of @b readImpl(), @b writeImpl(), @b lengthImpl(), and
+/// in std::tuple), provided as a template argument to the option, may provide
+/// the default implementation of @b readImpl(), @b writeImpl(), @b lengthImpl(), and
 /// @b validImpl() functions.
 /// @code
 /// typedef MyMessage::Field CommonFieldBase;
@@ -748,15 +754,59 @@
 /// class Message1 : public
 ///     comms::MessageBase<
 ///         MyMessage, // Interface class for all the messages
-///         comms::option::FieldsImpl<Message1Fields>, // Will implement readImpl(), writeImpl(), 
+///         comms::option::FieldsImpl<Message1Fields>, // May implement readImpl(), writeImpl(), 
 ///                                                    // lengthImpl(), validImpl()
 ///         ...
 ///     >
 /// {
 /// };
 /// @endcode
+/// 
+/// Just using comms::option::FieldsImpl option is equivalent to having
+/// the following types and functions:
+/// @code
+/// typedef MyMessage::Field CommonFieldBase;
 ///
-/// The usage of comms::option::FieldsImpl will also provide an accessor to
+/// typedef std::tuple <
+///     comms::field::IntValue<CommonFieldBase, std::uint16_t, comms::option::ValidNumValueRange<0, 1000> >,
+///     comms::field::IntValue<CommonFieldBase, std::int8_t>
+/// > Message1Fields;
+///
+/// class Message1
+/// {
+/// public:
+///     typedef Message1Fields AllFields;
+///     
+///     AllFields& fields()
+///     {
+///         return fields_;
+///     }
+///
+///     const AllFields& fields() const
+///     {
+///         return fields_;
+///     }
+///
+///     // Default implementation of read functionality
+///     template <typename TIter>
+///     comms::ErrorStatus doRead(TIter& iter, std::size_t size);
+///
+///     // Default implementation of write functionality
+///     template <typename TIter>
+///     comms::ErrorStatus doWrite(TIter& iter, std::size_t size) const;
+///
+///     // Default implementation of validity check functionality
+///     bool doValid() const;
+///
+///     // Default implementation of length calculation functionality
+///     std::size_t doLength() const;
+///
+/// private:
+///     AllFields fields_;        
+/// };
+/// @endcode
+///
+/// The usage of comms::option::FieldsImpl provides the accessor functions to
 /// the tuple of the fields to be able to access the fields themselves. @n For 
 /// example, when the dispatch takes place and appropriate @b handle() member function
 /// of the handler is invoked, the fields can be accessed in the following way:
@@ -778,131 +828,368 @@
 /// };
 /// @endcode
 ///
-/// @b NOTE, that options provided to comms::MessageBase class force implementation
-/// of the relevant @b *Impl() functions <b>if and only if</b> these functions
-/// where defined in the comms::Message interface using the options of the latter. @n
-/// For example, if comms::option::ValidCheckInterface option was NOT provided
-/// to comms::Message when defining @b MyMessage interface class, the usage of
-/// comms::option::FieldsImpl option with comms::MessageBase will NOT provide
-/// redundant implementation of @b validImpl() member function.
-///
-/// There are cases when the default implementation of one or more of these
-/// functions provided by comms::MessageBase is not enough. In this case
-/// the appropriate virtual function has just to be overridden with new
-/// functionality. @n
-/// For example, @b Message2 class has three fields. The first field is a 1 byte bitmask
-/// of flags, where bit 0 indicates whether the next (second) field exists or not.
-/// The second field is an optional 2 bytes unsigned integral value (existence
-/// of which is controlled by the bit 0 in the previous flags field). And the
-/// third field is a variable length string with 1 byte length information prefix.
+/// @subsubsection page_message_tutorial_implementation_fields_read Polymorphic Read
+/// When comms::option::ReadIterator option was used with comms::Message, to provide type of iterator
+/// that can be used for reading, and 
+/// comms::option::FieldsImpl option was provided to comms::MessageBase, the
+/// later provides polymorphic @b readImpl() function, which invokes its default @b doRead().
 /// @code
-/// typedef MyMessage::Field CommonFieldBase;
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// public:
+///     template <typename TIter>
+///     ErrorStatus doRead(TIter& iter, std::size_t len);
 ///
-/// typedef std::tuple<
-///     comms::field::BitmaskValue<CommonFieldBase, comms::option::FixedLength<1> >,
-///     comms::field::Optional<comms::field::IntValue<CommonFieldBase, std::uint16_t> >,
-///     comms::field::String<
-///         CommonFieldBase, 
-///         comms::option::SequenceSizeFieldPrefix<
-///             comms::field::IntValue<CommonFieldBase, std::uint8_t>
-///         > 
-///     >
-/// > Message2Fields;
+/// protected:
+///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t len) override
+///     {
+///         return doRead(iter, len);
+///     }
+/// };
+/// } // namespace comms
+/// @endcode
 ///
-/// class Message2 : public
+/// Sometimes the defined message is not expected to be received, and it may
+/// be unnecessary to generate appropriate @b readImpl() function to save a code
+/// space. In this case, comms::option::NoDefaultFieldsReadImpl option may be
+/// passed to comms::MessageBase in addition to comms::option::FieldsImpl.
+/// @code
+/// class Message1 : public
 ///     comms::MessageBase<
-///         MyMessage,
-///         comms::option::StaticNumIdImpl<MyMsgId_Message2>,
-///         comms::option::DispatchImpl<Message2>,
-///         comms::option::FieldsImpl<Message2Fields>
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>, 
+///         comms::option::NoDefaultFieldsReadImpl,
+///         ...
+///     >
+/// {
+/// };
+/// @endcode
+/// In this case the body of @b readImpl() remains to be what comms::Message defined, i.e.
+/// @code
+/// virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len)
+/// {
+///     return comms::ErrorStatus::NotSupported;
+/// }
+/// @endcode
+///
+/// Sometimes, the default read functionality provided by comms::MessageBase 
+/// may be incorrect. For example, some bit in one of the fields may indicate
+/// whether other fields exist or are missing. In this case the actual message
+/// class needs to provide its own custom read functionality. It needs to reside
+/// in public @b non-virtual @b doRead() member function and 
+/// comms::option::MsgDoRead option needs to be provided to comms::MessageBase
+/// to force body of @b readImpl() virtual function to invoke appropriate @b doRead().
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>, 
+///         comms::option::MsgType<Message1>
+///         comms::option::MsgDoRead,
+///         ...
 ///     >
 /// {
 /// public:
-///     enum FieldIdx
+///     template <typename TIter>
+///     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
 ///     {
-///         FieldIdx_Flags,
-///         FieldIdx_OptinalInt,
-///         FieldIdx_String
-///     };
-/// 
-///     Message2()
-///     {
-///         // Set proper mode for optional value
-///         refreshOptionalInt();
+///         ... // custom read is here.
 ///     }
+/// };
+/// @endcode
+/// @b NOTE, that usage of comms::option::MsgDoRead option also requires usage
+/// of comms::option::MsgType option, which specifies the actual type of the
+/// message. Having this set of options is equivalent to the following defintion
+/// of comms::MessageBase:
+/// @code
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// protected:
+///     virtual ErrorStatus readImpl(ReadIterator& iter, std::size_t len) override
+///     {
+///         return static_cast<Message1*>(this)->doRead(iter, len);
+///     }
+/// };
+/// } // namespace comms
+/// @endcode
+///
+/// @subsubsection page_message_tutorial_implementation_fields_write Polymorphic Write
+/// When comms::option::WriteIterator option was used with comms::Message, to provide type of iterator
+/// that can be used for writing, and 
+/// comms::option::FieldsImpl option was provided to comms::MessageBase, the
+/// later provides polymorphic @b writeImpl() function, which invokes its default @b doWrite().
+/// @code
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// public:
+///     template <typename TIter>
+///     ErrorStatus doWrite(TIter& iter, std::size_t len) const;
 ///
 /// protected:
-///     // Override implementation of readImpl provided by comms::MessageBase
-///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) override;
+///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) const override
 ///     {
-///         // Read only flags value
-///         auto es = readFieldsUntil<FieldIdx_OptinalInt>(iter, len);
-///         if (es != comms::ErrorStatus::Success) {
-///             return es;
-///         }
-///
-///         // Update missing/exists mode for the optional value based on read flags
-///         refreshOptionalInt();
-///
-///         // Continue reading, when proper mode is set for optional value
-///         return readFieldsFrom<FieldIdx_OptionalInt>(iter, len);
+///         return doWrite(iter, len);
 ///     }
+/// };
+/// } // namespace comms
+/// @endcode
 ///
-///     // Override implementation of refreshImpl() provided by comms::Message
-///     virtual bool refreshImpl()
-///     {
-///         return refreshOptionalInt()
-///     }
-///
-/// private:
-///     // Update mode of optional value according to flags
-///     bool refreshOptionalInt()
-///     {
-///         auto& allFields = fields(); // Inherited accessor
-///         auto& flagsField = std::get<FieldIdx_Flags>(allFields);
-///         auto& optionalIntField = std::get<FieldIdx_OptinalInt>(allFields);
-///         
-///         auto mode = comms::field::OptionalMode::Missing;
-///         if ((flagsField.value() & 0x1) != 0) {
-///             mode = comms::field::OptionalMode::Exists;
-///         }
-///         
-///         if (optionalIntField.getMode() == mode) {
-///             return false; // Field is note updated
-///         }
-/// 
-///         optionalIntField.setMode(mode);
-///         return true; // The field has been updated;
-///     }
+/// Sometimes the defined message is not expected to be sent, and it may
+/// be unnecessary to generate appropriate @b writeImpl() function to save a code
+/// space. In this case, comms::option::NoDefaultFieldsWriteImpl option may be
+/// passed to comms::MessageBase in addition to comms::option::FieldsImpl.
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>, 
+///         comms::option::NoDefaultFieldsWriteImpl,
+///         ...
+///     >
+/// {
+/// };
+/// @endcode
+/// In this case the body of @b writeImpl() remains to be what comms::Message defined, i.e.
+/// @code
+/// virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) const
+/// {
+///     return comms::ErrorStatus::NotSupported;
 /// }
 /// @endcode
-/// @b NOTE, that @b readFieldsUntil and @b readFieldsFrom are non-virtual functions
-/// inherited from comms::MessageBase base class. The @b readFieldsUntil function
-/// was used to read fields until (not included) the optional integral value.
-/// Then the mode of the latter was updated based on the read flags. Once the
-/// mode of the optional field was updated properly, the read continued using
-/// inherited @b readFieldsFrom member function. If the optional field's mode
-/// is set to be comms::field::OptionalMode::Missing, then its @b read() operation
-/// will do nothing, otherwise (the mode is set to be comms::field::OptionalMode::Exists)
-/// the integral value will be read as expected.
 ///
-/// Please refer to the documentation of comms::MessageBase for the details on
-/// all the member functions it provides.
-///
-/// Also @b note, that after manipulating the message fields directly, the message
-/// may end up being in an inconsistent state, where the first bit of the bitmask
-/// is set, for example, and the state of the second optional field is set 
-/// to be "missing". The call to the @b refresh() interface function will remedy
-/// that, it will modify the state of the optional field to be in accordance with
-/// the value of the bitmask. Such "refresh" operation should usually be
-/// performed prior to executing "write".
+/// Similar to read, sometimes the default write functionality provided by comms::MessageBase 
+/// may be incorrect and may require custom, message specific, write implementation. 
+/// In this case the actual message needs to define
+/// public @b non-virtual @b doWrite() member function and 
+/// comms::option::MsgDoWrite option needs to be provided to comms::MessageBase
+/// to force body of @b writeImpl() virtual function to invoke appropriate @b doWrite().
 /// @code
-/// Message2 msg;
-/// auto& fields = msg.fields();
-/// auto& flagsField = std::get<Message2::FieldIdx_Flags>(fields);
-/// flagsField.value() |= 0x1;
-/// msg.refresh(); // Set mode of optional field according to flags
-/// auto es = msg.write(...); // Serialise the message
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>, 
+///         comms::option::MsgType<Message1>
+///         comms::option::MsgDoWrite,
+///         ...
+///     >
+/// {
+/// public:
+///     template <typename TIter>
+///     comms::ErrorStatus doWrite(TIter& iter, std::size_t len) const
+///     {
+///         ... // custom write is here.
+///     }
+/// };
+/// @endcode
+/// @b NOTE, that usage of comms::option::MsgDoWrite option also requires usage
+/// of comms::option::MsgType option, which specifies the actual type of the
+/// message. Having this set of options is equivalent to the following defintion
+/// of comms::MessageBase:
+/// @code
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// protected:
+///     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) const override
+///     {
+///         return static_cast<const Message1*>(this)->doWrite(iter, len);
+///     }
+/// };
+/// } // namespace comms
+/// @endcode
+///
+/// @subsubsection page_message_tutorial_implementation_fields_length Polymorphic Length Calculation
+/// When comms::option::LengthInfoInterface option was used with comms::Message, and 
+/// comms::option::FieldsImpl option was provided to comms::MessageBase, the
+/// later provides polymorphic @b lengthImpl() function, which invokes its default @b doLength().
+/// @code
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// public:
+///     std::size_t doLength() const;
+///
+/// protected:
+///     virtual std::size_t lengthImpl() const override
+///     {
+///         return doLength();
+///     }
+/// };
+/// } // namespace comms
+/// @endcode
+///
+/// Sometimes the default length calculation functionality provided by comms::MessageBase 
+/// may be incorrect and may require custom, message specific, length calculation implementation. 
+/// In this case the actual message needs to define
+/// public @b non-virtual @b doLength() member function and 
+/// comms::option::MsgDoLength option needs to be provided to comms::MessageBase
+/// to force body of @b lengthImpl() virtual function to invoke appropriate @b doLength().
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>, 
+///         comms::option::MsgType<Message1>
+///         comms::option::MsgDoLength,
+///         ...
+///     >
+/// {
+/// public:
+///     std::size_t doLength() const
+///     {
+///         ... // custom length calculation is here.
+///     }
+/// };
+/// @endcode
+/// @b NOTE, that usage of comms::option::MsgDoLength option also requires usage
+/// of comms::option::MsgType option, which specifies the actual type of the
+/// message. Having this set of options is equivalent to the following defintion
+/// of comms::MessageBase:
+/// @code
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// protected:
+///     virtual std::size_t lengthImpl() const override
+///     {
+///         return static_cast<const Message1*>(this)->doLength();
+///     }
+/// };
+/// } // namespace comms
+/// @endcode
+///
+/// @subsubsection page_message_tutorial_implementation_fields_valid Polymorphic Validity Check
+/// When comms::option::ValidInfoInterface option was used with comms::Message, and 
+/// comms::option::FieldsImpl option was provided to comms::MessageBase, the
+/// later provides polymorphic @b validImpl() function, which invokes its default @b doValid().
+/// @code
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// public:
+///     bool doValid() const;
+///
+/// protected:
+///     virtual bool validImpl() const override
+///     {
+///         return doValid();
+///     }
+/// };
+/// } // namespace comms
+/// @endcode
+///
+/// Sometimes the default validity check functionality provided by comms::MessageBase 
+/// may be incorrect or incomplete and may require custom, message specific, validity check implementation. 
+/// In this case the actual message needs to define
+/// public @b non-virtual @b doValid() member function and 
+/// comms::option::MsgDoValid option needs to be provided to comms::MessageBase
+/// to force body of @b validImpl() virtual function to invoke appropriate @b doValid().
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>, 
+///         comms::option::MsgType<Message1>
+///         comms::option::MsgDoValid,
+///         ...
+///     >
+/// {
+/// public:
+///     bool doValid() const
+///     {
+///         ... // custom validity check is here.
+///     }
+/// };
+/// @endcode
+/// @b NOTE, that usage of comms::option::MsgDoValid option also requires usage
+/// of comms::option::MsgType option, which specifies the actual type of the
+/// message. Having this set of options is equivalent to the following defintion
+/// of comms::MessageBase:
+/// @code
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// protected:
+///     virtual bool validImpl() const override
+///     {
+///         return static_cast<const Message1*>(this)->doValid();
+///     }
+/// };
+/// } // namespace comms
+/// @endcode
+///
+/// @subsubsection page_message_tutorial_implementation_fields_refresh Polymorphic Refresh
+/// When comms::option::RefreshInterface option is used with comms::Message class,
+/// it defines the following interface:
+/// @code
+/// namespace comms
+/// {
+/// class Message<...>
+/// {
+/// public:
+///     bool refresh()
+///     {
+///         return refreshImpl();
+///     }
+/// protected:
+///     virtual bool refreshImpl()
+///     {
+///         return false;
+///     }
+/// };
+/// }
+/// @endcode
+/// By default the @b refreshImpl() function does nothing and always returns
+/// @b false, indicating that no field has been changed. However, the custom
+/// message may require custom refresh functionality. To force the
+/// comms::MessageBase class to implement proper refreshImpl() virtual function,
+/// the actual message class needs to implement public @b non-virtual 
+/// @b doRefresh() member function and provide comms::option::MsgDoRefresh
+/// option to comms::MessageBase:
+/// @code
+/// class Message1 : public
+///     comms::MessageBase<
+///         MyMessage, // Interface class for all the messages
+///         comms::option::FieldsImpl<Message1Fields>, 
+///         comms::option::MsgType<Message1>
+///         comms::option::MsgDoRefresh,
+///         ...
+///     >
+/// {
+/// public:
+///     bool doRefresh()
+///     {
+///         ... // custom refresh functionality is here.
+///     }
+/// };
+/// @endcode
+/// @b NOTE, that usage of comms::option::MsgDoRefresh option also requires usage
+/// of comms::option::MsgType option, which specifies the actual type of the
+/// message. Having this set of options is equivalent to the following defintion
+/// of comms::MessageBase:
+/// @code
+/// namespace comms
+/// {
+/// class MessageBase<...>
+/// {
+/// protected:
+///     virtual bool refreshImpl() override
+///     {
+///         return static_cast<const Message1*>(this)->doRefresh();
+///     }
+/// };
+/// } // namespace comms
 /// @endcode
 ///
 /// @subsection page_message_tutorial_impl_access Accessing the Fields

@@ -417,64 +417,70 @@ namespace details
 {
 
 template <typename TField>
-struct ForField;
+struct ForTag;
 
-template <typename TFieldBase, typename T, typename... TOptions>
-struct ForField<comms::field::IntValue<TFieldBase, T, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::Int>
 {
     typedef comms_champion::property::field::IntValue Type;
 };
 
-template <typename TFieldBase, typename TEnum, typename... TOptions>
-struct ForField<comms::field::EnumValue<TFieldBase, TEnum, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::Enum>
 {
     typedef comms_champion::property::field::EnumValue Type;
 };
 
-template <typename TFieldBase, typename... TOptions>
-struct ForField<comms::field::BitmaskValue<TFieldBase, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::Bitmask>
 {
     typedef comms_champion::property::field::BitmaskValue Type;
 };
 
-template <typename TFieldBase, typename TMembers, typename... TOptions>
-struct ForField<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::Bitfield>
 {
     typedef comms_champion::property::field::Bitfield Type;
 };
 
-template <typename TFieldBase, typename TMembers, typename... TOptions>
-struct ForField<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::Bundle>
 {
     typedef comms_champion::property::field::Bundle Type;
 };
 
-template <typename TFieldBase, typename... TOptions>
-struct ForField<comms::field::String<TFieldBase, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::String>
 {
     typedef comms_champion::property::field::String Type;
 };
 
-template <typename TFieldBase, typename TElement, typename... TOptions>
-struct ForField<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::RawArrayList>
 {
     typedef comms_champion::property::field::ArrayList Type;
 };
 
-template <typename TField, typename... TOptions>
-struct ForField<comms::field::Optional<TField, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::ArrayList>
+{
+    typedef comms_champion::property::field::ArrayList Type;
+};
+
+template <>
+struct ForTag<comms::field::tag::Optional>
 {
     typedef comms_champion::property::field::Optional Type;
 };
 
-template <typename TFieldBase, typename T, typename... TOptions>
-struct ForField<comms::field::FloatValue<TFieldBase, T, TOptions...> >
+template <>
+struct ForTag<comms::field::tag::Float>
 {
     typedef comms_champion::property::field::FloatValue Type;
 };
 
-template <typename TFieldBase>
-struct ForField<comms::field::NoValue<TFieldBase> >
+template <>
+struct ForTag<comms::field::tag::NoValue>
 {
     typedef comms_champion::property::field::NoValue Type;
 };
@@ -482,7 +488,7 @@ struct ForField<comms::field::NoValue<TFieldBase> >
 }  // namespace details
 
 template <typename TField>
-using ForField = typename details::ForField<TField>::Type;
+using ForField = typename details::ForTag<typename TField::Tag>::Type;
 
 }  // namespace field
 

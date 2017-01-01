@@ -26,6 +26,7 @@
 #include "basic/ArrayList.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -103,6 +104,9 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef ParsedOptionsInternal ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::String Tag;
 
     /// @brief Type of underlying value.
     /// @details If comms::option::FixedSizeStorage option is NOT used, the
@@ -306,23 +310,6 @@ bool operator<(
     return field1.value() < field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsString
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename... TOptions>
-struct IsString<comms::field::String<TFieldBase, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::String.
 /// @tparam T Any type.
@@ -331,7 +318,7 @@ struct IsString<comms::field::String<TFieldBase, TOptions...> >
 template <typename T>
 constexpr bool isString()
 {
-    return details::IsString<T>::Value;
+    return std::is_same<typename T::Tag, tag::String>::value;
 }
 
 

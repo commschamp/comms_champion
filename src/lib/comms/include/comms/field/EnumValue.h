@@ -24,6 +24,7 @@
 #include "details/OptionsParser.h"
 #include "basic/EnumValue.h"
 #include "details/AdaptBasicField.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -79,6 +80,9 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Enum Tag;
 
     /// @brief Type of underlying enum value.
     /// @details Same as template parameter TEnum to this class.
@@ -210,23 +214,6 @@ bool operator<(
     return field1.value() < field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsEnumValue
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename TEnum, typename... TOptions>
-struct IsEnumValue<comms::field::EnumValue<TFieldBase, TEnum, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::EnumValue.
 /// @tparam T Any type.
@@ -235,7 +222,7 @@ struct IsEnumValue<comms::field::EnumValue<TFieldBase, TEnum, TOptions...> >
 template <typename T>
 constexpr bool isEnumValue()
 {
-    return details::IsEnumValue<T>::Value;
+    return std::is_same<typename T::Tag, tag::Enum>::value;
 }
 
 

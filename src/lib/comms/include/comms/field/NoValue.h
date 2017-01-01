@@ -26,6 +26,7 @@
 #include "comms/Assert.h"
 #include "basic/NoValue.h"
 #include "details/AdaptBasicField.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -51,6 +52,9 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<> ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::NoValue Tag;
 
     /// @brief Type of underlying value.
     /// @details Defined to be "unsigned", not really used
@@ -180,23 +184,6 @@ bool operator<(const NoValue<TFieldBase>& field1, const NoValue<TFieldBase>& fie
     return false;
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsNoValue
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase>
-struct IsNoValue<comms::field::NoValue<TFieldBase> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::NoValue.
 /// @tparam T Any type.
@@ -205,7 +192,7 @@ struct IsNoValue<comms::field::NoValue<TFieldBase> >
 template <typename T>
 constexpr bool isNoValue()
 {
-    return details::IsNoValue<T>::Value;
+    return std::is_same<typename T::Tag, tag::NoValue>::value;
 }
 
 }  // namespace field

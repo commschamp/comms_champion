@@ -23,6 +23,7 @@
 #include "comms/options.h"
 #include "basic/Bitfield.h"
 #include "details/AdaptBasicField.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -101,6 +102,9 @@ class Bitfield : public TFieldBase
 public:
     /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Bitfield Tag;
 
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
@@ -247,23 +251,6 @@ bool operator<(
     return field1.value() < field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsBitfield
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename TMembers, typename... TOptions>
-struct IsBitfield<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::Bitfield.
 /// @tparam T Any type.
@@ -272,7 +259,7 @@ struct IsBitfield<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
 template <typename T>
 constexpr bool isBitfield()
 {
-    return details::IsBitfield<T>::Value;
+    return std::is_same<typename T::Tag, tag::Bitfield>::value;
 }
 
 

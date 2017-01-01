@@ -27,6 +27,7 @@
 #include "comms/options.h"
 #include "basic/IntValue.h"
 #include "details/AdaptBasicField.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -71,6 +72,9 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Int Tag;
 
     /// @brief Type of underlying integral value.
     /// @details Same as template parameter T to this class.
@@ -235,23 +239,6 @@ bool operator<(
     return field1.value() < field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsIntValue
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename T, typename... TOptions>
-struct IsIntValue<comms::field::IntValue<TFieldBase, T, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::IntValue.
 /// @tparam T Any type.
@@ -260,7 +247,7 @@ struct IsIntValue<comms::field::IntValue<TFieldBase, T, TOptions...> >
 template <typename T>
 constexpr bool isIntValue()
 {
-    return details::IsIntValue<T>::Value;
+    return std::is_same<typename T::Tag, tag::Int>::value;
 }
 
 

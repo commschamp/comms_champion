@@ -25,6 +25,7 @@
 #include "details/OptionsParser.h"
 #include "comms/details/gen_enum.h"
 #include "IntValue.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -110,6 +111,9 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef OptionsBundle ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Bitmask Tag;
 
     /// @brief Type of underlying integral value.
     /// @details Unsigned integral type, which depends on the length of the
@@ -296,23 +300,6 @@ bool operator<(
     return field1.value() < field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsBitmaskValue
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename... TOptions>
-struct IsBitmaskValue<comms::field::BitmaskValue<TFieldBase, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::BitmaskValue.
 /// @tparam T Any type.
@@ -321,7 +308,7 @@ struct IsBitmaskValue<comms::field::BitmaskValue<TFieldBase, TOptions...> >
 template <typename T>
 constexpr bool isBitmaskValue()
 {
-    return details::IsBitmaskValue<T>::Value;
+    return std::is_same<typename T::Tag, tag::Bitmask>::value;
 }
 
 /// @brief Provide names for bits in comms::field::BitmaskValue field.

@@ -41,8 +41,7 @@ class TransportMessageImpl : public
         TMsgBase,
         comms::option::NoIdImpl,
         comms::option::FieldsImpl<TFields>,
-        comms::option::MsgType<TransportMessageImpl<TMsgBase, TFields> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<TransportMessageImpl<TMsgBase, TFields> >
     >
 {
 

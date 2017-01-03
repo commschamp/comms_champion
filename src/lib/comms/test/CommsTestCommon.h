@@ -67,8 +67,7 @@ class Message1 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType1>,
             comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
-            comms::option::MsgType<Message1<TMessage> >,
-            comms::option::DispatchImpl
+            comms::option::MsgType<Message1<TMessage> >
         >
 {
 public:
@@ -100,8 +99,7 @@ class Message2 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType2>,
         comms::option::NoFieldsImpl,
-        comms::option::MsgType<Message2<TMessage> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<Message2<TMessage> >
     >
 {
 public:
@@ -143,8 +141,7 @@ class Message3 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType3>,
         comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
-        comms::option::MsgType<Message3<TMessage> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<Message3<TMessage> >
     >
 {
 public:
@@ -183,7 +180,6 @@ using Message4Fields =
         >
     >;
 
-
 template <typename TMessage>
 class Message4 : public
     comms::MessageBase<
@@ -191,8 +187,7 @@ class Message4 : public
         comms::option::StaticNumIdImpl<MessageType4>,
         comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
         comms::option::MsgType<Message4<TMessage> >,
-        comms::option::DispatchImpl,
-        comms::option::MsgDoRefresh
+        comms::option::HasDoRefresh
     >
 {
     typedef
@@ -201,9 +196,9 @@ class Message4 : public
                 comms::option::StaticNumIdImpl<MessageType4>,
                 comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
                 comms::option::MsgType<Message4<TMessage> >,
-                comms::option::DispatchImpl,
-                comms::option::MsgDoRefresh
+                comms::option::HasDoRefresh
             > Base;
+
 public:
     Message4()
     {
@@ -260,8 +255,7 @@ class Message5 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType5>,
             comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
-            comms::option::MsgType<Message5<TMessage> >,
-            comms::option::DispatchImpl
+            comms::option::MsgType<Message5<TMessage> >
         >
 {
 public:

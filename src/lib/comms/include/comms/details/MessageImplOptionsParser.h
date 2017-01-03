@@ -31,17 +31,15 @@ template <>
 struct MessageImplOptionsParser<>
 {
     static const bool HasStaticMsgId = false;
-    static const bool HasDispatchImpl = false;
     static const bool HasFieldsImpl = false;
     static const bool HasNoIdImpl = false;
-    static const bool HasNoDefaultFieldsReadImpl = false;
-    static const bool HasNoDefaultFieldsWriteImpl = false;
     static const bool HasMsgType = false;
-    static const bool HasMsgDoRead = false;
-    static const bool HasMsgDoWrite = false;
-    static const bool HasMsgDoValid = false;
-    static const bool HasMsgDoLength = false;
-    static const bool HasMsgDoRefresh = false;
+    static const bool HasNoDispatchImpl = false;
+    static const bool HasNoReadImpl = false;
+    static const bool HasNoWriteImpl = false;
+    static const bool HasNoLengthImpl = false;
+    static const bool HasNoValidImpl = false;
+    static const bool HasDoRefresh = false;
 };
 
 template <std::intmax_t TId,
@@ -64,15 +62,11 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::DispatchImpl,
+    comms::option::NoDispatchImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    typedef MessageImplOptionsParser<TOptions...> Base;
-
-    static_assert(!Base::HasDispatchImpl,
-        "comms::option::DispatchImpl option is used more than once");
 public:
-    static const bool HasDispatchImpl = true;
+    static const bool HasNoDispatchImpl = true;
 };
 
 template <typename TFields,
@@ -108,20 +102,47 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoDefaultFieldsReadImpl,
+    comms::option::NoReadImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
-    static const bool HasNoDefaultFieldsReadImpl = true;
+    static const bool HasNoReadImpl = true;
 };
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoDefaultFieldsWriteImpl,
+    comms::option::NoWriteImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
-    static const bool HasNoDefaultFieldsWriteImpl = true;
+    static const bool HasNoWriteImpl = true;
+};
+
+template <typename... TOptions>
+class MessageImplOptionsParser<
+    comms::option::NoLengthImpl,
+    TOptions...> : public MessageImplOptionsParser<TOptions...>
+{
+public:
+    static const bool HasNoLengthImpl = true;
+};
+
+template <typename... TOptions>
+class MessageImplOptionsParser<
+    comms::option::NoValidImpl,
+    TOptions...> : public MessageImplOptionsParser<TOptions...>
+{
+public:
+    static const bool HasNoValidImpl = true;
+};
+
+template <typename... TOptions>
+class MessageImplOptionsParser<
+    comms::option::HasDoRefresh,
+    TOptions...> : public MessageImplOptionsParser<TOptions...>
+{
+public:
+    static const bool HasDoRefresh = true;
 };
 
 template <typename TMsgType,
@@ -138,71 +159,6 @@ class MessageImplOptionsParser<
 public:
     typedef typename Option::Type MsgType;
     static const bool HasMsgType = true;
-};
-
-template <typename... TOptions>
-class MessageImplOptionsParser<
-    comms::option::MsgDoRead,
-    TOptions...> : public MessageImplOptionsParser<TOptions...>
-{
-    typedef MessageImplOptionsParser<TOptions...> Base;
-
-    static_assert(!Base::HasMsgDoRead,
-        "comms::option::MsgDoRead option is used more than once");
-public:
-    static const bool HasMsgDoRead = true;
-};
-
-template <typename... TOptions>
-class MessageImplOptionsParser<
-    comms::option::MsgDoWrite,
-    TOptions...> : public MessageImplOptionsParser<TOptions...>
-{
-    typedef MessageImplOptionsParser<TOptions...> Base;
-
-    static_assert(!Base::HasMsgDoWrite,
-        "comms::option::MsgDoWrite option is used more than once");
-public:
-    static const bool HasMsgDoWrite = true;
-};
-
-template <typename... TOptions>
-class MessageImplOptionsParser<
-    comms::option::MsgDoValid,
-    TOptions...> : public MessageImplOptionsParser<TOptions...>
-{
-    typedef MessageImplOptionsParser<TOptions...> Base;
-
-    static_assert(!Base::HasMsgDoValid,
-        "comms::option::MsgDoValid option is used more than once");
-public:
-    static const bool HasMsgDoValid = true;
-};
-
-template <typename... TOptions>
-class MessageImplOptionsParser<
-    comms::option::MsgDoLength,
-    TOptions...> : public MessageImplOptionsParser<TOptions...>
-{
-    typedef MessageImplOptionsParser<TOptions...> Base;
-
-    static_assert(!Base::HasMsgDoLength,
-        "comms::option::MsgDoLength option is used more than once");
-public:
-    static const bool HasMsgDoLength = true;
-};
-
-template <typename... TOptions>
-class MessageImplOptionsParser<
-    comms::option::MsgDoRefresh,
-    TOptions...> : public MessageImplOptionsParser<TOptions...>
-{
-    typedef MessageImplOptionsParser<TOptions...> Base;
-
-    static_assert(!Base::HasMsgDoRefresh,
-        "comms::option::MsgDoLength option is used more than once");
-public:
-    static const bool HasMsgDoRefresh = true;
 };
 
 template <typename... TOptions>

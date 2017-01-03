@@ -99,16 +99,14 @@ class IntValues : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_IntValues>,
         comms::option::FieldsImpl<typename IntValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<IntValues<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<IntValues<TMsgBase> >
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_IntValues>,
         comms::option::FieldsImpl<typename IntValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<IntValues<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<IntValues<TMsgBase> >
     > Base;
 public:
 

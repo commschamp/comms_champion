@@ -137,16 +137,14 @@ class Bitfields : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Bitfields>,
         comms::option::FieldsImpl<typename BitfieldsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Bitfields<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<Bitfields<TMsgBase> >
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Bitfields>,
         comms::option::FieldsImpl<typename BitfieldsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Bitfields<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<Bitfields<TMsgBase> >
     > Base;
 public:
 

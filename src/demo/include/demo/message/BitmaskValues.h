@@ -100,16 +100,14 @@ class BitmaskValues : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
         comms::option::FieldsImpl<typename BitmaskValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<BitmaskValues<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<BitmaskValues<TMsgBase> >
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
         comms::option::FieldsImpl<typename BitmaskValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<BitmaskValues<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<BitmaskValues<TMsgBase> >
     > Base;
 public:
 

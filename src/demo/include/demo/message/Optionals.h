@@ -102,9 +102,7 @@ class Optionals : public
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
         comms::option::FieldsImpl<typename OptionalsFields<typename TMsgBase::Field>::All>,
         comms::option::MsgType<Optionals<TMsgBase> >,
-        comms::option::DispatchImpl,
-        comms::option::MsgDoRead,
-        comms::option::MsgDoRefresh
+        comms::option::HasDoRefresh
     >
 {
     typedef comms::MessageBase<
@@ -112,9 +110,7 @@ class Optionals : public
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
         comms::option::FieldsImpl<typename OptionalsFields<typename TMsgBase::Field>::All>,
         comms::option::MsgType<Optionals<TMsgBase> >,
-        comms::option::DispatchImpl,
-        comms::option::MsgDoRead,
-        comms::option::MsgDoRefresh
+        comms::option::HasDoRefresh
     > Base;
 public:
 

@@ -153,16 +153,14 @@ class EnumValues : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_EnumValues>,
         comms::option::FieldsImpl<typename EnumValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<EnumValues<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<EnumValues<TMsgBase> >
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_EnumValues>,
         comms::option::FieldsImpl<typename EnumValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<EnumValues<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<EnumValues<TMsgBase> >
     > Base;
 public:
 

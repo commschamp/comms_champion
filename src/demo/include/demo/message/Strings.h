@@ -92,16 +92,14 @@ class Strings : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Strings>,
         comms::option::FieldsImpl<typename StringsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Strings<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<Strings<TMsgBase> >
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Strings>,
         comms::option::FieldsImpl<typename StringsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Strings<TMsgBase> >,
-        comms::option::DispatchImpl
+        comms::option::MsgType<Strings<TMsgBase> >
     > Base;
 public:
 

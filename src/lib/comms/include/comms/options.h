@@ -115,12 +115,10 @@ struct MsgType
     typedef TMsg Type;
 };
 
-/// @brief Option used to force implementation of dispatch functionality.
-/// @details This option can be provided to comms::MessageBase to force the
-///     implementation of comms::MessageBase::dispatchImpl() member function.
-///     Requires usage of @ref MsgType option as well to specify actual type
-///     of the message
-struct DispatchImpl {};
+/// @brief Option used to inhibit default implementation of @b dispatchImpl()
+///     in comms::MessageBase.
+/// @details
+struct NoDispatchImpl {};
 
 /// @brief Option used to specify fields of the message and force implementation
 ///     of default read, write, validity check, and length retrieval information
@@ -140,85 +138,25 @@ struct FieldsImpl<std::tuple<TFields...> >
 /// @brief Alias to FieldsImpl<std::tuple<> >
 using NoFieldsImpl = FieldsImpl<std::tuple<> >;
 
-/// @brief Option that suppresses @b default implementation of @b readImpl() member function
-///     in comms::MessageBase when @ref FieldsImpl option is used.
-struct NoDefaultFieldsReadImpl {};
+/// @brief Option that inhibits implementation of comms::MessageBase::readImpl()
+///     regardless of other availability conditions.
+struct NoReadImpl {};
 
-/// @brief Option that suppresses @b default implementation of @b writeImpl() member function
-///     in comms::MessageBase when @ref FieldsImpl option is used.
-struct NoDefaultFieldsWriteImpl {};
+/// @brief Option that inhibits implementation of comms::MessageBase::writeImpl()
+///     regardless of other availability conditions.
+struct NoWriteImpl {};
 
-/// @brief Option used to notify comms::MessageBase class about availability of
-///     @b doRead() member function in actual message.
-/// @details When this option is used, the comms::MessageBase will invoke
-///     non-virtual @b doRead() member function from the actual message class
-///     when implementing polymorphic readImpl() functionality.
-///
-///     The @b doRead() member function is expected to have following signature:
-///     @code
-///     template <typename TIter>
-///     comms::ErrorStatus doRead(TIter& iter, std::size_t len);
-///     @endcode
-/// @pre Requires usage of @ref MsgType option as well to specify actual type
-///     of the message.
-struct MsgDoRead {};
+/// @brief Option that inhibits implementation of comms::MessageBase::validImpl()
+///     regardless of other availability conditions.
+struct NoValidImpl {};
 
-/// @brief Option used to notify comms::MessageBase class about availability of
-///     @b doWrite() member function in actual message.
-/// @details When this option is used, the comms::MessageBase will invoke
-///     non-virtual @b doWrite() member function from the actual message class
-///     when implementing polymorphic writeImpl() functionality.
-///
-///     The @b doWrite() member function is expected to have following signature:
-///     @code
-///     template <typename TIter>
-///     comms::ErrorStatus doWrite(TIter& iter, std::size_t len) const;
-///     @endcode
-/// @pre Requires usage of @ref MsgType option as well to specify actual type
-///     of the message.
-struct MsgDoWrite {};
+/// @brief Option that inhibits implementation of comms::MessageBase::lengthImpl()
+///     regardless of other availability conditions.
+struct NoLengthImpl {};
 
-/// @brief Option used to notify comms::MessageBase class about availability of
-///     @b doValid() member function in actual message.
-/// @details When this option is used, the comms::MessageBase will invoke
-///     non-virtual @b doValid() member function from the actual message class
-///     when implementing polymorphic validImpl() functionality.
-///
-///     The @b doValid() member function is expected to have following signature:
-///     @code
-///     bool doValid() const;
-///     @endcode
-/// @pre Requires usage of @ref MsgType option as well to specify actual type
-///     of the message.
-struct MsgDoValid {};
-
-/// @brief Option used to notify comms::MessageBase class about availability of
-///     @b doLength() member function in actual message.
-/// @details When this option is used, the comms::MessageBase will invoke
-///     non-virtual @b doLength() member function from the actual message class
-///     when implementing polymorphic lengthImpl() functionality.
-///
-///     The @b doLength() member function is expected to have following signature:
-///     @code
-///     std::size_t doLength() const;
-///     @endcode
-/// @pre Requires usage of @ref MsgType option as well to specify actual type
-///     of the message.
-struct MsgDoLength {};
-
-/// @brief Option used to notify comms::MessageBase class about availability of
-///     @b doRefresh() member function in actual message.
-/// @details When this option is used, the comms::MessageBase will invoke
-///     non-virtual @b doRefresh() member function from the actual message class
-///     when implementing polymorphic refreshImpl() functionality.
-///
-///     The @b doRefresh() member function is expected to have following signature:
-///     @code
-///     bool doRefresh();
-///     @endcode
-/// @pre Requires usage of @ref MsgType option as well to specify actual type
-///     of the message.
-struct MsgDoRefresh {};
+/// @brief Option that notifies comms::MessageBase about existence of
+///     custom refresh functionality in derived class.
+struct HasDoRefresh {};
 
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.

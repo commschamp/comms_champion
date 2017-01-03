@@ -393,7 +393,8 @@ using MessageImplFieldsReadImplBaseT =
     typename MessageImplProcessFieldsReadImplBase<
         TBase,
         TImplOpt,
-        TBase::InterfaceOptions::HasReadIterator && TImplOpt::HasFieldsImpl && (!TImplOpt::HasNoReadImpl),
+        TBase::InterfaceOptions::HasReadIterator && (!TImplOpt::HasNoReadImpl) &&
+        (TImplOpt::HasFieldsImpl || TImplOpt::HasAssumeFieldsExistence) ,
         TImplOpt::HasMsgType
     >::Type;
 
@@ -464,7 +465,8 @@ using MessageImplFieldsWriteImplBaseT =
     typename MessageImplProcessFieldsWriteImplBase<
         TBase,
         TImplOpt,
-        TBase::InterfaceOptions::HasWriteIterator && TImplOpt::HasFieldsImpl && (!TImplOpt::HasNoWriteImpl),
+        TBase::InterfaceOptions::HasWriteIterator && (!TImplOpt::HasNoWriteImpl) &&
+            (TImplOpt::HasFieldsImpl || TImplOpt::HasAssumeFieldsExistence),
         TImplOpt::HasMsgType
     >::Type;
 
@@ -527,7 +529,8 @@ using MessageImplFieldsValidBaseT =
     typename MessageImplProcessFieldsValidBase<
         TBase,
         TImplOpt,
-        TBase::InterfaceOptions::HasValid && TImplOpt::HasFieldsImpl && (!TImplOpt::HasNoValidImpl),
+        TBase::InterfaceOptions::HasValid && (!TImplOpt::HasNoValidImpl) &&
+            (TImplOpt::HasFieldsImpl || TImplOpt::HasAssumeFieldsExistence),
         TImplOpt::HasMsgType
     >::Type;
 
@@ -590,7 +593,8 @@ using MessageImplFieldsLengthBaseT =
     typename MessageImplProcessFieldsLengthBase<
         TBase,
         TImplOpt,
-        TBase::InterfaceOptions::HasLength && TImplOpt::HasFieldsImpl && (!TImplOpt::HasNoLengthImpl),
+        TBase::InterfaceOptions::HasLength && (!TImplOpt::HasNoLengthImpl) &&
+            (TImplOpt::HasFieldsImpl || TImplOpt::HasAssumeFieldsExistence),
         TImplOpt::HasMsgType
     >::Type;
 

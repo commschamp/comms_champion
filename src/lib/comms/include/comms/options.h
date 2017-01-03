@@ -158,6 +158,12 @@ struct NoLengthImpl {};
 ///     custom refresh functionality in derived class.
 struct HasDoRefresh {};
 
+/// @brief Option that notifies comms::MessageBase about existence of
+///     access to fields.
+/// @details Can be useful when there is a chain of inheritances from
+///     comms::MessageBase.
+struct AssumeFieldsExistence {};
+
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.
 struct InPlaceAllocation {};

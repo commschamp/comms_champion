@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <tuple>
 
+#include "comms/Assert.h"
 #include "comms/util/access.h"
 #include "comms/ErrorStatus.h"
 #include "MessageInterfaceOptionsParser.h"
@@ -143,13 +144,19 @@ public:
         return this->readImpl(iter, size);
     }
 
-protected:
-    ~MessageInterfaceReadOnlyBase() = default;
-    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size)
+    template <typename TIter>
+    static comms::ErrorStatus doRead(TIter& iter, std::size_t size)
     {
         static_cast<void>(iter);
         static_cast<void>(size);
         return comms::ErrorStatus::NotSupported;
+    }
+
+protected:
+    ~MessageInterfaceReadOnlyBase() = default;
+    virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size)
+    {
+        return doRead(iter, size);
     }
 };
 
@@ -163,13 +170,19 @@ public:
         return this->writeImpl(iter, size);
     }
 
-protected:
-    ~MessageInterfaceWriteOnlyBase() = default;
-    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const
+    template <typename TIter>
+    static comms::ErrorStatus doWrite(TIter& iter, std::size_t size)
     {
         static_cast<void>(iter);
         static_cast<void>(size);
         return comms::ErrorStatus::NotSupported;
+    }
+
+protected:
+    ~MessageInterfaceWriteOnlyBase() = default;
+    virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const
+    {
+        return doWrite(iter, size);
     }
 };
 
@@ -282,9 +295,17 @@ public:
         return validImpl();
     }
 
+    static constexpr bool doValid()
+    {
+        return true;
+    }
+
 protected:
     ~MessageInterfaceValidBase() = default;
-    virtual bool validImpl() const = 0;
+    virtual bool validImpl() const
+    {
+        return doValid();
+    }
 };
 
 
@@ -316,9 +337,18 @@ public:
         return lengthImpl();
     }
 
+    static std::size_t doLength()
+    {
+        GASSERT(!"Not overridden");
+        return 0;
+    }
+
 protected:
     ~MessageInterfaceLengthBase() = default;
-    virtual std::size_t lengthImpl() const = 0;
+    virtual std::size_t lengthImpl() const
+    {
+        return doLength();
+    }
 };
 
 

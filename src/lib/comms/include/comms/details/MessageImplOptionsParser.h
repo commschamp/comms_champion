@@ -40,7 +40,6 @@ struct MessageImplOptionsParser<>
     static const bool HasNoLengthImpl = false;
     static const bool HasNoValidImpl = false;
     static const bool HasDoRefresh = false;
-    static const bool HasAssumeFieldsExistence = false;
 };
 
 template <std::intmax_t TId,

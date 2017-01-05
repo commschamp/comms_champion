@@ -51,9 +51,6 @@ namespace comms
 ///         default constructed value of comms::Message::MsgIdType will be returned.
 ///     @li comms::option::MsgType - Provide type of actual message that
 ///         inherits from this comms::MessageBase class.
-///     @li comms::option::DispatchImpl - If this option is used, the virtual
-///         dispatchImpl() function will be defined. Please refer to the
-///         function's documentation for details.
 ///     @li comms::option::FieldsImpl - Usually implementation of read, write,
 ///         validity check, and length calculation is pretty straight forward. For
 ///         example the message is considered valid if all the field values
@@ -70,52 +67,15 @@ namespace comms
 ///         when message contains no fields, i.e. readImpl() and writeImple() will
 ///         always report success doing nothing, validImpl() will always return
 ///         true, and lengthImpl() will always return 0.
-///     @li comms::option::NoDefaultFieldsReadImpl - Quite often the actual
-///         message class that inherits from comms::MessageBase implements its
-///         own version of readImpl() member function. In this case the default
-///         implementation is not needed. Usage of
-///         comms::option::NoDefaultFieldsReadImpl option will suppress
-///         generation of the default readImpl() member function. It may be
-///         used to reduce compilation time and decrease the final binary code
-///         size.
-///     @li comms::option::NoDefaultFieldsWriteImpl - There can be cases when the actual
-///         message class that inherits from comms::MessageBase implements its
-///         own version of writeImpl() member function. In this case the default
-///         implementation is not needed. Usage of
-///         comms::option::NoDefaultFieldsWriteImpl option will suppress
-///         generation of the default writeImpl() member function. It may be
-///         used to reduce compilation time and decrease the final binary code
-///         size.
-///     @li comms::option::MsgDoRead - When the default read functionality
-///         implementation is not sufficient, the inheriting actual message class
-///         may provide custom read logic in doRead() @b non-virtual public
-///         member function and use comms::option::MsgDoRead option to
-///         force body of readImpl() function to invoke it. The expected
-///         function signature is similar to MessageBase::doRead().
-///     @li comms::option::MsgDoWrite - When the default write functionality
-///         implementation is not sufficient, the inheriting actual message class
-///         may provide custom write logic in doWrite() @b non-virtual public
-///         member function and use comms::option::MsgDoWrite option to
-///         force body of writeImpl() function to invoke it. The expected
-///         function signature is similar to MessageBase::doWrite().
-///     @li comms::option::MsgDoValid - When the default validity check functionality
-///         implementation is not sufficient, the inheriting actual message class
-///         may provide custom validity check logic in doValid() @b non-virtual public
-///         member function and use comms::option::MsgDoValid option to
-///         force body of validImpl() function to invoke it. The expected
-///         function signature is similar to MessageBase::doValid().
-///     @li comms::option::MsgDoLength - When the default length calculation functionality
-///         implementation is not sufficient, the inheriting actual message class
-///         may provide custom length calculation logic in doLength() @b non-virtual public
-///         member function and use comms::option::MsgDoLength option to
-///         force body of lengthImpl() function to invoke it. The expected
-///         function signature is similar to MessageBase::doLength().
-///     @li comms::option::MsgDoRefresh - When actual message class needs
-///         to implement custom refresh functionality, it may provide
-///         public @b doRefresh() @b non-virtual member function and use
-///         comms::option::MsgDoRefresh option to force implementation of
-///         refreshImpl(), which will invoke the @b doRefresh() member function
-///         of actual message class.
+///     @li comms::option::NoReadImpl - Inhibit the implementation of readImpl().
+///     @li comms::option::NoWriteImpl - Inhibit the implementation of writeImpl().
+///     @li comms::option::NoLengthImpl - Inhibit the implementation of lengthImpl().
+///     @li comms::option::NoValidImpl - Inhibit the implementation of validImpl().
+///     @li comms::option::NoDispatchImpl - Inhibit the implementation of dispatchImpl().
+///     @li comms::option::HasDoRefresh - Notify the comms::MessageBase class
+///         about the existence of @b doRefresh() member function in the
+///         actual message class. It will force the existence of overriding
+///         refreshImpl() member function.
 /// @extends Message
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
@@ -234,7 +194,7 @@ protected:
     ///     option was provided to comms::Message.
     ///     @li comms::option::MsgType option was used to specify actual type
     ///     of the inheriting message class.
-    ///     @li comms::option::DispatchImpl option was used.
+    ///     @li comms::option::NoDispatchImpl option was @b NOT used.
     ///
     ///     In order to properly implement the dispatch functionality
     ///     this class imposes several requirements. First of all, the custom
@@ -248,7 +208,6 @@ protected:
     ///             MyMessageBase,
     ///             ...
     ///             comms::option::MsgType<Message1>
-    ///             comms::option::DispatchImpl,
     ///             ...
     ///         >
     ///     {
@@ -298,29 +257,15 @@ protected:
     virtual void dispatchImpl(Handler& handler) override;
 
     /// @brief Implementation of polymorphic read functionality.
-    /// @details When all of the following conditions are @b true, this function
-    ///     exists and invokes default implementation of MessageBase::doRead() in its body:
-    ///     @li comms::option::ReadIterator option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::FieldsImpl (or comms::option::NoFieldsImpl) option
-    ///         was provided to comms::MessageBase to specify fields of the message.
-    ///     @li comms::option::NoDefaultFieldsReadImpl option
-    ///         was @b NOT provided to suppress the default implementation.
-    ///     @li comms::option::MsgDoRead option was @b NOT provided to notify
-    ///         that there is custom implementation of @b doRead() member function
-    ///         in the derived actual message class.
-    ///
-    ///     When all of the following conditions are @b true, this function also
-    ///     exists and invokes the custom implementation of @b doRead() member
-    ///     function defined in the derived actual message class:
-    ///     @li comms::option::ReadIterator option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::MsgType option was provided to specify actual
-    ///         type of the message.
-    ///     @li comms::option::MsgDoRead option was provided to notify
-    ///         that there is custom implementation of @b doRead() member function
-    ///         in the derived actual message class.
-    ///
+    /// @details This function exists if comms::option::ReadIterator option
+    ///         was provided to comms::Message class when specifying interface, and
+    ///         comms::option::NoReadImpl option was @b NOT used to inhibit
+    ///         the implementation. @n
+    ///         If comms::option::MsgType option was used to specify the actual
+    ///         type of the message, and if it contains custom doRead()
+    ///         function, it will be invoked. Otherwise, the invocation of
+    ///         comms::MessageBase::doRead() will be chosen in case fields were
+    ///         specified using comms::option::FieldsImpl option.
     /// @param[in, out] iter Iterator used for reading the data.
     /// @param[in] size Maximum number of bytes that can be read.
     /// @return Status of the operation.
@@ -396,29 +341,15 @@ protected:
     ErrorStatus readFieldsFromUntil(TIter& iter, std::size_t& size);
 
     /// @brief Implementation of polymorphic write functionality.
-    /// @details When all of the following conditions are @b true, this function
-    ///     exists and invokes default implementation of MessageBase::doWrite() in its body:
-    ///     @li comms::option::WriteIterator option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::FieldsImpl (or comms::option::NoFieldsImpl) option
-    ///         was provided to comms::MessageBase to specify fields of the message.
-    ///     @li comms::option::NoDefaultFieldsWriteImpl option
-    ///         was @b NOT provided to suppress the default implementation.
-    ///     @li comms::option::MsgDoWrite option was @b NOT provided to notify
-    ///         that there is custom implementation of @b doWrite() member function
-    ///         in the derived actual message class.
-    ///
-    ///     When all of the following conditions are @b true, this function also
-    ///     exists and invokes the custom implementation of @b doWrite() member
-    ///     function defined in the derived actual message class:
-    ///     @li comms::option::WriteIterator option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::MsgType option was provided to specify actual
-    ///         type of the message.
-    ///     @li comms::option::MsgDoWrite option was provided to notify
-    ///         that there is custom implementation of @b doWrite() member function
-    ///         in the derived actual message class.
-    ///
+    /// @details This function exists if comms::option::WriteIterator option
+    ///         was provided to comms::Message class when specifying interface, and
+    ///         comms::option::NoWriteImpl option was @b NOT used to inhibit
+    ///         the implementation. @n
+    ///         If comms::option::MsgType option was used to specify the actual
+    ///         type of the message, and if it contains custom doWrite()
+    ///         function, it will be invoked. Otherwise, the invocation of
+    ///         comms::MessageBase::doWrite() will be chosen in case fields were
+    ///         specified using comms::option::FieldsImpl option.
     /// @param[in, out] iter Iterator used for writing the data.
     /// @param[in] size Maximum number of bytes that can be written.
     /// @return Status of the operation.
@@ -478,65 +409,39 @@ protected:
     ErrorStatus writeFieldsFromUntil(TIter& iter, std::size_t size) const;
 
     /// @brief Implementation of polymorphic validity check functionality.
-    /// @details When all of the following conditions are @b true, this function
-    ///     exists and invokes default implementation of MessageBase::doValid() in its body:
-    ///     @li comms::option::ValidCheckInterface option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::FieldsImpl (or comms::option::NoFieldsImpl) option
-    ///         was provided to comms::MessageBase to specify fields of the message.
-    ///     @li comms::option::MsgDoValid option was @b NOT provided to notify
-    ///         that there is custom implementation of @b doValid() member function
-    ///         in the derived actual message class.
-    ///
-    ///     When all of the following conditions are @b true, this function also
-    ///     exists and invokes the custom implementation of @b doValid() member
-    ///     function defined in the derived actual message class:
-    ///     @li comms::option::ValidCheckInterface option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::MsgType option was provided to specify actual
-    ///         type of the message.
-    ///     @li comms::option::MsgDoValid option was provided to notify
-    ///         that there is custom implementation of @b doValid() member function
-    ///         in the derived actual message class.
+    /// @details This function exists if comms::option::ValidCheckInterface option
+    ///         was provided to comms::Message class when specifying interface, and
+    ///         comms::option::NoValidImpl option was @b NOT used to inhibit
+    ///         the implementation. @n
+    ///         If comms::option::MsgType option was used to specify the actual
+    ///         type of the message, and if it contains custom doValid()
+    ///         function, it will be invoked. Otherwise, the invocation of
+    ///         comms::MessageBase::doValid() will be chosen in case fields were
+    ///         specified using comms::option::FieldsImpl option.
     virtual bool validImpl() const override;
 
     /// @brief Implementation of polymorphic length calculation functionality.
-    /// @details When all of the following conditions are @b true, this function
-    ///     exists and invokes default implementation of MessageBase::doLength() in its body:
-    ///     @li comms::option::LengthInfoInterface option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::FieldsImpl (or comms::option::NoFieldsImpl) option
-    ///         was provided to comms::MessageBase to specify fields of the message.
-    ///     @li comms::option::MsgDoLength option was @b NOT provided to notify
-    ///         that there is custom implementation of @b doLength() member function
-    ///         in the derived actual message class.
-    ///
-    ///     When all of the following conditions are @b true, this function also
-    ///     exists and invokes the custom implementation of @b doLength() member
-    ///     function defined in the derived actual message class:
-    ///     @li comms::option::LengthInfoInterface option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::MsgType option was provided to specify actual
-    ///         type of the message.
-    ///     @li comms::option::MsgDoLength option was provided to notify
-    ///         that there is custom implementation of @b doLength() member function
-    ///         in the derived actual message class.
-    ///
+    /// @details This function exists if comms::option::LengthInfoInterface option
+    ///         was provided to comms::Message class when specifying interface, and
+    ///         comms::option::NoLengthImpl option was @b NOT used to inhibit
+    ///         the implementation. @n
+    ///         If comms::option::MsgType option was used to specify the actual
+    ///         type of the message, and if it contains custom doLength()
+    ///         function, it will be invoked. Otherwise, the invocation of
+    ///         comms::MessageBase::doLength() will be chosen in case fields were
+    ///         specified using comms::option::FieldsImpl option.
     /// @return Serialisation length of the message.
     virtual std::size_t lengthImpl() const override;
 
     /// @brief Implementation of polymorphic refresh functionality.
-    /// @details When all of the following conditions are @b true, this function
-    ///     exists and invokes the custom implementation of @b doRefresh() member
-    ///     function defined in the derived actual message class:
-    ///     @li comms::option::RefreshInterface option was provided to
-    ///         comms::Message class when specifying interface.
-    ///     @li comms::option::MsgType option was provided to specify actual
-    ///         type of the message.
-    ///     @li comms::option::MsgDoRefresh option was provided to notify
-    ///         that there is custom implementation of @b doRefresh() member function
-    ///         in the derived actual message class.
-    ///
+    /// @details This function exists if comms::option::RefreshInterface option
+    ///         was provided to comms::Message class when specifying interface,
+    ///         comms::option::MsgType option was used to specify actual message
+    ///         type, and comms::option::HasDoRefresh option was used to
+    ///         indicate that the derived message has defined custom @b doRefresh()
+    ///         member function. The body of refreshImpl() will downcast @b this
+    ///         pointer to be a pointer to actual message type and then invoke
+    ///         the @b doRefresh() member function of the latter.
     /// @return @b true in case fields were updated, @b false if nothing has changed.
     virtual bool refreshImpl() override;
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY

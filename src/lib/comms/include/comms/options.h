@@ -106,9 +106,6 @@ struct StaticNumIdImpl
 struct NoIdImpl {};
 
 /// @brief Option used to specify actual type of the message.
-/// @details It may be required for other options, such as
-///     @ref DispatchImpl, @ref MsgDoRead, @ref MsgDoWrite, @ref MsgDoValid,
-///     @ref MsgDoLength, and @ref MsgDoRefresh
 template <typename TMsg>
 struct MsgType
 {

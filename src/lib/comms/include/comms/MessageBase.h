@@ -533,7 +533,7 @@ protected:
 ///         auto& allFields = msg.fields();
 ///         auto& field1 = std::get<MyMessage::FieldIdx_name1>(allFields);
 ///         auto& field2 = std::get<MyMessage::FieldIdx_name2>(allFields);
-///         auto& field3 = std::get<MyMessage::FieldIdx_name1>(allFields);
+///         auto& field3 = std::get<MyMessage::FieldIdx_name3>(allFields);
 ///
 ///         auto value1 = field1.value();
 ///         auto value2 = field2.value();

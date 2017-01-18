@@ -396,7 +396,7 @@
 /// @code
 /// typedef comms::Message<
 ///     ...
-///     comms::option::ValidInfoInterface,
+///     comms::option::ValidCheckInterface,
 ///     ...
 /// > MyMessage;
 /// @endcode
@@ -824,7 +824,7 @@
 ///         return doLength();
 ///     }
 ///
-///     // validImpl() exists only if comms::option::ValidInfoInterface option was provided to comms::Message
+///     // validImpl() exists only if comms::option::ValidCheckInterface option was provided to comms::Message
 ///     virtual bool validImpl() const override
 ///     {
 ///         return doValid();
@@ -836,7 +836,7 @@
 /// @b NOTE, that comms::MessageBase class override virtual @b readImpl(),
 /// @b writeImpl(), @b lengthImpl(), and @b validImpl() functions if appropriate
 /// option was passed to comms::Message class when defining the interface. If
-/// some option was NOT provided (for example comms::option::ValidInfoInterface
+/// some option was NOT provided (for example comms::option::ValidCheckInterface
 /// was NOT used), then appropriate @b *Impl function (@b validImpl() in this case)
 /// won't be implemented.
 ///
@@ -907,6 +907,11 @@
 /// function, it will be invoked from @b readImpl(). If not, the inherited 
 /// default implementation of comms::MessageBase::doRead will be used.
 ///
+/// @b Note, that comms::MessageBase class provides protected helper non-virtual 
+/// functions to read limited number of fields from/until provided index.
+/// See comms::MessageBase::readFieldsFrom(), comms::MessageBase::readFieldsUntil(),
+/// and comms::MessageBase::readFieldsFromUntil() for reference
+///
 /// @subsubsection page_message_tutorial_implementation_fields_no_read No Read Functionality
 /// Sometimes the defined message is not expected to be received, and it may
 /// be unnecessary to generate appropriate @b readImpl() function to save a code
@@ -971,6 +976,11 @@
 /// @endcode
 /// If the actual message class defines its own @b doWrite member function, it
 /// will be chosen instead of default comms::MessageBase::doWrite.
+///
+/// @b Note, that comms::MessageBase class provides protected helper non-virtual 
+/// functions to write limited number of fields from/until provided index.
+/// See comms::MessageBase::writeFieldsFrom(), comms::MessageBase::writeFieldsUntil(),
+/// and comms::MessageBase::writeFieldsFromUntil() for reference
 ///
 /// @subsubsection page_message_tutorial_implementation_fields_no_write No Write Functionality
 /// Sometimes the defined message is not expected to be sent, and it may
@@ -1141,6 +1151,7 @@
 /// class Message1 : public comms::MessageBase<...>
 /// {
 /// public:
+///     // Access indices for message fields
 ///     enum FieldIdx {
 ///         FieldIdx_name1,
 ///         FieldIdx_name2,
@@ -1150,18 +1161,27 @@
 ///     static_assert(std::tuple_size<Base::AllFields>::value == FieldIdx_nameOfValues,
 ///         "Number of expected fields is incorrect");
 ///
+///     // Type of the first field
+///     typedef ... Field_name1;
+///
+///     // Type of the second field
+///     typedef ... Field_name2;
+///
+///     // Access to fields bundled into struct
 ///     struct FieldsAsStruct
 ///     {
-///         Field1& name1;
-///         Field2& name2;
+///         Field_name1& name1;
+///         Field_name2& name2;
 ///     };
 ///
+///     // Access to const fields bundled into struct
 ///     struct ConstFieldsAsStruct
 ///     {
-///         const Field1& name1;
-///         const Field2& name2;
+///         const Field_name1& name1;
+///         const Field_name2& name2;
 ///     };
 ///
+///     // Get access to fields bundled into a struct
 ///     FieldsAsStruct fieldsAsStruct()
 ///     {
 ///         return FieldsAsStruct{
@@ -1169,21 +1189,50 @@
 ///             std::get<1>(Base::fields())};
 ///     }
 ///
+///     // Get access to const fields bundled into a struct
 ///     ConstFieldsAsStruct fieldsAsStruct() const
 ///     {
 ///         return ConstFieldsAsStruct{
 ///             std::get<0>(Base::fields()),
 ///             std::get<1>(Base::fields())};
 ///     }
+///
+///     // Accessor to "name1" field
+///     Field_name1& field_name1()
+///     {
+///         return std::get<0>(Base::fields());
+///     }
+///
+///     // Accessor to "name1" field
+///     const Field_name1& field_name1() const
+///     {
+///         return std::get<0>(Base::fields());
+///     }
+///
+///     // Accessor to "name2" field
+///     Field_name2& field_name2()
+///     {
+///         return std::get<1>(Base::fields());
+///     }
+///
+///     // Accessor to "name2" field
+///     const Field_name2& field_name2() const
+///     {
+///         return std::get<1>(Base::fields());
+///     }
 /// };
 /// @endcode
 /// @b NOTE, that provided names @b name1, and @b name2, have
-/// found their way to the enum @b FieldIdx and as data members of the
-/// @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
-/// Also note, that there is automatically added @b FieldIdx_nameOfValues
-/// value to the end of @b FieldIdx enum.
+/// found their way to the following definitions:
+/// @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
+///     @b FieldIdx_nameOfValues value is automatically added at the end.
+/// @li Types of the fields, prefixed with @b Field_.
+/// @li References to the fields bundled into 
+///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. 
+/// @li Accessor functions prefixed with @b field_
 ///
-/// As the result, the fields can be accessed using @b FieldIdx enum
+/// As the result, the fields can be accessed using multiple ways: @n
+/// For example using named index from @b FieldIdx enum
 /// @code
 /// void handle(Message1& msg)
 /// {
@@ -1205,4 +1254,11 @@
 ///     auto value2 = allFields.name2.value();
 /// }
 /// @endcode
-///
+/// or using accessor functions:
+/// @code
+/// void handle(Message1& msg)
+/// {
+///     auto value1 = msg.field_name1().value();
+///     auto value2 = msg.field_name2().value();
+/// }
+/// @endcode

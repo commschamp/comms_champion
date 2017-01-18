@@ -380,33 +380,42 @@
 ///     COMMS_FIELD_MEMBERS_ACCESS(Base, baud, parity, flags);
 /// }
 /// @endcode
-/// It is equivalent to having the following enum, structs and functions defined:
+/// It is equivalent to having the following enum, types and functions defined:
 /// @code
 /// class AccessibleSerialConfigField : public SerialConfigField
 /// {
 ///     typedef SerialConfigField Base;
 /// public:
+///     // Access indices for member fields
 ///     enum FieldIdx {
 ///         FieldIdx_baud,
 ///         FieldIdx_parity,
 ///         FieldIdx_flags,
 ///         FieldIdx_numOfValues
 ///     };
+/// 
+///     // Types of the member fields
+///     typedef comms::field::EnumValue<...> Field_baud;
+///     typedef comms::field::EnumValue<...> Field_parity;
+///     typedef comms::field::BitmaskValue<...> Field_flags;
 ///
+///     // Access to member fields bundled into struct
 ///     struct FieldsAsStruct
 ///     {
-///         comms::field::EnumValue<...>& baud;
-///         comms::field::EnumValue<...>& parity;
-///         comms::field::BitmaskValue<...>& flags;
+///         Field_baud& baud;
+///         Field_parity& parity;
+///         Field_flags& flags;
 ///     };
 ///
+///     // Access to const member fields bundled into struct
 ///     struct ConstFieldsAsStruct
 ///     {
-///         const comms::field::EnumValue<...>& baud;
-///         const comms::field::EnumValue<...>& parity;
-///         const comms::field::BitmaskValue<...>& flags;
+///         const Field_baud& baud;
+///         const Field_parity& parity;
+///         const Field_flags& flags;
 ///     };
 ///
+///     // Get access to member fields bundled into a struct
 ///     FieldsAsStruct fieldsAsStruct()
 ///     {
 ///         return FieldsAsStruct{
@@ -415,6 +424,7 @@
 ///             std::get<2>(Base::value())};
 ///     }
 ///
+///     // Get access to const member fields bundled into a struct
 ///     ConstFieldsAsStruct fieldsAsStruct() const
 ///     {
 ///         return ConstFieldsAsStruct{
@@ -422,18 +432,58 @@
 ///             std::get<1>(Base::value()),
 ///             std::get<2>(Base::value())};
 ///     }
+///
+///     // Accessor to "baud" field
+///     Field_baud& field_baud()
+///     {
+///         return std::get<0>(Base::value());
+///     }
+///
+///     // Accessor to const "baud" field
+///     const Field_baud& field_baud() const
+///     {
+///         return std::get<0>(Base::value());
+///     }
+///
+///     // Accessor to "parity" field
+///     Field_parity& field_parity()
+///     {
+///         return std::get<1>(Base::value());
+///     }
+///
+///     // Accessor to const "parity" field
+///     const Field_parity& field_parity() const
+///     {
+///         return std::get<1>(Base::value());
+///     }
+///
+///     // Accessor to "flags" field
+///     Field_flags& field_flags()
+///     {
+///         return std::get<2>(Base::value());
+///     }
+///
+///     // Accessor to const "flags" field
+///     const Field_flags& field_flags() const
+///     {
+///         return std::get<2>(Base::value());
+///     }
 /// };
 /// @endcode
-/// @b NOTE, that provided names @b baud, @b parity, and @b flags have
-/// found their way to the enum @b FieldIdx and as data members of the
-/// @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
-/// Also note, that there is automatically added @b FieldIdx_nameOfValues
-/// value to the end of @b FieldIdx enum.
+/// @b NOTE, that provided names @b baud, @b parity, and @b flags, have
+/// found their way to the following definitions:
+/// @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
+///     @b FieldIdx_nameOfValues value is automatically added at the end.
+/// @li Types of the member fields, prefixed with @b Field_.
+/// @li References to the member fields bundled into 
+///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. 
+/// @li Accessor functions prefixed with @b field_
 ///
-/// As the result, the fields can be accessed using @b FieldIdx enum
+/// As the result, the fields can be accessed using multiple ways:
+/// For example using @b FieldIdx enum
 /// @code
 /// AccessibleSerialConfigField field;
-/// auto& members = field.value();
+/// auto& members = field.value(); // get access to the std::tuple of member fields
 /// auto& baudField = std::get<AccessibleSerialConfigField::FieldIdx_baud>(members);
 /// auto& parityField = std::get<AccessibleSerialConfigField::FieldIdx_parity>(members);
 /// auto& flagsField = std::get<AccessibleSerialConfigField::FieldIdx_flags>(members);
@@ -450,6 +500,13 @@
 /// auto baud = members.baud.value();
 /// auto parity = members.parity.value();
 /// auto flags = members.flags.value();
+/// @endcode
+/// or using accessor functions:
+/// @code
+/// AccessibleSerialConfigField field;
+/// auto baud = field.field_baud().value();
+/// auto parity = field.field_parity().value();
+/// auto flags = field.flags.value();
 /// @endcode
 ///
 /// @section sec_field_tutorial_bundle Bundle Fields
@@ -513,7 +570,7 @@
 ///     COMMS_FIELD_MEMBERS_ACCESS(Base, member1, member2, member3);
 /// };
 /// @endcode
-/// It will create similar enum, structs and convenience access functions, just
+/// It will create similar enum, types and convenience access functions, just
 /// like described in previous @ref sec_field_tutorial_bitfield section.
 ///
 /// @section sec_field_tutorial_array_list Array List Fields

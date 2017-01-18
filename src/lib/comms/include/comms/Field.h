@@ -152,7 +152,7 @@ protected:
 ///     auto& thirdMember = std::get<2>(members);
 ///     @endcode
 ///     However, it would be convenient to provide names and easier access to
-///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exaclty
+///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exactly
 ///     that when used inside the field class definition. Just inherit from
 ///     the "bundle" field and use the macro inside while providing the type
 ///     of the base class as first parameter, followed by the names for the
@@ -172,6 +172,7 @@ protected:
 ///     {
 ///         typedef comms::field::Bitfield<...> Base;
 ///     public:
+///         // Access indices for member fields
 ///         enum FieldIdx {
 ///             FieldIdx_member1,
 ///             FieldIdx_member2,
@@ -179,20 +180,28 @@ protected:
 ///             FieldIdx_numOfValues
 ///         };
 ///
+///         // Types of the member fields
+///         typedef Field1 Field_member1;
+///         typedef Field2 Field_member2;
+///         typedef Field3 Field_member3;
+///
+///         // Access to member fields bundled into struct
 ///         struct FieldsAsStruct
 ///         {
-///             Field1& member1;
-///             Field2& member2;
-///             Field3& member3;
+///             Field_member1& member1;
+///             Field_member2& member2;
+///             Field_member3& member3;
 ///         };
 ///
+///         // Access to const member fields bundled into struct
 ///         struct ConstFieldsAsStruct
 ///         {
-///             const Field1& member1;
-///             const Field2& member2;
-///             const Field3& member3;
+///             const Field_member1& member1;
+///             const Field_member2& member2;
+///             const Field_member3& member3;
 ///         };
 ///
+///         // Get access to member fields bundled into a struct
 ///         FieldsAsStruct fieldsAsStruct()
 ///         {
 ///             return FieldsAsStruct{
@@ -201,6 +210,7 @@ protected:
 ///                 std::get<2>(Base::value())};
 ///         }
 ///
+///         // Get access to const member fields bundled into a struct
 ///         ConstFieldsAsStruct fieldsAsStruct() const
 ///         {
 ///             return ConstFieldsAsStruct{
@@ -208,35 +218,54 @@ protected:
 ///                 std::get<1>(Base::value()),
 ///                 std::get<2>(Base::value())};
 ///         }
+///
+///         // Accessor to "member1" member field.
+///         Field_member1& field_meber1()
+///         {
+///             return std::get<0>(Base::value());
+///         }
+///
+///         // Accessor to const "member1" member field.
+///         const Field_member1& field_meber1() const
+///         {
+///             return std::get<0>(Base::value());
+///         }
+///
+///         // Accessor to "member2" member field.
+///         Field_member2& field_meber2()
+///         {
+///             return std::get<1>(Base::value());
+///         }
+///
+///         // Accessor to const "member2" member field.
+///         const Field_member2& field_meber2() const
+///         {
+///             return std::get<1>(Base::value());
+///         }
+///
+///         // Accessor to "member3" member field.
+///         Field_member3& field_meber3()
+///         {
+///             return std::get<2>(Base::value());
+///         }
+///
+///         // Accessor to const "member3" member field.
+///         const Field_member3& field_meber3() const
+///         {
+///             return std::get<2>(Base::value());
+///         }
 ///     };
 ///     @endcode
-///     @b NOTE, that provided names @b member1, @b member2, and @b member3 have
-///     found their way to the enum @b FieldIdx and as data members of the
-///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
-///     Also note, that there is automatically added @b FieldIdx_nameOfValues
-///     value to the end of @b FieldIdx enum.
+///     @b NOTE, that provided names @b baud, @b parity, and @b flags, have
+///         found their way to the following definitions:
+///     @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
+///         @b FieldIdx_nameOfValues value is automatically added at the end.
+///     @li Types of the member fields, prefixed with @b Field_.
+///     @li References to the member fields bundled into
+///         @b FieldsAsStruct and @b ConstFieldsAsStruct structs.
+///     @li Accessor functions prefixed with @b field_
 ///
-///     As the result, the fields can be accessed using @b FieldIdx enum
-///     @code
-///     MyField field;
-///     auto& members = field.value();
-///     auto& firstMember = std::get<MyField::FieldIdx_member1>(members);
-///     auto& secondMember = std::get<MyField::FieldIdx_member2>(members);
-///     auto& thirdMember = std::get<MyField::FieldIdx_member3>(members);
-///
-///     auto firstValue = firstMember.value();
-///     auto secondValue = secondMember.value();
-///     auto thirdValue = thirdMember.value();
-///     @endcode
-///     or using provided struct(s):
-///     @code
-///     MyField field;
-///     auto members = field.fieldsAsStruct();
-///
-///     auto firstValue = members.member1.value();
-///     auto secondValue = members.member2.value();
-///     auto thirdValue = members.member3.value();
-///     @endcode
+///     See @ref sec_field_tutorial_bitfield for more examples and details
 /// @param[in] base_ Base class of the defined field which defines @b ValueType
 ///     internal type to be <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
 ///     of field members and provides @b value() member functions to access them.
@@ -292,6 +321,7 @@ protected:
 ///     {
 ///         typedef comms::field::Bundle<...> Base;
 ///     public:
+///         // Access indices for member fields
 ///         enum FieldIdx {
 ///             FieldIdx_member1,
 ///             FieldIdx_member2,
@@ -299,20 +329,28 @@ protected:
 ///             FieldIdx_numOfValues
 ///         };
 ///
+///         // Types of the member fields
+///         typedef Field1 Field_member1;
+///         typedef Field2 Field_member2;
+///         typedef Field3 Field_member3;
+///
+///         // Access to member fields bundled into struct
 ///         struct FieldsAsStruct
 ///         {
-///             Field1& member1;
-///             Field2& member2;
-///             Field3& member3;
+///             Field_member1& member1;
+///             Field_member2& member2;
+///             Field_member3& member3;
 ///         };
 ///
+///         // Access to const member fields bundled into struct
 ///         struct ConstFieldsAsStruct
 ///         {
-///             const Field1& member1;
-///             const Field2& member2;
-///             const Field3& member3;
+///             const Field_member1& member1;
+///             const Field_member2& member2;
+///             const Field_member3& member3;
 ///         };
 ///
+///         // Get access to member fields bundled into a struct
 ///         FieldsAsStruct fieldsAsStruct()
 ///         {
 ///             return FieldsAsStruct{
@@ -321,6 +359,7 @@ protected:
 ///                 std::get<2>(Base::value())};
 ///         }
 ///
+///         // Get access to const member fields bundled into a struct
 ///         ConstFieldsAsStruct fieldsAsStruct() const
 ///         {
 ///             return ConstFieldsAsStruct{
@@ -328,35 +367,54 @@ protected:
 ///                 std::get<1>(Base::value()),
 ///                 std::get<2>(Base::value())};
 ///         }
+///
+///         // Accessor to "member1" member field.
+///         Field_member1& field_meber1()
+///         {
+///             return std::get<0>(Base::value());
+///         }
+///
+///         // Accessor to const "member1" member field.
+///         const Field_member1& field_meber1() const
+///         {
+///             return std::get<0>(Base::value());
+///         }
+///
+///         // Accessor to "member2" member field.
+///         Field_member2& field_meber2()
+///         {
+///             return std::get<1>(Base::value());
+///         }
+///
+///         // Accessor to const "member2" member field.
+///         const Field_member2& field_meber2() const
+///         {
+///             return std::get<1>(Base::value());
+///         }
+///
+///         // Accessor to "member3" member field.
+///         Field_member3& field_meber3()
+///         {
+///             return std::get<2>(Base::value());
+///         }
+///
+///         // Accessor to const "member3" member field.
+///         const Field_member3& field_meber3() const
+///         {
+///             return std::get<2>(Base::value());
+///         }
 ///     };
 ///     @endcode
-///     @b NOTE, that provided names @b member1, @b member2, and @b member3 have
-///     found their way to the enum @b FieldIdx and as data members of the
-///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
-///     Also note, that there is automatically added @b FieldIdx_nameOfValues
-///     value to the end of @b FieldIdx enum.
+///     @b NOTE, that provided names @b baud, @b parity, and @b flags, have
+///         found their way to the following definitions:
+///     @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
+///         @b FieldIdx_nameOfValues value is automatically added at the end.
+///     @li Types of the member fields, prefixed with @b Field_.
+///     @li References to the member fields bundled into
+///         @b FieldsAsStruct and @b ConstFieldsAsStruct structs.
+///     @li Accessor functions prefixed with @b field_
 ///
-///     As the result, the fields can be accessed using @b FieldIdx enum
-///     @code
-///     MyField field;
-///     auto& members = field.value();
-///     auto& firstMember = std::get<MyField::FieldIdx_member1>(members);
-///     auto& secondMember = std::get<MyField::FieldIdx_member2>(members);
-///     auto& thirdMember = std::get<MyField::FieldIdx_member3>(members);
-///
-///     auto firstValue = firstMember.value();
-///     auto secondValue = secondMember.value();
-///     auto thirdValue = thirdMember.value();
-///     @endcode
-///     or using provided struct(s):
-///     @code
-///     MyField field;
-///     auto members = field.fieldsAsStruct();
-///
-///     auto firstValue = members.member1.value();
-///     auto secondValue = members.member2.value();
-///     auto thirdValue = members.member3.value();
-///     @endcode
+///     See @ref sec_field_tutorial_bundle for more examples and details
 /// @param[in] base_ Base class of the defined field which defines @b ValueType
 ///     internal type to be <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
 ///     of field members and provides @b value() member functions to access them.

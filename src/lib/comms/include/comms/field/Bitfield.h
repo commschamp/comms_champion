@@ -68,9 +68,11 @@ namespace field
 ///     @endcode
 ///     Note, that bitfield members fields specify their length in bits using
 ///     comms::option::FixedBitLength option.
-///     Also note, that all bifield member's lengths in bits combined create
+///     Also note, that all bitfield member's lengths in bits combined create
 ///     a round number of bytes, i.e all the bits must sum up to 8, 16, 24, 32, ...
 ///     bits.
+///
+///     Refer to @ref sec_field_tutorial_bitfield for tutorial and usage examples.
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
 /// @tparam TMembers All member fields bundled together in

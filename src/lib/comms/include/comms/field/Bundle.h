@@ -36,6 +36,8 @@ namespace field
 ///     expected single field API functions, such as length(), read(), write(),
 ///     valid(). It may be useful when a collection (comms::field::ArrayList) of
 ///     complex fields is required.
+///
+///     Refer to @ref sec_field_tutorial_bundle for tutorial and usage examples.
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
 /// @tparam TMembers All wrapped fields bundled together in

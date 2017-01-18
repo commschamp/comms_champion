@@ -82,6 +82,7 @@ public:
     void test48();
     void test49();
     void test50();
+    void test51();
 
 private:
     typedef comms::option::BigEndian BigEndianOpt;
@@ -1902,6 +1903,51 @@ void FieldsTestSuite::test50()
     TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_sixth), true);
     TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_seventh), false);
     TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_eighth), true);
+}
+
+void FieldsTestSuite::test51()
+{
+    typedef std::tuple<
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t,
+            comms::option::FixedBitLength<2>
+        >,
+        comms::field::BitmaskValue<
+            comms::Field<BigEndianOpt>,
+            comms::option::FixedLength<1>,
+            comms::option::FixedBitLength<6>
+        >
+    > BitfieldMembers;
+
+    typedef comms::field::Bitfield<
+        comms::Field<BigEndianOpt>,
+        BitfieldMembers
+    > BifieldBase;
+
+    class Field : public BifieldBase
+    {
+    public:
+        COMMS_FIELD_MEMBERS_ACCESS(BifieldBase, name1, name2)
+    };
+
+    Field field;
+    static_cast<void>(field);
+    TS_ASSERT_EQUALS(field.length(), 1U);
+    TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_name1>(), 2U);
+    TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_name2>(), 6U);
+
+    static const char Buf[] = {
+        (char)0x41, (char)0xff
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    auto& mem1 = field.field_name1();
+    TS_ASSERT_EQUALS(mem1.value(), 0x1);
+
+    auto& mem2 = field.field_name2();
+    TS_ASSERT_EQUALS(mem2.value(), 0x10);
 }
 
 template <typename TField>

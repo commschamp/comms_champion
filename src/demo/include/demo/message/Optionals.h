@@ -92,7 +92,7 @@ struct OptionalsFields
 ///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1MessageBase.html">comms::MessageBase</a>
 ///     while providing @b TMsgBase as common interface class as well as
 ///     @b comms::option::StaticNumIdImpl, @b comms::option::FieldsImpl, and
-///     @b comms::option::DispatchImpl as options. @n
+///     @b comms::option::MsgType as options. @n
 ///     See @ref OptionalsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
 template <typename TMsgBase = Message>
@@ -101,17 +101,20 @@ class Optionals : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
         comms::option::FieldsImpl<typename OptionalsFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<Optionals<TMsgBase> >
+        comms::option::MsgType<Optionals<TMsgBase> >,
+        comms::option::HasDoRefresh
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
         comms::option::FieldsImpl<typename OptionalsFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<Optionals<TMsgBase> >
+        comms::option::MsgType<Optionals<TMsgBase> >,
+        comms::option::HasDoRefresh
     > Base;
 public:
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Index to access the fields
     enum FieldIdx
     {
@@ -121,18 +124,38 @@ public:
         FieldIdx_numOfValues ///< number of available fields
     };
 
-    static_assert(std::tuple_size<typename Base::AllFields>::value == FieldIdx_numOfValues,
-        "Number of fields is incorrect");
+    /// @brief Access to fields, bundled into struct
+    struct FieldsAsStruct
+    {
+        OptionalsFields::field1& field1; ///< Access to field1
+        OptionalsFields::field2& field2; ///< Access to field2
+        OptionalsFields::field3& field3; ///< Access to field3
+    };
+
+    /// @brief Access to @b const fields, bundled into struct
+    struct ConstFieldsAsStruct
+    {
+        const OptionalsFields::field1& field1; ///< Access to field1
+        const OptionalsFields::field2& field2; ///< Access to field2
+        const OptionalsFields::field3& field3; ///< Access to field3
+    };
+
+    /// @brief Get access to fields, bundled into struct
+    FieldsAsStruct fieldsAsStruct();
+
+    /// @brief Get access to @b const fields, bundled into struct
+    ConstFieldsAsStruct fieldsAsStruct() const;
+
+#else
+    COMMS_MSG_FIELDS_ACCESS(Base, field1, field2, field3);
+#endif
 
     /// @brief Default constructor
     Optionals()
     {
-        auto& allFields = Base::fields();
-        auto& field2 = std::get<FieldIdx_field2>(allFields);
-        auto& field3 = std::get<FieldIdx_field3>(allFields);
-
-        field2.setMode(comms::field::OptionalMode::Missing);
-        field3.setMode(comms::field::OptionalMode::Missing);
+        auto allFields = fieldsAsStruct();
+        allFields.field2.setMissing();
+        allFields.field3.setMissing();
     }
 
     /// @brief Copy constructor
@@ -150,66 +173,68 @@ public:
     /// @brief Move assignment
     Optionals& operator=(Optionals&&) = default;
 
-protected:
-    typedef OptionalsFields<typename TMsgBase::Field> FieldsStruct;
-
-    virtual comms::ErrorStatus readImpl(typename Base::ReadIterator& iter, std::size_t len) override
+    /// @brief Implement custom read functionality
+    /// @param[in, out] iter Reference to iterator used for reading.
+    /// @param[in] len Number of remaining bytes in the buffer to read
+    template <typename TIter>
+    comms::ErrorStatus doRead(TIter& iter, std::size_t len)
     {
         auto es = Base::template readFieldsUntil<FieldIdx_field2>(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        auto& allFields = Base::fields();
-        auto& field1 = std::get<FieldIdx_field1>(allFields);
-        auto& field2 = std::get<FieldIdx_field2>(allFields);
-        auto& field3 = std::get<FieldIdx_field3>(allFields);
+        auto allFields = fieldsAsStruct();
 
         auto field2Mode = comms::field::OptionalMode::Missing;
-        if (field1.getBitValue(FieldsStruct::field1_enableField2)) {
+        if (allFields.field1.getBitValue(FieldsStruct::field1_enableField2)) {
             field2Mode = comms::field::OptionalMode::Exists;
         }
 
         auto field3Mode = comms::field::OptionalMode::Missing;
-        if (field1.getBitValue(FieldsStruct::field1_enableField3)) {
+        if (allFields.field1.getBitValue(FieldsStruct::field1_enableField3)) {
             field3Mode = comms::field::OptionalMode::Exists;
         }
 
-        field2.setMode(field2Mode);
-        field3.setMode(field3Mode);
+        allFields.field2.setMode(field2Mode);
+        allFields.field3.setMode(field3Mode);
         return Base::template readFieldsFrom<FieldIdx_field2>(iter, len);
     }
 
-    virtual bool refreshImpl() override
+    /// @brief Implement custom refresh functionality.
+    /// @details Brings the message fields into a consistent state.
+    /// @return @b true in case any of the optional fields has been updated,
+    ///     @b false otherwise.
+    bool doRefresh()
     {
-        auto& allFields = Base::fields();
-        auto& field1 = std::get<FieldIdx_field1>(allFields);
-        auto& field2 = std::get<FieldIdx_field2>(allFields);
-        auto& field3 = std::get<FieldIdx_field3>(allFields);
+        auto allFields = fieldsAsStruct();
 
         auto field2ExpectedMode = comms::field::OptionalMode::Missing;
-        if (field1.getBitValue(FieldsStruct::field1_enableField2)) {
+        if (allFields.field1.getBitValue(FieldsStruct::field1_enableField2)) {
             field2ExpectedMode = comms::field::OptionalMode::Exists;
         }
 
         auto field3ExpectedMode = comms::field::OptionalMode::Missing;
-        if (field1.getBitValue(FieldsStruct::field1_enableField3)) {
+        if (allFields.field1.getBitValue(FieldsStruct::field1_enableField3)) {
             field3ExpectedMode = comms::field::OptionalMode::Exists;
         }
 
         bool refreshed = false;
-        if (field2.getMode() != field2ExpectedMode) {
-            field2.setMode(field2ExpectedMode);
+        if (allFields.field2.getMode() != field2ExpectedMode) {
+            allFields.field2.setMode(field2ExpectedMode);
             refreshed = true;
         }
 
-        if (field3.getMode() != field3ExpectedMode) {
-            field3.setMode(field3ExpectedMode);
+        if (allFields.field3.getMode() != field3ExpectedMode) {
+            allFields.field3.setMode(field3ExpectedMode);
             refreshed = true;
         }
 
         return refreshed;
     }
+
+protected:
+    typedef OptionalsFields<typename TMsgBase::Field> FieldsStruct;
 };
 
 }  // namespace message

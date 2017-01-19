@@ -23,6 +23,7 @@
 #include "comms/options.h"
 #include "basic/Bundle.h"
 #include "details/AdaptBasicField.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -35,6 +36,8 @@ namespace field
 ///     expected single field API functions, such as length(), read(), write(),
 ///     valid(). It may be useful when a collection (comms::field::ArrayList) of
 ///     complex fields is required.
+///
+///     Refer to @ref sec_field_tutorial_bundle for tutorial and usage examples.
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
 /// @tparam TMembers All wrapped fields bundled together in
@@ -75,6 +78,9 @@ class Bundle
 public:
     /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Bundle Tag;
 
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
@@ -191,23 +197,6 @@ bool operator!=(
     return field1.value() != field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsBundle
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename TMembers, typename... TOptions>
-struct IsBundle<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::Bundle.
 /// @tparam T Any type.
@@ -216,7 +205,7 @@ struct IsBundle<comms::field::Bundle<TFieldBase, TMembers, TOptions...> >
 template <typename T>
 constexpr bool isBundle()
 {
-    return details::IsBundle<T>::Value;
+    return std::is_same<typename T::Tag, tag::Bundle>::value;
 }
 
 

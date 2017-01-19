@@ -26,6 +26,7 @@
 #include "basic/ArrayList.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -126,6 +127,13 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef ParsedOptionsInternal ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef typename std::conditional<
+        std::is_integral<TElement>::value,
+        tag::RawArrayList,
+        tag::ArrayList
+    >::type Tag;
 
     /// @brief Type of underlying value.
     /// @details If comms::option::FixedSizeStorage option is NOT used, the
@@ -302,23 +310,6 @@ bool operator==(
     return !(field1 != field2);
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsArrayList
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename TElement, typename... TOptions>
-struct IsArrayList<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::ArrayList.
 /// @tparam T Any type.
@@ -327,7 +318,7 @@ struct IsArrayList<comms::field::ArrayList<TFieldBase, TElement, TOptions...> >
 template <typename T>
 constexpr bool isArrayList()
 {
-    return details::IsArrayList<T>::Value;
+    return std::is_same<typename T::Tag, tag::ArrayList>::value;
 }
 
 

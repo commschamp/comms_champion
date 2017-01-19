@@ -34,8 +34,6 @@
 #include "comms_champion/field_wrapper/FloatValueWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
-#include "FieldWrapperTag.h"
-
 namespace comms_champion
 {
 
@@ -51,21 +49,20 @@ public:
     static FieldWrapperPtr createWrapper(TField& field)
     {
         typedef typename std::decay<decltype(field)>::type DecayedField;
-        typedef details::FieldWrapperTagOfT<DecayedField> Tag;
+        typedef typename DecayedField::Tag Tag;
         return createWrapperInternal(field, Tag());
     }
 private:
-    typedef FieldWrapperIntValueTag IntValueTag;
-    typedef FieldWrapperBitmaskValueTag BitmaskValueTag;
-    typedef FieldWrapperEnumValueTag EnumValueTag;
-    typedef FieldWrapperStringTag StringTag;
-    typedef FieldWrapperBitfieldTag BitfieldTag;
-    typedef FieldWrapperOptionalTag OptionalTag;
-    typedef FieldWrapperBundleTag BundleTag;
-    typedef FieldWrapperRawDataArrayListTag RawDataArrayListTag;
-    typedef FieldWrapperFieldsArrayListTag FieldsArrayListTag;
-    typedef FieldWrapperFloatValueTag FloatValueTag;
-    typedef FieldWrapperUnknownValueTag UnknownValueTag;
+    typedef comms::field::tag::Int IntValueTag;
+    typedef comms::field::tag::Bitmask BitmaskValueTag;
+    typedef comms::field::tag::Enum EnumValueTag;
+    typedef comms::field::tag::String StringTag;
+    typedef comms::field::tag::Bitfield BitfieldTag;
+    typedef comms::field::tag::Optional OptionalTag;
+    typedef comms::field::tag::Bundle BundleTag;
+    typedef comms::field::tag::RawArrayList RawDataArrayListTag;
+    typedef comms::field::tag::ArrayList FieldsArrayListTag;
+    typedef comms::field::tag::Float FloatValueTag;
 
     class SubfieldsCreateHelper
     {
@@ -199,8 +196,8 @@ private:
         return field_wrapper::makeFloatValueWrapper(field);
     }
 
-    template <typename TField>
-    static FieldWrapperPtr createWrapperInternal(TField& field, UnknownValueTag)
+    template <typename TField, typename TTag>
+    static FieldWrapperPtr createWrapperInternal(TField& field, TTag)
     {
         return field_wrapper::makeUnknownValueWrapper(field);
     }

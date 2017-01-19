@@ -186,7 +186,9 @@ void DefaultMessageDisplayHandler::addFieldImpl(FieldWrapperPtr wrapper)
     assert(m_widget);
     WidgetCreator creator;
     wrapper->dispatch(creator);
-    m_widget->addFieldWidget(creator.getWidget().release());
+    auto fieldWidget = creator.getWidget();
+    fieldWidget->hide();
+    m_widget->addFieldWidget(fieldWidget.release());
 }
 
 }  // namespace comms_champion

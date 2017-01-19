@@ -23,6 +23,7 @@
 #include "comms/options.h"
 #include "basic/FloatValue.h"
 #include "details/AdaptBasicField.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -65,6 +66,9 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Float Tag;
 
     /// @brief Type of underlying floating point value.
     /// @details Same as template parameter T to this class.
@@ -185,23 +189,6 @@ bool operator<(
     return field1.value() < field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsFloatValue
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename T, typename... TOptions>
-struct IsFloatValue<comms::field::FloatValue<TFieldBase, T, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::FloatValue.
 /// @tparam T Any type.
@@ -210,7 +197,7 @@ struct IsFloatValue<comms::field::FloatValue<TFieldBase, T, TOptions...> >
 template <typename T>
 constexpr bool isFloatValue()
 {
-    return details::IsFloatValue<T>::Value;
+    return std::is_same<typename T::Tag, tag::Float>::value;
 }
 
 

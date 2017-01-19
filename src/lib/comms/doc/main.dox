@@ -126,7 +126,7 @@
 ///         MyMessage, // Base class for all the messages
 ///         comms::option::StaticNumIdImpl<MsgId_Message1>, // Forces implementation of message Id retrieval functionality,
 ///                                                         // the getId() interface function will return MsgId_Message1.
-///         comms::option::DispatchImpl<Message1>, // Forced proper implementation of dispatch to handler functionality.
+///         comms::option::MsgType<Message1>, // Forced proper implementation of dispatch to handler functionality.
 ///         comms::option::FieldsImpl<Message1Fields> // Forces implementation of read, write, length retrieval, and validity check
 ///                                                   // functionalities, as well as provides an access to the message fields.
 ///     >

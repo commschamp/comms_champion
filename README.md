@@ -47,6 +47,11 @@ required by the protocol being developed, gets compiled in, providing the best c
 speed performance possible. The down side is that compilation process may
 take a significant amount of time and consume a lot of memory.
 
+The **COMMS** library allows having **single implementation** of the binary 
+protocol messages, which can be re-compiled and used for any possible application:
+bare-metal with constrained resources, Linux based embedded systems, even 
+independent GUI analysis tools.
+
 The **COMMS** library was specifically developed to be used in **embedded** systems
 including **bare-metal** ones. It doesn't use exceptions and/or RTTI. It also
 minimises usage of dynamic memory allocation and provides an ability to exclude
@@ -132,6 +137,11 @@ At this moment the [CommsChampion](#commschampion-tools) tools are in their alph
 and being extensively developed. No 
 documentation on how to use and/or develop plug-ins is currently available,
 will be provided in the future once the API stabilises.
+
+However, if you have tried [CommsChampion Tools](#commschampion-tools) with
+any other binary protocol and would like to develop a plugin for any other one.
+developed internaly by your complany, please get in touch 
+(see [Contact Information](#contact-information) below). I will be able to help.
 
 # Licence
 The [COMMS Library](#comms-library) from this repository is licensed under

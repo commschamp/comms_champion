@@ -23,6 +23,7 @@
 #include "comms/options.h"
 #include "basic/Bitfield.h"
 #include "details/AdaptBasicField.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -67,9 +68,11 @@ namespace field
 ///     @endcode
 ///     Note, that bitfield members fields specify their length in bits using
 ///     comms::option::FixedBitLength option.
-///     Also note, that all bifield member's lengths in bits combined create
+///     Also note, that all bitfield member's lengths in bits combined create
 ///     a round number of bytes, i.e all the bits must sum up to 8, 16, 24, 32, ...
 ///     bits.
+///
+///     Refer to @ref sec_field_tutorial_bitfield for tutorial and usage examples.
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
 /// @tparam TMembers All member fields bundled together in
@@ -101,6 +104,9 @@ class Bitfield : public TFieldBase
 public:
     /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Bitfield Tag;
 
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
@@ -247,23 +253,6 @@ bool operator<(
     return field1.value() < field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsBitfield
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename TMembers, typename... TOptions>
-struct IsBitfield<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::Bitfield.
 /// @tparam T Any type.
@@ -272,7 +261,7 @@ struct IsBitfield<comms::field::Bitfield<TFieldBase, TMembers, TOptions...> >
 template <typename T>
 constexpr bool isBitfield()
 {
-    return details::IsBitfield<T>::Value;
+    return std::is_same<typename T::Tag, tag::Bitfield>::value;
 }
 
 

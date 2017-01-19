@@ -105,15 +105,17 @@ struct StaticNumIdImpl
 /// @brief Option used to specify that message doesn't have valid ID.
 struct NoIdImpl {};
 
-/// @brief Option used to force implementation of dispatch functionality.
-/// @details This option can be provided to comms::MessageBase to force the
-///     implementation of comms::MessageBase::dispatchImpl() member function.
-/// @tparam TActual Actual message type - derived from comms::MessageBase.
-template <typename TActual>
-struct DispatchImpl
+/// @brief Option used to specify actual type of the message.
+template <typename TMsg>
+struct MsgType
 {
-    typedef TActual MsgType;
+    typedef TMsg Type;
 };
+
+/// @brief Option used to inhibit default implementation of @b dispatchImpl()
+///     in comms::MessageBase.
+/// @details
+struct NoDispatchImpl {};
 
 /// @brief Option used to specify fields of the message and force implementation
 ///     of default read, write, validity check, and length retrieval information
@@ -133,13 +135,31 @@ struct FieldsImpl<std::tuple<TFields...> >
 /// @brief Alias to FieldsImpl<std::tuple<> >
 using NoFieldsImpl = FieldsImpl<std::tuple<> >;
 
-/// @brief Option that suppresses implementation of @b readImpl() member function
-///     in comms::MessageBase when @ref FieldsImpl option is used.
-struct NoDefaultFieldsReadImpl {};
+/// @brief Option that inhibits implementation of comms::MessageBase::readImpl()
+///     regardless of other availability conditions.
+struct NoReadImpl {};
 
-/// @brief Option that suppresses implementation of @b writeImpl() member function
-///     in comms::MessageBase when @ref FieldsImpl option is used.
-struct NoDefaultFieldsWriteImpl {};
+/// @brief Option that inhibits implementation of comms::MessageBase::writeImpl()
+///     regardless of other availability conditions.
+struct NoWriteImpl {};
+
+/// @brief Option that inhibits implementation of comms::MessageBase::validImpl()
+///     regardless of other availability conditions.
+struct NoValidImpl {};
+
+/// @brief Option that inhibits implementation of comms::MessageBase::lengthImpl()
+///     regardless of other availability conditions.
+struct NoLengthImpl {};
+
+/// @brief Option that notifies comms::MessageBase about existence of
+///     custom refresh functionality in derived class.
+struct HasDoRefresh {};
+
+/// @brief Option that notifies comms::MessageBase about existence of
+///     access to fields.
+/// @details Can be useful when there is a chain of inheritances from
+///     comms::MessageBase.
+struct AssumeFieldsExistence {};
 
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.

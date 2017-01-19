@@ -43,7 +43,7 @@ class RawDataMessageImpl : public
         TMsgBase,
         comms::option::NoIdImpl,
         comms::option::FieldsImpl<std::tuple<TField> >,
-        comms::option::DispatchImpl<RawDataMessageImpl<TMsgBase, TField> >
+        comms::option::MsgType<RawDataMessageImpl<TMsgBase, TField> >
     >
 {
 

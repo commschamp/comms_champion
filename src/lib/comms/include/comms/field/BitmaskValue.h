@@ -23,7 +23,9 @@
 #include "comms/util/SizeToType.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
+#include "comms/details/gen_enum.h"
 #include "IntValue.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -109,6 +111,9 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef OptionsBundle ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Bitmask Tag;
 
     /// @brief Type of underlying integral value.
     /// @details Unsigned integral type, which depends on the length of the
@@ -295,23 +300,6 @@ bool operator<(
     return field1.value() < field2.value();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsBitmaskValue
-{
-    static const bool Value = false;
-};
-
-template <typename TFieldBase, typename... TOptions>
-struct IsBitmaskValue<comms::field::BitmaskValue<TFieldBase, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::BitmaskValue.
 /// @tparam T Any type.
@@ -320,8 +308,57 @@ struct IsBitmaskValue<comms::field::BitmaskValue<TFieldBase, TOptions...> >
 template <typename T>
 constexpr bool isBitmaskValue()
 {
-    return details::IsBitmaskValue<T>::Value;
+    return std::is_same<typename T::Tag, tag::Bitmask>::value;
 }
+
+/// @brief Provide names for bits in comms::field::BitmaskValue field.
+/// @details Defines BitIdx enum with all the provided values prefixed with
+///     "BitIdx_". For example usage of
+///     @code
+///     COMMS_BITMASK_BITS(first, second, third, fourth);
+///     @endcode
+///     will generate the following enum type:
+///     @code
+///     enum BitIdx
+///     {
+///         BitIdx_first,
+///         BitIdx_second,
+///         BitIdx_third,
+///         BitIdx_fourth,
+///         BitIdx_numOfValues
+///     };
+///     @endcode
+///     @b NOTE, that provided names @b first, @b second, @b third, and @b fourth have
+///     found their way to the enum @b BitIdx. @n
+///     Also note, that there is automatically added @b BitIdx_nameOfValues
+///     value to the end of @b BitIdx enum.
+///
+///     It is possible to assign values to the provided names. It could be useful
+///     when skipping some unused bits. For example
+///     @code
+///     COMMS_BITMASK_BITS(first=1, third=3, fourth);
+///     @endcode
+///     will generate the following enum type:
+///     @code
+///     enum BitIdx
+///     {
+///         BitIdx_first=1,
+///         BitIdx_third=3,
+///         BitIdx_fourth,
+///         BitIdx_numOfValues
+///     };
+///     @endcode
+///
+///     The macro COMMS_BITMASK_BITS() should be used inside definition of the
+///     bitmask field to provide names for the bits for external use:
+///     @code
+///     struct MyField : public comms::field::BitmaskValue<...>
+///     {
+///         COMMS_BITMASK_BITS(first, second, third, fourth);
+///     }
+///     @endcode
+/// @related comms::field::BitmaskValue
+#define COMMS_BITMASK_BITS(...) COMMS_DEFINE_ENUM(BitIdx, __VA_ARGS__)
 
 }  // namespace field
 

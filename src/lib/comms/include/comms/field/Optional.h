@@ -24,6 +24,7 @@
 #include "OptionalMode.h"
 #include "basic/Optional.h"
 #include "details/AdaptBasicField.h"
+#include "tag.h"
 
 namespace comms
 {
@@ -49,6 +50,9 @@ public:
 
     /// @brief All the options provided to this class bundled into struct.
     typedef details::OptionsParser<TOptions...> ParsedOptions;
+
+    /// @brief Tag indicating type of the field
+    typedef tag::Optional Tag;
 
     /// @brief Type of the field.
     typedef TField Field;
@@ -295,23 +299,6 @@ bool operator<(
     return field1.field() < field2.field();
 }
 
-namespace details
-{
-
-template <typename T>
-struct IsOptional
-{
-    static const bool Value = false;
-};
-
-template <typename TField, typename... TOptions>
-struct IsOptional<comms::field::Optional<TField, TOptions...> >
-{
-    static const bool Value = true;
-};
-
-}  // namespace details
-
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::Optional.
 /// @tparam T Any type.
@@ -320,7 +307,7 @@ struct IsOptional<comms::field::Optional<TField, TOptions...> >
 template <typename T>
 constexpr bool isOptional()
 {
-    return details::IsOptional<T>::Value;
+    return std::is_same<typename T::Tag, tag::Optional>::value;
 }
 
 }  // namespace field

@@ -95,7 +95,7 @@ struct ListsFields
 ///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1MessageBase.html">comms::MessageBase</a>
 ///     while providing @b TMsgBase as common interface class as well as
 ///     @b comms::option::StaticNumIdImpl, @b comms::option::FieldsImpl, and
-///     @b comms::option::DispatchImpl as options. @n
+///     @b comms::option::MsgType as options. @n
 ///     See @ref ListsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
 template <typename TMsgBase = Message>
@@ -104,17 +104,18 @@ class Lists : public
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Lists>,
         comms::option::FieldsImpl<typename ListsFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<Lists<TMsgBase> >
+        comms::option::MsgType<Lists<TMsgBase> >
     >
 {
     typedef comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Lists>,
         comms::option::FieldsImpl<typename ListsFields<typename TMsgBase::Field>::All>,
-        comms::option::DispatchImpl<Lists<TMsgBase> >
+        comms::option::MsgType<Lists<TMsgBase> >
     > Base;
 public:
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Index to access the fields
     enum FieldIdx
     {
@@ -124,8 +125,31 @@ public:
         FieldIdx_numOfValues ///< number of available fields
     };
 
-    static_assert(std::tuple_size<typename Base::AllFields>::value == FieldIdx_numOfValues,
-        "Number of fields is incorrect");
+    /// @brief Access to fields, bundled into struct
+    struct FieldsAsStruct
+    {
+        ListsFields::field1& field1; ///< Access to field1
+        ListsFields::field2& field2; ///< Access to field2
+        ListsFields::field3& field3; ///< Access to field3
+    };
+
+    /// @brief Access to @b const fields, bundled into struct
+    struct ConstFieldsAsStruct
+    {
+        const ListsFields::field1& field1; ///< Access to field1
+        const ListsFields::field2& field2; ///< Access to field2
+        const ListsFields::field3& field3; ///< Access to field3
+    };
+
+    /// @brief Get access to fields, bundled into struct
+    FieldsAsStruct fieldsAsStruct();
+
+    /// @brief Get access to @b const fields, bundled into struct
+    ConstFieldsAsStruct fieldsAsStruct() const;
+
+#else
+    COMMS_MSG_FIELDS_ACCESS(Base, field1, field2, field3);
+#endif
 
     /// @brief Default constructor
     Lists() = default;

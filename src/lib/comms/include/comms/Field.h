@@ -20,6 +20,7 @@
 
 #include "util/access.h"
 #include "details/FieldBase.h"
+#include "comms/details/fields_access.h"
 
 namespace comms
 {
@@ -123,6 +124,304 @@ protected:
     }
 
 };
+
+/// @brief Add convenience access enum, structs and functions to the members of
+///     bundle fields, such as comms::field::Bundle or comms::field::Bitfield.
+/// @details The fields of "bundle" types, such as comms::field::Bundle or
+///     comms::field::Bitfield keep their members bundled in
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     and provide access to them via @b value() member functions.
+///     The access to the specific member field can be obtained using
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>
+///     later on:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using ... Field1;
+///     using ... Field2;
+///     using ... Field3;
+///     using MyField =
+///         comms::field::Bitfield<
+///             MyFieldBase,
+///             std::tuple<Field1, Field2, Field3>
+///         >;
+///
+///     MyField field;
+///     auto& members = field.value();
+///     auto& firstMember = std::get<0>(members);
+///     auto& secondMember = std::get<1>(members);
+///     auto& thirdMember = std::get<2>(members);
+///     @endcode
+///     However, it would be convenient to provide names and easier access to
+///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exactly
+///     that when used inside the field class definition. Just inherit from
+///     the "bundle" field and use the macro inside while providing the type
+///     of the base class as first parameter, followed by the names for the
+///     member fields:
+///     @code
+///     class MyField : public comms::field::Bitfield<...>
+///     {
+///         typedef comms::field::Bitfield<...> Base;
+///     public:
+///         COMMS_FIELD_MEMBERS_ACCESS(Base, member1, member2, member3);
+///     }
+///     @endcode
+///     It would be equivalent to having the following types and functions
+///     definitions:
+///     @code
+///     class MyField : public comms::field::Bitfield<...>
+///     {
+///         typedef comms::field::Bitfield<...> Base;
+///     public:
+///         // Access indices for member fields
+///         enum FieldIdx {
+///             FieldIdx_member1,
+///             FieldIdx_member2,
+///             FieldIdx_member3,
+///             FieldIdx_numOfValues
+///         };
+///
+///         // Types of the member fields
+///         typedef Field1 Field_member1;
+///         typedef Field2 Field_member2;
+///         typedef Field3 Field_member3;
+///
+///         // Access to member fields bundled into struct
+///         struct FieldsAsStruct
+///         {
+///             Field_member1& member1;
+///             Field_member2& member2;
+///             Field_member3& member3;
+///         };
+///
+///         // Access to const member fields bundled into struct
+///         struct ConstFieldsAsStruct
+///         {
+///             const Field_member1& member1;
+///             const Field_member2& member2;
+///             const Field_member3& member3;
+///         };
+///
+///         // Get access to member fields bundled into a struct
+///         FieldsAsStruct fieldsAsStruct()
+///         {
+///             return FieldsAsStruct{
+///                 std::get<0>(Base::value()),
+///                 std::get<1>(Base::value()),
+///                 std::get<2>(Base::value())};
+///         }
+///
+///         // Get access to const member fields bundled into a struct
+///         ConstFieldsAsStruct fieldsAsStruct() const
+///         {
+///             return ConstFieldsAsStruct{
+///                 std::get<0>(Base::value()),
+///                 std::get<1>(Base::value()),
+///                 std::get<2>(Base::value())};
+///         }
+///
+///         // Accessor to "member1" member field.
+///         Field_member1& field_meber1()
+///         {
+///             return std::get<0>(Base::value());
+///         }
+///
+///         // Accessor to const "member1" member field.
+///         const Field_member1& field_meber1() const
+///         {
+///             return std::get<0>(Base::value());
+///         }
+///
+///         // Accessor to "member2" member field.
+///         Field_member2& field_meber2()
+///         {
+///             return std::get<1>(Base::value());
+///         }
+///
+///         // Accessor to const "member2" member field.
+///         const Field_member2& field_meber2() const
+///         {
+///             return std::get<1>(Base::value());
+///         }
+///
+///         // Accessor to "member3" member field.
+///         Field_member3& field_meber3()
+///         {
+///             return std::get<2>(Base::value());
+///         }
+///
+///         // Accessor to const "member3" member field.
+///         const Field_member3& field_meber3() const
+///         {
+///             return std::get<2>(Base::value());
+///         }
+///     };
+///     @endcode
+///     @b NOTE, that provided names @b baud, @b parity, and @b flags, have
+///         found their way to the following definitions:
+///     @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
+///         @b FieldIdx_nameOfValues value is automatically added at the end.
+///     @li Types of the member fields, prefixed with @b Field_.
+///     @li References to the member fields bundled into
+///         @b FieldsAsStruct and @b ConstFieldsAsStruct structs.
+///     @li Accessor functions prefixed with @b field_
+///
+///     See @ref sec_field_tutorial_bitfield for more examples and details
+/// @param[in] base_ Base class of the defined field which defines @b ValueType
+///     internal type to be <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     of field members and provides @b value() member functions to access them.
+/// @param[in] ... List of member fields' names.
+/// @related comms::field::Bitfield
+#define COMMS_FIELD_MEMBERS_ACCESS(base_, ...) COMMS_FIELDS_ACCESS_ALL(typename base_::ValueType, base_::value(), __VA_ARGS__)
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+/// @brief Add convenience access enum, structs and functions to the members of
+///     bundle fields, such as comms::field::Bundle or comms::field::Bitfield.
+/// @details The fields of "bundle" types, such as comms::field::Bundle or
+///     comms::field::Bitfield keep their members bundled in
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     and provide access to them via @b value() member functions.
+///     The access to the specific member field can be obtained using
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>
+///     later on:
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using ... Field1;
+///     using ... Field2;
+///     using ... Field3;
+///     using MyField =
+///         comms::field::Bundle<
+///             MyFieldBase,
+///             std::tuple<Field1, Field2, Field3>
+///         >;
+///
+///     MyField field;
+///     auto& members = field.value();
+///     auto& firstMember = std::get<0>(members);
+///     auto& secondMember = std::get<1>(members);
+///     auto& thirdMember = std::get<2>(members);
+///     @endcode
+///     However, it would be convenient to provide names and easier access to
+///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exaclty
+///     that when used inside the field class definition. Just inherit from
+///     the "bundle" field and use the macro inside while providing the type
+///     of the base class as first parameter, followed by the names for the
+///     member fields:
+///     @code
+///     class MyField : public comms::field::Bundle<...>
+///     {
+///         typedef comms::field::Bundle<...> Base;
+///     public:
+///         COMMS_FIELD_MEMBERS_ACCESS(Base, member1, member2, member3);
+///     }
+///     @endcode
+///     It would be equivalent to having the following types and functions
+///     definitions:
+///     @code
+///     class MyField : public comms::field::Bundle<...>
+///     {
+///         typedef comms::field::Bundle<...> Base;
+///     public:
+///         // Access indices for member fields
+///         enum FieldIdx {
+///             FieldIdx_member1,
+///             FieldIdx_member2,
+///             FieldIdx_member3,
+///             FieldIdx_numOfValues
+///         };
+///
+///         // Types of the member fields
+///         typedef Field1 Field_member1;
+///         typedef Field2 Field_member2;
+///         typedef Field3 Field_member3;
+///
+///         // Access to member fields bundled into struct
+///         struct FieldsAsStruct
+///         {
+///             Field_member1& member1;
+///             Field_member2& member2;
+///             Field_member3& member3;
+///         };
+///
+///         // Access to const member fields bundled into struct
+///         struct ConstFieldsAsStruct
+///         {
+///             const Field_member1& member1;
+///             const Field_member2& member2;
+///             const Field_member3& member3;
+///         };
+///
+///         // Get access to member fields bundled into a struct
+///         FieldsAsStruct fieldsAsStruct()
+///         {
+///             return FieldsAsStruct{
+///                 std::get<0>(Base::value()),
+///                 std::get<1>(Base::value()),
+///                 std::get<2>(Base::value())};
+///         }
+///
+///         // Get access to const member fields bundled into a struct
+///         ConstFieldsAsStruct fieldsAsStruct() const
+///         {
+///             return ConstFieldsAsStruct{
+///                 std::get<0>(Base::value()),
+///                 std::get<1>(Base::value()),
+///                 std::get<2>(Base::value())};
+///         }
+///
+///         // Accessor to "member1" member field.
+///         Field_member1& field_meber1()
+///         {
+///             return std::get<0>(Base::value());
+///         }
+///
+///         // Accessor to const "member1" member field.
+///         const Field_member1& field_meber1() const
+///         {
+///             return std::get<0>(Base::value());
+///         }
+///
+///         // Accessor to "member2" member field.
+///         Field_member2& field_meber2()
+///         {
+///             return std::get<1>(Base::value());
+///         }
+///
+///         // Accessor to const "member2" member field.
+///         const Field_member2& field_meber2() const
+///         {
+///             return std::get<1>(Base::value());
+///         }
+///
+///         // Accessor to "member3" member field.
+///         Field_member3& field_meber3()
+///         {
+///             return std::get<2>(Base::value());
+///         }
+///
+///         // Accessor to const "member3" member field.
+///         const Field_member3& field_meber3() const
+///         {
+///             return std::get<2>(Base::value());
+///         }
+///     };
+///     @endcode
+///     @b NOTE, that provided names @b baud, @b parity, and @b flags, have
+///         found their way to the following definitions:
+///     @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
+///         @b FieldIdx_nameOfValues value is automatically added at the end.
+///     @li Types of the member fields, prefixed with @b Field_.
+///     @li References to the member fields bundled into
+///         @b FieldsAsStruct and @b ConstFieldsAsStruct structs.
+///     @li Accessor functions prefixed with @b field_
+///
+///     See @ref sec_field_tutorial_bundle for more examples and details
+/// @param[in] base_ Base class of the defined field which defines @b ValueType
+///     internal type to be <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     of field members and provides @b value() member functions to access them.
+/// @param[in] ... List of member fields' names.
+/// @related comms::field::Bundle
+#define COMMS_FIELD_MEMBERS_ACCESS(base_, ...)
+#endif
 
 }  // namespace comms
 

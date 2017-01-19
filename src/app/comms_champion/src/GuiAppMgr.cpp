@@ -377,9 +377,10 @@ void GuiAppMgr::sendAddNewMessage(MessagePtr msg)
     ++m_sendListCount;
     emit sigSendListCountReport(m_sendListCount);
     emit sigAddSendMsg(msg);
-    //sendMsgClicked(msg, m_sendListCount - 1);
-    //assert(m_selType == SelectionType::Send);
-    //assert(m_clickedMsg);
+
+    sendMsgClicked(msg, m_sendListCount - 1);
+    assert(m_selType == SelectionType::Send);
+    assert(m_clickedMsg);
 }
 
 void GuiAppMgr::sendUpdateMessage(MessagePtr msg)

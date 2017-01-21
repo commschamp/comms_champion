@@ -179,10 +179,11 @@ include paths and use the following statement in your sources:
 Nothing else is required.
 
 # How to Run CommsChampion applications
-On Windows platforms just run the executable binary (**comms_champion.exe**
+On Windows platforms try run the executable binary (**comms_champion.exe**
 or **comms_dump.exe**), which resides in 
-**install/bin** subdirectory. Make sure that the directory of your QT5 dlls can 
-be found in your %PATH%.
+**install/bin** subdirectory. If the execution fails due to missing QT5 dlls,
+either set your %PATH% variable accordingly or try to execute generated ***.bat**
+files (**comms_champion.bat** or **comms_dump.bat**) in the same directory.
 
 On Linux platforms use the appropriate shell script 
 (**comms_champion.sh** or **comms_dump.sh**), which also resides in

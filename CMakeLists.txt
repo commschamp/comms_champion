@@ -111,6 +111,7 @@ set (INC_INSTALL_DIR ${INSTALL_DIR}/include)
 set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/plugin)
 set (DOC_INSTALL_DIR ${INSTALL_DIR}/doc)
 set (ICON_INSTALL_DIR ${INSTALL_DIR}/icon)
+set (CONFIG_INSTALL_DIR ${INSTALL_DIR}/config)
 
 install (DIRECTORY cmake DESTINATION ${INSTALL_DIR})
 add_subdirectory (src)

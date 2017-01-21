@@ -4,3 +4,8 @@ include_directories (
 )
 
 add_subdirectory (cc_plugin)
+
+install (
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/config/
+    DESTINATION ${CONFIG_INSTALL_DIR}
+)

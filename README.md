@@ -182,7 +182,7 @@ Nothing else is required.
 On Windows platforms try run the executable binary (**comms_champion.exe**
 or **comms_dump.exe**), which resides in 
 **install/bin** subdirectory. If the execution fails due to missing QT5 dlls,
-either set your %PATH% variable accordingly or try to execute generated ***.bat**
+either set your %PATH% variable accordingly or try to execute generated **.bat**
 files (**comms_champion.bat** or **comms_dump.bat**) in the same directory.
 
 On Linux platforms use the appropriate shell script 

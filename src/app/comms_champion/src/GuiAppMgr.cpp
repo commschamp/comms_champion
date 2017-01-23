@@ -489,7 +489,20 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 
     if (needsReload) {
         assert(hasApplied);
-        pluginMgr.unloadApplied();
+        ListOfPluginInfos pluginsToUnload;
+        auto& availablePlugins = pluginMgr.getAvailablePlugins();
+        std::copy_if(
+            availablePlugins.begin(), availablePlugins.end(), std::back_inserter(pluginsToUnload),
+            [&plugins](const PluginMgr::PluginInfoPtr& ptr) -> bool
+            {
+                auto iter =
+                    std::find(plugins.begin(), plugins.end(), ptr);
+                return iter == plugins.end();
+            });
+
+        for (auto& ptr : pluginsToUnload) {
+            pluginMgr.unloadAppliedPlugin(*ptr);
+        }
         emit sigActivityStateChanged((int)ActivityState::Clear);
     }
 

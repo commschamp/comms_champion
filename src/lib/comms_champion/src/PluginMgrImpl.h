@@ -64,6 +64,7 @@ public:
     bool needsReload(const ListOfPluginInfos& infos) const;
     bool isProtocolChanging(const ListOfPluginInfos& infos) const;
     void unloadApplied();
+    bool unloadAppliedPlugin(const PluginInfo& info);
     static QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos);
     const QString& getLastFile() const;
     static const QString& getFilesFilter();

@@ -260,6 +260,30 @@ void PluginMgrImpl::unloadApplied()
     m_appliedPlugins.clear();
 }
 
+bool PluginMgrImpl::unloadAppliedPlugin(const PluginInfo& info)
+{
+    auto iter =
+        std::find_if(
+            m_appliedPlugins.begin(), m_appliedPlugins.end(),
+            [&info](const PluginInfoPtr& ptr) -> bool
+            {
+                return ptr.get() == &info;
+            });
+
+    if (iter == m_appliedPlugins.end()) {
+        return false;
+    }
+
+    auto pluginInfoPtr = *iter;
+    m_appliedPlugins.erase(iter);
+
+    assert(pluginInfoPtr);
+    assert(pluginInfoPtr->m_loader);
+    assert (pluginInfoPtr->m_loader->isLoaded());
+    pluginInfoPtr->m_loader->unload();
+    return true;
+}
+
 QVariantMap PluginMgrImpl::getConfigForPlugins(
     const ListOfPluginInfos& infos)
 {

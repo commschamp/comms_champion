@@ -93,6 +93,11 @@ void PluginMgr::unloadApplied()
     m_impl->unloadApplied();
 }
 
+bool PluginMgr::unloadAppliedPlugin(const PluginInfo& info)
+{
+    return m_impl->unloadAppliedPlugin(info);
+}
+
 QVariantMap PluginMgr::getConfigForPlugins(
     const ListOfPluginInfos& infos)
 {

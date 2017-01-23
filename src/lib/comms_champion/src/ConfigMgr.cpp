@@ -42,7 +42,7 @@ const QString& ConfigMgr::getLastFile() const
 
 const QString& ConfigMgr::getFilesFilter()
 {
-    static const QString Str(QObject::tr("All Files (*)"));
+    static const QString Str(QObject::tr("Config Files (*.cfg);;All Files (*)"));
     return Str;
 }
 

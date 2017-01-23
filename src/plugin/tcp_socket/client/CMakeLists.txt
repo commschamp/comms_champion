@@ -32,14 +32,12 @@ function (plugin_tcp_client_socket)
         Socket.cpp
         SocketPlugin.cpp
         SocketConfigWidget.cpp
-        ConnectAction.cpp
     )
     
     set (hdr
         Socket.h
         SocketPlugin.h
         SocketConfigWidget.h
-        ConnectAction.h
     )
     
     qt5_wrap_cpp(

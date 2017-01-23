@@ -40,7 +40,6 @@ namespace
 const QString MainConfigKey("cc_tcp_client_socket");
 const QString HostSubKey("host");
 const QString PortSubKey("port");
-const QString AutoConnectSubKey("auto_connect");
 
 }  // namespace
 
@@ -58,18 +57,6 @@ SocketPlugin::SocketPlugin()
             {
                 createSocketIfNeeded();
                 return new SocketConfigWidget(*m_socket);
-            })
-        .setGuiActionsCreateFunc(
-            [this]() -> ListOfGuiActions
-            {
-                createSocketIfNeeded();
-                ListOfGuiActions list;
-                m_connectAction = new ConnectAction();
-                connect(
-                    m_connectAction, SIGNAL(sigConnectStateChangeReq(bool)),
-                    this, SLOT(connectStatusChangeRequest(bool)));
-                list.append(m_connectAction);
-                return list;
             });
 }
 
@@ -83,7 +70,6 @@ void SocketPlugin::getCurrentConfigImpl(QVariantMap& config)
     QVariantMap subConfig;
     subConfig.insert(HostSubKey, m_socket->getHost());
     subConfig.insert(PortSubKey, m_socket->getPort());
-    subConfig.insert(AutoConnectSubKey, m_socket->getAutoConnect());
     config.insert(MainConfigKey, QVariant::fromValue(subConfig));
 }
 
@@ -111,32 +97,12 @@ void SocketPlugin::reconfigureImpl(const QVariantMap& config)
         auto port = portVar.value<PortType>();
         m_socket->setPort(port);
     }
-
-    auto autoConnectVar = subConfig.value(AutoConnectSubKey);
-    if (autoConnectVar.isValid() && autoConnectVar.canConvert<bool>()) {
-        m_socket->setAutoConnect(autoConnectVar.value<bool>());
-    }
-}
-
-void SocketPlugin::connectStatusChangeRequest(bool connected)
-{
-    assert(m_socket);
-    m_socket->setConnected(connected);
-}
-
-void SocketPlugin::connectionStatusChanged(bool connected)
-{
-    assert(m_connectAction != nullptr);
-    m_connectAction->setConnected(connected);
 }
 
 void SocketPlugin::createSocketIfNeeded()
 {
     if (!m_socket) {
         m_socket.reset(new Socket());
-        connect(
-            m_socket.get(), SIGNAL(sigConnectionStatus(bool)),
-            this, SLOT(connectionStatusChanged(bool)));
     }
 }
 

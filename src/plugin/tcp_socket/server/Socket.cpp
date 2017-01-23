@@ -48,13 +48,22 @@ const QString ToPropName("tcp.to");
 Socket::Socket()
 {
     QObject::connect(
-        &m_server, SIGNAL(newConnection()),
-        this, SLOT(newConnection()));
+        &m_server, SIGNAL(acceptError(QAbstractSocket::SocketError)),
+        this, SLOT(acceptErrorOccurred(QAbstractSocket::SocketError)));
+
+    QObject::connect(
+        &m_server, SIGNAL(acceptError(QAbstractSocket::SocketError)),
+        this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
 }
 
-Socket::~Socket() = default;
+Socket::~Socket()
+{
+    for (auto* socket : m_sockets) {
+        socket->flush();
+    }
+}
 
-bool Socket::startImpl()
+bool Socket::socketConnectImpl()
 {
     if (m_server.isListening()) {
         assert(!"Already listening");
@@ -74,9 +83,10 @@ bool Socket::startImpl()
     return true;
 }
 
-void Socket::stopImpl()
+void Socket::socketDisconnectImpl()
 {
     m_server.close();
+    assert(!m_server.isListening());
 }
 
 void Socket::sendDataImpl(DataInfoPtr dataPtr)
@@ -104,6 +114,11 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
 
     dataPtr->m_extraProperties.insert(FromPropName, from);
     dataPtr->m_extraProperties.insert(ToPropName, toList);
+}
+
+unsigned Socket::connectionPropertiesImpl() const
+{
+    return ConnectionProperty_Autoconnect;
 }
 
 void Socket::newConnection()
@@ -177,6 +192,15 @@ void Socket::socketErrorOccurred(QAbstractSocket::SocketError err)
     assert(socket != nullptr);
 
     reportError(socket->errorString());
+}
+
+void Socket::acceptErrorOccurred(QAbstractSocket::SocketError err)
+{
+    static_cast<void>(err);
+    reportError(m_server.errorString());
+    if (!m_server.isListening()) {
+        reportDisconnected();
+    }
 }
 
 }  // namespace server

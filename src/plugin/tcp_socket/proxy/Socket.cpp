@@ -47,9 +47,13 @@ const QString ToPropName("tcp.to");
 
 Socket::Socket()
 {
-    connect(
+    QObject::connect(
         &m_server, SIGNAL(newConnection()),
         this, SLOT(newConnection()));
+
+    QObject::connect(
+        &m_server, SIGNAL(acceptError(QAbstractSocket::SocketError)),
+        this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
 }
 
 Socket::~Socket()
@@ -59,7 +63,7 @@ Socket::~Socket()
     }
 }
 
-bool Socket::startImpl()
+bool Socket::socketConnectImpl()
 {
     if (m_server.isListening()) {
         assert(!"Already listening");
@@ -96,7 +100,7 @@ bool Socket::startImpl()
     return true;
 }
 
-void Socket::stopImpl()
+void Socket::socketDisconnectImpl()
 {
     m_server.close();
 }
@@ -129,6 +133,11 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
 
     dataPtr->m_extraProperties.insert(FromPropName, from);
     dataPtr->m_extraProperties.insert(ToPropName, toList);
+}
+
+unsigned Socket::connectionPropertiesImpl() const
+{
+    return ConnectionProperty_Autoconnect;
 }
 
 void Socket::newConnection()
@@ -179,6 +188,7 @@ void Socket::clientConnectionTerminated()
     assert(iter->second);
     socket->blockSignals(true);
     iter->second->blockSignals(true);
+    iter->second->flush();
     m_sockets.erase(iter);
     socket->deleteLater();
 }
@@ -208,6 +218,15 @@ void Socket::socketErrorOccurred(QAbstractSocket::SocketError err)
     assert(socket != nullptr);
 
     reportError(socket->errorString());
+}
+
+void Socket::acceptErrorOccurred(QAbstractSocket::SocketError err)
+{
+    static_cast<void>(err);
+    reportError(m_server.errorString());
+    if (!m_server.isListening()) {
+        reportDisconnected();
+    }
 }
 
 void Socket::connectionSocketConnected()
@@ -247,9 +266,11 @@ void Socket::connectionSocketDisconnected()
 
     assert(iter->first);
     iter->first->blockSignals(true);
+    iter->first->flush();
     delete iter->first;
 
     assert(iter->second);
+    iter->second->flush();
     iter->second.release()->deleteLater();
     m_sockets.erase(iter);
 }
@@ -303,11 +324,13 @@ void Socket::removeConnection(SocketsList::iterator iter)
     connectionSocket->blockSignals(true);
 
     if (clientSocket->state() == QTcpSocket::ConnectedState) {
+        clientSocket->flush();
         clientSocket->disconnectFromHost();
     }
     delete clientSocket;
 
     if (connectionSocket->state() == QTcpSocket::ConnectedState) {
+        connectionSocket->flush();
         connectionSocket->disconnectFromHost();
     }
 }

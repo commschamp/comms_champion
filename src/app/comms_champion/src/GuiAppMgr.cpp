@@ -485,6 +485,12 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     bool hasApplied = pluginMgr.hasAppliedPlugins();
     bool needsReload = pluginMgr.needsReload(plugins);
 
+    auto currSocket = msgMgr.getSocket();
+    if (currSocket) {
+        currSocket->socketDisconnect();
+        emit sigSocketConnected(false);
+    }
+
     if (0U < m_sendListCount) {
         bool protocolChanging = pluginMgr.isProtocolChanging(plugins);
         if (protocolChanging) {
@@ -572,7 +578,6 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
         (connectProps & Socket::ConnectionProperty_Autoconnect) != 0U;
     bool socketNonDisconnectable =
         (connectProps & Socket::ConnectionProperty_NonDisconnectable) != 0U;
-
 
     msgMgr.setSocket(std::move(applyInfo.m_socket));
 

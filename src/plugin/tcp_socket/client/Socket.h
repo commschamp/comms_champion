@@ -72,32 +72,13 @@ public:
         return m_port;
     }
 
-    void setAutoConnect(bool value)
-    {
-        m_connectOnStart = value;
-    }
-
-    bool getAutoConnect() const
-    {
-        return m_connectOnStart;
-    }
-
-    bool setConnected(bool connected);
-
-    bool connectToServer();
-
-    bool disconnectFromServer();
-
-signals:
-    void sigConnectionStatus(bool connected);
 
 protected:
-    virtual bool startImpl() override;
-    virtual void stopImpl() override;
+    virtual bool socketConnectImpl() override;
+    virtual void socketDisconnectImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:
-    void socketConnected();
     void socketDisconnected();
     void readFromSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);
@@ -107,10 +88,6 @@ private:
     QString m_host;
     PortType m_port = DefaultPort;
     QTcpSocket m_socket;
-    bool m_connected = false;
-    bool m_tryingToConnect = false;
-    bool m_connectOnStart = false;
-    bool m_forcedDisconnection = false;
 };
 
 }  // namespace client

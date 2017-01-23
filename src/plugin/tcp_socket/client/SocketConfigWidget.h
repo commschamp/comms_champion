@@ -55,7 +55,6 @@ public:
 private slots:
     void hostValueChanged(const QString& value);
     void portValueChanged(int value);
-    void autoConnectChanged(int value);
 
 private:
     Socket& m_socket;

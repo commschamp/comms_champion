@@ -268,7 +268,7 @@ void MainWindowWidget::saveSendMsgsDialog()
 void MainWindowWidget::aboutInfo()
 {
     static const QString AboutTxt(
-        "<p>CommsChampion is a generic"
+        "<p>CommsChampion is a generic "
         "communication protocols analysis tool.</p>"
         "The icons for this application were taken from: "
         "<a href=\"http://www.fatcow.com/free-icons\">FatCow</a>");

@@ -51,6 +51,8 @@ const QIcon& showRecv();
 const QIcon& showSent();
 const QIcon& pluginEdit();
 const QIcon& errorLog();
+const QIcon& connect();
+const QIcon& disconnect();
 
 }  // namespace icon
 

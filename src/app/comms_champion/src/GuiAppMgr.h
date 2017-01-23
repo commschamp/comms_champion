@@ -144,6 +144,9 @@ public slots:
 
     void addMainToolbarAction(ActionPtr action);
 
+    void connectSocketClicked();
+    void disconnectSocketClicked();
+
 signals:
     void sigAddRecvMsg(MessagePtr msg);
     void sigAddSendMsg(MessagePtr msg);
@@ -184,7 +187,8 @@ signals:
     void sigRecvSaveMsgs(const QString& filename);
     void sigSendLoadMsgs(bool clear, const QString& filename, ProtocolPtr protocol);
     void sigSendSaveMsgs(const QString& filename);
-
+    void sigSocketConnected(bool connected);
+    void sigSocketConnectEnabled(bool enabled);
 
 private:
     enum class SelectionType
@@ -201,6 +205,7 @@ private:
 private slots:
     void msgAdded(MessagePtr msg);
     void errorReported(const QString& msg);
+    void socketDisconnected();
     void pendingDisplayTimeout();
 
 private /*data*/:

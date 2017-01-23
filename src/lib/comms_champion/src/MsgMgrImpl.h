@@ -40,6 +40,7 @@ public:
     void stop();
     void clear();
 
+    SocketPtr getSocket() const;
     ProtocolPtr getProtocol() const;
     void setRecvEnabled(bool enabled);
 
@@ -64,6 +65,7 @@ public:
 
     typedef MsgMgr::MsgAddedCallbackFunc MsgAddedCallbackFunc;
     typedef MsgMgr::ErrorReportCallbackFunc ErrorReportCallbackFunc;
+    typedef MsgMgr::SocketDisconnectedReportCallbackFunc SocketDisconnectedReportCallbackFunc;
 
     template <typename TFunc>
     void setMsgAddedCallbackFunc(TFunc&& func)
@@ -77,6 +79,12 @@ public:
         m_errorReportCallback = std::forward<TFunc>(func);
     }
 
+    template <typename TFunc>
+    void setSocketDisconnectReportCallbackFunc(TFunc&& func)
+    {
+        m_socketDisconnectReportCallback = std::forward<TFunc>(func);
+    }
+
 private:
     typedef unsigned long long MsgNumberType;
     typedef std::vector<FilterPtr> FiltersList;
@@ -85,6 +93,7 @@ private:
     void updateInternalId(Message& msg);
     void reportMsgAdded(MessagePtr msg);
     void reportError(const QString& error);
+    void reportSocketDisconnected();
 
     AllMessages m_allMsgs;
     bool m_recvEnabled = false;
@@ -97,6 +106,7 @@ private:
 
     MsgAddedCallbackFunc m_msgAddedCallback;
     ErrorReportCallbackFunc m_errorReportCallback;
+    SocketDisconnectedReportCallbackFunc m_socketDisconnectReportCallback;
 };
 
 }  // namespace comms_champion

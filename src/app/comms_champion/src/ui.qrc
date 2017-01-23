@@ -22,5 +22,7 @@
         <file>image/save_as.png</file>
         <file>image/plugin_edit.png</file>
         <file>image/error_log.png</file>
+        <file>image/connect.png</file>
+        <file>image/disconnect.png</file>
     </qresource>
 </RCC>

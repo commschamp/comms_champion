@@ -20,6 +20,7 @@ function (bin_comms_champion)
         MsgMgrG.cpp
         icon.cpp
         widget/MainWindowWidget.cpp
+        widget/MainToolbar.cpp
         widget/LeftPaneWidget.cpp
         widget/RightPaneWidget.cpp
         widget/DefaultMessageDisplayWidget.cpp
@@ -69,6 +70,7 @@ function (bin_comms_champion)
         widget/PluginsListWidget.h
         widget/PluginConfigDialog.h
         widget/MainWindowWidget.h
+        widget/MainToolbar.h
         widget/DefaultMessageDisplayWidget.h
         widget/field/FieldWidget.h 
         widget/field/ShortIntValueFieldWidget.h

@@ -316,6 +316,22 @@ void GuiAppMgr::addMainToolbarAction(ActionPtr action)
     emit sigAddMainToolbarAction(std::move(action));
 }
 
+void GuiAppMgr::connectSocketClicked()
+{
+    auto socket = MsgMgrG::instanceRef().getSocket();
+    assert(socket);
+    bool connected = socket->socketConnect();
+    emit sigSocketConnected(connected);
+}
+
+void GuiAppMgr::disconnectSocketClicked()
+{
+    auto socket = MsgMgrG::instanceRef().getSocket();
+    assert(socket);
+    socket->socketDisconnect();
+    socketDisconnected();
+}
+
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
     return m_recvState;
@@ -551,6 +567,13 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
         return false;
     }
 
+    auto connectProps = applyInfo.m_socket->connectionProperties();
+    bool socketAutoConnect =
+        (connectProps & Socket::ConnectionProperty_Autoconnect) != 0U;
+    bool socketNonDisconnectable =
+        (connectProps & Socket::ConnectionProperty_NonDisconnectable) != 0U;
+
+
     msgMgr.setSocket(std::move(applyInfo.m_socket));
 
     for (auto& filter : applyInfo.m_filters) {
@@ -567,6 +590,15 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     }
 
     pluginMgr.setAppliedPlugins(plugins);
+
+    bool connectDisabled = socketAutoConnect && socketNonDisconnectable;
+    emit sigSocketConnectEnabled(!connectDisabled);
+
+    bool socketConnected = false;
+    if (socketAutoConnect) {
+        socketConnected = msgMgr.getSocket()->socketConnect();
+    }
+    emit sigSocketConnected(socketConnected);
     return true;
 }
 
@@ -604,6 +636,12 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
         [this](const QString& error)
         {
             errorReported(error);
+        });
+
+    msgMgr.setSocketDisconnectReportCallbackFunc(
+        [this]()
+        {
+            socketDisconnected();
         });
 }
 
@@ -661,6 +699,11 @@ void GuiAppMgr::msgAdded(MessagePtr msg)
 void GuiAppMgr::errorReported(const QString& msg)
 {
     emit sigErrorReported(msg + tr("\nThe tool may not work properly!"));
+}
+
+void GuiAppMgr::socketDisconnected()
+{
+    emit sigSocketConnected(false);
 }
 
 void GuiAppMgr::pendingDisplayTimeout()

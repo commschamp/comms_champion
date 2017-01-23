@@ -47,7 +47,7 @@ const QString ToPropName("tcp.to");
 
 Socket::Socket()
 {
-    connect(
+    QObject::connect(
         &m_server, SIGNAL(newConnection()),
         this, SLOT(newConnection()));
 }

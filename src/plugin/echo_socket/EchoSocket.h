@@ -43,6 +43,7 @@ protected:
     virtual bool startImpl() override;
     virtual void stopImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
+    virtual unsigned connectionPropertiesImpl() const override;
 
 private slots:
     void sendDataPostponed();

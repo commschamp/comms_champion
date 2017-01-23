@@ -33,9 +33,34 @@ void Socket::stop()
     stopImpl();
 }
 
+bool Socket::socketConnect()
+{
+    m_connected = socketConnectImpl();
+    return m_connected;
+}
+
+void Socket::socketDisconnect()
+{
+    socketDisconnectImpl();
+    m_connected = false;
+}
+
+bool Socket::isSocketConnected() const
+{
+    return m_connected;
+}
+
 void Socket::sendData(DataInfoPtr dataPtr)
 {
+    if (!isSocketConnected()) {
+        return;
+    }
     sendDataImpl(std::move(dataPtr));
+}
+
+unsigned Socket::connectionProperties() const
+{
+    return connectionPropertiesImpl();
 }
 
 bool Socket::startImpl()
@@ -45,6 +70,20 @@ bool Socket::startImpl()
 
 void Socket::stopImpl()
 {
+}
+
+bool Socket::socketConnectImpl()
+{
+    return true;
+}
+
+void Socket::socketDisconnectImpl()
+{
+}
+
+unsigned Socket::connectionPropertiesImpl() const
+{
+    return 0U;
 }
 
 void Socket::reportDataReceived(DataInfoPtr dataPtr)
@@ -58,6 +97,14 @@ void Socket::reportError(const QString& msg)
 {
     if (m_errorReportCallback) {
         m_errorReportCallback(msg);
+    }
+}
+
+void Socket::reportDisconnected()
+{
+    m_connected = false;
+    if (m_disconnectedReportCallback) {
+        m_disconnectedReportCallback();
     }
 }
 

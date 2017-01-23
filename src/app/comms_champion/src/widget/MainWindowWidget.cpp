@@ -39,32 +39,17 @@ CC_ENABLE_WARNINGS()
 #include "GuiAppMgr.h"
 #include "MsgFileMgrG.h"
 #include "icon.h"
+#include "MainToolbar.h"
 
 namespace comms_champion
 {
-
-namespace
-{
-
-void createStandardButtons(QToolBar& bar)
-{
-    auto* config = bar.addAction(icon::pluginEdit(), "Manage and configure plugings");
-    QObject::connect(
-        config, SIGNAL(triggered()),
-        GuiAppMgr::instance(), SLOT(pluginsEditClicked()));
-
-    bar.addSeparator();
-}
-
-}  // namespace
 
 MainWindowWidget::MainWindowWidget(QWidget* parentObj)
   : Base(parentObj)
 {
     m_ui.setupUi(this);
 
-    m_toolbar = new QToolBar();
-    createStandardButtons(*m_toolbar);
+    m_toolbar = new MainToolbar();
     addToolBar(m_toolbar);
 
     auto* splitter = new QSplitter();

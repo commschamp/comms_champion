@@ -116,6 +116,11 @@ void MsgMgrImpl::clear()
     m_filters.clear();
 }
 
+SocketPtr MsgMgrImpl::getSocket() const
+{
+    return m_socket;
+}
+
 ProtocolPtr MsgMgrImpl::getProtocol() const
 {
     return m_protocol;
@@ -260,6 +265,12 @@ void MsgMgrImpl::setSocket(SocketPtr socket)
             reportError(msg);
         });
 
+    socket->setDisconnectedReportCallback(
+        [this]()
+        {
+            reportSocketDisconnected();
+        });
+
     m_socket = std::move(socket);
 }
 
@@ -400,6 +411,13 @@ void MsgMgrImpl::reportError(const QString& error)
 {
     if (m_errorReportCallback) {
         m_errorReportCallback(error);
+    }
+}
+
+void MsgMgrImpl::reportSocketDisconnected()
+{
+    if (m_socketDisconnectReportCallback) {
+        m_socketDisconnectReportCallback();
     }
 }
 

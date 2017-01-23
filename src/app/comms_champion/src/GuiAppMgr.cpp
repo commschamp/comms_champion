@@ -467,13 +467,26 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 
     emit sigClearAllMainToolbarActions();
     bool hasApplied = pluginMgr.hasAppliedPlugins();
+    bool needsReload = pluginMgr.needsReload(plugins);
+
+    if (0U < m_sendListCount) {
+        bool protocolChanging = pluginMgr.isProtocolChanging(plugins);
+        if (protocolChanging) {
+            sendClearClicked();
+        }
+    }
+
     if (hasApplied) {
+        if (needsReload) {
+            clearRecvList(false);
+            msgMgr.deleteAllMsgs();
+        }
+
         msgMgr.stop();
         msgMgr.clear();
         emit sigActivityStateChanged((int)ActivityState::Inactive);
     }
 
-    bool needsReload = pluginMgr.needsReload(plugins);
     if (needsReload) {
         assert(hasApplied);
         pluginMgr.unloadApplied();

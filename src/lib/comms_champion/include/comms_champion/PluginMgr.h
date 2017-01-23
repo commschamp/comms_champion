@@ -101,6 +101,7 @@ public:
     Plugin* loadPlugin(const PluginInfo& info);
     bool hasAppliedPlugins() const;
     bool needsReload(const ListOfPluginInfos& infos) const;
+    bool isProtocolChanging(const ListOfPluginInfos& infos) const;
     void unloadApplied();
     static QVariantMap getConfigForPlugins(const ListOfPluginInfos& infos);
     const QString& getLastFile() const;

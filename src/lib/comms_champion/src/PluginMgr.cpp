@@ -83,6 +83,11 @@ bool PluginMgr::needsReload(const ListOfPluginInfos& infos) const
     return m_impl->needsReload(infos);
 }
 
+bool PluginMgr::isProtocolChanging(const ListOfPluginInfos& infos) const
+{
+    return m_impl->isProtocolChanging(infos);
+}
+
 void PluginMgr::unloadApplied()
 {
     m_impl->unloadApplied();

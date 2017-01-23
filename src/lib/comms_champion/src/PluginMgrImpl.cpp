@@ -225,6 +225,30 @@ bool PluginMgrImpl::needsReload(const ListOfPluginInfos& infos) const
            (m_appliedPlugins != infos);
 }
 
+bool PluginMgrImpl::isProtocolChanging(const ListOfPluginInfos& infos) const
+{
+    auto findProtocolFunc =
+        [](const ListOfPluginInfos& l) -> PluginInfoPtr
+        {
+            auto iter =
+                std::find_if(l.rbegin(), l.rend(),
+                    [](const PluginInfoPtr& ptr) -> bool
+                    {
+                        return ptr->getType() == PluginMgr::PluginInfo::Type::Protocol;
+                    });
+
+            if (iter == l.rend()) {
+                return PluginInfoPtr();
+            }
+
+            return *iter;
+        };
+
+    auto newProtocol = findProtocolFunc(infos);
+    auto appliedProtocol = findProtocolFunc(m_appliedPlugins);
+    return newProtocol != appliedProtocol;
+}
+
 void PluginMgrImpl::unloadApplied()
 {
     for (auto& pluginInfo : m_appliedPlugins) {

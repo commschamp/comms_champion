@@ -102,6 +102,7 @@ connections from TCP/IP clients, sends and receives data to/from them.
 - **tcp_proxy_socket** - Proxy server TCP/IP socket, combines Server and Client
 side of TCP/IP connection, can be used to monitor traffic of the messages between
 remote a client and a server.
+- **udp_socket** - Generic (client/server) UDP/IP socket.
 - **raw_data_protocol** - Protocol definition that defines only a single message
 type with one field of unlimited length data. It can be used to review the
 raw data being received from I/O socket.

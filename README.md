@@ -83,7 +83,7 @@ custom binary protocol messages and dumps them all in CSV format to standard out
 It can also record the incoming message into the file, which can be opened
 later for visual analysis using **cc_view** GUI application. 
 The tool has an ability to receive a file with definition of outgoing messages, 
-created using **cc_view** GUI application, and send them one by one in
+created using **cc_view** GUI application, and send them one by one 
 in parallel to dumping/recording the incoming messages.
 
 The [CommsChampion Tools](#commschampion-tools) package provides the following

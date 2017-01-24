@@ -49,9 +49,6 @@ const QString ToPropName("tcp.to");
 Socket::Socket()
 {
     connect(
-        &m_socket, SIGNAL(connected()),
-        this, SLOT(socketConnected()));
-    connect(
         &m_socket, SIGNAL(disconnected()),
         this, SLOT(socketDisconnected()));
     connect(
@@ -67,18 +64,10 @@ Socket::~Socket()
     m_socket.blockSignals(true);
 }
 
-bool Socket::setConnected(bool connected)
+bool Socket::socketConnectImpl()
 {
-    if (connected) {
-        return connectToServer();
-    }
-
-    return disconnectFromServer();
-}
-
-bool Socket::connectToServer()
-{
-    if (m_tryingToConnect || m_connected) {
+    if ((m_socket.state() == QTcpSocket::ConnectedState) ||
+        (m_socket.state() == QTcpSocket::ConnectingState)) {
         assert(!"Already connected or trying to connect.");
         static const QString AlreadyConnectedError(
             tr("TCP/IP Client is already connected or trying to connect."));
@@ -90,33 +79,20 @@ bool Socket::connectToServer()
         m_host = QHostAddress(QHostAddress::LocalHost).toString();
     }
 
-    m_tryingToConnect = true;
-    m_forcedDisconnection = false;
     m_socket.connectToHost(m_host, m_port);
-    return true;
-}
-
-bool Socket::disconnectFromServer()
-{
-    m_tryingToConnect = false;
-    m_forcedDisconnection = true;
-    m_socket.disconnectFromHost();
-    return true;
-}
-
-bool Socket::startImpl()
-{
-    if (m_connectOnStart) {
-        return connectToServer();
+    if (!m_socket.waitForConnected(1000)) {
+        return false;
     }
     return true;
 }
 
-void Socket::stopImpl()
+void Socket::socketDisconnectImpl()
 {
-    disconnectFromServer();
-    disconnect(&m_socket);
+    m_socket.blockSignals(true);
+    m_socket.flush();
+    m_socket.disconnectFromHost();
     m_socket.close();
+    m_socket.blockSignals(false);
 }
 
 void Socket::sendDataImpl(DataInfoPtr dataPtr)
@@ -139,26 +115,13 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
 
 }
 
-void Socket::socketConnected()
-{
-    m_connected = true;
-    m_tryingToConnect = false;
-    emit sigConnectionStatus(true);
-}
-
 void Socket::socketDisconnected()
 {
-    bool mustReport = !m_forcedDisconnection;
-    m_connected = false;
-    m_tryingToConnect = false;
-    m_forcedDisconnection = false;
-    emit sigConnectionStatus(false);
+//    static const QString DisconnectedError(
+//        tr("Connection to TCP/IP Server was disconnected."));
+//    reportError(DisconnectedError);
 
-    if (mustReport) {
-        static const QString DisconnectedError(
-            tr("Connection to TCP/IP Server was disconnected."));
-        reportError(DisconnectedError);
-    }
+    reportDisconnected();
 }
 
 void Socket::readFromSocket()
@@ -196,7 +159,10 @@ void Socket::socketErrorOccurred(QAbstractSocket::SocketError err)
     assert(socket != nullptr);
 
     reportError(socket->errorString());
-    disconnectFromServer();
+
+    if (socket->state() != QTcpSocket::ConnectedState) {
+        reportDisconnected();
+    }
 }
 
 }  // namespace client

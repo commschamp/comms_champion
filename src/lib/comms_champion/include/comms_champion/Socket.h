@@ -39,12 +39,23 @@ class CC_API Socket
 {
 
 public:
+    enum ConnectionProperty
+    {
+        ConnectionProperty_Autoconnect = 0x1,
+        ConnectionProperty_NonDisconnectable = 0x2
+    };
     Socket();
     virtual ~Socket();
 
     bool start();
 
     void stop();
+
+    bool socketConnect();
+
+    void socketDisconnect();
+
+    bool isSocketConnected() const;
 
     void sendData(DataInfoPtr dataPtr);
 
@@ -62,19 +73,33 @@ public:
         m_errorReportCallback = std::forward<TFunc>(func);
     }
 
+    typedef std::function <void ()> DisconnectedReportCallback;
+    template <typename TFunc>
+    void setDisconnectedReportCallback(TFunc&& func)
+    {
+        m_disconnectedReportCallback = std::forward<TFunc>(func);
+    }
 
+    unsigned connectionProperties() const;
 protected:
 
     virtual bool startImpl();
     virtual void stopImpl();
+    virtual bool socketConnectImpl();
+    virtual void socketDisconnectImpl();
     virtual void sendDataImpl(DataInfoPtr dataPtr) = 0;
+    virtual unsigned connectionPropertiesImpl() const;
 
     void reportDataReceived(DataInfoPtr dataPtr);
     void reportError(const QString& msg);
+    void reportDisconnected();
 
 private:
     DataReceivedCallback m_dataReceivedCallback;
     ErrorReportCallback m_errorReportCallback;
+    DisconnectedReportCallback m_disconnectedReportCallback;
+
+    bool m_connected = false;
 };
 
 typedef std::shared_ptr<Socket> SocketPtr;

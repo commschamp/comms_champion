@@ -21,48 +21,43 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
-#include <QtWidgets/QAction>
+#include <QtGui/QIcon>
 CC_ENABLE_WARNINGS()
 
 namespace comms_champion
 {
 
-namespace plugin
+namespace icon
 {
 
-namespace tcp_socket
-{
+const QIcon& appIcon();
+const QIcon& add();
+const QIcon& addRaw();
+const QIcon& remove();
+const QIcon& clear();
+const QIcon& editClear();
+const QIcon& top();
+const QIcon& up();
+const QIcon& down();
+const QIcon& bottom();
+const QIcon& upload();
+const QIcon& save();
+const QIcon& saveAs();
+const QIcon& start();
+const QIcon& startAll();
+const QIcon& stop();
+const QIcon& edit();
+const QIcon& showRecv();
+const QIcon& showSent();
+const QIcon& pluginEdit();
+const QIcon& errorLog();
+const QIcon& connect();
+const QIcon& disconnect();
 
-namespace client
-{
-
-class ConnectAction : public QAction
-{
-    Q_OBJECT
-    typedef QAction Base;
-public:
-    ConnectAction(bool connected = false, QWidget* parentObj = nullptr);
-
-    void setConnected(bool connected);
-
-signals:
-    void sigConnectStateChangeReq(bool connect);
-
-private slots:
-    void iconClicked();
-
-private:
-    void refresh();
-
-    bool m_connected = false;
-};
-
-}  // namespace client
-
-}  // namespace tcp_socket
-
-}  // namespace plugin
+}  // namespace icon
 
 }  // namespace comms_champion
+
+
 
 

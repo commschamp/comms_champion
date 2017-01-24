@@ -316,6 +316,22 @@ void GuiAppMgr::addMainToolbarAction(ActionPtr action)
     emit sigAddMainToolbarAction(std::move(action));
 }
 
+void GuiAppMgr::connectSocketClicked()
+{
+    auto socket = MsgMgrG::instanceRef().getSocket();
+    assert(socket);
+    bool connected = socket->socketConnect();
+    emit sigSocketConnected(connected);
+}
+
+void GuiAppMgr::disconnectSocketClicked()
+{
+    auto socket = MsgMgrG::instanceRef().getSocket();
+    assert(socket);
+    socket->socketDisconnect();
+    socketDisconnected();
+}
+
 GuiAppMgr::RecvState GuiAppMgr::recvState() const
 {
     return m_recvState;
@@ -467,16 +483,48 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 
     emit sigClearAllMainToolbarActions();
     bool hasApplied = pluginMgr.hasAppliedPlugins();
+    bool needsReload = pluginMgr.needsReload(plugins);
+
+    auto currSocket = msgMgr.getSocket();
+    if (currSocket) {
+        currSocket->socketDisconnect();
+        emit sigSocketConnected(false);
+    }
+
+    if (0U < m_sendListCount) {
+        bool protocolChanging = pluginMgr.isProtocolChanging(plugins);
+        if (protocolChanging) {
+            sendClearClicked();
+        }
+    }
+
     if (hasApplied) {
+        if (needsReload) {
+            clearRecvList(false);
+            msgMgr.deleteAllMsgs();
+        }
+
         msgMgr.stop();
         msgMgr.clear();
         emit sigActivityStateChanged((int)ActivityState::Inactive);
     }
 
-    bool needsReload = pluginMgr.needsReload(plugins);
     if (needsReload) {
         assert(hasApplied);
-        pluginMgr.unloadApplied();
+        ListOfPluginInfos pluginsToUnload;
+        auto& availablePlugins = pluginMgr.getAvailablePlugins();
+        std::copy_if(
+            availablePlugins.begin(), availablePlugins.end(), std::back_inserter(pluginsToUnload),
+            [&plugins](const PluginMgr::PluginInfoPtr& ptr) -> bool
+            {
+                auto iter =
+                    std::find(plugins.begin(), plugins.end(), ptr);
+                return iter == plugins.end();
+            });
+
+        for (auto& ptr : pluginsToUnload) {
+            pluginMgr.unloadAppliedPlugin(*ptr);
+        }
         emit sigActivityStateChanged((int)ActivityState::Clear);
     }
 
@@ -525,6 +573,12 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
         return false;
     }
 
+    auto connectProps = applyInfo.m_socket->connectionProperties();
+    bool socketAutoConnect =
+        (connectProps & Socket::ConnectionProperty_Autoconnect) != 0U;
+    bool socketNonDisconnectable =
+        (connectProps & Socket::ConnectionProperty_NonDisconnectable) != 0U;
+
     msgMgr.setSocket(std::move(applyInfo.m_socket));
 
     for (auto& filter : applyInfo.m_filters) {
@@ -541,6 +595,15 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     }
 
     pluginMgr.setAppliedPlugins(plugins);
+
+    bool connectDisabled = socketAutoConnect && socketNonDisconnectable;
+    emit sigSocketConnectEnabled(!connectDisabled);
+
+    bool socketConnected = false;
+    if (socketAutoConnect) {
+        socketConnected = msgMgr.getSocket()->socketConnect();
+    }
+    emit sigSocketConnected(socketConnected);
     return true;
 }
 
@@ -578,6 +641,12 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
         [this](const QString& error)
         {
             errorReported(error);
+        });
+
+    msgMgr.setSocketDisconnectReportCallbackFunc(
+        [this]()
+        {
+            socketDisconnected();
         });
 }
 
@@ -635,6 +704,11 @@ void GuiAppMgr::msgAdded(MessagePtr msg)
 void GuiAppMgr::errorReported(const QString& msg)
 {
     emit sigErrorReported(msg + tr("\nThe tool may not work properly!"));
+}
+
+void GuiAppMgr::socketDisconnected()
+{
+    emit sigSocketConnected(false);
 }
 
 void GuiAppMgr::pendingDisplayTimeout()

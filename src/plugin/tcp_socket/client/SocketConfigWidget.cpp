@@ -48,8 +48,6 @@ SocketConfigWidget::SocketConfigWidget(
     m_ui.m_portSpinBox->setValue(
         static_cast<int>(m_socket.getPort()));
 
-    m_ui.m_autoConnectCheckBox->setChecked(m_socket.getAutoConnect());
-
     connect(
         m_ui.m_hostLineEdit, SIGNAL(textChanged(const QString&)),
         this, SLOT(hostValueChanged(const QString&)));
@@ -57,10 +55,6 @@ SocketConfigWidget::SocketConfigWidget(
     connect(
         m_ui.m_portSpinBox, SIGNAL(valueChanged(int)),
         this, SLOT(portValueChanged(int)));
-
-    connect(
-        m_ui.m_autoConnectCheckBox, SIGNAL(stateChanged(int)),
-        this, SLOT(autoConnectChanged(int)));
 }
 
 SocketConfigWidget::~SocketConfigWidget() = default;
@@ -73,12 +67,6 @@ void SocketConfigWidget::hostValueChanged(const QString& value)
 void SocketConfigWidget::portValueChanged(int value)
 {
     m_socket.setPort(static_cast<PortType>(value));
-}
-
-void SocketConfigWidget::autoConnectChanged(int value)
-{
-    bool checked = (value != Qt::Unchecked);
-    m_socket.setAutoConnect(checked);
 }
 
 }  // namespace client

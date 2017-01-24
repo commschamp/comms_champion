@@ -32,14 +32,12 @@ function (plugin_tcp_client_socket)
         Socket.cpp
         SocketPlugin.cpp
         SocketConfigWidget.cpp
-        ConnectAction.cpp
     )
     
     set (hdr
         Socket.h
         SocketPlugin.h
         SocketConfigWidget.h
-        ConnectAction.h
     )
     
     qt5_wrap_cpp(
@@ -52,9 +50,7 @@ function (plugin_tcp_client_socket)
         SocketConfigWidget.ui
     )
     
-    qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/client_socket.qrc)
-    
-    add_library (${name} MODULE ${src} ${moc} ${ui} ${resources})
+    add_library (${name} MODULE ${src} ${moc} ${ui})
     target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
     qt5_use_modules(${name} Network Widgets Core)
     

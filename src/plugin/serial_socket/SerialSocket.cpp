@@ -60,7 +60,7 @@ SerialSocket::SerialSocket()
 
 SerialSocket::~SerialSocket() = default;
 
-bool SerialSocket::startImpl()
+bool SerialSocket::socketConnectImpl()
 {
     m_serial.setPortName(m_name);
     if (!m_serial.open(QSerialPort::ReadWrite)) {
@@ -79,8 +79,9 @@ bool SerialSocket::startImpl()
     return true;
 }
 
-void SerialSocket::stopImpl()
+void SerialSocket::socketDisconnectImpl()
 {
+    m_serial.flush();
     m_serial.close();
 }
 
@@ -119,6 +120,9 @@ void SerialSocket::errorOccurred(QSerialPort::SerialPortError err)
     static_cast<void>(err);
     reportError(m_serial.errorString());
     m_serial.clearError();
+    if (!m_serial.isOpen()) {
+        reportDisconnected();
+    }
 }
 
 }  // namespace serial_socket

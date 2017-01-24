@@ -64,15 +64,17 @@ public:
     }
 
 protected:
-    virtual bool startImpl() override;
-    virtual void stopImpl() override;
+    virtual bool socketConnectImpl() override;
+    virtual void socketDisconnectImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
+    virtual unsigned connectionPropertiesImpl() const override;
 
 private slots:
     void newConnection();
     void connectionTerminated();
     void readFromSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);
+    void acceptErrorOccurred(QAbstractSocket::SocketError err);
 
 private:
     static const PortType DefaultPort = 20000;

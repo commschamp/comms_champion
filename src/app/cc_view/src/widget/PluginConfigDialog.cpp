@@ -28,6 +28,8 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
+#include <QtCore/QDir>
+#include <QtCore/QCoreApplication>
 CC_ENABLE_WARNINGS()
 
 #include "comms/util/ScopeGuard.h"
@@ -52,6 +54,23 @@ void addVerLine(QBoxLayout& layout) {
     line->setFrameShape(QFrame::VLine);
     line->setFrameShadow(QFrame::Sunken);
     layout.addWidget(line.release());
+}
+
+QString getLastLoadSaveFile()
+{
+    auto filename = PluginMgrG::instanceRef().getLastFile();
+    if (!filename.isEmpty()) {
+        return filename;
+    }
+
+    QDir dir(qApp->applicationDirPath());
+    dir.cdUp();
+    if (!dir.cd("config")) {
+        return filename;
+    }
+
+    filename = dir.path();
+    return filename;
 }
 
 }  // namespace
@@ -201,7 +220,7 @@ void PluginConfigDialog::loadClicked()
         QFileDialog::getOpenFileName(
             this,
             tr("Load Configuration File"),
-            pluginMgr.getLastFile(),
+            getLastLoadSaveFile(),
             pluginMgr.getFilesFilter());
 
     if (filename.isEmpty()) {
@@ -242,7 +261,7 @@ void PluginConfigDialog::saveClicked()
         QFileDialog::getSaveFileName(
             this,
             tr("Save Configuration File"),
-            pluginMgr.getLastFile(),
+            getLastLoadSaveFile(),
             pluginMgr.getFilesFilter());
 
     if (filename.isEmpty()) {

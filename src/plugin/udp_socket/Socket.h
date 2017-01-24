@@ -93,11 +93,12 @@ public:
     }
 
 protected:
-    virtual bool startImpl() override;
-    virtual void stopImpl() override;
+    virtual bool socketConnectImpl() override;
+    virtual void socketDisconnectImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:
+    void socketDisconnected();
     void readFromSocket();
     void readFromBroadcastSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);

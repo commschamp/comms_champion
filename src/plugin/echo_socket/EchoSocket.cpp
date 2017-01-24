@@ -60,6 +60,11 @@ void EchoSocket::sendDataImpl(DataInfoPtr dataPtr)
     m_timer->start(0);
 }
 
+unsigned EchoSocket::connectionPropertiesImpl() const
+{
+    return ConnectionProperty_Autoconnect | ConnectionProperty_NonDisconnectable;
+}
+
 void EchoSocket::sendDataPostponed()
 {
     m_timerActive = false;

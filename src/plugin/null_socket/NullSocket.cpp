@@ -45,6 +45,11 @@ void NullSocket::sendDataImpl(DataInfoPtr dataPtr)
     static_cast<void>(dataPtr);
 }
 
+unsigned NullSocket::connectionPropertiesImpl() const
+{
+    return ConnectionProperty_Autoconnect | ConnectionProperty_NonDisconnectable;
+}
+
 }  // namespace comms_champion
 
 

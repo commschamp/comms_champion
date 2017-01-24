@@ -1,5 +1,5 @@
-function (bin_comms_champion)
-    set (name "comms_champion")
+function (bin_cc_view)
+    set (name "cc_view")
     
     if (NOT Qt5Core_FOUND)
         message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
@@ -20,6 +20,7 @@ function (bin_comms_champion)
         MsgMgrG.cpp
         icon.cpp
         widget/MainWindowWidget.cpp
+        widget/MainToolbar.cpp
         widget/LeftPaneWidget.cpp
         widget/RightPaneWidget.cpp
         widget/DefaultMessageDisplayWidget.cpp
@@ -69,6 +70,7 @@ function (bin_comms_champion)
         widget/PluginsListWidget.h
         widget/PluginConfigDialog.h
         widget/MainWindowWidget.h
+        widget/MainToolbar.h
         widget/DefaultMessageDisplayWidget.h
         widget/field/FieldWidget.h 
         widget/field/ShortIntValueFieldWidget.h
@@ -123,7 +125,7 @@ function (bin_comms_champion)
     install (
         FILES image/app_icon.png
         DESTINATION ${ICON_INSTALL_DIR}
-        RENAME comms_champion.png
+        RENAME cc_view.png
     )
     
         
@@ -139,4 +141,4 @@ include_directories (
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-bin_comms_champion()
+bin_cc_view()

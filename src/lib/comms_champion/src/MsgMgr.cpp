@@ -45,6 +45,11 @@ void MsgMgr::clear()
     m_impl->clear();
 }
 
+SocketPtr MsgMgr::getSocket() const
+{
+    return m_impl->getSocket();
+}
+
 ProtocolPtr MsgMgr::getProtocol() const
 {
     return m_impl->getProtocol();
@@ -103,6 +108,12 @@ void MsgMgr::setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func)
 void MsgMgr::setErrorReportCallbackFunc(ErrorReportCallbackFunc&& func)
 {
     m_impl->setErrorReportCallbackFunc(std::move(func));
+}
+
+void MsgMgr::setSocketDisconnectReportCallbackFunc(
+    SocketDisconnectedReportCallbackFunc&& func)
+{
+    m_impl->setSocketDisconnectReportCallbackFunc(std::move(func));
 }
 
 }  // namespace comms_champion

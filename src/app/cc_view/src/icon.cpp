@@ -150,6 +150,19 @@ const QIcon& errorLog()
     return iconObj;
 }
 
+const QIcon& connect()
+{
+    static const QIcon iconObj(":/image/connect.png");
+    return iconObj;
+}
+
+const QIcon& disconnect()
+{
+    static const QIcon iconObj(":/image/disconnect.png");
+    return iconObj;
+}
+
+
 }  // namespace icon
 
 }  // namespace comms_champion

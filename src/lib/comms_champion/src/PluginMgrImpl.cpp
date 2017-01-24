@@ -225,6 +225,30 @@ bool PluginMgrImpl::needsReload(const ListOfPluginInfos& infos) const
            (m_appliedPlugins != infos);
 }
 
+bool PluginMgrImpl::isProtocolChanging(const ListOfPluginInfos& infos) const
+{
+    auto findProtocolFunc =
+        [](const ListOfPluginInfos& l) -> PluginInfoPtr
+        {
+            auto iter =
+                std::find_if(l.rbegin(), l.rend(),
+                    [](const PluginInfoPtr& ptr) -> bool
+                    {
+                        return ptr->getType() == PluginMgr::PluginInfo::Type::Protocol;
+                    });
+
+            if (iter == l.rend()) {
+                return PluginInfoPtr();
+            }
+
+            return *iter;
+        };
+
+    auto newProtocol = findProtocolFunc(infos);
+    auto appliedProtocol = findProtocolFunc(m_appliedPlugins);
+    return newProtocol != appliedProtocol;
+}
+
 void PluginMgrImpl::unloadApplied()
 {
     for (auto& pluginInfo : m_appliedPlugins) {
@@ -234,6 +258,30 @@ void PluginMgrImpl::unloadApplied()
         pluginInfo->m_loader->unload();
     }
     m_appliedPlugins.clear();
+}
+
+bool PluginMgrImpl::unloadAppliedPlugin(const PluginInfo& info)
+{
+    auto iter =
+        std::find_if(
+            m_appliedPlugins.begin(), m_appliedPlugins.end(),
+            [&info](const PluginInfoPtr& ptr) -> bool
+            {
+                return ptr.get() == &info;
+            });
+
+    if (iter == m_appliedPlugins.end()) {
+        return false;
+    }
+
+    auto pluginInfoPtr = *iter;
+    m_appliedPlugins.erase(iter);
+
+    assert(pluginInfoPtr);
+    assert(pluginInfoPtr->m_loader);
+    assert (pluginInfoPtr->m_loader->isLoaded());
+    pluginInfoPtr->m_loader->unload();
+    return true;
 }
 
 QVariantMap PluginMgrImpl::getConfigForPlugins(

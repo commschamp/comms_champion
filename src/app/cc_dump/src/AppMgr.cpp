@@ -124,6 +124,16 @@ bool AppMgr::start(const Config& config)
     m_msgMgr.setRecvEnabled(true);
     m_msgMgr.start();
 
+    auto socket = m_msgMgr.getSocket();
+    if (!socket) {
+        std::cerr << "ERROR: Socket plugin hasn't been chosen or doesn't exist" << std::endl;
+        return false;
+    }
+
+    if (!socket->socketConnect()) {
+        std::cerr << "WARNING: Socket failed to connect!" << std::endl;
+    }
+
     if (!config.m_outMsgsFile.isEmpty()) {
         auto protocol = m_msgMgr.getProtocol();
         assert(protocol);

@@ -84,15 +84,17 @@ public:
     }
 
 protected:
-    virtual bool startImpl() override;
-    virtual void stopImpl() override;
+    virtual bool socketConnectImpl() override;
+    virtual void socketDisconnectImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
+    virtual unsigned connectionPropertiesImpl() const override;
 
 private slots:
     void newConnection();
     void clientConnectionTerminated();
     void readFromClientSocket();
     void socketErrorOccurred(QAbstractSocket::SocketError err);
+    void acceptErrorOccurred(QAbstractSocket::SocketError err);
     void connectionSocketConnected();
     void connectionSocketDisconnected();
     void readFromConnectionSocket();

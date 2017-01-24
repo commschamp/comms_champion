@@ -47,6 +47,7 @@ public:
     void stop();
     void clear();
 
+    SocketPtr getSocket() const;
     ProtocolPtr getProtocol() const;
     void setRecvEnabled(bool enabled);
 
@@ -64,9 +65,11 @@ public:
 
     typedef std::function<void (MessagePtr msg)> MsgAddedCallbackFunc;
     typedef std::function<void (const QString& error)> ErrorReportCallbackFunc;
+    typedef std::function<void ()> SocketDisconnectedReportCallbackFunc;
 
     void setMsgAddedCallbackFunc(MsgAddedCallbackFunc&& func);
     void setErrorReportCallbackFunc(ErrorReportCallbackFunc&& func);
+    void setSocketDisconnectReportCallbackFunc(SocketDisconnectedReportCallbackFunc&& func);
 
 private:
     std::unique_ptr<MsgMgrImpl> m_impl;

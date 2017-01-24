@@ -1,4 +1,4 @@
-![Image: CommsChampion Icon](src/app/comms_champion/src/image/app_icon.png)
+![Image: CommsChampion Icon](src/app/cc_view/src/image/app_icon.png)
 
 # What It's All About?
 Almost every electronic device/component nowadays has to be able to communicate
@@ -74,16 +74,16 @@ and managing plug-ins.
 
 The current list of available applications is:
 
-- **comms_champion** is the main generic GUI application for visualisation and analysis of the
+- **cc_view** is the main generic GUI application for visualisation and analysis of the
 communication protocols, that were developed using [COMMS Library](#comms-library)
 mentioned above.  
 
-- **comms_dump** is a command line utility, that recognises all the received
+- **cc_dump** is a command line utility, that recognises all the received
 custom binary protocol messages and dumps them all in CSV format to standard output.
 It can also record the incoming message into the file, which can be opened
-lately for visual analysis using **comms_champion** GUI application. 
+later for visual analysis using **cc_view** GUI application. 
 The tool has an ability to receive a file with definition of outgoing messages, 
-created using **comms_champion** GUI application, and send them one by one in
+created using **cc_view** GUI application, and send them one by one 
 in parallel to dumping/recording the incoming messages.
 
 The [CommsChampion Tools](#commschampion-tools) package provides the following
@@ -102,6 +102,7 @@ connections from TCP/IP clients, sends and receives data to/from them.
 - **tcp_proxy_socket** - Proxy server TCP/IP socket, combines Server and Client
 side of TCP/IP connection, can be used to monitor traffic of the messages between
 remote a client and a server.
+- **udp_socket** - Generic (client/server) UDP/IP socket.
 - **raw_data_protocol** - Protocol definition that defines only a single message
 type with one field of unlimited length data. It can be used to review the
 raw data being received from I/O socket.
@@ -139,7 +140,7 @@ documentation on how to use and/or develop plug-ins is currently available,
 will be provided in the future once the API stabilises.
 
 However, if you have tried [CommsChampion Tools](#commschampion-tools) with
-any other binary protocol and would like to develop a plugin for any other one.
+any other binary protocol and would like to develop a plugin for your own,one
 developed internaly by your complany, please get in touch 
 (see [Contact Information](#contact-information) below). I will be able to help.
 
@@ -159,7 +160,7 @@ Some icons, used in [CommsChampion](#commschampion-tools) tools, were taken from
 [Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter
 applies.
 
-The [application icon](src/app/comms_champion/src/image/app_icon.png) of the
+The [application icon](src/app/cc_view/src/image/app_icon.png) of the
 [CommsChampion](#commschampion-tools) tool must
 be replaced in any diravative work to differentiate between the original and
 the forked versions.
@@ -179,13 +180,14 @@ include paths and use the following statement in your sources:
 Nothing else is required.
 
 # How to Run CommsChampion applications
-On Windows platforms just run the executable binary (**comms_champion.exe**
-or **comms_dump.exe**), which resides in 
-**install/bin** subdirectory. Make sure that the directory of your QT5 dlls can 
-be found in your %PATH%.
+On Windows platforms try run the executable binary (**cc_view.exe**
+or **cc_dump.exe**), which resides in 
+**install/bin** subdirectory. If the execution fails due to missing QT5 dlls,
+either set your %PATH% variable accordingly or try to execute generated **.bat**
+files (**cc_view.bat** or **cc_dump.bat**) residing in the same directory.
 
 On Linux platforms use the appropriate shell script 
-(**comms_champion.sh** or **comms_dump.sh**), which also resides in
+(**cc_view.sh** or **cc_dump.sh**), which also resides in
 **install/bin** subdirectory.
  
 Please note that available plugins must reside in the **../plugin** subdirectory relative
@@ -194,9 +196,9 @@ to the location of the binaries.
 The tools support multiple command line options, please use "-h" or "--help" for
 the full list.
 
->$> ./install/bin/comms_champion.sh -h
+>$> ./install/bin/cc_view.sh -h
 
->$> ./install/bin/comms_dump.sh -h
+>$> ./install/bin/cc_dump.sh -h
 
 # Branching Model
 This repository will follow the 

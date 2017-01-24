@@ -1,5 +1,5 @@
-function (bin_comms_dump)
-    set (name "comms_dump")
+function (bin_cc_dump)
+    set (name "cc_dump")
     
     if (NOT Qt5Core_FOUND)
         message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
@@ -39,4 +39,4 @@ include_directories (
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-bin_comms_dump()
+bin_cc_dump()

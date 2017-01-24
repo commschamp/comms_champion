@@ -30,6 +30,10 @@ bool Socket::start()
 
 void Socket::stop()
 {
+    if (m_connected) {
+        socketDisconnect();
+        reportDisconnected();
+    }
     stopImpl();
 }
 

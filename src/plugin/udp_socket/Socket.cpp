@@ -54,6 +54,9 @@ Socket::Socket()
     m_broadcastPropName(DefaultBroadcastPropName)
 {
     connect(
+        &m_socket, SIGNAL(disconnected()),
+        this, SLOT(socketDisconnected()));
+    connect(
         &m_socket, SIGNAL(readyRead()),
         this, SLOT(readFromSocket()));
     connect(
@@ -72,7 +75,7 @@ Socket::~Socket()
     m_socket.blockSignals(true);
 }
 
-bool Socket::startImpl()
+bool Socket::socketConnectImpl()
 {
     if ((!m_host.isEmpty()) && (m_port == 0)) {
         static const QString Error =
@@ -120,12 +123,13 @@ bool Socket::startImpl()
     return true;
 }
 
-void Socket::stopImpl()
+void Socket::socketDisconnectImpl()
 {
-    disconnect(&m_socket);
+    m_socket.blockSignals(true);
     m_socket.close();
     m_broadcastSocket.close();
     m_running = false;
+    m_socket.blockSignals(false);
 }
 
 void Socket::sendDataImpl(DataInfoPtr dataPtr)
@@ -192,6 +196,11 @@ void Socket::sendDataImpl(DataInfoPtr dataPtr)
 
     dataPtr->m_extraProperties.insert(ToPropName, to);
 
+}
+
+void Socket::socketDisconnected()
+{
+    reportDisconnected();
 }
 
 void Socket::readFromSocket()

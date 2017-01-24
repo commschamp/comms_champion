@@ -86,8 +86,8 @@ public:
     }
 
 protected:
-    virtual bool startImpl() override;
-    virtual void stopImpl() override;
+    virtual bool socketConnectImpl() override;
+    virtual void socketDisconnectImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
 
 private slots:

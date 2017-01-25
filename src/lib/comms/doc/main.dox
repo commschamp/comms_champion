@@ -131,12 +131,8 @@
 ///                                                   // functionalities, as well as provides an access to the message fields.
 ///     >
 /// {
-///     // Access indices for the message fields.
-///     enum FieldIdx
-///     {
-///         FieldIdx_Field1,
-///         FieldIdx_Field2
-///     }
+///     // Allow access to fields by name.
+///     COMMS_MSG_FIELDS_ACCESS(name1, name2);
 ///
 /// protected:
 ///

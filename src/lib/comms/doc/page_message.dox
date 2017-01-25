@@ -1136,9 +1136,8 @@
 ///         ...
 ///     >
 /// {
-///     typedef comms::MessageBase<MyMessage, comms::option::FieldsImpl<Message1Fields>, ...> Base;
 /// public:
-///     COMMS_MSG_FIELDS_ACCESS(Base, name1, name2);
+///     COMMS_MSG_FIELDS_ACCESS(name1, name2);
 ///     ...
 /// };
 /// @endcode
@@ -1161,64 +1160,28 @@
 ///     static_assert(std::tuple_size<Base::AllFields>::value == FieldIdx_nameOfValues,
 ///         "Number of expected fields is incorrect");
 ///
-///     // Type of the first field
-///     typedef ... Field_name1;
-///
-///     // Type of the second field
-///     typedef ... Field_name2;
-///
-///     // Access to fields bundled into struct
-///     struct FieldsAsStruct
-///     {
-///         Field_name1& name1;
-///         Field_name2& name2;
-///     };
-///
-///     // Access to const fields bundled into struct
-///     struct ConstFieldsAsStruct
-///     {
-///         const Field_name1& name1;
-///         const Field_name2& name2;
-///     };
-///
-///     // Get access to fields bundled into a struct
-///     FieldsAsStruct fieldsAsStruct()
-///     {
-///         return FieldsAsStruct{
-///             std::get<0>(Base::fields()),
-///             std::get<1>(Base::fields())};
-///     }
-///
-///     // Get access to const fields bundled into a struct
-///     ConstFieldsAsStruct fieldsAsStruct() const
-///     {
-///         return ConstFieldsAsStruct{
-///             std::get<0>(Base::fields()),
-///             std::get<1>(Base::fields())};
-///     }
-///
 ///     // Accessor to "name1" field
-///     Field_name1& field_name1()
+///     auto field_name1() -> decltype(std::get<FieldIdx_name1>(fields())
 ///     {
-///         return std::get<0>(Base::fields());
+///         return std::get<FieldIdx_name1>(fields());
 ///     }
 ///
-///     // Accessor to "name1" field
-///     const Field_name1& field_name1() const
+///     // Accessor to const "name1" field
+///     auto field_name1() const -> decltype(std::get<FieldIdx_name1>(fields())
 ///     {
-///         return std::get<0>(Base::fields());
+///         return std::get<FieldIdx_name1>(fields());
 ///     }
 ///
 ///     // Accessor to "name2" field
-///     Field_name2& field_name2()
+///     auto field_name2() -> decltype(std::get<FieldIdx_name2>(fields())
 ///     {
-///         return std::get<1>(Base::fields());
+///         return std::get<FieldIdx_name2>(fields());
 ///     }
 ///
-///     // Accessor to "name2" field
-///     const Field_name2& field_name2() const
+///     // Accessor to const "name2" field
+///     auto field_name2() const -> decltype(std::get<FieldIdx_name2>(fields())
 ///     {
-///         return std::get<1>(Base::fields());
+///         return std::get<FieldIdx_name2>(fields());
 ///     }
 /// };
 /// @endcode
@@ -1226,9 +1189,6 @@
 /// found their way to the following definitions:
 /// @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
 ///     @b FieldIdx_nameOfValues value is automatically added at the end.
-/// @li Types of the fields, prefixed with @b Field_.
-/// @li References to the fields bundled into 
-///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. 
 /// @li Accessor functions prefixed with @b field_
 ///
 /// As the result, the fields can be accessed using multiple ways: @n
@@ -1242,16 +1202,6 @@
 ///
 ///     auto value1 = field1.value();
 ///     auto value2 = field2.value();
-/// }
-/// @endcode
-/// or using provided struct(s):
-/// @code
-/// void handle(Message1& msg)
-/// {
-///     auto allFields = msg.fieldsAsStruct();
-///
-///     auto value1 = allFields.name1.value();
-///     auto value2 = allFields.name2.value();
 /// }
 /// @endcode
 /// or using accessor functions:

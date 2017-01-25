@@ -481,9 +481,8 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 ///
 ///     class Message1 : public comms::MessageBase<MyInterface, comms::option::FieldsImpl<MyMessageFields> >
 ///     {
-///         typedef comms::MessageBase<MyInterface, comms::option::FieldsImpl<MyMessageFields> > Base
 ///     public:
-///         COMMS_MSG_FIELDS_ACCESS(Base, name1, name2, name3);
+///         COMMS_MSG_FIELDS_ACCESS(name1, name2, name3);
 ///     };
 ///     @endcode
 ///     The usage of the COMMS_MSG_FIELDS_ACCESS() macro with type of the base
@@ -504,42 +503,48 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 ///         static_assert(std::tuple_size<Base::AllFields>::value == FieldIdx_nameOfValues,
 ///             "Number of expected fields is incorrect");
 ///
-///         struct FieldsAsStruct
+///         // Accessor to "name1" field.
+///         auto field_name1() -> decltype(std::get<FieldIdx_name1>(value()))
 ///         {
-///             Field1& name1;
-///             Field2& name2;
-///             Field3& name3;
-///         };
-///
-///         struct ConstFieldsAsStruct
-///         {
-///             const Field1& name1;
-///             const Field2& name2;
-///             const Field3& name3;
-///         };
-///
-///         FieldsAsStruct fieldsAsStruct()
-///         {
-///             return FieldsAsStruct{
-///                 std::get<0>(Base::fields()),
-///                 std::get<1>(Base::fields()),
-///                 std::get<2>(Base::fields())};
+///             return std::get<FieldIdx_name1>(value());
 ///         }
 ///
-///         ConstFieldsAsStruct fieldsAsStruct() const
+///         // Accessor to "name1" field.
+///         auto field_name1() const -> decltype(std::get<FieldIdx_name1>(value()))
 ///         {
-///             return ConstFieldsAsStruct{
-///                 std::get<0>(Base::fields()),
-///                 std::get<1>(Base::fields()),
-///                 std::get<2>(Base::fields())};
+///             return std::get<FieldIdx_name1>(value());
+///         }
+///
+///         // Accessor to "name2" field.
+///         auto field_name2() -> decltype(std::get<FieldIdx_name2>(value()))
+///         {
+///             return std::get<FieldIdx_name2>(value());
+///         }
+///
+///         // Accessor to "name2" field.
+///         auto field_name2() const -> decltype(std::get<FieldIdx_name2>(value()))
+///         {
+///             return std::get<FieldIdx_name2>(value());
+///         }
+///
+///         // Accessor to "name3" field.
+///         auto field_name3() -> decltype(std::get<FieldIdx_name3>(value()))
+///         {
+///             return std::get<FieldIdx_name3>(value());
+///         }
+///
+///         // Accessor to "name3" field.
+///         auto field_name3() const -> decltype(std::get<FieldIdx_name3>(value()))
+///         {
+///             return std::get<FieldIdx_name3>(value());
 ///         }
 ///     };
 ///     @endcode
 ///     @b NOTE, that provided names @b name1, @b name2, and @b name3 have
-///     found their way to the enum @b FieldIdx and as data members of the
-///     @b FieldsAsStruct and @b ConstFieldsAsStruct structs. @n
-///     Also note, that there is automatically added @b FieldIdx_nameOfValues
-///     value to the end of @b FieldIdx enum.
+///     found their way to the following definitions:
+///     @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
+///         @b FieldIdx_nameOfValues value is automatically added at the end.
+///     @li Accessor functions prefixed with @b field_
 ///
 ///     As the result, the fields can be accessed using @b FieldIdx enum
 ///     @code
@@ -555,20 +560,15 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 ///         auto value3 = field3.value();
 ///     }
 ///     @endcode
-///     or using provided struct(s):
+///     or using accessor functions:
 ///     @code
 ///     void handle(Message1& msg)
 ///     {
-///         auto allFields = msg.fieldsAsStruct();
-///
-///         auto value1 = allFields.name1.value();
-///         auto value2 = allFields.name2.value();
-///         auto value3 = allFields.name3.value();
+///         auto value1 = field_name1().value();
+///         auto value2 = field_name2().value();
+///         auto value3 = field_name3().value();
 ///     }
 ///     @endcode
-/// @param[in] base_ Base class of the defined message class, expected to be a
-///     variant of comms::MessageBase, with usage of  comms::option::FieldsImpl
-///     option, i.e. defines and contains internal fields as a tuple.
 /// @param[in] ... List of fields' names.
 /// @related comms::MessageBase
 #define COMMS_MSG_FIELDS_ACCESS(...) \

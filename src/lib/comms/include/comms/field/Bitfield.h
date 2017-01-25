@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -264,6 +264,21 @@ constexpr bool isBitfield()
     return std::is_same<typename T::Tag, tag::Bitfield>::value;
 }
 
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+inline
+Bitfield<TFieldBase, TMembers, TOptions...>&
+toFieldBase(Bitfield<TFieldBase, TMembers, TOptions...>& field)
+{
+    return field;
+}
+
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+inline
+const Bitfield<TFieldBase, TMembers, TOptions...>&
+toFieldBase(const Bitfield<TFieldBase, TMembers, TOptions...>& field)
+{
+    return field;
+}
 
 }  // namespace field
 

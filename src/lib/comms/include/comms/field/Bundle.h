@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -208,6 +208,21 @@ constexpr bool isBundle()
     return std::is_same<typename T::Tag, tag::Bundle>::value;
 }
 
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+inline
+Bundle<TFieldBase, TMembers, TOptions...>&
+toFieldBase(Bundle<TFieldBase, TMembers, TOptions...>& field)
+{
+    return field;
+}
+
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+inline
+const Bundle<TFieldBase, TMembers, TOptions...>&
+toFieldBase(const Bundle<TFieldBase, TMembers, TOptions...>& field)
+{
+    return field;
+}
 
 }  // namespace field
 

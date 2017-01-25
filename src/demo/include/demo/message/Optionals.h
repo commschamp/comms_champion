@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -113,49 +113,18 @@ class Optionals : public
         comms::option::HasDoRefresh
     > Base;
 public:
-
-#ifdef FOR_DOXYGEN_DOC_ONLY
-    /// @brief Index to access the fields
-    enum FieldIdx
-    {
-        FieldIdx_field1, ///< field1 field, see @ref OptionalsFields::field1
-        FieldIdx_field2, ///< field2 field, see @ref OptionalsFields::field2
-        FieldIdx_field3, ///< field3 field, see @ref OptionalsFields::field3
-        FieldIdx_numOfValues ///< number of available fields
-    };
-
-    /// @brief Access to fields, bundled into struct
-    struct FieldsAsStruct
-    {
-        OptionalsFields::field1& field1; ///< Access to field1
-        OptionalsFields::field2& field2; ///< Access to field2
-        OptionalsFields::field3& field3; ///< Access to field3
-    };
-
-    /// @brief Access to @b const fields, bundled into struct
-    struct ConstFieldsAsStruct
-    {
-        const OptionalsFields::field1& field1; ///< Access to field1
-        const OptionalsFields::field2& field2; ///< Access to field2
-        const OptionalsFields::field3& field3; ///< Access to field3
-    };
-
-    /// @brief Get access to fields, bundled into struct
-    FieldsAsStruct fieldsAsStruct();
-
-    /// @brief Get access to @b const fields, bundled into struct
-    ConstFieldsAsStruct fieldsAsStruct() const;
-
-#else
-    COMMS_MSG_FIELDS_ACCESS(Base, field1, field2, field3);
-#endif
+    /// @brief Allow access to internal fields.
+    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    ///     related to @b comms::MessageBase class from COMMS library
+    ///     for details.
+    ///
+    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
 
     /// @brief Default constructor
     Optionals()
     {
-        auto allFields = fieldsAsStruct();
-        allFields.field2.setMissing();
-        allFields.field3.setMissing();
+        field_field2().setMissing();
+        field_field3().setMissing();
     }
 
     /// @brief Copy constructor
@@ -184,20 +153,18 @@ public:
             return es;
         }
 
-        auto allFields = fieldsAsStruct();
-
         auto field2Mode = comms::field::OptionalMode::Missing;
-        if (allFields.field1.getBitValue(FieldsStruct::field1_enableField2)) {
+        if (field_field1().getBitValue(FieldsStruct::field1_enableField2)) {
             field2Mode = comms::field::OptionalMode::Exists;
         }
 
         auto field3Mode = comms::field::OptionalMode::Missing;
-        if (allFields.field1.getBitValue(FieldsStruct::field1_enableField3)) {
+        if (field_field1().getBitValue(FieldsStruct::field1_enableField3)) {
             field3Mode = comms::field::OptionalMode::Exists;
         }
 
-        allFields.field2.setMode(field2Mode);
-        allFields.field3.setMode(field3Mode);
+        field_field2().setMode(field2Mode);
+        field_field3().setMode(field3Mode);
         return Base::template readFieldsFrom<FieldIdx_field2>(iter, len);
     }
 
@@ -207,26 +174,24 @@ public:
     ///     @b false otherwise.
     bool doRefresh()
     {
-        auto allFields = fieldsAsStruct();
-
         auto field2ExpectedMode = comms::field::OptionalMode::Missing;
-        if (allFields.field1.getBitValue(FieldsStruct::field1_enableField2)) {
+        if (field_field1().getBitValue(FieldsStruct::field1_enableField2)) {
             field2ExpectedMode = comms::field::OptionalMode::Exists;
         }
 
         auto field3ExpectedMode = comms::field::OptionalMode::Missing;
-        if (allFields.field1.getBitValue(FieldsStruct::field1_enableField3)) {
+        if (field_field1().getBitValue(FieldsStruct::field1_enableField3)) {
             field3ExpectedMode = comms::field::OptionalMode::Exists;
         }
 
         bool refreshed = false;
-        if (allFields.field2.getMode() != field2ExpectedMode) {
-            allFields.field2.setMode(field2ExpectedMode);
+        if (field_field2().getMode() != field2ExpectedMode) {
+            field_field2().setMode(field2ExpectedMode);
             refreshed = true;
         }
 
-        if (allFields.field3.getMode() != field3ExpectedMode) {
-            allFields.field3.setMode(field3ExpectedMode);
+        if (field_field3().getMode() != field3ExpectedMode) {
+            field_field3().setMode(field3ExpectedMode);
             refreshed = true;
         }
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -71,6 +71,8 @@ class Message1 : public
         >
 {
 public:
+
+    COMMS_MSG_FIELDS_ACCESS(value1);
 
     Message1() = default;
 
@@ -145,6 +147,8 @@ class Message3 : public
     >
 {
 public:
+    COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
+
     Message3() = default;
 
     virtual ~Message3() = default;
@@ -200,23 +204,25 @@ class Message4 : public
             > Base;
 
 public:
+    COMMS_MSG_FIELDS_ACCESS(value1, value2);
+
     Message4()
     {
-        auto& optField = std::get<1>(Base::fields());
-        optField.setMode(comms::field::OptionalMode::Missing);
+        auto& optField = field_value2();
+        optField.setMissing();
     }
 
     virtual ~Message4() = default;
 
     bool doRefresh()
     {
-        auto& mask = std::get<0>(Base::fields());
+        auto& mask = field_value1();
         auto expectedNextFieldMode = comms::field::OptionalMode::Missing;
         if ((mask.value() & 0x1) != 0) {
             expectedNextFieldMode = comms::field::OptionalMode::Exists;
         }
 
-        auto& optField = std::get<1>(Base::fields());
+        auto& optField = field_value2();
         if (optField.getMode() == expectedNextFieldMode) {
             return false;
         }
@@ -259,6 +265,8 @@ class Message5 : public
         >
 {
 public:
+
+    COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
     Message5() = default;
 

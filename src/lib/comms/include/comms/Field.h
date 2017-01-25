@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -271,7 +271,21 @@ protected:
 ///     of field members and provides @b value() member functions to access them.
 /// @param[in] ... List of member fields' names.
 /// @related comms::field::Bitfield
-#define COMMS_FIELD_MEMBERS_ACCESS(base_, ...) COMMS_FIELDS_ACCESS_ALL(typename base_::ValueType, base_::value(), __VA_ARGS__)
+#define COMMS_FIELD_MEMBERS_ACCESS(...) \
+    COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
+    auto value() -> decltype(comms::field::toFieldBase(*this).value()) { \
+    typedef typename std::decay<decltype(value())>::type AllFieldsTuple; \
+    static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
+        "Invalid number of names for fields tuple"); \
+        return comms::field::toFieldBase(*this).value(); \
+    } \
+    auto value() const -> decltype(comms::field::toFieldBase(*this).value()) { \
+        typedef typename std::decay<decltype(value())>::type AllFieldsTuple; \
+        static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
+            "Invalid number of names for fields tuple"); \
+        return comms::field::toFieldBase(*this).value(); \
+    } \
+    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(value(), __VA_ARGS__))
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
 /// @brief Add convenience access enum, structs and functions to the members of
@@ -420,7 +434,7 @@ protected:
 ///     of field members and provides @b value() member functions to access them.
 /// @param[in] ... List of member fields' names.
 /// @related comms::field::Bundle
-#define COMMS_FIELD_MEMBERS_ACCESS(base_, ...)
+#define COMMS_FIELD_MEMBERS_ACCESS(...)
 #endif
 
 }  // namespace comms

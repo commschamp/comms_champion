@@ -1,5 +1,5 @@
 //
-// Copyright 2013-2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2013-2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -85,6 +85,7 @@ public:
     void test51();
 
 private:
+
     typedef comms::option::BigEndian BigEndianOpt;
     typedef comms::option::LittleEndian LittleEndianOpt;
 
@@ -1920,19 +1921,16 @@ void FieldsTestSuite::test51()
         >
     > BitfieldMembers;
 
-    typedef comms::field::Bitfield<
-        comms::Field<BigEndianOpt>,
-        BitfieldMembers
-    > BifieldBase;
-
-    class Field : public BifieldBase
+    class Field : public comms::field::Bitfield<
+            comms::Field<BigEndianOpt>,
+            BitfieldMembers
+        >
     {
     public:
-        COMMS_FIELD_MEMBERS_ACCESS(BifieldBase, name1, name2)
+        COMMS_FIELD_MEMBERS_ACCESS(name1, name2)
     };
 
     Field field;
-    static_cast<void>(field);
     TS_ASSERT_EQUALS(field.length(), 1U);
     TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_name1>(), 2U);
     TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_name2>(), 6U);

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -447,6 +447,21 @@ protected:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
+template <typename TMessage, typename... TOptions>
+inline
+MessageBase<TMessage, TOptions...>& toMessageBase(MessageBase<TMessage, TOptions...>& msg)
+{
+    return msg;
+}
+
+template <typename TMessage, typename... TOptions>
+inline
+const MessageBase<TMessage, TOptions...>& toMessageBase(
+    const MessageBase<TMessage, TOptions...>& msg)
+{
+    return msg;
+}
+
 /// @brief Add convenience access enum, structs and functions to message fields.
 /// @details The comms::MessageBase class provides access to its fields via
 ///     comms::MessageBase::fields() member function(s). The fields are bundled
@@ -556,8 +571,21 @@ protected:
 ///     option, i.e. defines and contains internal fields as a tuple.
 /// @param[in] ... List of fields' names.
 /// @related comms::MessageBase
-#define COMMS_MSG_FIELDS_ACCESS(base_, ...) COMMS_FIELDS_ACCESS_ALL(typename base_::AllFields, base_::fields(), __VA_ARGS__)
-
+#define COMMS_MSG_FIELDS_ACCESS(...) \
+    COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
+    auto fields() -> decltype(comms::toMessageBase(*this).fields()) { \
+        typedef typename std::decay<decltype(fields())>::type AllFieldsTuple; \
+        static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
+            "Invalid number of names for fields tuple"); \
+        return comms::toMessageBase(*this).fields(); \
+    } \
+    auto fields() const -> decltype(comms::toMessageBase(*this).fields()) { \
+        typedef typename std::decay<decltype(fields())>::type AllFieldsTuple; \
+        static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
+            "Invalid number of names for fields tuple"); \
+        return comms::toMessageBase(*this).fields(); \
+    } \
+    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(fields(), __VA_ARGS__))
 }  // namespace comms
 
 

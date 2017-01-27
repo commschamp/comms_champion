@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -148,9 +148,10 @@ public:
     ///       to a valid object.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
+    template <typename TIter>
     ErrorStatus read(
         MsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
@@ -176,11 +177,11 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields>
+    template <std::size_t TIdx, typename TAllFields, typename TIter>
     ErrorStatus readFieldsCached(
         TAllFields& allFields,
         MsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
@@ -209,9 +210,10 @@ public:
     ///       written. In case of an error, distance between original position
     ///       and advanced will pinpoint the location of the error.
     /// @return Status of the write operation.
+    template <typename TMsg, typename TIter>
     ErrorStatus write(
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size) const
     {
         Field field(msg.getId());
@@ -233,11 +235,11 @@ public:
     /// @param[in, out] iter Iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields>
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
     ErrorStatus writeFieldsCached(
         TAllFields& allFields,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size) const
     {
         auto& field = Base::template getField<TIdx>(allFields);
@@ -268,11 +270,11 @@ public:
 
 private:
 
-    template <typename TReader>
+    template <typename TIter, typename TReader>
     ErrorStatus readInternal(
         Field& field,
         MsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         TReader&& reader)
@@ -296,10 +298,10 @@ private:
                 break;
             }
 
-            typedef typename std::decay<decltype(iter)>::type DecayedIter;
-            static_assert(std::is_same<typename std::iterator_traits<DecayedIter>::iterator_category, std::random_access_iterator_tag>::value,
-                "ReadIterator is expected to be random access one");
-            DecayedIter readStart = iter;
+            typedef typename std::decay<decltype(iter)>::type IterType;
+            static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
+                "Iterator used for reading is expected to be random access one");
+            IterType readStart = iter;
             es = reader.read(msgPtr, iter, size - field.length(), missingSize);
             if (es == ErrorStatus::Success) {
                 return es;
@@ -322,11 +324,11 @@ private:
         return ErrorStatus::MsgAllocFailure;
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternal(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {

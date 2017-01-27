@@ -328,27 +328,18 @@ protected:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
-template <typename... TOptions, typename TVal>
-typename Message<TOptions...>::ReadIterator readIteratorFor(
-    Message<TOptions...>&,
-    const TVal& val)
-{
-    return typename Message<TOptions...>::ReadIterator(val);
-}
-
-template <typename TDeleter, typename... TOptions, typename TVal>
-typename Message<TOptions...>::ReadIterator readIteratorFor(
-    std::unique_ptr<Message<TOptions...>, TDeleter>&,
-    const TVal& val)
-{
-    return typename Message<TOptions...>::ReadIterator(val);
-}
-
 template <typename TMessage, typename TVal>
 typename TMessage::ReadIterator readIteratorFor(
     const TVal& val)
 {
     return typename TMessage::ReadIterator(val);
+}
+
+template <typename TMessage, typename TVal>
+typename TMessage::WriteIterator writeIteratorFor(
+    const TVal& val)
+{
+    return typename TMessage::WriteIterator(val);
 }
 
 }  // namespace comms

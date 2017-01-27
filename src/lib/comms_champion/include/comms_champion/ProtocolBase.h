@@ -56,7 +56,11 @@ protected:
     typedef TProtStack ProtocolStack;
     typedef TTransportMsg TransportMsg;
     typedef TRawDataMsg RawDataMsg;
-    typedef typename ProtocolStack::Message ProtocolMessage;
+    typedef typename ProtocolStack::MsgPtr ProtocolMsgPtr;
+    static_assert(!std::is_void<ProtocolMsgPtr>::value,
+        "ProtocolStack does not define MsgPtr");
+
+    typedef typename ProtocolMsgPtr::element_type ProtocolMessage;
     typedef typename ProtocolMessage::MsgIdType MsgIdType;
     typedef typename ProtocolMessage::MsgIdParamType MsgIdParamType;
     typedef typename ProtocolStack::AllMessages AllMessages;
@@ -81,7 +85,7 @@ protected:
         m_data.reserve(m_data.size() + size);
         std::copy_n(iter, size, std::back_inserter(m_data));
 
-        using ReadIterator = typename ProtocolStack::ReadIterator;
+        using ReadIterator = typename ProtocolMessage::ReadIterator;
         ReadIterator readIterBeg = &m_data[0];
 
         auto remainingSizeCalc =
@@ -144,8 +148,6 @@ protected:
             };
 
         while (true) {
-            using ProtocolMsgPtr = typename ProtocolStack::MsgPtr;
-
             ProtocolMsgPtr msgPtr;
 
             auto readIterCur = readIterBeg;

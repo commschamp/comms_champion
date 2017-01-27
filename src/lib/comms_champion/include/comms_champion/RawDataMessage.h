@@ -55,7 +55,7 @@ template <typename TProtStack>
 class RawDataMessage : public
     ProtocolMessageBase<
         details::RawDataMessageImpl<
-            typename TProtStack::Message,
+            typename TProtStack::MsgPtr::element_type,
             typename std::tuple_element<std::tuple_size<typename TProtStack::AllFields>::value - 1, typename TProtStack::AllFields>::type>,
         RawDataMessage<TProtStack>
     >

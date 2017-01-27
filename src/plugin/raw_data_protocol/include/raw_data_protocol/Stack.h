@@ -53,9 +53,9 @@ template <
 using Stack =
         comms::protocol::MsgIdLayer<
             IdField<typename TMsgBase::Field>,
+            TMsgBase,
             std::tuple<TDataMessage>,
             comms::protocol::MsgDataLayer<
-                TMsgBase,
                 DataField<typename TMsgBase::Field, TDataFieldStorageOptions>
             >,
             TMsgAllocOptions

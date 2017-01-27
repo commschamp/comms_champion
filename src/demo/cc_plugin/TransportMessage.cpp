@@ -97,7 +97,7 @@ const QVariantList& TransportMessage::fieldsPropertiesImpl() const
 comms::ErrorStatus TransportMessage::readImpl(ReadIterator& iter, std::size_t size)
 {
     static const auto ChecksumLen =
-        sizeof(demo::ChecksumField<cc_plugin::Stack::Message::Field>::ValueType);
+        sizeof(demo::ChecksumField<cc_plugin::Message::Field>::ValueType);
 
     size -= ChecksumLen;
     auto es = Base::readFieldsUntil<FieldIdx_Checksum>(iter, size);

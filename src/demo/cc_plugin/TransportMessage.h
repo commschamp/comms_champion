@@ -36,22 +36,22 @@ namespace details
 
 using TransportMessageFields =
     std::tuple<
-        demo::SyncField<cc_plugin::Stack::Message::Field>,
-        demo::LengthField<cc_plugin::Stack::Message::Field>,
-        demo::MsgIdField<cc_plugin::Stack::Message::Field>,
-        demo::DataField<cc_plugin::Stack::Message::Field>,
-        demo::ChecksumField<cc_plugin::Stack::Message::Field>
+        demo::SyncField<cc_plugin::Message::Field>,
+        demo::LengthField<cc_plugin::Message::Field>,
+        demo::MsgIdField<cc_plugin::Message::Field>,
+        demo::DataField<cc_plugin::Message::Field>,
+        demo::ChecksumField<cc_plugin::Message::Field>
     >;
 
 }  // namespace details
 
 class TransportMessage : public
     comms_champion::TransportMessageBase<
-        cc_plugin::Stack::Message,
+        cc_plugin::Message,
         details::TransportMessageFields>
 {
     typedef comms_champion::TransportMessageBase<
-        cc_plugin::Stack::Message,
+        cc_plugin::Message,
         details::TransportMessageFields> Base;
 public:
     enum FieldIdx

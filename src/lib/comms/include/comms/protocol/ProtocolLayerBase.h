@@ -205,16 +205,16 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
-    /// @tparam TUpdateIter Type of the random access iterator.
+    /// @tparam TIter Type of the random access iterator.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in, out] iter Random access iterator to the written data.
     /// @param[in] size Number of bytes that have been written using writeFieldsCached().
     /// @return Status of the update operation.
-    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    template <std::size_t TIdx, typename TAllFields, typename TIter>
     ErrorStatus updateFieldsCached(
         TAllFields& allFields,
-        TUpdateIter& iter,
+        TIter& iter,
         std::size_t size) const
     {
         return updateFieldsCachedInternal<TIdx>(allFields, iter, size, LengthTag());
@@ -252,10 +252,10 @@ protected:
         {
         }
 
-        template <typename TMsgPtr>
+        template <typename TMsgPtr, typename TIter>
         ErrorStatus read(
             TMsgPtr& msg,
-            ReadIterator& iter,
+            TIter& iter,
             std::size_t size,
             std::size_t* missingSize)
         {
@@ -277,10 +277,10 @@ protected:
         {
         }
 
-        template<typename TMsgPtr>
+        template<typename TMsgPtr, typename TIter>
         ErrorStatus read(
             TMsgPtr& msg,
-            ReadIterator& iter,
+            TIter& iter,
             std::size_t size,
             std::size_t* missingSize)
         {
@@ -301,10 +301,8 @@ protected:
         {
         }
 
-        ErrorStatus write(
-            const Message& msg,
-            WriteIterator& iter,
-            std::size_t size) const
+        template <typename TMsg, typename TIter>
+        ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
         {
             return nextLayer_.write(msg, iter, size);
         }
@@ -325,10 +323,8 @@ protected:
         {
         }
 
-        ErrorStatus write(
-            const Message& msg,
-            WriteIterator& iter,
-            std::size_t size) const
+        template <typename TMsg, typename TIter>
+        ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
         {
             return nextLayer_.template writeFieldsCached<TIdx + 1>(allFields_, msg, iter, size);
         }
@@ -347,10 +343,8 @@ protected:
         {
         }
 
-        template <typename TUpdateIter>
-        ErrorStatus update(
-            TUpdateIter& iter,
-            std::size_t size) const
+        template <typename TIter>
+        ErrorStatus update(TIter& iter, std::size_t size) const
         {
             return nextLayer_.update(iter, size);
         }
@@ -371,10 +365,8 @@ protected:
         {
         }
 
-        template <typename TUpdateIter>
-        ErrorStatus update(
-            TUpdateIter& iter,
-            std::size_t size) const
+        template <typename TIter>
+        ErrorStatus update(TIter& iter, std::size_t size) const
         {
             return nextLayer_.template updateFieldsCached<TIdx + 1>(allFields_, iter, size);
         }

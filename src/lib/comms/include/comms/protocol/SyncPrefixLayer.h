@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -99,10 +99,10 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr>
+    template <typename TMsgPtr, typename TIter>
     ErrorStatus read(
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
@@ -135,11 +135,11 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
     ErrorStatus readFieldsCached(
         TAllFields& allFields,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
@@ -167,10 +167,8 @@ public:
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       written. In case of an error, distance between original position
     ///       and advanced will pinpoint the location of the error.
-    ErrorStatus write(
-            const Message& msg,
-            WriteIterator& iter,
-            std::size_t size) const
+    template <typename TMsg, typename TIter>
+    ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
     {
         Field field;
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
@@ -191,11 +189,11 @@ public:
     /// @param[in, out] iter Iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields>
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
     ErrorStatus writeFieldsCached(
         TAllFields& allFields,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size) const
     {
         auto& field = Base::template getField<TIdx>(allFields);
@@ -210,11 +208,11 @@ public:
 
 private:
 
-    template <typename TMsgPtr, typename TReader>
+    template <typename TMsgPtr, typename TIter, typename TReader>
     ErrorStatus readInternal(
         Field& field,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         TReader&& reader)
@@ -236,11 +234,11 @@ private:
         return reader.read(msgPtr, iter, size - field.length(), missingSize);
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternal(
         const Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {

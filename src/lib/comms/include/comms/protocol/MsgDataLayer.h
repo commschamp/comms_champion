@@ -24,6 +24,7 @@
 #include "comms/util/Tuple.h"
 #include "comms/field/ArrayList.h"
 #include "comms/field/IntValue.h"
+#include "ProtocolLayerBase.h"
 
 namespace comms
 {
@@ -71,58 +72,6 @@ struct WriteIteratorFrom<TMsg, false>
 template <typename TMsg>
 using WriteIteratorFromT =
     typename WriteIteratorFrom<TMsg, TMsg::InterfaceOptions::HasWriteIterator>::Type;
-
-template <class T, class R = void>
-struct MsgDataLayerEnableIfHasInterfaceOptions { typedef R Type; };
-
-template <class T, class Enable = void>
-struct MsgDataLayerHasInterfaceOptions
-{
-    static const bool Value = false;
-};
-
-template <class T>
-struct MsgDataLayerHasInterfaceOptions<T, typename MsgDataLayerEnableIfHasInterfaceOptions<typename T::InterfaceOptions>::Type>
-{
-    static const bool Value = true;
-};
-
-template <class T, class R = void>
-struct MsgDataLayerEnableIfHasImplOptions { typedef R Type; };
-
-template <class T, class Enable = void>
-struct MsgDataLayerHasImplOptions
-{
-    static const bool Value = false;
-};
-
-template <class T>
-struct MsgDataLayerHasImplOptions<T, typename MsgDataLayerEnableIfHasImplOptions<typename T::ImplOptions>::Type>
-{
-    static const bool Value = true;
-};
-
-template <typename T, bool THasImpl>
-struct MsgDataLayerHasFieldsImplHelper;
-
-template <typename T>
-struct MsgDataLayerHasFieldsImplHelper<T, true>
-{
-    static const bool Value = T::ImplOptions::HasFieldsImpl;
-};
-
-template <typename T>
-struct MsgDataLayerHasFieldsImplHelper<T, false>
-{
-    static const bool Value = false;
-};
-
-template <typename T>
-struct MsgDataLayerHasFieldsImpl
-{
-    static const bool Value =
-        MsgDataLayerHasFieldsImplHelper<T, MsgDataLayerHasImplOptions<T>::Value>::Value;
-};
 
 }  // namespace details
 
@@ -213,7 +162,7 @@ public:
         typedef typename MsgPtrType::element_type MsgType;
 
         static_assert(
-            details::MsgDataLayerHasInterfaceOptions<MsgType>::Value,
+            details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
             "The provided message object must inherit from comms::Message");
 
         static_assert(MsgType::InterfaceOptions::HasReadIterator,
@@ -280,7 +229,7 @@ public:
         typedef typename MsgPtrType::element_type MsgType;
 
         static_assert(
-            details::MsgDataLayerHasInterfaceOptions<MsgType>::Value,
+            details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
             "The provided message object must inherit from comms::Message");
 
         static_assert(MsgType::InterfaceOptions::HasReadIterator,
@@ -324,12 +273,12 @@ public:
         typedef typename std::decay<decltype(msg)>::type MsgType;
 
         static_assert(
-            details::MsgDataLayerHasInterfaceOptions<MsgType>::Value,
+            details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
             "The provided message object must inherit from comms::Message");
 
         typedef
             typename std::conditional<
-                details::MsgDataLayerHasFieldsImpl<MsgType>::Value,
+                details::ProtocolLayerHasFieldsImpl<MsgType>::Value,
                 DirectWriteTag,
                 PolymorphicWriteTag
             >::type Tag;
@@ -454,12 +403,12 @@ public:
         typedef typename std::decay<decltype(msg)>::type MsgType;
 
         static_assert(
-            details::MsgDataLayerHasInterfaceOptions<MsgType>::Value,
+            details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
             "The provided message object must inherit from comms::Message");
 
         typedef typename
             std::conditional<
-                details::MsgDataLayerHasFieldsImpl<MsgType>::Value,
+                details::ProtocolLayerHasFieldsImpl<MsgType>::Value,
                 MsgDirectLengthTag,
                 MsgHasLengthTag
             >::type Tag;
@@ -607,7 +556,7 @@ private:
     {
         typedef typename std::decay<decltype(msg)>::type MsgType;
         static_assert(MsgType::ImplOptions::HasFieldsImpl, "FieldsImpl option hasn't been used");
-        return msg.doLenth();
+        return msg.doLength();
     }
 
     template <typename TMsg>

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -126,10 +126,10 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr>
+    template <typename TMsgPtr, typename TIter>
     ErrorStatus read(
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
@@ -162,11 +162,11 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
     ErrorStatus readFieldsCached(
         TAllFields& allFields,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
@@ -196,13 +196,12 @@ public:
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       written. In case of an error, distance between original position
     ///       and advanced will pinpoint the location of the error.
-    ErrorStatus write(
-            const Message& msg,
-            WriteIterator& iter,
-            std::size_t size) const
+    template <typename TMsg, typename TIter>
+    ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
     {
+        typedef typename std::decay<decltype(msg)>::type MsgType;
         Field field;
-        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), MsgLengthTag());
+        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), MsgLengthTag<MsgType>());
     }
 
     /// @brief Serialise message into output data sequence while caching the written transport
@@ -220,13 +219,14 @@ public:
     /// @param[in, out] iter Iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields>
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
     ErrorStatus writeFieldsCached(
         TAllFields& allFields,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size) const
     {
+        typedef typename std::decay<decltype(msg)>::type MsgType;
         auto& field = Base::template getField<TIdx>(allFields);
         return
             writeInternal(
@@ -235,7 +235,7 @@ public:
                 iter,
                 size,
                 Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
-                MsgLengthTag());
+                MsgLengthTag<MsgType>());
     }
 
     /// @brief Update written dummy size with proper value.
@@ -246,10 +246,6 @@ public:
     template <typename TIter>
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
-        if (Message::InterfaceOptions::HasLength) {
-            return Base::update(iter, size);
-        }
-
         Field field;
         return updateInternal(field, iter, size, Base::createNextLayerUpdater());
     }
@@ -274,10 +270,6 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        if (Message::InterfaceOptions::HasLength) {
-            return Base::update(allFields, iter, size);
-        }
-
         auto& field = Base::template getField<TIdx>(allFields);
         return
             updateInternal(
@@ -295,26 +287,28 @@ private:
     struct MsgHasLengthTag {};
     struct MsgNoLengthTag {};
 
+    template<typename TMsg>
     using MsgLengthTag =
         typename std::conditional<
-            Message::InterfaceOptions::HasLength,
+            details::ProtocolLayerHasFieldsImpl<TMsg>::Value || TMsg::InterfaceOptions::HasLength,
             MsgHasLengthTag,
             MsgNoLengthTag
         >::type;
 
-    template <typename TMsgPtr, typename TReader>
+    template <typename TMsgPtr, typename TIter, typename TReader>
     ErrorStatus readInternal(
         Field& field,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         TReader&& reader)
     {
-        typedef typename std::iterator_traits<ReadIterator>::iterator_category IterTag;
+        typedef typename std::decay<decltype(iter)>::type IterType;
+        typedef typename std::iterator_traits<IterType>::iterator_category IterTag;
         static_assert(
             std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
-            "Current implementation of MsgSizeLayer requires ReadIterator to be random-access one.");
+            "Current implementation of MsgSizeLayer requires iterator used for reading to be random-access one.");
 
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
@@ -356,11 +350,11 @@ private:
         return es;
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalHasLength(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
@@ -376,11 +370,11 @@ private:
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalRandomAccess(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
@@ -405,11 +399,11 @@ private:
         return field.write(valueIter, sizeLen);
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalOutput(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
@@ -428,11 +422,11 @@ private:
         return ErrorStatus::UpdateRequired;
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalNoLengthTagged(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
         std::random_access_iterator_tag) const
@@ -440,11 +434,11 @@ private:
         return writeInternalRandomAccess(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalNoLengthTagged(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
         std::output_iterator_tag) const
@@ -452,24 +446,24 @@ private:
         return writeInternalOutput(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalNoLength(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        typedef typename std::iterator_traits<WriteIterator>::iterator_category Tag;
+        typedef typename std::decay<decltype(iter)>::type IterType;
+        typedef typename std::iterator_traits<IterType>::iterator_category Tag;
         return writeInternalNoLengthTagged(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter), Tag());
     }
 
-
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternal(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
         MsgHasLengthTag) const
@@ -477,11 +471,11 @@ private:
         return writeInternalHasLength(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternal(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
         MsgNoLengthTag) const

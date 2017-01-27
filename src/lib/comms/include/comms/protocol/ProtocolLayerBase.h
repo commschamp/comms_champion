@@ -53,6 +53,58 @@ struct AllMessagesHelper<T, typename EnableIfHasAllMessages<typename T::AllMessa
 template <class T>
 using AllMessagesType = typename AllMessagesHelper<T>::Type;
 
+template <class T, class R = void>
+struct ProtocolLayerEnableIfHasInterfaceOptions { typedef R Type; };
+
+template <class T, class Enable = void>
+struct ProtocolLayerHasInterfaceOptions
+{
+    static const bool Value = false;
+};
+
+template <class T>
+struct ProtocolLayerHasInterfaceOptions<T, typename ProtocolLayerEnableIfHasInterfaceOptions<typename T::InterfaceOptions>::Type>
+{
+    static const bool Value = true;
+};
+
+template <class T, class R = void>
+struct ProtocolLayerEnableIfHasImplOptions { typedef R Type; };
+
+template <class T, class Enable = void>
+struct ProtocolLayerHasImplOptions
+{
+    static const bool Value = false;
+};
+
+template <class T>
+struct ProtocolLayerHasImplOptions<T, typename ProtocolLayerEnableIfHasImplOptions<typename T::ImplOptions>::Type>
+{
+    static const bool Value = true;
+};
+
+template <typename T, bool THasImpl>
+struct ProtocolLayerHasFieldsImplHelper;
+
+template <typename T>
+struct ProtocolLayerHasFieldsImplHelper<T, true>
+{
+    static const bool Value = T::ImplOptions::HasFieldsImpl;
+};
+
+template <typename T>
+struct ProtocolLayerHasFieldsImplHelper<T, false>
+{
+    static const bool Value = false;
+};
+
+template <typename T>
+struct ProtocolLayerHasFieldsImpl
+{
+    static const bool Value =
+        ProtocolLayerHasFieldsImplHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
+};
+
 }  // namespace details
 
 /// @brief Base class for all the middle (non @ref MsgDataLayer) protocol transport layers.

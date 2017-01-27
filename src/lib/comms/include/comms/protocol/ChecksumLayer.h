@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -114,13 +114,17 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr>
+    template <typename TMsgPtr, typename TIter>
     ErrorStatus read(
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
+        typedef typename std::decay<decltype(iter)>::type IterType;
+        static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
+            "The read operation is expected to use random access iterator");
+
         Field field;
         return
             readInternal(
@@ -150,14 +154,18 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
     ErrorStatus readFieldsCached(
         TAllFields& allFields,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
+        typedef typename std::decay<decltype(iter)>::type IterType;
+        static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
+            "The read operation is expected to use random access iterator");
+
         auto& field = Base::template getField<TIdx>(allFields);
 
         return
@@ -190,13 +198,14 @@ public:
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       written. In case of an error, distance between original position
     ///       and advanced will pinpoint the location of the error.
-    ErrorStatus write(
-            const Message& msg,
-            WriteIterator& iter,
-            std::size_t size) const
+    template <typename TMsg, typename TIter>
+    ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
     {
+        typedef typename std::decay<decltype(iter)>::type IterType;
+        typedef typename std::iterator_traits<IterType>::iterator_category Tag;
+
         Field field;
-        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), WriteIteratorCategoryTag());
+        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), Tag());
     }
 
     /// @brief Serialise message into output data sequence while caching the written transport
@@ -214,13 +223,15 @@ public:
     /// @param[in, out] iter Iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields>
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
     ErrorStatus writeFieldsCached(
         TAllFields& allFields,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size) const
     {
+        typedef typename std::decay<decltype(iter)>::type IterType;
+        typedef typename std::iterator_traits<IterType>::iterator_category Tag;
         auto& field = Base::template getField<TIdx>(allFields);
         return
             writeInternal(
@@ -229,7 +240,7 @@ public:
                 iter,
                 size,
                 Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
-                WriteIteratorCategoryTag());
+                Tag());
     }
 
     /// @brief Update written dummy checksum with proper value.
@@ -274,22 +285,17 @@ public:
     }
 
 private:
-    typedef typename std::iterator_traits<WriteIterator>::iterator_category WriteIteratorCategoryTag;
-
     static_assert(comms::field::isIntValue<Field>(),
         "The checksum field is expected to be of IntValue type");
 
     static_assert(Field::minLength() == Field::maxLength(),
         "The checksum field is expected to be of fixed length");
 
-    static_assert(std::is_same<typename std::iterator_traits<ReadIterator>::iterator_category, std::random_access_iterator_tag>::value,
-        "The ReadIterator is expected to be a random access one");
-
-    template <typename TMsgPtr, typename TReader>
+    template <typename TMsgPtr, typename TIter, typename TReader>
     ErrorStatus readInternal(
         Field& field,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         TReader&& nextLayerReader)
@@ -334,11 +340,11 @@ private:
         return es;
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalRandomAccess(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
@@ -371,11 +377,11 @@ private:
         return field.write(iter, remSize);
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalOutput(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
@@ -391,11 +397,11 @@ private:
         return comms::ErrorStatus::UpdateRequired;
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternal(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
         std::random_access_iterator_tag) const
@@ -403,11 +409,11 @@ private:
         return writeInternalRandomAccess(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 
-    template <typename TWriter>
+    template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternal(
         Field& field,
-        const Message& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         TWriter&& nextLayerWriter,
         std::output_iterator_tag) const

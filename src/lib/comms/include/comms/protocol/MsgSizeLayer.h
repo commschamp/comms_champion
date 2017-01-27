@@ -42,27 +42,6 @@ class MsgSizeLayer : public ProtocolLayerBase<TField, TNextLayer>
     typedef ProtocolLayerBase<TField, TNextLayer> Base;
 
 public:
-
-    /// @brief Type of smart pointer that will hold allocated message object.
-    typedef typename Base::MsgPtr MsgPtr;
-
-    /// @brief Type of the message interface.
-    /// @details Initially provided to MsgDataLayer and propagated through all
-    ///     the layers in between to this class.
-    typedef typename Base::Message Message;
-
-    /// @brief Type of read iterator.
-    /// @details Initially provided to comms::Message through options, then it finds
-    ///     its way as a type in MsgDataLayer, and finally propagated through all
-    ///     the layers in between to this class
-    typedef typename Base::ReadIterator ReadIterator;
-
-    /// @brief Type of write iterator
-    /// @details Initially provided to comms::Message through options, then it finds
-    ///     its way as a type in MsgDataLayer, and finally propagated through all
-    ///     the layers in between to this class.
-    typedef typename Base::WriteIterator WriteIterator;
-
     /// @brief Type of the field object used to read/write remaining size value.
     typedef typename Base::Field Field;
 

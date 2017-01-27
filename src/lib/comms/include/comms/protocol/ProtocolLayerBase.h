@@ -36,22 +36,22 @@ namespace details
 {
 
 template <class T, class R = void>
-struct EnableIfHasAllMessages { typedef R Type; };
+struct ProtocolLayerEnableIfHasAllMessages { typedef R Type; };
 
 template <class T, class Enable = void>
-struct AllMessagesHelper
+struct ProtocolLayerAllMessagesHelper
 {
     typedef void Type;
 };
 
 template <class T>
-struct AllMessagesHelper<T, typename EnableIfHasAllMessages<typename T::AllMessages>::Type>
+struct ProtocolLayerAllMessagesHelper<T, typename ProtocolLayerEnableIfHasAllMessages<typename T::AllMessages>::Type>
 {
     typedef typename T::AllMessages Type;
 };
 
 template <class T>
-using AllMessagesType = typename AllMessagesHelper<T>::Type;
+using ProtocolLayerAllMessagesType = typename ProtocolLayerAllMessagesHelper<T>::Type;
 
 template <class T, class R = void>
 struct ProtocolLayerEnableIfHasInterfaceOptions { typedef R Type; };
@@ -105,6 +105,22 @@ struct ProtocolLayerHasFieldsImpl
         ProtocolLayerHasFieldsImplHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
 };
 
+template <class T, class R = void>
+struct ProtocolLayerEnableIfHasMsgPtr { typedef R Type; };
+
+template <class T, class Enable = void>
+struct ProtocolLayerMsgPtr
+{
+    typedef void Type;
+};
+
+template <class T>
+struct ProtocolLayerMsgPtr<T, typename ProtocolLayerEnableIfHasMsgPtr<typename T::MsgPtr>::Type>
+{
+    typedef typename T::MsgPtr Type;
+};
+
+
 }  // namespace details
 
 /// @brief Base class for all the middle (non @ref MsgDataLayer) protocol transport layers.
@@ -120,10 +136,6 @@ struct ProtocolLayerHasFieldsImpl
 template <typename TField, typename TNextLayer>
 class ProtocolLayerBase
 {
-    static_assert(TNextLayer::Message::InterfaceOptions::HasMsgIdType,
-        "Usage of ProtocolLayerBase requires Message interface to provide ID type. "
-        "Use comms::option::MsgIdType option in message interface type definition.");
-
 public:
     /// @brief Type of the field used for this layer.
     typedef TField Field;
@@ -145,29 +157,11 @@ public:
 
     /// @brief All supported messages.
     /// @details Same as NextLayer::AllMessages or void if such doesn't exist.
-    typedef details::AllMessagesType<NextLayer> AllMessages;
+    typedef details::ProtocolLayerAllMessagesType<NextLayer> AllMessages;
 
     /// @brief Type of pointer to the message.
-    /// @details Same as NextLayer::MsgPtr.
-    typedef typename NextLayer::MsgPtr MsgPtr;
-
-    /// @brief Type of the custom message interface.
-    /// @details Same as NextLayer::Message.
-    typedef typename NextLayer::Message Message;
-
-    /// @brief Type used for message ID.
-    typedef typename Message::MsgIdType MsgIdType;
-
-    /// @brief Type used for pas message ID as a parameter.
-    typedef typename Message::MsgIdParamType MsgIdParamType;
-
-    /// @brief Type of the iterator used for reading.
-    /// @details Same as NextLayer::ReadIterator.
-    typedef typename NextLayer::ReadIterator ReadIterator;
-
-    /// @brief Type of the iterator used for writing.
-    /// @details Same as NextLayer::WriteIterator.
-    typedef typename NextLayer::WriteIterator WriteIterator;
+    /// @details Same as NextLayer::MsgPtr or void if such doesn't exist.
+    typedef typename details::ProtocolLayerMsgPtr<NextLayer>::Type MsgPtr;
 
     /// @copydoc MsgDataLayer::NumOfLayers
     static const std::size_t NumOfLayers = 1 + NextLayer::NumOfLayers;
@@ -280,9 +274,10 @@ public:
     /// @param idx Relative index of the message with the same ID.
     /// @return Smart pointer (variant of std::unique_ptr) to allocated message
     ///     object
-    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
+    template <typename TId>
+    MsgPtr createMsg(TId id, unsigned idx = 0)
     {
-        return nextLayer_.createMsg(id, idx);
+        return nextLayer().createMsg(id, idx);
     }
 
 protected:

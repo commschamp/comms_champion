@@ -108,7 +108,7 @@ private:
     typedef Message3<LeMessageBase> LeMsg3;
 
     template <typename TMessage>
-    using ProtocolStack = comms::protocol::MsgDataLayer<TMessage>;
+    using ProtocolStack = comms::protocol::MsgDataLayer<>;
 };
 
 void MsgDataLayerTestSuite::test1()

@@ -21,6 +21,7 @@
 #include <tuple>
 #include <iterator>
 #include "comms/Assert.h"
+#include "comms/Field.h"
 #include "comms/util/Tuple.h"
 #include "comms/field/ArrayList.h"
 #include "comms/field/IntValue.h"
@@ -32,59 +33,13 @@ namespace comms
 namespace protocol
 {
 
-namespace details
-{
-
-template <typename TMessage, bool THasDefined>
-struct ReadIteratorFrom;
-
-template <typename TMsg>
-struct ReadIteratorFrom<TMsg, true>
-{
-    typedef typename TMsg::ReadIterator Type;
-};
-
-template <typename TMsg>
-struct ReadIteratorFrom<TMsg, false>
-{
-    typedef const std::uint8_t* Type;
-};
-
-template <typename TMsg>
-using ReadIteratorFromT =
-    typename ReadIteratorFrom<TMsg, TMsg::InterfaceOptions::HasReadIterator>::Type;
-
-template <typename TMsg, bool THasDefined>
-struct WriteIteratorFrom;
-
-template <typename TMsg>
-struct WriteIteratorFrom<TMsg, true>
-{
-    typedef typename TMsg::WriteIterator Type;
-};
-
-template <typename TMsg>
-struct WriteIteratorFrom<TMsg, false>
-{
-    typedef std::uint8_t Type;
-};
-
-template <typename TMsg>
-using WriteIteratorFromT =
-    typename WriteIteratorFrom<TMsg, TMsg::InterfaceOptions::HasWriteIterator>::Type;
-
-}  // namespace details
-
 /// @brief Message data layer.
 /// @details Must always be the last layer in protocol stack.
-/// @tparam TMessage Common message interface class, must be the common base
-///     to all the custom messages.
 /// @tparam TField Field that can be used to store raw data of the message.
 template <
-    typename TMessage,
     typename TField =
         comms::field::ArrayList<
-            typename TMessage::Field,
+            comms::Field<comms::option::BigEndian>,
             std::uint8_t
         >
 >
@@ -97,22 +52,6 @@ public:
 
     /// @brief All fields of the remaining transport layers, contains only @ref Field.
     typedef std::tuple<Field> AllFields;
-
-    /// @brief Type of pointer to the message.
-    /// @details At this point is unknown, will be redefined in
-    ///     comms::protocol::MsgIdLayer.
-    typedef void MsgPtr;
-
-    /// @brief Type of the custom message interface.
-    typedef TMessage Message;
-
-    /// @brief Type of iterator used for reading.
-    /// @details Same as comms::Message::ReadIterator if such exists.
-    typedef details::ReadIteratorFromT<Message> ReadIterator;
-
-    /// @brief Type of iterator used for writing.
-    /// @details Same as comms::Message::WriteIterator if such exists.
-    typedef details::WriteIteratorFromT<Message> WriteIterator;
 
     /// @brief Static constant indicating amount of transport layers used.
     static const std::size_t NumOfLayers = 1;

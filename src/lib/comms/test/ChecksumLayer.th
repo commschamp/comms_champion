@@ -166,8 +166,9 @@ private:
                     TSizeField,
                     comms::protocol::MsgIdLayer<
                         TIdField,
+                        TMessage,
                         AllMessages<TMessage>,
-                        comms::protocol::MsgDataLayer<TMessage>
+                        comms::protocol::MsgDataLayer<>
                     >
                 >
             >

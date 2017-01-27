@@ -45,12 +45,14 @@ namespace protocol
 ///     Holds instance of comms::MsgFactory as its private member and uses it
 ///     to create message(s) with the required ID.
 /// @tparam TField Field type that contains message ID.
-/// @tparam TAllMessages All messages, bundled in std::tuple, that this protocol
-///     stack must be able to read() as well as create (using createMsg()).
+/// @tparam TMessage Interface class for the @b input messages
+/// @tparam TAllMessages Types of all @b input messages, bundled in std::tuple,
+///     that this protocol stack must be able to read() as well as create (using createMsg()).
 /// @tparam TNextLayer Next transport layer type.
 /// @tparam TOptions All the options that will be forwarded to definition of
 ///     message factory type (comms::MsgFactory).
 template <typename TField,
+          typename TMessage,
           typename TAllMessages,
           typename TNextLayer,
           typename... TOptions>
@@ -60,9 +62,9 @@ class MsgIdLayer : public ProtocolLayerBase<TField, TNextLayer>
         "TAllMessages must be of std::tuple type");
     typedef ProtocolLayerBase<TField, TNextLayer> Base;
 
-    typedef comms::MsgFactory<typename Base::Message, TAllMessages, TOptions...> Factory;
+    typedef comms::MsgFactory<TMessage, TAllMessages, TOptions...> Factory;
 
-    static_assert(Base::Message::InterfaceOptions::HasMsgIdType,
+    static_assert(TMessage::InterfaceOptions::HasMsgIdType,
         "Usage of MsgIdLayer requires support for ID type. "
         "Use comms::option::MsgIdType option in message interface type definition.");
 
@@ -76,28 +78,14 @@ public:
     /// @details Same as comms::MsgFactory::MsgPtr.
     typedef typename Factory::MsgPtr MsgPtr;
 
-    /// @brief Type of the message interface.
-    /// @details Initially provided to MsgDataLayer and propagated through all
-    ///     the layers in between to this class.
-    typedef typename Base::Message Message;
+    /// @brief Type of the @b input message interface.
+    typedef TMessage Message;
 
     /// @brief Type of message ID
-    typedef typename Base::MsgIdType MsgIdType;
+    typedef typename Message::MsgIdType MsgIdType;
 
     /// @brief Type of message ID when passed by the parameter
-    typedef typename Base::MsgIdParamType MsgIdParamType;
-
-    /// @brief Type of read iterator.
-    /// @details Initially provided to comms::Message through options, then it finds
-    ///     its way as a type in MsgDataLayer, and finally propagated through all
-    ///     the layers in between to this class.
-    typedef typename Base::ReadIterator ReadIterator;
-
-    /// @brief Type of write iterator
-    /// @details Initially provided to comms::Message through options, then it finds
-    ///     its way as a type in MsgDataLayer, and finally propagated through all
-    ///     the layers in between to this class.
-    typedef typename Base::WriteIterator WriteIterator;
+    typedef typename Message::MsgIdParamType MsgIdParamType;
 
     /// @brief Type of the field object used to read/write message ID value.
     typedef typename Base::Field Field;

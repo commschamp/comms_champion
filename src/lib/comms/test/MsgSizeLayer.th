@@ -162,8 +162,9 @@ private:
             TSizeField,
             comms::protocol::MsgIdLayer<
                 TIdField,
+                TMessage,
                 AllMessages<TMessage>,
-                comms::protocol::MsgDataLayer<TMessage>
+                comms::protocol::MsgDataLayer<>
             >
         >;
 
@@ -171,10 +172,11 @@ private:
     using RevProtocolStack =
         comms::protocol::MsgIdLayer<
             TIdField,
+            TMessage,
             AllMessages<TMessage>,
             comms::protocol::MsgSizeLayer<
                 TSizeField,
-                comms::protocol::MsgDataLayer<TMessage>
+                comms::protocol::MsgDataLayer<>
             >
         >;
 
@@ -184,8 +186,9 @@ private:
             TSizeField,
             comms::protocol::MsgIdLayer<
                 TIdField,
+                TMessage,
                 AllMessages<TMessage>,
-                comms::protocol::MsgDataLayer<TMessage>,
+                comms::protocol::MsgDataLayer<>,
                 comms::option::InPlaceAllocation
             >
         >;

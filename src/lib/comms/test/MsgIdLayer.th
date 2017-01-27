@@ -115,16 +115,18 @@ private:
     using ProtocolStack =
         comms::protocol::MsgIdLayer<
             TField,
+            TMessage,
             AllMessages<TMessage>,
-            comms::protocol::MsgDataLayer<TMessage>
+            comms::protocol::MsgDataLayer<>
         >;
 
     template <typename TField, typename TMessage>
     using InPlaceProtocolStack =
         comms::protocol::MsgIdLayer<
             TField,
+            TMessage,
             AllMessages<TMessage>,
-            comms::protocol::MsgDataLayer<TMessage>,
+            comms::protocol::MsgDataLayer<>,
             comms::option::InPlaceAllocation
         >;
 };

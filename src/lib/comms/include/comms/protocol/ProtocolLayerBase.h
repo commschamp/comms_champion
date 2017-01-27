@@ -216,7 +216,8 @@ public:
     ///     identify the size of the buffer required to write provided message
     ///     wrapped in the transport information. This function is very similar
     ///     to length(), but adds also length of the message.
-    /// @param[in] msg Message
+    /// @tparam TMsg Type of message object.
+    /// @param[in] msg Message object
     /// @return length of the field + length reported by the next layer.
     template <typename TMsg>
     constexpr std::size_t length(const TMsg& msg) const
@@ -270,6 +271,7 @@ public:
     /// @details The default implementation is to forwards this call to the next
     ///     layer. One of the layers (usually comms::protocol::MsgIdLayer)
     ///     hides and overrides this implementation.
+    /// @tparam TMsg Type of message ID.
     /// @param id ID of the message.
     /// @param idx Relative index of the message with the same ID.
     /// @return Smart pointer (variant of std::unique_ptr) to allocated message

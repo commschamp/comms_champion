@@ -77,6 +77,8 @@ public:
     ///     compares it to the calculated. If checksums match,
     ///     comms::ErrorStatus::Success is returned, otherwise
     ///     function returns comms::ErrorStatus::ProtocolError.
+    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TIter Type of iterator used for reading.
     /// @param[in, out] msgPtr Reference to smart pointer that already holds or
     ///     will hold allocated message object
     /// @param[in, out] iter Input iterator used for reading.
@@ -124,6 +126,8 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
+    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TIter Type of iterator used for reading.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in] msgPtr Reference to the smart pointer holding message object.
@@ -169,6 +173,8 @@ public:
     ///     comms::ErrorStatus::UpdateRequired to indicate that call to
     ///     update() with random access iterator is required in order to be
     ///     able to update written checksum information.
+    /// @tparam TMsg Type of message object.
+    /// @tparam TIter Type of iterator used for writing.
     /// @param[in] msg Reference to message object
     /// @param[in, out] iter Output iterator.
     /// @param[in] size Max number of bytes that can be written.
@@ -197,6 +203,8 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
+    /// @tparam TMsg Type of message object.
+    /// @tparam TIter Type of iterator used for writing.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in] msg Reference to the message object that is being written,
@@ -225,6 +233,7 @@ public:
 
     /// @brief Update written dummy checksum with proper value.
     /// @details Should be called when write() returns comms::ErrorStatus::UpdateRequired.
+    /// @tparam TIter Type of iterator used for updating.
     /// @param[in, out] iter Any random access iterator.
     /// @param[in] size Number of bytes that have been written using write().
     /// @return Status of the update operation.
@@ -244,6 +253,7 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
+    /// @tparam TIter Type of iterator used for updating.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in, out] iter Any random access iterator.

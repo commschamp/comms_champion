@@ -196,7 +196,16 @@ public:
     }
 
     /// @brief Write the message contents.
-    /// @details Calls the write() member function of the message object.
+    /// @details The way the message contents are written is determined by the
+    ///     type of the message. If TMsg type is recognised to be actual message
+    ///     inheriting from comms::MessageBase with its fields provided using
+    ///     comms::option::FieldsImpl option, the function calls @b doWrite
+    ///     non-virtual function defined by comms::MessageBase
+    ///     (see comms::MessageBase::doWrite) or redefined by the actual
+    ///     message itself. Otherwise, TMsg type is expected to be the used
+    ///     interface which allows polymorphic write functionality.
+    ///     It must define @b write() member function which will be
+    ///     called.
     /// @tparam TMsg Type of the message.
     /// @tparam TIter Type of the iterator used for writing.
     /// @param[in] msg Reference to the message object,
@@ -295,16 +304,16 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
-    /// @tparam TUpdateIter Type of the random access iterator.
+    /// @tparam TIter Type of the random access iterator.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in, out] iter Random access iterator to the written data.
     /// @param[in] size Number of bytes that have been written using writeFieldsCached().
     /// @return Status of the update operation.
-    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
+    template <std::size_t TIdx, typename TAllFields, typename TIter>
     static ErrorStatus updateFieldsCached(
         TAllFields& allFields,
-        TUpdateIter& iter,
+        TIter& iter,
         std::size_t size)
     {
         static_assert(comms::util::IsTuple<TAllFields>::Value,

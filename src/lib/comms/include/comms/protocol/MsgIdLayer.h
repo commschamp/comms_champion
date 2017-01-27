@@ -116,6 +116,7 @@ public:
     /// @details The function will read message ID from the data sequence first,
     ///          generate appropriate message object based on the read ID and
     ///          forward the read() request to the next layer.
+    /// @tparam TIter Type of iterator used for reading.
     /// @param[in, out] msgPtr Reference to smart pointer that will hold
     ///                 allocated message object
     /// @param[in, out] iter Input iterator used for reading.
@@ -155,6 +156,7 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
+    /// @tparam TIter Type of iterator used for reading.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in] msgPtr Reference to the smart pointer holding message object.
@@ -188,6 +190,8 @@ public:
     /// @details The function will write ID of the message to the data
     ///          sequence, then call write() member function of the next
     ///          protocol layer.
+    /// @tparam TMsg Type of the message being written.
+    /// @tparam TIter Type of iterator used for writing.
     /// @param[in] msg Reference to message object
     /// @param[in, out] iter Output iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
@@ -217,6 +221,8 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
+    /// @tparam TMsg Type of the message being written.
+    /// @tparam TIter Type of iterator used for writing.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in] msg Reference to the message object that is being written,

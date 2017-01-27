@@ -338,16 +338,14 @@
 /// 
 /// The serialised message data (@b PAYLOAD) is handled by comms::protocol::MsgDataLayer:
 /// @code
-/// typedef comms::protocol::MsgDataLayer<MyMessage> MyMsgData;
+/// typedef comms::protocol::MsgDataLayer<> MyMsgData;
 /// @endcode
-/// Note, that it receives common base/interface class (@b MyMessage) for all 
-/// the custom messages.
 ///
 /// The next layer is responsible to handle message ID, it is handled by
 /// comms::protocol::MsgIdLayer.
 /// @code
 /// typedef comms::field::EnumValue<CommonFieldBase, MsgId> MsgIdField;
-/// typedef comms::protocol::MsgIdLayer<MsgIdField, AllMessages, MyMsgData> MyMsgId;
+/// typedef comms::protocol::MsgIdLayer<MsgIdField, MyMessage, AllMessages, MyMsgData> MyMsgId;
 /// @endcode 
 /// The @b MsgIdField is type of the field that is responsible to read/write
 /// message ID information. @b CommonFieldBase is the base class for all the fields
@@ -356,10 +354,12 @@
 /// section above. Note, that underlying type of @b MsgId is @b std::uint8_t,
 /// which causes serialisation length of the @b MsgIdField to be exactly 1 byte.@n
 /// @b MyMsgId layer is defined to be comms::protocol::MsgIdLayer
-/// that uses @b MsgIdField to read/write the ID information. Second template
-/// parameter to comms::protocol::MsgIdLayer is @b AllMessages, which is
-/// @b std::tuple of all the supported messages. It was defined in 
-/// @ref message_handling section above. Third template parameter is the 
+/// that uses @b MsgIdField to read/write the ID information.
+/// Second template paramter is the interface class for all the @b incoming messages
+/// that this layer must recognise (@b MyMessage in the example). 
+/// Third template parameter to comms::protocol::MsgIdLayer is @b AllMessages, which is
+/// @b std::tuple of all the supported @b input messages. It was defined in 
+/// @ref message_handling section above. Fourth template parameter is the 
 /// @b MyMsgData layer defined earlier, which is responsible to handle the PAYLOAD. @n
 /// When new valid sequence of bytes is received over I/O link, the @b MyMsgId
 /// layer is responsible to read the ID field information and create proper
@@ -438,35 +438,50 @@
 /// typedef MySyncPrefix ProtStack;
 /// @endcode 
 ///
-/// The protocol stack type defines several types that can be used in processing
-/// the data:
-/// @li @b ProtStack::Message - Common interface class for all the messages, was
-///     initially provided to innermost layer (comms::protocol::MsgDataLayer).
-/// @li @b ProtStack::MsgPtr - Smart pointer to message object, initially defined 
-///     by the comms::protocol::MsgIdLayer and propagated to outermost layer.
-/// @li @b ProtStack::ReadIterator - Iterator used for reading, initially defined
-///     the message interface class (@b MyMessage) and propagated to outermost
-///     layer.
-/// @li @b ProtStack::WriteIterator - Iterator used for writing, initially defined
-///     the message interface class (@b MyMessage) and propagated to outermost
-///     layer.
+/// The protocol stack type defines defines type of the smart pointer that holds
+/// message object that was allocation during @read operation:
+/// @code
+/// ProtStack::MsgPtr msgPtr;
+/// @endcode
+///
+/// The smart pointer is a variant of 
+/// <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr">unique_ptr</a>.
+/// As the result the type of the interface can be retrieved using internal
+/// type @b element_type:
+/// @code
+/// typedef ProtStack::MsgPtr::element_type MsgInterfaceType;
+/// @endcode
 ///
 /// See the @ref page_prot_stack_tutorial page for more examples and guidelines
 /// on how to define various protocol stacks.
 ///
-/// @section tutorial_summary Fitting It All Together
+/// @section tutorial_polymorphic_read Polymorphic Read and Dispatch
 /// The COMMS library doesn't make any assumptions about what I/O link is used
 /// as a communication channel, and doesn't provide any low level socket
 /// abstractions. It is a job of the library's client to manage the communication,
 /// store accumulated data somewhere and make it available for processing.
 ///
-/// Just to remind the reader, in the examples above we defined an iterator 
-/// that can be used for reading to be <b>const std::uint8_t*</b>. It was provided
-/// with comms::option::ReadIterator option to comms::Message when defining
-/// @b MyMessage interface. It means that the collection that is used to
-/// accumulate incoming data must be able to provide <b>const std::uint8_t*</b>
-/// as an iterator to its elements. Just as an example, let's choose 
-/// @b std::vector<std::uint8_t>. The data processing logic can be implemented
+/// When new data has been read from I/O link it needs to be read and processed.
+/// The received message needs to be dispatched to appropriate handling function.
+/// The code needs to be the same for all types of messages. It means that 
+/// message interface must allow polymorphic read and dispatch. In other words,
+/// the message interface needs to define iterator used for reading as well as
+/// type of message handler:
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...
+///         comms::option::ReadIterator<const std::uint8_t*>, 
+///         comms::option::Handler<MyHandler>,
+///         ... 
+///     >
+/// {
+///     ...
+/// };
+/// @endcode
+///
+/// Just as an example, let's choose @b std::vector<std::uint8_t> to store
+/// the incoming data. The data processing logic can be implemented
 /// like this:
 /// @code
 /// std::vector<std::uint8_t> dataToProcess; // Data from I/O link is stored here
@@ -475,9 +490,11 @@
 ///
 /// // Processing loop
 /// while (!dataToProcess.empty()) {
-///     ProtStack::ReadIterator iter = &dataToProcess[0];
 ///     ProtStack::MsgPtr msgPtr; // Smart pointer to the message object.
 ///
+///     typedef ProtStack::MsgPtr::element_type MsgType; // Type of the message interface class
+///     
+///     auto iter = comms::readIteratorFor<MsgType>(&dataToProcess[0]); // initialise iterator for reading
 ///     auto es = protStack.read(msgPtr, iter, dataToProcess.size());
 ///     if (es == comms::ErrorStatus::NotEnoughData) {
 ///         break; // Not enough data in the buffer, stop processing
@@ -496,30 +513,52 @@
 ///                                    // object will be called.
 ///     }
 ///
-///     ProtStack::ReadIterator begIter = &dataToProcess[0];
+///     auto begIter = comms::readIteratorFor<MsgType>(&dataToProcess[0]);
 ///     dataToProcess.erase(begIter, iter); // Remove all processed data;
 /// }
 /// ... // proceed to reading more data from I/O link
 /// @endcode
 /// 
-/// Let's also do an example of write functionality. As a reminder, the
-/// iterator used for writing was defined to be <b>std::uint8_t*</b> using
-/// comms::option::WriteIterator option to comms::Message when defining
-/// @b MyMessage interface class. It means, that we must have appropriate storage 
-/// allocated and available. In order to identify storage size required to write
+/// @section tutorial_polymorphic_write Polymorphic Write
+/// The @b COMMS library allows writing the same writing (serialisation) code
+/// for all the messages. Something like:
+/// @code
+/// void sendMessage(const MyMessage& msg)
+/// {
+///     ...
+/// }
+///
+/// In order to allow such polymorhic write, the message interface must define
+/// appropriate interface by providing iterator used for writing:
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...
+///         comms::option::WriteIterator<std::uint8_t*>, // define polymorphic write
+///         comms::option::LengthInfoInterface, // allow polymorphic retrieval of length information
+///         ... 
+///     >
+/// {
+///     ...
+/// };
+/// @endcode
+/// 
+/// In order to identify storage size required to write
 /// the message with all the transport related fields, use "length()" member
 /// function of the protocol stack object:
 /// @code
-/// std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
-/// ProtStack protStack; // Protocol stack defined in previous section
-/// Message1 msg; // Message to be serialised and sent out
+/// void sendMessage(const MyMessage& msg)
+/// {
+///     std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
+///     ProtStack protStack; // Protocol stack defined in previous section
 ///
-/// auto reqLen = protStack.length(msg); // Number of bytes required to serialise the message;
-/// dataToSend.resize(reqLen);
-/// ProtStack::WriteIterator writeIter = &dataToSend[0];
-/// auto es = protStack.write(msg, writeIter, dataToSend.size());
-/// if (es == comms::ErrorStatus::Success) {
-///     ... // Send contents of dataToSend via I/O link
+///     auto reqLen = protStack.length(msg); // Number of bytes required to serialise the message;
+///     dataToSend.resize(reqLen);
+///     auto writeIter = comms::writeIteratorFor<MyMessage>(&dataToSend[0]);
+///     auto es = protStack.write(msg, writeIter, dataToSend.size());
+///     if (es == comms::ErrorStatus::Success) {
+///         ... // Send contents of dataToSend via I/O link
+///     }
 /// }
 /// @endcode
 ///
@@ -530,13 +569,8 @@
 /// @code
 /// class MyMessage : public
 ///     comms::Message<
-///         comms::option::BigEndian,        
-///         comms::option::MsgIdType<MsgId>,
-///         comms::option::ReadIterator<const std::uint8_t*>, 
+///         ...
 ///         comms::option::WriteIterator<std::back_insert_iterator<std::uint8_t> >, 
-///         comms::option::Handler<MyHandler>, 
-///         comms::option::ValidCheckInterface, 
-///         comms::option::LengthInfoInterface  
 ///     >
 /// {
 ///     ...
@@ -544,13 +578,46 @@
 /// @endcode
 /// In this case the write functionality may be changed into following:
 /// @code
-/// std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
-/// ProtStack protStack; // Protocol stack defined in previous section
-/// Message1 msg; // Message to be serialised and sent out
+/// void sendMessage(const MyMessage& msg)
+/// {
+///     std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
+///     ProtStack protStack; // Protocol stack defined in previous section
 ///
-/// ProtStack writeIter = std::back_inserter(dataToSend);
-/// auto es = protStack.write(msg, writeIter, dataToSend.max_size());
-/// if (es == comms::ErrorStatus::Success) {
-///     ... // Send contents of dataToSend via I/O link
+///     auto writeIter = std::back_inserter(dataToSend);
+///     auto es = protStack.write(msg, writeIter, dataToSend.max_size());
+///     if (es == comms::ErrorStatus::Success) {
+///         ... // Send contents of dataToSend via I/O link
+///     }
 /// }
 /// @endcode
+///
+/// @section tutorial_write Direct (NON-Polymorphic) Write
+/// Sometimes it may be useful to write a common @b non polymorphic code to write
+/// a message.
+/// @code
+/// template <typename TMsg>
+/// void sendMessage(const TMsg& msg)
+/// {
+///     std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
+///     ProtStack protStack; // Protocol stack defined in previous section
+///
+///     auto writeIter = std::back_inserter(dataToSend);
+///     auto es = protStack.write(msg, writeIter, dataToSend.max_size());
+///     if (es == comms::ErrorStatus::Success) {
+///         ... // Send contents of dataToSend via I/O link
+///     }
+/// }
+/// 
+/// Message1 msg1;
+/// sendMessage(msg1);
+///
+/// Message2 msg2;
+/// sendMessage(msg2);
+/// @endcode
+/// In this case the @b COMMS library knows what messages are being written and
+/// can invoke @b doWrite non-virtual function (see comms::MessageBase::doWrite())
+/// defined by the message itself when serialising message. It eliminates a 
+/// necessity to provide comms::option::WriteIterator option when defining
+/// common interface. As the result it may reduce the size of virtual tables
+/// of the messages. 
+///

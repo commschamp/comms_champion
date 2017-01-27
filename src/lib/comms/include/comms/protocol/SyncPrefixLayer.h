@@ -63,6 +63,8 @@ public:
     ///     @ref Field), then comms::ErrorStatus::ProtocolError is returned.
     ////    If the read "sync" value as expected, the read() member function of
     ///     the next layer is called.
+    /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
+    /// @tparam TIter Type of iterator used for reading.
     /// @param[in, out] msgPtr Reference to smart pointer that already holds or
     ///     will hold allocated message object
     /// @param[in, out] iter Input iterator used for reading.
@@ -105,6 +107,8 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
+    /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
+    /// @tparam TIter Type of iterator used for reading.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in] msgPtr Reference to the smart pointer holding message object.
@@ -138,6 +142,8 @@ public:
     /// @brief Serialise message into the output data sequence.
     /// @details The function will write proper "sync" value to the output
     ///     buffer, then call the write() function of the next layer.
+    /// @tparam TMsg Type of message object.
+    /// @tparam TIter Type of iterator used for writing.
     /// @param[in] msg Reference to message object
     /// @param[in, out] iter Output iterator.
     /// @param[in] size Max number of bytes that can be written.
@@ -163,6 +169,8 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
+    /// @tparam TMsg Type of message object.
+    /// @tparam TIter Type of iterator used for writing.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in] msg Reference to the message object that is being written,

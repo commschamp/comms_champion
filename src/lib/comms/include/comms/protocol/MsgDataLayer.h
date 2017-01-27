@@ -37,40 +37,92 @@ namespace details
 template <typename TMessage, bool THasDefined>
 struct ReadIteratorFrom;
 
-template <typename TMessage>
-struct ReadIteratorFrom<TMessage, true>
+template <typename TMsg>
+struct ReadIteratorFrom<TMsg, true>
 {
-    typedef typename TMessage::ReadIterator Type;
+    typedef typename TMsg::ReadIterator Type;
 };
 
-template <typename TMessage>
-struct ReadIteratorFrom<TMessage, false>
+template <typename TMsg>
+struct ReadIteratorFrom<TMsg, false>
 {
     typedef const std::uint8_t* Type;
 };
 
-template <typename TMessage>
+template <typename TMsg>
 using ReadIteratorFromT =
-    typename ReadIteratorFrom<TMessage, TMessage::InterfaceOptions::HasReadIterator>::Type;
+    typename ReadIteratorFrom<TMsg, TMsg::InterfaceOptions::HasReadIterator>::Type;
 
-template <typename TMessage, bool THasDefined>
+template <typename TMsg, bool THasDefined>
 struct WriteIteratorFrom;
 
-template <typename TMessage>
-struct WriteIteratorFrom<TMessage, true>
+template <typename TMsg>
+struct WriteIteratorFrom<TMsg, true>
 {
-    typedef typename TMessage::WriteIterator Type;
+    typedef typename TMsg::WriteIterator Type;
 };
 
-template <typename TMessage>
-struct WriteIteratorFrom<TMessage, false>
+template <typename TMsg>
+struct WriteIteratorFrom<TMsg, false>
 {
     typedef std::uint8_t Type;
 };
 
-template <typename TMessage>
+template <typename TMsg>
 using WriteIteratorFromT =
-    typename WriteIteratorFrom<TMessage, TMessage::InterfaceOptions::HasWriteIterator>::Type;
+    typename WriteIteratorFrom<TMsg, TMsg::InterfaceOptions::HasWriteIterator>::Type;
+
+template <class T, class R = void>
+struct MsgDataLayerEnableIfHasInterfaceOptions { typedef R Type; };
+
+template <class T, class Enable = void>
+struct MsgDataLayerHasInterfaceOptions
+{
+    static const bool Value = false;
+};
+
+template <class T>
+struct MsgDataLayerHasInterfaceOptions<T, typename MsgDataLayerEnableIfHasInterfaceOptions<typename T::InterfaceOptions>::Type>
+{
+    static const bool Value = true;
+};
+
+template <class T, class R = void>
+struct MsgDataLayerEnableIfHasImplOptions { typedef R Type; };
+
+template <class T, class Enable = void>
+struct MsgDataLayerHasImplOptions
+{
+    static const bool Value = false;
+};
+
+template <class T>
+struct MsgDataLayerHasImplOptions<T, typename MsgDataLayerEnableIfHasImplOptions<typename T::ImplOptions>::Type>
+{
+    static const bool Value = true;
+};
+
+template <typename T, bool THasImpl>
+struct MsgDataLayerHasFieldsImplHelper;
+
+template <typename T>
+struct MsgDataLayerHasFieldsImplHelper<T, true>
+{
+    static const bool Value = T::ImplOptions::HasFieldsImpl;
+};
+
+template <typename T>
+struct MsgDataLayerHasFieldsImplHelper<T, false>
+{
+    static const bool Value = false;
+};
+
+template <typename T>
+struct MsgDataLayerHasFieldsImpl
+{
+    static const bool Value =
+        MsgDataLayerHasFieldsImplHelper<T, MsgDataLayerHasImplOptions<T>::Value>::Value;
+};
 
 }  // namespace details
 
@@ -137,6 +189,7 @@ public:
     /// @brief Read the message contents.
     /// @details Calls the read() member function of the message object.
     /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
+    /// @tparam TIter Type of iterator used for reading.
     /// @param[in] msgPtr Reference to the smart pointer holding message object,
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
@@ -149,22 +202,40 @@ public:
     /// @pre msgPtr points to a valid message object.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr>
+    template <typename TMsgPtr, typename TIter>
     static ErrorStatus read(
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        static_assert(Message::InterfaceOptions::HasReadIterator,
-            "Message interface must support read operation");
+        typedef typename std::decay<decltype(msgPtr)>::type MsgPtrType;
+        typedef typename MsgPtrType::element_type MsgType;
+
+        static_assert(
+            details::MsgDataLayerHasInterfaceOptions<MsgType>::Value,
+            "The provided message object must inherit from comms::Message");
+
+        static_assert(MsgType::InterfaceOptions::HasReadIterator,
+            "Message interface must support polymorphic read operation");
+
+        typedef typename std::decay<decltype(iter)>::type IterType;
+
+        static_assert(std::is_convertible<IterType, typename MsgType::ReadIterator>::value,
+            "The provided iterator is not convertible to ReadIterator defined by Message class");
+
+        typedef typename std::add_lvalue_reference<typename MsgType::ReadIterator>::type ReadIter;
 
         GASSERT(msgPtr);
-        auto result = msgPtr->read(iter, size);
+        auto result = msgPtr->read(static_cast<ReadIter>(iter), size);
         if ((result == ErrorStatus::NotEnoughData) &&
             (missingSize != nullptr)) {
-            typedef typename std::decay<decltype(*msgPtr)>::type MsgType;
-            auto msgLen = getMsgLength(*msgPtr, MsgLengthTag<MsgType>());
+            typedef typename std::conditional<
+                MsgType::InterfaceOptions::HasLength,
+                MsgHasLengthTag,
+                MsgNoLengthTag>::type Tag;
+
+            auto msgLen = getMsgLength(*msgPtr, Tag());
             if (size < msgLen) {
                 *missingSize = msgLen - size;
             }
@@ -185,6 +256,7 @@ public:
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
     /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
+    /// @tparam TIter Type of iterator used for reading.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in] msgPtr Reference to the smart pointer holding message object,
@@ -196,16 +268,28 @@ public:
     ///     minimal number of bytes that need to be provided before message could
     ///     be successfully read.
     /// @return Status of the read operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
     static ErrorStatus readFieldsCached(
         TAllFields& allFields,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        static_assert(Message::InterfaceOptions::HasReadIterator,
-            "Message interface must support read operation");
+        typedef typename std::decay<decltype(msgPtr)>::type MsgPtrType;
+        typedef typename MsgPtrType::element_type MsgType;
+
+        static_assert(
+            details::MsgDataLayerHasInterfaceOptions<MsgType>::Value,
+            "The provided message object must inherit from comms::Message");
+
+        static_assert(MsgType::InterfaceOptions::HasReadIterator,
+            "Message interface must support polymorphic read operation");
+
+        typedef typename std::decay<decltype(iter)>::type IterType;
+
+        static_assert(std::is_convertible<IterType, typename MsgType::ReadIterator>::value,
+            "The provided iterator is not convertible to ReadIterator defined by Message class");
 
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be tuple.");
@@ -213,32 +297,44 @@ public:
         static_assert((TIdx + 1) == std::tuple_size<TAllFields>::value,
                     "All fields must be read when MsgDataLayer is reached");
 
-        typedef typename std::iterator_traits<ReadIterator>::iterator_category IterType;
+        typedef typename std::iterator_traits<IterType>::iterator_category IterTag;
         auto& dataField = std::get<TIdx>(allFields);
 
         typedef typename std::decay<decltype(dataField)>::type FieldType;
         static_assert(
             std::is_same<Field, FieldType>::value,
             "Field has wrong type");
-        return readWithFieldCachedInternal(dataField, msgPtr, iter, size, missingSize, IterType());
+        return readWithFieldCachedInternal(dataField, msgPtr, iter, size, missingSize, IterTag());
     }
 
     /// @brief Write the message contents.
     /// @details Calls the write() member function of the message object.
-    /// @tparam TMessage Type of the message.
+    /// @tparam TMsg Type of the message.
+    /// @tparam TIter Type of the iterator used for writing.
     /// @param[in] msg Reference to the message object,
     /// @param[in, out] iter Iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
+    template <typename TMsg, typename TIter>
     static ErrorStatus write(
-        const TMessage& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size)
     {
-        static_assert(Message::InterfaceOptions::HasWriteIterator,
-            "Message interface must support write operation");
+        typedef typename std::decay<decltype(msg)>::type MsgType;
 
-        return msg.write(iter, size);
+        static_assert(
+            details::MsgDataLayerHasInterfaceOptions<MsgType>::Value,
+            "The provided message object must inherit from comms::Message");
+
+        typedef
+            typename std::conditional<
+                details::MsgDataLayerHasFieldsImpl<MsgType>::Value,
+                DirectWriteTag,
+                PolymorphicWriteTag
+            >::type Tag;
+
+        return writeInternal(msg, iter, size, Tag());
     }
 
     /// @brief Write the message contents while caching the written transport
@@ -250,37 +346,36 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
-    /// @tparam TMessage Type of the message.
+    /// @tparam TMsg Type of the message.
+    /// @tparam TIter Type of the iterator used for writing.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
     /// @param[in] msg Reference to the message object that is being written,
     /// @param[in, out] iter Iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields>
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
     static ErrorStatus writeFieldsCached(
         TAllFields& allFields,
-        const TMessage& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size)
     {
-        static_assert(Message::InterfaceOptions::HasWriteIterator,
-            "Message interface must support write operation");
-
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be tuple.");
 
         static_assert((TIdx + 1) == std::tuple_size<TAllFields>::value,
                     "All fields must be written when MsgDataLayer is reached");
 
-        typedef typename std::iterator_traits<WriteIterator>::iterator_category IterType;
         auto& dataField = std::get<TIdx>(allFields);
-
         typedef typename std::decay<decltype(dataField)>::type FieldType;
         static_assert(
             std::is_same<Field, FieldType>::value,
             "Field has wrong type");
-        return writeWithFieldCachedInternal(dataField, msg, iter, size, IterType());
+
+        typedef typename std::decay<decltype(iter)>::type IterType;
+        typedef typename std::iterator_traits<IterType>::iterator_category IterTag;
+        return writeWithFieldCachedInternal(dataField, msg, iter, size, IterTag());
     }
 
     /// @brief Update recently written (using write()) message contents data.
@@ -353,28 +448,38 @@ public:
     ///     to length(), but adds also length of the message.
     /// @param[in] msg Message
     /// @return Length of the message.
-    static constexpr std::size_t length(const TMessage& msg)
+    template <typename TMsg>
+    static constexpr std::size_t length(const TMsg& msg)
     {
-        static_assert(TMessage::InterfaceOptions::HasLength, "Message interface must define length()");
-        return msg.length();
+        typedef typename std::decay<decltype(msg)>::type MsgType;
+
+        static_assert(
+            details::MsgDataLayerHasInterfaceOptions<MsgType>::Value,
+            "The provided message object must inherit from comms::Message");
+
+        typedef typename
+            std::conditional<
+                details::MsgDataLayerHasFieldsImpl<MsgType>::Value,
+                MsgDirectLengthTag,
+                MsgHasLengthTag
+            >::type Tag;
+        return getMsgLength(msg, Tag());
     }
 
 private:
 
     struct MsgHasLengthTag {};
     struct MsgNoLengthTag {};
+    struct MsgDirectLengthTag {};
 
-    template <typename TMsg>
-    using MsgLengthTag = typename std::conditional<
-        TMsg::InterfaceOptions::HasLength,
-        MsgHasLengthTag,
-        MsgNoLengthTag>::type ;
+    struct PolymorphicWriteTag{};
+    struct DirectWriteTag{};
 
-    template <typename TMsgPtr>
+    template <typename TMsgPtr, typename TIter>
     static ErrorStatus readWithFieldCachedInternal(
         Field& field,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         std::random_access_iterator_tag)
@@ -382,62 +487,72 @@ private:
         return readWithFieldCachedRandomAccess(field, msgPtr, iter, size, missingSize);
     }
 
-    template <typename TMsgPtr>
+    template <typename TMsgPtr, typename TIter>
     static ErrorStatus readWithFieldCachedInternal(
         Field& field,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         std::input_iterator_tag)
     {
         static_cast<void>(field);
+        static_cast<void>(msgPtr);
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        static_cast<void>(missingSize);
         GASSERT(!"Not supported yet");
-        return read(msgPtr, iter, size, missingSize);
+        return ErrorStatus::NotSupported;
     }
 
-    template <typename TMsgPtr>
+    template <typename TMsgPtr, typename TIter>
     static ErrorStatus readWithFieldCachedRandomAccess(
         Field& field,
         TMsgPtr& msgPtr,
-        ReadIterator& iter,
+        TIter& iter,
         std::size_t size,
         std::size_t* missingSize)
     {
-        ReadIterator dataIter = iter;
+        typedef typename std::decay<decltype(msgPtr)>::type MsgPtrType;
+        typedef typename MsgPtrType::element_type MsgType;
+
+        typename MsgType::ReadIterator dataIter = iter;
         auto es = read(msgPtr, iter, size, missingSize);
         auto dataSize = static_cast<std::size_t>(std::distance(dataIter, iter));
         auto dataEs = field.read(dataIter, dataSize);
         static_cast<void>(dataEs);
         GASSERT(dataEs == comms::ErrorStatus::Success);
-        GASSERT((es != ErrorStatus::Success) || (!msgPtr) || (dataSize == msgPtr->length()));
+        GASSERT((es != ErrorStatus::Success) || (!msgPtr) || (dataIter == iter));
         return es;
     }
 
+    template <typename TMsg, typename TIter>
     static ErrorStatus writeWithFieldCachedInternal(
         Field& field,
-        const TMessage& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         std::random_access_iterator_tag)
     {
         return writeWithFieldCachedRandomAccess(field, msg, iter, size);
     }
 
+    template <typename TMsg, typename TIter>
     static ErrorStatus writeWithFieldCachedInternal(
         Field& field,
-        const TMessage& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size,
         std::output_iterator_tag)
     {
         return writeWithFieldCachedOutput(field, msg, iter, size);
     }
 
+    template <typename TMsg, typename TIter>
     static ErrorStatus writeWithFieldCachedRandomAccess(
         Field& field,
-        const TMessage& msg,
-        WriteIterator& iter,
+        const TMsg& msg,
+        TIter& iter,
         std::size_t size)
     {
         auto dataReadIter = iter;
@@ -453,10 +568,10 @@ private:
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TCollection>
+    template <typename TMsg, typename TCollection>
     static ErrorStatus writeWithFieldCachedOutput(
         Field& field,
-        const TMessage& msg,
+        const TMsg& msg,
         std::back_insert_iterator<TCollection>& iter,
         std::size_t size)
     {
@@ -482,14 +597,74 @@ private:
     template <typename TMsg>
     static std::size_t getMsgLength(const TMsg& msg, MsgHasLengthTag)
     {
+        typedef typename std::decay<decltype(msg)>::type MsgType;
+        static_assert(MsgType::InterfaceOptions::HasLength, "Message interface must define length()");
         return msg.length();
     }
 
     template <typename TMsg>
-    static std::size_t getMsgLength(const TMsg& msg, MsgNoLengthTag)
+    static constexpr std::size_t getMsgLength(const TMsg& msg, MsgDirectLengthTag)
     {
-        static_cast<void>(msg);
+        typedef typename std::decay<decltype(msg)>::type MsgType;
+        static_assert(MsgType::ImplOptions::HasFieldsImpl, "FieldsImpl option hasn't been used");
+        return msg.doLenth();
+    }
+
+    template <typename TMsg>
+    static constexpr std::size_t getMsgLength(const TMsg&, MsgNoLengthTag)
+    {
         return 0U;
+    }
+
+    template <typename TMsg, typename TIter>
+    static ErrorStatus writeInternal(
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        PolymorphicWriteTag)
+    {
+        return writeInternalPolymorhpic(msg, iter, size);
+    }
+
+    template <typename TMsg, typename TIter>
+    static ErrorStatus writeInternal(
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        DirectWriteTag)
+    {
+        return writeInternalDirect(msg, iter, size);
+    }
+
+    template <typename TMsg, typename TIter>
+    static ErrorStatus writeInternalPolymorhpic(
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size)
+    {
+        typedef typename std::decay<decltype(msg)>::type MsgType;
+
+        static_assert(MsgType::InterfaceOptions::HasWriteIterator,
+            "Message interface must support polymorphic write operation");
+
+        typedef typename std::decay<decltype(iter)>::type IterType;
+
+        static_assert(std::is_convertible<IterType, typename MsgType::WriteIterator>::value,
+            "The provided iterator is not convertible to WriteIterator defined by Message class");
+
+        typedef typename std::add_lvalue_reference<typename MsgType::WriteIterator>::type WriteIter;
+
+
+        return msg.write(static_cast<WriteIter>(iter), size);
+    }
+
+    template <typename TMsg, typename TIter>
+    static ErrorStatus writeInternalDirect(
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size)
+    {
+        return msg.doWrite(iter, size);
     }
 };
 

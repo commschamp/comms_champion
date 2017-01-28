@@ -61,7 +61,7 @@ namespace comms
 ///         readImpl(), writeImpl(), validImpl(), lengthImpl() virtual functions
 ///         declared as pure in comms::Message interface. The option also
 ///         provides an accessor functions to the all the field objects: fields().
-///     @li comms::option::NoFieldsImpl - This option is an alias to
+///     @li comms::option::ZeroFieldsImpl - This option is an alias to
 ///         comms::option::FieldsImpl<std::tuple<> >, which provides implementation
 ///         readImpl(), writeImpl(), validImpl(), lengthImpl() virtual functions
 ///         when message contains no fields, i.e. readImpl() and writeImple() will
@@ -133,7 +133,7 @@ public:
 
     /// @brief Default implementation of write functionality.
     /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided
+    ///     comms::option::ZeroFieldsImpl option was provided
     ///     to comms::MessageBase. @n
     ///     To make this function works, every field class must provide "write"
     ///     function with following signature:
@@ -154,7 +154,7 @@ public:
 
     /// @brief Default implementation of validity check functionality.
     /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase.
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     To make this function works, every field class must provide "valid()"
     ///     function with following signature:
     ///     @code
@@ -167,7 +167,7 @@ public:
 
     /// @brief Default implementation of length calculation functionality.
     /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase.
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     To make this function works, every field class must provide "length()"
     ///     function with following signature:
     ///     @code
@@ -287,7 +287,7 @@ protected:
     ///     field. The overriding doRead() function in the custom message
     ///     definition class may use this function for such task.
     ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase.
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doRead() documentation.
     /// @tparam TIdx Zero based index of the field to read until. The function
@@ -311,7 +311,7 @@ protected:
     ///     other field in the middle. The overriding doRead() function in the
     ///     custom message definition class may use this function for such task.
     ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase.
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doRead() documentation.
     /// @tparam TIdx Zero based index of the field to read from. The function
@@ -333,7 +333,7 @@ protected:
     ///     readFieldsFrom() and readFieldsUntil() this function provides an
     ///     ability to read any number of fields.
     ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase.
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doRead() documentation.
     /// @tparam TFromIdx Zero based index of the field to read from.
@@ -366,7 +366,7 @@ protected:
     /// @details In a similar way to readFieldsUntil(), this function allows
     ///     writing limited number of fields starting from the first one.
     ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase.
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doWrite() documentation.
     /// @tparam TIdx Zero based index of the field to write until. The function
@@ -385,7 +385,7 @@ protected:
     ///     writing limited number of fields starting from the requested one until
     ///     the end.
     ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase.
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doWrite() documentation.
     /// @tparam TIdx Zero based index of the field to write from.
@@ -401,7 +401,7 @@ protected:
     /// @details In a similar way to readFieldsFromUntil(), this function allows
     ///     writing limited number of fields between the requested indices.
     ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::NoFieldsImpl option was provided to comms::MessageBase.
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doWrite() documentation.
     /// @tparam TFromIdx Zero based index of the field to write from.

@@ -100,7 +100,7 @@ class Message2 : public
     comms::MessageBase<
         TMessage,
         comms::option::StaticNumIdImpl<MessageType2>,
-        comms::option::NoFieldsImpl,
+        comms::option::ZeroFieldsImpl,
         comms::option::MsgType<Message2<TMessage> >
     >
 {

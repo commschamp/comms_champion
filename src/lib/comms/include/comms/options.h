@@ -136,7 +136,7 @@ struct FieldsImpl<std::tuple<TFields...> >
 /// @endcond
 
 /// @brief Alias to FieldsImpl<std::tuple<> >
-using NoFieldsImpl = FieldsImpl<std::tuple<> >;
+using ZeroFieldsImpl = FieldsImpl<std::tuple<> >;
 
 /// @brief Option that inhibits implementation of comms::MessageBase::readImpl()
 ///     regardless of other availability conditions.

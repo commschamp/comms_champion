@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -105,14 +105,8 @@ public:
             const MsgIdType&
         >::type MsgIdParamType;
 
-    MsgIdParamType getId() const
-    {
-        return getIdImpl();
-    }
-
 protected:
     ~MessageInterfaceIdTypeBase() = default;
-    virtual MsgIdParamType getIdImpl() const = 0;
 };
 
 template <typename TBase, typename TOpt, bool THasIdType>
@@ -133,6 +127,41 @@ struct MessageInterfaceProcessIdTypeBase<TBase, TOpt, false>
 template <typename TBase, typename TOpt>
 using MessageInterfaceIdTypeBaseT =
     typename MessageInterfaceProcessIdTypeBase<TBase, TOpt, TOpt::HasMsgIdType>::Type;
+
+template <typename TBase>
+class MessageInterfaceIdInfoBase : public TBase
+{
+public:
+    typedef typename TBase::MsgIdParamType MsgIdParamType;
+
+    MsgIdParamType getId() const
+    {
+        return getIdImpl();
+    }
+
+protected:
+    ~MessageInterfaceIdInfoBase() = default;
+    virtual MsgIdParamType getIdImpl() const = 0;
+};
+
+template <typename TBase, bool THasIdInfo>
+struct MessageInterfaceProcessIdInfoBase;
+
+template <typename TBase>
+struct MessageInterfaceProcessIdInfoBase<TBase, true>
+{
+    typedef MessageInterfaceIdInfoBase<TBase> Type;
+};
+
+template <typename TBase>
+struct MessageInterfaceProcessIdInfoBase<TBase, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TOpt>
+using MessageInterfaceIdInfoBaseT =
+    typename MessageInterfaceProcessIdInfoBase<TBase, TOpt::HasMsgIdType && TOpt::HasMsgIdInfo>::Type;
 
 template <typename TBase, typename TReadIter>
 class MessageInterfaceReadOnlyBase : public TBase
@@ -420,7 +449,8 @@ class MessageInterfaceBuilder
 
     typedef MessageInterfaceEndianBaseT<ParsedOptions> EndianBase;
     typedef MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions> IdTypeBase;
-    typedef MessageInterfaceReadWriteBaseT<IdTypeBase, ParsedOptions> ReadWriteBase;
+    typedef MessageInterfaceIdInfoBaseT<IdTypeBase, ParsedOptions> IdInfoBase;
+    typedef MessageInterfaceReadWriteBaseT<IdInfoBase, ParsedOptions> ReadWriteBase;
     typedef MessageInterfaceValidBaseT<ReadWriteBase, ParsedOptions> ValidBase;
     typedef MessageInterfaceLengthBaseT<ValidBase, ParsedOptions> LengthBase;
     typedef MessageInterfaceHandlerBaseT<LengthBase, ParsedOptions> HandlerBase;

@@ -105,6 +105,28 @@ struct ProtocolLayerHasFieldsImpl
         ProtocolLayerHasFieldsImplHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
 };
 
+template <typename T, bool THasImpl>
+struct ProtocolLayerHasStaticIdImplHelper;
+
+template <typename T>
+struct ProtocolLayerHasStaticIdImplHelper<T, true>
+{
+    static const bool Value = T::ImplOptions::HasStaticMsgId;
+};
+
+template <typename T>
+struct ProtocolLayerHasStaticIdImplHelper<T, false>
+{
+    static const bool Value = false;
+};
+
+template <typename T>
+struct ProtocolLayerHasStaticIdImpl
+{
+    static const bool Value =
+        ProtocolLayerHasStaticIdImplHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
+};
+
 template <class T, class R = void>
 struct ProtocolLayerEnableIfHasMsgPtr { typedef R Type; };
 

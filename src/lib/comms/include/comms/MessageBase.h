@@ -105,6 +105,12 @@ public:
     /// @return Const reference to the fields of the message.
     const AllFields& fields() const;
 
+    /// @brief Default implementation of ID retrieval functionality.
+    /// @details This function exists only if comms::option::StaticNumIdImpl option
+    ///     was provided to comms::MessageBase. @n
+    /// @return Numeric ID of the message.
+    static constexpr MsgIdParamType doGetId();
+
     /// @brief Default implementation of read functionality.
     /// @details This function exists only if comms::option::FieldsImpl option
     ///     was provided to comms::MessageBase. @n
@@ -185,7 +191,8 @@ protected:
     ///     In case of comms::option::StaticNumIdImpl option the value
     ///     provided with this option casted to comms::Message::MsgIdType type is
     ///     returned.
-    /// @return ID of the message.
+    /// @return ID value passed as template parameter to comms::option::StaticNumIdImpl
+    ///     option.
     virtual MsgIdParamType getIdImpl() const override;
 
     /// @brief Implementation of dispatch functionality.

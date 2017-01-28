@@ -188,8 +188,15 @@ public:
 
     /// @brief Serialise message into output data sequence.
     /// @details The function will write ID of the message to the data
-    ///          sequence, then call write() member function of the next
-    ///          protocol layer.
+    ///     sequence, then call write() member function of the next
+    ///     protocol layer. If @b TMsg type is recognised to be actual message
+    ///     type (inherited from comms::MessageBase while using
+    ///     comms::option::StaticNumIdImpl option to specify its numeric ID),
+    ///     its defined @b doGetId() member function (see comms::MessageBase::doGetId())
+    ///     non virtual function is called. Otherwise polymorphic @b getId()
+    ///     member function is used to retrieve the message ID information, which
+    ///     means the message interface class must use comms::option::IdInfoInterface
+    ///     option to define appropriate interface.
     /// @tparam TMsg Type of the message being written.
     /// @tparam TIter Type of iterator used for writing.
     /// @param[in] msg Reference to message object
@@ -208,7 +215,8 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        Field field(msg.getId());
+        typedef typename std::decay<decltype(msg)>::type MsgType;
+        Field field(getMsgId(msg, IdRetrieveTag<MsgType>()));
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
     }
 
@@ -238,7 +246,8 @@ public:
     {
         auto& field = Base::template getField<TIdx>(allFields);
 
-        field.value() = msg.getId();
+        typedef typename std::decay<decltype(msg)>::type MsgType;
+        field.value() = getMsgId(msg, IdRetrieveTag<MsgType>());
         return
             writeInternal(
                 field,
@@ -263,6 +272,17 @@ public:
     }
 
 private:
+
+    struct PolymorphicIdTag {};
+    struct DirectIdTag {};
+
+    template <typename TMsg>
+    using IdRetrieveTag =
+        typename std::conditional<
+            details::ProtocolLayerHasStaticIdImpl<TMsg>::Value,
+            DirectIdTag,
+            PolymorphicIdTag
+        >::type;
 
     template <typename TIter, typename TReader>
     ErrorStatus readInternal(
@@ -334,6 +354,26 @@ private:
         GASSERT(field.length() <= size);
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
+
+    template <typename TMsg>
+    static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicIdTag)
+    {
+        typedef typename std::decay<decltype(msg)>::type MsgType;
+        static_assert(details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
+            "The message class is expected to inherit from comms::Message");
+        static_assert(MsgType::InterfaceOptions::HasMsgIdInfo,
+            "The message interface class must expose polymorphic ID retrieval functionality, "
+            "use comms::option::IdInfoInterface option to define it.");
+
+        return msg.getId();
+    }
+
+    template <typename TMsg>
+    static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectIdTag)
+    {
+        return msg.doGetId();
+    }
+
 
     Factory factory_;
 

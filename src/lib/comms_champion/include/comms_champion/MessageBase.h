@@ -36,6 +36,7 @@ template <template<typename...> class TMessageBase, typename... TOptions>
 class MessageBase :
         public comms_champion::Message,
         public TMessageBase<
+            comms::option::IdInfoInterface,
             comms::option::ReadIterator<const std::uint8_t*>,
             comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
             comms::option::Handler<MessageHandler>,
@@ -47,6 +48,7 @@ class MessageBase :
     using CCBase = comms_champion::Message;
     using CommsBase =
         TMessageBase<
+            comms::option::IdInfoInterface,
             comms::option::ReadIterator<const std::uint8_t*>,
             comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
             comms::option::Handler<MessageHandler>,

@@ -77,6 +77,9 @@ struct WriteIterator
     typedef TIter Type;
 };
 
+/// @brief Option used to add @b getId() function into Message interface.
+struct IdInfoInterface {};
+
 /// @brief Option used to add @b valid() function into Message interface.
 struct ValidCheckInterface {};
 

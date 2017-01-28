@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@ struct MessageInterfaceOptionsParser<>
     static const bool HasEndian = false;
     static const bool HasReadIterator = false;
     static const bool HasWriteIterator = false;
+    static const bool HasMsgIdInfo = false;
     static const bool HasHandler = false;
     static const bool HasValid = false;
     static const bool HasLength = false;
@@ -55,6 +56,15 @@ class MessageInterfaceOptionsParser<
 public:
     typedef typename Option::Type MsgIdType;
     static const bool HasMsgIdType = true;
+};
+
+template <typename... TOptions>
+class MessageInterfaceOptionsParser<
+    comms::option::IdInfoInterface,
+    TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
+{
+public:
+    static const bool HasMsgIdInfo = true;
 };
 
 template <typename TEndian, typename... TOptions>

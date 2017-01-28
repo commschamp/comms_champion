@@ -40,12 +40,13 @@ class MessageImplStaticNumIdBase : public TBase
 public:
     static const auto MsgId = static_cast<typename TBase::MsgIdType>(TId);
 
-protected:
-    ~MessageImplStaticNumIdBase() = default;
-    virtual typename TBase::MsgIdParamType getIdImpl() const override
+    static constexpr typename TBase::MsgIdParamType doGetId()
     {
         return MsgId;
     }
+
+protected:
+    ~MessageImplStaticNumIdBase() = default;
 };
 
 template <typename TBase, typename TOpt, bool THasStaticMsgId>
@@ -68,16 +69,49 @@ using MessageImplStaticNumIdBaseT =
     typename MessageImplProcessStaticNumIdBase<
         TBase, TOpt, TBase::InterfaceOptions::HasMsgIdType && TOpt::HasStaticMsgId>::Type;
 
+template <typename TBase, std::intmax_t TId>
+class MessageImplPolymorhpicStaticNumIdBase : public TBase
+{
+protected:
+    ~MessageImplPolymorhpicStaticNumIdBase() = default;
+    virtual typename TBase::MsgIdParamType getIdImpl() const override
+    {
+        return TBase::doGetId();
+    }
+};
+
+template <typename TBase, typename TOpt, bool THasStaticMsgId>
+struct MessageImplProcessPolymorhpicStaticNumIdBase;
+
+template <typename TBase, typename TOpt>
+struct MessageImplProcessPolymorhpicStaticNumIdBase<TBase, TOpt, true>
+{
+    typedef MessageImplPolymorhpicStaticNumIdBase<TBase, TOpt::MsgId> Type;
+};
+
+template <typename TBase, typename TOpt>
+struct MessageImplProcessPolymorhpicStaticNumIdBase<TBase, TOpt, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TOpt>
+using MessageImplPolymorhpicStaticNumIdBaseT =
+    typename MessageImplProcessPolymorhpicStaticNumIdBase<
+        TBase,
+        TOpt,
+        TBase::InterfaceOptions::HasMsgIdType && TBase::InterfaceOptions::HasMsgIdInfo &&
+            TOpt::HasStaticMsgId
+        >::Type;
+
 template <typename TBase>
 class MessageImplNoIdBase : public TBase
 {
-public:
-    static const auto MsgId = typename TBase::MsgIdType();
-
 protected:
     ~MessageImplNoIdBase() = default;
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
+        static const auto MsgId = typename TBase::MsgIdType();
         GASSERT(!"The message id is not supposed to be retrieved");
         return MsgId;
     }
@@ -101,7 +135,10 @@ struct MessageImplProcessNoIdBase<TBase, false>
 template <typename TBase, typename TOpt>
 using MessageImplNoIdBaseT =
     typename MessageImplProcessNoIdBase<
-        TBase, TBase::InterfaceOptions::HasMsgIdType && TOpt::HasNoIdImpl>::Type;
+        TBase,
+        TBase::InterfaceOptions::HasMsgIdType && TBase::InterfaceOptions::HasMsgIdInfo &&
+            TOpt::HasNoIdImpl
+        >::Type;
 
 template <typename TBase, typename TAllFields>
 class MessageImplFieldsBase : public TBase
@@ -674,7 +711,8 @@ class MessageImplBuilder
 
     typedef MessageImplFieldsBaseT<TMessage, ParsedOptions> FieldsBase;
     typedef MessageImplStaticNumIdBaseT<FieldsBase, ParsedOptions> StaticNumIdBase;
-    typedef MessageImplNoIdBaseT<StaticNumIdBase, ParsedOptions> NoIdBase;
+    typedef MessageImplPolymorhpicStaticNumIdBaseT<StaticNumIdBase, ParsedOptions> PolymorphicStaticNumIdBase;
+    typedef MessageImplNoIdBaseT<PolymorphicStaticNumIdBase, ParsedOptions> NoIdBase;
     typedef MessageImplFieldsReadImplBaseT<NoIdBase, ParsedOptions> FieldsReadImplBase;
     typedef MessageImplFieldsWriteImplBaseT<FieldsReadImplBase, ParsedOptions> FieldsWriteImplBase;
     typedef MessageImplFieldsValidBaseT<FieldsWriteImplBase, ParsedOptions> FieldsValidBase;

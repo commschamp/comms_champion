@@ -291,10 +291,10 @@ void MessageTestSuite::test6()
 void MessageTestSuite::test7()
 {
     BeBasicMsg1 msg1;
-    TS_ASSERT_EQUALS(msg1.getId(), MessageType1);
+    TS_ASSERT_EQUALS(msg1.doGetId(), MessageType1);
 
     BeReadOnlyMsg1 msg2;
-    TS_ASSERT_EQUALS(msg2.getId(), MessageType1);
+    TS_ASSERT_EQUALS(msg2.doGetId(), MessageType1);
     static const std::uint8_t Data1[] = { 0x1, 0x2 };
     static const auto Data1Size = std::extent<decltype(Data1)>::value;
     BeReadOnlyMsg1::ReadIterator readIter = &Data1[0];
@@ -303,7 +303,7 @@ void MessageTestSuite::test7()
     TS_ASSERT_EQUALS(std::get<0>(msg2.fields()).value(), 0x0102);
 
     BeWriteOnlyMsg1 msg3;
-    TS_ASSERT_EQUALS(msg3.getId(), MessageType1);
+    TS_ASSERT_EQUALS(msg3.doGetId(), MessageType1);
     std::get<0>(msg3.fields()).value() = 0x0102;
     std::vector<std::uint8_t> outData;
     BeWriteOnlyMsg1::WriteIterator writeIter = std::back_inserter(outData);
@@ -314,14 +314,14 @@ void MessageTestSuite::test7()
     TS_ASSERT_EQUALS(outData[1], 0x2);
 
     BeLengthOnlyMsg1 msg4;
-    TS_ASSERT_EQUALS(msg4.getId(), MessageType1);
+    TS_ASSERT_EQUALS(msg4.doGetId(), MessageType1);
     TS_ASSERT_EQUALS(msg4.length(), 2U);
 }
 
 void MessageTestSuite::test8()
 {
     BeMsg4 msg;
-    TS_ASSERT_EQUALS(msg.getId(), MessageType4);
+    TS_ASSERT_EQUALS(msg.doGetId(), MessageType4);
     TS_ASSERT_EQUALS(msg.length(), 1U);
 
     std::vector<std::uint8_t> outData;

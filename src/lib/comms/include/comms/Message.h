@@ -45,8 +45,12 @@ namespace comms
 ///         @ref Field internal types get defined.
 ///     @li comms::option::MsgIdType - an option used to specify type of the ID
 ///         value used to identify the message. If this option is used,
-///         getId() member function as well as @ref MsgIdType and
+///         the @ref MsgIdType and
 ///         @ref MsgIdParamType types get defined.
+///     @li comms::option::IdInfoInterface - an option used to provide polymorphic
+///         id retrieval functionality. If this option is used in conjunction with
+///         comms::option::MsgIdType, the
+///         getId() member function is defined.
 ///     @li comms::option::ReadIterator - an option used to specify type of iterator
 ///         used for reading. If this option is not used, then read()
 ///         member function doesn't exist.
@@ -83,7 +87,7 @@ public:
     typedef typename Base::MsgIdType MsgIdType;
 
     /// @brief Type used for message ID passed as parameter or returned from function.
-    /// @details It is equal to @ref MsgIdType for numeric types and becoms
+    /// @details It is equal to @ref MsgIdType for numeric types and becomes
     ///     "const-reference-to" @ref MsgIdType for more complex types.
     ///      The type exists only if @ref MsgIdType exists, i.e.
     ///      the comms::option::MsgIdType option was used.
@@ -103,7 +107,7 @@ public:
     /// @brief Retrieve ID of the message.
     /// @details Invokes pure virtual getIdImpl(). This function exists
     ///     only if comms::option::MsgIdType option was used to specify type
-    ///     of the ID value.
+    ///     of the ID value and comms::option::IdInfoInterface option are used.
     /// @return ID of the message.
     MsgIdParamType getId() const;
 
@@ -194,7 +198,7 @@ protected:
     /// @details Called by getId(), must be implemented in the derived class.
     ///     This function exists
     ///     only if comms::option::MsgIdType option was used to specify type
-    ///     of the ID value.
+    ///     of the ID value as well as comms::option::IdInfoInterface.
     /// @return ID of the message.
     virtual MsgIdParamType getIdImpl() const = 0;
 

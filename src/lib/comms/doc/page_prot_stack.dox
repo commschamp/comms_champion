@@ -17,7 +17,7 @@
 ///     including SIZE field itself.
 /// @li ID - 1 byte, numeric ID of the message.
 /// @li PAYLOAD - any number of bytes, serialised message data
-/// @li CHECKSUM - 2 bytes, arithmetic summary of all bytes starting (and
+/// @li CHECKSUM - 2 bytes, CRC-CCITT value of all bytes starting (and
 ///     including) from SIZE field and ending after PAYLOAD field.
 /// 
 /// The processing of the raw bytes received over I/O link involves identifying
@@ -204,7 +204,7 @@
 /// typedef comms::field::IntValue<CommonFieldBase, std::uint16_t> ChecksumField;
 /// typedef comms::protocol::ChecksumLayer<
 ///     ChecksumField,
-///     comms::protocol::checksum::BasicSum<std::uint16_t>
+///     comms::protocol::checksum::Crc_CCITT
 ///     MyMsgSize
 /// > MyChecksum;
 /// @endcode
@@ -214,8 +214,8 @@
 /// to calculate a checksum value. Please refer to the documentation of
 /// comms::protocol::ChecksumLayer class for the details on the interface this
 /// checksum calculator class must provide. The example above uses 
-/// comms::protocol::checksum::BasicSum, which calculates the summary of all
-/// the bytes. All the checksum calculators the COMMS library provides reside
+/// comms::protocol::checksum::Crc_CCITT, which calculates the the standard
+/// CRC-CCITT value. All the checksum calculators the COMMS library provides reside
 /// in comms::protocol::checksum namespace. @n
 /// The third template parameter is an upper layer that is being wrapped.
 ///

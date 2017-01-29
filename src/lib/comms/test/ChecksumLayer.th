@@ -19,6 +19,8 @@
 #include <cstddef>
 #include <algorithm>
 #include <iterator>
+#include <iostream>
+#include <iomanip>
 
 #include "comms/comms.h"
 #include "CommsTestCommon.h"
@@ -36,6 +38,7 @@ public:
     void test4();
     void test5();
     void test6();
+    void test7();
 
 private:
 
@@ -320,4 +323,34 @@ void ChecksumLayerTestSuite::test6()
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg1 = dynamic_cast<BeBackInsertMsg1&>(*msgPtr);
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
+}
+
+void ChecksumLayerTestSuite::test7()
+{
+//    auto& table = comms::protocol::checksum::details::CrcInitTable<std::uint32_t, 0x04C11DB7>::get();
+//    for (auto byte : table) {
+//        std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << (unsigned)byte << ", ";
+//    }
+
+    static const std::vector<std::uint8_t> Data = {
+        '1', '2', '3', '4', '5', '6', '7', '8', '9'
+    };
+
+    {
+        auto iter = &Data[0];
+        auto val = comms::protocol::checksum::Crc_CCITT()(iter, Data.size());
+        TS_ASSERT_EQUALS(val, 0x29b1)
+    }
+
+    {
+        auto iter = &Data[0];
+        auto val = comms::protocol::checksum::Crc_16()(iter, Data.size());
+        TS_ASSERT_EQUALS(val, 0xbb3d)
+    }
+
+    {
+        auto iter = &Data[0];
+        auto val = comms::protocol::checksum::Crc_32()(iter, Data.size());
+        TS_ASSERT_EQUALS(val, 0xcbf43926)
+    }
 }

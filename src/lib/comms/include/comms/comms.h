@@ -29,3 +29,5 @@
 #include "fields.h"
 #include "protocols.h"
 #include "field_cast.h"
+#include "protocol/checksum/BasicSum.h"
+#include "protocol/checksum/Crc.h"

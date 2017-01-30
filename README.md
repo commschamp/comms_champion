@@ -35,7 +35,7 @@ protocol development, visualisation and analysis.
 # COMMS Library
 **COMMS** is the headers only, platform independent library, 
 which makes the implementation of a communication
-protocol an easy and relatively quick process. It provides all the necessary
+protocol to be an easy and relatively quick process. It provides all the necessary
 types and classes to make the definition of the custom messages, as well as
 wrapping transport data fields, to be simple declarative statements of type and
 class definitions. These statements will specify **WHAT** needs to be implemented. 

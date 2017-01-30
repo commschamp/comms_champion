@@ -336,7 +336,6 @@ protected:
 /// @tparam TMessage Type of message interface class.
 /// @param[in] val Value to initialise the iterator with.
 /// @return Initialised iterator for polymorphic read.
-/// @related Message
 template <typename TMessage, typename TVal>
 typename TMessage::ReadIterator readIteratorFor(
     const TVal& val)
@@ -348,7 +347,6 @@ typename TMessage::ReadIterator readIteratorFor(
 /// @tparam TMessage Type of message interface class.
 /// @param[in] val Value to initialise the iterator with.
 /// @return Initialised iterator for polymorphic write.
-/// @related Message
 template <typename TMessage, typename TVal>
 typename TMessage::WriteIterator writeIteratorFor(
     const TVal& val)

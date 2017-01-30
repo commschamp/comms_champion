@@ -1,12 +1,29 @@
 /// @mainpage COMMS Library
 /// @tableofcontents
-/// The main purpose of the COMMS library is to make an implementation of
-/// binary communication protocols to be quick and easy process.
+/// @b COMMS is the headers only, platform independent library, 
+/// which makes the implementation of a communication
+/// protocol to be an easy and relatively quick process. It provides all the necessary
+/// types and classes to make the definition of the custom messages, as well as
+/// wrapping transport data fields, to be simple declarative statements of type and
+/// class definitions. These statements will specify @b WHAT needs to be implemented. 
+/// The @b COMMS library internals handle the **HOW** part.
 ///
-/// It doesn't use @b RTTI and/or @b exceptions. It makes a significant effort to 
-/// completely eliminate or minimise usage of dynamic memory allocation in order
-/// to make it usable with bare-metal and Linux based embedded system with 
-/// low memory footprint and/or slow CPUs.
+/// The internals of the @b COMMS library is mostly template classes which use 
+/// multiple meta-programming techniques. As the result, only the functionality,
+/// required by the protocol being developed, gets compiled in, providing the best code size and
+/// speed performance possible. The down side is that compilation process may
+/// take a significant amount of time and consume a lot of memory.
+///
+/// The @b COMMS library allows having <b>single implementation</b> of the binary 
+/// protocol messages, which can be re-compiled and used for any possible application:
+/// bare-metal with constrained resources, Linux based embedded systems, even 
+/// independent GUI analysis tools.
+///
+/// The @b COMMS library was specifically developed to be used in **embedded** systems
+/// including @b bare-metal ones. It doesn't use exceptions and/or RTTI. It also
+/// minimises usage of dynamic memory allocation and provides an ability to exclude
+/// it altogether if required, which may be needed when developing @b bare-metal
+/// embedded systems. 
 /// 
 /// Below is a quick tutorial on how to use the library.
 /// 
@@ -35,7 +52,7 @@
 /// See @ref page_assert for details on how to define custom assertion failure
 /// behaviour.  
 ///
-/// @section message_interface Message Interface
+/// @section message_interface_impl Messages
 /// The communication protocols are all about exchanging messages. Every message
 /// needs to be serialised into the stream of bytes before being sent on the I/O
 /// link. Upon reception of the raw stream of bytes, they need to be
@@ -44,7 +61,7 @@
 /// 
 /// The COMMS library provides comms::Message - a basic interface for any 
 /// message object. Depending on the options provided to the comms::Message, it
-/// provides the following public interface:
+/// provides the following public @b polymorphic interface:
 /// @li comms::Message::getId() - Retrieval of the ID of the message.
 /// @li comms::Message::read() - Read message data from the stream of raw bytes
 /// @li comms::Message::write() - Write message data to the output buffer.
@@ -79,6 +96,7 @@
 ///     comms::Message<
 ///         comms::option::BigEndian,        // Use BIG endian for data serialisation.
 ///         comms::option::MsgIdType<MsgId>, // Use MsgId as message ID type.
+///         comms::option::IdInfoInterface,  // Add ID info retrieval interface
 ///         comms::option::ReadIterator<const std::uint8_t*>, // Use const std::uint8_t* as iterator for reading.
 ///         comms::option::WriteIterator<std::uint8_t*>, // Use std::uint8_t* as iterator for writing.
 ///         comms::option::Handler<MyHandler>, // Add support for dispatching message to handler object of MyHandler type.
@@ -147,7 +165,72 @@
 /// The definition of the custom message class is more or less declarative. The 
 /// used types and/or options state what behaviour is expected from the message, 
 /// with very little extra code. This makes them implementation of any custom message 
-/// class to be quite a simple process.
+/// class to be quite a simple process. Please pay attention to the following
+/// details.
+/// @li The comms::option::StaticNumIdImpl option is used to specify actual
+///     numeric ID of the message, known at compile time. In case the @b MyMessage
+///     interface class was defined to provide polymorphic ID retrieval 
+///     functionality (by using comms::option::IdInfoInterface option), the
+///     comms::MessageBase class will provide necessary comms::MessageBase::getIdImpl() 
+///     virtual member function returning required value.
+/// @li The comms::option::MsgType option is used to specify actual message
+///     type inheriting from comms::MessageBase. It is required by the latter to
+///     properly implement various polymorphic functions, such as 
+///     comms::MessageBase::dispatchImpl().
+/// @li The comms::option::FieldsImpl option provides all the fields of the
+///     message being implemented, bundled into @b std::tuple. When this option
+///     is used, the comms::MessageBase class may provide default implementation of
+///     read, write, length calculation, and validity check functionalities. If
+///     such default implementation is incorrect or incomplete, it is possible to
+///     override the default implementation with custom ones, see 
+///     @ref page_message_tutorial for details.
+/// @li The two fields of the message are given names: @b name1 and @b name2. The
+///     COMMS_MSG_FIELDS_ACCESS() macro will create @b FieldIdx enum as well as
+///     @b field_* accessor functions for convenient access to the fields having
+///     reference to @b Message1 object.
+///     @code
+///     enum FieldIdx
+///     {
+///         FieldIdx_name1,
+///         FieldIdx_name2,
+///         FieldIdx_numOfValues
+///     }
+///
+///     auto field_name1() -> decltype(std::get<FieldIdx_name1>(fields()))
+///     {
+///         return std::get<FieldIdx_name1>(fields());
+///     }
+///
+///     auto field_name2() -> decltype(std::get<FieldIdx_name2>(fields()))
+///     {
+///         return std::get<FieldIdx_name2>(fields());
+///     }
+///     @endcode
+///     As the result, the fields of the @b Message1 object may be accessed in
+///     two ways. First one is using provided @b FieldIdx values as indices into
+///     the fields tuple:
+///     @code
+///     void handle(Message1& msg)
+///     {
+///         auto& allFields = msg.field(); // access to fields tuple
+///         auto& field1 = std::get<Message1::FieldIdx_name1>(allFields);
+///         auto& field2 = std::get<Message1::FieldIdx_name2>(allFields);
+///
+///         auto value1 = field1.value();
+///         auto value2 = field2.value();
+///     }
+///     @endcode
+///     Second one is using @b field_* accessor functions:
+///     @code
+///     void handle(Message1& msg)
+///     {
+///        auto& field1 = msg.field_name1();
+///        auto& field2 = msg.field_name2();
+///
+///         auto value1 = field1.value();
+///         auto value2 = field2.value();
+///     }
+///     @endcode
 /// 
 /// One of the features, that make the implementation of the custom message
 /// to be that simple, is the existence of @b fields. Fields are abstractions
@@ -173,91 +256,10 @@
 /// @diafile message_class_hierarchy.dia
 /// @n
 ///
-/// @section message_handling Dispatching and Handling of the Message
-/// Once the raw sequence of bytes is received on I/O link, the message object
-/// is created by the @ref protocol_stack and held by smart pointer to 
-/// @b MyMessage interface. At this moment the proper type of the message is 
-/// invisible. The COMMS library provides an easy and efficient way to downcast
-/// message object to its appropriate type.
-/// 
-/// First of all bundle all the custom message types that need to be bundled 
-/// into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
-/// @code
-/// typedef std::tuple<
-///     Message1,
-///     Message2,
-///     Message3,
-///     ...
-/// > AllMessages;
-/// @endcode
-/// Then, define your custom handler class. Note, that this class was forward
-/// declared earlier and used with the comms::option::Handler option to
-/// comms::Message base class. It must inherit from comms::GenericHandler while
-/// providing @b MyMessage interface class and @b AllMessages bundle type as
-/// template parameters of the latter. 
-/// @code
-/// class MyHandler : public comms::GenericHandler<MyMessage, AllMessages>
-/// {
-/// public:
-///     virtual void handle(Message1& msg) override {...}
-///     virtual void handle(Message2& msg) override {...}
-///     virtual void handle(Message3& msg) override {...}
-///     ...
-///     virtual void handle(MyMessage& msg) override {...} 
-/// }
-/// @endcode
-/// The comms::GenericHandler defines "virtual handle(MyMessage& msg)" function
-/// which does nothing, and for every type in std::tuple which provided as
-/// second template parameter (@b AllMessages in the example above) it also  
-/// defines "virtual handle(MessageType& msg)" function which upcasts the
-/// specific type of the message to the interface class @b MyMessage and calls
-/// "handle(MyMessage&)" function.
-///
-/// As a result, the proper handler class (@b MyHandler) can override
-/// virtual "void handle(MyMessage& msg)" function to redefine default message
-/// handling behaviour, and/or override any other virtual "handle(...)" function
-/// to redefine default handling behaviour for every specific message.
-///
-/// Once the message handler type is defined, the message can be easily dispatched
-/// to its appropriate handling function. Let's assume we have proper message
-/// object that was created by the @ref protocol_stack when proper sequence of
-/// the raw bytes was received and successfully parsed. Recognising and handling
-/// the message is easy:   
-/// @code
-/// MsgPtr msg = ...; // MsgPtr is smart pointer to MyMessage.
-/// MyHandler handler; // Handler object stored somewhere;
-/// 
-/// msg->dispatch(handler); // Call appropriate handle() function of the MyHandler.
-/// @endcode
-/// The call to @b dispatch() member function of the message object will invoke 
-/// proper @b handle() function of the handler.
-/// 
-/// Once we have a reference to proper message type, the message data fields
-/// are accessible via call to @b fields() member function implemented by
-/// comms::MessageBase class when comms::option::FieldsImpl option was provided:
-/// @code
-/// class MyHandler : public comms::GenericHandler<MyMessage, AllMessages>
-/// {
-/// public:
-///     virtual void handle(Message1& msg) override 
-///     {
-///         auto& fields = msg.fields()
-///         auto& field1 = std::get<Message1::FieldIdx_Field1>(fields);
-///         auto& field2 = std::get<Message1::FieldIdx_Field2>(fields);
-///
-///         auto valueOfField1 = field1.value();
-///         auto valueOfField2 = field2.value();
-///     }
-///     ...
-/// }
-/// @endcode
-/// See the @ref page_handler_tutorial page for more details on defining
-/// custom message handlers.
-///
-/// @section protocol_stack Protocol Stack
+/// @section transport_info Transport Info
 /// Every message needs to be wrapped in some kind of transport information to
 /// insure its safe and correct delivery over I/O link. Let's assume our 
-/// custom protocol defines wraps the serialised messages in the following way:
+/// custom protocol wraps the serialised messages in the following way:
 /// @code
 /// SYNC | SIZE | ID | PAYLOAD | CHECKSUM 
 /// @endcode    
@@ -345,21 +347,27 @@
 /// comms::protocol::MsgIdLayer.
 /// @code
 /// typedef comms::field::EnumValue<CommonFieldBase, MsgId> MsgIdField;
-/// typedef comms::protocol::MsgIdLayer<MsgIdField, MyMessage, AllMessages, MyMsgData> MyMsgId;
+/// typedef std::tuple<
+///     Message1,
+///     Message2,
+///     Message3,
+///     ...
+/// > InputMessages; 
+/// typedef comms::protocol::MsgIdLayer<MsgIdField, MyMessage, InputMessages, MyMsgData> MyMsgId;
 /// @endcode 
-/// The @b MsgIdField is type of the field that is responsible to read/write
+/// The first template parameter is @b MsgIdField, which is type of the field that is responsible to read/write
 /// message ID information. @b CommonFieldBase is the base class for all the fields
-/// defined in @ref message_interface section above. @b MsgId is an enum type
-/// used to specify ID of the message, was also defined in @ref message_interface 
+/// defined in @ref message_interface_impl section above. @b MsgId is an enum type
+/// used to specify ID of the message, was also defined in @ref message_interface_impl 
 /// section above. Note, that underlying type of @b MsgId is @b std::uint8_t,
 /// which causes serialisation length of the @b MsgIdField to be exactly 1 byte.@n
 /// @b MyMsgId layer is defined to be comms::protocol::MsgIdLayer
-/// that uses @b MsgIdField to read/write the ID information.
+/// that uses @b MsgIdField to read/write the ID information. @n
 /// Second template paramter is the interface class for all the @b incoming messages
 /// that this layer must recognise (@b MyMessage in the example). 
-/// Third template parameter to comms::protocol::MsgIdLayer is @b AllMessages, which is
-/// @b std::tuple of all the supported @b input messages. It was defined in 
-/// @ref message_handling section above. Fourth template parameter is the 
+/// Third template parameter to comms::protocol::MsgIdLayer is @b InputMessages, which is
+/// @b std::tuple of all the @b incoming message types that need to be recognised. @n
+/// Fourth template parameter is the 
 /// @b MyMsgData layer defined earlier, which is responsible to handle the PAYLOAD. @n
 /// When new valid sequence of bytes is received over I/O link, the @b MyMsgId
 /// layer is responsible to read the ID field information and create proper
@@ -439,41 +447,22 @@
 /// typedef MySyncPrefix ProtStack;
 /// @endcode 
 ///
-/// The protocol stack type defines defines type of the smart pointer that holds
-/// message object that was allocation during @read operation:
-/// @code
-/// ProtStack::MsgPtr msgPtr;
-/// @endcode
-///
-/// The smart pointer is a variant of 
-/// <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr">unique_ptr</a>.
-/// As the result the type of the interface can be retrieved using internal
-/// type @b element_type:
-/// @code
-/// typedef ProtStack::MsgPtr::element_type MsgInterfaceType;
-/// @endcode
-///
-/// See the @ref page_prot_stack_tutorial page for more examples and guidelines
-/// on how to define various protocol stacks.
-///
-/// @section tutorial_polymorphic_read Polymorphic Read and Dispatch
+/// @section tutorial_polymorphic_read Polymorphic Read
 /// The COMMS library doesn't make any assumptions about what I/O link is used
 /// as a communication channel, and doesn't provide any low level socket
 /// abstractions. It is a job of the library's client to manage the communication,
 /// store accumulated data somewhere and make it available for processing.
 ///
 /// When new data has been read from I/O link it needs to be read and processed.
-/// The received message needs to be dispatched to appropriate handling function.
+/// The received message needs to be recognised dispatched to appropriate handling function.
 /// The code needs to be the same for all types of messages. It means that 
-/// message interface must allow polymorphic read and dispatch. In other words,
-/// the message interface needs to define iterator used for reading as well as
-/// type of message handler:
+/// message interface must allow @b polymorphic read. In other words,
+/// the message interface needs to define iterator used for reading:
 /// @code
 /// class MyMessage : public
 ///     comms::Message<
 ///         ...
 ///         comms::option::ReadIterator<const std::uint8_t*>, 
-///         comms::option::Handler<MyHandler>,
 ///         ... 
 ///     >
 /// {
@@ -481,62 +470,224 @@
 /// };
 /// @endcode
 ///
-/// Just as an example, let's choose @b std::vector<std::uint8_t> to store
-/// the incoming data. The data processing logic can be implemented
-/// like this:
+/// The data processing logic can be implemented like this:
 /// @code
-/// std::vector<std::uint8_t> dataToProcess; // Data from I/O link is stored here
 /// ProtStack protStack; // Protocol stack defined in previous section
-/// MyHandler handler; // Handler object to handle the received message
+/// std::size_t processInput(const std::uint8_t* buf, std::size_t len)
+/// {
+///     std::size_t consumed = 0U;
+///     // Processing loop
+///     while (consumed < len) {
+///         ProtStack::MsgPtr msgPtr; // Smart pointer to the message object.
 ///
-/// // Processing loop
-/// while (!dataToProcess.empty()) {
-///     ProtStack::MsgPtr msgPtr; // Smart pointer to the message object.
+///         typedef ProtStack::MsgPtr::element_type MsgType; // Type of the message interface class
+///     
+///         auto begIter = comms::readIteratorFor<MsgType>(buf + consumed);
+///         auto iter = begIter;
 ///
-///     typedef ProtStack::MsgPtr::element_type MsgType; // Type of the message interface class
+///         auto es = protStack.read(msgPtr, iter, len - consumed);
+///         if (es == comms::ErrorStatus::NotEnoughData) {
+///             break; // Not enough data in the buffer, stop processing
+///         } 
 ///     
-///     auto iter = comms::readIteratorFor<MsgType>(&dataToProcess[0]); // initialise iterator for reading
-///     auto es = protStack.read(msgPtr, iter, dataToProcess.size());
-///     if (es == comms::ErrorStatus::NotEnoughData) {
-///         break; // Not enough data in the buffer, stop processing
-///     } 
-///     
-///     if (es == comms::ErrorStatus::ProtocolError) {
-///         // Something is not right with the data, remove one character and try again
-///         dataToProcess.erase(dataToProcess.begin());
-///         continue;
+///         if (es == comms::ErrorStatus::ProtocolError) {
+///             // Something is not right with the data, remove one character and try again
+///            ++consumed;
+///             continue;
+///         }
+///
+///         if (es == comms::ErrorStatus::Success) {
+///             assert(msgPtr); // If read is successful, msgPtr is expected to hold a valid pointer
+///             ... // Dispatch message for handling, explained in the next section.
+///         }
+///
+///         // The iterator for reading has been advanced, update the difference
+///         consumed += std::distance(begIter, iter);
 ///     }
 ///
-///     if (es == comms::ErrorStatus::Success) {
-///         assert(msgPtr); // If read is successful, msgPtr is expected to hold a valid pointer
-///         msgPtr->dispatch(handler); // Dispatch message for handling, appropriate
-///                                    // handle() member function of the handler
-///                                    // object will be called.
-///     }
-///
-///     auto begIter = comms::readIteratorFor<MsgType>(&dataToProcess[0]);
-///     dataToProcess.erase(begIter, iter); // Remove all processed data;
+///     // Report how many bytes have been consumed from the buffer
+///     report consumed;
 /// }
-/// ... // proceed to reading more data from I/O link
+/// @endcode
+/// Please pay attention to the following details:
+/// @li The protocol stack type defines defines type of the smart pointer that 
+///     holds message object that was allocation during @read operation:
+///     @code
+///     ProtStack::MsgPtr msgPtr;
+///     @endcode
+/// @li The @b ProtStack::MsgPtr is a variant of 
+///     <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr">unique_ptr</a>.
+///     As the result the type of the interface can be retrieved using internal
+///     type @b element_type:
+///     @code
+///     typedef ProtStack::MsgPtr::element_type MsgType;
+///     @endcode
+/// @li The innermost layer of protocol stack (comms::protocol::MsgDataLayer)
+///     will invoke @b polymorphic read interface of the allocated message
+///     (see comms::Message::read()). It means that the iterator used the
+///     full read needs to be convertible to comms::Message::ReadIterator. It
+///     can be achieved by using comms::readIteratorFor() template function, 
+///     which will initialise and return appropriate iterator type. Another 
+///     possible way of allocating the iterator can be as following:
+///     @code
+///     MsgType::ReadIterator iter = buf + consumed;
+///     @endcode
+///
+/// See the @ref page_prot_stack_tutorial page for more examples and guidelines
+/// on how to define various protocol stacks.
+///
+/// @section message_handling Polymorphic Dispatching and Handling of the Message
+/// Once the raw sequence of bytes is received on I/O link, the message object
+/// is created by the @b Protocol @b Stack (see @ref transport_info) and held by smart pointer to 
+/// @b MyMessage interface. At this moment the proper type of the message is 
+/// invisible. The COMMS library provides an easy and efficient way to downcast
+/// message object to its appropriate type by using @b polymorphic dispatch call
+/// (see comms::Message::dispatch()).
+///
+/// First of all such call needs to be enabled in the interface by using
+/// comms::option::Handler and providing type of the handler as a template
+/// parameter:
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...
+///         comms::option::Handler<MyHandler>, 
+///         ... 
+///     >
+/// {
+///     ...
+/// };
+/// @endcode
+///
+/// Second, the actual handler class needs to be defined. It is expected to
+/// define @b handle() member function for all types of messages it needs to handle.
+/// @code
+/// class MyHandler
+/// {
+/// public:
+///     void handle(Message1& msg) {...}
+///     void handle(Message2& msg) {...}
+///     void handle(Message3& msg) {...}
+///
+///     // Common handling functions for other types of messages.
+///     void handle(MyMessage& msg) {...}
+/// }
+/// @endcode
+/// When providing actual message type using comms::option::MsgType option
+/// to comms::MessageBase class, it invokes proper @b handle() member function
+/// of the handler class in its comms::MessageBase::dispatchImpl() member
+/// function. If appropriate @b handle() member function in the handling class
+/// can not be found, the compiler will choose the next best match, which
+/// happen to be <b>void handle(MyMessage& msg)</b> one. This function can
+/// be used to implement common "don't care" functionality.
+/// 
+/// To help with the creation of the handler class, the @b COMMS library provides
+/// comms::GenericHandler. It has two template parameters. The first one
+/// is a type of common interface class (@b MyMessage). The second one is all the messages it
+/// should be able to handle bundled in @b std::tuple. As the result 
+/// it defines "virtual handle(MyMessage& msg)" function
+/// which does nothing, and for every type in the provided tuple of message types
+/// defines "virtual handle(MessageType& msg)" function which upcasts the
+/// specific type of the message to the interface class @b MyMessage and calls
+/// "handle(MyMessage&)" function. For example, the following code
+/// @code
+/// typedef std::tuple<
+///     Message1,
+///     Message2,
+///     Message3,
+///     ...
+/// > AllMessages;
+///
+/// class MyHandler : public comms::GenericHandler<MyMessage, AllMessages>
+/// {
+/// }
+/// @endcode
+/// is equivalent to implementing:
+/// @code
+/// class MyHandler 
+/// {
+/// public:
+///     virtual void handle(Message1& msg) {
+///         this->handle(static_cast<MyMessage&>(msg));
+///     }
+///
+///     virtual void handle(Message2& msg) {
+///         this->handle(static_cast<MyMessage&>(msg));
+///     }
+///     ...
+///     virtual void handle(MyMessage& msg) {
+///         // do nothing
+///     }
+/// }
+/// @endcode
+/// By overriding the relevant @b handle() functions in the @b MyHandler class,
+/// it is easy to handle only limited number of messages and ignoring all the rest.
+/// @code
+/// class MyHandler : public comms::GenericHandler<MyMessage, AllMessages>
+/// {
+/// public:
+///     virtual void handle(Message1& msg) override {
+///         ... // handle Message1
+///     }
+///
+///     virtual void handle(Message2& msg) override {
+///         ... // handle Message2
+///     }
+///
+///     virtual void handle(MyMessage& msg) override {
+///         std::cout << "Ignoring message" << std::endl;
+///     }
+/// }
+/// @endcode
+/// 
+/// Below is the previous example of reading the message from @ref tutorial_polymorphic_read
+/// complemented with dispatching created message for handling:
+/// @code
+/// ProtStack protStack; // Protocol stack defined in previous section
+/// MyHandler handler;
+/// std::size_t processInput(const std::uint8_t* buf, std::size_t len)
+/// {
+///     std::size_t consumed = 0U;
+///     // Processing loop
+///     while (consumed < len) {
+///         ... 
+///
+///         auto es = protStack.read(msgPtr, iter, len - consumed);
+///         ...
+///
+///         if (es == comms::ErrorStatus::Success) {
+///             assert(msgPtr); // If read is successful, msgPtr is expected to hold a valid pointer
+///             msgPtr->dispatch(handler);
+///         }
+///
+///         ...
+///     }
+///
+///     // Report how many bytes have been consumed from the buffer
+///     report consumed;
+/// }
 /// @endcode
 /// 
 /// @section tutorial_polymorphic_write Polymorphic Write
-/// The @b COMMS library allows writing the same writing (serialisation) code
-/// for all the messages. Something like:
+/// The @b COMMS library allows allows implementation of the single writing (serialisation) 
+/// function applicable for all the messages. Something like:
 /// @code
 /// void sendMessage(const MyMessage& msg)
 /// {
 ///     ...
 /// }
+/// @endcode
 ///
 /// In order to allow such polymorhic write, the message interface must define
-/// appropriate interface by providing iterator used for writing:
+/// appropriate interface by providing iterator used for writing, and allowing
+/// polymorphic retrieval of ID and serialisation length information
 /// @code
 /// class MyMessage : public
 ///     comms::Message<
 ///         ...
 ///         comms::option::WriteIterator<std::uint8_t*>, // define polymorphic write
 ///         comms::option::LengthInfoInterface, // allow polymorphic retrieval of length information
+///         comms::option::IdInfoInterface, // allow polymorphic retrieval of message ID information
 ///         ... 
 ///     >
 /// {
@@ -548,10 +699,10 @@
 /// the message with all the transport related fields, use "length()" member
 /// function of the protocol stack object:
 /// @code
+/// ProtStack protStack; // Protocol stack defined in one of previous sections
 /// void sendMessage(const MyMessage& msg)
 /// {
 ///     std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
-///     ProtStack protStack; // Protocol stack defined in previous section
 ///
 ///     auto reqLen = protStack.length(msg); // Number of bytes required to serialise the message;
 ///     dataToSend.resize(reqLen);
@@ -562,6 +713,9 @@
 ///     }
 /// }
 /// @endcode
+/// Similar to comms::readIteratorFor(), explained in @ref tutorial_polymorphic_read
+/// section, the comms::writeIteratorFor() function may be used to initialise and
+/// obtain iterator used for writing.
 ///
 /// As another example let's go back and redefine the @b MyMessage interface
 /// class to use <a href="http://en.cppreference.com/w/cpp/iterator/back_insert_iterator">std::back_insert_iterator</a>  
@@ -579,13 +733,20 @@
 /// @endcode
 /// In this case the write functionality may be changed into following:
 /// @code
+/// ProtStack protStack; // Protocol stack defined in one of previous sections
 /// void sendMessage(const MyMessage& msg)
 /// {
 ///     std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
-///     ProtStack protStack; // Protocol stack defined in previous section
 ///
 ///     auto writeIter = std::back_inserter(dataToSend);
 ///     auto es = protStack.write(msg, writeIter, dataToSend.max_size());
+///     if (es == comms::ErrorStatus::UpdateRequired) {
+///         // The checksum could not be calculated right away, 
+///         // create random-access iterator and update the written value
+///         auto* updateIter = &dataToSend[0];
+///         es = proptStack.update(updateIter, dataToSend.size());
+///     }
+///
 ///     if (es == comms::ErrorStatus::Success) {
 ///         ... // Send contents of dataToSend via I/O link
 ///     }
@@ -596,17 +757,16 @@
 /// Sometimes it may be useful to write a common @b non polymorphic code to write
 /// a message.
 /// @code
+/// ProtStack protStack; // Protocol stack defined in one of previous sections
+///
 /// template <typename TMsg>
 /// void sendMessage(const TMsg& msg)
 /// {
 ///     std::vector<std::uint8_t> dataToSend; // Data to be sent via I/O link
-///     ProtStack protStack; // Protocol stack defined in previous section
 ///
 ///     auto writeIter = std::back_inserter(dataToSend);
 ///     auto es = protStack.write(msg, writeIter, dataToSend.max_size());
-///     if (es == comms::ErrorStatus::Success) {
-///         ... // Send contents of dataToSend via I/O link
-///     }
+///     ...
 /// }
 /// 
 /// Message1 msg1;
@@ -618,7 +778,7 @@
 /// In this case the @b COMMS library knows what messages are being written and
 /// can invoke @b doWrite non-virtual function (see comms::MessageBase::doWrite())
 /// defined by the message itself when serialising message. It eliminates a 
-/// necessity to provide comms::option::WriteIterator option when defining
-/// common interface. As the result it may reduce the size of virtual tables
+/// necessity of having polymorphic interface with various necessary functions
+/// and and can significantly reduce the size of virtual tables
 /// of the messages. 
 ///

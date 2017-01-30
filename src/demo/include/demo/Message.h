@@ -38,7 +38,6 @@ namespace demo
 ///     class while providing the following default options:
 ///     @li @b comms::option::MsgIdType<MsgId> > - use @ref MsgId as the type of message ID.
 ///     @li @b comms::option::BigEndian - use big endian for serialisation.
-///     @li @b comms::option::RefreshInterface - add refresh() member function to interface.
 ///
 ///     All other options provided with TOptions template parameter will also be passed
 ///     to the @b comms::Message base class to define the interface.
@@ -49,8 +48,7 @@ class MessageT : public
     comms::Message<
         TOptions...,
         comms::option::BigEndian,
-        comms::option::MsgIdType<MsgId> >,
-        comms::option::RefreshInterface
+        comms::option::MsgIdType<MsgId> >
 {
 public:
 
@@ -71,31 +69,6 @@ public:
 
     /// @brief Move assignment operator
     MessageT& operator=(MessageT&&) = default;
-
-#ifdef FOR_DOXYGEN_DOC_ONLY
-    /// @brief Refresh the contents of the message.
-    /// @details In Demo binary protocol in some messages contents of specific
-    ///     fields may limit the value of other field(s). A call to this function
-    ///     is intended to bring the contents of the message to a valid state
-    ///     after one or more of the fields was updated. @n
-    ///     This function calls refreshImpl() virtual function and returns the value
-    ///     returned by the latter. The expected behaviour from overriding functions
-    ///     in the derived classes is to return @b true if value of at least one
-    ///     field was modified, and @b false if values of all the fields remained intact.
-    /// @return Whatever call to virtual refreshImpl() returns.
-    bool refresh();
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
-
-protected:
-
-#ifdef FOR_DOXYGEN_DOC_ONLY
-    /// @brief Polymorphic refresh functionality.
-    /// @details Invoked by non-virtual refresh() interface function. By default
-    ///     does nothing and returns false. It may be overridden by the
-    ///     derived class.
-    /// @return Default implementation always returns @b false.
-    virtual bool refreshImpl();
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
 /// @brief Default Demo interface class.

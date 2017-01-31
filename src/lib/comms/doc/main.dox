@@ -27,7 +27,7 @@
 /// 
 /// Below is a quick tutorial on how to use the library.
 /// 
-/// @section comms_header Headers and Libraries
+/// @section mainpage_comms_header Headers and Libraries
 /// COMMS is a headers only library without any object files to link against. 
 /// In order to include the whole functionality of the library please use
 /// single include statement:
@@ -35,7 +35,7 @@
 /// #include "comms/comms.h"
 /// @endcode
 ///
-/// @section error_handling Error Handling
+/// @section mainpage_error_handling Error Handling
 /// The COMMS library is intended to be used in embedded systems (including 
 /// bare metal), which means the library cannot use exceptions to report errors.
 /// The runtime errors are reported via comms::ErrorStatus return values. All
@@ -52,7 +52,7 @@
 /// See @ref page_assert for details on how to define custom assertion failure
 /// behaviour.  
 ///
-/// @section message_interface_impl Messages
+/// @section mainpage_messages Messages
 /// The communication protocols are all about exchanging messages. Every message
 /// needs to be serialised into the stream of bytes before being sent on the I/O
 /// link. Upon reception of the raw stream of bytes, they need to be
@@ -256,7 +256,7 @@
 /// @diafile message_class_hierarchy.dia
 /// @n
 ///
-/// @section transport_info Transport Info
+/// @section mainpage_transport_info Transport Info
 /// Every message needs to be wrapped in some kind of transport information to
 /// insure its safe and correct delivery over I/O link. Let's assume our 
 /// custom protocol wraps the serialised messages in the following way:
@@ -357,8 +357,8 @@
 /// @endcode 
 /// The first template parameter is @b MsgIdField, which is type of the field that is responsible to read/write
 /// message ID information. @b CommonFieldBase is the base class for all the fields
-/// defined in @ref message_interface_impl section above. @b MsgId is an enum type
-/// used to specify ID of the message, was also defined in @ref message_interface_impl 
+/// defined in @ref mainpage_messages section above. @b MsgId is an enum type
+/// used to specify ID of the message, was also defined in @ref mainpage_messages 
 /// section above. Note, that underlying type of @b MsgId is @b std::uint8_t,
 /// which causes serialisation length of the @b MsgIdField to be exactly 1 byte.@n
 /// @b MyMsgId layer is defined to be comms::protocol::MsgIdLayer
@@ -538,7 +538,7 @@
 ///
 /// @section message_handling Polymorphic Dispatching and Handling of the Message
 /// Once the raw sequence of bytes is received on I/O link, the message object
-/// is created by the @b Protocol @b Stack (see @ref transport_info) and held by smart pointer to 
+/// is created by the @b Protocol @b Stack (see @ref mainpage_transport_info) and held by smart pointer to 
 /// @b MyMessage interface. At this moment the proper type of the message is 
 /// invisible. The COMMS library provides an easy and efficient way to downcast
 /// message object to its appropriate type by using @b polymorphic dispatch call
@@ -667,6 +667,7 @@
 ///     report consumed;
 /// }
 /// @endcode
+/// Please read @ref page_handler_tutorial for more details and examples.
 /// 
 /// @section tutorial_polymorphic_write Polymorphic Write
 /// The @b COMMS library allows allows implementation of the single writing (serialisation) 

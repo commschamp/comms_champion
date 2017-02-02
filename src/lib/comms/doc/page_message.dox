@@ -1186,4 +1186,108 @@
 /// };
 /// @endcode
 ///
-
+/// @subsection page_message_tutorial_impl_optimisations Extra Optimisations
+/// Let's assume that most of the messages are bi-directional, i.e. can be 
+/// sent by both ends on the communication link, except @b Message1. The
+/// @b Message1 is a "client-only" message, it is sent by the client to
+/// the server and never sent by the server back to the client. In this
+/// case, when client code is compiled, there is no need for generation of the
+/// "read" functionality. And the opposite, when server code is compiled, there
+/// is not need to generate code to support "write". If everything left intact,
+/// and the interface class definition will require both polymophic "read" and
+/// "write", the code both @b readImpl() and @b writeImpl() virtual functions 
+/// will be generated occupying unnecessary space in final binary and/or image.
+/// For most systems it won't be an issue, but it may be for bare-metal systems 
+/// with limited ROM size. The @b COMMS library extra options that can
+/// inhibit implementation of the said virtual functions. However there is a
+/// need for some extra logic to choose the right option.
+/// @code
+/// template <bool TClientOnly, bool TServerOnly>
+/// struct ExtraMessage1Options
+/// {
+///     typedef std::tuple<> Type; // No extra options for default variant    
+/// }
+///
+/// // Template specialisation for client-only variant
+/// template <>
+/// struct ExtraMessage1Options<true, false>
+/// {
+///     typedef comms::option::NoReadImpl Type;
+/// };
+///
+/// // Template specialisation for server-only variant
+/// template <>
+/// struct ExtraMessage1Options<false, false>
+/// {
+///     typedef comms::option::NoWriteImpl Type;
+/// };
+///
+/// template <bool TClientOnly, bool TServerOnly>
+/// using ExtraMessage1OptionsT = typename ExtraMessage1Options<TClientOnly, TServerOnly>::Type;
+/// @endcode
+/// Then the @b Message1 definition can be modified to allow extra options:
+/// @code
+/// template <typename TMessage, bool TClientOnly = false, bool TServerOnly = false>
+/// class Message1 : public
+///     comms::MessageBase<
+///         TMessage, // Interface class for all the messages
+///         comms::option::StaticNumIdImpl<MyMsgId_Message1>, 
+///         comms::option::MsgType<Message1<TMessage> >, 
+///         comms::option::FieldsImpl<Message1Fields>,
+///         ExtraMessage1OptionsT<TClientOnly, TServerOnly>
+///     >
+/// {
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2);
+/// };
+/// @endcode
+/// For convenience the alises can also be defined:
+/// @code
+/// template <typename TMessage>
+/// using ClientMessage1 = Message1<TMessage, true, false>;
+///
+/// template <typename TMessage>
+/// using ServerMessage1 = Message1<TMessage, false, true>;
+/// @endcode
+/// Please note, that both comms::Message and comms::MessageBase receive,
+/// variable number of template parameters, which are expected to be option classes
+/// from comms::option namespace. The options can be passed as individual ones
+/// and/or bundled in @b std::tuple (see definition of internal type of 
+/// @b ExtraMessage1Options above). Usage of @b std::tuple can help when there is
+/// a need to provide several options in one go.
+///
+/// There are several more options that can inhibit implementation of virtual *Impl()
+/// functions by comms::MessageBase. Please refer to the documentation of the latter for
+/// the full list.
+///
+/// @subsection page_message_tutorial_impl_summary Implementation Summary
+/// The comms::MessageBase class as well as inheriting definitions of the actual message
+/// classes may define a significant number of @b non-virtual functions. Thanks to
+/// the template nature of the classes and their member functions, these functions
+/// get compiled in only if they are used. The virtual functions, on the other hand,
+/// will always find their way into the final binary/image, even if they are not used.
+/// This is the reason, why custom message classes should never
+/// override defined @b *Impl() virtual functions to provide custom polymorphic behaviour.
+/// Instead, the comms::MessageBase class should be entrusted with the task by
+/// providing it with the right options, indicating what functionality is
+/// available. The comms::MessageBase class will implement required @b *Impl()
+/// functions <b>if and only if </b> the used interface class requested the
+/// polymorphic behaviour. 
+///
+/// If there is extended interface in use (see @ref page_message_tutorial_interface), 
+/// it is recommended to create extended classes, which inherit from default class
+/// definition and implement missing polymorphic functionality:
+/// @code
+/// template <typename TMessage>
+/// class Message1Ext : public Message1<TMessage>
+/// {
+/// protected:
+///     virtual const char* nameImpl() const
+///     {
+///         static const char* Str = "Message1";
+///         return Str;
+///     }
+/// }
+/// @endcode
+///

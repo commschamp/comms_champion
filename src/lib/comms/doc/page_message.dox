@@ -1257,7 +1257,7 @@
 /// @b ExtraMessage1Options above). Usage of @b std::tuple can help when there is
 /// a need to provide several options in one go.
 ///
-/// There are several more options that can inhibit implementation of virtual *Impl()
+/// There are several more options that can inhibit implementation of virtual @b *Impl()
 /// functions by comms::MessageBase. Please refer to the documentation of the latter for
 /// the full list.
 ///

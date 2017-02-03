@@ -1261,6 +1261,89 @@
 /// functions by comms::MessageBase. Please refer to the documentation of the latter for
 /// the full list.
 ///
+/// @subsection page_message_tutorial_impl_bare_metal Bare Metal Considerations
+/// There can be messages that contain strings (see @ref sec_field_tutorial_string)
+/// and/or lists (see @ref sec_field_tutorial_array_list). By default, these
+/// fields use @b std::string and @b std::vector types respectively for inner
+/// value storage. However, these types may be not suitable for bare-metal
+/// applications. So, how do we allow usage of different type only when compiling
+/// the code for bare-metal environment, while preserving the original behaviour
+/// when compiling for any other application? We may use similar technique as in
+/// previous section to provide extra option(s) when defining the string type.
+///
+/// First, there is a need to use comms::option::FixedSizeStorage option to
+/// specify the size limit, 0 means no limit and hence no extra option is needed.
+/// To specify "no option" either comms::option::EmptyOption option may be used,
+/// which will be ignored or empty tuple (@b std::tuple<>).
+/// @code
+/// template <std::size_t TSizeLimit>
+/// struct ExtraStringOptions
+/// {
+///     typedef comms::option::FixedSizeStorage<TSizeLimit> Type;
+/// }
+///
+/// // Template specialisation for general variant
+/// template <>
+/// struct ExtraStringOptions<0>
+/// {
+///     typedef comms::option::EmptyOption Type; // No extra options for default variant    
+/// };
+///
+/// template <std::size_t TSizeLimit>
+/// using ExtraStringOptionsT = typename ExtraStringOptions<TSizeLimit>::Type;
+/// @endcode
+///
+/// Second, define the type of the string field, which can receive extra options:
+/// For example, string that write 1 byte prefix specifying its length, when 
+/// serialised:
+/// @code
+/// template <std::size_t TSizeLimit>
+/// using MyStringField =
+///     comms::field::String<
+///         CommonFieldBase, 
+///         comms::option::SequenceSizeFieldPrefix<
+///             comms::field::IntValue<CommonFieldBase, std::uint8_t>
+///         >,
+///         ExtraStringOptionsT<TSizeLimit> // provide extra options, depending on the provided size limit
+/// @endcode
+///
+/// Third, define the @b std::tuple of message related fields, that allow
+/// customisation with the template parameter:
+/// @code
+/// template <std::size_t TSizeLimit>
+/// using Message3Fields = 
+///     std::tuple<
+///         MyStringField<TSizeLimit>
+///     >;
+/// @endcode
+/// And finally, define the actual message class, that allow the customisation
+/// via extra template parameter:
+/// @code
+/// template <typename TMessage, std::size_t TSizeLimit = 0>
+/// class Message3 : public
+///     comms::MessageBase<
+///         TMessage, 
+///         comms::option::StaticNumIdImpl<MyMsgId_Message3>, 
+///         comms::option::MsgType<Message3<TMessage, TSizeLimit> >, 
+///         comms::option::FieldsImpl<Message3Fields<TSizeLimit> > 
+///     >
+/// {
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(str);
+/// };
+/// @endcode
+/// As the result usual use would be normal definition of :
+/// @code
+/// typedef Message3<MyMessage> MyMessage3;
+/// @endcode
+/// While in bare-metal application use extra parameter specifying maximal allowed
+/// length, which will result in using comms::util::StaticString class instead of
+/// default @b std::string.
+/// @code
+/// typedef Message3<MyMessage, 128> MyBareMetalMessage2;
+/// @endcode
+///
 /// @subsection page_message_tutorial_impl_summary Implementation Summary
 /// The comms::MessageBase class as well as inheriting definitions of the actual message
 /// classes may define a significant number of @b non-virtual functions. Thanks to
@@ -1274,6 +1357,13 @@
 /// available. The comms::MessageBase class will implement required @b *Impl()
 /// functions <b>if and only if </b> the used interface class requested the
 /// polymorphic behaviour. 
+///
+/// The definition of actual message class that is implemented extending comms::MessageBase
+/// while providing appropriate options, becomes applicable to any possible application,
+/// whether it's bare-metal with limited resources, server side with full OS support,
+/// or extra protocol analysis tools. Every such application may use the same
+/// message definition code. All the necessary configuration is performed by
+/// defining and choosing the right interface class.
 ///
 /// If there is extended interface in use (see @ref page_message_tutorial_interface), 
 /// it is recommended to create extended classes, which inherit from default class
@@ -1291,3 +1381,4 @@
 /// }
 /// @endcode
 ///
+

@@ -66,4 +66,20 @@
 /// Please refer to @ref page_prot_stack_tutorial for full information on how
 /// to do so.
 ///
+/// @section mainpage_send_recv Sending and Receiving Messages
+/// The @b COMMS library does not make any assumption on the system it is running
+/// on and does not enforce usage of any particular data structures to store the
+/// incoming and outgoing data. It also does not provide or use any 
+/// network/socket abstractions. There are no blocking calls. It becomes the 
+/// responsibility of the driving code
+/// to design and implement such services. The developer is free to choose any
+/// third party framework to drive the asynchronous communication process.
+///
+/// Once the data is received over the used I/O socket and stored in the
+/// appropriate buffer, the right iterator needs to be created and passed to the
+/// @b COMMS library for processing.
+///
+/// When new message needs to be sent, its data is serialised into provided 
+/// buffer, and it is the responsibility of the driving code to send the data 
+/// over I/O link. The @b COMMS library is not involved in this process.
 

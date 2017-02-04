@@ -19,6 +19,55 @@
 /// documentation of every field contains the list of options that can be used
 /// with the field.
 ///
+/// In general, (almost) every field class provided by the @b COMMS library:
+/// @li Receives its base class as the first template parameter. It is expected
+///     to be a variant of comms::Field with option specifying the serialisation
+///     endian.
+/// @li Receives a list of possible behaviour modifying options as the last
+///     variadic template parameter.
+/// @li Defines inner @b ValueType type, which is used to store the value is
+///     wraps.
+/// @li Provides access to the storage value using @b value() member functions.
+/// @li Does @b NOT expose any polymorphic behaviour, i.e. does @b NOT have any
+///     virtual functions.
+/// @li Provides simple interface to read (@b read()), write (@b write()), 
+///     retrieve serialisation length (@b length()), and check value validity
+///     (@b valid()).
+/// @li The @b read() and @b write() member function receive type of the 
+///     iterator for (de)serialisation as a template parameter.
+///
+/// It looks something like this:
+/// @code
+/// template <typename TBase, typename... TOptions>
+/// class SomeField : public TBase
+/// {
+/// public:
+///     // Define inner storage type
+///     typedef ... ValueType;
+///     
+///     // Get access to the stored value
+///     ValueType& value() { return m_value; }
+///     const ValueType& value() const { return m_value; }
+///
+///     // Read
+///     template <typename TIter>
+///     comms::ErrorStatus read(TIter& iter, std::size_t len) {...}
+///
+///     // Write
+///     template <typename TIter>
+///     comms::ErrorStatus write(TIter& iter, std::size_t len) const {...}
+///
+///     // Serialisation length
+///     std::size_t length() const {...}
+///
+///     // Validity of the value
+///     bool valid() const {...}
+///
+/// private:
+///     ValueType m_value;
+/// }
+/// @endcode
+///
 /// Let's review the fields COMMS library provided one by one.
 ///
 /// @section sec_field_tutorial_int_value Integral Value Fields
@@ -224,7 +273,7 @@
 /// By default the underlying storage type of the comms::field::BitmaskValue is
 /// @b unsigned, which makes the default serialisation length to be 
 /// @b sizeof(unsigned). The modification of the underlying storage type as
-/// well as serialisation length can be done using comms::field::FixedLength
+/// well as serialisation length can be done using comms::option::FixedLength
 /// option (see @ref sec_field_tutorial_int_value_fixed_length). The underlying
 /// type will always be some unsigned integral type. If the serialisation length
 /// is specified to be 1 byte, the underlying storage type is @b std::uint8_t, 
@@ -263,6 +312,7 @@
 /// }
 /// @endcode
 /// is equivalent to defining:
+/// @code
 /// struct MyBitmask : public comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >
 /// {
 ///     enum BitIdx
@@ -347,7 +397,7 @@
 /// comms::field::Bitfield itself may receive only comms::option::ContentsValidator
 /// option described in @ref sec_field_tutorial_common_options_validation.
 ///
-/// To get an access to the member fields use value() member function:
+/// To get an access to the member fields use @b value() member function:
 /// @code
 /// SerialConfigField serialConfigField;
 /// ...
@@ -935,9 +985,9 @@
 ///         auto es = flags.read(iter, len);
 ///         assert(es == comms::ErrorStatus::Success); // No error is expected;
 /// 
-///         optField.setMode(comms::field::OptionalMode::Missing);
+///         optField.setMissing();
 ///         if ((flags.value() & 0x1) != 0) {
-///             optField.setMode(comms::field::OptionalMode::Exists);
+///             optField.setExists();
 ///         }
 ///
 ///         es = optField.read(iter, len - flags.length());
@@ -1040,7 +1090,7 @@
 /// typedef comms::field::String<
 ///     MyFieldBase, 
 ///     comms::option::DefaultValueInitialiser<CustomStringInitaliser> 
-//  > MyString;
+/// > MyString;
 ///
 /// MyString myStr; // Default construction
 /// assert(myStr.value() == "hello"); // Custom default value is expected to be assigned
@@ -1060,12 +1110,12 @@
 /// @endcode
 /// 
 /// @subsection sec_field_tutorial_common_options_validation Custom Value Validation Logic
-/// Every field provides "valid()" member function to validate the internal value.
+/// Every field provides @b valid() member function to validate the internal value.
 /// By default, every internal value of the field is considered to be valid, i.e.
-/// the "valid()" function will always return true. It is possible to add
+/// the @b valid() function will always return true. It is possible to add
 /// custom validation logic using comms::option::ContentsValidator option. This
 /// option receives one template parameter, which has to be a type of a custom
-/// validator class. Such class must implement "operator()" with the following
+/// validator class. Such class must implement @b operator() with the following
 /// signature:
 /// @code
 /// struct MyValidator
@@ -1157,7 +1207,7 @@
 /// @subsection sec_field_tutorial_common_options_fail_invalid Fail on Invalid Value
 /// Sometimes the protocol specifications may impose a strict rules on disallowing
 /// invalid values, such as the message must be dropped when some field has
-/// an invalid value. It is easy to implement by forcing "read()" operation on
+/// an invalid value. It is easy to implement by forcing @b read() operation on
 /// such field to fail when reading an invalid value is recognised. The COMMS
 /// library provides comms::option::FailOnInvalid option to help with such task.
 /// For example:

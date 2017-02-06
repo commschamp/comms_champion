@@ -32,6 +32,9 @@ CC_ENABLE_WARNINGS()
 class FieldsTestSuite : public CxxTest::TestSuite
 {
 public:
+    typedef comms::option::BigEndian BigEndianOpt;
+    typedef comms::option::LittleEndian LittleEndianOpt;
+
     void test1();
     void test2();
     void test3();
@@ -85,9 +88,6 @@ public:
     void test51();
 
 private:
-
-    typedef comms::option::BigEndian BigEndianOpt;
-    typedef comms::option::LittleEndian LittleEndianOpt;
 
     enum Enum1 {
         Enum1_Value1,
@@ -1906,29 +1906,29 @@ void FieldsTestSuite::test50()
     TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_eighth), true);
 }
 
+class Field_51 : public comms::field::Bitfield<
+        comms::Field<FieldsTestSuite::BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<FieldsTestSuite::BigEndianOpt>,
+                std::uint8_t,
+                comms::option::FixedBitLength<2>
+            >,
+            comms::field::BitmaskValue<
+                comms::Field<FieldsTestSuite::BigEndianOpt>,
+                comms::option::FixedLength<1>,
+                comms::option::FixedBitLength<6>
+            >
+        >
+    >
+{
+public:
+    COMMS_FIELD_MEMBERS_ACCESS(name1, name2)
+};
+
 void FieldsTestSuite::test51()
 {
-    typedef std::tuple<
-        comms::field::IntValue<
-            comms::Field<BigEndianOpt>,
-            std::uint8_t,
-            comms::option::FixedBitLength<2>
-        >,
-        comms::field::BitmaskValue<
-            comms::Field<BigEndianOpt>,
-            comms::option::FixedLength<1>,
-            comms::option::FixedBitLength<6>
-        >
-    > BitfieldMembers;
-
-    class Field : public comms::field::Bitfield<
-            comms::Field<BigEndianOpt>,
-            BitfieldMembers
-        >
-    {
-    public:
-        COMMS_FIELD_MEMBERS_ACCESS(name1, name2)
-    };
+    typedef Field_51 Field;
 
     Field field;
     TS_ASSERT_EQUALS(field.length(), 1U);

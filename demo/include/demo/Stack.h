@@ -26,9 +26,6 @@
 #include "MsgId.h"
 #include "Message.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -138,8 +135,6 @@ using Stack =
     >;
 
 }  // namespace demo
-
-}  // namespace comms_champion
 
 
 

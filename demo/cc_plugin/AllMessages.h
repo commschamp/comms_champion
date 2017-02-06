@@ -30,9 +30,6 @@
 #include "cc_plugin/message/Optionals.h"
 #include "cc_plugin/message/FloatValues.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -56,6 +53,4 @@ static_assert(std::tuple_size<AllMessages>::value == MsgId_NumOfValues,
 }  // namespace cc_plugin
 
 }  // namespace demo
-
-}  // namespace comms_champion
 

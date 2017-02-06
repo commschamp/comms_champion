@@ -21,9 +21,6 @@
 
 namespace cc = comms_champion;
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -91,7 +88,7 @@ QVariantMap createField1Properties()
          .add(createField1Int1Properties())
          .add(createField1Int2Properties());
 
-    assert(props.members().size() == BitfieldsFields::field1_numOfMembers);
+    assert(props.members().size() == BitfieldsFields::field1::FieldIdx_numOfValues);
     return props.asMap();
 }
 
@@ -130,4 +127,3 @@ const QVariantList& Bitfields::fieldsPropertiesImpl() const
 
 }  // namespace demo
 
-}  // namespace comms_champion

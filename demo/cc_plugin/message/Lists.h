@@ -22,9 +22,6 @@
 #include "demo/message/Lists.h"
 #include "cc_plugin/Message.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -58,6 +55,4 @@ protected:
 }  // namespace cc_plugin
 
 }  // namespace demo
-
-}  // namespace comms_champion
 

@@ -21,9 +21,6 @@
 
 namespace cc = comms_champion;
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -110,4 +107,3 @@ const QVariantList& Lists::fieldsPropertiesImpl() const
 
 }  // namespace demo
 
-}  // namespace comms_champion

@@ -22,9 +22,6 @@
 #include "Message.h"
 #include "AllMessages.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -39,6 +36,4 @@ typedef demo::Stack<
 }  // namespace cc_plugin
 
 }  // namespace demo
-
-}  // namespace comms_champion
 

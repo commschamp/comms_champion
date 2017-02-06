@@ -21,9 +21,6 @@
 
 namespace cc = comms_champion;
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -98,4 +95,3 @@ const QVariantList& BitmaskValues::fieldsPropertiesImpl() const
 
 }  // namespace demo
 
-}  // namespace comms_champion

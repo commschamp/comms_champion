@@ -21,9 +21,6 @@
 
 namespace cc = comms_champion;
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -46,4 +43,3 @@ Plugin::~Plugin() = default;
 
 }  // namespace demo
 
-}  // namespace comms_champion

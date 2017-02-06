@@ -26,9 +26,6 @@
 
 #include "MsgId.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -85,7 +82,5 @@ typedef MessageT<
 > Message;
 
 }  // namespace demo
-
-} // namespace comms_champion
 
 

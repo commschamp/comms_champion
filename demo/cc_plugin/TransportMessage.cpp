@@ -23,9 +23,6 @@
 
 namespace cc = comms_champion;
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -36,11 +33,11 @@ namespace
 {
 
 typedef TransportMessage::Field FieldBase;
-typedef cc::demo::SyncField<FieldBase> SyncField;
-typedef cc::demo::ChecksumField<FieldBase> ChecksumField;
-typedef cc::demo::LengthField<FieldBase> LengthField;
-typedef cc::demo::MsgIdField<FieldBase> MsgIdField;
-typedef cc::demo::DataField<FieldBase> DataField;
+typedef demo::SyncField<FieldBase> SyncField;
+typedef demo::ChecksumField<FieldBase> ChecksumField;
+typedef demo::LengthField<FieldBase> LengthField;
+typedef demo::MsgIdField<FieldBase> MsgIdField;
+typedef demo::DataField<FieldBase> DataField;
 
 QVariantMap createMsgIdProperties()
 {
@@ -113,4 +110,3 @@ comms::ErrorStatus TransportMessage::readImpl(ReadIterator& iter, std::size_t si
 
 }  // namespace demo
 
-}  // namespace comms_champion

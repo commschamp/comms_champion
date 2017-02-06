@@ -22,9 +22,6 @@
 
 #include "demo/Message.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -94,19 +91,9 @@ struct BitfieldsFields
             comms::option::ValidNumValueRange<0, 0xf>
         >;
 
-    /// @brief Access indices for member fields in @ref field1 bitfield.
-    enum
-    {
-        field1_member1, ///< index of member1 (@ref field1_bitmask)
-        field1_member2, ///< index of member2 (@ref field1_enum)
-        field1_member3, ///< index of member3 (@ref field1_int1)
-        field1_member4, ///< index of member4 (@ref field1_int2)
-        field1_numOfMembers ///< number of members
-    };
-
     /// @brief Bitfield containing @ref field1_bitmask, @ref field1_enum,
     ///     @ref field1_int1, and @ref field1_int2 as its internal members
-    using field1 =
+    struct field1 : public
         comms::field::Bitfield<
             TFieldBase,
             std::tuple<
@@ -115,7 +102,20 @@ struct BitfieldsFields
                 field1_int1,
                 field1_int2
             >
-        >;
+        >
+    {
+        /// @brief Allow access to internal fields.
+        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS macro
+        ///     related to @b comms::field::Bitfield class from COMMS library
+        ///     for details. @n
+        ///     The names are:
+        ///     @b member1 for @ref field1_bitmask
+        ///     @b member2 for @ref field1_enum
+        ///     @b member3 for @ref field1_int1
+        ///     @b member4 for @ref field1_int2
+        ///
+        COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3, member4);
+    };
 
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
@@ -177,7 +177,5 @@ public:
 }  // namespace message
 
 }  // namespace demo
-
-}  // namespace comms_champion
 
 

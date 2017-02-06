@@ -22,12 +22,8 @@
 
 #include "demo/Message.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
-
 
 namespace message
 {
@@ -139,7 +135,5 @@ public:
 }  // namespace message
 
 }  // namespace demo
-
-}  // namespace comms_champion
 
 

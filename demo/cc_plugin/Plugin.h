@@ -22,9 +22,6 @@
 #include <QtCore/QtPlugin>
 #include "comms_champion/comms_champion.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -46,4 +43,3 @@ public:
 
 }  // namespace demo
 
-}  // namespace comms_champion

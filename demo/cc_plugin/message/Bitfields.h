@@ -22,9 +22,6 @@
 #include "demo/message/Bitfields.h"
 #include "cc_plugin/Message.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -59,5 +56,4 @@ protected:
 
 }  // namespace demo
 
-}  // namespace comms_champion
 

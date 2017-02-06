@@ -21,9 +21,6 @@
 #include "comms_champion/comms_champion.h"
 #include "demo/Message.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -62,4 +59,3 @@ typedef MessageT<> Message;
 
 }  // namespace demo
 
-}  // namespace comms_champion

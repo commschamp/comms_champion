@@ -22,9 +22,6 @@
 #include "cc_plugin/Message.h"
 #include "cc_plugin/Stack.h"
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -82,4 +79,3 @@ protected:
 
 }  // namespace demo
 
-}  // namespace comms_champion

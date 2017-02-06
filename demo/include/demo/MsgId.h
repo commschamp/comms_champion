@@ -22,9 +22,6 @@
 
 #include <cstdint>
 
-namespace comms_champion
-{
-
 namespace demo
 {
 
@@ -41,7 +38,5 @@ enum MsgId : std::uint8_t
     MsgId_FloatValues, ///< Floating point values accumulating message
     MsgId_NumOfValues ///< Limit to valid message IDs, must be last
 };
-
-}  // namespace comms_champion
 
 }  // namespace demo

@@ -28,14 +28,31 @@ while (TRUE)
     endif ()
     
     set (cxx_tag "4.4")
-    if (EXISTS "${CMAKE_BINARY_DIR}/cxxtest")
+    set (cxxtest_stamp "${CMAKE_BINARY_DIR}/cxxtest.stamp")
+    if ((EXISTS ${cxxtest_stamp}) AND (EXISTS "${CMAKE_BINARY_DIR}/cxxtest"))
         execute_process (
             COMMAND ${GIT_EXECUTABLE} checkout ${cxx_tag}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest)
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest
+        )
     else ()
         execute_process (
+            COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/cxxtest"
+        )
+        
+        execute_process (
             COMMAND ${GIT_EXECUTABLE} clone -b ${cxx_tag} --depth 1 https://github.com/CxxTest/cxxtest.git
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            RESULT_VARIABLE git_result
+        )
+    
+        if (NOT "${git_result}" STREQUAL "0")
+            message (WARNING "git clone/checkout failed")
+            break()
+        endif ()
+        
+        execute_process (
+            COMMAND ${CMAKE_COMMAND} -E touch "${cxxtest_stamp}"
+        )
     endif ()
     
     set (CXXTEST_INCLUDE_DIR "${CMAKE_BINARY_DIR}/cxxtest")
@@ -44,6 +61,7 @@ while (TRUE)
     find_package (CxxTest)
     if (NOT CXXTEST_FOUND)
         message (WARNING "Wrong cxxtest paths, must be fixed")
+        break()
     endif ()
     
     enable_testing ()
@@ -114,4 +132,23 @@ set (ICON_INSTALL_DIR ${INSTALL_DIR}/icon)
 set (CONFIG_INSTALL_DIR ${INSTALL_DIR}/config)
 
 install (DIRECTORY cmake DESTINATION ${INSTALL_DIR})
-add_subdirectory (src)
+
+include_directories (
+    BEFORE
+    ${CMAKE_CURRENT_SOURCE_DIR}/comms/include
+)
+
+add_subdirectory (comms)
+
+if (CC_COMMS_LIB_ONLY)
+    return ()
+endif ()
+
+add_subdirectory (comms_champion)
+
+include_directories (
+    ${CMAKE_CURRENT_SOURCE_DIR}/comms_champion/lib/include
+)
+
+add_subdirectory (demo)
+

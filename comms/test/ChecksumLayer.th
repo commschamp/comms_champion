@@ -1,0 +1,356 @@
+//
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#include <cstdint>
+#include <cstddef>
+#include <algorithm>
+#include <iterator>
+#include <iostream>
+#include <iomanip>
+
+#include "comms/comms.h"
+#include "CommsTestCommon.h"
+
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
+
+class ChecksumLayerTestSuite : public CxxTest::TestSuite
+{
+public:
+    void test1();
+    void test2();
+    void test3();
+    void test4();
+    void test5();
+    void test6();
+    void test7();
+
+private:
+
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::IdInfoInterface,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>,
+        comms::option::LengthInfoInterface
+    > BeTraits;
+
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::IdInfoInterface,
+        comms::option::BigEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >,
+        comms::option::LengthInfoInterface
+    > BeBackInsertTraits;
+
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::IdInfoInterface,
+        comms::option::LittleEndian,
+        comms::option::ReadIterator<const char*>,
+        comms::option::WriteIterator<char*>,
+        comms::option::LengthInfoInterface
+    > LeTraits;
+
+
+    typedef TestMessageBase<BeTraits> BeMsgBase;
+    typedef TestMessageBase<LeTraits> LeMsgBase;
+    typedef TestMessageBase<BeBackInsertTraits> BeBackInsertMsgBase;
+
+    typedef BeMsgBase::Field BeField;
+    typedef LeMsgBase::Field LeField;
+    typedef BeBackInsertMsgBase::Field BeBackInsertField;
+
+    typedef Message1<BeMsgBase> BeMsg1;
+    typedef Message1<LeMsgBase> LeMsg1;
+    typedef Message1<BeBackInsertMsgBase> BeBackInsertMsg1;
+    typedef Message2<BeMsgBase> BeMsg2;
+    typedef Message2<LeMsgBase> LeMsg2;
+    typedef Message3<BeMsgBase> BeMsg3;
+    typedef Message3<LeMsgBase> LeMsg3;
+    typedef Message3<BeBackInsertMsgBase> BeBackInsertMsg3;
+
+    template <typename TField, std::size_t TSize>
+    using SyncField =
+        comms::field::IntValue<
+            TField,
+            unsigned,
+            comms::option::FixedLength<TSize>,
+            comms::option::DefaultNumValue<0xabcd>
+        >;
+
+    template <typename TField>
+    using SyncField2 = SyncField<TField, 2>;
+    using BeSyncField2 = SyncField2<BeField>;
+    using LeSyncField2 = SyncField2<LeField>;
+    using BeBackInsertSyncField2 = SyncField2<BeBackInsertField>;
+
+    template <typename TField, std::size_t TSize, std::size_t TOffset = 0>
+    using SizeField =
+        comms::field::IntValue<
+            TField,
+            unsigned,
+            comms::option::FixedLength<TSize>,
+            comms::option::NumValueSerOffset<TOffset>
+        >;
+
+    template <typename TField>
+    using SizeField20 = SizeField<TField, 2, 0>;
+    using BeSizeField20 = SizeField20<BeField>;
+    using LeSizeField20 = SizeField20<LeField>;
+    using BeBackInsertSizeField20 = SizeField20<BeBackInsertField>;
+
+    template <typename TField>
+    using SizeField30 = SizeField<TField, 3, 0>;
+    using BeSizeField30 = SizeField30<BeField>;
+    using LeSizeField30 = SizeField30<LeField>;
+
+    template <typename TField>
+    using SizeField22 = SizeField<TField, 2, 2>;
+    using BeSizeField22 = SizeField22<BeField>;
+    using LeSizeField22 = SizeField22<LeField>;
+
+    template <typename TField, std::size_t TLen>
+    using IdField =
+        comms::field::EnumValue<
+            TField,
+            MessageType,
+            comms::option::FixedLength<TLen>
+        >;
+
+    template <typename TField>
+    using IdField1 = IdField<TField, 1>;
+    using BeIdField1 = IdField1<BeField>;
+    using LeIdField1 = IdField1<LeField>;
+    using BeBackInsertIdField1 = IdField1<BeBackInsertField>;
+
+    template <typename TField>
+    using IdField2 = IdField<TField, 2>;
+    using BeIdField2 = IdField2<BeField>;
+    using LeIdField2 = IdField2<LeField>;
+
+
+    template <typename TField, std::size_t TLen>
+    using ChecksumField =
+        comms::field::IntValue<
+            TField,
+            typename comms::util::SizeToType<TLen>::Type
+        >;
+
+
+    template <typename TField>
+    using ChecksumField1 = ChecksumField<TField, 1U>;
+    using BeChecksumField1 = ChecksumField1<BeField>;
+    using LeChecksumField1 = ChecksumField1<LeField>;
+    using BeBackInsertChecksumField1 = ChecksumField1<BeBackInsertField>;
+
+    template <typename TSyncField, typename TChecksumField, typename TSizeField, typename TIdField, typename TMessage>
+    using ProtocolStack =
+        comms::protocol::SyncPrefixLayer<
+            TSyncField,
+            comms::protocol::ChecksumLayer<
+                TChecksumField,
+                comms::protocol::checksum::BasicSum<>,
+                comms::protocol::MsgSizeLayer<
+                    TSizeField,
+                    comms::protocol::MsgIdLayer<
+                        TIdField,
+                        TMessage,
+                        AllMessages<TMessage>,
+                        comms::protocol::MsgDataLayer<>
+                    >
+                >
+            >
+        >;
+};
+
+void ChecksumLayerTestSuite::test1()
+{
+    static const char Buf[] = {
+        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef
+        ProtocolStack<
+            BeSyncField2,
+            BeChecksumField1,
+            BeSizeField20,
+            BeIdField1,
+            BeMsgBase
+        > Stack;
+
+    Stack stack;
+
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
+}
+
+void ChecksumLayerTestSuite::test2()
+{
+    LeMsg1 msg;
+    std::get<0>(msg.fields()).value() = 0x0304;
+
+    static const char ExpectedBuf[] = {
+        (char)0xcd, (char)0xab, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03, 0x0b
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
+    char buf[BufSize] = {0};
+
+    typedef
+        ProtocolStack<
+            LeSyncField2,
+            LeChecksumField1,
+            LeSizeField30,
+            LeIdField2,
+            LeMsgBase
+        > Stack;
+
+    Stack stack;
+    commonWriteReadMsgTest(stack, msg, buf, BufSize, &ExpectedBuf[0]);
+}
+
+void ChecksumLayerTestSuite::test3()
+{
+    static const char Buf[] = {
+        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x07, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef
+        ProtocolStack<
+            BeSyncField2,
+            BeChecksumField1,
+            BeSizeField20,
+            BeIdField1,
+            BeMsgBase
+        > Stack;
+
+    Stack stack;
+
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::ProtocolError);
+    TS_ASSERT(!msgPtr);
+}
+
+void ChecksumLayerTestSuite::test4()
+{
+    static const char Buf[] = {
+        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef
+        ProtocolStack<
+            BeSyncField2,
+            BeChecksumField1,
+            BeSizeField20,
+            BeIdField1,
+            BeMsgBase
+        > Stack;
+
+    Stack stack;
+
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT(!msgPtr);
+}
+//
+void ChecksumLayerTestSuite::test5()
+{
+    LeMsg1 msg;
+    std::get<0>(msg.fields()).value() = 0x0203;
+
+    char buf[9] = {0};
+    static const std::size_t BufSize = std::extent<decltype(buf)>::value;
+
+    typedef
+        ProtocolStack<
+            LeSyncField2,
+            LeChecksumField1,
+            LeSizeField30,
+            LeIdField2,
+            LeMsgBase
+        > Stack;
+
+    Stack stack;
+    commonWriteReadMsgTest(stack, msg, buf, BufSize, nullptr, comms::ErrorStatus::BufferOverflow);
+}
+
+void ChecksumLayerTestSuite::test6()
+{
+    static const char Buf[] = {
+        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef
+        ProtocolStack<
+            BeBackInsertSyncField2,
+            BeBackInsertChecksumField1,
+            BeBackInsertSizeField20,
+            BeBackInsertIdField1,
+            BeBackInsertMsgBase
+        > Stack;
+
+    Stack stack;
+
+    auto msgPtr = vectorBackInsertReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<BeBackInsertMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
+}
+
+void ChecksumLayerTestSuite::test7()
+{
+//    auto& table = comms::protocol::checksum::details::CrcInitTable<std::uint32_t, 0x04C11DB7>::get();
+//    for (auto byte : table) {
+//        std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << (unsigned)byte << ", ";
+//    }
+
+    static const std::vector<std::uint8_t> Data = {
+        '1', '2', '3', '4', '5', '6', '7', '8', '9'
+    };
+
+    {
+        auto iter = &Data[0];
+        auto val = comms::protocol::checksum::Crc_CCITT()(iter, Data.size());
+        TS_ASSERT_EQUALS(val, 0x29b1)
+    }
+
+    {
+        auto iter = &Data[0];
+        auto val = comms::protocol::checksum::Crc_16()(iter, Data.size());
+        TS_ASSERT_EQUALS(val, 0xbb3d)
+    }
+
+    {
+        auto iter = &Data[0];
+        auto val = comms::protocol::checksum::Crc_32()(iter, Data.size());
+        TS_ASSERT_EQUALS(val, 0xcbf43926)
+    }
+}

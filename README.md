@@ -1,4 +1,4 @@
-![Image: CommsChampion Icon](src/app/cc_view/src/image/app_icon.png)
+![Image: CommsChampion Icon](comms_champion/app/cc_view/src/image/app_icon.png)
 
 # What It's All About?
 Almost every electronic device/component nowadays has to be able to communicate
@@ -35,7 +35,7 @@ protocol development, visualisation and analysis.
 # COMMS Library
 **COMMS** is the headers only, platform independent library, 
 which makes the implementation of a communication
-protocol an easy and relatively quick process. It provides all the necessary
+protocol to be an easy and relatively quick process. It provides all the necessary
 types and classes to make the definition of the custom messages, as well as
 wrapping transport data fields, to be simple declarative statements of type and
 class definitions. These statements will specify **WHAT** needs to be implemented. 
@@ -114,10 +114,12 @@ also extended to implement the protocol plugin for
 the [CommsChampion](#commschampion-tools) application. The plugin is used for testing
 and demostration purposes.
 
+The demo protocol as well as [Other Available Protocols](#other-available-protocols) 
+may serve as reference on how to implement any other custom binary protocol.
+
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
 definition inside, can be
-downloaded as [zip archive](https://dl.dropboxusercontent.com/u/46999418/comms_champion/demo/doc_demo.zip)
-or browsed online [here](https://dl.dropboxusercontent.com/u/46999418/comms_champion/demo/html/index.html).
+downloaded from [here](https://dl.dropboxusercontent.com/u/46999418/comms_champion/demo/doc_demo.zip).
 
 # Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for

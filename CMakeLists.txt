@@ -144,4 +144,11 @@ if (CC_COMMS_LIB_ONLY)
     return ()
 endif ()
 
-add_subdirectory (src)
+add_subdirectory (comms_champion)
+
+include_directories (
+    ${CMAKE_CURRENT_SOURCE_DIR}/comms_champion/lib/include
+)
+
+add_subdirectory (demo)
+

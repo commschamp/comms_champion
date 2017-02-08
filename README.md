@@ -61,7 +61,7 @@ written one where extra logic is required.
 This project comes to resolve all the problems listed above, but focusing on
 **embedded systems** with limited resources (including bare-metal ones). It
 keeps the idea of having "single source of truth" (i.e. single implementation) for
-all the applications, but approaches the problem from a different angle. Instead,
+all the applications, but app2roaches the problem from a different angle. Instead,
 of having separate message definition file(s) with a custom grammar, the messages
 are defined using **C++** programming language, which is widely used in
 embedded systems development. 
@@ -83,12 +83,6 @@ visualise and analyse protocols defined using provided
 [COMMS Library](#comms-library). The developed protocol plugins 
 reuse the same message definitions code that was initially developed for the
 embedded application itself.
-
-# What's Inside?
-This repository provides the [COMMS Library](#comms-library), which can be used to 
-develop custom communication protocols. It also provides a set of various applications and 
-utilities, called [CommsChampion](#commschampion-tools), that can help in 
-protocol development, visualisation and analysis.
 
 # COMMS Library
 **COMMS** is the **C++(11)** headers only, platform independent library, 
@@ -200,8 +194,8 @@ documentation on how to use and/or develop plug-ins is currently available,
 will be provided in the future once the API stabilises.
 
 However, if you have tried [CommsChampion Tools](#commschampion-tools) with
-any other binary protocol and would like to develop a plugin for your own,one
-developed internaly by your complany, please get in touch 
+any other binary protocol and would like to develop a plugin for your own one,
+developed internally by your company, please get in touch 
 (see [Contact Information](#contact-information) below). I will be able to help.
 
 # Licence

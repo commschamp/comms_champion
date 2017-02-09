@@ -124,7 +124,9 @@ I/O socket, data filters, and the custom protocol itself. The tools
 use [QT5](http://www.qt.io/) framework for GUI interfaces as well as loading
 and managing plug-ins.
 
-The current list of available applications is:
+The current list of available applications is below. Please refere to the
+[wiki page](https://github.com/arobenko/comms_champion/wiki/How-to-Use-CommsChampion-Tools)
+for tutorial on how to use them.
 
 - **cc_view** is the main generic GUI application for visualisation and analysis of the
 communication protocols, that were developed using [COMMS Library](#comms-library)

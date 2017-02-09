@@ -192,7 +192,7 @@ implemented and can be used as reference.
 # Developing Custom Socket/Filter/Protocol Plugin
 At this moment the [CommsChampion](#commschampion-tools) tools are in their alpha 
 and being extensively developed. No 
-documentation on how to use and/or develop plug-ins is currently available,
+documentation on the available API and how to develop plugins is currently available,
 will be provided in the future once the API stabilises.
 
 However, if you have tried [CommsChampion Tools](#commschampion-tools) with

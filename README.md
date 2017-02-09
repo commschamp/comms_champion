@@ -61,7 +61,7 @@ written one where extra logic is required.
 This project comes to resolve all the problems listed above, but focusing on
 **embedded systems** with limited resources (including bare-metal ones). It
 keeps the idea of having "single source of truth" (i.e. single implementation) for
-all the applications, but app2roaches the problem from a different angle. Instead,
+all the applications, but approaches the problem from a different angle. Instead,
 of having separate message definition file(s) with a custom grammar, the messages
 are defined using **C++** programming language, which is widely used in
 embedded systems development. 

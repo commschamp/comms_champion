@@ -57,16 +57,18 @@ The generalisation is hard. Especially when the main focus of the tools'
 developers is on supporting as many target programming languages as possible, 
 rather than allowing multiple configuration variants of a single specific
 language. Currently there is no universal "fit all needs" code generation 
-solution. As the result many developers still have to manually implement
-communication protocols.
+solution that can handle all the existing and being used binary communication protocols. 
+As the result many embedded C++ developers still have to manually implement
+them rather than relying on the existing
+tools for code generation.
 
 This project comes to help in developing binary communication protocols, 
 but focusing on **embedded systems** with limited resources (including 
 bare-metal ones) and choosing **C++(11)** programming language to do so. It
 keeps the idea of having "single source of truth" (i.e. single implementation) for
 all the applications, but approaches the problem from a different angle. Instead,
-of having separate message definition file(s) with a custom grammar, the messages
-are defined using **C++** programming language, which is widely used in
+of having separate message definition file(s) with a custom grammar, the message
+contents are already defined using **C++** programming language, which is widely used in
 embedded systems development. 
 
 The main idea is to have a library (see [COMMS Library](#comms-library) below), that

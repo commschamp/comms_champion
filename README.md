@@ -17,7 +17,7 @@ There are so many of them:
 [Thrift](https://thrift.apache.org/), [Kaitai Struct](http://kaitai.io/),
 [Protlr](https://www.protlr.com/), you-name-it...
 All of these tools are capable of generating **C++** code. However,
-the generated code quite often is not good enough be used in embedded systems, especially
+the generated code quite often is not good enough to be used in embedded systems, especially
 bare-metal ones. Either the produced **C++** code or the tool itself has 
 **at least** one of the following limitations:
 

@@ -16,19 +16,10 @@ There are so many of them:
 [Cap'n Proto](https://capnproto.org/), [MessagePack](http://msgpack.org/index.html),
 [Thrift](https://thrift.apache.org/), [Kaitai Struct](http://kaitai.io/),
 [Protlr](https://www.protlr.com/), you-name-it...
-Most (or all) of such tools focus on being able to generate the
-necessary code for as many programming languages as possible. 
-However, focusing on the amount of supported programming languages rather than
-on configuration variants of a specific language creates a situation where
-the description grammar is quite poor without an ability to add extra conditional 
-logic on how the data fields need to be serialised. For example, having a value
-(such as single bit in some bitmask field) which determines whether some other
-optional field exists or not. 
-
-All of the mentioned above tools are capable of generating **C++** code. However,
+All of these tools are capable of generating **C++** code. However,
 the generated code quite often is not good enough be used in embedded systems, especially
 bare-metal ones. Either the produced **C++** code or the tool itself has 
-**at least** one of the following deficiencies:
+**at least** one of the following limitations:
 
 - Inability to specify binary data layout. Many of the tools use their own
 serialisation format without an ability to provide custom one. It makes them
@@ -46,6 +37,10 @@ For example, strings can be serialised by being prefixed with their size
 (which in turn can have different lengths), or being terminated with '\0', or
 having fixed size with '\0' padding if the string is too short. There are 
 protocols that use all three variants of strings.
+- Poor or weak description grammar without an ability to support conditional
+(de)serialisation. For example, having a value
+(such as single bit in some bitmask field) which determines whether some other
+optional field exists or not. 
 - Lack of polymorphic interface to allow implementation of the common code for all the 
 defined messages.
 - When polymorphic interface with virtual functions is provided, there is no
@@ -58,15 +53,23 @@ dispatch table or map from message ID to some callback function or object.
 - Lack of ability to override or complement the generated serialisation code with the manually
 written one where extra logic is required.
 
-This project comes to resolve all the problems listed above, but focusing on
-**embedded systems** with limited resources (including bare-metal ones). It
+The generalisation is hard. Especially when the main focus of the tools'
+developers is on supporting as many target programming languages as possible, 
+rather than allowing multiple configuration variants of a single specific
+language. Currently there is no universal "fit all needs" code generation 
+solution. As the result many developers still have to manually implement
+communication protocols.
+
+This project comes to help in developing binary communication protocols, 
+but focusing on **embedded systems** with limited resources (including 
+bare-metal ones) and choosing **C++(11)** programming language to do so. It
 keeps the idea of having "single source of truth" (i.e. single implementation) for
 all the applications, but approaches the problem from a different angle. Instead,
 of having separate message definition file(s) with a custom grammar, the messages
 are defined using **C++** programming language, which is widely used in
 embedded systems development. 
 
-The idea is to have a library (see [COMMS Library](#comms-library) below), that
+The main idea is to have a library (see [COMMS Library](#comms-library) below), that
 provide all the necessary, highly configurable C++ classes. The messages 
 themselves and their fields are defined using simple declarative types and 
 class definition statements which specify **WHAT** needs to be implemented. 

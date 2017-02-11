@@ -5,35 +5,92 @@ Almost every electronic device/component nowadays has to be able to communicate
 to other devices, components, or outside world over some I/O link. Such communication
 is implemented using various communication protocols. The implementation of
 these protocols can be a tedious, time consuming and error-prone process.
+Therefore, there is a growing tendency among developers to use third party code 
+generators for data (de)serialisation. Usually such tools receive description
+of the protocol data layout in separate source file(s) with custom grammar, 
+and generate appropriate (de)serialisation code and necessary abstractions to 
+access the data. 
 
-As a whole, most of the communication protocols are very similar, they define
-various messages with their internal fields, define serialisation rules
-for all the fields and wrap them in some kind of transport information to ensure
-safe delivery of the message over the I/O link. However, it is very difficult
-to generalise development of the communication protocols and provide any 
-library and/or tools that can be used in most of the development cases
-and runtime environments. The protocols may use different serialisation rules 
-(endian), different incoming message logic, even the same protocol may have
-different rules for wrapping message data based on the I/O link used to communicate
-this data. That's why most developers don't even try to develop something 
-generic up front and reuse it with different communication protocols.
-As the result they experience a *deja-vu* feeling, that they have done it before, every time they
-have to implement a new protocol. 
+There are so many of them: 
+[ProtoBuf](https://developers.google.com/protocol-buffers/), 
+[Cap'n Proto](https://capnproto.org/), [MessagePack](http://msgpack.org/index.html),
+[Thrift](https://thrift.apache.org/), [Kaitai Struct](http://kaitai.io/),
+[Protlr](https://www.protlr.com/), you-name-it...
+All of these tools are capable of generating **C++** code. However,
+the generated code quite often is not good enough to be used in embedded systems, especially
+bare-metal ones. Either the produced **C++** code or the tool itself has 
+**at least** one of the following limitations:
 
-With this project I take up the challenge to create a library as well as
-multiple analysis tools that will make the development of any communication
-protocol much easier and quicker process. The development is done using C++
-programming language with usage of features and/or STL components introduced
-in **C++11** standard.
+- Inability to specify binary data layout. Many of the tools use their own
+serialisation format without an ability to provide custom one. It makes them
+impossible to use to implement already defined and used binary communication
+protocol.
+- Inability to customise underlying types. Most (or all) of the mentioned code 
+generating tools, which do allow customisation of binary data layout,
+choose to use **std::string** for string fields and/or 
+**std::vector** for lists, as well as (de)serialisation code is generated to use 
+standard streams (**std::istream** and **std::ostream**). Even if such ability
+is provided, it is usually "global" one and do not allow substitution of types only for
+specific messages / fields.
+- Small number of supported data fields or limited number of their serialisation options.
+For example, strings can be serialised by being prefixed with their size
+(which in turn can have different lengths), or being terminated with '\0', or
+having fixed size with '\0' padding if the string is too short. There are 
+protocols that use all three variants of strings.
+- Poor or weak description grammar without an ability to support conditional
+(de)serialisation. For example, having a value
+(such as single bit in some bitmask field) which determines whether some other
+optional field exists or not. 
+- Lack of polymorphic interface to allow implementation of the common code for all the 
+defined messages.
+- When polymorphic interface with virtual functions is provided, there is no
+way to exclude generation of unnecessary virtual functions for a particular embedded application.
+All the provided virtual functions will probably remain in the final image even
+if they are not used.
+- Lack of efficient built-in way of dispatching the deserialised message object into 
+its appropriate handling function. There is a need to provide a separate 
+dispatch table or map from message ID to some callback function or object.
+- Lack of ability to override or complement the generated serialisation code with the manually
+written one where extra logic is required.
 
-# What's Inside?
-This repository provides the [COMMS Library](#comms-library), which can be used to 
-develop custom communication protocols. It also provides a set of various applications and 
-utilities, called [CommsChampion](#commschampion-tools), that can help in 
-protocol development, visualisation and analysis.
+The generalisation is hard. Especially when the main focus of the tools'
+developers is on supporting as many target programming languages as possible, 
+rather than allowing multiple configuration variants of a single specific
+language. Currently there is no universal "fit all needs" code generation 
+solution that can handle all the existing and being used binary communication protocols. 
+As the result many embedded C++ developers still have to manually implement
+them rather than relying on the existing
+tools for code generation.
+
+This project comes to help in developing binary communication protocols, 
+but focusing on **embedded systems** with limited resources (including 
+bare-metal ones) and choosing **C++(11)** programming language to do so. It
+keeps the idea of having "single source of truth" (i.e. single implementation) for
+all the applications, but approaches the problem from a different angle. Instead,
+of having separate message definition file(s) with a custom grammar, the message
+contents are already defined using **C++** programming language, which is widely used in
+embedded systems development. 
+
+The main idea is to have a library (see [COMMS Library](#comms-library) below), that
+provide all the necessary, highly configurable C++ classes. The messages 
+themselves and their fields are defined using simple declarative types and 
+class definition statements which specify **WHAT** needs to be implemented. 
+The **COMMS** library internals handle the **HOW** part. Thanks to the heavy
+use of templates and multiple meta-programming techniques, only the needed code
+gets generated and compiled. The polymorphic common interfaces are highly 
+configurable. The functionality they need to provide is defined using
+template parameters. As the result, the C++ compiler itself becomes a code
+generating tool.
+
+This project also provides a set of plug-in based applications, 
+(see [CommsChampion Tools](#commschampion-tools) below), that come to help to
+visualise and analyse protocols defined using provided 
+[COMMS Library](#comms-library). The developed protocol plugins 
+reuse the same message definitions code that was initially developed for the
+embedded application itself.
 
 # COMMS Library
-**COMMS** is the headers only, platform independent library, 
+**COMMS** is the **C++(11)** headers only, platform independent library, 
 which makes the implementation of a communication
 protocol to be an easy and relatively quick process. It provides all the necessary
 types and classes to make the definition of the custom messages, as well as
@@ -72,7 +129,9 @@ I/O socket, data filters, and the custom protocol itself. The tools
 use [QT5](http://www.qt.io/) framework for GUI interfaces as well as loading
 and managing plug-ins.
 
-The current list of available applications is:
+The current list of available applications is below. Please refer to the
+[wiki page](https://github.com/arobenko/comms_champion/wiki/How-to-Use-CommsChampion-Tools)
+for tutorial on how to use them.
 
 - **cc_view** is the main generic GUI application for visualisation and analysis of the
 communication protocols, that were developed using [COMMS Library](#comms-library)
@@ -91,7 +150,7 @@ plugins that can be used with any application:
 
 - **null_socket** - NULL socket, that doesn't produce any incoming data and
 discards any outgoing data.
-- **echo_socket** - Echo socket, all the data being sent immediatelly reports
+- **echo_socket** - Echo socket, all the data being sent immediately reports
 as incoming data.
 - **serial_socket** - Low level socket that sends and receives data over serial
 (RS-232) I/O link.
@@ -138,19 +197,22 @@ implemented and can be used as reference.
 # Developing Custom Socket/Filter/Protocol Plugin
 At this moment the [CommsChampion](#commschampion-tools) tools are in their alpha 
 and being extensively developed. No 
-documentation on how to use and/or develop plug-ins is currently available,
+documentation on the available API and how to develop plugins is currently available,
 will be provided in the future once the API stabilises.
 
 However, if you have tried [CommsChampion Tools](#commschampion-tools) with
-any other binary protocol and would like to develop a plugin for your own,one
-developed internaly by your complany, please get in touch 
+any other binary protocol and would like to develop a plugin for your own one,
+developed internally by your company, please get in touch 
 (see [Contact Information](#contact-information) below). I will be able to help.
 
 # Licence
 The [COMMS Library](#comms-library) from this repository is licensed under
-**GPLv3**. It can be used in any product as long as its sources remain open and
-have the same or other compatible license. As the author and full copyright
-owner of this product I can provide a commercial license as well, please refer
+the classic **GPLv3 / Commercial** dual licensing scheme. The
+source code is available for anyone to use as long as the derivative work
+remains open source with compatible licence. Download it, try it! If it works
+as expected and commercial closed source licence is required for the final
+product, please send me an e-mail. As the author and full copyright owner I 
+will be able to provide one. Please refer
 to [Contact Information](#contact-information) below and get in touch with
 me if you need one.
 
@@ -164,7 +226,7 @@ applies.
 
 The [application icon](src/app/cc_view/src/image/app_icon.png) of the
 [CommsChampion](#commschampion-tools) tool must
-be replaced in any diravative work to differentiate between the original and
+be replaced in any derivative work to differentiate between the original and
 the forked versions.
 
 # How to Build

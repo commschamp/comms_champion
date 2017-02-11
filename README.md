@@ -129,7 +129,7 @@ I/O socket, data filters, and the custom protocol itself. The tools
 use [QT5](http://www.qt.io/) framework for GUI interfaces as well as loading
 and managing plug-ins.
 
-The current list of available applications is below. Please refere to the
+The current list of available applications is below. Please refer to the
 [wiki page](https://github.com/arobenko/comms_champion/wiki/How-to-Use-CommsChampion-Tools)
 for tutorial on how to use them.
 
@@ -150,7 +150,7 @@ plugins that can be used with any application:
 
 - **null_socket** - NULL socket, that doesn't produce any incoming data and
 discards any outgoing data.
-- **echo_socket** - Echo socket, all the data being sent immediatelly reports
+- **echo_socket** - Echo socket, all the data being sent immediately reports
 as incoming data.
 - **serial_socket** - Low level socket that sends and receives data over serial
 (RS-232) I/O link.

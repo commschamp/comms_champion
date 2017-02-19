@@ -81,28 +81,9 @@ template <typename TBase, typename TField>
 class FieldWrapperT : public TBase
 {
     using Base = TBase;
-    using Field = TField;
 
     struct HasPrefixSuffixTag {};
     struct NoPrefixSuffixTag {};
-
-    typedef typename std::conditional<
-        Field::ParsedOptions::HasSequenceSizeFieldPrefix,
-        HasPrefixSuffixTag,
-        NoPrefixSuffixTag
-    >::type SerialisedSizePrefixTag;
-
-    typedef typename std::conditional<
-        Field::ParsedOptions::HasSequenceTrailingFieldSuffix,
-        HasPrefixSuffixTag,
-        NoPrefixSuffixTag
-    >::type SerialisedTrailSuffixTag;
-
-    typedef typename std::conditional<
-        Field::ParsedOptions::HasSequenceTerminationFieldSuffix,
-        HasPrefixSuffixTag,
-        NoPrefixSuffixTag
-    >::type SerialisedTermSuffixTag;
 
 public:
     typedef typename Base::SerialisedSeq SerialisedSeq;
@@ -111,6 +92,8 @@ public:
     virtual ~FieldWrapperT() = default;
 
 protected:
+
+    using Field = TField;
 
     explicit FieldWrapperT(Field& fieldRef)
       : m_field(fieldRef)
@@ -190,6 +173,24 @@ protected:
     }
 
 private:
+    typedef typename std::conditional<
+        Field::ParsedOptions::HasSequenceSizeFieldPrefix,
+        HasPrefixSuffixTag,
+        NoPrefixSuffixTag
+    >::type SerialisedSizePrefixTag;
+
+    typedef typename std::conditional<
+        Field::ParsedOptions::HasSequenceTrailingFieldSuffix,
+        HasPrefixSuffixTag,
+        NoPrefixSuffixTag
+    >::type SerialisedTrailSuffixTag;
+
+    typedef typename std::conditional<
+        Field::ParsedOptions::HasSequenceTerminationFieldSuffix,
+        HasPrefixSuffixTag,
+        NoPrefixSuffixTag
+    >::type SerialisedTermSuffixTag;
+
     bool writeSerialisedSize(SerialisedSeq& seq, std::size_t sizeVal, HasPrefixSuffixTag)
     {
         typedef typename Field::ParsedOptions::SequenceSizeFieldPrefix SizePrefixField;

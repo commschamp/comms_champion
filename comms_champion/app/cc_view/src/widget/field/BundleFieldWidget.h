@@ -24,6 +24,7 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QLabel>
 CC_ENABLE_WARNINGS()
 
 #include "FieldWidget.h"
@@ -54,7 +55,8 @@ private slots:
 
 private:
 
-    QVBoxLayout* m_membersLayout;
+    QVBoxLayout* m_membersLayout = nullptr;
+    QLabel* m_label = nullptr;
     std::vector<FieldWidget*> m_members;
 };
 

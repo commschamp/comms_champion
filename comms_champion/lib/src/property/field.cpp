@@ -120,12 +120,12 @@ bool Common::isReadOnly() const
     return m_readOnly;
 }
 
-void Common::name(const QString& value)
+void Common::setName(const QString& value)
 {
     m_name = value;
 }
 
-void Common::name(const char* value)
+void Common::setName(const char* value)
 {
     m_name = value;
 }

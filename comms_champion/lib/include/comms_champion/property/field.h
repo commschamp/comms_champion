@@ -60,9 +60,9 @@ public:
 
 protected:
 
-    void name(const QString& value);
+    void setName(const QString& value);
 
-    void name(const char* value);
+    void setName(const char* value);
 
     void hidden(bool value = true);
 
@@ -116,15 +116,17 @@ public:
     CommonBase& operator=(const CommonBase&) = default;
     CommonBase& operator=(CommonBase&&) = default;
 
+    using Base::name;
+
     TDerived& name(const QString& value)
     {
-        Base::name(value);
+        Base::setName(value);
         return static_cast<TDerived&>(*this);
     }
 
     TDerived& name(const char* value)
     {
-        Base::name(value);
+        Base::setName(value);
         return static_cast<TDerived&>(*this);
     }
 

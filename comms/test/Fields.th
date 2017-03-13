@@ -86,6 +86,7 @@ public:
     void test49();
     void test50();
     void test51();
+    void test52();
 
 private:
 
@@ -1947,6 +1948,47 @@ void FieldsTestSuite::test51()
     auto& mem2 = field.field_name2();
     TS_ASSERT_EQUALS(mem2.value(), 0x10);
 }
+
+void FieldsTestSuite::test52()
+{
+    typedef std::tuple<
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t,
+            comms::option::FixedBitLength<8>
+        >,
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::int8_t,
+            comms::option::FixedBitLength<8>
+        >
+    > BitfildMembers;
+
+    typedef comms::field::Bitfield<
+        comms::Field<BigEndianOpt>,
+        BitfildMembers
+    > Field;
+
+    Field field;
+    static_cast<void>(field);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT_EQUALS(field.memberBitLength<0>(), 8U);
+    TS_ASSERT_EQUALS(field.memberBitLength<1>(), 8U);
+
+    static const char Buf[] = {
+        (char)0xff, (char)0xff
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    auto& members = field.value();
+    auto& mem1 = std::get<0>(members);
+    TS_ASSERT_EQUALS(mem1.value(), 255);
+
+    auto& mem2 = std::get<1>(members);
+    TS_ASSERT_EQUALS(mem2.value(), -1);
+}
+
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

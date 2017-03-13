@@ -126,6 +126,9 @@ private:
 
     struct UnsignedTag {};
     struct SignedTag {};
+    struct NoSignExtTag {};
+    struct MustSignExtTag {};
+
 
     typedef typename std::conditional<
         std::is_signed<SerialisedType>::value,
@@ -134,6 +137,13 @@ private:
     >::type HasSignTag;
 
     typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerialisedType;
+
+    typedef typename std::conditional<
+        BitLength < std::numeric_limits<UnsignedSerialisedType>::digits,
+        MustSignExtTag,
+        NoSignExtTag
+    >::type SignExtTag;
+
 
     static SerialisedType adjustToSerialised(NextSerialisedType val, UnsignedTag)
     {
@@ -163,6 +173,11 @@ private:
 
     static SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val)
     {
+        return signExtUnsignedSerialisedInternal(val, SignExtTag());
+    }
+
+    static SerialisedType signExtUnsignedSerialisedInternal(UnsignedSerialisedType val, MustSignExtTag)
+    {
         static_assert(
             BitLength < std::numeric_limits<UnsignedSerialisedType>::digits,
             "BitLength is expected to be less than number of bits in the value type");
@@ -177,6 +192,13 @@ private:
         }
         return static_cast<SerialisedType>(val);
     }
+
+    static SerialisedType signExtUnsignedSerialisedInternal(UnsignedSerialisedType val, NoSignExtTag)
+    {
+        return static_cast<SerialisedType>(val);
+    }
+
+
 
 private:
     static const auto UnsignedValueMask =

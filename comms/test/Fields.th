@@ -87,6 +87,7 @@ public:
     void test50();
     void test51();
     void test52();
+    void test53();
 
 private:
 
@@ -1989,6 +1990,22 @@ void FieldsTestSuite::test52()
     TS_ASSERT_EQUALS(mem2.value(), -1);
 }
 
+void FieldsTestSuite::test53()
+{
+    typedef comms::field::IntValue<
+        comms::Field<LittleEndianOpt>,
+        std::int32_t,
+        comms::option::FixedBitLength<23>,
+        comms::option::ScalingRatio<180, 0x800000>
+    > Field;
+
+    Field field(std::numeric_limits<std::int32_t>::max());
+    TS_TRACE(field.value());
+    static const double ExpVal1 =
+        (static_cast<double>(std::numeric_limits<std::int32_t>::max()) * 180) / 0x800000;
+    TS_ASSERT_EQUALS(field.scaleAs<double>(), ExpVal1);
+    TS_TRACE(ExpVal1);
+}
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

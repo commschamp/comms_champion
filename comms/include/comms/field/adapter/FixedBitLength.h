@@ -64,7 +64,7 @@ public:
     FixedBitLength() = default;
 
     explicit FixedBitLength(const ValueType& val)
-      : Base(fromSerialised(toSerialised(val)))
+      : Base(val)
     {
     }
 

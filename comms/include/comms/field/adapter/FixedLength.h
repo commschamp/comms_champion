@@ -57,7 +57,7 @@ public:
     FixedLength() = default;
 
     explicit FixedLength(const ValueType& val)
-      : Base(fromSerialised(toSerialised(val)))
+      : Base(val)
     {
     }
 

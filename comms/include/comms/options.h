@@ -631,6 +631,11 @@ struct FailOnInvalid {};
 ///     remains unchanged, although no error is reported.
 struct IgnoreInvalid {};
 
+/// @brief Force the destructor of comms::Message class to be @b non-virtual,
+///     even if there are other virtual functions defined.
+struct NoVirtualDestructor {};
+
+
 namespace details
 {
 

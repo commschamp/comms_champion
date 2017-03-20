@@ -1079,7 +1079,7 @@ void FieldsTestSuite::test29()
         comms::option::FixedLength<2>,
         comms::option::ValidNumValueRange<0, Enum1_NumOfValues - 1>,
         comms::option::DefaultNumValue<Enum1_Value2>,
-        comms::option::FailOnInvalid
+        comms::option::FailOnInvalid<comms::ErrorStatus::ProtocolError>
     > Field;
 
     Field field;

@@ -19,6 +19,7 @@
 #pragma once
 
 #include "comms/Assert.h"
+#include "comms/ErrorStatus.h"
 #include "details/AdapterBase.h"
 
 namespace comms
@@ -30,7 +31,7 @@ namespace field
 namespace adapter
 {
 
-template <typename TNext>
+template <comms::ErrorStatus TStatus, typename TNext>
 class FailOnInvalid : public details::AdapterBaseT<TNext>
 {
     typedef details::AdapterBaseT<TNext> Base;
@@ -66,7 +67,7 @@ public:
         }
 
         if (!nextTmp.valid()) {
-            return comms::ErrorStatus::ProtocolError;
+            return TStatus;
         }
 
         Base::next() = std::move(nextTmp);

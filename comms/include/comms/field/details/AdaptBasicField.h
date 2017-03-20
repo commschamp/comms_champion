@@ -268,24 +268,24 @@ template <typename TField, typename TOpts>
 using AdaptBasicFieldCustomValidatorT =
     typename AdaptBasicFieldCustomValidator<TField, TOpts, TOpts::HasCustomValidator>::Type;
 
-template <typename TField, bool THasFailOnInvalid>
+template <typename TField, typename TOpts, bool THasFailOnInvalid>
 struct AdaptBasicFieldFailOnInvalid;
 
-template <typename TField>
-struct AdaptBasicFieldFailOnInvalid<TField, true>
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldFailOnInvalid<TField, TOpts, true>
 {
-    typedef comms::field::adapter::FailOnInvalid<TField> Type;
+    typedef comms::field::adapter::FailOnInvalid<TOpts::FailOnInvalidStatus, TField> Type;
 };
 
-template <typename TField>
-struct AdaptBasicFieldFailOnInvalid<TField, false>
+template <typename TField, typename TOpts>
+struct AdaptBasicFieldFailOnInvalid<TField, TOpts, false>
 {
     typedef TField Type;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldFailOnInvalidT =
-    typename AdaptBasicFieldFailOnInvalid<TField, TOpts::HasFailOnInvalid>::Type;
+    typename AdaptBasicFieldFailOnInvalid<TField, TOpts, TOpts::HasFailOnInvalid>::Type;
 
 template <typename TField, bool THasIgnoreInvalid>
 struct AdaptBasicFieldIgnoreInvalid;

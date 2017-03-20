@@ -621,6 +621,7 @@ struct CustomValueReader
 ///     If comms::option::FailOnInvalid is provided as an option to a field,
 ///     the validity is going to checked automatically after the read. If invalid
 ///     value is identified, error will be returned from the @b read() operation.
+template <comms::ErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct FailOnInvalid {};
 
 /// @brief Option that forces field's read operation to ignore read data if invalid value

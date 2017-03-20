@@ -88,6 +88,8 @@ public:
     void test51();
     void test52();
     void test53();
+    void test54();
+    void test55();
 
 private:
 
@@ -2000,12 +2002,51 @@ void FieldsTestSuite::test53()
     > Field;
 
     Field field(std::numeric_limits<std::int32_t>::max());
-    TS_TRACE(field.value());
     static const double ExpVal1 =
         (static_cast<double>(std::numeric_limits<std::int32_t>::max()) * 180) / 0x800000;
     TS_ASSERT_EQUALS(field.scaleAs<double>(), ExpVal1);
-    TS_TRACE(ExpVal1);
 }
+
+void FieldsTestSuite::test54()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::int8_t,
+        comms::option::ScalingRatio<100, 1>
+    > Field;
+
+    Field field(1);
+
+    TS_ASSERT_EQUALS(field.value(), 1);
+    TS_ASSERT_EQUALS(field.scaleAs<int>(), 100);
+
+    field.setScaled(1000);
+    TS_ASSERT_EQUALS(field.value(), 10);
+
+    field.setScaled(260.38);
+    TS_ASSERT_EQUALS(field.value(), 2);
+
+    field.setScaled(-200.00);
+    TS_ASSERT_EQUALS(field.value(), -2);
+}
+
+void FieldsTestSuite::test55()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::int16_t,
+        comms::option::ScalingRatio<1, 100>
+    > Field;
+
+    Field field;
+
+    field.setScaled(-0.1);
+    TS_ASSERT_EQUALS(field.value(), -10);
+
+    field.value() = -123;
+    TS_ASSERT_EQUALS(field.scaleAs<float>(), -1.23f);
+}
+
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

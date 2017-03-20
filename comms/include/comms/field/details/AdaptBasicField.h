@@ -306,28 +306,6 @@ template <typename TField, typename TOpts>
 using AdaptBasicFieldIgnoreInvalidT =
     typename AdaptBasicFieldIgnoreInvalid<TField, TOpts::HasIgnoreInvalid>::Type;
 
-
-template <typename TField, typename TOpts, bool THasScalingRatio>
-struct AdaptBasicFieldScaling;
-
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldScaling<TField, TOpts, true>
-{
-    typedef comms::field::adapter::Scaling<typename TOpts::ScalingRatio, TField> Type;
-};
-
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldScaling<TField, TOpts, false>
-{
-    typedef TField Type;
-};
-
-template <typename TField, typename TOpts>
-using AdaptBasicFieldScalingT =
-    typename AdaptBasicFieldScaling<TField, TOpts, TOpts::HasScalingRatio>::Type;
-
-
-
 template <typename TBasic, typename... TOptions>
 class AdaptBasicField
 {
@@ -360,10 +338,8 @@ class AdaptBasicField
         CustomValidatorAdapted, ParsedOptions> FailOnInvalidAdapted;
     typedef AdaptBasicFieldIgnoreInvalidT<
         FailOnInvalidAdapted, ParsedOptions> IgnoreInvalidAdapted;
-    typedef AdaptBasicFieldScalingT<
-        IgnoreInvalidAdapted, ParsedOptions> ScalingRatioAdapted;
 public:
-    typedef ScalingRatioAdapted Type;
+    typedef IgnoreInvalidAdapted Type;
 };
 
 template <typename TBasic, typename... TOptions>

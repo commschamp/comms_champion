@@ -25,7 +25,6 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
-#include <QtCore/QCoreApplication>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
 CC_ENABLE_WARNINGS()
@@ -34,6 +33,7 @@ CC_ENABLE_WARNINGS()
 #include "DefaultMessageDisplayHandler.h"
 #include "PluginMgrG.h"
 #include "MsgFileMgrG.h"
+#include "dir.h"
 
 #include <iostream>
 
@@ -47,12 +47,7 @@ const QString AppDataStorageFileName("startup_config.json");
 
 QString getConfigPath(const QString& configName)
 {
-    QDir dir(qApp->applicationDirPath());
-    dir.cdUp();
-    if (!dir.cd("config")) {
-        return QString();
-    }
-
+    QDir dir(getConfigDir());
     if (configName.isEmpty()) {
         return dir.absoluteFilePath("default.cfg");
     }

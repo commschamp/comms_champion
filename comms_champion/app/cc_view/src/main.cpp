@@ -33,6 +33,7 @@ CC_ENABLE_WARNINGS()
 
 #include "widget/MainWindowWidget.h"
 #include "icon.h"
+#include "dir.h"
 
 namespace cc = comms_champion;
 
@@ -102,17 +103,15 @@ int main(int argc, char *argv[])
     window.setWindowIcon(cc::icon::appIcon());
     window.showMaximized();
 
-    QDir dir(app.applicationDirPath());
-    dir.cdUp();
-    if (!dir.cd("plugin")) {
-        std::cerr << "Failed to find plugin dir" << std::endl;
+    auto pluginsDir = cc::getPluginsDir();
+    if (pluginsDir.isEmpty()) {
+        std::cerr << "ERROR: Failed to find plugins directory!" << std::endl;
         return -1;
     }
-
-    app.addLibraryPath(dir.path());
+    app.addLibraryPath(pluginsDir);
 
     auto& pluginMgr = cc::PluginMgrG::instanceRef();
-    pluginMgr.setPluginsDir(dir.path());
+    pluginMgr.setPluginsDir(pluginsDir);
 
     auto& guiAppMgr = cc::GuiAppMgr::instanceRef();
     do {

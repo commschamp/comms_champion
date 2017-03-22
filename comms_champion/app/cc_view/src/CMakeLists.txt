@@ -13,6 +13,7 @@ function (bin_cc_view)
 
     set (src
         main.cpp
+        dir.cpp
         GuiAppMgr.cpp
         DefaultMessageDisplayHandler.cpp
         MsgFileMgrG.cpp

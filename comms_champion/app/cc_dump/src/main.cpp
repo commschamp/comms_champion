@@ -102,6 +102,42 @@ void prepareCommandLineOptions(QCommandLineParser& parser)
 
 }
 
+QString getRootDir()
+{
+    QDir appDir(qApp->applicationDirPath());
+    QDir binDir(CC_BINDIR);
+    while (true) {
+        auto appDirName = appDir.dirName();
+        if (appDirName.isEmpty()) {
+            break;
+        }
+
+        auto binDirName = binDir.dirName();
+        if (binDirName.isEmpty()) {
+            break;
+        }
+
+        if (appDirName != binDirName) {
+            break;
+        }
+
+        appDir.cdUp();
+        binDir.cdUp();
+    }
+
+    return appDir.path();
+}
+
+QString getPluginsDir()
+{
+    QDir dir(getRootDir());
+    if (!dir.cd(CC_PLUGINDIR)) {
+        return QString();
+    }
+
+    return dir.path();
+}
+
 }  // namespace
 
 int main(int argc, char *argv[])
@@ -120,17 +156,15 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    QDir dir(app.applicationDirPath());
-    dir.cdUp();
-    if (!dir.cd("plugin")) {
-        std::cerr << "Failed to find plugin dir" << std::endl;
+    auto pluginsDir = getPluginsDir();
+    if (pluginsDir.isEmpty()) {
+        std::cerr << "ERROR: Failed to find plugins directory!" << std::endl;
         return -1;
     }
-
-    app.addLibraryPath(dir.path());
+    app.addLibraryPath(pluginsDir);
 
     auto config = comms_dump::AppMgr::Config();
-    config.m_pluginsDir = dir.path();
+    config.m_pluginsDir = pluginsDir;
 
     if (parser.isSet(PluginsOptStr)) {
         config.m_pluginConfigFile = parser.value(PluginsOptStr);

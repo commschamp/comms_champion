@@ -9,15 +9,17 @@
 #  CC_PLUGIN_LIBRARY_DIRS - Where to find the libraries required to build plugin.
 #  CC_PLUGIN_DIR - Directory where to install newly built plugin
 
-get_filename_component (CC_INSTALL_PATH ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
+get_filename_component (CC_INSTALL_LIB_PROJ_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
+get_filename_component (CC_INSTALL_LIB_DIR ${CC_INSTALL_LIB_PROJ_DIR} DIRECTORY)
+get_filename_component (CC_INSTALL_PATH ${CC_INSTALL_LIB_DIR} DIRECTORY)
 
 find_path(CC_INCLUDE_DIR NAMES comms/comms.h PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES include)
 find_library(CC_PLUGIN_LIBRARY  NAMES "comms_champion" PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES lib)
 
 if (MSVC)
-    find_file(CC_NULL_SOCK_LIBRARY NAMES "null_socket.dll" PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES plugin)
+    find_file(CC_NULL_SOCK_LIBRARY NAMES "null_socket.dll" PATHS "${CC_INSTALL_PATH}/lib/CommsChampion" PATH_SUFFIXES plugin)
 else ()
-    find_library(CC_NULL_SOCK_LIBRARY  NAMES "null_socket" PATHS "${CC_INSTALL_PATH}" PATH_SUFFIXES plugin)
+    find_library(CC_NULL_SOCK_LIBRARY  NAMES "null_socket" PATHS "${CC_INSTALL_PATH}/lib/CommsChampion" PATH_SUFFIXES plugin)
 endif ()
 
 if (CC_PLUGIN_LIBRARY)

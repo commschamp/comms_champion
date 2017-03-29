@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -54,9 +54,14 @@ double IntValueWrapper::scaleValue(UnderlyingType value) const
     return scaleValueImpl(value);
 }
 
-bool IntValueWrapper::isShortInt() const
+bool IntValueWrapper::isSigned() const
 {
-    return isShortIntImpl();
+    return isSignedImpl();
+}
+
+std::size_t IntValueWrapper::valueTypeSize() const
+{
+    return valueTypeSizeImpl();
 }
 
 IntValueWrapper::Ptr IntValueWrapper::clone()

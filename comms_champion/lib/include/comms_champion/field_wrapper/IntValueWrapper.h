@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -54,7 +54,9 @@ public:
 
     double scaleValue(UnderlyingType value) const;
 
-    bool isShortInt() const;
+    bool isSigned() const;
+
+    std::size_t valueTypeSize() const;
 
     Ptr clone();
 
@@ -64,7 +66,8 @@ protected:
     virtual double getScaledImpl() const = 0;
     virtual void setScaledImpl(double value) = 0;
     virtual double scaleValueImpl(UnderlyingType value) const = 0;
-    virtual bool isShortIntImpl() const = 0;
+    virtual bool isSignedImpl() const = 0;
+    virtual std::size_t valueTypeSizeImpl() const = 0;
     virtual Ptr cloneImpl() = 0;
 
     void dispatchImpl(FieldWrapperHandler& handler);
@@ -120,18 +123,16 @@ protected:
         return fieldTmp.template scaleAs<double>();
     }
 
-    virtual bool isShortIntImpl() const override
+    virtual bool isSignedImpl() const override
     {
         typedef typename Field::ValueType ValueType;
-        if (sizeof(ValueType) < sizeof(int)) {
-            return true;
-        }
-
-        if (sizeof(int) < sizeof(ValueType)) {
-            return false;
-        }
-
         return std::is_signed<ValueType>::value;
+    }
+
+    virtual std::size_t valueTypeSizeImpl() const override
+    {
+        typedef typename Field::ValueType ValueType;
+        return sizeof(ValueType);
     }
 
     virtual Ptr cloneImpl() override

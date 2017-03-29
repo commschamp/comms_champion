@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@ CC_ENABLE_WARNINGS()
 
 #include "ShortIntValueFieldWidget.h"
 #include "LongIntValueFieldWidget.h"
+#include "LongLongIntValueFieldWidget.h"
 #include "ScaledIntValueFieldWidget.h"
 
 namespace comms_champion
@@ -64,16 +65,36 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     assert(m_wrapper);
     assert(!m_childWidget);
-    if (property::field::IntValue(props).hasScaledDecimals()) {
-        m_childWidget.reset(new ScaledIntValueFieldWidget(std::move(m_wrapper)));
-    }
-    else if (m_wrapper->isShortInt()) {
-        m_childWidget.reset(new ShortIntValueFieldWidget(std::move(m_wrapper)));
-    }
-    else {
-        m_childWidget.reset(new LongIntValueFieldWidget(std::move(m_wrapper)));
-    }
+    do {
+        if (property::field::IntValue(props).hasScaledDecimals()) {
+            m_childWidget.reset(new ScaledIntValueFieldWidget(std::move(m_wrapper)));
+            break;
+        }
 
+        std::size_t valTypeSize = m_wrapper->valueTypeSize();
+        bool isSigned = m_wrapper->isSigned();
+        if ((valTypeSize < sizeof(int)) ||
+             ((valTypeSize == sizeof(int) && isSigned))) {
+            m_childWidget.reset(new ShortIntValueFieldWidget(std::move(m_wrapper)));
+            break;
+        }
+
+        if (valTypeSize <= sizeof(unsigned)) {
+            m_childWidget.reset(new LongIntValueFieldWidget(std::move(m_wrapper)));
+            break;
+        }
+
+        if ((valTypeSize < sizeof(long long int)) ||
+             ((valTypeSize == sizeof(long long int) && isSigned))) {
+            m_childWidget.reset(new LongLongIntValueFieldWidget(std::move(m_wrapper)));
+            break;
+        }
+
+        assert(!"The handling of long long types is not implemented yet");
+        return;
+    } while (false);
+
+    assert(m_childWidget);
     auto* childLayout = new QVBoxLayout();
     childLayout->addWidget(m_childWidget.get());
     childLayout->setContentsMargins(0, 0, 0, 0);

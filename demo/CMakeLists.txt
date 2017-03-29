@@ -34,3 +34,6 @@ install (
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/config/
     DESTINATION ${CONFIG_INSTALL_DIR}
 )
+
+FILE(GLOB_RECURSE headers "include/*.h")
+add_custom_target(demo.headers SOURCES ${headers})

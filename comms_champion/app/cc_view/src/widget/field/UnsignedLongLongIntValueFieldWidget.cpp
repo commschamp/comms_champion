@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "LongLongIntValueFieldWidget.h"
+#include "UnsignedLongLongIntValueFieldWidget.h"
 
 #include <algorithm>
 #include <cassert>
@@ -27,7 +27,7 @@
 namespace comms_champion
 {
 
-LongLongIntValueFieldWidget::LongLongIntValueFieldWidget(
+UnsignedLongLongIntValueFieldWidget::UnsignedLongLongIntValueFieldWidget(
     WrapperPtr wrapper,
     QWidget* parentObj)
   : Base(parentObj),
@@ -52,9 +52,9 @@ LongLongIntValueFieldWidget::LongLongIntValueFieldWidget(
     refresh();
 }
 
-LongLongIntValueFieldWidget::~LongLongIntValueFieldWidget() = default;
+UnsignedLongLongIntValueFieldWidget::~UnsignedLongLongIntValueFieldWidget() = default;
 
-void LongLongIntValueFieldWidget::refreshImpl()
+void UnsignedLongLongIntValueFieldWidget::refreshImpl()
 {
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
@@ -72,25 +72,25 @@ void LongLongIntValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 }
 
-void LongLongIntValueFieldWidget::editEnabledUpdatedImpl()
+void UnsignedLongLongIntValueFieldWidget::editEnabledUpdatedImpl()
 {
     bool readonly = !isEditEnabled();
     m_ui.m_valueLineEdit->setReadOnly(readonly);
     m_ui.m_serValueLineEdit->setReadOnly(readonly);
 }
 
-void LongLongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
+void UnsignedLongLongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     m_offset = property::field::IntValue(props).displayOffset();
     refresh();
 }
 
-void LongLongIntValueFieldWidget::serialisedValueUpdated(const QString& value)
+void UnsignedLongLongIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
     handleNumericSerialisedValueUpdate(value, *m_wrapper);
 }
 
-void LongLongIntValueFieldWidget::valueUpdated(const QString& value)
+void UnsignedLongLongIntValueFieldWidget::valueUpdated(const QString& value)
 {
     auto adjustedValue = adjustDisplayedToReal(getDisplayedValue(value));
     if (adjustedValue == m_wrapper->getValue()) {
@@ -104,23 +104,23 @@ void LongLongIntValueFieldWidget::valueUpdated(const QString& value)
     emitFieldUpdated();
 }
 
-LongLongIntValueFieldWidget::UnderlyingType
-LongLongIntValueFieldWidget::adjustDisplayedToReal(DisplayedType val)
+UnsignedLongLongIntValueFieldWidget::UnderlyingType
+UnsignedLongLongIntValueFieldWidget::adjustDisplayedToReal(DisplayedType val)
 {
     return static_cast<UnderlyingType>(val - m_offset);
 }
 
-LongLongIntValueFieldWidget::DisplayedType
-LongLongIntValueFieldWidget::adjustRealToDisplayed(UnderlyingType val)
+UnsignedLongLongIntValueFieldWidget::DisplayedType
+UnsignedLongLongIntValueFieldWidget::adjustRealToDisplayed(UnderlyingType val)
 {
     return static_cast<DisplayedType>(val + m_offset);
 }
 
-LongLongIntValueFieldWidget::DisplayedType
-LongLongIntValueFieldWidget::getDisplayedValue(const QString& value)
+UnsignedLongLongIntValueFieldWidget::DisplayedType
+UnsignedLongLongIntValueFieldWidget::getDisplayedValue(const QString& value)
 {
     bool ok = false;
-    auto val = value.toLongLong(&ok);
+    auto val = value.toULongLong(&ok);
     static_cast<void>(ok);
     assert(ok);
     return val;

@@ -51,6 +51,11 @@ public:
         m_out << m_sep << wrapper.getValue();
     }
 
+    virtual void handle(cc::field_wrapper::UnsignedLongValueWrapper& wrapper) override
+    {
+        m_out << m_sep << wrapper.getValue();
+    }
+
     virtual void handle(cc::field_wrapper::BitmaskValueWrapper& wrapper) override
     {
         m_out << m_sep << "0x" << std::setw(wrapper.length() * 2) <<

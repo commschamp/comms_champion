@@ -18,26 +18,26 @@
 
 #pragma once
 
-#include "comms_champion/field_wrapper/IntValueWrapper.h"
+#include "comms_champion/field_wrapper/UnsignedLongValueWrapper.h"
 #include "FieldWidget.h"
 
-#include "ui_LongLongIntValueFieldWidget.h"
+#include "ui_UnsignedLongLongIntValueFieldWidget.h"
 
 namespace comms_champion
 {
 
-class LongLongIntValueFieldWidget : public FieldWidget
+class UnsignedLongLongIntValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
     typedef FieldWidget Base;
 public:
-    using WrapperPtr = field_wrapper::IntValueWrapperPtr;
+    using WrapperPtr = field_wrapper::UnsignedLongValueWrapperPtr;
 
-    explicit LongLongIntValueFieldWidget(
+    explicit UnsignedLongLongIntValueFieldWidget(
         WrapperPtr wrapper,
         QWidget* parentObj = nullptr);
 
-    ~LongLongIntValueFieldWidget();
+    ~UnsignedLongLongIntValueFieldWidget();
 
 protected:
     virtual void refreshImpl() override;
@@ -51,12 +51,12 @@ private slots:
 private:
     using WrapperType = WrapperPtr::element_type;
     using UnderlyingType = WrapperType::UnderlyingType;
-    typedef long long int DisplayedType;
+    typedef long long unsigned DisplayedType;
     UnderlyingType adjustDisplayedToReal(DisplayedType val);
     DisplayedType adjustRealToDisplayed(UnderlyingType val);
     static DisplayedType getDisplayedValue(const QString& value);
 
-    Ui::LongLongIntValueFieldWidget m_ui;
+    Ui::UnsignedLongLongIntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
     DisplayedType m_offset = 0;
 };

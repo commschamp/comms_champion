@@ -31,6 +31,7 @@ function (lib_comms_champion)
         MsgMgrImpl.cpp
         field_wrapper/FieldWrapper.cpp
         field_wrapper/IntValueWrapper.cpp
+        field_wrapper/UnsignedLongValueWrapper.cpp
         field_wrapper/BitmaskValueWrapper.cpp
         field_wrapper/EnumValueWrapper.cpp
         field_wrapper/StringWrapper.cpp

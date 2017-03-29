@@ -9,6 +9,7 @@
 #  CC_PLUGIN_LIBRARIES - Libraries to link against when building a plugin
 #  CC_PLUGIN_LIBRARY_DIRS - Where to find the libraries required to build plugin.
 #  CC_PLUGIN_DIR - Directory where to install newly built plugin
+#  CC_CMAKE_DIR - Directory containing installed cmake scripts
 
 get_filename_component (CC_INSTALL_LIB_PROJ_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 get_filename_component (CC_INSTALL_LIB_DIR ${CC_INSTALL_LIB_PROJ_DIR} DIRECTORY)
@@ -31,10 +32,12 @@ if (CC_NULL_SOCK_LIBRARY)
     get_filename_component  (CC_PLUGIN_DIR ${CC_NULL_SOCK_LIBRARY} DIRECTORY)
 endif ()
 
+set (CC_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
+
 find_package(PackageHandleStandardArgs REQUIRED)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(CC_COMMS REQUIRED_VARS CC_INCLUDE_DIR)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(CC_COMMS_CHAMPION REQUIRED_VARS 
-    CC_ROOT_DIR CC_INCLUDE_DIR CC_PLUGIN_LIBRARY_DIR CC_PLUGIN_LIBRARY CC_PLUGIN_DIR)
+    CC_ROOT_DIR CC_INCLUDE_DIR CC_PLUGIN_LIBRARY_DIR CC_PLUGIN_LIBRARY CC_PLUGIN_DIR CC_CMAKE_DIR)
     
 if (CC_COMMS_FOUND)
     set (CC_INCLUDE_DIRS ${CC_INCLUDE_DIR})

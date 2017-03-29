@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.1)
 project ("comms_champion")
 
 option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)

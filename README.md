@@ -119,7 +119,8 @@ Core ideas and architecture of the **COMMS** library is described in
 [Guide to Implementing Communication Protocols in C++](https://www.gitbook.com/book/arobenko/comms-protocols-cpp/details) free e-book.
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
-downloaded as [zip archive](https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/doc_comms.zip).
+downloaded as zip archive from 
+[Dropbox](https://www.dropbox.com/s/06iqzk5vp47izvk/doc_comms_v0.14.zip).
 
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 
@@ -178,7 +179,7 @@ may serve as reference on how to implement any other custom binary protocol.
 
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
 definition inside, can be
-downloaded from [here](https://dl.dropboxusercontent.com/u/46999418/comms_champion/demo/doc_demo.zip).
+downloaded from [Dropbox](https://www.dropbox.com/s/i6bdybsq0u6ssj1/doc_demo.zip).
 
 # Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for

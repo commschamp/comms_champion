@@ -122,6 +122,11 @@ Full [doxygen](www.doxygen.org) generated documentation with the full tutorial i
 downloaded as zip archive from 
 [Dropbox](https://www.dropbox.com/s/06iqzk5vp47izvk/doc_comms_v0.14.zip).
 
+Additional instructions on how to include the **COMMS** library in CMake projects 
+can be found in 
+[How to Use CommsChampion in CMake Projects](https://github.com/arobenko/comms_champion/wiki/How-to-Use-CommsChampion-in-CMake-Projects)
+wiki page.
+
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 
 develop, monitor and debug custom binary communication protocols. 

@@ -81,6 +81,9 @@ bool SerialSocket::socketConnectImpl()
 
 void SerialSocket::socketDisconnectImpl()
 {
+    if (!m_serial.isOpen()) {
+        return;
+    }
     m_serial.flush();
     m_serial.close();
 }

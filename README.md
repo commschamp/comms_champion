@@ -250,7 +250,7 @@ can be found in
 wiki page.
 
 # How to Run CommsChampion applications
-On Windows platforms try run the executable binary (**cc_view.exe**
+On Windows platforms try to run the *.exe binary (**cc_view.exe**
 or **cc_dump.exe**), which resides in 
 **install/bin** subdirectory. If the execution fails due to missing QT5 dlls,
 either set your %PATH% variable accordingly or try to execute generated **.bat**
@@ -260,7 +260,7 @@ On Linux platforms use the appropriate shell script
 (**cc_view.sh** or **cc_dump.sh**), which also resides in
 **install/bin** subdirectory.
  
-Please note that available plugins must reside in the **../plugin** subdirectory relative
+Please note that available plugins must reside in the **../lib/CommsChampion/plugin** subdirectory relative
 to the location of the binaries.
 
 The tools support multiple command line options, please use "-h" or "--help" for

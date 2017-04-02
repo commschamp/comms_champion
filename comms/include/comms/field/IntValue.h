@@ -167,9 +167,13 @@ public:
     template <typename TRet>
     constexpr TRet scaleAs() const
     {
-        static_assert(std::is_floating_point<TRet>::value,
-            "TRet is expected to be floating point type");
-        return static_cast<TRet>(value()) * (static_cast<TRet>(ThisField::ScalingRatio::num) / static_cast<TRet>(ThisField::ScalingRatio::den));
+        typedef typename std::conditional<
+            ParsedOptions::HasScalingRatio,
+            HasScalingRatioTag,
+            NoScalingRatioTag
+        >::type Tag;
+
+        return scaleAsInternal<TRet>(Tag());
     }
 
     /// @brief Opposite operation to scaleAs().
@@ -179,23 +183,118 @@ public:
     template <typename TScaled>
     void setScaled(TScaled val)
     {
+        typedef typename std::conditional<
+            ParsedOptions::HasScalingRatio,
+            HasScalingRatioTag,
+            NoScalingRatioTag
+        >::type Tag;
+
+        return setScaledInternal(val, Tag());
+    }
+
+private:
+    struct HasScalingRatioTag {};
+    struct NoScalingRatioTag {};
+    struct ScaleAsFpTag {};
+    struct ScaleAsIntTag {};
+
+    template <typename TRet>
+    TRet scaleAsInternal(HasScalingRatioTag) const
+    {
+        typedef typename std::conditional<
+            std::is_floating_point<TRet>::value,
+            ScaleAsFpTag,
+            ScaleAsIntTag
+        >::type Tag;
+
+        return scaleAsInternal<TRet>(Tag());
+    }
+
+    template <typename TRet>
+    TRet scaleAsInternal(ScaleAsFpTag) const
+    {
+        static_assert(std::is_floating_point<TRet>::value,
+            "TRet is expected to be floating point type");
+        return static_cast<TRet>(value()) * (static_cast<TRet>(ParsedOptions::ScalingRatio::num) / static_cast<TRet>(ParsedOptions::ScalingRatio::den));
+    }
+
+    template <typename TRet>
+    TRet scaleAsInternal(ScaleAsIntTag) const
+    {
+        static_assert(std::is_integral<TRet>::value,
+            "TRet is expected to be integral type");
+
+        typedef typename std::conditional<
+            std::is_signed<TRet>::value,
+            std::intmax_t,
+            std::uintmax_t
+        >::type CastType;
+
+        return
+            static_cast<TRet>(
+                (static_cast<CastType>(value()) * ParsedOptions::ScalingRatio::num) / ParsedOptions::ScalingRatio::den);
+    }
+
+    template <typename TRet>
+    TRet scaleAsInternal(NoScalingRatioTag) const
+    {
+        return static_cast<TRet>(value());
+    }
+
+    template <typename TScaled>
+    void setScaledInternal(TScaled val, HasScalingRatioTag)
+    {
+        typedef typename std::conditional<
+            std::is_floating_point<typename std::decay<decltype(val)>::type>::value,
+            ScaleAsFpTag,
+            ScaleAsIntTag
+        >::type Tag;
+
+        setScaledInternal(val, Tag());
+    }
+
+    template <typename TScaled>
+    void setScaledInternal(TScaled val, ScaleAsFpTag)
+    {
         typedef typename std::decay<decltype(val)>::type DecayedType;
-        auto mul = 10;
-        if ((ThisField::ScalingRatio::den & (ThisField::ScalingRatio::den - 1)) == 0) {
-            mul = 2;
+        auto epsilon = DecayedType(0);
+        if (ParsedOptions::ScalingRatio::num < ParsedOptions::ScalingRatio::den) {
+            epsilon = static_cast<DecayedType>(ParsedOptions::ScalingRatio::num) / static_cast<TScaled>(ParsedOptions::ScalingRatio::den + 1);
         }
 
-        auto epsilon = static_cast<TScaled>(ThisField::ScalingRatio::num) / static_cast<TScaled>(ThisField::ScalingRatio::den * mul);
-        if (val < static_cast<DecayedType>(0)) {
+        if (epsilon < DecayedType(0)) {
+            epsilon = -epsilon;
+        }
+
+        if (val < DecayedType(0)) {
             epsilon = -epsilon;
         }
 
         value() =
             static_cast<ValueType>(
-                ((val + epsilon) * static_cast<TScaled>(ThisField::ScalingRatio::den)) / static_cast<TScaled>(ThisField::ScalingRatio::num));
+                ((val + epsilon) * static_cast<TScaled>(ParsedOptions::ScalingRatio::den)) / static_cast<TScaled>(ParsedOptions::ScalingRatio::num));
     }
 
-private:
+    template <typename TScaled>
+    void setScaledInternal(TScaled val, ScaleAsIntTag)
+    {
+        typedef typename std::conditional<
+            std::is_signed<typename std::decay<decltype(val)>::type>::value,
+            std::intmax_t,
+            std::uintmax_t
+        >::type CastType;
+
+        value() =
+            static_cast<ValueType>(
+                (static_cast<CastType>(val) * ParsedOptions::ScalingRatio::den) / static_cast<CastType>(ParsedOptions::ScalingRatio::num));
+    }
+
+    template <typename TScaled>
+    void setScaledInternal(TScaled val, NoScalingRatioTag)
+    {
+        value() = static_cast<ValueType>(val);
+    }
+
     ThisField field_;
 };
 

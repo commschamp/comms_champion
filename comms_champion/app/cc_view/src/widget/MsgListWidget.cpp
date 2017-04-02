@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -84,7 +84,9 @@ void MsgListWidget::addMessage(MessagePtr msg)
         QVariant::fromValue(msg));
 
     if (m_selectOnAdd) {
+        m_ui.m_listWidget->blockSignals(true);
         m_ui.m_listWidget->setCurrentRow(m_ui.m_listWidget->count() - 1);
+        m_ui.m_listWidget->blockSignals(false);
         assert(m_ui.m_listWidget->currentItem() == item);
     }
 
@@ -133,14 +135,16 @@ void MsgListWidget::deleteCurrentMessage()
         return;
     }
 
-    auto msgInfo = getMsgFromItem(item);
+    m_ui.m_listWidget->blockSignals(true);
     delete item; // will remove from the list
+    m_ui.m_listWidget->blockSignals(false);
+
 
     updateTitle();
 
     auto* nextItem = m_ui.m_listWidget->currentItem();
     if (nextItem != nullptr) {
-        itemClicked(nextItem);
+        processClick(nextItem);
     }
 }
 
@@ -340,6 +344,7 @@ MsgListWidget::MessagesList MsgListWidget::allMsgs() const
 
 void MsgListWidget::itemClicked(QListWidgetItem* item)
 {
+    assert(item != nullptr);
     if (m_selectedItem == item) {
         assert(0 < m_lastSelectionTimestamp);
         auto timestamp = QDateTime::currentMSecsSinceEpoch();
@@ -356,14 +361,15 @@ void MsgListWidget::currentItemChanged(QListWidgetItem* current, QListWidgetItem
 {
     static_cast<void>(prev);
 
-    if (m_selectedItem == nullptr) {
-        m_lastSelectionTimestamp = 0;
+    m_selectedItem = current;
+    if (current != nullptr) {
+        m_lastSelectionTimestamp = QDateTime::currentMSecsSinceEpoch();
+        processClick(current);
         return;
     }
 
-    m_selectedItem = current;
-    m_lastSelectionTimestamp = QDateTime::currentMSecsSinceEpoch();
-    processClick(current);
+    m_lastSelectionTimestamp = 0;
+    return;
 }
 
 void MsgListWidget::itemDoubleClicked(QListWidgetItem* item)

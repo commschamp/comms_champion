@@ -40,6 +40,7 @@ public:
     void test8();
     void test9();
     void test10();
+    void test11();
 
 private:
 
@@ -76,6 +77,13 @@ private:
             CommonOptions
         > LeMessageBase;
 
+    static_assert(std::has_virtual_destructor<BeMessageBase>::value,
+        "BeMessageBase is expected to have virtual destructor");
+
+    static_assert(std::has_virtual_destructor<LeMessageBase>::value,
+        "LeMessageBase is expected to have virtual destructor");
+
+
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>
     > BasicCommonOptions;
@@ -85,6 +93,10 @@ private:
             comms::option::BigEndian,
             BasicCommonOptions
         > BeBasicMessageBase;
+
+    static_assert(!std::has_virtual_destructor<BeBasicMessageBase>::value,
+        "BeBasicMessageBase is expected to NOT have virtual destructor");
+
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
@@ -97,6 +109,10 @@ private:
             ReadOnlyCommonOptions
         > BeReadOnlyMessageBase;
 
+    static_assert(std::has_virtual_destructor<BeReadOnlyMessageBase>::value,
+        "BeReadOnlyMessageBase is expected to have virtual destructor");
+
+
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
         comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >
@@ -108,6 +124,10 @@ private:
             WriteOnlyCommonOptions
         > BeWriteOnlyMessageBase;
 
+    static_assert(std::has_virtual_destructor<BeWriteOnlyMessageBase>::value,
+        "BeWriteOnlyMessageBase is expected to have virtual destructor");
+
+
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
         comms::option::LengthInfoInterface
@@ -118,6 +138,9 @@ private:
             comms::option::BigEndian,
             LengthOnlyCommonOptions
         > BeLengthOnlyMessageBase;
+
+    static_assert(std::has_virtual_destructor<BeLengthOnlyMessageBase>::value,
+        "BeLengthOnlyMessageBase is expected to have virtual destructor");
 
 
     typedef Message1<BeMessageBase> BeMsg1;
@@ -137,6 +160,10 @@ private:
             comms::option::RefreshInterface
         > BeRefreshableMessageBase;
 
+    static_assert(std::has_virtual_destructor<BeRefreshableMessageBase>::value,
+        "BeRefreshableMessageBase is expected to have virtual destructor");
+
+
     typedef Message4<BeRefreshableMessageBase> BeMsg4;
 
     typedef
@@ -145,6 +172,9 @@ private:
             comms::option::ReadIterator<const std::uint8_t*>,
             comms::option::WriteIterator<std::uint8_t*>
         > NoIdMsgBase;
+
+    static_assert(std::has_virtual_destructor<NoIdMsgBase>::value,
+        "NoIdMsgBase is expected to have virtual destructor");
 
     typedef Message1<NoIdMsgBase> NoIdMsg1;
 
@@ -370,6 +400,132 @@ void MessageTestSuite::test10()
     TS_ASSERT_EQUALS(value1, 0x1234);
     TS_ASSERT_EQUALS(value2, -1);
 }
+
+void MessageTestSuite::test11()
+{
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>
+        > Msg1;
+
+    static_assert(!std::has_virtual_destructor<Msg1>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::ReadIterator<const char*>
+        > Msg2;
+
+    static_assert(std::has_virtual_destructor<Msg2>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::ReadIterator<const char*>,
+            comms::option::NoVirtualDestructor
+        > Msg3;
+
+    static_assert(!std::has_virtual_destructor<Msg3>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::WriteIterator<char*>
+        > Msg4;
+
+    static_assert(std::has_virtual_destructor<Msg4>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::WriteIterator<char*>,
+            comms::option::NoVirtualDestructor
+        > Msg5;
+
+    static_assert(!std::has_virtual_destructor<Msg5>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::IdInfoInterface
+        > Msg6;
+
+    static_assert(std::has_virtual_destructor<Msg6>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::IdInfoInterface,
+            comms::option::NoVirtualDestructor
+        > Msg7;
+
+    static_assert(!std::has_virtual_destructor<Msg7>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::ValidCheckInterface
+        > Msg8;
+
+    static_assert(std::has_virtual_destructor<Msg8>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::ValidCheckInterface,
+            comms::option::NoVirtualDestructor
+        > Msg9;
+
+    static_assert(!std::has_virtual_destructor<Msg9>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::LengthInfoInterface
+        > Msg10;
+
+    static_assert(std::has_virtual_destructor<Msg10>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::LengthInfoInterface,
+            comms::option::NoVirtualDestructor
+        > Msg11;
+
+    static_assert(!std::has_virtual_destructor<Msg11>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::RefreshInterface
+        > Msg12;
+
+    static_assert(std::has_virtual_destructor<Msg12>::value, "Error");
+
+    typedef
+        comms::Message<
+            comms::option::BigEndian,
+            comms::option::MsgIdType<MessageType>,
+            comms::option::RefreshInterface,
+            comms::option::NoVirtualDestructor
+        > Msg13;
+
+    static_assert(!std::has_virtual_destructor<Msg13>::value, "Error");
+}
+
 
 template <typename TMessage>
 TMessage MessageTestSuite::internalReadWriteTest(

@@ -72,12 +72,31 @@ struct IntValuesFields
             comms::option::ValidNumValueRange<2000, 2255>
         >;
 
+    /// @brief Signed integer serialised using 6 bytes
+    using field5 =
+        comms::field::IntValue<
+            TFieldBase,
+            std::int64_t,
+            comms::option::FixedLength<6>,
+            comms::option::ValidNumValueRange<(std::int64_t)0xffff800000000000, 0x7fffffffffff>
+        >;
+
+    /// @brief Unsigned integer serialised using 8 bytes
+    using field6 =
+        comms::field::IntValue<
+            TFieldBase,
+            std::uint64_t
+        >;
+
+
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
         field1,
         field2,
         field3,
-        field4
+        field4,
+        field5,
+        field6
     >;
 };
 
@@ -98,12 +117,6 @@ class IntValues : public
         comms::option::MsgType<IntValues<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_IntValues>,
-        comms::option::FieldsImpl<typename IntValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<IntValues<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -111,7 +124,7 @@ public:
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4);
+    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4, field5, field6);
 
     /// @brief Default constructor
     IntValues() = default;

@@ -99,7 +99,9 @@ protected:
     using ValueType = typename Field::ValueType;
 
     static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
-    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
+    static_assert(
+        std::is_signed<ValueType>::value == std::is_signed<UnderlyingType>::value ||
+            (sizeof(ValueType) < sizeof(UnderlyingType)),
         "This wrapper cannot handle provided field.");
 
 public:

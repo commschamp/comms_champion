@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <type_traits>
 
 #include "ErrorStatus.h"
 #include "Assert.h"
@@ -67,6 +68,8 @@ namespace comms
 ///         object used to handle the message when it received. If this option
 ///         is not used, then dispatch() member function doesn't exist. See
 ///         dispatch() documentation for details.
+///     @li comms::option::NoVirtualDestructor - Force the destructor to be
+///         non-virtual, even if there are virtual functions in use.
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
 {
@@ -77,8 +80,12 @@ public:
     /// @details See @ref page_message_options_interface for reference.
     typedef details::MessageInterfaceOptionsParser<TOptions...> InterfaceOptions;
 
-    /// @brief Destructor
-    virtual ~Message() {};
+    /// @brief Destructor.
+    /// @details Becomes @b virtual if the message interface is defined to expose
+    ///     any polymorphic behavior, i.e. if there is at least one virtual function.
+    ///     It is possible to explicitly suppress @b virtual declaration by
+    ///     using comms::option::NoVirtualDestructor option.
+    ~Message() = default;
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Type used for message ID.

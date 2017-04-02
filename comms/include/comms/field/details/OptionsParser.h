@@ -317,9 +317,9 @@ public:
     typedef typename Option::Type CustomValidator;
 };
 
-template <typename... TOptions>
+template <comms::ErrorStatus TStatus, typename... TOptions>
 class OptionsParser<
-    comms::option::FailOnInvalid,
+    comms::option::FailOnInvalid<TStatus>,
     TOptions...> : public OptionsParser<TOptions...>
 {
     typedef OptionsParser<TOptions...> Base;
@@ -327,6 +327,7 @@ class OptionsParser<
         "Cannot mix FailOnInvalid and IgnoreInvalid options.");
 public:
     static const bool HasFailOnInvalid = true;
+    static const comms::ErrorStatus FailOnInvalidStatus = TStatus;
 };
 
 template <typename... TOptions>

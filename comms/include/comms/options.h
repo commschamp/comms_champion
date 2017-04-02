@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -621,6 +621,7 @@ struct CustomValueReader
 ///     If comms::option::FailOnInvalid is provided as an option to a field,
 ///     the validity is going to checked automatically after the read. If invalid
 ///     value is identified, error will be returned from the @b read() operation.
+template <comms::ErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct FailOnInvalid {};
 
 /// @brief Option that forces field's read operation to ignore read data if invalid value
@@ -630,6 +631,11 @@ struct FailOnInvalid {};
 ///     the read value is not assigned to the field, i.e. the field's value
 ///     remains unchanged, although no error is reported.
 struct IgnoreInvalid {};
+
+/// @brief Force the destructor of comms::Message class to be @b non-virtual,
+///     even if there are other virtual functions defined.
+struct NoVirtualDestructor {};
+
 
 namespace details
 {
@@ -758,8 +764,8 @@ using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMi
 ///     (field.value() & TMask) == TValue
 ///     @endcode
 /// @tparam TMask Mask that specifies reserved bits.
-/// @tparam TValue Expected value of the reserved bits
-template<std::uintmax_t TMask, std::uintmax_t TValue>
+/// @tparam TValue Expected value of the reserved bits. Defaults to 0.
+template<std::uintmax_t TMask, std::uintmax_t TValue = 0U>
 using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValidator<TMask, TValue> >;
 
 /// @brief Alias to DefaultValueInitialiser, it sets default mode

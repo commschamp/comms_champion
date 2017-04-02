@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include "comms/comms.h"
 
 #include "comms_champion/field_wrapper/IntValueWrapper.h"
+#include "comms_champion/field_wrapper/UnsignedLongValueWrapper.h"
 #include "comms_champion/field_wrapper/BitmaskValueWrapper.h"
 #include "comms_champion/field_wrapper/EnumValueWrapper.h"
 #include "comms_champion/field_wrapper/StringWrapper.h"
@@ -64,6 +65,9 @@ private:
     typedef comms::field::tag::ArrayList FieldsArrayListTag;
     typedef comms::field::tag::Float FloatValueTag;
 
+    struct RegularIntTag {};
+    struct BigUnsignedTag {};
+
     class SubfieldsCreateHelper
     {
     public:
@@ -89,7 +93,31 @@ private:
     template <typename TField>
     static FieldWrapperPtr createWrapperInternal(TField& field, IntValueTag)
     {
+        typedef typename std::decay<decltype(field)>::type FieldType;
+        typedef typename FieldType::ValueType ValueType;
+
+        static_assert(std::is_integral<ValueType>::value,
+            "ValueType is expected to be integral");
+
+        using Tag = typename std::conditional<
+            std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(std::uint32_t)),
+            RegularIntTag,
+            BigUnsignedTag
+        >::type;
+
+        return createWrapperInternal(field, Tag());
+    }
+
+    template <typename TField>
+    static FieldWrapperPtr createWrapperInternal(TField& field, RegularIntTag)
+    {
         return field_wrapper::makeIntValueWrapper(field);
+    }
+
+    template <typename TField>
+    static FieldWrapperPtr createWrapperInternal(TField& field, BigUnsignedTag)
+    {
+        return field_wrapper::makeUnsignedLongValueWrapper(field);
     }
 
     template <typename TField>

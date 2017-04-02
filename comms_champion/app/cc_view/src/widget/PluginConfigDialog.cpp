@@ -29,12 +29,12 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QDir>
-#include <QtCore/QCoreApplication>
 CC_ENABLE_WARNINGS()
 
 #include "comms/util/ScopeGuard.h"
 #include "PluginMgrG.h"
 #include "icon.h"
+#include "dir.h"
 
 namespace comms_champion
 {
@@ -63,13 +63,12 @@ QString getLastLoadSaveFile()
         return filename;
     }
 
-    QDir dir(qApp->applicationDirPath());
-    dir.cdUp();
-    if (!dir.cd("config")) {
+    auto configDirPath = getConfigDir();
+    if (configDirPath.isEmpty()) {
         return filename;
     }
 
-    filename = dir.path();
+    filename = QDir(configDirPath).path();
     return filename;
 }
 

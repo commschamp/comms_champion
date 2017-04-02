@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,32 +18,26 @@
 
 #pragma once
 
-#include <vector>
-
-#include "comms/CompileControl.h"
-
-CC_DISABLE_WARNINGS()
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QLabel>
-CC_ENABLE_WARNINGS()
-
+#include "comms_champion/field_wrapper/IntValueWrapper.h"
 #include "FieldWidget.h"
+
+#include "ui_LongLongIntValueFieldWidget.h"
 
 namespace comms_champion
 {
 
-class BundleFieldWidget : public FieldWidget
+class LongLongIntValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
     typedef FieldWidget Base;
 public:
+    using WrapperPtr = field_wrapper::IntValueWrapperPtr;
 
-    explicit BundleFieldWidget(
+    explicit LongLongIntValueFieldWidget(
+        WrapperPtr wrapper,
         QWidget* parentObj = nullptr);
 
-    ~BundleFieldWidget();
-
-    void addMemberField(FieldWidget* memberFieldWidget);
+    ~LongLongIntValueFieldWidget();
 
 protected:
     virtual void refreshImpl() override;
@@ -51,13 +45,20 @@ protected:
     virtual void updatePropertiesImpl(const QVariantMap& props) override;
 
 private slots:
-    void memberFieldUpdated();
+    void serialisedValueUpdated(const QString& value);
+    void valueUpdated(const QString& value);
 
 private:
+    using WrapperType = WrapperPtr::element_type;
+    using UnderlyingType = WrapperType::UnderlyingType;
+    typedef long long int DisplayedType;
+    UnderlyingType adjustDisplayedToReal(DisplayedType val);
+    DisplayedType adjustRealToDisplayed(UnderlyingType val);
+    static DisplayedType getDisplayedValue(const QString& value);
 
-    QVBoxLayout* m_membersLayout = nullptr;
-    QLabel* m_label = nullptr;
-    std::vector<FieldWidget*> m_members;
+    Ui::LongLongIntValueFieldWidget m_ui;
+    WrapperPtr m_wrapper;
+    DisplayedType m_offset = 0;
 };
 
 

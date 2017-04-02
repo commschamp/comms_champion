@@ -235,7 +235,7 @@ public:
     T* insert(const T* pos, std::size_t count, const T& value)
     {
         GASSERT(pos <= end());
-        GASSERT((size() + count) < capacity());
+        GASSERT((size() + count) <= capacity());
         auto* posIter = begin() + std::distance(cbegin(), pos);
         if (end() <= posIter) {
             while (0 < count) {

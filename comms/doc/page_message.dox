@@ -74,7 +74,36 @@
 /// };
 /// @endcode
 ///
-/// So, let's review all the supported options one by one:
+/// Please @b NOTE, that by default the comms::Message class defines its 
+/// destructor as @b virtual if and only if it exhibits a polymorphic behaviour, 
+/// i.e. if there is at least one other virtual function defined. There are a couple of
+/// ways to change this default behaviour.
+/// @li If the definition of the common message interface class using 
+///     comms::Message exhibits polymorphic 
+///     behaviour (i.e. has other virtual functions), but mustn't define its
+///     destructor as @b virtual, use comms::option::NoVirtualDestructor 
+///     option in the interface class definition.
+///     @code
+///     using MyInteface = 
+///         comms::Message<
+///             ...,
+///             comms::option::NoVirtualDestructor
+///         >;
+///     @endcode
+/// @li If the definition of the common interface class using comms::Message 
+///     doesn't have any virtual function, but still requires and ability to 
+///     be polymorphically deleted, i.e. must have virtual destructor, just 
+///     inherit from comms::Message and define the destructor as virtual.
+///     @code
+///     class MyInterface : public 
+///         comms::Message<comms::option::BigEndian, comms::option::MsgIdType<std::uint8_t> >
+///     {
+///     public:
+///         virtual ~MyInterface() = default;
+///     };
+///     @endcode
+///
+/// Let's now review all the other supported options one by one:
 /// 
 /// @subsection page_message_tutorial_interface_endian Serialisation Endian
 /// Most of the messages carry some kind of payload, which needs to be

@@ -13,6 +13,7 @@ function (bin_cc_view)
 
     set (src
         main.cpp
+        dir.cpp
         GuiAppMgr.cpp
         DefaultMessageDisplayHandler.cpp
         MsgFileMgrG.cpp
@@ -40,6 +41,8 @@ function (bin_cc_view)
         widget/field/FieldWidget.cpp
         widget/field/ShortIntValueFieldWidget.cpp
         widget/field/LongIntValueFieldWidget.cpp
+        widget/field/LongLongIntValueFieldWidget.cpp
+        widget/field/UnsignedLongLongIntValueFieldWidget.cpp
         widget/field/ScaledIntValueFieldWidget.cpp
         widget/field/IntValueFieldWidget.cpp
         widget/field/BitmaskValueFieldWidget.cpp
@@ -75,6 +78,8 @@ function (bin_cc_view)
         widget/field/FieldWidget.h 
         widget/field/ShortIntValueFieldWidget.h
         widget/field/LongIntValueFieldWidget.h
+        widget/field/LongLongIntValueFieldWidget.h
+        widget/field/UnsignedLongLongIntValueFieldWidget.h
         widget/field/ScaledIntValueFieldWidget.h
         widget/field/BitmaskValueFieldWidget.h
         widget/field/EnumValueFieldWidget.h
@@ -100,6 +105,8 @@ function (bin_cc_view)
         ui/PluginConfigDialog.ui
         ui/ShortIntValueFieldWidget.ui
         ui/LongIntValueFieldWidget.ui
+        ui/LongLongIntValueFieldWidget.ui
+        ui/UnsignedLongLongIntValueFieldWidget.ui
         ui/BitmaskValueFieldWidget.ui
         ui/EnumValueFieldWidget.ui
         ui/StringFieldWidget.ui

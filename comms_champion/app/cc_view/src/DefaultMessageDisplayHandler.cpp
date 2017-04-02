@@ -21,6 +21,7 @@
 
 #include "comms_champion/field_wrapper/FieldWrapperHandler.h"
 #include "widget/field/IntValueFieldWidget.h"
+#include "widget/field/UnsignedLongLongIntValueFieldWidget.h"
 #include "widget/field/BitmaskValueFieldWidget.h"
 #include "widget/field/EnumValueFieldWidget.h"
 #include "widget/field/StringFieldWidget.h"
@@ -46,6 +47,11 @@ public:
     virtual void handle(field_wrapper::IntValueWrapper& wrapper) override
     {
         m_widget.reset(new IntValueFieldWidget(wrapper.clone()));
+    }
+
+    virtual void handle(field_wrapper::UnsignedLongValueWrapper& wrapper) override
+    {
+        m_widget.reset(new UnsignedLongLongIntValueFieldWidget(wrapper.clone()));
     }
 
     virtual void handle(field_wrapper::BitmaskValueWrapper& wrapper) override

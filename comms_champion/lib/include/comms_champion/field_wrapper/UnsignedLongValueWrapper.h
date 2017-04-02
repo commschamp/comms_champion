@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -31,18 +31,18 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-class CC_API IntValueWrapper : public NumericValueWrapper<long long int>
+class CC_API UnsignedLongValueWrapper : public NumericValueWrapper<long long unsigned>
 {
-    typedef NumericValueWrapper<long long int> Base;
+    typedef NumericValueWrapper<long long unsigned> Base;
 public:
 
     typedef Base::UnderlyingType UnderlyingType;
-    typedef std::unique_ptr<IntValueWrapper> Ptr;
+    typedef std::unique_ptr<UnsignedLongValueWrapper> Ptr;
 
     using Base::NumericValueWrapper;
 
-    IntValueWrapper();
-    virtual ~IntValueWrapper();
+    UnsignedLongValueWrapper();
+    virtual ~UnsignedLongValueWrapper();
 
     UnderlyingType minValue() const;
 
@@ -74,9 +74,9 @@ protected:
 };
 
 template <typename TField>
-class IntValueWrapperT : public NumericValueWrapperT<IntValueWrapper, TField>
+class UnsignedLongValueWrapperT : public NumericValueWrapperT<UnsignedLongValueWrapper, TField>
 {
-    using Base = NumericValueWrapperT<IntValueWrapper, TField>;
+    using Base = NumericValueWrapperT<UnsignedLongValueWrapper, TField>;
     using Field = TField;
     static_assert(comms::field::isIntValue<Field>(), "Must be of IntValueField type");
 
@@ -85,16 +85,16 @@ public:
     typedef typename Base::UnderlyingType UnderlyingType;
     typedef typename Base::Ptr Ptr;
 
-    explicit IntValueWrapperT(Field& fieldRef)
+    explicit UnsignedLongValueWrapperT(Field& fieldRef)
       : Base(fieldRef)
     {
     }
 
-    IntValueWrapperT(const IntValueWrapperT&) = default;
-    IntValueWrapperT(IntValueWrapperT&&) = default;
-    virtual ~IntValueWrapperT() = default;
+    UnsignedLongValueWrapperT(const UnsignedLongValueWrapperT&) = default;
+    UnsignedLongValueWrapperT(UnsignedLongValueWrapperT&&) = default;
+    virtual ~UnsignedLongValueWrapperT() = default;
 
-    IntValueWrapperT& operator=(const IntValueWrapperT&) = delete;
+    UnsignedLongValueWrapperT& operator=(const UnsignedLongValueWrapperT&) = delete;
 
 protected:
     virtual UnderlyingType minValueImpl() const override
@@ -137,19 +137,19 @@ protected:
 
     virtual Ptr cloneImpl() override
     {
-        return Ptr(new IntValueWrapperT<TField>(Base::field()));
+        return Ptr(new UnsignedLongValueWrapperT<TField>(Base::field()));
     }
 };
 
-using IntValueWrapperPtr = IntValueWrapper::Ptr;
+using UnsignedLongValueWrapperPtr = UnsignedLongValueWrapper::Ptr;
 
 template <typename TField>
-IntValueWrapperPtr
-makeIntValueWrapper(TField& field)
+UnsignedLongValueWrapperPtr
+makeUnsignedLongValueWrapper(TField& field)
 {
     return
-        IntValueWrapperPtr(
-            new IntValueWrapperT<TField>(field));
+        UnsignedLongValueWrapperPtr(
+            new UnsignedLongValueWrapperT<TField>(field));
 }
 
 }  // namespace field_wrapper

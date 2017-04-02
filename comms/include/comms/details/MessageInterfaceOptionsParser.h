@@ -45,6 +45,7 @@ struct MessageInterfaceOptionsParser<>
     static const bool HasValid = false;
     static const bool HasLength = false;
     static const bool HasRefresh = false;
+    static const bool HasNoVirtualDestructor = false;
 };
 
 template <typename T, typename... TOptions>
@@ -136,6 +137,15 @@ class MessageInterfaceOptionsParser<
 {
 public:
     static const bool HasRefresh = true;
+};
+
+template <typename... TOptions>
+class MessageInterfaceOptionsParser<
+    comms::option::NoVirtualDestructor,
+    TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
+{
+public:
+    static const bool HasNoVirtualDestructor = true;
 };
 
 template <typename... TOptions>

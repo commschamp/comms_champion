@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.1)
 project ("comms_champion")
 
 option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
@@ -9,6 +9,8 @@ option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
 if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
 endif()
+
+set (CMAKE_CXX_STANDARD 11)
 
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
@@ -70,7 +72,6 @@ endwhile ()
 
 if (CMAKE_COMPILER_IS_GNUCC)
     set (extra_flags_list
-        "--std=c++11"
         "-Wall" "-Wextra" "-Wcast-align" "-Wcast-qual" "-Wctor-dtor-privacy"
         "-Wmissing-include-dirs" "-Wnoexcept" "-Wlogical-op" "-Wstrict-null-sentinel"
         "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow" "-Wundef" "-Wunused"
@@ -123,15 +124,21 @@ if (NOT "${CC_INSTALL_DIR}" STREQUAL "")
     set (INSTALL_DIR "${CC_INSTALL_DIR}")
 endif ()
 
-set (LIB_INSTALL_DIR ${INSTALL_DIR}/lib)
-set (BIN_INSTALL_DIR ${INSTALL_DIR}/bin)
-set (INC_INSTALL_DIR ${INSTALL_DIR}/include)
-set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/plugin)
+include(GNUInstallDirs)
+set (INSTALL_NAME "CommsChampion")
+set (LIB_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR})
+set (BIN_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_BINDIR})
+set (INC_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_INCLUDEDIR})
+set (PLUGIN_INSTALL_REL_DIR ${CMAKE_INSTALL_LIBDIR}/${INSTALL_NAME}/plugin)
+set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/${PLUGIN_INSTALL_REL_DIR})
+set (DATA_INSTALL_REL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/${INSTALL_NAME})
+set (DATA_INSTALL_DIR ${INSTALL_DIR}/${DATA_INSTALL_REL_DIR})
 set (DOC_INSTALL_DIR ${INSTALL_DIR}/doc)
-set (ICON_INSTALL_DIR ${INSTALL_DIR}/icon)
-set (CONFIG_INSTALL_DIR ${INSTALL_DIR}/config)
+set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
+set (CONFIG_INSTALL_REL_DIR config)
+set (CONFIG_INSTALL_DIR ${INSTALL_DIR}/${CONFIG_INSTALL_REL_DIR})
 
-install (DIRECTORY cmake DESTINATION ${INSTALL_DIR})
+install (DIRECTORY cmake DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME})
 
 include_directories (
     BEFORE

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -33,11 +33,13 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-BundleFieldWidget::BundleFieldWidget(
-    QWidget* parentObj)
-  : Base(parentObj)
+BundleFieldWidget::BundleFieldWidget(QWidget* parentObj)
+  : Base(parentObj),
+    m_membersLayout(new QVBoxLayout),
+    m_label(new QLabel)
 {
-    m_membersLayout = new QVBoxLayout();
+    m_label->hide();
+    m_membersLayout->addWidget(m_label);
     setLayout(m_membersLayout);
 }
 
@@ -47,7 +49,7 @@ void BundleFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
 {
     m_members.push_back(memberFieldWidget);
 
-    if (m_membersLayout->count() != 0) {
+    if (1 < m_membersLayout->count()) {
         auto* line = new QFrame(this);
         line->setFrameShape(QFrame::HLine);
         line->setFrameShadow(QFrame::Sunken);
@@ -56,7 +58,7 @@ void BundleFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
     }
 
     m_membersLayout->addWidget(memberFieldWidget);
-    assert((std::size_t)m_membersLayout->count() == ((m_members.size() * 2) - 1));
+    assert((std::size_t)m_membersLayout->count() == (m_members.size() * 2));
 
     connect(
         memberFieldWidget, SIGNAL(sigFieldUpdated()),
@@ -88,6 +90,16 @@ void BundleFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         assert(memberFieldWidget != nullptr);
         memberFieldWidget->updateProperties(membersProps[idx]);
     }
+
+    assert(m_label != nullptr);
+    auto name = bundleProps.name();
+    if (name.isEmpty()) {
+        m_label->hide();
+        return;
+    }
+
+    m_label->setText(name + ':');
+    m_label->show();
 }
 
 void BundleFieldWidget::memberFieldUpdated()

@@ -21,6 +21,7 @@
 #include <tuple>
 
 #include "IntValueWrapper.h"
+#include "UnsignedLongValueWrapper.h"
 #include "BitmaskValueWrapper.h"
 #include "EnumValueWrapper.h"
 #include "StringWrapper.h"
@@ -40,6 +41,7 @@ namespace field_wrapper
 
 typedef std::tuple<
     IntValueWrapper,
+    UnsignedLongValueWrapper,
     BitmaskValueWrapper,
     EnumValueWrapper,
     StringWrapper,

@@ -417,7 +417,6 @@ protected:
     }
 };
 
-
 template <typename TBase, bool THasRefresh>
 struct MessageInterfaceProcessRefreshBase;
 
@@ -438,6 +437,48 @@ using MessageInterfaceRefreshBaseT =
     typename MessageInterfaceProcessRefreshBase<TBase, TOpts::HasRefresh>::Type;
 
 
+template <typename TOpts>
+constexpr bool messageInterfaceHasVirtualFunctions()
+{
+    return
+        TOpts::HasReadIterator ||
+        TOpts::HasWriteIterator ||
+        TOpts::HasMsgIdInfo ||
+        TOpts::HasHandler ||
+        TOpts::HasValid ||
+        TOpts::HasLength ||
+        TOpts::HasRefresh;
+}
+
+template <typename TBase>
+class MessageInterfaceVirtDestructorBase : public TBase
+{
+protected:
+    virtual ~MessageInterfaceVirtDestructorBase() = default;
+};
+
+template <typename TBase, bool THasVirtDestructor>
+struct MessageInterfaceProcessVirtDestructorBase;
+
+template <typename TBase>
+struct MessageInterfaceProcessVirtDestructorBase<TBase, true>
+{
+    typedef MessageInterfaceVirtDestructorBase<TBase> Type;
+};
+
+template <typename TBase>
+struct MessageInterfaceProcessVirtDestructorBase<TBase, false>
+{
+    typedef TBase Type;
+};
+
+template <typename TBase, typename TOpts>
+using MessageInterfaceVirtDestructorBaseT =
+    typename MessageInterfaceProcessVirtDestructorBase<
+        TBase,
+        (!TOpts::HasNoVirtualDestructor) && messageInterfaceHasVirtualFunctions<TOpts>()
+    >::Type;
+
 
 template <typename... TOptions>
 class MessageInterfaceBuilder
@@ -455,10 +496,11 @@ class MessageInterfaceBuilder
     typedef MessageInterfaceLengthBaseT<ValidBase, ParsedOptions> LengthBase;
     typedef MessageInterfaceHandlerBaseT<LengthBase, ParsedOptions> HandlerBase;
     typedef MessageInterfaceRefreshBaseT<HandlerBase, ParsedOptions> RefreshBase;
+    typedef MessageInterfaceVirtDestructorBaseT<RefreshBase, ParsedOptions> VirtDestructorBase;
 
 public:
     typedef ParsedOptions Options;
-    typedef RefreshBase Type;
+    typedef VirtDestructorBase Type;
 };
 
 template <typename... TOptions>

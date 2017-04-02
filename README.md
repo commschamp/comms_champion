@@ -120,7 +120,7 @@ Core ideas and architecture of the **COMMS** library is described in
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
 downloaded as zip archive from 
-[Dropbox](https://www.dropbox.com/s/06iqzk5vp47izvk/doc_comms_v0.14.zip).
+[Dropbox](https://www.dropbox.com/s/wuex04pc3ap5e65/doc_comms_v0.15.zip).
 
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 
@@ -179,7 +179,7 @@ may serve as reference on how to implement any other custom binary protocol.
 
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
 definition inside, can be
-downloaded from [Dropbox](https://www.dropbox.com/s/i6bdybsq0u6ssj1/doc_demo.zip).
+downloaded from [Dropbox](https://www.dropbox.com/s/vypha3w68gyf6at/doc_demo_v0.15.zip).
 
 # Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for
@@ -244,8 +244,13 @@ include paths and use the following statement in your sources:
 ```
 Nothing else is required.
 
+Instructions on how to include the **COMMS** library in other CMake projects 
+can be found in 
+[How to Use CommsChampion in CMake Projects](https://github.com/arobenko/comms_champion/wiki/How-to-Use-CommsChampion-in-CMake-Projects)
+wiki page.
+
 # How to Run CommsChampion applications
-On Windows platforms try run the executable binary (**cc_view.exe**
+On Windows platforms try to run the *.exe binary (**cc_view.exe**
 or **cc_dump.exe**), which resides in 
 **install/bin** subdirectory. If the execution fails due to missing QT5 dlls,
 either set your %PATH% variable accordingly or try to execute generated **.bat**
@@ -255,7 +260,7 @@ On Linux platforms use the appropriate shell script
 (**cc_view.sh** or **cc_dump.sh**), which also resides in
 **install/bin** subdirectory.
  
-Please note that available plugins must reside in the **../plugin** subdirectory relative
+Please note that available plugins must reside in the **../lib/CommsChampion/plugin** subdirectory relative
 to the location of the binaries.
 
 The tools support multiple command line options, please use "-h" or "--help" for

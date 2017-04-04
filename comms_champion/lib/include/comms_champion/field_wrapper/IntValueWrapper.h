@@ -117,7 +117,7 @@ protected:
         Base::field().setScaled(value);
     }
 
-    virtual double scaleValueImpl(UnderlyingType value) const
+    virtual double scaleValueImpl(UnderlyingType value) const override
     {
         Field fieldTmp(value);
         return fieldTmp.template scaleAs<double>();

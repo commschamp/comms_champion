@@ -367,7 +367,7 @@ protected:
             clonedMsg.reset();
             ++idx;
         }
-        return std::move(clonedMsg);
+        return clonedMsg;
     }
 
     virtual MessagePtr createInvalidMessageImpl() override

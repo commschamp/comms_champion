@@ -54,7 +54,7 @@ BitfieldWrapper::Ptr BitfieldWrapper::clone()
 
     auto ptr = cloneImpl();
     ptr->setMembers(std::move(clonedMembers));
-    return std::move(ptr);
+    return ptr;
 }
 
 void BitfieldWrapper::dispatchImpl(FieldWrapperHandler& handler)

@@ -31,11 +31,12 @@ namespace details
 {
 
 template <typename... TOptions>
-struct OptionsParser;
+class OptionsParser;
 
 template <>
-struct OptionsParser<>
+class OptionsParser<>
 {
+public:
     static const bool HasCustomValueReader = false;
     static const bool HasSerOffset = false;
     static const bool HasFixedLengthLimit = false;

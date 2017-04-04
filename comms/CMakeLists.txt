@@ -26,6 +26,6 @@ install (
     DESTINATION ${INC_INSTALL_DIR}
 )
 
-FILE(GLOB_RECURSE headers "include/*.h")
+FILE(GLOB_RECURSE headers "*.h")
 add_custom_target(comms.headers SOURCES ${headers})
 

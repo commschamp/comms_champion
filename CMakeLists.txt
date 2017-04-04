@@ -10,7 +10,9 @@ if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
 endif()
 
-set (CMAKE_CXX_STANDARD 11)
+if (NOT CMAKE_CXX_STANDARD)
+    set (CMAKE_CXX_STANDARD 11)
+endif()
 
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
@@ -70,13 +72,23 @@ while (TRUE)
     break()
 endwhile ()
 
-if (CMAKE_COMPILER_IS_GNUCC)
+if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     set (extra_flags_list
         "-Wall" "-Wextra" "-Wcast-align" "-Wcast-qual" "-Wctor-dtor-privacy"
-        "-Wmissing-include-dirs" "-Wnoexcept" "-Wlogical-op" "-Wstrict-null-sentinel"
+        "-Wmissing-include-dirs"
         "-Woverloaded-virtual" "-Wredundant-decls" "-Wshadow" "-Wundef" "-Wunused"
         "-Wno-unknown-pragmas" "-fdiagnostics-show-option"
     )
+
+    if (CMAKE_COMPILER_IS_GNUCC)
+        list (APPEND extra_flags_list
+            "-Wnoexcept" "-Wlogical-op" "-Wstrict-null-sentinel"
+        )
+    endif ()
+
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        list (APPEND extra_flags_list "-Wno-dangling-field")
+    endif ()
     
     if (NOT CC_NO_WARN_AS_ERR)
         list (APPEND extra_flags_list "-Werror")

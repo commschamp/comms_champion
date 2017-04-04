@@ -77,7 +77,7 @@ ArrayListWrapper::Ptr ArrayListWrapper::clone()
     assert(size() == ptr->size());
     assert(getMembers().size() == ptr->getMembers().size());
     assert(size() == getMembers().size());
-    return std::move(ptr);
+    return ptr;
 }
 
 void ArrayListWrapper::refreshMembers()

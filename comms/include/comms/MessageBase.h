@@ -21,6 +21,7 @@
 #pragma once
 
 #include "details/MessageImplBuilder.h"
+#include "details/macro_common.h"
 #include "details/fields_access.h"
 
 namespace comms
@@ -454,6 +455,8 @@ protected:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
+/// @brief Upcast type of the message object to comms::MessageBase in order to have
+///     access to its internal types.
 template <typename TMessage, typename... TOptions>
 inline
 MessageBase<TMessage, TOptions...>& toMessageBase(MessageBase<TMessage, TOptions...>& msg)
@@ -461,6 +464,8 @@ MessageBase<TMessage, TOptions...>& toMessageBase(MessageBase<TMessage, TOptions
     return msg;
 }
 
+/// @brief Upcast type of the message object to comms::MessageBase in order to have
+///     access to its internal types.
 template <typename TMessage, typename... TOptions>
 inline
 const MessageBase<TMessage, TOptions...>& toMessageBase(
@@ -580,17 +585,19 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 /// @related comms::MessageBase
 #define COMMS_MSG_FIELDS_ACCESS(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
-    auto fields() -> decltype(comms::toMessageBase(*this).fields()) { \
-        typedef typename std::decay<decltype(fields())>::type AllFieldsTuple; \
+    FUNC_AUTO_REF_RETURN(fields, decltype(comms::toMessageBase(*this).fields())) { \
+        auto& val = comms::toMessageBase(*this).fields(); \
+        typedef typename std::decay<decltype(val)>::type AllFieldsTuple; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
-        return comms::toMessageBase(*this).fields(); \
+        return val; \
     } \
-    auto fields() const -> decltype(comms::toMessageBase(*this).fields()) { \
-        typedef typename std::decay<decltype(fields())>::type AllFieldsTuple; \
+    FUNC_AUTO_REF_RETURN_CONST(fields, decltype(comms::toMessageBase(*this).fields())) { \
+        auto& val = comms::toMessageBase(*this).fields(); \
+        typedef typename std::decay<decltype(val)>::type AllFieldsTuple; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
-        return comms::toMessageBase(*this).fields(); \
+        return val; \
     } \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(fields(), __VA_ARGS__))
 }  // namespace comms

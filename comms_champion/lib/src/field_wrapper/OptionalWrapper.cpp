@@ -63,7 +63,7 @@ OptionalWrapper::Ptr OptionalWrapper::clone()
 {
     auto ptr = cloneImpl();
     ptr->setFieldWrapper(m_fieldWrapper->upClone());
-    return std::move(ptr);
+    return ptr;
 }
 
 void OptionalWrapper::dispatchImpl(FieldWrapperHandler& handler)

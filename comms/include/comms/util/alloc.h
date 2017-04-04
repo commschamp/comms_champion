@@ -280,7 +280,7 @@ public:
             return Ptr();
         }
 
-        return iter->alloc<TObj>(std::forward<TArgs>(args)...);
+        return iter->template alloc<TObj>(std::forward<TArgs>(args)...);
     }
 
     /// @brief Function used to wrap raw pointer into a smart one

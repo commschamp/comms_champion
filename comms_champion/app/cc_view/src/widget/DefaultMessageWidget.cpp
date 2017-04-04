@@ -115,7 +115,7 @@ std::unique_ptr<QFrame> DefaultMessageWidget::createFieldSeparator()
     std::unique_ptr<QFrame> line(new QFrame(this));
     line->setFrameShape(QFrame::HLine);
     line->setFrameShadow(QFrame::Sunken);
-    return std::move(line);
+    return line;
 }
 
 void DefaultMessageWidget::connectFieldSignals(FieldWidget* field)

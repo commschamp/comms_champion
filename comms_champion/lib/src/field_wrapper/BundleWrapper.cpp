@@ -54,7 +54,7 @@ BundleWrapper::Ptr BundleWrapper::clone()
 
     auto ptr = cloneImpl();
     ptr->setMembers(std::move(clonedMembers));
-    return std::move(ptr);
+    return ptr;
 }
 
 void BundleWrapper::dispatchImpl(FieldWrapperHandler& handler)

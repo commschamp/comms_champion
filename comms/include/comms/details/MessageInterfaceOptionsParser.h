@@ -31,11 +31,12 @@ namespace details
 {
 
 template <typename... TOptions>
-struct MessageInterfaceOptionsParser;
+class MessageInterfaceOptionsParser;
 
 template <>
-struct MessageInterfaceOptionsParser<>
+class MessageInterfaceOptionsParser<>
 {
+public:
     static const bool HasMsgIdType = false;
     static const bool HasEndian = false;
     static const bool HasReadIterator = false;

@@ -32,7 +32,7 @@ differs from system default installation path.
 Since CMake v3.1 it became possible to set version of C++ standard by setting
 **CMAKE_CXX_STANDARD** variable. If no value of this variable is set in command
 line arguments, default value **11** will be assigned to it. In order to use
-c++14 standard in compilation, assign the variable value to **14**. 
+c++14 standard in compilation, set the variable value to **14**. 
 
 Please **NOTE**, that _clang_ compiler has problems compiling valid c++11 constructs
 used in this project. Hence, the compilation will fail unless the compilation is

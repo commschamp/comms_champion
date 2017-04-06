@@ -31,7 +31,7 @@ namespace demo
 
 /// @brief Interface class of all the Demo binary protocol messages.
 /// @details The class publicly inherits from
-///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1Message.html" target="_black">comms::Message</a>
+///     @b comms::Message
 ///     class while providing the following default options:
 ///     @li @b comms::option::MsgIdType<MsgId> > - use @ref MsgId as the type of message ID.
 ///     @li @b comms::option::BigEndian - use big endian for serialisation.

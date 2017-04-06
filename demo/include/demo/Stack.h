@@ -80,10 +80,10 @@ using DataField =
 /// @details It is used to process incoming binary stream of data and create
 ///     allocate message objects for received messages. It also responsible to
 ///     serialise outgoing messages and wrap their payload with appropriate transport
-///     information. See <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/page_prot_stack_tutorial.html">Protocol Stack Tutorial</a>
+///     information. See <b>Protocol Stack Tutorial</b>
 ///     page in @b COMMS library tutorial for more information.@n
 ///     The outermost layer is
-///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1protocol_1_1SyncPrefixLayer.html">comms::protocol::SyncPrefixLayer</a>.
+///     @b comms::protocol::SyncPrefixLayer.
 ///     Please see its documentation for public interface description.
 /// @tparam TMsgBase Interface class for all the messages, expected to be some
 ///     variant of demo::MessageT class with options.
@@ -93,7 +93,7 @@ using DataField =
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
 /// @tparam TMsgAllocOptions The contents of this template parameter are passed
 ///     as options to
-///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1protocol_1_1MsgIdLayer.html">comms::protocol::MsgIdLayer</a>
+///     @b comms::protocol::MsgIdLayer
 ///     protocol layer in @b COMMS library. They are used to specify whether
 ///     dynamic memory allocation is allowed or "in place" allocation for
 ///     message objects must be implemented. It is expected to be either
@@ -101,9 +101,9 @@ using DataField =
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
 /// @tparam TDataFieldStorageOptions The contents of this template parameters
 ///     are passed to the definition of storage field of
-///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1protocol_1_1MsgDataLayer.html">comms::protocol::MsgDataLayer</a>
+///     @b comms::protocol::MsgDataLayer
 ///     layer. The field is a variant of
-///     <a href="https://dl.dropboxusercontent.com/u/46999418/comms_champion/comms/html/classcomms_1_1field_1_1ArrayList.html">comms::field::ArrayList</a>
+///     @b comms::field::ArrayList
 ///     which uses <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>
 ///     as its internal storage by default. The option(s) specified in this
 ///     template parameter is/are forwarded to the definition of the storage

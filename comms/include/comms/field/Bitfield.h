@@ -264,6 +264,8 @@ constexpr bool isBitfield()
     return std::is_same<typename T::Tag, tag::Bitfield>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::Bitfield type
+///     in order to have access to its internal types.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 Bitfield<TFieldBase, TMembers, TOptions...>&
@@ -272,6 +274,8 @@ toFieldBase(Bitfield<TFieldBase, TMembers, TOptions...>& field)
     return field;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::Bitfield type
+///     in order to have access to its internal types.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 const Bitfield<TFieldBase, TMembers, TOptions...>&

@@ -208,6 +208,8 @@ constexpr bool isBundle()
     return std::is_same<typename T::Tag, tag::Bundle>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::Bundle type
+///     in order to have access to its internal types.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 Bundle<TFieldBase, TMembers, TOptions...>&
@@ -216,6 +218,8 @@ toFieldBase(Bundle<TFieldBase, TMembers, TOptions...>& field)
     return field;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::Bundle type
+///     in order to have access to its internal types.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 const Bundle<TFieldBase, TMembers, TOptions...>&

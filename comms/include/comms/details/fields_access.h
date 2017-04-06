@@ -21,14 +21,15 @@
 #include <tuple>
 #include <type_traits>
 
+#include "macro_common.h"
 #include "gen_enum.h"
 
 
 #define COMMS_FIELD_ACC_FUNC(t_, n_) \
-    auto COMMS_CONCATENATE(field_, n_) () -> decltype(std::get<COMMS_CONCATENATE(FieldIdx_, n_)>(t_)) { \
+    FUNC_AUTO_REF_RETURN(COMMS_CONCATENATE(field_, n_), decltype(std::get<COMMS_CONCATENATE(FieldIdx_, n_)>(t_))) {\
         return std::get<COMMS_CONCATENATE(FieldIdx_, n_)>(t_); \
     } \
-    auto COMMS_CONCATENATE(field_, n_) () const -> decltype(std::get<COMMS_CONCATENATE(FieldIdx_, n_)>(t_)) { \
+    FUNC_AUTO_REF_RETURN_CONST(COMMS_CONCATENATE(field_, n_), decltype(std::get<COMMS_CONCATENATE(FieldIdx_, n_)>(t_))) {\
         return std::get<COMMS_CONCATENATE(FieldIdx_, n_)>(t_); \
     }
 

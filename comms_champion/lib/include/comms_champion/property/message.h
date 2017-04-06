@@ -56,34 +56,34 @@ public:
     void setTo(U&& val, QObject& obj) const
     {
         obj.setProperty(m_propName, QVariant::fromValue(std::forward<U>(val)));
-        assert(obj.property(m_propName).canConvert<ValueType>());
+        assert(obj.property(m_propName).template canConvert<ValueType>());
     }
 
     template <typename U>
     void setTo(U&& val, QVariantMap& map) const
     {
         map.insert(m_name, QVariant::fromValue(std::forward<U>(val)));
-        assert(map.value(m_name).canConvert<ValueType>());
+        assert(map.value(m_name).template canConvert<ValueType>());
     }
 
     ValueType getFrom(const QObject& obj, const ValueType& defaultVal = ValueType()) const
     {
         auto var = obj.property(m_propName.constData());
-        if ((!var.isValid()) || (!var.canConvert<ValueType>())) {
+        if ((!var.isValid()) || (!var.template canConvert<ValueType>())) {
             return defaultVal;
         }
 
-        return var.value<ValueType>();
+        return var.template value<ValueType>();
     }
 
     ValueType getFrom(const QVariantMap& map, const ValueType& defaultVal = ValueType()) const
     {
         auto var = map.value(m_name);
-        if ((!var.isValid()) || (!var.canConvert<ValueType>())) {
+        if ((!var.isValid()) || (!var.template canConvert<ValueType>())) {
             return defaultVal;
         }
 
-        return var.value<ValueType>();
+        return var.template value<ValueType>();
     }
 
     void copyFromTo(const QObject& from, QObject& to) const

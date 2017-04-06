@@ -41,7 +41,6 @@ class TestMessageBase : public comms::Message<TTraits>
 {
     typedef comms::Message<TTraits> Base;
 public:
-    using Base::Message;
 
     virtual ~TestMessageBase() {}
 

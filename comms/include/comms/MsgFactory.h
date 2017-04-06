@@ -178,6 +178,8 @@ private:
     public:
         typedef TMessage Message;
         static const auto MsgId = Message::MsgId;
+        NumIdFactoryMethod() {}
+
     protected:
         virtual MsgIdParamType getIdImpl() const
         {

@@ -18,8 +18,11 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "util/access.h"
 #include "details/FieldBase.h"
+#include "comms/details/macro_common.h"
 #include "comms/details/fields_access.h"
 
 namespace comms
@@ -226,17 +229,19 @@ protected:
 /// @related comms::field::Bitfield
 #define COMMS_FIELD_MEMBERS_ACCESS(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
-    auto value() -> decltype(comms::field::toFieldBase(*this).value()) { \
-    typedef typename std::decay<decltype(value())>::type AllFieldsTuple; \
-    static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
-        "Invalid number of names for fields tuple"); \
-        return comms::field::toFieldBase(*this).value(); \
-    } \
-    auto value() const -> decltype(comms::field::toFieldBase(*this).value()) { \
-        typedef typename std::decay<decltype(value())>::type AllFieldsTuple; \
+    FUNC_AUTO_REF_RETURN(value, decltype(comms::field::toFieldBase(*this).value())) { \
+        auto& val = comms::field::toFieldBase(*this).value(); \
+        typedef typename std::decay<decltype(val)>::type AllFieldsTuple; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
-        return comms::field::toFieldBase(*this).value(); \
+        return val; \
+    } \
+    FUNC_AUTO_REF_RETURN_CONST(value, decltype(comms::field::toFieldBase(*this).value())) { \
+        auto& val = comms::field::toFieldBase(*this).value(); \
+        typedef typename std::decay<decltype(val)>::type AllFieldsTuple; \
+        static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
+            "Invalid number of names for fields tuple"); \
+        return val; \
     } \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(value(), __VA_ARGS__))
 

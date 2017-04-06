@@ -27,6 +27,17 @@ compilation. Please open the issue when such scenario occurs. Default value is
 - **CC_QT_DIR**=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
 differs from system default installation path.
 
+## Choosing C++ Standard
+
+Since CMake v3.1 it became possible to set version of C++ standard by setting
+**CMAKE_CXX_STANDARD** variable. If no value of this variable is set in command
+line arguments, default value **11** will be assigned to it. In order to use
+c++14 standard in compilation, set the variable value to **14**. 
+
+Please **NOTE**, that _clang_ compiler has problems compiling valid c++11 constructs
+used in this project. Hence, the compilation will fail unless the compilation is
+configured to use c++14 standard.
+
 ## Build and Install Examples
 
 The examples below are Linux/Unix system oriented, i.e. they use **make** utility
@@ -67,11 +78,22 @@ $> make install
 
 ### Windows + Visual Studio Build Example
 Generate Makefile-s with **cmake** and use Visual Studio compiler to build.
+
 ```
 $> cd /path/to/comms_champion
 $> mkdir build && cd build
 $> cmake -DCMAKE_BUILD_TYPE=Release -DCC_QT_DIR=C:\Qt\Qt5.7.1\5.7\msvc2015 -G "NMake Makefiles" ..
 $> nmake install 
+```
+
+### Using Clang Compiler
+Please use c++14 standard with clang compiler.
+
+```
+$> cd /path/to/comms_champion/sources
+$> mkdir build && cd build
+$> CC=clang CXX=clang++ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=14 ..
+$> make install 
 ```
 
 ## Building Documentation

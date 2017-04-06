@@ -25,11 +25,12 @@ namespace details
 {
 
 template <typename... TOptions>
-struct MessageImplOptionsParser;
+class MessageImplOptionsParser;
 
 template <>
-struct MessageImplOptionsParser<>
+class MessageImplOptionsParser<>
 {
+public:
     static const bool HasStaticMsgId = false;
     static const bool HasFieldsImpl = false;
     static const bool HasNoIdImpl = false;

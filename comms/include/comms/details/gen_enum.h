@@ -18,9 +18,7 @@
 
 #pragma once
 
-#define COMMS_EXPAND(x_) x_
-#define COMMS_CONCATENATE_(x_, y_) x_##y_
-#define COMMS_CONCATENATE(x_, y_) COMMS_CONCATENATE_(x_, y_)
+#include "macro_common.h"
 
 #define COMMS_WRAP_ENUM(p_, v_) COMMS_CONCATENATE(p_, v_)
 

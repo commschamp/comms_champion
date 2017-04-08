@@ -103,6 +103,11 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
 elseif (MSVC)
 
     add_definitions( "/wd4503" "/wd4309" "/wd4267" "-D_SCL_SECURE_NO_WARNINGS")
+
+    if (NOT CC_NO_WARN_AS_ERR)
+        add_definitions("/WX")
+    endif ()
+
     if (CC_STATIC_RUNTIME)
         foreach(flag_var 
                 CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE

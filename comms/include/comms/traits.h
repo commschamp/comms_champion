@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <ratio>
 #include "util/access.h"
 
 namespace comms
@@ -34,12 +35,40 @@ namespace endian
 {
 
 /// @brief Empty class used in traits to indicate Big Endian.
-typedef util::traits::endian::Big Big;
+using Big = util::traits::endian::Big;
 
 /// @brief Empty class used in traits to indicate Little Endian.
-typedef util::traits::endian::Little Little;
+using Little = util::traits::endian::Little;
 
 }  // namespace endian
+
+namespace units
+{
+
+/// @brief Empty class used to indicate time value
+struct Time {};
+
+/// @brief Empty class used to indicate distance value
+struct Distance {};
+
+using NanosecondsRatio = std::nano;
+using MicrosecondsRatio = std::micro;
+using MillisecondsRatio = std::milli;
+using SecondsRatio = std::ratio<1, 1>;
+using MinutesRatio = std::ratio<60>;
+using HoursRatio = std::ratio<60 * 60>;
+using DaysRatio = std::ratio<24L * 60 * 60>;
+using WeeksRatio = std::ratio<7L * 24 * 60 * 60>;
+
+using NanometersRatio = std::nano;
+using MicrometersRatio = std::micro;
+using MillimetersRatio = std::milli;
+using CentimetersRatio = std::centi;
+using MetersRatio = std::ratio<1, 1>;
+using KilometersRatio = std::kilo;
+
+
+} // namespace units
 
 }  // namespace traits
 

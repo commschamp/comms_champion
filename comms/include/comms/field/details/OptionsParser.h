@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -54,6 +54,7 @@ public:
     static const bool HasFixedSizeStorage = false;
     static const bool HasCustomStorageType = false;
     static const bool HasScalingRatio = false;
+    static const bool HasUnits = false;
 };
 
 template <typename T, typename... TOptions>
@@ -374,6 +375,17 @@ class OptionsParser<
 public:
     static const bool HasScalingRatio = true;
     typedef typename Option::Type ScalingRatio;
+};
+
+template <typename TType, typename TRatio, typename... TOptions>
+class OptionsParser<
+    comms::option::Units<TType, TRatio>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasUnits = true;
+    using UnitsType = TType;
+    using UnitsRatio = TRatio;
 };
 
 template <typename... TOptions>

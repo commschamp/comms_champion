@@ -259,7 +259,7 @@ private:
         typedef typename std::decay<decltype(val)>::type DecayedType;
         auto epsilon = DecayedType(0);
         if (ParsedOptions::ScalingRatio::num < ParsedOptions::ScalingRatio::den) {
-            epsilon = static_cast<DecayedType>(ParsedOptions::ScalingRatio::num) / static_cast<TScaled>(ParsedOptions::ScalingRatio::den + 1);
+            epsilon = static_cast<DecayedType>(ParsedOptions::ScalingRatio::num) / static_cast<DecayedType>(ParsedOptions::ScalingRatio::den + 1);
         }
 
         if (epsilon < DecayedType(0)) {
@@ -272,7 +272,7 @@ private:
 
         value() =
             static_cast<ValueType>(
-                ((val + epsilon) * static_cast<TScaled>(ParsedOptions::ScalingRatio::den)) / static_cast<TScaled>(ParsedOptions::ScalingRatio::num));
+                ((val + epsilon) * static_cast<DecayedType>(ParsedOptions::ScalingRatio::den)) / static_cast<DecayedType>(ParsedOptions::ScalingRatio::num));
     }
 
     template <typename TScaled>

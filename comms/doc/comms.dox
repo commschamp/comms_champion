@@ -19,4 +19,6 @@
 /// @namespace comms::field
 /// @brief Namespace that contains definitions of all message fields.
 
+/// @namespace comms::traits
+/// @brief Namespace for various traits tag classes.
 

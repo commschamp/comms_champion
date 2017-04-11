@@ -33,6 +33,29 @@ namespace comms
 namespace option
 {
 
+namespace details
+{
+
+template <typename T>
+struct IsRatio
+{
+    static const bool Value = false;
+};
+
+template <std::intmax_t TNum, std::intmax_t TDen>
+struct IsRatio<std::ratio<TNum, TDen> >
+{
+    static const bool Value = true;
+};
+
+template <typename T>
+constexpr bool isRatio()
+{
+    return IsRatio<T>::Value;
+}
+
+} // namespace details
+
 // Message/Field common options
 
 /// @brief Options to specify endian.
@@ -41,7 +64,7 @@ namespace option
 template <typename TEndian>
 struct Endian
 {
-    typedef TEndian Type;
+    using Type = TEndian;
 };
 
 /// @brief Alias option to Endian specifying Big endian.
@@ -58,7 +81,7 @@ struct EmptyOption {};
 template <typename T>
 struct MsgIdType
 {
-    typedef T Type;
+    using Type = T;
 };
 
 /// @brief Option used to specify type of iterator used for reading.
@@ -66,7 +89,7 @@ struct MsgIdType
 template <typename TIter>
 struct ReadIterator
 {
-    typedef TIter Type;
+    using Type = TIter;
 };
 
 /// @brief Option used to specify type of iterator used for writing.
@@ -74,7 +97,7 @@ struct ReadIterator
 template <typename TIter>
 struct WriteIterator
 {
-    typedef TIter Type;
+    using Type = TIter;
 };
 
 /// @brief Option used to add @b getId() function into Message interface.
@@ -94,7 +117,7 @@ struct RefreshInterface {};
 template <typename T>
 struct Handler
 {
-    typedef T Type;
+    using Type = T;
 };
 
 /// @brief Option used to specify numeric ID of the message.
@@ -112,7 +135,7 @@ struct NoIdImpl {};
 template <typename TMsg>
 struct MsgType
 {
-    typedef TMsg Type;
+    using Type = TMsg;
 };
 
 /// @brief Option used to inhibit default implementation of @b dispatchImpl()
@@ -131,7 +154,7 @@ struct FieldsImpl;
 template <typename... TFields>
 struct FieldsImpl<std::tuple<TFields...> >
 {
-    typedef std::tuple<TFields...> Fields;
+    using Fields = std::tuple<TFields...>;
 };
 /// @endcond
 
@@ -319,7 +342,7 @@ struct FixedSizeStorage
 template <typename TType>
 struct CustomStorageType
 {
-    typedef TType Type;
+    using Type = TType;
 };
 
 /// @brief Option to specify scaling ratio.
@@ -352,7 +375,7 @@ struct CustomStorageType
 template <std::intmax_t TNum, std::intmax_t TDenom>
 struct ScalingRatio
 {
-    typedef std::ratio<TNum, TDenom> Type;
+    using Type = std::ratio<TNum, TDenom>;
 };
 
 /// @brief Option that modify the default behaviour of collection fields to
@@ -379,7 +402,7 @@ struct ScalingRatio
 template <typename TField>
 struct SequenceSizeFieldPrefix
 {
-    typedef TField Type;
+    using Type = TField;
 };
 
 /// @brief Option that forces termination of the sequence when predefined value
@@ -401,7 +424,7 @@ struct SequenceSizeFieldPrefix
 template <typename TField>
 struct SequenceTerminationFieldSuffix
 {
-    typedef TField Type;
+    using Type = TField;
 };
 
 /// @brief Option that forces collection fields to append provides suffix every
@@ -427,7 +450,7 @@ struct SequenceTerminationFieldSuffix
 template <typename TField>
 struct SequenceTrailingFieldSuffix
 {
-    typedef TField Type;
+    using Type = TField;
 };
 
 /// @brief Option to enable external forcing of the collection's field size.
@@ -491,7 +514,7 @@ struct SequenceFixedSize
 template <typename T>
 struct DefaultValueInitialiser
 {
-    typedef T Type;
+    using Type = T;
 };
 
 /// @brief Option that specifies custom validation class.
@@ -537,7 +560,7 @@ struct DefaultValueInitialiser
 template <typename T>
 struct ContentsValidator
 {
-    typedef T Type;
+    using Type = T;
 };
 
 /// @brief Option that specifies custom value reader class.
@@ -611,7 +634,7 @@ struct ContentsValidator
 template <typename T>
 struct CustomValueReader
 {
-    typedef T Type;
+    using Type = T;
 };
 
 /// @brief Option that forces field's read operation to fail if invalid value
@@ -636,6 +659,73 @@ struct IgnoreInvalid {};
 ///     even if there are other virtual functions defined.
 struct NoVirtualDestructor {};
 
+/// @brief Options to specify units of the field.
+/// @tparam TType Type of the unints, can be any type from comms::traits::units
+///     namespace.
+/// @tparam TRatio Ratio within the units type, must be a variant of
+///     @b std::ratio type.
+template <typename TType, typename TRatio>
+struct Units
+{
+    static_assert(details::isRatio<TRatio>(),
+        "TRatio parameter must be a variant of std::ratio");
+};
+
+/// @brief Alias option, specifying field value units are "nanoseconds".
+using UnitsNanoseconds =
+    Units<comms::traits::units::Time, comms::traits::units::NanosecondsRatio>;
+
+/// @brief Alias option, specifying field value units are "microseconds".
+using UnitsMicroseconds =
+    Units<comms::traits::units::Time, comms::traits::units::MicrosecondsRatio>;
+
+/// @brief Alias option, specifying field value units are "milliseconds".
+using UnitsMilliseconds =
+    Units<comms::traits::units::Time, comms::traits::units::MillisecondsRatio>;
+
+/// @brief Alias option, specifying field value units are "seconds".
+using UnitsSeconds =
+    Units<comms::traits::units::Time, comms::traits::units::SecondsRatio>;
+
+/// @brief Alias option, specifying field value units are "minutes".
+using UnitsMinutes =
+    Units<comms::traits::units::Time, comms::traits::units::MinutesRatio>;
+
+/// @brief Alias option, specifying field value units are "hours".
+using UnitsHours =
+    Units<comms::traits::units::Time, comms::traits::units::HoursRatio>;
+
+/// @brief Alias option, specifying field value units are "days".
+using UnitsDays =
+    Units<comms::traits::units::Time, comms::traits::units::DaysRatio>;
+
+/// @brief Alias option, specifying field value units are "weeks".
+using UnitsWeeks =
+    Units<comms::traits::units::Time, comms::traits::units::WeeksRatio>;
+
+/// @brief Alias option, specifying field value units are "nanometers".
+using UnitsNanometers =
+    Units<comms::traits::units::Distance, comms::traits::units::NanometersRatio>;
+
+/// @brief Alias option, specifying field value units are "micrometers".
+using UnitsMicrometers =
+    Units<comms::traits::units::Distance, comms::traits::units::MicrometersRatio>;
+
+/// @brief Alias option, specifying field value units are "millimeters".
+using UnitsMillimeters =
+    Units<comms::traits::units::Distance, comms::traits::units::MillimetersRatio>;
+
+/// @brief Alias option, specifying field value units are "centimeters".
+using UnitsCentimeters =
+    Units<comms::traits::units::Distance, comms::traits::units::CentimetersRatio>;
+
+/// @brief Alias option, specifying field value units are "meters".
+using UnitsMeters =
+    Units<comms::traits::units::Distance, comms::traits::units::MetersRatio>;
+
+/// @brief Alias option, specifying field value units are "kilometers".
+using UnitsKilometers =
+    Units<comms::traits::units::Distance, comms::traits::units::KilometersRatio>;
 
 namespace details
 {
@@ -646,8 +736,8 @@ struct DefaultNumValueInitialiser
     template <typename TField>
     void operator()(TField&& field)
     {
-        typedef typename std::decay<TField>::type FieldType;
-        typedef typename FieldType::ValueType ValueType;
+        using FieldType = typename std::decay<TField>::type;
+        using ValueType = typename FieldType::ValueType;
         field.value() = static_cast<ValueType>(TVal);
     }
 };
@@ -662,17 +752,17 @@ struct NumValueRangeValidator
     template <typename TField>
     constexpr bool operator()(const TField& field) const
     {
-        typedef typename std::conditional<
+        using MinTag = typename std::conditional<
             (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
             CompareTag,
             ReturnTrueTag
-        >::type MinTag;
+        >::type;
 
-        typedef typename std::conditional<
+        using MaxTag = typename std::conditional<
             (MaxValue < std::numeric_limits<decltype(MaxValue)>::max()),
             CompareTag,
             ReturnTrueTag
-        >::type MaxTag;
+        >::type;
 
         return aboveMin(field.value(), MinTag()) && belowMax(field.value(), MaxTag());
     }
@@ -684,7 +774,7 @@ private:
     template <typename TValue>
     static constexpr bool aboveMin(const TValue& value, CompareTag)
     {
-        typedef typename std::decay<decltype(value)>::type ValueType;
+        using ValueType = typename std::decay<decltype(value)>::type;
         return (static_cast<ValueType>(MinValue) <= value);
     }
 
@@ -697,7 +787,7 @@ private:
     template <typename TValue>
     static constexpr bool belowMax(const TValue& value, CompareTag)
     {
-        typedef typename std::decay<decltype(value)>::type ValueType;
+        using ValueType = typename std::decay<decltype(value)>::type;
         return (value <= static_cast<ValueType>(MaxValue));
     }
 
@@ -718,8 +808,8 @@ struct BitmaskReservedBitsValidator
     template <typename TField>
     constexpr bool operator()(TField&& field) const
     {
-        typedef typename std::decay<TField>::type FieldType;
-        typedef typename FieldType::ValueType ValueType;
+        using FieldType = typename std::decay<TField>::type;
+        using ValueType = typename FieldType::ValueType;
 
         return (field.value() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
     }

@@ -92,6 +92,7 @@ public:
     void test55();
     void test56();
     void test57();
+    void test58();
 
 private:
 
@@ -2159,7 +2160,119 @@ void FieldsTestSuite::test57()
     TS_ASSERT_EQUALS(comms::units::getSeconds<unsigned long>(field), 2UL * 24U * 60U * 60U);
     TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned long>(field), 2UL * 24U * 60U * 60U * 1000U);
     TS_ASSERT_EQUALS(field.value(), 2UL * 24U * 60U * 60U * 1000U * 10U);
+}
 
+void FieldsTestSuite::test58()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<100, 1>,
+        comms::option::UnitsNanoseconds
+    > Field1;
+
+    do {
+        Field1 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_EQUALS(comms::units::getNanoseconds<unsigned>(field), 100U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMicroseconds<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<100, 1>,
+        comms::option::UnitsMicroseconds
+    > Field2;
+
+    do {
+        Field2 field(5U);
+        TS_ASSERT_EQUALS(field.value(), 5U);
+        TS_ASSERT_EQUALS(comms::units::getMicroseconds<unsigned>(field), 500U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMilliseconds<double>(field) - 0.5), std::numeric_limits<double>::epsilon());
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::UnitsMilliseconds
+    > Field3;
+
+    do {
+        Field3 field(200U);
+        TS_ASSERT_EQUALS(field.value(), 200U);
+        TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 200U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<double>(field) - 0.2), std::numeric_limits<double>::epsilon());
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<1, 10>,
+        comms::option::UnitsSeconds
+    > Field4;
+
+    do {
+        Field4 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
+        TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 100U);
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<1, 10>,
+        comms::option::UnitsMinutes
+    > Field5;
+
+    do {
+        Field5 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMinutes<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
+        TS_ASSERT_EQUALS(comms::units::getSeconds<unsigned>(field), 6U);
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<1, 10>,
+        comms::option::UnitsHours
+    > Field6;
+
+    do {
+        Field6 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getHours<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
+        TS_ASSERT_EQUALS(comms::units::getSeconds<unsigned>(field), 6U * 60U);
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<1, 12>,
+        comms::option::UnitsDays
+    > Field7;
+
+    do {
+        Field7 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getDays<double>(field) - (double)1/12), std::numeric_limits<double>::epsilon());
+        TS_ASSERT_EQUALS(comms::units::getHours<unsigned>(field), 2U);
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::UnitsWeeks
+    > Field8;
+
+    do {
+        Field8 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_EQUALS(comms::units::getWeeks<unsigned>(field), 1U);
+        TS_ASSERT_EQUALS(comms::units::getHours<unsigned>(field), 24U * 7U);
+    } while (false);
 }
 
 

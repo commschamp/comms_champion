@@ -259,7 +259,9 @@ void MsgListWidget::saveMessages(const QString& filename)
 void MsgListWidget::selectMsg(int idx)
 {
     assert(idx < m_ui.m_listWidget->count());
+    m_ui.m_listWidget->blockSignals(true);
     m_ui.m_listWidget->setCurrentRow(idx);
+    m_ui.m_listWidget->blockSignals(false);
 }
 
 void MsgListWidget::msgClickedImpl(MessagePtr msg, int idx)

@@ -236,6 +236,23 @@ void setTime(TField& field, TVal&& val)
     UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
+template <typename TRet, typename TConvRatio, typename TField>
+TRet getDistance(const TField& field)
+{
+    static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Distance>(),
+         "The field is expected to contain \"distance\" units.");
+    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+}
+
+template <typename TConvRatio, typename TField, typename TVal>
+void setDistance(TField& field, TVal&& val)
+{
+    static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Distance>(),
+         "The field is expected to contain \"distance\" units.");
+    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+}
+
+
 } // namespace details
 
 /// @brief Retrieve field's value as nanoseconds.
@@ -249,7 +266,7 @@ void setTime(TField& field, TVal&& val)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
-constexpr TRet getNanoseconds(const TField& field)
+TRet getNanoseconds(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::NanosecondsRatio>(field);
 }
@@ -281,7 +298,7 @@ void setNanoseconds(TField& field, TVal&& val)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
-constexpr TRet getMicroseconds(const TField& field)
+TRet getMicroseconds(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::MicrosecondsRatio>(field);
 }
@@ -313,7 +330,7 @@ void setMicroseconds(TField& field, TVal&& val)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
-constexpr TRet getMilliseconds(const TField& field)
+TRet getMilliseconds(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::MillisecondsRatio>(field);
 }
@@ -329,7 +346,7 @@ constexpr TRet getMilliseconds(const TField& field)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
-constexpr void setMilliseconds(TField& field, TVal&& val)
+void setMilliseconds(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::MillisecondsRatio>(field, std::forward<TVal>(val));
 }
@@ -345,7 +362,7 @@ constexpr void setMilliseconds(TField& field, TVal&& val)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
-constexpr TRet getSeconds(const TField& field)
+TRet getSeconds(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::SecondsRatio>(field);
 }
@@ -377,7 +394,7 @@ void setSeconds(TField& field, TVal&& val)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
-constexpr TRet getMinutes(const TField& field)
+TRet getMinutes(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::MinutesRatio>(field);
 }
@@ -409,7 +426,7 @@ void setMinutes(TField& field, TVal&& val)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
-constexpr TRet getHours(const TField& field)
+TRet getHours(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::HoursRatio>(field);
 }
@@ -441,7 +458,7 @@ void setHours(TField& field, TVal&& val)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
-constexpr TRet getDays(const TField& field)
+TRet getDays(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::DaysRatio>(field);
 }
@@ -473,7 +490,7 @@ void setDays(TField& field, TVal&& val)
 ///     any of the relevant options: comms::option::UnitsMilliseconds,
 ///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
-constexpr TRet getWeeks(const TField& field)
+TRet getWeeks(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::WeeksRatio>(field);
 }
@@ -493,6 +510,200 @@ void setWeeks(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::WeeksRatio>(field, std::forward<TVal>(val));
 }
+
+/// @brief Retrieve field's value as nanometers.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to nanometers and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TRet, typename TField>
+TRet getNanometers(const TField& field)
+{
+    return details::getDistance<TRet, comms::traits::units::NanometersRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing nanometers value.
+/// @details The function will do all the necessary math operations to convert
+///     provided nanometers into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TField, typename TVal>
+void setNanometers(TField& field, TVal&& val)
+{
+    details::setDistance<comms::traits::units::NanometersRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as micrometers.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to micrometers and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TRet, typename TField>
+TRet getMicrometers(const TField& field)
+{
+    return details::getDistance<TRet, comms::traits::units::MicrometersRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing micrometers value.
+/// @details The function will do all the necessary math operations to convert
+///     provided micrometers into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TField, typename TVal>
+void setMicrometers(TField& field, TVal&& val)
+{
+    details::setDistance<comms::traits::units::MicrometersRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as millimeters.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to millimeters and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TRet, typename TField>
+TRet getMillimeters(const TField& field)
+{
+    return details::getDistance<TRet, comms::traits::units::MillimetersRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing millimeters value.
+/// @details The function will do all the necessary math operations to convert
+///     provided millimeters into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TField, typename TVal>
+void setMillimeters(TField& field, TVal&& val)
+{
+    details::setDistance<comms::traits::units::MillimetersRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as centimeters.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to centimeters and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TRet, typename TField>
+TRet getCentimeters(const TField& field)
+{
+    return details::getDistance<TRet, comms::traits::units::CentimetersRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing centimeters value.
+/// @details The function will do all the necessary math operations to convert
+///     provided centimeters into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TField, typename TVal>
+void setCentimeters(TField& field, TVal&& val)
+{
+    details::setDistance<comms::traits::units::CentimetersRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as meters.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to meters and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TRet, typename TField>
+TRet getMeters(const TField& field)
+{
+    return details::getDistance<TRet, comms::traits::units::MetersRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing meters value.
+/// @details The function will do all the necessary math operations to convert
+///     provided meters into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TField, typename TVal>
+void setMeters(TField& field, TVal&& val)
+{
+    details::setDistance<comms::traits::units::MetersRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as kilometers.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to kilometers and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TRet, typename TField>
+TRet getKilometers(const TField& field)
+{
+    return details::getDistance<TRet, comms::traits::units::KilometersRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing kilometers value.
+/// @details The function will do all the necessary math operations to convert
+///     provided kilometers into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimeters,
+///     comms::option::UnitsMeters, etc...
+template <typename TField, typename TVal>
+void setKilometers(TField& field, TVal&& val)
+{
+    details::setDistance<comms::traits::units::KilometersRatio>(field, std::forward<TVal>(val));
+}
+
+
 
 } // namespace units
 

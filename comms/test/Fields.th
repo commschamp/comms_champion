@@ -93,6 +93,8 @@ public:
     void test56();
     void test57();
     void test58();
+    void test59();
+    void test60();
 
 private:
 
@@ -2275,6 +2277,130 @@ void FieldsTestSuite::test58()
     } while (false);
 }
 
+void FieldsTestSuite::test59()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint32_t,
+        comms::option::UnitsMillimeters
+    > Field;
+
+    Field field;
+    field.value() = 345U;
+    TS_ASSERT_EQUALS(comms::units::getNanometers<unsigned long long >(field), 345000000UL);
+    TS_ASSERT_EQUALS(comms::units::getMicrometers<unsigned>(field), 345000U);
+    TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 345U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getCentimeters<double>(field) - 34.5), std::numeric_limits<double>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMeters<double>(field) - 0.345), std::numeric_limits<double>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getKilometers<double>(field) - 0.000345), std::numeric_limits<double>::epsilon());
+
+    comms::units::setNanometers(field, 100000000UL);
+    TS_ASSERT_EQUALS(field.value(), 100U);
+    TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 100U);
+
+    comms::units::setMicrometers(field, 222000UL);
+    TS_ASSERT_EQUALS(field.value(), 222U);
+    TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 222U);
+
+    comms::units::setMillimeters(field, 400);
+    TS_ASSERT_EQUALS(field.value(), 400U);
+    TS_ASSERT_EQUALS(comms::units::getMicrometers<unsigned>(field), 400000U);
+
+    comms::units::setCentimeters(field, 10);
+    TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 100U);
+
+    comms::units::setMeters(field, 0.025);
+    TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 25U);
+
+    comms::units::setKilometers(field, 0.025);
+    TS_ASSERT_EQUALS(comms::units::getMeters<unsigned>(field), 25U);
+}
+
+void FieldsTestSuite::test60()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<100, 1>,
+        comms::option::UnitsNanometers
+    > Field1;
+
+    do {
+        Field1 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_EQUALS(comms::units::getNanometers<unsigned>(field), 100U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMicrometers<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<100, 1>,
+        comms::option::UnitsMicrometers
+    > Field2;
+
+    do {
+        Field2 field(5U);
+        TS_ASSERT_EQUALS(field.value(), 5U);
+        TS_ASSERT_EQUALS(comms::units::getMicrometers<unsigned>(field), 500U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMillimeters<double>(field) - 0.5), std::numeric_limits<double>::epsilon());
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::UnitsMillimeters
+    > Field3;
+
+    do {
+        Field3 field(200U);
+        TS_ASSERT_EQUALS(field.value(), 200U);
+        TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 200U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMeters<double>(field) - 0.2), std::numeric_limits<double>::epsilon());
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<1, 10>,
+        comms::option::UnitsMeters
+    > Field4;
+
+    do {
+        Field4 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMeters<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
+        TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 100U);
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<1, 10>,
+        comms::option::UnitsCentimeters
+    > Field5;
+
+    do {
+        Field5 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getCentimeters<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
+        TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 1U);
+    } while (false);
+
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ScalingRatio<1, 10>,
+        comms::option::UnitsKilometers
+    > Field6;
+
+    do {
+        Field6 field(1U);
+        TS_ASSERT_EQUALS(field.value(), 1U);
+        TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getKilometers<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
+        TS_ASSERT_EQUALS(comms::units::getMeters<unsigned>(field), 100U);
+    } while (false);
+}
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

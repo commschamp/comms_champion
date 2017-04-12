@@ -238,102 +238,261 @@ void setTime(TField& field, TVal&& val)
 
 } // namespace details
 
+/// @brief Retrieve field's value as nanoseconds.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to nanoseconds and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 constexpr TRet getNanoseconds(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::NanosecondsRatio>(field);
 }
 
+/// @brief Update field's value accordingly, while providing nanoseconds value.
+/// @details The function will do all the necessary math operations to convert
+///     provided nanoseconds into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setNanoseconds(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::NanosecondsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as microseconds.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to microseconds and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 constexpr TRet getMicroseconds(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::MicrosecondsRatio>(field);
 }
 
+/// @brief Update field's value accordingly, while providing microseconds value.
+/// @details The function will do all the necessary math operations to convert
+///     provided microseconds into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setMicroseconds(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::MicrosecondsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as milliseconds.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to milliseconds and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 constexpr TRet getMilliseconds(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::MillisecondsRatio>(field);
 }
 
+/// @brief Update field's value accordingly, while providing milliseconds value.
+/// @details The function will do all the necessary math operations to convert
+///     provided milliseconds into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 constexpr void setMilliseconds(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::MillisecondsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as seconds.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to seconds and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 constexpr TRet getSeconds(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::SecondsRatio>(field);
 }
 
+/// @brief Update field's value accordingly, while providing seconds value.
+/// @details The function will do all the necessary math operations to convert
+///     provided seconds into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setSeconds(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::SecondsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as minutes.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to minutes and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 constexpr TRet getMinutes(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::MinutesRatio>(field);
 }
 
+/// @brief Update field's value accordingly, while providing minutes value.
+/// @details The function will do all the necessary math operations to convert
+///     provided minutes into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setMinutes(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::MinutesRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as hours.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to hours and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 constexpr TRet getHours(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::HoursRatio>(field);
 }
 
+/// @brief Update field's value accordingly, while providing hours value.
+/// @details The function will do all the necessary math operations to convert
+///     provided hours into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setHours(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::HoursRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as days.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to days and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 constexpr TRet getDays(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::DaysRatio>(field);
 }
 
+/// @brief Update field's value accordingly, while providing days value.
+/// @details The function will do all the necessary math operations to convert
+///     provided days into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setDays(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::DaysRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as weeks.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to weeks and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 constexpr TRet getWeeks(const TField& field)
 {
     return details::getTime<TRet, comms::traits::units::WeeksRatio>(field);
 }
 
+/// @brief Update field's value accordingly, while providing weeks value.
+/// @details The function will do all the necessary math operations to convert
+///     provided weeks into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMilliseconds,
+///     comms::option::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setWeeks(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::WeeksRatio>(field, std::forward<TVal>(val));
 }
-
 
 } // namespace units
 

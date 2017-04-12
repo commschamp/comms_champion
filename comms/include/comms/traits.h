@@ -45,10 +45,10 @@ using Little = util::traits::endian::Little;
 namespace units
 {
 
-/// @brief Empty class used to indicate time value
+/// @brief Tag class used to indicate time value
 struct Time {};
 
-/// @brief Empty class used to indicate distance value
+/// @brief Tag class used to indicate distance value
 struct Distance {};
 
 using NanosecondsRatio = std::nano;

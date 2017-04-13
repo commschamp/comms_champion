@@ -727,6 +727,30 @@ using UnitsMeters =
 using UnitsKilometers =
     Units<comms::traits::units::Distance, comms::traits::units::KilometersRatio>;
 
+/// @brief Alias option, specifying field value units are "nanometers per second".
+using UnitsNanometersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::NanometersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "micrometers per second".
+using UnitsMicrometersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::MicrometersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "millimeters per second".
+using UnitsMillimetersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::MillimetersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "centimeters per second".
+using UnitsCentimetersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::CentimetersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "meters per second".
+using UnitsMetersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::MetersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "kilometers per hour".
+using UnitsKilometersPerHour =
+    Units<comms::traits::units::Speed, comms::traits::units::KilometersPerHourRatio>;
+
 namespace details
 {
 

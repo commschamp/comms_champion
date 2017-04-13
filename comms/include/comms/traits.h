@@ -51,6 +51,9 @@ struct Time {};
 /// @brief Tag class used to indicate distance value
 struct Distance {};
 
+/// @brief Tag class used to indicate speed value
+struct Speed {};
+
 using NanosecondsRatio = std::nano;
 using MicrosecondsRatio = std::micro;
 using MillisecondsRatio = std::milli;
@@ -66,6 +69,24 @@ using MillimetersRatio = std::milli;
 using CentimetersRatio = std::centi;
 using MetersRatio = std::ratio<1, 1>;
 using KilometersRatio = std::kilo;
+
+using NanometersPerSecondRatio =
+    typename std::ratio_divide<NanometersRatio, SecondsRatio>::type;
+
+using MicrometersPerSecondRatio =
+    typename std::ratio_divide<MicrometersRatio, SecondsRatio>::type;
+
+using MillimetersPerSecondRatio =
+    typename std::ratio_divide<MillimetersRatio, SecondsRatio>::type;
+
+using CentimetersPerSecondRatio =
+    typename std::ratio_divide<CentimetersRatio, SecondsRatio>::type;
+
+using MetersPerSecondRatio =
+    typename std::ratio_divide<MetersRatio, SecondsRatio>::type;
+
+using KilometersPerHourRatio =
+    typename std::ratio_divide<KilometersRatio, HoursRatio>::type;
 
 
 } // namespace units

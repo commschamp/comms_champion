@@ -252,6 +252,21 @@ void setDistance(TField& field, TVal&& val)
     UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
+template <typename TRet, typename TConvRatio, typename TField>
+TRet getSpeed(const TField& field)
+{
+    static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Speed>(),
+         "The field is expected to contain \"speed\" units.");
+    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+}
+
+template <typename TConvRatio, typename TField, typename TVal>
+void setSpeed(TField& field, TVal&& val)
+{
+    static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Speed>(),
+         "The field is expected to contain \"speed\" units.");
+    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+}
 
 } // namespace details
 
@@ -703,7 +718,197 @@ void setKilometers(TField& field, TVal&& val)
     details::setDistance<comms::traits::units::KilometersRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as nanometers per second.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to nm/s and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TRet, typename TField>
+TRet getNanometersPerSecond(const TField& field)
+{
+    return details::getSpeed<TRet, comms::traits::units::NanometersPerSecondRatio>(field);
+}
 
+/// @brief Update field's value accordingly, while providing nanometers per second value.
+/// @details The function will do all the necessary math operations to convert
+///     provided nm/s into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TField, typename TVal>
+void setNanometersPerSecond(TField& field, TVal&& val)
+{
+    details::setSpeed<comms::traits::units::NanometersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as micrometers per second.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to um/s and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TRet, typename TField>
+TRet getMicrometersPerSecond(const TField& field)
+{
+    return details::getSpeed<TRet, comms::traits::units::MicrometersPerSecondRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing micrometers per second value.
+/// @details The function will do all the necessary math operations to convert
+///     provided um/s into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TField, typename TVal>
+void setMicrometersPerSecond(TField& field, TVal&& val)
+{
+    details::setSpeed<comms::traits::units::MicrometersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as millimeters per second.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to mm/s and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TRet, typename TField>
+TRet getMillimetersPerSecond(const TField& field)
+{
+    return details::getSpeed<TRet, comms::traits::units::MillimetersPerSecondRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing millimeters per second value.
+/// @details The function will do all the necessary math operations to convert
+///     provided mm/s into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TField, typename TVal>
+void setMillimetersPerSecond(TField& field, TVal&& val)
+{
+    details::setSpeed<comms::traits::units::MillimetersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as centimeters per second.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to cm/s and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TRet, typename TField>
+TRet getCentimetersPerSecond(const TField& field)
+{
+    return details::getSpeed<TRet, comms::traits::units::CentimetersPerSecondRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing centimeters per second value.
+/// @details The function will do all the necessary math operations to convert
+///     provided cm/s into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TField, typename TVal>
+void setCentimetersPerSecond(TField& field, TVal&& val)
+{
+    details::setSpeed<comms::traits::units::CentimetersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as meters per second.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to m/s and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TRet, typename TField>
+TRet getMetersPerSecond(const TField& field)
+{
+    return details::getSpeed<TRet, comms::traits::units::MetersPerSecondRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing meters per second value.
+/// @details The function will do all the necessary math operations to convert
+///     provided m/s into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TField, typename TVal>
+void setMetersPerSecond(TField& field, TVal&& val)
+{
+    details::setSpeed<comms::traits::units::MetersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as kilometers per hour.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to km/h and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TRet, typename TField>
+TRet getKilometersPerHour(const TField& field)
+{
+    return details::getSpeed<TRet, comms::traits::units::KilometersPerHourRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing kilometers per hour value.
+/// @details The function will do all the necessary math operations to convert
+///     provided km/h into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TField, typename TVal>
+void setKilometersPerHour(TField& field, TVal&& val)
+{
+    details::setSpeed<comms::traits::units::KilometersPerHourRatio>(field, std::forward<TVal>(val));
+}
 
 } // namespace units
 

@@ -268,6 +268,22 @@ void setSpeed(TField& field, TVal&& val)
     UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
+template <typename TRet, typename TConvRatio, typename TField>
+TRet getFrequency(const TField& field)
+{
+    static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Frequency>(),
+         "The field is expected to contain \"frequency\" units.");
+    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+}
+
+template <typename TConvRatio, typename TField, typename TVal>
+void setFrequency(TField& field, TVal&& val)
+{
+    static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Frequency>(),
+         "The field is expected to contain \"frequency\" units.");
+    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+}
+
 } // namespace details
 
 /// @brief Retrieve field's value as nanoseconds.
@@ -908,6 +924,134 @@ template <typename TField, typename TVal>
 void setKilometersPerHour(TField& field, TVal&& val)
 {
     details::setSpeed<comms::traits::units::KilometersPerHourRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as hertz.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to hertz and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsHertz,
+///     comms::option::UnitsKilohertz, etc...
+template <typename TRet, typename TField>
+TRet getHertz(const TField& field)
+{
+    return details::getFrequency<TRet, comms::traits::units::HzRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing hertz value.
+/// @details The function will do all the necessary math operations to convert
+///     provided hertz into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsHertz,
+///     comms::option::UnitsKilohertz, etc...
+template <typename TField, typename TVal>
+void setHertz(TField& field, TVal&& val)
+{
+    details::setFrequency<comms::traits::units::HzRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as kilohertz.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to kilohertz and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsHertz,
+///     comms::option::UnitsKilohertz, etc...
+template <typename TRet, typename TField>
+TRet getKilohertz(const TField& field)
+{
+    return details::getFrequency<TRet, comms::traits::units::KiloHzRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing kilohertz value.
+/// @details The function will do all the necessary math operations to convert
+///     provided kilohertz into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsHertz,
+///     comms::option::UnitsKilohertz, etc...
+template <typename TField, typename TVal>
+void setKilohertz(TField& field, TVal&& val)
+{
+    details::setFrequency<comms::traits::units::KiloHzRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as megahertz.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to megahertz and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsHertz,
+///     comms::option::UnitsKilohertz, etc...
+template <typename TRet, typename TField>
+TRet getMegahertz(const TField& field)
+{
+    return details::getFrequency<TRet, comms::traits::units::MegaHzRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing megahertz value.
+/// @details The function will do all the necessary math operations to convert
+///     provided megahertz into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsHertz,
+///     comms::option::UnitsKilohertz, etc...
+template <typename TField, typename TVal>
+void setMegahertz(TField& field, TVal&& val)
+{
+    details::setFrequency<comms::traits::units::MegaHzRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as gigahertz.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to gigahertz and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsHertz,
+///     comms::option::UnitsKilohertz, etc...
+template <typename TRet, typename TField>
+TRet getGigahertz(const TField& field)
+{
+    return details::getFrequency<TRet, comms::traits::units::GigaHzRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing gigahertz value.
+/// @details The function will do all the necessary math operations to convert
+///     provided gigahertz into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsHertz,
+///     comms::option::UnitsKilohertz, etc...
+template <typename TField, typename TVal>
+void setGigahertz(TField& field, TVal&& val)
+{
+    details::setFrequency<comms::traits::units::GigaHzRatio>(field, std::forward<TVal>(val));
 }
 
 } // namespace units

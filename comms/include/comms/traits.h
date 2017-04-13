@@ -54,6 +54,9 @@ struct Distance {};
 /// @brief Tag class used to indicate speed value
 struct Speed {};
 
+/// @brief Tag class used to indicate frequency value
+struct Frequency {};
+
 using NanosecondsRatio = std::nano;
 using MicrosecondsRatio = std::micro;
 using MillisecondsRatio = std::milli;
@@ -88,6 +91,11 @@ using MetersPerSecondRatio =
 using KilometersPerHourRatio =
     typename std::ratio_divide<KilometersRatio, HoursRatio>::type;
 
+
+using HzRatio = std::ratio<1, 1>;
+using KiloHzRatio = std::kilo;
+using MegaHzRatio = std::mega;
+using GigaHzRatio = std::giga;
 
 } // namespace units
 

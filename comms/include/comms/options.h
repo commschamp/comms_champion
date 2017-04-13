@@ -751,6 +751,22 @@ using UnitsMetersPerSecond =
 using UnitsKilometersPerHour =
     Units<comms::traits::units::Speed, comms::traits::units::KilometersPerHourRatio>;
 
+/// @brief Alias option, specifying field value units are "hertz".
+using UnitsHertz =
+    Units<comms::traits::units::Frequency, comms::traits::units::HzRatio>;
+
+/// @brief Alias option, specifying field value units are "kilohertz".
+using UnitsKilohertz =
+    Units<comms::traits::units::Frequency, comms::traits::units::KiloHzRatio>;
+
+/// @brief Alias option, specifying field value units are "megahertz".
+using UnitsMegahertz =
+    Units<comms::traits::units::Frequency, comms::traits::units::MegaHzRatio>;
+
+/// @brief Alias option, specifying field value units are "gigahertz".
+using UnitsGigahertz =
+    Units<comms::traits::units::Frequency, comms::traits::units::GigaHzRatio>;
+
 namespace details
 {
 

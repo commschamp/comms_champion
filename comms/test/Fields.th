@@ -97,6 +97,7 @@ public:
     void test60();
     void test61();
     void test62();
+    void test63();
 
 private:
 
@@ -2526,6 +2527,35 @@ void FieldsTestSuite::test62()
         TS_ASSERT_EQUALS(comms::units::getMetersPerSecond<unsigned>(field), 10U);
     } while (false);
 }
+
+void FieldsTestSuite::test63()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint32_t,
+        comms::option::UnitsKilohertz
+    > Field;
+
+    Field field;
+    field.value() = 10U;
+    TS_ASSERT_EQUALS(comms::units::getHertz<unsigned long>(field), 10000UL);
+    TS_ASSERT_EQUALS(comms::units::getKilohertz<unsigned>(field), 10U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMegahertz<double>(field) - 0.01), std::numeric_limits<double>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getGigahertz<double>(field) - 0.00001), std::numeric_limits<double>::epsilon());
+
+    comms::units::setHertz(field, 20000U);
+    TS_ASSERT_EQUALS(comms::units::getKilohertz<unsigned>(field), 20U);
+
+    comms::units::setKilohertz(field, 1);
+    TS_ASSERT_EQUALS(comms::units::getHertz<unsigned long>(field), 1000L);
+
+    comms::units::setMegahertz(field, 2);
+    TS_ASSERT_EQUALS(comms::units::getHertz<unsigned long>(field), 2000000UL);
+
+    comms::units::setGigahertz(field, 3);
+    TS_ASSERT_EQUALS(comms::units::getKilohertz<unsigned long>(field), 3000000UL);
+}
+
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

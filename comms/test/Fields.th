@@ -98,6 +98,8 @@ public:
     void test61();
     void test62();
     void test63();
+    void test64();
+    void test65();
 
 private:
 
@@ -2556,6 +2558,55 @@ void FieldsTestSuite::test63()
     TS_ASSERT_EQUALS(comms::units::getKilohertz<unsigned long>(field), 3000000UL);
 }
 
+void FieldsTestSuite::test64()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint32_t,
+        comms::option::ScalingRatio<1, 10>,
+        comms::option::UnitsDegrees
+    > Field;
+
+    Field field;
+    field.value() = 300U;
+    TS_ASSERT_EQUALS(comms::units::getDegrees<unsigned>(field), 30U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getRadians<double>(field) - 0.523599), 0.000001);
+
+    comms::units::setDegrees(field, 50U);
+    TS_ASSERT_EQUALS(field.value(), 500U);
+    TS_ASSERT_EQUALS(comms::units::getDegrees<unsigned>(field), 50U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getRadians<double>(field) - 0.872665), 0.000001);
+
+    comms::units::setRadians(field, 1.04719);
+    TS_ASSERT_EQUALS(comms::units::getDegrees<unsigned>(field), 60U);
+    TS_ASSERT_EQUALS(field.value(), 600U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getRadians<double>(field) - 1.04719), 0.00001);
+}
+
+void FieldsTestSuite::test65()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint32_t,
+        comms::option::ScalingRatio<1, 100>,
+        comms::option::UnitsRadians
+    > Field;
+
+    Field field;
+    field.value() = 100U;
+    TS_ASSERT_EQUALS(comms::units::getRadians<unsigned>(field), 1U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getDegrees<double>(field) - 57.2958), 0.0001);
+
+    comms::units::setRadians(field, 0.5);
+    TS_ASSERT_EQUALS(field.value(), 50U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getRadians<double>(field) - 0.5), std::numeric_limits<double>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getDegrees<double>(field) - 28.6479), 0.0001);
+
+    comms::units::setDegrees(field, 114.592);
+    TS_ASSERT_EQUALS(comms::units::getRadians<unsigned>(field), 2U);
+    TS_ASSERT_EQUALS(field.value(), 200U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getDegrees<double>(field) - 114.592), 0.001);
+}
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

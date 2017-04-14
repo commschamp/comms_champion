@@ -284,6 +284,143 @@ void setFrequency(TField& field, TVal&& val)
     UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
+template <typename T>
+struct PI
+{
+    static constexpr T Value = static_cast<T>(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899L);
+
+};
+
+struct AngleValueConverter
+{
+    template <typename TRet, typename TConvRatio, typename TField>
+    static TRet getValue(const TField& field)
+    {
+        using FieldType = typename std::decay<decltype(field)>::type;
+        static_assert(details::hasExpectedUnits<FieldType, comms::traits::units::Angle>(),
+             "The field is expected to contain \"angle\" units.");
+
+        using Tag =
+            typename std::conditional<
+                std::is_same<TConvRatio, typename FieldType::ParsedOptions::UnitsRatio>::value,
+                SameUnitsTag,
+                typename::std::conditional<
+                    std::is_same<TConvRatio, comms::traits::units::RadiansRatio>::value,
+                    DegreesToRadiansTag,
+                    RadiansToDegreesTag
+                >::type
+            >::type;
+
+        return getValueInternal<TRet, TConvRatio>(field, Tag());
+    }
+
+    template <typename TConvRatio, typename TField, typename TVal>
+    static void setValue(TField& field, TVal&& val)
+    {
+        using FieldType = typename std::decay<decltype(field)>::type;
+        static_assert(details::hasExpectedUnits<FieldType, comms::traits::units::Angle>(),
+             "The field is expected to contain \"angle\" units.");
+
+        using Tag =
+            typename std::conditional<
+                std::is_same<TConvRatio, typename FieldType::ParsedOptions::UnitsRatio>::value,
+                SameUnitsTag,
+                typename::std::conditional<
+                    std::is_same<TConvRatio, typename comms::traits::units::RadiansRatio>::value,
+                    RadiansToDegreesTag,
+                    DegreesToRadiansTag
+                >::type
+            >::type;
+
+        setValueInternal<TConvRatio>(field, std::forward<TVal>(val), Tag());
+    }
+
+private:
+    struct SameUnitsTag {};
+    struct DegreesToRadiansTag {};
+    struct RadiansToDegreesTag {};
+
+    template <typename TRet, typename TConvRatio, typename TField>
+    static TRet getValueInternal(const TField& field, SameUnitsTag)
+    {
+        return field.template getScaled<TRet>();
+    }
+
+    template <typename TRet, typename TConvRatio, typename TField>
+    static TRet getValueInternal(const TField& field, DegreesToRadiansTag)
+    {
+        using FieldType = typename std::decay<decltype(field)>::type;
+        static_assert(std::is_same<typename FieldType::ParsedOptions::UnitsRatio, comms::traits::units::DegreesRatio>::value,
+             "The field is expected to contain degrees.");
+
+        return PI<TRet>::Value * UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+    }
+
+    template <typename TRet, typename TConvRatio, typename TField>
+    static TRet getValueInternal(const TField& field, RadiansToDegreesTag)
+    {
+        using FieldType = typename std::decay<decltype(field)>::type;
+        static_assert(std::is_same<typename FieldType::ParsedOptions::UnitsRatio, comms::traits::units::RadiansRatio>::value,
+             "The field is expected to contain radians.");
+
+        return UnitsValueConverter::getValue<TRet, TConvRatio>(field) / PI<TRet>::Value;
+    }
+
+    template <typename TConvRatio, typename TField, typename TVal>
+    static void setValueInternal(TField& field, TVal&& val, SameUnitsTag)
+    {
+        field.setScaled(std::forward<TVal>(val));
+    }
+
+    template <typename TConvRatio, typename TField, typename TVal>
+    static void setValueInternal(TField& field, TVal&& val, DegreesToRadiansTag)
+    {
+        using FieldType = typename std::decay<decltype(field)>::type;
+        static_assert(std::is_same<typename FieldType::ParsedOptions::UnitsRatio, comms::traits::units::RadiansRatio>::value,
+             "The field is expected to contain radians.");
+
+        using ValueType = typename std::decay<decltype(val)>::type;
+        using PiType =
+            typename std::conditional<
+                std::is_floating_point<ValueType>::value,
+                ValueType,
+                double
+            >::type;
+
+        UnitsValueConverter::setValue<TConvRatio>(field, val * PI<PiType>::Value);
+    }
+
+    template <typename TConvRatio, typename TField, typename TVal>
+    static void setValueInternal(TField& field, TVal&& val, RadiansToDegreesTag)
+    {
+        using FieldType = typename std::decay<decltype(field)>::type;
+        static_assert(std::is_same<typename FieldType::ParsedOptions::UnitsRatio, comms::traits::units::DegreesRatio>::value,
+             "The field is expected to contain degrees.");
+
+        using ValueType = typename std::decay<decltype(val)>::type;
+        using PiType =
+            typename std::conditional<
+                std::is_floating_point<ValueType>::value,
+                ValueType,
+                double
+            >::type;
+
+        UnitsValueConverter::setValue<TConvRatio>(field, static_cast<PiType>(val) / PI<PiType>::Value);
+    }
+};
+
+template <typename TRet, typename TConvRatio, typename TField>
+TRet getAngle(const TField& field)
+{
+    return AngleValueConverter::getValue<TRet, TConvRatio>(field);
+}
+
+template <typename TConvRatio, typename TField, typename TVal>
+void setAngle(TField& field, TVal&& val)
+{
+    AngleValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+}
+
 } // namespace details
 
 /// @brief Retrieve field's value as nanoseconds.
@@ -1052,6 +1189,70 @@ template <typename TField, typename TVal>
 void setGigahertz(TField& field, TVal&& val)
 {
     details::setFrequency<comms::traits::units::GigaHzRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as degrees.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to degrees and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsDegrees or
+///     comms::option::UnitsRadians
+template <typename TRet, typename TField>
+TRet getDegrees(const TField& field)
+{
+    return details::getAngle<TRet, comms::traits::units::DegreesRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing degrees value.
+/// @details The function will do all the necessary math operations to convert
+///     provided degrees into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsDegrees or
+///     comms::option::UnitsRadians
+template <typename TField, typename TVal>
+void setDegrees(TField& field, TVal&& val)
+{
+    details::setAngle<comms::traits::units::DegreesRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Retrieve field's value as radians.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to radians and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsDegrees or
+///     comms::option::UnitsRadians
+template <typename TRet, typename TField>
+TRet getRadians(const TField& field)
+{
+    return details::getAngle<TRet, comms::traits::units::RadiansRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing radians value.
+/// @details The function will do all the necessary math operations to convert
+///     provided radians into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any time value, using
+///     any of the relevant options: comms::option::UnitsDegrees or
+///     comms::option::UnitsRadians
+template <typename TField, typename TVal>
+void setRadians(TField& field, TVal&& val)
+{
+    details::setAngle<comms::traits::units::RadiansRatio>(field, std::forward<TVal>(val));
 }
 
 } // namespace units

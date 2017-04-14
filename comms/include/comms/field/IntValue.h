@@ -165,7 +165,7 @@ public:
     /// @return "(value() * Scaling_Num) / Scaling_Denom" when all values are
     ///     casted to TRet type.
     template <typename TRet>
-    constexpr TRet scaleAs() const
+    constexpr TRet getScaled() const
     {
         typedef typename std::conditional<
             ParsedOptions::HasScalingRatio,
@@ -176,7 +176,14 @@ public:
         return scaleAsInternal<TRet>(Tag());
     }
 
-    /// @brief Opposite operation to scaleAs().
+    /// @brief Same as getScaled()
+    template <typename TRet>
+    constexpr TRet scaleAs() const
+    {
+        return getScaled<TRet>();
+    }
+
+    /// @brief Opposite operation to getScaled().
     /// @details Allows to assign scaled value, assigns "(val * Scaling_Denom) / Scaling_Num"
     ///     to the value of the field.
     /// @param[in] val Scaled value.

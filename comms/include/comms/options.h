@@ -767,6 +767,14 @@ using UnitsMegahertz =
 using UnitsGigahertz =
     Units<comms::traits::units::Frequency, comms::traits::units::GigaHzRatio>;
 
+/// @brief Alias option, specifying field value units are "degrees".
+using UnitsDegrees =
+    Units<comms::traits::units::Angle, comms::traits::units::DegreesRatio>;
+
+/// @brief Alias option, specifying field value units are "degrees".
+using UnitsRadians =
+    Units<comms::traits::units::Angle, comms::traits::units::RadiansRatio>;
+
 namespace details
 {
 

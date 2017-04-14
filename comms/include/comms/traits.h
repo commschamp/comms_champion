@@ -57,6 +57,9 @@ struct Speed {};
 /// @brief Tag class used to indicate frequency value
 struct Frequency {};
 
+/// @brief Tag class used to indicate angle value
+struct Angle {};
+
 using NanosecondsRatio = std::nano;
 using MicrosecondsRatio = std::micro;
 using MillisecondsRatio = std::milli;
@@ -96,6 +99,9 @@ using HzRatio = std::ratio<1, 1>;
 using KiloHzRatio = std::kilo;
 using MegaHzRatio = std::mega;
 using GigaHzRatio = std::giga;
+
+using DegreesRatio = std::ratio<1, 1>;
+using RadiansRatio = std::ratio<180, 1>;
 
 } // namespace units
 

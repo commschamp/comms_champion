@@ -1063,6 +1063,38 @@ void setMetersPerSecond(TField& field, TVal&& val)
     details::setSpeed<comms::traits::units::MetersPerSecondRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Retrieve field's value as kilometers per second.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to km/s and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any speed value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TRet, typename TField>
+TRet getKilometersPerSecond(const TField& field)
+{
+    return details::getSpeed<TRet, comms::traits::units::KilometersPerSecondRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing kilometers per second value.
+/// @details The function will do all the necessary math operations to convert
+///     provided km/s into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any speed value, using
+///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
+///     comms::option::UnitsMetersPerSecond, etc...
+template <typename TField, typename TVal>
+void setKilometersPerSecond(TField& field, TVal&& val)
+{
+    details::setSpeed<comms::traits::units::KilometersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
 /// @brief Retrieve field's value as kilometers per hour.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to km/h and return the result in specified return

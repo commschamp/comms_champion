@@ -97,6 +97,9 @@ using CentimetersPerSecondRatio =
 using MetersPerSecondRatio =
     typename std::ratio_divide<MetersRatio, SecondsRatio>::type;
 
+using KilometersPerSecondRatio =
+    typename std::ratio_divide<KilometersRatio, SecondsRatio>::type;
+
 using KilometersPerHourRatio =
     typename std::ratio_divide<KilometersRatio, HoursRatio>::type;
 

@@ -747,6 +747,10 @@ using UnitsCentimetersPerSecond =
 using UnitsMetersPerSecond =
     Units<comms::traits::units::Speed, comms::traits::units::MetersPerSecondRatio>;
 
+/// @brief Alias option, specifying field value units are "kilometers per second".
+using UnitsKilometersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::KilometersPerSecondRatio>;
+
 /// @brief Alias option, specifying field value units are "kilometers per hour".
 using UnitsKilometersPerHour =
     Units<comms::traits::units::Speed, comms::traits::units::KilometersPerHourRatio>;

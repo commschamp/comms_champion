@@ -771,9 +771,49 @@ using UnitsGigahertz =
 using UnitsDegrees =
     Units<comms::traits::units::Angle, comms::traits::units::DegreesRatio>;
 
-/// @brief Alias option, specifying field value units are "degrees".
+/// @brief Alias option, specifying field value units are "radians".
 using UnitsRadians =
     Units<comms::traits::units::Angle, comms::traits::units::RadiansRatio>;
+
+/// @brief Alias option, specifying field value units are "nanoamps".
+using UnitsNanoamps =
+    Units<comms::traits::units::Current, comms::traits::units::NanoampsRatio>;
+
+/// @brief Alias option, specifying field value units are "microamps".
+using UnitsMicroamps =
+    Units<comms::traits::units::Current, comms::traits::units::MicroampsRatio>;
+
+/// @brief Alias option, specifying field value units are "milliamps".
+using UnitsMilliamps =
+    Units<comms::traits::units::Current, comms::traits::units::MilliampsRatio>;
+
+/// @brief Alias option, specifying field value units are "amps".
+using UnitsAmps =
+    Units<comms::traits::units::Current, comms::traits::units::AmpsRatio>;
+
+/// @brief Alias option, specifying field value units are "kiloamps".
+using UnitsKiloamps =
+    Units<comms::traits::units::Current, comms::traits::units::KiloampsRatio>;
+
+/// @brief Alias option, specifying field value units are "nanovolts".
+using UnitsNanovolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::NanovoltsRatio>;
+
+/// @brief Alias option, specifying field value units are "microvolts".
+using UnitsMicrovolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::MicrovoltsRatio>;
+
+/// @brief Alias option, specifying field value units are "millivolts".
+using UnitsMillivolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::MillivoltsRatio>;
+
+/// @brief Alias option, specifying field value units are "volts".
+using UnitsVolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::VoltsRatio>;
+
+/// @brief Alias option, specifying field value units are "kilovolts".
+using UnitsKilovolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::KilovoltsRatio>;
 
 namespace details
 {

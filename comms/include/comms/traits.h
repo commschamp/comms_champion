@@ -60,6 +60,12 @@ struct Frequency {};
 /// @brief Tag class used to indicate angle value
 struct Angle {};
 
+/// @brief Tag class used to indicate electrical current value
+struct Current {};
+
+/// @brief Tag class used to indicate electrical voltage value
+struct Voltage {};
+
 using NanosecondsRatio = std::nano;
 using MicrosecondsRatio = std::micro;
 using MillisecondsRatio = std::milli;
@@ -102,6 +108,18 @@ using GigaHzRatio = std::giga;
 
 using DegreesRatio = std::ratio<1, 1>;
 using RadiansRatio = std::ratio<180, 1>;
+
+using NanoampsRatio = std::nano;
+using MicroampsRatio = std::micro;
+using MilliampsRatio = std::milli;
+using AmpsRatio = std::ratio<1, 1>;
+using KiloampsRatio = std::kilo;
+
+using NanovoltsRatio = std::nano;
+using MicrovoltsRatio = std::micro;
+using MillivoltsRatio = std::milli;
+using VoltsRatio = std::ratio<1, 1>;
+using KilovoltsRatio = std::kilo;
 
 } // namespace units
 

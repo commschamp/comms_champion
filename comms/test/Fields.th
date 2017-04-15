@@ -100,6 +100,8 @@ public:
     void test63();
     void test64();
     void test65();
+    void test66();
+    void test67();
 
 private:
 
@@ -2608,6 +2610,75 @@ void FieldsTestSuite::test65()
     TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getDegrees<double>(field) - 114.592), 0.001);
 }
 
+void FieldsTestSuite::test66()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint32_t,
+        comms::option::UnitsMilliamps
+    > Field;
+
+    Field field;
+    field.value() = 345U;
+    TS_ASSERT_EQUALS(comms::units::getNanoamps<unsigned long long >(field), 345000000UL);
+    TS_ASSERT_EQUALS(comms::units::getMicroamps<unsigned>(field), 345000U);
+    TS_ASSERT_EQUALS(comms::units::getMilliamps<unsigned>(field), 345U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getAmps<double>(field) - 0.345), std::numeric_limits<double>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getKiloamps<double>(field) - 0.000345), std::numeric_limits<double>::epsilon());
+
+    comms::units::setNanoamps(field, 100000000UL);
+    TS_ASSERT_EQUALS(field.value(), 100U);
+    TS_ASSERT_EQUALS(comms::units::getMilliamps<unsigned>(field), 100U);
+
+    comms::units::setMicroamps(field, 222000UL);
+    TS_ASSERT_EQUALS(field.value(), 222U);
+    TS_ASSERT_EQUALS(comms::units::getMilliamps<unsigned>(field), 222U);
+
+    comms::units::setMilliamps(field, 400);
+    TS_ASSERT_EQUALS(field.value(), 400U);
+    TS_ASSERT_EQUALS(comms::units::getMicroamps<unsigned>(field), 400000U);
+
+    comms::units::setAmps(field, 0.025);
+    TS_ASSERT_EQUALS(comms::units::getMilliamps<unsigned>(field), 25U);
+
+    comms::units::setKiloamps(field, 0.025);
+    TS_ASSERT_EQUALS(comms::units::getAmps<unsigned>(field), 25U);
+}
+
+void FieldsTestSuite::test67()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint32_t,
+        comms::option::UnitsMillivolts
+    > Field;
+
+    Field field;
+    field.value() = 345U;
+    TS_ASSERT_EQUALS(comms::units::getNanovolts<unsigned long long >(field), 345000000UL);
+    TS_ASSERT_EQUALS(comms::units::getMicrovolts<unsigned>(field), 345000U);
+    TS_ASSERT_EQUALS(comms::units::getMillivolts<unsigned>(field), 345U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getVolts<double>(field) - 0.345), std::numeric_limits<double>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getKilovolts<double>(field) - 0.000345), std::numeric_limits<double>::epsilon());
+
+    comms::units::setNanovolts(field, 100000000UL);
+    TS_ASSERT_EQUALS(field.value(), 100U);
+    TS_ASSERT_EQUALS(comms::units::getMillivolts<unsigned>(field), 100U);
+
+    comms::units::setMicrovolts(field, 222000UL);
+    TS_ASSERT_EQUALS(field.value(), 222U);
+    TS_ASSERT_EQUALS(comms::units::getMillivolts<unsigned>(field), 222U);
+
+    comms::units::setMillivolts(field, 400);
+    TS_ASSERT_EQUALS(field.value(), 400U);
+    TS_ASSERT_EQUALS(comms::units::getMicrovolts<unsigned>(field), 400000U);
+
+    comms::units::setVolts(field, 0.025);
+    TS_ASSERT_EQUALS(comms::units::getMillivolts<unsigned>(field), 25U);
+
+    comms::units::setKilovolts(field, 0.025);
+    TS_ASSERT_EQUALS(comms::units::getVolts<unsigned>(field), 25U);
+}
 template <typename TField>
 TField FieldsTestSuite::readWriteField(
     const char* buf,

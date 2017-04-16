@@ -102,6 +102,7 @@ public:
     void test65();
     void test66();
     void test67();
+    void test68();
 
 private:
 
@@ -2695,6 +2696,34 @@ void FieldsTestSuite::test67()
     comms::units::setKilovolts(field, 0.025);
     TS_ASSERT_EQUALS(comms::units::getVolts<unsigned>(field), 25U);
 }
+
+void FieldsTestSuite::test68()
+{
+    typedef comms::field::FloatValue<
+        comms::Field<BigEndianOpt>,
+        float,
+        comms::option::UnitsSeconds
+    > Field;
+
+    Field field;
+    field.value() = 1.345;
+
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(field.value() - 1.345), std::numeric_limits<float>::epsilon());
+    TS_ASSERT_EQUALS(comms::units::getMicroseconds<unsigned>(field), 1345000U);
+    TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 1345U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - 1.345), std::numeric_limits<float>::epsilon());
+
+    comms::units::setMilliseconds(field, 500U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(field.value() - 0.5), std::numeric_limits<float>::epsilon());
+    TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 500U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - 0.5), std::numeric_limits<float>::epsilon());
+
+    comms::units::setMinutes(field, (float)1/180);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - (float)1/3), std::numeric_limits<float>::epsilon());
+    TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 333U);
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMilliseconds<float>(field) - (333 + (float)1/3)), std::numeric_limits<float>::epsilon());
+}
+
 template <typename TField>
 TField FieldsTestSuite::readWriteField(
     const char* buf,

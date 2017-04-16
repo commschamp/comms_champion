@@ -127,11 +127,29 @@ private:
         static_assert(std::is_integral<TRet>::value,
             "TRet is expected to be integral type");
 
-        typedef typename std::conditional<
-            std::is_signed<TRet>::value,
-            std::intmax_t,
-            std::uintmax_t
-        >::type CastType;
+        using FieldType = typename std::decay<decltype(field)>::type;
+        using ValueType = typename FieldType::ValueType;
+
+        static_assert(
+            std::is_integral<ValueType>::value ||
+            std::is_floating_point<ValueType>::value ||
+            std::is_enum<ValueType>::value,
+            "Unexpected field in units conversion");
+
+        using CastType =
+            typename std::conditional<
+                std::is_floating_point<ValueType>::value,
+                typename std::conditional<
+                    std::is_same<ValueType, float>::value,
+                    double,
+                    ValueType
+                >::type,
+                typename std::conditional<
+                    std::is_signed<TRet>::value,
+                    std::intmax_t,
+                    std::uintmax_t
+                >::type
+        >::type;
 
         return
             static_cast<TRet>(
@@ -163,10 +181,26 @@ private:
     {
         using FieldType = typename std::decay<decltype(field)>::type;
         using ValueType = typename FieldType::ValueType;
-        using CastType = typename std::conditional<
-            std::is_signed<typename std::decay<decltype(value)>::type>::value,
-            std::intmax_t,
-            std::uintmax_t
+
+        static_assert(
+            std::is_integral<ValueType>::value ||
+            std::is_floating_point<ValueType>::value ||
+            std::is_enum<ValueType>::value,
+            "Unexpected field in units conversion");
+
+        using CastType =
+            typename std::conditional<
+                std::is_floating_point<ValueType>::value,
+                typename std::conditional<
+                    std::is_same<ValueType, float>::value,
+                    double,
+                    ValueType
+                >::type,
+                typename std::conditional<
+                    std::is_signed<typename std::decay<decltype(value)>::type>::value,
+                    std::intmax_t,
+                    std::uintmax_t
+                >::type
         >::type;
 
         field.value() =
@@ -182,7 +216,7 @@ private:
         using ValueType = typename FieldType::ValueType;
 
         auto epsilon = DecayedType(0);
-        if (TRatio::num < TRatio::den) {
+        if ((TRatio::num < TRatio::den) && std::is_integral<ValueType>::value) {
             epsilon = static_cast<DecayedType>(TRatio::num) / static_cast<DecayedType>(TRatio::den + 1);
         }
 

@@ -2115,12 +2115,12 @@ void FieldsTestSuite::test57()
     field.value() = InitVal;
     TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), InitVal / 10);
     TS_ASSERT_EQUALS(comms::units::getMicroseconds<unsigned long>(field), (InitVal * 1000L) / 10);
-    TS_ASSERT_EQUALS(comms::units::getNanoseconds<unsigned long>(field), (InitVal * 1000L * 1000) / 10);
+    TS_ASSERT_EQUALS(comms::units::getNanoseconds<unsigned long long>(field), (InitVal * 1000ULL * 1000) / 10);
     TS_ASSERT_EQUALS(comms::units::getSeconds<unsigned>(field), InitVal / (10 * 1000));
     TS_ASSERT_EQUALS(comms::units::getMinutes<unsigned>(field), InitVal / (10 * 60 * 1000));
     TS_ASSERT_EQUALS(comms::units::getHours<double>(field), (double)InitVal / (10 * 60 * 60 * 1000));
     TS_ASSERT_EQUALS(comms::units::getDays<double>(field), (double)InitVal / (10 * 24L * 60 * 60 * 1000));
-    TS_ASSERT_EQUALS(comms::units::getWeeks<double>(field), (double)InitVal / (10 * 7L * 24 * 60 * 60 * 1000));
+    TS_ASSERT_EQUALS(comms::units::getWeeks<double>(field), (double)InitVal / (10 * 7ULL * 24 * 60 * 60 * 1000));
 
     comms::units::setNanoseconds(field, 500000U);
     TS_ASSERT_EQUALS(comms::units::getNanoseconds<unsigned>(field), 500000U);
@@ -2706,17 +2706,17 @@ void FieldsTestSuite::test68()
     > Field;
 
     Field field;
-    field.value() = 1.345;
+    field.value() = 1.345f;
 
-    TS_ASSERT_LESS_THAN_EQUALS(std::abs(field.value() - 1.345), std::numeric_limits<float>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(field.value() - 1.345f), std::numeric_limits<float>::epsilon());
     TS_ASSERT_EQUALS(comms::units::getMicroseconds<unsigned>(field), 1345000U);
     TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 1345U);
-    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - 1.345), std::numeric_limits<float>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - 1.345f), std::numeric_limits<float>::epsilon());
 
     comms::units::setMilliseconds(field, 500U);
-    TS_ASSERT_LESS_THAN_EQUALS(std::abs(field.value() - 0.5), std::numeric_limits<float>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(field.value() - 0.5f), std::numeric_limits<float>::epsilon());
     TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 500U);
-    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - 0.5), std::numeric_limits<float>::epsilon());
+    TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - 0.5f), std::numeric_limits<float>::epsilon());
 
     comms::units::setMinutes(field, (float)1/180);
     TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - (float)1/3), std::numeric_limits<float>::epsilon());

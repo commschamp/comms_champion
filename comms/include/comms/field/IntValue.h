@@ -58,6 +58,8 @@ namespace field
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 ///     @li comms::option::ScalingRatio
+///     @li comms::option::Units* - all variants of value units, see
+///         @ref sec_field_tutorial_int_value_units for details.
 template <typename TFieldBase, typename T, typename... TOptions>
 class IntValue : public TFieldBase
 {

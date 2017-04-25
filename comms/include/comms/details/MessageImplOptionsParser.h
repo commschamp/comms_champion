@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -49,8 +49,7 @@ class MessageImplOptionsParser<
     comms::option::StaticNumIdImpl<TId>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    typedef MessageImplOptionsParser<TOptions...> Base;
-    typedef comms::option::StaticNumIdImpl<TId> Option;
+    using Base = MessageImplOptionsParser<TOptions...>;
 
     static_assert(!Base::HasStaticMsgId,
         "comms::option::StaticNumIdImpl option is used more than once");
@@ -58,7 +57,7 @@ class MessageImplOptionsParser<
         "comms::option::NoIdImpl and comms::option::StaticNumIdImpl options cannot be used together");
 public:
     static const bool HasStaticMsgId = true;
-    static const auto MsgId = Option::Value;
+    static const auto MsgId = TId;
 };
 
 template <typename... TOptions>
@@ -76,14 +75,13 @@ class MessageImplOptionsParser<
     comms::option::FieldsImpl<TFields>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    typedef MessageImplOptionsParser<TOptions...> Base;
-    typedef comms::option::FieldsImpl<TFields> Option;
+    using Base = MessageImplOptionsParser<TOptions...>;
 
     static_assert(!Base::HasFieldsImpl,
         "comms::option::FieldsImpl option is used more than once");
 public:
-    typedef typename Option::Fields Fields;
     static const bool HasFieldsImpl = true;
+    using Fields = TFields;
 };
 
 template <typename... TOptions>
@@ -91,7 +89,7 @@ class MessageImplOptionsParser<
     comms::option::NoIdImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    typedef MessageImplOptionsParser<TOptions...> Base;
+    using Base = MessageImplOptionsParser<TOptions...>;
 
     static_assert(!Base::HasNoIdImpl,
         "comms::option::NoIdImpl option is used more than once");
@@ -152,14 +150,13 @@ class MessageImplOptionsParser<
     comms::option::MsgType<TMsgType>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    typedef MessageImplOptionsParser<TOptions...> Base;
-    typedef comms::option::MsgType<TMsgType> Option;
+    using Base = MessageImplOptionsParser<TOptions...>;
 
     static_assert(!Base::HasMsgType,
         "comms::option::MsgType option is used more than once");
 public:
-    typedef typename Option::Type MsgType;
     static const bool HasMsgType = true;
+    using MsgType = TMsgType;
 };
 
 template <typename... TOptions>

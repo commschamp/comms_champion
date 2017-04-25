@@ -19,6 +19,7 @@
 #pragma once
 
 #include <tuple>
+#include <ratio>
 #include "comms/options.h"
 
 namespace comms
@@ -62,8 +63,7 @@ class OptionsParser<
     comms::option::CustomValueReader<T>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef OptionsParser<TOptions...> Base;
-    typedef comms::option::CustomValueReader<T> Option;
+    using Base = OptionsParser<TOptions...>;
 
     static_assert(!Base::HasSerOffset,
         "Cannot mix NumValueSerOffset and CustomValueReader options.");
@@ -93,7 +93,7 @@ class OptionsParser<
         "Cannot mix SequenceTerminationFieldSuffix and CustomValueReader options.");
 public:
     static const bool HasCustomValueReader = true;
-    typedef typename Option::Type CustomValueReader;
+    using CustomValueReader = T;
 };
 
 template <std::intmax_t TOffset, typename... TOptions>
@@ -101,14 +101,13 @@ class OptionsParser<
     comms::option::NumValueSerOffset<TOffset>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef OptionsParser<TOptions...> Base;
-    typedef comms::option::NumValueSerOffset<TOffset> Option;
+    using Base = OptionsParser<TOptions...>;
 
     static_assert(!Base::HasCustomValueReader,
         "Cannot mix NumValueSerOffset and CustomValueReader options.");
 public:
     static const bool HasSerOffset = true;
-    static const auto SerOffset = Option::Value;
+    static const auto SerOffset = TOffset;
 };
 
 template <std::size_t TLen, typename... TOptions>
@@ -116,8 +115,7 @@ class OptionsParser<
     comms::option::FixedLength<TLen>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef OptionsParser<TOptions...> Base;
-    typedef comms::option::FixedLength<TLen> Option;
+    using Base = OptionsParser<TOptions...>;
 
     static_assert(!Base::HasVarLengthLimits,
         "Cannot mix FixedLength and VarLength options.");
@@ -126,7 +124,7 @@ class OptionsParser<
         "Cannot mix FixedLength and CustomValueReader options.");
 public:
     static const bool HasFixedLengthLimit = true;
-    static const std::size_t FixedLength = Option::Value;
+    static const std::size_t FixedLength = TLen;
 };
 
 template <std::size_t TLen, typename... TOptions>
@@ -134,8 +132,7 @@ class OptionsParser<
     comms::option::FixedBitLength<TLen>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef OptionsParser<TOptions...> Base;
-    typedef comms::option::FixedBitLength<TLen> Option;
+    using Base = OptionsParser<TOptions...>;
 
     static_assert(!Base::HasVarLengthLimits,
         "Cannot mix FixedBitLength and VarLength options.");
@@ -144,17 +141,15 @@ class OptionsParser<
         "Cannot mix FixedBitLength and CustomValueReader options.");
 public:
     static const bool HasFixedBitLengthLimit = true;
-    static const std::size_t FixedBitLength = Option::Value;
+    static const std::size_t FixedBitLength = TLen;
 };
-
 
 template <std::size_t TMinLen, std::size_t TMaxLen, typename... TOptions>
 class OptionsParser<
     comms::option::VarLength<TMinLen, TMaxLen>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef OptionsParser<TOptions...> Base;
-    typedef comms::option::VarLength<TMinLen, TMaxLen> Option;
+    using Base = OptionsParser<TOptions...>;
 
     static_assert(!Base::HasFixedLengthLimit,
         "Cannot mix FixedLength and VarLength options.");
@@ -165,8 +160,8 @@ class OptionsParser<
 
 public:
     static const bool HasVarLengthLimits = true;
-    static const std::size_t MinVarLength = Option::MinValue;
-    static const std::size_t MaxVarLength = Option::MaxValue;
+    static const std::size_t MinVarLength = TMinLen;
+    static const std::size_t MaxVarLength = TMaxLen;
 };
 
 template <typename... TOptions>
@@ -174,7 +169,7 @@ class OptionsParser<
     comms::option::SequenceSizeForcingEnabled,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef OptionsParser<TOptions...> Base;
+    using Base = OptionsParser<TOptions...>;
     static_assert(!Base::HasSequenceSizeFieldPrefix,
         "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
         "mustn't be used together");
@@ -199,8 +194,7 @@ class OptionsParser<
     comms::option::SequenceFixedSize<TSize>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::SequenceFixedSize<TSize> Option;
-    typedef OptionsParser<TOptions...> Base;
+    using Base = OptionsParser<TOptions...>;
     static_assert(!Base::HasSequenceSizeFieldPrefix,
         "SequenceFixedSize and SequenceSizeFieldPrefix are incompatible options, "
         "mustn't be used together");
@@ -217,7 +211,7 @@ class OptionsParser<
         "Cannot mix SequenceFixedSize and CustomValueReader options.");
 public:
     static const bool HasSequenceFixedSize = true;
-    static const auto SequenceFixedSize = Option::Value;
+    static const auto SequenceFixedSize = TSize;
 };
 
 template <typename TSizeField, typename... TOptions>
@@ -225,8 +219,7 @@ class OptionsParser<
     comms::option::SequenceSizeFieldPrefix<TSizeField>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::SequenceSizeFieldPrefix<TSizeField> Option;
-    typedef OptionsParser<TOptions...> Base;
+    using Base = OptionsParser<TOptions...>;
     static_assert(!Base::HasSequenceSizeForcing,
         "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
         "mustn't be used together");
@@ -243,7 +236,7 @@ class OptionsParser<
         "Cannot mix SequenceSizeFieldPrefix and CustomValueReader options.");
 public:
     static const bool HasSequenceSizeFieldPrefix = true;
-    typedef typename Option::Type SequenceSizeFieldPrefix;
+    using SequenceSizeFieldPrefix = TSizeField;
 };
 
 template <typename TTrailField, typename... TOptions>
@@ -251,8 +244,7 @@ class OptionsParser<
     comms::option::SequenceTrailingFieldSuffix<TTrailField>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::SequenceTrailingFieldSuffix<TTrailField> Option;
-    typedef OptionsParser<TOptions...> Base;
+    using Base = OptionsParser<TOptions...>;
 
     static_assert(!Base::HasSequenceTerminationFieldSuffix,
         "SequenceTerminationFieldSuffix and SequenceTrailingFieldSuffix are incompatible options, "
@@ -263,7 +255,7 @@ class OptionsParser<
 
 public:
     static const bool HasSequenceTrailingFieldSuffix = true;
-    typedef typename Option::Type SequenceTrailingFieldSuffix;
+    using SequenceTrailingFieldSuffix = TTrailField;
 };
 
 template <typename TTermField, typename... TOptions>
@@ -271,8 +263,7 @@ class OptionsParser<
     comms::option::SequenceTerminationFieldSuffix<TTermField>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::SequenceTerminationFieldSuffix<TTermField> Option;
-    typedef OptionsParser<TOptions...> Base;
+    using Base = OptionsParser<TOptions...>;
 
     static_assert(!Base::HasSequenceSizeForcing,
         "SequenceSizeForcingEnabled and SequenceTerminationFieldSuffix are incompatible options, "
@@ -294,7 +285,7 @@ class OptionsParser<
         "Cannot mix SequenceTerminationFieldSuffix and CustomValueReader options.");
 public:
     static const bool HasSequenceTerminationFieldSuffix = true;
-    typedef typename Option::Type SequenceTerminationFieldSuffix;
+    using SequenceTerminationFieldSuffix = TTermField;
 };
 
 template <typename TInitialiser, typename... TOptions>
@@ -302,10 +293,9 @@ class OptionsParser<
     comms::option::DefaultValueInitialiser<TInitialiser>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::DefaultValueInitialiser<TInitialiser> Option;
 public:
     static const bool HasDefaultValueInitialiser = true;
-    typedef typename Option::Type DefaultValueInitialiser;
+    using DefaultValueInitialiser = TInitialiser;
 };
 
 template <typename TValidator, typename... TOptions>
@@ -313,10 +303,9 @@ class OptionsParser<
     comms::option::ContentsValidator<TValidator>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::ContentsValidator<TValidator> Option;
 public:
     static const bool HasCustomValidator = true;
-    typedef typename Option::Type CustomValidator;
+    using CustomValidator = TValidator;
 };
 
 template <comms::ErrorStatus TStatus, typename... TOptions>
@@ -324,7 +313,7 @@ class OptionsParser<
     comms::option::FailOnInvalid<TStatus>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef OptionsParser<TOptions...> Base;
+    using Base = OptionsParser<TOptions...>;
     static_assert(!Base::HasIgnoreInvalid,
         "Cannot mix FailOnInvalid and IgnoreInvalid options.");
 public:
@@ -337,7 +326,7 @@ class OptionsParser<
     comms::option::IgnoreInvalid,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef OptionsParser<TOptions...> Base;
+    using Base = OptionsParser<TOptions...>;
     static_assert(!Base::HasFailOnInvalid,
         "Cannot mix FailOnInvalid and IgnoreInvalid options.");
 public:
@@ -349,10 +338,9 @@ class OptionsParser<
     comms::option::FixedSizeStorage<TSize>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::FixedSizeStorage<TSize> Option;
 public:
     static const bool HasFixedSizeStorage = true;
-    static const std::size_t FixedSizeStorage = Option::Value;
+    static const std::size_t FixedSizeStorage = TSize;
 };
 
 template <typename TType, typename... TOptions>
@@ -360,10 +348,9 @@ class OptionsParser<
     comms::option::CustomStorageType<TType>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::CustomStorageType<TType> Option;
 public:
     static const bool HasCustomStorageType = true;
-    typedef typename Option::Type CustomStorageType;
+    using CustomStorageType = TType;
 };
 
 template <std::intmax_t TNum, std::intmax_t TDenom, typename... TOptions>
@@ -371,10 +358,9 @@ class OptionsParser<
     comms::option::ScalingRatio<TNum, TDenom>,
     TOptions...> : public OptionsParser<TOptions...>
 {
-    typedef comms::option::ScalingRatio<TNum, TDenom> Option;
 public:
     static const bool HasScalingRatio = true;
-    typedef typename Option::Type ScalingRatio;
+    using ScalingRatio = std::ratio<TNum, TDenom>;
 };
 
 template <typename TType, typename TRatio, typename... TOptions>

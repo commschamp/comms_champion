@@ -64,7 +64,6 @@ constexpr bool isRatio()
 template <typename TEndian>
 struct Endian
 {
-    using Type = TEndian;
 };
 
 /// @brief Alias option to Endian specifying Big endian.
@@ -79,26 +78,17 @@ struct EmptyOption {};
 /// @brief Option used to specify type of the ID.
 /// @tparam T Type of the message ID.
 template <typename T>
-struct MsgIdType
-{
-    using Type = T;
-};
+struct MsgIdType {};
 
 /// @brief Option used to specify type of iterator used for reading.
 /// @tparam TIter Type of the iterator.
 template <typename TIter>
-struct ReadIterator
-{
-    using Type = TIter;
-};
+struct ReadIterator {};
 
 /// @brief Option used to specify type of iterator used for writing.
 /// @tparam TIter Type of the iterator.
 template <typename TIter>
-struct WriteIterator
-{
-    using Type = TIter;
-};
+struct WriteIterator {};
 
 /// @brief Option used to add @b getId() function into Message interface.
 struct IdInfoInterface {};
@@ -115,28 +105,19 @@ struct RefreshInterface {};
 /// @brief Option used to specify type of the message handler.
 /// @tparam T Type of the handler.
 template <typename T>
-struct Handler
-{
-    using Type = T;
-};
+struct Handler {};
 
 /// @brief Option used to specify numeric ID of the message.
 /// @tparam TId Numeric ID value.
 template <std::intmax_t TId>
-struct StaticNumIdImpl
-{
-    static const auto Value = TId;
-};
+struct StaticNumIdImpl {};
 
 /// @brief Option used to specify that message doesn't have valid ID.
 struct NoIdImpl {};
 
 /// @brief Option used to specify actual type of the message.
 template <typename TMsg>
-struct MsgType
-{
-    using Type = TMsg;
-};
+struct MsgType {};
 
 /// @brief Option used to inhibit default implementation of @b dispatchImpl()
 ///     in comms::MessageBase.
@@ -154,7 +135,6 @@ struct FieldsImpl;
 template <typename... TFields>
 struct FieldsImpl<std::tuple<TFields...> >
 {
-    using Fields = std::tuple<TFields...>;
 };
 /// @endcond
 
@@ -210,10 +190,7 @@ struct InPlaceAllocation {};
 ///     @endcode
 /// @tparam TLen Length of the serialised value.
 template<std::size_t TLen>
-struct FixedLength
-{
-    static const std::size_t Value = TLen;
-};
+struct FixedLength {};
 
 /// @brief Option used to specify number of bits that is used for field serialisation
 ///     when a field is a member of comms::field::Bitfield.
@@ -241,10 +218,7 @@ struct FixedLength
 ///     @endcode
 /// @tparam TLen Length of the serialised value in bits.
 template<std::size_t TLen>
-struct FixedBitLength
-{
-    static const std::size_t Value = TLen;
-};
+struct FixedBitLength {};
 
 /// @brief Option used to specify that field may have variable serialisation length
 /// @details Applicable only to numeric fields, such as comms::field::IntValue
@@ -272,8 +246,6 @@ template<std::size_t TMin, std::size_t TMax>
 struct VarLength
 {
     static_assert(TMin <= TMax, "TMin must not be greater that TMax.");
-    static const std::size_t MinValue = TMin;
-    static const std::size_t MaxValue = TMax;
 };
 
 /// @brief Option to specify numeric value serialisation offset.
@@ -303,10 +275,7 @@ struct VarLength
 ///     comms::option::FixedLength option) and reduced value of 15 is written.
 /// @tparam TOffset Offset value to be added when serialising field.
 template<std::intmax_t TOffset>
-struct NumValueSerOffset
-{
-    static const auto Value = TOffset;
-};
+struct NumValueSerOffset {};
 
 /// @brief Option that forces usage of embedded uninitialised data area instead
 ///     of dynamic memory allocation.
@@ -321,10 +290,7 @@ struct NumValueSerOffset
 /// @tparam TSize Size of the storage area, for strings it does @b NOT include
 ///     the '\0' terminating character.
 template <std::size_t TSize>
-struct FixedSizeStorage
-{
-    static const std::size_t Value = TSize;
-};
+struct FixedSizeStorage {};
 
 /// @brief Set custom storage type for fields like comms::field::String or
 ///     comms::field::ArrayList.
@@ -340,10 +306,7 @@ struct FixedSizeStorage
 ///     comms::field::ArrayList).
 /// @tparam TType Custom storage type
 template <typename TType>
-struct CustomStorageType
-{
-    using Type = TType;
-};
+struct CustomStorageType {};
 
 /// @brief Option to specify scaling ratio.
 /// @details Applicable only to comms::field::IntValue.
@@ -373,10 +336,7 @@ struct CustomStorageType
 /// @tparam TNum Numerator of the scaling ratio.
 /// @tparam TDenom Denominator of the scaling ratio.
 template <std::intmax_t TNum, std::intmax_t TDenom>
-struct ScalingRatio
-{
-    using Type = std::ratio<TNum, TDenom>;
-};
+struct ScalingRatio {};
 
 /// @brief Option that modify the default behaviour of collection fields to
 ///     prepend the serialised data with number of elements information.
@@ -400,10 +360,7 @@ struct ScalingRatio
 ///     @endcode
 /// @tparam TField Type of the field that represents size
 template <typename TField>
-struct SequenceSizeFieldPrefix
-{
-    using Type = TField;
-};
+struct SequenceSizeFieldPrefix {};
 
 /// @brief Option that forces termination of the sequence when predefined value
 ///     is encountered.
@@ -422,10 +379,7 @@ struct SequenceSizeFieldPrefix
 ///     @endcode
 /// @tparam TField Type of the field that represents suffix
 template <typename TField>
-struct SequenceTerminationFieldSuffix
-{
-    using Type = TField;
-};
+struct SequenceTerminationFieldSuffix {};
 
 /// @brief Option that forces collection fields to append provides suffix every
 ///     time it is serialised.
@@ -448,10 +402,7 @@ struct SequenceTerminationFieldSuffix
 ///     @endcode
 /// @tparam TField Type of the field that represents suffix
 template <typename TField>
-struct SequenceTrailingFieldSuffix
-{
-    using Type = TField;
-};
+struct SequenceTrailingFieldSuffix {};
 
 /// @brief Option to enable external forcing of the collection's field size.
 /// @details Sometimes the size information is detached from the data sequence
@@ -463,9 +414,7 @@ struct SequenceTrailingFieldSuffix
 ///     the collection fields, such as comms::field::ArrayList or comms::field::String
 ///     which can be used to specify the size information after it was read
 ///     independently.
-struct SequenceSizeForcingEnabled
-{
-};
+struct SequenceSizeForcingEnabled {};
 
 /// @brief Option used to define exact number of elements in the collection field.
 /// @details Protocol specification may define that there is exact number of
@@ -473,10 +422,7 @@ struct SequenceSizeForcingEnabled
 ///     this information to the field definition, which will force @b read() and
 ///     @b write() member functions of the collection field to behave as expected.
 template <std::size_t TSize>
-struct SequenceFixedSize
-{
-    static const std::size_t Value = TSize;
-};
+struct SequenceFixedSize {};
 
 /// @brief Option that specifies default initialisation class.
 /// @details Use this option when default constructor of the field must assign
@@ -512,10 +458,7 @@ struct SequenceFixedSize
 ///     @endcode
 /// @tparam T Type of the initialiser class.
 template <typename T>
-struct DefaultValueInitialiser
-{
-    using Type = T;
-};
+struct DefaultValueInitialiser {};
 
 /// @brief Option that specifies custom validation class.
 /// @details By default, value of every field is considered to be valid
@@ -558,14 +501,11 @@ struct DefaultValueInitialiser
 ///     value.
 /// @tparam T Type of the initialiser class.
 template <typename T>
-struct ContentsValidator
-{
-    using Type = T;
-};
+struct ContentsValidator {};
 
 /// @brief Option that specifies custom value reader class.
 /// @details It may be useful to override default reading functionality for complex
-///     fields, such as comms::field::Bundle, where how members are read are
+///     fields, such as comms::field::Bundle, where the way members are read is
 ///     defined by the values of other members. For example, bundle of two integer
 ///     fields, the first one is normal, and the second one is optional.
 ///     The optional mode of the latter is determined by
@@ -632,10 +572,7 @@ struct ContentsValidator
 ///     @endcode
 /// @tparam T Type of the custom reader class.
 template <typename T>
-struct CustomValueReader
-{
-    using Type = T;
-};
+struct CustomValueReader {};
 
 /// @brief Option that forces field's read operation to fail if invalid value
 ///     is received.

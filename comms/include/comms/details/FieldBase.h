@@ -35,17 +35,15 @@ class FieldBase<>
 {
 protected:
     // Use big endian by default
-    typedef comms::traits::endian::Big Endian;
+    using Endian = comms::traits::endian::Big;
 };
 
 template <typename TEndian, typename... TOptions>
 class FieldBase<comms::option::Endian<TEndian>, TOptions...> : public FieldBase<TOptions...>
 {
-    typedef comms::option::Endian<TEndian> Option;
 protected:
-    typedef typename Option::Type Endian;
+    using Endian = TEndian;
 };
-
 
 }  // namespace details
 

@@ -336,7 +336,11 @@ struct CustomStorageType {};
 /// @tparam TNum Numerator of the scaling ratio.
 /// @tparam TDenom Denominator of the scaling ratio.
 template <std::intmax_t TNum, std::intmax_t TDenom>
-struct ScalingRatio {};
+struct ScalingRatio
+{
+    static_assert(TNum != 0, "Wrong scaling ratio");
+    static_assert(TDenom != 0, "Wrong scaling ratio");
+};
 
 /// @brief Option that modify the default behaviour of collection fields to
 ///     prepend the serialised data with number of elements information.
@@ -606,6 +610,9 @@ struct Units
 {
     static_assert(details::isRatio<TRatio>(),
         "TRatio parameter must be a variant of std::ratio");
+
+    static_assert(TRatio::num != 0, "Wrong ratio value");
+    static_assert(TRatio::den != 0, "Wrong ratio value");
 };
 
 /// @brief Alias option, specifying field value units are "nanoseconds".

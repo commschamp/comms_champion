@@ -32,10 +32,10 @@ namespace adapter
 template <typename TInitialiser, typename TNext>
 class DefaultValueInitialiser : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
-    typedef TInitialiser Initialiser;
+    using Base = details::AdapterBaseT<TNext>;
+    using Initialiser = TInitialiser;
 public:
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
     DefaultValueInitialiser()
     {

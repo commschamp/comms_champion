@@ -110,7 +110,7 @@ class EnableAssert
         "TAssert class must be derived class of Assert");
 public:
     /// Type of assert object.
-    typedef TAssert AssertType;
+    using AssertType = TAssert;
 
     /// @brief Constructor
     /// @details Registers new assertion failure behaviour. It forwards

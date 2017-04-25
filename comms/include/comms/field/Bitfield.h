@@ -93,25 +93,25 @@ namespace field
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bitfield : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
-    typedef basic::Bitfield<TFieldBase, TMembers> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+    using BasicField = basic::Bitfield<TFieldBase, TMembers>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
     static_assert(std::is_base_of<comms::field::category::BundleField, typename ThisField::Category>::value,
         "ThisField is expected to be of BundleCategory");
 
 public:
     /// @brief All the options provided to this class bundled into struct.
-    typedef details::OptionsParser<TOptions...> ParsedOptions;
+    using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
-    typedef tag::Bitfield Tag;
+    using Tag = tag::Bitfield;
 
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
     ///     of all the member fields.
-    typedef typename ThisField::ValueType ValueType;
+    using ValueType = typename ThisField::ValueType;
 
     /// @brief Default constructor
     /// @details All field members are initialised using their default constructors.
@@ -156,8 +156,8 @@ public:
             TIdx < std::tuple_size<ValueType>::value,
             "Index exceeds number of fields");
 
-        typedef typename std::tuple_element<TIdx, ValueType>::type FieldType;
-        typedef typename FieldType::ParsedOptions FieldOptions;
+        using FieldType = typename std::tuple_element<TIdx, ValueType>::type;
+        using FieldOptions = typename FieldType::ParsedOptions;
         return FieldOptions::FixedBitLength;
     }
 

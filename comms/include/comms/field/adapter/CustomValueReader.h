@@ -32,10 +32,10 @@ namespace adapter
 template <typename T, typename TNext>
 class CustomValueReader : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
+    using Base = details::AdapterBaseT<TNext>;
 public:
 
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
     CustomValueReader() = default;
 

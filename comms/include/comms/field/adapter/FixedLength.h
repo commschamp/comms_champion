@@ -37,22 +37,22 @@ namespace adapter
 template <std::size_t TLen, typename TNext>
 class FixedLength : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
-    typedef typename Base::Next::SerialisedType NextSerialisedType;
+    using Base = details::AdapterBaseT<TNext>;
+    using NextSerialisedType = typename Base::Next::SerialisedType;
 public:
 
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
     static_assert(TLen <= sizeof(NextSerialisedType),
         "The provided length limit is too big");
 
-    typedef typename std::conditional<
+    using SerialisedType = typename std::conditional<
         (TLen < sizeof(NextSerialisedType)),
         typename comms::util::SizeToType<TLen, std::is_signed<NextSerialisedType>::value>::Type,
         NextSerialisedType
-    >::type SerialisedType;
+    >::type;
 
-    typedef typename Base::Endian Endian;
+    using Endian = typename Base::Endian;
 
     FixedLength() = default;
 
@@ -122,20 +122,20 @@ private:
     struct UnsignedTag {};
     struct SignedTag {};
 
-    typedef typename std::conditional<
+    using ConversionTag = typename std::conditional<
         (TLen < sizeof(SerialisedType)),
         SignExtendTag,
         JustCastTag
-    >::type ConversionTag;
+    >::type;
 
 
-    typedef typename std::conditional<
+    using HasSignTag = typename std::conditional<
         std::is_signed<SerialisedType>::value,
         SignedTag,
         UnsignedTag
-    >::type HasSignTag;
+    >::type;
 
-    typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerialisedType;
+    using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
     static constexpr SerialisedType adjustToSerialised(NextSerialisedType val, JustCastTag)
     {

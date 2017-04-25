@@ -33,12 +33,12 @@ namespace adapter
 template <typename TTermField, typename TNext>
 class SequenceTerminationFieldSuffix : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
-    typedef TTermField TermField;
+    using Base = details::AdapterBaseT<TNext>;
+    using TermField = TTermField;
 
 public:
-    typedef typename Base::ValueType ValueType;
-    typedef typename Base::ElementType ElementType;
+    using ValueType = typename Base::ValueType;
+    using ElementType = typename Base::ElementType;
 
     SequenceTerminationFieldSuffix() = default;
 
@@ -75,8 +75,8 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        typedef typename std::decay<decltype(iter)>::type IterType;
-        typedef typename std::iterator_traits<IterType>::iterator_category IterTag;
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using IterTag = typename std::iterator_traits<IterType>::iterator_category;
         static_assert(std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
             "Only random access iterator for reading is supported with comms::option::SequenceTerminationFieldSuffix option");
 

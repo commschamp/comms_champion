@@ -33,11 +33,11 @@ namespace adapter
 template <typename TNext>
 class SequenceFixedSizeBase : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
+    using Base = details::AdapterBaseT<TNext>;
 
 public:
-    typedef typename Base::ValueType ValueType;
-    typedef typename Base::ElementType ElementType;
+    using ValueType = typename Base::ValueType;
+    using ElementType = typename Base::ElementType;
 
     explicit SequenceFixedSizeBase(std::size_t maxSize)
       : fixedSize_(maxSize)
@@ -77,7 +77,7 @@ public:
             return Base::length() + (remSize * Base::elementLength(dummyElem));
         }
 
-        typedef typename Base::Next Next;
+        using Next = typename Base::Next;
         ValueType copy(Base::value());
         copy.resize(fixedSize_);
         return Next(std::move(copy)).length();
@@ -134,7 +134,7 @@ public:
         auto sizeDiff = fixedSize_ - valCopy.size();
         std::fill_n(std::back_inserter(valCopy), sizeDiff, ElementType());
 
-        typedef typename Base::Next Next;
+        using Next = typename Base::Next;
         Next nextAdapter(std::move(valCopy));
         return nextAdapter.valid();
     }
@@ -146,11 +146,11 @@ private:
 template <std::size_t TSize, typename TNext>
 class SequenceFixedSize : public SequenceFixedSizeBase<TNext>
 {
-    typedef SequenceFixedSizeBase<TNext> Base;
+    using Base = SequenceFixedSizeBase<TNext>;
 
 public:
-    typedef typename Base::ValueType ValueType;
-    typedef typename Base::ElementType ElementType;
+    using ValueType = typename Base::ValueType;
+    using ElementType = typename Base::ElementType;
 
     explicit SequenceFixedSize()
       : Base(TSize)

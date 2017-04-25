@@ -32,13 +32,13 @@ namespace adapter
 template <long long int TOffset, typename TNext>
 class SerOffset : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
+    using Base = details::AdapterBaseT<TNext>;
     static const auto Offset = TOffset;
 public:
 
-    typedef typename Base::ValueType ValueType;
-    typedef typename Base::SerialisedType SerialisedType;
-    typedef typename Base::Endian Endian;
+    using ValueType = typename Base::ValueType;
+    using SerialisedType = typename Base::SerialisedType;
+    using Endian = typename Base::Endian;
 
     SerOffset() = default;
 

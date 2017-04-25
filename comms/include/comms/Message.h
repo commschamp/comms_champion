@@ -73,12 +73,12 @@ namespace comms
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
 {
-    typedef details::MessageInterfaceBuilderT<TOptions...> Base;
+    using Base = details::MessageInterfaceBuilderT<TOptions...>;
 public:
 
     /// @brief All the options bundled into struct.
     /// @details See @ref page_message_options_interface for reference.
-    typedef details::MessageInterfaceOptionsParser<TOptions...> InterfaceOptions;
+    using InterfaceOptions = details::MessageInterfaceOptionsParser<TOptions...>;
 
     /// @brief Destructor.
     /// @details Becomes @b virtual if the message interface is defined to expose
@@ -91,25 +91,25 @@ public:
     /// @brief Type used for message ID.
     /// @details The type exists only if comms::option::MsgIdType option
     ///     was provided to comms::Message to specify it.
-    typedef typename Base::MsgIdType MsgIdType;
+    using MsgIdType = typename Base::MsgIdType;
 
     /// @brief Type used for message ID passed as parameter or returned from function.
     /// @details It is equal to @ref MsgIdType for numeric types and becomes
     ///     "const-reference-to" @ref MsgIdType for more complex types.
     ///      The type exists only if @ref MsgIdType exists, i.e.
     ///      the comms::option::MsgIdType option was used.
-    typedef typename Base::MsgIdParamType MsgIdParamType;
+    using MsgIdParamType = typename Base::MsgIdParamType;
 
     /// @brief Serialisation endian type.
     /// @details The type exists only if comms::option::BigEndian or
     ///     comms::option::LittleEndian options were used to specify it.
-    typedef typename Base::Endian Endian;
+    using Endian = typename Base::Endian;
 
     /// @brief Type of default base class for all the fields.
     /// @details Requires definition of the @ref Endian type, i.e. the type
     ///     exist only if comms::option::BigEndian or
     ///     comms::option::LittleEndian options were used.
-    typedef Base::Field Field;
+    using Field = Base::Field;
 
     /// @brief Retrieve ID of the message.
     /// @details Invokes pure virtual getIdImpl(). This function exists
@@ -122,7 +122,7 @@ public:
     ///     sequence of bytes stored somewhere.
     /// @details The type exists only if comms::option::ReadIterator option
     ///     was provided to comms::Message to specify one.
-    typedef TypeProvidedWithOption ReadIterator;
+    using ReadIterator = TypeProvidedWithOption;
 
     /// @brief Read message contents using provided iterator.
     /// @details The function exists only if comms::option::ReadIterator option
@@ -140,7 +140,7 @@ public:
     ///     sequence of bytes stored somewhere.
     /// @details The type exists only if comms::option::WriteIterator option
     ///     was provided to comms::Message to specify one.
-    typedef TypeProvidedWithOption WriteIterator;
+    using WriteIterator = TypeProvidedWithOption;
 
     /// @brief Write message contents using provided iterator.
     /// @details The function exists only if comms::option::WriteIterator option
@@ -187,7 +187,7 @@ public:
     /// @brief Type of the message handler object.
     /// @details The type exists only if comms::option::Handler option
     ///     was provided to comms::Message to specify one.
-    typedef TypeProvidedWithOption Handler;
+    using Handler = TypeProvidedWithOption;
 
     /// @brief Dispatch message to the handler for processing.
     /// @details The function exists only if comms::option::Handler option

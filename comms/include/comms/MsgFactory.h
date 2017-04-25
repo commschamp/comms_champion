@@ -63,7 +63,7 @@ namespace comms
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactory : public details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
-    typedef details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...> Base;
+    using Base = details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
 
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
         "Usage of MsgFactory requires Message interface to provide ID type. "
@@ -71,21 +71,21 @@ class MsgFactory : public details::MsgFactoryBase<TMsgBase, TAllMessages, TOptio
 public:
 
     /// @brief Type of the common base class of all the messages.
-    typedef TMsgBase Message;
+    using Message = TMsgBase;
 
     /// @brief Type of the message ID when passed as a parameter.
-    typedef typename Message::MsgIdParamType MsgIdParamType;
+    using MsgIdParamType = typename Message::MsgIdParamType;
 
     /// @brief Type of the message ID.
-    typedef typename Message::MsgIdType MsgIdType;
+    using MsgIdType = typename Message::MsgIdType;
 
     /// @brief Smart pointer to @ref Message which holds allocated message object.
     /// @details It is a variant of std::unique_ptr, based on whether
     ///     comms::option::InPlaceAllocation option was used.
-    typedef typename Base::MsgPtr MsgPtr;
+    using MsgPtr = typename Base::MsgPtr;
 
     /// @brief All messages provided as template parameter to this class.
-    typedef typename Base::AllMessages AllMessages;
+    using AllMessages = typename Base::AllMessages;
 
     /// @brief Constructor.
     MsgFactory()
@@ -176,7 +176,7 @@ private:
     class NumIdFactoryMethod : public FactoryMethod
     {
     public:
-        typedef TMessage Message;
+        using Message = TMessage;
         static const auto MsgId = Message::MsgId;
         NumIdFactoryMethod() {}
 
@@ -199,7 +199,7 @@ private:
     class GenericFactoryMethod : public FactoryMethod
     {
     public:
-        typedef TMessage Message;
+        using Message = TMessage;
 
         GenericFactoryMethod() : id_(Message().getId()) {}
 
@@ -228,7 +228,7 @@ private:
     static const std::size_t NumOfMessages =
         std::tuple_size<AllMessages>::value;
 
-    typedef std::array<const FactoryMethod*, NumOfMessages> MethodsRegistry;
+    using MethodsRegistry = std::array<const FactoryMethod*, NumOfMessages>;
 
     class MsgFactoryCreator
     {
@@ -241,11 +241,11 @@ private:
         template <typename TMessage>
         void operator()()
         {
-            typedef typename std::conditional<
+            using Tag = typename std::conditional<
                 TMessage::ImplOptions::HasStaticMsgId,
                 StaticNumericIdTag,
                 OtherIdTag
-            >::type Tag;
+            >::type;
 
             registry_[idx_] = createFactory<TMessage>(Tag());
             ++idx_;

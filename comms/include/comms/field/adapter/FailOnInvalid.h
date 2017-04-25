@@ -34,11 +34,11 @@ namespace adapter
 template <comms::ErrorStatus TStatus, typename TNext>
 class FailOnInvalid : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
+    using Base = details::AdapterBaseT<TNext>;
 public:
 
-    typedef typename Base::Next Next;
-    typedef typename Base::ValueType ValueType;
+    using Next = typename Base::Next;
+    using ValueType = typename Base::ValueType;
 
     FailOnInvalid() = default;
 

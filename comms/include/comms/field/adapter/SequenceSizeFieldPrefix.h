@@ -33,12 +33,12 @@ namespace adapter
 template <typename TSizeField, typename TNext>
 class SequenceSizeFieldPrefix : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
-    typedef TSizeField SizeField;
+    using Base = details::AdapterBaseT<TNext>;
+    using SizeField = TSizeField;
 
 public:
-    typedef typename Base::ValueType ValueType;
-    typedef typename Base::ElementType ElementType;
+    using ValueType = typename Base::ValueType;
+    using ElementType = typename Base::ElementType;
 
     SequenceSizeFieldPrefix() = default;
 
@@ -59,7 +59,7 @@ public:
 
     constexpr std::size_t length() const
     {
-        typedef typename SizeField::ValueType SizeValueType;
+        using SizeValueType = typename SizeField::ValueType;
         return
             SizeField(static_cast<SizeValueType>(Base::value().size())).length() +
             Base::length();
@@ -77,7 +77,7 @@ public:
 
     bool valid() const
     {
-        typedef typename SizeField::ValueType SizeValueType;
+        using SizeValueType = typename SizeField::ValueType;
         return
             SizeField(static_cast<SizeValueType>(Base::value().size())).valid() &&
             Base::valid();
@@ -101,7 +101,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        typedef typename SizeField::ValueType SizeValueType;
+        using SizeValueType = typename SizeField::ValueType;
         SizeField sizeField(static_cast<SizeValueType>(Base::value().size()));
         auto es = sizeField.write(iter, len);
         if (es != comms::ErrorStatus::Success) {

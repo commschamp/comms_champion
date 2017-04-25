@@ -63,24 +63,24 @@ namespace field
 template <typename TFieldBase, typename T, typename... TOptions>
 class IntValue : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
-    typedef basic::IntValue<TFieldBase, T> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+    using BasicField = basic::IntValue<TFieldBase, T>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
     static_assert(std::is_base_of<comms::field::category::NumericValueField, typename ThisField::Category>::value,
         "ThisField is expected to be of NumericFieldCategory");
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef details::OptionsParser<TOptions...> ParsedOptions;
+    using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
-    typedef tag::Int Tag;
+    using Tag = tag::Int;
 
     /// @brief Type of underlying integral value.
     /// @details Same as template parameter T to this class.
-    typedef typename ThisField::ValueType ValueType;
+    using ValueType = typename ThisField::ValueType;
 
     /// @brief Default constructor
     /// @details Initialises internal value to 0.
@@ -169,11 +169,11 @@ public:
     template <typename TRet>
     constexpr TRet getScaled() const
     {
-        typedef typename std::conditional<
+        using Tag = typename std::conditional<
             ParsedOptions::HasScalingRatio,
             HasScalingRatioTag,
             NoScalingRatioTag
-        >::type Tag;
+        >::type;
 
         return scaleAsInternal<TRet>(Tag());
     }
@@ -192,11 +192,11 @@ public:
     template <typename TScaled>
     void setScaled(TScaled val)
     {
-        typedef typename std::conditional<
+        using Tag = typename std::conditional<
             ParsedOptions::HasScalingRatio,
             HasScalingRatioTag,
             NoScalingRatioTag
-        >::type Tag;
+        >::type;
 
         return setScaledInternal(val, Tag());
     }
@@ -210,11 +210,11 @@ private:
     template <typename TRet>
     TRet scaleAsInternal(HasScalingRatioTag) const
     {
-        typedef typename std::conditional<
+        using Tag = typename std::conditional<
             std::is_floating_point<TRet>::value,
             ScaleAsFpTag,
             ScaleAsIntTag
-        >::type Tag;
+        >::type;
 
         return scaleAsInternal<TRet>(Tag());
     }
@@ -233,11 +233,11 @@ private:
         static_assert(std::is_integral<TRet>::value,
             "TRet is expected to be integral type");
 
-        typedef typename std::conditional<
+        using CastType = typename std::conditional<
             std::is_signed<TRet>::value,
             std::intmax_t,
             std::uintmax_t
-        >::type CastType;
+        >::type;
 
         return
             static_cast<TRet>(
@@ -253,11 +253,11 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, HasScalingRatioTag)
     {
-        typedef typename std::conditional<
+        using Tag = typename std::conditional<
             std::is_floating_point<typename std::decay<decltype(val)>::type>::value,
             ScaleAsFpTag,
             ScaleAsIntTag
-        >::type Tag;
+        >::type;
 
         setScaledInternal(val, Tag());
     }
@@ -265,7 +265,7 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, ScaleAsFpTag)
     {
-        typedef typename std::decay<decltype(val)>::type DecayedType;
+        using DecayedType = typename std::decay<decltype(val)>::type;
         auto epsilon = DecayedType(0);
         if (ParsedOptions::ScalingRatio::num < ParsedOptions::ScalingRatio::den) {
             epsilon = static_cast<DecayedType>(ParsedOptions::ScalingRatio::num) / static_cast<DecayedType>(ParsedOptions::ScalingRatio::den + 1);
@@ -287,11 +287,11 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, ScaleAsIntTag)
     {
-        typedef typename std::conditional<
+        using CastType = typename std::conditional<
             std::is_signed<typename std::decay<decltype(val)>::type>::value,
             std::intmax_t,
             std::uintmax_t
-        >::type CastType;
+        >::type;
 
         value() =
             static_cast<ValueType>(

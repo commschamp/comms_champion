@@ -38,13 +38,13 @@ namespace details
 template <typename TNext>
 class NumericFieldAdapterBase : public CommonBase<TNext>
 {
-    typedef CommonBase<TNext> Base;
+    using Base = CommonBase<TNext>;
 public:
-    typedef typename Base::Category Category;
-    typedef typename Base::Next Next;
-    typedef typename Base::ValueType ValueType;
-    typedef typename Next::SerialisedType SerialisedType;
-    typedef typename Next::ScalingRatio ScalingRatio;
+    using Category = typename Base::Category;
+    using Next = typename Base::Next;
+    using ValueType = typename Base::ValueType;
+    using SerialisedType = typename Next::SerialisedType;
+    using ScalingRatio = typename Next::ScalingRatio;
 
     static_assert(
         std::is_base_of<comms::field::category::NumericValueField, Category>::value,

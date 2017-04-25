@@ -38,8 +38,8 @@ namespace adapter
 template <std::size_t TLen, typename TNext>
 class FixedBitLength : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
-    typedef typename Base::Next::SerialisedType NextSerialisedType;
+    using Base = details::AdapterBaseT<TNext>;
+    using NextSerialisedType = typename Base::Next::SerialisedType;
 
     static const std::size_t BitLength = TLen;
     static const std::size_t Length =
@@ -51,15 +51,15 @@ class FixedBitLength : public details::AdapterBaseT<TNext>
 
 public:
 
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
-    typedef typename std::conditional<
+    using SerialisedType = typename std::conditional<
         (Length < sizeof(NextSerialisedType)),
         typename comms::util::SizeToType<Length, std::is_signed<NextSerialisedType>::value>::Type,
         NextSerialisedType
-    >::type SerialisedType;
+    >::type;
 
-    typedef typename Base::Endian Endian;
+    using Endian = typename Base::Endian;
 
     FixedBitLength() = default;
 
@@ -130,19 +130,19 @@ private:
     struct MustSignExtTag {};
 
 
-    typedef typename std::conditional<
+    using HasSignTag = typename std::conditional<
         std::is_signed<SerialisedType>::value,
         SignedTag,
         UnsignedTag
-    >::type HasSignTag;
+    >::type;
 
-    typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerialisedType;
+    using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
-    typedef typename std::conditional<
+    using SignExtTag = typename std::conditional<
         BitLength < std::numeric_limits<UnsignedSerialisedType>::digits,
         MustSignExtTag,
         NoSignExtTag
-    >::type SignExtTag;
+    >::type;
 
 
     static SerialisedType adjustToSerialised(NextSerialisedType val, UnsignedTag)

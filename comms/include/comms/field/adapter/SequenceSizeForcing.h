@@ -35,10 +35,10 @@ namespace adapter
 template <typename TNext>
 class SequenceSizeForcing : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
+    using Base = details::AdapterBaseT<TNext>;
 public:
-    typedef typename Base::ValueType ValueType;
-    typedef typename Base::ElementType ElementType;
+    using ValueType = typename Base::ValueType;
+    using ElementType = typename Base::ElementType;
 
     SequenceSizeForcing() = default;
 

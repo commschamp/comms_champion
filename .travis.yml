@@ -13,7 +13,7 @@ matrix:
             - g++-5
             - cmake
             - cmake-data
-      env: _CC=gcc-5 _CXX=g++5
+      env: _CC=gcc-5 _CXX=g++-5
 
 before_script:
   - mkdir build

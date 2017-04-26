@@ -3,7 +3,6 @@ language: cpp
 matrix:
   include:
     - os: linux
-      compiler: gcc
       addons:
         apt:
           sources: 
@@ -14,11 +13,23 @@ matrix:
             - cmake
             - cmake-data
       env: _CC=gcc-5 _CXX=g++-5
+    - os: linux
+      addons:
+        apt:
+          sources: 
+            - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports
+          packages: 
+            - g++-5
+            - cmake
+            - cmake-data
+      env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=Release
+      
 
 before_script:
   - mkdir build
   - cd build
-  - CC=${_CC} CXX=${_CXX} cmake .. -DCC_COMMS_LIB_ONLY=ON
+  - CC=${_CC} CXX=${_CXX} cmake .. -DCC_COMMS_LIB_ONLY=ON ${_BUILD}
 
 script:
   - make VERBOSE=1

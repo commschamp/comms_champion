@@ -8,11 +8,11 @@ matrix:
         apt:
           sources: 
             - ubuntu-toolchain-r-test
-            - ppa:george-edison55/cmake-3.x
+            - george-edison55-precise-backports
           packages: 
             - g++-5
             - cmake
-      env: CC=gcc-5 CXX=g++-5
+            - cmake-data
 
 before_script:
   - mkdir build

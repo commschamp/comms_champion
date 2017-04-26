@@ -47,10 +47,10 @@ namespace protocol
 template <typename TField, typename TCalc, typename TNextLayer>
 class ChecksumLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    typedef ProtocolLayerBase<TField, TNextLayer> Base;
+    using Base = ProtocolLayerBase<TField, TNextLayer>;
 public:
     /// @brief Type of the field object used to read/write checksum value.
-    typedef typename Base::Field Field;
+    using Field = typename Base::Field;
 
     /// @brief Default constructor.
     ChecksumLayer() = default;
@@ -103,7 +103,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        typedef typename std::decay<decltype(iter)>::type IterType;
+        using IterType = typename std::decay<decltype(iter)>::type;
         static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
             "The read operation is expected to use random access iterator");
 
@@ -146,7 +146,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        typedef typename std::decay<decltype(iter)>::type IterType;
+        using IterType = typename std::decay<decltype(iter)>::type;
         static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
             "The read operation is expected to use random access iterator");
 
@@ -187,8 +187,8 @@ public:
     template <typename TMsg, typename TIter>
     ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
     {
-        typedef typename std::decay<decltype(iter)>::type IterType;
-        typedef typename std::iterator_traits<IterType>::iterator_category Tag;
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using Tag = typename std::iterator_traits<IterType>::iterator_category;
 
         Field field;
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), Tag());
@@ -218,8 +218,8 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        typedef typename std::decay<decltype(iter)>::type IterType;
-        typedef typename std::iterator_traits<IterType>::iterator_category Tag;
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using Tag = typename std::iterator_traits<IterType>::iterator_category;
         auto& field = Base::template getField<TIdx>(allFields);
         return
             writeInternal(
@@ -360,7 +360,7 @@ private:
             return es;
         }
 
-        typedef typename Field::ValueType FieldValueType;
+        using FieldValueType = typename Field::ValueType;
         auto checksum = TCalc()(fromIter, len);
         field.value() = static_cast<FieldValueType>(checksum);
 
@@ -428,7 +428,7 @@ private:
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
         GASSERT(len == (size - Field::maxLength()));
         auto remSize = size - len;
-        typedef typename Field::ValueType FieldValueType;
+        using FieldValueType = typename Field::ValueType;
         field.value() = static_cast<FieldValueType>(TCalc()(fromIter, len));
         es = field.write(iter, remSize);
         return es;

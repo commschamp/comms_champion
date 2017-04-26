@@ -37,16 +37,15 @@ class IntValue : public TFieldBase
 {
     static_assert(std::is_integral<T>::value, "T must be integral value");
 
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 public:
 
-    typedef comms::field::category::NumericValueField Category;
+    using Category = comms::field::category::NumericValueField;
 
-    typedef T ValueType;
+    using ValueType = T;
 
-    typedef ValueType SerialisedType;
-    typedef std::ratio<1, 1> ScalingRatio;
-
+    using SerialisedType = ValueType;
+    using ScalingRatio = std::ratio<1, 1>;
 
     IntValue() = default;
 

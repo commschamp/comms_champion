@@ -211,7 +211,7 @@ private:
     template <typename TRatio, typename TField, typename TVal>
     static void setValueInternal(TField& field, TVal&& value, ConvertToFpTag)
     {
-        typedef typename std::decay<decltype(value)>::type DecayedType;
+        using DecayedType = typename std::decay<decltype(value)>::type;
         using FieldType = typename std::decay<decltype(field)>::type;
         using ValueType = typename FieldType::ValueType;
 

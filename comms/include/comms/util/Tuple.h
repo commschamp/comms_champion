@@ -100,14 +100,14 @@ struct TupleAsAlignedUnion
     /// @brief Type definition is invalid for any type that is not
     ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>,
     ///     will be specialised to proper value.
-    typedef void Type;
+    using Type = void;
 };
 
 /// @cond SKIP_DOC
 template <typename... TTypes>
 struct TupleAsAlignedUnion<std::tuple<TTypes...> >
 {
-    typedef typename AlignedUnion<TTypes...>::Type Type;
+    using Type = typename AlignedUnion<TTypes...>::Type;
 };
 /// @endcond
 
@@ -153,7 +153,7 @@ public:
     template <typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
-        typedef typename std::decay<TTuple>::type Tuple;
+        using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
         static const std::size_t OffsetedRem = TRem + TOff;
@@ -196,7 +196,7 @@ public:
 template <typename TTuple, typename TFunc>
 void tupleForEach(TTuple&& tuple, TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
 
     details::TupleForEachHelper<TupleSize>::exec(
@@ -216,7 +216,7 @@ void tupleForEach(TTuple&& tuple, TFunc&& func)
 template <std::size_t TIdx, typename TTuple, typename TFunc>
 void tupleForEachUntil(TTuple&& tuple, TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
@@ -237,7 +237,7 @@ void tupleForEachUntil(TTuple&& tuple, TFunc&& func)
 template <std::size_t TIdx, typename TTuple, typename TFunc>
 void tupleForEachFrom(TTuple&& tuple, TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static_assert(TIdx <= TupleSize,
         "The index is too big.");
@@ -261,7 +261,7 @@ void tupleForEachFrom(TTuple&& tuple, TFunc&& func)
 template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TTuple, typename TFunc>
 void tupleForEachFromUntil(TTuple&& tuple, TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
     static_assert(TFromIdx <= TupleSize,
         "The from index is too big.");
@@ -290,13 +290,13 @@ public:
     template <typename TTuple, typename TFunc>
     static void exec(TFunc&& func)
     {
-        typedef typename std::decay<TTuple>::type Tuple;
+        using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
         static_assert(TRem <= TupleSize, "Incorrect TRem");
 
         static const std::size_t Idx = TupleSize - TRem;
-        typedef typename std::tuple_element<Idx, Tuple>::type ElemType;
+        using ElemType = typename std::tuple_element<Idx, Tuple>::type;
 #ifdef _MSC_VER
         // VS compiler
         func.operator()<ElemType>();
@@ -335,7 +335,7 @@ public:
 template <typename TTuple, typename TFunc>
 void tupleForEachType(TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
 
     details::TupleForEachTypeHelper<TupleSize>::template exec<Tuple>(
@@ -355,7 +355,7 @@ public:
     template <typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
-        typedef typename std::decay<TTuple>::type Tuple;
+        using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
         static_assert(TRem <= TupleSize, "Incorrect TRem");
@@ -400,7 +400,7 @@ public:
 template <typename TTuple, typename TFunc>
 void tupleForEachWithIdx(TTuple&& tuple, TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
 
     details::TupleForEachWithIdxHelper<TupleSize>::exec(
@@ -419,7 +419,7 @@ public:
     template <typename TTuple, typename TFunc>
     static void exec(TTuple&& tuple, TFunc&& func)
     {
-        typedef typename std::decay<TTuple>::type Tuple;
+        using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
         static_assert(TRem <= TupleSize, "Incorrect TRem");
@@ -471,7 +471,7 @@ public:
 template <typename TTuple, typename TFunc>
 void tupleForEachWithTemplateParamIdx(TTuple&& tuple, TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
     static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
 
     details::TupleForEachWithTemplateParamIdxHelper<TupleSize>::exec(
@@ -493,7 +493,7 @@ public:
     template <typename TTuple, typename TValue, typename TFunc>
     static constexpr TValue exec(TTuple&& tuple, const TValue& value, TFunc&& func)
     {
-        typedef typename std::decay<TTuple>::type Tuple;
+        using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
 
@@ -539,7 +539,7 @@ public:
 template <typename TTuple, typename TValue, typename TFunc>
 constexpr TValue tupleAccumulate(TTuple&& tuple, const TValue& value, TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
 
     return details::TupleAccumulateHelper<std::tuple_size<Tuple>::value>::exec(
                 std::forward<TTuple>(tuple),
@@ -560,7 +560,7 @@ public:
     template <typename TTuple, typename TValue, typename TFunc>
     static constexpr TValue exec(const TValue& value, TFunc&& func)
     {
-        typedef typename std::decay<TTuple>::type Tuple;
+        using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
         static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
 
@@ -608,7 +608,7 @@ public:
 template <typename TTuple, typename TValue, typename TFunc>
 constexpr TValue tupleTypeAccumulate(const TValue& value, TFunc&& func)
 {
-    typedef typename std::decay<TTuple>::type Tuple;
+    using Tuple = typename std::decay<TTuple>::type;
     return details::TupleTypeAccumulateHelper<std::tuple_size<Tuple>::value>::template exec<Tuple>(
         value,
         std::forward<TFunc>(func));
@@ -627,7 +627,7 @@ struct TupleCat
     static_assert(IsTuple<TSecond>::Value, "TSecond must be tuple");
 
     /// @brief Result type of tuples concatenation.
-    typedef typename std::decay<decltype(std::tuple_cat(std::declval<TFirst>(), std::declval<TSecond>()))>::type Type;
+    using Type = typename std::decay<decltype(std::tuple_cat(std::declval<TFirst>(), std::declval<TSecond>()))>::type;
 };
 
 /// @brief Alias to typename TupleCat<TField, TTuple>::Type

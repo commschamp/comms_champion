@@ -122,7 +122,7 @@ class DynMemory
 {
 public:
     /// @brief Smart pointer (std::unique_ptr) to the allocated object
-    typedef std::unique_ptr<TInterface> Ptr;
+    using Ptr = std::unique_ptr<TInterface>;
 
     /// @brief Allocation function
     /// @tparam TObj Type of the object being allocated, expected to be the
@@ -168,7 +168,7 @@ public:
     /// @brief Smart pointer (std::unique_ptr) to the allocated object.
     /// @details The custom deleter makes sure the destructor of the
     ///     allocated object is called.
-    typedef std::unique_ptr<TInterface, details::InPlaceDeleter<TInterface> > Ptr;
+    using Ptr = std::unique_ptr<TInterface, details::InPlaceDeleter<TInterface> >;
 
     /// @brief Allocation function
     /// @tparam TObj Type of the object being allocated, expected to be the
@@ -239,7 +239,7 @@ public:
     }
 
 private:
-    typedef typename TupleAsAlignedUnion<TAllTypes>::Type AlignedStorage;
+    using AlignedStorage = typename TupleAsAlignedUnion<TAllTypes>::Type;
 
     AlignedStorage place_;
     bool allocated_ = false;
@@ -257,13 +257,13 @@ private:
 template <typename TInterface, std::size_t TSize, typename TAllTypes = std::tuple<TInterface> >
 class InPlacePool
 {
-    typedef InPlaceSingle<TInterface, TAllTypes> PoolElem;
-    typedef std::array<PoolElem, TSize> Pool;
+    using PoolElem = InPlaceSingle<TInterface, TAllTypes>;
+    using Pool = std::array<PoolElem, TSize>;
 public:
 
     /// @brief Smart pointer (std::unique_ptr) to the allocated object.
     /// @details Same as InPlaceSingle::Ptr;
-    typedef typename PoolElem::Ptr Ptr;
+    using Ptr = typename PoolElem::Ptr;
 
     /// @copydoc InPlaceSingle::alloc
     template <typename TObj, typename... TArgs>

@@ -35,13 +35,12 @@ namespace basic
 template <typename TFieldBase>
 class NoValue : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 public:
 
-    typedef comms::field::category::NumericValueField Category;
-
-    typedef unsigned ValueType;
-    typedef ValueType SerialisedType;
+    using Category = comms::field::category::NumericValueField;
+    using ValueType = unsigned;
+    using SerialisedType = ValueType;
 
     NoValue() = default;
 

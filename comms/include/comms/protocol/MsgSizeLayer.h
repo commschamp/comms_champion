@@ -39,11 +39,11 @@ template <typename TField,
           typename TNextLayer>
 class MsgSizeLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    typedef ProtocolLayerBase<TField, TNextLayer> Base;
+    using Base = ProtocolLayerBase<TField, TNextLayer>;
 
 public:
     /// @brief Type of the field object used to read/write remaining size value.
-    typedef typename Base::Field Field;
+    using Field = typename Base::Field;
 
     static_assert(comms::field::isIntValue<Field>(),
         "Field must be of IntValue type");
@@ -184,7 +184,7 @@ public:
     template <typename TMsg, typename TIter>
     ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
     {
-        typedef typename std::decay<decltype(msg)>::type MsgType;
+        using MsgType = typename std::decay<decltype(msg)>::type;
         Field field;
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), MsgLengthTag<MsgType>());
     }
@@ -213,7 +213,7 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        typedef typename std::decay<decltype(msg)>::type MsgType;
+        using MsgType = typename std::decay<decltype(msg)>::type;
         auto& field = Base::template getField<TIdx>(allFields);
         return
             writeInternal(
@@ -291,8 +291,8 @@ private:
         std::size_t* missingSize,
         TReader&& reader)
     {
-        typedef typename std::decay<decltype(iter)>::type IterType;
-        typedef typename std::iterator_traits<IterType>::iterator_category IterTag;
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using IterTag = typename std::iterator_traits<IterType>::iterator_category;
         static_assert(
             std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
             "Current implementation of MsgSizeLayer requires iterator used for reading to be random-access one.");
@@ -345,7 +345,7 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        typedef typename Field::ValueType FieldValueType;
+        using FieldValueType = typename Field::ValueType;
         field.value() =
             static_cast<FieldValueType>(Base::nextLayer().length(msg));
         auto es = field.write(iter, size);
@@ -441,8 +441,8 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        typedef typename std::decay<decltype(iter)>::type IterType;
-        typedef typename std::iterator_traits<IterType>::iterator_category Tag;
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using Tag = typename std::iterator_traits<IterType>::iterator_category;
         return writeInternalNoLengthTagged(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter), Tag());
     }
 
@@ -479,7 +479,7 @@ private:
     template <typename TMsg>
     std::size_t lengthInternal(const TMsg& msg, VarLengthTag) const
     {
-        typedef typename Field::ValueType FieldValueType;
+        using FieldValueType = typename Field::ValueType;
         auto remSize = Base::nextLayer().length(msg);
         return Field(static_cast<FieldValueType>(remSize)).length() + remSize;
     }

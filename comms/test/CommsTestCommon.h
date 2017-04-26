@@ -39,7 +39,7 @@ enum MessageType {
 template <typename TTraits>
 class TestMessageBase : public comms::Message<TTraits>
 {
-    typedef comms::Message<TTraits> Base;
+    using Base = comms::Message<TTraits>;
 public:
 
     virtual ~TestMessageBase() {}
@@ -193,15 +193,6 @@ class Message4 : public
         comms::option::HasDoRefresh
     >
 {
-    typedef
-        comms::MessageBase<
-                TMessage,
-                comms::option::StaticNumIdImpl<MessageType4>,
-                comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
-                comms::option::MsgType<Message4<TMessage> >,
-                comms::option::HasDoRefresh
-            > Base;
-
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
@@ -304,7 +295,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     std::size_t bufSize,
     comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
 {
-    typedef typename TProtStack::MsgPtr MsgPtr;
+    using MsgPtr = typename TProtStack::MsgPtr;
 
     MsgPtr msg;
     auto readIter = buf;
@@ -334,7 +325,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     std::size_t bufSize,
     comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
 {
-    typedef typename TProtStack::MsgPtr MsgPtr;
+    using MsgPtr = typename TProtStack::MsgPtr;
 
     MsgPtr msg;
     auto readIter = buf;
@@ -365,7 +356,7 @@ typename TProtStack::MsgPtr vectorBackInsertReadWriteMsgTest(
     std::size_t bufSize,
     comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
 {
-    typedef typename TProtStack::MsgPtr MsgPtr;
+    using MsgPtr = typename TProtStack::MsgPtr;
 
     MsgPtr msg;
     auto readIter = buf;
@@ -423,7 +414,7 @@ void commonWriteReadMsgTest(
     auto constBuf = static_cast<const char*>(buf);
     TS_ASSERT(std::equal(constBuf, constBuf + bufSize, &expectedBuf[0]));
 
-    typedef typename TProtStack::MsgPtr MsgPtr;
+    using MsgPtr = typename TProtStack::MsgPtr;
     MsgPtr msgPtr;
     auto readIter = expectedBuf;
     es = stack.read(msgPtr, readIter, bufSize);
@@ -474,7 +465,7 @@ void vectorBackInsertWriteReadMsgTest(
     }
     TS_ASSERT(bufEquals);
 
-    typedef typename TProtStack::MsgPtr MsgPtr;
+    using MsgPtr = typename TProtStack::MsgPtr;
     MsgPtr msgPtr;
     const char* readIter = &buf[0];
     es = stack.read(msgPtr, readIter, buf.size());

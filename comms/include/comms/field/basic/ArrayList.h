@@ -91,13 +91,13 @@ struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticString<TSize> >
 template <typename TFieldBase, typename TStorage>
 class ArrayList : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 public:
-    typedef comms::field::category::CollectionField Category;
-    typedef typename Base::Endian Endian;
+    using Category = comms::field::category::CollectionField;
+    using Endian = typename Base::Endian;
 
-    typedef typename TStorage::value_type ElementType;
-    typedef TStorage ValueType;
+    using ElementType = typename TStorage::value_type;
+    using ValueType = TStorage;
 
     ArrayList() = default;
 
@@ -283,17 +283,17 @@ private:
     struct FixedLengthTag {};
     struct VarLengthTag {};
 
-    typedef typename std::conditional<
+    using ElemTag = typename std::conditional<
         std::is_integral<ElementType>::value,
         IntegralElemTag,
         FieldElemTag
-    >::type ElemTag;
+    >::type;
 
-    typedef typename std::conditional<
+    using FieldLengthTag = typename std::conditional<
         details::ArrayListFieldHasVarLength<ElementType>::Value,
         VarLengthTag,
         FixedLengthTag
-    >::type FieldLengthTag;
+    >::type;
 
     constexpr std::size_t lengthInternal(FieldElemTag) const
     {

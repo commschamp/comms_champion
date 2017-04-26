@@ -13,11 +13,12 @@ matrix:
             - g++-5
             - cmake
             - cmake-data
+      env: _CC=gcc-5 _CXX=g++5
 
 before_script:
   - mkdir build
   - cd build
-  - cmake .. -DCC_COMMS_LIB_ONLY=ON
+  - CC=${_CC} CXX=${_CXX} cmake .. -DCC_COMMS_LIB_ONLY=ON
 
 script:
   - make VERBOSE=1

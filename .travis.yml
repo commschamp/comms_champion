@@ -8,10 +8,12 @@ matrix:
           sources: 
             - ubuntu-toolchain-r-test
             - george-edison55-precise-backports
+            - beineri/opt-qt551
           packages: 
             - g++-5
             - cmake
             - cmake-data
+            - qt-latest
       env: _CC=gcc-5 _CXX=g++-5
     - os: linux
       addons:
@@ -19,19 +21,21 @@ matrix:
           sources: 
             - ubuntu-toolchain-r-test
             - george-edison55-precise-backports
+            - beineri/opt-qt551            
           packages: 
             - g++-5
             - cmake
             - cmake-data
+            - qt-latest
       env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=Release
       
 
 before_script:
   - mkdir build
   - cd build
-  - CC=${_CC} CXX=${_CXX} cmake .. -DCC_COMMS_LIB_ONLY=ON ${_BUILD}
+  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD}
 
 script:
-  - make VERBOSE=1
+  - VERBOSE=1 make install
   - ctest
 

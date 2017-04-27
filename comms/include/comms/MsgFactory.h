@@ -21,7 +21,10 @@
 #include <type_traits>
 #include <algorithm>
 
-#include "details/MsgFactoryBase.h"
+#include "comms/Assert.h"
+#include "comms/util/Tuple.h"
+#include "comms/util/alloc.h"
+#include "details/MsgFactoryOptionsParser.h"
 
 namespace comms
 {
@@ -61,14 +64,23 @@ namespace comms
 ///     message can be allocated. The next one can be allocated only after previous
 ///     message has been destructed.
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
-class MsgFactory : public details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
+class MsgFactory
 {
-    using Base = details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
-
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
         "Usage of MsgFactory requires Message interface to provide ID type. "
         "Use comms::option::MsgIdType option in message interface type definition.");
+    using ParsedOptionsInternal = details::MsgFactoryOptionsParser<TOptions...>;
+
+    using Alloc =
+        typename std::conditional<
+            ParsedOptionsInternal::HasInPlaceAllocation,
+            util::alloc::InPlaceSingle<TMsgBase, TAllMessages>,
+            util::alloc::DynMemory<TMsgBase>
+        >::type;
+
 public:
+
+    using ParsedOptions = ParsedOptionsInternal;
 
     /// @brief Type of the common base class of all the messages.
     using Message = TMsgBase;
@@ -82,10 +94,10 @@ public:
     /// @brief Smart pointer to @ref Message which holds allocated message object.
     /// @details It is a variant of std::unique_ptr, based on whether
     ///     comms::option::InPlaceAllocation option was used.
-    using MsgPtr = typename Base::MsgPtr;
+    using MsgPtr = typename Alloc::Ptr;
 
     /// @brief All messages provided as template parameter to this class.
-    using AllMessages = typename Base::AllMessages;
+    using AllMessages = TAllMessages;
 
     /// @brief Constructor.
     MsgFactory()
@@ -152,6 +164,7 @@ public:
     }
 
 private:
+
     class FactoryMethod
     {
     public:
@@ -303,7 +316,22 @@ private:
         util::tupleForEachType<AllMessages>(MsgFactoryCreator(registry_));
     }
 
+    template <typename TObj, typename... TArgs>
+    MsgPtr allocMsg(TArgs&&... args) const
+    {
+        static_assert(std::is_base_of<Message, TObj>::value,
+            "TObj is not a proper message type");
+
+        static_assert(
+            (!ParsedOptionsInternal::HasInPlaceAllocation) ||
+                    comms::util::IsInTuple<TObj, AllMessages>::Value,
+            "TObj must be in provided tuple of supported messages");
+
+        return alloc_.template alloc<TObj>(std::forward<TArgs>(args)...);
+    }
+
     MethodsRegistry registry_;
+    mutable Alloc alloc_;
 };
 
 

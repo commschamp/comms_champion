@@ -38,6 +38,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
+  - source /opt/qt55/bin/qt55-env.sh
   - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD}
 
 script:

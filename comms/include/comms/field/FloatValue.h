@@ -52,27 +52,29 @@ namespace field
 ///     @li comms::option::ContentsValidator or comms::option::ValidNumValueRange.
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+///     @li comms::option::Units* - all variants of value units, see
+///         @ref sec_field_tutorial_int_value_units for details.
 template <typename TFieldBase, typename T, typename... TOptions>
 class FloatValue : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
-    typedef basic::FloatValue<TFieldBase, T> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+    using BasicField = basic::FloatValue<TFieldBase, T>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
     static_assert(std::is_base_of<comms::field::category::NumericValueField, typename ThisField::Category>::value,
         "ThisField is expected to be of NumericFieldCategory");
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef details::OptionsParser<TOptions...> ParsedOptions;
+    using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
-    typedef tag::Float Tag;
+    using Tag = tag::Float;
 
     /// @brief Type of underlying floating point value.
     /// @details Same as template parameter T to this class.
-    typedef typename ThisField::ValueType ValueType;
+    using ValueType = typename ThisField::ValueType;
 
     /// @brief Default constructor
     /// @details Initialises internal value to 0.

@@ -39,16 +39,16 @@ class FloatValue : public TFieldBase
 {
     static_assert(std::is_floating_point<T>::value, "T must be floating point value");
 
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 public:
 
-    typedef comms::field::category::NumericValueField Category;
+    using Category = comms::field::category::NumericValueField;
 
-    typedef T ValueType;
+    using ValueType = T;
 
-    typedef typename comms::util::SizeToType<sizeof(ValueType), false>::Type SerialisedType;
+    using SerialisedType = typename comms::util::SizeToType<sizeof(ValueType), false>::Type;
 
-    typedef std::ratio<1, 1> ScalingRatio;
+    using ScalingRatio = std::ratio<1, 1>;
 
     FloatValue() = default;
 

@@ -47,30 +47,28 @@ struct BitfieldMemberLengthRetrieveHelper;
 template <typename TField>
 struct BitfieldMemberLengthRetrieveHelper<TField, true>
 {
-    typedef typename TField::ParsedOptions FieldOptions;
-    static const std::size_t Value = FieldOptions::FixedBitLength;
+    static const std::size_t Value = TField::ParsedOptions::FixedBitLength;
 };
 
 template <typename TField>
 struct BitfieldMemberLengthRetrieveHelper<TField, false>
 {
-    typedef typename TField::ValueType ValueType;
-    static const std::size_t Value = std::numeric_limits<ValueType>::digits;
+    static const std::size_t Value =
+            std::numeric_limits<typename TField::ValueType>::digits;
 };
 
 template <typename TField>
 struct BitfieldMemberLengthRetriever
 {
-    typedef typename TField::ParsedOptions FieldOptions;
     static const auto Value =
-        BitfieldMemberLengthRetrieveHelper<TField, FieldOptions::HasFixedBitLengthLimit>::Value;
+        BitfieldMemberLengthRetrieveHelper<TField, TField::ParsedOptions::HasFixedBitLengthLimit>::Value;
 };
 
 template <std::size_t TRem, typename TMembers>
 class BitfieldBitLengthCalcHelper
 {
     static const auto Idx = std::tuple_size<TMembers>::value - TRem;
-    typedef typename std::tuple_element<Idx, TMembers>::type FieldType;
+    using FieldType = typename std::tuple_element<Idx, TMembers>::type;
 
 public:
     static const std::size_t Value =
@@ -95,8 +93,8 @@ template <std::size_t TIdx, typename TMembers>
 struct BitfieldPosRetrieveHelper
 {
     static_assert(TIdx < std::tuple_size<TMembers>::value, "Invalid tuple element");
-    typedef typename std::tuple_element<TIdx - 1, TMembers>::type FieldType;
-    typedef typename FieldType::ParsedOptions FieldOptions;
+    using FieldType = typename std::tuple_element<TIdx - 1, TMembers>::type;
+    using FieldOptions = typename FieldType::ParsedOptions;
 
     static const auto PrevFieldSize = FieldOptions::FixedBitLength;
 
@@ -123,7 +121,7 @@ constexpr std::size_t getMemberShiftPos()
 template <typename TFieldBase, typename TMembers>
 class Bitfield : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
     static_assert(comms::util::IsTuple<TMembers>::Value, "TMembers is expected to be a tuple of BitfieldMember<...>");
 
@@ -139,32 +137,32 @@ class Bitfield : public TFieldBase
 
     static const std::size_t Length = TotalBits / std::numeric_limits<std::uint8_t>::digits;
     static_assert(0U < Length, "Serialised length is expected to be greater than 0");
-    typedef typename comms::util::SizeToType<Length, false>::Type SerialisedType;
+    using SerialisedType = typename comms::util::SizeToType<Length, false>::Type;
 
-    typedef
+    using FixedIntValueField =
         comms::field::IntValue<
             TFieldBase,
             SerialisedType,
             comms::option::FixedLength<Length>
-        > FixedIntValueField;
+        >;
 
 
-    typedef
+    using SimpleIntValueField =
         comms::field::IntValue<
             TFieldBase,
             SerialisedType
-        > SimpleIntValueField;
+        >;
 
-    typedef typename std::conditional<
+    using IntValueField = typename std::conditional<
         ((Length & (Length - 1)) == 0),
         SimpleIntValueField,
         FixedIntValueField
-    >::type IntValueField;
+    >::type;
 
 public:
-    typedef comms::field::category::BundleField Category;
-    typedef typename Base::Endian Endian;
-    typedef TMembers ValueType;
+    using Category = comms::field::category::BundleField;
+    using Endian = typename Base::Endian;
+    using ValueType = TMembers;
 
     Bitfield() = default;
     explicit Bitfield(const ValueType& val)
@@ -252,8 +250,8 @@ private:
                 return;
             }
 
-            typedef typename std::decay<decltype(field)>::type FieldType;
-            typedef typename FieldType::ParsedOptions FieldOptions;
+            using FieldType = typename std::decay<decltype(field)>::type;
+            using FieldOptions = typename FieldType::ParsedOptions;
             static const auto Pos = details::getMemberShiftPos<TIdx, ValueType>();
             static const auto Mask =
                 (static_cast<SerialisedType>(1) << FieldOptions::FixedBitLength) - 1;
@@ -267,7 +265,7 @@ private:
             static const std::size_t MaxLength = FieldType::maxLength();
             std::uint8_t buf[MaxLength];
             auto* writeIter = &buf[0];
-            typedef typename FieldType::Endian FieldEndian;
+            using FieldEndian = typename FieldType::Endian;
             comms::util::writeData<MaxLength>(fieldSerValue, writeIter, FieldEndian());
 
             const auto* readIter = &buf[0];
@@ -293,7 +291,7 @@ private:
                 return;
             }
 
-            typedef typename std::decay<decltype(field)>::type FieldType;
+            using FieldType = typename std::decay<decltype(field)>::type;
 
             static_assert(FieldType::minLength() == FieldType::maxLength(),
                 "Bitfield supports fixed length members only.");
@@ -306,11 +304,11 @@ private:
                 return;
             }
 
-            typedef typename FieldType::Endian FieldEndian;
+            using FieldEndian = typename FieldType::Endian;
             const auto* readIter = &buf[0];
             auto fieldSerValue = comms::util::readData<SerialisedType, MaxLength>(readIter, FieldEndian());
 
-            typedef typename FieldType::ParsedOptions FieldOptions;
+            using FieldOptions = typename FieldType::ParsedOptions;
             static const auto Pos = details::getMemberShiftPos<TIdx, ValueType>();
             static const auto Mask =
                 (static_cast<SerialisedType>(1) << FieldOptions::FixedBitLength) - 1;

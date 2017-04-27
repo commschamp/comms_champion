@@ -33,6 +33,29 @@ namespace comms
 namespace option
 {
 
+namespace details
+{
+
+template <typename T>
+struct IsRatio
+{
+    static const bool Value = false;
+};
+
+template <std::intmax_t TNum, std::intmax_t TDen>
+struct IsRatio<std::ratio<TNum, TDen> >
+{
+    static const bool Value = true;
+};
+
+template <typename T>
+constexpr bool isRatio()
+{
+    return IsRatio<T>::Value;
+}
+
+} // namespace details
+
 // Message/Field common options
 
 /// @brief Options to specify endian.
@@ -41,7 +64,6 @@ namespace option
 template <typename TEndian>
 struct Endian
 {
-    typedef TEndian Type;
 };
 
 /// @brief Alias option to Endian specifying Big endian.
@@ -56,26 +78,17 @@ struct EmptyOption {};
 /// @brief Option used to specify type of the ID.
 /// @tparam T Type of the message ID.
 template <typename T>
-struct MsgIdType
-{
-    typedef T Type;
-};
+struct MsgIdType {};
 
 /// @brief Option used to specify type of iterator used for reading.
 /// @tparam TIter Type of the iterator.
 template <typename TIter>
-struct ReadIterator
-{
-    typedef TIter Type;
-};
+struct ReadIterator {};
 
 /// @brief Option used to specify type of iterator used for writing.
 /// @tparam TIter Type of the iterator.
 template <typename TIter>
-struct WriteIterator
-{
-    typedef TIter Type;
-};
+struct WriteIterator {};
 
 /// @brief Option used to add @b getId() function into Message interface.
 struct IdInfoInterface {};
@@ -92,28 +105,19 @@ struct RefreshInterface {};
 /// @brief Option used to specify type of the message handler.
 /// @tparam T Type of the handler.
 template <typename T>
-struct Handler
-{
-    typedef T Type;
-};
+struct Handler {};
 
 /// @brief Option used to specify numeric ID of the message.
 /// @tparam TId Numeric ID value.
 template <std::intmax_t TId>
-struct StaticNumIdImpl
-{
-    static const auto Value = TId;
-};
+struct StaticNumIdImpl {};
 
 /// @brief Option used to specify that message doesn't have valid ID.
 struct NoIdImpl {};
 
 /// @brief Option used to specify actual type of the message.
 template <typename TMsg>
-struct MsgType
-{
-    typedef TMsg Type;
-};
+struct MsgType {};
 
 /// @brief Option used to inhibit default implementation of @b dispatchImpl()
 ///     in comms::MessageBase.
@@ -131,7 +135,6 @@ struct FieldsImpl;
 template <typename... TFields>
 struct FieldsImpl<std::tuple<TFields...> >
 {
-    typedef std::tuple<TFields...> Fields;
 };
 /// @endcond
 
@@ -187,10 +190,7 @@ struct InPlaceAllocation {};
 ///     @endcode
 /// @tparam TLen Length of the serialised value.
 template<std::size_t TLen>
-struct FixedLength
-{
-    static const std::size_t Value = TLen;
-};
+struct FixedLength {};
 
 /// @brief Option used to specify number of bits that is used for field serialisation
 ///     when a field is a member of comms::field::Bitfield.
@@ -218,10 +218,7 @@ struct FixedLength
 ///     @endcode
 /// @tparam TLen Length of the serialised value in bits.
 template<std::size_t TLen>
-struct FixedBitLength
-{
-    static const std::size_t Value = TLen;
-};
+struct FixedBitLength {};
 
 /// @brief Option used to specify that field may have variable serialisation length
 /// @details Applicable only to numeric fields, such as comms::field::IntValue
@@ -249,8 +246,6 @@ template<std::size_t TMin, std::size_t TMax>
 struct VarLength
 {
     static_assert(TMin <= TMax, "TMin must not be greater that TMax.");
-    static const std::size_t MinValue = TMin;
-    static const std::size_t MaxValue = TMax;
 };
 
 /// @brief Option to specify numeric value serialisation offset.
@@ -280,10 +275,7 @@ struct VarLength
 ///     comms::option::FixedLength option) and reduced value of 15 is written.
 /// @tparam TOffset Offset value to be added when serialising field.
 template<std::intmax_t TOffset>
-struct NumValueSerOffset
-{
-    static const auto Value = TOffset;
-};
+struct NumValueSerOffset {};
 
 /// @brief Option that forces usage of embedded uninitialised data area instead
 ///     of dynamic memory allocation.
@@ -298,10 +290,7 @@ struct NumValueSerOffset
 /// @tparam TSize Size of the storage area, for strings it does @b NOT include
 ///     the '\0' terminating character.
 template <std::size_t TSize>
-struct FixedSizeStorage
-{
-    static const std::size_t Value = TSize;
-};
+struct FixedSizeStorage {};
 
 /// @brief Set custom storage type for fields like comms::field::String or
 ///     comms::field::ArrayList.
@@ -317,10 +306,7 @@ struct FixedSizeStorage
 ///     comms::field::ArrayList).
 /// @tparam TType Custom storage type
 template <typename TType>
-struct CustomStorageType
-{
-    typedef TType Type;
-};
+struct CustomStorageType {};
 
 /// @brief Option to specify scaling ratio.
 /// @details Applicable only to comms::field::IntValue.
@@ -352,7 +338,8 @@ struct CustomStorageType
 template <std::intmax_t TNum, std::intmax_t TDenom>
 struct ScalingRatio
 {
-    typedef std::ratio<TNum, TDenom> Type;
+    static_assert(TNum != 0, "Wrong scaling ratio");
+    static_assert(TDenom != 0, "Wrong scaling ratio");
 };
 
 /// @brief Option that modify the default behaviour of collection fields to
@@ -377,10 +364,7 @@ struct ScalingRatio
 ///     @endcode
 /// @tparam TField Type of the field that represents size
 template <typename TField>
-struct SequenceSizeFieldPrefix
-{
-    typedef TField Type;
-};
+struct SequenceSizeFieldPrefix {};
 
 /// @brief Option that forces termination of the sequence when predefined value
 ///     is encountered.
@@ -399,10 +383,7 @@ struct SequenceSizeFieldPrefix
 ///     @endcode
 /// @tparam TField Type of the field that represents suffix
 template <typename TField>
-struct SequenceTerminationFieldSuffix
-{
-    typedef TField Type;
-};
+struct SequenceTerminationFieldSuffix {};
 
 /// @brief Option that forces collection fields to append provides suffix every
 ///     time it is serialised.
@@ -425,10 +406,7 @@ struct SequenceTerminationFieldSuffix
 ///     @endcode
 /// @tparam TField Type of the field that represents suffix
 template <typename TField>
-struct SequenceTrailingFieldSuffix
-{
-    typedef TField Type;
-};
+struct SequenceTrailingFieldSuffix {};
 
 /// @brief Option to enable external forcing of the collection's field size.
 /// @details Sometimes the size information is detached from the data sequence
@@ -440,9 +418,7 @@ struct SequenceTrailingFieldSuffix
 ///     the collection fields, such as comms::field::ArrayList or comms::field::String
 ///     which can be used to specify the size information after it was read
 ///     independently.
-struct SequenceSizeForcingEnabled
-{
-};
+struct SequenceSizeForcingEnabled {};
 
 /// @brief Option used to define exact number of elements in the collection field.
 /// @details Protocol specification may define that there is exact number of
@@ -450,10 +426,7 @@ struct SequenceSizeForcingEnabled
 ///     this information to the field definition, which will force @b read() and
 ///     @b write() member functions of the collection field to behave as expected.
 template <std::size_t TSize>
-struct SequenceFixedSize
-{
-    static const std::size_t Value = TSize;
-};
+struct SequenceFixedSize {};
 
 /// @brief Option that specifies default initialisation class.
 /// @details Use this option when default constructor of the field must assign
@@ -489,10 +462,7 @@ struct SequenceFixedSize
 ///     @endcode
 /// @tparam T Type of the initialiser class.
 template <typename T>
-struct DefaultValueInitialiser
-{
-    typedef T Type;
-};
+struct DefaultValueInitialiser {};
 
 /// @brief Option that specifies custom validation class.
 /// @details By default, value of every field is considered to be valid
@@ -535,14 +505,11 @@ struct DefaultValueInitialiser
 ///     value.
 /// @tparam T Type of the initialiser class.
 template <typename T>
-struct ContentsValidator
-{
-    typedef T Type;
-};
+struct ContentsValidator {};
 
 /// @brief Option that specifies custom value reader class.
 /// @details It may be useful to override default reading functionality for complex
-///     fields, such as comms::field::Bundle, where how members are read are
+///     fields, such as comms::field::Bundle, where the way members are read is
 ///     defined by the values of other members. For example, bundle of two integer
 ///     fields, the first one is normal, and the second one is optional.
 ///     The optional mode of the latter is determined by
@@ -609,10 +576,7 @@ struct ContentsValidator
 ///     @endcode
 /// @tparam T Type of the custom reader class.
 template <typename T>
-struct CustomValueReader
-{
-    typedef T Type;
-};
+struct CustomValueReader {};
 
 /// @brief Option that forces field's read operation to fail if invalid value
 ///     is received.
@@ -636,6 +600,168 @@ struct IgnoreInvalid {};
 ///     even if there are other virtual functions defined.
 struct NoVirtualDestructor {};
 
+/// @brief Options to specify units of the field.
+/// @tparam TType Type of the unints, can be any type from comms::traits::units
+///     namespace.
+/// @tparam TRatio Ratio within the units type, must be a variant of
+///     @b std::ratio type.
+template <typename TType, typename TRatio>
+struct Units
+{
+    static_assert(details::isRatio<TRatio>(),
+        "TRatio parameter must be a variant of std::ratio");
+
+    static_assert(TRatio::num != 0, "Wrong ratio value");
+    static_assert(TRatio::den != 0, "Wrong ratio value");
+};
+
+/// @brief Alias option, specifying field value units are "nanoseconds".
+using UnitsNanoseconds =
+    Units<comms::traits::units::Time, comms::traits::units::NanosecondsRatio>;
+
+/// @brief Alias option, specifying field value units are "microseconds".
+using UnitsMicroseconds =
+    Units<comms::traits::units::Time, comms::traits::units::MicrosecondsRatio>;
+
+/// @brief Alias option, specifying field value units are "milliseconds".
+using UnitsMilliseconds =
+    Units<comms::traits::units::Time, comms::traits::units::MillisecondsRatio>;
+
+/// @brief Alias option, specifying field value units are "seconds".
+using UnitsSeconds =
+    Units<comms::traits::units::Time, comms::traits::units::SecondsRatio>;
+
+/// @brief Alias option, specifying field value units are "minutes".
+using UnitsMinutes =
+    Units<comms::traits::units::Time, comms::traits::units::MinutesRatio>;
+
+/// @brief Alias option, specifying field value units are "hours".
+using UnitsHours =
+    Units<comms::traits::units::Time, comms::traits::units::HoursRatio>;
+
+/// @brief Alias option, specifying field value units are "days".
+using UnitsDays =
+    Units<comms::traits::units::Time, comms::traits::units::DaysRatio>;
+
+/// @brief Alias option, specifying field value units are "weeks".
+using UnitsWeeks =
+    Units<comms::traits::units::Time, comms::traits::units::WeeksRatio>;
+
+/// @brief Alias option, specifying field value units are "nanometers".
+using UnitsNanometers =
+    Units<comms::traits::units::Distance, comms::traits::units::NanometersRatio>;
+
+/// @brief Alias option, specifying field value units are "micrometers".
+using UnitsMicrometers =
+    Units<comms::traits::units::Distance, comms::traits::units::MicrometersRatio>;
+
+/// @brief Alias option, specifying field value units are "millimeters".
+using UnitsMillimeters =
+    Units<comms::traits::units::Distance, comms::traits::units::MillimetersRatio>;
+
+/// @brief Alias option, specifying field value units are "centimeters".
+using UnitsCentimeters =
+    Units<comms::traits::units::Distance, comms::traits::units::CentimetersRatio>;
+
+/// @brief Alias option, specifying field value units are "meters".
+using UnitsMeters =
+    Units<comms::traits::units::Distance, comms::traits::units::MetersRatio>;
+
+/// @brief Alias option, specifying field value units are "kilometers".
+using UnitsKilometers =
+    Units<comms::traits::units::Distance, comms::traits::units::KilometersRatio>;
+
+/// @brief Alias option, specifying field value units are "nanometers per second".
+using UnitsNanometersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::NanometersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "micrometers per second".
+using UnitsMicrometersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::MicrometersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "millimeters per second".
+using UnitsMillimetersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::MillimetersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "centimeters per second".
+using UnitsCentimetersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::CentimetersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "meters per second".
+using UnitsMetersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::MetersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "kilometers per second".
+using UnitsKilometersPerSecond =
+    Units<comms::traits::units::Speed, comms::traits::units::KilometersPerSecondRatio>;
+
+/// @brief Alias option, specifying field value units are "kilometers per hour".
+using UnitsKilometersPerHour =
+    Units<comms::traits::units::Speed, comms::traits::units::KilometersPerHourRatio>;
+
+/// @brief Alias option, specifying field value units are "hertz".
+using UnitsHertz =
+    Units<comms::traits::units::Frequency, comms::traits::units::HzRatio>;
+
+/// @brief Alias option, specifying field value units are "kilohertz".
+using UnitsKilohertz =
+    Units<comms::traits::units::Frequency, comms::traits::units::KiloHzRatio>;
+
+/// @brief Alias option, specifying field value units are "megahertz".
+using UnitsMegahertz =
+    Units<comms::traits::units::Frequency, comms::traits::units::MegaHzRatio>;
+
+/// @brief Alias option, specifying field value units are "gigahertz".
+using UnitsGigahertz =
+    Units<comms::traits::units::Frequency, comms::traits::units::GigaHzRatio>;
+
+/// @brief Alias option, specifying field value units are "degrees".
+using UnitsDegrees =
+    Units<comms::traits::units::Angle, comms::traits::units::DegreesRatio>;
+
+/// @brief Alias option, specifying field value units are "radians".
+using UnitsRadians =
+    Units<comms::traits::units::Angle, comms::traits::units::RadiansRatio>;
+
+/// @brief Alias option, specifying field value units are "nanoamps".
+using UnitsNanoamps =
+    Units<comms::traits::units::Current, comms::traits::units::NanoampsRatio>;
+
+/// @brief Alias option, specifying field value units are "microamps".
+using UnitsMicroamps =
+    Units<comms::traits::units::Current, comms::traits::units::MicroampsRatio>;
+
+/// @brief Alias option, specifying field value units are "milliamps".
+using UnitsMilliamps =
+    Units<comms::traits::units::Current, comms::traits::units::MilliampsRatio>;
+
+/// @brief Alias option, specifying field value units are "amps".
+using UnitsAmps =
+    Units<comms::traits::units::Current, comms::traits::units::AmpsRatio>;
+
+/// @brief Alias option, specifying field value units are "kiloamps".
+using UnitsKiloamps =
+    Units<comms::traits::units::Current, comms::traits::units::KiloampsRatio>;
+
+/// @brief Alias option, specifying field value units are "nanovolts".
+using UnitsNanovolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::NanovoltsRatio>;
+
+/// @brief Alias option, specifying field value units are "microvolts".
+using UnitsMicrovolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::MicrovoltsRatio>;
+
+/// @brief Alias option, specifying field value units are "millivolts".
+using UnitsMillivolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::MillivoltsRatio>;
+
+/// @brief Alias option, specifying field value units are "volts".
+using UnitsVolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::VoltsRatio>;
+
+/// @brief Alias option, specifying field value units are "kilovolts".
+using UnitsKilovolts =
+    Units<comms::traits::units::Voltage, comms::traits::units::KilovoltsRatio>;
 
 namespace details
 {
@@ -646,8 +772,8 @@ struct DefaultNumValueInitialiser
     template <typename TField>
     void operator()(TField&& field)
     {
-        typedef typename std::decay<TField>::type FieldType;
-        typedef typename FieldType::ValueType ValueType;
+        using FieldType = typename std::decay<TField>::type;
+        using ValueType = typename FieldType::ValueType;
         field.value() = static_cast<ValueType>(TVal);
     }
 };
@@ -662,17 +788,17 @@ struct NumValueRangeValidator
     template <typename TField>
     constexpr bool operator()(const TField& field) const
     {
-        typedef typename std::conditional<
+        using MinTag = typename std::conditional<
             (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
             CompareTag,
             ReturnTrueTag
-        >::type MinTag;
+        >::type;
 
-        typedef typename std::conditional<
+        using MaxTag = typename std::conditional<
             (MaxValue < std::numeric_limits<decltype(MaxValue)>::max()),
             CompareTag,
             ReturnTrueTag
-        >::type MaxTag;
+        >::type;
 
         return aboveMin(field.value(), MinTag()) && belowMax(field.value(), MaxTag());
     }
@@ -684,7 +810,7 @@ private:
     template <typename TValue>
     static constexpr bool aboveMin(const TValue& value, CompareTag)
     {
-        typedef typename std::decay<decltype(value)>::type ValueType;
+        using ValueType = typename std::decay<decltype(value)>::type;
         return (static_cast<ValueType>(MinValue) <= value);
     }
 
@@ -697,7 +823,7 @@ private:
     template <typename TValue>
     static constexpr bool belowMax(const TValue& value, CompareTag)
     {
-        typedef typename std::decay<decltype(value)>::type ValueType;
+        using ValueType = typename std::decay<decltype(value)>::type;
         return (value <= static_cast<ValueType>(MaxValue));
     }
 
@@ -718,8 +844,8 @@ struct BitmaskReservedBitsValidator
     template <typename TField>
     constexpr bool operator()(TField&& field) const
     {
-        typedef typename std::decay<TField>::type FieldType;
-        typedef typename FieldType::ValueType ValueType;
+        using FieldType = typename std::decay<TField>::type;
+        using ValueType = typename FieldType::ValueType;
 
         return (field.value() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
     }

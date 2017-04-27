@@ -37,12 +37,12 @@ namespace comms
 template <typename... TOptions>
 class Field : public details::FieldBase<TOptions...>
 {
-    typedef details::FieldBase<TOptions...> Base;
+    using Base = details::FieldBase<TOptions...>;
 public:
     /// @brief Endian type
     /// @details Equal to either comms::traits::endian::Big or
     ///     comms::traits::endian::Little
-    typedef typename Base::Endian Endian;
+    using Endian = typename Base::Endian;
 
 protected:
     /// @brief Write data into the output buffer.
@@ -231,14 +231,14 @@ protected:
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
     FUNC_AUTO_REF_RETURN(value, decltype(comms::field::toFieldBase(*this).value())) { \
         auto& val = comms::field::toFieldBase(*this).value(); \
-        typedef typename std::decay<decltype(val)>::type AllFieldsTuple; \
+        using AllFieldsTuple = typename std::decay<decltype(val)>::type; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
         return val; \
     } \
     FUNC_AUTO_REF_RETURN_CONST(value, decltype(comms::field::toFieldBase(*this).value())) { \
         auto& val = comms::field::toFieldBase(*this).value(); \
-        typedef typename std::decay<decltype(val)>::type AllFieldsTuple; \
+        using AllFieldsTuple = typename std::decay<decltype(val)>::type; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
         return val; \
@@ -275,15 +275,13 @@ protected:
 ///     However, it would be convenient to provide names and easier access to
 ///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exaclty
 ///     that when used inside the field class definition. Just inherit from
-///     the "bundle" field and use the macro inside while providing the type
-///     of the base class as first parameter, followed by the names for the
+///     the "bundle" field and use the macro inside while providing names for the
 ///     member fields:
 ///     @code
 ///     class MyField : public comms::field::Bundle<...>
 ///     {
-///         typedef comms::field::Bundle<...> Base;
 ///     public:
-///         COMMS_FIELD_MEMBERS_ACCESS(Base, member1, member2, member3);
+///         COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
 ///     }
 ///     @endcode
 ///     It would be equivalent to having the following types and functions
@@ -291,8 +289,6 @@ protected:
 ///     @code
 ///     class MyField : public comms::field::Bundle<...>
 ///     {
-///         typedef comms::field::Bundle<...> Base;
-///     public:
 ///     public:
 ///         // Access indices for member fields
 ///         enum FieldIdx {

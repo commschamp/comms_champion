@@ -31,55 +31,55 @@ namespace details
 
 template <std::size_t TSize>
 struct SizeToTypeHelper {
-    typedef std::array<std::uint8_t, TSize> Type;
+    using Type = std::array<std::uint8_t, TSize>;
 };
 
 template <>
 struct SizeToTypeHelper<1>
 {
-    typedef std::uint8_t Type;
+    using Type = std::uint8_t;
 };
 
 template <>
 struct SizeToTypeHelper<2>
 {
-    typedef std::uint16_t Type;
+    using Type = std::uint16_t;
 };
 
 template <>
 struct SizeToTypeHelper<4>
 {
-    typedef std::uint32_t Type;
+    using Type = std::uint32_t;
 };
 
 template <>
 struct SizeToTypeHelper<8>
 {
-    typedef std::uint64_t Type;
+    using Type = std::uint64_t;
 };
 
 template <>
 struct SizeToTypeHelper<3>
 {
-    typedef SizeToTypeHelper<4>::Type Type;
+    using Type = SizeToTypeHelper<4>::Type;
 };
 
 template <>
 struct SizeToTypeHelper<5>
 {
-    typedef SizeToTypeHelper<8>::Type Type;
+    using Type = SizeToTypeHelper<8>::Type;
 };
 
 template <>
 struct SizeToTypeHelper<6>
 {
-    typedef SizeToTypeHelper<8>::Type Type;
+    using Type = SizeToTypeHelper<8>::Type;
 };
 
 template <>
 struct SizeToTypeHelper<7>
 {
-    typedef SizeToTypeHelper<8>::Type Type;
+    using Type = SizeToTypeHelper<8>::Type;
 };
 
 
@@ -90,25 +90,25 @@ struct SizeToTypeHelper<7>
 template <std::size_t TSize, bool TSigned = false>
 class SizeToType
 {
-    typedef typename SizeToType<1, TSigned>::Type ByteType;
+    using ByteType = typename SizeToType<1, TSigned>::Type;
 
 public:
-    typedef std::array<ByteType, TSize> Type;
+    using Type = std::array<ByteType, TSize>;
 };
 
 template <std::size_t TSize>
 struct SizeToType<TSize, false>
 {
-    typedef typename details::SizeToTypeHelper<TSize>::Type Type;
+    using Type = typename details::SizeToTypeHelper<TSize>::Type;
 };
 
 template <std::size_t TSize>
 struct SizeToType<TSize, true>
 {
-    typedef typename
+    using Type = typename
         std::make_signed<
             typename SizeToType<TSize, false>::Type
-        >::type Type;
+        >::type;
 };
 
 /// @endcond

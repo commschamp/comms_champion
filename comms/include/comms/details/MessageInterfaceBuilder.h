@@ -39,9 +39,9 @@ template <typename TEndian>
 class MessageInterfaceEndianBase
 {
 public:
-    typedef TEndian Endian;
+    using Endian = TEndian;
 
-    typedef comms::Field<comms::option::Endian<Endian> > Field;
+    using Field = comms::Field<comms::option::Endian<Endian> >;
 
 protected:
     ~MessageInterfaceEndianBase() = default;
@@ -75,64 +75,68 @@ protected:
     }
 };
 
-template <typename TOpt, bool THasEndian>
+template <bool THasEndian>
 struct MessageInterfaceProcessEndianBase;
 
-template <typename TOpt>
-struct MessageInterfaceProcessEndianBase<TOpt, true>
+template <>
+struct MessageInterfaceProcessEndianBase<true>
 {
-    typedef MessageInterfaceEndianBase<typename TOpt::Endian> Type;
+    template <typename TOpt>
+    using Type = MessageInterfaceEndianBase<typename TOpt::Endian>;
 };
 
-template <typename TOpt>
-struct MessageInterfaceProcessEndianBase<TOpt, false>
+template <>
+struct MessageInterfaceProcessEndianBase<false>
 {
-    typedef MessageInterfaceEmptyBase Type;
+    template <typename TOpt>
+    using Type = MessageInterfaceEmptyBase;
 };
 
 template <typename TOpt>
 using MessageInterfaceEndianBaseT =
-    typename MessageInterfaceProcessEndianBase<TOpt, TOpt::HasEndian>::Type;
+    typename MessageInterfaceProcessEndianBase<TOpt::HasEndian>::template Type<TOpt>;
 
 template <typename TBase, typename TId>
 class MessageInterfaceIdTypeBase : public TBase
 {
 public:
-    typedef TId MsgIdType;
-    typedef typename std::conditional<
+    using MsgIdType = TId;
+    using MsgIdParamType = typename std::conditional<
             std::is_integral<MsgIdType>::value || std::is_enum<MsgIdType>::value,
             MsgIdType,
             const MsgIdType&
-        >::type MsgIdParamType;
+        >::type;
 
 protected:
     ~MessageInterfaceIdTypeBase() = default;
 };
 
-template <typename TBase, typename TOpt, bool THasIdType>
+template <bool THasIdType>
 struct MessageInterfaceProcessIdTypeBase;
 
-template <typename TBase, typename TOpt>
-struct MessageInterfaceProcessIdTypeBase<TBase, TOpt, true>
+template <>
+struct MessageInterfaceProcessIdTypeBase<true>
 {
-    typedef MessageInterfaceIdTypeBase<TBase, typename TOpt::MsgIdType> Type;
+    template<typename TBase, typename TOpt>
+    using Type = MessageInterfaceIdTypeBase<TBase, typename TOpt::MsgIdType>;
 };
 
-template <typename TBase, typename TOpt>
-struct MessageInterfaceProcessIdTypeBase<TBase, TOpt, false>
+template <>
+struct MessageInterfaceProcessIdTypeBase<false>
 {
-    typedef TBase Type;
+    template<typename TBase, typename TOpt>
+    using Type = TBase;
 };
 
 template <typename TBase, typename TOpt>
 using MessageInterfaceIdTypeBaseT =
-    typename MessageInterfaceProcessIdTypeBase<TBase, TOpt, TOpt::HasMsgIdType>::Type;
+    typename MessageInterfaceProcessIdTypeBase<TOpt::HasMsgIdType>::template Type<TBase, TOpt>;
 
 template <typename TBase>
 class MessageInterfaceIdInfoBase : public TBase
 {
 public:
-    typedef typename TBase::MsgIdParamType MsgIdParamType;
+    using MsgIdParamType = typename TBase::MsgIdParamType;
 
     MsgIdParamType getId() const
     {
@@ -144,30 +148,32 @@ protected:
     virtual MsgIdParamType getIdImpl() const = 0;
 };
 
-template <typename TBase, bool THasIdInfo>
+template <bool THasIdInfo>
 struct MessageInterfaceProcessIdInfoBase;
 
-template <typename TBase>
-struct MessageInterfaceProcessIdInfoBase<TBase, true>
+template <>
+struct MessageInterfaceProcessIdInfoBase<true>
 {
-    typedef MessageInterfaceIdInfoBase<TBase> Type;
+    template <typename TBase>
+    using Type = MessageInterfaceIdInfoBase<TBase>;
 };
 
-template <typename TBase>
-struct MessageInterfaceProcessIdInfoBase<TBase, false>
+template <>
+struct MessageInterfaceProcessIdInfoBase<false>
 {
-    typedef TBase Type;
+    template <typename TBase>
+    using Type = TBase;
 };
 
 template <typename TBase, typename TOpt>
 using MessageInterfaceIdInfoBaseT =
-    typename MessageInterfaceProcessIdInfoBase<TBase, TOpt::HasMsgIdType && TOpt::HasMsgIdInfo>::Type;
+    typename MessageInterfaceProcessIdInfoBase<TOpt::HasMsgIdType && TOpt::HasMsgIdInfo>::template Type<TBase>;
 
 template <typename TBase, typename TReadIter>
 class MessageInterfaceReadOnlyBase : public TBase
 {
 public:
-    typedef TReadIter ReadIterator;
+    using ReadIterator = TReadIter;
     comms::ErrorStatus read(ReadIterator& iter, std::size_t size)
     {
         return this->readImpl(iter, size);
@@ -193,7 +199,7 @@ template <typename TBase, typename TWriteIter>
 class MessageInterfaceWriteOnlyBase : public TBase
 {
 public:
-    typedef TWriteIter WriteIterator;
+    using WriteIterator = TWriteIter;
     comms::ErrorStatus write(WriteIterator& iter, std::size_t size) const
     {
         return this->writeImpl(iter, size);
@@ -219,13 +225,13 @@ template <typename TBase, typename TReadIter, typename TWriteIter>
 class MessageInterfaceReadWriteBase : public TBase
 {
 public:
-    typedef TReadIter ReadIterator;
+    using ReadIterator = TReadIter;
     comms::ErrorStatus read(ReadIterator& iter, std::size_t size)
     {
         return this->readImpl(iter, size);
     }
 
-    typedef TWriteIter WriteIterator;
+    using WriteIterator = TWriteIter;
     comms::ErrorStatus write(WriteIterator& iter, std::size_t size) const
     {
         return this->writeImpl(iter, size);
@@ -248,42 +254,46 @@ protected:
     }
 };
 
-template <typename TBase, typename TOpt, bool THasReadIterator, bool THasWriteIterator>
+template <bool THasReadIterator, bool THasWriteIterator>
 struct MessageInterfaceProcessReadWriteBase;
 
-template <typename TBase, typename TOpt>
-struct MessageInterfaceProcessReadWriteBase<TBase, TOpt, false, false>
+template <>
+struct MessageInterfaceProcessReadWriteBase<false, false>
 {
-    typedef TBase Type;
+    template <typename TBase, typename TOpt>
+    using Type = TBase;
 };
 
-template <typename TBase, typename TOpt>
-struct MessageInterfaceProcessReadWriteBase<TBase, TOpt, false, true>
+template <>
+struct MessageInterfaceProcessReadWriteBase<false, true>
 {
-    typedef MessageInterfaceWriteOnlyBase<TBase, typename TOpt::WriteIterator> Type;
+    template <typename TBase, typename TOpt>
+    using Type = MessageInterfaceWriteOnlyBase<TBase, typename TOpt::WriteIterator>;
 };
 
-template <typename TBase, typename TOpt>
-struct MessageInterfaceProcessReadWriteBase<TBase, TOpt, true, false>
+template <>
+struct MessageInterfaceProcessReadWriteBase<true, false>
 {
-    typedef MessageInterfaceReadOnlyBase<TBase, typename TOpt::ReadIterator> Type;
+    template <typename TBase, typename TOpt>
+    using Type = MessageInterfaceReadOnlyBase<TBase, typename TOpt::ReadIterator>;
 };
 
-template <typename TBase, typename TOpt>
-struct MessageInterfaceProcessReadWriteBase<TBase, TOpt, true, true>
+template <>
+struct MessageInterfaceProcessReadWriteBase<true, true>
 {
-    typedef MessageInterfaceReadWriteBase<TBase, typename TOpt::ReadIterator, typename TOpt::WriteIterator> Type;
+    template <typename TBase, typename TOpt>
+    using Type = MessageInterfaceReadWriteBase<TBase, typename TOpt::ReadIterator, typename TOpt::WriteIterator>;
 };
 
 template <typename TBase, typename TOpt>
 using MessageInterfaceReadWriteBaseT =
-    typename MessageInterfaceProcessReadWriteBase<TBase, TOpt, TOpt::HasReadIterator, TOpt::HasWriteIterator>::Type;
+    typename MessageInterfaceProcessReadWriteBase<TOpt::HasReadIterator, TOpt::HasWriteIterator>::template Type<TBase, TOpt>;
 
 template <typename TBase, typename THandler>
 class MessageInterfaceHandlerBase : public TBase
 {
 public:
-    typedef THandler Handler;
+    using Handler = THandler;
 
     void dispatch(Handler& handler)
     {
@@ -295,24 +305,26 @@ protected:
     virtual void dispatchImpl(Handler& handler) = 0;
 };
 
-template <typename TBase, typename TOpt, bool THasHandler>
+template <bool THasHandler>
 struct MessageInterfaceProcessHandlerBase;
 
-template <typename TBase, typename TOpt>
-struct MessageInterfaceProcessHandlerBase<TBase, TOpt, true>
+template <>
+struct MessageInterfaceProcessHandlerBase<true>
 {
-    typedef MessageInterfaceHandlerBase<TBase, typename TOpt::Handler> Type;
+    template <typename TBase, typename TOpt>
+    using Type = MessageInterfaceHandlerBase<TBase, typename TOpt::Handler>;
 };
 
-template <typename TBase, typename TOpt>
-struct MessageInterfaceProcessHandlerBase<TBase, TOpt, false>
+template <>
+struct MessageInterfaceProcessHandlerBase<false>
 {
-    typedef TBase Type;
+    template <typename TBase, typename TOpt>
+    using Type = TBase;
 };
 
 template <typename TBase, typename TOpt>
 using MessageInterfaceHandlerBaseT =
-    typename MessageInterfaceProcessHandlerBase<TBase, TOpt, TOpt::HasHandler>::Type;
+    typename MessageInterfaceProcessHandlerBase<TOpt::HasHandler>::template Type<TBase, TOpt>;
 
 
 template <typename TBase>
@@ -338,24 +350,26 @@ protected:
 };
 
 
-template <typename TBase, bool THasValid>
+template <bool THasValid>
 struct MessageInterfaceProcessValidBase;
 
-template <typename TBase>
-struct MessageInterfaceProcessValidBase<TBase, true>
+template <>
+struct MessageInterfaceProcessValidBase<true>
 {
-    typedef MessageInterfaceValidBase<TBase> Type;
+    template <typename TBase>
+    using Type = MessageInterfaceValidBase<TBase>;
 };
 
-template <typename TBase>
-struct MessageInterfaceProcessValidBase<TBase, false>
+template <>
+struct MessageInterfaceProcessValidBase<false>
 {
-    typedef TBase Type;
+    template <typename TBase>
+    using Type = TBase;
 };
 
 template <typename TBase, typename TOpts>
 using MessageInterfaceValidBaseT =
-    typename MessageInterfaceProcessValidBase<TBase, TOpts::HasValid>::Type;
+    typename MessageInterfaceProcessValidBase<TOpts::HasValid>::template Type<TBase>;
 
 template <typename TBase>
 class MessageInterfaceLengthBase : public TBase
@@ -380,25 +394,26 @@ protected:
     }
 };
 
-
-template <typename TBase, bool THasLength>
+template <bool THasLength>
 struct MessageInterfaceProcessLengthBase;
 
-template <typename TBase>
-struct MessageInterfaceProcessLengthBase<TBase, true>
+template <>
+struct MessageInterfaceProcessLengthBase<true>
 {
-    typedef MessageInterfaceLengthBase<TBase> Type;
+    template <typename TBase>
+    using Type = MessageInterfaceLengthBase<TBase>;
 };
 
-template <typename TBase>
-struct MessageInterfaceProcessLengthBase<TBase, false>
+template <>
+struct MessageInterfaceProcessLengthBase<false>
 {
-    typedef TBase Type;
+    template <typename TBase>
+    using Type = TBase;
 };
 
 template <typename TBase, typename TOpts>
 using MessageInterfaceLengthBaseT =
-    typename MessageInterfaceProcessLengthBase<TBase, TOpts::HasLength>::Type;
+    typename MessageInterfaceProcessLengthBase<TOpts::HasLength>::template Type<TBase>;
 
 template <typename TBase>
 class MessageInterfaceRefreshBase : public TBase
@@ -417,24 +432,26 @@ protected:
     }
 };
 
-template <typename TBase, bool THasRefresh>
+template <bool THasRefresh>
 struct MessageInterfaceProcessRefreshBase;
 
-template <typename TBase>
-struct MessageInterfaceProcessRefreshBase<TBase, true>
+template <>
+struct MessageInterfaceProcessRefreshBase<true>
 {
-    typedef MessageInterfaceRefreshBase<TBase> Type;
+    template <typename TBase>
+    using Type = MessageInterfaceRefreshBase<TBase>;
 };
 
-template <typename TBase>
-struct MessageInterfaceProcessRefreshBase<TBase, false>
+template <>
+struct MessageInterfaceProcessRefreshBase<false>
 {
-    typedef TBase Type;
+    template <typename TBase>
+    using Type = TBase;
 };
 
 template <typename TBase, typename TOpts>
 using MessageInterfaceRefreshBaseT =
-    typename MessageInterfaceProcessRefreshBase<TBase, TOpts::HasRefresh>::Type;
+    typename MessageInterfaceProcessRefreshBase<TOpts::HasRefresh>::template Type<TBase>;
 
 
 template <typename TOpts>
@@ -457,50 +474,51 @@ protected:
     virtual ~MessageInterfaceVirtDestructorBase() = default;
 };
 
-template <typename TBase, bool THasVirtDestructor>
+template <bool THasVirtDestructor>
 struct MessageInterfaceProcessVirtDestructorBase;
 
-template <typename TBase>
-struct MessageInterfaceProcessVirtDestructorBase<TBase, true>
+template <>
+struct MessageInterfaceProcessVirtDestructorBase<true>
 {
-    typedef MessageInterfaceVirtDestructorBase<TBase> Type;
+    template <typename TBase>
+    using Type = MessageInterfaceVirtDestructorBase<TBase>;
 };
 
-template <typename TBase>
-struct MessageInterfaceProcessVirtDestructorBase<TBase, false>
+template <>
+struct MessageInterfaceProcessVirtDestructorBase<false>
 {
-    typedef TBase Type;
+    template <typename TBase>
+    using Type = TBase;
 };
 
 template <typename TBase, typename TOpts>
 using MessageInterfaceVirtDestructorBaseT =
     typename MessageInterfaceProcessVirtDestructorBase<
-        TBase,
         (!TOpts::HasNoVirtualDestructor) && messageInterfaceHasVirtualFunctions<TOpts>()
-    >::Type;
+    >::template Type<TBase>;
 
 
 template <typename... TOptions>
 class MessageInterfaceBuilder
 {
-    typedef MessageInterfaceOptionsParser<TOptions...> ParsedOptions;
+    using ParsedOptions = MessageInterfaceOptionsParser<TOptions...>;
 
     static_assert(ParsedOptions::HasEndian,
         "The Message interface must specify Endian in its options");
 
-    typedef MessageInterfaceEndianBaseT<ParsedOptions> EndianBase;
-    typedef MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions> IdTypeBase;
-    typedef MessageInterfaceIdInfoBaseT<IdTypeBase, ParsedOptions> IdInfoBase;
-    typedef MessageInterfaceReadWriteBaseT<IdInfoBase, ParsedOptions> ReadWriteBase;
-    typedef MessageInterfaceValidBaseT<ReadWriteBase, ParsedOptions> ValidBase;
-    typedef MessageInterfaceLengthBaseT<ValidBase, ParsedOptions> LengthBase;
-    typedef MessageInterfaceHandlerBaseT<LengthBase, ParsedOptions> HandlerBase;
-    typedef MessageInterfaceRefreshBaseT<HandlerBase, ParsedOptions> RefreshBase;
-    typedef MessageInterfaceVirtDestructorBaseT<RefreshBase, ParsedOptions> VirtDestructorBase;
+    using EndianBase = MessageInterfaceEndianBaseT<ParsedOptions>;
+    using IdTypeBase = MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions>;
+    using IdInfoBase = MessageInterfaceIdInfoBaseT<IdTypeBase, ParsedOptions>;
+    using ReadWriteBase = MessageInterfaceReadWriteBaseT<IdInfoBase, ParsedOptions>;
+    using ValidBase = MessageInterfaceValidBaseT<ReadWriteBase, ParsedOptions>;
+    using LengthBase = MessageInterfaceLengthBaseT<ValidBase, ParsedOptions>;
+    using HandlerBase = MessageInterfaceHandlerBaseT<LengthBase, ParsedOptions>;
+    using RefreshBase = MessageInterfaceRefreshBaseT<HandlerBase, ParsedOptions>;
+    using VirtDestructorBase = MessageInterfaceVirtDestructorBaseT<RefreshBase, ParsedOptions>;
 
 public:
-    typedef ParsedOptions Options;
-    typedef VirtDestructorBase Type;
+    using Options = ParsedOptions;
+    using Type = VirtDestructorBase;
 };
 
 template <typename... TOptions>

@@ -38,12 +38,12 @@ namespace details
 template <typename TNext>
 class CollectionFieldAdapterBase : public CommonBase<TNext>
 {
-    typedef CommonBase<TNext> Base;
+    using Base = CommonBase<TNext>;
 public:
-    typedef typename Base::Category Category;
-    typedef typename Base::Next Next;
-    typedef typename Base::ValueType ValueType;
-    typedef typename Next::ElementType ElementType;
+    using Category = typename Base::Category;
+    using Next = typename Base::Next;
+    using ValueType = typename Base::ValueType;
+    using ElementType = typename Next::ElementType;
 
     static_assert(
         std::is_base_of<comms::field::category::CollectionField, Category>::value,

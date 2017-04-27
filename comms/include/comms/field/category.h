@@ -47,7 +47,7 @@ struct IsValidCategory
 };
 
 template <class T, class R = void>
-struct EnableIfHasCategory { typedef R Type; };
+struct EnableIfHasCategory { using Type = R; };
 
 template <class T, class Enable = void>
 struct HasCategory

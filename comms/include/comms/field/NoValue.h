@@ -41,24 +41,24 @@ namespace field
 template <typename TFieldBase>
 class NoValue : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
-    typedef basic::NoValue<TFieldBase> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField> ThisField;
+    using BasicField = basic::NoValue<TFieldBase>;
+    using ThisField = details::AdaptBasicFieldT<BasicField>;
 
     static_assert(std::is_base_of<comms::field::category::NumericValueField, typename ThisField::Category>::value,
         "ThisField is expected to be of NumericFieldCategory");
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef details::OptionsParser<> ParsedOptions;
+    using ParsedOptions = details::OptionsParser<>;
 
     /// @brief Tag indicating type of the field
-    typedef tag::NoValue Tag;
+    using Tag = tag::NoValue;
 
     /// @brief Type of underlying value.
     /// @details Defined to be "unsigned", not really used
-    typedef typename ThisField::ValueType ValueType;
+    using ValueType = typename ThisField::ValueType;
 
     /// @brief Default constructor
     /// @details Initialises internal value to 0.

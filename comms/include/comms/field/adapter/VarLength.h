@@ -39,23 +39,23 @@ namespace adapter
 template <std::size_t TMinLen, std::size_t TMaxLen, typename TNext>
 class VarLength : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
-    typedef typename Base::Next::SerialisedType NextSerialisedType;
+    using Base = details::AdapterBaseT<TNext>;
+    using NextSerialisedType = typename Base::Next::SerialisedType;
 
 public:
 
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
     static_assert(TMaxLen <= sizeof(NextSerialisedType),
         "The provided max length limit is too big");
 
-    typedef typename std::conditional<
+    using SerialisedType = typename std::conditional<
         (TMaxLen < sizeof(NextSerialisedType)),
         typename comms::util::SizeToType<TMaxLen, std::is_signed<NextSerialisedType>::value>::Type,
         NextSerialisedType
-    >::type SerialisedType;
+    >::type;
 
-    typedef typename Base::Endian Endian;
+    using Endian = typename Base::Endian;
 
     VarLength() = default;
 
@@ -182,13 +182,13 @@ private:
     struct UnsignedTag {};
     struct SignedTag {};
 
-    typedef typename std::conditional<
+    using HasSignTag = typename std::conditional<
         std::is_signed<SerialisedType>::value,
         SignedTag,
         UnsignedTag
-    >::type HasSignTag;
+    >::type;
 
-    typedef typename std::make_unsigned<SerialisedType>::type UnsignedSerialisedType;
+    using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
     static UnsignedSerialisedType adjustToUnsignedSerialisedVarLength(SerialisedType val)
     {

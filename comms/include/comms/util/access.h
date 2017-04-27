@@ -54,13 +54,13 @@ struct TypeOptimiser;
 template <typename T>
 struct TypeOptimiser<T, false>
 {
-    typedef typename std::decay<T>::type Type;
+    using Type = typename std::decay<T>::type;
 };
 
 template <typename T>
 struct TypeOptimiser<T, true>
 {
-    typedef typename std::conditional<std::is_signed<T>::value, int, unsigned>::type Type;
+    using Type = typename std::conditional<std::is_signed<T>::value, int, unsigned>::type;
 };
 
 template <typename T>
@@ -69,7 +69,7 @@ using OptimisedValueType = typename TypeOptimiser<T, sizeof(T) < sizeof(int)>::T
 template <typename TUnsignedByteType, typename T>
 typename std::decay<T>::type signExtCommon(T value, std::size_t size)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     static_assert(std::is_unsigned<ValueType>::value, "Type T must be unsigned");
     static_assert(std::is_unsigned<TUnsignedByteType>::value,
                                 "Type TUnsignedByteType must be unsigned");
@@ -92,15 +92,15 @@ class SignExt
     struct FullSize {};
     struct PartialSize {};
 public:
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
 
     static ValueType value(T val)
     {
-        typedef typename std::conditional<
+        using Tag = typename std::conditional<
             sizeof(ValueType) == TSize,
             FullSize,
             PartialSize
-        >::type Tag;
+        >::type;
 
         return valueInternal(val, Tag());
     }
@@ -114,9 +114,9 @@ private:
 
     static ValueType valueInternal(T val, PartialSize)
     {
-        typedef typename std::make_unsigned<ValueType>::type UnsignedValueType;
+        using UnsignedValueType = typename std::make_unsigned<ValueType>::type;
         static_assert(std::is_integral<ValueType>::value, "T must be integer type");
-        typedef typename std::make_unsigned<TByteType>::type UnsignedByteType;
+        using UnsignedByteType = typename std::make_unsigned<TByteType>::type;
 
         auto castedValue = static_cast<UnsignedValueType>(val);
         return static_cast<ValueType>(
@@ -130,28 +130,28 @@ struct ByteTypeRetriever;
 template <typename TIter>
 struct ByteTypeRetriever<TIter, true>
 {
-    typedef typename std::decay<decltype(*(TIter()))>::type Type;
+    using Type = typename std::decay<decltype(*(TIter()))>::type;
 };
 
 template <typename TIter>
 struct ByteTypeRetriever<TIter, false>
 {
-    typedef typename std::decay<TIter>::type DecayedIter;
-    typedef typename DecayedIter::value_type Type;
+    using DecayedIter = typename std::decay<TIter>::type;
+    using Type = typename DecayedIter::value_type;
 };
 
 template <typename TContainer>
 struct ByteTypeRetriever<std::back_insert_iterator<TContainer>, false>
 {
-    typedef typename std::decay<TContainer>::type DecayedContainer;
-    typedef typename DecayedContainer::value_type Type;
+    using DecayedContainer = typename std::decay<TContainer>::type;
+    using Type = typename DecayedContainer::value_type;
 };
 
 template <typename TContainer>
 struct ByteTypeRetriever<std::front_insert_iterator<TContainer>, false>
 {
-    typedef typename std::decay<TContainer>::type DecayedContainer;
-    typedef typename DecayedContainer::value_type Type;
+    using DecayedContainer = typename std::decay<TContainer>::type;
+    using Type = typename DecayedContainer::value_type;
 };
 
 template <typename TIter>
@@ -160,12 +160,12 @@ using ByteType = typename ByteTypeRetriever<TIter, std::is_pointer<TIter>::value
 template <typename T, typename TIter>
 void writeBigUnsigned(T value, std::size_t size, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     static_assert(std::is_unsigned<ValueType>::value, "T type must be unsigned");
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
 
-    typedef ByteType<TIter> ByteType;
-    typedef typename std::make_unsigned<ByteType>::type UnsignedByteType;
+    using ByteType = ByteType<TIter>;
+    using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static const std::size_t BinDigits =
         std::numeric_limits<UnsignedByteType>::digits;
     static_assert(BinDigits % 8 == 0, "Byte size assumption is not valid");
@@ -183,12 +183,12 @@ void writeBigUnsigned(T value, std::size_t size, TIter& iter)
 template <typename T, typename TIter>
 void writeLittleUnsigned(T value, std::size_t size, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
     static_assert(std::is_unsigned<ValueType>::value, "T type must be unsigned");
 
-    typedef ByteType<TIter> ByteType;
-    typedef typename std::make_unsigned<ByteType>::type UnsignedByteType;
+    using ByteType = ByteType<TIter>;
+    using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static const std::size_t BinDigits =
         std::numeric_limits<UnsignedByteType>::digits;
     static_assert(BinDigits % 8 == 0, "Byte size assumption is not valid");
@@ -230,9 +230,9 @@ struct WriteUnsignedFuncWrapper<traits::endian::Little>
 template <typename TEndian, typename T, typename TIter>
 void write(T value, std::size_t size, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
-    typedef typename std::make_unsigned<ValueType>::type UnsignedType;
+    using UnsignedType = typename std::make_unsigned<ValueType>::type;
     UnsignedType unsignedValue = static_cast<UnsignedType>(value);
     WriteUnsignedFuncWrapper<TEndian>::write(unsignedValue, size, iter);
 }
@@ -240,7 +240,7 @@ void write(T value, std::size_t size, TIter& iter)
 template <typename TEndian, typename T, typename TIter>
 void writeRandomAccess(T value, std::size_t size, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
 
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
     static_assert(
@@ -250,8 +250,8 @@ void writeRandomAccess(T value, std::size_t size, TIter& iter)
         >::value,
         "TIter must be random access iterator");
 
-    typedef ByteType<TIter> ByteType;
-    typedef typename std::make_unsigned<ByteType>::type UnsignedByteType;
+    using ByteType = ByteType<TIter>;
+    using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static_assert(!std::is_const<UnsignedByteType>::value, "Value must be updatable");
 
     auto startPtr = reinterpret_cast<UnsignedByteType*>(&(*iter));
@@ -302,7 +302,7 @@ struct WriteHelper<TEndian, true>
     template <typename T, typename TIter>
     static void write(T value, std::size_t size, TIter& iter)
     {
-        typedef ByteType<TIter> ByteType;
+        using ByteType = ByteType<TIter>;
         static const bool IsPointerToUnsigned =
             std::is_pointer<TIter>::value &&
             std::is_unsigned<ByteType>::value;
@@ -313,12 +313,12 @@ struct WriteHelper<TEndian, true>
 template <typename T, typename TIter>
 T readBigUnsigned(std::size_t size, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
     static_assert(std::is_unsigned<ValueType>::value, "T type must be unsigned");
 
-    typedef ByteType<TIter> ByteType;
-    typedef typename std::make_unsigned<ByteType>::type UnsignedByteType;
+    using ByteType = ByteType<TIter>;
+    using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static const std::size_t BinDigits =
         std::numeric_limits<UnsignedByteType>::digits;
     static_assert(BinDigits % 8 == 0, "Byte size assumption is not valid");
@@ -338,12 +338,12 @@ T readBigUnsigned(std::size_t size, TIter& iter)
 template <typename T, typename TIter>
 T readLittleUnsigned(std::size_t size, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
     static_assert(std::is_unsigned<ValueType>::value, "T type must be unsigned");
 
-    typedef ByteType<TIter> ByteType;
-    typedef typename std::make_unsigned<ByteType>::type UnsignedByteType;
+    using ByteType = ByteType<TIter>;
+    using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
     static const std::size_t BinDigits =
         std::numeric_limits<UnsignedByteType>::digits;
     static_assert(BinDigits % 8 == 0, "Byte size assumption is not valid");
@@ -387,11 +387,11 @@ struct ReadUnsignedFuncWrapper<traits::endian::Little>
 template <typename TEndian, typename T, typename TIter>
 T read(std::size_t size, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
 
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
 
-    typedef typename std::make_unsigned<ValueType>::type UnsignedType;
+    using UnsignedType = typename std::make_unsigned<ValueType>::type;
     auto value = ReadUnsignedFuncWrapper<TEndian>::template read<UnsignedType>(size, iter);
     return static_cast<T>(static_cast<ValueType>(value));
 }
@@ -399,7 +399,7 @@ T read(std::size_t size, TIter& iter)
 template <typename TEndian, typename T, typename TIter>
 T readFromPointerToSigned(std::size_t size, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
 
     static_assert(std::is_integral<ValueType>::value, "T must be integral type");
     static_assert(
@@ -409,8 +409,8 @@ T readFromPointerToSigned(std::size_t size, TIter& iter)
         >::value,
         "TIter must be random access iterator");
 
-    typedef ByteType<TIter> ByteType;
-    typedef typename std::make_unsigned<ByteType>::type UnsignedByteType;
+    using ByteType = ByteType<TIter>;
+    using UnsignedByteType = typename std::make_unsigned<ByteType>::type;
 
     auto startPtr = reinterpret_cast<const UnsignedByteType*>(&(*iter));
     auto endPtr = startPtr;
@@ -471,7 +471,7 @@ struct ReadHelper<TEndian, true>
     template <typename T, typename TIter>
     static T read(std::size_t size, TIter& iter)
     {
-        typedef ByteType<TIter> ByteType;
+        using ByteType = ByteType<TIter>;
         static const bool IsPointer =
             std::is_pointer<TIter>::value;
 
@@ -488,8 +488,8 @@ struct Writer
     template <typename TEndian, std::size_t TSize, typename T, typename TIter>
     static void write(T value, TIter& iter)
     {
-        typedef typename std::decay<T>::type ValueType;
-        typedef details::OptimisedValueType<ValueType> OptimisedValueType;
+        using ValueType = typename std::decay<T>::type;
+        using OptimisedValueType = details::OptimisedValueType<ValueType>;
 
         static_assert(TSize <= sizeof(ValueType), "Precondition failure");
         static const bool IsRandomAccess =
@@ -508,9 +508,9 @@ struct Reader
     template <typename TEndian, typename T, std::size_t TSize, typename TIter>
     static T read(TIter& iter)
     {
-        typedef typename std::decay<T>::type ValueType;
-        typedef details::OptimisedValueType<ValueType> OptimisedValueType;
-        typedef details::ByteType<TIter> ByteType;
+        using ValueType = typename std::decay<T>::type;
+        using OptimisedValueType = details::OptimisedValueType<ValueType>;
+        using ByteType = details::ByteType<TIter>;
 
         static_assert(TSize <= sizeof(ValueType), "Precondition failure");
         static const bool IsRandomAccess =
@@ -556,7 +556,7 @@ void writeBig(T value, TIter& iter)
 template <typename T, typename TIter>
 void writeBig(T value, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     writeBig<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
 }
 
@@ -587,7 +587,7 @@ T readBig(TIter& iter)
 template <typename T, typename TIter>
 T readBig(TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     return static_cast<T>(readBig<ValueType, sizeof(ValueType)>(iter));
 }
 
@@ -616,7 +616,7 @@ void writeLittle(T value, TIter& iter)
 template <typename T, typename TIter>
 void writeLittle(T value, TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     writeLittle<sizeof(ValueType)>(static_cast<ValueType>(value), iter);
 }
 
@@ -647,7 +647,7 @@ T readLittle(TIter& iter)
 template <typename T, typename TIter>
 T readLittle(TIter& iter)
 {
-    typedef typename std::decay<T>::type ValueType;
+    using ValueType = typename std::decay<T>::type;
     return static_cast<T>(readLittle<ValueType, sizeof(ValueType)>(iter));
 }
 

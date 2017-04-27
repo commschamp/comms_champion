@@ -39,27 +39,26 @@ class EnumValue : public TFieldBase
 {
     static_assert(std::is_enum<T>::value, "T must be enum");
 
-    typedef typename std::underlying_type<T>::type UnderlyingType;
+    using UnderlyingType = typename std::underlying_type<T>::type;
 
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
-    typedef
+    using IntValueField =
         IntValue<
             Base,
             UnderlyingType
-        > IntValueField;
+        >;
 
-    typedef typename IntValueField::ValueType IntValueType;
+    using IntValueType = typename IntValueField::ValueType;
 public:
 
-    typedef comms::field::category::NumericValueField Category;
+    using Category = comms::field::category::NumericValueField;
 
-    typedef T ValueType;
+    using ValueType = T;
 
-    typedef typename IntValueField::ValueType SerialisedType;
+    using SerialisedType = typename IntValueField::ValueType;
 
-    typedef typename IntValueField::ScalingRatio ScalingRatio;
-
+    using ScalingRatio = typename IntValueField::ScalingRatio;
 
     EnumValue() = default;
 

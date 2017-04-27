@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -31,315 +31,335 @@ namespace field
 namespace details
 {
 
-template <typename TField, typename TOpts, bool THasCustomValueReader>
+template <bool THasCustomValueReader>
 struct AdaptBasicFieldCustomValueReader;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldCustomValueReader<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldCustomValueReader<true>
 {
-    typedef comms::field::adapter::CustomValueReader<typename TOpts::CustomValueReader, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::CustomValueReader<typename TOpts::CustomValueReader, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldCustomValueReader<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldCustomValueReader<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldCustomValueReaderT =
-    typename AdaptBasicFieldCustomValueReader<TField, TOpts, TOpts::HasCustomValueReader>::Type;
+    typename AdaptBasicFieldCustomValueReader<TOpts::HasCustomValueReader>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasSerOffset>
+template <bool THasSerOffset>
 struct AdaptBasicFieldSerOffset;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSerOffset<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldSerOffset<true>
 {
-    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename TField::Category>::value,
-        "The FixedLength option is supported only for numeric value fields.");
-    typedef comms::field::adapter::SerOffset<TOpts::SerOffset, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::SerOffset<TOpts::SerOffset, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSerOffset<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldSerOffset<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldSerOffsetT =
-    typename AdaptBasicFieldSerOffset<TField, TOpts, TOpts::HasSerOffset>::Type;
+    typename AdaptBasicFieldSerOffset<TOpts::HasSerOffset>::template Type<TField, TOpts>;
 
 
-template <typename TField, typename TOpts, bool THasFixedLength>
+template <bool THasFixedLength>
 struct AdaptBasicFieldFixedLength;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldFixedLength<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldFixedLength<true>
 {
-    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename TField::Category>::value,
-        "The FixedLength option is supported only for numeric value fields.");
-    typedef comms::field::adapter::FixedLength<TOpts::FixedLength, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::FixedLength<TOpts::FixedLength, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldFixedLength<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldFixedLength<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldFixedLengthT =
-    typename AdaptBasicFieldFixedLength<TField, TOpts, TOpts::HasFixedLengthLimit>::Type;
+    typename AdaptBasicFieldFixedLength<TOpts::HasFixedLengthLimit>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasFixedBitLength>
+template <bool THasFixedBitLength>
 struct AdaptBasicFieldFixedBitLength;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldFixedBitLength<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldFixedBitLength<true>
 {
-    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename TField::Category>::value,
-        "The FixedBitLength option is supported only for numeric value fields.");
-    typedef comms::field::adapter::FixedBitLength<TOpts::FixedBitLength, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::FixedBitLength<TOpts::FixedBitLength, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldFixedBitLength<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldFixedBitLength<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldFixedBitLengthT =
-    typename AdaptBasicFieldFixedBitLength<TField, TOpts, TOpts::HasFixedBitLengthLimit>::Type;
+    typename AdaptBasicFieldFixedBitLength<TOpts::HasFixedBitLengthLimit>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasVarLengths>
+template <bool THasVarLengths>
 struct AdaptBasicFieldVarLength;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldVarLength<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldVarLength<true>
 {
-    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename TField::Category>::value,
-        "The VarLength option is supported only for numeric value fields.");
-    typedef comms::field::adapter::VarLength<TOpts::MinVarLength, TOpts::MaxVarLength, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::VarLength<TOpts::MinVarLength, TOpts::MaxVarLength, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldVarLength<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldVarLength<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldVarLengthT =
-    typename AdaptBasicFieldVarLength<TField, TOpts, TOpts::HasVarLengthLimits>::Type;
+    typename AdaptBasicFieldVarLength<TOpts::HasVarLengthLimits>::template Type<TField, TOpts>;
 
-template <typename TField, bool THasSequenceSizeForcing>
+template <bool THasSequenceSizeForcing>
 struct AdaptBasicFieldSequenceSizeForcing;
 
-template <typename TField>
-struct AdaptBasicFieldSequenceSizeForcing<TField, true>
+template <>
+struct AdaptBasicFieldSequenceSizeForcing<true>
 {
-    typedef comms::field::adapter::SequenceSizeForcing<TField> Type;
+    template <typename TField>
+    using Type = comms::field::adapter::SequenceSizeForcing<TField>;
 };
 
-template <typename TField>
-struct AdaptBasicFieldSequenceSizeForcing<TField, false>
+template <>
+struct AdaptBasicFieldSequenceSizeForcing<false>
 {
-    typedef TField Type;
+    template <typename TField>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldSequenceSizeForcingT =
-    typename AdaptBasicFieldSequenceSizeForcing<TField, TOpts::HasSequenceSizeForcing>::Type;
+    typename AdaptBasicFieldSequenceSizeForcing<TOpts::HasSequenceSizeForcing>::template Type<TField>;
 
-template <typename TField, typename TOpts, bool THasSequenceFixedSize>
+template <bool THasSequenceFixedSize>
 struct AdaptBasicFieldSequenceFixedSize;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceFixedSize<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldSequenceFixedSize<true>
 {
-    typedef comms::field::adapter::SequenceFixedSize<TOpts::SequenceFixedSize, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::SequenceFixedSize<TOpts::SequenceFixedSize, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceFixedSize<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldSequenceFixedSize<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldSequenceFixedSizeT =
-    typename AdaptBasicFieldSequenceFixedSize<TField, TOpts, TOpts::HasSequenceFixedSize>::Type;
+    typename AdaptBasicFieldSequenceFixedSize<TOpts::HasSequenceFixedSize>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasSequenceSizeFieldPrefix>
+template <bool THasSequenceSizeFieldPrefix>
 struct AdaptBasicFieldSequenceSizeFieldPrefix;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldSequenceSizeFieldPrefix<true>
 {
-    typedef comms::field::adapter::SequenceSizeFieldPrefix<typename TOpts::SequenceSizeFieldPrefix, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::SequenceSizeFieldPrefix<typename TOpts::SequenceSizeFieldPrefix, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldSequenceSizeFieldPrefix<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldSequenceSizeFieldPrefixT =
-    typename AdaptBasicFieldSequenceSizeFieldPrefix<TField, TOpts, TOpts::HasSequenceSizeFieldPrefix>::Type;
+    typename AdaptBasicFieldSequenceSizeFieldPrefix<TOpts::HasSequenceSizeFieldPrefix>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasSequenceTrailingFieldSuffix>
+template <bool THasSequenceTrailingFieldSuffix>
 struct AdaptBasicFieldSequenceTrailingFieldSuffix;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceTrailingFieldSuffix<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldSequenceTrailingFieldSuffix<true>
 {
-    typedef comms::field::adapter::SequenceTrailingFieldSuffix<typename TOpts::SequenceTrailingFieldSuffix, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::SequenceTrailingFieldSuffix<typename TOpts::SequenceTrailingFieldSuffix, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceTrailingFieldSuffix<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldSequenceTrailingFieldSuffix<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldSequenceTrailingFieldSuffixT =
-    typename AdaptBasicFieldSequenceTrailingFieldSuffix<TField, TOpts, TOpts::HasSequenceTrailingFieldSuffix>::Type;
+    typename AdaptBasicFieldSequenceTrailingFieldSuffix<TOpts::HasSequenceTrailingFieldSuffix>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasSequenceTerminationFieldSuffix>
+template <bool THasSequenceTerminationFieldSuffix>
 struct AdaptBasicFieldSequenceTerminationFieldSuffix;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceTerminationFieldSuffix<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldSequenceTerminationFieldSuffix<true>
 {
-    typedef comms::field::adapter::SequenceTerminationFieldSuffix<typename TOpts::SequenceTerminationFieldSuffix, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::SequenceTerminationFieldSuffix<typename TOpts::SequenceTerminationFieldSuffix, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldSequenceTerminationFieldSuffix<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldSequenceTerminationFieldSuffix<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldSequenceTerminationFieldSuffixT =
-    typename AdaptBasicFieldSequenceTerminationFieldSuffix<TField, TOpts, TOpts::HasSequenceTerminationFieldSuffix>::Type;
+    typename AdaptBasicFieldSequenceTerminationFieldSuffix<TOpts::HasSequenceTerminationFieldSuffix>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasDefaultValueInitialiser>
+template <bool THasDefaultValueInitialiser>
 struct AdaptBasicFieldDefaultValueInitialiser;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldDefaultValueInitialiser<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldDefaultValueInitialiser<true>
 {
-    typedef comms::field::adapter::DefaultValueInitialiser<typename TOpts::DefaultValueInitialiser, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::DefaultValueInitialiser<typename TOpts::DefaultValueInitialiser, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldDefaultValueInitialiser<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldDefaultValueInitialiser<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldDefaultValueInitialiserT =
-    typename AdaptBasicFieldDefaultValueInitialiser<TField, TOpts, TOpts::HasDefaultValueInitialiser>::Type;
+    typename AdaptBasicFieldDefaultValueInitialiser<TOpts::HasDefaultValueInitialiser>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasCustomValidator>
+template <bool THasCustomValidator>
 struct AdaptBasicFieldCustomValidator;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldCustomValidator<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldCustomValidator<true>
 {
-    typedef comms::field::adapter::CustomValidator<typename TOpts::CustomValidator, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::CustomValidator<typename TOpts::CustomValidator, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldCustomValidator<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldCustomValidator<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldCustomValidatorT =
-    typename AdaptBasicFieldCustomValidator<TField, TOpts, TOpts::HasCustomValidator>::Type;
+    typename AdaptBasicFieldCustomValidator<TOpts::HasCustomValidator>::template Type<TField, TOpts>;
 
-template <typename TField, typename TOpts, bool THasFailOnInvalid>
+template <bool THasFailOnInvalid>
 struct AdaptBasicFieldFailOnInvalid;
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldFailOnInvalid<TField, TOpts, true>
+template <>
+struct AdaptBasicFieldFailOnInvalid<true>
 {
-    typedef comms::field::adapter::FailOnInvalid<TOpts::FailOnInvalidStatus, TField> Type;
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::FailOnInvalid<TOpts::FailOnInvalidStatus, TField>;
 };
 
-template <typename TField, typename TOpts>
-struct AdaptBasicFieldFailOnInvalid<TField, TOpts, false>
+template <>
+struct AdaptBasicFieldFailOnInvalid<false>
 {
-    typedef TField Type;
+    template <typename TField, typename TOpts>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldFailOnInvalidT =
-    typename AdaptBasicFieldFailOnInvalid<TField, TOpts, TOpts::HasFailOnInvalid>::Type;
+    typename AdaptBasicFieldFailOnInvalid<TOpts::HasFailOnInvalid>::template Type<TField, TOpts>;
 
-template <typename TField, bool THasIgnoreInvalid>
+template <bool THasIgnoreInvalid>
 struct AdaptBasicFieldIgnoreInvalid;
 
-template <typename TField>
-struct AdaptBasicFieldIgnoreInvalid<TField, true>
+template <>
+struct AdaptBasicFieldIgnoreInvalid<true>
 {
-    typedef comms::field::adapter::IgnoreInvalid<TField> Type;
+    template <typename TField>
+    using Type = comms::field::adapter::IgnoreInvalid<TField>;
 };
 
-template <typename TField>
-struct AdaptBasicFieldIgnoreInvalid<TField, false>
+template <>
+struct AdaptBasicFieldIgnoreInvalid<false>
 {
-    typedef TField Type;
+    template <typename TField>
+    using Type = TField;
 };
 
 template <typename TField, typename TOpts>
 using AdaptBasicFieldIgnoreInvalidT =
-    typename AdaptBasicFieldIgnoreInvalid<TField, TOpts::HasIgnoreInvalid>::Type;
+    typename AdaptBasicFieldIgnoreInvalid<TOpts::HasIgnoreInvalid>::template Type<TField>;
 
 template <typename TBasic, typename... TOptions>
 class AdaptBasicField
 {
-    typedef OptionsParser<TOptions...> ParsedOptions;
-    typedef AdaptBasicFieldCustomValueReaderT<
-        TBasic, ParsedOptions> CustomReaderAdapted;
-    typedef AdaptBasicFieldSerOffsetT<
-        CustomReaderAdapted, ParsedOptions> SerOffsetAdapted;
-    typedef AdaptBasicFieldFixedLengthT<
-        SerOffsetAdapted, ParsedOptions> FixedLengthAdapted;
-    typedef AdaptBasicFieldFixedBitLengthT<
-        FixedLengthAdapted, ParsedOptions> FixedBitLengthAdapted;
-    typedef AdaptBasicFieldVarLengthT<
-        FixedBitLengthAdapted, ParsedOptions> VarLengthAdapted;
-    typedef AdaptBasicFieldSequenceSizeForcingT<
-        VarLengthAdapted, ParsedOptions> SequenceSizeForcingAdapted;
-    typedef AdaptBasicFieldSequenceFixedSizeT<
-        SequenceSizeForcingAdapted, ParsedOptions> SequenceFixedSizeAdapted;
-    typedef AdaptBasicFieldSequenceSizeFieldPrefixT<
-        SequenceFixedSizeAdapted, ParsedOptions> SequenceSizeFieldPrefixAdapted;
-    typedef AdaptBasicFieldSequenceTrailingFieldSuffixT<
-        SequenceSizeFieldPrefixAdapted, ParsedOptions> SequenceTrailingFieldSuffixAdapted;
-    typedef AdaptBasicFieldSequenceTerminationFieldSuffixT<
-        SequenceTrailingFieldSuffixAdapted, ParsedOptions> SequenceTerminationFieldSuffixAdapted;
-    typedef AdaptBasicFieldDefaultValueInitialiserT<
-        SequenceTerminationFieldSuffixAdapted, ParsedOptions> DefaultValueInitialiserAdapted;
-    typedef AdaptBasicFieldCustomValidatorT<
-        DefaultValueInitialiserAdapted, ParsedOptions> CustomValidatorAdapted;
-    typedef AdaptBasicFieldFailOnInvalidT<
-        CustomValidatorAdapted, ParsedOptions> FailOnInvalidAdapted;
-    typedef AdaptBasicFieldIgnoreInvalidT<
-        FailOnInvalidAdapted, ParsedOptions> IgnoreInvalidAdapted;
+    using ParsedOptions = OptionsParser<TOptions...>;
+    using CustomReaderAdapted = AdaptBasicFieldCustomValueReaderT<
+        TBasic, ParsedOptions>;
+    using SerOffsetAdapted = AdaptBasicFieldSerOffsetT<
+        CustomReaderAdapted, ParsedOptions>;
+    using FixedLengthAdapted = AdaptBasicFieldFixedLengthT<
+        SerOffsetAdapted, ParsedOptions>;
+    using FixedBitLengthAdapted = AdaptBasicFieldFixedBitLengthT<
+        FixedLengthAdapted, ParsedOptions>;
+    using VarLengthAdapted = AdaptBasicFieldVarLengthT<
+        FixedBitLengthAdapted, ParsedOptions>;
+    using SequenceSizeForcingAdapted = AdaptBasicFieldSequenceSizeForcingT<
+        VarLengthAdapted, ParsedOptions>;
+    using SequenceFixedSizeAdapted = AdaptBasicFieldSequenceFixedSizeT<
+        SequenceSizeForcingAdapted, ParsedOptions>;
+    using SequenceSizeFieldPrefixAdapted = AdaptBasicFieldSequenceSizeFieldPrefixT<
+        SequenceFixedSizeAdapted, ParsedOptions>;
+    using SequenceTrailingFieldSuffixAdapted = AdaptBasicFieldSequenceTrailingFieldSuffixT<
+        SequenceSizeFieldPrefixAdapted, ParsedOptions>;
+    using SequenceTerminationFieldSuffixAdapted = AdaptBasicFieldSequenceTerminationFieldSuffixT<
+        SequenceTrailingFieldSuffixAdapted, ParsedOptions>;
+    using DefaultValueInitialiserAdapted = AdaptBasicFieldDefaultValueInitialiserT<
+        SequenceTerminationFieldSuffixAdapted, ParsedOptions>;
+    using CustomValidatorAdapted = AdaptBasicFieldCustomValidatorT<
+        DefaultValueInitialiserAdapted, ParsedOptions>;
+    using FailOnInvalidAdapted = AdaptBasicFieldFailOnInvalidT<
+        CustomValidatorAdapted, ParsedOptions>;
+    using IgnoreInvalidAdapted = AdaptBasicFieldIgnoreInvalidT<
+        FailOnInvalidAdapted, ParsedOptions>;
 public:
-    typedef IgnoreInvalidAdapted Type;
+    using Type = IgnoreInvalidAdapted;
 };
 
 template <typename TBasic, typename... TOptions>

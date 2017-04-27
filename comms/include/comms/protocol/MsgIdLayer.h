@@ -60,9 +60,9 @@ class MsgIdLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
     static_assert(util::IsTuple<TAllMessages>::Value,
         "TAllMessages must be of std::tuple type");
-    typedef ProtocolLayerBase<TField, TNextLayer> Base;
+    using Base = ProtocolLayerBase<TField, TNextLayer>;
 
-    typedef comms::MsgFactory<TMessage, TAllMessages, TOptions...> Factory;
+    using Factory = comms::MsgFactory<TMessage, TAllMessages, TOptions...>;
 
     static_assert(TMessage::InterfaceOptions::HasMsgIdType,
         "Usage of MsgIdLayer requires support for ID type. "
@@ -72,23 +72,23 @@ public:
 
     /// @brief All supported message types bundled in std::tuple.
     /// @see comms::MsgFactory::AllMessages.
-    typedef typename Factory::AllMessages AllMessages;
+    using AllMessages = typename Factory::AllMessages;
 
     /// @brief Type of smart pointer that will hold allocated message object.
     /// @details Same as comms::MsgFactory::MsgPtr.
-    typedef typename Factory::MsgPtr MsgPtr;
+    using MsgPtr = typename Factory::MsgPtr;
 
     /// @brief Type of the @b input message interface.
-    typedef TMessage Message;
+    using Message = TMessage;
 
     /// @brief Type of message ID
-    typedef typename Message::MsgIdType MsgIdType;
+    using MsgIdType = typename Message::MsgIdType;
 
     /// @brief Type of message ID when passed by the parameter
-    typedef typename Message::MsgIdParamType MsgIdParamType;
+    using MsgIdParamType = typename Message::MsgIdParamType;
 
     /// @brief Type of the field object used to read/write message ID value.
-    typedef typename Base::Field Field;
+    using Field = typename Base::Field;
 
     static_assert(
         comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
@@ -215,7 +215,7 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        typedef typename std::decay<decltype(msg)>::type MsgType;
+        using MsgType = typename std::decay<decltype(msg)>::type;
         Field field(getMsgId(msg, IdRetrieveTag<MsgType>()));
         return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
     }
@@ -246,7 +246,7 @@ public:
     {
         auto& field = Base::template getField<TIdx>(allFields);
 
-        typedef typename std::decay<decltype(msg)>::type MsgType;
+        using MsgType = typename std::decay<decltype(msg)>::type;
         field.value() = getMsgId(msg, IdRetrieveTag<MsgType>());
         return
             writeInternal(
@@ -312,7 +312,7 @@ private:
                 break;
             }
 
-            typedef typename std::decay<decltype(iter)>::type IterType;
+            using IterType = typename std::decay<decltype(iter)>::type;
             static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
                 "Iterator used for reading is expected to be random access one");
             IterType readStart = iter;
@@ -358,7 +358,7 @@ private:
     template <typename TMsg>
     static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicIdTag)
     {
-        typedef typename std::decay<decltype(msg)>::type MsgType;
+        using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
             "The message class is expected to inherit from comms::Message");
         static_assert(MsgType::InterfaceOptions::HasMsgIdInfo,

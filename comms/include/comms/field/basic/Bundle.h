@@ -38,8 +38,8 @@ template <typename TFieldBase, typename TMembers>
 class Bundle : public TFieldBase
 {
 public:
-    typedef comms::field::category::BundleField Category;
-    typedef TMembers ValueType;
+    using Category = comms::field::category::BundleField;
+    using ValueType = TMembers;
 
     Bundle() = default;
     explicit Bundle(const ValueType& val)

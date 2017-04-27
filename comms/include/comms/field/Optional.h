@@ -44,25 +44,25 @@ namespace field
 template <typename TField, typename... TOptions>
 class Optional
 {
-    typedef basic::Optional<TField> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+    using BasicField = basic::Optional<TField>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef details::OptionsParser<TOptions...> ParsedOptions;
+    using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
-    typedef tag::Optional Tag;
+    using Tag = tag::Optional;
 
     /// @brief Type of the field.
-    typedef TField Field;
+    using Field = TField;
 
     /// @brief Value type of this field, equal to @ref Field
-    typedef Field ValueType;
+    using ValueType = Field;
 
     /// @brief Mode of the field.
     /// @see OptionalMode
-    typedef OptionalMode Mode;
+    using Mode = OptionalMode;
 
     /// @brief Default constructor
     /// @details The mode it is created in is OptionalMode::Tentative.

@@ -54,9 +54,8 @@ class MessageInterfaceOptionsParser<
     comms::option::MsgIdType<T>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
-    typedef comms::option::MsgIdType<T> Option;
 public:
-    typedef typename Option::Type MsgIdType;
+    using MsgIdType = T;
     static const bool HasMsgIdType = true;
 };
 
@@ -74,10 +73,9 @@ class MessageInterfaceOptionsParser<
     comms::option::Endian<TEndian>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
-    typedef comms::option::Endian<TEndian> Option;
 public:
-    typedef typename Option::Type Endian;
     static const bool HasEndian = true;
+    using Endian = TEndian;
 };
 
 template <typename TIter, typename... TOptions>
@@ -85,10 +83,9 @@ class MessageInterfaceOptionsParser<
     comms::option::ReadIterator<TIter>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
-    typedef comms::option::ReadIterator<TIter> Option;
 public:
-    typedef typename Option::Type ReadIterator;
     static const bool HasReadIterator = true;
+    using ReadIterator = TIter;
 };
 
 template <typename TIter, typename... TOptions>
@@ -96,10 +93,9 @@ class MessageInterfaceOptionsParser<
     comms::option::WriteIterator<TIter>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
-    typedef comms::option::WriteIterator<TIter> Option;
 public:
-    typedef typename Option::Type WriteIterator;
     static const bool HasWriteIterator = true;
+    using WriteIterator = TIter;
 };
 
 template <typename T, typename... TOptions>
@@ -107,10 +103,9 @@ class MessageInterfaceOptionsParser<
     comms::option::Handler<T>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
-    typedef comms::option::Handler<T> Option;
 public:
-    typedef typename Option::Type Handler;
     static const bool HasHandler = true;
+    using Handler = T;
 };
 
 template <typename... TOptions>

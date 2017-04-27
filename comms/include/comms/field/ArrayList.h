@@ -37,35 +37,36 @@ namespace field
 namespace details
 {
 
-template <typename TElement, typename TOptions, bool THasCustomStorageType, bool THasFixedStorage>
+template <bool THasCustomStorageType, bool THasFixedStorage>
 struct ArrayListStorageType;
 
-template <typename TElement, typename TOptions, bool THasFixedStorage>
-struct ArrayListStorageType<TElement, TOptions, true, THasFixedStorage>
+template <bool THasFixedStorage>
+struct ArrayListStorageType<true, THasFixedStorage>
 {
-    typedef typename TOptions::CustomStorageType Type;
+    template <typename TElement, typename TOptions>
+    using Type = typename TOptions::CustomStorageType;
 };
 
-template <typename TElement, typename TOptions>
-struct ArrayListStorageType<TElement, TOptions, false, true>
+template <>
+struct ArrayListStorageType<false, true>
 {
-    typedef comms::util::StaticVector<TElement, TOptions::FixedSizeStorage> Type;
+    template <typename TElement, typename TOptions>
+    using Type = comms::util::StaticVector<TElement, TOptions::FixedSizeStorage>;
 };
 
-template <typename TElement, typename TOptions>
-struct ArrayListStorageType<TElement, TOptions, false, false>
+template <>
+struct ArrayListStorageType<false, false>
 {
-    typedef std::vector<TElement> Type;
+    template <typename TElement, typename TOptions>
+    using Type = std::vector<TElement>;
 };
 
 template <typename TElement, typename TOptions>
 using ArrayListStorageTypeT =
     typename ArrayListStorageType<
-        TElement,
-        TOptions,
         TOptions::HasCustomStorageType,
         TOptions::HasFixedSizeStorage
-    >::Type;
+    >::template Type<TElement, TOptions>;
 
 }  // namespace details
 
@@ -117,30 +118,30 @@ template <typename TFieldBase, typename TElement, typename... TOptions>
 class ArrayList : public TFieldBase
 {
     using Base = TFieldBase;
-    typedef details::OptionsParser<TOptions...> ParsedOptionsInternal;
+    using ParsedOptionsInternal = details::OptionsParser<TOptions...>;
     using StorageTypeInternal =
         details::ArrayListStorageTypeT<TElement, ParsedOptionsInternal>;
-    typedef basic::ArrayList<TFieldBase, StorageTypeInternal> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+    using BasicField = basic::ArrayList<TFieldBase, StorageTypeInternal>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef ParsedOptionsInternal ParsedOptions;
+    using ParsedOptions = ParsedOptionsInternal;
 
     /// @brief Tag indicating type of the field
-    typedef typename std::conditional<
+    using Tag = typename std::conditional<
         std::is_integral<TElement>::value,
         tag::RawArrayList,
         tag::ArrayList
-    >::type Tag;
+    >::type;
 
     /// @brief Type of underlying value.
     /// @details If comms::option::FixedSizeStorage option is NOT used, the
     ///     ValueType is std::vector<TElement>, otherwise it becomes
     ///     comms::util::StaticVector<TElement, TSize>, where TSize is a size
     ///     provided to comms::option::FixedSizeStorage option.
-    typedef StorageTypeInternal ValueType;
+    using ValueType = StorageTypeInternal;
 
     /// @brief Default constructor
     ArrayList() = default;

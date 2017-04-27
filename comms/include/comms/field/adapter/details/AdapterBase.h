@@ -44,7 +44,7 @@ struct AdapterBase
     static_assert(comms::field::category::isCategorised<TNext>(),
         "Unexpected type.");
 
-    typedef typename std::conditional<
+    using Type = typename std::conditional<
         std::is_base_of<comms::field::category::NumericValueField, typename TNext::Category>::value,
         NumericFieldAdapterBase<TNext>,
         typename std::conditional<
@@ -60,7 +60,7 @@ struct AdapterBase
                 >::type
             >::type
         >::type
-    >::type Type;
+    >::type;
 
     static_assert(!std::is_void<Type>::value, "Unknown category!");
 };

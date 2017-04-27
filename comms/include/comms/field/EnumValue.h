@@ -71,23 +71,22 @@ template <typename TFieldBase, typename TEnum, typename... TOptions>
 class EnumValue : public TFieldBase
 {
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
-    typedef basic::EnumValue<TFieldBase, TEnum> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+    using BasicField = basic::EnumValue<TFieldBase, TEnum>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef details::OptionsParser<TOptions...> ParsedOptions;
+    using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
-    typedef tag::Enum Tag;
+    using Tag = tag::Enum;
 
     /// @brief Type of underlying enum value.
     /// @details Same as template parameter TEnum to this class.
-    typedef typename ThisField::ValueType ValueType;
-
+    using ValueType = typename ThisField::ValueType;
 
     /// @brief Default constructor.
     EnumValue() = default;

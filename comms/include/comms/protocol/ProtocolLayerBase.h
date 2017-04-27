@@ -36,25 +36,25 @@ namespace details
 {
 
 template <class T, class R = void>
-struct ProtocolLayerEnableIfHasAllMessages { typedef R Type; };
+struct ProtocolLayerEnableIfHasAllMessages { using Type = R; };
 
 template <class T, class Enable = void>
 struct ProtocolLayerAllMessagesHelper
 {
-    typedef void Type;
+    using Type = void;
 };
 
 template <class T>
 struct ProtocolLayerAllMessagesHelper<T, typename ProtocolLayerEnableIfHasAllMessages<typename T::AllMessages>::Type>
 {
-    typedef typename T::AllMessages Type;
+    using Type = typename T::AllMessages;
 };
 
 template <class T>
 using ProtocolLayerAllMessagesType = typename ProtocolLayerAllMessagesHelper<T>::Type;
 
 template <class T, class R = void>
-struct ProtocolLayerEnableIfHasInterfaceOptions { typedef R Type; };
+struct ProtocolLayerEnableIfHasInterfaceOptions { using Type = R; };
 
 template <class T, class Enable = void>
 struct ProtocolLayerHasInterfaceOptions
@@ -69,7 +69,7 @@ struct ProtocolLayerHasInterfaceOptions<T, typename ProtocolLayerEnableIfHasInte
 };
 
 template <class T, class R = void>
-struct ProtocolLayerEnableIfHasImplOptions { typedef R Type; };
+struct ProtocolLayerEnableIfHasImplOptions { using Type = R; };
 
 template <class T, class Enable = void>
 struct ProtocolLayerHasImplOptions
@@ -128,18 +128,18 @@ struct ProtocolLayerHasStaticIdImpl
 };
 
 template <class T, class R = void>
-struct ProtocolLayerEnableIfHasMsgPtr { typedef R Type; };
+struct ProtocolLayerEnableIfHasMsgPtr { using Type = R; };
 
 template <class T, class Enable = void>
 struct ProtocolLayerMsgPtr
 {
-    typedef void Type;
+    using Type = void;
 };
 
 template <class T>
 struct ProtocolLayerMsgPtr<T, typename ProtocolLayerEnableIfHasMsgPtr<typename T::MsgPtr>::Type>
 {
-    typedef typename T::MsgPtr Type;
+    using Type = typename T::MsgPtr;
 };
 
 
@@ -160,30 +160,30 @@ class ProtocolLayerBase
 {
 public:
     /// @brief Type of the field used for this layer.
-    typedef TField Field;
+    using Field = TField;
 
     /// @brief Type of the next transport layer
-    typedef TNextLayer NextLayer;
+    using NextLayer = TNextLayer;
 
     /// @brief Type of all the fields of all the transport layers
     ///     wrapped in std::tuple.
     /// @details The @ref Field type is prepended to the @ref AllFields type
     ///     of the @ref NextLayer and reported as @ref AllFields of this one.
-    typedef typename std::decay<
+    using AllFields = typename std::decay<
         decltype(
             std::tuple_cat(
                 std::declval<std::tuple<Field> >(),
                 std::declval<typename TNextLayer::AllFields>())
             )
-        >::type AllFields;
+        >::type;
 
     /// @brief All supported messages.
     /// @details Same as NextLayer::AllMessages or void if such doesn't exist.
-    typedef details::ProtocolLayerAllMessagesType<NextLayer> AllMessages;
+    using AllMessages = details::ProtocolLayerAllMessagesType<NextLayer>;
 
     /// @brief Type of pointer to the message.
     /// @details Same as NextLayer::MsgPtr or void if such doesn't exist.
-    typedef typename details::ProtocolLayerMsgPtr<NextLayer>::Type MsgPtr;
+    using MsgPtr = typename details::ProtocolLayerMsgPtr<NextLayer>::Type;
 
     /// @copydoc MsgDataLayer::NumOfLayers
     static const std::size_t NumOfLayers = 1 + NextLayer::NumOfLayers;
@@ -309,11 +309,11 @@ protected:
     /// @cond SKIP_DOC
     struct FixedLengthTag {};
     struct VarLengthTag {};
-    typedef typename std::conditional<
+    using LengthTag = typename std::conditional<
         (Field::minLength() == Field::maxLength()),
         FixedLengthTag,
         VarLengthTag
-    >::type LengthTag;
+    >::type;
 
     class NextLayerReader
     {
@@ -477,7 +477,7 @@ protected:
 
         auto& field = std::get<TIdx>(allFields);
 
-        typedef typename std::decay<decltype(field)>::type FieldType;
+        using FieldType = typename std::decay<decltype(field)>::type;
         static_assert(
             std::is_same<Field, FieldType>::value,
             "Field has wrong type");

@@ -41,7 +41,7 @@ using CrcInitTableType = std::array<TResult, 256>;
 template <typename TResult, TResult TPoly>
 struct CrcInitTable
 {
-    typedef CrcInitTableType<TResult> Table;
+    using Table = CrcInitTableType<TResult>;
     static const Table& get()
     {
         static Table table;
@@ -87,7 +87,7 @@ private:
 template <>
 struct CrcInitTable<std::uint16_t, 0x1021>
 {
-    typedef CrcInitTableType<std::uint16_t> Table;
+    using Table = CrcInitTableType<std::uint16_t>;
     static const Table& get()
     {
         static const Table Table = {{
@@ -131,7 +131,7 @@ struct CrcInitTable<std::uint16_t, 0x1021>
 template <>
 struct CrcInitTable<std::uint16_t, 0x8005>
 {
-    typedef CrcInitTableType<std::uint16_t> Table;
+    using Table = CrcInitTableType<std::uint16_t>;
     static const Table& get()
     {
         static const Table Table = {{
@@ -175,7 +175,7 @@ struct CrcInitTable<std::uint16_t, 0x8005>
 template <>
 struct CrcInitTable<std::uint32_t, 0x04c11db7>
 {
-    typedef CrcInitTableType<std::uint32_t> Table;
+    using Table = CrcInitTableType<std::uint32_t>;
     static const Table& get()
     {
         static const Table Table = {{
@@ -289,9 +289,9 @@ public:
 
         for (std::size_t byte = 0U; byte < len; ++byte)
         {
-            typedef typename std::make_unsigned<
+            using ByteType = typename std::make_unsigned<
                 typename std::decay<decltype(*iter)>::type
-            >::type ByteType;
+            >::type;
 
             auto val = static_cast<std::uint8_t>(static_cast<ByteType>(*iter));
             val = reflect(val) ^ (rem >> (Width - 8));
@@ -306,17 +306,17 @@ private:
     struct NoReflectTag {};
     struct DoReflectTag {};
 
-    typedef typename std::conditional<
+    using ReflectTag = typename std::conditional<
         TReflect,
         DoReflectTag,
         NoReflectTag
-    >::type ReflectTag;
+    >::type;
 
-    typedef typename std::conditional<
+    using ReflectRemTag = typename std::conditional<
         TRefrectRem,
         DoReflectTag,
         NoReflectTag
-    >::type ReflectRemTag;
+    >::type;
 
     static std::uint8_t reflect(std::uint8_t byte)
     {

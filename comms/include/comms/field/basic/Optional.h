@@ -37,11 +37,11 @@ template <typename TField>
 class Optional : public comms::Field<comms::option::Endian<typename TField::Endian> >
 {
 public:
-    typedef comms::field::category::OptionalField Category;
+    using Category = comms::field::category::OptionalField;
 
-    typedef TField Field;
-    typedef TField ValueType;
-    typedef field::OptionalMode Mode;
+    using Field = TField;
+    using ValueType = TField;
+    using Mode = field::OptionalMode;
 
     Optional() = default;
 

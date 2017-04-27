@@ -33,11 +33,11 @@ namespace adapter
 template <typename TNext>
 class IgnoreInvalid : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
+    using Base = details::AdapterBaseT<TNext>;
 public:
 
-    typedef typename Base::Next Next;
-    typedef typename Base::ValueType ValueType;
+    using Next = typename Base::Next;
+    using ValueType = typename Base::ValueType;
 
     IgnoreInvalid() = default;
 

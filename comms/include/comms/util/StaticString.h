@@ -38,8 +38,8 @@ namespace details
 template <typename TChar>
 class StaticStringBase
 {
-    typedef StaticVectorBase<TChar> VecType;
-    typedef typename VecType::CellType CellType;
+    using VecType = StaticVectorBase<TChar>;
+    using CellType = typename VecType::CellType;
 protected:
 
     static const auto npos = static_cast<std::size_t>(-1);
@@ -763,7 +763,7 @@ private:
 template <typename TChar, std::size_t TSize>
 struct StaticStringStorageBase
 {
-    typedef std::array<TChar, TSize> StorageType;
+    using StorageType = std::array<TChar, TSize>;
     StorageType data_;
 };
 
@@ -783,32 +783,32 @@ class StaticString :
     public details::StaticStringStorageBase<TChar, TSize + 1>,
     public details::StaticStringBase<TChar>
 {
-    typedef details::StaticStringStorageBase<TChar, TSize + 1> StorageBase;
-    typedef details::StaticStringBase<TChar> Base;
+    using StorageBase = details::StaticStringStorageBase<TChar, TSize + 1>;
+    using Base = details::StaticStringBase<TChar>;
 
 public:
     /// @brief Type of single character.
-    typedef TChar value_type;
+    using value_type = TChar;
     /// @brief Type used for size information
-    typedef std::size_t size_type;
+    using size_type = std::size_t;
     /// @brief Type used in pointer arithmetics
-    typedef typename StorageBase::StorageType::difference_type difference_type;
+    using difference_type = typename StorageBase::StorageType::difference_type;
     /// @brief Reference to single character
-    typedef value_type& reference;
+    using reference = value_type&;
     /// @brief Const reference to single character
-    typedef const value_type& const_reference;
+    using const_reference = const value_type&;
     /// @brief Pointer to single character
-    typedef value_type* pointer;
+    using pointer = value_type*;
     /// @brief Const pointer to single character
-    typedef const value_type* const_pointer;
+    using const_pointer = const value_type*;
     /// @brief Type of the iterator.
-    typedef pointer iterator;
+    using iterator = pointer;
     /// @brief Type of the const iterator
-    typedef const_pointer const_iterator;
+    using const_iterator = const_pointer;
     /// @brief Type of the reverse iterator
-    typedef std::reverse_iterator<iterator> reverse_iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     /// @brief Type of the const reverse iterator
-    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     /// @brief Same as std::string::npos.
     static const auto npos = Base::npos;

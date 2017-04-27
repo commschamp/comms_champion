@@ -72,20 +72,20 @@ class Bundle
         1U < std::tuple_size<TMembers>::value,
         "Number of members is expected to be at least 2.");
 
-    typedef basic::Bundle<TFieldBase, TMembers> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+    using BasicField = basic::Bundle<TFieldBase, TMembers>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
 public:
     /// @brief All the options provided to this class bundled into struct.
-    typedef details::OptionsParser<TOptions...> ParsedOptions;
+    using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
-    typedef tag::Bundle Tag;
+    using Tag = tag::Bundle;
 
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
     ///     of all the wrapped fields.
-    typedef typename ThisField::ValueType ValueType;
+    using ValueType = typename ThisField::ValueType;
 
     /// @brief Default constructor
     /// @details Invokes default constructor of every wrapped field

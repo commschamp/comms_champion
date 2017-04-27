@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -45,9 +45,9 @@ public:
     template <typename TIter>
     TResult operator()(TIter& iter, std::size_t len) const
     {
-        typedef typename std::make_unsigned<
+        using ByteType = typename std::make_unsigned<
             typename std::decay<decltype(*iter)>::type
-        >::type ByteType;
+        >::type;
 
         auto checksum = TResult(0);
         for (auto idx = 0U; idx < len; ++idx) {

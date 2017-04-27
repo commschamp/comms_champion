@@ -39,22 +39,22 @@ template <typename T>
 class StaticVectorBase
 {
 public:
-    typedef T value_type;
-    typedef std::size_t size_type;
-    typedef T& reference;
-    typedef const T& const_reference;
-    typedef T* pointer;
-    typedef const T* const_pointer;
-    typedef pointer iterator;
-    typedef const_pointer const_iterator;
-    typedef std::reverse_iterator<iterator> reverse_iterator;
-    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    using value_type = T;
+    using size_type = std::size_t;
+    using reference = T&;
+    using const_reference = const T&;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    typedef
+    using CellType =
         typename std::aligned_storage<
             sizeof(T),
             std::alignment_of<T>::value
-        >::type CellType;
+        >::type;
 
     static_assert(sizeof(CellType) == sizeof(T), "Type T must be padded");
 
@@ -289,7 +289,7 @@ public:
     template <typename TIter>
     T* insert(const T* pos, TIter from, TIter to)
     {
-        typedef typename std::iterator_traits<TIter>::iterator_category Tag;
+        using Tag = typename std::iterator_traits<TIter>::iterator_category;
         return insert_internal(pos, from, to, Tag());
     }
 
@@ -521,12 +521,12 @@ private:
 template <typename T, std::size_t TSize>
 struct StaticVectorStorageBase
 {
-    typedef typename std::aligned_storage<
+    using ElementType = typename std::aligned_storage<
         sizeof(T),
         std::alignment_of<T>::value
-    >::type ElementType;
+    >::type;
 
-    typedef std::array<ElementType, TSize> StorageType;
+    using StorageType = std::array<ElementType, TSize>;
     StorageType data_;
 };
 
@@ -545,10 +545,10 @@ class StaticVector :
     public details::StaticVectorStorageBase<T, TSize>,
     public details::StaticVectorBase<T>
 {
-    typedef details::StaticVectorStorageBase<T, TSize> StorageBase;
-    typedef details::StaticVectorBase<T> Base;
+    using StorageBase = details::StaticVectorStorageBase<T, TSize>;
+    using Base = details::StaticVectorBase<T>;
 
-    typedef typename StorageBase::ElementType ElementType;
+    using ElementType = typename StorageBase::ElementType;
 
     static_assert(sizeof(T) == sizeof(ElementType),
         "Sizes are not equal as expected.");
@@ -558,37 +558,37 @@ class StaticVector :
 
 public:
     /// @brief Type of single element.
-    typedef typename Base::value_type value_type;
+    using value_type = typename Base::value_type;
 
     /// @brief Type used for size information
-    typedef typename Base::size_type size_type;
+    using size_type = typename Base::size_type;
 
     /// @brief Type used in pointer arithmetics
-    typedef typename StorageBase::StorageType::difference_type difference_type;
+    using difference_type = typename StorageBase::StorageType::difference_type;
 
     /// @brief Reference to single element
-    typedef typename Base::reference reference;
+    using reference = typename Base::reference;
 
     /// @brief Const reference to single element
-    typedef typename Base::const_reference const_reference;
+    using const_reference = typename Base::const_reference;
 
     /// @brief Pointer to single element
-    typedef typename Base::pointer pointer;
+    using pointer = typename Base::pointer;
 
     /// @brief Const pointer to single element
-    typedef typename Base::const_pointer const_pointer;
+    using const_pointer = typename Base::const_pointer;
 
     /// @brief Type of the iterator.
-    typedef typename Base::iterator iterator;
+    using iterator = typename Base::iterator;
 
     /// @brief Type of the const iterator
-    typedef typename Base::const_iterator const_iterator;
+    using const_iterator = typename Base::const_iterator;
 
     /// @brief Type of the reverse iterator
-    typedef typename Base::reverse_iterator reverse_iterator;
+    using reverse_iterator = typename Base::reverse_iterator;
 
     /// @brief Type of the const reverse iterator
-    typedef typename Base::const_reverse_iterator const_reverse_iterator;
+    using const_reverse_iterator = typename Base::const_reverse_iterator;
 
     /// @brief Default constructor.
     StaticVector()

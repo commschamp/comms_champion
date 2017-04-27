@@ -91,7 +91,7 @@ template <
 class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TRest...> >
                     : public GenericHandler<TDefault, std::tuple<TRest...> >
 {
-    typedef GenericHandler<TDefault, std::tuple<TRest...> > Base;
+    using Base = GenericHandler<TDefault, std::tuple<TRest...> >;
 public:
 
     using Base::handle;

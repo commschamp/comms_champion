@@ -32,12 +32,12 @@ namespace adapter
 template <typename TValidator, typename TNext>
 class CustomValidator : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
-    typedef TValidator Validator;
+    using Base = details::AdapterBaseT<TNext>;
+    using Validator = TValidator;
 
 public:
 
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
     CustomValidator() = default;
 

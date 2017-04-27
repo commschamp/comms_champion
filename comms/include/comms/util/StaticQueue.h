@@ -54,25 +54,25 @@ public:
     class Iterator;
 
 protected:
-    typedef T ValueType;
-    typedef
+    using ValueType = T;
+    using StorageType =
         typename std::aligned_storage<
             sizeof(ValueType),
             std::alignment_of<ValueType>::value
-        >::type StorageType;
-    typedef StorageType* StorageTypePtr;
-    typedef const StorageType* ConstStorageTypePtr;
-    typedef std::size_t SizeType;
-    typedef ValueType& Reference;
-    typedef const ValueType& ConstReference;
-    typedef ValueType* Pointer;
-    typedef const ValueType* ConstPointer;
-    typedef Pointer LinearisedIterator;
-    typedef ConstPointer ConstLinearisedIterator;
-    typedef std::reverse_iterator<LinearisedIterator> ReverseLinearisedIterator;
-    typedef std::reverse_iterator<ConstLinearisedIterator> ConstReverseLinearisedIterator;
-    typedef std::pair<LinearisedIterator, LinearisedIterator> LinearisedIteratorRange;
-    typedef std::pair<ConstLinearisedIterator, ConstLinearisedIterator> ConstLinearisedIteratorRange;
+        >::type;
+    using StorageTypePtr = StorageType*;
+    using ConstStorageTypePtr = const StorageType*;
+    using SizeType = std::size_t;
+    using Reference = ValueType&;
+    using ConstReference = const ValueType&;
+    using Pointer = ValueType*;
+    using ConstPointer = const ValueType*;
+    using LinearisedIterator = Pointer;
+    using ConstLinearisedIterator = ConstPointer;
+    using ReverseLinearisedIterator = std::reverse_iterator<LinearisedIterator>;
+    using ConstReverseLinearisedIterator = std::reverse_iterator<ConstLinearisedIterator>;
+    using LinearisedIteratorRange = std::pair<LinearisedIterator, LinearisedIterator>;
+    using ConstLinearisedIteratorRange = std::pair<ConstLinearisedIterator, ConstLinearisedIterator>;
 
     StaticQueueBase(StorageTypePtr data, std::size_t capacity)
         : data_(data),
@@ -611,20 +611,20 @@ protected:
             "Assignment works only on the same types");
 
 
-        typedef typename std::decay<decltype(other)>::type DecayedQueueType;
-        typedef typename std::remove_reference<decltype(other)>::type NonRefQueueType;
+        using DecayedQueueType = typename std::decay<decltype(other)>::type;
+        using NonRefQueueType = typename std::remove_reference<decltype(other)>::type;
 
-        typedef typename std::conditional<
+        using QueueValueType = typename std::conditional<
             std::is_const<NonRefQueueType>::value,
             const typename DecayedQueueType::ValueType,
             typename DecayedQueueType::ValueType
-        >::type QueueValueType;
+        >::type;
 
-        typedef typename std::conditional<
+        using ElemRefType = typename std::conditional<
             std::is_rvalue_reference<decltype(other)>::value,
             typename std::add_rvalue_reference<QueueValueType>::type,
             typename std::add_lvalue_reference<QueueValueType>::type
-        >::type ElemRefType;
+        >::type;
 
         GASSERT(other.size() <= capacity());
         GASSERT(empty());
@@ -899,7 +899,7 @@ private:
         const LinearisedIteratorRange& rangeOne,
         const LinearisedIteratorRange& rangeTwo)
     {
-        typedef std::reverse_iterator<Pointer> RevIter;
+        using RevIter = std::reverse_iterator<Pointer>;
         lineariseByMove(
             std::make_pair(RevIter(rangeTwo.second), RevIter(rangeTwo.first)),
             std::make_pair(RevIter(rangeOne.second), RevIter(rangeOne.first)));
@@ -917,7 +917,7 @@ private:
         popFront();
         lineariseByPopOne();
         if (startIdx_ == 0) {
-            typedef std::reverse_iterator<LinearisedIterator> RevIter;
+            using RevIter = std::reverse_iterator<LinearisedIterator>;
             auto target =
                 RevIter(reinterpret_cast<LinearisedIterator>(&data_[capacity()]));
             moveRange(rlbegin(), rlend(), target);
@@ -988,26 +988,26 @@ public:
     ~IteratorBase() = default;
 
 protected:
-    typedef TDerived Derived;
-    typedef TQueueType QueueType;
-    typedef decltype(std::declval<QueueType>().lbegin()) ArrayIterator;
-    typedef typename std::iterator_traits<ArrayIterator>::iterator_category IteratorCategory;
-    typedef IteratorCategory iterator_category;
-    typedef typename std::iterator_traits<ArrayIterator>::value_type ValueType;
-    typedef ValueType value_type;
-    typedef typename std::iterator_traits<ArrayIterator>::difference_type DifferenceType;
-    typedef DifferenceType difference_type;
-    typedef typename std::iterator_traits<ArrayIterator>::pointer Pointer;
-    typedef Pointer pointer;
-    typedef
+    using Derived = TDerived;
+    using QueueType = TQueueType;
+    using ArrayIterator = decltype(std::declval<QueueType>().lbegin());
+    using IteratorCategory = typename std::iterator_traits<ArrayIterator>::iterator_category;
+    using iterator_category = IteratorCategory;
+    using ValueType = typename std::iterator_traits<ArrayIterator>::value_type;
+    using value_type = ValueType;
+    using DifferenceType = typename std::iterator_traits<ArrayIterator>::difference_type;
+    using difference_type = DifferenceType;
+    using Pointer = typename std::iterator_traits<ArrayIterator>::pointer;
+    using pointer = Pointer;
+    using ConstPointer =
         typename std::add_pointer<
             typename std::add_const<
                 typename std::remove_pointer<Pointer>::type
             >::type
-        >::type ConstPointer;
-    typedef typename std::iterator_traits<ArrayIterator>::reference Reference;
-    typedef Reference reference;
-    typedef typename std::add_const<Reference>::type ConstReference;
+        >::type;
+    using Reference = typename std::iterator_traits<ArrayIterator>::reference;
+    using reference = Reference;
+    using ConstReference = typename std::add_const<Reference>::type;
 
     IteratorBase(QueueType& queue, ArrayIterator iterator)
         : queue_(queue),
@@ -1163,12 +1163,12 @@ class StaticQueueBase<T>::ConstIterator :
             public StaticQueueBase<T>::template
                 IteratorBase<typename StaticQueueBase<T>::ConstIterator, const StaticQueueBase<T> >
 {
-    typedef typename StaticQueueBase<T>::template
-        IteratorBase<typename StaticQueueBase<T>::ConstIterator, const StaticQueueBase<T> > Base;
+    using Base = typename StaticQueueBase<T>::template
+        IteratorBase<typename StaticQueueBase<T>::ConstIterator, const StaticQueueBase<T> >;
 
 public:
-    typedef typename Base::QueueType QueueType;
-    typedef typename Base::ArrayIterator ArrayIterator;
+    using QueueType = typename Base::QueueType;
+    using ArrayIterator = typename Base::ArrayIterator;
 
     ConstIterator(const ConstIterator&) = default;
     ~ConstIterator() = default;
@@ -1185,12 +1185,12 @@ class StaticQueueBase<T>::Iterator :
             public StaticQueueBase<T>::template
                 IteratorBase<typename StaticQueueBase<T>::Iterator, StaticQueueBase<T> >
 {
-    typedef typename StaticQueueBase<T>::template
-        IteratorBase<typename StaticQueueBase<T>::Iterator, StaticQueueBase<T> > Base;
+    using Base = typename StaticQueueBase<T>::template
+        IteratorBase<typename StaticQueueBase<T>::Iterator, StaticQueueBase<T> >;
 
 public:
-    typedef typename Base::QueueType QueueType;
-    typedef typename Base::ArrayIterator ArrayIterator;
+    using QueueType = typename Base::QueueType;
+    using ArrayIterator = typename Base::ArrayIterator;
 
     Iterator(const Iterator&) = default;
     ~Iterator() = default;
@@ -1210,21 +1210,21 @@ public:
 template <typename TWrapperElemType, typename TQueueElemType>
 class CastWrapperQueueBase : public StaticQueueBase<TQueueElemType>
 {
-    typedef StaticQueueBase<TQueueElemType> Base;
-    typedef TWrapperElemType WrapperElemType;
+    using Base = StaticQueueBase<TQueueElemType>;
+    using WrapperElemType = TWrapperElemType;
 
-    typedef typename Base::ValueType BaseValueType;
-    typedef typename Base::StorageTypePtr BaseStorageTypePtr;
-    typedef typename Base::Reference BaseReference;
-    typedef typename Base::ConstReference BaseConstReference;
-    typedef typename Base::Pointer BasePointer;
-    typedef typename Base::ConstPointer BaseConstPointer;
-    typedef typename Base::LinearisedIterator BaseLinearisedIterator;
-    typedef typename Base::ConstLinearisedIterator BaseConstLinearisedIterator;
-    typedef typename Base::ReverseLinearisedIterator BaseReverseLinearisedIterator;
-    typedef typename Base::ConstReverseLinearisedIterator BaseConstReverseLinearisedIterator;
-    typedef typename Base::LinearisedIteratorRange BaseLinearisedIteratorRange;
-    typedef typename Base::ConstLinearisedIteratorRange BaseConstLinearisedIteratorRange;
+    using BaseValueType = typename Base::ValueType;
+    using BaseStorageTypePtr = typename Base::StorageTypePtr;
+    using BaseReference = typename Base::Reference;
+    using BaseConstReference = typename Base::ConstReference;
+    using BasePointer = typename Base::Pointer;
+    using BaseConstPointer = typename Base::ConstPointer;
+    using BaseLinearisedIterator = typename Base::LinearisedIterator;
+    using BaseConstLinearisedIterator = typename Base::ConstLinearisedIterator;
+    using BaseReverseLinearisedIterator = typename Base::ReverseLinearisedIterator;
+    using BaseConstReverseLinearisedIterator = typename Base::ConstReverseLinearisedIterator;
+    using BaseLinearisedIteratorRange = typename Base::LinearisedIteratorRange;
+    using BaseConstLinearisedIteratorRange = typename Base::ConstLinearisedIteratorRange;
 
 public:
 
@@ -1232,23 +1232,23 @@ public:
     class Iterator;
 
 protected:
-    typedef WrapperElemType ValueType;
-    typedef
+    using ValueType = WrapperElemType;
+    using StorageType =
         typename std::aligned_storage<
             sizeof(ValueType),
             std::alignment_of<ValueType>::value
-        >::type StorageType;
-    typedef StorageType* StorageTypePtr;
-    typedef ValueType& Reference;
-    typedef const ValueType& ConstReference;
-    typedef ValueType* Pointer;
-    typedef const ValueType* ConstPointer;
-    typedef Pointer LinearisedIterator;
-    typedef ConstPointer ConstLinearisedIterator;
-    typedef std::reverse_iterator<LinearisedIterator> ReverseLinearisedIterator;
-    typedef std::reverse_iterator<ConstLinearisedIterator> ConstReverseLinearisedIterator;
-    typedef std::pair<LinearisedIterator, LinearisedIterator> LinearisedIteratorRange;
-    typedef std::pair<ConstLinearisedIterator, ConstLinearisedIterator> ConstLinearisedIteratorRange;
+        >::type;
+    using StorageTypePtr = StorageType*;
+    using Reference = ValueType&;
+    using ConstReference = const ValueType&;
+    using Pointer = ValueType*;
+    using ConstPointer = const ValueType*;
+    using LinearisedIterator = Pointer;
+    using ConstLinearisedIterator = ConstPointer;
+    using ReverseLinearisedIterator = std::reverse_iterator<LinearisedIterator>;
+    using ConstReverseLinearisedIterator = std::reverse_iterator<ConstLinearisedIterator>;
+    using LinearisedIteratorRange = std::pair<LinearisedIterator, LinearisedIterator>;
+    using ConstLinearisedIteratorRange = std::pair<ConstLinearisedIterator, ConstLinearisedIterator>;
 
     CastWrapperQueueBase(StorageTypePtr data, std::size_t capacity)
         : Base(reinterpret_cast<BaseStorageTypePtr>(data), capacity)
@@ -1521,21 +1521,21 @@ template <typename TWrapperElemType, typename TQueueElemType>
 class CastWrapperQueueBase<TWrapperElemType, TQueueElemType>::ConstIterator :
                             public StaticQueueBase<TQueueElemType>::ConstIterator
 {
-    typedef typename StaticQueueBase<TQueueElemType>::ConstIterator Base;
+    using Base = typename StaticQueueBase<TQueueElemType>::ConstIterator;
 public:
     ConstIterator(const ConstIterator&) = default;
     ConstIterator& operator=(const ConstIterator&) = default;
     ~ConstIterator() = default;
 
 protected:
-    typedef const StaticQueueBase<TWrapperElemType> ExpectedQueueType;
-    typedef const StaticQueueBase<TQueueElemType> ActualQueueType;
-    typedef TWrapperElemType ValueType;
-    typedef const ValueType& Reference;
-    typedef const ValueType& ConstReference;
-    typedef const ValueType* Pointer;
-    typedef const ValueType* ConstPointer;
-    typedef typename Base::DifferenceType DifferenceType;
+    using ExpectedQueueType = const StaticQueueBase<TWrapperElemType>;
+    using ActualQueueType = const StaticQueueBase<TQueueElemType>;
+    using ValueType = TWrapperElemType;
+    using Reference = const ValueType&;
+    using ConstReference = const ValueType&;
+    using Pointer = const ValueType*;
+    using ConstPointer = const ValueType*;
+    using DifferenceType = typename Base::DifferenceType;
 
     ConstIterator(ExpectedQueueType& queue, Pointer iterator)
         : Base(reinterpret_cast<ActualQueueType&>(queue), iterator)
@@ -1624,21 +1624,21 @@ template <typename TWrapperElemType, typename TQueueElemType>
 class CastWrapperQueueBase<TWrapperElemType, TQueueElemType>::Iterator :
                             public StaticQueueBase<TQueueElemType>::Iterator
 {
-    typedef typename StaticQueueBase<TQueueElemType>::Iterator Base;
+    using Base = typename StaticQueueBase<TQueueElemType>::Iterator;
 public:
     Iterator(const Iterator&) = default;
     Iterator& operator=(const Iterator&) = default;
     ~Iterator() = default;
 
 protected:
-    typedef const StaticQueueBase<TWrapperElemType> ExpectedQueueType;
-    typedef const StaticQueueBase<TQueueElemType> ActualQueueType;
-    typedef TWrapperElemType ValueType;
-    typedef ValueType& Reference;
-    typedef const ValueType& ConstReference;
-    typedef ValueType* Pointer;
-    typedef const ValueType* ConstPointer;
-    typedef typename Base::DifferenceType DifferenceType;
+    using ExpectedQueueType = const StaticQueueBase<TWrapperElemType>;
+    using ActualQueueType = const StaticQueueBase<TQueueElemType>;
+    using ValueType = TWrapperElemType;
+    using Reference = ValueType&;
+    using ConstReference = const ValueType&;
+    using Pointer = ValueType*;
+    using ConstPointer = const ValueType*;
+    using DifferenceType = typename Base::DifferenceType;
 
     Iterator(ExpectedQueueType& queue, Pointer iterator)
         : Base(reinterpret_cast<ActualQueueType&>(queue), iterator)
@@ -1726,10 +1726,10 @@ protected:
 template <typename T>
 class StaticQueueBaseOptimised : public StaticQueueBase<T>
 {
-    typedef StaticQueueBase<T> Base;
+    usign Base = StaticQueueBase<T>;
 protected:
 
-    typedef typename Base::StorageTypePtr StorageTypePtr;
+    using StorageTypePtr = typename Base::StorageTypePtr;
 
     StaticQueueBaseOptimised(StorageTypePtr data, std::size_t capacity)
         : Base(data, capacity)
@@ -1745,10 +1745,10 @@ protected:
 template <>
 class StaticQueueBaseOptimised<std::int8_t> : public CastWrapperQueueBase<std::int8_t, std::uint8_t>
 {
-    typedef CastWrapperQueueBase<std::int8_t, std::uint8_t> Base;
+    using Base = CastWrapperQueueBase<std::int8_t, std::uint8_t>;
 protected:
 
-    typedef typename Base::StorageTypePtr StorageTypePtr;
+    using StorageTypePtr = typename Base::StorageTypePtr;
 
     StaticQueueBaseOptimised(StorageTypePtr data, std::size_t capacity)
         : Base(data, capacity)
@@ -1763,10 +1763,10 @@ protected:
 template <>
 class StaticQueueBaseOptimised<std::int16_t> : public CastWrapperQueueBase<std::int16_t, std::uint16_t>
 {
-    typedef CastWrapperQueueBase<std::int16_t, std::uint16_t> Base;
+    using Base = CastWrapperQueueBase<std::int16_t, std::uint16_t>;
 protected:
 
-    typedef typename Base::StorageTypePtr StorageTypePtr;
+    using StorageTypePtr = typename Base::StorageTypePtr;
 
     StaticQueueBaseOptimised(StorageTypePtr data, std::size_t capacity)
         : Base(data, capacity)
@@ -1781,10 +1781,10 @@ protected:
 template <>
 class StaticQueueBaseOptimised<std::int32_t> : public CastWrapperQueueBase<std::int32_t, std::uint32_t>
 {
-    typedef CastWrapperQueueBase<std::int32_t, std::uint32_t> Base;
+    using Base = CastWrapperQueueBase<std::int32_t, std::uint32_t>;
 protected:
 
-    typedef typename Base::StorageTypePtr StorageTypePtr;
+    using StorageTypePtr = typename Base::StorageTypePtr;
 
     StaticQueueBaseOptimised(StorageTypePtr data, std::size_t capacity)
         : Base(data, capacity)
@@ -1799,10 +1799,10 @@ protected:
 template <>
 class StaticQueueBaseOptimised<std::int64_t> : public CastWrapperQueueBase<std::int64_t, std::uint64_t>
 {
-    typedef CastWrapperQueueBase<std::int64_t, std::uint64_t> Base;
+    using Base = CastWrapperQueueBase<std::int64_t, std::uint64_t>;
 protected:
 
-    typedef typename Base::StorageTypePtr StorageTypePtr;
+    using StorageTypePtr = stypename Base::StorageTypePtr;
 
     StaticQueueBaseOptimised(StorageTypePtr data, std::size_t capacity)
         : Base(data, capacity)
@@ -1817,10 +1817,10 @@ protected:
 template <typename T>
 class StaticQueueBaseOptimised<T*> : public CastWrapperQueueBase<T*, typename comms::util::SizeToType<sizeof(T*)>::Type>
 {
-    typedef CastWrapperQueueBase<T*, typename comms::util::SizeToType<sizeof(T*)>::Type> Base;
+    using Base = CastWrapperQueueBase<T*, typename comms::util::SizeToType<sizeof(T*)>::Type>;
 protected:
 
-    typedef typename Base::StorageTypePtr StorageTypePtr;
+    using Base = typename Base::StorageTypePtr;
 
     StaticQueueBaseOptimised(StorageTypePtr data, std::size_t capacity)
         : Base(data, capacity)
@@ -1850,75 +1850,75 @@ protected:
 template <typename T, std::size_t TSize>
 class StaticQueue : public details::StaticQueueBaseOptimised<T>
 {
-    typedef details::StaticQueueBaseOptimised<T> Base;
+    using Base = details::StaticQueueBaseOptimised<T>;
 
-    typedef typename Base::StorageType StorageType;
+    using StorageType = typename Base::StorageType;
 public:
     /// @brief Type of the stored elements.
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Same as ValueType
-    typedef ValueType value_type;
+    using value_type = ValueType;
 
     /// @brief Size type.
-    typedef typename Base::SizeType SizeType;
+    using SizeType = typename Base::SizeType;
 
     /// @brief Same as SizeType
-    typedef SizeType size_type;
+    using size_type = SizeType;
 
     /// @brief Reference type to the stored elements.
-    typedef typename Base::Reference Reference;
+    using Reference = typename Base::Reference;
 
     /// @brief Same as Reference
-    typedef Reference reference;
+    using reference = Reference;
 
     /// @brief Const reference type to the stored elements.
-    typedef typename Base::ConstReference ConstReference;
+    using ConstReference = typename Base::ConstReference;
 
     /// @brief Same as ConstReference
-    typedef ConstReference const_reference;
+    using const_reference = ConstReference;
 
     /// @brief Pointer type to the stored elements.
-    typedef typename Base::Pointer Pointer;
+    using Pointer = typename Base::Pointer;
 
     /// @brief Same as Pointer
-    typedef Pointer pointer;
+    using pointer = Pointer;
 
     /// @brief Const pointer type to the stored elements.
-    typedef typename Base::ConstPointer ConstPointer;
+    using ConstPointer = typename Base::ConstPointer;
 
     /// @brief Same as Pointer
-    typedef ConstPointer const_pointer;
+    using const_pointer = ConstPointer;
 
     /// @brief Linearised iterator type
-    typedef typename Base::LinearisedIterator LinearisedIterator;
+    using LinearisedIterator = typename Base::LinearisedIterator;
 
     /// @brief Const linearised iterator type
-    typedef typename Base::ConstLinearisedIterator ConstLinearisedIterator;
+    using ConstLinearisedIterator = typename Base::ConstLinearisedIterator;
 
     /// @brief Reverse linearised iterator type
-    typedef typename Base::ReverseLinearisedIterator ReverseLinearisedIterator;
+    using ReverseLinearisedIterator = typename Base::ReverseLinearisedIterator;
 
     /// @brief Const reverse linearised iterator type
-    typedef typename Base::ConstReverseLinearisedIterator ConstReverseLinearisedIterator;
+    using ConstReverseLinearisedIterator = typename Base::ConstReverseLinearisedIterator;
 
     /// @brief Linearised iterator range type - std::pair of (first, one-past-last) iterators.
-    typedef typename Base::LinearisedIteratorRange LinearisedIteratorRange;
+    using LinearisedIteratorRange = typename Base::LinearisedIteratorRange;
 
     /// @brief Const version of IteratorRange
-    typedef typename Base::ConstLinearisedIteratorRange ConstLinearisedIteratorRange;
+    using ConstLinearisedIteratorRange = typename Base::ConstLinearisedIteratorRange;
 
     /// @brief Const iterator class
     class ConstIterator;
 
     /// @brief Same as ConstIterator
-    typedef ConstIterator const_iterator;
+    using const_iterator = ConstIterator;
 
     /// @brief Iterator class
     class Iterator;
 
     /// @brief Same as Iterator
-    typedef Iterator iterator;
+    using iterator = Iterator;
 
     // Member functions
     /// @brief Default constructor.
@@ -2759,7 +2759,7 @@ public:
 
 
 private:
-    typedef std::array<StorageType, TSize> ArrayType;
+    using ArrayType = std::array<StorageType, TSize>;
     ArrayType array_;
 };
 
@@ -2769,50 +2769,50 @@ private:
 template <typename T, std::size_t TSize>
 class StaticQueue<T, TSize>::ConstIterator : public StaticQueue<T, TSize>::Base::ConstIterator
 {
-    typedef typename StaticQueue<T, TSize>::Base::ConstIterator Base;
+    using Base = typename StaticQueue<T, TSize>::Base::ConstIterator;
 public:
 
     /// @brief Type of iterator category
-    typedef typename Base::IteratorCategory IteratorCategory;
+    using IteratorCategory = typename Base::IteratorCategory;
 
     /// @brief Same as IteratorCategory
-    typedef IteratorCategory iterator_category;
+    using iterator_category = IteratorCategory;
 
     /// @brief Type of the value referenced by the iterator
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Same as ValueType
-    typedef ValueType value_type;
+    using value_type = ValueType;
 
     /// @brief Type of the difference between two iterators
-    typedef typename Base::DifferenceType DifferenceType;
+    using DifferenceType = typename Base::DifferenceType;
 
     /// @brief Same as DifferenceType
-    typedef DifferenceType difference_type;
+    using difference_type = DifferenceType;
 
     /// @brief Type of the pointer to the value referenced by the iterator
-    typedef typename Base::Pointer Pointer;
+    using Pointer = typename Base::Pointer;
 
     /// @brief Same as Pointer
-    typedef Pointer pointer;
+    using pointer = Pointer;
 
     /// @brief Const pointer type
-    typedef typename Base::ConstPointer ConstPointer;
+    using ConstPointer = typename Base::ConstPointer;
 
     /// @brief Type of the reference to the value referenced by the iterator
-    typedef typename Base::Reference Reference;
+    using Reference = typename Base::Reference;
 
     /// @brief Same as Reference
-    typedef Reference reference;
+    using reference = Reference;
 
     /// @brief Const reference type
-    typedef typename Base::ConstReference ConstReference;
+    using ConstReference = typename Base::ConstReference;
 
     /// @brief Queue type
-    typedef StaticQueue<T, TSize> QueueType;
+    using QueueType = StaticQueue<T, TSize>;
 
     /// @brief Const linearised iterator
-    typedef typename QueueType::ConstLinearisedIterator ConstLinearisedIterator;
+    using ConstLinearisedIterator = typename QueueType::ConstLinearisedIterator;
 
     /// @brief Constructor
     /// @param queue Reference to queue
@@ -2974,53 +2974,53 @@ public:
 template <typename T, std::size_t TSize>
 class StaticQueue<T, TSize>::Iterator : public StaticQueue<T, TSize>::Base::Iterator
 {
-    typedef typename StaticQueue<T, TSize>::Base::Iterator Base;
+    using Base = typename StaticQueue<T, TSize>::Base::Iterator;
 public:
 
     /// @brief Type of iterator category
-    typedef typename Base::IteratorCategory IteratorCategory;
+    using IteratorCategory = typename Base::IteratorCategory;
 
     /// @brief Same as IteratorCategory
-    typedef IteratorCategory iterator_category;
+    using iterator_category = IteratorCategory;
 
     /// @brief Type of the value referenced by the iterator
-    typedef typename Base::ValueType ValueType;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Same as ValueType
-    typedef ValueType value_type;
+    using value_type = ValueType;
 
     /// @brief Type of the difference between two iterators
-    typedef typename Base::DifferenceType DifferenceType;
+    using DifferenceType = typename Base::DifferenceType;
 
     /// @brief Same as DifferenceType
-    typedef DifferenceType difference_type;
+    using difference_type = DifferenceType;
 
     /// @brief Type of the pointer to the value referenced by the iterator
-    typedef typename Base::Pointer Pointer;
+    using Pointer = typename Base::Pointer;
 
     /// @brief Same as Pointer
-    typedef Pointer pointer;
+    using pointer = Pointer;
 
     /// @brief Const pointer type
-    typedef typename Base::ConstPointer ConstPointer;
+    using ConstPointer = typename Base::ConstPointer;
 
     /// @brief Type of the reference to the value referenced by the iterator
-    typedef typename Base::Reference Reference;
+    using Reference = typename Base::Reference;
 
     /// @brief Same as Reference
-    typedef Reference reference;
+    using reference = Reference;
 
     /// @brief Const reference type
-    typedef typename Base::ConstReference ConstReference;
+    using ConstReference = typename Base::ConstReference;
 
     /// @brief Queue type
-    typedef StaticQueue<T, TSize> QueueType;
+    using QueueType = StaticQueue<T, TSize>;
 
     /// @brief Linearised iterator
-    typedef typename QueueType::LinearisedIterator LinearisedIterator;
+    using LinearisedIterator = typename QueueType::LinearisedIterator;
 
     /// @brief Const linearised iterator
-    typedef typename QueueType::ConstLinearisedIterator ConstLinearisedIterator;
+    using ConstLinearisedIterator = typename QueueType::ConstLinearisedIterator;
 
     /// @brief Constructor
     /// @param queue Reference to queue

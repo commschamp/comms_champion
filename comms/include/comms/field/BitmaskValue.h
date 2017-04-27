@@ -36,26 +36,26 @@ namespace field
 namespace details
 {
 
-template <typename TOptionsBundle, bool THasFixedLength>
+template <bool THasFixedLength>
 struct BitmaskUndertlyingType;
 
-template <typename TOptionsBundle>
-struct BitmaskUndertlyingType<TOptionsBundle, true>
+template <>
+struct BitmaskUndertlyingType<true>
 {
-    typedef typename comms::util::SizeToType<TOptionsBundle::FixedLength, false>::Type Type;
+    template <typename TOptionsBundle>
+    using Type = typename comms::util::SizeToType<TOptionsBundle::FixedLength, false>::Type;
 };
 
-template <typename TOptionsBundle>
-struct BitmaskUndertlyingType<TOptionsBundle, false>
+template <>
+struct BitmaskUndertlyingType<false>
 {
-    static_assert(!TOptionsBundle::HasVarLengthLimits,
-        "Bitmask with variable length is not supported.");
-    typedef unsigned Type;
+    template <typename TOptionsBundle>
+    using Type = unsigned;
 };
 
 template <typename TOptionsBundle>
 using BitmaskUndertlyingTypeT =
-    typename BitmaskUndertlyingType<TOptionsBundle, TOptionsBundle::HasFixedLengthLimit>::Type;
+    typename BitmaskUndertlyingType<TOptionsBundle::HasFixedLengthLimit>::template Type<TOptionsBundle>;
 
 
 }  // namespace details
@@ -94,31 +94,31 @@ using BitmaskUndertlyingTypeT =
 template <typename TFieldBase, typename... TOptions>
 class BitmaskValue : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
-    typedef details::OptionsParser<TOptions...> OptionsBundle;
+    using OptionsBundle = details::OptionsParser<TOptions...>;
 
-    typedef details::BitmaskUndertlyingTypeT<OptionsBundle> IntValueType;
+    using IntValueType = details::BitmaskUndertlyingTypeT<OptionsBundle>;
 
-    typedef
+    using IntValueField =
         IntValue<
             TFieldBase,
             IntValueType,
             TOptions...
-        > IntValueField;
+        >;
 
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef OptionsBundle ParsedOptions;
+    using ParsedOptions = OptionsBundle;
 
     /// @brief Tag indicating type of the field
-    typedef tag::Bitmask Tag;
+    using Tag = tag::Bitmask;
 
     /// @brief Type of underlying integral value.
     /// @details Unsigned integral type, which depends on the length of the
     ///     mask determined by the comms::option::FixedLength option.
-    typedef typename IntValueField::ValueType ValueType;
+    using ValueType = typename IntValueField::ValueType;
 
     /// @brief Default constructor.
     /// @brief Initial bitmask has all bits cleared (equals 0)

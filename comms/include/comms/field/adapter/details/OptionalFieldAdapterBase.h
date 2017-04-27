@@ -38,13 +38,13 @@ namespace details
 template <typename TNext>
 class OptionalFieldAdapterBase : public CommonBase<TNext>
 {
-    typedef CommonBase<TNext> Base;
+    using Base = CommonBase<TNext>;
 public:
-    typedef typename Base::Category Category;
-    typedef typename Base::Next Next;
-    typedef typename Base::ValueType ValueType;
-    typedef typename Next::Field Field;
-    typedef typename Next::Mode Mode;
+    using Category = typename Base::Category;
+    using Next = typename Base::Next;
+    using ValueType = typename Base::ValueType;
+    using Field = typename Next::Field;
+    using Mode = typename Next::Mode;
 
     static_assert(
         std::is_base_of<comms::field::category::OptionalField, Category>::value,

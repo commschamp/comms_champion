@@ -81,18 +81,18 @@ namespace comms
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
 {
-    typedef details::MessageImplBuilderT<TMessage, TOptions...> Base;
+    using Base = details::MessageImplBuilderT<TMessage, TOptions...>;
 public:
     /// @brief All the options provided to this class bundled into struct.
     /// @details See @ref page_message_options_impl for reference.
-    typedef details::MessageImplOptionsParser<TOptions...> ImplOptions;
+    using ImplOptions = details::MessageImplOptionsParser<TOptions...>;
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
 
     /// @brief All field classes provided with comms::option::FieldsImpl option.
     /// @details The type is not defined if comms::option::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
-    typedef FieldsProvidedWithOption AllFields;
+    using AllFields = FieldsProvidedWithOption;
 
     /// @brief Get an access to the fields of the message.
     /// @details The function doesn't exist if comms::option::FieldsImpl option
@@ -587,14 +587,14 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
     FUNC_AUTO_REF_RETURN(fields, decltype(comms::toMessageBase(*this).fields())) { \
         auto& val = comms::toMessageBase(*this).fields(); \
-        typedef typename std::decay<decltype(val)>::type AllFieldsTuple; \
+        using AllFieldsTuple = typename std::decay<decltype(val)>::type; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
         return val; \
     } \
     FUNC_AUTO_REF_RETURN_CONST(fields, decltype(comms::toMessageBase(*this).fields())) { \
         auto& val = comms::toMessageBase(*this).fields(); \
-        typedef typename std::decay<decltype(val)>::type AllFieldsTuple; \
+        using AllFieldsTuple =  typename std::decay<decltype(val)>::type; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
         return val; \

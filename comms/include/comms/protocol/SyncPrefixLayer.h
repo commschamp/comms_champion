@@ -39,11 +39,11 @@ namespace protocol
 template <typename TField, typename TNextLayer>
 class SyncPrefixLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    typedef ProtocolLayerBase<TField, TNextLayer> Base;
+    using Base = ProtocolLayerBase<TField, TNextLayer>;
 
 public:
     /// @brief Type of the field object used to read/write "sync" value.
-    typedef typename Base::Field Field;
+    using Field = typename Base::Field;
 
     /// @brief Default constructor
     SyncPrefixLayer() = default;

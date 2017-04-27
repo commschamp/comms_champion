@@ -174,7 +174,7 @@
 /// @code
 /// typedef comms::field::IntValue<
 ///     MyFieldBase, 
-///     std::uint32_t, 
+///     std::uint16_t, 
 ///     comms::option::ScalingRatio<1, 1000> 
 /// > DistanceField;
 /// @endcode
@@ -190,15 +190,170 @@
 /// assert(es == comms::ErrorStatus::Success); // No error is expected
 ///
 /// std::cout << "Distance in mm: " << dist.value() << '\n'; // Prints 1000
-/// std::cout << "Distance in m"  << dist.scaleAs<float>() << std::endl; // Prints 1.0
+/// std::cout << "Distance in m: "  << dist.getScaled<float>() << std::endl; // Prints 1.0
 ///
 /// dist.setScaled(2.3);
 /// std::cout << "New distance in mm: " << dist.value() << std::endl; // Prints 2300
 /// @endcode
-/// Methods comms::field::IntValue::scaleAs and comms::field::IntValue::setScaled
+///
+/// The scaling may work in the opposite direction of increasing the number. For
+/// example, the field contains number of @b tens of millimeters between two points.
+/// It would be convenient to be able to convert it to proper millimeters number.
+/// As the result the field can be defined as:
+/// @code
+/// typedef comms::field::IntValue<
+///     MyFieldBase, 
+///     std::uint16_t, 
+///     comms::option::ScalingRatio<10, 1> 
+/// > OtherDistanceField;
+/// @endcode
+/// The comms::option::ScalingRatio option allows scaling of serialised value
+/// (distance in tens of mm) to handling value (distance in mm) and vice verse:
+/// @code
+/// static const std::uint8_t InData[] = {0x0, 0xf}; // Pretend input buffer, encoded 15
+/// static const std::size_t InDataSize = std::extent<decltype(InData)>::value;
+/// 
+/// OtherDistanceField dist;
+/// const auto* readIter = &InData[0];;
+/// auto es = dist.read(readIter, InDataSize);
+/// assert(es == comms::ErrorStatus::Success); // No error is expected
+///
+/// std::cout << "Distance in tens of mm: " << dist.value() << '\n'; // Prints 15
+/// std::cout << "Distance in mm: "  << dist.getScaled<unisnged>() << std::endl; // Prints 150
+///
+/// dist.setScaled(500);
+/// std::cout << "New distance in tens of mm: " << dist.value() << std::endl; // Prints 50
+/// @endcode
+///
+/// Methods comms::field::IntValue::getScaled and comms::field::IntValue::setScaled
 /// take into account scaling ratio provided (with comms::option::ScalingRatio option)
 /// to the comms::field::IntValue field. If such option wasn't used  
 /// @b comms::option::ScalingRatio<1, 1> is assumed.
+///
+/// @subsection sec_field_tutorial_int_value_units Value Units
+/// In addition to @ref sec_field_tutorial_int_value_scaling, the @b COMMS library
+/// provides an ability to specify field's value units and perform conversion
+/// between units of the same type. Let's get back to the same example of defining
+/// distance between two point, but instead of providing scaling ratio directly,
+/// the type of the units is specified.
+/// @code
+/// typedef comms::field::IntValue<
+///     MyFieldBase, 
+///     std::uint16_t, 
+///     comms::option::UnitsMillimeters
+/// > DistanceField;
+/// @endcode
+/// The comms::option::UnitsMillimeters option specifies that field contains
+/// distance in millimeters, which allows @b COMMS library provide proper 
+/// conversion to other distance units when necessary:
+/// @code
+/// static const std::uint8_t InData[] = {0x3, 0xe8}; // Pretend input buffer, encoded 1000
+/// static const std::size_t InDataSize = std::extent<decltype(InData)>::value;
+/// 
+/// DistanceField dist;
+/// const auto* readIter = &InData[0];;
+/// auto es = dist.read(readIter, InDataSize);
+/// assert(es == comms::ErrorStatus::Success); // No error is expected
+///
+/// std::cout << "Original value: " << dist.value() << '\n'; // Prints 1000
+/// std::cout << "Distance in mm: "  << comms::units::getMillimeters<unsigned>(dist) << std::endl; // Prints 1000
+/// std::cout << "Distance in cm: "  << comms::units::getCentimeters<float>(dist) << std::endl; // Prints 100.0
+/// std::cout << "Distance in m: "  << comms::units::getMeters<float>(dist) << std::endl; // Prints 1.0
+///
+/// comms::units::setCentimeters(dist, 5.5f);
+/// std::cout << "New value: " << dist.value() << '\n'; // Prints 55
+/// std::cout << "New distance in mm: "  << comms::units::getMillimeters<unsigned>(dist) << std::endl; // Prints 55
+/// std::cout << "New distance in cm: "  << comms::units::getCentimeters<float>(dist) << std::endl; // Prints 5.5
+/// std::cout << "New distance in m: "  << comms::units::getMeters<float>(dist) << std::endl; // Prints 0.055
+/// @endcode
+///
+/// In the examples above the "units" specification may replace the "scaling" 
+/// information. However, there are cases when it they may complement each other.
+/// For example, the field contains "latitude" information in @b degrees but
+/// multiplied by 10'000'000 to make integral value out of floating point.
+/// @code
+/// typedef comms::field::IntValue<
+///     MyFieldBase, 
+///     std::int32_t,
+///     comms::option::ScalingRatio<1, 10000000>, 
+///     comms::option::UnitsDegrees
+/// > LatField;
+/// @endcode
+/// The @b COMMS library uses the scaling ratio as well as units information to
+/// be able to convert the stored value between degrees and radians when needed.
+/// @code
+/// LatField lat(123456789); // Encoded latitude of 12.3456789
+/// std::cout << "Raw value: " << lat.value() << std::endl; // Prints 123456789
+/// std::cout << "Lat in degrees: " << comms::units::getDegrees<double>(lat) << std::endl; // Prints 12.3456789
+/// std::cout << "Lat in radians: " << comms::units::getRadians<float>(lat) << std::endl; // 0.21547274519
+///
+/// comms::units::setDegrees(lat, 22.33);
+/// std::cout << "New raw value: " << lat.value() << std::endl; // Prints 223300000
+/// std::cout << "New degrees value: " << comms::units::getDegrees<double>(lat) << std::endl; // Prints 22.33
+/// std::cout << "New radians value: " << comms::units::getRadians<double>(lat) << std::endl; // Prints 0.38973202
+///
+/// comms::units::setRadians(lat, 1.04719);
+/// std::cout << "Updated raw value: " << lat.value() << std::endl; // Prints 600000000
+/// std::cout << "Updated degrees value: " << comms::units::getDegrees<double>(lat) << std::endl; // Prints 60
+/// std::cout << "Updated radians value: " << comms::units::getRadians<double>(lat) << std::endl; // Prints 1.04719
+/// @endcode
+/// The @b COMMS library provides mulitple @b options to specify the units of 
+/// the field's value:
+/// @li @b Time:
+///     - comms::option::UnitsNanoseconds
+///     - comms::option::UnitsMicroseconds
+///     - comms::option::UnitsMilliseconds
+///     - comms::option::UnitsSeconds
+///     - comms::option::UnitsMinutes
+///     - comms::option::UnitsDays
+///     - comms::option::UnitsWeeks
+/// @li @b Distance:
+///     - comms::option::UnitsNanometers
+///     - comms::option::UnitsMicrometers
+///     - comms::option::UnitsMillimeters
+///     - comms::option::UnitsCentimeters
+///     - comms::option::UnitsMeters
+///     - comms::option::UnitsKilometers
+/// @li @b Speed:
+///     - comms::option::UnitsNanometersPerSecond
+///     - comms::option::UnitsMicrometersPerSecond
+///     - comms::option::UnitsMillimetersPerSecond
+///     - comms::option::UnitsCentimetersPerSecond
+///     - comms::option::UnitsMetersPerSecond
+///     - comms::option::UnitsKilometersPerSecond
+///     - comms::option::UnitsKilometersPerHour
+/// @li @b Frequency:
+///     - comms::option::UnitsHertz
+///     - comms::option::UnitsKilohertz
+///     - comms::option::UnitsMegahertz
+///     - comms::option::UnitsGigahertz
+/// @li @b Angle:
+///     - comms::option::UnitsDegrees
+///     - comms::option::UnitsRadians
+/// @li @b Electrical @b Current:
+///     - comms::option::UnitsNanoamps
+///     - comms::option::UnitsMicroamps
+///     - comms::option::UnitsMilliamps
+///     - comms::option::UnitsAmps
+///     - comms::option::UnitsKiloamps
+/// @li @b Electrical @b Voltage:
+///     - comms::option::UnitsNanovolts
+///     - comms::option::UnitsMicrovolts
+///     - comms::option::UnitsMillivolts
+///     - comms::option::UnitsVolts
+///     - comms::option::UnitsKilovolts
+///
+/// All the units conversion functions reside in comms::units namespace. @b NOTE,
+/// that conversion can be applied only between the units of the same type. The
+/// units compitability check is performed at compile time and the compilation 
+/// will fail on attempt to set/get incompatible value, such as
+/// setting/getting "seconds" to/from the field specified as containing millimeters.
+///
+/// The whole units conversion functionality can be useful in a client code,
+/// that requires usage of particular unit types in its internal calculations. It
+/// can use conversion functions without any need to know scaling ratio and/or
+/// actual units of the field, the @b COMMS library will do all the necessary math
+/// calculation to provide the requested value.
 ///
 /// @subsection sec_field_tutorial_int_value_other Other Options
 /// There multiple common options that are applicable to all the fields,
@@ -958,6 +1113,14 @@
 /// <b>Also note</b>, that size limit is specified (using comms::option::SequenceFixedSize)
 /// to be 31. One more byte is added by the "trailing" suffix to complete to 32
 /// bytes.
+///
+/// @section sec_field_tutorial_fp_value Floating Point Value Fields
+/// Floating point value fields (comms::field::FloatValue) are very similar to 
+/// @ref sec_field_tutorial_int_value, but use @b float or @b double as its 
+/// internal storage type. They abstract the IEEE 754 floating point 
+/// values, which are serialised "as is" with either big or little endian
+/// encoding. The floating point value fields also support 
+/// @ref sec_field_tutorial_int_value_units conversions.
 ///
 /// @section sec_field_tutorial_optional Optional Fields
 /// Some protocols may define optional fields, which may exist or be missing

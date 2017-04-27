@@ -38,11 +38,11 @@ class MsgFactoryBase;
 template <typename TMsgBase, typename TAllMessages>
 class MsgFactoryBase<TMsgBase, TAllMessages>
 {
-    typedef util::alloc::DynMemory<TMsgBase> Alloc;
+    using Alloc = util::alloc::DynMemory<TMsgBase>;
 public:
-    typedef TMsgBase Message;
-    typedef typename Alloc::Ptr MsgPtr;
-    typedef TAllMessages AllMessages;
+    using Message = TMsgBase;
+    using MsgPtr = typename Alloc::Ptr;
+    using AllMessages = TAllMessages;
 
 protected:
     MsgFactoryBase() = default;
@@ -62,11 +62,11 @@ private:
 template <typename TMsgBase, typename TAllMessages>
 class MsgFactoryBase<TMsgBase, TAllMessages, comms::option::InPlaceAllocation>
 {
-    typedef util::alloc::InPlaceSingle<TMsgBase, TAllMessages> Alloc;
+    using Alloc = util::alloc::InPlaceSingle<TMsgBase, TAllMessages>;
 public:
-    typedef TMsgBase Message;
-    typedef typename Alloc::Ptr MsgPtr;
-    typedef TAllMessages AllMessages;
+    using Message = TMsgBase;
+    using MsgPtr = typename Alloc::Ptr;
+    using AllMessages = TAllMessages;
 
     MsgFactoryBase(const MsgFactoryBase&) = delete;
     MsgFactoryBase& operator=(const MsgFactoryBase&) = delete;

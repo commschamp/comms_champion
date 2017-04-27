@@ -37,34 +37,36 @@ namespace field
 namespace details
 {
 
-template <typename TOptions, bool THasCustomStorageType, bool THasFixedStorage>
+template <bool THasCustomStorageType, bool THasFixedStorage>
 struct StringStorageType;
 
-template <typename TOptions, bool THasFixedStorage>
-struct StringStorageType<TOptions, true, THasFixedStorage>
+template <bool THasFixedStorage>
+struct StringStorageType<true, THasFixedStorage>
 {
-    typedef typename TOptions::CustomStorageType Type;
+    template <typename TOptions>
+    using Type = typename TOptions::CustomStorageType;
 };
 
-template <typename TOptions>
-struct StringStorageType<TOptions, false, true>
+template <>
+struct StringStorageType<false, true>
 {
-    typedef comms::util::StaticString<TOptions::FixedSizeStorage> Type;
+    template <typename TOptions>
+    using Type = comms::util::StaticString<TOptions::FixedSizeStorage>;
 };
 
-template <typename TOptions>
-struct StringStorageType<TOptions, false, false>
+template <>
+struct StringStorageType<false, false>
 {
-    typedef std::string Type;
+    template <typename TOptions>
+    using Type = std::string;
 };
 
 template <typename TOptions>
 using StringStorageTypeT =
     typename StringStorageType<
-        TOptions,
         TOptions::HasCustomStorageType,
         TOptions::HasFixedSizeStorage
-    >::Type;
+    >::template Type<TOptions>;
 
 } // namespace details
 
@@ -92,28 +94,28 @@ using StringStorageTypeT =
 template <typename TFieldBase, typename... TOptions>
 class String : public TFieldBase
 {
-    typedef TFieldBase Base;
+    using Base = TFieldBase;
 
-    typedef details::OptionsParser<TOptions...> ParsedOptionsInternal;
+    using ParsedOptionsInternal = details::OptionsParser<TOptions...>;
     using StorageTypeInternal =
         details::StringStorageTypeT<ParsedOptionsInternal>;
-    typedef basic::ArrayList<TFieldBase, StorageTypeInternal> BasicField;
-    typedef details::AdaptBasicFieldT<BasicField, TOptions...> ThisField;
+    using BasicField = basic::ArrayList<TFieldBase, StorageTypeInternal>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    typedef ParsedOptionsInternal ParsedOptions;
+    using ParsedOptions = ParsedOptionsInternal;
 
     /// @brief Tag indicating type of the field
-    typedef tag::String Tag;
+    using Tag = tag::String;
 
     /// @brief Type of underlying value.
     /// @details If comms::option::FixedSizeStorage option is NOT used, the
     ///     ValueType is std::string, otherwise it becomes
     ///     comms::util::StaticString<TSize>, where TSize is a size
     ///     provided to comms::option::FixedSizeStorage option.
-    typedef StorageTypeInternal ValueType;
+    using ValueType = StorageTypeInternal;
 
     /// @brief Default constructor
     String() = default;
@@ -244,11 +246,11 @@ public:
 private:
     struct NoAdjustment {};
     struct AdjustmentNeeded {};
-    typedef typename std::conditional<
+    using AdjustmentTag = typename std::conditional<
         ParsedOptions::HasSequenceFixedSize,
         AdjustmentNeeded,
         NoAdjustment
-    >::type AdjustmentTag;
+    >::type;
 
     void adjustValue(NoAdjustment)
     {

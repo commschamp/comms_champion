@@ -33,12 +33,12 @@ namespace adapter
 template <typename TTrailField, typename TNext>
 class SequenceTrailingFieldSuffix : public details::AdapterBaseT<TNext>
 {
-    typedef details::AdapterBaseT<TNext> Base;
-    typedef TTrailField TrailField;
+    using Base = details::AdapterBaseT<TNext>;
+    using TrailField = TTrailField;
 
 public:
-    typedef typename Base::ValueType ValueType;
-    typedef typename Base::ElementType ElementType;
+    using ValueType = typename Base::ValueType;
+    using ElementType = typename Base::ElementType;
 
     SequenceTrailingFieldSuffix() = default;
 

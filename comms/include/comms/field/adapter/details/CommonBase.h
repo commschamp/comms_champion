@@ -34,18 +34,18 @@ namespace details
 {
 
 template <class T, class R = void>
-struct EnableIfHasFieldType { typedef R Type; };
+struct EnableIfHasFieldType { using Type = R; };
 
 template <class T, class Enable = void>
 struct FieldType
 {
-    typedef T Type;
+    using Type = T;
 };
 
 template <class T>
 struct FieldType<T, typename EnableIfHasFieldType<typename T::FieldType>::Type>
 {
-    typedef typename T::FieldType Type;
+    using Type = typename T::FieldType;
 };
 
 template <class T>
@@ -58,14 +58,14 @@ class CommonBase
         "Next layer must be categorised.");
 public:
 
-    typedef TNext Next;
-    typedef typename Next::Category Category;
+    using Next = TNext;
+    using Category = typename Next::Category;
 
-    typedef details::FieldTypeT<Next> FieldType;
+    using FieldType = details::FieldTypeT<Next>;
 
-    typedef typename Next::Endian Endian;
+    using Endian = typename Next::Endian;
 
-    typedef typename Next::ValueType ValueType;
+    using ValueType = typename Next::ValueType;
 
     CommonBase(const CommonBase&) = default;
     CommonBase(CommonBase&&) = default;
@@ -140,11 +140,11 @@ private:
     struct NextIsLeafTag {};
     struct NextIsAdapterTag {};
 
-    typedef typename std::conditional<
+    using NextTypeTag = typename std::conditional<
         std::is_same<FieldType, Next>::value,
         NextIsLeafTag,
         NextIsAdapterTag
-    >::type NextTypeTag;
+    >::type;
 
     FieldType& fieldInternal(NextIsLeafTag)
     {

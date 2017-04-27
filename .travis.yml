@@ -33,7 +33,7 @@ matrix:
 before_install:
   - sudo add-apt-repository ppa:beineri/opt-qt551 -y
   - sudo apt-get update -q
-  - sudo apt-get install qt-latest -y      
+  - sudo apt-get install qt55declarative -y      
 
 before_script:
   - mkdir build

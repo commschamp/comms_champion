@@ -26,13 +26,17 @@ namespace details
 {
 
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
-class MsgFactoryGeneric : public MsgFactoryBase<TMsgBase, TAllMessages, TOptions>
+class MsgFactoryGeneric : public MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
-    using Base = MsgFactoryBase<TMsgBase, TAllMessages, TOptions>;
+    using Base = MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
 
 public:
-    using AllMessages = Base::AllMessages;
-    MsgFactory()
+    using AllMessages = typename Base::AllMessages;
+    using MsgPtr = typename Base::MsgPtr;
+    using MsgIdParamType = typename Base::MsgIdParamType;
+    using MsgIdType = typename Base::MsgIdType;
+
+    MsgFactoryGeneric()
     {
         initRegistry();
         GASSERT(
@@ -45,8 +49,41 @@ public:
                 }));
     }
 
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
+    {
+        auto range =
+            std::equal_range(
+                registry_.begin(), registry_.end(), id,
+                [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
+                {
+                    return idWrapper1.getId() < idWrapper2.getId();
+                });
+
+        auto dist = static_cast<unsigned>(std::distance(range.first, range.second));
+        if (dist <= idx) {
+            return MsgPtr();
+        }
+
+        auto iter = range.first + idx;
+        GASSERT(*iter);
+        return (*iter)->create(*this);
+    }
+
+    std::size_t msgCount(MsgIdParamType id) const
+    {
+        auto range =
+            std::equal_range(
+                registry_.begin(), registry_.end(), id,
+                [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
+                {
+                    return idWrapper1.getId() < idWrapper2.getId();
+                });
+
+        return static_cast<std::size_t>(std::distance(range.first, range.second));
+    }
+
 private:
-    using FactoryMethod = Base::FactoryMethod;
+    using FactoryMethod = typename Base::FactoryMethod;
 
     static_assert(comms::util::IsTuple<AllMessages>::Value,
         "TAllMessages is expected to be a tuple.");
@@ -55,6 +92,12 @@ private:
         std::tuple_size<AllMessages>::value;
 
     using MethodsRegistry = std::array<const FactoryMethod*, NumOfMessages>;
+
+    template <typename TMessage>
+    using NumIdFactoryMethod = typename Base::template NumIdFactoryMethod<TMessage>;
+
+    template <typename TMessage>
+    using GenericFactoryMethod = typename Base::template GenericFactoryMethod<TMessage>;
 
     class MsgFactoryCreator
     {
@@ -98,7 +141,6 @@ private:
         MethodsRegistry& registry_;
         unsigned idx_ = 0;
     };
-
 
     class CompWrapper
     {

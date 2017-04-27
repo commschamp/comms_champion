@@ -35,7 +35,7 @@ template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryBase
 {
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
-        "Usage of MsgFactory requires Message interface to provide ID type. "
+        "Usage of MsgFactoryBase requires Message interface to provide ID type. "
         "Use comms::option::MsgIdType option in message interface type definition.");
     using ParsedOptionsInternal = details::MsgFactoryOptionsParser<TOptions...>;
 
@@ -68,7 +68,7 @@ protected:
             return getIdImpl();
         }
 
-        MsgPtr create(const MsgFactory& factory) const
+        MsgPtr create(const MsgFactoryBase& factory) const
         {
             return createImpl(factory);
         }
@@ -77,7 +77,7 @@ protected:
         FactoryMethod() = default;
 
         virtual MsgIdParamType getIdImpl() const = 0;
-        virtual MsgPtr createImpl(const MsgFactory& factory) const = 0;
+        virtual MsgPtr createImpl(const MsgFactoryBase& factory) const = 0;
     };
 
     template <typename TMessage>
@@ -94,7 +94,7 @@ protected:
             return static_cast<MsgIdParamType>(MsgId);
         }
 
-        virtual MsgPtr createImpl(const MsgFactory& factory) const
+        virtual MsgPtr createImpl(const MsgFactoryBase& factory) const
         {
             return factory.template allocMsg<Message>();
         }
@@ -118,7 +118,7 @@ protected:
             return id_;
         }
 
-        virtual MsgPtr createImpl(const MsgFactory& factory) const
+        virtual MsgPtr createImpl(const MsgFactoryBase& factory) const
         {
             return factory.template allocMsg<Message>();
         }

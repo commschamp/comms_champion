@@ -1,5 +1,7 @@
 language: cpp
 sudo: true
+notifications:
+  email: false
 
 matrix:
   include:

@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -21,7 +21,6 @@
 #include <type_traits>
 #include <memory>
 
-#include "comms/options.h"
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
 #include "comms/util/alloc.h"
@@ -33,68 +32,122 @@ namespace details
 {
 
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
-class MsgFactoryBase;
-
-template <typename TMsgBase, typename TAllMessages>
-class MsgFactoryBase<TMsgBase, TAllMessages>
+class MsgFactoryBase
 {
-    using Alloc = util::alloc::DynMemory<TMsgBase>;
+    static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
+        "Usage of MsgFactory requires Message interface to provide ID type. "
+        "Use comms::option::MsgIdType option in message interface type definition.");
+    using ParsedOptionsInternal = details::MsgFactoryOptionsParser<TOptions...>;
+
+    using Alloc =
+        typename std::conditional<
+            ParsedOptionsInternal::HasInPlaceAllocation,
+            util::alloc::InPlaceSingle<TMsgBase, TAllMessages>,
+            util::alloc::DynMemory<TMsgBase>
+        >::type;
 public:
+    using ParsedOptions = ParsedOptionsInternal;
     using Message = TMsgBase;
+    using MsgIdParamType = typename Message::MsgIdParamType;
+    using MsgIdType = typename Message::MsgIdType;
     using MsgPtr = typename Alloc::Ptr;
     using AllMessages = TAllMessages;
 
 protected:
     MsgFactoryBase() = default;
+    MsgFactoryBase(const MsgFactoryBase&) = default;
+    MsgFactoryBase(MsgFactoryBase&&) = default;
+    MsgFactoryBase& operator=(const MsgFactoryBase&) = default;
+    MsgFactoryBase& operator=(MsgFactoryBase&&) = default;
 
-    template <typename TObj, typename... TArgs>
-    MsgPtr allocMsg(TArgs&&... args) const
+    class FactoryMethod
     {
-        static_assert(std::is_base_of<Message, TObj>::value,
-            "TObj is not a proper message type");
-        return alloc_.template alloc<TObj>(std::forward<TArgs>(args)...);
-    }
+    public:
+        MsgIdParamType getId() const
+        {
+            return getIdImpl();
+        }
+
+        MsgPtr create(const MsgFactory& factory) const
+        {
+            return createImpl(factory);
+        }
+
+    protected:
+        FactoryMethod() = default;
+
+        virtual MsgIdParamType getIdImpl() const = 0;
+        virtual MsgPtr createImpl(const MsgFactory& factory) const = 0;
+    };
+
+    template <typename TMessage>
+    class NumIdFactoryMethod : public FactoryMethod
+    {
+    public:
+        using Message = TMessage;
+        static const auto MsgId = Message::MsgId;
+        NumIdFactoryMethod() {}
+
+    protected:
+        virtual MsgIdParamType getIdImpl() const
+        {
+            return static_cast<MsgIdParamType>(MsgId);
+        }
+
+        virtual MsgPtr createImpl(const MsgFactory& factory) const
+        {
+            return factory.template allocMsg<Message>();
+        }
+    };
+
+    template <typename TMessage>
+    friend class NumIdFactoryMethod;
+
+    template <typename TMessage>
+    class GenericFactoryMethod : public FactoryMethod
+    {
+    public:
+        using Message = TMessage;
+
+        GenericFactoryMethod() : id_(Message().getId()) {}
+
+    protected:
+
+        virtual MsgIdParamType getIdImpl() const
+        {
+            return id_;
+        }
+
+        virtual MsgPtr createImpl(const MsgFactory& factory) const
+        {
+            return factory.template allocMsg<Message>();
+        }
+
+    private:
+        typename Message::MsgIdType id_;
+    };
+
+    template <typename TMessage>
+    friend class GenericFactoryMethod;
 
 private:
-    mutable util::alloc::DynMemory<TMsgBase> alloc_;
-};
-
-template <typename TMsgBase, typename TAllMessages>
-class MsgFactoryBase<TMsgBase, TAllMessages, comms::option::InPlaceAllocation>
-{
-    using Alloc = util::alloc::InPlaceSingle<TMsgBase, TAllMessages>;
-public:
-    using Message = TMsgBase;
-    using MsgPtr = typename Alloc::Ptr;
-    using AllMessages = TAllMessages;
-
-    MsgFactoryBase(const MsgFactoryBase&) = delete;
-    MsgFactoryBase& operator=(const MsgFactoryBase&) = delete;
-
-protected:
-    MsgFactoryBase() = default;
-
     template <typename TObj, typename... TArgs>
     MsgPtr allocMsg(TArgs&&... args) const
     {
         static_assert(std::is_base_of<Message, TObj>::value,
             "TObj is not a proper message type");
 
-        static_assert(comms::util::IsInTuple<TObj, TAllMessages>::Value, ""
+        static_assert(
+            (!ParsedOptionsInternal::HasInPlaceAllocation) ||
+                    comms::util::IsInTuple<TObj, AllMessages>::Value,
             "TObj must be in provided tuple of supported messages");
 
         return alloc_.template alloc<TObj>(std::forward<TArgs>(args)...);
     }
 
-private:
     mutable Alloc alloc_;
 };
 
-template <typename TMsgBase, typename TAllMessages, typename... TBundledOptions, typename... TOtherOptions>
-class MsgFactoryBase<TMsgBase, TAllMessages, std::tuple<TBundledOptions...>, TOtherOptions...> :
-    public MsgFactoryBase<TMsgBase, TAllMessages, TBundledOptions..., TOtherOptions...>
-{
-};
 
 }  // namespace details
 

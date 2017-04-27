@@ -80,6 +80,7 @@ class MsgFactory
 
 public:
 
+    /// @brief Parsed options
     using ParsedOptions = ParsedOptionsInternal;
 
     /// @brief Type of the common base class of all the messages.

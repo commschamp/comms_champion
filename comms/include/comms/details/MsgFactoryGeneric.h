@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "MsgFactoryBase.h"
+#include "MsgFactoryBinSearchBase.h"
 
 namespace comms
 {
@@ -26,9 +26,9 @@ namespace details
 {
 
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
-class MsgFactoryGeneric : public MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
+class MsgFactoryGeneric : public MsgFactoryBinSearchBase<TMsgBase, TAllMessages, TOptions...>
 {
-    using Base = MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
+    using Base = MsgFactoryBinSearchBase<TMsgBase, TAllMessages, TOptions...>;
 
 public:
     using AllMessages = typename Base::AllMessages;
@@ -36,24 +36,11 @@ public:
     using MsgIdParamType = typename Base::MsgIdParamType;
     using MsgIdType = typename Base::MsgIdType;
 
-    MsgFactoryGeneric()
-    {
-        initRegistry();
-        GASSERT(
-            std::is_sorted(registry_.begin(), registry_.end(),
-                [](const FactoryMethod* methodPtr1, const FactoryMethod* methodPtr2) -> bool
-                {
-                    GASSERT(methodPtr1 != nullptr);
-                    GASSERT(methodPtr2 != nullptr);
-                    return methodPtr1->getId() < methodPtr2->getId();
-                }));
-    }
-
     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
     {
         auto range =
             std::equal_range(
-                registry_.begin(), registry_.end(), id,
+                Base::registry().begin(), Base::registry().end(), id,
                 [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
                 {
                     return idWrapper1.getId() < idWrapper2.getId();
@@ -73,7 +60,7 @@ public:
     {
         auto range =
             std::equal_range(
-                registry_.begin(), registry_.end(), id,
+                Base::registry().begin(), Base::registry().end(), id,
                 [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
                 {
                     return idWrapper1.getId() < idWrapper2.getId();
@@ -83,64 +70,8 @@ public:
     }
 
 private:
+
     using FactoryMethod = typename Base::FactoryMethod;
-
-    static_assert(comms::util::IsTuple<AllMessages>::Value,
-        "TAllMessages is expected to be a tuple.");
-
-    static const std::size_t NumOfMessages =
-        std::tuple_size<AllMessages>::value;
-
-    using MethodsRegistry = std::array<const FactoryMethod*, NumOfMessages>;
-
-    template <typename TMessage>
-    using NumIdFactoryMethod = typename Base::template NumIdFactoryMethod<TMessage>;
-
-    template <typename TMessage>
-    using GenericFactoryMethod = typename Base::template GenericFactoryMethod<TMessage>;
-
-    class MsgFactoryCreator
-    {
-    public:
-        MsgFactoryCreator(MethodsRegistry& registry)
-          : registry_(registry)
-        {
-        }
-
-        template <typename TMessage>
-        void operator()()
-        {
-            using Tag = typename std::conditional<
-                TMessage::ImplOptions::HasStaticMsgId,
-                StaticNumericIdTag,
-                OtherIdTag
-            >::type;
-
-            registry_[idx_] = createFactory<TMessage>(Tag());
-            ++idx_;
-        }
-
-    private:
-        struct StaticNumericIdTag {};
-        struct OtherIdTag {};
-
-        template <typename TMessage>
-        static const FactoryMethod* createFactory(StaticNumericIdTag)
-        {
-            static const NumIdFactoryMethod<TMessage> Factory;
-            return &Factory;
-        }
-
-        template <typename TMessage>
-        const FactoryMethod* createFactory(OtherIdTag)
-        {
-            static const GenericFactoryMethod<TMessage> Factory;
-            return &Factory;
-        }
-
-        MethodsRegistry& registry_;
-        unsigned idx_ = 0;
-    };
 
     class CompWrapper
     {
@@ -165,13 +96,6 @@ private:
     private:
         MsgIdType m_id;
     };
-
-    void initRegistry()
-    {
-        util::tupleForEachType<AllMessages>(MsgFactoryCreator(registry_));
-    }
-
-    MethodsRegistry registry_;
 };
 
 } // namespace details

@@ -34,7 +34,11 @@ namespace comms
 /// @details It is responsible to create message objects given the ID of the
 ///     message. This class @b DOESN'T use dynamic memory allocation to store its
 ///     internal data structures, hence can be used in any bare-metal and other
-///     embedded environment.
+///     embedded environment.@n
+///     The types of all messages provided in @b TAllMessages are analysed at
+///     compile time and best "id to message object" mapping strategy is chosen,
+///     whether it is direct access array (with O(1) time complexity) or
+///     sorted array with binary search (with O(log(n)) time complexity).
 /// @tparam TMsgBase Common base class for all the messages, smart pointer to
 ///     this type is returned when allocation of specify message is requested.
 /// @tparam TAllMessages All custom message types, that this factory is capable

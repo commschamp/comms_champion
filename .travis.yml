@@ -22,7 +22,6 @@ matrix:
           sources: 
             - ubuntu-toolchain-r-test
             - george-edison55-precise-backports
-            - beineri/opt-qt551            
           packages: 
             - g++-5
             - cmake
@@ -34,7 +33,6 @@ matrix:
           sources: 
             - ubuntu-toolchain-r-test
             - george-edison55-precise-backports
-            - beineri/opt-qt551            
           packages: 
             - g++-5
             - cmake

@@ -25,21 +25,6 @@ namespace comms
 namespace details
 {
 
-struct MsgFactoryStaticNumIdCheckHelper
-{
-    template <typename TMessage>
-    constexpr bool operator()(bool value)
-    {
-        return value && TMessage::ImplOptions::HasStaticMsgId;
-    }
-};
-
-template <typename TAllMessages>
-constexpr bool msgFactoryAllHaveStaticNumId()
-{
-    return comms::util::tupleTypeAccumulate<TAllMessages>(true, MsgFactoryStaticNumIdCheckHelper());
-}
-
 template <bool TStrong, typename... TMessages>
 struct MsgFactoryBinSearchSortedCheckHelper;
 

@@ -25,7 +25,7 @@
 #include "comms/util/Tuple.h"
 #include "comms/util/alloc.h"
 #include "details/MsgFactoryOptionsParser.h"
-#include "details/MsgFactoryGeneric.h"
+#include "details/MsgFactorySelector.h"
 
 namespace comms
 {
@@ -70,11 +70,11 @@ class MsgFactory
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
         "Usage of MsgFactory requires Message interface to provide ID type. "
         "Use comms::option::MsgIdType option in message interface type definition.");
-    using ParsedOptionsInternal = details::MsgFactoryOptionsParser<TOptions...>;
 
-    using Factory = details::MsgFactoryGeneric<TMsgBase, TAllMessages, TOptions...>;
+    using Factory = typename
+        details::MsgFactorySelector<TMsgBase, TAllMessages, TOptions...>::Type;
+
 public:
-
     /// @brief Parsed options
     using ParsedOptions = typename Factory::ParsedOptions;
 

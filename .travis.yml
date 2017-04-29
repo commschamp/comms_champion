@@ -28,6 +28,18 @@ matrix:
             - cmake
             - cmake-data
       env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=Release
+    - os: linux
+      addons:
+        apt:
+          sources: 
+            - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports
+            - beineri/opt-qt551            
+          packages: 
+            - g++-5
+            - cmake
+            - cmake-data
+      env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel      
       
 before_install:
   - sudo add-apt-repository ppa:beineri/opt-qt551 -y

@@ -12,11 +12,11 @@ matrix:
     - os: linux
       env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel    
     - os: linux
-      env: _CC=clang-3.9 _CXX=clang++-3.9
+      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD=-DCMAKE_CXX_STANDARD=14
     - os: linux
-      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD=-DCMAKE_BUILD_TYPE=Release
+      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=14"
     - os: linux
-      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel          
+      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_CXX_STANDARD=14"
       
 before_install:
   - sudo add-apt-repository ppa:beineri/opt-qt551 -y

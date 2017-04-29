@@ -10,7 +10,13 @@ matrix:
     - os: linux
       env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=Release
     - os: linux
-      env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel      
+      env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel    
+    - os: linux
+      env: _CC=clang-3.9 _CXX=clang++-3.9
+    - os: linux
+      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD=-DCMAKE_BUILD_TYPE=Release
+    - os: linux
+      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel          
       
 before_install:
   - sudo add-apt-repository ppa:beineri/opt-qt551 -y
@@ -19,7 +25,7 @@ before_install:
   - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
   - sudo apt-add-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main" -y
   - sudo apt-get update -q
-  - sudo apt-get install g++-5 cmake cmake-data qt55declarative qt55serialport -y      
+  - sudo apt-get install g++-5 clang-3.9 cmake cmake-data qt55declarative qt55serialport -y      
 
 before_script:
   - mkdir build

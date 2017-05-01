@@ -900,6 +900,10 @@ using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValida
 template<comms::field::OptionalMode TVal>
 using DefaultOptionalMode = DefaultValueInitialiser<details::DefaultOptModeInitialiser<TVal> >;
 
+/// @brief Force comms::protocol::ChecksumLayer and
+///     comms::protocol::ChecksumPrefixLayer, to verify checksum prior to
+///     forwarding read to the wrapped layer(s).
+struct ChecksumLayerVerifyBeforeRead {};
 
 }  // namespace option
 

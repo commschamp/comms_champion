@@ -22,6 +22,7 @@
 #include <type_traits>
 #include "comms/field/IntValue.h"
 #include "ProtocolLayerBase.h"
+#include "details/ChecksumLayerOptionsParser.h"
 
 namespace comms
 {
@@ -44,11 +45,21 @@ namespace protocol
 ///     returns. The falue is going to be casted to Field::ValueType before
 ///     assigning it as a value of the check field being read and/or written.
 /// @tparam TNextLayer Next transport layer in protocol stack.
-template <typename TField, typename TCalc, typename TNextLayer>
+/// @tparam TOptions Extending functionality options. Supported options are:
+///     @li comms::option::ChecksumLayerVerifyBeforeRead - By default, the
+///         @b ChecksumLayer will invoke @b read operation of inner (wrapped) layers
+///         and only if it is successful, it will calculate and verify the
+///         checksum value. Usage of comms::option::ChecksumLayerVerifyBeforeRead
+///         modifies the default behaviour by forcing the checksum verification
+///         prior to invocation of @b read operation in the wrapped layer(s).
+template <typename TField, typename TCalc, typename TNextLayer, typename... TOptions>
 class ChecksumLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
     using Base = ProtocolLayerBase<TField, TNextLayer>;
 public:
+    /// @brief Parsed options
+    using ParsedOptions = details::ChecksumLayerOptionsParser<TOptions...>;
+
     /// @brief Type of the field object used to read/write checksum value.
     using Field = typename Base::Field;
 
@@ -281,6 +292,16 @@ private:
     static_assert(Field::minLength() == Field::maxLength(),
         "The checksum field is expected to be of fixed length");
 
+    struct VerifyBeforeReadTag {};
+    struct VerifyAfterReadTag {};
+
+    using VerifyTag = typename
+        std::conditional<
+            ParsedOptions::HasVerifyBeforeRead,
+            VerifyBeforeReadTag,
+            VerifyAfterReadTag
+        >::type;
+
     template <typename TMsgPtr, typename TIter, typename TReader>
     ErrorStatus readInternal(
         Field& field,
@@ -294,6 +315,52 @@ private:
             return ErrorStatus::NotEnoughData;
         }
 
+        return readInternal(field, msgPtr, iter, size, missingSize, std::forward<TReader>(nextLayerReader), VerifyTag());
+    }
+
+    template <typename TMsgPtr, typename TIter, typename TReader>
+    ErrorStatus verifyRead(
+        Field& field,
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TReader&& nextLayerReader)
+    {
+        auto fromIter = iter;
+        auto toIter = fromIter + (size - Field::minLength());
+        auto len = static_cast<std::size_t>(std::distance(fromIter, toIter));
+
+        auto checksumEs = field.read(toIter, Field::minLength());
+        if (checksumEs != ErrorStatus::Success) {
+            return checksumEs;
+        }
+
+        auto checksum = TCalc()(fromIter, len);
+        auto expectedValue = field.value();
+
+        if (expectedValue != static_cast<decltype(expectedValue)>(checksum)) {
+            msgPtr.reset();
+            return ErrorStatus::ProtocolError;
+        }
+
+        auto es = nextLayerReader.read(msgPtr, iter, size - Field::minLength(), missingSize);
+        if (es == ErrorStatus::Success) {
+            iter = toIter;
+        }
+
+        return es;
+    }
+
+    template <typename TMsgPtr, typename TIter, typename TReader>
+    ErrorStatus readVerify(
+        Field& field,
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TReader&& nextLayerReader)
+    {
         auto fromIter = iter;
 
         auto es = nextLayerReader.read(msgPtr, iter, size - Field::minLength(), missingSize);
@@ -301,10 +368,6 @@ private:
             (es == ErrorStatus::ProtocolError)) {
             return es;
         }
-
-//        if (es != ErrorStatus::Success) {
-//            return es;
-//        }
 
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
         GASSERT(len <= size);
@@ -328,6 +391,32 @@ private:
         }
 
         return es;
+    }
+
+    template <typename TMsgPtr, typename TIter, typename TReader>
+    ErrorStatus readInternal(
+        Field& field,
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TReader&& nextLayerReader,
+        VerifyBeforeReadTag)
+    {
+        return verifyRead(field, msgPtr, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
+    }
+
+    template <typename TMsgPtr, typename TIter, typename TReader>
+    ErrorStatus readInternal(
+        Field& field,
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TReader&& nextLayerReader,
+        VerifyAfterReadTag)
+    {
+        return readVerify(field, msgPtr, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
     }
 
     template <typename TMsg, typename TIter, typename TWriter>

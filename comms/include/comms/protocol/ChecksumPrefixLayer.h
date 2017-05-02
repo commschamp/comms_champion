@@ -85,9 +85,10 @@ public:
     ChecksumPrefixLayer& operator=(ChecksumPrefixLayer&&) = default;
 
     /// @brief Deserialise message from the input data sequence.
-    /// @details First, executes the read() member function of the next layer.
+    /// @details First, reads the expected checksum value field, then
+    ///     executes the read() member function of the next layer.
     ///     If the call returns comms::ErrorStatus::Success, it calculated the
-    ///     checksum of the read data, reads the expected checksum value and
+    ///     checksum of the read data and
     ///     compares it to the calculated. If checksums match,
     ///     comms::ErrorStatus::Success is returned, otherwise
     ///     function returns comms::ErrorStatus::ProtocolError.
@@ -177,13 +178,15 @@ public:
     }
 
     /// @brief Serialise message into the output data sequence.
-    /// @details First, executes the write() member function of the next layer.
+    /// @details First, reserves the appropriate number of bytes in the
+    ///     output buffer which are supposed to contain valid checksum
+    ///     value, then executes the write() member function of the next layer.
     ///     If the call returns comms::ErrorStatus::Success and it is possible
     ///     to re-read what has been written (random access iterator is used
-    ///     for writing), the checksum is calculated and added to the output
-    ///     buffer using the same iterator. In case non-random access iterator
+    ///     for writing), the real checksum value is calculated and updated in the
+    ///     previously reserved area. In case non-random access iterator
     ///     type is used for writing (for example std::back_insert_iterator), then
-    ///     this function writes a dummy value as checksum and returns
+    ///     this function returns
     ///     comms::ErrorStatus::UpdateRequired to indicate that call to
     ///     update() with random access iterator is required in order to be
     ///     able to update written checksum information.
@@ -235,6 +238,7 @@ public:
         using IterType = typename std::decay<decltype(iter)>::type;
         using Tag = typename std::iterator_traits<IterType>::iterator_category;
         auto& field = Base::template getField<TIdx>(allFields);
+        field.value() = 0;
         return
             writeInternal(
                 field,
@@ -485,7 +489,6 @@ private:
         TWriter&& nextLayerWriter,
         std::output_iterator_tag) const
     {
-        field.value() = 0;
         return writeInternalOutput(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
     }
 

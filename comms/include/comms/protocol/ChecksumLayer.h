@@ -232,6 +232,7 @@ public:
         using IterType = typename std::decay<decltype(iter)>::type;
         using Tag = typename std::iterator_traits<IterType>::iterator_category;
         auto& field = Base::template getField<TIdx>(allFields);
+        field.value() = 0;
         return
             writeInternal(
                 field,

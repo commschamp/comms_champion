@@ -23,5 +23,7 @@
 #include "protocol/MsgSizeLayer.h"
 #include "protocol/SyncPrefixLayer.h"
 #include "protocol/ChecksumLayer.h"
+#include "protocol/ChecksumPrefixLayer.h"
 
 #include "protocol/checksum/BasicSum.h"
+#include "protocol/checksum/Crc.h"

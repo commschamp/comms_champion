@@ -484,6 +484,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
     if (currSocket) {
         currSocket->socketDisconnect();
         emit sigSocketConnected(false);
+        currSocket.reset();
     }
 
     if (0U < m_sendListCount) {

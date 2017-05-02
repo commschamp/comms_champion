@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// This file provides all the definitions from comms::protocol namespace.
 
 #pragma once
 
@@ -23,5 +25,7 @@
 #include "protocol/MsgSizeLayer.h"
 #include "protocol/SyncPrefixLayer.h"
 #include "protocol/ChecksumLayer.h"
+#include "protocol/ChecksumPrefixLayer.h"
 
 #include "protocol/checksum/BasicSum.h"
+#include "protocol/checksum/Crc.h"

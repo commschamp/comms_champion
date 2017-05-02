@@ -15,13 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// Contains definition of comms::MsgFactory class.
 
 #pragma once
 
 #include <type_traits>
 #include <algorithm>
 
-#include "details/MsgFactoryBase.h"
+#include "comms/Assert.h"
+#include "comms/util/Tuple.h"
+#include "comms/util/alloc.h"
+#include "details/MsgFactoryOptionsParser.h"
+#include "details/MsgFactorySelector.h"
 
 namespace comms
 {
@@ -30,7 +36,11 @@ namespace comms
 /// @details It is responsible to create message objects given the ID of the
 ///     message. This class @b DOESN'T use dynamic memory allocation to store its
 ///     internal data structures, hence can be used in any bare-metal and other
-///     embedded environment.
+///     embedded environment.@n
+///     The types of all messages provided in @b TAllMessages are analysed at
+///     compile time and best "id to message object" mapping strategy is chosen,
+///     whether it is direct access array (with O(1) time complexity) or
+///     sorted array with binary search (with O(log(n)) time complexity).
 /// @tparam TMsgBase Common base class for all the messages, smart pointer to
 ///     this type is returned when allocation of specify message is requested.
 /// @tparam TAllMessages All custom message types, that this factory is capable
@@ -61,14 +71,18 @@ namespace comms
 ///     message can be allocated. The next one can be allocated only after previous
 ///     message has been destructed.
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
-class MsgFactory : public details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
+class MsgFactory
 {
-    using Base = details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
-
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
         "Usage of MsgFactory requires Message interface to provide ID type. "
         "Use comms::option::MsgIdType option in message interface type definition.");
+
+    using Factory = typename
+        details::MsgFactorySelector<TMsgBase, TAllMessages, TOptions...>::Type;
+
 public:
+    /// @brief Parsed options
+    using ParsedOptions = typename Factory::ParsedOptions;
 
     /// @brief Type of the common base class of all the messages.
     using Message = TMsgBase;
@@ -82,24 +96,10 @@ public:
     /// @brief Smart pointer to @ref Message which holds allocated message object.
     /// @details It is a variant of std::unique_ptr, based on whether
     ///     comms::option::InPlaceAllocation option was used.
-    using MsgPtr = typename Base::MsgPtr;
+    using MsgPtr = typename Factory::MsgPtr;
 
     /// @brief All messages provided as template parameter to this class.
-    using AllMessages = typename Base::AllMessages;
-
-    /// @brief Constructor.
-    MsgFactory()
-    {
-        initRegistry();
-        GASSERT(
-            std::is_sorted(registry_.begin(), registry_.end(),
-                [](const FactoryMethod* methodPtr1, const FactoryMethod* methodPtr2) -> bool
-                {
-                    GASSERT(methodPtr1 != nullptr);
-                    GASSERT(methodPtr2 != nullptr);
-                    return methodPtr1->getId() < methodPtr2->getId();
-                }));
-    }
+    using AllMessages = TAllMessages;
 
     /// @brief Create message object given the ID of the message.
     /// @param id ID of the message.
@@ -117,22 +117,7 @@ public:
     ///     yet, the empty (null) pointer will be returned.
     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
     {
-        auto range =
-            std::equal_range(
-                registry_.begin(), registry_.end(), id,
-                [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
-                {
-                    return idWrapper1.getId() < idWrapper2.getId();
-                });
-
-        auto dist = static_cast<unsigned>(std::distance(range.first, range.second));
-        if (dist <= idx) {
-            return MsgPtr();
-        }
-
-        auto iter = range.first + idx;
-        GASSERT(*iter);
-        return (*iter)->create(*this);
+        return factory_.createMsg(id, idx);
     }
 
     /// @brief Get number of message types from @ref AllMessages, that have the specified ID.
@@ -140,170 +125,11 @@ public:
     /// @return Number of message classes that report same ID.
     std::size_t msgCount(MsgIdParamType id) const
     {
-        auto range =
-            std::equal_range(
-                registry_.begin(), registry_.end(), id,
-                [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
-                {
-                    return idWrapper1.getId() < idWrapper2.getId();
-                });
-
-        return static_cast<std::size_t>(std::distance(range.first, range.second));
+        return factory_.msgCount(id);
     }
 
 private:
-    class FactoryMethod
-    {
-    public:
-        MsgIdParamType getId() const
-        {
-            return getIdImpl();
-        }
-
-        MsgPtr create(const MsgFactory& factory) const
-        {
-            return createImpl(factory);
-        }
-
-    protected:
-        FactoryMethod() = default;
-
-        virtual MsgIdParamType getIdImpl() const = 0;
-        virtual MsgPtr createImpl(const MsgFactory& factory) const = 0;
-    };
-
-    template <typename TMessage>
-    class NumIdFactoryMethod : public FactoryMethod
-    {
-    public:
-        using Message = TMessage;
-        static const auto MsgId = Message::MsgId;
-        NumIdFactoryMethod() {}
-
-    protected:
-        virtual MsgIdParamType getIdImpl() const
-        {
-            return static_cast<MsgIdParamType>(MsgId);
-        }
-
-        virtual MsgPtr createImpl(const MsgFactory& factory) const
-        {
-            return factory.template allocMsg<Message>();
-        }
-    };
-
-    template <typename TMessage>
-    friend class NumIdFactoryMethod;
-
-    template <typename TMessage>
-    class GenericFactoryMethod : public FactoryMethod
-    {
-    public:
-        using Message = TMessage;
-
-        GenericFactoryMethod() : id_(Message().getId()) {}
-
-    protected:
-
-        virtual MsgIdParamType getIdImpl() const
-        {
-            return id_;
-        }
-
-        virtual MsgPtr createImpl(const MsgFactory& factory) const
-        {
-            return factory.template allocMsg<Message>();
-        }
-
-    private:
-        typename Message::MsgIdType id_;
-    };
-
-    template <typename TMessage>
-    friend class GenericFactoryMethod;
-
-    static_assert(comms::util::IsTuple<AllMessages>::Value,
-        "TAllMessages is expected to be a tuple.");
-
-    static const std::size_t NumOfMessages =
-        std::tuple_size<AllMessages>::value;
-
-    using MethodsRegistry = std::array<const FactoryMethod*, NumOfMessages>;
-
-    class MsgFactoryCreator
-    {
-    public:
-        MsgFactoryCreator(MethodsRegistry& registry)
-          : registry_(registry)
-        {
-        }
-
-        template <typename TMessage>
-        void operator()()
-        {
-            using Tag = typename std::conditional<
-                TMessage::ImplOptions::HasStaticMsgId,
-                StaticNumericIdTag,
-                OtherIdTag
-            >::type;
-
-            registry_[idx_] = createFactory<TMessage>(Tag());
-            ++idx_;
-        }
-
-    private:
-        struct StaticNumericIdTag {};
-        struct OtherIdTag {};
-
-        template <typename TMessage>
-        static const FactoryMethod* createFactory(StaticNumericIdTag)
-        {
-            static const NumIdFactoryMethod<TMessage> Factory;
-            return &Factory;
-        }
-
-        template <typename TMessage>
-        const FactoryMethod* createFactory(OtherIdTag)
-        {
-            static const GenericFactoryMethod<TMessage> Factory;
-            return &Factory;
-        }
-
-        MethodsRegistry& registry_;
-        unsigned idx_ = 0;
-    };
-
-
-    class CompWrapper
-    {
-    public:
-
-        CompWrapper(MsgIdParamType id)
-          : m_id(id)
-        {
-        }
-
-        CompWrapper(const FactoryMethod* method)
-          : m_id(method->getId())
-        {
-        }
-
-
-        MsgIdParamType getId() const
-        {
-            return m_id;
-        }
-
-    private:
-        MsgIdType m_id;
-    };
-
-    void initRegistry()
-    {
-        util::tupleForEachType<AllMessages>(MsgFactoryCreator(registry_));
-    }
-
-    MethodsRegistry registry_;
+    Factory factory_;
 };
 
 

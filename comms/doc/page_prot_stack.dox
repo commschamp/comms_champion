@@ -280,8 +280,10 @@
 /// @section page_prot_stack_tutorial_checksum CHECKSUM Layer
 /// The @b CHECKSUM layer is responsible to calculate and verify the checksum
 /// on the data read and/or written by the upper layers it wraps.
-/// The COMMS library provides comms::protocol::ChecksumLayer
-/// for this purpose.
+/// The COMMS library provides comms::protocol::ChecksumLayer and
+/// comms::protocol::ChecksumPrefixLayer for this purpose. They are very similar.
+/// The only difference is that comms::protocol::ChecksumLayer appends the 
+/// checksum value, while comms::protocol::ChecksumPrefixLayer prepends it.
 /// @code
 /// typedef comms::field::IntValue<CommonFieldBase, std::uint16_t> ChecksumField;
 /// typedef comms::protocol::ChecksumLayer<
@@ -290,12 +292,13 @@
 ///     MyMsgSize
 /// > MyChecksum;
 /// @endcode
-/// The comms::protocol::ChecksumLayer receives three template parameters. The
+/// The both layer classes receives three template parameters. The
 /// first one is a @b field that is responsible to read/write the checksum value.
 ///
 /// The second template parameter is a checksum calculator class which is used
 /// to calculate a checksum value. Please refer to the documentation of
-/// comms::protocol::ChecksumLayer class for the details on the interface this
+/// comms::protocol::ChecksumLayer or comms::protocol::ChecksumPrefixLayer class 
+/// for the details on the interface this
 /// checksum calculator class must provide. The example above uses 
 /// comms::protocol::checksum::Crc_CCITT, which calculates the the standard
 /// CRC-CCITT value. All the checksum calculators the COMMS library provides reside

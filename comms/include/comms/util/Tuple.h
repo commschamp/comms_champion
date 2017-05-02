@@ -48,6 +48,15 @@ struct IsTuple<std::tuple<TArgs...> >
 };
 /// @endcond
 
+/// @brief Check whether provided type is a variant of
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
+/// @tparam TType Type to check.
+template <typename TType>
+constexpr bool isTuple()
+{
+    return IsTuple<TType>::Value;
+}
+
 //----------------------------------------
 
 /// @brief Check whether TType type is included in the tuple TTuple

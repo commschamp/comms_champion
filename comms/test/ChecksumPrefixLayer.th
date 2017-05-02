@@ -29,7 +29,7 @@ CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
 CC_ENABLE_WARNINGS()
 
-class ChecksumLayerTestSuite : public CxxTest::TestSuite
+class ChecksumPrefixLayerTestSuite : public CxxTest::TestSuite
 {
 public:
     void test1();
@@ -39,8 +39,6 @@ public:
     void test5();
     void test6();
     void test7();
-    void test8();
-    void test9();
 
 private:
 
@@ -167,7 +165,7 @@ private:
     using ProtocolStack =
         comms::protocol::SyncPrefixLayer<
             TSyncField,
-            comms::protocol::ChecksumLayer<
+            comms::protocol::ChecksumPrefixLayer<
                 TChecksumField,
                 comms::protocol::checksum::BasicSum<>,
                 comms::protocol::MsgSizeLayer<
@@ -186,7 +184,7 @@ private:
     using ProtocolStackVerifyBefore =
         comms::protocol::SyncPrefixLayer<
             TSyncField,
-            comms::protocol::ChecksumLayer<
+            comms::protocol::ChecksumPrefixLayer<
                 TChecksumField,
                 comms::protocol::checksum::BasicSum<>,
                 comms::protocol::MsgSizeLayer<
@@ -201,32 +199,12 @@ private:
                 comms::option::ChecksumLayerVerifyBeforeRead
             >
         >;
-
-    template <typename TSyncField, typename TChecksumField, typename TSizeField, typename TIdField, typename TMessage>
-    using ProtocolPrefixStack =
-        comms::protocol::SyncPrefixLayer<
-            TSyncField,
-            comms::protocol::ChecksumPrefixLayer<
-                TChecksumField,
-                comms::protocol::checksum::BasicSum<>,
-                comms::protocol::MsgSizeLayer<
-                    TSizeField,
-                    comms::protocol::MsgIdLayer<
-                        TIdField,
-                        TMessage,
-                        AllMessages<TMessage>,
-                        comms::protocol::MsgDataLayer<>
-                    >
-                >
-            >
-        >;
-
 };
 
-void ChecksumLayerTestSuite::test1()
+void ChecksumPrefixLayerTestSuite::test1()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
+        (char)0xab, (char)0xcd, 0x06, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -249,13 +227,13 @@ void ChecksumLayerTestSuite::test1()
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 }
 
-void ChecksumLayerTestSuite::test2()
+void ChecksumPrefixLayerTestSuite::test2()
 {
     LeMsg1 msg;
     std::get<0>(msg.fields()).value() = 0x0304;
 
     static const char ExpectedBuf[] = {
-        (char)0xcd, (char)0xab, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03, 0x0b
+        (char)0xcd, (char)0xab, 0x0b, 0x4, 0x0, 0x0, MessageType1, 0x0, 0x04, 0x03
     };
 
     static const std::size_t BufSize = std::extent<decltype(ExpectedBuf)>::value;
@@ -274,10 +252,10 @@ void ChecksumLayerTestSuite::test2()
     commonWriteReadMsgTest(stack, msg, buf, BufSize, &ExpectedBuf[0]);
 }
 
-void ChecksumLayerTestSuite::test3()
+void ChecksumPrefixLayerTestSuite::test3()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x07, static_cast<char>(0x3f)
+        (char)0xab, (char)0xcd, 0x07, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -297,10 +275,10 @@ void ChecksumLayerTestSuite::test3()
     TS_ASSERT(!msgPtr);
 }
 
-void ChecksumLayerTestSuite::test4()
+void ChecksumPrefixLayerTestSuite::test4()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02
+        (char)0xab, (char)0xcd, 0x0, 0x6, 0x3, MessageType1, 0x01
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -320,7 +298,7 @@ void ChecksumLayerTestSuite::test4()
     TS_ASSERT(!msgPtr);
 }
 //
-void ChecksumLayerTestSuite::test5()
+void ChecksumPrefixLayerTestSuite::test5()
 {
     LeMsg1 msg;
     std::get<0>(msg.fields()).value() = 0x0203;
@@ -341,10 +319,10 @@ void ChecksumLayerTestSuite::test5()
     commonWriteReadMsgTest(stack, msg, buf, BufSize, nullptr, comms::ErrorStatus::BufferOverflow);
 }
 
-void ChecksumLayerTestSuite::test6()
+void ChecksumPrefixLayerTestSuite::test6()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06, static_cast<char>(0x3f)
+        (char)0xab, (char)0xcd, 0x6, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -367,40 +345,10 @@ void ChecksumLayerTestSuite::test6()
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 }
 
-void ChecksumLayerTestSuite::test7()
-{
-//    auto& table = comms::protocol::checksum::details::CrcInitTable<std::uint32_t, 0x04C11DB7>::get();
-//    for (auto byte : table) {
-//        std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << (unsigned)byte << ", ";
-//    }
-
-    static const std::vector<std::uint8_t> Data = {
-        '1', '2', '3', '4', '5', '6', '7', '8', '9'
-    };
-
-    {
-        auto iter = &Data[0];
-        auto val = comms::protocol::checksum::Crc_CCITT()(iter, Data.size());
-        TS_ASSERT_EQUALS(val, 0x29b1)
-    }
-
-    {
-        auto iter = &Data[0];
-        auto val = comms::protocol::checksum::Crc_16()(iter, Data.size());
-        TS_ASSERT_EQUALS(val, 0xbb3d)
-    }
-
-    {
-        auto iter = &Data[0];
-        auto val = comms::protocol::checksum::Crc_32()(iter, Data.size());
-        TS_ASSERT_EQUALS(val, 0xcbf43926)
-    }
-}
-
-void ChecksumLayerTestSuite::test8()
+void ChecksumPrefixLayerTestSuite::test7()
 {
     static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType1, 0x01, 0x02, 0x06
+        (char)0xab, (char)0xcd, 0x6, 0x0, 0x3, MessageType1, 0x01, 0x02
     };
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
@@ -422,30 +370,4 @@ void ChecksumLayerTestSuite::test8()
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg = dynamic_cast<BeMsg1&>(*msgPtr);
     TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
-}
-
-void ChecksumLayerTestSuite::test9()
-{
-    static const char Buf[] = {
-        (char)0xab, (char)0xcd, 0x06, 0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
-    };
-
-    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
-
-    typedef
-        ProtocolPrefixStack<
-            BeSyncField2,
-            BeChecksumField1,
-            BeSizeField20,
-            BeIdField1,
-            BeMsgBase
-        > Stack;
-
-    Stack stack;
-
-    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
-    TS_ASSERT(msgPtr);
-    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
-    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
-    TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 }

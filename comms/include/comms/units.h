@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file comms/units.h
+/// @file
 /// This file contains all the functions required for proper units conversion.
 
 #pragma once

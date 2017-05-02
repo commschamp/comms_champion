@@ -64,6 +64,12 @@ endfunction ()
 
 #################################################################
 
+function (test_checksum_prefix_layer)
+    test_func ("ChecksumPrefixLayer")
+endfunction ()
+
+#################################################################
+
 function (test_util)
     test_func ("Util")
 endfunction ()
@@ -83,4 +89,5 @@ test_msg_id_layer()
 test_msg_size_layer()
 test_sync_prefix_layer()
 test_checksum_layer()
+test_checksum_prefix_layer()
 test_util()

@@ -15,20 +15,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// Aggregates all the includes of the @b COMMS library interface
 
 #pragma once
 
 #include "CompileControl.h"
-#include "ErrorStatus.h"
-#include "Assert.h"
+#include "fields.h"
+#include "protocols.h"
+#include "units.h"
+
 #include "Message.h"
 #include "EmptyHandler.h"
 #include "GenericHandler.h"
 #include "MessageBase.h"
 #include "MsgFactory.h"
-#include "fields.h"
-#include "protocols.h"
-#include "field_cast.h"
-#include "protocol/checksum/BasicSum.h"
-#include "protocol/checksum/Crc.h"
-#include "units.h"
+

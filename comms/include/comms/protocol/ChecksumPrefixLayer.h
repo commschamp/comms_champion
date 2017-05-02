@@ -30,9 +30,12 @@ namespace comms
 namespace protocol
 {
 /// @brief Protocol layer that is responsible to calculate checksum on the
-///     data written by all the wrapped internal layers and append it to the end of
+///     data written by all the wrapped internal layers and prepend it before
 ///     the written data. When reading, this layer is responsible to verify
-///     the checksum reported at the end of the read data.
+///     the checksum reported at the beginning of the read data.
+/// @details This protocol layer handles checksum value that usually precedes the
+///     data. Some protocols use checksum value that follows the data. In this
+///     case use @ref ChecksumLayer instead.
 /// @tparam TField Type of the field that is used as to represent checksum value.
 /// @tparam TCalc The checksum calculater class that is used to calculate
 ///     the checksum value on the provided buffer. It must have the operator()
@@ -46,14 +49,14 @@ namespace protocol
 ///     assigning it as a value of the check field being read and/or written.
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @tparam TOptions Extending functionality options. Supported options are:
-///     @li comms::option::ChecksumLayerVerifyBeforeRead - By default, the
-///         @b ChecksumLayer will invoke @b read operation of inner (wrapped) layers
+///     @li comms::option::ChecksumPrefixLayerVerifyBeforeRead - By default, the
+///         @b ChecksumPrefixLayer will invoke @b read operation of inner (wrapped) layers
 ///         and only if it is successful, it will calculate and verify the
-///         checksum value. Usage of comms::option::ChecksumLayerVerifyBeforeRead
+///         checksum value. Usage of comms::option::ChecksumPrefixLayerVerifyBeforeRead
 ///         modifies the default behaviour by forcing the checksum verification
 ///         prior to invocation of @b read operation in the wrapped layer(s).
 template <typename TField, typename TCalc, typename TNextLayer, typename... TOptions>
-class ChecksumLayer : public ProtocolLayerBase<TField, TNextLayer>
+class ChecksumPrefixLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
     using Base = ProtocolLayerBase<TField, TNextLayer>;
 public:
@@ -64,27 +67,28 @@ public:
     using Field = typename Base::Field;
 
     /// @brief Default constructor.
-    ChecksumLayer() = default;
+    ChecksumPrefixLayer() = default;
 
     /// @brief Copy constructor
-    ChecksumLayer(const ChecksumLayer&) = default;
+    ChecksumPrefixLayer(const ChecksumPrefixLayer&) = default;
 
     /// @brief Move constructor
-    ChecksumLayer(ChecksumLayer&&) = default;
+    ChecksumPrefixLayer(ChecksumPrefixLayer&&) = default;
 
     /// @brief Destructor.
-    ~ChecksumLayer() = default;
+    ~ChecksumPrefixLayer() = default;
 
     /// @brief Copy assignment
-    ChecksumLayer& operator=(const ChecksumLayer&) = default;
+    ChecksumPrefixLayer& operator=(const ChecksumPrefixLayer&) = default;
 
     /// @brief Move assignment
-    ChecksumLayer& operator=(ChecksumLayer&&) = default;
+    ChecksumPrefixLayer& operator=(ChecksumPrefixLayer&&) = default;
 
     /// @brief Deserialise message from the input data sequence.
-    /// @details First, executes the read() member function of the next layer.
+    /// @details First, reads the expected checksum value field, then
+    ///     executes the read() member function of the next layer.
     ///     If the call returns comms::ErrorStatus::Success, it calculated the
-    ///     checksum of the read data, reads the expected checksum value and
+    ///     checksum of the read data and
     ///     compares it to the calculated. If checksums match,
     ///     comms::ErrorStatus::Success is returned, otherwise
     ///     function returns comms::ErrorStatus::ProtocolError.
@@ -174,13 +178,15 @@ public:
     }
 
     /// @brief Serialise message into the output data sequence.
-    /// @details First, executes the write() member function of the next layer.
+    /// @details First, reserves the appropriate number of bytes in the
+    ///     output buffer which are supposed to contain valid checksum
+    ///     value, then executes the write() member function of the next layer.
     ///     If the call returns comms::ErrorStatus::Success and it is possible
     ///     to re-read what has been written (random access iterator is used
-    ///     for writing), the checksum is calculated and added to the output
-    ///     buffer using the same iterator. In case non-random access iterator
+    ///     for writing), the real checksum value is calculated and updated in the
+    ///     previously reserved area. In case non-random access iterator
     ///     type is used for writing (for example std::back_insert_iterator), then
-    ///     this function writes a dummy value as checksum and returns
+    ///     this function returns
     ///     comms::ErrorStatus::UpdateRequired to indicate that call to
     ///     update() with random access iterator is required in order to be
     ///     able to update written checksum information.
@@ -316,7 +322,16 @@ private:
             return ErrorStatus::NotEnoughData;
         }
 
-        return readInternal(field, msgPtr, iter, size, missingSize, std::forward<TReader>(nextLayerReader), VerifyTag());
+        auto checksumEs = field.read(iter, Field::minLength());
+        if (checksumEs == ErrorStatus::NotEnoughData) {
+            Base::updateMissingSize(field, size, missingSize);
+        }
+
+        if (checksumEs != ErrorStatus::Success) {
+            return checksumEs;
+        }
+
+        return readInternal(field, msgPtr, iter, size - field.length(), missingSize, std::forward<TReader>(nextLayerReader), VerifyTag());
     }
 
     template <typename TMsgPtr, typename TIter, typename TReader>
@@ -329,15 +344,8 @@ private:
         TReader&& nextLayerReader)
     {
         auto fromIter = iter;
-        auto toIter = fromIter + (size - Field::minLength());
-        auto len = static_cast<std::size_t>(std::distance(fromIter, toIter));
 
-        auto checksumEs = field.read(toIter, Field::minLength());
-        if (checksumEs != ErrorStatus::Success) {
-            return checksumEs;
-        }
-
-        auto checksum = TCalc()(fromIter, len);
+        auto checksum = TCalc()(fromIter, size);
         auto expectedValue = field.value();
 
         if (expectedValue != static_cast<decltype(expectedValue)>(checksum)) {
@@ -345,12 +353,7 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
-        auto es = nextLayerReader.read(msgPtr, iter, size - Field::minLength(), missingSize);
-        if (es == ErrorStatus::Success) {
-            iter = toIter;
-        }
-
-        return es;
+        return nextLayerReader.read(msgPtr, iter, size, missingSize);
     }
 
     template <typename TMsgPtr, typename TIter, typename TReader>
@@ -364,25 +367,13 @@ private:
     {
         auto fromIter = iter;
 
-        auto es = nextLayerReader.read(msgPtr, iter, size - Field::minLength(), missingSize);
+        auto es = nextLayerReader.read(msgPtr, iter, size, missingSize);
         if ((es == ErrorStatus::NotEnoughData) ||
             (es == ErrorStatus::ProtocolError)) {
             return es;
         }
 
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
-        GASSERT(len <= size);
-        auto remSize = size - len;
-        auto checksumEs = field.read(iter, remSize);
-        if (checksumEs == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(field, remSize, missingSize);
-        }
-
-        if (checksumEs != ErrorStatus::Success) {
-            msgPtr.reset();
-            return checksumEs;
-        }
-
         auto checksum = TCalc()(fromIter, len);
         auto expectedValue = field.value();
 
@@ -428,33 +419,32 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
+        auto checksumIter = iter;
+        auto es = field.write(iter, size);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        auto checksumLen =
+            static_cast<std::size_t>(std::distance(checksumIter, iter));
+
         auto fromIter = iter;
-        auto es = nextLayerWriter.write(msg, iter, size);
-        if ((es != comms::ErrorStatus::Success) &&
-            (es != comms::ErrorStatus::UpdateRequired)) {
+        es = nextLayerWriter.write(msg, iter, size - checksumLen);
+        if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
         GASSERT(fromIter <= iter);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
-        auto remSize = size - len;
-
-        if (remSize < Field::maxLength()) {
-            return comms::ErrorStatus::BufferOverflow;
-        }
-
-        if (es == comms::ErrorStatus::UpdateRequired) {
-            auto esTmp = field.write(iter, remSize);
-            static_cast<void>(esTmp);
-            GASSERT(esTmp == comms::ErrorStatus::Success);
-            return es;
-        }
 
         using FieldValueType = typename Field::ValueType;
         auto checksum = TCalc()(fromIter, len);
         field.value() = static_cast<FieldValueType>(checksum);
 
-        return field.write(iter, remSize);
+        auto checksumEs = field.write(checksumIter, checksumLen);
+        static_cast<void>(checksumEs);
+        GASSERT(checksumEs == comms::ErrorStatus::Success);
+        return es;
     }
 
     template <typename TMsg, typename TIter, typename TWriter>
@@ -465,15 +455,16 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        auto es = nextLayerWriter.write(msg, iter, size - Field::maxLength());
-        if ((es != comms::ErrorStatus::Success) &&
-            (es != comms::ErrorStatus::UpdateRequired)) {
+        auto es = field.write(iter, size);
+        if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        auto esTmp = field.write(iter, Field::maxLength());
-        static_cast<void>(esTmp);
-        GASSERT(esTmp == comms::ErrorStatus::Success);
+        es = nextLayerWriter.write(msg, iter, size - Field::maxLength());
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
         return comms::ErrorStatus::UpdateRequired;
     }
 
@@ -508,6 +499,9 @@ private:
         std::size_t size,
         TUpdater&& nextLayerUpdater) const
     {
+        auto checksumIter = iter;
+        std::advance(iter, Field::maxLength());
+
         auto fromIter = iter;
         auto es = nextLayerUpdater.update(iter, size - Field::maxLength());
         if (es != comms::ErrorStatus::Success) {
@@ -517,10 +511,9 @@ private:
         GASSERT(fromIter <= iter);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
         GASSERT(len == (size - Field::maxLength()));
-        auto remSize = size - len;
         using FieldValueType = typename Field::ValueType;
         field.value() = static_cast<FieldValueType>(TCalc()(fromIter, len));
-        es = field.write(iter, remSize);
+        es = field.write(checksumIter, Field::maxLength());
         return es;
     }
 };

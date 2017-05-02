@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "comms/options.h"
+
 namespace comms
 {
 

@@ -35,6 +35,18 @@
 /// #include "comms/comms.h"
 /// @endcode
 ///
+/// If the protocol grows and the compilation takes a significant amount of time,
+/// more fine-grained include staments may be used:
+/// @code
+/// #include "comms/fields.h" // Provides all definitions from comms::field namespace
+/// #include "comms/protocols.h" // Provides all definitions from comms::protocol namespace
+/// #include "comms/units.h" // Provides all definitions from comms::units namespace
+/// #include "comms/Message.h" // Definition of comms::Message class to define interface
+/// #include "comms/MessageBase.h" // Definition of comms::MessageBase class to define message impl
+/// #include "comms/GenericHandler.h" // Definition of comms::GenericHandler class
+/// #include "comms/MsgFactory.h" // Definition of comms::MessageFactory class
+/// @endcode
+///
 /// @section mainpage_error_handling Error Handling
 /// The COMMS library is intended to be used in embedded systems (including 
 /// bare metal), which means the library cannot use exceptions to report errors.

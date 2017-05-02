@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// This file provides all the definitions from comms::field namespace.
 
 #pragma once
 
@@ -32,3 +34,4 @@
 #include "field/adapters.h"
 #include "field/basics.h"
 
+#include "field_cast.h"

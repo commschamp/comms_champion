@@ -34,7 +34,7 @@ namespace details
 struct MsgFactoryStaticNumIdCheckHelper
 {
     template <typename TMessage>
-    constexpr bool operator()(bool value)
+    constexpr bool operator()(bool value) const
     {
         return value && TMessage::ImplOptions::HasStaticMsgId;
     }

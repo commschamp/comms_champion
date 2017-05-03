@@ -106,6 +106,7 @@ using ArrayListStorageTypeT =
 ///     @li comms::option::FixedSizeStorage
 ///     @li comms::option::CustomStorageType
 ///     @li comms::option::SequenceSizeFieldPrefix
+///     @li comms::option::SequenceSerLengthFieldPrefix
 ///     @li comms::option::SequenceSizeForcingEnabled
 ///     @li comms::option::SequenceFixedSize
 ///     @li comms::option::SequenceTerminationFieldSuffix

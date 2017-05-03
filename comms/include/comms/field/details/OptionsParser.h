@@ -46,6 +46,7 @@ public:
     static const bool HasSequenceSizeForcing = false;
     static const bool HasSequenceFixedSize = false;
     static const bool HasSequenceSizeFieldPrefix = false;
+    static const bool HasSequenceSerLengthFieldPrefix = false;
     static const bool HasSequenceTrailingFieldSuffix = false;
     static const bool HasSequenceTerminationFieldSuffix = false;
     static const bool HasDefaultValueInitialiser = false;
@@ -85,6 +86,9 @@ class OptionsParser<
 
     static_assert(!Base::HasSequenceSizeFieldPrefix,
         "Cannot mix SequenceSizeFieldPrefix and CustomValueReader options.");
+
+    static_assert(!Base::HasSequenceSerLengthFieldPrefix,
+        "Cannot mix SequenceSerLengthFieldPrefix and CustomValueReader options.");
 
     static_assert(!Base::HasSequenceTrailingFieldSuffix,
         "Cannot mix SequenceTrailingFieldSuffix and CustomValueReader options.");
@@ -174,6 +178,10 @@ class OptionsParser<
         "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
         "mustn't be used together");
 
+    static_assert(!Base::HasSequenceSerLengthFieldPrefix,
+        "SequenceSerLengthFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
+        "mustn't be used together");
+
     static_assert(!Base::HasSequenceFixedSize,
         "SequenceSizeForcingEnabled and SequenceFixedSize are incompatible options, "
         "mustn't be used together");
@@ -197,6 +205,10 @@ class OptionsParser<
     using Base = OptionsParser<TOptions...>;
     static_assert(!Base::HasSequenceSizeFieldPrefix,
         "SequenceFixedSize and SequenceSizeFieldPrefix are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceSerLengthFieldPrefix,
+        "SequenceFixedSize and SequenceSerLengthFieldPrefix are incompatible options, "
         "mustn't be used together");
 
     static_assert(!Base::HasSequenceSizeForcing,
@@ -234,9 +246,45 @@ class OptionsParser<
 
     static_assert(!Base::HasCustomValueReader,
         "Cannot mix SequenceSizeFieldPrefix and CustomValueReader options.");
+
+    static_assert(!Base::HasSequenceSerLengthFieldPrefix,
+        "SequenceSizeFieldPrefix and SequenceSizeFieldPrefix are incompatible options, "
+        "mustn't be used together");
+
 public:
     static const bool HasSequenceSizeFieldPrefix = true;
     using SequenceSizeFieldPrefix = TSizeField;
+};
+
+template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceSerLengthFieldPrefix<TField, TReadErrorStatus>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    using Base = OptionsParser<TOptions...>;
+    static_assert(!Base::HasSequenceSizeForcing,
+        "SequenceSizeFieldPrefix and SequenceSizeForcingEnabled are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceFixedSize,
+        "SequenceSizeFieldPrefix and SequenceFixedSize are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceTerminationFieldSuffix,
+        "SequenceSizeFieldPrefix and SequenceTerminationFieldSuffix are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasCustomValueReader,
+        "Cannot mix SequenceSizeFieldPrefix and CustomValueReader options.");
+
+    static_assert(!Base::HasSequenceSizeFieldPrefix,
+        "SequenceSizeFieldPrefix and SequenceSizeFieldPrefix are incompatible options, "
+        "mustn't be used together");
+
+public:
+    static const bool HasSequenceSerLengthFieldPrefix = true;
+    using SequenceSerLengthFieldPrefix = TField;
+    static const comms::ErrorStatus SequenceSerLengthFieldReadErrorStatus = TReadErrorStatus;
 };
 
 template <typename TTrailField, typename... TOptions>
@@ -275,6 +323,10 @@ class OptionsParser<
 
     static_assert(!Base::HasSequenceSizeFieldPrefix,
         "SequenceSizeFieldPrefix and SequenceTerminationFieldSuffix are incompatible options, "
+        "mustn't be used together");
+
+    static_assert(!Base::HasSequenceSerLengthFieldPrefix,
+        "SequenceSerLengthFieldPrefix and SequenceTerminationFieldSuffix are incompatible options, "
         "mustn't be used together");
 
     static_assert(!Base::HasSequenceTrailingFieldSuffix,

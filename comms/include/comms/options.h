@@ -342,8 +342,8 @@ struct ScalingRatio
     static_assert(TDenom != 0, "Wrong scaling ratio");
 };
 
-/// @brief Option that modify the default behaviour of collection fields to
-///     prepend the serialised data with number of elements information.
+/// @brief Option that modifies the default behaviour of collection fields to
+///     prepend the serialised data with number of @b elements information.
 /// @details Quite often when collection of fields is serialised it must be
 ///     prepended with one or more bytes indicating number of elements that will
 ///     follow.
@@ -365,6 +365,32 @@ struct ScalingRatio
 /// @tparam TField Type of the field that represents size
 template <typename TField>
 struct SequenceSizeFieldPrefix {};
+
+/// @brief Option that modifies the default behaviour of collection fields to
+///     prepend the serialised data with number of @b bytes information.
+/// @details Similar to @ref SequenceSizeFieldPrefix, but instead of
+///     number of @b elements to follow, the prefix field contains number of
+///     @b bytes that will follow.
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyField =
+///         comms::field::ArrayList<
+///             MyFieldBase,
+///             comms::field::Bundle<
+///                 std::tuple<
+///                     comms::field::IntValue<MyFieldBase, std::uint32_t>,
+///                     comms::field::String<MyFieldBase>
+///                 >
+///             >,
+///             comms::option::SequenceSerLengthFieldPrefix<
+///                 comms::field::IntValue<MyFieldBase, std::uint16_t>
+///             >
+///         >;
+///     @endcode
+/// @tparam TField Type of the field that represents serialisation length
+/// @tparam TReadErrorStatus Error status to return when read operation fails when should not
+template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
+struct SequenceSerLengthFieldPrefix {};
 
 /// @brief Option that forces termination of the sequence when predefined value
 ///     is encountered.
@@ -585,7 +611,8 @@ struct CustomValueReader {};
 ///     If comms::option::FailOnInvalid is provided as an option to a field,
 ///     the validity is going to checked automatically after the read. If invalid
 ///     value is identified, error will be returned from the @b read() operation.
-template <comms::ErrorStatus = comms::ErrorStatus::InvalidMsgData>
+/// @tparam TStatus Error status to return when the content of the read field is invalid.
+template <comms::ErrorStatus TStatus = comms::ErrorStatus::InvalidMsgData>
 struct FailOnInvalid {};
 
 /// @brief Option that forces field's read operation to ignore read data if invalid value

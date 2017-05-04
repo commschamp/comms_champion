@@ -848,6 +848,11 @@
 /// assert(outputBuffer.size() == 5U); // Expected to write 5 bytes, 2 bytes for size, and 3 for elements.
 /// assert(std::equal(outputBuffer.begin(), outputBuffer.end(), std::begin(InputBuffer)); // The output must be equal to
 /// @endcode
+/// 
+/// Some protocols prefix the sequence with <b>serialisation length</b> rather
+/// than <b>number of elements to follow</b>. In this case the 
+/// comms::option::SequenceSerLengthFieldPrefix option needs to be used
+/// instead of comms::option::SequenceSizeFieldPrefix.
 ///
 /// @subsection sec_field_tutorial_array_list_detached_size_prefix Detached Size Information
 /// There may be cases when size information is detached from the sequence itself, i.e.

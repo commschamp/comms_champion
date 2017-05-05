@@ -49,6 +49,8 @@ struct Optional {};
 
 struct String {};
 
+struct Variant {};
+
 }  // namespace tag
 
 }  // namespace field

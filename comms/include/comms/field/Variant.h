@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/field/category.h"
 #include "comms/options.h"
-#include "basic/Bundle.h"
+#include "basic/Variant.h"
 #include "details/AdaptBasicField.h"
 #include "tag.h"
 
@@ -31,7 +31,7 @@ namespace comms
 namespace field
 {
 
-/// @brief Bundles multiple fields into a single field.
+/// @brief Variants multiple fields into a single field.
 /// @details The class wraps nicely multiple fields and provides
 ///     expected single field API functions, such as length(), read(), write(),
 ///     valid(). It may be useful when a collection (comms::field::ArrayList) of
@@ -47,7 +47,7 @@ namespace field
 ///     Supported options are:
 ///     @li comms::option::DefaultValueInitialiser - All wrapped fields may
 ///         specify their independent default value initialisers. It is
-///         also possible to provide initialiser for the Bundle field which
+///         also possible to provide initialiser for the Variant field which
 ///         will set appropriate values to the fields based on some
 ///         internal logic.
 ///     @li comms::option::ContentsValidator - All wrapped fields may specify
@@ -63,7 +63,7 @@ namespace field
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
-class Bundle
+class Variant
 {
     static_assert(comms::util::IsTuple<TMembers>::Value,
         "TMembers is expected to be a tuple of std::tuple<...>");
@@ -72,7 +72,7 @@ class Bundle
         1U < std::tuple_size<TMembers>::value,
         "Number of members is expected to be at least 2.");
 
-    using BasicField = basic::Bundle<TFieldBase, TMembers>;
+    using BasicField = basic::Variant<TFieldBase, TMembers>;
     using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
 public:
@@ -80,7 +80,7 @@ public:
     using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
-    using Tag = tag::Bundle;
+    using Tag = tag::Variant;
 
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
@@ -89,16 +89,16 @@ public:
 
     /// @brief Default constructor
     /// @details Invokes default constructor of every wrapped field
-    Bundle() = default;
+    Variant() = default;
 
     /// @brief Constructor
-    explicit Bundle(const ValueType& val)
+    explicit Variant(const ValueType& val)
       : field_(val)
     {
     }
 
     /// @brief Constructor
-    explicit Bundle(ValueType&& val)
+    explicit Variant(ValueType&& val)
       : field_(std::move(val))
     {
     }
@@ -175,11 +175,11 @@ private:
 /// @param[in] field1 First field.
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
-/// @related Bundle
+/// @related Variant
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator==(
-    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
-    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+    const Variant<TFieldBase, TMembers, TOptions...>& field1,
+    const Variant<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
@@ -188,42 +188,42 @@ bool operator==(
 /// @param[in] field1 First field.
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
-/// @related Bundle
+/// @related Variant
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator!=(
-    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
-    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+    const Variant<TFieldBase, TMembers, TOptions...>& field1,
+    const Variant<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }
 
 /// @brief Compile time check function of whether a provided type is any
-///     variant of comms::field::Bundle.
+///     variant of comms::field::Variant.
 /// @tparam T Any type.
-/// @return true in case provided type is any variant of @ref Bundle
-/// @related comms::field::Bundle
+/// @return true in case provided type is any variant of @ref Variant
+/// @related comms::field::Variant
 template <typename T>
-constexpr bool isBundle()
+constexpr bool isVariant()
 {
-    return std::is_same<typename T::Tag, tag::Bundle>::value;
+    return std::is_same<typename T::Tag, tag::Variant>::value;
 }
 
-/// @brief Upcast type of the field definition to its parent comms::field::Bundle type
+/// @brief Upcast type of the field definition to its parent comms::field::Variant type
 ///     in order to have access to its internal types.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
-Bundle<TFieldBase, TMembers, TOptions...>&
-toFieldBase(Bundle<TFieldBase, TMembers, TOptions...>& field)
+Variant<TFieldBase, TMembers, TOptions...>&
+toFieldBase(Variant<TFieldBase, TMembers, TOptions...>& field)
 {
     return field;
 }
 
-/// @brief Upcast type of the field definition to its parent comms::field::Bundle type
+/// @brief Upcast type of the field definition to its parent comms::field::Variant type
 ///     in order to have access to its internal types.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
-const Bundle<TFieldBase, TMembers, TOptions...>&
-toFieldBase(const Bundle<TFieldBase, TMembers, TOptions...>& field)
+const Variant<TFieldBase, TMembers, TOptions...>&
+toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
 {
     return field;
 }

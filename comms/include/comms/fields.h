@@ -30,6 +30,7 @@
 #include "field/Bundle.h"
 #include "field/FloatValue.h"
 #include "field/NoValue.h"
+#include "field/Variant.h"
 
 #include "field/adapters.h"
 #include "field/basics.h"

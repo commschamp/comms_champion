@@ -25,3 +25,4 @@
 #include "basic/Bitfield.h"
 #include "basic/FloatValue.h"
 #include "basic/NoValue.h"
+#include "basic/Variant.h"

@@ -888,6 +888,16 @@ struct DefaultOptModeInitialiser
     }
 };
 
+template<std::size_t TIdx>
+struct DefaultVariantIndexInitialiser
+{
+    template <typename TField>
+    void operator()(TField& field)
+    {
+        field.template initField<TIdx>();
+    }
+};
+
 }  // namespace details
 
 /// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
@@ -926,6 +936,12 @@ using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValida
 /// @tparam TVal Optional mode value is to be assigned to the field in default constructor.
 template<comms::field::OptionalMode TVal>
 using DefaultOptionalMode = DefaultValueInitialiser<details::DefaultOptModeInitialiser<TVal> >;
+
+/// @brief Alias to DefaultValueInitialiser, it initalises comms::field::Variant field
+///     to contain valid default value of the specified member.
+/// @tparam TIdx Index of the default member.
+template <std::size_t TIdx>
+using DefaultVariantIndex = DefaultValueInitialiser<details::DefaultVariantIndexInitialiser<TIdx> >;
 
 /// @brief Force comms::protocol::ChecksumLayer and
 ///     comms::protocol::ChecksumPrefixLayer, to verify checksum prior to

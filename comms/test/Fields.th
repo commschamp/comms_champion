@@ -2808,13 +2808,15 @@ using Test70_Mem2 =
         >
     >;
 
+template <typename... TExtra>
 struct Test70_Field : public
     comms::field::Variant<
         Test70_FieldBase,
         std::tuple<
             Test70_Mem1,
             Test70_Mem2
-        >
+        >,
+        TExtra...
     >
 {
     COMMS_VARIANT_MEMBERS_ACCESS(mem1, mem2);
@@ -2835,7 +2837,7 @@ private:
 
 void FieldsTestSuite::test70()
 {
-    using Field = Test70_Field;
+    using Field = Test70_Field<>;
 
     Field field;
     TS_ASSERT(!field.valid());
@@ -2911,6 +2913,23 @@ void FieldsTestSuite::test70()
     field.initField_mem1();
     std::get<1>(field.accessField_mem1().value()).value() = 0x0a0b;
     TS_ASSERT_EQUALS(field3, field);
+
+    using InitialisedField = Test70_Field<comms::option::DefaultVariantIndex<0> >;
+    InitialisedField iniField;
+    TS_ASSERT(iniField.valid());
+    TS_ASSERT_EQUALS(iniField.length(), 3U);
+    TS_ASSERT_EQUALS(iniField.currentField(), 0);
+
+    auto& iniMem1 = iniField.initField_mem1();
+    TS_ASSERT_EQUALS(std::get<0>(iniMem1.value()).value(), 1U);
+    TS_ASSERT_EQUALS(std::get<1>(iniMem1.value()).value(), 0U);
+    TS_ASSERT_EQUALS(field.currentField(), 0U);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT(field.valid());
+
+    std::size_t len4 = 0U;
+    field.currentFieldExec(Test70_LengthRetriever(len4));
+    TS_ASSERT_EQUALS(field.length(), len4);
 }
 
 template <typename TField>

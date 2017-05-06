@@ -64,6 +64,9 @@ namespace field
 ///         invoking read() member function of every member field. It is possible
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
+///     @li comms::option::DefaultVariantIndex - By default the Variant field
+///         dosn't have any valid contents. This option may be used to specify
+///         the index of the default member field.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Variant
 {
@@ -339,7 +342,7 @@ toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
         static_assert(std::tuple_size<typename Var::Members>::value == FieldIdx_numOfValues, \
             "Invalid number of names for variant field"); \
         return var; \
-    } \
+    }\
     FUNC_AUTO_REF_RETURN_CONST(asVariant, decltype(comms::field::toFieldBase(*this))) { \
         auto& var = comms::field::toFieldBase(*this); \
         using Var = typename std::decay<decltype(var)>::type; \
@@ -348,6 +351,7 @@ toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
         return var; \
     } \
     COMMS_DO_VARIANT_MEM_ACC_FUNC(asVariant(), __VA_ARGS__)
+
 
 }  // namespace field
 

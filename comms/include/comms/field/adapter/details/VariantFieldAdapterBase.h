@@ -43,7 +43,7 @@ class VariantFieldAdapterBase : public CommonBase<TNext>
 public:
     using Category = typename Base::Category;
     using Next = typename Base::Next;
-    using ValueType = typename Base::ValueType;
+    using Members = typename Next::Members;
 
     static_assert(
         std::is_base_of<comms::field::category::VariantField, Category>::value,
@@ -71,22 +71,32 @@ public:
         Base::next().currentFieldExec(std::forward<TFunc>(func));
     }
 
+    Next& next()
+    {
+        return Base::next();
+    }
+
+    const Next& next() const
+    {
+        return Base::next();
+    }
+
     template <std::size_t TIdx, typename... TArgs>
-    auto initField(TArgs&&... args) -> decltype(Base::next().template initField<TIdx>(std::forward<TArgs>(args)...))
+    auto initField(TArgs&&... args) -> decltype(next().template initField<TIdx>(std::forward<TArgs>(args)...))
     {
-        return Base::next().template initField<TIdx>(std::forward<TArgs>(args)...);
+        return next().template initField<TIdx>(std::forward<TArgs>(args)...);
     }
 
     template <std::size_t TIdx>
-    auto accessField() -> decltype(Base::next().template accessField<TIdx>())
+    auto accessField() -> decltype(next().template accessField<TIdx>())
     {
-        return Base::next().template accessField<TIdx>();
+        return next().template accessField<TIdx>();
     }
 
     template <std::size_t TIdx>
-    auto accessField() const -> decltype(Base::next().template accessField<TIdx>())
+    auto accessField() const -> decltype(next().template accessField<TIdx>())
     {
-        return Base::next().template accessField<TIdx>();
+        return next().template accessField<TIdx>();
     }
 
     bool currentFieldValid() const

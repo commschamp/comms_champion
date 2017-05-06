@@ -38,11 +38,15 @@ template <typename TFieldBase, typename TMembers>
 class Variant : public TFieldBase
 {
 public:
-    using Category = comms::field::category::BundleField;
+    using Category = comms::field::category::VariantField;
     using Members = TMembers;
     using ValueType = comms::util::TupleAsAlignedUnionT<Members>;
 
     Variant() = default;
+    Variant(const ValueType& val)  : storage_(val) {}
+    Variant(ValueType&& val)  : storage_(std::move(val)) {}
+
+
     Variant(const Variant& other)
     {
         if (!other.currentFieldValid()) {

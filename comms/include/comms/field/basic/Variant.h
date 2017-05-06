@@ -75,7 +75,7 @@ public:
 
     std::size_t length() const
     {
-        if (MembersCount <= memIdx_) {
+        if (!currentFieldValid()) {
             return 0U;
         }
 
@@ -96,7 +96,7 @@ public:
 
     bool valid() const
     {
-        if (MembersCount <= memIdx_) {
+        if (!currentFieldValid()) {
             return false;
         }
 
@@ -120,7 +120,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        if (MembersCount <= memIdx_) {
+        if (!currentFieldValid()) {
             return comms::ErrorStatus::NotSupported;
         }
 
@@ -141,7 +141,7 @@ public:
         }
 
         checkDestruct();
-        if (MembersCount <= idx) {
+        if (!isIdxValid(idx)) {
             return;
         }
 
@@ -152,7 +152,8 @@ public:
     template <typename TFunc>
     void currentFieldExec(TFunc&& func)
     {
-        if (MembersCount <= memIdx_) {
+        if (!currentFieldValid()) {
+            GASSERT(!"Invalid field execution");
             return;
         }
 
@@ -162,11 +163,55 @@ public:
     template <typename TFunc>
     void currentFieldExec(TFunc&& func) const
     {
-        if (MembersCount <= memIdx_) {
+        if (!currentFieldValid()) {
+            GASSERT(!"Invalid field execution");
             return;
         }
 
         comms::util::tupleForSelectedType<Members>(memIdx_, makeConstExecHelper(std::forward<TFunc>(func)));
+    }
+
+    template <std::size_t TIdx, typename... TArgs>
+    typename std::tuple_element<TIdx, Members>::type& initField(TArgs&&... args)
+    {
+        static_assert(isIdxValid(TIdx), "Something is wrong");
+        checkDestruct();
+
+        using Field = typename std::tuple_element<TIdx, Members>::type;
+        new (&storage_) Field(std::forward<TArgs>(args)...);
+        memIdx_ = TIdx;
+        return reinterpret_cast<Field&>(storage_);
+    }
+
+    template <std::size_t TIdx>
+    typename std::tuple_element<TIdx, Members>::type& accessField()
+    {
+        static_assert(isIdxValid(TIdx), "Something is wrong");
+        GASSERT(TIdx == memIdx_); // Accessing non initialised field
+
+        using Field = typename std::tuple_element<TIdx, Members>::type;
+        return reinterpret_cast<Field&>(storage_);
+    }
+
+    template <std::size_t TIdx>
+    const typename std::tuple_element<TIdx, Members>::type& accessField() const
+    {
+        static_assert(isIdxValid(TIdx), "Something is wrong");
+        GASSERT(TIdx == memIdx_); // Accessing non initialised field
+
+        using Field = typename std::tuple_element<TIdx, Members>::type;
+        return reinterpret_cast<const Field&>(storage_);
+    }
+
+    bool currentFieldValid() const
+    {
+        return isIdxValid(memIdx_);
+    }
+
+    void reset()
+    {
+        checkDestruct();
+        GASSERT(!currentFieldValid());
     }
 
 private:
@@ -400,11 +445,17 @@ private:
 
     void checkDestruct()
     {
-        if (memIdx_ < MembersCount) {
+        if (currentFieldValid()) {
             comms::util::tupleForSelectedType<Members>(memIdx_, DestructHelper(&storage_));
             memIdx_ = MembersCount;
         }
     }
+
+    static constexpr bool isIdxValid(std::size_t idx)
+    {
+        return idx < MembersCount;
+    }
+
 
     ValueType storage_;
     std::size_t memIdx_ = MembersCount;

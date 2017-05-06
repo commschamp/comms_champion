@@ -2837,6 +2837,26 @@ void FieldsTestSuite::test70()
     TS_ASSERT_EQUALS(field.length(), 0U);
     TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
 
+    auto& mem1 = field.initField<0>();
+    std::get<1>(field.accessField<0>().value()).value() = 0x0a0b;
+    TS_ASSERT_EQUALS(std::get<1>(mem1.value()).value(), 0x0a0b);
+    TS_ASSERT_EQUALS(field.currentField(), 0U);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT(field.valid());
+
+    auto& mem2 = field.initField<1>();
+    std::get<1>(field.accessField<1>().value()).value() = 0x0c0c0c0c;
+    TS_ASSERT_EQUALS(std::get<1>(mem2.value()).value(), 0x0c0c0c0c);
+    TS_ASSERT_EQUALS(field.currentField(), 1U);
+    TS_ASSERT_EQUALS(field.length(), 5U);
+    TS_ASSERT(field.valid());
+
+    field.reset();
+    TS_ASSERT(!field.currentFieldValid());
+    TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.length(), 0U);
+    TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
+
     static const char Buf[] = {
         0x1, 0x2, 0x3
     };

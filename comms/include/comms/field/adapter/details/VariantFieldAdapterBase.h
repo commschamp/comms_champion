@@ -71,6 +71,33 @@ public:
         Base::next().currentFieldExec(std::forward<TFunc>(func));
     }
 
+    template <std::size_t TIdx, typename... TArgs>
+    auto initField(TArgs&&... args) -> decltype(Base::next().template initField<TIdx>(std::forward<TArgs>(args)...))
+    {
+        return Base::next().template initField<TIdx>(std::forward<TArgs>(args)...);
+    }
+
+    template <std::size_t TIdx>
+    auto accessField() -> decltype(Base::next().template accessField<TIdx>())
+    {
+        return Base::next().template accessField<TIdx>();
+    }
+
+    template <std::size_t TIdx>
+    auto accessField() const -> decltype(Base::next().template accessField<TIdx>())
+    {
+        return Base::next().template accessField<TIdx>();
+    }
+
+    bool currentFieldValid() const
+    {
+        return Base::next().currentFieldValid();
+    }
+
+    void reset()
+    {
+        Base::next().reset();
+    }
 
 protected:
     VariantFieldAdapterBase() = default;

@@ -87,6 +87,8 @@ public:
     ///     of all the wrapped fields.
     using ValueType = typename ThisField::ValueType;
 
+    using Members = typename ThisField::Members;
+
     /// @brief Default constructor
     /// @details Invokes default constructor of every wrapped field
     Variant() = default;
@@ -165,6 +167,28 @@ public:
     /// @brief Check validity of all the bundled fields.
     constexpr bool valid() const {
         return field_.valid();
+    }
+
+    std::size_t currentField() const
+    {
+        return field_.currentField();
+    }
+
+    void selectField(std::size_t idx)
+    {
+        field_.selectField(idx);
+    }
+
+    template <typename TFunc>
+    void currentFieldExec(TFunc&& func)
+    {
+        field_.currentFieldExec(std::forward<TFunc>(func));
+    }
+
+    template <typename TFunc>
+    void currentFieldExec(TFunc&& func) const
+    {
+        field_.currentFieldExec(std::forward<TFunc>(func));
     }
 
 private:

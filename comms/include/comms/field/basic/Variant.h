@@ -75,6 +75,10 @@ public:
 
     std::size_t length() const
     {
+        if (MembersCount <= memIdx_) {
+            return 0U;
+        }
+
         std::size_t len = std::numeric_limits<std::size_t>::max();
         comms::util::tupleForSelectedType<Members>(memIdx_, LengthCalcHelper(len, &storage_));
         return len;
@@ -82,7 +86,7 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return comms::util::tupleTypeAccumulate<ValueType>(std::numeric_limits<std::size_t>::max(), MinLengthCalcHelper());
+        return 0U;
     }
 
     static constexpr std::size_t maxLength()
@@ -90,10 +94,14 @@ public:
         return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MaxLengthCalcHelper());
     }
 
-    constexpr bool valid() const
+    bool valid() const
     {
+        if (MembersCount <= memIdx_) {
+            return false;
+        }
+
         bool val = false;
-        comms::util::tupleForSelectedType<Members>(memIdx_, ValidCheckHelper(val, storage_));
+        comms::util::tupleForSelectedType<Members>(memIdx_, ValidCheckHelper(val, &storage_));
         return val;
     }
 
@@ -102,9 +110,9 @@ public:
     {
         checkDestruct();
         auto es = comms::ErrorStatus::NumOfErrorStatuses;
-        comms::util::tupleForEachType<Members>(makeReadHelper(es, iter, len, storage_));
-        GASSERT((es == comms::ErrorStatus::Success) || (memIdx_ < MembersCount));
-        GASSERT((es != comms::ErrorStatus::Success) || (MembersCount <= memIdx_));
+        comms::util::tupleForEachType<Members>(makeReadHelper(es, iter, len, &storage_));
+        GASSERT((es == comms::ErrorStatus::Success) || (MembersCount <= memIdx_));
+        GASSERT((es != comms::ErrorStatus::Success) || (memIdx_ < MembersCount));
 
         return es;
     }
@@ -117,12 +125,65 @@ public:
         }
 
         auto es = ErrorStatus::NumOfErrorStatuses;
-        comms::util::tupleForSelectedType<Members>(memIdx_, makeWriteHelper(es, iter, len, storage_));
+        comms::util::tupleForSelectedType<Members>(memIdx_, makeWriteHelper(es, iter, len, &storage_));
         return es;
     }
 
+    std::size_t currentField() const
+    {
+        return memIdx_;
+    }
+
+    void selectField(std::size_t idx)
+    {
+        if (idx == memIdx_) {
+            return;
+        }
+
+        checkDestruct();
+        if (MembersCount <= idx) {
+            return;
+        }
+
+        comms::util::tupleForSelectedType<Members>(idx, ConstructHelper(&storage_));
+        memIdx_ = idx;
+    }
+
+    template <typename TFunc>
+    void currentFieldExec(TFunc&& func)
+    {
+        if (MembersCount <= memIdx_) {
+            return;
+        }
+
+        comms::util::tupleForSelectedType<Members>(memIdx_, makeExecHelper(std::forward<TFunc>(func)));
+    }
+
+    template <typename TFunc>
+    void currentFieldExec(TFunc&& func) const
+    {
+        if (MembersCount <= memIdx_) {
+            return;
+        }
+
+        comms::util::tupleForSelectedType<Members>(memIdx_, makeConstExecHelper(std::forward<TFunc>(func)));
+    }
 
 private:
+    class ConstructHelper
+    {
+    public:
+        ConstructHelper(void* storage) : storage_(storage) {}
+
+        template <typename TField>
+        void operator()() const
+        {
+            new (storage_) TField;
+        }
+    private:
+        void* storage_ = nullptr;
+    };
+
     class DestructHelper
     {
     public:
@@ -140,30 +201,21 @@ private:
     class LengthCalcHelper
     {
     public:
-        LengthCalcHelper(std::size_t& len, void* storage)
+        LengthCalcHelper(std::size_t& len, const void* storage)
           : len_(len),
             storage_(storage)
         {
         }
 
         template <typename TField>
-        void operator()() const
+        void operator()()
         {
             len_ = reinterpret_cast<const TField*>(storage_)->length();
         }
 
     private:
         std::size_t& len_;
-        void* storage_;
-    };
-
-    struct MinLengthCalcHelper
-    {
-        template <typename TField>
-        constexpr std::size_t operator()(std::size_t val) const
-        {
-            return std::min(val, TField::minLength());
-        }
+        const void* storage_;
     };
 
     struct MaxLengthCalcHelper
@@ -178,23 +230,74 @@ private:
     class ValidCheckHelper
     {
     public:
-        ValidCheckHelper(bool& result, void* storage)
+        ValidCheckHelper(bool& result, const void* storage)
           : result_(result),
             storage_(storage)
         {
         }
 
         template <typename TField>
-        void operator()() const
+        void operator()()
         {
             result_ = reinterpret_cast<const TField*>(storage_)->valid();
         }
 
     private:
         bool& result_;
-        void* storage_;
+        const void* storage_;
     };
 
+    template <typename TFunc>
+    class ExecHelper
+    {
+        static_assert(std::is_lvalue_reference<TFunc>::value || std::is_rvalue_reference<TFunc>::value,
+            "Wrong type of template parameter");
+    public:
+        template <typename U>
+        ExecHelper(void* storage, U&& func) : storage_(storage), func_(std::forward<U>(func)) {}
+
+        template <typename TField>
+        void operator()()
+        {
+            func_(*(reinterpret_cast<TField*>(storage_)));
+        }
+    private:
+        void* storage_ = nullptr;
+        TFunc func_;
+    };
+
+    template <typename TFunc>
+    auto makeExecHelper(TFunc&& func) -> ExecHelper<decltype(std::forward<TFunc>(func))>
+    {
+        using FuncType = decltype(std::forward<TFunc>(func));
+        return ExecHelper<FuncType>(&storage_, std::forward<TFunc>(func));
+    }
+
+    template <typename TFunc>
+    class ConstExecHelper
+    {
+        static_assert(std::is_lvalue_reference<TFunc>::value || std::is_rvalue_reference<TFunc>::value,
+            "Wrong type of template parameter");
+    public:
+        template <typename U>
+        ConstExecHelper(const void* storage, U&& func) : storage_(storage), func_(std::forward<U>(func)) {}
+
+        template <typename TField>
+        void operator()()
+        {
+            func_(*(reinterpret_cast<const TField*>(storage_)));
+        }
+    private:
+        const void* storage_ = nullptr;
+        TFunc func_;
+    };
+
+    template <typename TFunc>
+    auto makeConstExecHelper(TFunc&& func) const -> ConstExecHelper<decltype(std::forward<TFunc>(func))>
+    {
+        using FuncType = decltype(std::forward<TFunc>(func));
+        return ConstExecHelper<FuncType>(&storage_, std::forward<TFunc>(func));
+    }
 
     template <typename TIter>
     class ReadHelper
@@ -217,7 +320,7 @@ private:
             static_assert(std::is_base_of<std::random_access_iterator_tag, IterCategory>::value,
                 "Variant field only supports read with random access iterators");
 
-            es_ == comms::ErrorStatus::NumOfErrorStatuses;
+            es_ = comms::ErrorStatus::NumOfErrorStatuses;
         }
 
         template <typename TField>
@@ -268,7 +371,7 @@ private:
     class WriteHelper
     {
     public:
-        WriteHelper(ErrorStatus& es, TIter& iter, std::size_t len, void* storage)
+        WriteHelper(ErrorStatus& es, TIter& iter, std::size_t len, const void* storage)
           : es_(es),
             iter_(iter),
             len_(len),
@@ -286,11 +389,11 @@ private:
         ErrorStatus& es_;
         TIter& iter_;
         std::size_t len_ = 0U;
-        void* storage_ = nullptr;
+        const void* storage_ = nullptr;
     };
 
     template <typename TIter>
-    static WriteHelper<TIter> makeWriteHelper(comms::ErrorStatus& es, TIter& iter, std::size_t len, void* storage)
+    static WriteHelper<TIter> makeWriteHelper(comms::ErrorStatus& es, TIter& iter, std::size_t len, const void* storage)
     {
         return WriteHelper<TIter>(es, iter, len, storage);
     }
@@ -299,6 +402,7 @@ private:
     {
         if (memIdx_ < MembersCount) {
             comms::util::tupleForSelectedType<Members>(memIdx_, DestructHelper(&storage_));
+            memIdx_ = MembersCount;
         }
     }
 

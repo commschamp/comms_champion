@@ -673,19 +673,19 @@ public:
         GASSERT(idx < TToIdx);
         if (idx == TFromIdx) {
             TupleSelectedTypeHelper<TFromIdx, TFromIdx + 1, 1U>::template exec<TTuple>(
-                std::forward<TFunc>(func));
+                idx, std::forward<TFunc>(func));
             return;
         }
 
         static const std::size_t MidIdx = TToIdx / 2;
         if (MidIdx <= idx) {
             TupleSelectedTypeHelper<MidIdx, TToIdx, TToIdx - MidIdx>::template exec<TTuple>(
-                std::forward<TFunc>(func));
+                idx, std::forward<TFunc>(func));
             return;
         }
 
         TupleSelectedTypeHelper<TFromIdx, MidIdx, MidIdx - TFromIdx>::template exec<TTuple>(
-            std::forward<TFunc>(func));
+            idx, std::forward<TFunc>(func));
     }
 };
 
@@ -696,8 +696,10 @@ class TupleSelectedTypeHelper<TFromIdx, TToIdx, 1U>
 
 public:
     template <typename TTuple, typename TFunc>
-    static void exec(TFunc&& func)
+    static void exec(std::size_t idx, TFunc&& func)
     {
+        static_cast<void>(idx);
+        GASSERT(idx == TFromIdx);
         using ElemType = typename std::tuple_element<TFromIdx, TTuple>::type;
 #ifdef _MSC_VER
         // VS compiler
@@ -731,7 +733,7 @@ void tupleForSelectedType(std::size_t idx, TFunc&& func)
     static_assert(0U < TupleSize, "Empty tuples are not supported");
 
     details::TupleSelectedTypeHelper<0, TupleSize, TupleSize>::template exec<Tuple>(
-        std::forward<TFunc>(func));
+        idx, std::forward<TFunc>(func));
 }
 //----------------------------------------
 

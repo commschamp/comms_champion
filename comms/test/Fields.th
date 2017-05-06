@@ -2778,21 +2778,53 @@ void FieldsTestSuite::test69()
     TS_ASSERT_EQUALS(field.value()[1].value(), 0x0c0d);
 }
 
+using Test70_FieldBase = comms::Field<comms::option::BigEndian>;
+
 template <std::uint8_t TVal>
 using Test70_IntKeyField =
     comms::field::IntValue<
-        comms::Field<comms::option::BigEndian>,
+        Test70_FieldBase,
         std::uint8_t,
         comms::option::DefaultNumValue<TVal>,
         comms::option::ValidNumValueRange<TVal, TVal>,
         comms::option::FailOnInvalid<>
 >;
 
+using Test70_Mem1 =
+    comms::field::Bundle<
+        Test70_FieldBase,
+        std::tuple<
+            Test70_IntKeyField<1>,
+            comms::field::IntValue<Test70_FieldBase, std::uint16_t>
+        >
+    >;
+
+using Test70_Mem2 =
+    comms::field::Bundle<
+        Test70_FieldBase,
+        std::tuple<
+            Test70_IntKeyField<2>,
+            comms::field::IntValue<Test70_FieldBase, std::uint32_t>
+        >
+    >;
+
+struct Test70_Field : public
+    comms::field::Variant<
+        Test70_FieldBase,
+        std::tuple<
+            Test70_Mem1,
+            Test70_Mem2
+        >
+    >
+{
+    COMMS_VARIANT_MEMBERS_ACCESS(mem1, mem2);
+};
+
 class Test70_LengthRetriever
 {
 public:
     Test70_LengthRetriever(std::size_t& val) : val_(val) {}
-    template <typename TField>
+    template <std::size_t TIdx, typename TField>
     void operator()(const TField& field)
     {
         val_ = field.length();
@@ -2803,49 +2835,28 @@ private:
 
 void FieldsTestSuite::test70()
 {
-    using FieldBase = comms::Field<BigEndianOpt>;
-
-    using Mem1 =
-        comms::field::Bundle<
-            FieldBase,
-            std::tuple<
-                Test70_IntKeyField<1>,
-                comms::field::IntValue<FieldBase, std::uint16_t>
-            >
-        >;
-
-    using Mem2 =
-        comms::field::Bundle<
-            FieldBase,
-            std::tuple<
-                Test70_IntKeyField<2>,
-                comms::field::IntValue<FieldBase, std::uint32_t>
-            >
-        >;
-
-    using Field =
-        comms::field::Variant<
-            FieldBase,
-            std::tuple<
-                Mem1,
-                Mem2
-            >
-        >;
+    using Field = Test70_Field;
 
     Field field;
     TS_ASSERT(!field.valid());
     TS_ASSERT_EQUALS(field.length(), 0U);
     TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
 
-    auto& mem1 = field.initField<0>();
-    std::get<1>(field.accessField<0>().value()).value() = 0x0a0b;
+    auto& mem1 = field.initField_mem1();
+    std::get<1>(field.accessField_mem1().value()).value() = 0x0a0b;
     TS_ASSERT_EQUALS(std::get<1>(mem1.value()).value(), 0x0a0b);
     TS_ASSERT_EQUALS(field.currentField(), 0U);
     TS_ASSERT_EQUALS(field.length(), 3U);
     TS_ASSERT(field.valid());
 
-    auto& mem2 = field.initField<1>();
-    std::get<1>(field.accessField<1>().value()).value() = 0x0c0c0c0c;
+    Field field2(field);
+    TS_ASSERT_EQUALS(field2, field);
+
+    Field field3(std::move(field2));
+    TS_ASSERT_EQUALS(field3, field);
+
+    auto& mem2 = field.initField_mem2();
+    std::get<1>(field.accessField_mem2().value()).value() = 0x0c0c0c0c;
     TS_ASSERT_EQUALS(std::get<1>(mem2.value()).value(), 0x0c0c0c0c);
     TS_ASSERT_EQUALS(field.currentField(), 1U);
     TS_ASSERT_EQUALS(field.length(), 5U);
@@ -2896,6 +2907,10 @@ void FieldsTestSuite::test70()
     std::size_t len3 = 0U;
     static_cast<const Field&>(field).currentFieldExec(Test70_LengthRetriever(len3));
     TS_ASSERT_EQUALS(len3, len1);
+
+    field.initField_mem1();
+    std::get<1>(field.accessField_mem1().value()).value() = 0x0a0b;
+    TS_ASSERT_EQUALS(field3, field);
 }
 
 template <typename TField>

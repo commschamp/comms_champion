@@ -703,9 +703,9 @@ public:
         using ElemType = typename std::tuple_element<TFromIdx, TTuple>::type;
 #ifdef _MSC_VER
         // VS compiler
-        func.operator()<ElemType>();
+        func.operator()<TFromIdx, ElemType>();
 #else // #ifdef _MSC_VER
-        func.template operator()<ElemType>();
+        func.template operator()<TFromIdx, ElemType>();
 #endif // #ifdef _MSC_VER
     }
 };
@@ -714,11 +714,13 @@ public:
 
 /// @brief Invoke provided functor for a selected type when element index
 ///     is known only at run time.
-/// @details The elemenThe functor object class must define operator() with following signature:
+/// @details The functor object class must define operator() with following signature:
 ///     @code
 ///     struct MyFunc
 ///     {
-///         template <typename TTupleElem>
+///         // TIdx - index of the type inside the tuple
+///         // TTupleElem - type inside the tuple
+///         template <std::size_t TIdx, typename TTupleElem>
 ///         void operator()() {...}
 ///     };
 ///     @endcode

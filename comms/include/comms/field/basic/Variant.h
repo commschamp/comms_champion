@@ -43,25 +43,71 @@ public:
     using ValueType = comms::util::TupleAsAlignedUnionT<Members>;
 
     Variant() = default;
-    explicit Variant(const ValueType& val)
-      : storage_(val)
+    Variant(const Variant& other)
     {
+        if (!other.currentFieldValid()) {
+            return;
+        }
+
+        comms::util::tupleForSelectedType<Members>(
+            other.memIdx_, CopyConstructHelper(&storage_, &other.storage_));
+
+        memIdx_ = other.memIdx_;
     }
 
-    explicit Variant(ValueType&& val)
-      : storage_(std::move(val))
+    Variant(Variant&& other)
     {
+        if (!other.currentFieldValid()) {
+            return;
+        }
+
+        comms::util::tupleForSelectedType<Members>(
+            other.memIdx_, MoveConstructHelper(&storage_, &other.storage_));
+
+        memIdx_ = other.memIdx_;
     }
 
-    Variant(const Variant&) = default;
-    Variant(Variant&&) = default;
     ~Variant()
     {
         checkDestruct();
     }
 
-    Variant& operator=(const Variant&) = default;
-    Variant& operator=(Variant&&) = default;
+    Variant& operator=(const Variant& other)
+    {
+        if (this == &other) {
+            return *this;
+        }
+
+        checkDestruct();
+        if (!other.currentFieldValid()) {
+            return *this;
+        }
+
+        comms::util::tupleForSelectedType<Members>(
+            other.memIdx_, CopyConstructHelper(&storage_, &other.storage_));
+
+        memIdx_ = other.memIdx_;
+        return *this;
+    }
+
+    Variant& operator=(Variant&& other)
+    {
+        if (this == &other) {
+            return *this;
+        }
+
+        checkDestruct();
+
+        if (!other.currentFieldValid()) {
+            return *this;
+        }
+
+        comms::util::tupleForSelectedType<Members>(
+            other.memIdx_, MoveConstructHelper(&storage_, &other.storage_));
+
+        memIdx_ = other.memIdx_;
+        return *this;
+    }
 
     const ValueType& value() const
     {
@@ -220,7 +266,7 @@ private:
     public:
         ConstructHelper(void* storage) : storage_(storage) {}
 
-        template <typename TField>
+        template <std::size_t TIdx, typename TField>
         void operator()() const
         {
             new (storage_) TField;
@@ -229,12 +275,44 @@ private:
         void* storage_ = nullptr;
     };
 
+    class CopyConstructHelper
+    {
+    public:
+        CopyConstructHelper(void* storage, const void* other) : storage_(storage), other_(other) {}
+
+        template <std::size_t TIdx, typename TField>
+        void operator()() const
+        {
+            new (storage_) TField(*(reinterpret_cast<const TField*>(other_)));
+        }
+
+    private:
+        void* storage_ = nullptr;
+        const void* other_ = nullptr;
+    };
+
+    class MoveConstructHelper
+    {
+    public:
+        MoveConstructHelper(void* storage, void* other) : storage_(storage), other_(other) {}
+
+        template <std::size_t TIdx, typename TField>
+        void operator()() const
+        {
+            new (storage_) TField(std::move(*(reinterpret_cast<const TField*>(other_))));
+        }
+
+    private:
+        void* storage_ = nullptr;
+        void* other_ = nullptr;
+    };
+
     class DestructHelper
     {
     public:
         DestructHelper(void* storage) : storage_(storage) {}
 
-        template <typename TField>
+        template <std::size_t TIdx, typename TField>
         void operator()() const
         {
             reinterpret_cast<TField*>(storage_)->~TField();
@@ -252,7 +330,7 @@ private:
         {
         }
 
-        template <typename TField>
+        template <std::size_t TIdx, typename TField>
         void operator()()
         {
             len_ = reinterpret_cast<const TField*>(storage_)->length();
@@ -281,7 +359,7 @@ private:
         {
         }
 
-        template <typename TField>
+        template <std::size_t TIdx, typename TField>
         void operator()()
         {
             result_ = reinterpret_cast<const TField*>(storage_)->valid();
@@ -301,10 +379,15 @@ private:
         template <typename U>
         ExecHelper(void* storage, U&& func) : storage_(storage), func_(std::forward<U>(func)) {}
 
-        template <typename TField>
+        template <std::size_t TIdx, typename TField>
         void operator()()
         {
-            func_(*(reinterpret_cast<TField*>(storage_)));
+#ifdef _MSC_VER
+        // VS compiler
+        func_.operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
+#else // #ifdef _MSC_VER
+        func_.template operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
+#endif // #ifdef _MSC_VER
         }
     private:
         void* storage_ = nullptr;
@@ -327,10 +410,10 @@ private:
         template <typename U>
         ConstExecHelper(const void* storage, U&& func) : storage_(storage), func_(std::forward<U>(func)) {}
 
-        template <typename TField>
+        template <std::size_t TIdx, typename TField>
         void operator()()
         {
-            func_(*(reinterpret_cast<const TField*>(storage_)));
+            func_.template operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
         }
     private:
         const void* storage_ = nullptr;
@@ -424,7 +507,7 @@ private:
         {
         }
 
-        template <typename TField>
+        template <std::size_t TIdx, typename TField>
         void operator()()
         {
             es_ = reinterpret_cast<const TField*>(storage_)->write(iter_, len_);

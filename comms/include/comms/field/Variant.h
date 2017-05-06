@@ -23,6 +23,8 @@
 #include "comms/options.h"
 #include "basic/Variant.h"
 #include "details/AdaptBasicField.h"
+#include "comms/details/macro_common.h"
+#include "comms/details/variant_access.h"
 #include "tag.h"
 
 namespace comms
@@ -223,6 +225,37 @@ private:
     ThisField field_;
 };
 
+namespace details
+{
+
+template <typename TVar>
+class VariantEqualityCompHelper
+{
+public:
+    VariantEqualityCompHelper(const TVar& other, bool& result)
+      : other_(other),
+        result_(result)
+    {}
+
+    template <std::size_t TIdx, typename TField>
+    void operator()(const TField& field)
+    {
+        result_ = (field == other_.template accessField<TIdx>());
+    }
+
+private:
+    const TVar& other_;
+    bool& result_;
+};
+
+template <typename TVar>
+VariantEqualityCompHelper<TVar> makeVariantEqualityCompHelper(TVar& other, bool& result)
+{
+    return VariantEqualityCompHelper<TVar>(other, result);
+}
+
+} // namespace details
+
 /// @brief Equality comparison operator.
 /// @param[in] field1 First field.
 /// @param[in] field2 Second field.
@@ -233,7 +266,25 @@ bool operator==(
     const Variant<TFieldBase, TMembers, TOptions...>& field1,
     const Variant<TFieldBase, TMembers, TOptions...>& field2)
 {
-    return field1.value() == field2.value();
+    if (&field1 == &field2) {
+        return true;
+    }
+
+    if (field1.currentFieldValid() != field2.currentFieldValid()) {
+        return false;
+    }
+
+    if (!field1.currentFieldValid()) {
+        return true;
+    }
+
+    if (field1.currentField() != field2.currentField()) {
+        return false;
+    }
+
+    bool result = false;
+    field1.currentFieldExec(details::makeVariantEqualityCompHelper(field2, result));
+    return result;
 }
 
 /// @brief Non-equality comparison operator.
@@ -279,6 +330,24 @@ toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
 {
     return field;
 }
+
+#define COMMS_VARIANT_MEMBERS_ACCESS(...) \
+    COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
+    FUNC_AUTO_REF_RETURN(asVariant, decltype(comms::field::toFieldBase(*this))) { \
+        auto& var = comms::field::toFieldBase(*this); \
+        using Var = typename std::decay<decltype(var)>::type; \
+        static_assert(std::tuple_size<typename Var::Members>::value == FieldIdx_numOfValues, \
+            "Invalid number of names for variant field"); \
+        return var; \
+    } \
+    FUNC_AUTO_REF_RETURN_CONST(asVariant, decltype(comms::field::toFieldBase(*this))) { \
+        auto& var = comms::field::toFieldBase(*this); \
+        using Var = typename std::decay<decltype(var)>::type; \
+        static_assert(std::tuple_size<typename Var::Members>::value == FieldIdx_numOfValues, \
+            "Invalid number of names for variant field"); \
+        return var; \
+    } \
+    COMMS_DO_VARIANT_MEM_ACC_FUNC(asVariant(), __VA_ARGS__)
 
 }  // namespace field
 

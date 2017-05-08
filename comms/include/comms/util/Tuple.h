@@ -677,7 +677,9 @@ public:
             return;
         }
 
-        static const std::size_t MidIdx = TToIdx / 2;
+        static const std::size_t MidIdx = TFromIdx + TCount / 2;
+        static_assert(MidIdx < TToIdx, "Internal error: bad calculation");
+        static_assert(TFromIdx <= MidIdx, "Internal error: bad calculation");
         if (MidIdx <= idx) {
             TupleSelectedTypeHelper<MidIdx, TToIdx, TToIdx - MidIdx>::template exec<TTuple>(
                 idx, std::forward<TFunc>(func));

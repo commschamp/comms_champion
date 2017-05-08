@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@
 #include "ArrayListRawDataWrapper.h"
 #include "ArrayListWrapper.h"
 #include "FloatValueWrapper.h"
+#include "VariantWrapper.h"
 #include "UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -51,11 +52,11 @@ typedef std::tuple<
     ArrayListRawDataWrapper,
     ArrayListWrapper,
     FloatValueWrapper,
+    VariantWrapper,
     UnknownValueWrapper
 > AllWrappers;
 
 }  // namespace field_wrapper
-
 
 }  // namespace comms_champion
 

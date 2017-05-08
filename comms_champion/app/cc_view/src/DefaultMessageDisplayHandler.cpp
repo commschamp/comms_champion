@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -147,6 +147,12 @@ public:
     virtual void handle(field_wrapper::FloatValueWrapper& wrapper) override
     {
         m_widget.reset(new FloatValueFieldWidget(wrapper.clone()));
+    }
+
+    virtual void handle(field_wrapper::VariantWrapper& wrapper) override
+    {
+        static_cast<void>(wrapper);
+        assert(!"NYI");
     }
 
     virtual void handle(field_wrapper::UnknownValueWrapper& wrapper) override

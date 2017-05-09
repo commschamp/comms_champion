@@ -31,6 +31,7 @@
 #include "widget/field/ArrayListRawDataFieldWidget.h"
 #include "widget/field/ArrayListFieldWidget.h"
 #include "widget/field/FloatValueFieldWidget.h"
+#include "widget/field/VariantFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -151,8 +152,19 @@ public:
 
     virtual void handle(field_wrapper::VariantWrapper& wrapper) override
     {
-        static_cast<void>(wrapper);
-        assert(!"NYI");
+        FieldWidgetPtr memberWidget;
+        auto& memberWrapper = wrapper.getCurrent();
+        if (memberWrapper) {
+            memberWrapper->dispatch(*this);
+            memberWidget = getWidget();
+        }
+
+        std::unique_ptr<VariantFieldWidget> widget(new VariantFieldWidget(wrapper.clone()));
+        if (memberWidget) {
+            widget->setMemberField(memberWidget.release());
+        }
+
+        m_widget = std::move(widget);
     }
 
     virtual void handle(field_wrapper::UnknownValueWrapper& wrapper) override

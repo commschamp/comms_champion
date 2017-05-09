@@ -44,9 +44,9 @@ public:
 
     virtual ~VariantWrapper();
 
-    FieldWrapper& getCurrent();
+    FieldWrapperPtr& getCurrent();
 
-    const FieldWrapper& getCurrent() const;
+    const FieldWrapperPtr& getCurrent() const;
 
     void setCurrent(FieldWrapperPtr current);
 
@@ -56,12 +56,15 @@ public:
 
     void setCurrentIndex(int index);
 
+    int getMembersCount() const;
+
 protected:
     virtual Ptr cloneImpl() = 0;
 
     virtual void dispatchImpl(FieldWrapperHandler& handler);
     virtual int getCurrentIndexImpl() const = 0;
     virtual void setCurrentIndexImpl(int index) = 0;
+    virtual int getMembersCountImpl() const = 0;
 
 private:
     FieldWrapperPtr m_current;
@@ -111,6 +114,13 @@ protected:
         }
 
         Base::field().selectField(static_cast<std::size_t>(index));
+    }
+
+    virtual int getMembersCountImpl() const override
+    {
+        return
+            static_cast<int>(
+                std::tuple_size<typename Base::Field::Members>::value);
     }
 };
 

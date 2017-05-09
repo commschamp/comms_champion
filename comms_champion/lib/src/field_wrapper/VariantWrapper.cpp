@@ -29,14 +29,14 @@ VariantWrapper::VariantWrapper() {}
 
 VariantWrapper::~VariantWrapper() {}
 
-FieldWrapper& VariantWrapper::getCurrent()
+FieldWrapperPtr& VariantWrapper::getCurrent()
 {
-    return *m_current;
+    return m_current;
 }
 
-const FieldWrapper& VariantWrapper::getCurrent() const
+const FieldWrapperPtr& VariantWrapper::getCurrent() const
 {
-    return *m_current;
+    return m_current;
 }
 
 void VariantWrapper::setCurrent(FieldWrapperPtr current)
@@ -60,6 +60,11 @@ int VariantWrapper::getCurrentIndex() const
 void VariantWrapper::setCurrentIndex(int index)
 {
     setCurrentIndexImpl(index);
+}
+
+int VariantWrapper::getMembersCount() const
+{
+    return getMembersCountImpl();
 }
 
 void VariantWrapper::dispatchImpl(FieldWrapperHandler& handler)

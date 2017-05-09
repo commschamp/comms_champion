@@ -35,10 +35,73 @@ namespace
 
 typedef demo::message::VariantsFields<Variants::Field> VariantsFields;
 
+QVariantMap createProps_id()
+{
+    auto props =
+        cc::property::field::EnumValue()
+            .name("id")
+            .readOnly()
+            .add("elem1")
+            .add("elem2")
+            .add("elem3");
+    assert(props.values().size() == (int)VariantsFields::VarId::NumOfValues);
+    return props.asMap();
+}
+
+QVariantMap createProps_var1()
+{
+    using Field = VariantsFields::field1_var1;
+    auto props =
+        cc::property::field::ForField<Field>()
+            .name("var1")
+            .add(createProps_id())
+            .add(cc::property::field::IntValue().name("value").asMap());
+    assert(props.members().size() == Field::FieldIdx_numOfValues);
+    return props.asMap();
+}
+
+QVariantMap createProps_var2()
+{
+    using Field = VariantsFields::field1_var2;
+    auto props =
+        cc::property::field::ForField<Field>()
+            .name("var2")
+            .add(createProps_id())
+            .add(cc::property::field::IntValue().name("value").asMap());
+    assert(props.members().size() == Field::FieldIdx_numOfValues);
+    return props.asMap();
+}
+
+QVariantMap createProps_var3()
+{
+    using Field = VariantsFields::field1_var3;
+    auto props =
+        cc::property::field::ForField<Field>()
+            .name("var3")
+            .add(createProps_id())
+            .add(cc::property::field::String().name("value").asMap());
+    assert(props.members().size() == Field::FieldIdx_numOfValues);
+    return props.asMap();
+}
+
+QVariantMap createProps_field1()
+{
+    using Field = VariantsFields::field1;
+    auto props =
+        cc::property::field::ForField<Field>()
+            .name("field1")
+            .serialisedHidden()
+            .add(createProps_var1())
+            .add(createProps_var2())
+            .add(createProps_var3());
+    assert(props.members().size() == Field::FieldIdx_numOfValues);
+    return props.asMap();
+}
+
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(cc::property::field::IntValue().name("field1").asMap());
+    props.append(createProps_field1());
 
     assert(props.size() == Variants::FieldIdx_numOfValues);
     return props;

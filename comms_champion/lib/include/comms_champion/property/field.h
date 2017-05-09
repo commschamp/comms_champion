@@ -396,6 +396,38 @@ private:
     int m_decimals = 0;
 };
 
+class CC_API Variant : public CommonBase<Variant>
+{
+    typedef CommonBase<Variant> Base;
+public:
+
+    typedef QList<QVariantMap> MembersList;
+
+    Variant();
+    Variant(const Variant&);
+    Variant(Variant&&);
+    Variant(const QVariantMap& props);
+    Variant(const QVariant& props);
+    ~Variant();
+
+    Variant& operator=(const Variant&);
+    Variant& operator=(Variant&&);
+
+    const MembersList& members() const;
+
+    Variant& add(QVariantMap&& memberProps);
+    Variant& add(const QVariantMap& memberProps);
+
+    bool isIndexHidden() const;
+    Variant& setIndexHidden(bool hidden = true);
+
+    QVariantMap asMap() const;
+private:
+    void getFrom(const QVariantMap& props);
+
+    MembersList m_members;
+    bool m_indexHidden = false;
+};
 
 class CC_API NoValue : public CommonBase<NoValue>
 {
@@ -479,6 +511,12 @@ template <>
 struct ForTag<comms::field::tag::Float>
 {
     typedef comms_champion::property::field::FloatValue Type;
+};
+
+template <>
+struct ForTag<comms::field::tag::Variant>
+{
+    typedef comms_champion::property::field::Variant Type;
 };
 
 template <>

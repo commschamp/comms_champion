@@ -77,6 +77,13 @@ const QString& numValueDisplayOffsetKey()
     return Str;
 }
 
+const QString& indexHiddenKey()
+{
+    static const QString Str("cc.index_hidden");
+    return Str;
+}
+
+
 }  // namespace
 
 Common::Common() = default;
@@ -612,6 +619,69 @@ QVariantMap FloatValue::asMap() const
 void FloatValue::getFrom(const QVariantMap& props)
 {
     m_decimals = getElemFrom<decltype(m_decimals)>(props, floatDecimalsKey());
+}
+
+Variant::Variant() = default;
+Variant::Variant(const Variant&) = default;
+Variant::Variant(Variant&&) = default;
+Variant::Variant(const QVariantMap& props) : Base(props)
+{
+    getFrom(props);
+};
+
+Variant::Variant(const QVariant& props) : Base(props)
+{
+    if (props.isValid() && props.canConvert<QVariantMap>()) {
+        getFrom(props.value<QVariantMap>());
+    }
+};
+
+Variant::~Variant() = default;
+
+Variant& Variant::operator=(const Variant&) = default;
+Variant& Variant::operator=(Variant&&) = default;
+
+const Variant::MembersList& Variant::members() const
+{
+    return m_members;
+}
+
+Variant& Variant::add(QVariantMap&& memberProps)
+{
+    m_members.append(std::move(memberProps));
+    return *this;
+}
+
+Variant& Variant::add(const QVariantMap& memberProps)
+{
+    m_members.append(memberProps);
+    return *this;
+}
+
+bool Variant::isIndexHidden() const
+{
+    return m_indexHidden;
+}
+
+Variant& Variant::setIndexHidden(bool hidden)
+{
+    m_indexHidden = hidden;
+    return *this;
+}
+
+QVariantMap Variant::asMap() const
+{
+    QVariantMap props;
+    Base::setTo(props);
+    Base::setElemTo(m_members, dataKey(), props);
+    Base::setElemTo(m_members, indexHiddenKey(), props);
+    return props;
+}
+
+void Variant::getFrom(const QVariantMap& props)
+{
+    m_members = getElemFrom<MembersList>(props, dataKey());
+    m_indexHidden = getElemFrom<bool>(props, indexHiddenKey());
 }
 
 NoValue::NoValue() = default;

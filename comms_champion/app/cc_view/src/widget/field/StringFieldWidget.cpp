@@ -47,18 +47,8 @@ StringFieldWidget::~StringFieldWidget() = default;
 
 void StringFieldWidget::refreshImpl()
 {
-    QString serValueStr;
-    auto serValue = m_wrapper->getSerialisedValue();
-
-    for (auto byte : serValue) {
-        if (!serValueStr.isEmpty()) {
-            serValueStr.append(QChar(' '));
-        }
-        serValueStr.append(QString("%1").arg(byte, 2, 16, QChar('0')));
-    }
-
     assert(m_ui.m_serValuePlainTextEdit != nullptr);
-    m_ui.m_serValuePlainTextEdit->setPlainText(serValueStr);
+    updateSerValue(*m_ui.m_serValuePlainTextEdit, *m_wrapper);
 
     assert(m_ui.m_valuePlainTextEdit != nullptr);
     auto value = m_wrapper->getValue();

@@ -46,9 +46,11 @@ void VariantWrapper::setCurrent(FieldWrapperPtr current)
 
 VariantWrapper::Ptr VariantWrapper::clone()
 {
-    auto curr = m_current->upClone();
     auto ptr = cloneImpl();
-    ptr->setCurrent(std::move(curr));
+    if (m_current) {
+        ptr->setCurrent(m_current->upClone());
+    }
+
     return ptr;
 }
 

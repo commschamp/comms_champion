@@ -171,7 +171,7 @@ public:
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         if (!currentFieldValid()) {
-            return comms::ErrorStatus::NotSupported;
+            return comms::ErrorStatus::Success;
         }
 
         auto es = ErrorStatus::NumOfErrorStatuses;

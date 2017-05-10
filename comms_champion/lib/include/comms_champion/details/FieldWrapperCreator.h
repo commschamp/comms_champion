@@ -166,7 +166,7 @@ private:
                 }));
 
         wrapper->setMembers(std::move(subWrappers));
-        return std::move(wrapper);
+        return wrapper;
     }
 
     template <typename TField>
@@ -176,7 +176,7 @@ private:
         auto& wrappedField = field.field();
         auto fieldWrapper = createWrapper(wrappedField);
         wrapper->setFieldWrapper(std::move(fieldWrapper));
-        return std::move(wrapper);
+        return wrapper;
     }
 
     template <typename TField>
@@ -199,7 +199,7 @@ private:
                 }));
 
         wrapper->setMembers(std::move(subWrappers));
-        return std::move(wrapper);
+        return wrapper;
     }
 
     template <typename TField>
@@ -223,7 +223,7 @@ private:
             });
 
         wrapper->refreshMembers();
-        return std::move(wrapper);
+        return wrapper;
     }
 
     template <typename TField>

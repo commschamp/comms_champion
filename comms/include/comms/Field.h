@@ -128,7 +128,7 @@ protected:
 
 };
 
-/// @brief Add convenience access enum, structs and functions to the members of
+/// @brief Add convenience access enum and functions to the members of
 ///     bundle fields, such as comms::field::Bundle or comms::field::Bitfield.
 /// @details The fields of "bundle" types, such as comms::field::Bundle or
 ///     comms::field::Bitfield keep their members bundled in
@@ -157,8 +157,7 @@ protected:
 ///     However, it would be convenient to provide names and easier access to
 ///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exactly
 ///     that when used inside the field class definition. Just inherit from
-///     the "bundle" field and use the macro inside while providing the type
-///     of the base class as first parameter, followed by the names for the
+///     the "bundle" field and use the macro inside with the names for the
 ///     member fields:
 ///     @code
 ///     class MyField : public comms::field::Bitfield<...>
@@ -246,7 +245,7 @@ protected:
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(value(), __VA_ARGS__))
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
-/// @brief Add convenience access enum, structs and functions to the members of
+/// @brief Add convenience access enum and functions to the members of
 ///     bundle fields, such as comms::field::Bundle or comms::field::Bitfield.
 /// @details The fields of "bundle" types, such as comms::field::Bundle or
 ///     comms::field::Bitfield keep their members bundled in
@@ -275,7 +274,7 @@ protected:
 ///     However, it would be convenient to provide names and easier access to
 ///     the member fields. The COMMS_FIELD_MEMBERS_ACCESS() macro does exaclty
 ///     that when used inside the field class definition. Just inherit from
-///     the "bundle" field and use the macro inside while providing names for the
+///     the "bundle" field and use the macro inside with names for the
 ///     member fields:
 ///     @code
 ///     class MyField : public comms::field::Bundle<...>

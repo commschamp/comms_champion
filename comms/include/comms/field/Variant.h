@@ -33,17 +33,23 @@ namespace comms
 namespace field
 {
 
-/// @brief Variants multiple fields into a single field.
-/// @details The class wraps nicely multiple fields and provides
+/// @brief Defines a "variant" field, that can contain any of the provided ones.
+/// @details The @b Variant object contains uninitialised buffer that can
+///     fit any of the provided field types (as second template parameter).
+///     At any given point of time this space can be initialised and used to
+///     contain <b>at most</b> one of the specified field types. It resembles
+///     a classic @b union, but disallows set value of one field type and read
+///     it as other. The @b Variant field abstraction provides
 ///     expected single field API functions, such as length(), read(), write(),
-///     valid(). It may be useful when a collection (comms::field::ArrayList) of
-///     complex fields is required.
+///     valid().
 ///
-///     Refer to @ref sec_field_tutorial_bundle for tutorial and usage examples.
+///     Refer to @ref sec_field_tutorial_variant for tutorial and usage examples.
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
-/// @tparam TMembers All wrapped fields bundled together in
+/// @tparam TMembers All supported field types bundled together in
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
+///     This parameter is used to determine the size of the contained buffer
+///     to be able to fit any of the specified types.
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
@@ -65,7 +71,7 @@ namespace field
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
 ///     @li comms::option::DefaultVariantIndex - By default the Variant field
-///         dosn't have any valid contents. This option may be used to specify
+///         doesn't have any valid contents. This option may be used to specify
 ///         the index of the default member field.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Variant
@@ -88,10 +94,13 @@ public:
     using Tag = tag::Variant;
 
     /// @brief Value type.
-    /// @details Same as TMemebers template argument, i.e. it is std::tuple
-    ///     of all the wrapped fields.
+    /// @details Type of the internal buffer used to store contained field,
+    ///     should not be used in normal operation.
     using ValueType = typename ThisField::ValueType;
 
+    /// @brief All the supported types.
+    /// @details Same as @b TMemebers template argument, i.e. it is @b std::tuple
+    ///     of all the wrapped fields.
     using Members = typename ThisField::Members;
 
     /// @brief Default constructor
@@ -110,35 +119,38 @@ public:
     {
     }
 
-    /// @brief Get access to the stored tuple of fields.
+    /// @brief Get access to the internal storage buffer.
+    /// @details Should not be used in normal operation.
     ValueType& value()
     {
         return field_.value();
     }
 
-    /// @brief Get access to the stored tuple of fields.
+    /// @brief Get access to the internal storage buffer.
+    /// @details Should not be used in normal operation.
     const ValueType& value() const
     {
         return field_.value();
     }
 
-    /// @brief Get length required to serialise bundled fields.
-    /// @details Summarises all the results returned by the call to length() for
-    ///     every field in the bundle.
+    /// @brief Get length required to serialise contained fields.
+    /// @details If the field doesn't contain a valid instance of other
+    ///     field, the reported length is 0, otherwise the length of the
+    ///     contained field is reported.
     /// @return Number of bytes it will take to serialise the field value.
     constexpr std::size_t length() const
     {
         return field_.length();
     }
 
-    /// @brief Get minimal length that is required to serialise all bundled fields.
-    /// @return Minimal number of bytes required serialise the field value.
+    /// @brief Get minimal length that is required to serialise all possible contained fields.
+    /// @return Always returns 0.
     static constexpr std::size_t minLength()
     {
         return ThisField::minLength();
     }
 
-    /// @brief Get maximal length that is required to serialise all bundled fields.
+    /// @brief Get maximal length that is required to serialise all possible contained fields.
     /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
@@ -146,7 +158,8 @@ public:
     }
 
     /// @brief Read field value from input data sequence
-    /// @details Invokes read() member function over every bundled field.
+    /// @details Invokes read() member function over every possible field
+    ///     in order of definition until comms::ErrorStatus::Success is returned.
     /// @param[in, out] iter Iterator to read the data.
     /// @param[in] size Number of bytes available for reading.
     /// @return Status of read operation.
@@ -158,7 +171,9 @@ public:
     }
 
     /// @brief Write current field value to output data sequence
-    /// @details Invokes write() member function over every bundled field.
+    /// @details Invokes write() member function of the contained field if such
+    ///     exists. If the Variant field doesn't contain any valid field, the
+    ///     function doesn't advance the iterator, but returns comms::ErrorStatus::Success.
     /// @param[in, out] iter Iterator to write the data.
     /// @param[in] size Maximal number of bytes that can be written.
     /// @return Status of write operation.
@@ -174,21 +189,67 @@ public:
         return field_.valid();
     }
 
+    /// @brief Get index of the current field (within the @ref Members tuple).
+    /// @details If the Variant field doesn't contain any valid field, the
+    ///     returned index is equivalent to size of the @ref Members tuple.
     std::size_t currentField() const
     {
         return field_.currentField();
     }
 
+    /// @brief Select type of the variant field.
+    /// @details If the same index has been selected before, the function does
+    ///     nothing, otherwise the currently selected member field is destructed,
+    ///     and the new one is default constructed.@n
+    ///     If provided index is equal or exceeds the size of the @ref Members
+    ///     tuple, no new field is constructed.
+    /// @param[in] idx Index of the type within @ref Members tuple.
     void selectField(std::size_t idx)
     {
         field_.selectField(idx);
     }
 
+    /// @brief Execute provided function object with current field as
+    ///     parameter.
+    /// @details The provided function object must define the following
+    ///     public interface:
+    ///     @code
+    ///     struct MyFunc
+    ///     {
+    ///         template <typename TField>
+    ///         void operator()(TField& field)
+    ///         {
+    ///             ... // do somethign with the field
+    ///         }
+    ///     }
+    ///     @endcode
+    ///     The TField will be the actual type of the contained field.
+    ///     If the Variant field doesn't contain any valid field, the functor
+    ///     will @b NOT be called.
     template <typename TFunc>
     void currentFieldExec(TFunc&& func)
     {
         field_.currentFieldExec(std::forward<TFunc>(func));
     }
+
+    /// @brief Execute provided function object with current field as
+    ///     parameter (const variant).
+    /// @details Similar to other currentFieldExec() variant, but with @b const
+    ///     The provided function object must define the following
+    ///     public interface. Note, the constness of the parameter.
+    ///     @code
+    ///     struct MyFunc
+    ///     {
+    ///         template <typename TField>
+    ///         void operator()(const TField& field)
+    ///         {
+    ///             ... // do somethign with the field
+    ///         }
+    ///     }
+    ///     @endcode
+    ///     The TField will be the actual type of the contained field.
+    ///     If the Variant field doesn't contain any valid field, the functor
+    ///     will @b NOT be called.
 
     template <typename TFunc>
     void currentFieldExec(TFunc&& func) const
@@ -196,29 +257,52 @@ public:
         field_.currentFieldExec(std::forward<TFunc>(func));
     }
 
+    /// @brief Construct and initialise specified contained field in the
+    ///     internal buffer.
+    /// @details If the field already contains a valid field of any other
+    ///     field type, the latter will be destructed.
+    /// @tparam TIdx Index of the field type witin the @ref Members tuple.
+    /// @tparam TArgs Types of the agurments for the field's constructor
+    /// @param[in] args Arguments for the constructed field.
+    /// @return Reference to the constructed field.
     template <std::size_t TIdx, typename... TArgs>
     auto initField(TArgs&&... args) -> decltype(std::declval<ThisField>().template initField<TIdx>(std::forward<TArgs>(args)...))
     {
         return field_.template initField<TIdx>(std::forward<TArgs>(args)...);
     }
 
+    /// @brief Access already constructed field at specifed index (known at compile time).
+    /// @details Use this function to get a reference to the contained field type
+    /// @tparam TIdx Index of the field type witin the @ref Members tuple.
+    /// @return Reference to the contained field.
+    /// @pre @code currentField() == TIdx @endcode
     template <std::size_t TIdx>
     auto accessField() -> decltype(std::declval<ThisField>().template accessField<TIdx>())
     {
         return field_.template accessField<TIdx>();
     }
 
+    /// @brief Access already constructed field at specifed index (known at compile time).
+    /// @details Use this function to get a const reference to the contained field type.
+    /// @tparam TIdx Index of the field type witin the @ref Members tuple.
+    /// @return Const reference to the contained field.
+    /// @pre @code currentField() == TIdx @endcode
     template <std::size_t TIdx>
     auto accessField() const -> decltype(std::declval<const ThisField>().template accessField<TIdx>())
     {
         return field_.template accessField<TIdx>();
     }
 
+    /// @brief Check whether the field contains a valid instance of other field.
+    /// @details Returns @b true if and only if currentField() returns a valid
+    ///     index inside the @ref Members tuple.
     bool currentFieldValid() const
     {
         return field_.currentFieldValid();
     }
 
+    /// @brief Invalidate current state
+    /// @details Destructs currently contained field if such exists.
     void reset()
     {
         field_.reset();
@@ -334,6 +418,122 @@ toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
     return field;
 }
 
+/// @brief Add convenience access enum and functions to the members of
+///     @ref comms::field::Variant field.
+/// @details All the possible field types the @ref comms::field::Variant field
+///     can contain are bundled in
+///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
+///     and provided as a template parameter to the definition of the
+///     comms::field::Variant field.
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using ... Field1;
+///     using ... Field2;
+///     using ... Field3;
+///     using MyField =
+///         comms::field::Variant<
+///             MyFieldBase,
+///             std::tuple<Field1, Field2, Field3>
+///         >;
+///
+///     MyField field;
+///     auto& field1 = field.initField<0>(); // Initialise the field to contain Field1 value
+///     field1.value() = ...;
+///     @endcode
+///     However, it would be convenient to provide names and easier access to
+///     all the poisble variants. The COMMS_VARIANT_MEMBERS_ACCESS() macro does exactly
+///     that when used inside the field class definition. Just inherit from
+///     the comms::field::Variant class and use the macro inside with the names for the
+///     member fields:
+///     @code
+///     class MyField : public comms::field::Variant<...>
+///     {
+///     public:
+///         COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+///     }
+///     @endcode
+///     It would be equivalent to having the following types and functions
+///     definitions:
+///     @code
+///     class MyField : public comms::field::Variant<...>
+///     {
+///     public:
+///         // Access indices for member fields
+///         enum FieldIdx {
+///             FieldIdx_member1,
+///             FieldIdx_member2,
+///             FieldIdx_member3,
+///             FieldIdx_numOfValues
+///         };
+///
+///         // Initialise as first member (Field1)
+///         template <typename... TArgs>
+///         Field1& initField_member1(TArgs&&... args)
+///         {
+///             rerturn initField<FieldIdx_member1>(std::forward<TArgs>(args)...);
+///         }
+///
+///         // Accessor to the stored field as first member (Field1)
+///         Field1& accessField_member1()
+///         {
+///             return accessField<FieldIdx_member1>();
+///         }
+///
+///         // Const variant of the accessor to the stored field as first member (Field1)
+///         const Field1& accessField_member1() const
+///         {
+///             return accessField<FieldIdx_member1>();
+///         }
+///
+///         // Initialise as second member (Field2)
+///         template <typename... TArgs>
+///         Field2& initField_member2(TArgs&&... args)
+///         {
+///             rerturn initField<FieldIdx_member2>(std::forward<TArgs>(args)...);
+///         }
+///
+///         // Accessor to the stored field as second member (Field2)
+///         Field2& accessField_member2()
+///         {
+///             return accessField<FieldIdx_member2>();
+///         }
+///
+///         // Const variant of the accessor to the stored field as second member (Field2)
+///         const Field2& accessField_member2() const
+///         {
+///             return accessField<FieldIdx_member2>();
+///         }
+///
+///         // Initialise as third member (Field3)
+///         template <typename... TArgs>
+///         Field3& initField_member3(TArgs&&... args)
+///         {
+///             rerturn initField<FieldIdx_member3>(std::forward<TArgs>(args)...);
+///         }
+///
+///         // Accessor to the stored field as third member (Field3)
+///         Field3& accessField_member3()
+///         {
+///             return accessField<FieldIdx_member3>();
+///         }
+///
+///         // Const variant of the accessor to the stored field as third member (Field3)
+///         const Field3& accessField_member3() const
+///         {
+///             return accessField<FieldIdx_member3>();
+///         }
+///     };
+///     @endcode
+///     @b NOTE, that provided names @b member1, @b member2, and @b member3, have
+///         found their way to the following definitions:
+///     @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
+///         @b FieldIdx_nameOfValues value is automatically added at the end.
+///     @li Initialisation functions prefixed with @b initField_
+///     @li Accessor functions prefixed with @b accessField_
+///
+///     See @ref sec_field_tutorial_variant for more examples and details
+/// @param[in] ... List of member fields' names.
+/// @related comms::field::Variant
 #define COMMS_VARIANT_MEMBERS_ACCESS(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
     FUNC_AUTO_REF_RETURN(asVariant, decltype(comms::field::toFieldBase(*this))) { \

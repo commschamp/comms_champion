@@ -224,7 +224,7 @@ public:
     template <std::size_t TIdx, typename... TArgs>
     typename std::tuple_element<TIdx, Members>::type& initField(TArgs&&... args)
     {
-        static_assert(isIdxValid(TIdx), "Something is wrong");
+        static_assert(isIdxValid(TIdx), "Only valid field index can be used");
         checkDestruct();
 
         using Field = typename std::tuple_element<TIdx, Members>::type;
@@ -236,7 +236,7 @@ public:
     template <std::size_t TIdx>
     typename std::tuple_element<TIdx, Members>::type& accessField()
     {
-        static_assert(isIdxValid(TIdx), "Something is wrong");
+        static_assert(isIdxValid(TIdx), "Only valid field index can be used");
         GASSERT(TIdx == memIdx_); // Accessing non initialised field
 
         using Field = typename std::tuple_element<TIdx, Members>::type;

@@ -133,6 +133,10 @@ void VariantFieldWidget::indexUpdated(int value)
         m_member = fieldWidget.release();
         m_ui.m_membersLayout->addWidget(m_member);
         updateMemberProps();
+
+        connect(
+            m_member, SIGNAL(sigFieldUpdated()),
+            this, SLOT(memberFieldUpdated()));
     }
 
     refresh();

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <vector>
+#include <functional>
 
 #include "comms_champion/field_wrapper/VariantWrapper.h"
 #include "FieldWidget.h"
@@ -34,9 +34,12 @@ class VariantFieldWidget : public FieldWidget
     typedef FieldWidget Base;
 public:
     using WrapperPtr = field_wrapper::VariantWrapperPtr;
+    using CreateMemberFieldWidgetFunc =
+        std::function<FieldWidgetPtr (field_wrapper::FieldWrapper&)>;
 
     explicit VariantFieldWidget(
         WrapperPtr&& wrapper,
+        CreateMemberFieldWidgetFunc&& func,
         QWidget* parentObj = nullptr);
 
     ~VariantFieldWidget();
@@ -50,6 +53,7 @@ protected:
 
 private slots:
     void memberFieldUpdated();
+    void indexUpdated(int value);
 
 private:
     using WrapperType = WrapperPtr::element_type;
@@ -62,6 +66,7 @@ private:
     WrapperPtr m_wrapper;
     FieldWidget* m_member = nullptr;
     QList<QVariantMap> m_membersProps;
+    CreateMemberFieldWidgetFunc m_createFunc;
 };
 
 

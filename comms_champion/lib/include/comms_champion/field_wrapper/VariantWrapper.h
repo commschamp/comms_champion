@@ -38,6 +38,8 @@ public:
     using Base::FieldWrapper;
     typedef std::unique_ptr<VariantWrapper> Ptr;
 
+    using MemberCreateCallbackFunc = std::function<FieldWrapperPtr ()>;
+
     VariantWrapper();
     VariantWrapper(const VariantWrapper&) =delete;
     VariantWrapper& operator=(const VariantWrapper&) =delete;
@@ -50,6 +52,8 @@ public:
 
     void setCurrent(FieldWrapperPtr current);
 
+    void updateCurrent();
+
     Ptr clone();
 
     int getCurrentIndex() const;
@@ -57,6 +61,12 @@ public:
     void setCurrentIndex(int index);
 
     int getMembersCount() const;
+
+    template <typename TFunc>
+    void setMemberCreateCallback(TFunc&& func)
+    {
+        m_createMemberCb = std::forward<TFunc>(func);
+    }
 
 protected:
     virtual Ptr cloneImpl() = 0;
@@ -68,6 +78,7 @@ protected:
 
 private:
     FieldWrapperPtr m_current;
+    MemberCreateCallbackFunc m_createMemberCb;
 };
 
 template <typename TField>
@@ -122,6 +133,7 @@ protected:
             static_cast<int>(
                 std::tuple_size<typename Base::Field::Members>::value);
     }
+
 };
 
 using VariantWrapperPtr = VariantWrapper::Ptr;

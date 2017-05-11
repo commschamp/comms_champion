@@ -152,6 +152,14 @@ public:
 
     virtual void handle(field_wrapper::VariantWrapper& wrapper) override
     {
+        auto createMemberWidgetsFunc =
+            [](field_wrapper::FieldWrapper& wrap) -> FieldWidgetPtr
+            {
+                WidgetCreator otherCreator;
+                wrap.dispatch(otherCreator);
+                return otherCreator.getWidget();
+            };
+
         FieldWidgetPtr memberWidget;
         auto& memberWrapper = wrapper.getCurrent();
         if (memberWrapper) {
@@ -159,7 +167,10 @@ public:
             memberWidget = getWidget();
         }
 
-        std::unique_ptr<VariantFieldWidget> widget(new VariantFieldWidget(wrapper.clone()));
+        std::unique_ptr<VariantFieldWidget> widget(
+                    new VariantFieldWidget(
+                        wrapper.clone(),
+                        createMemberWidgetsFunc));
         if (memberWidget) {
             widget->setMemberField(memberWidget.release());
         }

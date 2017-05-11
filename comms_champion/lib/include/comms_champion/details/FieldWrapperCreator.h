@@ -237,6 +237,21 @@ private:
     {
         auto wrapper = field_wrapper::makeVariantWrapper(field);
 
+        wrapper->setMemberCreateCallback(
+            [&field]() -> FieldWrapperPtr
+            {
+                FieldWrapperPtr ptr;
+                if (field.currentFieldValid()) {
+                    field.currentFieldExec(
+                        SubfieldsCreateHelper(
+                            [&ptr](FieldWrapperPtr fieldWrapper)
+                            {
+                                ptr = std::move(fieldWrapper);
+                            }));
+                }
+                return ptr;
+            });
+
         if (field.currentFieldValid()) {
             field.currentFieldExec(
                 SubfieldsCreateHelper(

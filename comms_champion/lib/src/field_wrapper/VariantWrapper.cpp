@@ -17,6 +17,8 @@
 
 #include "comms_champion/field_wrapper/VariantWrapper.h"
 
+#include <cassert>
+
 #include "comms_champion/field_wrapper/FieldWrapperHandler.h"
 
 namespace comms_champion
@@ -42,11 +44,18 @@ const FieldWrapperPtr& VariantWrapper::getCurrent() const
 void VariantWrapper::setCurrent(FieldWrapperPtr current)
 {
     m_current = std::move(current);
-} 
+}
+
+void VariantWrapper::updateCurrent()
+{
+    assert(m_createMemberCb);
+    setCurrent(m_createMemberCb());
+}
 
 VariantWrapper::Ptr VariantWrapper::clone()
 {
     auto ptr = cloneImpl();
+    ptr->m_createMemberCb = m_createMemberCb;
     if (m_current) {
         ptr->setCurrent(m_current->upClone());
     }

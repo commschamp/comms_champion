@@ -31,11 +31,13 @@
 namespace comms_champion
 {
 
-VariantFieldWidget::VariantFieldWidget(
+    VariantFieldWidget::VariantFieldWidget(
     WrapperPtr&& wrapper,
+    CreateMemberFieldWidgetFunc&& func,
     QWidget* parentObj)
   : Base(parentObj),
-    m_wrapper(std::move(wrapper))
+    m_wrapper(std::move(wrapper)),
+    m_createFunc(std::move(func))
 {
     m_ui.setupUi(this);
     setNameLabelWidget(m_ui.m_nameLabel);
@@ -43,10 +45,12 @@ VariantFieldWidget::VariantFieldWidget(
     setSeparatorWidget(m_ui.m_sepLine);
     setSerialisedValueWidget(m_ui.m_serValueWidget);\
 
-    m_ui.m_idxSpinBox->setMaximum(m_wrapper->getMembersCount());
+    m_ui.m_idxSpinBox->setMaximum(m_wrapper->getMembersCount() - 1);
     m_ui.m_idxSpinBox->setValue(m_wrapper->getCurrentIndex());
 
-    // TODO: connect spin box
+    connect(
+        m_ui.m_idxSpinBox, SIGNAL(valueChanged(int)),
+        this, SLOT(indexUpdated(int)));
 }
 
 VariantFieldWidget::~VariantFieldWidget() = default;
@@ -106,6 +110,32 @@ void VariantFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 void VariantFieldWidget::memberFieldUpdated()
 {
     refreshInternal();
+    emitFieldUpdated();
+}
+
+void VariantFieldWidget::indexUpdated(int value)
+{
+    if (value == m_wrapper->getCurrentIndex()) {
+        return;
+    }
+
+    delete m_member;
+    m_member = nullptr;
+    m_wrapper->setCurrent(field_wrapper::FieldWrapperPtr());
+    m_wrapper->setCurrentIndex(-1);
+
+    if (0 <= value) {
+        m_wrapper->setCurrentIndex(value);
+        m_wrapper->updateCurrent();
+        assert(m_wrapper->getCurrent());
+        assert(m_createFunc);
+        auto fieldWidget = m_createFunc(*m_wrapper->getCurrent());
+        m_member = fieldWidget.release();
+        m_ui.m_membersLayout->addWidget(m_member);
+        updateMemberProps();
+    }
+
+    refresh();
     emitFieldUpdated();
 }
 

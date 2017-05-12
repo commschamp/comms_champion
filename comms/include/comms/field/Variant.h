@@ -211,8 +211,17 @@ public:
 
     /// @brief Execute provided function object with current field as
     ///     parameter.
-    /// @details The provided function object must define the following
-    ///     public interface:
+    /// @details The provided function object must define all the public @b operator()
+    ///     member functions to handle all possible types.
+    ///     @code
+    ///     struct MyFunc
+    ///     {
+    ///         void operator()(Type1& field) {...}
+    ///         void operator()(Type2& field) {...}
+    ///         ...
+    ///     }
+    ///     @endcode
+    ///     Template @b operator() may also be used
     ///     @code
     ///     struct MyFunc
     ///     {
@@ -234,9 +243,8 @@ public:
 
     /// @brief Execute provided function object with current field as
     ///     parameter (const variant).
-    /// @details Similar to other currentFieldExec() variant, but with @b const
-    ///     The provided function object must define the following
-    ///     public interface. Note, the constness of the parameter.
+    /// @details Similar to other currentFieldExec() variant, but with @b const.
+    ///     Note, the constness of the parameter.
     ///     @code
     ///     struct MyFunc
     ///     {

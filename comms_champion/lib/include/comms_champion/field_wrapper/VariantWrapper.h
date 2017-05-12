@@ -108,7 +108,7 @@ protected:
         return Ptr(new VariantWrapperT(Base::field()));
     }
 
-    virtual int getCurrentIndexImpl() const
+    virtual int getCurrentIndexImpl() const override
     {
         if (!Base::field().currentFieldValid()) {
             return -1;

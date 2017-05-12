@@ -146,8 +146,7 @@ struct VariantsFields
                 field1_var1,
                 field1_var2,
                 field1_var3
-            >,
-            comms::option::DefaultVariantIndex<0>
+            >
         >
     {
         /// @brief Allow access to internal fields.

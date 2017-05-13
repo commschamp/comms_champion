@@ -184,7 +184,8 @@ public:
         return field_.write(iter, size);
     }
 
-    /// @brief Check validity of all the bundled fields.
+    /// @brief Check validity of all the contained field.
+    /// @details Returns @b false if doesn't contain any field.
     constexpr bool valid() const {
         return field_.valid();
     }

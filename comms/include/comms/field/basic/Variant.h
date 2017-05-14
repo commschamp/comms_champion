@@ -387,10 +387,10 @@ private:
         void operator()()
         {
 #ifdef _MSC_VER
-        // VS compiler
-        func_.operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
+            // VS compiler
+            func_.operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
 #else // #ifdef _MSC_VER
-        func_.template operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
+            func_.template operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
 #endif // #ifdef _MSC_VER
         }
     private:
@@ -417,7 +417,12 @@ private:
         template <std::size_t TIdx, typename TField>
         void operator()()
         {
+#ifdef _MSC_VER
+            // VS compiler
+            func_.operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
+#else // #ifdef _MSC_VER
             func_.template operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
+#endif // #ifdef _MSC_VER
         }
     private:
         const void* storage_ = nullptr;

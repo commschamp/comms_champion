@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cassert>
 #include <memory>
+#include <functional>
 
 #include "comms/field/Variant.h"
 #include "FieldWrapper.h"

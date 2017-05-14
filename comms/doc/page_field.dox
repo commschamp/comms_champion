@@ -1303,7 +1303,7 @@
 /// to differentiate between @b compile-time and @b run-time knowledge of the
 /// contents. 
 ///
-/// When preparing a variant field to be sent out, usually the innter 
+/// When preparing a variant field to be sent out, usually the inner 
 /// field type and its value are known at compile time. The initialisation of the
 /// field can be performed using comms::field::Variant::initField() member
 /// function:

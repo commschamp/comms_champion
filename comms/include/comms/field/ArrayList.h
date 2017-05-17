@@ -323,6 +323,28 @@ constexpr bool isArrayList()
     return std::is_same<typename T::Tag, tag::ArrayList>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::ArrayList type
+///     in order to have access to its internal types.
+/// @related comms::field::ArrayList
+template <typename TFieldBase, typename TElement, typename... TOptions>
+inline
+ArrayList<TFieldBase, TElement, TOptions...>&
+toFieldBase(ArrayList<TFieldBase, TElement, TOptions...>& field)
+{
+    return field;
+}
+
+/// @brief Upcast type of the field definition to its parent comms::field::ArrayList type
+///     in order to have access to its internal types.
+/// @related comms::field::ArrayList
+template <typename TFieldBase, typename TElement, typename... TOptions>
+inline
+const ArrayList<TFieldBase, TElement, TOptions...>&
+toFieldBase(const ArrayList<TFieldBase, TElement, TOptions...>& field)
+{
+    return field;
+}
+
 
 }  // namespace field
 

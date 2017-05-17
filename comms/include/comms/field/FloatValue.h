@@ -202,6 +202,27 @@ constexpr bool isFloatValue()
     return std::is_same<typename T::Tag, tag::Float>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::FloatValue type
+///     in order to have access to its internal types.
+/// @related comms::field::FloatValue
+template <typename TFieldBase, typename T, typename... TOptions>
+inline
+FloatValue<TFieldBase, T, TOptions...>&
+toFieldBase(FloatValue<TFieldBase, T, TOptions...>& field)
+{
+    return field;
+}
+
+/// @brief Upcast type of the field definition to its parent comms::field::FloatValue type
+///     in order to have access to its internal types.
+/// @related comms::field::FloatValue
+template <typename TFieldBase, typename T, typename... TOptions>
+inline
+const FloatValue<TFieldBase, T, TOptions...>&
+toFieldBase(const FloatValue<TFieldBase, T, TOptions...>& field)
+{
+    return field;
+}
 
 }  // namespace field
 

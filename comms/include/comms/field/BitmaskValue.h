@@ -311,6 +311,29 @@ constexpr bool isBitmaskValue()
     return std::is_same<typename T::Tag, tag::Bitmask>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::BitmaskValue type
+///     in order to have access to its internal types.
+/// @related comms::field::BitmaskValue
+template <typename TFieldBase, typename... TOptions>
+inline
+BitmaskValue<TFieldBase, TOptions...>&
+toFieldBase(BitmaskValue<TFieldBase, TOptions...>& field)
+{
+    return field;
+}
+
+/// @brief Upcast type of the field definition to its parent comms::field::BitmaskValue type
+///     in order to have access to its internal types.
+/// @related comms::field::BitmaskValue
+template <typename TFieldBase, typename... TOptions>
+inline
+const BitmaskValue<TFieldBase, TOptions...>&
+toFieldBase(const BitmaskValue<TFieldBase, TOptions...>& field)
+{
+    return field;
+}
+
+
 /// @brief Provide names for bits in comms::field::BitmaskValue field.
 /// @details Defines BitIdx enum with all the provided values prefixed with
 ///     "BitIdx_". For example usage of

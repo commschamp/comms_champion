@@ -224,6 +224,27 @@ constexpr bool isEnumValue()
     return std::is_same<typename T::Tag, tag::Enum>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::EnumValue type
+///     in order to have access to its internal types.
+/// @related comms::field::EnumValue
+template <typename TFieldBase, typename TEnum, typename... TOptions>
+inline
+EnumValue<TFieldBase, TEnum, TOptions...>&
+toFieldBase(EnumValue<TFieldBase, TEnum, TOptions...>& field)
+{
+    return field;
+}
+
+/// @brief Upcast type of the field definition to its parent comms::field::EnumValue type
+///     in order to have access to its internal types.
+/// @related comms::field::EnumValue
+template <typename TFieldBase, typename TEnum, typename... TOptions>
+inline
+const EnumValue<TFieldBase, TEnum, TOptions...>&
+toFieldBase(const EnumValue<TFieldBase, TEnum, TOptions...>& field)
+{
+    return field;
+}
 
 }  // namespace field
 

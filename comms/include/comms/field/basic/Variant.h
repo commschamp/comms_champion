@@ -141,7 +141,7 @@ public:
 
     static constexpr std::size_t maxLength()
     {
-        return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MaxLengthCalcHelper());
+        return comms::util::tupleTypeAccumulate<Members>(std::size_t(0), MaxLengthCalcHelper());
     }
 
     bool valid() const
@@ -350,7 +350,7 @@ private:
         template <typename TField>
         constexpr std::size_t operator()(std::size_t val) const
         {
-            return std::max(val, TField::maxLength());
+            return val >= TField::maxLength() ? val : TField::maxLength();
         }
     };
 

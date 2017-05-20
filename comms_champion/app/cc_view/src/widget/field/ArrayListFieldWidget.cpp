@@ -257,7 +257,7 @@ void ArrayListFieldWidget::updatePrefixField()
     m_ui.m_prefixValueSpinBox->setValue(info.first);
     QString serText;
     for (auto byte : info.second) {
-        serText.append(QString("%1").arg((unsigned)byte, 2, 10, QChar('0')));
+        serText.append(QString("%1").arg((unsigned)byte, 2, 16, QChar('0')));
     }
     m_ui.m_prefixSerValueLineEdit->setText(serText);
     m_ui.m_prefixFieldWidget->show();

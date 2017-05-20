@@ -116,6 +116,9 @@
               <property name="readOnly">
                <bool>true</bool>
               </property>
+              <property name="maximum">
+               <number>429496729</number>
+              </property>
              </widget>
             </item>
             <item>

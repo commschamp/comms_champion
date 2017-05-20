@@ -85,6 +85,11 @@ void ArrayListWrapper::refreshMembers()
     refreshMembersImpl();
 }
 
+ArrayListWrapper::PrefixFieldInfo ArrayListWrapper::getPrefixFieldInfo() const
+{
+    return getPrefixFieldInfoImpl();
+}
+
 void ArrayListWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

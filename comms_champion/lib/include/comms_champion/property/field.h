@@ -333,12 +333,20 @@ public:
     ArrayList& add(QVariantMap&& elemProps);
     ArrayList& add(const QVariantMap& elemProps);
 
+    bool isPrefixVisible() const;
+    ArrayList& showPrefix(bool value = true);
+
+    const QString& prefixName() const;
+    ArrayList& prefixName(const QString& name);
+
     QVariantMap asMap() const;
 
 private:
     void getFrom(const QVariantMap& props);
 
     ElemsList m_elems;
+    bool m_showPrefix = false;
+    QString m_prefixName;
 };
 
 class CC_API Optional : public CommonBase<Optional>

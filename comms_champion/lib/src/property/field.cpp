@@ -83,6 +83,17 @@ const QString& indexHiddenKey()
     return Str;
 }
 
+const QString& showPrefixKey()
+{
+    static const QString Str("cc.show_prefix");
+    return Str;
+}
+
+const QString& prefixNameKey()
+{
+    static const QString Str("cc.prefix_name");
+    return Str;
+}
 
 }  // namespace
 
@@ -500,17 +511,43 @@ ArrayList& ArrayList::add(const QVariantMap& elemProps)
     return *this;
 }
 
+bool ArrayList::isPrefixVisible() const
+{
+    return m_showPrefix;
+}
+
+ArrayList& ArrayList::showPrefix(bool value)
+{
+    m_showPrefix = value;
+    return *this;
+}
+
+const QString& ArrayList::prefixName() const
+{
+    return m_prefixName;
+}
+
+ArrayList& ArrayList::prefixName(const QString& name)
+{
+    m_prefixName = name;
+    return *this;
+}
+
 QVariantMap ArrayList::asMap() const
 {
     QVariantMap props;
     Base::setTo(props);
     Base::setElemTo(m_elems, dataKey(), props);
+    Base::setElemTo(m_showPrefix, showPrefixKey(), props);
+    Base::setElemTo(m_prefixName, prefixNameKey(), props);
     return props;
 }
 
 void ArrayList::getFrom(const QVariantMap& props)
 {
     m_elems = getElemFrom<ElemsList>(props, dataKey());
+    m_showPrefix = getElemFrom<bool>(props, showPrefixKey());
+    m_prefixName = getElemFrom<QString>(props, prefixNameKey());
 }
 
 Optional::Optional() = default;

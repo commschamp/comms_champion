@@ -19,13 +19,6 @@
 
 #include <cassert>
 
-//#include "comms/CompileControl.h"
-
-//CC_DISABLE_WARNINGS()
-//#include <QtWidgets/QCheckBox>
-//#include <QtWidgets/QFrame>
-//CC_ENABLE_WARNINGS()
-
 #include "comms_champion/property/field.h"
 
 namespace comms_champion
@@ -82,29 +75,22 @@ void VariantFieldWidget::refreshImpl()
 void VariantFieldWidget::editEnabledUpdatedImpl()
 {
     bool readOnly = !isEditEnabled();
-    m_ui.m_idxSpinBox->setReadOnly(readOnly);
-
-    if (readOnly) {
-        m_ui.m_idxSpinBox->setButtonSymbols(QSpinBox::NoButtons);
-    }
-    else {
-        m_ui.m_idxSpinBox->setButtonSymbols(QSpinBox::UpDownArrows);
-    }
 
     if (m_member != nullptr) {
         m_member->setEditEnabled(!readOnly);
     }
+
+    updateIndexInfo();
 }
 
 void VariantFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     property::field::Variant variantProps(props);
-    if (variantProps.isIndexHidden()) {
-        m_ui.m_idxLabel->hide();
-        m_ui.m_idxSpinBox->hide();
-    }
     m_membersProps = variantProps.members();
     updateMemberProps();
+
+    m_indexHidden = variantProps.isIndexHidden();
+    updateIndexInfo();
 }
 
 void VariantFieldWidget::memberFieldUpdated()
@@ -174,6 +160,23 @@ void VariantFieldWidget::updateMemberProps()
     }
 
     m_member->updateProperties(m_membersProps[m_wrapper->getCurrentIndex()]);
+}
+
+void VariantFieldWidget::updateIndexInfo()
+{
+    bool readOnly = !isEditEnabled();
+    m_ui.m_idxSpinBox->setReadOnly(readOnly);
+
+    if (readOnly) {
+        m_ui.m_idxSpinBox->setButtonSymbols(QSpinBox::NoButtons);
+    }
+    else {
+        m_ui.m_idxSpinBox->setButtonSymbols(QSpinBox::UpDownArrows);
+    }
+
+    bool hidden = readOnly && m_indexHidden;
+    m_ui.m_idxLabel->setHidden(hidden);
+    m_ui.m_idxSpinBox->setHidden(hidden);
 }
 
 }  // namespace comms_champion

@@ -61,12 +61,14 @@ private:
     void refreshInternal();
     void refreshMember();
     void updateMemberProps();
+    void updateIndexInfo();
 
     Ui::VariantFieldWidget m_ui;
     WrapperPtr m_wrapper;
     FieldWidget* m_member = nullptr;
     QList<QVariantMap> m_membersProps;
     CreateMemberFieldWidgetFunc m_createFunc;
+    bool m_indexHidden = false;
 };
 
 

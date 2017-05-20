@@ -674,7 +674,7 @@ QVariantMap Variant::asMap() const
     QVariantMap props;
     Base::setTo(props);
     Base::setElemTo(m_members, dataKey(), props);
-    Base::setElemTo(m_members, indexHiddenKey(), props);
+    Base::setElemTo(m_indexHidden, indexHiddenKey(), props);
     return props;
 }
 

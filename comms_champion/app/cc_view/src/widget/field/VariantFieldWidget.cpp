@@ -177,6 +177,9 @@ void VariantFieldWidget::updateIndexInfo()
     bool hidden = readOnly && m_indexHidden;
     m_ui.m_idxLabel->setHidden(hidden);
     m_ui.m_idxSpinBox->setHidden(hidden);
+
+    bool idxWidgetHidden = hidden && (m_ui.m_nameLabel->isHidden());
+    m_ui.m_idxWidget->setHidden(idxWidgetHidden);
 }
 
 }  // namespace comms_champion

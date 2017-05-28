@@ -284,12 +284,12 @@ private:
         auto tmpLen = lenFieldTmp.length();
         LengthField lenField(fullLen - tmpLen);
         if (lenField.length() == tmpLen) {
-            assert(lenField.value() <= std::numeric_limits<int>::max());
+            assert(static_cast<int>(lenField.value()) <= std::numeric_limits<int>::max());
             return std::make_pair(lenField.value(), getPrefixFieldSerialised(lenField));
         }
 
         lenField.value() = fullLen - lenField.length();
-        assert(lenField.value() <= std::numeric_limits<int>::max());
+        assert(static_cast<int>(lenField.value()) <= std::numeric_limits<int>::max());
         return std::make_pair(lenField.value(), getPrefixFieldSerialised(lenField));
     }
 

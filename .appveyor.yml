@@ -7,7 +7,7 @@ clone_folder: c:\projects\comms_champion
 shallow_clone: true             
 
 matrix:
-    fast_finish: true
+    fast_finish: false
 
 platform:
     - x64
@@ -20,6 +20,9 @@ configuration:
 environment:
     matrix:
         - TOOLCHAIN: msvc14
+
+install:
+    - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %PLATFORM%
 
 build_script:
     # скрипт сборки проекта:

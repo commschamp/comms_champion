@@ -1,0 +1,41 @@
+image: Visual Studio 2015   
+
+init:
+    - git config --global core.autocrlf input
+
+clone_folder: c:\projects\comms_champion
+shallow_clone: true             
+
+matrix:
+    fast_finish: true
+
+platform:
+    - x64
+    - x86
+
+configuration:
+    - Debug
+    - Release
+
+environment:
+    matrix:
+        - TOOLCHAIN: msvc14
+
+install:
+    # скрипт настройки среды и установки зависимостей:
+    - call ci\appveyor\set-env.bat %TOOLCHAIN% %PLATFORM%
+
+build_script:
+    # скрипт сборки проекта:
+    - mkdir build
+    - cd build
+    - cmake .. %CMAKE_CONFIGURE_FLAGS% -G "NMake Makefiles"
+    - nmake install
+
+test_script:
+    - ctest 
+
+artifacts:
+    - path: install
+      name: comms_champion
+

@@ -21,10 +21,6 @@ environment:
     matrix:
         - TOOLCHAIN: msvc14
 
-install:
-    # скрипт настройки среды и установки зависимостей:
-    - call ci\appveyor\set-env.bat %TOOLCHAIN% %PLATFORM%
-
 build_script:
     # скрипт сборки проекта:
     - mkdir build

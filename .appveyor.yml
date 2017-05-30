@@ -22,7 +22,7 @@ environment:
         - TOOLCHAIN: msvc14
 
 install:
-    - call script\appveyor_install.bat %TOOLCHAIN% %PLATFORM%
+    - call script\appveyor_install.bat
     - set PATH=%PATH%;%QTDIR%\bin
 
 build_script:

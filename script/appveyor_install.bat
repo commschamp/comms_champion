@@ -1,9 +1,9 @@
-if NOT %TOOLCHAIN%=="msvc14" (
+if NOT %1=="msvc14" (
     echo Toolchain %TOOLCHAIN% is not supported
     exit -1
 )
 
-if %PLATFORM%=="x86" (
+if %2=="x86" (
     call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
     set QTDIR="C:\Qt\5.7\msvc2015"
 )

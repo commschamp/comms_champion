@@ -22,18 +22,10 @@ environment:
         - TOOLCHAIN: msvc14
 
 install:
-    - if %PLATFORM%=="x86" (
-        call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-        set QTDIR="C:\Qt\5.7\msvc2015"
-    )
-    else (
-        call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
-        set QTDIR="C:\Qt\5.7\msvc2015_64"    
-    )
+    - call script\appveyor_install.bat
     - set PATH=%PATH%;%QTDIR%\bin
 
 build_script:
-    # скрипт сборки проекта:
     - mkdir build
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "NMake Makefiles" -DCC_QT_DIR=%QTDIR%

@@ -26,8 +26,8 @@ install:
     - set PATH=%PATH%;%QTDIR%\bin
 
 build_script:
-    - mkdir build
-    - cd build
+    - mkdir build.%PLATFORM%.%CONFIGURATION%
+    - cd build.%PLATFORM%.%CONFIGURATION%
     - cmake .. -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "NMake Makefiles" -DCC_QT_DIR=%QTDIR%
     - nmake install
 

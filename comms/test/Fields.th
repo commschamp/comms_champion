@@ -1,5 +1,5 @@
 //
-// Copyright 2013-2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2013 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -103,6 +103,8 @@ public:
     void test66();
     void test67();
     void test68();
+    void test69();
+    void test70();
 
 private:
 
@@ -2722,6 +2724,212 @@ void FieldsTestSuite::test68()
     TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<float>(field) - (float)1/3), std::numeric_limits<float>::epsilon());
     TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 333U);
     TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMilliseconds<float>(field) - (333 + (float)1/3)), std::numeric_limits<float>::epsilon());
+}
+
+void FieldsTestSuite::test69()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t
+    > LenField;
+
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        comms::field::IntValue<comms::Field<BigEndianOpt>, std::uint16_t>,
+        comms::option::SequenceSerLengthFieldPrefix<LenField>
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT(field.value().empty());
+
+    static const char ExpectedBuf[] = {
+        0x0
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    static const char Buf[] = {
+        0x8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.value().size(), static_cast<std::size_t>(Buf[0]) / 2U);
+    TS_ASSERT_EQUALS(field.length(), (field.value().size() * 2) + 1U);
+    TS_ASSERT_EQUALS(field.value()[0].value(), 0x0102);
+    TS_ASSERT_EQUALS(field.value()[1].value(), 0x0304);
+    TS_ASSERT_EQUALS(field.value()[2].value(), 0x0506);
+    TS_ASSERT_EQUALS(field.value()[3].value(), 0x0708);
+
+    static const char Buf2[] = {
+        0x7, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8
+    };
+    static const std::size_t Buf2Size = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf2, Buf2Size, comms::ErrorStatus::InvalidMsgData);
+
+    static const char Buf3[] = {
+        0x4, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf
+    };
+    static const std::size_t Buf3Size = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf3, Buf3Size);
+    TS_ASSERT_EQUALS(field.value().size(), static_cast<std::size_t>(Buf3[0]) / 2U);
+    TS_ASSERT_EQUALS(field.length(), (field.value().size() * 2) + 1U);
+    TS_ASSERT_EQUALS(field.value()[0].value(), 0x0a0b);
+    TS_ASSERT_EQUALS(field.value()[1].value(), 0x0c0d);
+}
+
+using Test70_FieldBase = comms::Field<comms::option::BigEndian>;
+
+template <std::uint8_t TVal>
+using Test70_IntKeyField =
+    comms::field::IntValue<
+        Test70_FieldBase,
+        std::uint8_t,
+        comms::option::DefaultNumValue<TVal>,
+        comms::option::ValidNumValueRange<TVal, TVal>,
+        comms::option::FailOnInvalid<>
+>;
+
+using Test70_Mem1 =
+    comms::field::Bundle<
+        Test70_FieldBase,
+        std::tuple<
+            Test70_IntKeyField<1>,
+            comms::field::IntValue<Test70_FieldBase, std::uint16_t>
+        >
+    >;
+
+using Test70_Mem2 =
+    comms::field::Bundle<
+        Test70_FieldBase,
+        std::tuple<
+            Test70_IntKeyField<2>,
+            comms::field::IntValue<Test70_FieldBase, std::uint32_t>
+        >
+    >;
+
+template <typename... TExtra>
+struct Test70_Field : public
+    comms::field::Variant<
+        Test70_FieldBase,
+        std::tuple<
+            Test70_Mem1,
+            Test70_Mem2
+        >,
+        TExtra...
+    >
+{
+    COMMS_VARIANT_MEMBERS_ACCESS(mem1, mem2);
+};
+
+class Test70_LengthRetriever
+{
+public:
+    Test70_LengthRetriever(std::size_t& val) : val_(val) {}
+    template <std::size_t TIdx, typename TField>
+    void operator()(const TField& field)
+    {
+        val_ = field.length();
+    }
+private:
+    std::size_t& val_;
+};
+
+void FieldsTestSuite::test70()
+{
+    using Field = Test70_Field<>;
+
+    Field field;
+    TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.length(), 0U);
+    TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
+
+    auto& mem1 = field.initField_mem1();
+    std::get<1>(field.accessField_mem1().value()).value() = 0x0a0b;
+    TS_ASSERT_EQUALS(std::get<1>(mem1.value()).value(), 0x0a0b);
+    TS_ASSERT_EQUALS(field.currentField(), 0U);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT(field.valid());
+
+    Field field2(field);
+    TS_ASSERT_EQUALS(field2, field);
+
+    Field field3(std::move(field2));
+    TS_ASSERT_EQUALS(field3, field);
+
+    auto& mem2 = field.initField_mem2();
+    std::get<1>(field.accessField_mem2().value()).value() = 0x0c0c0c0c;
+    TS_ASSERT_EQUALS(std::get<1>(mem2.value()).value(), 0x0c0c0c0c);
+    TS_ASSERT_EQUALS(field.currentField(), 1U);
+    TS_ASSERT_EQUALS(field.length(), 5U);
+    TS_ASSERT(field.valid());
+
+    field.reset();
+    TS_ASSERT(!field.currentFieldValid());
+    TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.length(), 0U);
+    TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
+
+    static const char Buf[] = {
+        0x1, 0x2, 0x3
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT_EQUALS(field.currentField(), 0U);
+
+    static const char Buf2[] = {
+        0x2, 0x3, 0x4
+    };
+    static const std::size_t Buf2Size = std::extent<decltype(Buf2)>::value;
+    field = readWriteField<Field>(Buf2, Buf2Size, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.length(), 0U);
+    TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
+
+    static const char Buf3[] = {
+        0x2, 0x3, 0x4, 0x5, 0x6
+    };
+    static const std::size_t Buf3Size = std::extent<decltype(Buf3)>::value;
+    field = readWriteField<Field>(Buf3, Buf3Size);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.length(), 5U);
+    TS_ASSERT_EQUALS(field.currentField(), 1U);
+
+    std::size_t len1 = 0U;
+    field.currentFieldExec(Test70_LengthRetriever(len1));
+    TS_ASSERT_EQUALS(field.length(), len1);
+
+    std::size_t len2 = 0U;
+    Test70_LengthRetriever lenRetriever(len2);
+    field.currentFieldExec(lenRetriever);
+    TS_ASSERT_EQUALS(len2, len1);
+
+    std::size_t len3 = 0U;
+    static_cast<const Field&>(field).currentFieldExec(Test70_LengthRetriever(len3));
+    TS_ASSERT_EQUALS(len3, len1);
+
+    field.initField_mem1();
+    std::get<1>(field.accessField_mem1().value()).value() = 0x0a0b;
+    TS_ASSERT_EQUALS(field3, field);
+
+    using InitialisedField = Test70_Field<comms::option::DefaultVariantIndex<0> >;
+    InitialisedField iniField;
+    TS_ASSERT(iniField.valid());
+    TS_ASSERT_EQUALS(iniField.length(), 3U);
+    TS_ASSERT_EQUALS(iniField.currentField(), 0);
+
+    auto& iniMem1 = iniField.initField_mem1();
+    TS_ASSERT_EQUALS(std::get<0>(iniMem1.value()).value(), 1U);
+    TS_ASSERT_EQUALS(std::get<1>(iniMem1.value()).value(), 0U);
+    TS_ASSERT_EQUALS(field.currentField(), 0U);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT(field.valid());
+
+    std::size_t len4 = 0U;
+    field.currentFieldExec(Test70_LengthRetriever(len4));
+    TS_ASSERT_EQUALS(field.length(), len4);
 }
 
 template <typename TField>

@@ -120,6 +120,12 @@ public:
         m_out << m_sep << wrapper.getValue();
     }
 
+    virtual void handle(cc::field_wrapper::VariantWrapper& wrapper) override
+    {
+        static_cast<void>(wrapper);
+        assert(!"NYI");
+    }
+
     virtual void handle(cc::field_wrapper::UnknownValueWrapper& wrapper) override
     {
         m_out << m_sep << '\"' << wrapper.getSerialisedString().toStdString() << '\"';

@@ -18,43 +18,41 @@
 
 #pragma once
 
-namespace comms
+#include "comms_champion/comms_champion.h"
+#include "demo/message/Variants.h"
+#include "cc_plugin/Message.h"
+
+namespace demo
 {
 
-namespace field
+namespace cc_plugin
 {
 
-namespace tag
+namespace message
 {
 
-struct RawArrayList {};
+class Variants : public
+    comms_champion::ProtocolMessageBase<
+        demo::message::Variants<demo::cc_plugin::Message>,
+        Variants>
+{
+public:
+    Variants();
+    Variants(const Variants&) = delete;
+    Variants(Variants&&) = delete;
+    virtual ~Variants();
 
-struct ArrayList {};
+    Variants& operator=(const Variants&);
+    Variants& operator=(Variants&&);
 
-struct Bitfield {};
+protected:
+    virtual const char* nameImpl() const override;
+    virtual const QVariantList& fieldsPropertiesImpl() const override;
+};
 
-struct Bitmask {};
+}  // namespace message
 
-struct Bundle {};
+}  // namespace cc_plugin
 
-struct Enum {};
-
-struct Float {};
-
-struct Int {};
-
-struct NoValue {};
-
-struct Optional {};
-
-struct String {};
-
-struct Variant {};
-
-}  // namespace tag
-
-}  // namespace field
-
-}  // namespace comms
-
+}  // namespace demo
 

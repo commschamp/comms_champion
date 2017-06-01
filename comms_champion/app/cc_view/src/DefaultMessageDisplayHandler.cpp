@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@
 #include "widget/field/ArrayListRawDataFieldWidget.h"
 #include "widget/field/ArrayListFieldWidget.h"
 #include "widget/field/FloatValueFieldWidget.h"
+#include "widget/field/VariantFieldWidget.h"
 #include "widget/field/UnknownValueFieldWidget.h"
 
 namespace comms_champion
@@ -147,6 +148,34 @@ public:
     virtual void handle(field_wrapper::FloatValueWrapper& wrapper) override
     {
         m_widget.reset(new FloatValueFieldWidget(wrapper.clone()));
+    }
+
+    virtual void handle(field_wrapper::VariantWrapper& wrapper) override
+    {
+        auto createMemberWidgetsFunc =
+            [](field_wrapper::FieldWrapper& wrap) -> FieldWidgetPtr
+            {
+                WidgetCreator otherCreator;
+                wrap.dispatch(otherCreator);
+                return otherCreator.getWidget();
+            };
+
+        FieldWidgetPtr memberWidget;
+        auto& memberWrapper = wrapper.getCurrent();
+        if (memberWrapper) {
+            memberWrapper->dispatch(*this);
+            memberWidget = getWidget();
+        }
+
+        std::unique_ptr<VariantFieldWidget> widget(
+                    new VariantFieldWidget(
+                        wrapper.clone(),
+                        createMemberWidgetsFunc));
+        if (memberWidget) {
+            widget->setMemberField(memberWidget.release());
+        }
+
+        m_widget = std::move(widget);
     }
 
     virtual void handle(field_wrapper::UnknownValueWrapper& wrapper) override

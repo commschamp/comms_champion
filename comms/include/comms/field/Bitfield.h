@@ -266,6 +266,7 @@ constexpr bool isBitfield()
 
 /// @brief Upcast type of the field definition to its parent comms::field::Bitfield type
 ///     in order to have access to its internal types.
+/// @related comms::field::Bitfield
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 Bitfield<TFieldBase, TMembers, TOptions...>&
@@ -276,6 +277,7 @@ toFieldBase(Bitfield<TFieldBase, TMembers, TOptions...>& field)
 
 /// @brief Upcast type of the field definition to its parent comms::field::Bitfield type
 ///     in order to have access to its internal types.
+/// @related comms::field::Bitfield
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 const Bitfield<TFieldBase, TMembers, TOptions...>&

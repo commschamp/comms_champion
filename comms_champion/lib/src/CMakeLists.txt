@@ -41,6 +41,7 @@ function (lib_comms_champion)
         field_wrapper/ArrayListRawDataWrapper.cpp
         field_wrapper/ArrayListWrapper.cpp
         field_wrapper/FloatValueWrapper.cpp
+        field_wrapper/VariantWrapper.cpp
         field_wrapper/UnknownValueWrapper.cpp
         property/message.cpp
         property/field.cpp

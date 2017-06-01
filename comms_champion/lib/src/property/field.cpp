@@ -77,6 +77,24 @@ const QString& numValueDisplayOffsetKey()
     return Str;
 }
 
+const QString& indexHiddenKey()
+{
+    static const QString Str("cc.index_hidden");
+    return Str;
+}
+
+const QString& showPrefixKey()
+{
+    static const QString Str("cc.show_prefix");
+    return Str;
+}
+
+const QString& prefixNameKey()
+{
+    static const QString Str("cc.prefix_name");
+    return Str;
+}
+
 }  // namespace
 
 Common::Common() = default;
@@ -493,17 +511,43 @@ ArrayList& ArrayList::add(const QVariantMap& elemProps)
     return *this;
 }
 
+bool ArrayList::isPrefixVisible() const
+{
+    return m_showPrefix;
+}
+
+ArrayList& ArrayList::showPrefix(bool value)
+{
+    m_showPrefix = value;
+    return *this;
+}
+
+const QString& ArrayList::prefixName() const
+{
+    return m_prefixName;
+}
+
+ArrayList& ArrayList::prefixName(const QString& name)
+{
+    m_prefixName = name;
+    return *this;
+}
+
 QVariantMap ArrayList::asMap() const
 {
     QVariantMap props;
     Base::setTo(props);
     Base::setElemTo(m_elems, dataKey(), props);
+    Base::setElemTo(m_showPrefix, showPrefixKey(), props);
+    Base::setElemTo(m_prefixName, prefixNameKey(), props);
     return props;
 }
 
 void ArrayList::getFrom(const QVariantMap& props)
 {
     m_elems = getElemFrom<ElemsList>(props, dataKey());
+    m_showPrefix = getElemFrom<bool>(props, showPrefixKey());
+    m_prefixName = getElemFrom<QString>(props, prefixNameKey());
 }
 
 Optional::Optional() = default;
@@ -612,6 +656,69 @@ QVariantMap FloatValue::asMap() const
 void FloatValue::getFrom(const QVariantMap& props)
 {
     m_decimals = getElemFrom<decltype(m_decimals)>(props, floatDecimalsKey());
+}
+
+Variant::Variant() = default;
+Variant::Variant(const Variant&) = default;
+Variant::Variant(Variant&&) = default;
+Variant::Variant(const QVariantMap& props) : Base(props)
+{
+    getFrom(props);
+};
+
+Variant::Variant(const QVariant& props) : Base(props)
+{
+    if (props.isValid() && props.canConvert<QVariantMap>()) {
+        getFrom(props.value<QVariantMap>());
+    }
+};
+
+Variant::~Variant() = default;
+
+Variant& Variant::operator=(const Variant&) = default;
+Variant& Variant::operator=(Variant&&) = default;
+
+const Variant::MembersList& Variant::members() const
+{
+    return m_members;
+}
+
+Variant& Variant::add(QVariantMap&& memberProps)
+{
+    m_members.append(std::move(memberProps));
+    return *this;
+}
+
+Variant& Variant::add(const QVariantMap& memberProps)
+{
+    m_members.append(memberProps);
+    return *this;
+}
+
+bool Variant::isIndexHidden() const
+{
+    return m_indexHidden;
+}
+
+Variant& Variant::setIndexHidden(bool hidden)
+{
+    m_indexHidden = hidden;
+    return *this;
+}
+
+QVariantMap Variant::asMap() const
+{
+    QVariantMap props;
+    Base::setTo(props);
+    Base::setElemTo(m_members, dataKey(), props);
+    Base::setElemTo(m_indexHidden, indexHiddenKey(), props);
+    return props;
+}
+
+void Variant::getFrom(const QVariantMap& props)
+{
+    m_members = getElemFrom<MembersList>(props, dataKey());
+    m_indexHidden = getElemFrom<bool>(props, indexHiddenKey());
 }
 
 NoValue::NoValue() = default;

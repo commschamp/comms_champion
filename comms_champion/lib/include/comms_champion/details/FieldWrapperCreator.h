@@ -33,6 +33,7 @@
 #include "comms_champion/field_wrapper/ArrayListRawDataWrapper.h"
 #include "comms_champion/field_wrapper/ArrayListWrapper.h"
 #include "comms_champion/field_wrapper/FloatValueWrapper.h"
+#include "comms_champion/field_wrapper/VariantWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
 
 namespace comms_champion
@@ -64,6 +65,7 @@ private:
     typedef comms::field::tag::RawArrayList RawDataArrayListTag;
     typedef comms::field::tag::ArrayList FieldsArrayListTag;
     typedef comms::field::tag::Float FloatValueTag;
+    typedef comms::field::tag::Variant VariantTag;
 
     struct RegularIntTag {};
     struct BigUnsignedTag {};
@@ -83,6 +85,12 @@ private:
             auto fieldWidget =
                 FieldWrapperCreator::createWrapper(std::forward<TField>(field));
             m_dispatchOp(std::move(fieldWidget));
+        }
+
+        template <std::size_t TIdx, typename TField>
+        void operator()(TField&& field)
+        {
+            return operator()(field);
         }
 
     private:
@@ -158,7 +166,7 @@ private:
                 }));
 
         wrapper->setMembers(std::move(subWrappers));
-        return std::move(wrapper);
+        return wrapper;
     }
 
     template <typename TField>
@@ -168,7 +176,7 @@ private:
         auto& wrappedField = field.field();
         auto fieldWrapper = createWrapper(wrappedField);
         wrapper->setFieldWrapper(std::move(fieldWrapper));
-        return std::move(wrapper);
+        return wrapper;
     }
 
     template <typename TField>
@@ -191,7 +199,7 @@ private:
                 }));
 
         wrapper->setMembers(std::move(subWrappers));
-        return std::move(wrapper);
+        return wrapper;
     }
 
     template <typename TField>
@@ -215,13 +223,48 @@ private:
             });
 
         wrapper->refreshMembers();
-        return std::move(wrapper);
+        return wrapper;
     }
 
     template <typename TField>
     static FieldWrapperPtr createWrapperInternal(TField& field, FloatValueTag)
     {
         return field_wrapper::makeFloatValueWrapper(field);
+    }
+
+    template <typename TField>
+    static FieldWrapperPtr createWrapperInternal(TField& field, VariantTag)
+    {
+        auto wrapper = field_wrapper::makeVariantWrapper(field);
+
+        wrapper->setMemberCreateCallback(
+            [&field]() -> FieldWrapperPtr
+            {
+                FieldWrapperPtr ptr;
+                if (field.currentFieldValid()) {
+                    field.currentFieldExec(
+                        SubfieldsCreateHelper(
+                            [&ptr](FieldWrapperPtr fieldWrapper)
+                            {
+                                ptr = std::move(fieldWrapper);
+                            }));
+                }
+                return ptr;
+            });
+
+        if (field.currentFieldValid()) {
+            field.currentFieldExec(
+                SubfieldsCreateHelper(
+                    [&wrapper](FieldWrapperPtr fieldWrapper)
+                    {
+                        wrapper->setCurrent(std::move(fieldWrapper));
+                    }));
+        }
+        else {
+            wrapper->setCurrent(FieldWrapperPtr());
+        }
+
+        return wrapper;
     }
 
     template <typename TField, typename TTag>

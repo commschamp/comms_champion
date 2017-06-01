@@ -77,12 +77,29 @@ struct ListsFields
             >
         >;
 
+    /// @brief List of 2 bytes integer value fields, prefixed with
+    ///     2 bytes serialisation length
+    using field4 =
+        comms::field::ArrayList<
+            TFieldBase,
+            comms::field::IntValue<
+                TFieldBase,
+                std::uint16_t
+            >,
+            comms::option::SequenceSerLengthFieldPrefix<
+                comms::field::IntValue<
+                    TFieldBase,
+                    std::uint16_t
+                >
+            >
+        >;
 
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
         field1,
         field2,
-        field3
+        field3,
+        field4
     >;
 };
 
@@ -115,7 +132,7 @@ public:
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
+    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4);
 
     /// @brief Default constructor
     Lists() = default;

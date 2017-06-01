@@ -121,8 +121,6 @@ UnsignedLongLongIntValueFieldWidget::getDisplayedValue(const QString& value)
 {
     bool ok = false;
     auto val = value.toULongLong(&ok);
-    static_cast<void>(ok);
-    assert(ok);
     return val;
 }
 

@@ -323,6 +323,27 @@ constexpr bool isString()
     return std::is_same<typename T::Tag, tag::String>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::String type
+///     in order to have access to its internal types.
+/// @related comms::field::String
+template <typename TFieldBase, typename... TOptions>
+inline
+String<TFieldBase, TOptions...>&
+toFieldBase(String<TFieldBase, TOptions...>& field)
+{
+    return field;
+}
+
+/// @brief Upcast type of the field definition to its parent comms::field::String type
+///     in order to have access to its internal types.
+/// @related comms::field::String
+template <typename TFieldBase, typename... TOptions>
+inline
+const String<TFieldBase, TOptions...>&
+toFieldBase(const String<TFieldBase, TOptions...>& field)
+{
+    return field;
+}
 
 }  // namespace field
 

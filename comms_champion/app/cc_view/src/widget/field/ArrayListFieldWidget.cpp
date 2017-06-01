@@ -128,6 +128,9 @@ void ArrayListFieldWidget::editEnabledUpdatedImpl()
 void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
     property::field::ArrayList arrayListProps(props);
+    m_ui.m_prefixNameLabel->setText(arrayListProps.prefixName());
+    m_prefixVisible = arrayListProps.isPrefixVisible();
+    updatePrefixField();
     auto& elementsProps = arrayListProps.elements();
 
     m_elemProperties.clear();
@@ -148,6 +151,7 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 void ArrayListFieldWidget::dataFieldUpdated()
 {
     refreshInternal();
+    updatePrefixField();
     emitFieldUpdated();
 }
 
@@ -207,19 +211,8 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
 
 void ArrayListFieldWidget::refreshInternal()
 {
-    QString serValueStr;
-    auto serValue = m_wrapper->getSerialisedValue();
-
-    for (auto byte : serValue) {
-        if (!serValueStr.isEmpty()) {
-            serValueStr.append(QChar(' '));
-        }
-        serValueStr.append(QString("%1").arg(byte, 2, 16, QChar('0')));
-    }
-
     assert(m_ui.m_serValuePlainTextEdit != nullptr);
-    m_ui.m_serValuePlainTextEdit->setPlainText(serValueStr);
-
+    updateSerValue(*m_ui.m_serValuePlainTextEdit, *m_wrapper);
 
     bool valid = m_wrapper->valid();
     setValidityStyleSheet(*m_ui.m_nameLabel, valid);
@@ -233,6 +226,7 @@ void ArrayListFieldWidget::updateUi()
     bool addButtonVisible = isEditEnabled() && (!m_wrapper->hasFixedSize());
     m_ui.m_addSepLine->setVisible(addButtonVisible);
     m_ui.m_addFieldPushButton->setVisible(addButtonVisible);
+    updatePrefixField();
 }
 
 void ArrayListFieldWidget::addMissingFields()
@@ -250,6 +244,23 @@ void ArrayListFieldWidget::addMissingFields()
 
     assert(m_elements.size() == m_wrapper->size());
     assert(m_elements.size() == (unsigned)m_ui.m_membersLayout->count());
+}
+
+void ArrayListFieldWidget::updatePrefixField()
+{
+    if (!m_prefixVisible) {
+        m_ui.m_prefixFieldWidget->hide();
+        return;
+    }
+
+    auto info = m_wrapper->getPrefixFieldInfo();
+    m_ui.m_prefixValueSpinBox->setValue(info.first);
+    QString serText;
+    for (auto byte : info.second) {
+        serText.append(QString("%1").arg((unsigned)byte, 2, 16, QChar('0')));
+    }
+    m_ui.m_prefixSerValueLineEdit->setText(serText);
+    m_ui.m_prefixFieldWidget->show();
 }
 
 }  // namespace comms_champion

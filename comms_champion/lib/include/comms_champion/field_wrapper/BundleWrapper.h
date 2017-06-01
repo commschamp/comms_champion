@@ -39,8 +39,6 @@ public:
     typedef std::vector<FieldWrapperPtr> Members;
 
     using Base::FieldWrapper;
-    typedef unsigned long long UnderlyingType;
-
     typedef std::unique_ptr<BundleWrapper> Ptr;
 
     BundleWrapper();
@@ -73,7 +71,6 @@ class BundleWrapperT : public FieldWrapperT<BundleWrapper, TField>
     using Field = TField;
     static_assert(comms::field::isBundle<Field>(), "Must be of Bundle field type");
 
-    using UnderlyingType = typename Base::UnderlyingType;
 public:
     typedef typename Base::Ptr Ptr;
 

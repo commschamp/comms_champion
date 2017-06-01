@@ -52,8 +52,8 @@ Socket::Socket()
         this, SLOT(acceptErrorOccurred(QAbstractSocket::SocketError)));
 
     QObject::connect(
-        &m_server, SIGNAL(acceptError(QAbstractSocket::SocketError)),
-        this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
+        &m_server, SIGNAL(newConnection()),
+        this, SLOT(newConnection()));
 }
 
 Socket::~Socket()

@@ -310,6 +310,28 @@ constexpr bool isOptional()
     return std::is_same<typename T::Tag, tag::Optional>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::Optional type
+///     in order to have access to its internal types.
+/// @related comms::field::Optional
+template <typename TField, typename... TOptions>
+inline
+Optional<TField, TOptions...>&
+toFieldBase(Optional<TField, TOptions...>& field)
+{
+    return field;
+}
+
+/// @brief Upcast type of the field definition to its parent comms::field::Optional type
+///     in order to have access to its internal types.
+/// @related comms::field::Optional
+template <typename TField, typename... TOptions>
+inline
+const Optional<TField, TOptions...>&
+toFieldBase(const Optional<TField, TOptions...>& field)
+{
+    return field;
+}
+
 }  // namespace field
 
 }  // namespace comms

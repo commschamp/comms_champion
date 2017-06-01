@@ -1,5 +1,5 @@
 //
-// Copyright 2013 (C). Alex Robenko. All rights reserved.
+// Copyright 2013 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@
 #include <utility>
 #include <type_traits>
 
+#include "comms/Assert.h"
 #include "AlignedUnion.h"
 
 namespace comms
@@ -119,6 +120,10 @@ struct TupleAsAlignedUnion<std::tuple<TTypes...> >
     using Type = typename AlignedUnion<TTypes...>::Type;
 };
 /// @endcond
+
+/// @brief Alias to @ref TupleAsAlignedUnion::Type
+template <typename TTuple>
+using TupleAsAlignedUnionT = typename TupleAsAlignedUnion<TTuple>::Type;
 
 //----------------------------------------
 
@@ -643,6 +648,99 @@ struct TupleCat
 /// @related TupleCat
 template <typename TField, typename TTuple>
 using TupleCatT = typename TupleCat<TField, TTuple>::Type;
+
+//----------------------------------------
+
+namespace details
+{
+
+template <std::size_t TFromIdx, std::size_t TToIdx, std::size_t TCount>
+class TupleSelectedTypeHelper
+{
+    static_assert(TCount == (TToIdx - TFromIdx), "Internal error: Bad parameters");
+    static_assert(TFromIdx < TToIdx, "Internal error: Bad parameters");
+public:
+    template <typename TTuple, typename TFunc>
+    static void exec(std::size_t idx, TFunc&& func)
+    {
+        using Tuple = typename std::decay<TTuple>::type;
+        static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
+        static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+        static_assert(TCount <= TupleSize, "Incorrect TCount");
+        static_assert(0U < TCount, "Incorrect instantiation");
+
+        GASSERT(TFromIdx <= idx);
+        GASSERT(idx < TToIdx);
+        if (idx == TFromIdx) {
+            TupleSelectedTypeHelper<TFromIdx, TFromIdx + 1, 1U>::template exec<TTuple>(
+                idx, std::forward<TFunc>(func));
+            return;
+        }
+
+        static const std::size_t MidIdx = TFromIdx + TCount / 2;
+        static_assert(MidIdx < TToIdx, "Internal error: bad calculation");
+        static_assert(TFromIdx <= MidIdx, "Internal error: bad calculation");
+        if (MidIdx <= idx) {
+            TupleSelectedTypeHelper<MidIdx, TToIdx, TToIdx - MidIdx>::template exec<TTuple>(
+                idx, std::forward<TFunc>(func));
+            return;
+        }
+
+        TupleSelectedTypeHelper<TFromIdx, MidIdx, MidIdx - TFromIdx>::template exec<TTuple>(
+            idx, std::forward<TFunc>(func));
+    }
+};
+
+template <std::size_t TFromIdx, std::size_t TToIdx>
+class TupleSelectedTypeHelper<TFromIdx, TToIdx, 1U>
+{
+    static_assert((TFromIdx + 1) == TToIdx, "Internal error: Bad parameters");
+
+public:
+    template <typename TTuple, typename TFunc>
+    static void exec(std::size_t idx, TFunc&& func)
+    {
+        static_cast<void>(idx);
+        GASSERT(idx == TFromIdx);
+        using ElemType = typename std::tuple_element<TFromIdx, TTuple>::type;
+#ifdef _MSC_VER
+        // VS compiler
+        func.operator()<TFromIdx, ElemType>();
+#else // #ifdef _MSC_VER
+        func.template operator()<TFromIdx, ElemType>();
+#endif // #ifdef _MSC_VER
+    }
+};
+
+}  // namespace details
+
+/// @brief Invoke provided functor for a selected type when element index
+///     is known only at run time.
+/// @details The functor object class must define operator() with following signature:
+///     @code
+///     struct MyFunc
+///     {
+///         // TIdx - index of the type inside the tuple
+///         // TTupleElem - type inside the tuple
+///         template <std::size_t TIdx, typename TTupleElem>
+///         void operator()() {...}
+///     };
+///     @endcode
+/// @param[in] idx Index of the type in the tuple
+/// @param[in] func Functor object.
+template <typename TTuple, typename TFunc>
+void tupleForSelectedType(std::size_t idx, TFunc&& func)
+{
+    using Tuple = typename std::decay<TTuple>::type;
+    static_assert(isTuple<Tuple>(), "Provided tupe must be std::tuple");
+    static const std::size_t TupleSize = std::tuple_size<Tuple>::value;
+    static_assert(0U < TupleSize, "Empty tuples are not supported");
+
+    details::TupleSelectedTypeHelper<0, TupleSize, TupleSize>::template exec<Tuple>(
+        idx, std::forward<TFunc>(func));
+}
+//----------------------------------------
+
 
 }  // namespace util
 

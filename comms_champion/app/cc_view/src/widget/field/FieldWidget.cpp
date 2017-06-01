@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -138,6 +138,23 @@ void FieldWidget::updateValue(QLineEdit& line, const QString& value)
     auto cursorPos = std::min(value.size(), line.cursorPosition());
     line.setText(value);
     line.setCursorPosition(cursorPos);
+}
+
+void FieldWidget::updateSerValue(
+    QPlainTextEdit& text,
+    const field_wrapper::FieldWrapper& wrapper)
+{
+    QString serValueStr;
+    auto serValue = wrapper.getSerialisedValue();
+
+    for (auto byte : serValue) {
+        if (!serValueStr.isEmpty()) {
+            serValueStr.append(QChar(' '));
+        }
+        serValueStr.append(QString("%1").arg(byte, 2, 16, QChar('0')));
+    }
+
+    text.setPlainText(serValueStr);
 }
 
 void FieldWidget::editEnabledUpdatedImpl()

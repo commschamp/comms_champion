@@ -54,6 +54,7 @@ function (bin_cc_view)
         widget/field/ArrayListRawDataFieldWidget.cpp
         widget/field/ArrayListFieldWidget.cpp
         widget/field/FloatValueFieldWidget.cpp
+        widget/field/VariantFieldWidget.cpp
         widget/field/UnknownValueFieldWidget.cpp
     )
     
@@ -90,6 +91,7 @@ function (bin_cc_view)
         widget/field/ArrayListRawDataFieldWidget.h
         widget/field/ArrayListFieldWidget.h
         widget/field/FloatValueFieldWidget.h
+        widget/field/VariantFieldWidget.h
         widget/field/UnknownValueFieldWidget.h
     )
     
@@ -116,6 +118,7 @@ function (bin_cc_view)
         ui/ArrayListFieldWidget.ui
         ui/ArrayListElementWidget.ui
         ui/FloatValueFieldWidget.ui
+        ui/VariantFieldWidget.ui
         ui/UnknownValueFieldWidget.ui
     )
     

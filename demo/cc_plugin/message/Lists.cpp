@@ -70,12 +70,22 @@ QVariantMap createField3Properties()
             .asMap();
 }
 
+QVariantMap createField4Properties()
+{
+    return
+        cc::property::field::ForField<ListsFields::field4>()
+            .name("field4")
+            .add(cc::property::field::IntValue().name("element").serialisedHidden().asMap())
+            .asMap();
+}
+
 QVariantList createFieldsProperties()
 {
     QVariantList props;
     props.append(cc::property::field::ForField<ListsFields::field1>().name("field1").asMap());
     props.append(createField2Properties());
     props.append(createField3Properties());
+    props.append(createField4Properties());
 
     assert(props.size() == Lists::FieldIdx_numOfValues);
     return props;

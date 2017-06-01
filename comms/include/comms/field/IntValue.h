@@ -358,6 +358,27 @@ constexpr bool isIntValue()
     return std::is_same<typename T::Tag, tag::Int>::value;
 }
 
+/// @brief Upcast type of the field definition to its parent comms::field::IntValue type
+///     in order to have access to its internal types.
+/// @related comms::field::IntValue
+template <typename TFieldBase, typename T, typename... TOptions>
+inline
+IntValue<TFieldBase, T, TOptions...>&
+toFieldBase(IntValue<TFieldBase, T, TOptions...>& field)
+{
+    return field;
+}
+
+/// @brief Upcast type of the field definition to its parent comms::field::IntValue type
+///     in order to have access to its internal types.
+/// @related comms::field::IntValue
+template <typename TFieldBase, typename T, typename... TOptions>
+inline
+const IntValue<TFieldBase, T, TOptions...>&
+toFieldBase(const IntValue<TFieldBase, T, TOptions...>& field)
+{
+    return field;
+}
 
 }  // namespace field
 

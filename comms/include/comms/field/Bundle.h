@@ -66,7 +66,7 @@ template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bundle
 {
     static_assert(comms::util::IsTuple<TMembers>::Value,
-        "TMembers is expected to be a tuple of BundleMember<...>");
+        "TMembers is expected to be a tuple of std::tuple<...>");
 
     static_assert(
         1U < std::tuple_size<TMembers>::value,
@@ -210,6 +210,7 @@ constexpr bool isBundle()
 
 /// @brief Upcast type of the field definition to its parent comms::field::Bundle type
 ///     in order to have access to its internal types.
+/// @related comms::field::Bundle
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 Bundle<TFieldBase, TMembers, TOptions...>&
@@ -220,6 +221,7 @@ toFieldBase(Bundle<TFieldBase, TMembers, TOptions...>& field)
 
 /// @brief Upcast type of the field definition to its parent comms::field::Bundle type
 ///     in order to have access to its internal types.
+/// @related comms::field::Bundle
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 const Bundle<TFieldBase, TMembers, TOptions...>&

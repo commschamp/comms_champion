@@ -32,6 +32,7 @@ struct NumericValueField {};
 struct CollectionField {};
 struct BundleField {};
 struct OptionalField {};
+struct VariantField {};
 
 namespace details
 {
@@ -43,7 +44,8 @@ struct IsValidCategory
         std::is_same<NumericValueField, T>::value ||
         std::is_same<CollectionField, T>::value ||
         std::is_same<BundleField, T>::value ||
-        std::is_same<OptionalField, T>::value;
+        std::is_same<OptionalField, T>::value ||
+        std::is_same<VariantField, T>::value;
 };
 
 template <class T, class R = void>

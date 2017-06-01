@@ -120,7 +120,8 @@ Core ideas and architecture of the **COMMS** library is described in
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
 downloaded as zip archive from 
-[Dropbox](https://www.dropbox.com/s/ys900ugqln1hfy9/doc_comms_v0.17.zip?dl=1).
+[Dropbox](https://www.dropbox.com/s/bisen7n2tpipv56/doc_comms_v0.18.zip?dl=1) or
+from [release artifacts](https://github.com/arobenko/comms_champion/releases).
 
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 
@@ -179,7 +180,8 @@ may serve as reference on how to implement any other custom binary protocol.
 
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
 definition inside, can be
-downloaded from [Dropbox](https://www.dropbox.com/s/mwfxjr7ac36gkzu/doc_demo_v0.17.zip?dl=1).
+downloaded from [Dropbox](https://www.dropbox.com/s/lk1xwlw1u7km0jb/doc_demo_v0.18.zip?dl=1) or
+from [release artifacts](https://github.com/arobenko/comms_champion/releases).
 
 # Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for
@@ -212,10 +214,9 @@ the classic **GPLv3 / Commercial** dual licensing scheme. The
 source code is available for anyone to use as long as the derivative work
 remains open source with compatible licence. Download it, try it! If it works
 as expected and commercial closed source licence is required for the final
-product, please send me an e-mail. As the author and full copyright owner I 
-will be able to provide one. Please refer
-to [Contact Information](#contact-information) below and get in touch with
-me if you need one.
+product, it can be purchased on [binpress](http://arobenko.binpress.com/product/comms-library/4578).
+If the offered licences do not satisfy your needs and special conditions need to be
+included please send me an e-mail (see [Contact Information](#contact-information) below).
 
 The [CommsChampion](#commschampion-tools) tools and 
 [Demo Protocol](#demo-protocol) are licensed under **LGPLv3**, which

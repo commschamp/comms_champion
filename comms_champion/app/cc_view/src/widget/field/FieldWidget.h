@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -29,6 +29,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/property/field.h"
+#include "comms_champion/field_wrapper/FieldWrapper.h"
 
 class QLineEdit;
 class QLabel;
@@ -64,6 +65,7 @@ protected:
     static void setSerialisedInputMask(QLineEdit& line, int minWidth, int maxWidth);
     static void setSerialisedInputMask(QLineEdit& line, int width);
     static void updateValue(QLineEdit& line, const QString& value);
+    static void updateSerValue(QPlainTextEdit& text, const field_wrapper::FieldWrapper& wrapper);
 
     template <typename TWrapper>
     void handleNumericSerialisedValueUpdate(

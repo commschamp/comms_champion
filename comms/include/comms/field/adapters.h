@@ -26,6 +26,7 @@
 #include "adapter/SequenceSizeForcing.h"
 #include "adapter/SequenceFixedSize.h"
 #include "adapter/SequenceSizeFieldPrefix.h"
+#include "adapter/SequenceSerLengthFieldPrefix.h"
 #include "adapter/SequenceTrailingFieldSuffix.h"
 #include "adapter/SequenceTerminationFieldSuffix.h"
 #include "adapter/DefaultValueInitialiser.h"

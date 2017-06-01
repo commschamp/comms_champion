@@ -180,7 +180,7 @@ may serve as reference on how to implement any other custom binary protocol.
 
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
 definition inside, can be
-downloaded from [Dropbox](https://www.dropbox.com/s/lk1xwlw1u7km0jb/doc_demo_v0.18.zip?dl=1) or
+downloaded from [Dropbox](https://www.dropbox.com/s/cianwv06h18xstb/doc_demo_v0.18.1.zip?dl=1) or
 from [release artifacts](https://github.com/arobenko/comms_champion/releases).
 
 # Other Available Protocols

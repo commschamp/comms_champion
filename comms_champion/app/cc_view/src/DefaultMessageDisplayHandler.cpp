@@ -19,6 +19,8 @@
 
 #include <cassert>
 
+#include <QtWidgets/QApplication>
+
 #include "comms_champion/field_wrapper/FieldWrapperHandler.h"
 #include "widget/field/IntValueFieldWidget.h"
 #include "widget/field/UnsignedLongLongIntValueFieldWidget.h"
@@ -45,29 +47,37 @@ class WidgetCreator : public field_wrapper::FieldWrapperHandler
 public:
     typedef field_wrapper::FieldWrapperPtr FieldWrapperPtr;
 
+    WidgetCreator()
+    {
+        auto widgets = qApp->topLevelWidgets();
+        if (!widgets.isEmpty()) {
+            m_parent = widgets[0];
+        }
+    }
+
     virtual void handle(field_wrapper::IntValueWrapper& wrapper) override
     {
-        m_widget.reset(new IntValueFieldWidget(wrapper.clone()));
+        m_widget.reset(new IntValueFieldWidget(wrapper.clone(), m_parent));
     }
 
     virtual void handle(field_wrapper::UnsignedLongValueWrapper& wrapper) override
     {
-        m_widget.reset(new UnsignedLongLongIntValueFieldWidget(wrapper.clone()));
+        m_widget.reset(new UnsignedLongLongIntValueFieldWidget(wrapper.clone(), m_parent));
     }
 
     virtual void handle(field_wrapper::BitmaskValueWrapper& wrapper) override
     {
-        m_widget.reset(new BitmaskValueFieldWidget(wrapper.clone()));
+        m_widget.reset(new BitmaskValueFieldWidget(wrapper.clone(), m_parent));
     }
 
     virtual void handle(field_wrapper::EnumValueWrapper& wrapper) override
     {
-        m_widget.reset(new EnumValueFieldWidget(wrapper.clone()));
+        m_widget.reset(new EnumValueFieldWidget(wrapper.clone(), m_parent));
     }
 
     virtual void handle(field_wrapper::StringWrapper& wrapper) override
     {
-        m_widget.reset(new StringFieldWidget(wrapper.clone()));
+        m_widget.reset(new StringFieldWidget(wrapper.clone(), m_parent));
     }
 
     virtual void handle(field_wrapper::BitfieldWrapper& wrapper) override
@@ -80,7 +90,7 @@ public:
             membersWidgets.push_back(getWidget());
         }
 
-        std::unique_ptr<BitfieldFieldWidget> widget(new BitfieldFieldWidget(wrapper.clone()));
+        std::unique_ptr<BitfieldFieldWidget> widget(new BitfieldFieldWidget(wrapper.clone(), m_parent));
         for (auto& memWidget : membersWidgets) {
             widget->addMemberField(memWidget.release());
         }
@@ -93,7 +103,7 @@ public:
         wrapper.getFieldWrapper().dispatch(*this);
         auto wrappedWidget = getWidget();
 
-        std::unique_ptr<OptionalFieldWidget> widget(new OptionalFieldWidget(wrapper.clone()));
+        std::unique_ptr<OptionalFieldWidget> widget(new OptionalFieldWidget(wrapper.clone(), m_parent));
         widget->setField(wrappedWidget.release());
         m_widget = std::move(widget);
     }
@@ -108,7 +118,7 @@ public:
             membersWidgets.push_back(getWidget());
         }
 
-        std::unique_ptr<BundleFieldWidget> widget(new BundleFieldWidget());
+        std::unique_ptr<BundleFieldWidget> widget(new BundleFieldWidget(m_parent));
         for (auto& memWidget : membersWidgets) {
             widget->addMemberField(memWidget.release());
         }
@@ -118,7 +128,7 @@ public:
 
     virtual void handle(field_wrapper::ArrayListRawDataWrapper& wrapper) override
     {
-        m_widget.reset(new ArrayListRawDataFieldWidget(wrapper.clone()));
+        m_widget.reset(new ArrayListRawDataFieldWidget(wrapper.clone(), m_parent));
     }
 
     virtual void handle(field_wrapper::ArrayListWrapper& wrapper) override
@@ -142,12 +152,12 @@ public:
             };
 
         assert(wrapper.size() == wrapper.getMembers().size());
-        m_widget.reset(new ArrayListFieldWidget(wrapper.clone(), std::move(createMembersWidgetsFunc)));
+        m_widget.reset(new ArrayListFieldWidget(wrapper.clone(), std::move(createMembersWidgetsFunc), m_parent));
     }
 
     virtual void handle(field_wrapper::FloatValueWrapper& wrapper) override
     {
-        m_widget.reset(new FloatValueFieldWidget(wrapper.clone()));
+        m_widget.reset(new FloatValueFieldWidget(wrapper.clone(), m_parent));
     }
 
     virtual void handle(field_wrapper::VariantWrapper& wrapper) override
@@ -170,7 +180,8 @@ public:
         std::unique_ptr<VariantFieldWidget> widget(
                     new VariantFieldWidget(
                         wrapper.clone(),
-                        createMemberWidgetsFunc));
+                        createMemberWidgetsFunc,
+                        m_parent));
         if (memberWidget) {
             widget->setMemberField(memberWidget.release());
         }
@@ -180,7 +191,7 @@ public:
 
     virtual void handle(field_wrapper::UnknownValueWrapper& wrapper) override
     {
-        m_widget.reset(new UnknownValueFieldWidget(wrapper.clone()));
+        m_widget.reset(new UnknownValueFieldWidget(wrapper.clone(), m_parent));
     }
 
     virtual void handle(field_wrapper::FieldWrapper& wrapper) override
@@ -197,6 +208,7 @@ public:
 
 private:
     FieldWidgetPtr m_widget;
+    QWidget* m_parent = nullptr;
 };
 
 

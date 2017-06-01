@@ -120,7 +120,8 @@ Core ideas and architecture of the **COMMS** library is described in
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
 downloaded as zip archive from 
-[Dropbox](https://www.dropbox.com/s/ys900ugqln1hfy9/doc_comms_v0.17.zip?dl=1).
+[Dropbox](https://www.dropbox.com/s/bisen7n2tpipv56/doc_comms_v0.18.zip?dl=1) or
+from [release artifacts](https://github.com/arobenko/comms_champion/releases).
 
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 
@@ -179,7 +180,8 @@ may serve as reference on how to implement any other custom binary protocol.
 
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
 definition inside, can be
-downloaded from [Dropbox](https://www.dropbox.com/s/mwfxjr7ac36gkzu/doc_demo_v0.17.zip?dl=1).
+downloaded from [Dropbox](https://www.dropbox.com/s/lk1xwlw1u7km0jb/doc_demo_v0.18.zip?dl=1) or
+from [release artifacts](https://github.com/arobenko/comms_champion/releases).
 
 # Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for

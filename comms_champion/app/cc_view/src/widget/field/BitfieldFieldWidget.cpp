@@ -40,6 +40,7 @@ BitfieldFieldWidget::BitfieldFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    hide();
     setValueWidget(m_ui.m_valueWidget);
     setSeparatorWidget(m_ui.m_sepLine);
     setSerialisedValueWidget(m_ui.m_serValueWidget);

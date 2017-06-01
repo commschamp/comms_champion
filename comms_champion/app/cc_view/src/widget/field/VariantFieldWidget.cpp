@@ -33,6 +33,7 @@ namespace comms_champion
     m_createFunc(std::move(func))
 {
     m_ui.setupUi(this);
+    hide();
     setNameLabelWidget(m_ui.m_nameLabel);
     setValueWidget(m_ui.m_valueWidget);
     setSeparatorWidget(m_ui.m_sepLine);

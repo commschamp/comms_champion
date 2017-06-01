@@ -40,6 +40,7 @@ IntValueFieldWidget::IntValueFieldWidget(WrapperPtr wrapper, QWidget* parentObj)
   : Base(parentObj),
     m_wrapper(std::move(wrapper))
 {
+    hide();
 }
 
 IntValueFieldWidget::~IntValueFieldWidget()

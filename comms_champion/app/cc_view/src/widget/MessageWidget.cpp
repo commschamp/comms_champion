@@ -24,6 +24,7 @@ namespace comms_champion
 MessageWidget::MessageWidget(QWidget* parentObj)
   : Base(parentObj)
 {
+    hide();
 }
 
 void MessageWidget::refresh()

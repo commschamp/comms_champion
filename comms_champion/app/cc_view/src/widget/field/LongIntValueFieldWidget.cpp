@@ -34,6 +34,7 @@ LongIntValueFieldWidget::LongIntValueFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    hide();
     setNameLabelWidget(m_ui.m_nameLabel);
     setValueWidget(m_ui.m_valueWidget);
     setSeparatorWidget(m_ui.m_sepLine);

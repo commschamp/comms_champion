@@ -30,6 +30,7 @@ UnknownValueFieldWidget::UnknownValueFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
+    hide();
     setNameLabelWidget(m_ui.m_nameLabel);
 
     connect(m_ui.m_serValueLineEdit, SIGNAL(textChanged(const QString&)),

@@ -35,7 +35,6 @@ ArrayListElementWidget::ArrayListElementWidget(
     m_ui.m_layout->addWidget(fieldWidget);
 
     updateUi();
-    hide();
     connect(
         m_fieldWidget, SIGNAL(sigFieldUpdated()),
         this, SIGNAL(sigFieldUpdated()));

@@ -41,7 +41,6 @@ BundleFieldWidget::BundleFieldWidget(QWidget* parentObj)
     m_label->hide();
     m_membersLayout->addWidget(m_label);
     setLayout(m_membersLayout);
-    hide();
 }
 
 BundleFieldWidget::~BundleFieldWidget() = default;

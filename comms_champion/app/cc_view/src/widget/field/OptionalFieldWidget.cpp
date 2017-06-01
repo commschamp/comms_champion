@@ -39,7 +39,6 @@ OptionalFieldWidget::OptionalFieldWidget(
     m_wrapper(std::move(wrapper))
 {
     m_ui.setupUi(this);
-    hide();
     setNameLabelWidget(m_ui.m_nameLabel);
 
     if (m_wrapper->getMode() == Mode::Tentative) {

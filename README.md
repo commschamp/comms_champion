@@ -212,10 +212,9 @@ the classic **GPLv3 / Commercial** dual licensing scheme. The
 source code is available for anyone to use as long as the derivative work
 remains open source with compatible licence. Download it, try it! If it works
 as expected and commercial closed source licence is required for the final
-product, please send me an e-mail. As the author and full copyright owner I 
-will be able to provide one. Please refer
-to [Contact Information](#contact-information) below and get in touch with
-me if you need one.
+product, it can be purchased on [binpress](http://arobenko.binpress.com/product/comms-library/4578).
+If the offered licences do not satisfy your needs and special conditions need to be
+included please send me an e-mail (see [Contact Information](#contact-information) below).
 
 The [CommsChampion](#commschampion-tools) tools and 
 [Demo Protocol](#demo-protocol) are licensed under **LGPLv3**, which

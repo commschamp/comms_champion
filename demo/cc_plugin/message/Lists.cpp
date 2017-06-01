@@ -59,8 +59,17 @@ QVariantMap createField3Properties()
     return
         cc::property::field::ForField<ListsFields::field3>()
             .name("field3")
+            .add(cc::property::field::IntValue().name("element").serialisedHidden().asMap())
+            .asMap();
+}
+
+QVariantMap createField4Properties()
+{
+    return
+        cc::property::field::ForField<ListsFields::field4>()
+            .name("field4")
             .add(
-                cc::property::field::ForField<ListsFields::field3::ValueType::value_type>()
+                cc::property::field::ForField<ListsFields::field4::ValueType::value_type>()
                     .name("element")
                     .add(cc::property::field::IntValue().name("memeber1").asMap())
                     .add(cc::property::field::IntValue().name("memeber2").asMap())
@@ -70,14 +79,6 @@ QVariantMap createField3Properties()
             .asMap();
 }
 
-QVariantMap createField4Properties()
-{
-    return
-        cc::property::field::ForField<ListsFields::field4>()
-            .name("field4")
-            .add(cc::property::field::IntValue().name("element").serialisedHidden().asMap())
-            .asMap();
-}
 
 QVariantList createFieldsProperties()
 {

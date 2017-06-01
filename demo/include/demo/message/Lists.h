@@ -58,8 +58,25 @@ struct ListsFields
             comms::option::SequenceFixedSize<3>
         >;
 
-    /// @brief List of bundles, every bundle has two integer values member fields.
+    /// @brief List of 2 bytes integer value fields, prefixed with
+    ///     2 bytes serialisation length
     using field3 =
+        comms::field::ArrayList<
+            TFieldBase,
+            comms::field::IntValue<
+                TFieldBase,
+                std::uint16_t
+            >,
+            comms::option::SequenceSerLengthFieldPrefix<
+                comms::field::IntValue<
+                    TFieldBase,
+                    std::uint16_t
+                >
+            >
+        >;
+
+    /// @brief List of bundles, every bundle has two integer values member fields.
+    using field4 =
         comms::field::ArrayList<
             TFieldBase,
             comms::field::Bundle<
@@ -73,23 +90,6 @@ struct ListsFields
                         TFieldBase,
                         std::int8_t
                     >
-                >
-            >
-        >;
-
-    /// @brief List of 2 bytes integer value fields, prefixed with
-    ///     2 bytes serialisation length
-    using field4 =
-        comms::field::ArrayList<
-            TFieldBase,
-            comms::field::IntValue<
-                TFieldBase,
-                std::uint16_t
-            >,
-            comms::option::SequenceSerLengthFieldPrefix<
-                comms::field::IntValue<
-                    TFieldBase,
-                    std::uint16_t
                 >
             >
         >;
@@ -119,12 +119,6 @@ class Lists : public
         comms::option::MsgType<Lists<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_Lists>,
-        comms::option::FieldsImpl<typename ListsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Lists<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.

@@ -121,7 +121,7 @@ Core ideas and architecture of the **COMMS** library is described in
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
 downloaded as zip archive from 
 [Dropbox](https://www.dropbox.com/s/bisen7n2tpipv56/doc_comms_v0.18.zip?dl=1) or
-from [release artifacts](https://github.com/arobenko/comms_champion/releases).
+from [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 

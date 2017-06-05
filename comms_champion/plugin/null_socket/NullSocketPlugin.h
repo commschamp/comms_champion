@@ -29,9 +29,6 @@ namespace comms_champion
 namespace plugin
 {
 
-namespace dummy_socket
-{
-
 class NullSocketPlugin : public comms_champion::Plugin
 {
     Q_OBJECT
@@ -45,8 +42,6 @@ public:
 private:
     comms_champion::SocketPtr m_socket;
 };
-
-}  // namespace dummy_socket
 
 }  // namespace plugin
 

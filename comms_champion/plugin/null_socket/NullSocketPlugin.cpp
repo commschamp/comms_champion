@@ -28,9 +28,6 @@ namespace comms_champion
 namespace plugin
 {
 
-namespace dummy_socket
-{
-
 class NullSocketPluginImpl
 {
 public:
@@ -51,10 +48,7 @@ NullSocketPlugin::NullSocketPlugin()
 
 NullSocketPlugin::~NullSocketPlugin() = default;
 
-}  // namespace dummy_socket
-
 }  // namespace plugin
-
 
 }  // namespace comms_champion
 

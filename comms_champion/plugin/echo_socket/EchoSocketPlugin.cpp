@@ -28,17 +28,6 @@ namespace comms_champion
 namespace plugin
 {
 
-namespace dummy_socket
-{
-
-class EchoSocketPluginImpl
-{
-public:
-    EchoSocketPluginImpl();
-
-private:
-};
-
 EchoSocketPlugin::EchoSocketPlugin()
 {
     pluginProperties()
@@ -50,8 +39,6 @@ EchoSocketPlugin::EchoSocketPlugin()
 }
 
 EchoSocketPlugin::~EchoSocketPlugin() = default;
-
-}  // namespace dummy_socket
 
 }  // namespace plugin
 

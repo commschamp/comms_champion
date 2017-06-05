@@ -49,9 +49,9 @@ private slots:
     void sendDataPostponed();
 
 private:
-    QTimer* m_timer = nullptr;
-    bool m_running = false;
+    QTimer m_timer;
     std::list<DataInfoPtr> m_pendingData;
+    bool m_running = false;
     bool m_timerActive = false;
 };
 

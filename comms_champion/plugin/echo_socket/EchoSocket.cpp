@@ -23,11 +23,10 @@ namespace comms_champion
 {
 
 EchoSocket::EchoSocket()
-  : m_timer(new QTimer(this))
 {
-    m_timer->setSingleShot(true);
+    m_timer.setSingleShot(true);
     connect(
-        m_timer, SIGNAL(timeout()),
+        &m_timer, SIGNAL(timeout()),
         this, SLOT(sendDataPostponed()),
         Qt::QueuedConnection);
 }
@@ -57,7 +56,7 @@ void EchoSocket::sendDataImpl(DataInfoPtr dataPtr)
     }
 
     m_timerActive = true;
-    m_timer->start(0);
+    m_timer.start(0);
 }
 
 unsigned EchoSocket::connectionPropertiesImpl() const

@@ -1,11 +1,11 @@
 /// @mainpage CommsChampion Library
 /// @tableofcontents
-/// The <a href="https://github.com/arobenko/comms_champion#commschampion-tools">CommsChampion Tools </a> 
+/// The <a href="https://github.com/arobenko/comms_champion#commschampion-tools">CommsChampion Tools</a> 
 /// are there to provide consistent environment for binary protocols 
 /// visualisation, traffic monitor and analysis. They are all plugin based. 
 /// Plugins are used to select I/O socket, protocol definition itself as well as 
 /// zero or more data filters in between. The @b CommsChampion Library can be 
-/// used to develop such plugins as well as new custom tosol applications.
+/// used to develop such plugins as well as new custom tool applications.
 ///
 /// The overall picture looks like this:
 /// @diafile app_plugin_lib_rel.dia

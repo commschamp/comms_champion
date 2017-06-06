@@ -40,8 +40,6 @@ public:
     ~EchoSocket();
 
 protected:
-    virtual bool startImpl() override;
-    virtual void stopImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
     virtual unsigned connectionPropertiesImpl() const override;
 
@@ -51,7 +49,6 @@ private slots:
 private:
     QTimer m_timer;
     std::list<DataInfoPtr> m_pendingData;
-    bool m_running = false;
     bool m_timerActive = false;
 };
 

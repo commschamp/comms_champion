@@ -25,20 +25,6 @@ namespace comms_champion
 NullSocket::NullSocket() = default;
 NullSocket::~NullSocket() = default;
 
-bool NullSocket::startImpl()
-{
-    if (m_running) {
-        return false;
-    }
-
-    m_running = true;
-    return true;
-}
-
-void NullSocket::stopImpl()
-{
-    m_running = false;
-}
 
 void NullSocket::sendDataImpl(DataInfoPtr dataPtr)
 {

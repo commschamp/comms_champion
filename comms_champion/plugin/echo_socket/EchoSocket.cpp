@@ -33,21 +33,6 @@ EchoSocket::EchoSocket()
 
 EchoSocket::~EchoSocket() = default;
 
-bool EchoSocket::startImpl()
-{
-    if (m_running) {
-        return false;
-    }
-
-    m_running = true;
-    return true;
-}
-
-void EchoSocket::stopImpl()
-{
-    m_running = false;
-}
-
 void EchoSocket::sendDataImpl(DataInfoPtr dataPtr)
 {
     m_pendingData.push_back(std::move(dataPtr));

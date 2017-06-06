@@ -35,20 +35,31 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
+/// @brief Information about incomming or outdoing data
 struct DataInfo
 {
-    typedef std::chrono::high_resolution_clock TimestampClock;
-    typedef std::chrono::time_point<TimestampClock> Timestamp;
-    typedef std::vector<std::uint8_t> DataSeq;
-    typedef QVariantMap PropertiesMap;
+    /// @brief Type of clock used for timestamping
+    using TimestampClock = std::chrono::high_resolution_clock;
 
-    Timestamp m_timestamp;
-    DataSeq m_data;
-    PropertiesMap m_extraProperties;
+    /// @brief Type of timestamps
+    using Timestamp = std::chrono::time_point<TimestampClock>;
+
+    /// @brief Type of raw data sequence
+    using DataSeq = std::vector<std::uint8_t>;
+
+    /// @brief Type of extra properties storage
+    using PropertiesMap = QVariantMap;
+
+    Timestamp m_timestamp; ///< Timestam when data has been received / sent
+    DataSeq m_data; ///< Actual raw data
+    PropertiesMap m_extraProperties; ///< Extra properties that can be used by
+                                     /// other componets
 };
 
+/// @brief Pointer to @ref DataInfo
 using DataInfoPtr = std::shared_ptr<DataInfo>;
 
+/// @brief Dynamically allocate @ref DataInfo and return in in @ref DataInfoPtr;
 CC_API DataInfoPtr makeDataInfo();
 
 }  // namespace comms_champion

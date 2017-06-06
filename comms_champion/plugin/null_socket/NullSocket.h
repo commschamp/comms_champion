@@ -30,13 +30,8 @@ public:
     ~NullSocket();
 
 protected:
-    virtual bool startImpl() override;
-    virtual void stopImpl() override;
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;
     virtual unsigned connectionPropertiesImpl() const override;
-
-private:
-    bool m_running = false;
 };
 
 inline

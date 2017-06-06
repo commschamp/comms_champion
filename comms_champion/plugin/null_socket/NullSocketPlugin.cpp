@@ -28,14 +28,6 @@ namespace comms_champion
 namespace plugin
 {
 
-class NullSocketPluginImpl
-{
-public:
-    NullSocketPluginImpl();
-
-private:
-};
-
 NullSocketPlugin::NullSocketPlugin()
 {
     pluginProperties()

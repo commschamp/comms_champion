@@ -41,33 +41,91 @@ class QWidget;
 namespace comms_champion
 {
 
+/// @brief Accumulation of various properties of @ref Plugin.
 class CC_API PluginProperties
 {
 public:
-    typedef QList<FilterPtr> ListOfFilters;
-    typedef QList<QAction*> ListOfGuiActions;
+    /// @brief List of @ref Filter objects
+    using ListOfFilters = QList<FilterPtr>;
 
+    /// @brief List of dynamically allocated @b QAction objects
+    using ListOfGuiActions = QList<QAction*>;
+
+    /// @brief Constructor
     PluginProperties();
+
+    /// @brief Destructor
     ~PluginProperties();
 
-    typedef std::function<SocketPtr ()> SocketCreateFunc;
-    typedef std::function<ProtocolPtr ()> ProtocolCreateFunc;
-    typedef std::function<ListOfFilters ()> FiltersCreateFunc;
-    typedef std::function<ListOfGuiActions ()> GuiActionsCreateFunc;
-    typedef std::function<QWidget* ()> ConfigWidgetCreateFunc;
+    /// @brief Type of callback to be used to allocate a @ref Socket object
+    using SocketCreateFunc = std::function<SocketPtr ()>;
 
+    /// @brief Type of callback to be used to allocate a @ref Protocol object
+    using ProtocolCreateFunc = std::function<ProtocolPtr ()>;
+
+    /// @brief Type of callback to be used to allocate a @ref Filter objects
+    using FiltersCreateFunc = std::function<ListOfFilters ()>;
+
+    /// @brief Type of callback to be used to allocate @b QAction to be
+    ///     displayed in the main toolbar of GUI application.
+    /// @details The allocated @b QAction objects will be owned by the
+    ///     application. The plugin won't need to delete them explicitly.
+    using GuiActionsCreateFunc = std::function<ListOfGuiActions ()>;
+
+    /// @brief Type of callback to be used when a widget responsible to configure
+    ///     the plugin needs to be allocated. The allocated widget will be
+    ///     owned by the application. The plugin won't need to delete it
+    ///     explicitly.
+    using ConfigWidgetCreateFunc = std::function<QWidget* ()>;
+
+    /// @brief Assign callback for @ref Socket allocation.
+    /// @param[in] func Callback function
+    /// @return `*this`
     PluginProperties& setSocketCreateFunc(SocketCreateFunc&& func);
+
+    /// @brief Assign callback for @ref Protocol allocation.
+    /// @param[in] func Callback function
+    /// @return `*this`
     PluginProperties& setProtocolCreateFunc(ProtocolCreateFunc&& func);
+
+    /// @brief Assign callback for @ref Filter allocation.
+    /// @param[in] func Callback function
+    /// @return `*this`
     PluginProperties& setFiltersCreateFunc(FiltersCreateFunc&& func);
+
+    /// @brief Assign callback for list of @b QAction allocation.
+    /// @param[in] func Callback function
+    /// @return `*this`
     PluginProperties& setGuiActionsCreateFunc(GuiActionsCreateFunc&& func);
+
+    /// @brief Assign callback for configuration widget creation.
+    /// @param[in] func Callback function
+    /// @return `*this`
     PluginProperties& setConfigWidgetCreateFunc(ConfigWidgetCreateFunc&& func);
+
+    /// @brief Set custom property
+    /// @param[in] name Name of the property
+    /// @param[out] val Property value
     PluginProperties& setCustomProperty(const QString& name, QVariant&& val);
 
+    /// @brief Retrieve @ref Socket creation callback.
     SocketCreateFunc getSocketCreateFunc() const;
+
+    /// @brief Retrieve @ref Protocol creation callback.
     ProtocolCreateFunc getProtocolCreateFunc() const;
+
+    /// @brief Retrieve list of @ref Filter creation callback.
     FiltersCreateFunc getFiltersCreateFunc() const;
+
+    /// @brief Retrieve GUI Actions creation callback.
     GuiActionsCreateFunc getGuiActionsCreateFunc() const;
+
+    /// @brief Retrieve plugin configuration widget creation callback.
     ConfigWidgetCreateFunc getConfigWidgetCreateFunc() const;
+
+    /// @brief Get custom property
+    /// @param[in] name Property name
+    /// @return Value of the property
     QVariant getCustomProperty(const QString& name) const;
 
 private:

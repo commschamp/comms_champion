@@ -64,7 +64,6 @@ SocketPlugin::~SocketPlugin() = default;
 
 void SocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 {
-    static_cast<void>(config);
     createSocketIfNeeded();
 
     QVariantMap subConfig;
@@ -75,7 +74,6 @@ void SocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 
 void SocketPlugin::reconfigureImpl(const QVariantMap& config)
 {
-    static_cast<void>(config);
     auto subConfigVar = config.value(MainConfigKey);
     if ((!subConfigVar.isValid()) || (!subConfigVar.canConvert<QVariantMap>())) {
         return;

@@ -70,7 +70,7 @@ public:
 protected:
 
     virtual const char* nameImpl() const = 0;
-    virtual const QVariantList& fieldsPropertiesImpl() const = 0;
+    virtual const QVariantList& fieldsPropertiesImpl() const;
     virtual void dispatchImpl(MessageHandler& handler) = 0;
     virtual bool refreshMsgImpl() = 0;
     virtual QString idAsStringImpl() const = 0;

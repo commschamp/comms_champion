@@ -30,44 +30,22 @@ namespace demo
 {
 
 /// @brief Interface class of all the Demo binary protocol messages.
-/// @details The class publicly inherits from
-///     @b comms::Message
+/// @details Defined as alias to @b comms::Message
 ///     class while providing the following default options:
 ///     @li @b comms::option::MsgIdType<MsgId> > - use @ref MsgId as the type of message ID.
 ///     @li @b comms::option::BigEndian - use big endian for serialisation.
 ///
 ///     All other options provided with TOptions template parameter will also be passed
-///     to the @b comms::Message base class to define the interface.
-/// @tparam TOptions Zero or more extra options to be passed to the @b comms::Message
-///     base class to define the interface.
+///     to @b comms::Message to define the interface.
+/// @tparam TOptions Zero or more extra options to be passed to @b comms::Message
+///     to define the interface.
 template <typename... TOptions>
-class Message : public
+using Message =
     comms::Message<
         comms::option::BigEndian,
         comms::option::MsgIdType<MsgId>,
         TOptions...
-    >
-{
-public:
-
-    /// @brief Default constructor
-    Message() = default;
-
-    /// @brief Copy constructor
-    Message(const Message&) = default;
-
-    /// @brief Move constructor
-    Message(Message&&) = default;
-
-    /// @brief Destructor
-    ~Message() = default;
-
-    /// @brief Copy assignment operator
-    Message& operator=(const Message&) = default;
-
-    /// @brief Move assignment operator
-    Message& operator=(Message&&) = default;
-};
+    >;
 
 }  // namespace demo
 

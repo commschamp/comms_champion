@@ -81,6 +81,11 @@ protected:
         return CommsBase::refresh();
     }
 
+    virtual QString idAsStringImpl() const override
+    {
+        return QString("%1").arg(CommsBase::getId());
+    }
+
     virtual bool isValidImpl() const override
     {
         return CommsBase::valid();

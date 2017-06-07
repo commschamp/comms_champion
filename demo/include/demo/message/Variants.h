@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
 
 namespace demo
 {
@@ -173,7 +175,7 @@ struct VariantsFields
 ///     various implementation options. @n
 ///     See @ref VariantsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class Variants : public
     comms::MessageBase<
         TMsgBase,
@@ -182,12 +184,6 @@ class Variants : public
         comms::option::MsgType<Variants<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_Variants>,
-        comms::option::FieldsImpl<typename VariantsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Variants<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -207,7 +203,7 @@ public:
     Variants(Variants&& other) = default;
 
     /// @brief Destructor
-    virtual ~Variants() = default;
+    ~Variants() = default;
 
     /// @brief Copy assignment
     Variants& operator=(const Variants&) = default;

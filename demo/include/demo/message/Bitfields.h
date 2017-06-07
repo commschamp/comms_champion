@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
 
 namespace demo
 {
@@ -130,7 +132,7 @@ struct BitfieldsFields
 ///     various implementation options. @n
 ///     See @ref BitfieldsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class Bitfields : public
     comms::MessageBase<
         TMsgBase,
@@ -139,12 +141,6 @@ class Bitfields : public
         comms::option::MsgType<Bitfields<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_Bitfields>,
-        comms::option::FieldsImpl<typename BitfieldsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Bitfields<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -164,7 +160,7 @@ public:
     Bitfields(Bitfields&& other) = default;
 
     /// @brief Destructor
-    virtual ~Bitfields() = default;
+    ~Bitfields() = default;
 
     /// @brief Copy assignment
     Bitfields& operator=(const Bitfields&) = default;

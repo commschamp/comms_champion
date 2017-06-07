@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
 
 namespace demo
 {
@@ -89,7 +91,7 @@ struct BitmaskValuesFields
 ///     various implementation options. @n
 ///     See @ref BitmaskValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class BitmaskValues : public
     comms::MessageBase<
         TMsgBase,
@@ -98,12 +100,6 @@ class BitmaskValues : public
         comms::option::MsgType<BitmaskValues<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
-        comms::option::FieldsImpl<typename BitmaskValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<BitmaskValues<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -123,7 +119,7 @@ public:
     BitmaskValues(BitmaskValues&& other) = default;
 
     /// @brief Destructor
-    virtual ~BitmaskValues() = default;
+    ~BitmaskValues() = default;
 
     /// @brief Copy assignment
     BitmaskValues& operator=(const BitmaskValues&) = default;

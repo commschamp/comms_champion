@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -15,11 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-#pragma once
-
-#include "comms_champion/comms_champion.h"
-#include "demo/Message.h"
+#include "Message.h"
 
 namespace demo
 {
@@ -27,18 +23,14 @@ namespace demo
 namespace cc_plugin
 {
 
-class Message : public comms_champion::MessageBase<demo::Message>
+Message::Message() = default;
+Message::~Message() = default;
+
+QString Message::idAsStringImpl() const
 {
-public:
-    Message();
-    virtual ~Message();
+    return QString("0x%1").arg(getId(), 2, 16, QChar('0'));
+}
 
-protected:
+} // namespace cc_plugin
 
-    virtual QString idAsStringImpl() const override;
-};
-
-}  // namespace cc_plugin
-
-}  // namespace demo
-
+} // namespace demo

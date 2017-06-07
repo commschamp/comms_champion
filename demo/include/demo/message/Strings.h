@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
 
 namespace demo
 {
@@ -82,7 +84,7 @@ struct StringsFields
 ///     various implementation options. @n
 ///     See @ref StringsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class Strings : public
     comms::MessageBase<
         TMsgBase,
@@ -91,12 +93,6 @@ class Strings : public
         comms::option::MsgType<Strings<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_Strings>,
-        comms::option::FieldsImpl<typename StringsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Strings<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -116,7 +112,7 @@ public:
     Strings(Strings&& other) = default;
 
     /// @brief Destructor
-    virtual ~Strings() = default;
+    ~Strings() = default;
 
     /// @brief Copy assignment
     Strings& operator=(const Strings&) = default;

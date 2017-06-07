@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
 
 namespace demo
 {
@@ -110,7 +112,7 @@ struct ListsFields
 ///     various implementation options. @n
 ///     See @ref ListsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class Lists : public
     comms::MessageBase<
         TMsgBase,
@@ -138,7 +140,7 @@ public:
     Lists(Lists&& other) = default;
 
     /// @brief Destructor
-    virtual ~Lists() = default;
+    ~Lists() = default;
 
     /// @brief Copy assignment
     Lists& operator=(const Lists&) = default;

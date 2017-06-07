@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
 
 namespace demo
 {
@@ -71,7 +73,7 @@ struct FloatValuesFields
 ///     various implementation options. @n
 ///     See @ref FloatValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class FloatValues : public
     comms::MessageBase<
         TMsgBase,
@@ -80,12 +82,6 @@ class FloatValues : public
         comms::option::MsgType<FloatValues<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_FloatValues>,
-        comms::option::FieldsImpl<typename FloatValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<FloatValues<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -105,7 +101,7 @@ public:
     FloatValues(FloatValues&& other) = default;
 
     /// @brief Destructor
-    virtual ~FloatValues() = default;
+    ~FloatValues() = default;
 
     /// @brief Copy assignment
     FloatValues& operator=(const FloatValues&) = default;

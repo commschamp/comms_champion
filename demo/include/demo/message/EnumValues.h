@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
 
 namespace demo
 {
@@ -142,7 +144,7 @@ struct EnumValuesFields
 ///     various implementation options. @n
 ///     See @ref EnumValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class EnumValues : public
     comms::MessageBase<
         TMsgBase,
@@ -151,12 +153,6 @@ class EnumValues : public
         comms::option::MsgType<EnumValues<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_EnumValues>,
-        comms::option::FieldsImpl<typename EnumValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<EnumValues<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -176,7 +172,7 @@ public:
     EnumValues(EnumValues&& other) = default;
 
     /// @brief Destructor
-    virtual ~EnumValues() = default;
+    ~EnumValues() = default;
 
     /// @brief Copy assignment
     EnumValues& operator=(const EnumValues&) = default;

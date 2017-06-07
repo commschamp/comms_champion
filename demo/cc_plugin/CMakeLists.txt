@@ -17,6 +17,7 @@ function (cc_plugin_demo)
         Plugin.cpp
         Protocol.cpp
         TransportMessage.cpp
+        Message.cpp
         message/IntValues.cpp
         message/EnumValues.cpp
         message/BitmaskValues.cpp
@@ -58,3 +59,6 @@ if (CMAKE_COMPILER_IS_GNUCC)
 endif ()
     
 cc_plugin_demo ()
+
+FILE(GLOB_RECURSE headers "*.h")
+add_custom_target(demo.cc_plugin_headers SOURCES ${headers})

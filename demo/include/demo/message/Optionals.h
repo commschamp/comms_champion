@@ -20,7 +20,9 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
 
 namespace demo
 {
@@ -90,7 +92,7 @@ struct OptionalsFields
 ///     various implementation options. @n
 ///     See @ref OptionalsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class Optionals : public
     comms::MessageBase<
         TMsgBase,
@@ -100,13 +102,6 @@ class Optionals : public
         comms::option::HasDoRefresh
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_Optionals>,
-        comms::option::FieldsImpl<typename OptionalsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Optionals<TMsgBase> >,
-        comms::option::HasDoRefresh
-    > Base;
 public:
     /// @brief Allow access to internal fields.
     /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
@@ -129,7 +124,7 @@ public:
     Optionals(Optionals&& other) = default;
 
     /// @brief Destructor
-    virtual ~Optionals() = default;
+    ~Optionals() = default;
 
     /// @brief Copy assignment
     Optionals& operator=(const Optionals&) = default;
@@ -143,6 +138,7 @@ public:
     template <typename TIter>
     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
     {
+        using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
         auto es = Base::template readFieldsUntil<FieldIdx_field2>(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -194,7 +190,7 @@ public:
     }
 
 protected:
-    typedef OptionalsFields<typename TMsgBase::Field> FieldsStruct;
+    using FieldsStruct = OptionalsFields<typename TMsgBase::Field>;
 };
 
 }  // namespace message

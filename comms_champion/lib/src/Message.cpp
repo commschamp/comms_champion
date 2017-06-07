@@ -82,5 +82,11 @@ bool Message::decodeData(const DataSeq& data)
     return decodeDataImpl(data);
 }
 
+const QVariantList& Message::fieldsPropertiesImpl() const
+{
+    static const QVariantList Props;
+    return Props;
+}
+
 }  // namespace comms_champion
 

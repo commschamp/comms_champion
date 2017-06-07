@@ -41,45 +41,33 @@ namespace demo
 /// @tparam TOptions Zero or more extra options to be passed to the @b comms::Message
 ///     base class to define the interface.
 template <typename... TOptions>
-class MessageT : public
+class Message : public
     comms::Message<
-        TOptions...,
         comms::option::BigEndian,
-        comms::option::MsgIdType<MsgId> >
+        comms::option::MsgIdType<MsgId>,
+        TOptions...
+    >
 {
 public:
 
     /// @brief Default constructor
-    MessageT() = default;
+    Message() = default;
 
     /// @brief Copy constructor
-    MessageT(const MessageT&) = default;
+    Message(const Message&) = default;
 
     /// @brief Move constructor
-    MessageT(MessageT&&) = default;
+    Message(Message&&) = default;
 
     /// @brief Destructor
-    virtual ~MessageT() = default;
+    ~Message() = default;
 
     /// @brief Copy assignment operator
-    MessageT& operator=(const MessageT&) = default;
+    Message& operator=(const Message&) = default;
 
     /// @brief Move assignment operator
-    MessageT& operator=(MessageT&&) = default;
+    Message& operator=(Message&&) = default;
 };
-
-/// @brief Default Demo interface class.
-/// @details It is a typedef of MessageT class with extra following options:
-///     @li <b> comms::option::ReadIterator<const std::uint8_t*></b> -
-///         Enables read operation and specifies <b>const std::uint8_t*</b> as
-///         the iterator used for reading.
-///     @li <b> comms::option::WriteIterator<std::uint8_t*></b> -
-///         Enables write operation and specifies <b>std::uint8_t*</b> as
-///         the iterator used for writing.
-typedef MessageT<
-    comms::option::ReadIterator<const std::uint8_t*>,
-    comms::option::WriteIterator<std::uint8_t*>
-> Message;
 
 }  // namespace demo
 

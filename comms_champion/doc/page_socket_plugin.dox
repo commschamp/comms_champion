@@ -162,7 +162,7 @@
 ///     ...
 /// };
 /// @endcode
-/// If the socket requires configuration, please also provide a callback whic
+/// If the socket requires configuration, please also provide a callback which
 /// creates the widget when invoked (see @ref page_plugin_properties_config_widget).
 
 

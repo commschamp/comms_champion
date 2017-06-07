@@ -201,7 +201,8 @@ private:
     bool m_connected = false;
 };
 
-typedef std::shared_ptr<Socket> SocketPtr;
+/// @brief Pointer to @ref Socket object.
+using SocketPtr = std::shared_ptr<Socket>;
 
 }  // namespace comms_champion
 

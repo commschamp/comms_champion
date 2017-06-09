@@ -32,6 +32,18 @@
 namespace comms_champion
 {
 
+/// @brief Helper class used to define protocol message interface class
+///     in <b>CommsChampion Tools</b> plugin environment.
+/// @details Extends comms::Message as well as provided interface class, while
+///     passing required options to the latter.
+/// @tparam TMessageBase Name of the interface class defined for custom
+///     protocol. Expected to inherit (or typedef) from @b comms::Message
+///     and have the following definition:
+///     @code
+///     template <typename... TOptions>
+///     class MyInterfaceClass : public comms::Message<...> {...};
+///     @endcode
+/// @tparam TOptions Any extra options to be passed the the interface class
 template <template<typename...> class TMessageBase, typename... TOptions>
 class MessageBase :
         public comms_champion::Message,
@@ -57,40 +69,65 @@ class MessageBase :
             comms::option::RefreshInterface,
             TOptions...>;
 public:
-    typedef typename CommsBase::Handler Handler;
+    /// @brief Handler class
+    /// @see MessageHandler
+    using Handler = typename CommsBase::Handler;
 
+    /// @brief Default constructor
     MessageBase() = default;
+
+    /// @brief Copy Constructor
     MessageBase(const MessageBase&) = default;
+
+    /// @brief Move Constructor
     MessageBase(MessageBase&&) = default;
+
+    /// @brief Destructor
     ~MessageBase() = default;
+
+    /// @brief Copy assignment operator
     MessageBase& operator=(const MessageBase& other)
     {
         CommsBase::operator=(other);
         return *this;
     }
 
+    /// @brief Move assignment operator
     MessageBase& operator=(MessageBase&& other)
     {
         CommsBase::operator=(std::move(other));
         return *this;
     }
+
 protected:
 
+    /// @brief Overriding polymorphic refresh functionality.
+    /// @details Invokes @b refresh() inherited from the
+    ///     provided interface class
     virtual bool refreshMsgImpl() override
     {
         return CommsBase::refresh();
     }
 
+    /// @brief Overriding polymorphic retrieval of the id string
+    /// @details Invokes @b getId inherited from the provided interface
+    ///     class and converts it to string.
     virtual QString idAsStringImpl() const override
     {
         return QString("%1").arg(CommsBase::getId());
     }
 
+    /// @brief Overriding polymorphic validity check
+    /// @details Invokes @b valid() inherited from provided interface
+    ///     class.
     virtual bool isValidImpl() const override
     {
         return CommsBase::valid();
     }
 
+    /// @brief Overriding polymorphic serialisation functionaly
+    /// @details Invokes @b write() inherited from provided interface
+    ///     class.
     virtual DataSeq encodeDataImpl() const override
     {
         typedef typename CommsBase::WriteIterator WriteIterator;
@@ -104,6 +141,9 @@ protected:
         return encodeDataIntenal(Tag());
     }
 
+    /// @brief Overriding polymorphic deserialisation functionaly
+    /// @details Invokes @b read() inherited from provided interface
+    ///     class.
     virtual bool decodeDataImpl(const DataSeq& data) override
     {
         typedef typename CommsBase::ReadIterator ReadIterator;

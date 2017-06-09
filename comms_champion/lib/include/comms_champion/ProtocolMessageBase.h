@@ -25,29 +25,50 @@
 namespace comms_champion
 {
 
+/// @brief Helper class used to implement several pure
+///     virtual functions defined in comms_champion::Message interface
+///     class.
+/// @details It can be used to eliminate boilerplate code for implementing
+///     resetImpl() and assignImpl() function. The code looks the same for
+///     every message class.
+/// @tparam TMsgBase Type of the actual message, implemented as part of
+///     the protocol
+/// @tparam TActualMessage Type of the actual message class inheriting from
+///     this one
 template <typename TMsgBase, typename TActualMsg>
 class ProtocolMessageBase : public TMsgBase
 {
-    typedef TMsgBase Base;
-    typedef TActualMsg ActualMsg;
-
-public:
-    ProtocolMessageBase() = default;
-    ProtocolMessageBase(const ProtocolMessageBase&) = default;
-    ProtocolMessageBase(ProtocolMessageBase&&) = default;
-    virtual ~ProtocolMessageBase() = default;
-
-    ProtocolMessageBase& operator=(const ProtocolMessageBase&) = default;
-    ProtocolMessageBase& operator=(ProtocolMessageBase&&) = default;
+    using Base = TMsgBase;
+    using ActualMsg = TActualMsg;
 
 protected:
 
+    /// @brief Default constructor
+    ProtocolMessageBase() = default;
+
+    /// @brief Copy constructor
+    ProtocolMessageBase(const ProtocolMessageBase&) = default;
+
+    /// @brief Move constructor
+    ProtocolMessageBase(ProtocolMessageBase&&) = default;
+
+    /// @brief Destructor
+    ~ProtocolMessageBase() = default;
+
+    /// @brief Copy assignment
+    ProtocolMessageBase& operator=(const ProtocolMessageBase&) = default;
+
+    /// @brief Move assignment
+    ProtocolMessageBase& operator=(ProtocolMessageBase&&) = default;
+
+    /// @brief Overriding implementation to comms_champion::Message::resetImpl()
     virtual void resetImpl() override
     {
         auto& actObj = static_cast<ActualMsg&>(*this);
         actObj = ActualMsg();
     }
 
+    /// @brief Overriding implementation to comms_champion::Message::assignImpl()
     virtual bool assignImpl(const comms_champion::Message& other) override
     {
         auto* castedOther = dynamic_cast<const ActualMsg*>(&other);

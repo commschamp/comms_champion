@@ -62,7 +62,7 @@ public:
     Message(const Message&) = default;
 
     /// @brief Move constructor
-    Message(Message&) = default;
+    Message(Message&&) = default;
 
     /// @brief Destructor
     /// @details virtual to allow polymorphic destruction

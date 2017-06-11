@@ -40,46 +40,85 @@ namespace property
 namespace field
 {
 
+/// @brief Common set of properties
+/// @details Common base class for all other properties description classes
 class CC_API Common
 {
 public:
+    /// @brief Default constructor
     Common();
+
+    /// @brief Copy constructor
     Common(const Common&);
+
+    /// @brief Move constructor
     Common(Common&&);
-    Common(const QVariantMap& props);
-    Common(const QVariant& props);
+
+    /// @brief Construct from QVariantMap
+    explicit Common(const QVariantMap& props);
+
+    /// @brief Construct from QVariant that contains QVariantMap.
+    explicit Common(const QVariant& props);
+
+    /// @brief Destructor
     ~Common();
 
+    /// @brief Copy assignment operator
     Common& operator=(const Common&);
+
+    /// @brief Move assignment operator
     Common& operator=(Common&&);
 
+    /// @brief Get name of the field
     const QString& name() const;
+
+    /// @brief Check the field is hidden
     bool isHidden() const;
+
+    /// @brief Check the serialisation part is hidden
     bool isSerialisedHidden() const;
+
+    /// @brief Check whether the field cannot be modified.
     bool isReadOnly() const;
 
 protected:
 
+    /// @brief Update the name value
     void setName(const QString& value);
 
+    /// @brief Update the name value
     void setName(const char* value);
 
+    /// @brief Set whether the field is hidden
     void hidden(bool value = true);
 
+    /// @brief Set whether the serialised part is hidden
     void serialisedHidden(bool value = true);
 
+    /// @brief Set whether the field cannot be modified
     void readOnly(bool value = true);
 
+    /// @brief Copy all the properties value into provided properties map
     void setTo(QVariantMap& props) const;
 
+    /// @brief Read the properties values from the provided map
     void getFrom(const QVariantMap& props);
 
+    /// @brief set element value to the map
+    /// @param[in] val Value to set
+    /// @param[in] name Name of the property
+    /// @param[in, out] Map to update
     template <typename U>
     static void setElemTo(U&& val, const QString& name, QVariantMap& props)
     {
         props.insert(name, QVariant::fromValue(std::forward<U>(val)));
     }
 
+    /// @brief read element value from the map
+    /// @param[in] props Properties map
+    /// @param[in] name Property name
+    /// @param[in] defaultValue Value to return if not found in map
+    /// @return Value of found property in the map
     template <typename TValueType>
     static TValueType getElemFrom(
         const QVariantMap& props,
@@ -101,47 +140,73 @@ private:
     bool m_readOnly = false;
 };
 
+/// @brief Intermediate helper class to define properties describing one
+/// @tparam TDerived Actual derived class
 template <typename TDerived>
 class CommonBase : public Common
 {
-    typedef Common Base;
+    using Base = Common;
 public:
+    /// @brief Default constructor
     CommonBase() = default;
+
+    /// @brief Copy constructor
     CommonBase(const CommonBase&) = default;
+
+    /// @brief Move constructor
     CommonBase(CommonBase&&) = default;
-    CommonBase(const QVariantMap& props) : Base(props) {}
-    CommonBase(const QVariant& props) : Base(props) {}
+
+    /// @brief Construct from QVariantMap
+    explicit CommonBase(const QVariantMap& props) : Base(props) {}
+
+    /// @brief Construct from QVariant that contains QVariantMap.
+    explicit CommonBase(const QVariant& props) : Base(props) {}
+
+    /// @brief Destructor
     ~CommonBase() = default;
 
+    /// @brief Copy assignment
     CommonBase& operator=(const CommonBase&) = default;
+
+    /// @brief Move assignment
     CommonBase& operator=(CommonBase&&) = default;
 
     using Base::name;
 
+    /// @brief Set name value
+    /// @return `*this`
     TDerived& name(const QString& value)
     {
         Base::setName(value);
         return static_cast<TDerived&>(*this);
     }
 
+    /// @brief Set name value
+    /// @return `*this`
     TDerived& name(const char* value)
     {
         Base::setName(value);
         return static_cast<TDerived&>(*this);
     }
 
+    /// @brief Set whether the field is hidden
+    /// @return `*this`
     TDerived& hidden(bool value = true)
     {
         Base::hidden(value);
         return static_cast<TDerived&>(*this);
     }
 
+    /// @brief Set whether the serialised part is hidden
+    /// @return `*this`
     TDerived& serialisedHidden(bool value = true)
     {
         Base::serialisedHidden(value);
         return static_cast<TDerived&>(*this);
     }
 
+    /// @brief Set whether the field cannot be modified
+    /// @return `*this`
     TDerived& readOnly(bool value = true)
     {
         Base::readOnly(value);
@@ -149,27 +214,54 @@ public:
     }
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::IntValue fields.
 class CC_API IntValue : public CommonBase<IntValue>
 {
-    typedef CommonBase<IntValue> Base;
+    using Base = CommonBase<IntValue>;
 public:
+    /// @brief Default constructor
     IntValue();
+
+    /// @brief Copy constructor
     IntValue(const IntValue&);
+
+    /// @brief Move constructor
     IntValue(IntValue&&);
+
+    /// @brief Construct from QVariantMap
     IntValue(const QVariantMap& props);
+
+    /// @brief Construct from QVariant that contains QVariantMap.
     IntValue(const QVariant& props);
+
+    /// @brief Destructor
     ~IntValue();
 
+    /// @brief Copy assignement
     IntValue& operator=(const IntValue&);
+
+    /// @brief Move assignment
     IntValue& operator=(IntValue&&);
 
+    /// @brief Get numeric offset of the displayed field
     long long displayOffset() const;
+
+    /// @brief Set numeric offset for displayed field
     IntValue& displayOffset(long long value);
 
+    /// @brief Get number of digits after decimal point when displaying
+    ///     scaled value.
     int scaledDecimals() const;
+
+    /// @brief Check whether property of having scaled decimals being set
     bool hasScaledDecimals() const;
+
+    /// @brief Set number of digits after decimal point when displaying scaled
+    ///     value.
     IntValue& scaledDecimals(int value);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
 private:
@@ -179,29 +271,60 @@ private:
     int m_scaledDecimals = 0;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::EnumValue fields.
 class CC_API EnumValue : public CommonBase<EnumValue>
 {
-    typedef CommonBase<EnumValue> Base;
+    using Base = CommonBase<EnumValue>;
 public:
 
-    typedef QPair<QString, long long> ElemType;
-    typedef QList<ElemType> ElemsList;
+    /// @brief The enum value is described as string containing name and
+    ///     the actual numeric value.
+    using ElemType = QPair<QString, long long>;
 
+    /// @brief List of properties describing enum value
+    using ElemsList = QList<ElemType>;
+
+    /// @brief Default constructor
     EnumValue();
+
+    /// @brief Copy constructor
     EnumValue(const EnumValue&);
+
+    /// @brief Move constructor
     EnumValue(EnumValue&&);
+
+    /// @brief Construct from QVariantMap
     EnumValue(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     EnumValue(const QVariant& props);
+
+    /// @brief Destructor
     ~EnumValue();
 
+    /// @brief Copy assignement
     EnumValue& operator=(const EnumValue&);
+
+    /// @brief Move assignment
     EnumValue& operator=(EnumValue&&);
 
+    /// @brief Get access to all the values information
     const ElemsList& values() const;
 
+    /// @brief Add value description
+    /// @param[in] elemName Name of the value.
+    /// @param[in] value Numeric value
     EnumValue& add(const QString& elemName, long long value);
+
+    /// @brief Add value description
+    /// @details The assigned numeric value is the last inserted one incremented
+    ///     by 1. This function is convenient to use when describing enum
+    ///     with sequential values.
+    /// @param[in] elemName Name of the value.
     EnumValue& add(const QString& elemName);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 private:
     void getFrom(const QVariantMap& props);
@@ -209,28 +332,55 @@ private:
     ElemsList m_elems;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::BitmaskValue fields.
 class CC_API BitmaskValue : public CommonBase<BitmaskValue>
 {
-    typedef CommonBase<BitmaskValue> Base;
+    using Base = CommonBase<BitmaskValue>;
 public:
 
-    typedef QVariantList BitsList;
+    /// @brief List of bits descriptions.
+    using BitsList = QVariantList;
 
+    /// @brief Default constructor
     BitmaskValue();
+
+    /// @brief Copy constructor
     BitmaskValue(const BitmaskValue&);
+
+    /// @brief Move constructor
     BitmaskValue(BitmaskValue&&);
+
+    /// @brief Construct from QVariantMap
     BitmaskValue(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     BitmaskValue(const QVariant& props);
+
+    /// @brief Destructor
     ~BitmaskValue();
 
+    /// @brief Copy assignment
     BitmaskValue& operator=(const BitmaskValue&);
+
+    /// @brief Move assignment
     BitmaskValue& operator=(BitmaskValue&&);
 
+    /// @brief Get access to bits information
     const BitsList& bits() const;
 
+    /// @brief Add bit description
+    /// @param[in] idx Bit index
+    /// @param[in] bitName Name of the bit
     BitmaskValue& add(int idx, const QString& bitName);
+
+    /// @brief Add bit description.
+    /// @param[in] The bit value is assumed to be the last inserted one
+    ///     incremented by 1.
+    /// @param[in] bitName Name of the bit
     BitmaskValue& add(const QString& bitName);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 private:
     void getFrom(const QVariantMap& props);
@@ -238,28 +388,50 @@ private:
     BitsList m_bits;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::Bitfield fields.
 class CC_API Bitfield : public CommonBase<Bitfield>
 {
-    typedef CommonBase<Bitfield> Base;
+    using Base = CommonBase<Bitfield>;
 public:
 
-    typedef QList<QVariantMap> MembersList;
+    /// @brief Properties of contained fields.
+    using MembersList = QList<QVariantMap>;
 
+    /// @brief Default constructor
     Bitfield();
+
+    /// @brief Copy constructor
     Bitfield(const Bitfield&);
+
+    /// @brief Move constructor
     Bitfield(Bitfield&&);
+
+    /// @brief Construct from QVariantMap
     Bitfield(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     Bitfield(const QVariant& props);
+
+    /// @brief Desctructor
     ~Bitfield();
 
+    /// @brief Copy assignment
     Bitfield& operator=(const Bitfield&);
+
+    /// @brief Move assignment
     Bitfield& operator=(Bitfield&&);
 
+    /// @brief Get access to the properties of contained members
     const MembersList& members() const;
 
+    /// @brief Add properties of the next member
     Bitfield& add(QVariantMap&& memberProps);
+
+    /// @brief Add properties of the next member
     Bitfield& add(const QVariantMap& memberProps);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 private:
     void getFrom(const QVariantMap& props);
@@ -267,28 +439,50 @@ private:
     MembersList m_members;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::Bundle fields.
 class CC_API Bundle : public CommonBase<Bundle>
 {
-    typedef CommonBase<Bundle> Base;
+    using Base = CommonBase<Bundle>;
 public:
 
-    typedef QList<QVariantMap> MembersList;
+    /// @brief Properties of contained fields.
+    using MembersList = QList<QVariantMap>;
 
+    /// @brief Default constructor
     Bundle();
+
+    /// @brief Copy constructor
     Bundle(const Bundle&);
+
+    /// @brief Move constructor
     Bundle(Bundle&&);
+
+    /// @brief Construct from QVariantMap
     Bundle(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     Bundle(const QVariant& props);
+
+    ///  @brief Destructor
     ~Bundle();
 
+    /// @brief Copy assignment
     Bundle& operator=(const Bundle&);
+
+    /// @brief Move assignment
     Bundle& operator=(Bundle&&);
 
+    /// @brief Get access to the properties of contained members
     const MembersList& members() const;
 
+    /// @brief Add properties of the next member
     Bundle& add(QVariantMap&& memberProps);
+
+    /// @brief Add properties of the next member
     Bundle& add(const QVariantMap& memberProps);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 private:
     void getFrom(const QVariantMap& props);
@@ -296,49 +490,97 @@ private:
     MembersList m_members;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::String fields.
 class CC_API String : public CommonBase<String>
 {
     typedef CommonBase<String> Base;
 public:
+    /// @brief Default constructor
     String();
+
+    /// @brief Copy constructor
     String(const String&);
+
+    /// @brief Move constructor
     String(String&&);
+
+    /// @brief Construct from QVariantMap
     String(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     String(const QVariant& props);
+
+    /// @brief Destructor
     ~String();
 
+    /// @brief Copy assignment
     String& operator=(const String&);
+
+    /// @brief Move assignement
     String& operator=(String&&);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::ArrayList fields.
 class CC_API ArrayList : public CommonBase<ArrayList>
 {
     typedef CommonBase<ArrayList> Base;
 public:
-    typedef QList<QVariantMap> ElemsList;
+    /// @brief List of data elements' properties.
+    using ElemsList = QList<QVariantMap>;
 
+    /// @brief Default constructor
     ArrayList();
+
+    /// @brief Copy constructor
     ArrayList(const ArrayList&);
+
+    /// @brief Move constructor
     ArrayList(ArrayList&&);
+
+    /// @brief Construct from QVariantMap
     ArrayList(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     ArrayList(const QVariant& props);
+
+    /// @brief Destructor
     ~ArrayList();
 
+    /// @brief Copy assignment
     ArrayList& operator=(const ArrayList&);
+
+    /// @brief Move assignment
     ArrayList& operator=(ArrayList&&);
 
+    /// @brief Get access to the properties of elements.
     const ElemsList& elements() const;
+
+    /// @brief Add properties of the next element.
     ArrayList& add(QVariantMap&& elemProps);
+
+    /// @brief Add properties of the next element.
     ArrayList& add(const QVariantMap& elemProps);
 
+    /// @brief Check whether the size/length prefix field should be displayed
+    ///     separately.
     bool isPrefixVisible() const;
+
+    /// @brief Set whether the size/length prefix field should be displayed
+    ///     separately.
     ArrayList& showPrefix(bool value = true);
 
+    /// @brief Get name of the size/length prefix displayed separately.
     const QString& prefixName() const;
+
+    /// @brief Set name of the size/length prefix displayed separately.
     ArrayList& prefixName(const QString& name);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
 private:
@@ -349,27 +591,55 @@ private:
     QString m_prefixName;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::Optional fields.
 class CC_API Optional : public CommonBase<Optional>
 {
     typedef CommonBase<Optional> Base;
 public:
+
+    /// @brief Default constructor
     Optional();
+
+    /// @brief Copy constructor
     Optional(const Optional&);
+
+    /// @brief Move constructor
     Optional(Optional&&);
+
+    /// @brief Construct from QVariantMap
     Optional(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     Optional(const QVariant& props);
+
+    /// @brief Destructor
     ~Optional();
 
+    /// @brief Copy assignment
     Optional& operator=(const Optional&);
+
+    /// @brief Move assignment
     Optional& operator=(Optional&&);
 
+    /// @brief Get access to contained field's properties
     const QVariantMap& field() const;
+
+    /// @brief Set contained field's properties.
     Optional& field(QVariantMap&& fieldProps);
+
+    /// @brief Set contained field's properties.
     Optional& field(const QVariantMap& fieldProps);
 
+    /// @brief Check field is uncheckable.
+    /// @details Uncheckable means that the user cannot manually mark the field
+    ///     as existing/missing independently.
     bool isUncheckable() const;
+
+    /// @brief (Un)Mark the field uncheckable.
     Optional& uncheckable(bool value = true);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
 private:
@@ -379,23 +649,43 @@ private:
     bool m_uncheckable = false;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::FloatValue fields.
 class CC_API FloatValue : public CommonBase<FloatValue>
 {
     typedef CommonBase<FloatValue> Base;
 public:
+    /// @brief Default constructor
     FloatValue();
+
+    /// @brief Copy constructor
     FloatValue(const FloatValue&);
+
+    /// @brief Move constructor
     FloatValue(FloatValue&&);
+
+    /// @brief Construct from QVariantMap
     FloatValue(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     FloatValue(const QVariant& props);
+
+    /// @brief Destructor
     ~FloatValue();
 
+    /// @brief Copy assignment
     FloatValue& operator=(const FloatValue&);
+
+    /// @brief Move assignment
     FloatValue& operator=(FloatValue&&);
 
+    /// @brief Get number of decimal digits to display
     int decimals() const;
+
+    /// @brief Set number of decimal digits to display
     FloatValue& decimals(int value);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
 private:
@@ -404,31 +694,56 @@ private:
     int m_decimals = 0;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::Variant fields.
 class CC_API Variant : public CommonBase<Variant>
 {
     typedef CommonBase<Variant> Base;
 public:
 
-    typedef QList<QVariantMap> MembersList;
+    /// @brief List of properties of the contained fields.
+    using MembersList = QList<QVariantMap>;
 
+    /// @brief Default constructor
     Variant();
+
+    /// @brief Copy constructor
     Variant(const Variant&);
+
+    /// @brief Move constructor
     Variant(Variant&&);
+
+    /// @brief Construct from QVariantMap
     Variant(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     Variant(const QVariant& props);
+
+    /// @brief Destructor
     ~Variant();
 
+    /// @brief Copy assignment
     Variant& operator=(const Variant&);
+
+    /// @brief Move assignment
     Variant& operator=(Variant&&);
 
+    /// @brief Get access to the contained fields' properties.
     const MembersList& members() const;
 
+    /// @brief Add properties of the next member
     Variant& add(QVariantMap&& memberProps);
+
+    /// @brief Add properties of the next member.
     Variant& add(const QVariantMap& memberProps);
 
+    /// @brief Check the member index should be hidden when displaying field.
     bool isIndexHidden() const;
+
+    /// @brief Set the member index should be hidden when displaying field.
     Variant& setIndexHidden(bool hidden = true);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 private:
     void getFrom(const QVariantMap& props);
@@ -437,20 +752,37 @@ private:
     bool m_indexHidden = false;
 };
 
+/// @brief Class to contain all the properties relevant to
+///     @b comms::field::NoValue fields.
 class CC_API NoValue : public CommonBase<NoValue>
 {
     typedef CommonBase<NoValue> Base;
 public:
+    /// @brief Default constructor
     NoValue();
+
+    /// @brief Copy constructor
     NoValue(const NoValue&);
+
+    /// @brief Move constructor
     NoValue(NoValue&&);
+
+    /// @brief Construct from QVariantMap
     NoValue(const QVariantMap& props);
+
+    /// @brief Construct from QVariant containing QVariantMap
     NoValue(const QVariant& props);
+
+    /// @brief Descructor
     ~NoValue();
 
+    /// @brief Copy assignment
     NoValue& operator=(const NoValue&);
+
+    /// @brief Move assignment
     NoValue& operator=(NoValue&&);
 
+    /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 };
 
@@ -535,6 +867,8 @@ struct ForTag<comms::field::tag::NoValue>
 
 }  // namespace details
 
+/// @brief Get proper properties management class for field.
+/// @tparam TField Type of the field
 template <typename TField>
 using ForField = typename details::ForTag<typename TField::Tag>::Type;
 

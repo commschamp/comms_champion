@@ -16,6 +16,8 @@ if (DOXYGEN_FOUND)
             COMMAND ${DOXYGEN_EXECUTABLE} ${output_file}
             COMMAND ${CMAKE_COMMAND} -DDOC_OUTPUT_DIR="${doc_output_dir}" -P 
                             ${CMAKE_SOURCE_DIR}/cmake/DocCleanupScript.cmake
+            COMMAND ${CMAKE_COMMAND} -E copy_directory 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/doc/image ${doc_output_dir}/html/image
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()
 

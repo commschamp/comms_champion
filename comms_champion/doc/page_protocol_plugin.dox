@@ -218,3 +218,76 @@
 /// The full inheritence hierarchy will look like this:
 /// @diafile plugin_full_heirarchy.dia
 ///
+/// @section page_protocol_plugin_fields_properties Field and Their Properties
+/// The <b>CommsChampion Tools</b> are there to help visualise and debug custom
+/// binary protocols. The definition of the messages using @b COMMS library 
+/// is used to define serialisation and deserialisation of the protocol messages.
+/// However, such definitions do not cantain any extra information on how the message fields
+/// need to be displayed. For example, when displaying a value of 
+/// @b comms::field::EnumValue field, there is a need to display a human 
+/// readable "name" of the value in addition to its serialised raw bytes.
+///
+/// <img src="image/enum_value_field.png">
+///
+/// In order to provide the required information, the message definition class
+/// for the protocol plugin (@b demo::cc_plugin::IntValues) is expected to override inherited 
+/// comms_champion::Message::fieldsPropertiesImpl() and provide the required
+/// properties of the fields.
+/// @code
+/// namespace demo
+/// {
+/// namespace cc_plugin
+/// {
+/// namespace message
+/// {
+///
+/// class IntValues : public 
+///     comms_champion::ProtocolMessageBase<
+///         demo::message::IntValues<demo::cc_plugin::Message>,
+///         IntValues
+///     >
+/// {
+///     ...
+/// protected:
+///     virtual const QVariantList& fieldsPropertiesImpl() const override
+///     {
+///         static const QVariantList Props = createFieldsProperties(); // defined in anonymous namespace
+///         return Props;
+///     }
+/// };
+/// } // namespace message
+/// } // namespace cc_plugin
+/// } // namespace demo
+/// @endcode
+/// @b NOTE, that the properties are defined as `const static` variable
+/// and created only once upon first entry. The field's properties are the
+/// description on the way how the fields need to be displayed and do not
+/// depend on the field's value.
+/// 
+/// Also note, that the properties are stored in QVariantList, size of which
+/// must be equal to number of fields, the message contains.
+/// @code
+/// namespace
+/// {
+/// QVariantList createFieldsProperties()
+/// {
+///     QVariantList props;
+///     props.append(.../* properties of field1 */);
+///     props.append(.../* properties of field2 */);
+///     ...
+/// 
+///     assert(props.size() == IntValues::FieldIdx_numOfValues);
+///     return props;
+/// }
+/// } // namespace
+/// @endcode
+///
+/// One more thing to note is that set of properties for a single field are stored in
+/// @b QVariantMap. However, it is implicitly converted to @b QVariant when inserted
+/// into the @b QVariantList.
+///
+/// The helper classes that allow definition of the fields' properties reside
+/// in comms_champion::property::field namespace, please refer to
+/// @ref page_fields_properties separate tutorial page for details on how to
+/// use them.
+

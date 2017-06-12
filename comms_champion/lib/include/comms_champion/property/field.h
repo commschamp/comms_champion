@@ -250,12 +250,12 @@ public:
     /// @brief Set numeric offset for displayed field
     IntValue& displayOffset(long long value);
 
+    /// @brief Check whether property of having scaled decimals being set
+    bool hasScaledDecimals() const;
+
     /// @brief Get number of digits after decimal point when displaying
     ///     scaled value.
     int scaledDecimals() const;
-
-    /// @brief Check whether property of having scaled decimals being set
-    bool hasScaledDecimals() const;
 
     /// @brief Set number of digits after decimal point when displaying scaled
     ///     value.

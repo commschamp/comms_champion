@@ -209,14 +209,14 @@ IntValue& IntValue::displayOffset(long long value)
     return *this;
 }
 
-int IntValue::scaledDecimals() const
-{
-    return m_scaledDecimals;
-}
-
 bool IntValue::hasScaledDecimals() const
 {
     return 0 < scaledDecimals();
+}
+
+int IntValue::scaledDecimals() const
+{
+    return m_scaledDecimals;
 }
 
 IntValue& IntValue::scaledDecimals(int value)

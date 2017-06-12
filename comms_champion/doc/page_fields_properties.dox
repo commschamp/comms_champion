@@ -1,0 +1,191 @@
+/// @page page_fields_properties Defining Fields' Properties
+/// @tableofcontents
+/// The comms_champion::property::field namespace contains definition of
+/// multiple classes that are expected to be used to define fields properties.
+/// For example, let's take a look at definition of @b field1 of 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
+/// message of the @b demo protocol. The properties for such field can be
+/// defined as:
+/// @code
+/// QVariantMap props = 
+///     comms_champion::property::field::EnumValue()
+///         .name("field1")
+///         .add("Value1")
+///         .add("Value2")
+///         .add("Value3")
+///         .asMap();    
+/// @endcode
+/// @b NOTE the final call to @b asMap() member function to retrieved the
+/// set properties as @b QVariantMap.
+///
+/// In general, the name of the properties setting
+/// class is the same as the field's class name from the @b COMMS library. What differs is
+/// their respective namespaces.
+/// @li Use comms_champion::property::field::IntValue to define properties for @b comms::field::IntValue field.
+/// @li Use comms_champion::property::field::EnumValue to define properties for @b comms::field::EnumValue field.
+/// @li Use comms_champion::property::field::BitmaskValue to define properties for @b comms::field::BitmaskValue field.
+/// @li Use comms_champion::property::field::Bitfield to define properties for @b comms::field::Bitfield field.
+/// @li Use comms_champion::property::field::Bundle to define properties for @b comms::field::Bundle field.
+/// @li Use comms_champion::property::field::String to define properties for @b comms::field::String field.
+/// @li Use comms_champion::property::field::ArrayList to define properties for @b comms::field::ArrayList field.
+/// @li Use comms_champion::property::field::Optional to define properties for @b comms::field::Optional field.
+/// @li Use comms_champion::property::field::FloatValue to define properties for @b comms::field::FloatValue field.
+/// @li Use comms_champion::property::field::Variant to define properties for @b comms::field::Variant field.
+///
+/// The @b comms_champion library also provides the alias type
+/// (@ref comms_champion::property::field::ForField) which can be used
+/// to retrieve the right properties definition type, based on the type of the
+/// field. For example, the
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
+/// file contains the following code that defines properties for earlier mentioned 
+/// @b field1 field of the 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
+/// message of the @b demo protocol.
+/// @code
+/// namespace cc = comms_champion;
+/// ...
+/// cc::property::field::ForField<EnumValuesFields::field1>()
+///     .name("field1")
+///     .add("Value1")
+///     .add("Value2")
+///     .add("Value3")
+///     .asMap();
+/// @endcode
+/// Please note, that every "setter" function in every properties definition
+/// class returns reference to itself (`return *this`). It allows the 
+/// application of settings "one on top of another", just like in the example
+/// above.
+///
+/// @section page_fields_properties_common Common Properties
+/// All the mentioned earlier properties definition classes inherit from
+/// comms_champion::property::field::CommonBase, which in turn inherits from
+/// comms_champion::property::field::Common. These classes provide set/get
+/// functionality of all the properties common to all the fields. They are:
+/// @li @b name (see comms_champion::property::field::CommonBase::name())
+/// @li @b hidden (see comms_champion::property::field::CommonBase::hidden())
+/// @li @b readOnly (see comms_champion::property::field::CommonBase::readOnly())
+/// @li @b serialisedHidden (see comms_champion::property::field::CommonBase::serialisedHidden())
+///
+/// @subsection page_fields_properties_common_name "Name" Property
+/// Every field has a name. The @b cc_view (main GUI application of the
+/// <b>CommsChampion Tools</b>) uses the provided "name" property value to
+/// display the name of the field in the generated widget:
+/// 
+/// <img src="image/enum_value_field_name.png">
+///
+/// @subsection page_fields_properties_common_hidden "Hidden" Property
+/// The @b cc_view application generated widget for every defined field of the
+/// message and every contained member field for such complex fields as
+/// @b comms::field::Bitfield or @b comms::field::Bundle. The "hidden" property
+/// will hide the generated widget. It can be useful when defining some 
+/// reserved fields, which don't need to be displayed.
+/// 
+/// @subsection page_fields_properties_common_read_only "Read Only" Property
+/// The values of some fields may depend on values of some other fields. It may be 
+/// useful to disallow manual update of such fields. Good example would be having
+/// a field that shows number of elements in some other "list" field that 
+/// appears later in the message. The contents of the former should not be allowed
+/// to be updated manually. When "readOnly" property is set, the @b cc_view
+/// application will disallow update of the relevant GUI elements.
+///
+/// @subsection page_fields_properties_common_serialised_hidden "Serialised Hidden" Property.
+/// The @b cc_view application generated a widget for every field containing
+/// two parts. The left one contains value in human readable form, while right
+/// part contains raw byte(s) of the same value but serialised. The 
+/// "serialisedHidden" property can be used to hide the right (serialised) part
+/// of the widget. It can be useful when displaying complex fields. For example,
+/// @b field2 of the 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// message. It is defined to be a fixed size list (3 elements) of 
+/// @b int16_t values (@b comms::field::IntValue<...> fields). If the 
+/// "serialisedHidden" property is NOT set neither on the list, nor on
+/// the int fields, the generated widget will contain duplicate information
+/// on serialised values. It will look like this:
+///
+/// <img src="image/lists_dup_info.png">
+/// 
+/// It is up to developer to decide what "serialised" part to hide, whether it is
+/// of the list itself, or of the integer fields it contains.
+///
+/// @section page_fields_properties_int_value IntValue Properties
+/// In addition to @ref page_fields_properties_common the @b comms::field::IntValue
+/// field has several of its own.
+///
+/// @subsection page_fields_properties_int_value_display_offset "Display Offset" Property
+/// The @b COMMS library provides and ability to add a numeric offset to
+/// the value of @b comms::field::IntValue field when the latter is serialised.
+/// By default, the left-hand side of the field's widget displays the real 
+/// value the field contains. Sometimes it is required to display such value
+/// with additional offset added to it. For example, the @b demo protocol defines
+/// is transport wrapping data as:
+/// @code
+/// SYNC | LENGTH | ID | PAYLOAD | CHECKSUM
+/// @endcode
+/// The @b LENGTH value is defined to contain the remaining length @b including
+/// size of the @b CHECKSUM. However, the protocol stack is defined to have
+/// @b CHECKSUM layer wrapping the @b LENGTH one. As the result the real value of 
+/// the "length" field doesn't include length of the @b CHECKSUM value (see
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/Stack.h">Stack.h</a>).
+/// @code
+/// using LengthField =
+///     comms::field::IntValue<
+///         TField,
+///         std::uint16_t,
+///         comms::option::NumValueSerOffset<sizeof(std::uint16_t)>
+///     >;
+/// @endcode
+///
+/// When displaying such field, the latter should also add "2" to its displayed
+/// value (see 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>).
+/// @code
+/// QVariantList createFieldsProperties()
+/// {
+///     ...
+///     props.append(
+///         cc::property::field::ForField<LengthField>()
+///             .name("LENGTH")
+///             .displayOffset(2)
+///             .asMap());
+///     ...
+/// }
+/// @endcode
+/// See definition of comms_champion::property::field::IntValue::displayOffset()
+/// for more details.
+///
+/// @subsection page_fields_properties_int_value_scaled_decimals "Scaled Decimals" Property
+/// Many communcation protocols avoid serialisation of the floating point values.
+/// Instead they introduce scaling factor and use multiplication / division 
+/// operations to convert such floating point values to integral one prior to
+/// serialisation. Such fields may be defined using @b comms::field::IntValue
+/// classes (see @b field3 in 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/FloatValues.h">FloatValues</a>
+/// message definition).
+/// @code
+///     // Floating point value serialised as integer with (1e-2) scaling ratio.
+///     using field3 =
+///         comms::field::IntValue<
+///             TFieldBase,
+///             std::uint8_t,
+///             comms::option::ScalingRatio<1, 100>
+///         >;
+/// @endcode 
+/// However, sometimes it is desired to present it as floating point field
+/// to the user. In this case there is a need to provide information about
+/// how many digits need to be displayed after the decimal point (see
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/FloatValues.cpp">cc_plugin/message/FloatValues.cpp</a>
+/// ).
+/// @code
+/// QVariantList createFieldsProperties()
+/// {
+///     ...
+///     props.append(
+///         cc::property::field::ForField<FloatValuesFields::field3>()
+///             .name("field3")
+///             .scaledDecimals(2)
+///             .asMap());
+///     ...
+/// }
+/// @endcode 
+/// See definition of comms_champion::property::field::IntValue::scaledDecimals()
+/// for more details.

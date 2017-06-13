@@ -320,10 +320,137 @@
 /// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Strings.cpp">cc_plugin/message/Strings.cpp</a>.
 ///
 /// @section page_fields_properties_array_list ArrayList Properties
-/// The comms_champion::property::field::ArrayList object is expected to contain
-/// properties of other fields it may contain.
-/// TODO
-/// also properties of the contained member fields. The properties are added
-/// using comms_champion::property::field::Bitfield::add() member function. Note,
-/// that created properties are passed already converted to @b QVariantMap. 
-
+/// The @b comms::field::ArrayList is a variable length field. It may
+/// contain either raw bytes or variable number of fields of the same
+/// type. To set the properties for @b comms::field::ArrayList fields, the
+/// comms_champion::property::field::ArrayList can be used. In case of
+/// storing raw bytes, there is no need for any extra properties except
+/// ones listed in @ref page_fields_properties_common. Let's take a 
+/// look at definition of @b field1 of 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// message.
+/// @code
+/// // Raw data list that uses 2 bytes size prefix
+/// using field1 =
+///     comms::field::ArrayList<
+///         TFieldBase,
+///         std::uint8_t,
+///         comms::option::SequenceSizeFieldPrefix<
+///             comms::field::IntValue<
+///                 TFieldBase,
+///                 std::uint16_t
+///             >
+///         >
+///     >;
+/// @endcode
+/// The properties for it are defined in 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
+/// @code
+/// QVariantList createFieldsProperties()
+/// {
+///     QVariantList props;
+///     props.append(cc::property::field::ForField<ListsFields::field1>().name("field1").asMap());
+///     ...
+/// }
+/// @endcode
+/// When @b comms::field::ArrayList field contains other fields, there is 
+/// a need to provide properties for the latter as well. The properties
+/// for contained fields are added using comms_champion::property::field::ArrayList::add()
+/// member function. Let's take a look at definition of @b field2 of the same
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// message.
+/// @code
+/// // List of 2 bytes integer value fields, with fixed size of 3 elements
+/// using field2 =
+///     comms::field::ArrayList<
+///         TFieldBase,
+///         comms::field::IntValue<
+///             TFieldBase,
+///             std::int16_t
+///         >,
+///         comms::option::SequenceFixedSize<3>
+///     >;
+/// @endcode
+/// The maximum number of the elements the list is going to store is known. It is 3.
+/// Then, it is possible to assign different properties for each and every one
+/// of them. The same
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
+/// file contains the following code:
+/// @code
+/// QVariantMap createField2Properties()
+/// {
+///     typedef ListsFields::field2 Field2;
+///     static const auto ElemCount =
+///         Field2::ParsedOptions::SequenceFixedSize;
+/// 
+///     cc::property::field::ForField<ListsFields::field2> props;
+///     props.name("field2");
+/// 
+///     for (auto idx = 0U; idx < ElemCount; ++idx) {
+///         props.add(
+///             cc::property::field::IntValue()
+///                 .name(QString("element %1").arg(idx))
+///                 .serialisedHidden()
+///                 .asMap());
+///     }
+///     return props.asMap();
+/// }
+/// @endcode
+/// Note, that comms_champion::property::field::ArrayList::add() member functions
+/// was invoked multiple times providing different name for every contained
+/// field.
+///
+/// Quite often the maximum number of fields the @b comms::field::ArrayList field
+/// may contain is not known up front. In this case only one set of properties
+/// should be added to comms_champion::property::field::ArrayList object, which
+/// is going to be used for every displayed field that the list contains. As an
+/// example, let's take a look at @b field3 of the same 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// message.
+/// @code
+/// // List of 2 bytes integer value fields, prefixed with 2 bytes serialisation length
+/// using field3 =
+///     comms::field::ArrayList<
+///         TFieldBase,
+///         comms::field::IntValue<
+///             TFieldBase,
+///             std::uint16_t
+///         >,
+///         comms::option::SequenceSerLengthFieldPrefix<
+///             comms::field::IntValue<
+///                 TFieldBase,
+///                 std::uint16_t
+///             >
+///         >
+///     >;
+/// @endcode
+/// The same
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
+/// file contains the following properties setting code:
+/// @code
+/// QVariantMap createField3Properties()
+/// {
+///     return
+///         cc::property::field::ForField<ListsFields::field3>()
+///             .name("field3")
+///             .add(cc::property::field::IntValue().name("element").serialisedHidden().asMap())
+///             .asMap();
+/// }
+/// @endcode
+///
+/// Quite often the @b comms::field::ArrayList fields are prefixed with
+/// number of elements to follow or serialisation length, just like @b field3
+/// of the  
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// message mentioned earlier. Sometimes it would be convenient to hide 
+/// the "serialised" information of the list itself (
+/// on the right-hand side of the generated widget), but show one of the 
+/// contained fields. In this case the information about the list's 
+/// "prefix" part won't be displayed. To rectify this situation the
+/// comms_champion::property::field::ArrayList class provides an ability
+/// to show and name such prefix. Please use the following functions to 
+/// provide such information:
+/// @li comms_champion::property::field::ArrayList::showPrefix() 
+/// @li comms_champion::property::field::ArrayList::prefixName()
+/// 
+/// 

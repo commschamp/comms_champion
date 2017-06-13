@@ -375,7 +375,7 @@ public:
     BitmaskValue& add(int idx, const QString& bitName);
 
     /// @brief Add bit description.
-    /// @param[in] The bit value is assumed to be the last inserted one
+    /// @param[in] The bit index is assumed to be the last inserted one
     ///     incremented by 1.
     /// @param[in] bitName Name of the bit
     BitmaskValue& add(const QString& bitName);

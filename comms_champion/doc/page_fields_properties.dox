@@ -108,8 +108,8 @@
 /// of the list itself, or of the integer fields it contains.
 ///
 /// @section page_fields_properties_int_value IntValue Properties
-/// In addition to @ref page_fields_properties_common the @b comms::field::IntValue
-/// field has several of its own.
+/// In addition to @ref page_fields_properties_common, the 
+/// comms_champion::property::field::IntValue object has several of its own.
 ///
 /// @subsection page_fields_properties_int_value_display_offset "Display Offset" Property
 /// The @b COMMS library provides and ability to add a numeric offset to
@@ -189,3 +189,141 @@
 /// @endcode 
 /// See definition of comms_champion::property::field::IntValue::scaledDecimals()
 /// for more details.
+///
+/// @section page_fields_properties_enum_value EnumValue Properties
+/// In addition to @ref page_fields_properties_common, the 
+/// comms_champion::property::field::EnumValue object is expected to provide
+/// names to the enum values the @b comms::field::EnumValue field may contain. 
+/// To add such information
+/// comms_champion::property::field::EnumValue::add() functions may be used.
+/// As an example let's take a look at @b field1 of the
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
+/// message. Its enum type is defined to be
+/// @code
+/// enum class ValuesField1 : std::uint8_t
+/// {
+///     Value1, 
+///     Value2, 
+///     Value3, 
+///     NumOfValues
+/// };
+/// @endcode
+/// The first value starts at 0 and every next value is greater by 1 than
+/// the previous one. The properties of such field are defined in the following
+/// way (see
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
+/// ).
+/// @code
+/// QVariantList createFieldsProperties()
+/// {
+///     QVariantList props;
+///     props.append(
+///         cc::property::field::ForField<EnumValuesFields::field1>()
+///             .name("field1")
+///             .add("Value1")
+///             .add("Value2")
+///             .add("Value3")
+///             .asMap());
+///     ...
+/// }
+/// @endcode
+///
+/// As a second example let's take a look at @b field2 of the
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
+/// message. Its enum type is defined to be
+/// @code
+/// enum class ValuesField2 : std::int16_t
+/// {
+///     Value1 = -5, 
+///     Value2 = 100,
+///     Value3 = 130,
+///     Value4 = 1028
+/// };
+/// @endcode
+/// The properties of such enum field are defined in the following way (see
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
+/// ).
+/// @code
+/// QVariantList createFieldsProperties()
+/// {
+///     ...
+///     props.append(
+///         cc::property::field::ForField<EnumValuesFields::field2>()
+///             .name("field2")
+///             .add("Value1", (int)EnumValuesFields::ValuesField2::Value1)
+///             .add("Value2", (int)EnumValuesFields::ValuesField2::Value2)
+///             .add("Value3", (int)EnumValuesFields::ValuesField2::Value3)
+///             .add("Value4", (int)EnumValuesFields::ValuesField2::Value4)
+///             .asMap());
+///     ...
+/// }
+/// @endcode
+/// Please note the availability of two comms_champion::property::field::EnumValue::add()
+/// member functions. One of them receives numeric value of enumerator, the other
+/// doesn't. The latter just takes the latest inserted value, adds 1 to it and
+/// inserts the result as new one.
+///
+/// @section page_fields_properties_bitmask_value BitmaskValue Properties
+/// In addition to @ref page_fields_properties_common, the 
+/// comms_champion::property::field::BitmaskValue object is expected to provide
+/// names to the bits of the @b comms::field::BitmaskValue field.
+/// To add such information
+/// comms_champion::property::field::BitmaskValue::add() functions may be used.
+/// The usage is very similar to @ref page_fields_properties_enum_value. For
+/// examples please take a look at the 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/BitmaskValues.h">BitmaskValues</a>
+/// message fields definition and definition of the properties inside
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/BitmaskValues.cpp">cc_plugin/message/BitmaskValues.cpp</a>.
+///
+/// @section page_fields_properties_bitfield Bitfield Properties
+/// In addition to @ref page_fields_properties_common, the 
+/// comms_champion::property::field::Bitfield object is expected to provide
+/// also properties of the contained member fields. The properties are added
+/// using comms_champion::property::field::Bitfield::add() member function. Note,
+/// that created properties are passed already converted to @b QVariantMap. 
+/// For example, take a look at fields definitions of the 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Bitfields.h">Bitfields</a>
+/// message and their properties assignment inside the
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Bitfields.cpp">cc_plugin/message/Bitfields.cpp</a>.
+///
+/// @section page_fields_properties_bundle Bundle Properties
+/// Setting properties for @b comms::field::Bundle field is very similar to
+/// setting properties to @b comms::field::Bitfield (see @ref page_fields_properties_bitfield).
+/// The properties of the member fields are assigned using
+/// comms_champion::property::field::Bundle::add() member function.
+/// For example take a look at definition of @b field4 of the 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// message. The properties for the bundle field are assigned using
+/// the following code (see
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>).
+/// @code
+/// QVariantMap createField4Properties()
+/// {
+///     ...
+///     cc::property::field::ForField<ListsFields::field4::ValueType::value_type>()
+///         .name("element")
+///         .add(cc::property::field::IntValue().name("memeber1").asMap())
+///         .add(cc::property::field::IntValue().name("memeber2").asMap())
+///         .serialisedHidden()
+///         .asMap()
+///     ...
+/// }
+/// @endcode
+/// 
+/// @section page_fields_properties_string String Properties
+/// The comms_champion::property::field::String properties definition class 
+/// doesn't have any extra properties in addition to @ref page_fields_properties_common
+/// . For usage example, please take a look at
+/// For example, take a look at fields definitions of the 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Strings.h">Strings</a>
+/// message definition and defining properties to its field inside 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Strings.cpp">cc_plugin/message/Strings.cpp</a>.
+///
+/// @section page_fields_properties_array_list ArrayList Properties
+/// The comms_champion::property::field::ArrayList object is expected to contain
+/// properties of other fields it may contain.
+/// TODO
+/// also properties of the contained member fields. The properties are added
+/// using comms_champion::property::field::Bitfield::add() member function. Note,
+/// that created properties are passed already converted to @b QVariantMap. 
+

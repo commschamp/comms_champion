@@ -453,4 +453,82 @@
 /// @li comms_champion::property::field::ArrayList::showPrefix() 
 /// @li comms_champion::property::field::ArrayList::prefixName()
 /// 
-/// 
+/// @section page_fields_properties_optional Optional Properties
+/// The properties for @b comms::field::Optional field are set using
+/// comms_champion::property::field::Optional object. In addition
+/// to @ref page_fields_properties_common it must also contain properties 
+/// of the wrapped (contained) field. The properties of the latter are set
+/// using comms_champion::property::field::Optional::field() member function.
+///
+/// @subsection page_fields_properties_optional_uncheckable "Uncheckable" Property
+/// By default, the widget generated for the @b comms::field::Optional field
+/// will have small check box which can be used to mark the field as "existing" or
+/// "missing". However, most of the time the existence of the @b comms::field::Optional field
+/// is determined by the value of some other field (such as bit in some bitmask). 
+/// In this case, the user is not supposed to be able to use the described
+/// checkbox. Adding the "uncheckable" property will hide it.
+///
+/// As an example, let's take a look at 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Optionals.h">Optionals</a>
+/// message. The existance of its @b field2 and @b field3 fields is determined
+/// by the value of the @b field1. The properties of the mentioned field are
+/// set in 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Optionals.cpp">cc_plugin/message/Optionals.cpp</a>.
+/// file.
+/// @code
+/// QVariantMap createField2Properties()
+/// {
+///     static const char* Name = "field2";
+///     return
+///         cc::property::field::ForField<OptionalsFields::field2>()
+///             .name(Name)
+///             .field(
+///                 cc::property::field::ForField<OptionalsFields::field2::Field>()
+///                     .name(Name)
+///                     .asMap())
+///             .uncheckable()
+///             .asMap();
+/// }
+/// @endcode
+/// Please note, that the example above sets the same name for @b the comms::field::Optional
+/// field and the wrapped @b comms::field::IntValue field. The name assigned
+/// to the @b the comms::field::Optional field will be displayed when the field
+/// is "missing", but when it's marked as "existing", the widget of the 
+/// wrapped @b comms::field::IntValue field is displayed, showing the name 
+/// of the latter. 
+///
+/// @section page_fields_properties_float FloatValue Properties
+/// The properties for @b comms::field::FloatValue are defined using 
+/// comms_champion::property::field::FloatValue. Just like any other field
+/// it has all the properties described in @ref page_fields_properties_common.
+/// It also has one more.
+///
+/// @subsection page_fields_properties_float_decimals "Decimals" Properties
+/// When displaying value of the @b comms::field::FloatValue field there is a 
+/// need to know how many digits to display after the decimal point. The information
+/// is provided using comms_champion::property::field::FloatValue::decimals()
+/// member function. The
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/FloatValues.cpp">cc_plugin/message/FloatValues.cpp</a> 
+/// file contains code setting properties for such fields used by
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/FloatValues.h">FloatValues</a>
+/// message.
+///
+/// @section page_fields_properties_variant Variant Properties
+/// The process of assigning properties for @b comms::field::Variant field is
+/// very similar to setting properties to @b comms::field::Bundle (see
+/// @ref page_fields_properties_bundle). The properties for all possible fields
+/// the @b comms::field::Variant may contain are added using 
+/// comms_champion::property::field::Variant::add() member function in the order
+/// of their definition inside the provided @b std::tuple.
+///
+/// @subsection page_fields_properties_variant_index_hidden "IndexHidden" Property.
+/// When setting value of the @b comms::field::Variant field, the @b cc_view
+/// (main GUI application) allows choice of the actual field type using spin box
+/// with type index. However, when the widget has been created and displayed in
+/// "read only" mode such index may be hidden using described property. Use
+/// comms_champion::property::field::Variant::indexHidden() member function to
+/// set it. For example please take a look at definition of the 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Variants.h">Variants</a>
+/// message and the properties setting code inside
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Variants.cpp">cc_plugin/message/Variants.cpp</a>
+/// file.

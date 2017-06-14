@@ -107,7 +107,7 @@
 /// It is up to developer to decide what "serialised" part to hide, whether it is
 /// of the list itself, or of the integer fields it contains.
 ///
-/// @section page_fields_properties_int_value IntValue Properties
+/// @section page_fields_properties_int_value Properties for comms::field::IntValue
 /// In addition to @ref page_fields_properties_common, the 
 /// comms_champion::property::field::IntValue object has several of its own.
 ///
@@ -190,7 +190,7 @@
 /// See definition of comms_champion::property::field::IntValue::scaledDecimals()
 /// for more details.
 ///
-/// @section page_fields_properties_enum_value EnumValue Properties
+/// @section page_fields_properties_enum_value Properties for comms::field::EnumValue
 /// In addition to @ref page_fields_properties_common, the 
 /// comms_champion::property::field::EnumValue object is expected to provide
 /// names to the enum values the @b comms::field::EnumValue field may contain. 
@@ -263,7 +263,7 @@
 /// doesn't. The latter just takes the latest inserted value, adds 1 to it and
 /// inserts the result as new one.
 ///
-/// @section page_fields_properties_bitmask_value BitmaskValue Properties
+/// @section page_fields_properties_bitmask_value Properties for comms::field::BitmaskValue
 /// In addition to @ref page_fields_properties_common, the 
 /// comms_champion::property::field::BitmaskValue object is expected to provide
 /// names to the bits of the @b comms::field::BitmaskValue field.
@@ -275,7 +275,7 @@
 /// message fields definition and definition of the properties inside
 /// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/BitmaskValues.cpp">cc_plugin/message/BitmaskValues.cpp</a>.
 ///
-/// @section page_fields_properties_bitfield Bitfield Properties
+/// @section page_fields_properties_bitfield Properties for comms::field::Bitfield
 /// In addition to @ref page_fields_properties_common, the 
 /// comms_champion::property::field::Bitfield object is expected to provide
 /// also properties of the contained member fields. The properties are added
@@ -286,7 +286,7 @@
 /// message and their properties assignment inside the
 /// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Bitfields.cpp">cc_plugin/message/Bitfields.cpp</a>.
 ///
-/// @section page_fields_properties_bundle Bundle Properties
+/// @section page_fields_properties_bundle Properties for comms::field::Bundle
 /// Setting properties for @b comms::field::Bundle field is very similar to
 /// setting properties to @b comms::field::Bitfield (see @ref page_fields_properties_bitfield).
 /// The properties of the member fields are assigned using
@@ -310,7 +310,7 @@
 /// }
 /// @endcode
 /// 
-/// @section page_fields_properties_string String Properties
+/// @section page_fields_properties_string Properties for comms::field::String
 /// The comms_champion::property::field::String properties definition class 
 /// doesn't have any extra properties in addition to @ref page_fields_properties_common
 /// . For usage example, please take a look at
@@ -319,7 +319,7 @@
 /// message definition and defining properties to its field inside 
 /// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Strings.cpp">cc_plugin/message/Strings.cpp</a>.
 ///
-/// @section page_fields_properties_array_list ArrayList Properties
+/// @section page_fields_properties_array_list Properties for comms::field::ArrayList
 /// The @b comms::field::ArrayList is a variable length field. It may
 /// contain either raw bytes or variable number of fields of the same
 /// type. To set the properties for @b comms::field::ArrayList fields, the
@@ -453,7 +453,7 @@
 /// @li comms_champion::property::field::ArrayList::showPrefix() 
 /// @li comms_champion::property::field::ArrayList::prefixName()
 /// 
-/// @section page_fields_properties_optional Optional Properties
+/// @section page_fields_properties_optional Properties for comms::field::Optional
 /// The properties for @b comms::field::Optional field are set using
 /// comms_champion::property::field::Optional object. In addition
 /// to @ref page_fields_properties_common it must also contain properties 
@@ -497,7 +497,7 @@
 /// wrapped @b comms::field::IntValue field is displayed, showing the name 
 /// of the latter. 
 ///
-/// @section page_fields_properties_float FloatValue Properties
+/// @section page_fields_properties_float Properties for comms::field::FloatValue
 /// The properties for @b comms::field::FloatValue are defined using 
 /// comms_champion::property::field::FloatValue. Just like any other field
 /// it has all the properties described in @ref page_fields_properties_common.
@@ -513,7 +513,7 @@
 /// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/FloatValues.h">FloatValues</a>
 /// message.
 ///
-/// @section page_fields_properties_variant Variant Properties
+/// @section page_fields_properties_variant Properties for comms::field::Variant
 /// The process of assigning properties for @b comms::field::Variant field is
 /// very similar to setting properties to @b comms::field::Bundle (see
 /// @ref page_fields_properties_bundle). The properties for all possible fields

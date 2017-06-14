@@ -218,7 +218,7 @@
 /// The full inheritence hierarchy will look like this:
 /// @diafile plugin_full_heirarchy.dia
 ///
-/// @section page_protocol_plugin_fields_properties Field and Their Properties
+/// @section page_protocol_plugin_fields_properties Fields and Their Properties
 /// The <b>CommsChampion Tools</b> are there to help visualise and debug custom
 /// binary protocols. The definition of the messages using @b COMMS library 
 /// is used to define serialisation and deserialisation of the protocol messages.

@@ -42,6 +42,7 @@ namespace field
 
 /// @brief Common set of properties
 /// @details Common base class for all other properties description classes
+/// @headerfile comms_champion/property/field.h
 class CC_API Common
 {
 public:
@@ -142,6 +143,7 @@ private:
 
 /// @brief Intermediate helper class to define properties describing one
 /// @tparam TDerived Actual derived class
+/// @headerfile comms_champion/property/field.h
 template <typename TDerived>
 class CommonBase : public Common
 {
@@ -216,6 +218,7 @@ public:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::IntValue fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API IntValue : public CommonBase<IntValue>
 {
     using Base = CommonBase<IntValue>;
@@ -273,6 +276,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::EnumValue fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API EnumValue : public CommonBase<EnumValue>
 {
     using Base = CommonBase<EnumValue>;
@@ -334,6 +338,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::BitmaskValue fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API BitmaskValue : public CommonBase<BitmaskValue>
 {
     using Base = CommonBase<BitmaskValue>;
@@ -390,6 +395,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::Bitfield fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API Bitfield : public CommonBase<Bitfield>
 {
     using Base = CommonBase<Bitfield>;
@@ -441,6 +447,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::Bundle fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API Bundle : public CommonBase<Bundle>
 {
     using Base = CommonBase<Bundle>;
@@ -492,6 +499,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::String fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API String : public CommonBase<String>
 {
     typedef CommonBase<String> Base;
@@ -526,6 +534,7 @@ public:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::ArrayList fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API ArrayList : public CommonBase<ArrayList>
 {
     typedef CommonBase<ArrayList> Base;
@@ -593,6 +602,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::Optional fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API Optional : public CommonBase<Optional>
 {
     typedef CommonBase<Optional> Base;
@@ -651,6 +661,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::FloatValue fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API FloatValue : public CommonBase<FloatValue>
 {
     typedef CommonBase<FloatValue> Base;
@@ -696,6 +707,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::Variant fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API Variant : public CommonBase<Variant>
 {
     typedef CommonBase<Variant> Base;
@@ -754,6 +766,7 @@ private:
 
 /// @brief Class to contain all the properties relevant to
 ///     @b comms::field::NoValue fields.
+/// @headerfile comms_champion/property/field.h
 class CC_API NoValue : public CommonBase<NoValue>
 {
     typedef CommonBase<NoValue> Base;
@@ -869,6 +882,7 @@ struct ForTag<comms::field::tag::NoValue>
 
 /// @brief Get proper properties management class for field.
 /// @tparam TField Type of the field
+/// @headerfile comms_champion/property/field.h
 template <typename TField>
 using ForField = typename details::ForTag<typename TField::Tag>::Type;
 

@@ -35,6 +35,7 @@ namespace comms_champion
 ///     the protocol
 /// @tparam TActualMessage Type of the actual message class inheriting from
 ///     this one
+/// @headerfile comms_champion/ProtocolMessageBase.h
 template <typename TMsgBase, typename TActualMsg>
 class ProtocolMessageBase : public TMsgBase
 {

@@ -28,28 +28,18 @@ namespace demo
 namespace cc_plugin
 {
 
-namespace details
-{
-
-using TransportMessageFields =
-    std::tuple<
-        demo::SyncField<cc_plugin::Message::Field>,
-        demo::LengthField<cc_plugin::Message::Field>,
-        demo::MsgIdField<cc_plugin::Message::Field>,
-        demo::DataField<cc_plugin::Message::Field>,
-        demo::ChecksumField<cc_plugin::Message::Field>
-    >;
-
-}  // namespace details
-
 class TransportMessage : public
     comms_champion::TransportMessageBase<
         cc_plugin::Message,
-        details::TransportMessageFields>
+        std::tuple<
+            demo::SyncField<cc_plugin::Message::Field>,
+            demo::LengthField<cc_plugin::Message::Field>,
+            demo::MsgIdField<cc_plugin::Message::Field>,
+            demo::DataField<cc_plugin::Message::Field>,
+            demo::ChecksumField<cc_plugin::Message::Field>
+        >
+    >
 {
-    typedef comms_champion::TransportMessageBase<
-        cc_plugin::Message,
-        details::TransportMessageFields> Base;
 public:
     enum FieldIdx
     {

@@ -38,6 +38,7 @@ namespace comms_champion
 {
 
 /// @brief Interface class for plugin definition
+/// @headerfile comms_champion/Plugin.h
 class CC_API Plugin : public QObject
 {
 public:

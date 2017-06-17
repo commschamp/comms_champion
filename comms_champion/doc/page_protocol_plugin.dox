@@ -12,7 +12,7 @@
 /// @section page_protocol_plugin_protocol_def Protocol Definition
 /// The protocol messages as well as wrapping transport information need to be
 /// implemented using 
-/// <a href="https://github.com/arobenko/comms_champion#comms-library">COMMS Library</a>.
+/// <a href="https://github.com/arobenko/comms_champion#comms-library">COMMS Library</a>
 /// in a certain generic way, which will allow it to be compiled and used
 /// in any application, whether it is bare-metal platform with limited resouces or
 /// @b protocol plugin for
@@ -61,7 +61,7 @@
 /// @endcode
 /// @b NOTE, that the message definition class inherits from @b comms::MessageBase,
 /// which will inherit from provided @b TMsgBase template parameter. The
-/// provided template parameter must be alias to, or ihererit (directly or indirectly) from
+/// provided template parameter must be alias to, or inherit (directly or indirectly) from
 /// @b comms::Message.
 ///
 /// When defining transport layers, allow selection of the common interface
@@ -222,7 +222,7 @@
 /// The <b>CommsChampion Tools</b> are there to help visualise and debug custom
 /// binary protocols. The definition of the messages using @b COMMS library 
 /// is used to define serialisation and deserialisation of the protocol messages.
-/// However, such definitions do not cantain any extra information on how the message fields
+/// However, such definitions do not contain any extra information on how the message fields
 /// need to be displayed. For example, when displaying a value of 
 /// @b comms::field::EnumValue field, there is a need to display a human 
 /// readable "name" of the value in addition to its serialised raw bytes.
@@ -259,7 +259,7 @@
 /// } // namespace cc_plugin
 /// } // namespace demo
 /// @endcode
-/// @b NOTE, that the properties are defined as `const static` variable
+/// @b NOTE, that the properties are defined as `static const` variable
 /// and created only once upon first entry. The field's properties are the
 /// description on the way how the fields need to be displayed and do not
 /// depend on the field's value.
@@ -285,9 +285,328 @@
 /// One more thing to note is that set of properties for a single field are stored in
 /// @b QVariantMap. However, it is implicitly converted to @b QVariant when inserted
 /// into the @b QVariantList.
+/// 
+/// If the message doesn't have any fields, there is no need to override
+/// comms_champion::Message::fieldsPropertiesImpl(). The
+/// comms_champion::Message class itself provides default implementation which
+/// returns empty list.
 ///
 /// The helper classes that allow definition of the fields' properties reside
 /// in comms_champion::property::field namespace, please refer to
 /// @ref page_fields_properties separate tutorial page for details on how to
 /// use them.
+///
+/// @section page_protocol_plugin_all_messages All Messages
+/// Afther all the message classes for the protocol plagin were defined, they
+/// need to be bundled into @b std::tuple (see
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/AllMessages.h">cc_plugin/AllMessages.h</a>).
+/// @code
+/// namespace demo
+/// {
+/// 
+/// namespace cc_plugin
+/// {
+/// 
+/// using AllMessages = std::tuple<
+///     cc_plugin::message::IntValues,
+///     cc_plugin::message::EnumValues,
+///     cc_plugin::message::BitmaskValues,
+///     cc_plugin::message::Bitfields,
+///     cc_plugin::message::Strings,
+///     cc_plugin::message::Lists,
+///     cc_plugin::message::Optionals,
+///     cc_plugin::message::FloatValues,
+///     cc_plugin::message::Variants
+/// >;
+/// 
+/// static_assert(std::tuple_size<AllMessages>::value == MsgId_NumOfValues,
+///     "Some messages are missing");
+/// 
+/// }  // namespace cc_plugin
+/// 
+/// }  // namespace demo
+/// @endcode
+///
+/// @section page_protocol_plugin_stack Protocol Stack
+/// The @ref page_protocol_plugin_protocol_def section above defined how
+/// protocol stack should be defined when implementing common protocol definition.
+/// Usage of the template parameters leaves us space to redefine it for 
+/// <b>CommsChampion Tools</b> plugin environment (see
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Stack.h">cc_plugin/Stack.h</a>).
+/// @code
+/// namespace demo
+/// {
+/// 
+/// namespace cc_plugin
+/// {
+/// 
+/// using Stack = demo::Stack<
+///     cc_plugin::Message,
+///     cc_plugin::AllMessages
+/// >;
+/// 
+/// }  // namespace cc_plugin
+/// 
+/// }  // namespace demo
+/// @endcode
+/// NOTE, that the passed first template parameter is the common interface class
+/// for all the message classes in the plugin environment (defined in the
+/// @ref page_protocol_plugin_message section), and the second
+/// template parameter is the messages themselves.
+///
+/// @section page_protocol_plugin_transport_message Transport Message
+/// In order to understand what the "Transport Message" is, let's take a look
+/// how the @b cc_view (main GUI application of the <b>CommsChampion Tools</b>)
+/// displays a message. The bottom right area allows to request a display of
+/// "Transport" information instead of message itself with its fields.
+/// <img src="image/protocol_stack_transport.png">
+/// When clicked it displays the transport information instead of application message.
+/// <img src="image/protocol_stack_transport_msg.png">
+/// The displayed transport information is presented like any other message, but
+/// with fields difined by the "protocol stack".
+///
+/// In order to support displaying of the transport information for the newly 
+/// developed protocol plugin, there is a need to create a dummy message, 
+/// which will contain all the fields defined by the protocol stack. Please see the
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.h">cc_plugin/TransportMessage.h</a>
+/// and
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>
+/// as an example.
+/// @code
+/// namespace demo
+/// {
+/// 
+/// namespace cc_plugin
+/// {
+/// 
+/// class TransportMessage : public
+///     comms_champion::TransportMessageBase<
+///         cc_plugin::Message,
+///         std::tuple<
+///             demo::SyncField<cc_plugin::Message::Field>,
+///             demo::LengthField<cc_plugin::Message::Field>,
+///             demo::MsgIdField<cc_plugin::Message::Field>,
+///             demo::DataField<cc_plugin::Message::Field>,
+///             demo::ChecksumField<cc_plugin::Message::Field>
+///         >
+///     >
+/// {
+///     ...
+/// };
+/// 
+/// }  // namespace cc_plugin
+/// 
+/// }  // namespace demo
+/// @endcode
+/// Note, that the @b demo::cc_plugin::TransportMessage class inherits from
+/// comms_champion::TransportMessageBase providing two template parameters.
+/// The first one is common message interface class (@b demo::cc_plugin::Message)
+/// defined in @ref page_protocol_plugin_message section. The second parameter
+/// is @b std::tuple of all the fields used to defined "protocol stack", but
+/// appearing <b>in order of their serialisation</b>. 
+///
+/// The "protocol stack" defines
+/// its internal type @b AllFields, which contains all the "transport" fields
+/// <b>in order of their appearance in protocol stack definition</b>. If
+/// order of fields' @b serialisation is the same as order of fields' appearance
+/// in protocol stack, the @b AllFields internal type could be reused. However,
+/// this is not the case for @b demo protocol. The latter defines its protocol
+/// stack in the following way:
+/// @diafile demo_protocol_stack.dia
+/// The @b CHECKSUM layer wraps the @b LENGTH. As the result the fields are defined
+/// in the following order.
+/// @code
+/// std::tuple<
+///     demo::SyncField<cc_plugin::Message::Field>,
+///     demo::ChecksumField<cc_plugin::Message::Field>, // <--- The checksum is here
+///     demo::LengthField<cc_plugin::Message::Field>,
+///     demo::MsgIdField<cc_plugin::Message::Field>,
+///     demo::DataField<cc_plugin::Message::Field>
+/// >
+/// @endcode
+/// In case of direct reusing of @b demo::Stack::AllFields the transport information
+/// would be displayed incorrectly.
+///
+/// The @b TransportMessage is a descendent of common message interface class 
+/// defined for the plugin (@b demo::cc_plugin::Message) and is expected
+/// to provide properties of its fields.
+/// @code
+/// namespace demo
+/// {
+/// 
+/// namespace cc_plugin
+/// {
+/// 
+/// class TransportMessage : public
+///     comms_champion::TransportMessageBase<...>
+/// {
+///     ...
+/// protected:
+///     virtual const QVariantList& fieldsPropertiesImpl() const override;
+/// };
+/// 
+/// }  // namespace cc_plugin
+/// 
+/// }  // namespace demo
+/// @endcode
+/// The <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>
+/// file contains code of this function. Please refer to @ref page_fields_properties
+/// tutorial page to learn how to set field's properties.
+///
+/// @the @b TransportMessage is also a descendent of common message interface class
+/// defined as part of the protocol definition (@b demo::Message). One of the
+/// base classes up the inheritance chain provides default implementation of
+/// @b comms::Message::readImpl() virtual function. However, in case of the
+/// @b demo protocol, the default implementation is incorrect. An attempt to
+/// deserialise such message will fail. This is because
+/// the @b PAYLOAD field doesn't have any length limitation and will consume
+/// all input without leaving anything to the @b CHECKSUM value. In order to 
+/// fix it the implementation of 
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.h">demo::cc_plugin::TransportMessage</a>
+/// needs to override it and provide correct implementation.
+/// @code
+/// namespace demo
+/// {
+/// 
+/// namespace cc_plugin
+/// {
+/// 
+/// class TransportMessage : public
+///     comms_champion::TransportMessageBase<...>
+/// {
+/// public:
+///     enum FieldIdx
+///     {
+///         FieldIdx_Sync,
+///         FieldIdx_Len,
+///         FieldIdx_Id,
+///         FieldIdx_Payload,
+///         FieldIdx_Checksum,
+///         FieldIdx_NumOfValues
+///     };
+///     ...
+/// protected:
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override
+///     {
+///         static const auto ChecksumLen =
+///             sizeof(demo::ChecksumField<cc_plugin::Message::Field>::ValueType);
+///     
+///         size -= ChecksumLen;
+///         auto es = readFieldsUntil<FieldIdx_Checksum>(iter, size);
+///         if (es == comms::ErrorStatus::Success) {
+///             size += ChecksumLen;
+///             es = readFieldsFrom<FieldIdx_Checksum>(iter, size);
+///         }
+///         return es;
+///     }
+/// };
+/// 
+/// }  // namespace cc_plugin
+/// 
+/// }  // namespace demo
+/// @endcode
+/// The @b readFieldsUntil() and @b readFieldsFrom() functions are provided
+/// by @b comms::MessageBase class, which is also one of the ancestors to
+/// the @b TransportMessage class.
+///
+/// @section page_protocol_plugin_protocol Protocol Class
+/// The <b>CommsChampion Tools</b> use comms_champion::Protocol polymorphic
+/// interface class to create and update messages. It means that our @b protocol
+/// definition class needs to be a descendent of comms_champion::Protocol. The
+/// latter defines multiple pure virtual functions, which the derived class
+/// must implement. The @b CommsChampion library also provides 
+/// comms_champion::ProtocolBase template class, which inherits from 
+/// comms_champion::Protocol and implements most of the
+/// required virtual functions using info from provided template parameters. 
+/// Hence, the custom protocol definition class
+/// needs to inherit from comms_champion::ProtocolBase and provide necessary
+/// info.
+/// 
+/// The @b demo protocol defines its @b Protocol class in
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Protocol.h">cc_plugin/Protocol.h</a> and
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Protocol.cpp">cc_plugin/Protocol.cpp</a>
+/// files.
+/// @code
+/// namespace demo
+/// {
+/// 
+/// namespace cc_plugin
+/// {
+/// 
+/// class Protocol : public
+///     comms_champion::ProtocolBase<
+///         cc_plugin::Stack,
+///         TransportMessage
+///     >
+/// {
+/// public:
+///     Protocol() = default;
+///     virtual ~Protocol();
+/// 
+/// protected:
+///     virtual const QString& nameImpl() const override
+///     {
+///         static const QString& Str("Demo");
+///         return Str;
+///     }
+/// };
+/// 
+/// }  // namespace cc_plugin
+///
+/// }  // namespace demo
+/// @endcode
+/// Please note the following:
+/// @li The first template parameter to comms_champion::ProtocolBase class is a definition
+/// of the "protocol stack" (see @ref page_protocol_plugin_stack), which handles
+/// all the transport data.
+/// @li The second template parameter to comms_champion::Protocol class is a definition
+/// of the "transport message", i.e the one difined in @ref page_protocol_plugin_transport_message
+/// section.
+/// @li The only pure virtual function defined by comms_champion::Protocol and 
+/// not implemented in comms_champion::ProtocolBase is comms_champion::Protocol::nameImpl(), 
+/// i.e. the one that provides name of the protocol. The defined protocol class must override
+/// and implement it.
+///
+/// @section page_protocol_plugin_plugin_class Plugin Class
+/// The final thing to do is to define the actual plugin class.
+/// Please read the @ref page_plugin page first to understand the way the 
+/// plugins are defined.
+///
+/// The @b demo protocol defines its @b Plugin class in
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Protocol.h">cc_plugin/Plugin.h</a> and
+/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Protocol.cpp">cc_plugin/Plugin.cpp</a>
+/// files.
+/// @code
+/// namespace demo
+/// {
+/// 
+/// namespace cc_plugin
+/// {
+/// 
+/// class Plugin : public comms_champion::Plugin
+/// {
+///     Q_OBJECT
+///     Q_PLUGIN_METADATA(IID "cc.DemoProtocol" FILE "demo.json")
+///     Q_INTERFACES(comms_champion::Plugin)
+/// 
+/// public:
+///     Plugin()
+///     {
+///         pluginProperties()
+///             .setProtocolCreateFunc(
+///                 [this]()
+///                 {
+///                     // allocates previously defined demo::cc_plugin::Protocol
+///                     return comms_champion::ProtocolPtr(new Protocol());
+///                 });
+///     }
+/// };
+///
+/// } // namespace cc_plugin
+///
+/// } // namespace demo
+/// @endcode
+/// If the protocol requires configuration, please also provide a callback which
+/// creates the widget when invoked (see @ref page_plugin_properties_config_widget).
+
 

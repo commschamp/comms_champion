@@ -40,6 +40,7 @@ class MessageWidget;
 
 /// @brief Main interface class used by <b>CommsChampion Tools</b>
 ///     to display and manipulate messages.
+/// @headerfile comms_champion/Message.h
 class CC_API Message : public QObject
 {
     using Base = QObject;

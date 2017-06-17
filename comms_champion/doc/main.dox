@@ -1,7 +1,7 @@
 /// @mainpage CommsChampion Library
 /// @tableofcontents
 /// The <a href="https://github.com/arobenko/comms_champion#commschampion-tools">CommsChampion Tools</a> 
-/// are there to provide consistent environment for binary protocols 
+/// are there to provide consistent and generic environment for binary protocols 
 /// visualisation, traffic monitor and analysis. They are all plugin based. 
 /// Plugins are used to select I/O socket, protocol definition itself as well as 
 /// zero or more data filters in between. The @b CommsChampion Library can be 
@@ -10,7 +10,7 @@
 /// The overall picture looks like this:
 /// @diafile app_plugin_lib_rel.dia
 /// The @b CommsChampion (comms_champion.dll) shared library contains common code that 
-/// used by both the application and the plugin to it. The plugin itself is
+/// is used by both the application and the plugin to it. The plugin itself is
 /// also a shared library, which is loaded by the application at run-time. It allows
 /// the @b application to be completely generic and used with any protocol.
 ///
@@ -41,6 +41,14 @@
 ///     ... // Some other relevant objects
 ///     return app->exec();
 /// }
+/// @endcode
+///
+/// @section mainpage_headers Header Files
+/// The documentation page of every mentioned in the tutorial class specifies
+/// the relevant include statement. The @b CommsChampion library also provides
+/// single "include all" file which can be used.
+/// @code
+/// #include "comms_champion/comms_champion.h"
 /// @endcode
 ///
 /// @section mainpage_tutorials Tutorials

@@ -37,7 +37,7 @@ namespace demo
 namespace cc_plugin
 {
 
-typedef std::tuple<
+using AllMessages = std::tuple<
     cc_plugin::message::IntValues,
     cc_plugin::message::EnumValues,
     cc_plugin::message::BitmaskValues,
@@ -47,7 +47,7 @@ typedef std::tuple<
     cc_plugin::message::Optionals,
     cc_plugin::message::FloatValues,
     cc_plugin::message::Variants
-> AllMessages;
+>;
 
 static_assert(std::tuple_size<AllMessages>::value == MsgId_NumOfValues,
     "Some messages are missing");

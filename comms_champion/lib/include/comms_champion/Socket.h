@@ -38,6 +38,7 @@ namespace comms_champion
 /// @brief Main polymorphic interface class for sockets.
 /// @details It is used by @b CommsChampion @b Tools to drive low level
 ///     I/O operations.
+/// @headerfile comms_champion/Socket.h
 class CC_API Socket
 {
 public:

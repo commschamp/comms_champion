@@ -42,6 +42,7 @@ namespace comms_champion
 {
 
 /// @brief Accumulation of various properties of @ref Plugin.
+/// @headerfile comms_champion/PluginProperties.h
 class CC_API PluginProperties
 {
 public:

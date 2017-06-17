@@ -44,6 +44,7 @@ namespace comms_champion
 ///     class MyInterfaceClass : public comms::Message<...> {...};
 ///     @endcode
 /// @tparam TOptions Any extra options to be passed the the interface class
+/// @headerfile comms_champion/MessageBase.h
 template <template<typename...> class TMessageBase, typename... TOptions>
 class MessageBase :
         public comms_champion::Message,

@@ -44,6 +44,14 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
+/// @brief Helper class to define custom @ref Protocol
+/// @details Provides the default implementation to most of the virtual
+///     functions defined by @ref Protocol class.
+/// @tparam TProtStack Definition of the protocol stack.
+/// @tparam TTransportMsg Definition of the "Transport Message".
+/// @tparam TRawDataMsg Definition of the "Raw Data Message", defaults to
+///     @ref RawDataMessage
+/// @headerfile comms_champion/ProtocolBase.h
 template <
     typename TProtStack,
     typename TTransportMsg,
@@ -51,21 +59,41 @@ template <
 class ProtocolBase : public Protocol
 {
 protected:
+    /// @brief Default constructor
     ProtocolBase() = default;
 
-    typedef TProtStack ProtocolStack;
-    typedef TTransportMsg TransportMsg;
-    typedef TRawDataMsg RawDataMsg;
-    typedef typename ProtocolStack::MsgPtr ProtocolMsgPtr;
+    /// @brief Definition of "protocol stack" type.
+    using ProtocolStack = TProtStack;
+
+    /// @brief Definition of "Transport Message" type.
+    using TransportMsg = TTransportMsg;
+
+    /// @brief Definition of "Raw Data Message" type
+    using RawDataMsg = TRawDataMsg;
+
+    /// @brief Definition of the pointer to message object
+    using ProtocolMsgPtr = typename ProtocolStack::MsgPtr;
     static_assert(!std::is_void<ProtocolMsgPtr>::value,
         "ProtocolStack does not define MsgPtr");
 
-    typedef typename ProtocolMsgPtr::element_type ProtocolMessage;
-    typedef typename ProtocolMessage::MsgIdType MsgIdType;
-    typedef typename ProtocolMessage::MsgIdParamType MsgIdParamType;
-    typedef typename ProtocolStack::AllMessages AllMessages;
-    typedef InvalidMessage<ProtocolMessage> InvalidMsg;
-    typedef ExtraInfoMessage<ProtocolMessage> ExtraInfoMsg;
+    /// @brief Type of the common interface class
+    using ProtocolMessage = typename ProtocolMsgPtr::element_type;
+
+    /// @brief Type used to represent message ID.
+    using MsgIdType = typename ProtocolMessage::MsgIdType;
+
+    /// @brief Type of message ID when passed as a parameter.
+    using MsgIdParamType = typename ProtocolMessage::MsgIdParamType;
+
+    /// @brief All messages bundle (@b std::tuple)
+    /// @details Taken from "protocol stack" definition.
+    using AllMessages = typename ProtocolStack::AllMessages;
+
+    /// @brief Type of "Invalid Message".
+    using InvalidMsg = InvalidMessage<ProtocolMessage>;
+
+    /// @brief Type of "Extra Info Message"
+    using ExtraInfoMsg = ExtraInfoMessage<ProtocolMessage>;
 
     static_assert(
         !std::is_void<AllMessages>::value,
@@ -75,7 +103,7 @@ protected:
         comms::util::IsTuple<AllMessages>::Value,
         "AllMessages is expected to be a tuple.");
 
-
+    /// @brief Overriding implementation to Protocol::readImpl().
     virtual MessagesList readImpl(const DataInfo& dataInfo, bool final) override
     {
         const std::uint8_t* iter = &dataInfo.m_data[0];
@@ -242,6 +270,7 @@ protected:
         return allMsgs;
     }
 
+    /// @brief Overriding implementation to Protocol::writeImpl().
     virtual DataInfoPtr writeImpl(Message& msg) override
     {
         DataInfo::DataSeq data;
@@ -269,6 +298,7 @@ protected:
         return dataInfo;
     }
 
+    /// @brief Overriding implementation to Protocol::updateMessageImpl().
     virtual UpdateStatus updateMessageImpl(Message& msg) override
     {
         bool refreshed = msg.refreshMsg();
@@ -349,6 +379,7 @@ protected:
         return UpdateStatus::NoChange;
     }
 
+    /// @brief Overriding implementation to Protocol::cloneMessageImpl().
     virtual MessagePtr cloneMessageImpl(const Message& msg) override
     {
         MessagePtr clonedMsg;
@@ -370,6 +401,7 @@ protected:
         return clonedMsg;
     }
 
+    /// @brief Overriding implementation to Protocol::createInvalidMessageImpl().
     virtual MessagePtr createInvalidMessageImpl() override
     {
         MessagePtr msg(new InvalidMsg());
@@ -377,36 +409,43 @@ protected:
         return msg;
     }
 
+    /// @brief Overriding implementation to Protocol::createRawDataMessageImpl().
     virtual MessagePtr createRawDataMessageImpl() override
     {
         return MessagePtr(new RawDataMsg());
     }
 
+    /// @brief Overriding implementation to Protocol::createExtraInfoMessageImpl().
     virtual MessagePtr createExtraInfoMessageImpl() override
     {
         return MessagePtr(new ExtraInfoMsg());
     }
 
+    /// @brief Overriding implementation to Protocol::createAllMessagesImpl().
     virtual MessagesList createAllMessagesImpl() override
     {
         return createAllMessagesInTuple<AllMessages>();
     }
 
+    /// @brief Overriding implementation to Protocol::createMessageImpl().
     virtual MessagePtr createMessageImpl(const QString& idAsString, unsigned idx) override
     {
         return createMessageInternal(idAsString, idx, MsgIdTypeTag());
     }
 
+    /// @brief Get access to embedded "protocol stack" object.
     ProtocolStack& protocolStack()
     {
         return m_protStack;
     }
 
+    /// @brief Get access to embedded "protocol stack" object.
     const ProtocolStack& protocolStack() const
     {
         return m_protStack;
     }
 
+    /// @brief Helper function to create message
     MessagePtr createMessage(MsgIdParamType id, unsigned idx = 0)
     {
         auto msgPtr = m_protStack.createMsg(id, idx);
@@ -417,6 +456,8 @@ protected:
         return MessagePtr(std::move(msgPtr));
     }
 
+    /// @brief Helper function allowing creation of all messages, types of which
+    ///     provided in the template parameter.
     template <typename TMsgsTuple>
     MessagesList createAllMessagesInTuple()
     {

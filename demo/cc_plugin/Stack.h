@@ -28,10 +28,10 @@ namespace demo
 namespace cc_plugin
 {
 
-typedef demo::Stack<
+using Stack = demo::Stack<
     cc_plugin::Message,
     cc_plugin::AllMessages
-> Stack;
+>;
 
 }  // namespace cc_plugin
 

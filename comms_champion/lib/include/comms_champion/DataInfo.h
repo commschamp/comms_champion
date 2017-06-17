@@ -36,6 +36,7 @@ namespace comms_champion
 {
 
 /// @brief Information about incomming or outdoing data
+/// @headerfile "comms_champion/DataInfo.h"
 struct DataInfo
 {
     /// @brief Type of clock used for timestamping

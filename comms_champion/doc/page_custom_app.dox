@@ -1,5 +1,10 @@
 /// @page page_custom_app Developing Custom Tool Application
 /// @tableofcontents
-/// TODO
+/// The @b CommsChampion library also contains multiple classes that may
+/// support development of a custom tool application. However, at these moment
+/// most classes are not documented and the tutorial on how to use them is
+/// not written yet. If you have plans on developing such an application please
+/// get in touch with the author to request the tutorial been written and/or 
+/// ask for guidance.
 ///
 

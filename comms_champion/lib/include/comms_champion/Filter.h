@@ -39,6 +39,7 @@ namespace comms_champion
 /// @brief Main polymorphic interface class for filters.
 /// @details The filter can be used to implement encryption / decryption of
 ///     the data, and/or additional transport layer.
+/// @headerfile comms_champion/Filter.h
 class CC_API Filter : public QObject
 {
 public:

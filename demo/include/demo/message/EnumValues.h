@@ -23,6 +23,7 @@
 #include "comms/fields.h"
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -31,9 +32,7 @@ namespace message
 {
 
 /// @brief Accumulates details of all the EnumValues message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see EnumValues
-template <typename TFieldBase>
 struct EnumValuesFields
 {
     /// @brief Enumeration type for the @ref field1
@@ -49,7 +48,7 @@ struct EnumValuesFields
     /// @brief Simple 1 byte enumeration value.
     using field1 =
         comms::field::EnumValue<
-            TFieldBase,
+            FieldBase,
             ValuesField1,
             comms::option::ValidNumValueRange<(int)0, (int)ValuesField1::NumOfValues - 1>
     >;
@@ -84,7 +83,7 @@ struct EnumValuesFields
     ///     serialised using 2 bytes.
     using field2 =
         comms::field::EnumValue<
-            TFieldBase,
+            FieldBase,
             ValuesField2,
             comms::option::ContentsValidator<ValuesField2Validator>,
             comms::option::DefaultNumValue<(int)ValuesField2::Value1>
@@ -122,7 +121,7 @@ struct EnumValuesFields
     ///     serialised using base-128 encoding.
     using field3 =
         comms::field::EnumValue<
-            TFieldBase,
+            FieldBase,
             ValuesField3,
             comms::option::ContentsValidator<ValuesField3Validator>,
             comms::option::VarLength<1, 2>,
@@ -149,7 +148,7 @@ class EnumValues : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_EnumValues>,
-        comms::option::FieldsImpl<typename EnumValuesFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<EnumValuesFields::All>,
         comms::option::MsgType<EnumValues<TMsgBase> >
     >
 {

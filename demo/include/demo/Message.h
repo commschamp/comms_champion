@@ -22,7 +22,7 @@
 
 #include <cstdint>
 
-#include "comms/comms.h"
+#include "comms/Message.h"
 
 #include "MsgId.h"
 

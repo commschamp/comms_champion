@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-typedef demo::message::BitfieldsFields<Bitfields::Field> BitfieldsFields;
+using BitfieldsFields = demo::message::BitfieldsFields;
 
 QVariantMap createField1BitmaskProperties()
 {

@@ -23,6 +23,7 @@
 #include "comms/fields.h"
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -31,32 +32,30 @@ namespace message
 {
 
 /// @brief Accumulates details of all the Optionals message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see Optionals
-template <typename TFieldBase>
 struct OptionalsFields
 {
-    /// @brief Bits indices of the @ref field1 bitmask.
-    enum
-    {
-        field1_enableField2, ///< index of the bit controlling existence of @ref field2
-        field1_enableField3, ///< index of the bit controlling existence of @ref field3
-        field1_numOfBits ///< number of bits in use
-    };
     /// @brief Bitmask that is used to enable/disable other fields
-    using field1 =
+    struct field1 : public
         comms::field::BitmaskValue<
-            TFieldBase,
+            FieldBase,
             comms::option::FixedLength<1>,
             comms::option::BitmaskReservedBits<0xfc, 0>
-        >;
+        >
+    {
+        /// @brief Provide names for internal bits.
+        /// @details See definition of @b COMMS_BITMASK_BITS macro
+        ///     related to @b comms::field::BitmaskValue class from COMMS library
+        ///     for details.
+        COMMS_BITMASK_BITS(enableField2, enableField3);
+    };
 
     /// @brief Optional 2 bytes unsigned integer value
     /// @details Existence of this field is controlled by bit 0 in @ref field1
     using field2 =
         comms::field::Optional<
             comms::field::IntValue<
-                TFieldBase,
+                FieldBase,
                 std::uint16_t
             >
         >;
@@ -66,10 +65,10 @@ struct OptionalsFields
     using field3 =
         comms::field::Optional<
             comms::field::String<
-                TFieldBase,
+                FieldBase,
                 comms::option::SequenceSizeFieldPrefix<
                     comms::field::IntValue<
-                        TFieldBase,
+                        FieldBase,
                         std::uint8_t
                     >
                 >
@@ -97,7 +96,7 @@ class Optionals : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
-        comms::option::FieldsImpl<typename OptionalsFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<OptionalsFields::All>,
         comms::option::MsgType<Optionals<TMsgBase> >,
         comms::option::HasDoRefresh
     >
@@ -144,13 +143,14 @@ public:
             return es;
         }
 
+        using Field1Type = typename std::decay<decltype(field_field1())>::type;
         auto field2Mode = comms::field::OptionalMode::Missing;
-        if (field_field1().getBitValue(FieldsStruct::field1_enableField2)) {
+        if (field_field1().getBitValue(Field1Type::BitIdx_enableField2)) {
             field2Mode = comms::field::OptionalMode::Exists;
         }
 
         auto field3Mode = comms::field::OptionalMode::Missing;
-        if (field_field1().getBitValue(FieldsStruct::field1_enableField3)) {
+        if (field_field1().getBitValue(Field1Type::BitIdx_enableField3)) {
             field3Mode = comms::field::OptionalMode::Exists;
         }
 
@@ -165,13 +165,14 @@ public:
     ///     @b false otherwise.
     bool doRefresh()
     {
+        using Field1Type = typename std::decay<decltype(field_field1())>::type;
         auto field2ExpectedMode = comms::field::OptionalMode::Missing;
-        if (field_field1().getBitValue(FieldsStruct::field1_enableField2)) {
+        if (field_field1().getBitValue(Field1Type::BitIdx_enableField2)) {
             field2ExpectedMode = comms::field::OptionalMode::Exists;
         }
 
         auto field3ExpectedMode = comms::field::OptionalMode::Missing;
-        if (field_field1().getBitValue(FieldsStruct::field1_enableField3)) {
+        if (field_field1().getBitValue(Field1Type::BitIdx_enableField3)) {
             field3ExpectedMode = comms::field::OptionalMode::Exists;
         }
 
@@ -189,8 +190,6 @@ public:
         return refreshed;
     }
 
-protected:
-    using FieldsStruct = OptionalsFields<typename TMsgBase::Field>;
 };
 
 }  // namespace message

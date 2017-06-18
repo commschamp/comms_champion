@@ -32,11 +32,11 @@ class TransportMessage : public
     comms_champion::TransportMessageBase<
         cc_plugin::Message,
         std::tuple<
-            demo::SyncField<cc_plugin::Message::Field>,
-            demo::LengthField<cc_plugin::Message::Field>,
-            demo::MsgIdField<cc_plugin::Message::Field>,
-            demo::DataField<cc_plugin::Message::Field>,
-            demo::ChecksumField<cc_plugin::Message::Field>
+            demo::SyncField,
+            demo::LengthField,
+            demo::MsgIdField,
+            demo::DataField<>,
+            demo::ChecksumField
         >
     >
 {

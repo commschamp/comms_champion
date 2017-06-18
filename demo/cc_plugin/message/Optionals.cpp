@@ -33,16 +33,17 @@ namespace message
 namespace
 {
 
-typedef demo::message::OptionalsFields<Optionals::Field> OptionalsFields;
+using OptionalsFields = demo::message::OptionalsFields;
 
 QVariantMap createField1Properties()
 {
-    cc::property::field::ForField<OptionalsFields::field1> props;
+    using Field = OptionalsFields::field1;
+    cc::property::field::ForField<Field> props;
     props.name("field1")
          .add("enable_field2")
          .add("enable_field3");
 
-    assert(props.bits().size() == OptionalsFields::field1_numOfBits);
+    assert(props.bits().size() == Field::BitIdx_numOfValues);
     return props.asMap();
 }
 

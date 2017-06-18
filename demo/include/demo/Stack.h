@@ -25,6 +25,7 @@
 
 #include "MsgId.h"
 #include "Message.h"
+#include "FieldBase.h"
 
 namespace demo
 {
@@ -32,46 +33,42 @@ namespace demo
 /// @brief Field representing synchronisation information in
 ///     message wrapping.
 /// @details Expects <b>0xab 0xbc</b>sequence.
-template <typename TField>
 using SyncField =
     comms::field::IntValue<
-        TField,
+        FieldBase,
         std::uint16_t,
         comms::option::DefaultNumValue<0xabcd>,
         comms::option::ValidNumValueRange<0xabcd, 0xabcd>
     >;
 
 /// @brief Field representing last two checksum bytes in message wrapping.
-template <typename TField>
 using ChecksumField =
     comms::field::IntValue<
-        TField,
+        FieldBase,
         std::uint16_t
     >;
 
 /// @brief Field representing remaining length in message wrapping.
-template <typename TField>
 using LengthField =
     comms::field::IntValue<
-        TField,
+        FieldBase,
         std::uint16_t,
         comms::option::NumValueSerOffset<sizeof(std::uint16_t)>
     >;
 
 /// @brief Field representing message ID in message wrapping.
-template <typename TField>
 using MsgIdField =
     comms::field::EnumValue<
-        TField,
+        FieldBase,
         MsgId,
         comms::option::ValidNumValueRange<0, MsgId_NumOfValues - 1>
     >;
 
 /// @brief Field representing full message payload.
-template <typename TField, typename... TOptions>
+template <typename... TOptions>
 using DataField =
     comms::field::ArrayList<
-        TField,
+        FieldBase,
         std::uint8_t,
         TOptions...
     >;
@@ -115,18 +112,18 @@ template <
     typename TDataFieldStorageOptions = std::tuple<> >
 using Stack =
     comms::protocol::SyncPrefixLayer<
-        SyncField<typename TMsgBase::Field>,
+        SyncField,
         comms::protocol::ChecksumLayer<
-            ChecksumField<typename TMsgBase::Field>,
+            ChecksumField,
             comms::protocol::checksum::BasicSum<std::uint16_t>,
             comms::protocol::MsgSizeLayer<
-                LengthField<typename TMsgBase::Field>,
+                LengthField,
                 comms::protocol::MsgIdLayer<
-                    MsgIdField<typename TMsgBase::Field>,
+                    MsgIdField,
                     TMsgBase,
                     TMessages,
                     comms::protocol::MsgDataLayer<
-                        DataField<typename TMsgBase::Field, TDataFieldStorageOptions>
+                        DataField<TDataFieldStorageOptions>
                     >,
                     TMsgAllocOptions
                 >

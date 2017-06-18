@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-typedef demo::message::FloatValuesFields<FloatValues::Field> FloatValuesFields;
+using FloatValuesFields = demo::message::FloatValuesFields;
 
 QVariantList createFieldsProperties()
 {

@@ -23,6 +23,7 @@
 #include "comms/fields.h"
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -32,9 +33,7 @@ namespace message
 {
 
 /// @brief Accumulates details of all the Bitfields message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see Bitfields
-template <typename TFieldBase>
 struct BitfieldsFields
 {
     /// @brief Bit access indices for @ref field1_bitmask
@@ -51,7 +50,7 @@ struct BitfieldsFields
     ///     defined to be reserved and must be 0.
     using field1_bitmask =
         comms::field::BitmaskValue<
-            TFieldBase,
+            FieldBase,
             comms::option::FixedLength<1>,
             comms::option::FixedBitLength<4>,
             comms::option::BitmaskReservedBits<0xf8, 0>
@@ -69,7 +68,7 @@ struct BitfieldsFields
     /// @brief Enumeration field, that consumes 2 bits in @ref field1 bitfield.
     using field1_enum =
         comms::field::EnumValue<
-            TFieldBase,
+            FieldBase,
             Field1Enum,
             comms::option::ValidNumValueRange<(int)0, (int)Field1Enum::NumOfValues - 1>,
             comms::option::FixedBitLength<2>
@@ -78,7 +77,7 @@ struct BitfieldsFields
     /// @brief Integer field, that consumes 6 bits in @ref field1 bitfield.
     using field1_int1 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::uint8_t,
             comms::option::FixedBitLength<6>,
             comms::option::ValidNumValueRange<0, 0x3f>
@@ -87,7 +86,7 @@ struct BitfieldsFields
     /// @brief Integer field, that consumes 4 bits in @ref field1 bitfield.
     using field1_int2 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::uint8_t,
             comms::option::FixedBitLength<4>,
             comms::option::ValidNumValueRange<0, 0xf>
@@ -97,7 +96,7 @@ struct BitfieldsFields
     ///     @ref field1_int1, and @ref field1_int2 as its internal members
     struct field1 : public
         comms::field::Bitfield<
-            TFieldBase,
+            FieldBase,
             std::tuple<
                 field1_bitmask,
                 field1_enum,
@@ -137,7 +136,7 @@ class Bitfields : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Bitfields>,
-        comms::option::FieldsImpl<typename BitfieldsFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<BitfieldsFields::All>,
         comms::option::MsgType<Bitfields<TMsgBase> >
     >
 {

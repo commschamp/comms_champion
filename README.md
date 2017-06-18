@@ -198,15 +198,9 @@ of this project contains the updated list of all the protocols that have been
 implemented and can be used as reference.
 
 # Developing Custom Socket/Filter/Protocol Plugin
-At this moment the [CommsChampion](#commschampion-tools) tools are in their alpha 
-and being extensively developed. No 
-documentation on the available API and how to develop plugins is currently available,
-will be provided in the future once the API stabilises.
-
-However, if you have tried [CommsChampion Tools](#commschampion-tools) with
-any other binary protocol and would like to develop a plugin for your own one,
-developed internally by your company, please get in touch 
-(see [Contact Information](#contact-information) below). I will be able to help.
+The full tutorial as well as API documentation can be downloaded from
+[Dropbox]() 
+or from [release artifacts](https://github.com/arobenko/comms_champion/releases).
 
 # Licence
 The [COMMS Library](#comms-library) from this repository is licensed under

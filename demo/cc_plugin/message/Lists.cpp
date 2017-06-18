@@ -33,11 +33,11 @@ namespace message
 namespace
 {
 
-typedef demo::message::ListsFields<Lists::Field> ListsFields;
+using ListsFields = demo::message::ListsFields;
 
 QVariantMap createField2Properties()
 {
-    typedef ListsFields::field2 Field2;
+    using Field2 = ListsFields::field2;
     static const auto ElemCount =
         Field2::ParsedOptions::SequenceFixedSize;
 

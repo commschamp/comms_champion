@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-typedef demo::message::EnumValuesFields<EnumValues::Field> EnumValuesFields;
+using EnumValuesFields = demo::message::EnumValuesFields;
 
 QVariantList createFieldsProperties()
 {

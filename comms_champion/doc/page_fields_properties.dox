@@ -129,7 +129,7 @@
 /// @code
 /// using LengthField =
 ///     comms::field::IntValue<
-///         TField,
+///         FieldBase,
 ///         std::uint16_t,
 ///         comms::option::NumValueSerOffset<sizeof(std::uint16_t)>
 ///     >;
@@ -165,7 +165,7 @@
 ///     // Floating point value serialised as integer with (1e-2) scaling ratio.
 ///     using field3 =
 ///         comms::field::IntValue<
-///             TFieldBase,
+///             FieldBase,
 ///             std::uint8_t,
 ///             comms::option::ScalingRatio<1, 100>
 ///         >;
@@ -333,11 +333,11 @@
 /// // Raw data list that uses 2 bytes size prefix
 /// using field1 =
 ///     comms::field::ArrayList<
-///         TFieldBase,
+///         FieldBase,
 ///         std::uint8_t,
 ///         comms::option::SequenceSizeFieldPrefix<
 ///             comms::field::IntValue<
-///                 TFieldBase,
+///                 FieldBase,
 ///                 std::uint16_t
 ///             >
 ///         >
@@ -363,9 +363,9 @@
 /// // List of 2 bytes integer value fields, with fixed size of 3 elements
 /// using field2 =
 ///     comms::field::ArrayList<
-///         TFieldBase,
+///         FieldBase,
 ///         comms::field::IntValue<
-///             TFieldBase,
+///             FieldBase,
 ///             std::int16_t
 ///         >,
 ///         comms::option::SequenceFixedSize<3>
@@ -411,14 +411,14 @@
 /// // List of 2 bytes integer value fields, prefixed with 2 bytes serialisation length
 /// using field3 =
 ///     comms::field::ArrayList<
-///         TFieldBase,
+///         FieldBase,
 ///         comms::field::IntValue<
-///             TFieldBase,
+///             FieldBase,
 ///             std::uint16_t
 ///         >,
 ///         comms::option::SequenceSerLengthFieldPrefix<
 ///             comms::field::IntValue<
-///                 TFieldBase,
+///                 FieldBase,
 ///                 std::uint16_t
 ///             >
 ///         >

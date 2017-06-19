@@ -50,7 +50,7 @@
 ///     comms::MessageBase<
 ///         TMsgBase,
 ///         comms::option::StaticNumIdImpl<MsgId_IntValues>,
-///         comms::option::FieldsImpl<typename IntValuesFields<typename TMsgBase::Field>::All>,
+///         comms::option::FieldsImpl<IntValuesFields::All>,
 ///         comms::option::MsgType<IntValues<TMsgBase> >
 ///     >
 /// {
@@ -383,11 +383,11 @@
 ///     comms_champion::TransportMessageBase<
 ///         cc_plugin::Message,
 ///         std::tuple<
-///             demo::SyncField<cc_plugin::Message::Field>,
-///             demo::LengthField<cc_plugin::Message::Field>,
-///             demo::MsgIdField<cc_plugin::Message::Field>,
-///             demo::DataField<cc_plugin::Message::Field>,
-///             demo::ChecksumField<cc_plugin::Message::Field>
+///             demo::SyncField,
+///             demo::LengthField,
+///             demo::MsgIdField,
+///             demo::DataField<>,
+///             demo::ChecksumField
 ///         >
 ///     >
 /// {
@@ -417,11 +417,11 @@
 /// in the following order.
 /// @code
 /// std::tuple<
-///     demo::SyncField<cc_plugin::Message::Field>,
-///     demo::ChecksumField<cc_plugin::Message::Field>, // <--- The checksum is here
-///     demo::LengthField<cc_plugin::Message::Field>,
-///     demo::MsgIdField<cc_plugin::Message::Field>,
-///     demo::DataField<cc_plugin::Message::Field>
+///     demo::SyncField,
+///     demo::ChecksumField, // <--- The checksum is here
+///     demo::LengthField,
+///     demo::MsgIdField,
+///     demo::DataField<>
 /// >
 /// @endcode
 /// In case of direct reusing of @b demo::Stack::AllFields the transport information
@@ -489,7 +489,7 @@
 ///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override
 ///     {
 ///         static const auto ChecksumLen =
-///             sizeof(demo::ChecksumField<cc_plugin::Message::Field>::ValueType);
+///             sizeof(demo::ChecksumField::ValueType);
 ///     
 ///         size -= ChecksumLen;
 ///         auto es = readFieldsUntil<FieldIdx_Checksum>(iter, size);

@@ -1911,18 +1911,29 @@ void FieldsTestSuite::test50()
         comms::option::FixedLength<1> >
     {
         COMMS_BITMASK_BITS(first, second, third, fourth, sixth=5, seventh, eighth);
+        COMMS_BITMASK_BITS_ACCESS(first, second, third, fourth, sixth, seventh, eighth);
     };
 
 
     Field field;
     field.value() = 0xaa;
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_first), false);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_second), true);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_third), false);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_fourth), true);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_sixth), true);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_seventh), false);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_eighth), true);
+    TS_ASSERT_EQUALS(field.getBitValue_first(), false);
+    TS_ASSERT_EQUALS(field.getBitValue_second(), true);
+    TS_ASSERT_EQUALS(field.getBitValue_third(), false);
+    TS_ASSERT_EQUALS(field.getBitValue_fourth(), true);
+    TS_ASSERT_EQUALS(field.getBitValue_sixth(), true);
+    TS_ASSERT_EQUALS(field.getBitValue_seventh(), false);
+    TS_ASSERT_EQUALS(field.getBitValue_eighth(), true);
+
+    field.setBitValue_first(true);
+    field.setBitValue_second(false);
+    field.setBitValue_third(true);
+    field.setBitValue_fourth(false);
+    field.setBitValue_sixth(false);
+    field.setBitValue_seventh(true);
+    field.setBitValue_eighth(false);
+
+    TS_ASSERT_EQUALS(field.value(), 0x45);
 }
 
 class Field_51 : public comms::field::Bitfield<

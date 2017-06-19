@@ -460,26 +460,52 @@
 /// All the @ref sec_field_tutorial_common_options can also be used with 
 /// comms::field::BitmaskValue.
 ///
+/// @subsection sec_field_tutorial_bitmask_value_reserved Reserved Bits
+/// Quite often the bitmask fields contain reserved bits, which must preserve
+/// some values (usually 0). The comms::field::BitmaskValue fields support 
+/// usage of comms::option::BitmaskReservedBits alias option. The template
+/// parameters of the option specify mask for reserved bits as well as their
+/// expected values. The check for the reserved bits values is performed inside
+/// @b comms::field::BitmaskValue::valid() member function.
+/// @code
+/// using MyBitmask = 
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0x2, 0> // Second bit is reserved and must be 0
+///     >;
+/// @endcode
+///
+/// @subsection sec_field_tutorial_bitmask_value_names Bit Names
 /// Quite often there is a need to provide names for the bits in the 
 /// comms::field::BitmaskValue field. It is possible to define it as external
 /// independent enum. However, it may be convenient to define it as internal
 /// type. It is possible to do by inheriting from appropriate comms::field::BitmaskValue
 /// type and use COMMS_BITMASK_BITS() macro to define names for bits. For example
 /// @code
-/// struct MyBitmask : public comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >
+/// struct MyBitmask : 
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0x2, 0> // Second bit is reserved and must be 0
+///     >
 /// {
-///     COMMS_BITMASK_BITS(first, second, third, fourth, fifth, sixth, seventh, eighth);
+///     COMMS_BITMASK_BITS(first, third=2, fourth, fifth, sixth, seventh, eighth);
 /// }
 /// @endcode
 /// is equivalent to defining:
 /// @code
-/// struct MyBitmask : public comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >
+/// struct MyBitmask : 
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0x2, 0> 
+///     >
 /// {
 ///     enum BitIdx
 ///     {
 ///         BitIdx_first,
-///         BitIdx_second,
-///         BitIdx_third,
+///         BitIdx_third=2,
 ///         BitIdx_fourth,
 ///         BitIdx_fifth,
 ///         BitIdx_sixth,
@@ -490,9 +516,65 @@
 /// }
 /// @endcode
 /// @b NOTE, that provided names have found their way to @b BitIdx enum type, and
-/// got prefixed with @b BitIdx_. @n
+/// got prefixed with @b BitIdx_. This indices may be used with 
+/// comms::field::BitmaskValue::getBitValue() and comms::field::BitmaskValue::setBitValue()
+/// member functions.
+///
 /// Also note, that there is automatically generated @b BitIdx_numOfValues 
 /// value to indicate end of the names list.
+///
+/// Due to the fact that the provided bit names may have @b =val suffixes, it
+/// excludes the ability to generate proper access functions for the named bits.
+/// However, the @b COMMS library also provides @ref COMMS_BITMASK_BITS_ACCESS()
+/// macro, which can be used in addition to @ref COMMS_BITMASK_BITS() one to
+/// generate the convenience functions. For example:
+/// @code
+/// struct MyBitmask : 
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0x2, 0> // Second bit is reserved and must be 0
+///     >
+/// {
+///     COMMS_BITMASK_BITS(first, third=2, fourth, fifth, sixth, seventh, eighth);
+///     COMMS_BITMASK_BITS_ACCESS(first, third, fourth, fifth, sixth, seventh, eighth);
+/// }
+/// @endcode
+/// is equivalent to defining:
+/// @code
+/// struct MyBitmask : 
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0x2, 0> 
+///     >
+/// {
+///     enum BitIdx {...}
+///
+///     getBitValue_first() const { return getBitValue(BitIdx_first); }
+///     setBitValue_first(vool val) { setBitValue(BitIdx_first, val); }
+///     getBitValue_third() const { ... }
+///     setBitValue_third(vool val) { ... }
+///     getBitValue_fourth() const { ... }
+///     setBitValue_fourth(vool val) { ... }
+///     ...
+/// }
+/// @endcode
+/// In case the bit names definition is sequential starting with index 0 and
+/// going up without and gaps, i.e. no @b =val suffixes are used, the usage of
+/// two separate @ref COMMS_BITMASK_BITS() and @ref COMMS_BITMASK_BITS_ACCESS() macros,
+/// can be unified into one @ref COMMS_BITMASK_BITS_SEQ():
+/// @code
+/// struct MyBitmask : 
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0xf0, 0> // 4 MSBs are reserved
+///     >
+/// {
+///     COMMS_BITMASK_BITS_SEQ(first, second, third, fourth);
+/// }
+/// @endcode
 ///
 /// @section sec_field_tutorial_bitfield Bitfield Fields
 /// Many communication protocols try to pack multiple independent values into

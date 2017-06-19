@@ -45,11 +45,11 @@ struct BitmaskValuesFields
             comms::option::BitmaskReservedBits<0xe0, 0>
         >
     {
-        /// @brief Provide names for internal bits.
-        /// @details See definition of @b COMMS_BITMASK_BITS macro
+        /// @brief Provide names generates access functions for internal bits.
+        /// @details See definition of @b COMMS_BITMASK_BITS_SEQ macro
         ///     related to @b comms::field::BitmaskValue class from COMMS library
         ///     for details.
-        COMMS_BITMASK_BITS(bit0, bit1, bit2, bit3, bit4);
+        COMMS_BITMASK_BITS_SEQ(bit0, bit1, bit2, bit3, bit4);
     };
 
     /// @brief Bitmask with 2 bytes length
@@ -67,6 +67,12 @@ struct BitmaskValuesFields
         ///     related to @b comms::field::BitmaskValue class from COMMS library
         ///     for details.
         COMMS_BITMASK_BITS(bit0, bit3=3, bit8=8, bit9=9);
+
+        /// @brief Generated independent access functions for internal bits.
+        /// @details See definition of @b COMMS_BITMASK_BITS_ACCESS macro
+        ///     related to @b comms::field::BitmaskValue class from COMMS library
+        ///     for details.
+        COMMS_BITMASK_BITS_ACCESS(bit0, bit3, bit8, bit9);
     };
 
     /// @brief All the fields bundled in std::tuple.

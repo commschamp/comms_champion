@@ -1904,16 +1904,17 @@ void FieldsTestSuite::test49()
     TS_ASSERT_EQUALS(mem2.getMode(), comms::field::OptionalMode::Missing);
 }
 
+struct Test50_Field : public comms::field::BitmaskValue<
+    comms::Field<comms::option::BigEndian>,
+    comms::option::FixedLength<1> >
+{
+    COMMS_BITMASK_BITS(first, second, third, fourth, sixth=5, seventh, eighth);
+    COMMS_BITMASK_BITS_ACCESS(first, second, third, fourth, sixth, seventh, eighth);
+};
+
 void FieldsTestSuite::test50()
 {
-    struct Field : public comms::field::BitmaskValue<
-        comms::Field<BigEndianOpt>,
-        comms::option::FixedLength<1> >
-    {
-        COMMS_BITMASK_BITS(first, second, third, fourth, sixth=5, seventh, eighth);
-        COMMS_BITMASK_BITS_ACCESS(first, second, third, fourth, sixth, seventh, eighth);
-    };
-
+    using Field = Test50_Field;
 
     Field field;
     field.value() = 0xaa;

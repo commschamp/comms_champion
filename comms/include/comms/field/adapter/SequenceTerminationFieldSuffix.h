@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #pragma once
 
 #include "comms/Assert.h"
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -30,10 +30,10 @@ namespace field
 namespace adapter
 {
 
-template <typename TTermField, typename TNext>
-class SequenceTerminationFieldSuffix : public details::AdapterBaseT<TNext>
+template <typename TTermField, typename TBase>
+class SequenceTerminationFieldSuffix : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
     using TermField = TTermField;
 
 public:
@@ -73,7 +73,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
         using IterTag = typename std::iterator_traits<IterType>::iterator_category;
@@ -104,7 +104,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
+    comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         TermField termField;
         auto trailLen = termField.length();

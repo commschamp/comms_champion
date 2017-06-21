@@ -91,15 +91,10 @@ namespace field
 /// @pre Every field member specifies its length in bits using
 ///     comms::option::FixedBitLength option.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
-class Bitfield : public TFieldBase
+class Bitfield : public
+        details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>
 {
-    using Base = TFieldBase;
-
-    using BasicField = basic::Bitfield<TFieldBase, TMembers>;
-    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
-
-    static_assert(std::is_base_of<comms::field::category::BundleField, typename ThisField::Category>::value,
-        "ThisField is expected to be of BundleCategory");
+    using Base = details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>;
 
 public:
     /// @brief All the options provided to this class bundled into struct.
@@ -111,7 +106,7 @@ public:
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
     ///     of all the member fields.
-    using ValueType = typename ThisField::ValueType;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Default constructor
     /// @details All field members are initialised using their default constructors.
@@ -120,29 +115,15 @@ public:
     /// @brief Constructor
     /// @param[in] val Value of the field to initialise it with.
     explicit Bitfield(const ValueType& val)
-      : field_(val)
+      : Base(val)
     {
     }
 
     /// @brief Constructor
     /// @param[in] val Value of the field to initialise it with.
     explicit Bitfield(ValueType&& val)
-      : field_(std::move(val))
+      : Base(std::move(val))
     {
-    }
-
-    /// @brief Get access to the stored tuple of fields.
-    /// @return Const reference to the underlying stored value.
-    const ValueType& value() const
-    {
-        return field_.value();
-    }
-
-    /// @brief Get access to the stored tuple of fields.
-    /// @return Reference to the underlying stored value.
-    ValueType& value()
-    {
-        return field_.value();
     }
 
     /// @brief Retrieve number of bits specified member field consumes.
@@ -161,26 +142,27 @@ public:
         return FieldOptions::FixedBitLength;
     }
 
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+    /// @brief Get access to the stored tuple of fields.
+    /// @return Const reference to the underlying stored value.
+    const ValueType& value() const;
+
+    /// @brief Get access to the stored tuple of fields.
+    /// @return Reference to the underlying stored value.
+    ValueType& value();
+
     /// @brief Get length required to serialise the current field value.
     /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const
-    {
-        return field_.length();
-    }
+    constexpr std::size_t length() const;
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Minimal number of bytes required serialise the field value.
-    static constexpr std::size_t minLength()
-    {
-        return ThisField::minLength();
-    }
+    static constexpr std::size_t minLength();
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Maximal number of bytes required serialise the field value.
-    static constexpr std::size_t maxLength()
-    {
-        return ThisField::maxLength();
-    }
+    static constexpr std::size_t maxLength();
 
     /// @brief Read field value from input data sequence
     /// @param[in, out] iter Iterator to read the data.
@@ -188,10 +170,7 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
-    {
-        return field_.read(iter, size);
-    }
+    ErrorStatus read(TIter& iter, std::size_t size);
 
     /// @brief Write current field value to output data sequence
     /// @param[in, out] iter Iterator to write the data.
@@ -199,19 +178,12 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const
-    {
-        return field_.write(iter, size);
-    }
+    ErrorStatus write(TIter& iter, std::size_t size) const;
 
     /// @brief Check validity of the field value.
-    constexpr bool valid() const {
-        return field_.valid();
-    }
+    constexpr bool valid() const;
 
-private:
-
-    ThisField field_;
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
 /// @brief Equality comparison operator.

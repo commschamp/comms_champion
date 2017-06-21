@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #pragma once
 
 #include "comms/Assert.h"
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -30,13 +30,12 @@ namespace field
 namespace adapter
 {
 
-template <typename TNext>
-class IgnoreInvalid : public details::AdapterBaseT<TNext>
+template <typename TBase>
+class IgnoreInvalid : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
 public:
 
-    using Next = typename Base::Next;
     using ValueType = typename Base::ValueType;
 
     IgnoreInvalid() = default;
@@ -57,16 +56,16 @@ public:
     IgnoreInvalid& operator=(IgnoreInvalid&&) = default;
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
-        Next nextTmp;
-        auto es = nextTmp.read(iter, len);
+        Base tmp;
+        auto es = tmp.read(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        if (nextTmp.valid()) {
-            Base::next() = std::move(nextTmp);
+        if (tmp.valid()) {
+            static_cast<Base&>(*this) = std::move(tmp);
         }
 
         return comms::ErrorStatus::Success;

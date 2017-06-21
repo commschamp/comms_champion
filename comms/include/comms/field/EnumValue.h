@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -68,13 +68,10 @@ namespace field
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 template <typename TFieldBase, typename TEnum, typename... TOptions>
-class EnumValue : public TFieldBase
+class EnumValue : public details::AdaptBasicFieldT<basic::EnumValue<TFieldBase, TEnum>, TOptions...>
 {
+    using Base = details::AdaptBasicFieldT<basic::EnumValue<TFieldBase, TEnum>, TOptions...>;
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
-    using Base = TFieldBase;
-
-    using BasicField = basic::EnumValue<TFieldBase, TEnum>;
-    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
 public:
 
@@ -86,14 +83,14 @@ public:
 
     /// @brief Type of underlying enum value.
     /// @details Same as template parameter TEnum to this class.
-    using ValueType = typename ThisField::ValueType;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Default constructor.
     EnumValue() = default;
 
     /// @brief Constructor
     explicit EnumValue(const ValueType& val)
-      : field_(val)
+      : Base(val)
     {
     }
 
@@ -106,38 +103,24 @@ public:
     /// @brief Copy assignment
     EnumValue& operator=(const EnumValue&) = default;
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to enum value storage.
-    const ValueType& value() const
-    {
-        return field_.value();
-    }
+    const ValueType& value() const;
 
     /// @brief Get access to enum value storage.
-    ValueType& value()
-    {
-        return field_.value();
-    }
+    ValueType& value();
 
     /// @brief Get length required to serialise the current field value.
     /// @return Number of bytes it will take to serialise the field value.
     constexpr std::size_t length() const
-    {
-        return field_.length();
-    }
-
+    {;
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Minimal number of bytes required serialise the field value.
-    static constexpr std::size_t minLength()
-    {
-        return ThisField::minLength();
-    }
+    static constexpr std::size_t minLength();
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Maximal number of bytes required serialise the field value.
-    static constexpr std::size_t maxLength()
-    {
-        return ThisField::maxLength();
-    }
+    static constexpr std::size_t maxLength();
 
     /// @brief Read field value from input data sequence
     /// @param[in, out] iter Iterator to read the data.
@@ -145,10 +128,7 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
-    {
-        return field_.read(iter, size);
-    }
+    ErrorStatus read(TIter& iter, std::size_t size);
 
     /// @brief Write current field value to output data sequence
     /// @param[in, out] iter Iterator to write the data.
@@ -156,20 +136,12 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const
-    {
-        return field_.write(iter, size);
-    }
+    ErrorStatus write(TIter& iter, std::size_t size) const;
 
     /// @brief Check validity of the field value.
-    bool valid() const
-    {
-        return field_.valid();
-    }
+    bool valid() const;
 
-private:
-
-    ThisField field_;
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
 // Implementation

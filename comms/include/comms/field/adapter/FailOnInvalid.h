@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -20,7 +20,6 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
-#include "details/AdapterBase.h"
 
 namespace comms
 {
@@ -31,13 +30,12 @@ namespace field
 namespace adapter
 {
 
-template <comms::ErrorStatus TStatus, typename TNext>
-class FailOnInvalid : public details::AdapterBaseT<TNext>
+template <comms::ErrorStatus TStatus, typename TBase>
+class FailOnInvalid : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
 public:
 
-    using Next = typename Base::Next;
     using ValueType = typename Base::ValueType;
 
     FailOnInvalid() = default;
@@ -58,19 +56,19 @@ public:
     FailOnInvalid& operator=(FailOnInvalid&&) = default;
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
-        Next nextTmp;
-        auto es = nextTmp.read(iter, len);
+        Base tmp;
+        auto es = tmp.read(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        if (!nextTmp.valid()) {
+        if (!tmp.valid()) {
             return TStatus;
         }
 
-        Base::next() = std::move(nextTmp);
+        static_cast<Base&>(*this) = std::move(tmp);
         return comms::ErrorStatus::Success;
     }
 };

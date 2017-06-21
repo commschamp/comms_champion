@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
+#include "comms/util/access.h"
 
 namespace comms
 {
@@ -29,10 +30,10 @@ namespace field
 namespace adapter
 {
 
-template <long long int TOffset, typename TNext>
-class SerOffset : public details::AdapterBaseT<TNext>
+template <long long int TOffset, typename TBase>
+class SerOffset : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
     static const auto Offset = TOffset;
 public:
 

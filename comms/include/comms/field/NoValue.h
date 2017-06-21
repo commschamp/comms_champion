@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -39,15 +39,9 @@ namespace field
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
 template <typename TFieldBase>
-class NoValue : public TFieldBase
+class NoValue : public details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >
 {
-    using Base = TFieldBase;
-
-    using BasicField = basic::NoValue<TFieldBase>;
-    using ThisField = details::AdaptBasicFieldT<BasicField>;
-
-    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename ThisField::Category>::value,
-        "ThisField is expected to be of NumericFieldCategory");
+    using Base = details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >;
 public:
 
     /// @brief All the options provided to this class bundled into struct.
@@ -58,7 +52,7 @@ public:
 
     /// @brief Type of underlying value.
     /// @details Defined to be "unsigned", not really used
-    using ValueType = typename ThisField::ValueType;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Default constructor
     /// @details Initialises internal value to 0.
@@ -67,7 +61,7 @@ public:
     /// @brief Constructor
     explicit NoValue(ValueType val)
     {
-        value() = val;
+        Base::value() = val;
     }
 
     /// @brief Copy constructor
@@ -76,44 +70,30 @@ public:
     /// @brief Copy assignment
     NoValue& operator=(const NoValue&) = default;
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to the value storage.
     /// @details Should not really be used.
     /// @return Reference to a static value. All the independent get/set
     ///     operations on the different @ref NoValue fields access the same
     ///     static value.
-    static ValueType& value()
-    {
-        return ThisField::value();
-    }
+    static ValueType& value();
 
     /// @brief Get length required to serialise the current field value.
     /// @return Always 0.
-    static constexpr std::size_t length()
-    {
-        return ThisField::length();
-    }
+    static constexpr std::size_t length();
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Always 0.
-    static constexpr std::size_t minLength()
-    {
-        return length();
-    }
+    static constexpr std::size_t minLength();
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Always 0.
-    static constexpr std::size_t maxLength()
-    {
-        return length();
-    }
+    static constexpr std::size_t maxLength();
 
     /// @brief Check validity of the field value.
     /// @details Always reported as valid.
     /// @return true.
-    static constexpr bool valid()
-    {
-        return ThisField::valid();
-    }
+    static constexpr bool valid();
 
     /// @brief Read field value from input data sequence.
     /// @details The function does nothing, always reporting success.
@@ -121,10 +101,7 @@ public:
     /// @param[in] size Number of bytes available for reading.
     /// @return Status of read operation.
     template <typename TIter>
-    static ErrorStatus read(TIter& iter, std::size_t size)
-    {
-        return ThisField::read(iter, size);
-    }
+    static ErrorStatus read(TIter& iter, std::size_t size);
 
     /// @brief Write current field value to output data sequence
     /// @details The function does nothing, always reporting success.
@@ -132,10 +109,8 @@ public:
     /// @param[in] size Maximal number of bytes that can be written.
     /// @return Status of write operation.
     template <typename TIter>
-    static ErrorStatus write(TIter& iter, std::size_t size)
-    {
-        return ThisField::write(iter, size);
-    }
+    static ErrorStatus write(TIter& iter, std::size_t size);
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 private:
 #ifdef _MSC_VER

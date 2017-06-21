@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include "details/AdapterBase.h"
-
 namespace comms
 {
 
@@ -29,10 +27,10 @@ namespace field
 namespace adapter
 {
 
-template <typename TValidator, typename TNext>
-class CustomValidator : public details::AdapterBaseT<TNext>
+template <typename TValidator, typename TBase>
+class CustomValidator : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
     using Validator = TValidator;
 
 public:

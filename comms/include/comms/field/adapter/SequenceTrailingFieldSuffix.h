@@ -19,7 +19,7 @@
 #pragma once
 
 #include "comms/Assert.h"
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -30,10 +30,10 @@ namespace field
 namespace adapter
 {
 
-template <typename TTrailField, typename TNext>
-class SequenceTrailingFieldSuffix : public details::AdapterBaseT<TNext>
+template <typename TTrailField, typename TBase>
+class SequenceTrailingFieldSuffix : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
     using TrailField = TTrailField;
 
 public:
@@ -78,7 +78,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
         auto es = Base::read(iter, len - TrailField::minLength());
         if (es != comms::ErrorStatus::Success) {
@@ -89,7 +89,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
+    comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         auto trailLen = trailField_.length();
         auto es = Base::write(iter, len - trailLen);

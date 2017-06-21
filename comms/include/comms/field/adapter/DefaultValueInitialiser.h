@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -29,10 +29,10 @@ namespace field
 namespace adapter
 {
 
-template <typename TInitialiser, typename TNext>
-class DefaultValueInitialiser : public details::AdapterBaseT<TNext>
+template <typename TInitialiser, typename TBase>
+class DefaultValueInitialiser : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
     using Initialiser = TInitialiser;
 public:
     using ValueType = typename Base::ValueType;

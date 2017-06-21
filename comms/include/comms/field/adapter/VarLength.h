@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -22,10 +22,10 @@
 #include <algorithm>
 #include <limits>
 
-#include "details/AdapterBase.h"
 #include "comms/Assert.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/access.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -36,23 +36,23 @@ namespace field
 namespace adapter
 {
 
-template <std::size_t TMinLen, std::size_t TMaxLen, typename TNext>
-class VarLength : public details::AdapterBaseT<TNext>
+template <std::size_t TMinLen, std::size_t TMaxLen, typename TBase>
+class VarLength : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
-    using NextSerialisedType = typename Base::Next::SerialisedType;
+    using Base = TBase;
+    using BaseSerialisedType = typename Base::SerialisedType;
 
 public:
 
     using ValueType = typename Base::ValueType;
 
-    static_assert(TMaxLen <= sizeof(NextSerialisedType),
+    static_assert(TMaxLen <= sizeof(BaseSerialisedType),
         "The provided max length limit is too big");
 
     using SerialisedType = typename std::conditional<
-        (TMaxLen < sizeof(NextSerialisedType)),
-        typename comms::util::SizeToType<TMaxLen, std::is_signed<NextSerialisedType>::value>::Type,
-        NextSerialisedType
+        (TMaxLen < sizeof(BaseSerialisedType)),
+        typename comms::util::SizeToType<TMaxLen, std::is_signed<BaseSerialisedType>::value>::Type,
+        BaseSerialisedType
     >::type;
 
     using Endian = typename Base::Endian;
@@ -109,20 +109,20 @@ public:
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
         return Base::fromSerialised(
-            static_cast<NextSerialisedType>(
+            static_cast<BaseSerialisedType>(
                 signExtUnsignedSerialised(
                     adjustToUnsignedSerialisedVarLength(val),
                     HasSignTag())));
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
+    comms::ErrorStatus read(TIter& iter, std::size_t size)
     {
         UnsignedSerialisedType val = 0;
         std::size_t byteCount = 0;
         while (true) {
             if (size == 0) {
-                return ErrorStatus::NotEnoughData;
+                return comms::ErrorStatus::NotEnoughData;
             }
 
             auto byte = comms::util::readData<std::uint8_t>(iter, Endian());
@@ -148,11 +148,11 @@ public:
 
         auto adjustedValue = signExtUnsignedSerialised(val, byteCount, HasSignTag());
         Base::value() = Base::fromSerialised(adjustedValue);
-        return ErrorStatus::Success;
+        return comms::ErrorStatus::Success;
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const
+    comms::ErrorStatus write(TIter& iter, std::size_t size) const
     {
         auto val = adjustToUnsignedSerialisedVarLength(Base::toSerialised(Base::value()));
         std::size_t byteCount = 0;

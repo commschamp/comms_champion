@@ -74,17 +74,17 @@ namespace field
 ///         doesn't have any valid contents. This option may be used to specify
 ///         the index of the default member field.
 template <typename TFieldBase, typename TMembers, typename... TOptions>
-class Variant
+class Variant : public
+        details::AdaptBasicFieldT<basic::Variant<TFieldBase, TMembers>, TOptions...>
 {
+    using Base = details::AdaptBasicFieldT<basic::Variant<TFieldBase, TMembers>, TOptions...>;
+
     static_assert(comms::util::IsTuple<TMembers>::Value,
         "TMembers is expected to be a tuple of std::tuple<...>");
 
     static_assert(
         1U < std::tuple_size<TMembers>::value,
         "Number of members is expected to be at least 2.");
-
-    using BasicField = basic::Variant<TFieldBase, TMembers>;
-    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
 public:
     /// @brief All the options provided to this class bundled into struct.
@@ -96,12 +96,12 @@ public:
     /// @brief Value type.
     /// @details Type of the internal buffer used to store contained field,
     ///     should not be used in normal operation.
-    using ValueType = typename ThisField::ValueType;
+    using ValueType = typename Base::ValueType;
 
     /// @brief All the supported types.
     /// @details Same as @b TMemebers template argument, i.e. it is @b std::tuple
     ///     of all the wrapped fields.
-    using Members = typename ThisField::Members;
+    using Members = typename Base::Members;
 
     /// @brief Default constructor
     /// @details Invokes default constructor of every wrapped field
@@ -109,53 +109,39 @@ public:
 
     /// @brief Constructor
     explicit Variant(const ValueType& val)
-      : field_(val)
+      : Base(val)
     {
     }
 
     /// @brief Constructor
     explicit Variant(ValueType&& val)
-      : field_(std::move(val))
+      : Base(std::move(val))
     {
     }
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to the internal storage buffer.
     /// @details Should not be used in normal operation.
-    ValueType& value()
-    {
-        return field_.value();
-    }
+    ValueType& value();
 
     /// @brief Get access to the internal storage buffer.
     /// @details Should not be used in normal operation.
-    const ValueType& value() const
-    {
-        return field_.value();
-    }
+    const ValueType& value() const;
 
     /// @brief Get length required to serialise contained fields.
     /// @details If the field doesn't contain a valid instance of other
     ///     field, the reported length is 0, otherwise the length of the
     ///     contained field is reported.
     /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const
-    {
-        return field_.length();
-    }
+    constexpr std::size_t length() const;
 
     /// @brief Get minimal length that is required to serialise all possible contained fields.
     /// @return Always returns 0.
-    static constexpr std::size_t minLength()
-    {
-        return ThisField::minLength();
-    }
+    static constexpr std::size_t minLength();
 
     /// @brief Get maximal length that is required to serialise all possible contained fields.
     /// @return Maximal number of bytes required serialise the field value.
-    static constexpr std::size_t maxLength()
-    {
-        return ThisField::maxLength();
-    }
+    static constexpr std::size_t maxLength();
 
     /// @brief Read field value from input data sequence
     /// @details Invokes read() member function over every possible field
@@ -165,10 +151,7 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
-    {
-        return field_.read(iter, size);
-    }
+    ErrorStatus read(TIter& iter, std::size_t size);
 
     /// @brief Write current field value to output data sequence
     /// @details Invokes write() member function of the contained field if such
@@ -179,24 +162,16 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const
-    {
-        return field_.write(iter, size);
-    }
+    ErrorStatus write(TIter& iter, std::size_t size) const;
 
     /// @brief Check validity of all the contained field.
     /// @details Returns @b false if doesn't contain any field.
-    constexpr bool valid() const {
-        return field_.valid();
-    }
+    constexpr bool valid() const;
 
     /// @brief Get index of the current field (within the @ref Members tuple).
     /// @details If the Variant field doesn't contain any valid field, the
     ///     returned index is equivalent to size of the @ref Members tuple.
-    std::size_t currentField() const
-    {
-        return field_.currentField();
-    }
+    std::size_t currentField() const;
 
     /// @brief Select type of the variant field.
     /// @details If the same index has been selected before, the function does
@@ -205,10 +180,7 @@ public:
     ///     If provided index is equal or exceeds the size of the @ref Members
     ///     tuple, no new field is constructed.
     /// @param[in] idx Index of the type within @ref Members tuple.
-    void selectField(std::size_t idx)
-    {
-        field_.selectField(idx);
-    }
+    void selectField(std::size_t idx);
 
     /// @brief Execute provided function object with current field as
     ///     parameter.
@@ -237,10 +209,7 @@ public:
     ///     If the Variant field doesn't contain any valid field, the functor
     ///     will @b NOT be called.
     template <typename TFunc>
-    void currentFieldExec(TFunc&& func)
-    {
-        field_.currentFieldExec(std::forward<TFunc>(func));
-    }
+    void currentFieldExec(TFunc&& func);
 
     /// @brief Execute provided function object with current field as
     ///     parameter (const variant).
@@ -261,10 +230,7 @@ public:
     ///     will @b NOT be called.
 
     template <typename TFunc>
-    void currentFieldExec(TFunc&& func) const
-    {
-        field_.currentFieldExec(std::forward<TFunc>(func));
-    }
+    void currentFieldExec(TFunc&& func) const;
 
     /// @brief Construct and initialise specified contained field in the
     ///     internal buffer.
@@ -275,10 +241,7 @@ public:
     /// @param[in] args Arguments for the constructed field.
     /// @return Reference to the constructed field.
     template <std::size_t TIdx, typename... TArgs>
-    auto initField(TArgs&&... args) -> decltype(std::declval<ThisField>().template initField<TIdx>(std::forward<TArgs>(args)...))
-    {
-        return field_.template initField<TIdx>(std::forward<TArgs>(args)...);
-    }
+    decltype(auto) initField(TArgs&&... args);
 
     /// @brief Access already constructed field at specifed index (known at compile time).
     /// @details Use this function to get a reference to the contained field type
@@ -286,10 +249,7 @@ public:
     /// @return Reference to the contained field.
     /// @pre @code currentField() == TIdx @endcode
     template <std::size_t TIdx>
-    auto accessField() -> decltype(std::declval<ThisField>().template accessField<TIdx>())
-    {
-        return field_.template accessField<TIdx>();
-    }
+    decltype(auto) accessField();
 
     /// @brief Access already constructed field at specifed index (known at compile time).
     /// @details Use this function to get a const reference to the contained field type.
@@ -297,28 +257,17 @@ public:
     /// @return Const reference to the contained field.
     /// @pre @code currentField() == TIdx @endcode
     template <std::size_t TIdx>
-    auto accessField() const -> decltype(std::declval<const ThisField>().template accessField<TIdx>())
-    {
-        return field_.template accessField<TIdx>();
-    }
+    decltype(auto) accessField() const;
 
     /// @brief Check whether the field contains a valid instance of other field.
     /// @details Returns @b true if and only if currentField() returns a valid
     ///     index inside the @ref Members tuple.
-    bool currentFieldValid() const
-    {
-        return field_.currentFieldValid();
-    }
+    bool currentFieldValid() const;
 
     /// @brief Invalidate current state
     /// @details Destructs currently contained field if such exists.
-    void reset()
-    {
-        field_.reset();
-    }
-
-private:
-    ThisField field_;
+    void reset();
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
 namespace details

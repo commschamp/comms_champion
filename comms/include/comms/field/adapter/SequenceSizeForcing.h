@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #pragma once
 
 #include "comms/Assert.h"
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 #include <limits>
 
@@ -32,10 +32,10 @@ namespace field
 namespace adapter
 {
 
-template <typename TNext>
-class SequenceSizeForcing : public details::AdapterBaseT<TNext>
+template <typename TBase>
+class SequenceSizeForcing : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
 public:
     using ValueType = typename Base::ValueType;
     using ElementType = typename Base::ElementType;
@@ -69,7 +69,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
         if (forced_ == Cleared) {
             return Base::read(iter, len);

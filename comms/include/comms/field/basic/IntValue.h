@@ -21,7 +21,6 @@
 #include <type_traits>
 
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 
 namespace comms
 {
@@ -39,8 +38,6 @@ class IntValue : public TFieldBase
 
     using Base = TFieldBase;
 public:
-
-    using Category = comms::field::category::NumericValueField;
 
     using ValueType = T;
 

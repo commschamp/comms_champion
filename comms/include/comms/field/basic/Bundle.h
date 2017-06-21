@@ -22,7 +22,6 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/util/Tuple.h"
 
 namespace comms
@@ -38,7 +37,6 @@ template <typename TFieldBase, typename TMembers>
 class Bundle : public TFieldBase
 {
 public:
-    using Category = comms::field::category::BundleField;
     using ValueType = TMembers;
 
     Bundle() = default;

@@ -160,7 +160,6 @@ class Bitfield : public TFieldBase
     >::type;
 
 public:
-    using Category = comms::field::category::BundleField;
     using Endian = typename Base::Endian;
     using ValueType = TMembers;
 

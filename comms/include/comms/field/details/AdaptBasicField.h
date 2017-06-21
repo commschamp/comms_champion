@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "comms/field/category.h"
 #include "comms/field/adapters.h"
 #include "OptionsParser.h"
 

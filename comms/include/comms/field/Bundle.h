@@ -19,7 +19,6 @@
 #pragma once
 
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/options.h"
 #include "basic/Bundle.h"
 #include "details/AdaptBasicField.h"

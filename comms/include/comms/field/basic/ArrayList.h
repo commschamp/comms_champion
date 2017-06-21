@@ -25,7 +25,6 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/util/access.h"
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
@@ -93,7 +92,6 @@ class ArrayList : public TFieldBase
 {
     using Base = TFieldBase;
 public:
-    using Category = comms::field::category::CollectionField;
     using Endian = typename Base::Endian;
 
     using ElementType = typename TStorage::value_type;

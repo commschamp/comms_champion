@@ -23,7 +23,6 @@
 #include <type_traits>
 
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/options.h"
 #include "basic/IntValue.h"
 #include "details/AdaptBasicField.h"

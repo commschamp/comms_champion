@@ -99,7 +99,11 @@ public:
     static constexpr std::size_t maxLength();
 
     /// @brief Check validity of the field value.
-    constexpr bool valid() const;
+    bool valid() const;
+
+    /// @brief Refresh the field's value
+    /// @return @b true if the value has been updated, @b false otherwise
+    bool refresh();
 
     /// @brief Read field value from input data sequence
     /// @param[in, out] iter Iterator to read the data.

@@ -207,6 +207,13 @@ public:
         return intValue_.valid();
     }
 
+    /// @brief Refresh contents of the field
+    /// @return @b true in case the field's value has been updated, @b false otherwise
+    constexpr bool refresh()
+    {
+        return intValue_.refresh();
+    }
+
     /// @brief Check whether all bits from provided mask are set.
     /// @param[in] mask Mask to check against
     /// @return true in case all the bits are set, false otherwise

@@ -153,6 +153,17 @@ public:
         return val;
     }
 
+    bool refresh()
+    {
+        if (!currentFieldValid()) {
+            return false;
+        }
+
+        bool val = false;
+        comms::util::tupleForSelectedType<Members>(memIdx_, RefreshHelper(val, &storage_));
+        return val;
+    }
+
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
@@ -371,6 +382,27 @@ private:
         bool& result_;
         const void* storage_;
     };
+
+    class RefreshHelper
+    {
+    public:
+        RefreshHelper(bool& result, void* storage)
+          : result_(result),
+            storage_(storage)
+        {
+        }
+
+        template <std::size_t TIdx, typename TField>
+        void operator()()
+        {
+            result_ = reinterpret_cast<TField*>(storage_)->refresh();
+        }
+
+    private:
+        bool& result_;
+        const void* storage_;
+    };
+
 
     template <typename TFunc>
     class ExecHelper

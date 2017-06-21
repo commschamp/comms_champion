@@ -222,6 +222,11 @@ public:
     /// @return true in case the field's value is valid, false otherwise.
     bool valid() const;
 
+    /// @brief Refresh the field.
+    /// @details Calls refresh() on all the elements (if they are fields and not raw bytes).
+    /// @brief Returns true if any of the elements has been updated, false otherwise.
+    bool refresh();
+
     /// @brief Get minimal length that is required to serialise field of this type.
     static constexpr std::size_t minLength();
 

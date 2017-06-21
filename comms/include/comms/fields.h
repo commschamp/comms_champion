@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -32,7 +32,6 @@
 #include "field/NoValue.h"
 #include "field/Variant.h"
 
-#include "field/adapters.h"
 #include "field/basics.h"
 
 #include "field_cast.h"

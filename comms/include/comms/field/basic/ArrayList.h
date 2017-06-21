@@ -158,6 +158,11 @@ public:
         return validInternal(ElemTag());
     }
 
+    constexpr bool refresh()
+    {
+        return refreshInternal(ElemTag());
+    }
+
     static constexpr std::size_t minElementLength()
     {
         return minElemLengthInternal(ElemTag());
@@ -409,6 +414,22 @@ private:
     }
 
     static constexpr bool validInternal(IntegralElemTag)
+    {
+        return true;
+    }
+
+    constexpr bool refreshInternal(FieldElemTag)
+    {
+        return
+            std::accumulate(
+                value_.begin(), value_.end(), false,
+                [](bool prev, typename ValueType::reference_type elem) -> bool
+                {
+                    return elem.refresh() || prev;
+                });
+    }
+
+    static constexpr bool refreshInternal(IntegralElemTag)
     {
         return true;
     }

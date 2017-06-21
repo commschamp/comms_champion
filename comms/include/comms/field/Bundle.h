@@ -140,7 +140,12 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const;
 
     /// @brief Check validity of all the bundled fields.
-    constexpr bool valid() const;
+    bool valid() const;
+
+    /// @brief Refresh the field's contents
+    /// @details Calls refresh() member function on every member field, will
+    ///     return @b true if any of the calls returns @b true.
+    bool refresh();
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 

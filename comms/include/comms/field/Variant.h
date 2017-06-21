@@ -132,7 +132,7 @@ public:
     ///     field, the reported length is 0, otherwise the length of the
     ///     contained field is reported.
     /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const;
+    std::size_t length() const;
 
     /// @brief Get minimal length that is required to serialise all possible contained fields.
     /// @return Always returns 0.
@@ -165,7 +165,13 @@ public:
 
     /// @brief Check validity of all the contained field.
     /// @details Returns @b false if doesn't contain any field.
-    constexpr bool valid() const;
+    bool valid() const;
+
+    /// @brief Refresh the field's value
+    /// @details Invokes refresh() member function of the current field
+    ///     if such exists, otherwise returns false.
+    /// @return @b true if the value has been updated, @b false otherwise
+    bool refresh();
 
     /// @brief Get index of the current field (within the @ref Members tuple).
     /// @details If the Variant field doesn't contain any valid field, the

@@ -44,6 +44,23 @@ public:
     ///     comms::traits::endian::Little
     using Endian = typename Base::Endian;
 
+    /// @brief Default validity check
+    /// @details Always returns true, can be overriden by the derived class
+    /// @return Always tru
+    static constexpr bool valid()
+    {
+        return true;
+    }
+
+    /// @brief Default refresh functionality
+    /// @details Does nothing and returns false, can be overriden by the
+    ///     derived class
+    /// @return Always false
+    static constexpr bool refresh()
+    {
+        return false;
+    }
+
 protected:
     /// @brief Write data into the output buffer.
     /// @details Use this function to write data to the the buffer

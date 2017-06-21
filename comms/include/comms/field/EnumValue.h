@@ -141,6 +141,10 @@ public:
     /// @brief Check validity of the field value.
     bool valid() const;
 
+    /// @brief Refresh the field's value
+    /// @return @b true if the value has been updated, @b false otherwise
+    bool refresh();
+
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 

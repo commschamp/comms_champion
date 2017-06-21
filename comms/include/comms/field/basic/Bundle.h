@@ -87,6 +87,11 @@ public:
         return comms::util::tupleAccumulate(value(), true, ValidCheckHelper());
     }
 
+    constexpr bool refresh()
+    {
+        return comms::util::tupleAccumulate(value(), true, RefreshHelper());
+    }
+
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
@@ -137,6 +142,15 @@ private:
         constexpr bool operator()(bool soFar, const TField& field) const
         {
             return soFar && field.valid();
+        }
+    };
+
+    struct RefreshHelper
+    {
+        template <typename TField>
+        constexpr bool operator()(bool soFar, const TField& field) const
+        {
+            return field.refresh() || soFar;
         }
     };
 

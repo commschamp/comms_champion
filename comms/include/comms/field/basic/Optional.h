@@ -124,6 +124,13 @@ public:
         return field_.valid();
     }
 
+    bool refresh() {
+        if (mode_ != Mode::Exists) {
+            return false;
+        }
+        return field_.refresh();
+    }
+
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {

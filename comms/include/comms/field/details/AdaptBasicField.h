@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "comms/field/adapters.h"
+#include "adapters.h"
 #include "OptionsParser.h"
 
 namespace comms
@@ -312,6 +312,27 @@ template <typename TField, typename TOpts>
 using AdaptFieldCustomValidatorT =
     typename AdaptFieldCustomValidator<TOpts::HasCustomValidator>::template Type<TField, TOpts>;
 
+template <bool THasCustomRefresher>
+struct AdaptFieldCustomRefresher;
+
+template <>
+struct AdaptFieldCustomRefresher<true>
+{
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::CustomRefresher<typename TOpts::CustomRefresher, TField>;
+};
+
+template <>
+struct AdaptFieldCustomRefresher<false>
+{
+    template <typename TField, typename TOpts>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldCustomRefresherT =
+    typename AdaptFieldCustomRefresher<TOpts::HasCustomRefresher>::template Type<TField, TOpts>;
+
 template <bool THasFailOnInvalid>
 struct AdaptFieldFailOnInvalid;
 
@@ -384,8 +405,10 @@ class AdaptBasicField
         SequenceTerminationFieldSuffixAdapted, ParsedOptions>;
     using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
         DefaultValueInitialiserAdapted, ParsedOptions>;
-    using FailOnInvalidAdapted = AdaptFieldFailOnInvalidT<
+    using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
         CustomValidatorAdapted, ParsedOptions>;
+    using FailOnInvalidAdapted = AdaptFieldFailOnInvalidT<
+        CustomRefresherAdapted, ParsedOptions>;
     using IgnoreInvalidAdapted = AdaptFieldIgnoreInvalidT<
         FailOnInvalidAdapted, ParsedOptions>;
 public:

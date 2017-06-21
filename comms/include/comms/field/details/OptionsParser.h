@@ -51,6 +51,7 @@ public:
     static const bool HasSequenceTerminationFieldSuffix = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
+    static const bool HasCustomRefresher = false;
     static const bool HasFailOnInvalid = false;
     static const bool HasIgnoreInvalid = false;
     static const bool HasFixedSizeStorage = false;
@@ -358,6 +359,16 @@ class OptionsParser<
 public:
     static const bool HasCustomValidator = true;
     using CustomValidator = TValidator;
+};
+
+template <typename TRefresher, typename... TOptions>
+class OptionsParser<
+    comms::option::ContentsRefresher<TRefresher>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasCustomRefresher = true;
+    using CustomRefresher = TRefresher;
 };
 
 template <comms::ErrorStatus TStatus, typename... TOptions>

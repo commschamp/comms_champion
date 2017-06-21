@@ -233,6 +233,11 @@ public:
         return comms::util::tupleAccumulate(members_, true, ValidHelper());
     }
 
+    constexpr bool refresh()
+    {
+        return comms::util::tupleAccumulate(members_, true, RefreshHelper());
+    }
+
 private:
 
     class ReadHelper
@@ -330,11 +335,21 @@ private:
     struct ValidHelper
     {
         template <typename TFieldParam>
-        bool operator()(bool soFar, TFieldParam&& field)
+        bool operator()(bool soFar, const TFieldParam& field)
         {
             return soFar && field.valid();
         }
     };
+
+    struct RefreshHelper
+    {
+        template <typename TFieldParam>
+        bool operator()(bool soFar, TFieldParam& field)
+        {
+            return field.refresh() || soFar;
+        }
+    };
+
 
     ValueType members_;
 };

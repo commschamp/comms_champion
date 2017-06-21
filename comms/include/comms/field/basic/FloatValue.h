@@ -100,11 +100,6 @@ public:
         return castUnion.value_;
     }
 
-    static constexpr bool valid()
-    {
-        return true;
-    }
-
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {

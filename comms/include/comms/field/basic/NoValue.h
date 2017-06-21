@@ -80,11 +80,6 @@ public:
         return static_cast<ValueType>(val);
     }
 
-    static constexpr bool valid()
-    {
-        return true;
-    }
-
     template <typename TIter>
     static ErrorStatus read(TIter& iter, std::size_t size)
     {

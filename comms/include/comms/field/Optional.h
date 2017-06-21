@@ -184,6 +184,13 @@ public:
     ///     field is called.
     bool valid() const;
 
+    /// @brief Refresh the field's value
+    /// @details Will invoke the refresh() member function of the contained
+    ///     field, only if it is marked as "exists", otherwise @b false will be
+    ///     returned.
+    /// @return @b true if the value has been updated, @b false otherwise
+    bool refresh();
+
     /// @brief Read field value from input data sequence
     /// @details If field is marked as missing (mode is OptionalMode::Missing),
     ///     function returns comms::ErrorStatus::Success without advancing iterator.@n

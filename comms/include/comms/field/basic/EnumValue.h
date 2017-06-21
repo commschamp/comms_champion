@@ -106,11 +106,6 @@ public:
         return static_cast<ValueType>(IntValueField::fromSerialised(val));
     }
 
-    static constexpr bool valid()
-    {
-        return true;
-    }
-
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {

@@ -492,8 +492,8 @@ struct DefaultValueInitialiser {};
 
 /// @brief Option that specifies custom validation class.
 /// @details By default, value of every field is considered to be valid
-///     (@b valid() member function of the field returns true). If there is a need
-///     to validate the value of the function. Use this option to define
+///     (@b valid() member function of the field returns @b true). If there is a need
+///     to validate the value of the function, use this option to define
 ///     custom validation logic for the field. The validation class provided as
 ///     a template argument to this option must define the following member function:
 ///     @code
@@ -529,9 +529,29 @@ struct DefaultValueInitialiser {};
 ///     have invalid value. To fix that you must also use
 ///     comms::option::DefaultValueInitialiser option to specify proper default
 ///     value.
-/// @tparam T Type of the initialiser class.
+/// @tparam T Type of the validator class.
 template <typename T>
 struct ContentsValidator {};
+
+/// @brief Option that specifies custom refreshing class.
+/// @details The "refreshing" functionality is there to allow bringing field's
+///     contents into a consistent state if it's not. The default "refreshing"
+///     functionality does nothing and returns @b false (meaning nothing has
+///     been changed). If there is a need to provide custom refreshing functionality
+///     use this option and provide custom refresher class. It must
+///     define the following member function:
+///     @code
+///     struct MyRefresher
+///     {
+///         template <typename TField>
+///         bool operator()(TField& field) {
+///             ... // return true if field's contents changed
+///         }
+///     };
+///     @endcode
+/// @tparam T Type of the refresher class.
+template <typename T>
+struct ContentsRefresher {};
 
 /// @brief Option that specifies custom value reader class.
 /// @details It may be useful to override default reading functionality for complex

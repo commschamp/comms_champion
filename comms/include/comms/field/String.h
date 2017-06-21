@@ -178,10 +178,14 @@ public:
     const ValueType& value() const;
 
     /// @brief Get length of serialised data
-    constexpr std::size_t length() const;
+    std::size_t length() const;
 
     /// @brief Check validity of the field value.
-    constexpr bool valid() const;
+    bool valid() const;
+
+    /// @brief Refresh the field's value
+    /// @return @b true if the value has been updated, @b false otherwise
+    bool refresh();
 
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the

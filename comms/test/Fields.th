@@ -105,6 +105,7 @@ public:
     void test68();
     void test69();
     void test70();
+    void test71();
 
 private:
 
@@ -2942,6 +2943,94 @@ void FieldsTestSuite::test70()
     std::size_t len4 = 0U;
     field.currentFieldExec(Test70_LengthRetriever(len4));
     TS_ASSERT_EQUALS(field.length(), len4);
+}
+
+struct Test71_Field : public
+    comms::field::Bundle<
+        comms::Field<comms::option::BigEndian>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<comms::option::BigEndian>,
+                std::uint8_t
+            >,
+            comms::field::Optional<
+                comms::field::IntValue<
+                    comms::Field<comms::option::BigEndian>,
+                    std::uint8_t
+                >,
+                comms::option::DefaultOptionalMode<comms::field::OptionalMode::Missing>
+            >
+        >
+    >
+{
+    COMMS_FIELD_MEMBERS_ACCESS(mask, val);
+
+    template <typename TIter>
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
+    {
+        auto es = field_mask().read(iter, len);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        if (field_mask().value() == 0) {
+            field_val().setMissing();
+        }
+        else {
+            field_val().setExists();
+        }
+
+        len -= field_mask().length();
+        return field_val().read(iter, len);
+    }
+
+    bool refresh()
+    {
+        bool exists = (field_mask().value() != 0);
+        if (exists == field_val().doesExist()) {
+            return false;
+        }
+
+        if (exists) {
+            field_val().setExists();
+        }
+        else {
+            field_val().setMissing();
+        }
+        return true;
+    }
+};
+
+void FieldsTestSuite::test71()
+{
+    using Field = Test71_Field;
+
+    Field field;
+    TS_ASSERT_EQUALS(field.length(), 1U);
+
+    field.field_mask().value() = 1;
+    bool result = field.refresh();
+    TS_ASSERT(result);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+
+    static const char Buf[] = {
+        0, 0, 0
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field.length(), 1U);
+    TS_ASSERT(field.field_val().isMissing());
+
+    static const char Buf2[] = {
+        1, 5, 0
+    };
+    static const std::size_t Buf2Size = std::extent<decltype(Buf2)>::value;
+
+    field = readWriteField<Field>(Buf2, Buf2Size, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT(field.field_val().doesExist());
+    TS_ASSERT_EQUALS(field.field_val().field().value(), (unsigned)Buf2[1]);
 }
 
 template <typename TField>

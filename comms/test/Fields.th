@@ -3007,11 +3007,16 @@ void FieldsTestSuite::test71()
 
     Field field;
     TS_ASSERT_EQUALS(field.length(), 1U);
+    TS_ASSERT(field.field_val().isMissing());
 
     field.field_mask().value() = 1;
     bool result = field.refresh();
     TS_ASSERT(result);
     TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT(!field.refresh());
+    field.field_mask().value() = 0;
+    TS_ASSERT(field.refresh());
+    TS_ASSERT_EQUALS(field.length(), 1U);
 
     static const char Buf[] = {
         0, 0, 0

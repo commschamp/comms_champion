@@ -89,7 +89,7 @@ public:
 
     constexpr bool refresh()
     {
-        return comms::util::tupleAccumulate(value(), true, RefreshHelper());
+        return comms::util::tupleAccumulate(value(), false, RefreshHelper());
     }
 
     template <typename TIter>

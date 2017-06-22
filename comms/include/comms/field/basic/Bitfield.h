@@ -235,7 +235,7 @@ public:
 
     constexpr bool refresh()
     {
-        return comms::util::tupleAccumulate(members_, true, RefreshHelper());
+        return comms::util::tupleAccumulate(members_, false, RefreshHelper());
     }
 
 private:

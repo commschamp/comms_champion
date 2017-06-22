@@ -73,10 +73,7 @@ namespace comms
 ///     @li comms::option::NoLengthImpl - Inhibit the implementation of lengthImpl().
 ///     @li comms::option::NoValidImpl - Inhibit the implementation of validImpl().
 ///     @li comms::option::NoDispatchImpl - Inhibit the implementation of dispatchImpl().
-///     @li comms::option::HasDoRefresh - Notify the comms::MessageBase class
-///         about the existence of @b doRefresh() member function in the
-///         actual message class. It will force the existence of overriding
-///         refreshImpl() member function.
+///     @li comms::option::HasDoRefresh - Enable implementation of refreshImpl().
 /// @extends Message
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
@@ -165,6 +162,21 @@ public:
     ///     field object listed with comms::option::FieldsImpl option.
     /// @return true when @b all fields are valid.
     bool doValid() const;
+
+    /// @brief Default implementation of refreshing functionality.
+    /// @details This function exists only if comms::option::FieldsImpl or
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     To make this function works, every field class must provide "refresh()"
+    ///     function with following signature:
+    ///     @code
+    ///     bool refresh() const;
+    ///     @endcode
+    ///     This function will invoke such "refresh()" member function for every
+    ///     field object listed with comms::option::FieldsImpl option and will
+    ///     return @b true if <b>at least</b> one of the invoked functions returned
+    ///     @b true.
+    /// @return true when <b>at least</b> one of the fields has been updated.
+    bool doRefresh() const;
 
     /// @brief Default implementation of length calculation functionality.
     /// @details This function exists only if comms::option::FieldsImpl or
@@ -444,12 +456,13 @@ protected:
     /// @brief Implementation of polymorphic refresh functionality.
     /// @details This function exists if comms::option::RefreshInterface option
     ///         was provided to comms::Message class when specifying interface,
-    ///         comms::option::MsgType option was used to specify actual message
-    ///         type, and comms::option::HasDoRefresh option was used to
-    ///         indicate that the derived message has defined custom @b doRefresh()
-    ///         member function. The body of refreshImpl() will downcast @b this
-    ///         pointer to be a pointer to actual message type and then invoke
-    ///         the @b doRefresh() member function of the latter.
+    ///         and comms::option::HasDoRefresh option was used to
+    ///         to request implementation of polymorphic refresh functionality.
+    ///         If comms::option::MsgType option was used to specify the actual
+    ///         message class, the @b this pointer will be downcasted to it to
+    ///         invoke doRefresh() member function defined there. If such
+    ///         is not defined the default doRefresh() member function from
+    ///         this class will be used.
     /// @return @b true in case fields were updated, @b false if nothing has changed.
     virtual bool refreshImpl() override;
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY

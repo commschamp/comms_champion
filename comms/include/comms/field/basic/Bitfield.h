@@ -233,7 +233,7 @@ public:
         return comms::util::tupleAccumulate(members_, true, ValidHelper());
     }
 
-    constexpr bool refresh()
+    bool refresh()
     {
         return comms::util::tupleAccumulate(members_, false, RefreshHelper());
     }

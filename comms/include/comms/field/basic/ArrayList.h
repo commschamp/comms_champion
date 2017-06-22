@@ -158,7 +158,7 @@ public:
         return validInternal(ElemTag());
     }
 
-    constexpr bool refresh()
+    bool refresh()
     {
         return refreshInternal(ElemTag());
     }
@@ -418,7 +418,7 @@ private:
         return true;
     }
 
-    constexpr bool refreshInternal(FieldElemTag)
+    bool refreshInternal(FieldElemTag)
     {
         return
             std::accumulate(

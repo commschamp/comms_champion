@@ -75,6 +75,7 @@ namespace comms
 ///     @li comms::option::NoDispatchImpl - Inhibit the implementation of dispatchImpl().
 ///     @li comms::option::HasDoRefresh - Enable implementation of refreshImpl().
 /// @extends Message
+/// @headerfile comms/MessageBase.h
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
 {

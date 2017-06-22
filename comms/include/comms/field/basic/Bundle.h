@@ -87,7 +87,7 @@ public:
         return comms::util::tupleAccumulate(value(), true, ValidCheckHelper());
     }
 
-    constexpr bool refresh()
+    bool refresh()
     {
         return comms::util::tupleAccumulate(value(), false, RefreshHelper());
     }
@@ -148,7 +148,7 @@ private:
     struct RefreshHelper
     {
         template <typename TField>
-        constexpr bool operator()(bool soFar, const TField& field) const
+        bool operator()(bool soFar, const TField& field) const
         {
             return field.refresh() || soFar;
         }

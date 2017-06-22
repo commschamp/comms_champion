@@ -209,7 +209,7 @@ public:
 
     /// @brief Refresh contents of the field
     /// @return @b true in case the field's value has been updated, @b false otherwise
-    constexpr bool refresh()
+    bool refresh()
     {
         return intValue_.refresh();
     }

@@ -1651,7 +1651,70 @@
 /// @endcode
 ///
 /// @subsection sec_field_tutorial_common_options_read Custom Read Functionality
-/// TODO
+/// Every field provides @b read() member function to perform read of the field's
+/// value. Sometimes the default "read" functionality may be incorrect or
+/// incomplete. For example, let's
+/// define a "bundle" field with two members. The first one is a "bitmask", while
+/// the second one is optional 2 byte "int" value. The second member exists 
+/// only if least significant bit of the "bitmask" is not @b 0. In this case, 
+/// the provided @b read() member function won't analyse the value of the
+/// read "bitmask" and won't modify "existing"/"missing" mode value of the
+/// optional field.
+///
+/// One way to implement custom read functionality is to extend the field
+/// definition and override the @b read() member function:
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+/// struct MyBundle : public 
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >,
+///             comms::field::Optional<MyFieldBase, std::uint16_t>
+///         >
+///     >
+/// {
+///     template <typename TIter>
+///     comms::ErrorStatus read(TIter& iter, std::size_t len)
+///     {
+///         auto& members = value();
+///         auto& bitmask = std::get<0>(members);
+///         auto& optInt = std::get<1>(members);
+///         
+///         auto es = bitmask.read(iter, len);
+///         if (es != comms::ErrorStatus::Success) {
+///             return es;
+///         }
+///
+///         if (bitmask.getBitValue(0)) {
+///             optInt.setExists();
+///         }
+///         else {
+///             optInt.setMissing();
+///         }
+///
+///         return optInt.read(iter, len - bitmask.length());
+///     }
+/// };
+/// @endcode
+/// Another way is to use comms::option::CustomValueReader option. It
+/// receives one template parameter, which has to be a type of a custom
+/// reader class. Such class must implement @b operator() with the following
+/// signature:
+/// @code
+/// struct MyValidator
+/// {
+///     template <typename TField, typename TIter>
+///     comms::ErrorStatus operator()(TField& field, TIter& iter, std::size_t len) const
+///     {
+///         ... // Do proper read of the field's value.
+///     }
+/// };
+/// @endcode
+/// @b NOTE that the used @b operator() specifies the field type as a template
+/// parameter. This is required because the passed reference is to one of the
+/// defined field's base classes, which is implementation dependent. Just use
+/// the provided @b value() member function to access the tuple of member fields.
 /// 
 /// @subsection sec_field_tutorial_common_options_validation Custom Value Validation Logic
 /// Every field provides @b valid() member function to validate the internal value.
@@ -1778,11 +1841,16 @@
 /// to invoke @b refresh() member function of each member field and return @b true
 /// if @b any of the calls returned true.
 ///
-/// One way to change such default behavior is to extend the field
-/// definition and implement @b refresh() member function. For example, let's
-/// define a "bundle" field with two members. The first one is a "bitmask", while
+/// One way to change such default behaviour is to extend the field
+/// definition and implement @b refresh() member function. Let's take the
+/// same example as in @ref sec_field_tutorial_common_options_read section. There is
+/// a "bundle" field with two members. The first one is a "bitmask", while
 /// the second one is optional 2 byte "int" value. The second member exists 
-/// only if least significant bit of the "bitmask" is not @b 0.
+/// only if least significant bit of the "bitmask" is not @b 0. There is a 
+/// chance of having inconsistent state when the least significant bit in
+/// the "bitmask" is set, but the optional "int" field is marked to be "missing".
+/// There is a need to provide the custom "refresh" logic that brings the field's
+/// contents into a consistent state.
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::BigEndian>;
 /// struct MyBundle : public 
@@ -1925,6 +1993,10 @@
 ///     // Check validity of the internal value
 ///     bool valid() const;
 ///
+///     // Bring field's value into the consistent state,
+///     // return true if the field's value has been updated, false otherwise
+///     bool refresh();
+///
 ///     // Read field value from input data sequence, using any type of input iterator
 ///     template <typename TIter>
 ///     comms::ErrorStatus read(TIter& iter, std::size_t size);
@@ -1934,14 +2006,13 @@
 ///     comms::ErrorStatus write(TIter& iter, std::size_t size) const;
 /// };
 /// @endcode
-/// The comms::Field class provides readData() and writeData() protected
+/// The comms::Field class provides @b readData() and @b writeData() protected
 /// member functions that serialise data using endian provided as an option
 /// to the class. It makes sense to inherit from comms::Field with right
 /// option and reuse these functions inside:
 /// @code
 /// class MyField : public comms::Field<comms::option::BigEndian>
 /// {
-///     using Base = comms::Field<comms::option::BigEndian>;
 /// public:
 ///     
 ///     ...
@@ -1950,7 +2021,7 @@
 ///     comms::ErrorStatus read(TIter& iter, std::size_t size)
 ///     {
 ///         ...
-///         auto val = Base::readData<InternalType>(iter);
+///         auto val = readData<InternalType>(iter);
 ///         ...
 ///     }
 ///
@@ -1958,14 +2029,14 @@
 ///     comms::ErrorStatus write(TIter& iter, std::size_t size) const
 ///     {
 ///         ...
-///         Base::writeData(..., iter);
+///         writeData(..., iter);
 ///         ...
 ///     }
 /// };
 /// @endcode
 /// Also to be consistent with the existing implementation of the fields
 /// in the COMMS library it is recommended to provide an accessor functions
-/// "value()" for internal data storage:
+/// @b value() for internal data storage:
 /// @code
 /// class MyField : public comms::Field<comms::option::BigEndian>
 /// {

@@ -31,8 +31,8 @@
 /// @li Does @b NOT expose any polymorphic behaviour, i.e. does @b NOT have any
 ///     virtual functions.
 /// @li Provides simple interface to read (@b read()), write (@b write()), 
-///     retrieve serialisation length (@b length()), and check value validity
-///     (@b valid()).
+///     retrieve serialisation length (@b length()), check value validity
+///     (@b valid()), and bring field's value into a consistent state (@b refresh()).
 /// @li The @b read() and @b write() member function receive type of the 
 ///     iterator for (de)serialisation as a template parameter.
 ///
@@ -62,6 +62,9 @@
 ///
 ///     // Validity of the value
 ///     bool valid() const {...}
+///
+///     // Bring field's contents into a consistent state
+///     bool refresh() {...}
 ///
 /// private:
 ///     ValueType m_value;
@@ -98,11 +101,11 @@
 /// @subsection sec_field_tutorial_int_value_fixed_length Modifying Serialisation Length
 /// Sometimes protocol specification tries to reduce amount of data transferred over
 /// I/O link. It may define serialisation length of the field that differs
-/// from standard length of basic integral types, such as std::int8_t, std::uint8_t,
-/// std::int16_t, std::uint16_t, std::int32_t, std::uint32_t, ...
+/// from standard length of basic integral types, such as @b std::int8_t, @b std::uint8_t,
+/// @b std::int16_t, @b std::uint16_t, @b std::int32_t, @b std::uint32_t, ...
 /// For example, some field may only have values between 0 and 10,0000,000, which
 /// may be encoded using only 3 bytes, and that's what the protocol specifies.
-/// The storage type for such value is going to be std::uint32_t, but there is
+/// The storage type for such value is going to be @b std::uint32_t, but there is
 /// a need to limit serialisation length for it. The COMMS library provides
 /// comms::option::FixedLength option, that can be used for this purpose.
 /// @code
@@ -123,6 +126,8 @@
 /// // Variable length encoding, encoding takes at least 1 byte and at most 4 bytes. 
 /// using MyIntField = comms::field::IntValue<MyFieldBase, std::uint32_t, comms::option::VarLength<1, 4> >;
 /// @endcode
+/// The field's base class (@b MyFieldBase) contains endian information which is
+/// used to determine which part of the value is serialised first.
 ///
 /// @subsection sec_field_tutorial_int_value_ser_offset Serialisation Offset
 /// There are cases when there is a need to add/subtract some predefined offset
@@ -181,7 +186,7 @@
 ///     >;
 /// @endcode
 /// The comms::option::ScalingRatio option allows scaling of serialised value
-/// (distance in mm) to handling value (distance in m) and vice verse:
+/// (distance in mm) to handling value (distance in m) and vice versa:
 /// @code
 /// static const std::uint8_t InData[] = {0x3, 0xe8}; // Pretend input buffer, encoded 1000
 /// static const std::size_t InDataSize = std::extent<decltype(InData)>::value;
@@ -637,8 +642,8 @@
 ///     comms::option::FixedBitLength option.
 /// 
 /// Every member of the bitfield may use all the supported options. The 
-/// comms::field::Bitfield itself may receive only comms::option::ContentsValidator
-/// option described in @ref sec_field_tutorial_common_options_validation.
+/// comms::field::Bitfield itself may receive only options listed in its class
+/// description.
 ///
 /// To get an access to the member fields use @b value() member function:
 /// @code
@@ -752,7 +757,8 @@
 /// @section sec_field_tutorial_bundle Bundle Fields
 /// There are cases when multiple independent fields need to be bundled into
 /// a single field and expose the required interface of reading, writing,
-/// calculating length, and checking field's contents validity. It may be required
+/// calculating length, checking field's contents validity, and bringing field's
+/// value into a consistent state. It may be required
 /// when a message contains sequence (see @ref sec_field_tutorial_array_list) 
 /// of such bundles/structs. The COMMS library provides comms::field::Bundle
 /// field for this purpose. It is quite similar to comms::field::Bitfield described
@@ -798,7 +804,6 @@
 /// @endcode 
 /// The default behaviour of comms::field::Bundle may be extended with options.
 /// Please refer to the class documentation for the list of supported options.
-/// See @ref sec_field_tutorial_common_options_validation for details.
 ///
 /// Just like with the @ref sec_field_tutorial_bitfield, the names to the
 /// member fields can be provided by inheriting from the comms::field::Bundle
@@ -817,7 +822,7 @@
 /// Some communication protocols may define messages that transmit sequence
 /// of similar fields and/or raw data buffers. To make it easier to handle, the
 /// COMMS library provides comms::field::ArrayList field which provide a required
-/// interface to properly handle such sequences of data. It supports both
+/// interface to properly handle such sequences of data. It supports a
 /// sequence of raw bytes
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::BigEndian>;
@@ -1329,8 +1334,8 @@
 /// @section sec_field_tutorial_variant Variant Fields
 /// Some protocols may require usage of heterogeneous fields or lists of 
 /// heterogeneous fields, i.e. the ones that can be of multiple types. Good example
-/// would be a list of @b properties, where every property is a key/value pair, where
-/// key is numeric ID of the property, while value can be a numeric field of
+/// would be a list of @b properties, where every property is a key/value pair. The
+/// key is a numeric ID of the property, while value can be a numeric field of
 /// any length or a string one. As an example let's define three value types:
 /// @li Unsigned integer with length of only 1 byte (@b Value1)
 /// @li Unsigned integer with length of 4 bytes (@b Value2)
@@ -1575,10 +1580,23 @@
 /// @subsection sec_field_tutorial_common_options_default_value Default Value for Default Construction
 /// There may be a case when default construction of the field object should
 /// assign some custom value to the field, which differ to the usual defaults, such
-/// as assigning 0 to numeric fields or empty string to a string field. For
-/// such purpose comms::option::DefaultValueInitialiser option should be used.
+/// as assigning 0 to numeric fields or empty string to a string field. 
+/// 
+/// One of the possible ways is to extend the defined field class and 
+/// set the required value in the constructor.
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+/// struct MyString : public comms::field::String<MyFieldBase>
+/// {
+///     MyString()
+///     {
+///         value() = "hello";
+///     }
+/// };
+/// @endcode
+/// Another way is to use comms::option::DefaultValueInitialiser option.
 /// It receives a template parameter, which has to be a type of initialisation
-/// class. It must provide operator() which is responsible to assign a custom
+/// class. It must provide @b operator() which is responsible to assign a custom
 /// value to the field. It is going to be invoked from the default constructor
 /// of the field.
 /// @code
@@ -1591,7 +1609,7 @@
 ///     }
 /// };
 /// @endcode
-/// For example, let's create a string field having "hello" as a default value:
+/// For example:
 /// @code
 /// struct CustomStringInitaliser
 /// {
@@ -1612,6 +1630,11 @@
 /// MyString myStr; // Default construction
 /// assert(myStr.value() == "hello"); // Custom default value is expected to be assigned
 /// @endcode
+/// @b NOTE that the used @b operator() specifies the field type as a template
+/// parameter. This is required because the passed reference is to one of the
+/// defined field's base classes, which is implementation dependent. Just use
+/// the provided @b value() member function to access the value.
+///
 /// The COMMS library also provides a simpler alias for comms::option::DefaultValueInitialiser
 /// to set default value for numeric fields. It is comms::option::DefaultNumValue.
 /// @code
@@ -1626,13 +1649,31 @@
 /// MyInt myInt;
 /// assert(myInt.value() == 10); // Custom default value is expected to be assigned
 /// @endcode
+///
+/// @subsection sec_field_tutorial_common_options_read Custom Read Functionality
+/// TODO
 /// 
 /// @subsection sec_field_tutorial_common_options_validation Custom Value Validation Logic
 /// Every field provides @b valid() member function to validate the internal value.
 /// By default, every internal value of the field is considered to be valid, i.e.
-/// the @b valid() function will always return true. It is possible to add
-/// custom validation logic using comms::option::ContentsValidator option. This
-/// option receives one template parameter, which has to be a type of a custom
+/// the @b valid() function will always return true. 
+///
+/// One of the ways to provide custom validation logic is to extend the field
+/// definition and implement @b valid() member function:
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+/// struct MyString : public comms::field::String<MyFieldBase>
+/// {
+///     bool valid() const
+///     {
+///         // Valid if not empty and starts with '$'
+///         return (!value().empty()) && (value()[0] == '$');
+///     }
+/// };
+/// @endcode
+/// 
+/// Another way is to use comms::option::ContentsValidator option. It
+/// receives one template parameter, which has to be a type of a custom
 /// validator class. Such class must implement @b operator() with the following
 /// signature:
 /// @code
@@ -1646,14 +1687,14 @@
 ///     }
 /// };
 /// @endcode
-/// For example, below is a definition of the string field, that is considered
-/// to be valid if the string is not empty and starts with '$' character.
+/// For example:
 /// @code
 /// struct CustomStringValidator
 /// {
 ///     template <typename TField>
 ///     bool operator()(const TField& field)
 ///     {
+///         // Valid if not empty and starts with '$'
 ///         auto& str = field.value();
 ///         return (!str.empty()) && (str[0] == '$');
 ///     }
@@ -1671,6 +1712,11 @@
 /// myStr.value() = "$somestring";
 /// assert(myStr.valid()); // Now the string is as expected
 /// @endcode
+/// @b NOTE that the used @b operator() specifies the field type as a template
+/// parameter. This is required because the passed reference is to one of the
+/// defined field's base classes, which is implementation dependent. Just use
+/// the provided @b value() member function to access the value.
+///
 /// Quite often the valid values of the numeric fields can be expressed in one
 /// range: [minValid - maxValid]. The COMMS library provides comms::option::ValidNumValueRange,
 /// which is a convenience wrapper around comms::option::ContentsValidator. It
@@ -1723,6 +1769,69 @@
 /// flags.value() |= 0x1; // set bit 0;
 /// assert(!flags.valid()); // the field is invalid now.
 /// @endcode
+///
+/// @subsection sec_field_tutorial_common_options_refresh Custom Refresh Functionality
+/// Every field provides @b refresh() member function used to bring the field's 
+/// value into a consistent state. By default this function does nothing and
+/// returns @b false, meaning no field has been updated. For complex fields, such
+/// as comms::field::Bitfield or comms::field::Bundle, the default behaviour is
+/// to invoke @b refresh() member function of each member field and return @b true
+/// if @b any of the calls returned true.
+///
+/// One way to change such default behavior is to extend the field
+/// definition and implement @b refresh() member function. For example, let's
+/// define a "bundle" field with two members. The first one is a "bitmask", while
+/// the second one is optional 2 byte "int" value. The second member exists 
+/// only if least significant bit of the "bitmask" is not @b 0.
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+/// struct MyBundle : public 
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >,
+///             comms::field::Optional<MyFieldBase, std::uint16_t>
+///         >
+///     >
+/// {
+///     bool refresh()
+///     {
+///         auto& members = value();
+///         auto& bitmask = std::get<0>(members);
+///         auto& optInt = std::get<1>(members);
+///         auto expectedMode = comms::field::OptionalMode::Missing;
+///         if (bitmask.getBitValue(0)) {
+///             expectedMode = comms::field::OptionalMode::Exists;
+///         }
+///
+///         if (optInt.getMode() == expectedMode) {
+///             return false; // Nothing has been changed
+///         }
+///     
+///         optInt.setMode(expectedMode);
+///         return true; // Field has been updated
+///     }
+/// };
+/// @endcode
+/// 
+/// Another way is to use comms::option::ContentsRefresher option. It
+/// receives one template parameter, which has to be a type of a custom
+/// refresher class. Such class must implement @b operator() with the following
+/// signature:
+/// @code
+/// struct MyRefresher
+/// {
+///     template <typename TField>
+///     bool operator()(TField& field)
+///     {
+///         ... // return true if field was modified, false otherwise
+///     }
+/// };
+/// @endcode
+/// @b NOTE that the used @b operator() specifies the field type as a template
+/// parameter. This is required because the passed reference is to one of the
+/// defined field's base classes, which is implementation dependent. Just use
+/// the provided @b value() member function to access the value.
 ///
 /// @subsection sec_field_tutorial_common_options_fail_invalid Fail on Invalid Value
 /// Sometimes the protocol specifications may impose a strict rules on disallowing

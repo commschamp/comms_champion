@@ -41,6 +41,8 @@ namespace field
 ///     Supported options are:
 ///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultOptionalMode.
 ///     @li comms::option::ContentsValidator.
+///     @li comms::option::ContentsRefresher
+/// @extends comms::Field
 template <typename TField, typename... TOptions>
 class Optional : public details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>
 {

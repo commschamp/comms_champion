@@ -123,8 +123,10 @@ using ArrayListBase =
 ///     @li comms::option::SequenceTrailingFieldSuffix
 ///     @li comms::option::DefaultValueInitialiser
 ///     @li comms::option::ContentsValidator
+///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+/// @extends comms::Field
 template <typename TFieldBase, typename TElement, typename... TOptions>
 class ArrayList : public details::ArrayListBase<TFieldBase, TElement, TOptions...>
 {

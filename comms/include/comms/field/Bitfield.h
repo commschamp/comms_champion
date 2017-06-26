@@ -86,9 +86,14 @@ namespace field
 ///         observe value of more than one bitfield member. For example,
 ///         protocol specifies that if one specific member has value X, than
 ///         other member is NOT allowed to have value Y.
+///     @li comms::option::ContentsRefresher - The default refreshing
+///         behaviour is to call the @refresh() member function of every
+///         member field. This option provides an ability to set a custom
+///         "refreshing" logic.
 /// @pre TMember is a variant of std::tuple, that contains other fields.
 /// @pre Every field member specifies its length in bits using
 ///     comms::option::FixedBitLength option.
+/// @extends comms::Field
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bitfield : public
         details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>

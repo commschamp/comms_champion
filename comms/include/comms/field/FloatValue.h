@@ -49,10 +49,12 @@ namespace field
 ///     Supported options are:
 ///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
 ///     @li comms::option::ContentsValidator or comms::option::ValidNumValueRange.
+///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 ///     @li comms::option::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
+/// @extends comms::Field
 template <typename TFieldBase, typename T, typename... TOptions>
 class FloatValue : public details::AdaptBasicFieldT<basic::FloatValue<TFieldBase, T>, TOptions...>
 {

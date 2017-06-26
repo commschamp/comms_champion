@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// Contains definition of comms::field::EnumValue
 
 #pragma once
 
@@ -28,7 +30,6 @@
 
 namespace comms
 {
-
 namespace field
 {
 
@@ -65,8 +66,10 @@ namespace field
 ///     @li comms::option::NumValueSerOffset
 ///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
 ///     @li comms::option::ContentsValidator or comms::option::ValidNumValueRange.
+///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+/// @extends comms::Field
 template <typename TFieldBase, typename TEnum, typename... TOptions>
 class EnumValue : public details::AdaptBasicFieldT<basic::EnumValue<TFieldBase, TEnum>, TOptions...>
 {
@@ -112,8 +115,8 @@ public:
 
     /// @brief Get length required to serialise the current field value.
     /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const
-    {;
+    constexpr std::size_t length() const;
+
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Minimal number of bytes required serialise the field value.
     static constexpr std::size_t minLength();
@@ -144,7 +147,6 @@ public:
     /// @brief Refresh the field's value
     /// @return @b true if the value has been updated, @b false otherwise
     bool refresh();
-
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 

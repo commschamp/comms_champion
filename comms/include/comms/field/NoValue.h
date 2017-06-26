@@ -38,6 +38,7 @@ namespace field
 /// @details Can be used with other classes that require field types.
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
+/// @extends comms::Field
 template <typename TFieldBase>
 class NoValue : public details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >
 {

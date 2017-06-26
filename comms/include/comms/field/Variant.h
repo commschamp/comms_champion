@@ -64,6 +64,10 @@ namespace field
 ///         observe value of more than one wrapped fields. For example,
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
+///     @li comms::option::ContentsRefresher - The default @b refresh()
+///         behavior is to call @b refresh() member function of the contained
+///         field (if such exists). This option allows specifying the custom
+///         refreshing behaviour.
 ///     @li comms::option::CustomValueReader - It may be required to implement
 ///         custom reading functionality instead of default behaviour of
 ///         invoking read() member function of every member field. It is possible

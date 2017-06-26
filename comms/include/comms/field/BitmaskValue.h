@@ -90,8 +90,10 @@ using BitmaskUndertlyingTypeT =
 ///     @li comms::option::FixedBitLength
 ///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
 ///     @li comms::option::ContentsValidator or comms::option::BitmaskReservedBits.
+///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+/// @extends comms::Field
 /// @see COMMS_BITMASK_BITS()
 /// @see COMMS_BITMASK_BITS_ACCESS()
 /// @see COMMS_BITMASK_BITS_SEQ()

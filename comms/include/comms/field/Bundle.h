@@ -57,7 +57,7 @@ namespace field
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
 ///     @li comms::option::ContentsRefresher - The default refreshing
-///         behaviour is to call the @refresh() member function of every
+///         behaviour is to call the @b refresh() member function of every
 ///         member field. This option provides an ability to set a custom
 ///         "refreshing" logic.
 ///     @li comms::option::CustomValueReader - It may be required to implement

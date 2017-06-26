@@ -416,7 +416,7 @@
 /// @endcode
 /// Please pay attention to the following details:
 /// @li The protocol stack type defines type of the smart pointer that 
-///     holds message object that was allocation during @read operation:
+///     holds message object that was allocation during @b read operation:
 ///     @code
 ///     ProtStack::MsgPtr msgPtr;
 ///     @endcode

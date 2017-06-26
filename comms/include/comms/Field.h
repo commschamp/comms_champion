@@ -34,6 +34,7 @@ namespace comms
 ///     @li comms::option::BigEndian or comms::option::LittleEndian - Option to
 ///         specify serialisation endian. If none is provided "Big" endian is
 ///         assumed.
+/// @headerfile comms/Field.h
 template <typename... TOptions>
 class Field : public details::FieldBase<TOptions...>
 {

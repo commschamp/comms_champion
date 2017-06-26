@@ -87,7 +87,7 @@ namespace field
 ///         protocol specifies that if one specific member has value X, than
 ///         other member is NOT allowed to have value Y.
 ///     @li comms::option::ContentsRefresher - The default refreshing
-///         behaviour is to call the @refresh() member function of every
+///         behaviour is to call the @b refresh() member function of every
 ///         member field. This option provides an ability to set a custom
 ///         "refreshing" logic.
 /// @pre TMember is a variant of std::tuple, that contains other fields.

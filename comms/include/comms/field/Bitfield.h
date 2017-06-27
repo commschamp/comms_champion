@@ -94,6 +94,7 @@ namespace field
 /// @pre Every field member specifies its length in bits using
 ///     comms::option::FixedBitLength option.
 /// @extends comms::Field
+/// @headerfile comms/field/Bitfield.h
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bitfield : public
         details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>

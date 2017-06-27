@@ -55,6 +55,7 @@ namespace field
 ///     @li comms::option::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
 /// @extends comms::Field
+/// @headerfile comms/field/FloatValue.h
 template <typename TFieldBase, typename T, typename... TOptions>
 class FloatValue : public details::AdaptBasicFieldT<basic::FloatValue<TFieldBase, T>, TOptions...>
 {

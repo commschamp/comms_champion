@@ -35,6 +35,7 @@ namespace protocol
 ///     layer, expects other mid level layer or MsgDataLayer to be its next one.
 /// @tparam TField Type of the field that describes the "size" field.
 /// @tparam TNextLayer Next transport layer in protocol stack.
+/// @headerfile comms/protocol/MsgSizeLayer.h
 template <typename TField,
           typename TNextLayer>
 class MsgSizeLayer : public ProtocolLayerBase<TField, TNextLayer>

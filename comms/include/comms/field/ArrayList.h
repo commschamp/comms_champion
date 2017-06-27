@@ -127,6 +127,7 @@ using ArrayListBase =
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 /// @extends comms::Field
+/// @headerfile comms/field/ArrayList.h
 template <typename TFieldBase, typename TElement, typename... TOptions>
 class ArrayList : public details::ArrayListBase<TFieldBase, TElement, TOptions...>
 {

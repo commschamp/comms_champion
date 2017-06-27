@@ -39,6 +39,7 @@ namespace field
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
 /// @extends comms::Field
+/// @headerfile comms/field/NoValue.h
 template <typename TFieldBase>
 class NoValue : public details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >
 {

@@ -33,6 +33,7 @@ namespace checksum
 /// @details The checksum calculator class that sums all the bytes and
 ///     returns the result as a checksum value.
 /// @tparam TResult Type of the checksum result value.
+/// @headerfile comms/protocol/checksum/BasicSum.h
 template <typename TResult = std::uint8_t>
 class BasicSum
 {

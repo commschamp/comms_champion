@@ -100,6 +100,7 @@ using StringBase =
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 /// @extends comms::Field
+/// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>
 class String : public details::StringBase<TFieldBase, TOptions...>
 {

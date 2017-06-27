@@ -94,6 +94,7 @@ using BitmaskUndertlyingTypeT =
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 /// @extends comms::Field
+/// @headerfile comms/field/BitmaskValue.h
 /// @see COMMS_BITMASK_BITS()
 /// @see COMMS_BITMASK_BITS_ACCESS()
 /// @see COMMS_BITMASK_BITS_SEQ()

@@ -76,6 +76,8 @@ namespace field
 ///     @li comms::option::DefaultVariantIndex - By default the Variant field
 ///         doesn't have any valid contents. This option may be used to specify
 ///         the index of the default member field.
+/// @extends comms::Field
+/// @headerfile comms/field/Variant.h
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Variant : public
         details::AdaptBasicFieldT<basic::Variant<TFieldBase, TMembers>, TOptions...>

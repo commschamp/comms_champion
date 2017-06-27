@@ -257,6 +257,7 @@ struct CrcInitTable<std::uint32_t, 0x04c11db7>
 /// @tparam TFin Final XOR value
 /// @tparam TReflect Perform reflection of every byte
 /// @tparam TReflectRem Perform reflection of the final value
+/// @headerfile comms/protocol/checksum/Crc.h
 /// @see Crc_CCITT
 /// @see Crc_16
 /// @see Crc_32

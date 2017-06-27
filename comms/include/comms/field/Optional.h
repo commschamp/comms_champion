@@ -43,6 +43,7 @@ namespace field
 ///     @li comms::option::ContentsValidator.
 ///     @li comms::option::ContentsRefresher
 /// @extends comms::Field
+/// @headerfile comms/field/Optional.h
 template <typename TField, typename... TOptions>
 class Optional : public details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>
 {

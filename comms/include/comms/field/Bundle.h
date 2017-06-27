@@ -65,6 +65,8 @@ namespace field
 ///         invoking read() member function of every member field. It is possible
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
+/// @extends comms::Field
+/// @headerfile comms/field/Bundle.h
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bundle : public details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMembers>, TOptions...>
 {

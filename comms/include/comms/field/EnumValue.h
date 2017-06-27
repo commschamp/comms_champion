@@ -70,6 +70,7 @@ namespace field
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 /// @extends comms::Field
+/// @headerfile comms/field/Bundle.h
 template <typename TFieldBase, typename TEnum, typename... TOptions>
 class EnumValue : public details::AdaptBasicFieldT<basic::EnumValue<TFieldBase, TEnum>, TOptions...>
 {

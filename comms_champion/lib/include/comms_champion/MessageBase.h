@@ -115,7 +115,16 @@ protected:
     ///     class and converts it to string.
     virtual QString idAsStringImpl() const override
     {
-        return QString("%1").arg(CommsBase::getId());
+        static const bool IsNumeric =
+            std::is_enum<typename CommsBase::MsgIdType>::value ||
+            std::is_integral<typename CommsBase::MsgIdType>::value;
+        using Tag =
+            typename std::conditional<
+                IsNumeric,
+                NumericIdTag,
+                NonNumericIdTag
+            >::type;
+        return idAsStringImplInternal(Tag());
     }
 
     /// @brief Overriding polymorphic validity check
@@ -162,6 +171,8 @@ private:
     struct UseDataSeqIterTag {};
     struct UsePointerTag {};
     struct OtherInputIterTag {};
+    struct NumericIdTag {};
+    struct NonNumericIdTag {};
 
     DataSeq encodeDataIntenal(std::random_access_iterator_tag) const
     {
@@ -258,6 +269,16 @@ private:
     {
         auto es = CommsBase::read(iter, bufSize);
         return es == comms::ErrorStatus::Success;
+    }
+
+    QString idAsStringImplInternal(NumericIdTag) const
+    {
+        return QString("%1").arg(static_cast<qlonglong>(CommsBase::getId()));
+    }
+
+    QString idAsStringImplInternal(NonNumericIdTag) const
+    {
+        return QString("%1").arg(CommsBase::getId());
     }
 };
 

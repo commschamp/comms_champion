@@ -64,6 +64,11 @@ public:
         return 1U;
     }
 
+    static constexpr bool hasUniqueIds()
+    {
+        return true;
+    }
+
 private:
 
     static_assert(comms::util::IsTuple<AllMessages>::Value,

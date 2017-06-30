@@ -121,12 +121,22 @@ public:
         return factory_.createMsg(id, idx);
     }
 
+    MsgPtr createGenericMsg(MsgIdParamType id) const
+    {
+        return factory_.createGenericMsg(id);
+    }
+
     /// @brief Get number of message types from @ref AllMessages, that have the specified ID.
     /// @param id ID of the message.
     /// @return Number of message classes that report same ID.
     std::size_t msgCount(MsgIdParamType id) const
     {
         return factory_.msgCount(id);
+    }
+
+    static constexpr bool hasUniqueIds()
+    {
+        return Factory::hasUniqueIds();
     }
 
 private:

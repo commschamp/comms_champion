@@ -43,6 +43,7 @@ public:
     static const bool HasNoLengthImpl = false;
     static const bool HasNoValidImpl = false;
     static const bool HasDoRefresh = false;
+    static const bool HasDoGetId = false;
 };
 
 template <std::intmax_t TId,
@@ -144,6 +145,15 @@ class MessageImplOptionsParser<
 {
 public:
     static const bool HasDoRefresh = true;
+};
+
+template <typename... TOptions>
+class MessageImplOptionsParser<
+    comms::option::HasDoGetId,
+    TOptions...> : public MessageImplOptionsParser<TOptions...>
+{
+public:
+    static const bool HasDoGetId = true;
 };
 
 template <typename TMsgType,

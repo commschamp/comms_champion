@@ -186,6 +186,11 @@ struct NoLengthImpl {};
 struct HasDoRefresh {};
 
 /// @brief Option that notifies comms::MessageBase about existence of
+///     @b doGetId() member function in derived class.
+/// @headerfile comms/options.h
+struct HasDoGetId {};
+
+/// @brief Option that notifies comms::MessageBase about existence of
 ///     access to fields.
 /// @details Can be useful when there is a chain of inheritances from
 ///     comms::MessageBase.
@@ -196,6 +201,9 @@ struct AssumeFieldsExistence {};
 ///     initialisation, instead of usage of dynamic memory allocation.
 /// @headerfile comms/options.h
 struct InPlaceAllocation {};
+
+template <typename TGenericMessage>
+struct SupportGenericMessage {};
 
 /// @brief Option used to specify number of bytes that is used for field serialisation.
 /// @details Applicable only to numeric fields, such as comms::field::IntValue or

@@ -74,6 +74,9 @@ namespace comms
 ///     @li comms::option::NoValidImpl - Inhibit the implementation of validImpl().
 ///     @li comms::option::NoDispatchImpl - Inhibit the implementation of dispatchImpl().
 ///     @li comms::option::HasDoRefresh - Enable implementation of refreshImpl().
+///     @li comms::option::HasDoGetId - Enable implementation of getIdImpl() even if
+///         comms::option::StaticNumIdImpl option wasn't used. Must be paired with
+///         comms::option::MsgType.
 /// @extends Message
 /// @headerfile comms/MessageBase.h
 template <typename TMessage, typename... TOptions>
@@ -200,11 +203,17 @@ protected:
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Implementation of ID retrieval functionality.
-    /// @details This function exists only if comms::option::StaticNumIdImpl or
-    ///     comms::option::NoIdImpl options was provided to comms::MessageBase.
-    ///     In case of comms::option::StaticNumIdImpl option the value
-    ///     provided with this option casted to comms::Message::MsgIdType type is
-    ///     returned.
+    /// @details This function may exist only if ID retrieval is possible, i.e.
+    ///     the ID type has been privded to comms::Message using
+    ///     comms::option::MsgIdType option and the polymorphic ID retrieval
+    ///     functionality was requested (using comms::option::IdInfoInterface).
+    ///     In addition to the conditions listed earlier this function is
+    ///     provided if local doGetId() function was generated. If not,
+    ///     it may still be provided if
+    ///     the derived class is known (comms::option::MsgType option
+    ///     was used) and the comms::option::HasDoGetId option is used
+    ///     to declare the derived type having doGetId() member function
+    ///     defined.
     /// @return ID value passed as template parameter to comms::option::StaticNumIdImpl
     ///     option.
     virtual MsgIdParamType getIdImpl() const override;

@@ -305,6 +305,7 @@ private:
         }
 
         auto id = field.value();
+        auto remLen = size - field.length();
 
         unsigned idx = 0;
         while (true) {
@@ -317,7 +318,7 @@ private:
             static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
                 "Iterator used for reading is expected to be random access one");
             IterType readStart = iter;
-            es = reader.read(msgPtr, iter, size - field.length(), missingSize);
+            es = reader.read(msgPtr, iter, remLen, missingSize);
             if (es == ErrorStatus::Success) {
                 return es;
             }
@@ -327,16 +328,31 @@ private:
             ++idx;
         }
 
-        auto idxLimit = factory_.msgCount(id);
-        if (idxLimit == 0U) {
-            return ErrorStatus::InvalidMsgId;
-        }
-
-        if (idxLimit <= idx) {
+        if ((0U < idx) && Factory::hasUniqueIds()) {
             return es;
         }
 
-        return ErrorStatus::MsgAllocFailure;
+        GASSERT(!msgPtr);
+        auto idxLimit = factory_.msgCount(id);
+        if (idx < idxLimit) {
+            return ErrorStatus::MsgAllocFailure;
+        }
+
+        msgPtr = factory_.createGenericMsg(id);
+        if (!msgPtr) {
+            if (idx == 0) {
+                return ErrorStatus::InvalidMsgId;
+            }
+
+            return es;
+        }
+
+        es = reader.read(msgPtr, iter, remLen, missingSize);
+        if (es != comms::ErrorStatus::Success) {
+            msgPtr.reset();
+        }
+
+        return es;
     }
 
     template <typename TMsg, typename TIter, typename TWriter>

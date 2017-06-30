@@ -43,6 +43,7 @@ public:
     void test11();
     void test12();
     void test13();
+    void test14();
 
 private:
 
@@ -194,6 +195,35 @@ private:
                 comms::option::InPlaceAllocation
             >
         >;
+
+    template <typename TMsgBase>
+    class GenericMsg : public
+        comms::GenericMessage<TMsgBase>
+    {
+        using Base = comms::GenericMessage<TMsgBase>;
+    public:
+        using Base::Base;
+    protected:
+        virtual const std::string& getNameImpl() const override
+        {
+            static const std::string Str("Generic Message");
+            return Str;
+        }
+    };
+
+    template <typename TSizeField, typename TIdField, typename TMessage>
+    using GenMsgProtocolStack =
+        comms::protocol::MsgSizeLayer<
+            TSizeField,
+            comms::protocol::MsgIdLayer<
+                TIdField,
+                TMessage,
+                AllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::SupportGenericMessage<GenericMsg<TMessage> >
+            >
+        >;
+
 };
 
 void MsgSizeLayerTestSuite::test1()
@@ -220,8 +250,17 @@ void MsgSizeLayerTestSuite::test1()
 
     TS_ASSERT_EQUALS(msg1, msg2);
 
-    auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
-    TS_ASSERT(!msgPtr3);
+    GenMsgProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> genMsgStack;
+    auto msgPtr3 = commonReadWriteMsgTest(genMsgStack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr3);
+    TS_ASSERT_EQUALS(msgPtr3->getId(), MessageType1);
+    auto& msg3 = dynamic_cast<BeMsg1&>(*msgPtr2);
+    TS_ASSERT_EQUALS(std::get<0>(msg3.fields()).value(), 0x0102);
+
+    TS_ASSERT_EQUALS(msg1, msg3);
+
+    auto msgPtr4 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
+    TS_ASSERT(!msgPtr4);
 }
 
 void MsgSizeLayerTestSuite::test2()
@@ -442,3 +481,24 @@ void MsgSizeLayerTestSuite::test13()
     ProtocolStack<BeSizeField20, BeIdField2, BeNoLengthBackInsertMsgBase> stack;
     vectorBackInsertWriteReadMsgTest(stack, msg, ExpectedBuf, BufSize);
 }
+
+void MsgSizeLayerTestSuite::test14()
+{
+    static const char Buf[] = {
+        0x0, 0x3, UnusedValue1, 0x01, 0x02, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    GenMsgProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), UnusedValue1);
+
+    auto& msg1 = dynamic_cast<GenericMsg<BeMsgBase>&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg1.field_data().value().size(), 2U);
+    TS_ASSERT_EQUALS(msg1.field_data().value()[0], 0x01);
+    TS_ASSERT_EQUALS(msg1.field_data().value()[1], 0x02);
+
+}
+

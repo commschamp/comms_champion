@@ -44,12 +44,12 @@ public:
 
         auto iter = findMethod(id);
         if (iter == Base::registry().end()) {
-            return MsgPtr();
+            return Base::unknownMessage(id);
         }
 
         GASSERT(*iter != nullptr);
         if((*iter)->getId() != id) {
-            return MsgPtr();
+            return Base::unknownMessage(id);
         }
 
         return (*iter)->create(*this);
@@ -69,6 +69,11 @@ public:
         }
 
         return 1U;
+    }
+
+    static constexpr bool hasUniqueIds()
+    {
+        return true;
     }
 
 private:

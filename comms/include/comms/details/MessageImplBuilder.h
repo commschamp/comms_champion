@@ -71,14 +71,35 @@ using MessageImplStaticNumIdBaseT =
     typename MessageImplProcessStaticNumIdBase<
         TBase::InterfaceOptions::HasMsgIdType && TOpt::HasStaticMsgId>::template Type<TBase, TOpt>;
 
-template <typename TBase>
+template <typename TBase, typename TOpt>
 class MessageImplPolymorhpicStaticNumIdBase : public TBase
 {
 protected:
     ~MessageImplPolymorhpicStaticNumIdBase() = default;
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
+        using Tag =
+            typename std::conditional<
+                TOpt::HasMsgType,
+                DowncastTag,
+                NoDowncastTag
+            >::type;
+        return getIdInternal(Tag());
+    }
+
+private:
+    struct DowncastTag {};
+    struct NoDowncastTag {};
+
+    typename TBase::MsgIdParamType getIdInternal(NoDowncastTag) const
+    {
         return TBase::doGetId();
+    }
+
+    typename TBase::MsgIdParamType getIdInternal(DowncastTag) const
+    {
+        using Derived = typename TOpt::MsgType;
+        return static_cast<const Derived*>(this)->doGetId();
     }
 };
 
@@ -88,14 +109,14 @@ struct MessageImplProcessPolymorhpicStaticNumIdBase;
 template <>
 struct MessageImplProcessPolymorhpicStaticNumIdBase<true>
 {
-    template <typename TBase>
-    using Type = MessageImplPolymorhpicStaticNumIdBase<TBase>;
+    template <typename TBase, typename TOpt>
+    using Type = MessageImplPolymorhpicStaticNumIdBase<TBase, TOpt>;
 };
 
 template <>
 struct MessageImplProcessPolymorhpicStaticNumIdBase<false>
 {
-    template <typename TBase>
+    template <typename TBase, typename TOpt>
     using Type = TBase;
 };
 
@@ -103,8 +124,8 @@ template <typename TBase, typename TOpt>
 using MessageImplPolymorhpicStaticNumIdBaseT =
     typename MessageImplProcessPolymorhpicStaticNumIdBase<
         TBase::InterfaceOptions::HasMsgIdType && TBase::InterfaceOptions::HasMsgIdInfo &&
-            TOpt::HasStaticMsgId
-        >::template Type<TBase>;
+            (TOpt::HasStaticMsgId || (TOpt::HasMsgType && TOpt::HasDoGetId))
+        >::template Type<TBase, TOpt>;
 
 template <typename TBase>
 class MessageImplNoIdBase : public TBase

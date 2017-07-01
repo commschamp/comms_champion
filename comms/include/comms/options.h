@@ -202,6 +202,10 @@ struct AssumeFieldsExistence {};
 /// @headerfile comms/options.h
 struct InPlaceAllocation {};
 
+/// @brief Option used to allow @ref comms::GenericMessage generation inside
+///  @ref comms::MsgFactory and/or @ref comms::protocol::MsgIdLayer classes.
+/// @tparam TGenericMessage Type of message, expected to be a variant of
+///     @ref comms::GenericMessage.
 template <typename TGenericMessage>
 struct SupportGenericMessage {};
 

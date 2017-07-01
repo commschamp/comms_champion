@@ -65,6 +65,13 @@ namespace comms
 ///         If comms::option::InPlaceAllocation option is NOT used, than the
 ///         requested message objects are allocated using dynamic memory and
 ///         returned wrapped in std::unique_ptr without custom deleter.
+///     @li comms::option::SupportGenericMessage - Option used to allow
+///         allocation of @ref comms::GenericMessage. If such option is
+///         provided, the createGenericMsg() member function will be able
+///         to allocate @ref comms::GenericMessage object. @b NOTE, that
+///         the base class of @ref comms::GenericMessage type (first template
+///         parameter) must be equal to @b TMsgBase (first template parameter)
+///         of @b this class.
 /// @pre TMsgBase is a base class for all the messages in TAllMessages.
 /// @pre Message type is TAllMessages must be sorted based on their IDs.
 /// @pre If comms::option::InPlaceAllocation option is provided, only one custom
@@ -121,6 +128,12 @@ public:
         return factory_.createMsg(id, idx);
     }
 
+    /// @brief Allocate and initialise @ref comms::GenericMessage object.
+    /// @details If comms::option::SupportGenericMessage option hasn't been
+    ///     provided, this function will return empty @b MsgPtr pointer. Otherwise
+    ///     the relevant allocator will be used to allocate @ref comms::GenericMessage.
+    /// @param[in] id ID of the message, will be passed as a parameter to the
+    ///     constructor of the @ref comms::GenericMessage class
     MsgPtr createGenericMsg(MsgIdParamType id) const
     {
         return factory_.createGenericMsg(id);
@@ -134,6 +147,8 @@ public:
         return factory_.msgCount(id);
     }
 
+    /// @brief Compile time knowldege inquiry whether all the message classes in the
+    ///     @b TAllMessages bundle have unique IDs.
     static constexpr bool hasUniqueIds()
     {
         return Factory::hasUniqueIds();

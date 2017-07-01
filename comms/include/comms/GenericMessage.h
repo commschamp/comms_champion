@@ -30,7 +30,7 @@
 namespace comms
 {
 
-template <typename TFieldBase, typename TExtraOpts>
+template <typename TFieldBase, typename TExtraOpts = comms::option::EmptyOption>
 using GenericMessageFields =
     std::tuple<
         comms::field::ArrayList<

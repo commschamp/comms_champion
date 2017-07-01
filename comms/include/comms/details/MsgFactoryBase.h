@@ -209,6 +209,8 @@ private:
 
     MsgPtr createGenericMsgInternal(MsgIdParamType id, AllocGenericTag) const
     {
+        static_assert(std::is_base_of<Message, typename ParsedOptions::GenericMessage>::value,
+            "The requested GenericMessage class must have the same interface class as all other messages");
         return allocMsg<typename ParsedOptions::GenericMessage>(id);
     }
 

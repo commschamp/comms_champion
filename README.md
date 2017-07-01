@@ -202,8 +202,7 @@ The full tutorial as well as API documentation can be downloaded as
 from [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # Licence
-The [COMMS Library](#comms-library), [CommsChampion Tools](#commschampion-tools),
-and the [Demo Protocol](#demo-protocol) are licensed under
+The [COMMS Library](#comms-library) is licensed under
 the classic **GPLv3 / Commercial** dual licensing scheme. The
 source code is available for anyone to use as long as the derivative work
 remains open source with compatible licence. **Download** and **try** it! 
@@ -212,9 +211,15 @@ product, it can be obtained on [binpress](http://arobenko.binpress.com/product/c
 If the offered licences do not satisfy your needs and special conditions need to be
 included please send me an e-mail (see [Contact Information](#contact-information) below).
 
+The [CommsChampion Tools](#commschampion-tools),
+and the [Demo Protocol](#demo-protocol) are licensed under the same **GPLv3**
+licence. If a commercial closed source licence is needed for these products 
+as well, please get it touch. As the author and full copyright owner I will be
+able to provide one.
+
 Some icons, used in [CommsChampion](#commschampion-tools) tools, were taken from
-[Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter
-applies.
+[Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter, which
+requires attribution, applies.
 
 The [application icon](src/app/cc_view/src/image/app_icon.png) of the
 [CommsChampion](#commschampion-tools) tool must

@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -27,33 +27,16 @@ namespace demo
 namespace cc_plugin
 {
 
-typedef std::tuple<
-    comms::option::ValidCheckInterface,
-    comms::option::LengthInfoInterface
-> ExtraMessageOptions;
-
-template <typename... TOptions>
-class MessageT : public comms_champion::MessageBase<demo::MessageT, ExtraMessageOptions, TOptions...>
+class Message : public comms_champion::MessageBase<demo::Message>
 {
-    typedef comms_champion::MessageBase<demo::MessageT, ExtraMessageOptions, TOptions...> Base;
 public:
-    virtual ~MessageT() = default;
+    Message();
+    virtual ~Message();
 
 protected:
 
-    virtual QString idAsStringImpl() const override
-    {
-        return QString("0x%1").arg(Base::getId(), 2, 16, QChar('0'));
-    }
-
-    virtual const QVariantList& fieldsPropertiesImpl() const override
-    {
-        static const QVariantList Props;
-        return Props;
-    }
+    virtual QString idAsStringImpl() const override;
 };
-
-typedef MessageT<> Message;
 
 }  // namespace cc_plugin
 

@@ -51,6 +51,7 @@ namespace comms
 /// @pre TDefault is a base class for all the custom messages in TAll.
 /// @note The default destructor is @b NOT virtual. To allow polymorphic delete
 ///     make sure to declare the destructor virtual in the inherited class.
+/// @headerfile comms/GenericHandler.h
 template <typename TDefault, typename TAll>
 class GenericHandler
 {

@@ -55,6 +55,7 @@ namespace protocol
 ///         checksum value. Usage of comms::option::ChecksumPrefixLayerVerifyBeforeRead
 ///         modifies the default behaviour by forcing the checksum verification
 ///         prior to invocation of @b read operation in the wrapped layer(s).
+/// @headerfile comms/protocol/ChecksumPrefixLayer.h
 template <typename TField, typename TCalc, typename TNextLayer, typename... TOptions>
 class ChecksumPrefixLayer : public ProtocolLayerBase<TField, TNextLayer>
 {

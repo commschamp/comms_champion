@@ -3,16 +3,16 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
+// GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public License
+// You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -49,6 +49,11 @@ class TransportMessageImpl : public
 
 }  // namespace details
 
+/// @breif Base class for @b TransportMessage definition in @b protocol
+///     plugin.
+/// @tparam TMessage Common interface class for @b protocol plugin.
+/// @tparam TAllFields All transport fields difined by <b>protocol stack</b>.
+/// @headerfile comms_champion/TransportMessageBase.h
 template <typename TMessage, typename TAllFields>
 class TransportMessageBase : public
     ProtocolMessageBase<
@@ -57,33 +62,31 @@ class TransportMessageBase : public
     >
 {
 public:
+    /// @brief Destructor
     virtual ~TransportMessageBase() = default;
 
 protected:
-    virtual const char*
-    nameImpl() const override
+    /// @brief Overriding virtual comms_champion::Message::nameImpl()
+    virtual const char* nameImpl() const override
     {
         static const char* Str = "Generic Transport Message";
         return Str;
     }
 
-    virtual const QVariantList& fieldsPropertiesImpl() const override
-    {
-        static const QVariantList Props;
-        return Props;
-    }
-
+    /// @brief Overriding virtual comms_champion::Message::idAsStringImpl()
     virtual QString idAsStringImpl() const override
     {
         assert(!"Mustn't be called");
         return QString();
     }
 
+    /// @brief Overriding virtual comms_champion::Message::resetImpl()
     virtual void resetImpl() override
     {
         assert(!"Mustn't be called");
     }
 
+    /// @brief Overriding virtual comms_champion::Message::assignImpl()
     virtual bool assignImpl(const comms_champion::Message& other) override
     {
         static_cast<void>(other);

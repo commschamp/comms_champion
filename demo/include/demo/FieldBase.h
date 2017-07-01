@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -15,32 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// @brief Defines common base class for all the fields
 
 #pragma once
 
-#include "CommonBase.h"
+#include "Message.h"
 
-namespace comms
+namespace demo
 {
 
-namespace field
-{
+using FieldBase = demo::Message<>::Field;
 
-namespace adapter
-{
-
-namespace details
-{
-
-template <typename TNext>
-using BundleFieldAdapterBase = CommonBase<TNext>;
-
-}  // namespace details
-
-}  // namespace adapter
-
-}  // namespace field
-
-}  // namespace comms
-
-
+} // namespace demo

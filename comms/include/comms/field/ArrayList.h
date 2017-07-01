@@ -1,5 +1,5 @@
 //
-// Copyright 2014-2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -68,6 +68,16 @@ using ArrayListStorageTypeT =
         TOptions::HasFixedSizeStorage
     >::template Type<TElement, TOptions>;
 
+template <typename TFieldBase, typename TElement, typename... TOptions>
+using ArrayListBase =
+    AdaptBasicFieldT<
+        comms::field::basic::ArrayList<
+            TFieldBase,
+            ArrayListStorageTypeT<TElement, OptionsParser<TOptions...> >
+        >,
+        TOptions...
+    >;
+
 }  // namespace details
 
 /// @brief Field that represents a sequential collection of fields.
@@ -113,22 +123,19 @@ using ArrayListStorageTypeT =
 ///     @li comms::option::SequenceTrailingFieldSuffix
 ///     @li comms::option::DefaultValueInitialiser
 ///     @li comms::option::ContentsValidator
+///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+/// @extends comms::Field
+/// @headerfile comms/field/ArrayList.h
 template <typename TFieldBase, typename TElement, typename... TOptions>
-class ArrayList : public TFieldBase
+class ArrayList : public details::ArrayListBase<TFieldBase, TElement, TOptions...>
 {
-    using Base = TFieldBase;
-    using ParsedOptionsInternal = details::OptionsParser<TOptions...>;
-    using StorageTypeInternal =
-        details::ArrayListStorageTypeT<TElement, ParsedOptionsInternal>;
-    using BasicField = basic::ArrayList<TFieldBase, StorageTypeInternal>;
-    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
-
+    using Base = details::ArrayListBase<TFieldBase, TElement, TOptions...>;
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    using ParsedOptions = ParsedOptionsInternal;
+    using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
     using Tag = typename std::conditional<
@@ -142,20 +149,20 @@ public:
     ///     ValueType is std::vector<TElement>, otherwise it becomes
     ///     comms::util::StaticVector<TElement, TSize>, where TSize is a size
     ///     provided to comms::option::FixedSizeStorage option.
-    using ValueType = StorageTypeInternal;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Default constructor
     ArrayList() = default;
 
     /// @brief Value constructor
     explicit ArrayList(const ValueType& val)
-      : field_(val)
+      : Base(val)
     {
     }
 
     /// @brief Value constructor
     explicit ArrayList(ValueType&& val)
-      : field_(std::move(val))
+      : Base(std::move(val))
     {
     }
 
@@ -174,23 +181,15 @@ public:
     /// @brief Move assignment
     ArrayList& operator=(ArrayList&&) = default;
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to the value storage.
-    ValueType& value()
-    {
-        return field_.value();
-    }
+    ValueType& value();
 
     /// @brief Get access to the value storage.
-    const ValueType& value() const
-    {
-        return field_.value();
-    }
+    const ValueType& value() const;
 
     /// @brief Get length of serialised data
-    constexpr std::size_t length() const
-    {
-        return field_.length();
-    }
+    constexpr std::size_t length() const;
 
     /// @brief Read field value from input data sequence
     /// @details By default, the read operation will try to consume all the
@@ -202,10 +201,7 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
-    {
-        return field_.read(iter, len);
-    }
+    ErrorStatus read(TIter& iter, std::size_t len);
 
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the
@@ -220,54 +216,39 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
-    {
-        return field_.write(iter, len);
-    }
+    ErrorStatus write(TIter& iter, std::size_t len) const;
 
     /// @brief Check validity of the field value.
     /// @details The collection is valid if all the elements are valid. In case
     ///     comms::option::ContentsValidator option is used, the validator,
     ///     it provides, is invoked IN ADDITION to the validation of the elements.
     /// @return true in case the field's value is valid, false otherwise.
-    bool valid() const
-    {
-        return field_.valid();
-    }
+    bool valid() const;
+
+    /// @brief Refresh the field.
+    /// @details Calls refresh() on all the elements (if they are fields and not raw bytes).
+    /// @brief Returns true if any of the elements has been updated, false otherwise.
+    bool refresh();
 
     /// @brief Get minimal length that is required to serialise field of this type.
-    static constexpr std::size_t minLength()
-    {
-        return ThisField::minLength();
-    }
+    static constexpr std::size_t minLength();
 
     /// @brief Get maximal length that is required to serialise field of this type.
-    static constexpr std::size_t maxLength()
-    {
-        return ThisField::maxLength();
-    }
+    static constexpr std::size_t maxLength();
 
     /// @brief Force number of elements that must be read in the next read()
     ///     invocation.
-    /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
-    ///     used this function has no effect.
+    /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
+    ///     used.
     /// @param[in] count Number of elements to read during following read operation.
-    void forceReadElemCount(std::size_t count)
-    {
-        field_.forceReadElemCount(count);
-    }
+    void forceReadElemCount(std::size_t count);
 
     /// @brief Clear forcing of the number of elements that must be read in the next read()
     ///     invocation.
-    /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
-    ///     used this function has no effect.
-    void clearReadElemCount()
-    {
-        field_.clearReadElemCount();
-    }
-
-private:
-    ThisField field_;
+    /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
+    ///     used.
+    void clearReadElemCount();
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
 /// @brief Equivalence comparison operator.

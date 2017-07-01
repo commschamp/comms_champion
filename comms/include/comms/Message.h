@@ -70,6 +70,7 @@ namespace comms
 ///         dispatch() documentation for details.
 ///     @li comms::option::NoVirtualDestructor - Force the destructor to be
 ///         non-virtual, even if there are virtual functions in use.
+///     @headerfile comms/Message.h
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
 {

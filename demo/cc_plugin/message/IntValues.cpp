@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-typedef demo::message::IntValuesFields<IntValues::Field> IntValuesFields;
+using IntValuesFields = demo::message::IntValuesFields;
 
 QVariantList createFieldsProperties()
 {

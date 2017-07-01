@@ -22,7 +22,6 @@
 #include "comms/ErrorStatus.h"
 #include "comms/Field.h"
 #include "comms/field/OptionalMode.h"
-#include "comms/field/category.h"
 
 namespace comms
 {
@@ -37,7 +36,6 @@ template <typename TField>
 class Optional : public comms::Field<comms::option::Endian<typename TField::Endian> >
 {
 public:
-    using Category = comms::field::category::OptionalField;
 
     using Field = TField;
     using ValueType = TField;
@@ -124,6 +122,13 @@ public:
         }
 
         return field_.valid();
+    }
+
+    bool refresh() {
+        if (mode_ != Mode::Exists) {
+            return false;
+        }
+        return field_.refresh();
     }
 
     template <typename TIter>

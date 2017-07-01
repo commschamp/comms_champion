@@ -32,13 +32,6 @@ namespace cc_plugin
 namespace
 {
 
-typedef TransportMessage::Field FieldBase;
-typedef demo::SyncField<FieldBase> SyncField;
-typedef demo::ChecksumField<FieldBase> ChecksumField;
-typedef demo::LengthField<FieldBase> LengthField;
-typedef demo::MsgIdField<FieldBase> MsgIdField;
-typedef demo::DataField<FieldBase> DataField;
-
 QVariantMap createMsgIdProperties()
 {
     static const char* Names[] = {
@@ -71,15 +64,15 @@ QVariantMap createMsgIdProperties()
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(cc::property::field::ForField<SyncField>().name("SYNC").asMap());
+    props.append(cc::property::field::ForField<demo::SyncField>().name("SYNC").asMap());
     props.append(
-        cc::property::field::ForField<LengthField>()
+        cc::property::field::ForField<demo::LengthField>()
             .name("LENGTH")
             .displayOffset(2)
             .asMap());
     props.append(createMsgIdProperties());
-    props.append(cc::property::field::ForField<DataField>().name("PAYLOAD").asMap());
-    props.append(cc::property::field::ForField<ChecksumField>().name("CHECKSUM").asMap());
+    props.append(cc::property::field::ForField<demo::DataField<> >().name("PAYLOAD").asMap());
+    props.append(cc::property::field::ForField<demo::ChecksumField>().name("CHECKSUM").asMap());
     assert(props.size() == TransportMessage::FieldIdx_NumOfValues);
     return props;
 }
@@ -95,10 +88,10 @@ const QVariantList& TransportMessage::fieldsPropertiesImpl() const
 comms::ErrorStatus TransportMessage::readImpl(ReadIterator& iter, std::size_t size)
 {
     static const auto ChecksumLen =
-        sizeof(demo::ChecksumField<cc_plugin::Message::Field>::ValueType);
+        sizeof(demo::ChecksumField::ValueType);
 
     size -= ChecksumLen;
-    auto es = Base::readFieldsUntil<FieldIdx_Checksum>(iter, size);
+    auto es = readFieldsUntil<FieldIdx_Checksum>(iter, size);
     if (es == comms::ErrorStatus::Success) {
         size += ChecksumLen;
         es = readFieldsFrom<FieldIdx_Checksum>(iter, size);

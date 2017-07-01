@@ -34,13 +34,7 @@ class Protocol : public
         TransportMessage
     >
 {
-    typedef comms_champion::ProtocolBase<
-        cc_plugin::Stack,
-        TransportMessage
-    > Base;
 public:
-    typedef Base::UpdateStatus UpdateStatus;
-
     Protocol() = default;
     virtual ~Protocol();
 

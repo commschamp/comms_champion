@@ -105,6 +105,7 @@ public:
     void test68();
     void test69();
     void test70();
+    void test71();
 
 private:
 
@@ -1904,25 +1905,37 @@ void FieldsTestSuite::test49()
     TS_ASSERT_EQUALS(mem2.getMode(), comms::field::OptionalMode::Missing);
 }
 
+struct Test50_Field : public comms::field::BitmaskValue<
+    comms::Field<comms::option::BigEndian>,
+    comms::option::FixedLength<1> >
+{
+    COMMS_BITMASK_BITS(first, second, third, fourth, sixth=5, seventh, eighth);
+    COMMS_BITMASK_BITS_ACCESS(first, second, third, fourth, sixth, seventh, eighth);
+};
+
 void FieldsTestSuite::test50()
 {
-    struct Field : public comms::field::BitmaskValue<
-        comms::Field<BigEndianOpt>,
-        comms::option::FixedLength<1> >
-    {
-        COMMS_BITMASK_BITS(first, second, third, fourth, sixth=5, seventh, eighth);
-    };
-
+    using Field = Test50_Field;
 
     Field field;
     field.value() = 0xaa;
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_first), false);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_second), true);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_third), false);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_fourth), true);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_sixth), true);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_seventh), false);
-    TS_ASSERT_EQUALS(field.getBitValue(Field::BitIdx_eighth), true);
+    TS_ASSERT_EQUALS(field.getBitValue_first(), false);
+    TS_ASSERT_EQUALS(field.getBitValue_second(), true);
+    TS_ASSERT_EQUALS(field.getBitValue_third(), false);
+    TS_ASSERT_EQUALS(field.getBitValue_fourth(), true);
+    TS_ASSERT_EQUALS(field.getBitValue_sixth(), true);
+    TS_ASSERT_EQUALS(field.getBitValue_seventh(), false);
+    TS_ASSERT_EQUALS(field.getBitValue_eighth(), true);
+
+    field.setBitValue_first(true);
+    field.setBitValue_second(false);
+    field.setBitValue_third(true);
+    field.setBitValue_fourth(false);
+    field.setBitValue_sixth(false);
+    field.setBitValue_seventh(true);
+    field.setBitValue_eighth(false);
+
+    TS_ASSERT_EQUALS(field.value(), 0x45);
 }
 
 class Field_51 : public comms::field::Bitfield<
@@ -2930,6 +2943,99 @@ void FieldsTestSuite::test70()
     std::size_t len4 = 0U;
     field.currentFieldExec(Test70_LengthRetriever(len4));
     TS_ASSERT_EQUALS(field.length(), len4);
+}
+
+struct Test71_Field : public
+    comms::field::Bundle<
+        comms::Field<comms::option::BigEndian>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<comms::option::BigEndian>,
+                std::uint8_t
+            >,
+            comms::field::Optional<
+                comms::field::IntValue<
+                    comms::Field<comms::option::BigEndian>,
+                    std::uint8_t
+                >,
+                comms::option::DefaultOptionalMode<comms::field::OptionalMode::Missing>
+            >
+        >
+    >
+{
+    COMMS_FIELD_MEMBERS_ACCESS(mask, val);
+
+    template <typename TIter>
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
+    {
+        auto es = field_mask().read(iter, len);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        if (field_mask().value() == 0) {
+            field_val().setMissing();
+        }
+        else {
+            field_val().setExists();
+        }
+
+        len -= field_mask().length();
+        return field_val().read(iter, len);
+    }
+
+    bool refresh()
+    {
+        bool exists = (field_mask().value() != 0);
+        if (exists == field_val().doesExist()) {
+            return false;
+        }
+
+        if (exists) {
+            field_val().setExists();
+        }
+        else {
+            field_val().setMissing();
+        }
+        return true;
+    }
+};
+
+void FieldsTestSuite::test71()
+{
+    using Field = Test71_Field;
+
+    Field field;
+    TS_ASSERT_EQUALS(field.length(), 1U);
+    TS_ASSERT(field.field_val().isMissing());
+
+    field.field_mask().value() = 1;
+    bool result = field.refresh();
+    TS_ASSERT(result);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT(!field.refresh());
+    field.field_mask().value() = 0;
+    TS_ASSERT(field.refresh());
+    TS_ASSERT_EQUALS(field.length(), 1U);
+
+    static const char Buf[] = {
+        0, 0, 0
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field.length(), 1U);
+    TS_ASSERT(field.field_val().isMissing());
+
+    static const char Buf2[] = {
+        1, 5, 0
+    };
+    static const std::size_t Buf2Size = std::extent<decltype(Buf2)>::value;
+
+    field = readWriteField<Field>(Buf2, Buf2Size, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT(field.field_val().doesExist());
+    TS_ASSERT_EQUALS(field.field_val().field().value(), (unsigned)Buf2[1]);
 }
 
 template <typename TField>

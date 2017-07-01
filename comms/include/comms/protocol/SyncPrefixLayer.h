@@ -36,6 +36,7 @@ namespace protocol
 ///     field type definition must use options (comms::option::DefaultNumValue)
 ///     to specify its default value to be equal to the expected "sync" value.
 /// @tparam TNextLayer Next transport layer in protocol stack.
+/// @headerfile comms/protocol/SyncPrefixLayer.h
 template <typename TField, typename TNextLayer>
 class SyncPrefixLayer : public ProtocolLayerBase<TField, TNextLayer>
 {

@@ -25,7 +25,6 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/util/access.h"
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
@@ -93,7 +92,6 @@ class ArrayList : public TFieldBase
 {
     using Base = TFieldBase;
 public:
-    using Category = comms::field::category::CollectionField;
     using Endian = typename Base::Endian;
 
     using ElementType = typename TStorage::value_type;
@@ -158,6 +156,11 @@ public:
     constexpr bool valid() const
     {
         return validInternal(ElemTag());
+    }
+
+    bool refresh()
+    {
+        return refreshInternal(ElemTag());
     }
 
     static constexpr std::size_t minElementLength()
@@ -411,6 +414,22 @@ private:
     }
 
     static constexpr bool validInternal(IntegralElemTag)
+    {
+        return true;
+    }
+
+    bool refreshInternal(FieldElemTag)
+    {
+        return
+            std::accumulate(
+                value_.begin(), value_.end(), false,
+                [](bool prev, typename ValueType::reference_type elem) -> bool
+                {
+                    return elem.refresh() || prev;
+                });
+    }
+
+    static constexpr bool refreshInternal(IntegralElemTag)
     {
         return true;
     }

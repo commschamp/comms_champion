@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -29,10 +29,10 @@ namespace field
 namespace adapter
 {
 
-template <typename T, typename TNext>
-class CustomValueReader : public details::AdapterBaseT<TNext>
+template <typename T, typename TBase>
+class CustomValueReader : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
 public:
 
     using ValueType = typename Base::ValueType;
@@ -56,9 +56,9 @@ public:
 
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
+    comms::ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return T()(Base::next(), iter, size);
+        return T()(static_cast<Base&>(*this), iter, size);
     }
 };
 

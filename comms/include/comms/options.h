@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// Contains definition of all the options used by the @b COMMS library
 
 #pragma once
 
@@ -61,73 +63,89 @@ constexpr bool isRatio()
 /// @brief Options to specify endian.
 /// @tparam TEndian Endian type. Must be either comms::traits::endian::Big or
 ///     comms::traits::endian::Little.
+/// @headerfile comms/options.h
 template <typename TEndian>
 struct Endian
 {
 };
 
 /// @brief Alias option to Endian specifying Big endian.
+/// @headerfile comms/options.h
 using BigEndian = Endian<comms::traits::endian::Big>;
 
 /// @brief Alias option to Endian specifying Little endian.
+/// @headerfile comms/options.h
 using LittleEndian = Endian<comms::traits::endian::Little>;
 
 /// @brief No-op option, doesn't have any effect.
+/// @headerfile comms/options.h
 struct EmptyOption {};
 
 /// @brief Option used to specify type of the ID.
 /// @tparam T Type of the message ID.
+/// @headerfile comms/options.h
 template <typename T>
 struct MsgIdType {};
 
 /// @brief Option used to specify type of iterator used for reading.
 /// @tparam TIter Type of the iterator.
+/// @headerfile comms/options.h
 template <typename TIter>
 struct ReadIterator {};
 
 /// @brief Option used to specify type of iterator used for writing.
 /// @tparam TIter Type of the iterator.
+/// @headerfile comms/options.h
 template <typename TIter>
 struct WriteIterator {};
 
 /// @brief Option used to add @b getId() function into Message interface.
+/// @headerfile comms/options.h
 struct IdInfoInterface {};
 
 /// @brief Option used to add @b valid() function into Message interface.
+/// @headerfile comms/options.h
 struct ValidCheckInterface {};
 
 /// @brief Option used to add @b length() function into Message interface.
+/// @headerfile comms/options.h
 struct LengthInfoInterface {};
 
 /// @brief Option used to add @b refresh() function into Message interface.
+/// @headerfile comms/options.h
 struct RefreshInterface {};
 
 /// @brief Option used to specify type of the message handler.
 /// @tparam T Type of the handler.
+/// @headerfile comms/options.h
 template <typename T>
 struct Handler {};
 
 /// @brief Option used to specify numeric ID of the message.
 /// @tparam TId Numeric ID value.
+/// @headerfile comms/options.h
 template <std::intmax_t TId>
 struct StaticNumIdImpl {};
 
 /// @brief Option used to specify that message doesn't have valid ID.
+/// @headerfile comms/options.h
 struct NoIdImpl {};
 
 /// @brief Option used to specify actual type of the message.
+/// @headerfile comms/options.h
 template <typename TMsg>
 struct MsgType {};
 
 /// @brief Option used to inhibit default implementation of @b dispatchImpl()
 ///     in comms::MessageBase.
-/// @details
+/// @headerfile comms/options.h
 struct NoDispatchImpl {};
 
 /// @brief Option used to specify fields of the message and force implementation
 ///     of default read, write, validity check, and length retrieval information
 ///     of the message.
 /// @tparam TFields The fields of the message bundled in std::tuple.
+/// @headerfile comms/options.h
 template <typename TFields>
 struct FieldsImpl;
 
@@ -139,36 +157,44 @@ struct FieldsImpl<std::tuple<TFields...> >
 /// @endcond
 
 /// @brief Alias to FieldsImpl<std::tuple<> >
+/// @headerfile comms/options.h
 using ZeroFieldsImpl = FieldsImpl<std::tuple<> >;
 
 /// @brief Option that inhibits implementation of comms::MessageBase::readImpl()
 ///     regardless of other availability conditions.
+/// @headerfile comms/options.h
 struct NoReadImpl {};
 
 /// @brief Option that inhibits implementation of comms::MessageBase::writeImpl()
 ///     regardless of other availability conditions.
+/// @headerfile comms/options.h
 struct NoWriteImpl {};
 
 /// @brief Option that inhibits implementation of comms::MessageBase::validImpl()
 ///     regardless of other availability conditions.
+/// @headerfile comms/options.h
 struct NoValidImpl {};
 
 /// @brief Option that inhibits implementation of comms::MessageBase::lengthImpl()
 ///     regardless of other availability conditions.
+/// @headerfile comms/options.h
 struct NoLengthImpl {};
 
 /// @brief Option that notifies comms::MessageBase about existence of
 ///     custom refresh functionality in derived class.
+/// @headerfile comms/options.h
 struct HasDoRefresh {};
 
 /// @brief Option that notifies comms::MessageBase about existence of
 ///     access to fields.
 /// @details Can be useful when there is a chain of inheritances from
 ///     comms::MessageBase.
+/// @headerfile comms/options.h
 struct AssumeFieldsExistence {};
 
 /// @brief Option that forces "in place" allocation with placement "new" for
 ///     initialisation, instead of usage of dynamic memory allocation.
+/// @headerfile comms/options.h
 struct InPlaceAllocation {};
 
 /// @brief Option used to specify number of bytes that is used for field serialisation.
@@ -189,6 +215,7 @@ struct InPlaceAllocation {};
 ///         >;
 ///     @endcode
 /// @tparam TLen Length of the serialised value.
+/// @headerfile comms/options.h
 template<std::size_t TLen>
 struct FixedLength {};
 
@@ -217,6 +244,7 @@ struct FixedLength {};
 ///         >;
 ///     @endcode
 /// @tparam TLen Length of the serialised value in bits.
+/// @headerfile comms/options.h
 template<std::size_t TLen>
 struct FixedBitLength {};
 
@@ -242,6 +270,7 @@ struct FixedBitLength {};
 /// @tparam TMin Minimal length the field may consume.
 /// @tparam TMax Maximal length the field may consume.
 /// @pre TMin <= TMax
+/// @headerfile comms/options.h
 template<std::size_t TMin, std::size_t TMax>
 struct VarLength
 {
@@ -274,6 +303,7 @@ struct VarLength
 ///     say 2015, while when serialised it consumes only 1 byte (thanks to
 ///     comms::option::FixedLength option) and reduced value of 15 is written.
 /// @tparam TOffset Offset value to be added when serialising field.
+/// @headerfile comms/options.h
 template<std::intmax_t TOffset>
 struct NumValueSerOffset {};
 
@@ -289,6 +319,7 @@ struct NumValueSerOffset {};
 ///     with the capacity provided by this option.
 /// @tparam TSize Size of the storage area, for strings it does @b NOT include
 ///     the '\0' terminating character.
+/// @headerfile comms/options.h
 template <std::size_t TSize>
 struct FixedSizeStorage {};
 
@@ -305,6 +336,7 @@ struct FixedSizeStorage {};
 ///     with comms::field::String) or @b std::vector (when used with
 ///     comms::field::ArrayList).
 /// @tparam TType Custom storage type
+/// @headerfile comms/options.h
 template <typename TType>
 struct CustomStorageType {};
 
@@ -335,6 +367,7 @@ struct CustomStorageType {};
 ///     @endcode
 /// @tparam TNum Numerator of the scaling ratio.
 /// @tparam TDenom Denominator of the scaling ratio.
+/// @headerfile comms/options.h
 template <std::intmax_t TNum, std::intmax_t TDenom>
 struct ScalingRatio
 {
@@ -363,6 +396,7 @@ struct ScalingRatio
 ///         >;
 ///     @endcode
 /// @tparam TField Type of the field that represents size
+/// @headerfile comms/options.h
 template <typename TField>
 struct SequenceSizeFieldPrefix {};
 
@@ -389,6 +423,7 @@ struct SequenceSizeFieldPrefix {};
 ///     @endcode
 /// @tparam TField Type of the field that represents serialisation length
 /// @tparam TReadErrorStatus Error status to return when read operation fails when should not
+/// @headerfile comms/options.h
 template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct SequenceSerLengthFieldPrefix {};
 
@@ -408,6 +443,7 @@ struct SequenceSerLengthFieldPrefix {};
 ///         >;
 ///     @endcode
 /// @tparam TField Type of the field that represents suffix
+/// @headerfile comms/options.h
 template <typename TField>
 struct SequenceTerminationFieldSuffix {};
 
@@ -431,6 +467,7 @@ struct SequenceTerminationFieldSuffix {};
 ///         >;
 ///     @endcode
 /// @tparam TField Type of the field that represents suffix
+/// @headerfile comms/options.h
 template <typename TField>
 struct SequenceTrailingFieldSuffix {};
 
@@ -444,6 +481,7 @@ struct SequenceTrailingFieldSuffix {};
 ///     the collection fields, such as comms::field::ArrayList or comms::field::String
 ///     which can be used to specify the size information after it was read
 ///     independently.
+/// @headerfile comms/options.h
 struct SequenceSizeForcingEnabled {};
 
 /// @brief Option used to define exact number of elements in the collection field.
@@ -451,6 +489,7 @@ struct SequenceSizeForcingEnabled {};
 ///     elements in the sequence. Use SequenceFixedSize option to convey
 ///     this information to the field definition, which will force @b read() and
 ///     @b write() member functions of the collection field to behave as expected.
+/// @headerfile comms/options.h
 template <std::size_t TSize>
 struct SequenceFixedSize {};
 
@@ -487,13 +526,14 @@ struct SequenceFixedSize {};
 ///         >;
 ///     @endcode
 /// @tparam T Type of the initialiser class.
+/// @headerfile comms/options.h
 template <typename T>
 struct DefaultValueInitialiser {};
 
 /// @brief Option that specifies custom validation class.
 /// @details By default, value of every field is considered to be valid
-///     (@b valid() member function of the field returns true). If there is a need
-///     to validate the value of the function. Use this option to define
+///     (@b valid() member function of the field returns @b true). If there is a need
+///     to validate the value of the function, use this option to define
 ///     custom validation logic for the field. The validation class provided as
 ///     a template argument to this option must define the following member function:
 ///     @code
@@ -529,9 +569,31 @@ struct DefaultValueInitialiser {};
 ///     have invalid value. To fix that you must also use
 ///     comms::option::DefaultValueInitialiser option to specify proper default
 ///     value.
-/// @tparam T Type of the initialiser class.
+/// @tparam T Type of the validator class.
+/// @headerfile comms/options.h
 template <typename T>
 struct ContentsValidator {};
+
+/// @brief Option that specifies custom refreshing class.
+/// @details The "refreshing" functionality is there to allow bringing field's
+///     contents into a consistent state if it's not. The default "refreshing"
+///     functionality does nothing and returns @b false (meaning nothing has
+///     been changed). If there is a need to provide custom refreshing functionality
+///     use this option and provide custom refresher class. It must
+///     define the following member function:
+///     @code
+///     struct MyRefresher
+///     {
+///         template <typename TField>
+///         bool operator()(TField& field) {
+///             ... // return true if field's contents changed
+///         }
+///     };
+///     @endcode
+/// @tparam T Type of the refresher class.
+/// @headerfile comms/options.h
+template <typename T>
+struct ContentsRefresher {};
 
 /// @brief Option that specifies custom value reader class.
 /// @details It may be useful to override default reading functionality for complex
@@ -601,6 +663,7 @@ struct ContentsValidator {};
 ///     };
 ///     @endcode
 /// @tparam T Type of the custom reader class.
+/// @headerfile comms/options.h
 template <typename T>
 struct CustomValueReader {};
 
@@ -612,6 +675,7 @@ struct CustomValueReader {};
 ///     the validity is going to checked automatically after the read. If invalid
 ///     value is identified, error will be returned from the @b read() operation.
 /// @tparam TStatus Error status to return when the content of the read field is invalid.
+/// @headerfile comms/options.h
 template <comms::ErrorStatus TStatus = comms::ErrorStatus::InvalidMsgData>
 struct FailOnInvalid {};
 
@@ -621,10 +685,12 @@ struct FailOnInvalid {};
 ///     check the validity of the read value. If it is identified as invalid,
 ///     the read value is not assigned to the field, i.e. the field's value
 ///     remains unchanged, although no error is reported.
+/// @headerfile comms/options.h
 struct IgnoreInvalid {};
 
 /// @brief Force the destructor of comms::Message class to be @b non-virtual,
 ///     even if there are other virtual functions defined.
+/// @headerfile comms/options.h
 struct NoVirtualDestructor {};
 
 /// @brief Options to specify units of the field.
@@ -632,6 +698,7 @@ struct NoVirtualDestructor {};
 ///     namespace.
 /// @tparam TRatio Ratio within the units type, must be a variant of
 ///     @b std::ratio type.
+/// @headerfile comms/options.h
 template <typename TType, typename TRatio>
 struct Units
 {
@@ -643,150 +710,187 @@ struct Units
 };
 
 /// @brief Alias option, specifying field value units are "nanoseconds".
+/// @headerfile comms/options.h
 using UnitsNanoseconds =
     Units<comms::traits::units::Time, comms::traits::units::NanosecondsRatio>;
 
 /// @brief Alias option, specifying field value units are "microseconds".
+/// @headerfile comms/options.h
 using UnitsMicroseconds =
     Units<comms::traits::units::Time, comms::traits::units::MicrosecondsRatio>;
 
 /// @brief Alias option, specifying field value units are "milliseconds".
+/// @headerfile comms/options.h
 using UnitsMilliseconds =
     Units<comms::traits::units::Time, comms::traits::units::MillisecondsRatio>;
 
 /// @brief Alias option, specifying field value units are "seconds".
+/// @headerfile comms/options.h
 using UnitsSeconds =
     Units<comms::traits::units::Time, comms::traits::units::SecondsRatio>;
 
 /// @brief Alias option, specifying field value units are "minutes".
+/// @headerfile comms/options.h
 using UnitsMinutes =
     Units<comms::traits::units::Time, comms::traits::units::MinutesRatio>;
 
 /// @brief Alias option, specifying field value units are "hours".
+/// @headerfile comms/options.h
 using UnitsHours =
     Units<comms::traits::units::Time, comms::traits::units::HoursRatio>;
 
 /// @brief Alias option, specifying field value units are "days".
+/// @headerfile comms/options.h
 using UnitsDays =
     Units<comms::traits::units::Time, comms::traits::units::DaysRatio>;
 
 /// @brief Alias option, specifying field value units are "weeks".
+/// @headerfile comms/options.h
 using UnitsWeeks =
     Units<comms::traits::units::Time, comms::traits::units::WeeksRatio>;
 
 /// @brief Alias option, specifying field value units are "nanometers".
+/// @headerfile comms/options.h
 using UnitsNanometers =
     Units<comms::traits::units::Distance, comms::traits::units::NanometersRatio>;
 
 /// @brief Alias option, specifying field value units are "micrometers".
+/// @headerfile comms/options.h
 using UnitsMicrometers =
     Units<comms::traits::units::Distance, comms::traits::units::MicrometersRatio>;
 
 /// @brief Alias option, specifying field value units are "millimeters".
+/// @headerfile comms/options.h
 using UnitsMillimeters =
     Units<comms::traits::units::Distance, comms::traits::units::MillimetersRatio>;
 
 /// @brief Alias option, specifying field value units are "centimeters".
+/// @headerfile comms/options.h
 using UnitsCentimeters =
     Units<comms::traits::units::Distance, comms::traits::units::CentimetersRatio>;
 
 /// @brief Alias option, specifying field value units are "meters".
+/// @headerfile comms/options.h
 using UnitsMeters =
     Units<comms::traits::units::Distance, comms::traits::units::MetersRatio>;
 
 /// @brief Alias option, specifying field value units are "kilometers".
+/// @headerfile comms/options.h
 using UnitsKilometers =
     Units<comms::traits::units::Distance, comms::traits::units::KilometersRatio>;
 
 /// @brief Alias option, specifying field value units are "nanometers per second".
+/// @headerfile comms/options.h
 using UnitsNanometersPerSecond =
     Units<comms::traits::units::Speed, comms::traits::units::NanometersPerSecondRatio>;
 
 /// @brief Alias option, specifying field value units are "micrometers per second".
+/// @headerfile comms/options.h
 using UnitsMicrometersPerSecond =
     Units<comms::traits::units::Speed, comms::traits::units::MicrometersPerSecondRatio>;
 
 /// @brief Alias option, specifying field value units are "millimeters per second".
+/// @headerfile comms/options.h
 using UnitsMillimetersPerSecond =
     Units<comms::traits::units::Speed, comms::traits::units::MillimetersPerSecondRatio>;
 
 /// @brief Alias option, specifying field value units are "centimeters per second".
+/// @headerfile comms/options.h
 using UnitsCentimetersPerSecond =
     Units<comms::traits::units::Speed, comms::traits::units::CentimetersPerSecondRatio>;
 
 /// @brief Alias option, specifying field value units are "meters per second".
+/// @headerfile comms/options.h
 using UnitsMetersPerSecond =
     Units<comms::traits::units::Speed, comms::traits::units::MetersPerSecondRatio>;
 
 /// @brief Alias option, specifying field value units are "kilometers per second".
+/// @headerfile comms/options.h
 using UnitsKilometersPerSecond =
     Units<comms::traits::units::Speed, comms::traits::units::KilometersPerSecondRatio>;
 
 /// @brief Alias option, specifying field value units are "kilometers per hour".
+/// @headerfile comms/options.h
 using UnitsKilometersPerHour =
     Units<comms::traits::units::Speed, comms::traits::units::KilometersPerHourRatio>;
 
 /// @brief Alias option, specifying field value units are "hertz".
+/// @headerfile comms/options.h
 using UnitsHertz =
     Units<comms::traits::units::Frequency, comms::traits::units::HzRatio>;
 
 /// @brief Alias option, specifying field value units are "kilohertz".
+/// @headerfile comms/options.h
 using UnitsKilohertz =
     Units<comms::traits::units::Frequency, comms::traits::units::KiloHzRatio>;
 
 /// @brief Alias option, specifying field value units are "megahertz".
+/// @headerfile comms/options.h
 using UnitsMegahertz =
     Units<comms::traits::units::Frequency, comms::traits::units::MegaHzRatio>;
 
 /// @brief Alias option, specifying field value units are "gigahertz".
+/// @headerfile comms/options.h
 using UnitsGigahertz =
     Units<comms::traits::units::Frequency, comms::traits::units::GigaHzRatio>;
 
 /// @brief Alias option, specifying field value units are "degrees".
+/// @headerfile comms/options.h
 using UnitsDegrees =
     Units<comms::traits::units::Angle, comms::traits::units::DegreesRatio>;
 
 /// @brief Alias option, specifying field value units are "radians".
+/// @headerfile comms/options.h
 using UnitsRadians =
     Units<comms::traits::units::Angle, comms::traits::units::RadiansRatio>;
 
 /// @brief Alias option, specifying field value units are "nanoamps".
+/// @headerfile comms/options.h
 using UnitsNanoamps =
     Units<comms::traits::units::Current, comms::traits::units::NanoampsRatio>;
 
 /// @brief Alias option, specifying field value units are "microamps".
+/// @headerfile comms/options.h
 using UnitsMicroamps =
     Units<comms::traits::units::Current, comms::traits::units::MicroampsRatio>;
 
 /// @brief Alias option, specifying field value units are "milliamps".
+/// @headerfile comms/options.h
 using UnitsMilliamps =
     Units<comms::traits::units::Current, comms::traits::units::MilliampsRatio>;
 
 /// @brief Alias option, specifying field value units are "amps".
+/// @headerfile comms/options.h
 using UnitsAmps =
     Units<comms::traits::units::Current, comms::traits::units::AmpsRatio>;
 
 /// @brief Alias option, specifying field value units are "kiloamps".
+/// @headerfile comms/options.h
 using UnitsKiloamps =
     Units<comms::traits::units::Current, comms::traits::units::KiloampsRatio>;
 
 /// @brief Alias option, specifying field value units are "nanovolts".
+/// @headerfile comms/options.h
 using UnitsNanovolts =
     Units<comms::traits::units::Voltage, comms::traits::units::NanovoltsRatio>;
 
 /// @brief Alias option, specifying field value units are "microvolts".
+/// @headerfile comms/options.h
 using UnitsMicrovolts =
     Units<comms::traits::units::Voltage, comms::traits::units::MicrovoltsRatio>;
 
 /// @brief Alias option, specifying field value units are "millivolts".
+/// @headerfile comms/options.h
 using UnitsMillivolts =
     Units<comms::traits::units::Voltage, comms::traits::units::MillivoltsRatio>;
 
 /// @brief Alias option, specifying field value units are "volts".
+/// @headerfile comms/options.h
 using UnitsVolts =
     Units<comms::traits::units::Voltage, comms::traits::units::VoltsRatio>;
 
 /// @brief Alias option, specifying field value units are "kilovolts".
+/// @headerfile comms/options.h
 using UnitsKilovolts =
     Units<comms::traits::units::Voltage, comms::traits::units::KilovoltsRatio>;
 
@@ -903,6 +1007,7 @@ struct DefaultVariantIndexInitialiser
 /// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
 ///     assigns numeric value provided as the template argument to this option.
 /// @tparam TVal Numeric value is to be assigned to the field in default constructor.
+/// @headerfile comms/options.h
 template<std::intmax_t TVal>
 using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitialiser<TVal> >;
 
@@ -915,6 +1020,7 @@ using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitiali
 ///     such range.
 /// @tparam TMinValue Minimal valid numeric value
 /// @tparam TMaxValue Maximal valid numeric value
+/// @headerfile comms/options.h
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
 using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMinValue, TMaxValue> >;
 
@@ -928,24 +1034,28 @@ using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMi
 ///     @endcode
 /// @tparam TMask Mask that specifies reserved bits.
 /// @tparam TValue Expected value of the reserved bits. Defaults to 0.
+/// @headerfile comms/options.h
 template<std::uintmax_t TMask, std::uintmax_t TValue = 0U>
 using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValidator<TMask, TValue> >;
 
 /// @brief Alias to DefaultValueInitialiser, it sets default mode
 ///     to field::Optional field.
 /// @tparam TVal Optional mode value is to be assigned to the field in default constructor.
+/// @headerfile comms/options.h
 template<comms::field::OptionalMode TVal>
 using DefaultOptionalMode = DefaultValueInitialiser<details::DefaultOptModeInitialiser<TVal> >;
 
 /// @brief Alias to DefaultValueInitialiser, it initalises comms::field::Variant field
 ///     to contain valid default value of the specified member.
 /// @tparam TIdx Index of the default member.
+/// @headerfile comms/options.h
 template <std::size_t TIdx>
 using DefaultVariantIndex = DefaultValueInitialiser<details::DefaultVariantIndexInitialiser<TIdx> >;
 
 /// @brief Force comms::protocol::ChecksumLayer and
 ///     comms::protocol::ChecksumPrefixLayer, to verify checksum prior to
 ///     forwarding read to the wrapped layer(s).
+/// @headerfile comms/options.h
 struct ChecksumLayerVerifyBeforeRead {};
 
 }  // namespace option

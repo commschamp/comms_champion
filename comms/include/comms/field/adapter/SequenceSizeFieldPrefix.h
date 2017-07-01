@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #pragma once
 
 #include "comms/Assert.h"
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -30,10 +30,10 @@ namespace field
 namespace adapter
 {
 
-template <typename TSizeField, typename TNext>
-class SequenceSizeFieldPrefix : public details::AdapterBaseT<TNext>
+template <typename TSizeField, typename TBase>
+class SequenceSizeFieldPrefix : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
     using SizeField = TSizeField;
 
 public:
@@ -84,7 +84,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
         SizeField sizeField;
         auto es = sizeField.read(iter, len);
@@ -99,7 +99,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
+    comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         using SizeValueType = typename SizeField::ValueType;
         SizeField sizeField(static_cast<SizeValueType>(Base::value().size()));

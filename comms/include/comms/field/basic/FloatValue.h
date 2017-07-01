@@ -22,7 +22,6 @@
 #include <ratio>
 
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/util/SizeToType.h"
 
 namespace comms
@@ -41,8 +40,6 @@ class FloatValue : public TFieldBase
 
     using Base = TFieldBase;
 public:
-
-    using Category = comms::field::category::NumericValueField;
 
     using ValueType = T;
 
@@ -101,11 +98,6 @@ public:
         CastUnion castUnion;
         castUnion.serValue_ = val;
         return castUnion.value_;
-    }
-
-    static constexpr bool valid()
-    {
-        return true;
     }
 
     template <typename TIter>

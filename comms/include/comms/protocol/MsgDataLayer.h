@@ -36,6 +36,7 @@ namespace protocol
 /// @brief Message data layer.
 /// @details Must always be the last layer in protocol stack.
 /// @tparam TField Field that can be used to store raw data of the message.
+/// @headerfile comms/protocol/MsgDataLayer.h
 template <
     typename TField =
         comms::field::ArrayList<

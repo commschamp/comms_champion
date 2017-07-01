@@ -33,14 +33,14 @@ namespace message
 namespace
 {
 
-typedef demo::message::BitmaskValuesFields<BitmaskValues::Field> BitmaskValuesFields;
-
+using BitmaskValuesFields = demo::message::BitmaskValuesFields;
 
 QVariantList createFieldsProperties()
 {
+    using Field1 = BitmaskValuesFields::field1;
     QVariantList props;
     props.append(
-        cc::property::field::ForField<BitmaskValuesFields::field1>()
+        cc::property::field::ForField<Field1>()
             .name("field1")
             .add("bit0")
             .add("bit1")
@@ -51,19 +51,20 @@ QVariantList createFieldsProperties()
 
     assert(
         cc::property::field::BitmaskValue(props.back())
-            .bits().size() == (int)BitmaskValuesFields::field1_NumOfValues);
+            .bits().size() == Field1::BitIdx_numOfValues);
 
+    using Field2 = BitmaskValuesFields::field2;
     props.append(
-        cc::property::field::ForField<BitmaskValuesFields::field2>()
+        cc::property::field::ForField<Field2>()
             .name("field2")
             .add("bit0")
-            .add(3, "bit3")
-            .add(8, "bit8")
+            .add(Field2::BitIdx_bit3, "bit3")
+            .add(Field2::BitIdx_bit8, "bit8")
             .add("bit9")
             .asMap());
     assert(
         cc::property::field::BitmaskValue(props.back())
-            .bits().size() == (int)BitmaskValuesFields::field2_NumOfValues);
+            .bits().size() == (int)Field2::BitIdx_numOfValues);
 
     assert(props.size() == BitmaskValues::FieldIdx_numOfValues);
     return props;

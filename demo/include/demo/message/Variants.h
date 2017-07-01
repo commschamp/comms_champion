@@ -20,7 +20,10 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -29,9 +32,7 @@ namespace message
 {
 
 /// @brief Accumulates details of all the Variants message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see Variants
-template <typename TFieldBase>
 struct VariantsFields
 {
     /// @brief Enumerator vor @ref varIdField
@@ -47,7 +48,7 @@ struct VariantsFields
     template <VarId TId>
     using varIdField =
         comms::field::EnumValue<
-            TFieldBase,
+            FieldBase,
             VarId,
             comms::option::DefaultNumValue<(int)TId>,
             comms::option::ValidNumValueRange<(int)TId, (int)TId>,
@@ -59,11 +60,11 @@ struct VariantsFields
     ///     the 1 byte unsigned integer.
     struct field1_var1 : public
         comms::field::Bundle<
-            TFieldBase,
+            FieldBase,
             std::tuple<
                 varIdField<VarId::Elem1>,
                 comms::field::IntValue<
-                    TFieldBase,
+                    FieldBase,
                     std::uint8_t
                 >
             >
@@ -84,11 +85,11 @@ struct VariantsFields
     ///     the 4 bytes unsigned integer.
     struct field1_var2 : public
         comms::field::Bundle<
-            TFieldBase,
+            FieldBase,
             std::tuple<
                 varIdField<VarId::Elem2>,
                 comms::field::IntValue<
-                    TFieldBase,
+                    FieldBase,
                     std::uint32_t
                 >
             >
@@ -109,14 +110,14 @@ struct VariantsFields
     ///     the string prefixed with its lengths (1 byte).
     struct field1_var3 : public
         comms::field::Bundle<
-            TFieldBase,
+            FieldBase,
             std::tuple<
                 varIdField<VarId::Elem3>,
                 comms::field::String<
-                    TFieldBase,
+                    FieldBase,
                     comms::option::SequenceSizeFieldPrefix<
                         comms::field::IntValue<
-                            TFieldBase,
+                            FieldBase,
                             std::uint8_t
                         >
                     >
@@ -141,7 +142,7 @@ struct VariantsFields
     ///     @li @ref field1_var3
     struct field1 : public
         comms::field::Variant<
-            TFieldBase,
+            FieldBase,
             std::tuple<
                 field1_var1,
                 field1_var2,
@@ -173,21 +174,15 @@ struct VariantsFields
 ///     various implementation options. @n
 ///     See @ref VariantsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class Variants : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Variants>,
-        comms::option::FieldsImpl<typename VariantsFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<VariantsFields::All>,
         comms::option::MsgType<Variants<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_Variants>,
-        comms::option::FieldsImpl<typename VariantsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Variants<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -207,7 +202,7 @@ public:
     Variants(Variants&& other) = default;
 
     /// @brief Destructor
-    virtual ~Variants() = default;
+    ~Variants() = default;
 
     /// @brief Copy assignment
     Variants& operator=(const Variants&) = default;

@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-typedef demo::message::StringsFields<Strings::Field> StringsFields;
+using StringsFields = demo::message::StringsFields;
 
 QVariantList createFieldsProperties()
 {

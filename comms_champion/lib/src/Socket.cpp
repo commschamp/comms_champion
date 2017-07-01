@@ -25,7 +25,8 @@ Socket::~Socket() = default;
 
 bool Socket::start()
 {
-    return startImpl();
+    m_running = startImpl();
+    return m_running;
 }
 
 void Socket::stop()
@@ -34,7 +35,13 @@ void Socket::stop()
         socketDisconnect();
         reportDisconnected();
     }
+    m_running = false;
     stopImpl();
+}
+
+bool Socket::isRunning() const
+{
+    return m_running;
 }
 
 bool Socket::socketConnect()
@@ -59,6 +66,11 @@ void Socket::sendData(DataInfoPtr dataPtr)
     if (!isSocketConnected()) {
         return;
     }
+
+    if (dataPtr->m_timestamp == DataInfo::Timestamp()) {
+        dataPtr->m_timestamp = DataInfo::TimestampClock::now();
+    }
+
     sendDataImpl(std::move(dataPtr));
 }
 
@@ -92,14 +104,20 @@ unsigned Socket::connectionPropertiesImpl() const
 
 void Socket::reportDataReceived(DataInfoPtr dataPtr)
 {
-    if (m_dataReceivedCallback) {
-        m_dataReceivedCallback(std::move(dataPtr));
+    if ((!m_running) || (!m_dataReceivedCallback)) {
+        return;
     }
+
+    if (dataPtr->m_timestamp == DataInfo::Timestamp()) {
+        dataPtr->m_timestamp = DataInfo::TimestampClock::now();
+    }
+
+    m_dataReceivedCallback(std::move(dataPtr));
 }
 
 void Socket::reportError(const QString& msg)
 {
-    if (m_errorReportCallback) {
+    if (m_running && m_errorReportCallback) {
         m_errorReportCallback(msg);
     }
 }
@@ -107,7 +125,7 @@ void Socket::reportError(const QString& msg)
 void Socket::reportDisconnected()
 {
     m_connected = false;
-    if (m_disconnectedReportCallback) {
+    if (m_running && m_disconnectedReportCallback) {
         m_disconnectedReportCallback();
     }
 }

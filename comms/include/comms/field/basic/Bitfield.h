@@ -160,7 +160,6 @@ class Bitfield : public TFieldBase
     >::type;
 
 public:
-    using Category = comms::field::category::BundleField;
     using Endian = typename Base::Endian;
     using ValueType = TMembers;
 
@@ -232,6 +231,11 @@ public:
     constexpr bool valid() const
     {
         return comms::util::tupleAccumulate(members_, true, ValidHelper());
+    }
+
+    bool refresh()
+    {
+        return comms::util::tupleAccumulate(members_, false, RefreshHelper());
     }
 
 private:
@@ -331,11 +335,21 @@ private:
     struct ValidHelper
     {
         template <typename TFieldParam>
-        bool operator()(bool soFar, TFieldParam&& field)
+        bool operator()(bool soFar, const TFieldParam& field)
         {
             return soFar && field.valid();
         }
     };
+
+    struct RefreshHelper
+    {
+        template <typename TFieldParam>
+        bool operator()(bool soFar, TFieldParam& field)
+        {
+            return field.refresh() || soFar;
+        }
+    };
+
 
     ValueType members_;
 };

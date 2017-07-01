@@ -20,7 +20,10 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -29,51 +32,48 @@ namespace message
 {
 
 /// @brief Accumulates details of all the BitmaskValues message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see BitmaskValues
-template <typename TFieldBase>
 struct BitmaskValuesFields
 {
-    /// @brief Bit access indices for @ref field1 bitmask
-    enum
-    {
-        field1_bit0, ///< index of bit 0
-        field1_bit1, ///< index of bit 1
-        field1_bit2, ///< index of bit 2
-        field1_bit3, ///< index of bit 3
-        field1_bit4, ///< index of bit 4
-        field1_NumOfValues ///< limit to available bits
-    };
-
     /// @brief Simple 1 byte bitmask value.
     /// @details Has 5 least significant bits in use, others are reserved and must
     ///     be 0.
-    using field1 =
+    struct field1 : public
         comms::field::BitmaskValue<
-            TFieldBase,
+            FieldBase,
             comms::option::FixedLength<1>,
             comms::option::BitmaskReservedBits<0xe0, 0>
-    >;
-
-    /// @brief Bit access indices for @ref field2 bitmask
-    enum
+        >
     {
-        field2_bit0, ///< index of bit 0
-        field2_bit3 = 3, ///< index of bit 3
-        field2_bit8 = 8, ///< index of bit 8
-        field2_bit9 = 9, ///< index of bit 9
-        field2_NumOfValues ///< limit to available bits
+        /// @brief Provide names generates access functions for internal bits.
+        /// @details See definition of @b COMMS_BITMASK_BITS_SEQ macro
+        ///     related to @b comms::field::BitmaskValue class from COMMS library
+        ///     for details.
+        COMMS_BITMASK_BITS_SEQ(bit0, bit1, bit2, bit3, bit4);
     };
 
     /// @brief Bitmask with 2 bytes length
     /// @details The used bits are not sequential, multiple reserved bits
     ///     in the middle. The value of the reserved bit must be 0
-    using field2 =
+    struct field2 : public
         comms::field::BitmaskValue<
-            TFieldBase,
+            FieldBase,
             comms::option::FixedLength<2>,
             comms::option::BitmaskReservedBits<0xfcf6, 0>
-    >;
+        >
+    {
+        /// @brief Provide names for internal bits.
+        /// @details See definition of @b COMMS_BITMASK_BITS macro
+        ///     related to @b comms::field::BitmaskValue class from COMMS library
+        ///     for details.
+        COMMS_BITMASK_BITS(bit0, bit3=3, bit8=8, bit9=9);
+
+        /// @brief Generated independent access functions for internal bits.
+        /// @details See definition of @b COMMS_BITMASK_BITS_ACCESS macro
+        ///     related to @b comms::field::BitmaskValue class from COMMS library
+        ///     for details.
+        COMMS_BITMASK_BITS_ACCESS(bit0, bit3, bit8, bit9);
+    };
 
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
@@ -89,21 +89,15 @@ struct BitmaskValuesFields
 ///     various implementation options. @n
 ///     See @ref BitmaskValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class BitmaskValues : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
-        comms::option::FieldsImpl<typename BitmaskValuesFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<BitmaskValuesFields::All>,
         comms::option::MsgType<BitmaskValues<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
-        comms::option::FieldsImpl<typename BitmaskValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<BitmaskValues<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -123,7 +117,7 @@ public:
     BitmaskValues(BitmaskValues&& other) = default;
 
     /// @brief Destructor
-    virtual ~BitmaskValues() = default;
+    ~BitmaskValues() = default;
 
     /// @brief Copy assignment
     BitmaskValues& operator=(const BitmaskValues&) = default;

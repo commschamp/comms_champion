@@ -1,0 +1,61 @@
+/// @mainpage CommsChampion Library
+/// @tableofcontents
+/// The <a href="https://github.com/arobenko/comms_champion#commschampion-tools">CommsChampion Tools</a> 
+/// are there to provide consistent and generic environment for binary protocols 
+/// visualisation, traffic monitor and analysis. They are all plugin based. 
+/// Plugins are used to select I/O socket, protocol definition itself as well as 
+/// zero or more data filters in between. The @b CommsChampion Library can be 
+/// used to develop such plugins as well as new custom tool applications.
+///
+/// The overall picture looks like this:
+/// @diafile app_plugin_lib_rel.dia
+/// The @b CommsChampion (comms_champion.dll) shared library contains common code that 
+/// is used by both the application and the plugin to it. The plugin itself is
+/// also a shared library, which is loaded by the application at run-time. It allows
+/// the @b application to be completely generic and used with any protocol.
+///
+/// @section mainpage_plugin_type Plugin Types
+/// The plugin can be one of the following types:
+/// @li @b socket - I/O socket, that is responsible for low level input / output operations.
+/// @li @b filter - responsible to perform intermediate data processing.
+/// @li @b protocol - responsible to process and present actual protocol messages.
+///
+/// @diafile plugins.dia
+///
+/// The @b socket and  @b protocol plugins are "must have" ones, without them 
+/// the tools won't be able to operate properly. The @b filters, on the other 
+/// hand, are optional. They need to be used when there are any additional 
+/// transport layers and/or encryption between the raw data received by the 
+/// I/O @b socket and the data delivered to the analysed communication 
+/// @b protocol for processing. 
+///
+/// The @b CommsChampion (comms_champion.dll) shared library is implemented using
+/// <a href="http://doc.qt.io/qt-5/qt5-intro.html">QT5</a> framework using its
+/// signals/slots functionality and expects
+/// the main application to drive the event loop using 
+/// <a href="http://doc.qt.io/qt-5/qapplication.html">QApplication</a> object.
+/// @code
+/// int main(int argc, char* argv[])
+/// {
+///     QApplication app(argc, argv);
+///     ... // Some other relevant objects
+///     return app->exec();
+/// }
+/// @endcode
+///
+/// @section mainpage_headers Header Files
+/// The documentation page of every mentioned in the tutorial class specifies
+/// the relevant include statement. The @b CommsChampion library also provides
+/// single "include all" file which can be used.
+/// @code
+/// #include "comms_champion/comms_champion.h"
+/// @endcode
+///
+/// @section mainpage_tutorials Tutorials
+/// Please choose the tutorial subject below, relevant for your development. They
+/// are completely independent and can be read separately.
+/// @li @ref page_socket_plugin
+/// @li @ref page_filter_plugin
+/// @li @ref page_protocol_plugin
+/// @li @ref page_custom_app
+///

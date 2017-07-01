@@ -19,7 +19,7 @@
 #pragma once
 
 #include "comms/Assert.h"
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -30,10 +30,10 @@ namespace field
 namespace adapter
 {
 
-template <typename TLenField, comms::ErrorStatus TStatus, typename TNext>
-class SequenceSerLengthFieldPrefix : public details::AdapterBaseT<TNext>
+template <typename TLenField, comms::ErrorStatus TStatus, typename TBase>
+class SequenceSerLengthFieldPrefix : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
     using LenField = TLenField;
 
 public:
@@ -82,7 +82,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
         LenField lenField;
         auto es = lenField.read(iter, len);
@@ -99,7 +99,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
+    comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         using LenValueType = typename LenField::ValueType;
         auto lenVal = Base::length();

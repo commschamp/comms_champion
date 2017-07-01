@@ -21,7 +21,6 @@
 #include <type_traits>
 
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 
 namespace comms
 {
@@ -38,7 +37,6 @@ class NoValue : public TFieldBase
     using Base = TFieldBase;
 public:
 
-    using Category = comms::field::category::NumericValueField;
     using ValueType = unsigned;
     using SerialisedType = ValueType;
 
@@ -80,11 +78,6 @@ public:
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
         return static_cast<ValueType>(val);
-    }
-
-    static constexpr bool valid()
-    {
-        return true;
     }
 
     template <typename TIter>

@@ -20,7 +20,10 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -29,19 +32,17 @@ namespace message
 {
 
 /// @brief Accumulates details of all the Lists message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see Lists
-template <typename TFieldBase>
 struct ListsFields
 {
     /// @brief Raw data list that uses 2 bytes size prefix
     using field1 =
         comms::field::ArrayList<
-            TFieldBase,
+            FieldBase,
             std::uint8_t,
             comms::option::SequenceSizeFieldPrefix<
                 comms::field::IntValue<
-                    TFieldBase,
+                    FieldBase,
                     std::uint16_t
                 >
             >
@@ -50,9 +51,9 @@ struct ListsFields
     /// @brief List of 2 bytes integer value fields, with fixed size of 3 elements
     using field2 =
         comms::field::ArrayList<
-            TFieldBase,
+            FieldBase,
             comms::field::IntValue<
-                TFieldBase,
+                FieldBase,
                 std::int16_t
             >,
             comms::option::SequenceFixedSize<3>
@@ -62,14 +63,14 @@ struct ListsFields
     ///     2 bytes serialisation length
     using field3 =
         comms::field::ArrayList<
-            TFieldBase,
+            FieldBase,
             comms::field::IntValue<
-                TFieldBase,
+                FieldBase,
                 std::uint16_t
             >,
             comms::option::SequenceSerLengthFieldPrefix<
                 comms::field::IntValue<
-                    TFieldBase,
+                    FieldBase,
                     std::uint16_t
                 >
             >
@@ -78,16 +79,16 @@ struct ListsFields
     /// @brief List of bundles, every bundle has two integer values member fields.
     using field4 =
         comms::field::ArrayList<
-            TFieldBase,
+            FieldBase,
             comms::field::Bundle<
-                TFieldBase,
+                FieldBase,
                 std::tuple<
                     comms::field::IntValue<
-                        TFieldBase,
+                        FieldBase,
                         std::uint16_t
                     >,
                     comms::field::IntValue<
-                        TFieldBase,
+                        FieldBase,
                         std::int8_t
                     >
                 >
@@ -110,12 +111,12 @@ struct ListsFields
 ///     various implementation options. @n
 ///     See @ref ListsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class Lists : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Lists>,
-        comms::option::FieldsImpl<typename ListsFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<ListsFields::All>,
         comms::option::MsgType<Lists<TMsgBase> >
     >
 {
@@ -138,7 +139,7 @@ public:
     Lists(Lists&& other) = default;
 
     /// @brief Destructor
-    virtual ~Lists() = default;
+    ~Lists() = default;
 
     /// @brief Copy assignment
     Lists& operator=(const Lists&) = default;

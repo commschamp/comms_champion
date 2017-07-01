@@ -185,6 +185,11 @@ public:
         return util::tupleAccumulate(fields(), 0U, FieldLengthRetriever());
     }
 
+    bool doRefresh() const
+    {
+        return util::tupleAccumulate(fields(), false, FieldRefresher());
+    }
+
 protected:
     ~MessageImplFieldsBase() = default;
 
@@ -332,6 +337,15 @@ private:
         bool operator()(bool valid, const TField& field) const
         {
             return valid && field.valid();
+        }
+    };
+
+    struct FieldRefresher
+    {
+        template <typename TField>
+        bool operator()(bool refreshed, TField& field) const
+        {
+            return field.refreshed() || refreshed;
         }
     };
 
@@ -640,14 +654,35 @@ using MessageImplFieldsLengthBaseT =
         TImplOpt::HasMsgType
     >::template Type<TBase, TImplOpt>;
 
-template <typename TBase, typename TActual>
+template <typename TBase, typename TOpt>
 class MessageImplRefreshBase : public TBase
 {
 protected:
     ~MessageImplRefreshBase() = default;
     virtual bool refreshImpl() override
     {
-        return static_cast<TActual*>(this)->doRefresh();
+        using Tag =
+            typename std::conditional<
+                TOpt::HasMsgType,
+                Downcast,
+                NoDowncast
+            >::type;
+        return refreshInternal(Tag());
+    }
+
+private:
+    struct Downcast {};
+    struct NoDowncast {};
+    bool refreshInternal(Downcast)
+    {
+        using Actual = typename TOpt::MsgType;
+        return static_cast<Actual*>(this)->doRefresh();
+    }
+
+    bool refreshInternal(NoDowncast)
+    {
+        static_assert(TOpt::HasFieldsImpl, "Must use FieldsImpl option");
+        return TBase::doRefresh();
     }
 };
 
@@ -658,7 +693,7 @@ template <>
 struct MessageImplProcessRefreshBase<true>
 {
     template <typename TBase, typename TOpt>
-    using Type = MessageImplRefreshBase<TBase, typename TOpt::MsgType>;
+    using Type = MessageImplRefreshBase<TBase, TOpt>;
 };
 
 template <>
@@ -671,7 +706,7 @@ struct MessageImplProcessRefreshBase<false>
 template <typename TBase, typename TImplOpt>
 using MessageImplRefreshBaseT =
     typename MessageImplProcessRefreshBase<
-        TBase::InterfaceOptions::HasRefresh && TImplOpt::HasDoRefresh && TImplOpt::HasMsgType
+        TBase::InterfaceOptions::HasRefresh && TImplOpt::HasDoRefresh
     >::template Type<TBase, TImplOpt>;
 
 template <typename TBase, typename TActual>

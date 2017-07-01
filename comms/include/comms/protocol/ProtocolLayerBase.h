@@ -155,6 +155,7 @@ struct ProtocolLayerMsgPtr<T, typename ProtocolLayerEnableIfHasMsgPtr<typename T
 ///     information for this layer. This template parameter is a type of such
 ///     field.
 /// @tparam TNextLayer Next layer this one wraps and forwards the calls to.
+/// @headerfile comms/protocol/ProtocolLayerBase.h
 template <typename TField, typename TNextLayer>
 class ProtocolLayerBase
 {

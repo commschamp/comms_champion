@@ -22,7 +22,6 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/util/Tuple.h"
 
 namespace comms
@@ -38,7 +37,6 @@ template <typename TFieldBase, typename TMembers>
 class Bundle : public TFieldBase
 {
 public:
-    using Category = comms::field::category::BundleField;
     using ValueType = TMembers;
 
     Bundle() = default;
@@ -87,6 +85,11 @@ public:
     constexpr bool valid() const
     {
         return comms::util::tupleAccumulate(value(), true, ValidCheckHelper());
+    }
+
+    bool refresh()
+    {
+        return comms::util::tupleAccumulate(value(), false, RefreshHelper());
     }
 
     template <typename TIter>
@@ -139,6 +142,15 @@ private:
         constexpr bool operator()(bool soFar, const TField& field) const
         {
             return soFar && field.valid();
+        }
+    };
+
+    struct RefreshHelper
+    {
+        template <typename TField>
+        bool operator()(bool soFar, const TField& field) const
+        {
+            return field.refresh() || soFar;
         }
     };
 

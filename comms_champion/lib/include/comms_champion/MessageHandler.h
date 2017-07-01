@@ -3,7 +3,7 @@
 //
 
 // This file is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
@@ -28,13 +28,27 @@
 namespace comms_champion
 {
 
+/// @brief Generic message handler used by @b CommsChampion Tools
+/// @details Provides polymorphic behavior via its protected functions, which
+///     can be overriden in the derived class.
+/// @headerfile comms_champion/MessageHandler.h
 class CC_API MessageHandler
 {
 public:
-    typedef field_wrapper::FieldWrapperPtr FieldWrapperPtr;
+    /// @brief Pinter to @ref FieldWrapper object
+    using FieldWrapperPtr = field_wrapper::FieldWrapperPtr;
 
+    /// @brief Destructor
     virtual ~MessageHandler();
 
+    /// @brief Handle the message.
+    /// @details The function invokes virtual beginMsgHandlingImpl() at
+    ///     the begining of handling, then for every field the message
+    ///     contains, the addFieldImpl() virtuam member function is invoked.
+    ///     At the end the endMsgHandlingImpl() virtual member function is
+    ///     invoked.
+    /// @tparam TMessage Message type
+    /// @param[in] msg Reference to message object
     template <typename TMessage>
     void handle(TMessage& msg)
     {
@@ -51,8 +65,15 @@ public:
     }
 
 protected:
+    /// @brief Polymorphic report about starting message handling
+    /// @param[in] msg Reference to message object.
     virtual void beginMsgHandlingImpl(Message& msg);
+
+    /// @brief Polymorphic request to add handling of the message field.
+    /// @param [in] wrapper Pointer to field wrapper.
     virtual void addFieldImpl(FieldWrapperPtr wrapper);
+
+    /// @brief Polymorphic report about ending message handling.
     virtual void endMsgHandlingImpl();
 
 private:

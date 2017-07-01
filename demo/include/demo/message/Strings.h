@@ -20,7 +20,10 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -30,18 +33,16 @@ namespace message
 {
 
 /// @brief Accumulates details of all the Strings message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see Strings
-template <typename TFieldBase>
 struct StringsFields
 {
     /// @brief String that uses 1 byte size prefix
     using field1 =
         comms::field::String<
-            TFieldBase,
+            FieldBase,
             comms::option::SequenceSizeFieldPrefix<
                 comms::field::IntValue<
-                    TFieldBase,
+                    FieldBase,
                     std::uint8_t
                 >
             >
@@ -50,10 +51,10 @@ struct StringsFields
     /// @brief String that is zero terminated
     using field2 =
         comms::field::String<
-            TFieldBase,
+            FieldBase,
             comms::option::SequenceTerminationFieldSuffix<
                 comms::field::IntValue<
-                    TFieldBase,
+                    FieldBase,
                     std::uint8_t
                 >
             >
@@ -62,7 +63,7 @@ struct StringsFields
     /// @brief Fixed size of 6 characters string
     using field3 =
         comms::field::String<
-            TFieldBase,
+            FieldBase,
             comms::option::SequenceFixedSize<6>
     >;
 
@@ -82,21 +83,15 @@ struct StringsFields
 ///     various implementation options. @n
 ///     See @ref StringsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class Strings : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_Strings>,
-        comms::option::FieldsImpl<typename StringsFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<StringsFields::All>,
         comms::option::MsgType<Strings<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_Strings>,
-        comms::option::FieldsImpl<typename StringsFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<Strings<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -116,7 +111,7 @@ public:
     Strings(Strings&& other) = default;
 
     /// @brief Destructor
-    virtual ~Strings() = default;
+    ~Strings() = default;
 
     /// @brief Copy assignment
     Strings& operator=(const Strings&) = default;

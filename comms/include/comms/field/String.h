@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -68,6 +68,13 @@ using StringStorageTypeT =
         TOptions::HasFixedSizeStorage
     >::template Type<TOptions>;
 
+template <typename TFieldBase, typename... TOptions>
+using StringBase =
+    AdaptBasicFieldT<
+        basic::ArrayList<TFieldBase, StringStorageTypeT<OptionsParser<TOptions...> > >,
+        TOptions...
+    >;
+
 } // namespace details
 
 /// @brief Field that represents a string.
@@ -89,23 +96,19 @@ using StringStorageTypeT =
 ///     @li comms::option::SequenceTrailingFieldSuffix
 ///     @li comms::option::DefaultValueInitialiser
 ///     @li comms::option::ContentsValidator
+///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+/// @extends comms::Field
+/// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>
-class String : public TFieldBase
+class String : public details::StringBase<TFieldBase, TOptions...>
 {
-    using Base = TFieldBase;
-
-    using ParsedOptionsInternal = details::OptionsParser<TOptions...>;
-    using StorageTypeInternal =
-        details::StringStorageTypeT<ParsedOptionsInternal>;
-    using BasicField = basic::ArrayList<TFieldBase, StorageTypeInternal>;
-    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
-
+    using Base = details::StringBase<TFieldBase, TOptions...>;
 public:
 
     /// @brief All the options provided to this class bundled into struct.
-    using ParsedOptions = ParsedOptionsInternal;
+    using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
     using Tag = tag::String;
@@ -115,27 +118,27 @@ public:
     ///     ValueType is std::string, otherwise it becomes
     ///     comms::util::StaticString<TSize>, where TSize is a size
     ///     provided to comms::option::FixedSizeStorage option.
-    using ValueType = StorageTypeInternal;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Default constructor
     String() = default;
 
     /// @brief Constructor
     explicit String(const ValueType& val)
-      : str_(val)
+      : Base(val)
     {
     }
 
     /// @brief Constructor
     explicit String(ValueType&& val)
-      : str_(std::move(val))
+      : Base(std::move(val))
     {
     }
 
     /// @brief Constructor
     explicit String(const char* str)
     {
-        str_.value() = str;
+        Base::value() = str;
     }
 
     /// @brief Copy constructor
@@ -153,30 +156,6 @@ public:
     /// @brief Move assignment
     String& operator=(String&&) = default;
 
-    /// @brief Get access to the value storage.
-    ValueType& value()
-    {
-        return str_.value();
-    }
-
-    /// @brief Get access to the value storage.
-    const ValueType& value() const
-    {
-        return str_.value();
-    }
-
-    /// @brief Get length of serialised data
-    constexpr std::size_t length() const
-    {
-        return str_.length();
-    }
-
-    /// @brief Check validity of the field value.
-    constexpr bool valid() const
-    {
-        return str_.valid();
-    }
-
     /// @brief Read field value from input data sequence
     /// @details By default, the read operation will try to consume all the
     ///     data available, unless size limiting option (such as
@@ -189,10 +168,27 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        auto es = str_.read(iter, len);
+        auto es = Base::read(iter, len);
         adjustValue(AdjustmentTag());
         return es;
     }
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+    /// @brief Get access to the value storage.
+    ValueType& value();
+
+    /// @brief Get access to the value storage.
+    const ValueType& value() const;
+
+    /// @brief Get length of serialised data
+    std::size_t length() const;
+
+    /// @brief Check validity of the field value.
+    bool valid() const;
+
+    /// @brief Refresh the field's value
+    /// @return @b true if the value has been updated, @b false otherwise
+    bool refresh();
 
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the
@@ -207,41 +203,28 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
-    {
-        return str_.write(iter, len);
-    }
+    ErrorStatus write(TIter& iter, std::size_t len) const;
 
     /// @brief Get minimal length that is required to serialise field of this type.
-    static constexpr std::size_t minLength()
-    {
-        return ThisField::minLength();
-    }
+    static constexpr std::size_t minLength();
 
     /// @brief Get maximal length that is required to serialise field of this type.
-    static constexpr std::size_t maxLength()
-    {
-        return ThisField::maxLength();
-    }
+    static constexpr std::size_t maxLength();
 
     /// @brief Force number of characters that must be read in the next read()
     ///     invocation.
-    /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
-    ///     used this function has no effect.
+    /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
+    ///     used.
     /// @param[in] count Number of elements to read during following read operation.
-    void forceReadElemCount(std::size_t count)
-    {
-        str_.forceReadElemCount(count);
-    }
+    void forceReadElemCount(std::size_t count);
 
     /// @brief Clear forcing of the number of characters that must be read in
     ///     the next read() invocation.
-    /// @details If comms::option::SequenceSizeForcingEnabled option hasn't been
-    ///     used this function has no effect.
-    void clearReadElemCount()
-    {
-        str_.clearReadElemCount();
-    }
+    /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
+    ///     used.
+    void clearReadElemCount();
+
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 private:
     struct NoAdjustment {};
@@ -259,17 +242,16 @@ private:
     void adjustValue(AdjustmentNeeded)
     {
         std::size_t count = 0;
-        for (auto iter = value().begin(); iter != value().end(); ++iter) {
+        for (auto iter = Base::value().begin(); iter != Base::value().end(); ++iter) {
             if (*iter == 0) {
                 break;
             }
             ++count;
         }
 
-        value().resize(count);
+        Base::value().resize(count);
     }
 
-    ThisField str_;
 };
 
 /// @brief Equality comparison operator.

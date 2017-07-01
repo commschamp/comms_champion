@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -41,11 +41,13 @@ namespace field
 ///     Supported options are:
 ///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultOptionalMode.
 ///     @li comms::option::ContentsValidator.
+///     @li comms::option::ContentsRefresher
+/// @extends comms::Field
+/// @headerfile comms/field/Optional.h
 template <typename TField, typename... TOptions>
-class Optional
+class Optional : public details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>
 {
-    using BasicField = basic::Optional<TField>;
-    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
+    using Base = details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>;
 public:
 
     /// @brief All the options provided to this class bundled into struct.
@@ -71,14 +73,14 @@ public:
     /// @brief Construct the field.
     /// @param[in] fieldSrc Field to be copied from during construction.
     explicit Optional(const Field& fieldSrc)
-      : field_(fieldSrc)
+      : Base(fieldSrc)
     {
     }
 
     /// @brief Construct the field.
     /// @param[in] fieldSrc Field to be moved from during construction.
     explicit Optional(Field&& fieldSrc)
-      : field_(std::move(fieldSrc))
+      : Base(std::move(fieldSrc))
     {
     }
 
@@ -97,49 +99,12 @@ public:
     /// @brief Move assignment
     Optional& operator=(Optional&&) = default;
 
-    /// @brief Get an access to the wrapped field object
-    Field& field()
-    {
-        return field_.field();
-    }
-
-    /// @brief Get an access to the wrapped field object
-    const Field& field() const
-    {
-        return field_.field();
-    }
-
-    /// @brief Get an access to the wrapped field object
-    ValueType& value()
-    {
-        return field_.value();
-    }
-
-    /// @brief Get an access to the wrapped field object
-    const ValueType& value() const
-    {
-        return field_.value();
-    }
-
-    /// @brief Get current optional mode
-    Mode getMode() const
-    {
-        return field_.getMode();
-    }
-
-    /// @brief Get optional mode
-    void setMode(Mode val)
-    {
-        GASSERT(val < Mode::NumOfModes);
-        field_.setMode(val);
-    }
-
     /// @brief Check whether mode is equivalent to Mode::Tentative
     /// @details Convenience wrapper for getMode(), equivalent to
     ///     @code return getMode() == Mode::Tentative; @endcode
     bool isTentative() const
     {
-        return getMode() == Mode::Tentative;
+        return Base::getMode() == Mode::Tentative;
     }
 
     /// @brief Set mode to Mode::Tentative
@@ -147,7 +112,7 @@ public:
     ///     @code setMode(Mode::Tentative); @endcode
     void setTentative()
     {
-        setMode(Mode::Tentative);
+        Base::setMode(Mode::Tentative);
     }
 
     /// @brief Check whether mode is equivalent to Mode::Missing
@@ -155,7 +120,7 @@ public:
     ///     @code return getMode() == Mode::Missing; @endcode
     bool isMissing() const
     {
-        return getMode() == Mode::Missing;
+        return Base::getMode() == Mode::Missing;
     }
 
     /// @brief Set mode to Mode::Missing
@@ -163,7 +128,7 @@ public:
     ///     @code setMode(Mode::Missing); @endcode
     void setMissing()
     {
-        setMode(Mode::Missing);
+        Base::setMode(Mode::Missing);
     }
 
     /// @brief Check whether mode is equivalent to Mode::Exists
@@ -171,7 +136,7 @@ public:
     ///     @code return getMode() == Mode::Exists; @endcode
     bool doesExist() const
     {
-        return getMode() == Mode::Exists;
+        return Base::getMode() == Mode::Exists;
     }
 
     /// @brief Set mode to Mode::Exists
@@ -179,41 +144,55 @@ public:
     ///     @code setMode(Mode::Exists); @endcode
     void setExists()
     {
-        setMode(Mode::Exists);
+        Base::setMode(Mode::Exists);
     }
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+    /// @brief Get an access to the wrapped field object
+    Field& field();
+
+    /// @brief Get an access to the wrapped field object
+    const Field& field() const;
+
+    /// @brief Get an access to the wrapped field object
+    ValueType& value();
+
+    /// @brief Get an access to the wrapped field object
+    const ValueType& value() const;
+
+    /// @brief Get current optional mode
+    Mode getMode() const;
+
+    /// @brief Get optional mode
+    void setMode(Mode val);
 
     /// @brief Get length required to serialise the current field value.
     /// @return If current mode is OptionalMode::Exists, then the function
     ///     returns whatever length() member function of the wrapped field
     ///     returns. Otherwise (for both OptionalMode::Missing and
     ///     OptionalMode::Tentative) 0 is returned.
-    std::size_t length() const
-    {
-        return field_.length();
-    }
+    std::size_t length() const;
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Same as Field::minLength()
-    static constexpr std::size_t minLength()
-    {
-        return ThisField::minLength();
-    }
+    static constexpr std::size_t minLength();
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Same as Field::maxLength()
-    static constexpr std::size_t maxLength()
-    {
-        return ThisField::maxLength();
-    }
+    static constexpr std::size_t maxLength();
 
     /// @brief Check validity of the field value.
     /// @return If field is marked to be missing (mode is OptionalMode::Missing),
     ///     "true" is returned, otherwise valid() member function of the wrapped
     ///     field is called.
-    bool valid() const
-    {
-        return field_.valid();
-    }
+    bool valid() const;
+
+    /// @brief Refresh the field's value
+    /// @details Will invoke the refresh() member function of the contained
+    ///     field, only if it is marked as "exists", otherwise @b false will be
+    ///     returned.
+    /// @return @b true if the value has been updated, @b false otherwise
+    bool refresh();
 
     /// @brief Read field value from input data sequence
     /// @details If field is marked as missing (mode is OptionalMode::Missing),
@@ -231,10 +210,7 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
-    {
-        return field_.read(iter, len);
-    }
+    ErrorStatus read(TIter& iter, std::size_t len);
 
     /// @brief Write current field value to output data sequence
     /// @details If field is marked as missing (mode is OptionalMode::Missing),
@@ -251,13 +227,8 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
-    {
-        return field_.write(iter, len);
-    }
-
-private:
-    ThisField field_;
+    ErrorStatus write(TIter& iter, std::size_t len) const;
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
 /// @brief Equality comparison operator.

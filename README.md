@@ -15,7 +15,7 @@ There are so many of them:
 [ProtoBuf](https://developers.google.com/protocol-buffers/), 
 [Cap'n Proto](https://capnproto.org/), [MessagePack](http://msgpack.org/index.html),
 [Thrift](https://thrift.apache.org/), [Kaitai Struct](http://kaitai.io/),
-[Protlr](https://www.protlr.com/), you-name-it...
+[Simple Binary Encoding](https://github.com/real-logic/simple-binary-encoding), you-name-it...
 All of these tools are capable of generating **C++** code. However,
 the generated code quite often is not good enough to be used in embedded systems, especially
 bare-metal ones. Either the produced **C++** code or the tool itself has 
@@ -119,16 +119,16 @@ Core ideas and architecture of the **COMMS** library is described in
 [Guide to Implementing Communication Protocols in C++](https://www.gitbook.com/book/arobenko/comms-protocols-cpp/details) free e-book.
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
-downloaded as zip archive from 
-[Dropbox](https://www.dropbox.com/s/bisen7n2tpipv56/doc_comms_v0.18.zip?dl=1) or
-from [release artifacts](https://github.com/arobenko/comms_champion/releases).
+downloaded as **doc_comms.zip** archive from 
+[release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 
-develop, monitor and debug custom binary communication protocols. 
+develop, monitor and debug custom binary communication protocols, that where
+developed using [COMMS Library](#comms-library). 
 All the applications are plug-in based, i.e. plug-ins are used to define 
 I/O socket, data filters, and the custom protocol itself. The tools
-use [QT5](http://www.qt.io/) framework for GUI interfaces as well as loading
+use [Qt5](http://www.qt.io/) framework for GUI interfaces as well as loading
 and managing plug-ins.
 
 The current list of available applications is below. Please refer to the
@@ -136,8 +136,7 @@ The current list of available applications is below. Please refer to the
 for tutorial on how to use them.
 
 - **cc_view** is the main generic GUI application for visualisation and analysis of the
-communication protocols, that were developed using [COMMS Library](#comms-library)
-mentioned above.  
+communication protocols.  
 
 - **cc_dump** is a command line utility, that recognises all the received
 custom binary protocol messages and dumps them all in CSV format to standard output.
@@ -180,8 +179,8 @@ may serve as reference on how to implement any other custom binary protocol.
 
 The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
 definition inside, can be
-downloaded from [Dropbox](https://www.dropbox.com/s/cianwv06h18xstb/doc_demo_v0.18.1.zip?dl=1) or
-from [release artifacts](https://github.com/arobenko/comms_champion/releases).
+downloaded as **doc_demo.zip** archive
+from [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # Other Available Protocols
 The [COMMS Library](#comms-library) just provides an infrastructure for
@@ -198,33 +197,29 @@ of this project contains the updated list of all the protocols that have been
 implemented and can be used as reference.
 
 # Developing Custom Socket/Filter/Protocol Plugin
-At this moment the [CommsChampion](#commschampion-tools) tools are in their alpha 
-and being extensively developed. No 
-documentation on the available API and how to develop plugins is currently available,
-will be provided in the future once the API stabilises.
-
-However, if you have tried [CommsChampion Tools](#commschampion-tools) with
-any other binary protocol and would like to develop a plugin for your own one,
-developed internally by your company, please get in touch 
-(see [Contact Information](#contact-information) below). I will be able to help.
+The full tutorial as well as API documentation can be downloaded as
+**doc_commschampion.zip** archive from
+from [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # Licence
-The [COMMS Library](#comms-library) from this repository is licensed under
+The [COMMS Library](#comms-library) is licensed under
 the classic **GPLv3 / Commercial** dual licensing scheme. The
 source code is available for anyone to use as long as the derivative work
-remains open source with compatible licence. Download it, try it! If it works
-as expected and commercial closed source licence is required for the final
-product, it can be purchased on [binpress](http://arobenko.binpress.com/product/comms-library/4578).
+remains open source with compatible licence. **Download** and **try** it! 
+If it works as expected and commercial closed source licence is required for the final
+product, it can be obtained on [binpress](http://arobenko.binpress.com/product/comms-library/4578).
 If the offered licences do not satisfy your needs and special conditions need to be
 included please send me an e-mail (see [Contact Information](#contact-information) below).
 
-The [CommsChampion](#commschampion-tools) tools and 
-[Demo Protocol](#demo-protocol) are licensed under **LGPLv3**, which
-allows usage of open source QT5 libraries. 
+The [CommsChampion Tools](#commschampion-tools),
+and the [Demo Protocol](#demo-protocol) are licensed under the same **GPLv3**
+licence. If a commercial closed source licence is needed for these products 
+as well, please get it touch. As the author and full copyright owner I will be
+able to provide one.
 
 Some icons, used in [CommsChampion](#commschampion-tools) tools, were taken from
 [Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter
-applies.
+applies - requires attribution.
 
 The [application icon](src/app/cc_view/src/image/app_icon.png) of the
 [CommsChampion](#commschampion-tools) tool must
@@ -250,11 +245,11 @@ can be found in
 [How to Use CommsChampion in CMake Projects](https://github.com/arobenko/comms_champion/wiki/How-to-Use-CommsChampion-in-CMake-Projects)
 wiki page.
 
-# How to Run CommsChampion applications
+# How to Run CommsChampion Tools applications
 On Windows platforms try to run the *.exe binary (**cc_view.exe**
 or **cc_dump.exe**), which resides in 
-**install/bin** subdirectory. If the execution fails due to missing QT5 dlls,
-either set your %PATH% variable accordingly or try to execute generated **.bat**
+**install/bin** subdirectory. If the execution fails due to missing **Qt5** dlls,
+either set your **%PATH%** variable accordingly or try to execute generated **.bat**
 files (**cc_view.bat** or **cc_dump.bat**) residing in the same directory.
 
 On Linux platforms use the appropriate shell script 

@@ -51,6 +51,7 @@ namespace protocol
 /// @tparam TNextLayer Next transport layer type.
 /// @tparam TOptions All the options that will be forwarded to definition of
 ///     message factory type (comms::MsgFactory).
+/// @headerfile comms/protocol/MsgIdLayer.h
 template <typename TField,
           typename TMessage,
           typename TAllMessages,

@@ -70,6 +70,7 @@ namespace comms
 /// @pre If comms::option::InPlaceAllocation option is provided, only one custom
 ///     message can be allocated. The next one can be allocated only after previous
 ///     message has been destructed.
+/// @headerfile comms/MsgFactory.h
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactory
 {

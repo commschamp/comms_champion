@@ -19,7 +19,6 @@
 #pragma once
 
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/options.h"
 #include "basic/Bundle.h"
 #include "details/AdaptBasicField.h"
@@ -57,23 +56,27 @@ namespace field
 ///         observe value of more than one wrapped fields. For example,
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
+///     @li comms::option::ContentsRefresher - The default refreshing
+///         behaviour is to call the @b refresh() member function of every
+///         member field. This option provides an ability to set a custom
+///         "refreshing" logic.
 ///     @li comms::option::CustomValueReader - It may be required to implement
 ///         custom reading functionality instead of default behaviour of
 ///         invoking read() member function of every member field. It is possible
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
+/// @extends comms::Field
+/// @headerfile comms/field/Bundle.h
 template <typename TFieldBase, typename TMembers, typename... TOptions>
-class Bundle
+class Bundle : public details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMembers>, TOptions...>
 {
+    using Base = details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMembers>, TOptions...>;
     static_assert(comms::util::IsTuple<TMembers>::Value,
         "TMembers is expected to be a tuple of std::tuple<...>");
 
     static_assert(
         1U < std::tuple_size<TMembers>::value,
         "Number of members is expected to be at least 2.");
-
-    using BasicField = basic::Bundle<TFieldBase, TMembers>;
-    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
 
 public:
     /// @brief All the options provided to this class bundled into struct.
@@ -85,7 +88,7 @@ public:
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
     ///     of all the wrapped fields.
-    using ValueType = typename ThisField::ValueType;
+    using ValueType = typename Base::ValueType;
 
     /// @brief Default constructor
     /// @details Invokes default constructor of every wrapped field
@@ -93,50 +96,36 @@ public:
 
     /// @brief Constructor
     explicit Bundle(const ValueType& val)
-      : field_(val)
+      : Base(val)
     {
     }
 
     /// @brief Constructor
     explicit Bundle(ValueType&& val)
-      : field_(std::move(val))
+      : Base(std::move(val))
     {
     }
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to the stored tuple of fields.
-    ValueType& value()
-    {
-        return field_.value();
-    }
+    ValueType& value();
 
     /// @brief Get access to the stored tuple of fields.
-    const ValueType& value() const
-    {
-        return field_.value();
-    }
+    const ValueType& value() const;
 
     /// @brief Get length required to serialise bundled fields.
     /// @details Summarises all the results returned by the call to length() for
     ///     every field in the bundle.
     /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const
-    {
-        return field_.length();
-    }
+    constexpr std::size_t length() const;
 
     /// @brief Get minimal length that is required to serialise all bundled fields.
     /// @return Minimal number of bytes required serialise the field value.
-    static constexpr std::size_t minLength()
-    {
-        return ThisField::minLength();
-    }
+    static constexpr std::size_t minLength();
 
     /// @brief Get maximal length that is required to serialise all bundled fields.
     /// @return Maximal number of bytes required serialise the field value.
-    static constexpr std::size_t maxLength()
-    {
-        return ThisField::maxLength();
-    }
+    static constexpr std::size_t maxLength();
 
     /// @brief Read field value from input data sequence
     /// @details Invokes read() member function over every bundled field.
@@ -145,10 +134,7 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
-    {
-        return field_.read(iter, size);
-    }
+    ErrorStatus read(TIter& iter, std::size_t size);
 
     /// @brief Write current field value to output data sequence
     /// @details Invokes write() member function over every bundled field.
@@ -157,18 +143,16 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const
-    {
-        return field_.write(iter, size);
-    }
+    ErrorStatus write(TIter& iter, std::size_t size) const;
 
     /// @brief Check validity of all the bundled fields.
-    constexpr bool valid() const {
-        return field_.valid();
-    }
+    bool valid() const;
 
-private:
-    ThisField field_;
+    /// @brief Refresh the field's contents
+    /// @details Calls refresh() member function on every member field, will
+    ///     return @b true if any of the calls returns @b true.
+    bool refresh();
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
 /// @brief Equality comparison operator.

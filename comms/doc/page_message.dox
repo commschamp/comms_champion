@@ -103,6 +103,20 @@
 ///     };
 ///     @endcode
 ///
+/// When implementing a custom protocol it is recommended to always define
+/// the common message interface in the following way:
+/// @code
+/// template <typename... TOptions>
+/// using MyProtocolMessage = 
+///     comms::Message<
+///         comms::option::BigEndian, // Fix the endian, usually known up front
+///         comms::option::MsgIdType<MsgId>, // Type used to differentiate messages (usually some enum)
+///         TOptions... // Extend it with provided options
+/// @endcode
+/// The definition above fixes endian and type used to specify message ID. The
+/// variadic @b TOptions parameter allows to choose any polymorphic (virtual)
+/// behaviour in the future.
+///
 /// Let's now review all the other supported options one by one:
 /// 
 /// @subsection page_message_tutorial_interface_endian Serialisation Endian
@@ -158,11 +172,11 @@
 /// are provided for help in this task. @n
 /// Also note, the definition of the @b Field internal type. Later this tutorial
 /// will present information on using @b fields to define message payload. The 
-/// value of every such @b field needs to be serialised/deserialised. The comms
+/// value of every such @b field needs to be serialised/deserialised. The COMMS
 /// library provides multiple built-in fields that reside in comms::field
 /// namespace and described in details in @ref page_field_tutorial page.
 /// Almost every such field will require a variant of comms::Field class to be
-/// used as the base class. It is alse expected to provide @b readData() and 
+/// used as the base class. It is also expected to provide @b readData() and 
 /// @b writeData() member functions which can be used to serialise stored value.
 /// The internal @b Field type definition inside the
 /// @b MyMessage interface class may be used as such.
@@ -387,10 +401,8 @@
 ///     virtual void dispatchImpl(Handler& handler) = 0; // Must be implemented in the derived class
 /// };
 /// @endcode
-/// More details about dispatching will be provided below in @ref 
-/// page_message_tutorial_implementation and @ref page_message_tutorial_implementation_handle
-/// sections on this page as well as @ref message_handling section of the
-/// main tutorial.
+/// More details about dispatching will be provided below in @ref page_message_tutorial_impl_msg_type
+/// section.
 ///
 /// @subsection page_message_tutorial_interface_length Polymorphic Serialisation Length Retrieval
 /// Sometimes it may be needed to polymorphically retrieve the serialisation length of the message
@@ -606,7 +618,7 @@
 ///     ...
 /// };
 /// @endcode
-/// When the ID is provided the comms::MessageBase class and the provided interface
+/// When the ID is provided to the comms::MessageBase class and the provided interface
 /// class defines message ID type (see @ref page_message_tutorial_interface_id_type), 
 /// the comms::MessageBase class defines the following non-virtual function:
 /// @code
@@ -689,6 +701,9 @@
 /// @b NOTE, that @b dispatchImpl() function is created if and only if the
 /// type of the handler has been provided to the interface class.
 ///
+/// For more details on message dispatching please refer to 
+/// @ref page_handler_tutorial page.
+///
 /// @subsection page_message_tutorial_impl_fields Providing Message Fields
 /// As has it been mentioned earlier, the message payload values need to be
 /// defined as @b fields (see @ref page_field_tutorial). The knowledge about
@@ -766,6 +781,14 @@
 ///         // Summarise the reported lengths of all the fields
 ///     }
 ///
+///     // Defalut implementation of the refreshing functionality
+///     bool doRefresh()
+///     {
+///         // Invokes refresh() member function of every field and returns
+///         // true if at least one of the fields has been updated (returned true).
+///     }
+///         
+///
 /// protected:
 ///     template<std::size_t TIdx, typename TIter > 
 ///     comms::ErrorStatus readFieldsFrom(TIter& iter, std::size_t len)
@@ -818,6 +841,7 @@
 /// @li comms::MessageBase::doWrite()
 /// @li comms::MessageBase::doLength()
 /// @li comms::MessageBase::doValid()
+/// @li comms::MessageBase::doRefresh()
 /// @li comms::MessageBase::readFieldsFrom()
 /// @li comms::MessageBase::readFieldsUntil()
 /// @li comms::MessageBase::readFieldsFromUntil()
@@ -846,6 +870,27 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// If the actual message type has been provided (see @ref page_message_tutorial_impl_msg_type),
+/// the provided @b readImpl() function downcasts its @b this pointer prior
+/// to invocation of @b doRead() member function, which allows having custom
+/// read functionality (see @ref page_message_tutorial_impl_custom_read below).
+/// @code
+/// namespace comms
+/// {
+/// template <typename TMessage, ...>
+/// class MessageBase<Message1<TMessage>, ... > : public TMessage
+/// {
+/// public:
+///     typedef TMessage::ReadIterator ReadIterator;
+///
+/// protected:
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) 
+///     {
+///         return static_cast<Message1<TMessage>*>(this)->doRead(iter, len);
+///     }    
+/// };
+/// } // namespace comms
+/// @endcode
 ///
 /// @subsubsection page_message_tutorial_impl_fields_write Polymorhic Write Implementation
 /// If message interface class allowed polymorphic write (see
@@ -864,6 +909,27 @@
 ///     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) const 
 ///     {
 ///         return doWrite(iter, len);
+///     }    
+/// };
+/// } // namespace comms
+/// @endcode
+/// If the actual message type has been provided (see @ref page_message_tutorial_impl_msg_type),
+/// the provided @b writeImpl() function downcasts its @b this pointer prior
+/// to invocation of @b doWrite() member function, which allows having custom
+/// write functionality (see @ref page_message_tutorial_impl_custom_write below).
+/// @code
+/// namespace comms
+/// {
+/// template <typename TMessage, ...>
+/// class MessageBase<Message1<TMessage>, ... > : public TMessage
+/// {
+/// public:
+///     typedef TMessage::WriteIterator WriteIterator;
+///
+/// protected:
+///     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) const 
+///     {
+///         return static_cast<const Message1<TMessage>*>(this)->doWrite(iter, len);
 ///     }    
 /// };
 /// } // namespace comms
@@ -887,6 +953,24 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// If the actual message type has been provided (see @ref page_message_tutorial_impl_msg_type),
+/// the provided @b lengthImpl() function downcasts its @b this pointer prior
+/// to invocation of @b doLength() member function, which allows having custom
+/// length calculation functionality (see @ref page_message_tutorial_impl_custom_length below).
+/// @code
+/// namespace comms
+/// {
+/// template <typename TMessage, ...>
+/// class MessageBase<Message1<TMessage>, ... > : public TMessage
+/// {
+/// protected:
+///     virtual std::size_t lengthImpl() const 
+///     {
+///         return static_cast<const Message1<TMessage>*>(this)->doLength();
+///     }    
+/// };
+/// } // namespace comms
+/// @endcode
 ///
 /// @subsubsection page_message_tutorial_impl_fields_valid Polymorphic Validity Check
 /// If message interface class allowed polymorphic validity check (see
@@ -902,6 +986,65 @@
 ///     virtual bool validImpl() const 
 ///     {
 ///         return doValid();
+///     }    
+/// };
+/// } // namespace comms
+/// @endcode
+/// If the actual message type has been provided (see @ref page_message_tutorial_impl_msg_type),
+/// the provided @b validImpl() function downcasts its @b this pointer prior
+/// to invocation of @b doValid() member function, which allows having custom
+/// validity check functionality (see @ref page_message_tutorial_impl_custom_valid below).
+/// @code
+/// namespace comms
+/// {
+/// template <typename TMessage, ...>
+/// class MessageBase<Message1<TMessage>, ... > : public TMessage
+/// {
+/// protected:
+///     virtual bool validImpl() const 
+///     {
+///         return static_cast<const Message1<TMessage>*>(this)->doValid();
+///     }    
+/// };
+/// } // namespace comms
+/// @endcode
+/// @subsubsection page_message_tutorial_impl_fields_refresh Polymorphic Refreh
+/// If message interface class allowed polymorphic refresh (see
+/// @ref page_message_tutorial_interface_refresh), the comms::MessageBase will
+/// override @b refreshImpl() function (see comms::MessageBase::refreshImpl()) 
+/// @b only if comms::option::HasDoRefresh option has been passed to comms::MessageBase.
+/// Making the generation of the @b refreshImpl() explicit was done to avoid 
+/// redundant generation of extra virtual function for messages that are always
+/// in consistent state. The comms::Message::readImpl() already provides default
+/// implementation of always returning false. 
+/// @code
+/// namespace comms
+/// {
+/// template <typename TMessage, ...>
+/// class MessageBase<Message1<TMessage>, ... > : public TMessage
+/// {
+/// protected:
+///     virtual bool refreshImpl() 
+///     {
+///         return doRefresh();
+///     }    
+/// };
+/// } // namespace comms
+/// @endcode
+/// If the actual message type has been provided (see @ref page_message_tutorial_impl_msg_type),
+/// the provided @b refreshImpl() function downcasts its @b this pointer prior
+/// to invocation of @b doRefresh() member function, which allows having 
+/// @ref page_message_tutorial_impl_custom_refresh.
+/// @code
+/// namespace comms
+/// {
+/// template <typename TMessage, ...>
+/// class MessageBase<Message1<TMessage>, ... > : public TMessage
+/// {
+/// protected:
+///     virtual bool refreshImpl() 
+///     {
+///         return static_cast<Message1<TMessage>*>(this)->doRefresh();
 ///     }    
 /// };
 /// } // namespace comms
@@ -1006,18 +1149,15 @@
 ///         comms::option::FieldsImpl<Message2Fields> 
 ///     >
 /// {
-///     typedef comms::MessageBase<
-///         TMessage,
-///         comms::option::StaticNumIdImpl<MyMsgId_Message2>, 
-///         comms::option::MsgType<Message2<TMessage> >, 
-///         comms::option::FieldsImpl<Message2Fields> 
-///     > Base;
 /// public:
 ///     COMMS_MSG_FIELDS_ACCESS(flags, data);
 ///     
 ///     template <typename TIter>
 ///     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
 ///     {
+///         // Get type of the base class
+///         using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
+///
 ///         // Read only the flags value
 ///         auto es = Base::template readFieldsUntil<FieldIdx_data>(iter, len);
 ///         if (es != comms::ErrorStatus::Success) {
@@ -1025,7 +1165,7 @@
 ///         }
 ///
 ///         // Update mode (exists/missing) of the optional value to follow
-///         if (field_flags.value() != 0) {
+///         if (field_flags().value() != 0) {
 ///             field_data().setExists();
 ///         else {
 ///             field_data().setMissing();

@@ -20,7 +20,10 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -29,16 +32,14 @@ namespace message
 {
 
 /// @brief Accumulates details of all the IntValues message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see IntValues
-template <typename TFieldBase>
 struct IntValuesFields
 {
     /// @brief Simple 2 byte unsigned value.
     /// @details The valid values are in range [0, 10]
     using field1 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::uint16_t,
             comms::option::ValidNumValueRange<0, 10>
     >;
@@ -46,7 +47,7 @@ struct IntValuesFields
     /// @brief Signed integer serialised using only 3 bytes
     using field2 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::int32_t,
             comms::option::FixedLength<3>
     >;
@@ -54,7 +55,7 @@ struct IntValuesFields
     /// @brief Variable length (base-128) encoded unsigned integer value
     using field3 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::uint32_t,
             comms::option::VarLength<1, 4>
         >;
@@ -64,7 +65,7 @@ struct IntValuesFields
     ///     Default constructed value is 2016
     using field4 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::int16_t,
             comms::option::FixedLength<1>,
             comms::option::NumValueSerOffset<-2000>,
@@ -75,7 +76,7 @@ struct IntValuesFields
     /// @brief Signed integer serialised using 6 bytes
     using field5 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::int64_t,
             comms::option::FixedLength<6>,
             comms::option::ValidNumValueRange<(std::int64_t)0xffff800000000000, 0x7fffffffffff>
@@ -84,7 +85,7 @@ struct IntValuesFields
     /// @brief Unsigned integer serialised using 8 bytes
     using field6 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::uint64_t
         >;
 
@@ -107,12 +108,12 @@ struct IntValuesFields
 ///     various implementation options. @n
 ///     See @ref IntValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class IntValues : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_IntValues>,
-        comms::option::FieldsImpl<typename IntValuesFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<IntValuesFields::All>,
         comms::option::MsgType<IntValues<TMsgBase> >
     >
 {
@@ -135,7 +136,7 @@ public:
     IntValues(IntValues&& other) = default;
 
     /// @brief Destructor
-    virtual ~IntValues() = default;
+    ~IntValues() = default;
 
     /// @brief Copy assignment
     IntValues& operator=(const IntValues&) = default;

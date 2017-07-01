@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -18,8 +18,9 @@
 
 #pragma once
 
+#include <cstddef>
 #include "comms/Assert.h"
-#include "details/AdapterBase.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -30,10 +31,10 @@ namespace field
 namespace adapter
 {
 
-template <typename TNext>
-class SequenceFixedSizeBase : public details::AdapterBaseT<TNext>
+template <typename TBase>
+class SequenceFixedSizeBase : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
+    using Base = TBase;
 
 public:
     using ValueType = typename Base::ValueType;
@@ -77,24 +78,23 @@ public:
             return Base::length() + (remSize * Base::elementLength(dummyElem));
         }
 
-        using Next = typename Base::Next;
         ValueType copy(Base::value());
         copy.resize(fixedSize_);
-        return Next(std::move(copy)).length();
+        return Base(std::move(copy)).length();
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len)
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
         return Base::readN(fixedSize_, iter, len);
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
+    comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         auto writeCount = std::min(Base::value().size(), fixedSize_);
         auto es = Base::writeN(writeCount, iter, len);
-        if (es != ErrorStatus::Success) {
+        if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
@@ -134,19 +134,18 @@ public:
         auto sizeDiff = fixedSize_ - valCopy.size();
         std::fill_n(std::back_inserter(valCopy), sizeDiff, ElementType());
 
-        using Next = typename Base::Next;
-        Next nextAdapter(std::move(valCopy));
-        return nextAdapter.valid();
+        Base tmp(std::move(valCopy));
+        return tmp.valid();
     }
 
 private:
     std::size_t fixedSize_ = 0;
 };
 
-template <std::size_t TSize, typename TNext>
-class SequenceFixedSize : public SequenceFixedSizeBase<TNext>
+template <std::size_t TSize, typename TBase>
+class SequenceFixedSize : public SequenceFixedSizeBase<TBase>
 {
-    using Base = SequenceFixedSizeBase<TNext>;
+    using Base = SequenceFixedSizeBase<TBase>;
 
 public:
     using ValueType = typename Base::ValueType;

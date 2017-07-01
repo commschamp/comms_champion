@@ -34,6 +34,7 @@ namespace comms
 ///     @li comms::option::BigEndian or comms::option::LittleEndian - Option to
 ///         specify serialisation endian. If none is provided "Big" endian is
 ///         assumed.
+/// @headerfile comms/Field.h
 template <typename... TOptions>
 class Field : public details::FieldBase<TOptions...>
 {
@@ -43,6 +44,23 @@ public:
     /// @details Equal to either comms::traits::endian::Big or
     ///     comms::traits::endian::Little
     using Endian = typename Base::Endian;
+
+    /// @brief Default validity check
+    /// @details Always returns true, can be overriden by the derived class
+    /// @return Always tru
+    static constexpr bool valid()
+    {
+        return true;
+    }
+
+    /// @brief Default refresh functionality
+    /// @details Does nothing and returns false, can be overriden by the
+    ///     derived class
+    /// @return Always false
+    static constexpr bool refresh()
+    {
+        return false;
+    }
 
 protected:
     /// @brief Write data into the output buffer.

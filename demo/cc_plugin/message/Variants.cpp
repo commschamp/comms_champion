@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-typedef demo::message::VariantsFields<Variants::Field> VariantsFields;
+using VariantsFields = demo::message::VariantsFields;
 
 QVariantMap createProps_id()
 {

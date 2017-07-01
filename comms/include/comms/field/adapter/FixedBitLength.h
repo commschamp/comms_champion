@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -21,10 +21,10 @@
 #include <type_traits>
 #include <limits>
 
-#include "details/AdapterBase.h"
 #include "comms/Assert.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/BitSizeToByteSize.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -35,18 +35,18 @@ namespace field
 namespace adapter
 {
 
-template <std::size_t TLen, typename TNext>
-class FixedBitLength : public details::AdapterBaseT<TNext>
+template <std::size_t TLen, typename TBase>
+class FixedBitLength : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
-    using NextSerialisedType = typename Base::Next::SerialisedType;
+    using Base = TBase;
+    using BaseSerialisedType = typename Base::SerialisedType;
 
     static const std::size_t BitLength = TLen;
     static const std::size_t Length =
         comms::util::BitSizeToByteSize<BitLength>::Value;
 
     static_assert(0 < BitLength, "Bit length is expected to be greater than 0");
-    static_assert(Length <= sizeof(NextSerialisedType),
+    static_assert(Length <= sizeof(BaseSerialisedType),
         "The provided length limit is too big");
 
 public:
@@ -54,9 +54,9 @@ public:
     using ValueType = typename Base::ValueType;
 
     using SerialisedType = typename std::conditional<
-        (Length < sizeof(NextSerialisedType)),
-        typename comms::util::SizeToType<Length, std::is_signed<NextSerialisedType>::value>::Type,
-        NextSerialisedType
+        (Length < sizeof(BaseSerialisedType)),
+        typename comms::util::SizeToType<Length, std::is_signed<BaseSerialisedType>::value>::Type,
+        BaseSerialisedType
     >::type;
 
     using Endian = typename Base::Endian;
@@ -99,27 +99,27 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
+    comms::ErrorStatus read(TIter& iter, std::size_t size)
     {
         if (size < length()) {
-            return ErrorStatus::NotEnoughData;
+            return comms::ErrorStatus::NotEnoughData;
         }
 
         auto serialisedValue =
             comms::util::readData<SerialisedType, Length>(iter, Endian());
         Base::value() = fromSerialised(serialisedValue);
-        return ErrorStatus::Success;
+        return comms::ErrorStatus::Success;
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const
+    comms::ErrorStatus write(TIter& iter, std::size_t size) const
     {
         if (size < length()) {
-            return ErrorStatus::BufferOverflow;
+            return comms::ErrorStatus::BufferOverflow;
         }
 
         comms::util::writeData<Length>(toSerialised(Base::value()), iter, Endian());
-        return ErrorStatus::Success;
+        return comms::ErrorStatus::Success;
     }
 
 private:
@@ -145,12 +145,12 @@ private:
     >::type;
 
 
-    static SerialisedType adjustToSerialised(NextSerialisedType val, UnsignedTag)
+    static SerialisedType adjustToSerialised(BaseSerialisedType val, UnsignedTag)
     {
         return static_cast<SerialisedType>(val & UnsignedValueMask);
     }
 
-    static SerialisedType adjustToSerialised(NextSerialisedType val, SignedTag)
+    static SerialisedType adjustToSerialised(BaseSerialisedType val, SignedTag)
     {
         auto valueTmp =
             static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
@@ -158,16 +158,16 @@ private:
         return signExtUnsignedSerialised(valueTmp);
     }
 
-    static NextSerialisedType adjustFromSerialised(SerialisedType val, UnsignedTag)
+    static BaseSerialisedType adjustFromSerialised(SerialisedType val, UnsignedTag)
     {
-        return static_cast<NextSerialisedType>(val & UnsignedValueMask);
+        return static_cast<BaseSerialisedType>(val & UnsignedValueMask);
     }
 
-    static NextSerialisedType adjustFromSerialised(SerialisedType val, SignedTag)
+    static BaseSerialisedType adjustFromSerialised(SerialisedType val, SignedTag)
     {
         auto valueTmp = static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
         return
-            static_cast<NextSerialisedType>(
+            static_cast<BaseSerialisedType>(
                 signExtUnsignedSerialised(valueTmp));
     }
 

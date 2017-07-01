@@ -20,7 +20,10 @@
 
 #pragma once
 
-#include "demo/Message.h"
+#include "comms/fields.h"
+#include "comms/MessageBase.h"
+#include "demo/MsgId.h"
+#include "demo/FieldBase.h"
 
 namespace demo
 {
@@ -29,29 +32,27 @@ namespace message
 {
 
 /// @brief Accumulates details of all the FloatValues message fields.
-/// @tparam TFieldBase base class for all the fields.
 /// @see FloatValues
-template <typename TFieldBase>
 struct FloatValuesFields
 {
     /// @brief Simple 4 byte IEEE 754 floating point value.
     using field1 =
         comms::field::FloatValue<
-            TFieldBase,
+            FieldBase,
             float
     >;
 
     /// @brief Simple 8 byte IEEE 754 floating point value.
     using field2 =
         comms::field::FloatValue<
-            TFieldBase,
+            FieldBase,
             double
     >;
 
     /// @brief Floating point value serialised as integer with (1e-2) scaling ratio.
     using field3 =
         comms::field::IntValue<
-            TFieldBase,
+            FieldBase,
             std::uint8_t,
             comms::option::ScalingRatio<1, 100>
         >;
@@ -71,21 +72,15 @@ struct FloatValuesFields
 ///     various implementation options. @n
 ///     See @ref FloatValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase = Message>
+template <typename TMsgBase>
 class FloatValues : public
     comms::MessageBase<
         TMsgBase,
         comms::option::StaticNumIdImpl<MsgId_FloatValues>,
-        comms::option::FieldsImpl<typename FloatValuesFields<typename TMsgBase::Field>::All>,
+        comms::option::FieldsImpl<FloatValuesFields::All>,
         comms::option::MsgType<FloatValues<TMsgBase> >
     >
 {
-    typedef comms::MessageBase<
-        TMsgBase,
-        comms::option::StaticNumIdImpl<MsgId_FloatValues>,
-        comms::option::FieldsImpl<typename FloatValuesFields<typename TMsgBase::Field>::All>,
-        comms::option::MsgType<FloatValues<TMsgBase> >
-    > Base;
 public:
 
     /// @brief Allow access to internal fields.
@@ -105,7 +100,7 @@ public:
     FloatValues(FloatValues&& other) = default;
 
     /// @brief Destructor
-    virtual ~FloatValues() = default;
+    ~FloatValues() = default;
 
     /// @brief Copy assignment
     FloatValues& operator=(const FloatValues&) = default;

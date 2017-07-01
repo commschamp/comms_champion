@@ -22,7 +22,6 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 #include "comms/util/Tuple.h"
 
 namespace comms
@@ -38,7 +37,6 @@ template <typename TFieldBase, typename TMembers>
 class Variant : public TFieldBase
 {
 public:
-    using Category = comms::field::category::VariantField;
     using Members = TMembers;
     using ValueType = comms::util::TupleAsAlignedUnionT<Members>;
 
@@ -152,6 +150,17 @@ public:
 
         bool val = false;
         comms::util::tupleForSelectedType<Members>(memIdx_, ValidCheckHelper(val, &storage_));
+        return val;
+    }
+
+    bool refresh()
+    {
+        if (!currentFieldValid()) {
+            return false;
+        }
+
+        bool val = false;
+        comms::util::tupleForSelectedType<Members>(memIdx_, RefreshHelper(val, &storage_));
         return val;
     }
 
@@ -373,6 +382,27 @@ private:
         bool& result_;
         const void* storage_;
     };
+
+    class RefreshHelper
+    {
+    public:
+        RefreshHelper(bool& result, void* storage)
+          : result_(result),
+            storage_(storage)
+        {
+        }
+
+        template <std::size_t TIdx, typename TField>
+        void operator()()
+        {
+            result_ = reinterpret_cast<TField*>(storage_)->refresh();
+        }
+
+    private:
+        bool& result_;
+        const void* storage_;
+    };
+
 
     template <typename TFunc>
     class ExecHelper

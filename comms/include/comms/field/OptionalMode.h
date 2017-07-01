@@ -27,6 +27,7 @@ namespace field
 {
 
 /// @brief Mode to be used by comms::field::Optional
+/// @headerfile comms/field/OptionalMode.h
 enum class OptionalMode
 {
     Tentative, ///< The field existence is tentative, i.e. If there is enough bytes

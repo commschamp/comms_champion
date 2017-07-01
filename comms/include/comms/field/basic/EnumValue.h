@@ -21,7 +21,6 @@
 #include <type_traits>
 
 #include "comms/ErrorStatus.h"
-#include "comms/field/category.h"
 
 #include "IntValue.h"
 
@@ -51,8 +50,6 @@ class EnumValue : public TFieldBase
 
     using IntValueType = typename IntValueField::ValueType;
 public:
-
-    using Category = comms::field::category::NumericValueField;
 
     using ValueType = T;
 
@@ -107,11 +104,6 @@ public:
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
         return static_cast<ValueType>(IntValueField::fromSerialised(val));
-    }
-
-    static constexpr bool valid()
-    {
-        return true;
     }
 
     template <typename TIter>

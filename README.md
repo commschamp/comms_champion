@@ -218,8 +218,8 @@ as well, please get it touch. As the author and full copyright owner I will be
 able to provide one.
 
 Some icons, used in [CommsChampion](#commschampion-tools) tools, were taken from
-[Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter, which
-requires attribution, applies.
+[Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter
+applies - requires attribution.
 
 The [application icon](src/app/cc_view/src/image/app_icon.png) of the
 [CommsChampion](#commschampion-tools) tool must

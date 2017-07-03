@@ -115,8 +115,12 @@ public:
 
     /// @brief Deserialise message from the input data sequence.
     /// @details The function will read message ID from the data sequence first,
-    ///          generate appropriate message object based on the read ID and
-    ///          forward the read() request to the next layer.
+    ///     generate appropriate message object based on the read ID and
+    ///     forward the read() request to the next layer.
+    ///     If the message object cannot be generated (the message type is not
+    ///     provided inside @b TAllMessages template parameter), but
+    ///     the @ref comms::option::SupportGenericMessage option has beed used,
+    ///     the @ref comms::GenericMessage may be generated instead.
     /// @tparam TIter Type of iterator used for reading.
     /// @param[in, out] msgPtr Reference to smart pointer that will hold
     ///                 allocated message object
@@ -280,7 +284,7 @@ private:
     template <typename TMsg>
     using IdRetrieveTag =
         typename std::conditional<
-            details::ProtocolLayerHasStaticIdImpl<TMsg>::Value,
+            details::ProtocolLayerHasDoGetId<TMsg>::Value,
             DirectIdTag,
             PolymorphicIdTag
         >::type;

@@ -106,25 +106,25 @@ struct ProtocolLayerHasFieldsImpl
 };
 
 template <typename T, bool THasImpl>
-struct ProtocolLayerHasStaticIdImplHelper;
+struct ProtocolLayerHasDoGetIdHelper;
 
 template <typename T>
-struct ProtocolLayerHasStaticIdImplHelper<T, true>
+struct ProtocolLayerHasDoGetIdHelper<T, true>
 {
     static const bool Value = T::ImplOptions::HasStaticMsgId;
 };
 
 template <typename T>
-struct ProtocolLayerHasStaticIdImplHelper<T, false>
+struct ProtocolLayerHasDoGetIdHelper<T, false>
 {
     static const bool Value = false;
 };
 
 template <typename T>
-struct ProtocolLayerHasStaticIdImpl
+struct ProtocolLayerHasDoGetId
 {
     static const bool Value =
-        ProtocolLayerHasStaticIdImplHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
+        ProtocolLayerHasDoGetIdHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
 };
 
 template <class T, class R = void>

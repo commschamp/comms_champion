@@ -30,6 +30,13 @@
 namespace comms
 {
 
+/// @brief Definition of fields for @ref comms::GenericMessage message
+/// @details Defined as single variable length raw bytes sequence
+///     (@ref comms::field::ArrayList).
+/// @tparam Base class for the sequence field definition, expected to be a
+///     variant of @ref comms::Field
+/// @tparam Extra option(s) (bundled as @b std::tuple if multiple) to be
+///     passed to @ref comms::field::ArrayList field definition.
 template <typename TFieldBase, typename TExtraOpts = comms::option::EmptyOption>
 using GenericMessageFields =
     std::tuple<
@@ -41,6 +48,27 @@ using GenericMessageFields =
     >;
 
 /// @brief Generic Message
+/// @details Generic message is there to substitude definition of actual message
+///     when contents of the latter are not impotant. It defines single @b data
+///     field as variable length sequence of raw bytes (see @ref GenericMessageFields).
+///     The GenericMessage can be useful when implementing some kind of
+///     "bridge" or "firewall", that requires knowledge only about message
+///     ID and doesn't care much about message contents. The
+///     @ref comms::protocol::MsgIdLayer support creation of the
+///     GenericMessage in case the received message ID is not known (supported
+///     by using @ref comms::option::SupportGenericMessage option).
+/// @tparam TMessage Common message interface class, becomes one of the
+///     base classes.
+/// @tparam TFieldOpts Extra option(s) (multiple options need to be bundled in
+///     @b std::tuple) to be passed to the definition of the @b data
+///     field (see @ref GenericMessageFields).
+/// @tparam TExtraOpts Extra option(s) (multple options need to be bundled in
+///     @b std::tuple) to be passed to @ref comms::MessageBase which is base
+///     to this one.
+/// @pre Requires the common message interface (@b TMessage) to define
+///     inner @b MsgIdType and @b MsgIdParamType types (expected to use
+///     @ref comms::option::MsgIdType, see @ref page_message_tutorial_interface_id_type)
+/// @headerfile comms/GenericMessage.h
 template <
     typename TMessage,
     typename TFieldOpts = comms::option::EmptyOption,
@@ -64,23 +92,50 @@ class GenericMessage : public
             TExtraOpts
         >;
 public:
+    /// @brief Type of the message ID
+    /// @details The same as comms::Message::MsgIdType;
     using MsgIdType = typename Base::MsgIdType;
+
+    /// @brief Type of the message ID passed as parameter
+    /// @details The same as comms::Message::MsgIdParamType;
     using MsgIdParamType = typename Base::MsgIdParamType;
 
+    /// @brief Default constructor is deleted
+    GenericMessage() = delete;
+
+    /// @brief Constructor
+    /// @param[in] id ID of the message
     explicit GenericMessage(MsgIdParamType id) : m_id(id) {}
+
+    /// @brief Copy constructor
     GenericMessage(const GenericMessage&) = default;
+
+    /// @brief Move constructor
     GenericMessage(GenericMessage&&) = default;
+
+    /// @brief Destructor
     ~GenericMessage() = default;
+
+    /// @brief Copy assignment
     GenericMessage& operator=(const GenericMessage&) = default;
+
+    /// @brief Move assignment
     GenericMessage& operator=(GenericMessage&&) = default;
 
+    /// @brief Allow access to internal fields.
+    /// @details See definition of @ref COMMS_MSG_FIELDS_ACCESS() macro
+    ///     related to @b comms::MessageBase class for details.
+    ///
     COMMS_MSG_FIELDS_ACCESS(data);
 
-public:
+    /// @brief Get message ID information
+    /// @details The comms::MessageBase::getIdImpl() will invoke this
+    ///     function.
     MsgIdParamType doGetId() const
     {
         return m_id;
     }
+
 private:
     MsgIdType m_id;
 };

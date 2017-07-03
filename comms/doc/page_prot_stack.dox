@@ -185,8 +185,37 @@
 /// which will make sure the proper destruction of the message object and
 /// release of the internal buffer for next allocation. In case new allocation
 /// is attempted when internal buffer is NOT released, the new message will NOT be allocated
-/// and read operation will fail with comms::ErrorStatus::MsgAllocFailure
+/// and read operation will fail with @ref comms::ErrorStatus::MsgAllocFailure
 /// error.
+///
+/// By default, if the received data contains unknown message ID (the message
+/// type is not in @b AllInputMessages bundle), the @b read() operation returns
+/// @ref comms::ErrorStatus::InvalidMsgId and no message object is allocated.
+/// However, there are @b bridge / @b gateway / @b fireway type of applications
+/// which are interested to decode only limited number of messages, but still
+/// forward the received data (sometimes changing the transport wrapping) 
+/// without actually decoding the contents. In this case the default behaviour 
+/// cannot be used. The @b COMMS library provides @ref comms::GenericMessage 
+/// message definition which has a single variable length data field 
+/// (defined using @ref comms::field::ArrayList class). The @ref
+/// comms::protocol::MsgIdLayer may also receive @ref comms::option::SupportGenericMessage
+/// option specifying type of the GenericMessage.
+/// @code
+/// typedef comms::protocol::MsgIdLayer<
+///     MsgIdField, 
+///     MyMessage,
+///     AllInputMessages, 
+///     MyMsgData,
+///     comms::option::SupportGenericMessage<comms::GenericMessage<MyMessage> >
+/// > MyMsgId;
+/// @endcode
+/// In this case, if the appropriate message type hasn't been found in 
+/// @b AllInputMessages bundle, the appropriate @ref comms::GenericMessage object
+/// will be created instead. 
+///
+/// Note, that comms::option::SupportGenericMessage and comms::option::InPlaceAllocation
+/// options can be used together. In this case the @ref comms::GenericMessage
+/// message object will be allocated in the same allocation area.
 ///
 /// When constructed, the comms::protocol::MsgIdLayer creates an array of
 /// statically allocated factory methods, which are responsible to allocate

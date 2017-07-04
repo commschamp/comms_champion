@@ -270,16 +270,6 @@ public:
     }
 
 
-    void forceReadElemCount(std::size_t)
-    {
-        GASSERT(!"Not supported, use SequenceSizeForcingEnabled option");
-    }
-
-    void clearReadElemCount()
-    {
-        GASSERT(!"Not supported, use SequenceSizeForcingEnabled option");
-    }
-
 private:
     struct FieldElemTag{};
     struct IntegralElemTag{};

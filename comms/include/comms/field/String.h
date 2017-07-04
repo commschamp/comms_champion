@@ -23,7 +23,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
 #include "comms/util/StaticString.h"
-#include "basic/ArrayList.h"
+#include "basic/String.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
 #include "tag.h"
@@ -71,7 +71,7 @@ using StringStorageTypeT =
 template <typename TFieldBase, typename... TOptions>
 using StringBase =
     AdaptBasicFieldT<
-        basic::ArrayList<TFieldBase, StringStorageTypeT<OptionsParser<TOptions...> > >,
+        basic::String<TFieldBase, StringStorageTypeT<OptionsParser<TOptions...> > >,
         TOptions...
     >;
 

@@ -44,12 +44,12 @@ public:
 
         auto iter = findMethod(id);
         if (iter == Base::registry().end()) {
-            return Base::unknownMessage(id);
+            return MsgPtr();
         }
 
         GASSERT(*iter != nullptr);
         if((*iter)->getId() != id) {
-            return Base::unknownMessage(id);
+            return MsgPtr();
         }
 
         return (*iter)->create(*this);

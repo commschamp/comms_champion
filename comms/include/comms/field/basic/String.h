@@ -202,7 +202,7 @@ public:
 
         using ConstPointer = typename ValueType::const_pointer;
         auto* str = reinterpret_cast<ConstPointer>(&(*iter));
-        std::advance(iter, len);
+        doAdvance(iter, len);
         auto* endStr = reinterpret_cast<ConstPointer>(&(*iter));
         if (static_cast<std::size_t>(std::distance(str, endStr)) == len) {
             using Tag =
@@ -257,7 +257,7 @@ public:
         }
 
         std::copy_n(value_.begin(), value_.size(), iter);
-        std::advance(iter, value_.size());
+        doAdvance(iter, value_.size());
         return comms::ErrorStatus::Success;
     }
 
@@ -278,6 +278,10 @@ private:
     struct AssignMissingTag {};
     struct PushBackExistsTag {};
     struct PushBackMissingTag {};
+    struct ReserveExistsTag {};
+    struct ReserveMissingTag {};
+    struct AdvancableTag {};
+    struct NotAdvancableTag {};
 
     void doAssign(typename ValueType::const_pointer str, std::size_t len, AssignExistsTag)
     {
@@ -292,6 +296,7 @@ private:
     void doPushBack(typename ValueType::const_pointer str, std::size_t len, PushBackExistsTag)
     {
         clear();
+        doReserve(len);
         for (std::size_t idx = 0; idx < len; ++idx) {
             value_.push_back(str[idx]);
         }
@@ -300,6 +305,53 @@ private:
     void doPushBack(typename ValueType::const_pointer str, std::size_t len, PushBackMissingTag)
     {
         value_ = ValueType(str, len);
+    }
+
+    void doReserve(std::size_t len)
+    {
+        using Tag =
+            typename std::conditional<
+                comms::details::hasReserveFunc<ValueType>(),
+                ReserveExistsTag,
+                ReserveMissingTag
+            >::type;
+        doReserve(len, Tag());
+    }
+
+    void doReserve(std::size_t len, ReserveExistsTag)
+    {
+        value_.reserve(len);
+    }
+
+    static void doReserve(std::size_t, ReserveMissingTag)
+    {
+    }
+
+    template <typename TIter>
+    static void doAdvance(TIter& iter, std::size_t len)
+    {
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using IterCategory = typename std::iterator_traits<IterType>::iterator_category;
+        static const bool InputIter =
+                std::is_base_of<std::input_iterator_tag, IterCategory>::value;
+        using Tag =
+            typename std::conditional<
+                InputIter,
+                AdvancableTag,
+                NotAdvancableTag
+            >::type;
+        doAdvance(iter, len, Tag());
+    }
+
+    template <typename TIter>
+    static void doAdvance(TIter& iter, std::size_t len, AdvancableTag)
+    {
+        std::advance(iter, len);
+    }
+
+    template <typename TIter>
+    static void doAdvance(TIter&, std::size_t, NotAdvancableTag)
+    {
     }
 
     ValueType value_;

@@ -57,6 +57,15 @@ constexpr bool hasClearFunc()
     return PresenceDetector<void, HasClearOp, T>::Value;
 }
 
+template <typename T>
+using HasReserveOp = decltype(std::declval<T&>().reserve(std::declval<typename T::size_type>()));
+
+template <typename T>
+constexpr bool hasReserveFunc()
+{
+    return PresenceDetector<void, HasReserveOp, T>::Value;
+}
+
 } // namespace details
 
 } // namespace comms

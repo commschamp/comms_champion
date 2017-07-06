@@ -1070,6 +1070,8 @@ using DefaultVariantIndex = DefaultValueInitialiser<details::DefaultVariantIndex
 /// @headerfile comms/options.h
 struct ChecksumLayerVerifyBeforeRead {};
 
+struct OrigDataView {};
+
 }  // namespace option
 
 }  // namespace comms

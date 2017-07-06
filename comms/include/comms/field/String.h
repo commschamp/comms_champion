@@ -23,6 +23,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
 #include "comms/util/StaticString.h"
+#include "comms/util/StringView.h"
 #include "basic/String.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
@@ -37,36 +38,59 @@ namespace field
 namespace details
 {
 
-template <bool THasCustomStorageType, bool THasFixedStorage>
-struct StringStorageType;
+template <bool THasOrigDataViewStorage>
+struct StringOrigDataViewStorageType;
 
-template <bool THasFixedStorage>
-struct StringStorageType<true, THasFixedStorage>
+template <>
+struct StringOrigDataViewStorageType<true>
 {
-    template <typename TOptions>
-    using Type = typename TOptions::CustomStorageType;
+    using Type = comms::util::StringView;
 };
 
 template <>
-struct StringStorageType<false, true>
+struct StringOrigDataViewStorageType<false>
 {
-    template <typename TOptions>
-    using Type = comms::util::StaticString<TOptions::FixedSizeStorage>;
-};
-
-template <>
-struct StringStorageType<false, false>
-{
-    template <typename TOptions>
     using Type = std::string;
 };
 
-template <typename TOptions>
+template <bool THasFixedSizeStorage>
+struct StringFixedSizeStorageType;
+
+template <>
+struct StringFixedSizeStorageType<true>
+{
+    template <typename TOpt>
+    using Type = comms::util::StaticString<TOpt::FixedSizeStorage>;
+};
+
+template <>
+struct StringFixedSizeStorageType<false>
+{
+    template <typename TOpt>
+    using Type = typename StringOrigDataViewStorageType<TOpt::HasOrigDataView>::Type;
+};
+
+template <bool THasCustomStorage>
+struct StringCustomStringStorageType;
+
+template <>
+struct StringCustomStringStorageType<true>
+{
+    template <typename TOpt>
+    using Type = typename TOpt::CustomStorageType;
+};
+
+template <>
+struct StringCustomStringStorageType<false>
+{
+    template <typename TOpt>
+    using Type =
+        typename StringFixedSizeStorageType<TOpt::HasFixedSizeStorage>::template Type<TOpt>;
+};
+
+template <typename TOpt>
 using StringStorageTypeT =
-    typename StringStorageType<
-        TOptions::HasCustomStorageType,
-        TOptions::HasFixedSizeStorage
-    >::template Type<TOptions>;
+    typename StringCustomStringStorageType<TOpt::HasCustomStorageType>::template Type<TOpt>;
 
 template <typename TFieldBase, typename... TOptions>
 using StringBase =

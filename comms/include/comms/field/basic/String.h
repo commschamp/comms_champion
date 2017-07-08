@@ -65,7 +65,11 @@ protected:
   struct ReallyHas;
 
   template <typename C>
+  static Yes test(ReallyHas<C& (C::*)(typename C::const_pointer, typename C::size_type), &C::assign>*);
+
+  template <typename C>
   static Yes test(ReallyHas<void (C::*)(typename C::const_pointer, typename C::size_type), &C::assign>*);
+
   template <typename>
   static No test(...);
 

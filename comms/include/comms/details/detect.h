@@ -27,43 +27,83 @@ namespace comms
 namespace details
 {
 
-template <typename... TArgs>
-using VoidT = void;
+// VS2015 does NOT support expressions SFINAE, will use it for later versions.
 
-template <typename TVoid, template <class...> class TOp, typename... TArgs>
-struct PresenceDetector
-{
-    static const bool Value = false;
-};
+//template <typename... TArgs>
+//using VoidT = void;
 
-template <template <class...> class TOp, typename... TArgs>
-struct PresenceDetector<VoidT<TOp<TArgs...> >, TOp, TArgs...>
-{
-    static const bool Value = true;
-};
+//template <typename TVoid, template <class...> class TOp, typename... TArgs>
+//struct PresenceDetector
+//{
+//    static const bool Value = false;
+//};
 
-template <template <class...> class TOp, typename... TArgs>
-constexpr bool isDetected()
-{
-    return PresenceDetector<void, TOp, TArgs...>::Value;
-}
+//template <template <class...> class TOp, typename... TArgs>
+//struct PresenceDetector<VoidT<TOp<TArgs...> >, TOp, TArgs...>
+//{
+//    static const bool Value = true;
+//};
+
+//template <template <class...> class TOp, typename... TArgs>
+//constexpr bool isDetected()
+//{
+//    return PresenceDetector<void, TOp, TArgs...>::Value;
+//}
+
+//template <typename T>
+//using HasClearOp = decltype(std::declval<T&>().clear());
+
+//template <typename T>
+//using HasReserveOp = decltype(std::declval<T&>().reserve(std::declval<typename T::size_type>()));
 
 template <typename T>
-using HasClearOp = decltype(std::declval<T&>().clear());
+class HasClearFunc
+{
+protected:
+  typedef char Yes;
+  typedef unsigned No;
+
+  template <typename U, U>
+  struct ReallyHas;
+
+  template <typename C>
+  static Yes test(ReallyHas<void (C::*)(), &C::clear>*);
+  template <typename>
+  static No test(...);
+
+public:
+    static const bool Value = (sizeof(test<T>(0)) == sizeof(Yes));
+};
 
 template <typename T>
 constexpr bool hasClearFunc()
 {
-    return PresenceDetector<void, HasClearOp, T>::Value;
+    return HasClearFunc<T>::Value;
 }
 
 template <typename T>
-using HasReserveOp = decltype(std::declval<T&>().reserve(std::declval<typename T::size_type>()));
+class HasReserveFunc
+{
+protected:
+  typedef char Yes;
+  typedef unsigned No;
+
+  template <typename U, U>
+  struct ReallyHas;
+
+  template <typename C>
+  static Yes test(ReallyHas<void (C::*)(typename C::size_type), &C::reserve>*);
+  template <typename>
+  static No test(...);
+
+public:
+    static const bool Value = (sizeof(test<T>(0)) == sizeof(Yes));
+};
 
 template <typename T>
 constexpr bool hasReserveFunc()
 {
-    return PresenceDetector<void, HasReserveOp, T>::Value;
+    return HasReserveFunc<T>::Value;
 }
 
 } // namespace details

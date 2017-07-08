@@ -48,6 +48,7 @@ public:
     void test21();
     void test22();
     void test23();
+    void test24();
 };
 
 void UtilTestSuite::test1()
@@ -890,4 +891,52 @@ void UtilTestSuite::test23()
     TS_ASSERT_EQUALS(vec1, origVec2);
     TS_ASSERT_EQUALS(vec2, origVec1);
     TS_ASSERT_DIFFERS(vec1, vec2);
+}
+
+void UtilTestSuite::test24()
+{
+    typedef comms::util::StaticString<20> StaticStr;
+    typedef comms::util::StaticVector<std::uint8_t, 20> StaticVec;
+
+    static_assert(comms::field::basic::details::stringHasPushBack<std::string>(),
+            "std::string must have push_back");
+
+    static_assert(comms::field::basic::details::stringHasPushBack<StaticStr>(),
+            "StaticString must have push_back");
+
+    static_assert(!comms::field::basic::details::stringHasPushBack<comms::util::StringView>(),
+            "StringView doesn't have push_back");
+
+    static_assert(comms::field::basic::details::stringHasAssign<std::string>(),
+            "std::string must have assign");
+
+    static_assert(comms::field::basic::details::stringHasAssign<StaticStr>(),
+            "StaticString must have assign");
+
+    static_assert(!comms::field::basic::details::stringHasAssign<comms::util::StringView>(),
+            "StringView doesn't have assign");
+
+    static_assert(comms::details::hasReserveFunc<std::string>(),
+            "std::string must have reserve");
+
+    static_assert(comms::details::hasReserveFunc<StaticStr>(),
+            "StaticString must have reserve");
+
+    static_assert(comms::details::hasReserveFunc<StaticVec>(),
+            "StaticVector must have reserve");
+
+    static_assert(!comms::details::hasReserveFunc<comms::util::StringView>(),
+            "StringView mustn't have reserve");
+
+    static_assert(comms::details::hasClearFunc<std::string>(),
+            "std::string must have clear");
+
+    static_assert(comms::details::hasClearFunc<StaticStr>(),
+            "StaticString must have clear");
+
+    static_assert(comms::details::hasClearFunc<StaticVec>(),
+            "StaticVector must have clear");
+
+    static_assert(!comms::details::hasClearFunc<comms::util::StringView>(),
+            "StringView mustn't have clear");
 }

@@ -48,18 +48,6 @@ struct FieldsOptionsCompatibilityCalc
         static_cast<std::size_t>(T6);
 };
 
-template <
-    bool T1 = false,
-    bool T2 = false,
-    bool T3 = false,
-    bool T4 = false,
-    bool T5 = false,
-    bool T6 = false>
-constexpr bool hasIncompatibleOptions()
-{
-    return 1U < FieldsOptionsCompatibilityCalc<T1, T2, T3, T4, T5, T6>::Value;
-}
-
 template <bool THasCustomValueReader>
 struct AdaptFieldCustomValueReader;
 
@@ -423,7 +411,7 @@ class AdaptBasicField
             ParsedOptions::HasSequenceTerminationFieldSuffix;
 
     static_assert(
-            1U < FieldsOptionsCompatibilityCalc<ParsedOptions::HasCustomValueReader, CustomReaderIncompatible>::Value,
+            (!ParsedOptions::HasCustomValueReader) || (!CustomReaderIncompatible),
             "CustomValueReader option is incompatible with following options: "
             "NumValueSerOffset, FixedLength, FixedBitLength, VarLength, "
             "SequenceSizeForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
@@ -435,39 +423,38 @@ class AdaptBasicField
             ParsedOptions::HasFixedBitLengthLimit;
 
     static_assert(
-            !hasIncompatibleOptions<ParsedOptions::HasVarLengthLimits, VarLengthIncompatible>(),
+            (!ParsedOptions::HasVarLengthLimits) || (!VarLengthIncompatible),
             "VarLength option is incompatible with FixedLength and FixedBitLength");
 
     static_assert(
-            !hasIncompatibleOptions<
+            1U >= FieldsOptionsCompatibilityCalc<
                 ParsedOptions::HasSequenceSizeFieldPrefix,
                 ParsedOptions::HasSequenceSerLengthFieldPrefix,
                 ParsedOptions::HasSequenceFixedSize,
                 ParsedOptions::HasSequenceSizeForcing,
-                ParsedOptions::HasSequenceTerminationFieldSuffix>(),
+                ParsedOptions::HasSequenceTerminationFieldSuffix>::Value,
             "The following options are incompatible, cannot be used together: "
             "SequenceSizeFieldPrefix, SequenceSerLengthFieldPrefix, "
             "SequenceFixedSize, SequenceSizeForcingEnabled, "
             "SequenceTerminationFieldSuffix");
 
     static_assert(
-            !hasIncompatibleOptions<
-                ParsedOptions::HasSequenceTrailingFieldSuffix,
-                ParsedOptions::HasSequenceTerminationFieldSuffix>(),
+            (!ParsedOptions::HasSequenceTrailingFieldSuffix) ||
+            (!ParsedOptions::HasSequenceTerminationFieldSuffix),
             "The following options are incompatible, cannot be used together: "
             "SequenceTrailingFieldSuffix, SequenceTerminationFieldSuffix");
 
     static_assert(
-            !hasIncompatibleOptions<ParsedOptions::HasFailOnInvalid, ParsedOptions::HasIgnoreInvalid>(),
+            (!ParsedOptions::HasFailOnInvalid) ||
+            (!ParsedOptions::HasIgnoreInvalid),
             "The following options are incompatible, cannot be used together: "
             "FailOnInvalid, IgnoreInvalid");
 
-
     static_assert(
-            !hasIncompatibleOptions<
+            1U >= FieldsOptionsCompatibilityCalc<
                 ParsedOptions::HasCustomValueReader,
                 ParsedOptions::HasFixedSizeStorage,
-                ParsedOptions::HasOrigDataView>(),
+                ParsedOptions::HasOrigDataView>::Value,
             "The following options are incompatible, cannot be used together: "
             "CustomStorageType, FixedSizeStorage, OrigDataView");
 

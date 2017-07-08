@@ -30,31 +30,34 @@ namespace field
 namespace details
 {
 
-template<bool... TOpts>
-struct FieldsOptionsCompatibilityCalc;
-
-template<bool TFirst, bool TSecond, bool... TRest>
-struct FieldsOptionsCompatibilityCalc<TFirst, TSecond, TRest...>
+template<
+    bool T1 = false,
+    bool T2 = false,
+    bool T3 = false,
+    bool T4 = false,
+    bool T5 = false,
+    bool T6 = false>
+struct FieldsOptionsCompatibilityCalc
 {
-    static const std::size_t Value = static_cast<std::size_t>(TFirst) + FieldsOptionsCompatibilityCalc<TSecond, TRest...>::Value;
+    static const std::size_t Value =
+        static_cast<std::size_t>(T1) +\
+        static_cast<std::size_t>(T2) +
+        static_cast<std::size_t>(T3) +
+        static_cast<std::size_t>(T4) +
+        static_cast<std::size_t>(T5) +
+        static_cast<std::size_t>(T6);
 };
 
-template<bool TFirst>
-struct FieldsOptionsCompatibilityCalc<TFirst>
-{
-    static const std::size_t Value = static_cast<std::size_t>(TFirst);
-};
-
-template<>
-struct FieldsOptionsCompatibilityCalc<>
-{
-    static const std::size_t Value = 0U;
-};
-
-template <bool... TOpts>
+template <
+    bool T1 = false,
+    bool T2 = false,
+    bool T3 = false,
+    bool T4 = false,
+    bool T5 = false,
+    bool T6 = false>
 constexpr bool hasIncompatibleOptions()
 {
-    return 1U < FieldsOptionsCompatibilityCalc<TOpts...>::Value;
+    return 1U < FieldsOptionsCompatibilityCalc<T1, T2, T3, T4, T5, T6>::Value;
 }
 
 template <bool THasCustomValueReader>

@@ -55,34 +55,55 @@ struct StringMaxLengthRetrieveHelper<comms::util::StaticString<TSize> >
 };
 
 template <typename T>
-using StringHasAssignOp =
-    decltype(
-        std::declval<T&>().assign(
-            std::declval<typename T::const_pointer>(),
-            std::declval<typename T::size_type>()
-        )
-    );
+class StringHasAssign
+{
+protected:
+  typedef char Yes;
+  typedef unsigned No;
+
+  template <typename U, U>
+  struct ReallyHas;
+
+  template <typename C>
+  static Yes test(ReallyHas<void (C::*)(typename C::const_pointer, typename C::size_type), &C::assign>*);
+  template <typename>
+  static No test(...);
+
+public:
+    static const bool Value = (sizeof(test<T>(0)) == sizeof(Yes));
+};
+
 
 template <typename T>
 constexpr bool stringHasAssign()
 {
-    return comms::details::isDetected<StringHasAssignOp, T>();
+    return StringHasAssign<T>::Value;
 }
 
 template <typename T>
-using StringHasPushBackOp =
-    decltype(
-        std::declval<T&>().push_back(
-            std::declval<typename T::value_type>()
-        )
-    );
+class StringHasPushBack
+{
+protected:
+  typedef char Yes;
+  typedef unsigned No;
+
+  template <typename U, U>
+  struct ReallyHas;
+
+  template <typename C>
+  static Yes test(ReallyHas<void (C::*)(char), &C::push_back>*);
+  template <typename>
+  static No test(...);
+
+public:
+    static const bool Value = (sizeof(test<T>(0)) == sizeof(Yes));
+};
 
 template <typename T>
 constexpr bool stringHasPushBack()
 {
-    return comms::details::isDetected<StringHasPushBackOp, T>();
+    return StringHasPushBack<T>::Value;
 }
-
 
 }  // namespace details
 

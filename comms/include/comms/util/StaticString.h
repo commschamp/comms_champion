@@ -1944,7 +1944,7 @@ bool operator==(const StaticString<TSize1, TChar>& str1, const StaticString<TSiz
         std::equal(str1.begin(), str1.end(), str2.begin());
 }
 
-/// @brief Lexicographical compare between the strings.
+/// @brief Equality compare between the strings.
 /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
 /// @related StaticString
 template <std::size_t TSize1, typename TChar>
@@ -1953,6 +1953,14 @@ bool operator==(const TChar* str1, const StaticString<TSize1, TChar>& str2)
     return str2 == str1;
 }
 
+/// @brief Inequality compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StaticString
+template <std::size_t TSize1, typename TChar>
+bool operator!=(const TChar* str1, const StaticString<TSize1, TChar>& str2)
+{
+    return !(str2 == str1);
+}
 
 }  // namespace util
 

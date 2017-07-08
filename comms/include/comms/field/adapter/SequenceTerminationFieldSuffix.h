@@ -80,6 +80,36 @@ public:
         static_assert(std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
             "Only random access iterator for reading is supported with comms::option::SequenceTerminationFieldSuffix option");
 
+        using ElemTag =
+            typename std::conditional<
+                std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t)),
+                RawDataTag,
+                FieldTag
+            >::type;
+
+        return readInternal(iter, len, ElemTag());
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus write(TIter& iter, std::size_t len) const
+    {
+        TermField termField;
+        auto trailLen = termField.length();
+        auto es = Base::write(iter, len - trailLen);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        return termField.write(iter, trailLen);
+    }
+
+private:
+    struct RawDataTag {};
+    struct FieldTag {};
+
+    template <typename TIter>
+    comms::ErrorStatus readInternal(TIter& iter, std::size_t len, FieldTag)
+    {
         Base::clear();
         TermField termField;
         while (true) {
@@ -104,17 +134,34 @@ public:
     }
 
     template <typename TIter>
-    comms::ErrorStatus write(TIter& iter, std::size_t len) const
+    comms::ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag)
     {
         TermField termField;
-        auto trailLen = termField.length();
-        auto es = Base::write(iter, len - trailLen);
+        std::size_t consumed = 0;
+        while (consumed < len) {
+            auto iterCpy = iter + consumed;
+            auto es = termField.read(iterCpy, len);
+            if ((es == comms::ErrorStatus::Success) &&
+                (termField == TermField())){
+                break;
+            }
+
+            ++consumed;
+        }
+
+        if (len <= consumed) {
+            return comms::ErrorStatus::NotEnoughData;
+        }
+
+        auto es = Base::read(iter, consumed);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        return termField.write(iter, trailLen);
+        std::advance(iter, termField.length());
+        return comms::ErrorStatus::Success;
     }
+
 };
 
 }  // namespace adapter

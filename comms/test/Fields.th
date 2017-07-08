@@ -106,6 +106,8 @@ public:
     void test69();
     void test70();
     void test71();
+    void test72();
+    void test73();
 
 private:
 
@@ -3036,6 +3038,90 @@ void FieldsTestSuite::test71()
     TS_ASSERT_EQUALS(field.length(), 2U);
     TS_ASSERT(field.field_val().doesExist());
     TS_ASSERT_EQUALS(field.field_val().field().value(), (unsigned)Buf2[1]);
+}
+
+void FieldsTestSuite::test72()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t
+    > SizeField;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceSizeFieldPrefix<SizeField>,
+        comms::option::OrigDataView
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT(field.value().empty());
+
+    static const char Buf[] = {
+        0x5, 'h', 'e', 'l', 'l', 'o', 'g', 'a', 'r'
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.value().size(), static_cast<std::size_t>(Buf[0]));
+    TS_ASSERT_EQUALS(field.length(), field.value().size() + 1U);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(&(*field.value().begin()), &Buf[1]);
+
+    static const std::string Str("blabla");
+    field.value() = Field::ValueType(Str.c_str(), Str.size());
+    TS_ASSERT_EQUALS(&(*field.value().begin()), &Str[0]);
+
+    static const char ExpectedBuf[] = {
+        0x6, 'b', 'l', 'a', 'b', 'l', 'a'
+    };
+    static const std::size_t ExpectedBufSize =
+            std::extent<decltype(ExpectedBuf)>::value;
+
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test73()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ValidNumValueRange<0, 0>
+    > TermField;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceTerminationFieldSuffix<TermField>,
+        comms::option::OrigDataView
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.length(), 1U);
+
+    static const char* HelloStr = "hello";
+    field.value() = HelloStr;
+    TS_ASSERT_EQUALS(&(*field.value().begin()), HelloStr);
+    TS_ASSERT_EQUALS(field.length(), 6U);
+
+    static const char ExpectedBuf[] = {
+        'h', 'e', 'l', 'l', 'o', 0x0
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    static const char InputBuf[] = {
+        'f', 'o', 'o', 0x0, 'b', 'l', 'a'
+    };
+
+    static const std::size_t InputBufSize = std::extent<decltype(InputBuf)>::value;
+
+    auto* readIter = &InputBuf[0];
+    auto es = field.read(readIter, InputBufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(&(*field.value().begin()), InputBuf);
+    TS_ASSERT_EQUALS(field.value(), "foo");
+    TS_ASSERT_EQUALS(field.value().size(), 3U);
+    TS_ASSERT_EQUALS(std::distance(&InputBuf[0], readIter), 4);
 }
 
 template <typename TField>

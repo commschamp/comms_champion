@@ -73,7 +73,7 @@ public:
       : str_(str)
     {
         static const auto MaxLen = std::numeric_limits<SizeType>::max();
-        while ((*str != '\0') && (len_ < MaxLen)) {
+        while ((len_ < MaxLen) && (str[len_] != '\0')) {
             ++len_;
         }
     }
@@ -390,7 +390,77 @@ public:
 
 };
 
+/// @brief Lexicographical compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StringView
+inline
+bool operator<(const StringView& str1, const StringView& str2)
+{
+    return std::lexicographical_compare(str1.begin(), str1.end(), str2.begin(), str2.end());
+}
+
+/// @brief Lexicographical compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StringView
+inline
+bool operator<=(const StringView& str1, const StringView& str2)
+{
+    return !(str2 < str1);
+}
+
+/// @brief Lexicographical compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StringView
+inline
+bool operator>(const StringView& str1, const StringView& str2)
+{
+    return (str2 < str1);
+}
+
+/// @brief Lexicographical compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StringView
+inline
+bool operator>=(const StringView& str1, const StringView& str2)
+{
+    return !(str1 < str2);
+}
+
+/// @brief Equality compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StringView
+inline
+bool operator==(const StringView& str1, const StringView& str2)
+{
+    return
+        (str1.size() == str2.size()) &&
+        std::equal(str1.begin(), str1.end(), str2.begin());
+}
+
+/// @brief Inequality compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StringView
+inline
+bool operator!=(const StringView& str1, const StringView& str2)
+{
+    return !(str1 == str2);
+}
+
+
 } // namespace util
 
 } // namespace comms
 
+namespace std
+{
+
+/// @brief Specializes the std::swap algorithm.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/swap2">Reference</a>
+/// @related comms::util::StringView
+inline
+void swap(comms::util::StringView& str1, comms::util::StringView& str2)
+{
+    str1.swap(str2);
+}
+
+}  // namespace std

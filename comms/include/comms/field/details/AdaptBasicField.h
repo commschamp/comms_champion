@@ -423,7 +423,7 @@ class AdaptBasicField
             ParsedOptions::HasSequenceTerminationFieldSuffix;
 
     static_assert(
-            !hasIncompatibleOptions<ParsedOptions::HasCustomValueReader, CustomReaderIncompatible>(),
+            1U < FieldsOptionsCompatibilityCalc<ParsedOptions::HasCustomValueReader, CustomReaderIncompatible>::Value,
             "CustomValueReader option is incompatible with following options: "
             "NumValueSerOffset, FixedLength, FixedBitLength, VarLength, "
             "SequenceSizeForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "

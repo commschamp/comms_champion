@@ -21,6 +21,7 @@
 #include <cstddef>
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
+#include "comms/details/detect.h"
 
 namespace comms
 {
@@ -43,21 +44,18 @@ public:
     explicit SequenceFixedSizeBase(std::size_t maxSize)
       : fixedSize_(maxSize)
     {
-        Base::value().resize(fixedSize_);
     }
 
     SequenceFixedSizeBase(std::size_t maxSize, const ValueType& val)
       : Base(val),
         fixedSize_(maxSize)
     {
-        GASSERT(Base::value().size() == fixedSize_);
     }
 
     SequenceFixedSizeBase(std::size_t maxSize, ValueType&& val)
       : Base(std::move(val)),
         fixedSize_(maxSize)
     {
-        GASSERT(Base::value().size() == fixedSize_);
     }
 
     SequenceFixedSizeBase(const SequenceFixedSizeBase&) = default;
@@ -78,9 +76,14 @@ public:
             return Base::length() + (remSize * Base::elementLength(dummyElem));
         }
 
-        ValueType copy(Base::value());
-        copy.resize(fixedSize_);
-        return Base(std::move(copy)).length();
+        using Tag =
+            typename std::conditional<
+                std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t)),
+                HasRawDataTag,
+                HasFieldsTag
+            >::type;
+
+        return recalcLen(Tag());
     }
 
     template <typename TIter>
@@ -118,27 +121,76 @@ public:
 
     bool valid() const
     {
-        if (!Base::valid()) {
+        return Base::valid() && (Base::value().size() <= fixedSize_);
+    }
+
+    bool refresh()
+    {
+        if (!Base::refresh()) {
             return false;
         }
 
-        if (fixedSize_ == Base::value().size()) {
-            return true;
-        }
+        using Tag =
+            typename std::conditional<
+                comms::details::hasResizeFunc<ElementType>(),
+                HasResizeTag,
+                NoResizeTag
+            >::type;
 
-        if (fixedSize_ < Base::value().size()) {
-            return false;
-        }
 
-        auto valCopy = Base::value();
-        auto sizeDiff = fixedSize_ - valCopy.size();
-        std::fill_n(std::back_inserter(valCopy), sizeDiff, ElementType());
-
-        Base tmp(std::move(valCopy));
-        return tmp.valid();
+        return doRefresh(Tag());
     }
 
 private:
+    struct HasRawDataTag {};
+    struct HasFieldsTag {};
+    struct HasFixedLengthElemsTag {};
+    struct HasVarLengthElemsTag {};
+    struct HasResizeTag {};
+    struct NoResizeTag {};
+
+    std::size_t recalcLen(HasFieldsTag) const
+    {
+        using Tag =
+            typename std::conditional<
+                ElementType::minLength() == ElementType::maxLength(),
+                HasFixedLengthElemsTag,
+                HasVarLengthElemsTag
+            >::type;
+        return recalcLen(Tag());
+    }
+
+    std::size_t recalcLen(HasRawDataTag) const
+    {
+        return fixedSize_;
+    }
+
+    std::size_t recalcLen(HasFixedLengthElemsTag) const
+    {
+        return fixedSize_ * ElementType::minLength();
+    }
+
+    std::size_t recalcLen(HasVarLengthElemsTag) const
+    {
+        ValueType copy(Base::value().begin(), Base::value().begin() + fixedSize_);
+        return Base(std::move(copy)).length();
+    }
+
+    bool doRefresh(HasResizeTag)
+    {
+        if (Base::value() == fixedSize_) {
+            return false;
+        }
+
+        Base::value().resize(fixedSize_);
+        return true;
+    }
+
+    static constexpr bool doRefresh(NoResizeTag)
+    {
+        return false;
+    }
+
     std::size_t fixedSize_ = 0;
 };
 
@@ -154,19 +206,16 @@ public:
     explicit SequenceFixedSize()
       : Base(TSize)
     {
-        GASSERT(Base::value().size() == TSize);
     }
 
     explicit SequenceFixedSize(const ValueType& val)
       : Base(TSize, val)
     {
-        GASSERT(Base::value().size() == TSize);
     }
 
     SequenceFixedSize(ValueType&& val)
       : Base(TSize, std::move(val))
     {
-        GASSERT(Base::value().size() == TSize);
     }
 
     SequenceFixedSize(const SequenceFixedSize&) = default;

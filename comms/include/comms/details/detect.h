@@ -72,7 +72,7 @@ protected:
   static No test(...);
 
 public:
-    static const bool Value = (sizeof(test<T>(0)) == sizeof(Yes));
+    static const bool Value = (sizeof(test<T>(nullptr)) == sizeof(Yes));
 };
 
 template <typename T>
@@ -97,13 +97,63 @@ protected:
   static No test(...);
 
 public:
-    static const bool Value = (sizeof(test<T>(0)) == sizeof(Yes));
+    static const bool Value = (sizeof(test<T>(nullptr)) == sizeof(Yes));
 };
 
 template <typename T>
 constexpr bool hasReserveFunc()
 {
     return HasReserveFunc<T>::Value;
+}
+
+template <typename T>
+class HasResizeFunc
+{
+protected:
+  typedef char Yes;
+  typedef unsigned No;
+
+  template <typename U, U>
+  struct ReallyHas;
+
+  template <typename C>
+  static Yes test(ReallyHas<void (C::*)(typename C::size_type), &C::resize>*);
+  template <typename>
+  static No test(...);
+
+public:
+    static const bool Value = (sizeof(test<T>(nullptr)) == sizeof(Yes));
+};
+
+template <typename T>
+constexpr bool hasResizeFunc()
+{
+    return HasResizeFunc<T>::Value;
+}
+
+template <typename T>
+class HasRemoveSuffixFunc
+{
+protected:
+  typedef char Yes;
+  typedef unsigned No;
+
+  template <typename U, U>
+  struct ReallyHas;
+
+  template <typename C>
+  static Yes test(ReallyHas<void (C::*)(typename C::size_type), &C::remove_suffix>*);
+  template <typename>
+  static No test(...);
+
+public:
+    static const bool Value = (sizeof(test<T>(nullptr)) == sizeof(Yes));
+};
+
+template <typename T>
+constexpr bool hasRemoveSuffixFunc()
+{
+    return HasRemoveSuffixFunc<T>::Value;
 }
 
 } // namespace details

@@ -49,6 +49,11 @@ bool ArrayListWrapper::hasFixedSize() const
     return hasFixedSizeImpl();
 }
 
+void ArrayListWrapper::adjustFixedSize()
+{
+    adjustFixedSizeImpl();
+}
+
 ArrayListWrapper::Members& ArrayListWrapper::getMembers()
 {
     return m_members;

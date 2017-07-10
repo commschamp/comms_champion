@@ -59,6 +59,8 @@ public:
 
     bool hasFixedSize() const;
 
+    void adjustFixedSize();
+
     Members& getMembers();
 
     const Members& getMembers() const;
@@ -78,6 +80,7 @@ protected:
     virtual void removeFieldImpl(int idx) = 0;
     virtual unsigned sizeImpl() const = 0;
     virtual bool hasFixedSizeImpl() const = 0;
+    virtual void adjustFixedSizeImpl() = 0;
     virtual Ptr cloneImpl() = 0;
     virtual void refreshMembersImpl() = 0;
     virtual PrefixFieldInfo getPrefixFieldInfoImpl() const = 0;
@@ -188,6 +191,17 @@ protected:
         return Field::ParsedOptions::HasSequenceFixedSize;
     }
 
+    virtual void adjustFixedSizeImpl() override
+    {
+        using Tag =
+            typename std::conditional<
+                Field::ParsedOptions::HasSequenceFixedSize,
+                HasFixedSizeTag,
+                HasVarSizeTag
+            >::type;
+        adjustFixedSizeInternal(Tag());
+    }
+
     virtual Ptr cloneImpl() override
     {
         std::unique_ptr<ArrayListWrapperT<TField> > ptr(new ArrayListWrapperT(Base::field()));
@@ -232,6 +246,8 @@ private:
     struct SerLengthFieldTag {};
     struct SerLengthFieldFixedTag {};
     struct SerLengthFieldVarTag {};
+    struct HasFixedSizeTag {};
+    struct HasVarSizeTag {};
 
     PrefixFieldInfo getPrefixFieldInfoInternal(NoPrefixFieldTag) const
     {
@@ -304,6 +320,17 @@ private:
         assert(es == comms::ErrorStatus::Success);
         return serData;
     }
+
+    void adjustFixedSizeInternal(HasVarSizeTag)
+    {
+        assert(!"Should not be called");
+    }
+
+    void adjustFixedSizeInternal(HasFixedSizeTag)
+    {
+        Base::field().value().resize(Field::ParsedOptions::SequenceFixedSize);
+    }
+
 
     WrapFieldCallbackFunc m_wrapFieldFunc;
 };

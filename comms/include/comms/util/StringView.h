@@ -381,13 +381,20 @@ class StringView : public details::StringViewBase<>
 {
     using Base = details::StringViewBase<>;
 public:
+    using size_type = Base::size_type;
+
     StringView() noexcept = default;
     StringView(const StringView&) noexcept = default;
     StringView(const char* str, SizeType len) noexcept : Base(str, len) {}
     StringView(const char* str) noexcept : Base(str) {}
+
     ~StringView() = default;
     StringView& operator=(const StringView&) = default;
 
+    void remove_suffix(size_type len)
+    {
+        Base::remove_suffix(len);
+    }
 };
 
 /// @brief Lexicographical compare between the strings.

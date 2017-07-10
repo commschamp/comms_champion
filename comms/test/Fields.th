@@ -108,6 +108,7 @@ public:
     void test71();
     void test72();
     void test73();
+    void test74();
 
 private:
 
@@ -1374,7 +1375,6 @@ void FieldsTestSuite::test36()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.value().size(), 5U);
     TS_ASSERT_EQUALS(Field::minLength(), 5U);
     TS_ASSERT_EQUALS(Field::maxLength(), 5U);
 
@@ -1401,7 +1401,6 @@ void FieldsTestSuite::test37()
 
     Field field;
     TS_ASSERT(field.valid());
-    TS_ASSERT_EQUALS(field.value().size(), 3U);
 
     static const char Buf[] = {
         0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9
@@ -3126,6 +3125,50 @@ void FieldsTestSuite::test73()
     TS_ASSERT_EQUALS(field.value().size(), 3U);
     TS_ASSERT_EQUALS(std::distance(&InputBuf[0], readIter), 4);
 }
+
+void FieldsTestSuite::test74()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ValidNumValueRange<0, 0>
+    > TrailField;
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceFixedSize<5>,
+        comms::option::SequenceTrailingFieldSuffix<TrailField>,
+        comms::option::OrigDataView
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.length(), 6U);
+
+    static const char* HelloStr = "hello";
+    field.value() = HelloStr;
+    TS_ASSERT_EQUALS(field.length(), 6U);
+    TS_ASSERT_EQUALS(&(*field.value().begin()), HelloStr);
+
+    static const char ExpectedBuf[] = {
+        'h', 'e', 'l', 'l', 'o', 0x0
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    field.value() = "foo";
+    TS_ASSERT_EQUALS(field.length(), 6U);
+
+    static const char ExpectedBuf2[] = {
+        'f', 'o', 'o', 0x0, 0x0, 0x0
+    };
+    static const std::size_t ExpectedBufSize2 = std::extent<decltype(ExpectedBuf2)>::value;
+    writeReadField(field, ExpectedBuf2, ExpectedBufSize2);
+
+    field = readWriteField<Field>(&ExpectedBuf2[0], ExpectedBufSize2);
+    TS_ASSERT_EQUALS(field.value(), "foo");
+}
+
 
 template <typename TField>
 TField FieldsTestSuite::readWriteField(

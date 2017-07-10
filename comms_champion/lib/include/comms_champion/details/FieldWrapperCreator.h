@@ -216,6 +216,10 @@ private:
         typedef typename CollectionType::value_type ElementType;
 
         auto wrapper = field_wrapper::makeDowncastedArrayListWrapper(field);
+        if (wrapper->hasFixedSize()) {
+            wrapper->adjustFixedSize();
+        }
+
         wrapper->setWrapFieldCallback(
             [](ElementType& memField) -> FieldWrapperPtr
             {

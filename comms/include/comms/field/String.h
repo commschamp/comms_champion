@@ -193,7 +193,13 @@ public:
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         auto es = Base::read(iter, len);
-        adjustValue(AdjustmentTag());
+        using Tag = typename std::conditional<
+            ParsedOptions::HasSequenceFixedSize,
+            AdjustmentNeededTag,
+            NoAdjustmentTag
+        >::type;
+
+        adjustValue(Tag());
         return es;
     }
 
@@ -251,19 +257,16 @@ public:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 private:
-    struct NoAdjustment {};
-    struct AdjustmentNeeded {};
-    using AdjustmentTag = typename std::conditional<
-        ParsedOptions::HasSequenceFixedSize,
-        AdjustmentNeeded,
-        NoAdjustment
-    >::type;
+    struct NoAdjustmentTag {};
+    struct AdjustmentNeededTag {};
+    struct HasResizeTag {};
+    struct HasRemoveSuffixTag {};
 
-    void adjustValue(NoAdjustment)
+    void adjustValue(NoAdjustmentTag)
     {
     }
 
-    void adjustValue(AdjustmentNeeded)
+    void adjustValue(AdjustmentNeededTag)
     {
         std::size_t count = 0;
         for (auto iter = Base::value().begin(); iter != Base::value().end(); ++iter) {
@@ -273,7 +276,36 @@ private:
             ++count;
         }
 
+        doResize(count);
+    }
+
+    void doResize(std::size_t count)
+    {
+        using Tag =
+            typename std::conditional<
+                comms::details::hasResizeFunc<ValueType>(),
+                HasResizeTag,
+                typename std::conditional<
+                    comms::details::hasRemoveSuffixFunc<ValueType>(),
+                    HasRemoveSuffixTag,
+                    void
+                >::type
+            >::type;
+
+        static_assert(!std::is_void<Tag>::value,
+            "The string storage value type must have either resize() or remove_suffix() "
+            "member functions");
+        doResize(count, Tag());
+    }
+
+    void doResize(std::size_t count, HasResizeTag)
+    {
         Base::value().resize(count);
+    }
+
+    void doResize(std::size_t count, HasRemoveSuffixTag)
+    {
+        Base::value().remove_suffix(Base::value().size() - count);
     }
 
 };

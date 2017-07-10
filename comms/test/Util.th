@@ -939,4 +939,9 @@ void UtilTestSuite::test24()
 
     static_assert(!comms::details::hasClearFunc<comms::util::StringView>(),
             "StringView mustn't have clear");
+
+    comms::util::StringView view = "hello";
+    view.remove_suffix(2);
+    static_assert(comms::details::hasRemoveSuffixFunc<comms::util::StringView>(),
+            "StringView must have remove_suffix");
 }

@@ -778,6 +778,7 @@ struct StaticStringStorageBase
 ///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>.
 /// @tparam TSize Maximum length of the string, not including zero termination character.
 /// @tparam Type of the single character.
+/// @headerfile "comms/util/StaticString.h"
 template <std::size_t TSize, typename TChar = char>
 class StaticString :
     public details::StaticStringStorageBase<TChar, TSize + 1>,

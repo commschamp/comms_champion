@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// @brief Contains comms::util::StringView class.
+
 
 #pragma once
 
@@ -69,6 +72,16 @@ public:
     {
     }
 
+    template <std::size_t TN>
+    StringViewBase(const TChar (&str)[TN]) noexcept
+      : str_(str),
+        len_(TN)
+    {
+        if (str_[len_ - 1] == '\0') {
+            --len_;
+        }
+    }
+
     StringViewBase(const TChar* str) noexcept
       : str_(str)
     {
@@ -81,6 +94,18 @@ public:
     ~StringViewBase() = default;
 
     StringViewBase& operator=(const StringViewBase&) = default;
+
+    template <std::size_t TN>
+    StringViewBase& operator=(const TChar (&str)[TN])
+    {
+        str_ = str;
+        len_ = TN;
+        if (str_[len_ - 1] == '\0') {
+            --len_;
+        }
+        return *this;
+    }
+
 
     constexpr Iterator begin() const noexcept
     {
@@ -102,22 +127,22 @@ public:
         return end();
     }
 
-    constexpr ReverseIterator rbegin() const noexcept
+    ReverseIterator rbegin() const noexcept
     {
         return std::reverse_iterator<Iterator>(end());
     }
 
-    constexpr ConstReverseIterator crbegin() const noexcept
+    ConstReverseIterator crbegin() const noexcept
     {
         return rbegin();
     }
 
-    constexpr ReverseIterator rend() const noexcept
+    ReverseIterator rend() const noexcept
     {
         return std::reverse_iterator<Iterator>(begin());
     }
 
-    constexpr ConstReverseIterator crend() const noexcept
+    ConstReverseIterator crend() const noexcept
     {
         return rend();
     }
@@ -127,7 +152,7 @@ public:
         return str_[pos];
     }
 
-    constexpr const_reference at(SizeType pos) const
+    const_reference at(SizeType pos) const
     {
         GASSERT(pos < len_);
         return str_[pos];
@@ -238,6 +263,45 @@ public:
     int compare(SizeType pos1, SizeType count1, const TChar* s, SizeType count2) const
     {
         return compare(pos1, count1, StringViewBase(s, count2));
+    }
+
+
+    SizeType find(const StringViewBase& str, SizeType pos = 0) const
+    {
+        if (size() <= pos) {
+            return npos;
+        }
+
+        GASSERT(pos <= size());
+        auto remCount = size() - pos;
+        if (remCount < str.size()) {
+            return npos;
+        }
+
+        auto maxPos = size() - str.size();
+        for (auto idx = pos; idx <= maxPos; ++idx) {
+            auto* thisStrBeg = &str_[idx];
+            auto* thisStrEnd = thisStrBeg + str.size();
+            if (std::equal(thisStrBeg, thisStrEnd, str.begin())) {
+                return idx;
+            }
+        }
+        return npos;
+    }
+
+    SizeType find(TChar c, SizeType pos = 0) const
+    {
+        return find(StringViewBase(&c, 1), pos);
+    }
+
+    SizeType find(const TChar* str, SizeType pos, SizeType count) const
+    {
+        return find(StringViewBase(str, count), pos);
+    }
+
+    SizeType find(const TChar* str, SizeType pos = 0) const
+    {
+        return find(StringViewBase(str), pos);
     }
 
     SizeType find_first_of(const StringViewBase& other, SizeType pos = 0)
@@ -377,23 +441,401 @@ private:
 
 } // namespace details
 
+/// @brief Describes an object that can refer to a constant contiguous
+///     sequence of char-like objects with the first element of the
+///     sequence at position zero.
+/// @details Similar to <a href="http://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a>
+///     introduced in C++17.
+/// @headerfile "comms/util/StringView.h"
 class StringView : public details::StringViewBase<>
 {
     using Base = details::StringViewBase<>;
 public:
-    using size_type = Base::size_type;
+    /// @brief Type of the character (@b char)
+    using value_type = typename Base::value_type;
 
+    /// @brief Same as @ref value_type
+    using ValueType = value_type;
+
+    /// @brief Pointer to the character (@b char*)
+    using pointer = typename Base::pointer;
+
+    /// @brief Same as @ref pointer
+    using Pointer = pointer;
+
+    /// @brief Pointer to the constant character (<b>const char*</b>)
+    using const_pointer = typename Base::const_pointer;
+
+    /// @brief Same as @ref const_pointer
+    using ConstPointer = const_pointer;
+
+    /// @brief Reference to a character (@b char&)
+    using reference = typename Base::reference;
+
+    /// @brief Same as @ref reference
+    using Reference = reference;
+
+    /// @brief Reference to a const character (<b>const char&</b>)
+    using const_reference = typename Base::const_reference;
+
+    /// @brief Same as @ref const_reference
+    using ConstReference = const_reference;
+
+    /// @brief Equal to @b std::size_t
+    using size_type = typename Base::size_type;
+
+    /// @brief Same as @ref size_type;
+    using SizeType = size_type;
+
+    /// @brief Implementation defined constant RandomAccessIterator and
+    ///     ContiguousIterator whose value_type is @b char.
+    using const_iterator = typename Base::const_iterator;
+
+    /// @brief Same as @ref const_iterator
+    using ConstIterator = const_iterator;
+
+    /// @brief Same as @ref const_iterator
+    using iterator = const_iterator;
+
+    /// @brief Same as @ref iterator
+    using Iterator = iterator;
+
+    /// @brief Same as std::reverse_iterator<const_iterator>
+    using const_reverse_iterator = typename Base::const_reverse_iterator;
+
+    /// @brief Same as @ref const_reverse_iterator
+    using ConstReverseIterator = const_reverse_iterator;
+
+    /// @brief Same as @ref const_reverse_iterator
+    using reverse_iterator = const_reverse_iterator;
+
+    /// @brief Same as @ref reverse_iterator
+    using ReverseIterator = reverse_iterator;
+
+    /// @brief Special value, the meaning is the same as
+    ///     <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/npos">std::string_view::npos</a>.
+    static const auto npos = Base::npos;
+
+    /// @brief Default constructor
+    /// @details See <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/basic_string_view">std::string_view constructor</a>
+    ///     for details.
     StringView() noexcept = default;
+
+    /// @brief Copy constructor
+    /// @details See <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/basic_string_view">std::string_view constructor</a>
+    ///     for details.
     StringView(const StringView&) noexcept = default;
+
+    /// @brief Constructor
+    /// @details See <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/basic_string_view">std::string_view constructor</a>
+    ///     for details.
     StringView(const char* str, SizeType len) noexcept : Base(str, len) {}
+
+    /// @brief Constructor
+    /// @details See <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/basic_string_view">std::string_view constructor</a>
+    ///     for details.
     StringView(const char* str) noexcept : Base(str) {}
 
+    /// @brief Construct out of array of characters with known size
+    /// @details Omits the last '\0' character if such exists
+    template <std::size_t TN>
+    StringView(const char (&str)[TN]) noexcept : Base(str) {}
+
+    /// @brief Destructor
     ~StringView() = default;
+
+    /// @brief Copy assign
     StringView& operator=(const StringView&) = default;
 
-    void remove_suffix(size_type len)
+    /// @brief Assign array of characters with known size
+    /// @details Omits the last '\0' character if such exists
+    template <std::size_t TN>
+    StringView& operator=(const char (&str)[TN])
     {
-        Base::remove_suffix(len);
+        Base::operator=(str);
+        return *this;
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/begin">std::string_view::begin()</a>.
+    constexpr iterator begin() const noexcept
+    {
+        return Base::begin();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/begin">std::string_view::cbegin()</a>.
+    constexpr const_iterator cbegin() const noexcept
+    {
+        return Base::cbegin();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/end">std::string_view::end()</a>.
+    constexpr iterator end() const noexcept
+    {
+        return Base::end();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/end">std::string_view::end()</a>.
+    constexpr const_iterator cend() const noexcept
+    {
+        return Base::cend();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/rbegin">std::string_view::rbegin()</a>.
+    const_reverse_iterator rbegin() const noexcept
+    {
+        return Base::rbegin();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/rbegin">std::string_view::crbegin()</a>.
+    const_reverse_iterator crbegin() const noexcept
+    {
+        return Base::crbegin();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/rend">std::string_view::rend()</a>.
+    reverse_iterator rend() const noexcept
+    {
+        return Base::rend();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/rend">std::string_view::crend()</a>.
+    const_reverse_iterator crend() const noexcept
+    {
+        return Base::crend();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/operator_at">std::string_view::oprator[]()</a>
+    constexpr const_reference operator[](size_type pos) const
+    {
+        return Base::operator[](pos);
+    }
+
+    /// @brief Similar to <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/at">std::string::at()</a>
+    /// @details Checks the range with @ref GASSERT() macro without throwing exception.
+    const_reference at(size_type pos) const
+    {
+        return Base::at(pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/front">std::string_view::front()</a>
+    constexpr const_reference front() const
+    {
+        return Base::front();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/back">std::string_view::back()</a>
+    constexpr const_reference back() const
+    {
+        return Base::back();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/data">std::string_view::data()</a>
+    constexpr const_pointer data() const noexcept
+    {
+        return Base::data();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/size">std::string_view::size()</a>
+    constexpr size_type size() const noexcept
+    {
+        return Base::size();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/size">std::string_view::length()</a>
+    constexpr size_type length() const noexcept
+    {
+        return Base::length();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/empty">std::string_view::empty()</a>
+    constexpr bool empty() const noexcept
+    {
+        return Base::empty();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/remove_prefix">std::string_view::remove_prefix()</a>
+    void remove_prefix(size_type n)
+    {
+        Base::remove_prefix(n);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/remove_suffix">std::string_view::remove_suffix()</a>
+    void remove_suffix(size_type n)
+    {
+        Base::remove_suffix(n);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/swap>std::string_view::swap()</a>.
+    void swap(StringView& other) noexcept
+    {
+        Base::swap(other);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/copy">std::string_view::copy()</a>.
+    size_type copy(char* dest, size_type count, size_type pos = 0) const
+    {
+        return Base::copy(dest, count, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/compare">std::string_view::compare()</a>.
+    int compare(const StringView& other) const
+    {
+        return Base::compare(other);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/compare">std::string_view::compare()</a>.
+    int compare(size_type pos, size_type count, const StringView& other) const
+    {
+        return Base::compare(pos, count, other);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/compare">std::string_view::compare()</a>.
+    int compare(
+        size_type pos1,
+        size_type count1,
+        const StringView& other,
+        size_type pos2,
+        size_type count2) const
+    {
+        return Base::compare(pos1, count1, other, pos2, count2);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/compare">std::string_view::compare()</a>.
+    int compare(const char* s) const
+    {
+        return Base::compare(s);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/compare">std::string_view::compare()</a>.
+    int compare(size_type pos, size_type count, const char* s) const
+    {
+        return Base::compare(pos, count, s);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/compare">std::string_view::compare()</a>.
+    int compare(size_type pos1, size_type count1, const char* s, size_type count2) const
+    {
+        return Base::compare(pos1, count1, s, count2);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find">std::string_view::find()</a>.
+    size_type find(const StringView& str, size_type pos = 0) const
+    {
+        return Base::find(str, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find">std::string_view::find()</a>.
+    size_type find(char c, size_type pos = 0) const
+    {
+        return Base::find(c, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find">std::string_view::find()</a>.
+    size_type find(const char* str, size_type pos, size_type count) const
+    {
+        return Base::find(str, pos, count);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find">std::string_view::find()</a>.
+    size_type find(const char* str, size_type pos = 0) const
+    {
+        return Base::find(str, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_first_of>std::string_view::find_first_of</a>.
+    size_type find_first_of(const StringView& other, size_type pos = 0)
+    {
+        return Base::find_first_of(other, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_first_of>std::string_view::find_first_of</a>.
+    size_type find_first_of(char c, size_type pos = 0)
+    {
+        return Base::find_first_of(c, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_first_of>std::string_view::find_first_of</a>.
+    size_type find_first_of(const char* str, size_type pos, size_type count)
+    {
+        return Base::find_first_of(str, pos, count);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_first_of>std::string_view::find_first_of</a>.
+    size_type find_first_of(const char* str, size_type pos = 0)
+    {
+        return Base::find_first_of(str, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of>std::string_view::find_last_of</a>.
+    size_type find_last_of(const StringView& other, size_type pos = 0)
+    {
+        return Base::find_last_of(other, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of>std::string_view::find_last_of</a>.
+    size_type find_last_of(char c, size_type pos = 0)
+    {
+        return Base::find_last_of(c, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of>std::string_view::find_last_of</a>.
+    size_type find_last_of(const char* str, size_type pos, size_type count)
+    {
+        return Base::find_last_of(str, pos, count);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of>std::string_view::find_last_of</a>.
+    size_type find_last_of(const char* str, size_type pos = 0)
+    {
+        return Base::find_last_of(str, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_first_not_of>std::string_view::find_first_not_of</a>.
+    size_type find_first_not_of(const StringView& other, size_type pos = 0)
+    {
+        return Base::find_first_not_of(other, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_first_not_of>std::string_view::find_first_not_of</a>.
+    size_type find_first_not_of(char c, size_type pos = 0)
+    {
+        return Base::find_first_not_of(c, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_first_not_of>std::string_view::find_first_not_of</a>.
+    size_type find_first_not_of(const char* str, size_type pos, size_type count)
+    {
+        return Base::find_first_not_of(str, pos, count);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_first_not_of>std::string_view::find_first_not_of</a>.
+    size_type find_first_not_of(const char* str, size_type pos = 0)
+    {
+        return Base::find_first_not_of(str, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of>std::string_view::find_last_not_of</a>.
+    size_type find_last_not_of(const StringView& other, size_type pos = 0)
+    {
+        return Base::find_last_not_of(other, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of>std::string_view::find_last_not_of</a>.
+    size_type find_last_not_of(char c, size_type pos = 0)
+    {
+        return Base::find_last_not_of(c, pos);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of>std::string_view::find_last_not_of</a>.
+    size_type find_last_not_of(const char* str, size_type pos, size_type count)
+    {
+        return Base::find_last_not_of(str, pos, count);
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of>std::string_view::find_last_not_of</a>.
+    size_type find_last_not_of(const char* str, size_type pos = 0)
+    {
+        return Base::find_last_not_of(str, pos);
     }
 };
 

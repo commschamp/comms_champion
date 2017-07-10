@@ -257,7 +257,7 @@ public:
 
     int compare(SizeType pos, SizeType count, const TChar* s) const
     {
-        return compare(pos, count, s, std::numeric_limits<SizeType>::max());
+        return compare(pos, count, StringViewBase(s));
     }
 
     int compare(SizeType pos1, SizeType count1, const TChar* s, SizeType count2) const
@@ -336,12 +336,13 @@ public:
         return find_first_of(StringViewBase(str), pos);
     }
 
-    SizeType find_last_of(const StringViewBase& other, SizeType pos = 0)
+    SizeType find_last_of(const StringViewBase& other, SizeType pos = npos)
     {
-        if (empty() || (size() <= pos)) {
+        if (empty()) {
             return npos;
         }
 
+        pos = std::min(pos, size() - 1);
         auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos + 1);
         auto endIter = std::reverse_iterator<const TChar*>(cbegin());
         for (auto iter = begIter; iter != endIter; ++iter) {
@@ -354,7 +355,7 @@ public:
         return npos;
     }
 
-    SizeType find_last_of(TChar c, SizeType pos = 0)
+    SizeType find_last_of(TChar c, SizeType pos = npos)
     {
         return find_last_of(StringViewBase(&c, 1), pos);
     }
@@ -364,7 +365,7 @@ public:
         return find_last_of(StringViewBase(str, count), pos);
     }
 
-    SizeType find_last_of(const TChar* str, SizeType pos = 0)
+    SizeType find_last_of(const TChar* str, SizeType pos = npos)
     {
         return find_last_of(StringViewBase(str), pos);
     }
@@ -401,12 +402,13 @@ public:
         return find_first_not_of(StringViewBase(str), pos);
     }
 
-    SizeType find_last_not_of(const StringViewBase& other, SizeType pos = 0)
+    SizeType find_last_not_of(const StringViewBase& other, SizeType pos = npos)
     {
-        if (empty() || (size() <= pos)) {
+        if (empty()) {
             return npos;
         }
 
+        pos = std::min(pos, size() - 1);
         auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos + 1);
         auto endIter = std::reverse_iterator<const TChar*>(cbegin());
         for (auto iter = begIter; iter != endIter; ++iter) {
@@ -419,7 +421,7 @@ public:
         return npos;
     }
 
-    SizeType find_last_not_of(TChar c, SizeType pos = 0)
+    SizeType find_last_not_of(TChar c, SizeType pos = npos)
     {
         return find_last_not_of(StringViewBase(&c, 1), pos);
     }
@@ -429,7 +431,7 @@ public:
         return find_last_not_of(StringViewBase(str, count), pos);
     }
 
-    SizeType find_last_not_of(const TChar* str, SizeType pos = 0)
+    SizeType find_last_not_of(const TChar* str, SizeType pos = npos)
     {
         return find_last_not_of(StringViewBase(str), pos);
     }
@@ -767,13 +769,13 @@ public:
     }
 
     /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of>std::string_view::find_last_of</a>.
-    size_type find_last_of(const StringView& other, size_type pos = 0)
+    size_type find_last_of(const StringView& other, size_type pos = npos)
     {
         return Base::find_last_of(other, pos);
     }
 
     /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of>std::string_view::find_last_of</a>.
-    size_type find_last_of(char c, size_type pos = 0)
+    size_type find_last_of(char c, size_type pos = npos)
     {
         return Base::find_last_of(c, pos);
     }
@@ -785,7 +787,7 @@ public:
     }
 
     /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_of>std::string_view::find_last_of</a>.
-    size_type find_last_of(const char* str, size_type pos = 0)
+    size_type find_last_of(const char* str, size_type pos = npos)
     {
         return Base::find_last_of(str, pos);
     }
@@ -815,7 +817,7 @@ public:
     }
 
     /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of>std::string_view::find_last_not_of</a>.
-    size_type find_last_not_of(const StringView& other, size_type pos = 0)
+    size_type find_last_not_of(const StringView& other, size_type pos = npos)
     {
         return Base::find_last_not_of(other, pos);
     }
@@ -833,7 +835,7 @@ public:
     }
 
     /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/find_last_not_of>std::string_view::find_last_not_of</a>.
-    size_type find_last_not_of(const char* str, size_type pos = 0)
+    size_type find_last_not_of(const char* str, size_type pos = npos)
     {
         return Base::find_last_not_of(str, pos);
     }

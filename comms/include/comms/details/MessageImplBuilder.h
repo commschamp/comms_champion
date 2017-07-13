@@ -38,7 +38,7 @@ template <typename TBase, std::intmax_t TId>
 class MessageImplStaticNumIdBase : public TBase
 {
 public:
-    static const auto MsgId = static_cast<typename TBase::MsgIdType>(TId);
+    static const typename TBase::MsgIdType MsgId = static_cast<typename TBase::MsgIdType>(TId);
 
     static constexpr typename TBase::MsgIdParamType doGetId()
     {
@@ -46,7 +46,7 @@ public:
     }
 
 protected:
-    ~MessageImplStaticNumIdBase() = default;
+    ~MessageImplStaticNumIdBase() noexcept = default;
 };
 
 template <bool THasStaticMsgId>
@@ -185,13 +185,8 @@ public:
         return util::tupleAccumulate(fields(), 0U, FieldLengthRetriever());
     }
 
-    bool doRefresh() const
-    {
-        return util::tupleAccumulate(fields(), false, FieldRefresher());
-    }
-
 protected:
-    ~MessageImplFieldsBase() = default;
+    ~MessageImplFieldsBase() noexcept = default;
 
     template <std::size_t TIdx, typename TIter>
     comms::ErrorStatus readFieldsUntil(
@@ -340,15 +335,6 @@ private:
         }
     };
 
-    struct FieldRefresher
-    {
-        template <typename TField>
-        bool operator()(bool refreshed, TField& field) const
-        {
-            return field.refreshed() || refreshed;
-        }
-    };
-
     struct FieldLengthRetriever
     {
         template <typename TField>
@@ -388,7 +374,7 @@ class MessageImplFieldsReadImplBase : public TBase
 {
     using Base = TBase;
 protected:
-    ~MessageImplFieldsReadImplBase() = default;
+    ~MessageImplFieldsReadImplBase() noexcept = default;
     virtual comms::ErrorStatus readImpl(
         typename Base::ReadIterator& iter,
         std::size_t size) override
@@ -654,35 +640,14 @@ using MessageImplFieldsLengthBaseT =
         TImplOpt::HasMsgType
     >::template Type<TBase, TImplOpt>;
 
-template <typename TBase, typename TOpt>
+template <typename TBase, typename TActual>
 class MessageImplRefreshBase : public TBase
 {
 protected:
     ~MessageImplRefreshBase() = default;
     virtual bool refreshImpl() override
     {
-        using Tag =
-            typename std::conditional<
-                TOpt::HasMsgType,
-                Downcast,
-                NoDowncast
-            >::type;
-        return refreshInternal(Tag());
-    }
-
-private:
-    struct Downcast {};
-    struct NoDowncast {};
-    bool refreshInternal(Downcast)
-    {
-        using Actual = typename TOpt::MsgType;
-        return static_cast<Actual*>(this)->doRefresh();
-    }
-
-    bool refreshInternal(NoDowncast)
-    {
-        static_assert(TOpt::HasFieldsImpl, "Must use FieldsImpl option");
-        return TBase::doRefresh();
+        return static_cast<TActual*>(this)->doRefresh();
     }
 };
 
@@ -693,7 +658,7 @@ template <>
 struct MessageImplProcessRefreshBase<true>
 {
     template <typename TBase, typename TOpt>
-    using Type = MessageImplRefreshBase<TBase, TOpt>;
+    using Type = MessageImplRefreshBase<TBase, typename TOpt::MsgType>;
 };
 
 template <>
@@ -706,14 +671,14 @@ struct MessageImplProcessRefreshBase<false>
 template <typename TBase, typename TImplOpt>
 using MessageImplRefreshBaseT =
     typename MessageImplProcessRefreshBase<
-        TBase::InterfaceOptions::HasRefresh && TImplOpt::HasDoRefresh
+        TBase::InterfaceOptions::HasRefresh && TImplOpt::HasDoRefresh && TImplOpt::HasMsgType
     >::template Type<TBase, TImplOpt>;
 
 template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
 protected:
-    ~MessageImplDispatchBase() = default;
+    ~MessageImplDispatchBase() noexcept = default;
     virtual void dispatchImpl(typename TBase::Handler& handler) override
     {
         static_assert(std::is_base_of<TBase, TActual>::value,

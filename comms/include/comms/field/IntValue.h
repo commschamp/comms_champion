@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include <type_traits>
 
 #include "comms/ErrorStatus.h"
+#include "comms/field/category.h"
 #include "comms/options.h"
 #include "basic/IntValue.h"
 #include "details/AdaptBasicField.h"
@@ -54,18 +55,21 @@ namespace field
 ///     @li comms::option::NumValueSerOffset
 ///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
 ///     @li comms::option::ContentsValidator or comms::option::ValidNumValueRange.
-///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 ///     @li comms::option::ScalingRatio
 ///     @li comms::option::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
-/// @extends comms::Field
-/// @headerfile comms/field/IntValue.h
 template <typename TFieldBase, typename T, typename... TOptions>
-class IntValue : public details::AdaptBasicFieldT<basic::IntValue<TFieldBase, T>, TOptions...>
+class IntValue : public TFieldBase
 {
-    using Base = details::AdaptBasicFieldT<basic::IntValue<TFieldBase, T>, TOptions...>;
+    using Base = TFieldBase;
+
+    using BasicField = basic::IntValue<TFieldBase, T>;
+    using ThisField = details::AdaptBasicFieldT<BasicField, TOptions...>;
+
+    static_assert(std::is_base_of<comms::field::category::NumericValueField, typename ThisField::Category>::value,
+        "ThisField is expected to be of NumericFieldCategory");
 public:
 
     /// @brief All the options provided to this class bundled into struct.
@@ -76,7 +80,7 @@ public:
 
     /// @brief Type of underlying integral value.
     /// @details Same as template parameter T to this class.
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename ThisField::ValueType;
 
     /// @brief Default constructor
     /// @details Initialises internal value to 0.
@@ -84,7 +88,7 @@ public:
 
     /// @brief Constructor
     explicit IntValue(const ValueType& val)
-      : Base(val)
+      : field_(val)
     {
     }
 
@@ -93,6 +97,67 @@ public:
 
     /// @brief Copy assignment
     IntValue& operator=(const IntValue&) = default;
+
+    /// @brief Get access to integral value storage.
+    const ValueType& value() const
+    {
+        return field_.value();
+    }
+
+    /// @brief Get access to integral value storage.
+    ValueType& value()
+    {
+        return field_.value();
+    }
+
+    /// @brief Get length required to serialise the current field value.
+    /// @return Number of bytes it will take to serialise the field value.
+    constexpr std::size_t length() const
+    {
+        return field_.length();
+    }
+
+    /// @brief Get minimal length that is required to serialise field of this type.
+    /// @return Minimal number of bytes required serialise the field value.
+    static constexpr std::size_t minLength()
+    {
+        return ThisField::minLength();
+    }
+
+    /// @brief Get maximal length that is required to serialise field of this type.
+    /// @return Maximal number of bytes required serialise the field value.
+    static constexpr std::size_t maxLength()
+    {
+        return ThisField::maxLength();
+    }
+
+    /// @brief Check validity of the field value.
+    constexpr bool valid() const
+    {
+        return field_.valid();
+    }
+
+    /// @brief Read field value from input data sequence
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] size Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    ErrorStatus read(TIter& iter, std::size_t size)
+    {
+        return field_.read(iter, size);
+    }
+
+    /// @brief Write current field value to output data sequence
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] size Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    ErrorStatus write(TIter& iter, std::size_t size) const
+    {
+        return field_.write(iter, size);
+    }
 
     /// @brief Scales value according to ratio specified in provided
     ///     comms::option::ScalingRatio option.
@@ -136,49 +201,6 @@ public:
         return setScaledInternal(val, Tag());
     }
 
-#ifdef FOR_DOXYGEN_DOC_ONLY
-    /// @brief Get access to integral value storage.
-    const ValueType& value() const;
-
-    /// @brief Get access to integral value storage.
-    ValueType& value();
-
-    /// @brief Get length required to serialise the current field value.
-    /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const;
-
-    /// @brief Get minimal length that is required to serialise field of this type.
-    /// @return Minimal number of bytes required serialise the field value.
-    static constexpr std::size_t minLength();
-
-    /// @brief Get maximal length that is required to serialise field of this type.
-    /// @return Maximal number of bytes required serialise the field value.
-    static constexpr std::size_t maxLength();
-
-    /// @brief Check validity of the field value.
-    bool valid() const;
-
-    /// @brief Refresh the field's value
-    /// @return @b true if the value has been updated, @b false otherwise
-    bool refresh();
-
-    /// @brief Read field value from input data sequence
-    /// @param[in, out] iter Iterator to read the data.
-    /// @param[in] size Number of bytes available for reading.
-    /// @return Status of read operation.
-    /// @post Iterator is advanced.
-    template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size);
-
-    /// @brief Write current field value to output data sequence
-    /// @param[in, out] iter Iterator to write the data.
-    /// @param[in] size Maximal number of bytes that can be written.
-    /// @return Status of write operation.
-    /// @post Iterator is advanced.
-    template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const;
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
-
 private:
     struct HasScalingRatioTag {};
     struct NoScalingRatioTag {};
@@ -202,7 +224,7 @@ private:
     {
         static_assert(std::is_floating_point<TRet>::value,
             "TRet is expected to be floating point type");
-        return static_cast<TRet>(Base::value()) * (static_cast<TRet>(ParsedOptions::ScalingRatio::num) / static_cast<TRet>(ParsedOptions::ScalingRatio::den));
+        return static_cast<TRet>(value()) * (static_cast<TRet>(ParsedOptions::ScalingRatio::num) / static_cast<TRet>(ParsedOptions::ScalingRatio::den));
     }
 
     template <typename TRet>
@@ -219,13 +241,13 @@ private:
 
         return
             static_cast<TRet>(
-                (static_cast<CastType>(Base::value()) * ParsedOptions::ScalingRatio::num) / ParsedOptions::ScalingRatio::den);
+                (static_cast<CastType>(value()) * ParsedOptions::ScalingRatio::num) / ParsedOptions::ScalingRatio::den);
     }
 
     template <typename TRet>
     TRet scaleAsInternal(NoScalingRatioTag) const
     {
-        return static_cast<TRet>(Base::value());
+        return static_cast<TRet>(value());
     }
 
     template <typename TScaled>
@@ -257,7 +279,7 @@ private:
             epsilon = -epsilon;
         }
 
-        Base::value() =
+        value() =
             static_cast<ValueType>(
                 ((val + epsilon) * static_cast<DecayedType>(ParsedOptions::ScalingRatio::den)) / static_cast<DecayedType>(ParsedOptions::ScalingRatio::num));
     }
@@ -271,7 +293,7 @@ private:
             std::uintmax_t
         >::type;
 
-        Base::value() =
+        value() =
             static_cast<ValueType>(
                 (static_cast<CastType>(val) * ParsedOptions::ScalingRatio::den) / static_cast<CastType>(ParsedOptions::ScalingRatio::num));
     }
@@ -279,9 +301,10 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, NoScalingRatioTag)
     {
-        Base::value() = static_cast<ValueType>(val);
+        value() = static_cast<ValueType>(val);
     }
 
+    ThisField field_;
 };
 
 
@@ -290,10 +313,10 @@ private:
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
 /// @related IntValue
-template <typename... TArgs>
+template <typename TFieldBase, typename T, typename... TOptions>
 bool operator==(
-    const IntValue<TArgs...>& field1,
-    const IntValue<TArgs...>& field2)
+    const IntValue<TFieldBase, T, TOptions...>& field1,
+    const IntValue<TFieldBase, T, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
@@ -303,10 +326,10 @@ bool operator==(
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
 /// @related IntValue
-template <typename... TArgs>
+template <typename TFieldBase, typename T, typename... TOptions>
 bool operator!=(
-    const IntValue<TArgs...>& field1,
-    const IntValue<TArgs...>& field2)
+    const IntValue<TFieldBase, T, TOptions...>& field1,
+    const IntValue<TFieldBase, T, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }

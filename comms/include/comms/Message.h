@@ -70,7 +70,6 @@ namespace comms
 ///         dispatch() documentation for details.
 ///     @li comms::option::NoVirtualDestructor - Force the destructor to be
 ///         non-virtual, even if there are virtual functions in use.
-///     @headerfile comms/Message.h
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
 {
@@ -86,7 +85,7 @@ public:
     ///     any polymorphic behavior, i.e. if there is at least one virtual function.
     ///     It is possible to explicitly suppress @b virtual declaration by
     ///     using comms::option::NoVirtualDestructor option.
-    ~Message() = default;
+    ~Message() noexcept = default ;
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Type used for message ID.

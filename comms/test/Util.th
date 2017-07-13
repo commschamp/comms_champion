@@ -917,6 +917,15 @@ void UtilTestSuite::test24()
     static_assert(!comms::field::basic::details::stringHasAssign<comms::util::StringView>(),
             "StringView doesn't have assign");
 
+    static_assert(comms::field::basic::details::vectorHasAssign<std::vector<std::uint8_t> >(),
+            "std::vector doesn't have assign");
+
+    static_assert(comms::field::basic::details::vectorHasAssign<StaticVec>(),
+            "StaticVector doesn't have assign");
+
+    static_assert(!comms::field::basic::details::vectorHasAssign<comms::util::ArrayView<std::uint8_t> >(),
+            "ArrayView has assign");
+
     static_assert(comms::details::hasReserveFunc<std::string>(),
             "std::string must have reserve");
 

@@ -23,6 +23,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
 #include "comms/util/StaticVector.h"
+#include "comms/util/ArrayView.h"
 #include "basic/ArrayList.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
@@ -37,36 +38,64 @@ namespace field
 namespace details
 {
 
-template <bool THasCustomStorageType, bool THasFixedStorage>
-struct ArrayListStorageType;
+template <bool THasOrigDataViewStorage>
+struct ArrayListOrigDataViewStorageType;
 
-template <bool THasFixedStorage>
-struct ArrayListStorageType<true, THasFixedStorage>
+template <>
+struct ArrayListOrigDataViewStorageType<true>
 {
-    template <typename TElement, typename TOptions>
-    using Type = typename TOptions::CustomStorageType;
+    template <typename TElement>
+    using Type = comms::util::ArrayView<TElement>;
 };
 
 template <>
-struct ArrayListStorageType<false, true>
+struct ArrayListOrigDataViewStorageType<false>
 {
-    template <typename TElement, typename TOptions>
-    using Type = comms::util::StaticVector<TElement, TOptions::FixedSizeStorage>;
-};
-
-template <>
-struct ArrayListStorageType<false, false>
-{
-    template <typename TElement, typename TOptions>
+    template <typename TElement>
     using Type = std::vector<TElement>;
 };
 
-template <typename TElement, typename TOptions>
+template <bool THasFixedSizeStorage>
+struct ArrayListFixedSizeStorageType;
+
+template <>
+struct ArrayListFixedSizeStorageType<true>
+{
+    template <typename TElement, typename TOpt>
+    using Type = comms::util::StaticVector<TElement, TOpt::FixedSizeStorage>;
+};
+
+template <>
+struct ArrayListFixedSizeStorageType<false>
+{
+    template <typename TElement, typename TOpt>
+    using Type =
+        typename ArrayListOrigDataViewStorageType<
+            TOpt::HasOrigDataView && std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))
+        >::template Type<TElement>;
+};
+
+template <bool THasCustomStorage>
+struct ArrayListCustomArrayListStorageType;
+
+template <>
+struct ArrayListCustomArrayListStorageType<true>
+{
+    template <typename TElement, typename TOpt>
+    using Type = typename TOpt::CustomStorageType;
+};
+
+template <>
+struct ArrayListCustomArrayListStorageType<false>
+{
+    template <typename TElement, typename TOpt>
+    using Type =
+        typename ArrayListFixedSizeStorageType<TOpt::HasFixedSizeStorage>::template Type<TElement, TOpt>;
+};
+
+template <typename TElement, typename TOpt>
 using ArrayListStorageTypeT =
-    typename ArrayListStorageType<
-        TOptions::HasCustomStorageType,
-        TOptions::HasFixedSizeStorage
-    >::template Type<TElement, TOptions>;
+    typename ArrayListCustomArrayListStorageType<TOpt::HasCustomStorageType>::template Type<TElement, TOpt>;
 
 template <typename TFieldBase, typename TElement, typename... TOptions>
 using ArrayListBase =
@@ -249,6 +278,10 @@ public:
     ///     used.
     void clearReadElemCount();
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+
+private:
+    static_assert((!ParsedOptions::HasOrigDataView) || (std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))),
+        "Usage of comms::option::OrigDataView option is allowed only for raw binary data (std::uint8_t) types.");
 };
 
 /// @brief Equivalence comparison operator.

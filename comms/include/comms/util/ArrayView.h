@@ -34,8 +34,7 @@ namespace util
 
 /// @brief Describes an object that can refer to a constant contiguous
 ///     sequence of other objects.
-/// @details Similar to <a href="http://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a>
-///     introduced in C++17.
+/// @details Provides "view" on the original data.
 /// @headerfile "comms/util/ArrayView.h"
 template <typename T>
 class ArrayView

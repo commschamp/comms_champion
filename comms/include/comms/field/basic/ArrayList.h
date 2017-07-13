@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 #include "comms/util/access.h"
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
+#include "comms/details/detect.h"
 
 namespace comms
 {
@@ -84,6 +85,36 @@ struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticString<TSize> >
     static const std::size_t Value = TSize - 1;
 };
 
+template <typename T>
+class VectorHasAssign
+{
+protected:
+  typedef char Yes;
+  typedef unsigned No;
+
+  template <typename U, U>
+  struct ReallyHas;
+
+  template <typename C, typename TIt>
+  using Func = void (C::*)(TIt, TIt);
+
+  template <typename C, typename TIt>
+  static Yes test(ReallyHas<Func<C, TIt>, static_cast<Func<C, TIt> >(&C::assign)>*);
+
+  template <typename, typename>
+  static No test(...);
+
+public:
+    static const bool Value = (sizeof(test<T, typename T::const_pointer>(0)) == sizeof(Yes));
+};
+
+
+template <typename T>
+constexpr bool vectorHasAssign()
+{
+    return VectorHasAssign<T>::Value;
+}
+
 
 }  // namespace details
 
@@ -133,6 +164,9 @@ public:
 
     void clear()
     {
+        static_assert(comms::details::hasClearFunc<ValueType>(),
+            "The used storage type for ArrayList must have clear() member function");
+
         value_.clear();
     }
 
@@ -187,37 +221,43 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        value_.clear();
-        auto remLen = len;
-        while (0 < remLen) {
-            auto elem = ElementType();
-            auto es = readElement(elem, iter, remLen);
-            if (es != ErrorStatus::Success) {
-                return es;
-            }
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using IterCategory =
+            typename std::iterator_traits<IterType>::iterator_category;
+        static const bool IsRandomAccessIter =
+            std::is_base_of<std::random_access_iterator_tag, IterCategory>::value;
+        static const bool IsRawData =
+            std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
-            value_.push_back(std::move(elem));
-        }
+        using Tag =
+            typename std::conditional<
+                IsRandomAccessIter && IsRawData,
+                RawDataTag,
+                FieldElemTag
+            >::type;
 
-        return ErrorStatus::Success;
+        return readInternal(iter, len, Tag());
     }
 
     template <typename TIter>
     ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
     {
-        value_.clear();
-        while (0 < count) {
-            auto elem = ElementType();
-            auto es = readElement(elem, iter, len);
-            if (es != ErrorStatus::Success) {
-                return es;
-            }
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using IterCategory =
+            typename std::iterator_traits<IterType>::iterator_category;
+        static const bool IsRandomAccessIter =
+            std::is_base_of<std::random_access_iterator_tag, IterCategory>::value;
+        static const bool IsRawData =
+            std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
-            value_.push_back(std::move(elem));
-            --count;
-        }
+        using Tag =
+            typename std::conditional<
+                IsRandomAccessIter && IsRawData,
+                RawDataTag,
+                FieldElemTag
+            >::type;
 
-        return ErrorStatus::Success;
+        return readInternalN(count, iter, len, Tag());
     }
 
     template <typename TIter>
@@ -275,6 +315,9 @@ private:
     struct IntegralElemTag{};
     struct FixedLengthTag {};
     struct VarLengthTag {};
+    struct RawDataTag {};
+    struct AssignExistsTag {};
+    struct AssignMissingTag {};
 
     using ElemTag = typename std::conditional<
         std::is_integral<ElementType>::value,
@@ -454,6 +497,78 @@ private:
         return elem.length();
     }
 
+    template <typename TIter>
+    ErrorStatus readInternal(TIter& iter, std::size_t len, FieldElemTag)
+    {
+        static_assert(comms::details::hasClearFunc<ValueType>(),
+            "The used storage type for ArrayList must have clear() member function");
+        value_.clear();
+        auto remLen = len;
+        while (0 < remLen) {
+            auto elem = ElementType();
+            auto es = readElement(elem, iter, remLen);
+            if (es != ErrorStatus::Success) {
+                return es;
+            }
+
+            value_.push_back(std::move(elem));
+        }
+
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag)
+    {
+        using Tag =
+            typename std::conditional<
+                details::vectorHasAssign<ValueType>(),
+                AssignExistsTag,
+                AssignMissingTag
+            >::type;
+        doAssign(iter, len, Tag());
+        std::advance(iter, len);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void doAssign(TIter& iter, std::size_t len, AssignExistsTag) {
+        value_.assign(iter, iter + len);
+    }
+
+    template <typename TIter>
+    void doAssign(TIter& iter, std::size_t len, AssignMissingTag) {
+        auto* data = reinterpret_cast<typename ValueType::const_pointer>(&(*iter));
+        value_ = ValueType(data, len);
+    }
+
+    template <typename TIter>
+    ErrorStatus readInternalN(std::size_t count, TIter& iter, std::size_t len, FieldElemTag)
+    {
+        clear();
+        while (0 < count) {
+            auto elem = ElementType();
+            auto es = readElement(elem, iter, len);
+            if (es != ErrorStatus::Success) {
+                return es;
+            }
+
+            value_.push_back(std::move(elem));
+            --count;
+        }
+
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    ErrorStatus readInternalN(std::size_t count, TIter& iter, std::size_t len, RawDataTag)
+    {
+        if (len < count) {
+            return comms::ErrorStatus::NotEnoughData;
+        }
+
+        return readInternal(iter, count, RawDataTag());
+    }
 
     ValueType value_;
 };

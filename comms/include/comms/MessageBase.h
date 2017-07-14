@@ -613,7 +613,7 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
             "Invalid number of names for fields tuple"); \
         return val; \
     } \
-    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(fields(), __VA_ARGS__))
+    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(this->fields(), __VA_ARGS__))
 }  // namespace comms
 
 

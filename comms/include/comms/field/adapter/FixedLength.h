@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -21,9 +21,9 @@
 #include <type_traits>
 #include <limits>
 
-#include "details/AdapterBase.h"
 #include "comms/Assert.h"
 #include "comms/util/SizeToType.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -34,22 +34,22 @@ namespace field
 namespace adapter
 {
 
-template <std::size_t TLen, typename TNext>
-class FixedLength : public details::AdapterBaseT<TNext>
+template <std::size_t TLen, typename TBase>
+class FixedLength : public TBase
 {
-    using Base = details::AdapterBaseT<TNext>;
-    using NextSerialisedType = typename Base::Next::SerialisedType;
+    using Base = TBase;
+    using BaseSerialisedType = typename Base::SerialisedType;
 public:
 
     using ValueType = typename Base::ValueType;
 
-    static_assert(TLen <= sizeof(NextSerialisedType),
+    static_assert(TLen <= sizeof(BaseSerialisedType),
         "The provided length limit is too big");
 
     using SerialisedType = typename std::conditional<
-        (TLen < sizeof(NextSerialisedType)),
-        typename comms::util::SizeToType<TLen, std::is_signed<NextSerialisedType>::value>::Type,
-        NextSerialisedType
+        (TLen < sizeof(BaseSerialisedType)),
+        typename comms::util::SizeToType<TLen, std::is_signed<BaseSerialisedType>::value>::Type,
+        BaseSerialisedType
     >::type;
 
     using Endian = typename Base::Endian;
@@ -92,7 +92,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size)
+    comms::ErrorStatus read(TIter& iter, std::size_t size)
     {
         if (size < length()) {
             return ErrorStatus::NotEnoughData;
@@ -105,7 +105,7 @@ public:
     }
 
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const
+    comms::ErrorStatus write(TIter& iter, std::size_t size) const
     {
         if (size < length()) {
             return ErrorStatus::BufferOverflow;
@@ -137,12 +137,12 @@ private:
 
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
-    static constexpr SerialisedType adjustToSerialised(NextSerialisedType val, JustCastTag)
+    static constexpr SerialisedType adjustToSerialised(BaseSerialisedType val, JustCastTag)
     {
         return static_cast<SerialisedType>(val);
     }
 
-    static SerialisedType adjustToSerialised(NextSerialisedType val, SignExtendTag)
+    static SerialisedType adjustToSerialised(BaseSerialisedType val, SignExtendTag)
     {
         auto valueTmp =
             static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
@@ -150,15 +150,15 @@ private:
         return signExtUnsignedSerialised(valueTmp, HasSignTag());
     }
 
-    static constexpr NextSerialisedType adjustFromSerialised(SerialisedType val, JustCastTag)
+    static constexpr BaseSerialisedType adjustFromSerialised(SerialisedType val, JustCastTag)
     {
-        return static_cast<NextSerialisedType>(val);
+        return static_cast<BaseSerialisedType>(val);
     }
 
-    static NextSerialisedType adjustFromSerialised(SerialisedType val, SignExtendTag)
+    static BaseSerialisedType adjustFromSerialised(SerialisedType val, SignExtendTag)
     {
         auto valueTmp = static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
-        return static_cast<NextSerialisedType>(signExtUnsignedSerialised(valueTmp, HasSignTag()));
+        return static_cast<BaseSerialisedType>(signExtUnsignedSerialised(valueTmp, HasSignTag()));
     }
 
     static constexpr SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val, UnsignedTag)

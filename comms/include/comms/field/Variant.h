@@ -523,6 +523,9 @@ toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
     } \
     COMMS_DO_VARIANT_MEM_ACC_FUNC(asVariant(), __VA_ARGS__)
 
+#define COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(...) \
+    COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
+    COMMS_DO_VARIANT_MEM_ACC_FUNC_NOTEMPLATE(__VA_ARGS__)
 
 }  // namespace field
 

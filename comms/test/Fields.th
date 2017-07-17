@@ -112,6 +112,7 @@ public:
     void test75();
     void test76();
     void test77();
+    void test78();
 
 private:
 
@@ -3299,6 +3300,33 @@ void FieldsTestSuite::test77()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+class Test78_Field : public
+    comms::field::Variant<
+        Test70_FieldBase,
+        std::tuple<
+            Test70_Mem1,
+            Test70_Mem2
+        >
+    >
+{
+public:
+    COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(mem1, mem2);
+};
+
+void FieldsTestSuite::test78()
+{
+    Test78_Field field;
+    auto& mem1_1 = field.initField_mem1();
+    static_cast<void>(mem1_1);
+    auto& mem1_2 = field.accessField_mem1();
+    static_cast<void>(mem1_2);
+
+    auto& mem2_1 = field.initField_mem2();
+    static_cast<void>(mem2_1);
+    auto& mem2_2 = field.accessField_mem2();
+    static_cast<void>(mem2_2);
 }
 
 template <typename TField>

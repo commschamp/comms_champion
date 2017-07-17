@@ -99,13 +99,14 @@ protected:
   using Func = void (C::*)(TIt, TIt);
 
   template <typename C, typename TIt>
-  static Yes test(ReallyHas<Func<C, TIt>, static_cast<Func<C, TIt> >(&C::assign)>*);
+  static Yes test(ReallyHas<Func<C, TIt>, &C::assign>*);
 
   template <typename, typename>
   static No test(...);
 
 public:
-    static const bool Value = (sizeof(test<T, typename T::const_pointer>(0)) == sizeof(Yes));
+    static const bool Value =
+        (sizeof(test<T, typename T::const_pointer>(nullptr)) == sizeof(Yes));
 };
 
 

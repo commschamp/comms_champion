@@ -507,14 +507,14 @@ toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
 /// @related comms::field::Variant
 #define COMMS_VARIANT_MEMBERS_ACCESS(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
-    FUNC_AUTO_REF_RETURN(asVariant, decltype(comms::field::toFieldBase(*this))) { \
+    COMMS_AS_VARIANT_FUNC { \
         auto& var = comms::field::toFieldBase(*this); \
         using Var = typename std::decay<decltype(var)>::type; \
         static_assert(std::tuple_size<typename Var::Members>::value == FieldIdx_numOfValues, \
             "Invalid number of names for variant field"); \
         return var; \
     }\
-    FUNC_AUTO_REF_RETURN_CONST(asVariant, decltype(comms::field::toFieldBase(*this))) { \
+    COMMS_AS_VARIANT_CONST_FUNC { \
         auto& var = comms::field::toFieldBase(*this); \
         using Var = typename std::decay<decltype(var)>::type; \
         static_assert(std::tuple_size<typename Var::Members>::value == FieldIdx_numOfValues, \

@@ -23,17 +23,39 @@
 
 #include "macro_common.h"
 #include "gen_enum.h"
+#include "base_detection.h"
+
+#ifdef COMMS_MUST_DEFINE_BASE
+#define COMMS_AS_VARIANT_FUNC Base& asVariant()
+#define COMMS_AS_VARIANT_CONST_FUNC const Base& asVariant() const
+#define COMMS_VARIANT_INIT_FIELD_FUNC(v_, n_) \
+    typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), typename Base::Members>::type& COMMS_CONCATENATE(initField_, n_)(TArgs&&... args)
+#define COMMS_VARIANT_ACCESS_FIELD_FUNC(v_, n_) \
+    typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), typename Base::Members>::type& COMMS_CONCATENATE(accessField_, n_)()
+#define COMMS_VARIANT_ACCESS_FIELD_CONST_FUNC(v_, n_) \
+    const typename std::tuple_element<COMMS_CONCATENATE(FieldIdx_, n_), typename Base::Members>::type& COMMS_CONCATENATE(accessField_, n_)() const
+
+#else // #ifdef COMMS_MUST_DEFINE_BASE
+#define COMMS_AS_VARIANT_FUNC FUNC_AUTO_REF_RETURN(asVariant, decltype(comms::field::toFieldBase(*this)))
+#define COMMS_AS_VARIANT_CONST_FUNC FUNC_AUTO_REF_RETURN_CONST(asVariant, decltype(comms::field::toFieldBase(*this)))
+#define COMMS_VARIANT_INIT_FIELD_FUNC(v_, n_) \
+    FUNC_ARGS_AUTO_REF_RETURN(COMMS_CONCATENATE(initField_, n_), TArgs&&... args, decltype(v_.template initField<COMMS_CONCATENATE(FieldIdx_, n_)>(std::forward<TArgs>(args)...)))
+#define COMMS_VARIANT_ACCESS_FIELD_FUNC(v_, n_) \
+    FUNC_AUTO_REF_RETURN(COMMS_CONCATENATE(accessField_, n_), decltype(v_.template accessField<COMMS_CONCATENATE(FieldIdx_, n_)>()))
+#define COMMS_VARIANT_ACCESS_FIELD_CONST_FUNC(v_, n_) \
+    FUNC_AUTO_REF_RETURN_CONST(COMMS_CONCATENATE(accessField_, n_), decltype(v_.template accessField<COMMS_CONCATENATE(FieldIdx_, n_)>()))
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
 
 
 #define COMMS_VARIANT_MEM_ACC_FUNC(v_, n_) \
     template <typename... TArgs> \
-    FUNC_ARGS_AUTO_REF_RETURN(COMMS_CONCATENATE(initField_, n_), TArgs&&... args, decltype(v_.template initField<COMMS_CONCATENATE(FieldIdx_, n_)>(std::forward<TArgs>(args)...))) { \
+    COMMS_VARIANT_INIT_FIELD_FUNC(v_, n_) {\
         return v_.template initField<COMMS_CONCATENATE(FieldIdx_, n_)>(std::forward<TArgs>(args)...); \
     } \
-    FUNC_AUTO_REF_RETURN(COMMS_CONCATENATE(accessField_, n_), decltype(v_.template accessField<COMMS_CONCATENATE(FieldIdx_, n_)>())) { \
+    COMMS_VARIANT_ACCESS_FIELD_FUNC(v_, n_) { \
         return v_.template accessField<COMMS_CONCATENATE(FieldIdx_, n_)>(); \
     } \
-    FUNC_AUTO_REF_RETURN_CONST(COMMS_CONCATENATE(accessField_, n_), decltype(v_.template accessField<COMMS_CONCATENATE(FieldIdx_, n_)>())) { \
+    COMMS_VARIANT_ACCESS_FIELD_CONST_FUNC(v_, n_) { \
         return v_.template accessField<COMMS_CONCATENATE(FieldIdx_, n_)>(); \
     }
 
@@ -184,10 +206,6 @@
 #define COMMS_CHOOSE_VARIANT_MEM_ACC_FUNC(N, v_, ...) COMMS_EXPAND(COMMS_CHOOSE_VARIANT_MEM_ACC_FUNC_(N, v_, __VA_ARGS__))
 #define COMMS_DO_VARIANT_MEM_ACC_FUNC(v_, ...) \
     COMMS_EXPAND(COMMS_CHOOSE_VARIANT_MEM_ACC_FUNC(COMMS_NUM_ARGS(__VA_ARGS__), v_, __VA_ARGS__))
-
-
-
-
 
 
 

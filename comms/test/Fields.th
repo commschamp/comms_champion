@@ -2833,7 +2833,7 @@ using Test70_Mem2 =
     >;
 
 template <typename... TExtra>
-struct Test70_Field : public
+class Test70_Field : public
     comms::field::Variant<
         Test70_FieldBase,
         std::tuple<
@@ -2843,6 +2843,16 @@ struct Test70_Field : public
         TExtra...
     >
 {
+    using Base =
+        comms::field::Variant<
+            Test70_FieldBase,
+            std::tuple<
+                Test70_Mem1,
+                Test70_Mem2
+            >,
+            TExtra...
+        >;
+public:
     COMMS_VARIANT_MEMBERS_ACCESS(mem1, mem2);
 };
 

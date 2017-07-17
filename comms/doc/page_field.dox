@@ -841,48 +841,24 @@
 ///         MyBundle // Complex bundle field, defined in previous section 
 ///     >;
 /// @endcode
-/// By default, the internal data is stored using 
-/// <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
-/// @code
-/// MySimpleList simpleList;
-/// auto& simpleListStorage = simpleList.value(); // reference to std::vector<std::uint8_t>;
-///
-/// MyComplexList complexList;
-/// auto& complexListStorage = complexList.value(); // reference to std::vector<MyBundle>;
-/// @endcode
-/// Also, by default the read operation on comms::field::ArrayList continues as
+/// By default the read operation on comms::field::ArrayList continues as
 /// long as there is data left in input buffer, and write operation serialises
 /// all the data stored in internal vector. These default behaviours can be 
-/// changed using options.
+/// changed using options described below.
 ///
-/// @subsection sec_field_tutorial_array_list_static_storage Using Static Storage
-/// The <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> 
-/// as a default value storage type may not be applicable to all embedded systems,
-/// especially bare-metal ones, because it uses dynamic memory allocation and/or
-/// exceptions. It is possible to force the field to use static storage by 
-/// providing comms::option::FixedSizeStorage option with maximum capacity (max
-/// number of elements it may contain). As the result, the internal storage
-/// will be of comms::util::StaticVector type, which exposes very similar 
-/// interface to <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> 
-/// but uses <a href="http://en.cppreference.com/w/cpp/container/array">std::array</a>
-/// to store internal data.
+/// @subsection sec_field_tutorial_array_list_storage Value Storage
+/// Also by default, the internal data is stored using 
+/// <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
 /// @code
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
-/// using MyStaticSimpleList = 
-///     comms::field::ArrayList<
-///         MyFieldBase,
-///         std::uint8_t,
-///         comms::option::FixedSizeStorage<10> // Can store up to 10 elements
-///     >;
+/// MySimpleList simpleList; // defined above
+/// auto& simpleListStorage = simpleList.value(); // reference to std::vector<std::uint8_t>;
 ///
-/// MyStaticSimpleList simpleStaticList;
-/// auto& simpleStaticListStorage = simpleStaticList.value(); // reference to comms::util::StaticVector<std::uint8_t, 10>;
+/// MyComplexList complexList; // defined above
+/// auto& complexListStorage = complexList.value(); // reference to std::vector<MyBundle>;
 /// @endcode
-///
-/// @subsection sec_field_tutorial_array_list_custom_storage Using Custom Storage
-/// If neither default <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> 
-/// nor comms::util::StaticVector types (see @ref sec_field_tutorial_array_list_static_storage)
-/// are not suitable, then it is possible to provide a custom storage type.
+/// This behaviour can be modified using provided options. It is possible to
+/// provide custom storage type using comms::option::CustomStorageType option.
+/// For example:
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::BigEndian>;
 /// using MyCustomStorage = boost::static_vector<std::uint8_t, 128>;
@@ -897,6 +873,64 @@
 /// @endcode
 /// The provide custom storage type is expected to expose the same public interface as
 /// <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
+///
+/// The @b COMMS library also provides @ref comms::util::StaticVector class which
+/// is similar to @b boost::static_vector and can be used with bare-metal platforms
+/// that don't use dynamic memory allocation and/or exceptions. The @b COMMS
+/// library also provides comms::option::FixedSizeStorage option to force usage
+/// of @ref comms::util::StaticVector instead of @b std::vector.
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+/// using MyStaticSimpleList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         std::uint8_t,
+///         comms::option::FixedSizeStorage<10> // Can store up to 10 elements
+///     >;
+///
+/// MyStaticSimpleList simpleStaticList;
+/// auto& simpleStaticListStorage = simpleStaticList.value(); // reference to comms::util::StaticVector<std::uint8_t, 10>;
+/// @endcode
+///
+/// The usage of @b std::vector or @ref comms::util::StaticVector as storage
+/// type may involve copying of the original data to the internal
+/// storage area of these types. However, there are cases when it may be redundant.
+/// For example the message object with its fields is created, processed, and
+/// discarded @b before the data inside the input buffer is deleted. In this case
+/// the copying may be unnecessary. The @b COMMS library provides 
+/// @ref comms::option::OrigDataView option, which works only on raw bytes data
+/// (@b std::uint8_t or @b char) and forces usage of @ref comms::util::ArrayView
+/// as storage type to avoid unnecessary copying of the data.
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+/// using MyViewList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         std::uint8_t,
+///         comms::option::OrigDataView
+///     >;
+///
+/// MyViewList viewList;
+/// auto& viewListStorage = viewList.value(); // reference to comms::util::ArrayView<std::uint8_t>;
+/// @endcode
+/// @b NOTE, that the comms::util::ArrayView requires contiguous storage of 
+/// the data, i.e. the data can NOT be stored in some data types, such as 
+/// "circular buffer".
+///
+/// @b RECOMMENDATION: Please avoid using comms::option::CustomStorageType, 
+/// comms::option::FixedSizeStorage, ot comms::option::OrigDataView option when
+/// defining fields and message for a specific protocol. It should be up to 
+/// the actual application to define its own storage type. Just provide an
+/// ability to provide extra options to the field's definition if needed.
+/// @code
+/// template <typename... TExtraOpts>
+/// using MyList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         std::uint8_t,
+///         TExtraOpts...
+///     >;
+/// @endcode
 ///
 /// @subsection sec_field_tutorial_array_list_size_prefix Prefixing with Size Information
 /// Very often variable size sequences of raw bytes or other fields get
@@ -1095,34 +1129,43 @@
 /// MyString myStr;
 /// auto& myStrStorage = myStr.value(); // Reference to std::string.
 /// @endcode
-/// If comms::option::FixedSizeStorage option is used 
-/// (see @ref sec_field_tutorial_array_list_static_storage), the storage type
-/// becomes comms::util::StaticString.
+/// Just like desribed in @ref sec_field_tutorial_array_list_storage section
+/// above the same options can be used to modify the storage type of the 
+/// comms::field::String field:
+/// @li The @ref comms::option::CustomStorageType option can be used to
+///     specify custom storage type, which is expected to expose the same interface
+///     as @b std::string.
+/// @li The comms::option::FixedSizeStorage option can be used to force usage
+///     of provided @ref comms::util::StaticString, which receives the number
+///     of characters it can contain as a template parameter and doesn't use dynamic memory allocation
+///     and/or exceptions.
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyStaticString = comms::field::String<MyFieldBase, comms::option::FixedSizeStorage<32> >;
+///
+///     MyStaticString myStaticStr;
+///     auto& myStaticStrStorage = myStaticStr.value(); // Reference to comms::util::StaticString<32>.
+///     @endcode
+/// @li The comms::option::OrigDataView option can be used to force usage
+///     of @ref comms::util::StringView as a storage type, which is 
+///     similar to <a href="http://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a>
+///     introduced in C++17.
+///     @code
+///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyViewString = comms::field::String<MyFieldBase, comms::option::OrigDataView>;
+///
+///     MyViewString myViewStr;
+///     auto& myViewStrStorage = myViewStr.value(); // Reference to comms::util::StringView.
+///     @endcode
+///
+/// Just like with @ref sec_field_tutorial_array_list it is @b RECOMMENDED
+/// to allow the application to modify the storage type and not hard-code it
+/// when defining the protocol fields and messages:
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::BigEndian>;
-/// using MyStaticString = comms::field::String<MyFieldBase, comms::option::FixedSizeStorage<32> >;
-///
-/// MyStaticString myStaticStr;
-/// auto& myStaticStrStorage = myStaticStr.value(); // Reference to comms::util::StaticString<32>.
+/// template <typename... TExtraOpts>
+/// using MyString = comms::field::String<MyFieldBase, TExtraOpts...>;
 /// @endcode
-/// Just like with @ref sec_field_tutorial_array_list, if neither default
-/// <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
-/// nor comms::util::StaticString are suitable to store the string value, it is
-/// possible to provide custom storage type:
-/// @code
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
-/// using MyStringStorage = ...;
-/// using MyCustomStorageString = 
-///     comms::field::String<
-///         MyFieldBase, 
-///         comms::option::CustomStorageType<MyStringStorage> 
-///     >;
-///
-/// MyCustomStorageString myCustomStorageStr;
-/// MyStringStorage& myCustomStorageStr = myStaticStr.value();
-/// @endcode
-/// The provide custom storage type is expected to expose the same public interface as
-/// <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>.
 /// 
 /// Prefixing string with single byte of the size information will look like this:
 /// @code

@@ -155,6 +155,8 @@ using ArrayListBase =
 ///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+///     @li comms::option::OrigDataView (valid only if TElement is integral type
+///         of 1 byte size.
 /// @extends comms::Field
 /// @headerfile comms/field/ArrayList.h
 template <typename TFieldBase, typename TElement, typename... TOptions>

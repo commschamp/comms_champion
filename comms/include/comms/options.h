@@ -1070,6 +1070,14 @@ using DefaultVariantIndex = DefaultValueInitialiser<details::DefaultVariantIndex
 /// @headerfile comms/options.h
 struct ChecksumLayerVerifyBeforeRead {};
 
+/// @brief Use "view" on original raw data instead of copying it.
+/// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList,
+///     will force usage of @ref comms::util::StringView and comms::util::ArrayView
+///     respectively as data storage type.
+/// @note The original data must be preserved until destruction of the field
+///     that uses the "view".
+/// @note Incompatible with other options that contol data storage type,
+///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
 struct OrigDataView {};
 
 }  // namespace option

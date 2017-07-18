@@ -81,6 +81,15 @@ class FloatValues : public
         comms::option::MsgType<FloatValues<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_FloatValues>,
+            comms::option::FieldsImpl<FloatValuesFields::All>,
+            comms::option::MsgType<FloatValues<TMsgBase> >
+        >;
 public:
 
     /// @brief Allow access to internal fields.

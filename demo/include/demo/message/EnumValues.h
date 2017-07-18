@@ -152,6 +152,16 @@ class EnumValues : public
         comms::option::MsgType<EnumValues<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_EnumValues>,
+            comms::option::FieldsImpl<EnumValuesFields::All>,
+            comms::option::MsgType<EnumValues<TMsgBase> >
+        >;
+
 public:
 
     /// @brief Allow access to internal fields.

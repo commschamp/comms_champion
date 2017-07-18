@@ -101,6 +101,17 @@ class Optionals : public
         comms::option::HasDoRefresh
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_Optionals>,
+            comms::option::FieldsImpl<OptionalsFields::All>,
+            comms::option::MsgType<Optionals<TMsgBase> >,
+            comms::option::HasDoRefresh
+        >;
+
 public:
     /// @brief Allow access to internal fields.
     /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro

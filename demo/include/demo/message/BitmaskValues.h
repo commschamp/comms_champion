@@ -98,6 +98,15 @@ class BitmaskValues : public
         comms::option::MsgType<BitmaskValues<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
+            comms::option::FieldsImpl<BitmaskValuesFields::All>,
+            comms::option::MsgType<BitmaskValues<TMsgBase> >
+        >;
 public:
 
     /// @brief Allow access to internal fields.

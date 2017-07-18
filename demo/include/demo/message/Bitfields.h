@@ -106,7 +106,7 @@ struct BitfieldsFields
         >
     {
         /// @brief Allow access to internal fields.
-        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS macro
+        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
         ///     related to @b comms::field::Bitfield class from COMMS library
         ///     for details. @n
         ///     The names are:
@@ -115,7 +115,7 @@ struct BitfieldsFields
         ///     @b member3 for @ref field1_int1
         ///     @b member4 for @ref field1_int2
         ///
-        COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3, member4);
+        COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(member1, member2, member3, member4);
     };
 
     /// @brief All the fields bundled in std::tuple.
@@ -140,6 +140,15 @@ class Bitfields : public
         comms::option::MsgType<Bitfields<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_Bitfields>,
+            comms::option::FieldsImpl<BitfieldsFields::All>,
+            comms::option::MsgType<Bitfields<TMsgBase> >
+        >;
 public:
 
     /// @brief Allow access to internal fields.

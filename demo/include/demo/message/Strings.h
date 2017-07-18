@@ -92,6 +92,15 @@ class Strings : public
         comms::option::MsgType<Strings<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_Strings>,
+            comms::option::FieldsImpl<StringsFields::All>,
+            comms::option::MsgType<Strings<TMsgBase> >
+        >;
 public:
 
     /// @brief Allow access to internal fields.

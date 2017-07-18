@@ -246,14 +246,14 @@ protected:
 /// @related comms::field::Bitfield
 #define COMMS_FIELD_MEMBERS_ACCESS(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
-    FUNC_AUTO_REF_RETURN(value, decltype(comms::field::toFieldBase(*this).value())) { \
+    COMMS_FIELD_VALUE_ACCESS_FUNC { \
         auto& val = comms::field::toFieldBase(*this).value(); \
         using AllFieldsTuple = typename std::decay<decltype(val)>::type; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
         return val; \
     } \
-    FUNC_AUTO_REF_RETURN_CONST(value, decltype(comms::field::toFieldBase(*this).value())) { \
+    COMMS_FIELD_VALUE_ACCESS_CONST_FUNC { \
         auto& val = comms::field::toFieldBase(*this).value(); \
         using AllFieldsTuple = typename std::decay<decltype(val)>::type; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
@@ -261,6 +261,11 @@ protected:
         return val; \
     } \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(value(), __VA_ARGS__))
+
+#define COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(...) \
+    COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
+    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC_NOTEMPLATE(__VA_ARGS__))
+
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
 /// @brief Add convenience access enum and functions to the members of

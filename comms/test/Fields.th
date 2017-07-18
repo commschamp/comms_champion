@@ -114,8 +114,6 @@ public:
     void test77();
     void test78();
 
-private:
-
     enum Enum1 {
         Enum1_Value1,
         Enum1_Value2,
@@ -130,6 +128,9 @@ private:
         Value4,
         NumOfValues
     };
+
+
+private:
 
 
     template <typename TField>
@@ -1010,37 +1011,52 @@ void FieldsTestSuite::test26()
     TS_ASSERT_EQUALS(mem2.value(), 0x1);
 }
 
+using Test27_FieldBase = comms::Field<comms::option::BigEndian>;
+
+typedef std::tuple<
+    comms::field::IntValue<
+        Test27_FieldBase,
+        std::uint8_t,
+        comms::option::FixedBitLength<4>
+    >,
+    comms::field::BitmaskValue<
+        Test27_FieldBase,
+        comms::option::FixedLength<1>,
+        comms::option::FixedBitLength<8>
+    >,
+    comms::field::EnumValue<
+        Test27_FieldBase,
+        FieldsTestSuite::Enum1,
+        comms::option::FixedBitLength<4>
+    >
+> Test27_BitfildMembers;
+
+template <typename... TExtraOpts>
+class Test27_Field : public
+    comms::field::Bitfield<
+        Test27_FieldBase,
+        Test27_BitfildMembers,
+        TExtraOpts...
+    >
+{
+    using Base =
+        comms::field::Bitfield<
+            Test27_FieldBase,
+            Test27_BitfildMembers,
+            TExtraOpts...>;
+public:
+    COMMS_FIELD_MEMBERS_ACCESS(mem1, mem2, mem3);
+};
+
 void FieldsTestSuite::test27()
 {
-    typedef std::tuple<
-        comms::field::IntValue<
-            comms::Field<BigEndianOpt>,
-            std::uint8_t,
-            comms::option::FixedBitLength<4>
-        >,
-        comms::field::BitmaskValue<
-            comms::Field<BigEndianOpt>,
-            comms::option::FixedLength<1>,
-            comms::option::FixedBitLength<8>
-        >,
-        comms::field::EnumValue<
-            comms::Field<BigEndianOpt>,
-            Enum1,
-            comms::option::FixedBitLength<4>
-        >
-
-    > BitfildMembers;
-
-    typedef comms::field::Bitfield<
-        comms::Field<BigEndianOpt>,
-        BitfildMembers
-    > Field;
+    using Field = Test27_Field<>;
 
     Field field;
     TS_ASSERT_EQUALS(field.length(), 2U);
-    TS_ASSERT_EQUALS(field.memberBitLength<0>(), 4U);
-    TS_ASSERT_EQUALS(field.memberBitLength<1>(), 8U);
-    TS_ASSERT_EQUALS(field.memberBitLength<2>(), 4U);
+    TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_mem1>(), 4U);
+    TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_mem2>(), 8U);
+    TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_mem3>(), 4U);
 
     static const char Buf[] = {
         (char)0x4f, (char)0xa1, (char)0xaa
@@ -1048,14 +1064,13 @@ void FieldsTestSuite::test27()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     field = readWriteField<Field>(Buf, BufSize);
-    auto& members = field.value();
-    auto& mem1 = std::get<0>(members);
+    auto& mem1 = field.field_mem1();
     TS_ASSERT_EQUALS(mem1.value(), 0x1);
 
-    auto& mem2 = std::get<1>(members);
+    auto& mem2 = field.field_mem2();
     TS_ASSERT_EQUALS(mem2.value(), 0xfa);
 
-    auto& mem3 = std::get<2>(members);
+    auto& mem3 = field.field_mem3();
     TS_ASSERT_EQUALS(mem3.value(), 0x4);
 }
 
@@ -1967,7 +1982,7 @@ class Field_51 : public comms::field::Bitfield<
     >
 {
 public:
-    COMMS_FIELD_MEMBERS_ACCESS(name1, name2)
+    COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(name1, name2)
 };
 
 void FieldsTestSuite::test51()
@@ -2985,7 +3000,7 @@ struct Test71_Field : public
         >
     >
 {
-    COMMS_FIELD_MEMBERS_ACCESS(mask, val);
+    COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(mask, val);
 
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t len)

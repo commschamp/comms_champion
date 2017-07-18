@@ -69,6 +69,13 @@ class Message1 : public
             comms::option::MsgType<Message1<TMessage> >
         >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType1>,
+            comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
+            comms::option::MsgType<Message1<TMessage> >
+        >;
 public:
 
     COMMS_MSG_FIELDS_ACCESS(value1);
@@ -145,6 +152,13 @@ class Message3 : public
         comms::option::MsgType<Message3<TMessage> >
     >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType3>,
+            comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
+            comms::option::MsgType<Message3<TMessage> >
+        >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
 
@@ -193,6 +207,14 @@ class Message4 : public
         comms::option::HasDoRefresh
     >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType4>,
+            comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
+            comms::option::MsgType<Message4<TMessage> >,
+            comms::option::HasDoRefresh
+        >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
@@ -254,6 +276,13 @@ class Message5 : public
             comms::option::MsgType<Message5<TMessage> >
         >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType5>,
+            comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
+            comms::option::MsgType<Message5<TMessage> >
+        >;
 public:
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);

@@ -608,21 +608,21 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 /// @related comms::MessageBase
 #define COMMS_MSG_FIELDS_ACCESS(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
-    FUNC_AUTO_REF_RETURN(fields, decltype(comms::toMessageBase(*this).fields())) { \
+    COMMS_MSG_FIELDS_ACCESS_FUNC { \
         auto& val = comms::toMessageBase(*this).fields(); \
         using AllFieldsTuple = typename std::decay<decltype(val)>::type; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
         return val; \
     } \
-    FUNC_AUTO_REF_RETURN_CONST(fields, decltype(comms::toMessageBase(*this).fields())) { \
+    COMMS_MSG_FIELDS_ACCESS_CONST_FUNC { \
         auto& val = comms::toMessageBase(*this).fields(); \
         using AllFieldsTuple =  typename std::decay<decltype(val)>::type; \
         static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
             "Invalid number of names for fields tuple"); \
         return val; \
     } \
-    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(fields(), __VA_ARGS__))
+    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(AllFields, fields(), __VA_ARGS__))
 }  // namespace comms
 
 

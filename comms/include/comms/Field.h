@@ -260,7 +260,7 @@ protected:
             "Invalid number of names for fields tuple"); \
         return val; \
     } \
-    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(value(), __VA_ARGS__))
+    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(ValueType, value(), __VA_ARGS__))
 
 #define COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \

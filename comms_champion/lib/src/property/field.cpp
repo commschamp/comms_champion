@@ -527,9 +527,9 @@ const QString& ArrayList::prefixName() const
     return m_prefixName;
 }
 
-ArrayList& ArrayList::prefixName(const QString& name)
+ArrayList& ArrayList::prefixName(const QString& nameParam)
 {
-    m_prefixName = name;
+    m_prefixName = nameParam;
     return *this;
 }
 
@@ -700,9 +700,9 @@ bool Variant::isIndexHidden() const
     return m_indexHidden;
 }
 
-Variant& Variant::setIndexHidden(bool hidden)
+Variant& Variant::setIndexHidden(bool hiddenVal)
 {
-    m_indexHidden = hidden;
+    m_indexHidden = hiddenVal;
     return *this;
 }
 

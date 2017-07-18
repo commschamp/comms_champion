@@ -587,7 +587,7 @@ public:
     const QString& prefixName() const;
 
     /// @brief Set name of the size/length prefix displayed separately.
-    ArrayList& prefixName(const QString& name);
+    ArrayList& prefixName(const QString& nameParam);
 
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
@@ -753,7 +753,7 @@ public:
     bool isIndexHidden() const;
 
     /// @brief Set the member index should be hidden when displaying field.
-    Variant& setIndexHidden(bool hidden = true);
+    Variant& setIndexHidden(bool hiddenVal = true);
 
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;

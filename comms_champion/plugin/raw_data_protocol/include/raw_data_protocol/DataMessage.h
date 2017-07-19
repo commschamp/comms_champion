@@ -73,7 +73,7 @@ public:
     DataMessage() = default;
     DataMessage(const DataMessage&) = default;
     DataMessage(DataMessage&& other) = default;
-    virtual ~DataMessage() = default;
+    ~DataMessage() {}
     DataMessage& operator=(const DataMessage&) = default;
     DataMessage& operator=(DataMessage&&) = default;
 };

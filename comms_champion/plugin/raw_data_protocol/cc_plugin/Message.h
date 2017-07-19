@@ -39,7 +39,7 @@ class MessageT :
 {
     typedef comms_champion::MessageBase<raw_data_protocol::MessageT, TOptions...> Base;
 public:
-    virtual ~MessageT() = default;
+    virtual ~MessageT() {}
 
 protected:
 

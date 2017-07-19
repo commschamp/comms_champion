@@ -1937,8 +1937,27 @@ struct Test50_Field : public comms::field::BitmaskValue<
     comms::option::FixedLength<1> >
 {
     COMMS_BITMASK_BITS(first, second, third, fourth, sixth=5, seventh, eighth);
-    COMMS_BITMASK_BITS_ACCESS(first, second, third, fourth, sixth, seventh, eighth);
+    COMMS_BITMASK_BITS_ACCESS_NOTEMPLATE(first, second, third, fourth, sixth, seventh, eighth);
 };
+
+template <typename... TExtraOpts>
+class Test50_Field2 : public
+    comms::field::BitmaskValue<
+        comms::Field<comms::option::BigEndian>,
+        comms::option::FixedLength<1>,
+        TExtraOpts...
+    >
+{
+    using Base =
+        comms::field::BitmaskValue<
+            comms::Field<comms::option::BigEndian>,
+            comms::option::FixedLength<1>,
+            TExtraOpts...
+        >;
+public:
+    COMMS_BITMASK_BITS_SEQ(first, second, third, fourth, fifth, sixth, seventh, eighth);
+};
+
 
 void FieldsTestSuite::test50()
 {
@@ -1963,6 +1982,10 @@ void FieldsTestSuite::test50()
     field.setBitValue_eighth(false);
 
     TS_ASSERT_EQUALS(field.value(), 0x45);
+
+    using Field2 = Test50_Field2<>;
+    Field2 field2;
+    static_cast<void>(field2);
 }
 
 class Field_51 : public comms::field::Bitfield<

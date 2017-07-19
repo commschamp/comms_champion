@@ -456,13 +456,17 @@ toFieldBase(const BitmaskValue<TFieldBase, TOptions...>& field)
 /// @pre Must be used together with @ref COMMS_BITMASK_BITS()
 /// @related comms::field::BitmaskValue
 #define COMMS_BITMASK_BITS_ACCESS(...) \
-    FUNC_AUTO_REF_RETURN(asBitmask, decltype(comms::field::toFieldBase(*this))) { \
+    COMMS_AS_BITMASK_FUNC { \
         return comms::field::toFieldBase(*this); \
     }\
-    FUNC_AUTO_REF_RETURN_CONST(asBitmask, decltype(comms::field::toFieldBase(*this))) { \
+    COMMS_AS_BITMASK_CONST_FUNC { \
         return comms::field::toFieldBase(*this); \
     } \
     COMMS_DO_BIT_ACC_FUNC(asBitmask(), __VA_ARGS__)
+
+#define COMMS_BITMASK_BITS_ACCESS_NOTEMPLATE(...) \
+    COMMS_DO_BIT_ACC_FUNC((*this), __VA_ARGS__)
+
 
 /// @brief Combine usage of @ref COMMS_BITMASK_BITS() and @ref COMMS_BITMASK_BITS_ACCESS().
 /// @details When assigned bit names start at bit 0 and go sequentially without
@@ -503,6 +507,11 @@ toFieldBase(const BitmaskValue<TFieldBase, TOptions...>& field)
 #define COMMS_BITMASK_BITS_SEQ(...) \
     COMMS_BITMASK_BITS(__VA_ARGS__) \
     COMMS_BITMASK_BITS_ACCESS(__VA_ARGS__)
+
+#define COMMS_BITMASK_BITS_SEQ_NOTEMPLATE(...) \
+    COMMS_BITMASK_BITS(__VA_ARGS__) \
+    COMMS_BITMASK_BITS_ACCESS_NOTEMPLATE(__VA_ARGS__)
+
 
 }  // namespace field
 

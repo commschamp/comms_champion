@@ -18,11 +18,18 @@
 
 #pragma once
 
+#if !defined(CC_MOVE_UNIQUE_PTR_ON_RETURN) && defined(__clang__)
+#if (__clang_major__ < 4) && (__clang_minor__ <= 8)
+#define CC_MOVE_UNIQUE_PTR_ON_RETURN
+#endif // #if (__clang_major__ < 4) && (__clang_minor__ <= 8)
+#endif // #if !defined(CC_MOVE_UNIQUE_PTR_ON_RETURN) && defined(__clang__)
+
+
 #if !defined(CC_MOVE_UNIQUE_PTR_ON_RETURN) && !defined(__clang__) && defined(__GNUC__)
 #if __GNUC__ < 5
 #define CC_MOVE_UNIQUE_PTR_ON_RETURN
 #endif // #if __GNUC__ < 5
-#endif // #if !defined(__clang__) && defined(__GNUC__)
+#endif // #if !defined(CC_MOVE_UNIQUE_PTR_ON_RETURN) && !defined(__clang__) && defined(__GNUC__)
 
 #ifdef CC_MOVE_UNIQUE_PTR_ON_RETURN
 #define CC_RET_UNIQUE_PTR(p_) std::move(p_)

@@ -6,6 +6,12 @@ notifications:
 matrix:
   include:
     - os: linux
+      env: _CC=gcc-4.8 _CXX=g++-4.8
+    - os: linux
+      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD=-DCMAKE_BUILD_TYPE=Release
+    - os: linux
+      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel    
+    - os: linux
       env: _CC=gcc-5 _CXX=g++-5
     - os: linux
       env: _CC=gcc-5 _CXX=g++-5 _BUILD=-DCMAKE_BUILD_TYPE=Release
@@ -23,6 +29,12 @@ matrix:
       env: _CC=gcc-6 _CXX=g++-6 _BUILD=-DCMAKE_BUILD_TYPE=Release
     - os: linux
       env: _CC=gcc-6 _CXX=g++-6 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel          
+    - os: linux
+      env: _CC=clang-3.9 _CXX=clang++-3.9 
+    - os: linux
+      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=Release"
+    - os: linux
+      env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel"
     - os: linux
       env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD=-DCMAKE_CXX_STANDARD=14
     - os: linux

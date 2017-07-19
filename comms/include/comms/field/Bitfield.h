@@ -95,6 +95,8 @@ namespace field
 ///     comms::option::FixedBitLength option.
 /// @extends comms::Field
 /// @headerfile comms/field/Bitfield.h
+/// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
+/// @see @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE()
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bitfield : public
         details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>

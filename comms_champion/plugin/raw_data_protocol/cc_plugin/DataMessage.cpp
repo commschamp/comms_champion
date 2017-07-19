@@ -50,7 +50,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 DataMessage::DataMessage() = default;
-DataMessage::~DataMessage() = default;
+DataMessage::~DataMessage() {}
 
 DataMessage& DataMessage::operator=(const DataMessage&) = default;
 DataMessage& DataMessage::operator=(DataMessage&&) = default;

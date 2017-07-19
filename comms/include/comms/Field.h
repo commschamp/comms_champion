@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// @brief Contains definition of @ref comms::Field class.
 
 #pragma once
 
@@ -262,6 +264,16 @@ protected:
     } \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(ValueType, value(), __VA_ARGS__))
 
+/// @brief Similar to @ref COMMS_FIELD_MEMBERS_ACCESS(), but dedicated for
+///     non-template classes.
+/// @details The @ref COMMS_FIELD_MEMBERS_ACCESS() macro is a generic one,
+///     which can be used in any class (template, or non-template). However,
+///     some compilers (such as <b>g++-4.9</b> and below, @b clang-4.0 and below) may fail
+///     to compile it even though it uses valid C++11 constructs. If the
+///     compilation fails and the class it is being used in is @b NOT a
+///     template one, please use @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE()
+///     instead.
+/// @related comms::field::Bitfield
 #define COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC_NOTEMPLATE(__VA_ARGS__))
@@ -367,7 +379,21 @@ protected:
 /// @param[in] ... List of member fields' names.
 /// @related comms::field::Bundle
 #define COMMS_FIELD_MEMBERS_ACCESS(...)
-#endif
+
+/// @brief Similar to @ref COMMS_FIELD_MEMBERS_ACCESS(), but dedicated for
+///     non-template classes.
+/// @details The @ref COMMS_FIELD_MEMBERS_ACCESS() macro is a generic one,
+///     which can be used in any class (template, or non-template). However,
+///     some compilers (such as <b>g++-4.9</b> and below, @b clang-4.0 and below) may fail
+///     to compile it even though it uses valid C++11 constructs. If the
+///     compilation fails and the class it is being used in is @b NOT a
+///     template one, please use @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE()
+///     instead.
+/// @related comms::field::Bundle
+#define COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(...) \
+    COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
+    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC_NOTEMPLATE(__VA_ARGS__))
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 }  // namespace comms
 

@@ -292,10 +292,10 @@ private:
 /// @param[in] field2 Second field.
 /// @return true in case first field is less than second field.
 /// @related ArrayList
-template <typename... TArgs>
+template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator<(
-    const ArrayList<TArgs...>& field1,
-    const ArrayList<TArgs...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field1,
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
 {
     return std::lexicographical_compare(
                 field1.value().begin(), field1.value().end(),
@@ -307,10 +307,10 @@ bool operator<(
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
 /// @related ArrayList
-template <typename... TArgs>
+template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator!=(
-    const ArrayList<TArgs...>& field1,
-    const ArrayList<TArgs...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field1,
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
 {
     return (field1 < field2) || (field2 < field1);
 }
@@ -320,10 +320,10 @@ bool operator!=(
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
 /// @related ArrayList
-template <typename... TArgs>
+template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator==(
-    const ArrayList<TArgs...>& field1,
-    const ArrayList<TArgs...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field1,
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
 {
     return !(field1 != field2);
 }

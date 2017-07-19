@@ -201,10 +201,10 @@ public:
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
 /// @related Bitfield
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator==(
-    const Bitfield<TArgs...>& field1,
-    const Bitfield<TArgs...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
@@ -214,10 +214,10 @@ bool operator==(
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
 /// @related Bitfield
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator!=(
-    const Bitfield<TArgs...>& field1,
-    const Bitfield<TArgs...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }
@@ -227,10 +227,10 @@ bool operator!=(
 /// @param[in] field2 Second field.
 /// @return true in case value of the first field is lower than than the value of the second.
 /// @related Bitfield
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator<(
-    const Bitfield<TArgs...>& field1,
-    const Bitfield<TArgs...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() < field2.value();
 }

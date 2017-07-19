@@ -158,10 +158,10 @@ public:
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
 /// @related EnumValue
-template <typename... TArgs>
+template <typename TFieldBase, typename TEnum, typename... TOptions>
 bool operator==(
-    const EnumValue<TArgs...>& field1,
-    const EnumValue<TArgs...>& field2)
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field1,
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
@@ -171,10 +171,10 @@ bool operator==(
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
 /// @related EnumValue
-template <typename... TArgs>
+template <typename TFieldBase, typename TEnum, typename... TOptions>
 bool operator!=(
-    const EnumValue<TArgs...>& field1,
-    const EnumValue<TArgs...>& field2)
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field1,
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }
@@ -184,10 +184,10 @@ bool operator!=(
 /// @param[in] field2 Second field.
 /// @return true in case value of the first field is lower than than the value of the second.
 /// @related EnumValue
-template <typename... TArgs>
+template <typename TFieldBase, typename TEnum, typename... TOptions>
 bool operator<(
-    const EnumValue<TArgs...>& field1,
-    const EnumValue<TArgs...>& field2)
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field1,
+    const EnumValue<TFieldBase, TEnum, TOptions...>& field2)
 {
     return field1.value() < field2.value();
 }

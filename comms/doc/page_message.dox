@@ -1122,6 +1122,25 @@
 /// msg.field_value2().value() = 32;
 /// sendMessage(msg);
 /// @endcode
+/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
+/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
+/// @ref COMMS_MSG_FIELDS_ACCESS() macro
+/// even though it contains valid C++11 code to help in identification the 
+/// actual base class type. If the compilation failure 
+/// happens try to specify the exact base class type using inner @b Base
+/// type definition. For example:
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public
+///     comms::MessageBase<...>
+/// {
+///     // Duplicate the base class definition
+///     using Base = comms::MessageBase<...>;
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2);
+/// };
+/// @endcode
 ///
 /// @subsection page_message_tutorial_impl_custom_read Custom Read Functionality
 /// Sometimes the default implementation of read functionality implemented by

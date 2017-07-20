@@ -488,7 +488,7 @@
 /// type. It is possible to do by inheriting from appropriate comms::field::BitmaskValue
 /// type and use COMMS_BITMASK_BITS() macro to define names for bits. For example
 /// @code
-/// struct MyBitmask : 
+/// struct MyBitmask : public
 ///     comms::field::BitmaskValue<
 ///         MyFieldBase, 
 ///         comms::option::FixedLength<1>,
@@ -500,7 +500,7 @@
 /// @endcode
 /// is equivalent to defining:
 /// @code
-/// struct MyBitmask : 
+/// struct MyBitmask : public
 ///     comms::field::BitmaskValue<
 ///         MyFieldBase, 
 ///         comms::option::FixedLength<1>,
@@ -534,7 +534,7 @@
 /// macro, which can be used in addition to @ref COMMS_BITMASK_BITS() one to
 /// generate the convenience functions. For example:
 /// @code
-/// struct MyBitmask : 
+/// struct MyBitmask : public
 ///     comms::field::BitmaskValue<
 ///         MyFieldBase, 
 ///         comms::option::FixedLength<1>,
@@ -547,7 +547,7 @@
 /// @endcode
 /// is equivalent to defining:
 /// @code
-/// struct MyBitmask : 
+/// struct MyBitmask : public
 ///     comms::field::BitmaskValue<
 ///         MyFieldBase, 
 ///         comms::option::FixedLength<1>,
@@ -570,7 +570,7 @@
 /// two separate @ref COMMS_BITMASK_BITS() and @ref COMMS_BITMASK_BITS_ACCESS() macros,
 /// can be unified into one @ref COMMS_BITMASK_BITS_SEQ():
 /// @code
-/// struct MyBitmask : 
+/// struct MyBitmask : public
 ///     comms::field::BitmaskValue<
 ///         MyFieldBase, 
 ///         comms::option::FixedLength<1>,
@@ -580,6 +580,51 @@
 ///     COMMS_BITMASK_BITS_SEQ(first, second, third, fourth);
 /// }
 /// @endcode
+/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
+/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
+/// @ref COMMS_BITMASK_BITS_ACCESS() and @ref COMMS_BITMASK_BITS_SEQ() macros
+/// even though they contain valid C++11 code. If the compilation failure 
+/// happens and the bitmask definition class is @b NOT a template one (like
+/// in the example above), then try to substitute the used macros with
+/// @ref COMMS_BITMASK_BITS_ACCESS_NOTEMPLATE() and @ref COMMS_BITMASK_BITS_SEQ_NOTEMPLATE()
+/// respectively. For example:
+/// @code
+/// struct MyBitmask : public
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0xf0, 0> // 4 MSBs are reserved
+///     >
+/// {
+///     COMMS_BITMASK_BITS_SEQ_NOTEMPLATE(first, second, third, fourth);
+/// }
+/// @endcode
+/// However, when the defined bitmask class is a template, then the inner
+/// definition of @b Base type, which specifies the exact type of the base
+/// class, is required. For example:
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyBitmask : public
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0xf0, 0>, // 4 MSBs are reserved
+///         TExtraOptions...
+///     >
+/// {
+///     // Duplicate base class type
+///     using Base = 
+///         comms::field::BitmaskValue<
+///             MyFieldBase, 
+///             comms::option::FixedLength<1>,
+///             comms::option::BitmaskReservedBits<0xf0, 0>, // 4 MSBs are reserved
+///             TExtraOptions...
+///         >;
+/// public:
+///     COMMS_BITMASK_BITS_SEQ(first, second, third, fourth);
+/// }
+/// @endcode
+/// The same goes for COMMS_BITMASK_BITS_ACCESS() macro.
 ///
 /// @section sec_field_tutorial_bitfield Bitfield Fields
 /// Many communication protocols try to pack multiple independent values into
@@ -753,7 +798,44 @@
 /// auto parity = field.field_parity().value();
 /// auto flags = field.flags.value();
 /// @endcode
-///
+/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
+/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
+/// @ref COMMS_FIELD_MEMBERS_ACCESS() macro
+/// even though it contains valid C++11 code. If the compilation failure 
+/// happens and the bitfield definition class is @b NOT a template one (like
+/// in the example above), then try to substitute the used macro with
+/// @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(). For example:
+/// @code
+/// class AccessibleSerialConfigField : public SerialConfigField
+/// {
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(baud, parity, flags);
+/// }
+/// @endcode
+/// However, when the defined bitfield class is a template, then the inner
+/// definition of @b Base type, which specifies the exact type of the base
+/// class, is required. For example:
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyBitfieldField : public 
+///     comms::field::Bitfield<
+///         MyFieldBase, 
+///         std::tuple<SomeField1, SomeField2, SomeField3>,
+///         TExtraOptions...
+///     >
+/// {
+///     // Duplicate the base class type
+///     using Base = 
+///         comms::field::Bitfield<
+///             MyFieldBase, 
+///             std::tuple<SomeField1, SomeField2, SomeField3>,
+///             TExtraOptions...
+///         >;
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+/// }
+/// @endcode
+///     
 /// @section sec_field_tutorial_bundle Bundle Fields
 /// There are cases when multiple independent fields need to be bundled into
 /// a single field and expose the required interface of reading, writing,
@@ -817,6 +899,34 @@
 /// @endcode
 /// It will create similar enum and convenience access functions, just
 /// like described in previous @ref sec_field_tutorial_bitfield section.
+///
+/// <b style="color:red">WARNING:</b> Due to the fact that the same
+/// @ref COMMS_FIELD_MEMBERS_ACCESS() macro is used as with 
+/// the @ref sec_field_tutorial_bitfield, the same warning applies.
+/// If compilation fails on the attempt to compile COMMS_FIELD_MEMBERS_ACCESS(),
+/// use either COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE() alternative or define
+/// inner @b Base type to specify actual type of @ref comms::field::Bundle 
+/// type. For example:
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyBundle : public
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<SomeField1, SomeField2, SomeField3>,
+///         TExtraOptions...
+///     >
+/// {
+///     // Duplicate base type definition
+///     using Base =
+///         comms::field::Bundle<
+///             MyFieldBase,
+///             std::tuple<SomeField1, SomeField2, SomeField3>,
+///             TExtraOptions...
+///         >
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+/// };
+/// @endcode
 ///
 /// @section sec_field_tutorial_array_list Array List Fields
 /// Some communication protocols may define messages that transmit sequence
@@ -1610,6 +1720,49 @@
 /// auto& prop1 = var.accessField_prop1(); // Get access to Property1 interface
 /// auto& value1 = std::get<1>(prop1.value()); // Get access to the "value" field in the bundle
 /// value1.value() = 0xff; // Assign the value
+/// @endcode
+/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
+/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
+/// @ref COMMS_VARIANT_MEMBERS_ACCESS() macro
+/// even though it contains valid C++11 code. If the compilation failure 
+/// happens and the variant definition class is @b NOT a template one (like
+/// in the example above), then try to substitute the used macro with
+/// @ref COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(). For example:
+/// @code
+/// struct MyVariant : public 
+///     comms::field::Variant<
+///         MyFieldBase,
+///         std::tuple<Property1, Property1, Property3>,
+///         comms::option::DefaultVariantIndex<0> // Initialise as Prop1
+///     >
+/// {
+///     COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(prop1, prop2, prop3);
+/// };
+/// @endcode 
+/// However, when the defined bitfield class is a template, then the inner
+/// definition of @b Base type, which specifies the exact type of the base
+/// class, is required. For example:
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyVariant : public 
+///     comms::field::Variant<
+///         MyFieldBase,
+///         std::tuple<Property1, Property1, Property3>,
+///         comms::option::DefaultVariantIndex<0>, // Initialise as Prop1
+///         TExtraOptions...
+///     >
+/// {
+///     // Duplicate base class definition
+///     using Base =
+///         comms::field::Variant<
+///             MyFieldBase,
+///             std::tuple<Property1, Property1, Property3>,
+///             comms::option::DefaultVariantIndex<0>, // Initialise as Prop1
+///             TExtraOptions...
+///         >;
+/// public:
+///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
+/// };
 /// @endcode
 /// 
 /// @section sec_field_tutorial_common_options Common Options for the Fields

@@ -37,7 +37,7 @@ public:
         WrapperPtr&& wrapper,
         QWidget* parentObj = nullptr);
 
-    ~ArrayListRawDataFieldWidget();
+    ~ArrayListRawDataFieldWidget() noexcept;
 
 protected:
     virtual void refreshImpl() override;

@@ -38,7 +38,6 @@ class CC_API BitfieldWrapper : public FieldWrapper
 public:
     typedef std::vector<FieldWrapperPtr> Members;
 
-    using Base::FieldWrapper;
     typedef unsigned long long UnderlyingType;
     typedef std::unique_ptr<BitfieldWrapper> Ptr;
 
@@ -46,7 +45,7 @@ public:
     BitfieldWrapper(const BitfieldWrapper&) = delete;
     BitfieldWrapper& operator=(const BitfieldWrapper&) = delete;
 
-    virtual ~BitfieldWrapper();
+    virtual ~BitfieldWrapper() noexcept;
     
     Members& getMembers();
 
@@ -83,7 +82,7 @@ public:
 
     BitfieldWrapperT(const BitfieldWrapperT&) = default;
     BitfieldWrapperT(BitfieldWrapperT&&) = default;
-    virtual ~BitfieldWrapperT() = default;
+    virtual ~BitfieldWrapperT() noexcept = default;
 
     BitfieldWrapperT& operator=(const BitfieldWrapperT&) = delete;
 

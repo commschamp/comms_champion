@@ -62,7 +62,7 @@ Plugin::Plugin()
             });
 }
 
-Plugin::~Plugin() = default;
+Plugin::~Plugin() noexcept = default;
 
 void Plugin::getCurrentConfigImpl(QVariantMap& config)
 {

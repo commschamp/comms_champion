@@ -181,7 +181,7 @@ public:
     EnumValues(EnumValues&& other) = default;
 
     /// @brief Destructor
-    ~EnumValues() = default;
+    ~EnumValues() noexcept = default;
 
     /// @brief Copy assignment
     EnumValues& operator=(const EnumValues&) = default;

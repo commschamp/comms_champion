@@ -40,7 +40,7 @@ public:
     IntValues();
     IntValues(const IntValues&) = delete;
     IntValues(IntValues&&) = delete;
-    virtual ~IntValues();
+    virtual ~IntValues() noexcept;
 
     IntValues& operator=(const IntValues&);
     IntValues& operator=(IntValues&&);

@@ -756,7 +756,7 @@ private:
         return static_cast<std::size_t>(std::distance(str, strTmp));
     }
 
-    static const auto Ends = static_cast<TChar>('\0');
+    static const TChar Ends = static_cast<TChar>('\0');
     StaticVectorBase<TChar> vec_;
 };
 
@@ -812,7 +812,7 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     /// @brief Same as std::string::npos.
-    static const auto npos = Base::npos;
+    static const decltype(Base::npos) npos = Base::npos;
 
     /// @brief Default constructor
     /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/basic_string">Reference</a>

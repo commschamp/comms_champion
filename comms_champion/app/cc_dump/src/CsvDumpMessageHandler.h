@@ -34,7 +34,7 @@ public:
         std::ostream& out,
         const std::string& sep);
 
-    virtual ~CsvDumpMessageHandler();
+    virtual ~CsvDumpMessageHandler() noexcept;
 
     std::ostream& outStream()
     {

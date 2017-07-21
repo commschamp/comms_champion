@@ -35,12 +35,11 @@ class CC_API EnumValueWrapper : public NumericValueWrapper<long long int>
 {
     using Base = NumericValueWrapper<long long int>;
 public:
-    using Base::NumericValueWrapper;
     using UnderlyingType = Base::UnderlyingType;
     typedef std::unique_ptr<EnumValueWrapper> Ptr;
 
     EnumValueWrapper();
-    virtual ~EnumValueWrapper();
+    virtual ~EnumValueWrapper() noexcept;
 
     Ptr clone();
 
@@ -73,7 +72,7 @@ public:
 
     EnumValueWrapperT(const EnumValueWrapperT&) = default;
     EnumValueWrapperT(EnumValueWrapperT&&) = default;
-    virtual ~EnumValueWrapperT() = default;
+    virtual ~EnumValueWrapperT() noexcept = default;
 
     EnumValueWrapperT& operator=(const EnumValueWrapperT&) = delete;
 

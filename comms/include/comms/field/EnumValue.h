@@ -102,7 +102,7 @@ public:
     EnumValue(const EnumValue&) = default;
 
     /// @brief Destructor
-    ~EnumValue() = default;
+    ~EnumValue() noexcept = default;
 
     /// @brief Copy assignment
     EnumValue& operator=(const EnumValue&) = default;

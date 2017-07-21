@@ -39,7 +39,7 @@ public:
         WrapperPtr&& wrapper,
         QWidget* parentObj = nullptr);
 
-    ~BitfieldFieldWidget();
+    ~BitfieldFieldWidget() noexcept;
 
     void addMemberField(FieldWidget* memberFieldWidget);
 

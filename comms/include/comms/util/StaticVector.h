@@ -64,7 +64,7 @@ public:
     {
     }
 
-    ~StaticVectorBase()
+    ~StaticVectorBase() noexcept
     {
         clear();
     }
@@ -652,7 +652,7 @@ public:
     }
 
     /// @brief Destructor
-    ~StaticVector() = default;
+    ~StaticVector() noexcept = default;
 
     /// @brief Copy assignement
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>

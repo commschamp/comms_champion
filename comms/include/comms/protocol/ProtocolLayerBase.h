@@ -206,7 +206,7 @@ public:
     }
 
     /// @brief Desctructor
-    ~ProtocolLayerBase() = default;
+    ~ProtocolLayerBase() noexcept = default;
 
     /// @brief Copy assignment
     ProtocolLayerBase& operator=(const ProtocolLayerBase&) = default;

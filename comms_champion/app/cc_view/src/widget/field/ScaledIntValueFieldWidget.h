@@ -37,7 +37,7 @@ public:
         WrapperPtr wrapper,
         QWidget* parentObj = nullptr);
 
-    ~ScaledIntValueFieldWidget();
+    ~ScaledIntValueFieldWidget() noexcept;
 
 protected:
     virtual void refreshImpl() override;

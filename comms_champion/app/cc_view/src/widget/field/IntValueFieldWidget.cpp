@@ -42,7 +42,7 @@ IntValueFieldWidget::IntValueFieldWidget(WrapperPtr wrapper, QWidget* parentObj)
 {
 }
 
-IntValueFieldWidget::~IntValueFieldWidget()
+IntValueFieldWidget::~IntValueFieldWidget() noexcept
 {
     m_childWidget.release();
 }

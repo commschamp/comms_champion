@@ -24,7 +24,7 @@ namespace cc_plugin
 {
 
 Message::Message() = default;
-Message::~Message() = default;
+Message::~Message() noexcept = default;
 
 QString Message::idAsStringImpl() const
 {

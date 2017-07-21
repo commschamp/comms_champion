@@ -49,7 +49,7 @@ public:
     ArrayListWrapper(const ArrayListWrapper&) = delete;
     ArrayListWrapper& operator=(const ArrayListWrapper&) = delete;
 
-    virtual ~ArrayListWrapper();
+    virtual ~ArrayListWrapper() noexcept;
 
     void addField();
 
@@ -113,7 +113,7 @@ public:
 
     ArrayListWrapperT(const ArrayListWrapperT&) = default;
     ArrayListWrapperT(ArrayListWrapperT&&) = default;
-    virtual ~ArrayListWrapperT() = default;
+    virtual ~ArrayListWrapperT() noexcept = default;
 
     ArrayListWrapperT& operator=(const ArrayListWrapperT&) = delete;
 

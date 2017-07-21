@@ -35,7 +35,7 @@ public:
         field_wrapper::UnknownValueWrapperPtr&& wrapper,
         QWidget* parentObj = nullptr);
 
-    ~UnknownValueFieldWidget();
+    ~UnknownValueFieldWidget() noexcept;
 
 protected:
     virtual void refreshImpl() override;

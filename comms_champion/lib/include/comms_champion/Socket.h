@@ -53,7 +53,7 @@ public:
     Socket();
 
     /// @brief Destructor
-    virtual ~Socket();
+    virtual ~Socket() noexcept;
 
     /// @brief Start socket's operation
     /// @details Prior to being started, the socket is not allowed to generate

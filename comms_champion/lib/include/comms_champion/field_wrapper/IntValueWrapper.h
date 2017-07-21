@@ -39,10 +39,8 @@ public:
     typedef Base::UnderlyingType UnderlyingType;
     typedef std::unique_ptr<IntValueWrapper> Ptr;
 
-    using Base::NumericValueWrapper;
-
     IntValueWrapper();
-    virtual ~IntValueWrapper();
+    virtual ~IntValueWrapper() noexcept;
 
     UnderlyingType minValue() const;
 
@@ -92,7 +90,7 @@ public:
 
     IntValueWrapperT(const IntValueWrapperT&) = default;
     IntValueWrapperT(IntValueWrapperT&&) = default;
-    virtual ~IntValueWrapperT() = default;
+    virtual ~IntValueWrapperT() noexcept = default;
 
     IntValueWrapperT& operator=(const IntValueWrapperT&) = delete;
 

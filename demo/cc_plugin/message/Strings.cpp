@@ -49,7 +49,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 Strings::Strings() = default;
-Strings::~Strings() = default;
+Strings::~Strings() noexcept = default;
 
 Strings& Strings::operator=(const Strings&) = default;
 Strings& Strings::operator=(Strings&&) = default;

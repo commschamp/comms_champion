@@ -100,7 +100,7 @@ private:
         template <typename TMessage>
         void operator()()
         {
-            static const auto Idx =
+            static const std::size_t Idx =
                     static_cast<std::size_t>(TMessage::ImplOptions::MsgId);
 
             static_assert(Idx < NumOfMessages, "Invalid message id");

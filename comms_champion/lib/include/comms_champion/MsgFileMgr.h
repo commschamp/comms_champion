@@ -50,7 +50,7 @@ public:
     };
 
     MsgFileMgr();
-    ~MsgFileMgr();
+    ~MsgFileMgr() noexcept;
     MsgFileMgr(const MsgFileMgr&);
     MsgFileMgr(MsgFileMgr&&);
 

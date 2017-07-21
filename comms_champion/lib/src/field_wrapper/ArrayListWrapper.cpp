@@ -27,7 +27,7 @@ namespace field_wrapper
 
 ArrayListWrapper::ArrayListWrapper() {}
 
-ArrayListWrapper::~ArrayListWrapper() {}
+ArrayListWrapper::~ArrayListWrapper() noexcept = default;
 
 void ArrayListWrapper::addField()
 {

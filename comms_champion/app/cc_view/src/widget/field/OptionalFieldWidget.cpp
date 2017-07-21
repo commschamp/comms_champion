@@ -49,7 +49,7 @@ OptionalFieldWidget::OptionalFieldWidget(
             this, SLOT(availabilityChanged(int)));
 }
 
-OptionalFieldWidget::~OptionalFieldWidget() = default;
+OptionalFieldWidget::~OptionalFieldWidget() noexcept = default;
 
 void OptionalFieldWidget::setField(FieldWidget* fieldWidget)
 {

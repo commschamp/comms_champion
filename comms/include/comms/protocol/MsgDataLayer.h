@@ -67,7 +67,7 @@ public:
     MsgDataLayer(MsgDataLayer&&) = default;
 
     /// @brief Destructor
-    ~MsgDataLayer() = default;
+    ~MsgDataLayer() noexcept = default;
 
     /// @brief Copy assignment operator
     MsgDataLayer& operator=(const MsgDataLayer&) = default;

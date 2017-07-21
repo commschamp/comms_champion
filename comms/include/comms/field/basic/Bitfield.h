@@ -60,14 +60,14 @@ struct BitfieldMemberLengthRetrieveHelper<TField, false>
 template <typename TField>
 struct BitfieldMemberLengthRetriever
 {
-    static const auto Value =
+    static const std::size_t Value =
         BitfieldMemberLengthRetrieveHelper<TField, TField::ParsedOptions::HasFixedBitLengthLimit>::Value;
 };
 
 template <std::size_t TRem, typename TMembers>
 class BitfieldBitLengthCalcHelper
 {
-    static const auto Idx = std::tuple_size<TMembers>::value - TRem;
+    static const std::size_t Idx = std::tuple_size<TMembers>::value - TRem;
     using FieldType = typename std::tuple_element<Idx, TMembers>::type;
 
 public:
@@ -96,17 +96,17 @@ struct BitfieldPosRetrieveHelper
     using FieldType = typename std::tuple_element<TIdx - 1, TMembers>::type;
     using FieldOptions = typename FieldType::ParsedOptions;
 
-    static const auto PrevFieldSize = FieldOptions::FixedBitLength;
+    static const std::size_t PrevFieldSize = FieldOptions::FixedBitLength;
 
 public:
-    static const auto Value = BitfieldPosRetrieveHelper<TIdx - 1, TMembers>::Value + PrevFieldSize;
+    static const std::size_t Value = BitfieldPosRetrieveHelper<TIdx - 1, TMembers>::Value + PrevFieldSize;
 };
 
 template <typename TMembers>
 struct BitfieldPosRetrieveHelper<0, TMembers>
 {
 public:
-    static const auto Value = 0;
+    static const std::size_t Value = 0;
 };
 
 template <std::size_t TIdx, typename TMembers>

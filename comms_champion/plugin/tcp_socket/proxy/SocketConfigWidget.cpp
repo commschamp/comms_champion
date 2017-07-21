@@ -68,7 +68,7 @@ SocketConfigWidget::SocketConfigWidget(
         this, SLOT(remotePortValueChanged(int)));
 }
 
-SocketConfigWidget::~SocketConfigWidget() = default;
+SocketConfigWidget::~SocketConfigWidget() noexcept = default;
 
 void SocketConfigWidget::localPortValueChanged(int value)
 {

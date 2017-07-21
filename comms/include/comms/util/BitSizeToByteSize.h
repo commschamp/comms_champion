@@ -32,7 +32,7 @@ struct BitSizeToByteSize
 {
     static_assert(0 < TSize, "The number of bits must be greater than 0");
     static_assert(TSize < 64, "The number of bits is too high.");
-    static const auto Value = BitSizeToByteSize<TSize + 1>::Value;
+    static const std::size_t Value = BitSizeToByteSize<TSize + 1>::Value;
 };
 
 template <>

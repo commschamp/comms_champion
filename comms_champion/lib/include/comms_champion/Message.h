@@ -67,7 +67,7 @@ public:
 
     /// @brief Destructor
     /// @details virtual to allow polymorphic destruction
-    virtual ~Message();
+    virtual ~Message() noexcept;
 
     /// @brief Copy assignment
     Message& operator=(const Message&) = default;

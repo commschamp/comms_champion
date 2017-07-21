@@ -52,7 +52,7 @@ LongLongIntValueFieldWidget::LongLongIntValueFieldWidget(
     refresh();
 }
 
-LongLongIntValueFieldWidget::~LongLongIntValueFieldWidget() = default;
+LongLongIntValueFieldWidget::~LongLongIntValueFieldWidget() noexcept = default;
 
 void LongLongIntValueFieldWidget::refreshImpl()
 {

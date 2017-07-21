@@ -45,7 +45,7 @@ class FieldWidget : public QWidget
     typedef QWidget Base;
 public:
     FieldWidget(QWidget* parentObj = nullptr);
-    ~FieldWidget() = default;
+    ~FieldWidget() noexcept = default;
 
 public slots:
     void refresh();

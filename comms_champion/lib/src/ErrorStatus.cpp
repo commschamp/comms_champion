@@ -39,7 +39,7 @@ CC_API ErrorStatus transformErrorStatus(comms::ErrorStatus value)
     using UnderlyingType = std::underlying_type<decltype(value)>::type;
     static const auto castedLimit =
         static_cast<UnderlyingType>(comms::ErrorStatus::NumOfErrorStatuses);
-    static_assert(std::extent<decltype(Map)>::value == castedLimit,
+    static_assert(std::extent<decltype(Map)>::value == static_cast<std::size_t>(castedLimit),
         "comms::ErrorStatus has changed, update to transformation map is required");
 
 

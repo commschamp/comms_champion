@@ -126,7 +126,7 @@ public:
     BitmaskValues(BitmaskValues&& other) = default;
 
     /// @brief Destructor
-    ~BitmaskValues() = default;
+    ~BitmaskValues() noexcept = default;
 
     /// @brief Copy assignment
     BitmaskValues& operator=(const BitmaskValues&) = default;

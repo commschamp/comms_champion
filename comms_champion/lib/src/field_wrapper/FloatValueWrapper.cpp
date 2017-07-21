@@ -27,7 +27,7 @@ namespace field_wrapper
 
 FloatValueWrapper::FloatValueWrapper() {}
 
-FloatValueWrapper::~FloatValueWrapper() {}
+FloatValueWrapper::~FloatValueWrapper() noexcept = default;
 
 FloatValueWrapper::Ptr FloatValueWrapper::clone()
 {

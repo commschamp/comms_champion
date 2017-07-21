@@ -36,7 +36,7 @@ class Plugin : public comms_champion::Plugin
 
 public:
     Plugin();
-    ~Plugin();
+    ~Plugin() noexcept;
 };
 
 }  // namespace cc_plugin

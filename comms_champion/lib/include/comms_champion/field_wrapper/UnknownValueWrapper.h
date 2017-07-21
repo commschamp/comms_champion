@@ -38,7 +38,7 @@ public:
     typedef std::unique_ptr<UnknownValueWrapper> Ptr;
 
     UnknownValueWrapper();
-    virtual ~UnknownValueWrapper();
+    virtual ~UnknownValueWrapper() noexcept;
 
     Ptr clone();
 
@@ -65,7 +65,7 @@ public:
 
     UnknownValueWrapperT(const UnknownValueWrapperT&) = default;
     UnknownValueWrapperT(UnknownValueWrapperT&&) = default;
-    virtual ~UnknownValueWrapperT() = default;
+    virtual ~UnknownValueWrapperT() noexcept = default;
 
     UnknownValueWrapperT& operator=(const UnknownValueWrapperT&) = delete;
 

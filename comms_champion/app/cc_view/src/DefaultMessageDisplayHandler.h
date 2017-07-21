@@ -41,7 +41,7 @@ class DefaultMessageDisplayHandler : public MessageHandler
 public:
     using MsgWidgetPtr = std::unique_ptr<MessageWidget>;
 
-    ~DefaultMessageDisplayHandler();
+    ~DefaultMessageDisplayHandler() noexcept;
 
     MsgWidgetPtr getMsgWidget();
 

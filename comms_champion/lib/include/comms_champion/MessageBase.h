@@ -84,7 +84,7 @@ public:
     MessageBase(MessageBase&&) = default;
 
     /// @brief Destructor
-    ~MessageBase() {}
+    ~MessageBase() noexcept = default;
 
     /// @brief Copy assignment operator
     MessageBase& operator=(const MessageBase& other)

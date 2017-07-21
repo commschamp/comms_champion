@@ -28,7 +28,7 @@ MsgMgr::MsgMgr()
 {
 }
 
-MsgMgr::~MsgMgr() = default;
+MsgMgr::~MsgMgr() noexcept = default;
 
 void MsgMgr::start()
 {

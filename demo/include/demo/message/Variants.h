@@ -211,7 +211,7 @@ public:
     Variants(Variants&& other) = default;
 
     /// @brief Destructor
-    ~Variants() = default;
+    ~Variants() noexcept = default;
 
     /// @brief Copy assignment
     Variants& operator=(const Variants&) = default;

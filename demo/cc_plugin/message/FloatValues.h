@@ -40,7 +40,7 @@ public:
     FloatValues();
     FloatValues(const FloatValues&) = delete;
     FloatValues(FloatValues&&) = delete;
-    virtual ~FloatValues();
+    virtual ~FloatValues() noexcept;
 
     FloatValues& operator=(const FloatValues&);
     FloatValues& operator=(FloatValues&&);

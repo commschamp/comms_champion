@@ -27,7 +27,7 @@ MsgSendMgr::MsgSendMgr()
 {
 }
 
-MsgSendMgr::~MsgSendMgr() = default;
+MsgSendMgr::~MsgSendMgr() noexcept = default;
 
 void MsgSendMgr::setSendMsgsCallbackFunc(SendMsgsCallbackFunc&& func)
 {

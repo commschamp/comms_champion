@@ -37,7 +37,7 @@ public:
         WrapperPtr wrapper,
         QWidget* parentObj = nullptr);
 
-    ~ShortIntValueFieldWidget();
+    ~ShortIntValueFieldWidget() noexcept;
 
 protected:
     virtual void refreshImpl() override;

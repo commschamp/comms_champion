@@ -202,7 +202,11 @@ private:
     {
         using Base = comms::GenericMessage<TMsgBase>;
     public:
-        using Base::Base;
+        using MsgIdParamType = typename Base::MsgIdParamType;
+
+        explicit GenericMsg(MsgIdParamType id) : Base(id) {}
+        GenericMsg(const GenericMsg&) = default;
+
     protected:
         virtual const std::string& getNameImpl() const override
         {

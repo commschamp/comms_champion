@@ -56,7 +56,7 @@ public:
 
     FloatValue(const FloatValue&) = default;
     FloatValue(FloatValue&&) = default;
-    ~FloatValue() = default;
+    ~FloatValue() noexcept = default;
 
     FloatValue& operator=(const FloatValue&) = default;
     FloatValue& operator=(FloatValue&&) = default;

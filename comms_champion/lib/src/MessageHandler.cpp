@@ -20,7 +20,7 @@
 namespace comms_champion
 {
 
-MessageHandler::~MessageHandler() = default;
+MessageHandler::~MessageHandler() noexcept = default;
 
 void MessageHandler::beginMsgHandlingImpl(Message& msg)
 {

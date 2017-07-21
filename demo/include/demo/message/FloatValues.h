@@ -109,7 +109,7 @@ public:
     FloatValues(FloatValues&& other) = default;
 
     /// @brief Destructor
-    ~FloatValues() = default;
+    ~FloatValues() noexcept = default;
 
     /// @brief Copy assignment
     FloatValues& operator=(const FloatValues&) = default;

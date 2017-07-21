@@ -89,7 +89,7 @@ public:
     /// @brief Destructor
     /// @post The functor is called unless it was released with release()
     ///       prior to destruction.
-    ~ScopeGuard()
+    ~ScopeGuard() noexcept
     {
         if (!isReleased()) {
             func_();

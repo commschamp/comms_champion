@@ -38,7 +38,8 @@ template <typename TBase, std::intmax_t TId>
 class MessageImplStaticNumIdBase : public TBase
 {
 public:
-    static const auto MsgId = static_cast<typename TBase::MsgIdType>(TId);
+    static const typename TBase::MsgIdType MsgId =
+            static_cast<typename TBase::MsgIdType>(TId);
 
     static constexpr typename TBase::MsgIdParamType doGetId()
     {
@@ -46,7 +47,7 @@ public:
     }
 
 protected:
-    ~MessageImplStaticNumIdBase(){}
+    ~MessageImplStaticNumIdBase() noexcept = default;
 };
 
 template <bool THasStaticMsgId>
@@ -75,7 +76,7 @@ template <typename TBase, typename TOpt>
 class MessageImplPolymorhpicStaticNumIdBase : public TBase
 {
 protected:
-    ~MessageImplPolymorhpicStaticNumIdBase(){}
+    ~MessageImplPolymorhpicStaticNumIdBase() noexcept = default;
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
         using Tag =
@@ -131,10 +132,10 @@ template <typename TBase>
 class MessageImplNoIdBase : public TBase
 {
 protected:
-    ~MessageImplNoIdBase(){}
+    ~MessageImplNoIdBase() noexcept = default;
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
-        static const auto MsgId = typename TBase::MsgIdType();
+        static const typename TBase::MsgIdType MsgId = typename TBase::MsgIdType();
         GASSERT(!"The message id is not supposed to be retrieved");
         return MsgId;
     }
@@ -212,7 +213,7 @@ public:
     }
 
 protected:
-    ~MessageImplFieldsBase(){}
+    ~MessageImplFieldsBase() noexcept = default;
 
     template <std::size_t TIdx, typename TIter>
     comms::ErrorStatus readFieldsUntil(
@@ -409,7 +410,7 @@ class MessageImplFieldsReadImplBase : public TBase
 {
     using Base = TBase;
 protected:
-    ~MessageImplFieldsReadImplBase(){}
+    ~MessageImplFieldsReadImplBase() noexcept = default;
     virtual comms::ErrorStatus readImpl(
         typename Base::ReadIterator& iter,
         std::size_t size) override
@@ -481,7 +482,7 @@ class MessageImplFieldsWriteImplBase : public TBase
     using Base = TBase;
 
 protected:
-    ~MessageImplFieldsWriteImplBase(){}
+    ~MessageImplFieldsWriteImplBase() noexcept = default;
     virtual comms::ErrorStatus writeImpl(
         typename Base::WriteIterator& iter,
         std::size_t size) const override
@@ -553,7 +554,7 @@ class MessageImplFieldsValidBase : public TBase
     using Base = TBase;
 
 protected:
-    ~MessageImplFieldsValidBase(){}
+    ~MessageImplFieldsValidBase() noexcept = default;
     virtual bool validImpl() const override
     {
         return validImplInternal(Tag());
@@ -617,7 +618,7 @@ class MessageImplFieldsLengthBase : public TBase
     using Base = TBase;
 
 protected:
-    ~MessageImplFieldsLengthBase(){}
+    ~MessageImplFieldsLengthBase() noexcept = default;
     virtual std::size_t lengthImpl() const override
     {
         return lengthImplInternal(Tag());
@@ -679,7 +680,7 @@ template <typename TBase, typename TOpt>
 class MessageImplRefreshBase : public TBase
 {
 protected:
-    ~MessageImplRefreshBase(){}
+    ~MessageImplRefreshBase() noexcept = default;
     virtual bool refreshImpl() override
     {
         using Tag =
@@ -734,7 +735,7 @@ template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
 protected:
-    ~MessageImplDispatchBase(){}
+    ~MessageImplDispatchBase() noexcept = default;
     virtual void dispatchImpl(typename TBase::Handler& handler) override
     {
         static_assert(std::is_base_of<TBase, TActual>::value,

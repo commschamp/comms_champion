@@ -56,7 +56,7 @@ Socket::Socket()
         this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
 }
 
-Socket::~Socket()
+Socket::~Socket() noexcept
 {
     while (!m_sockets.empty()) {
         removeConnection(m_sockets.begin());

@@ -40,7 +40,7 @@ public:
     Optionals();
     Optionals(const Optionals&) = delete;
     Optionals(Optionals&&) = delete;
-    virtual ~Optionals();
+    virtual ~Optionals() noexcept;
 
     Optionals& operator=(const Optionals&);
     Optionals& operator=(Optionals&&);

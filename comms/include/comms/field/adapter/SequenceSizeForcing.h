@@ -79,7 +79,7 @@ public:
     }
 
 private:
-    static const auto Cleared = std::numeric_limits<std::size_t>::max();
+    static const std::size_t Cleared = std::numeric_limits<std::size_t>::max();
     std::size_t forced_ = Cleared;
 };
 

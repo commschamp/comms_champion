@@ -59,7 +59,7 @@ public:
     MsgSizeLayer(MsgSizeLayer&&) = default;
 
     /// @brief Destructor.
-    ~MsgSizeLayer() = default;
+    ~MsgSizeLayer() noexcept = default;
 
     /// @brief Copy assignment.
     MsgSizeLayer& operator=(const MsgSizeLayer&) = default;

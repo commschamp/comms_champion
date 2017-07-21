@@ -168,7 +168,7 @@ public:
     Bitfields(Bitfields&& other) = default;
 
     /// @brief Destructor
-    ~Bitfields() = default;
+    ~Bitfields() noexcept = default;
 
     /// @brief Copy assignment
     Bitfields& operator=(const Bitfields&) = default;

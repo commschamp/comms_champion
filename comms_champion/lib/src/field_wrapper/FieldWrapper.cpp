@@ -28,7 +28,7 @@ namespace field_wrapper
 
 FieldWrapper::FieldWrapper() = default;
 
-FieldWrapper::~FieldWrapper() = default;
+FieldWrapper::~FieldWrapper() noexcept = default;
 
 std::size_t FieldWrapper::length() const
 {

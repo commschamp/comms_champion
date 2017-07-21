@@ -33,7 +33,7 @@ class MessageWidget : public QWidget
     typedef QWidget Base;
 public:
     MessageWidget(QWidget* parentObj = nullptr);
-    ~MessageWidget() = default;
+    ~MessageWidget() noexcept = default;
 
 public slots:
     void refresh();

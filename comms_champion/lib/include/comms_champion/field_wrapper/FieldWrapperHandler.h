@@ -31,7 +31,7 @@ namespace field_wrapper
 class FieldWrapperHandler : public comms::GenericHandler<FieldWrapper, AllWrappers>
 {
 public:
-    virtual ~FieldWrapperHandler() {}
+    virtual ~FieldWrapperHandler() noexcept = default;
 };
 
 }  // namespace field_wrapper

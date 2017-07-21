@@ -60,7 +60,7 @@ SocketPlugin::SocketPlugin()
             });
 }
 
-SocketPlugin::~SocketPlugin() = default;
+SocketPlugin::~SocketPlugin() noexcept = default;
 
 void SocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 {

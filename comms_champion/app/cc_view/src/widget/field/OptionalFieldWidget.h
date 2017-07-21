@@ -39,7 +39,7 @@ public:
         WrapperPtr wrapper,
         QWidget* parentObj = nullptr);
 
-    ~OptionalFieldWidget();
+    ~OptionalFieldWidget() noexcept;
 
     void setField(FieldWidget* fieldWidget);
 

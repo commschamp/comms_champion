@@ -37,7 +37,7 @@ class EchoSocketPlugin : public comms_champion::Plugin
 
 public:
     EchoSocketPlugin();
-    ~EchoSocketPlugin();
+    ~EchoSocketPlugin() noexcept;
 
 private:
     comms_champion::SocketPtr m_socket;

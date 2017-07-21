@@ -70,7 +70,7 @@ Socket::Socket()
         this, SLOT(socketErrorOccurred(QAbstractSocket::SocketError)));
 }
 
-Socket::~Socket()
+Socket::~Socket() noexcept
 {
     m_socket.blockSignals(true);
 }

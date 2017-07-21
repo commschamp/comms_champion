@@ -42,7 +42,7 @@ public:
         MessagesList& msgs,
         ProtocolPtr protocol,
         QWidget* parentObj = nullptr);
-    ~RawHexDataDialog();
+    ~RawHexDataDialog() noexcept;
 
 private slots:
     void valueChanged();

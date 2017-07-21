@@ -27,7 +27,7 @@ namespace field_wrapper
 
 IntValueWrapper::IntValueWrapper() {}
 
-IntValueWrapper::~IntValueWrapper() {}
+IntValueWrapper::~IntValueWrapper() noexcept = default;
 
 IntValueWrapper::UnderlyingType IntValueWrapper::minValue() const
 {

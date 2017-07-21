@@ -76,7 +76,7 @@ private:
     static_assert(TMessage2::ImplOptions::HasStaticMsgId, "Message is expected to provide status numeric ID");
 
 public:
-    ~MsgFactoryBinSearchSortedCheckHelper() = default;
+    ~MsgFactoryBinSearchSortedCheckHelper() noexcept = default;
     static const bool Value = isLess<TMessage1, TMessage2>();
 };
 

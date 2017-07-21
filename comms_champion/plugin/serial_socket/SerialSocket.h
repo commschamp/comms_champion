@@ -53,7 +53,7 @@ public:
     typedef QSerialPort::FlowControl FlowControl;
 
     SerialSocket();
-    ~SerialSocket();
+    ~SerialSocket() noexcept;
 
     QString& name()
     {

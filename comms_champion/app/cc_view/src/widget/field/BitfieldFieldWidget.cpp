@@ -51,7 +51,7 @@ BitfieldFieldWidget::BitfieldFieldWidget(
             this, SLOT(serialisedValueUpdated(const QString&)));
 }
 
-BitfieldFieldWidget::~BitfieldFieldWidget() = default;
+BitfieldFieldWidget::~BitfieldFieldWidget() noexcept = default;
 
 void BitfieldFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
 {

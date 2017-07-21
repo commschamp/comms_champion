@@ -27,7 +27,7 @@ namespace field_wrapper
 
 EnumValueWrapper::EnumValueWrapper() {}
 
-EnumValueWrapper::~EnumValueWrapper() {}
+EnumValueWrapper::~EnumValueWrapper() noexcept = default;
 
 EnumValueWrapper::Ptr EnumValueWrapper::clone()
 {

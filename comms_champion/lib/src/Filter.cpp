@@ -21,7 +21,7 @@ namespace comms_champion
 {
 
 Filter::Filter() = default;
-Filter::~Filter() = default;
+Filter::~Filter() noexcept = default;
 
 bool Filter::start()
 {

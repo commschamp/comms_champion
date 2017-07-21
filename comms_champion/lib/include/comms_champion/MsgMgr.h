@@ -41,7 +41,7 @@ public:
     typedef Message::Type MsgType;
 
     MsgMgr();
-    ~MsgMgr();
+    ~MsgMgr() noexcept;
 
     void start();
     void stop();

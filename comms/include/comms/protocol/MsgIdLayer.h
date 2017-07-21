@@ -111,7 +111,7 @@ public:
     MsgIdLayer& operator=(MsgIdLayer&&) = default;
 
     /// @brief Destructor
-    ~MsgIdLayer() = default;
+    ~MsgIdLayer() noexcept = default;
 
     /// @brief Deserialise message from the input data sequence.
     /// @details The function will read message ID from the data sequence first,

@@ -40,7 +40,7 @@ public:
     Strings();
     Strings(const Strings&) = delete;
     Strings(Strings&&) = delete;
-    virtual ~Strings();
+    virtual ~Strings() noexcept;
 
     Strings& operator=(const Strings&);
     Strings& operator=(Strings&&);

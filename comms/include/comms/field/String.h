@@ -173,7 +173,7 @@ public:
     String(String&&) = default;
 
     /// @brief Destructor
-    ~String() = default;
+    ~String() noexcept = default;
 
     /// @brief Copy assignment
     String& operator=(const String&) = default;

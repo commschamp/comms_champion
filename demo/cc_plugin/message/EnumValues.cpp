@@ -74,7 +74,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 EnumValues::EnumValues() = default;
-EnumValues::~EnumValues() = default;
+EnumValues::~EnumValues() noexcept = default;
 
 EnumValues& EnumValues::operator=(const EnumValues&) = default;
 EnumValues& EnumValues::operator=(EnumValues&&) = default;

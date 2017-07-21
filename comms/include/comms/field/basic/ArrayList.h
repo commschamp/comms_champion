@@ -145,7 +145,7 @@ public:
     ArrayList(ArrayList&&) = default;
     ArrayList& operator=(const ArrayList&) = default;
     ArrayList& operator=(ArrayList&&) = default;
-    ~ArrayList() = default;
+    ~ArrayList() noexcept = default;
 
     const ValueType& value() const
     {

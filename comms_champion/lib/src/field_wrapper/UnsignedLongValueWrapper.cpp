@@ -27,7 +27,7 @@ namespace field_wrapper
 
 UnsignedLongValueWrapper::UnsignedLongValueWrapper() {}
 
-UnsignedLongValueWrapper::~UnsignedLongValueWrapper() {}
+UnsignedLongValueWrapper::~UnsignedLongValueWrapper() noexcept = default;
 
 UnsignedLongValueWrapper::UnderlyingType UnsignedLongValueWrapper::minValue() const
 {

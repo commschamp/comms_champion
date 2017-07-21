@@ -62,7 +62,7 @@ SerialSocketPlugin::SerialSocketPlugin()
             });
 }
 
-SerialSocketPlugin::~SerialSocketPlugin() = default;
+SerialSocketPlugin::~SerialSocketPlugin() noexcept = default;
 
 void SerialSocketPlugin::getCurrentConfigImpl(QVariantMap& config)
 {

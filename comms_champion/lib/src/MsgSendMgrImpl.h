@@ -41,7 +41,7 @@ public:
     typedef MsgSendMgr::SendCompleteCallbackFunc SendCompleteCallbackFunc;
 
     MsgSendMgrImpl();
-    ~MsgSendMgrImpl();
+    ~MsgSendMgrImpl() noexcept;
 
     template <typename TFunc>
     void setSendMsgsCallbackFunc(TFunc&& func)

@@ -43,7 +43,7 @@ public:
     DataMessage();
     DataMessage(const DataMessage&) = delete;
     DataMessage(DataMessage&&) = delete;
-    virtual ~DataMessage();
+    virtual ~DataMessage() noexcept;
 
     DataMessage& operator=(const DataMessage&);
     DataMessage& operator=(DataMessage&&);

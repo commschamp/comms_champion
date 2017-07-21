@@ -50,7 +50,7 @@ public:
     typedef Plugin::WidgetPtr WidgetPtr;
 
     PluginMgrImpl();
-    ~PluginMgrImpl();
+    ~PluginMgrImpl() noexcept;
 
     void setPluginsDir(const QString& pluginDir);
     const ListOfPluginInfos& getAvailablePlugins();

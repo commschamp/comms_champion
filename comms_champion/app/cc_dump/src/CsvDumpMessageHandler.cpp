@@ -151,7 +151,7 @@ CsvDumpMessageHandler::CsvDumpMessageHandler(
 {
 }
 
-CsvDumpMessageHandler::~CsvDumpMessageHandler() = default;
+CsvDumpMessageHandler::~CsvDumpMessageHandler() noexcept = default;
 
 
 void CsvDumpMessageHandler::beginMsgHandlingImpl(cc::Message& msg)

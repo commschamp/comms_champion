@@ -170,7 +170,7 @@ private:
     {
         static const UnsignedSerialisedType SignExtMask =
             ~((static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1);
-        static const auto SignMask =
+        static const UnsignedSerialisedType SignMask =
             static_cast<UnsignedSerialisedType>(1U) << (BitLength - 1);
 
         if ((val & SignMask) != 0) {
@@ -183,7 +183,7 @@ private:
     static const std::size_t BitsInByte = std::numeric_limits<std::uint8_t>::digits;
     static const std::size_t BitLength = Length * BitsInByte;
 
-    static const auto UnsignedValueMask =
+    static const UnsignedSerialisedType UnsignedValueMask =
         static_cast<UnsignedSerialisedType>(
             (static_cast<std::uintmax_t>(1U) << BitLength) - 1);
 

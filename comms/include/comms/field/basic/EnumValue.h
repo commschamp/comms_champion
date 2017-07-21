@@ -66,7 +66,7 @@ public:
 
     EnumValue(const EnumValue&) = default;
     EnumValue(EnumValue&&) = default;
-    ~EnumValue() = default;
+    ~EnumValue() noexcept = default;
 
     EnumValue& operator=(const EnumValue&) = default;
     EnumValue& operator=(EnumValue&&) = default;

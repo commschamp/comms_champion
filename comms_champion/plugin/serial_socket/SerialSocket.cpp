@@ -58,7 +58,7 @@ SerialSocket::SerialSocket()
         this, SLOT(performRead()));
 }
 
-SerialSocket::~SerialSocket() = default;
+SerialSocket::~SerialSocket() noexcept = default;
 
 bool SerialSocket::socketConnectImpl()
 {

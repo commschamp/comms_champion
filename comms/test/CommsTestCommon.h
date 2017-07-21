@@ -42,7 +42,7 @@ class TestMessageBase : public comms::Message<TTraits>
     using Base = comms::Message<TTraits>;
 public:
 
-    virtual ~TestMessageBase() {}
+    virtual ~TestMessageBase() noexcept = default;
 
     const std::string& getName() const
     {
@@ -82,7 +82,7 @@ public:
 
     Message1() = default;
 
-    virtual ~Message1() = default;
+    virtual ~Message1() noexcept = default;
 
 protected:
 
@@ -111,7 +111,7 @@ class Message2 : public
     >
 {
 public:
-    virtual ~Message2() = default;
+    virtual ~Message2() noexcept = default;
 
 protected:
     virtual const std::string& getNameImpl() const
@@ -164,7 +164,7 @@ public:
 
     Message3() = default;
 
-    virtual ~Message3() = default;
+    virtual ~Message3() noexcept = default;
 
 protected:
 
@@ -224,7 +224,7 @@ public:
         optField.setMissing();
     }
 
-    virtual ~Message4() = default;
+    virtual ~Message4() noexcept = default;
 
     bool doRefresh()
     {
@@ -289,7 +289,7 @@ public:
 
     Message5() = default;
 
-    virtual ~Message5() = default;
+    virtual ~Message5() noexcept = default;
 
 protected:
 

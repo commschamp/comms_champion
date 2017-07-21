@@ -114,7 +114,7 @@ public:
     GenericMessage(GenericMessage&&) = default;
 
     /// @brief Destructor
-    ~GenericMessage() = default;
+    ~GenericMessage() noexcept = default;
 
     /// @brief Copy assignment
     GenericMessage& operator=(const GenericMessage&) = default;

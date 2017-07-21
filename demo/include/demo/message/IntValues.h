@@ -146,7 +146,7 @@ public:
     IntValues(IntValues&& other) = default;
 
     /// @brief Destructor
-    ~IntValues() = default;
+    ~IntValues() noexcept = default;
 
     /// @brief Copy assignment
     IntValues& operator=(const IntValues&) = default;

@@ -89,7 +89,7 @@ public:
     typedef Plugin::WidgetPtr WidgetPtr;
 
     PluginMgr();
-    ~PluginMgr();
+    ~PluginMgr() noexcept;
 
     void setPluginsDir(const QString& pluginDir);
     const ListOfPluginInfos& getAvailablePlugins();

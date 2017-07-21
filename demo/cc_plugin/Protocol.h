@@ -36,7 +36,7 @@ class Protocol : public
 {
 public:
     Protocol() = default;
-    virtual ~Protocol();
+    virtual ~Protocol() noexcept;
 
 protected:
     virtual const QString& nameImpl() const override;

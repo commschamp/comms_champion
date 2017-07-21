@@ -131,7 +131,7 @@ public:
     }
 
     /// @brief Destructor
-    ~ArrayView() = default;
+    ~ArrayView() noexcept = default;
 
     /// @brief Copy assign
     ArrayView& operator=(const ArrayView&) = default;

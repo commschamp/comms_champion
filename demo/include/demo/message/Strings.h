@@ -120,7 +120,7 @@ public:
     Strings(Strings&& other) = default;
 
     /// @brief Destructor
-    ~Strings() = default;
+    ~Strings() noexcept = default;
 
     /// @brief Copy assignment
     Strings& operator=(const Strings&) = default;

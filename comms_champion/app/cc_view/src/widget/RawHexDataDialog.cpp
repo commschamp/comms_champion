@@ -55,7 +55,7 @@ RawHexDataDialog::RawHexDataDialog(
         this, SLOT(reset()));
 }
 
-RawHexDataDialog::~RawHexDataDialog() = default;
+RawHexDataDialog::~RawHexDataDialog() noexcept = default;
 
 void RawHexDataDialog::valueChanged()
 {

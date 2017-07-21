@@ -61,7 +61,7 @@ class RawDataMessage : public
     >
 {
 public:
-    virtual ~RawDataMessage() = default;
+    virtual ~RawDataMessage() noexcept = default;
 
 protected:
     virtual const char*

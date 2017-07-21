@@ -59,7 +59,7 @@ public:
 
     Optional(Optional&&) = default;
 
-    ~Optional() = default;
+    ~Optional() noexcept = default;
 
     Optional& operator=(const Optional&) = default;
 

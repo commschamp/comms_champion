@@ -28,7 +28,7 @@ RecordMessageHandler::RecordMessageHandler(const QString& filename)
     m_saveHandler = cc::MsgFileMgr::startRecvSave(filename);
 }
 
-RecordMessageHandler::~RecordMessageHandler() = default;
+RecordMessageHandler::~RecordMessageHandler() noexcept = default;
 
 void RecordMessageHandler::flush()
 {

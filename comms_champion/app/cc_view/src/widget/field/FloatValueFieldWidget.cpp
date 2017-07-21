@@ -59,7 +59,7 @@ FloatValueFieldWidget::FloatValueFieldWidget(
 
 }
 
-FloatValueFieldWidget::~FloatValueFieldWidget() = default;
+FloatValueFieldWidget::~FloatValueFieldWidget() noexcept = default;
 
 void FloatValueFieldWidget::refreshImpl()
 {

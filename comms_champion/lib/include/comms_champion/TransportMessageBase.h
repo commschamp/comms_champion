@@ -63,7 +63,7 @@ class TransportMessageBase : public
 {
 public:
     /// @brief Destructor
-    virtual ~TransportMessageBase() = default;
+    virtual ~TransportMessageBase() noexcept = default;
 
 protected:
     /// @brief Overriding virtual comms_champion::Message::nameImpl()

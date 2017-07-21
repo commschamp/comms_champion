@@ -87,7 +87,7 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
 
         if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
             list (APPEND extra_flags_list
-                "-Wno-pragmas"
+                "-Wno-pragmas" "-Wno-type-limits"
             )
         endif()
 

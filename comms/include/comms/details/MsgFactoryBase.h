@@ -144,7 +144,7 @@ protected:
     {
     public:
         using Message = TMessage;
-        static const auto MsgId = Message::MsgId;
+        static const decltype(Message::MsgId) MsgId = Message::MsgId;
         NumIdFactoryMethod() {}
 
     protected:

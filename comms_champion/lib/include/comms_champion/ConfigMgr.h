@@ -38,7 +38,7 @@ class CC_API ConfigMgr
 public:
 
     ConfigMgr();
-    ~ConfigMgr();
+    ~ConfigMgr() noexcept;
 
     const QString& getLastFile() const;
     static const QString& getFilesFilter();

@@ -64,7 +64,7 @@ public:
     TransportMessage() = default;
     TransportMessage(const TransportMessage&) = default;
     TransportMessage(TransportMessage&&) = default;
-    virtual ~TransportMessage() = default;
+    virtual ~TransportMessage() noexcept = default;
 
     TransportMessage& operator=(const TransportMessage&) = default;
     TransportMessage& operator=(TransportMessage&&) = default;

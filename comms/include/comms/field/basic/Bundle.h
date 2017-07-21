@@ -52,7 +52,7 @@ public:
 
     Bundle(const Bundle&) = default;
     Bundle(Bundle&&) = default;
-    ~Bundle() = default;
+    ~Bundle() noexcept = default;
 
     Bundle& operator=(const Bundle&) = default;
     Bundle& operator=(Bundle&&) = default;

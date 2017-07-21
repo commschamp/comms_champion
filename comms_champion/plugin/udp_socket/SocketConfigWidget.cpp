@@ -75,7 +75,7 @@ SocketConfigWidget::SocketConfigWidget(
 
 }
 
-SocketConfigWidget::~SocketConfigWidget() = default;
+SocketConfigWidget::~SocketConfigWidget() noexcept = default;
 
 void SocketConfigWidget::hostValueChanged(const QString& value)
 {

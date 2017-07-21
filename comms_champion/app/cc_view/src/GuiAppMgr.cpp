@@ -68,7 +68,7 @@ GuiAppMgr& GuiAppMgr::instanceRef()
     return mgr;
 }
 
-GuiAppMgr::~GuiAppMgr() = default;
+GuiAppMgr::~GuiAppMgr() noexcept = default;
 
 bool GuiAppMgr::startClean()
 {

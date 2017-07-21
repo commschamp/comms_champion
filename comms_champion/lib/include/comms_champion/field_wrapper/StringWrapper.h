@@ -43,7 +43,7 @@ public:
     typedef std::unique_ptr<StringWrapper> Ptr;
 
     StringWrapper();
-    virtual ~StringWrapper();
+    virtual ~StringWrapper() noexcept;
 
     QString getValue() const;
 
@@ -79,7 +79,7 @@ public:
 
     StringWrapperT(const StringWrapperT&) = default;
     StringWrapperT(StringWrapperT&&) = default;
-    virtual ~StringWrapperT() = default;
+    virtual ~StringWrapperT() noexcept = default;
 
     StringWrapperT& operator=(const StringWrapperT&) = delete;
 

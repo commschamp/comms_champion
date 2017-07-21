@@ -161,7 +161,7 @@ public:
     }
 
     /// @brief Destructor
-    ~StringView() = default;
+    ~StringView() noexcept = default;
 
     /// @brief Copy assign
     StringView& operator=(const StringView&) = default;

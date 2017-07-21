@@ -27,7 +27,7 @@ namespace field_wrapper
 
 StringWrapper::StringWrapper() = default;
 
-StringWrapper::~StringWrapper() {}
+StringWrapper::~StringWrapper() noexcept = default;
 
 QString StringWrapper::getValue() const
 {

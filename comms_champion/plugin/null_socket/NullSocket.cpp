@@ -23,7 +23,7 @@ namespace comms_champion
 {
 
 NullSocket::NullSocket() = default;
-NullSocket::~NullSocket() = default;
+NullSocket::~NullSocket() noexcept = default;
 
 
 void NullSocket::sendDataImpl(DataInfoPtr dataPtr)

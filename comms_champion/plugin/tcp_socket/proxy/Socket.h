@@ -51,7 +51,7 @@ public:
     typedef unsigned short PortType;
 
     Socket();
-    ~Socket();
+    ~Socket() noexcept;
 
     void setPort(PortType value)
     {

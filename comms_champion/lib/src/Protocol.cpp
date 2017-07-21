@@ -30,7 +30,7 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-Protocol::~Protocol() = default;
+Protocol::~Protocol() noexcept = default;
 
 const QString& Protocol::name() const
 {

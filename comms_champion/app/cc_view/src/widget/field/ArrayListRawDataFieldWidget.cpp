@@ -44,7 +44,7 @@ ArrayListRawDataFieldWidget::ArrayListRawDataFieldWidget(
     refresh();
 }
 
-ArrayListRawDataFieldWidget::~ArrayListRawDataFieldWidget() = default;
+ArrayListRawDataFieldWidget::~ArrayListRawDataFieldWidget() noexcept = default;
 
 void ArrayListRawDataFieldWidget::refreshImpl()
 {

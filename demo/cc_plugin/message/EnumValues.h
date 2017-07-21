@@ -40,7 +40,7 @@ public:
     EnumValues();
     EnumValues(const EnumValues&) = delete;
     EnumValues(EnumValues&&) = delete;
-    virtual ~EnumValues();
+    virtual ~EnumValues() noexcept;
 
     EnumValues& operator=(const EnumValues&);
     EnumValues& operator=(EnumValues&&);

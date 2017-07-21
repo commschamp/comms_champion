@@ -31,7 +31,7 @@ EchoSocket::EchoSocket()
         Qt::QueuedConnection);
 }
 
-EchoSocket::~EchoSocket() = default;
+EchoSocket::~EchoSocket() noexcept = default;
 
 void EchoSocket::sendDataImpl(DataInfoPtr dataPtr)
 {

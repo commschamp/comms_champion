@@ -40,7 +40,7 @@ public:
     Lists();
     Lists(const Lists&) = delete;
     Lists(Lists&&) = delete;
-    virtual ~Lists();
+    virtual ~Lists() noexcept;
 
     Lists& operator=(const Lists&);
     Lists& operator=(Lists&&);

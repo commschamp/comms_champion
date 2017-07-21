@@ -109,7 +109,7 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
         this, SLOT(aboutInfo()));
 }
 
-MainWindowWidget::~MainWindowWidget()
+MainWindowWidget::~MainWindowWidget() noexcept
 {
     clearCustomToolbarActions();
 }

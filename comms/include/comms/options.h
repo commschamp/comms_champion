@@ -954,7 +954,7 @@ private:
     static constexpr bool aboveMin(const TValue& value, CompareTag)
     {
         using ValueType = typename std::decay<decltype(value)>::type;
-        return (static_cast<ValueType>(MinValue) <= value);
+        return (static_cast<ValueType>(MinValue) <= static_cast<ValueType>(value));
     }
 
     template <typename TValue>

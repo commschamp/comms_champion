@@ -204,7 +204,7 @@ public:
     ArrayList(ArrayList&&) = default;
 
     /// @brief Destructor
-    ~ArrayList() = default;
+    ~ArrayList() noexcept = default;
 
     /// @brief Copy assignment
     ArrayList& operator=(const ArrayList&) = default;

@@ -41,7 +41,7 @@ public:
     explicit BundleFieldWidget(
         QWidget* parentObj = nullptr);
 
-    ~BundleFieldWidget();
+    ~BundleFieldWidget() noexcept;
 
     void addMemberField(FieldWidget* memberFieldWidget);
 

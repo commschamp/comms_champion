@@ -60,7 +60,7 @@ class ExtraInfoMessage : public
     >
 {
 public:
-    virtual ~ExtraInfoMessage() = default;
+    virtual ~ExtraInfoMessage() noexcept = default;
 
 protected:
     virtual const char*

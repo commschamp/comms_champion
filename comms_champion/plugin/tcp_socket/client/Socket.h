@@ -50,7 +50,7 @@ public:
     typedef unsigned short PortType;
 
     Socket();
-    ~Socket();
+    ~Socket() noexcept;
 
     void setHost(const QString& value)
     {

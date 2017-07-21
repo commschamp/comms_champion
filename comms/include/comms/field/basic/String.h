@@ -140,7 +140,7 @@ public:
     String(String&&) = default;
     String& operator=(const String&) = default;
     String& operator=(String&&) = default;
-    ~String() = default;
+    ~String() noexcept = default;
 
     const ValueType& value() const
     {

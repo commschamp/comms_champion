@@ -149,7 +149,7 @@ public:
     Lists(Lists&& other) = default;
 
     /// @brief Destructor
-    ~Lists() = default;
+    ~Lists() noexcept = default;
 
     /// @brief Copy assignment
     Lists& operator=(const Lists&) = default;

@@ -6,11 +6,11 @@ notifications:
 matrix:
   include:
     - os: linux
-      env: _CC=gcc-4.8 _CXX=g++-4.8
+      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD="-DCC_COMMS_LIB_ONLY=ON"
     - os: linux
-      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD=-DCMAKE_BUILD_TYPE=Release
+      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD="-DCC_COMMS_LIB_ONLY=ON -DCMAKE_BUILD_TYPE=Release"
     - os: linux
-      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel 
+      env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD="-DCC_COMMS_LIB_ONLY=ON -DCMAKE_BUILD_TYPE=MinSizeRel"
     - os: linux
       env: _CC=gcc-5 _CXX=g++-5
     - os: linux

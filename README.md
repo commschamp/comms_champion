@@ -122,6 +122,8 @@ Full [doxygen](www.doxygen.org) generated documentation with the full tutorial i
 downloaded as **doc_comms.zip** archive from 
 [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
+For quick usage examples please refer to [EXAMPLES.md](EXAMPLES.md).
+
 # CommsChampion Tools
 **CommsChampion** is a name for set of tool applications, which can be used to 
 develop, monitor and debug custom binary communication protocols, that where

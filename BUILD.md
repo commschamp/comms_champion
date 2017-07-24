@@ -133,10 +133,3 @@ and [Dia](https://wiki.gnome.org/Apps/Dia)
 being installed on your system in order to be able to properly generate the 
 documentation.
 
-# Working Builds
-The build hast been tested with the following compilers:
-
-- GCC v5.4.0
-- GCC v6.0
-- Clang v3.9
-- Visual Studio 2015

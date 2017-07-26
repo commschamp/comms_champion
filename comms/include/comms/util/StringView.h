@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <iterator>
 #include <limits>
+#include <string>
 
 #include "comms/Assert.h"
 #include "ArrayView.h"
@@ -138,6 +139,12 @@ public:
             ++len;
         }
         Base::operator=(Base(str, len));
+    }
+
+    /// @brief Constructor
+    StringView(const std::string& str) noexcept
+      : Base(str.c_str(), str.size())
+    {
     }
 
     /// @brief Construct out of array of characters with known size
@@ -285,6 +292,13 @@ public:
     constexpr bool empty() const noexcept
     {
         return Base::empty();
+    }
+
+    /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/substr">std::string_view::substr()</a>
+    std::string substr(size_type pos = 0, size_type count = npos) const
+    {
+        GASSERT(pos <= size());
+        return std::string(begin() + pos, begin() + pos + std::min(size() - pos, count));
     }
 
     /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/remove_prefix">std::string_view::remove_prefix()</a>
@@ -563,7 +577,7 @@ public:
 
 };
 
-/// @brief Lexicographical compare between the strings.
+/// @brief Lexicographical compare between the string views.
 /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
 /// @related StringView
 inline
@@ -572,7 +586,8 @@ bool operator<(const StringView& str1, const StringView& str2)
     return std::lexicographical_compare(str1.begin(), str1.end(), str2.begin(), str2.end());
 }
 
-/// @brief Lexicographical compare between the strings.
+
+/// @brief Lexicographical compare between the string views.
 /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
 /// @related StringView
 inline
@@ -581,7 +596,7 @@ bool operator<=(const StringView& str1, const StringView& str2)
     return !(str2 < str1);
 }
 
-/// @brief Lexicographical compare between the strings.
+/// @brief Lexicographical compare between the string views.
 /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
 /// @related StringView
 inline
@@ -590,7 +605,7 @@ bool operator>(const StringView& str1, const StringView& str2)
     return (str2 < str1);
 }
 
-/// @brief Lexicographical compare between the strings.
+/// @brief Lexicographical compare between the string views.
 /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
 /// @related StringView
 inline
@@ -599,7 +614,7 @@ bool operator>=(const StringView& str1, const StringView& str2)
     return !(str1 < str2);
 }
 
-/// @brief Equality compare between the strings.
+/// @brief Equality compare between the string views.
 /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
 /// @related StringView
 inline
@@ -610,7 +625,7 @@ bool operator==(const StringView& str1, const StringView& str2)
         std::equal(str1.begin(), str1.end(), str2.begin());
 }
 
-/// @brief Inequality compare between the strings.
+/// @brief Inequality compare between the string views.
 /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
 /// @related StringView
 inline

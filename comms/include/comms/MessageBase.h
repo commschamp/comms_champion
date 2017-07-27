@@ -200,6 +200,7 @@ public:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 protected:
+    ~MessageBase() noexcept = default;
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Implementation of ID retrieval functionality.

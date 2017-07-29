@@ -66,7 +66,7 @@ MsgMgrImpl::MsgMgrImpl()
     m_allMsgs.reserve(1024);
 }
 
-MsgMgrImpl::~MsgMgrImpl() = default;
+MsgMgrImpl::~MsgMgrImpl() noexcept = default;
 
 void MsgMgrImpl::start()
 {

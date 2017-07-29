@@ -27,7 +27,7 @@ namespace field_wrapper
 
 BitfieldWrapper::BitfieldWrapper() {}
 
-BitfieldWrapper::~BitfieldWrapper() {}
+BitfieldWrapper::~BitfieldWrapper() noexcept = default;
 
 BitfieldWrapper::Members& BitfieldWrapper::getMembers()
 {

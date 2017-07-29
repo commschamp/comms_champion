@@ -32,7 +32,7 @@ MsgSendMgrImpl::MsgSendMgrImpl()
         this, SLOT(sendPendingAndWait()));
 }
 
-MsgSendMgrImpl::~MsgSendMgrImpl() = default;
+MsgSendMgrImpl::~MsgSendMgrImpl() noexcept = default;
 
 void MsgSendMgrImpl::start(ProtocolPtr protocol, const MessagesList& msgs)
 {

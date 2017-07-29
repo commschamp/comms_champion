@@ -30,6 +30,24 @@ namespace field
 namespace details
 {
 
+template<
+    bool T1 = false,
+    bool T2 = false,
+    bool T3 = false,
+    bool T4 = false,
+    bool T5 = false,
+    bool T6 = false>
+struct FieldsOptionsCompatibilityCalc
+{
+    static const std::size_t Value =
+        static_cast<std::size_t>(T1) +\
+        static_cast<std::size_t>(T2) +
+        static_cast<std::size_t>(T3) +
+        static_cast<std::size_t>(T4) +
+        static_cast<std::size_t>(T5) +
+        static_cast<std::size_t>(T6);
+};
+
 template <bool THasCustomValueReader>
 struct AdaptFieldCustomValueReader;
 
@@ -379,6 +397,67 @@ template <typename TBasic, typename... TOptions>
 class AdaptBasicField
 {
     using ParsedOptions = OptionsParser<TOptions...>;
+
+    static const bool CustomReaderIncompatible =
+            ParsedOptions::HasSerOffset ||
+            ParsedOptions::HasFixedLengthLimit ||
+            ParsedOptions::HasFixedBitLengthLimit ||
+            ParsedOptions::HasVarLengthLimits ||
+            ParsedOptions::HasSequenceSizeForcing ||
+            ParsedOptions::HasSequenceFixedSize ||
+            ParsedOptions::HasSequenceSizeFieldPrefix ||
+            ParsedOptions::HasSequenceSerLengthFieldPrefix ||
+            ParsedOptions::HasSequenceTrailingFieldSuffix ||
+            ParsedOptions::HasSequenceTerminationFieldSuffix;
+
+    static_assert(
+            (!ParsedOptions::HasCustomValueReader) || (!CustomReaderIncompatible),
+            "CustomValueReader option is incompatible with following options: "
+            "NumValueSerOffset, FixedLength, FixedBitLength, VarLength, "
+            "SequenceSizeForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
+            "SequenceSerLengthFieldPrefix, SequenceTrailingFieldSuffix, "
+            "SequenceTerminationFieldSuffix");
+
+    static const bool VarLengthIncompatible =
+            ParsedOptions::HasFixedLengthLimit ||
+            ParsedOptions::HasFixedBitLengthLimit;
+
+    static_assert(
+            (!ParsedOptions::HasVarLengthLimits) || (!VarLengthIncompatible),
+            "VarLength option is incompatible with FixedLength and FixedBitLength");
+
+    static_assert(
+            1U >= FieldsOptionsCompatibilityCalc<
+                ParsedOptions::HasSequenceSizeFieldPrefix,
+                ParsedOptions::HasSequenceSerLengthFieldPrefix,
+                ParsedOptions::HasSequenceFixedSize,
+                ParsedOptions::HasSequenceSizeForcing,
+                ParsedOptions::HasSequenceTerminationFieldSuffix>::Value,
+            "The following options are incompatible, cannot be used together: "
+            "SequenceSizeFieldPrefix, SequenceSerLengthFieldPrefix, "
+            "SequenceFixedSize, SequenceSizeForcingEnabled, "
+            "SequenceTerminationFieldSuffix");
+
+    static_assert(
+            (!ParsedOptions::HasSequenceTrailingFieldSuffix) ||
+            (!ParsedOptions::HasSequenceTerminationFieldSuffix),
+            "The following options are incompatible, cannot be used together: "
+            "SequenceTrailingFieldSuffix, SequenceTerminationFieldSuffix");
+
+    static_assert(
+            (!ParsedOptions::HasFailOnInvalid) ||
+            (!ParsedOptions::HasIgnoreInvalid),
+            "The following options are incompatible, cannot be used together: "
+            "FailOnInvalid, IgnoreInvalid");
+
+    static_assert(
+            1U >= FieldsOptionsCompatibilityCalc<
+                ParsedOptions::HasCustomValueReader,
+                ParsedOptions::HasFixedSizeStorage,
+                ParsedOptions::HasOrigDataView>::Value,
+            "The following options are incompatible, cannot be used together: "
+            "CustomStorageType, FixedSizeStorage, OrigDataView");
+
     using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
         TBasic, ParsedOptions>;
     using SerOffsetAdapted = AdaptFieldSerOffsetT<

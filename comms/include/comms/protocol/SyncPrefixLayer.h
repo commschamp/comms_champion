@@ -56,7 +56,7 @@ public:
     SyncPrefixLayer(SyncPrefixLayer&&) = default;
 
     /// @brief Destructor
-    ~SyncPrefixLayer() = default;
+    ~SyncPrefixLayer() noexcept = default;
 
     /// @brief Deserialise message from the input data sequence.
     /// @details Reads the "sync" value from the input data. If the read value

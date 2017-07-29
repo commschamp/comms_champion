@@ -69,6 +69,11 @@ public:
         return static_cast<std::size_t>(std::distance(range.first, range.second));
     }
 
+    static constexpr bool hasUniqueIds()
+    {
+        return true;
+    }
+
 private:
 
     using FactoryMethod = typename Base::FactoryMethod;

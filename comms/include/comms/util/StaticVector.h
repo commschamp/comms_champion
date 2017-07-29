@@ -64,7 +64,7 @@ public:
     {
     }
 
-    ~StaticVectorBase()
+    ~StaticVectorBase() noexcept
     {
         clear();
     }
@@ -540,6 +540,7 @@ struct StaticVectorStorageBase
 ///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
 /// @tparam T Type of the stored elements.
 /// @tparam TSize Maximum number of elements that StaticVector can store.
+/// @headerfile "comms/util/StaticVector.h"
 template <typename T, std::size_t TSize>
 class StaticVector :
     public details::StaticVectorStorageBase<T, TSize>,
@@ -651,7 +652,7 @@ public:
     }
 
     /// @brief Destructor
-    ~StaticVector() = default;
+    ~StaticVector() noexcept = default;
 
     /// @brief Copy assignement
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>

@@ -88,7 +88,7 @@ PluginMgrImpl::PluginInfo::Type parseType(const QString& val)
 
 PluginMgrImpl::PluginMgrImpl() = default;
 
-PluginMgrImpl::~PluginMgrImpl()
+PluginMgrImpl::~PluginMgrImpl() noexcept
 {
     for (auto& pluginInfoPtr : m_plugins) {
         assert(pluginInfoPtr);

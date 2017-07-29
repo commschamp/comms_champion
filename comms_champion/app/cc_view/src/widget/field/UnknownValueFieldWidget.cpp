@@ -38,7 +38,7 @@ UnknownValueFieldWidget::UnknownValueFieldWidget(
     refresh();
 }
 
-UnknownValueFieldWidget::~UnknownValueFieldWidget() = default;
+UnknownValueFieldWidget::~UnknownValueFieldWidget() noexcept = default;
 
 void UnknownValueFieldWidget::refreshImpl()
 {

@@ -40,7 +40,7 @@ public:
     Variants();
     Variants(const Variants&) = delete;
     Variants(Variants&&) = delete;
-    virtual ~Variants();
+    virtual ~Variants() noexcept;
 
     Variants& operator=(const Variants&);
     Variants& operator=(Variants&&);

@@ -38,7 +38,7 @@ EchoSocketPlugin::EchoSocketPlugin()
             });
 }
 
-EchoSocketPlugin::~EchoSocketPlugin() = default;
+EchoSocketPlugin::~EchoSocketPlugin() noexcept = default;
 
 }  // namespace plugin
 

@@ -95,7 +95,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 Lists::Lists() = default;
-Lists::~Lists() = default;
+Lists::~Lists() noexcept = default;
 
 Lists& Lists::operator=(const Lists&) = default;
 Lists& Lists::operator=(Lists&&) = default;

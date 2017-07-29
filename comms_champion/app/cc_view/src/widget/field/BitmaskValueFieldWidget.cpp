@@ -52,7 +52,7 @@ BitmaskValueFieldWidget::BitmaskValueFieldWidget(
             this, SLOT(serialisedValueUpdated(const QString&)));
 }
 
-BitmaskValueFieldWidget::~BitmaskValueFieldWidget() = default;
+BitmaskValueFieldWidget::~BitmaskValueFieldWidget() noexcept = default;
 
 void BitmaskValueFieldWidget::refreshImpl()
 {

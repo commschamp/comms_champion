@@ -23,6 +23,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
 #include "comms/util/StaticVector.h"
+#include "comms/util/ArrayView.h"
 #include "basic/ArrayList.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
@@ -37,36 +38,64 @@ namespace field
 namespace details
 {
 
-template <bool THasCustomStorageType, bool THasFixedStorage>
-struct ArrayListStorageType;
+template <bool THasOrigDataViewStorage>
+struct ArrayListOrigDataViewStorageType;
 
-template <bool THasFixedStorage>
-struct ArrayListStorageType<true, THasFixedStorage>
+template <>
+struct ArrayListOrigDataViewStorageType<true>
 {
-    template <typename TElement, typename TOptions>
-    using Type = typename TOptions::CustomStorageType;
+    template <typename TElement>
+    using Type = comms::util::ArrayView<TElement>;
 };
 
 template <>
-struct ArrayListStorageType<false, true>
+struct ArrayListOrigDataViewStorageType<false>
 {
-    template <typename TElement, typename TOptions>
-    using Type = comms::util::StaticVector<TElement, TOptions::FixedSizeStorage>;
-};
-
-template <>
-struct ArrayListStorageType<false, false>
-{
-    template <typename TElement, typename TOptions>
+    template <typename TElement>
     using Type = std::vector<TElement>;
 };
 
-template <typename TElement, typename TOptions>
+template <bool THasFixedSizeStorage>
+struct ArrayListFixedSizeStorageType;
+
+template <>
+struct ArrayListFixedSizeStorageType<true>
+{
+    template <typename TElement, typename TOpt>
+    using Type = comms::util::StaticVector<TElement, TOpt::FixedSizeStorage>;
+};
+
+template <>
+struct ArrayListFixedSizeStorageType<false>
+{
+    template <typename TElement, typename TOpt>
+    using Type =
+        typename ArrayListOrigDataViewStorageType<
+            TOpt::HasOrigDataView && std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))
+        >::template Type<TElement>;
+};
+
+template <bool THasCustomStorage>
+struct ArrayListCustomArrayListStorageType;
+
+template <>
+struct ArrayListCustomArrayListStorageType<true>
+{
+    template <typename TElement, typename TOpt>
+    using Type = typename TOpt::CustomStorageType;
+};
+
+template <>
+struct ArrayListCustomArrayListStorageType<false>
+{
+    template <typename TElement, typename TOpt>
+    using Type =
+        typename ArrayListFixedSizeStorageType<TOpt::HasFixedSizeStorage>::template Type<TElement, TOpt>;
+};
+
+template <typename TElement, typename TOpt>
 using ArrayListStorageTypeT =
-    typename ArrayListStorageType<
-        TOptions::HasCustomStorageType,
-        TOptions::HasFixedSizeStorage
-    >::template Type<TElement, TOptions>;
+    typename ArrayListCustomArrayListStorageType<TOpt::HasCustomStorageType>::template Type<TElement, TOpt>;
 
 template <typename TFieldBase, typename TElement, typename... TOptions>
 using ArrayListBase =
@@ -126,6 +155,8 @@ using ArrayListBase =
 ///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+///     @li comms::option::OrigDataView (valid only if TElement is integral type
+///         of 1 byte size.
 /// @extends comms::Field
 /// @headerfile comms/field/ArrayList.h
 template <typename TFieldBase, typename TElement, typename... TOptions>
@@ -173,7 +204,7 @@ public:
     ArrayList(ArrayList&&) = default;
 
     /// @brief Destructor
-    ~ArrayList() = default;
+    ~ArrayList() noexcept = default;
 
     /// @brief Copy assignment
     ArrayList& operator=(const ArrayList&) = default;
@@ -249,6 +280,10 @@ public:
     ///     used.
     void clearReadElemCount();
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+
+private:
+    static_assert((!ParsedOptions::HasOrigDataView) || (std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))),
+        "Usage of comms::option::OrigDataView option is allowed only for raw binary data (std::uint8_t) types.");
 };
 
 /// @brief Equivalence comparison operator.
@@ -257,10 +292,10 @@ public:
 /// @param[in] field2 Second field.
 /// @return true in case first field is less than second field.
 /// @related ArrayList
-template <typename... TArgs>
+template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator<(
-    const ArrayList<TArgs...>& field1,
-    const ArrayList<TArgs...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field1,
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
 {
     return std::lexicographical_compare(
                 field1.value().begin(), field1.value().end(),
@@ -272,10 +307,10 @@ bool operator<(
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
 /// @related ArrayList
-template <typename... TArgs>
+template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator!=(
-    const ArrayList<TArgs...>& field1,
-    const ArrayList<TArgs...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field1,
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
 {
     return (field1 < field2) || (field2 < field1);
 }
@@ -285,10 +320,10 @@ bool operator!=(
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
 /// @related ArrayList
-template <typename... TArgs>
+template <typename TFieldBase, typename TElement, typename... TOptions>
 bool operator==(
-    const ArrayList<TArgs...>& field1,
-    const ArrayList<TArgs...>& field2)
+    const ArrayList<TFieldBase, TElement, TOptions...>& field1,
+    const ArrayList<TFieldBase, TElement, TOptions...>& field2)
 {
     return !(field1 != field2);
 }

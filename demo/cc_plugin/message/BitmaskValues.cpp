@@ -73,7 +73,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 BitmaskValues::BitmaskValues() = default;
-BitmaskValues::~BitmaskValues() = default;
+BitmaskValues::~BitmaskValues() noexcept = default;
 
 BitmaskValues& BitmaskValues::operator=(const BitmaskValues&) = default;
 BitmaskValues& BitmaskValues::operator=(BitmaskValues&&) = default;

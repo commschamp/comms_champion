@@ -27,7 +27,7 @@ namespace field_wrapper
 
 ArrayListRawDataWrapper::ArrayListRawDataWrapper() {}
 
-ArrayListRawDataWrapper::~ArrayListRawDataWrapper() {}
+ArrayListRawDataWrapper::~ArrayListRawDataWrapper() noexcept = default;
 
 QString ArrayListRawDataWrapper::getValue() const
 {

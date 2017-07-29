@@ -49,7 +49,7 @@ public:
     typedef std::unique_ptr<ArrayListRawDataWrapper> Ptr;
 
     ArrayListRawDataWrapper();
-    virtual ~ArrayListRawDataWrapper();
+    virtual ~ArrayListRawDataWrapper() noexcept;
 
     QString getValue() const;
 
@@ -88,7 +88,7 @@ public:
 
     ArrayListRawDataWrapperT(const ArrayListRawDataWrapperT&) = default;
     ArrayListRawDataWrapperT(ArrayListRawDataWrapperT&&) = default;
-    virtual ~ArrayListRawDataWrapperT() = default;
+    virtual ~ArrayListRawDataWrapperT() noexcept = default;
 
     ArrayListRawDataWrapperT& operator=(const ArrayListRawDataWrapperT&) = delete;
 

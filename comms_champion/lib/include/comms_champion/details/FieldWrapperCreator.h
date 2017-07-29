@@ -35,6 +35,7 @@
 #include "comms_champion/field_wrapper/FloatValueWrapper.h"
 #include "comms_champion/field_wrapper/VariantWrapper.h"
 #include "comms_champion/field_wrapper/UnknownValueWrapper.h"
+#include "ret_unique_ptr.h"
 
 namespace comms_champion
 {
@@ -166,7 +167,7 @@ private:
                 }));
 
         wrapper->setMembers(std::move(subWrappers));
-        return wrapper;
+        return CC_RET_UNIQUE_PTR(wrapper);
     }
 
     template <typename TField>
@@ -176,7 +177,7 @@ private:
         auto& wrappedField = field.field();
         auto fieldWrapper = createWrapper(wrappedField);
         wrapper->setFieldWrapper(std::move(fieldWrapper));
-        return wrapper;
+        return CC_RET_UNIQUE_PTR(wrapper);
     }
 
     template <typename TField>
@@ -199,7 +200,7 @@ private:
                 }));
 
         wrapper->setMembers(std::move(subWrappers));
-        return wrapper;
+        return CC_RET_UNIQUE_PTR(wrapper);
     }
 
     template <typename TField>
@@ -216,6 +217,10 @@ private:
         typedef typename CollectionType::value_type ElementType;
 
         auto wrapper = field_wrapper::makeDowncastedArrayListWrapper(field);
+        if (wrapper->hasFixedSize()) {
+            wrapper->adjustFixedSize();
+        }
+
         wrapper->setWrapFieldCallback(
             [](ElementType& memField) -> FieldWrapperPtr
             {
@@ -223,7 +228,7 @@ private:
             });
 
         wrapper->refreshMembers();
-        return wrapper;
+        return CC_RET_UNIQUE_PTR(wrapper);
     }
 
     template <typename TField>
@@ -264,7 +269,7 @@ private:
             wrapper->setCurrent(FieldWrapperPtr());
         }
 
-        return wrapper;
+        return CC_RET_UNIQUE_PTR(wrapper);
     }
 
     template <typename TField, typename TTag>

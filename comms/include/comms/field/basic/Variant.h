@@ -69,7 +69,7 @@ public:
         memIdx_ = other.memIdx_;
     }
 
-    ~Variant()
+    ~Variant() noexcept
     {
         checkDestruct();
     }

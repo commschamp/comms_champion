@@ -85,7 +85,7 @@ protected:
     StaticQueueBase(const StaticQueueBase&) = delete;
     StaticQueueBase(StaticQueueBase&&) = delete;
 
-    ~StaticQueueBase()
+    ~StaticQueueBase() noexcept
     {
         clear();
     }
@@ -985,7 +985,7 @@ public:
 
     IteratorBase(const IteratorBase&) = default;
 
-    ~IteratorBase() = default;
+    ~IteratorBase() noexcept = default;
 
 protected:
     using Derived = TDerived;
@@ -1171,7 +1171,7 @@ public:
     using ArrayIterator = typename Base::ArrayIterator;
 
     ConstIterator(const ConstIterator&) = default;
-    ~ConstIterator() = default;
+    ~ConstIterator() noexcept = default;
 
     ConstIterator(QueueType& queue, ArrayIterator iterator)
         : Base(queue, iterator)
@@ -1193,7 +1193,7 @@ public:
     using ArrayIterator = typename Base::ArrayIterator;
 
     Iterator(const Iterator&) = default;
-    ~Iterator() = default;
+    ~Iterator() noexcept = default;
 
     Iterator(QueueType& queue, ArrayIterator iterator)
         : Base(queue, iterator)
@@ -1257,7 +1257,7 @@ protected:
             "The times must have identical size.");
     }
 
-    ~CastWrapperQueueBase() = default;
+    ~CastWrapperQueueBase() noexcept = default;
 
     CastWrapperQueueBase& operator=(const CastWrapperQueueBase& other) = default;
     CastWrapperQueueBase& operator=(CastWrapperQueueBase&& other) = default;
@@ -1525,7 +1525,7 @@ class CastWrapperQueueBase<TWrapperElemType, TQueueElemType>::ConstIterator :
 public:
     ConstIterator(const ConstIterator&) = default;
     ConstIterator& operator=(const ConstIterator&) = default;
-    ~ConstIterator() = default;
+    ~ConstIterator() noexcept = default;
 
 protected:
     using ExpectedQueueType = const StaticQueueBase<TWrapperElemType>;
@@ -1628,7 +1628,7 @@ class CastWrapperQueueBase<TWrapperElemType, TQueueElemType>::Iterator :
 public:
     Iterator(const Iterator&) = default;
     Iterator& operator=(const Iterator&) = default;
-    ~Iterator() = default;
+    ~Iterator() noexcept = default;
 
 protected:
     using ExpectedQueueType = const StaticQueueBase<TWrapperElemType>;
@@ -1736,7 +1736,7 @@ protected:
     {
     }
 
-    ~StaticQueueBaseOptimised() = default;
+    ~StaticQueueBaseOptimised() noexcept = default;
 
     StaticQueueBaseOptimised& operator=(const StaticQueueBaseOptimised& other) = default;
     StaticQueueBaseOptimised& operator=(StaticQueueBaseOptimised&& other) = default;
@@ -1755,7 +1755,7 @@ protected:
     {
     }
 
-    ~StaticQueueBaseOptimised() = default;
+    ~StaticQueueBaseOptimised() noexcept = default;
     StaticQueueBaseOptimised& operator=(const StaticQueueBaseOptimised& other) = default;
     StaticQueueBaseOptimised& operator=(StaticQueueBaseOptimised&& other) = default;
 };
@@ -1773,7 +1773,7 @@ protected:
     {
     }
 
-    ~StaticQueueBaseOptimised() = default;
+    ~StaticQueueBaseOptimised() noexcept = default;
     StaticQueueBaseOptimised& operator=(const StaticQueueBaseOptimised& other) = default;
     StaticQueueBaseOptimised& operator=(StaticQueueBaseOptimised&& other) = default;
 };
@@ -1791,7 +1791,7 @@ protected:
     {
     }
 
-    ~StaticQueueBaseOptimised() = default;
+    ~StaticQueueBaseOptimised() noexcept = default;
     StaticQueueBaseOptimised& operator=(const StaticQueueBaseOptimised& other) = default;
     StaticQueueBaseOptimised& operator=(StaticQueueBaseOptimised&& other) = default;
 };
@@ -1809,7 +1809,7 @@ protected:
     {
     }
 
-    ~StaticQueueBaseOptimised() = default;
+    ~StaticQueueBaseOptimised() noexcept = default;
     StaticQueueBaseOptimised& operator=(const StaticQueueBaseOptimised& other) = default;
     StaticQueueBaseOptimised& operator=(StaticQueueBaseOptimised&& other) = default;
 };
@@ -1827,7 +1827,7 @@ protected:
     {
     }
 
-    ~StaticQueueBaseOptimised() = default;
+    ~StaticQueueBaseOptimised() noexcept = default;
     StaticQueueBaseOptimised& operator=(const StaticQueueBaseOptimised& other) = default;
     StaticQueueBaseOptimised& operator=(StaticQueueBaseOptimised&& other) = default;
 };
@@ -1995,7 +1995,7 @@ public:
     /// @note Thread safety: Safe
     /// @note Exception guarantee: No throw in case the destructor of the
     ///       stored elements doesn't throw. Basic guarantee otherwise.
-    ~StaticQueue()
+    ~StaticQueue() noexcept
     {
         clear();
     }

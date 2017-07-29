@@ -31,7 +31,7 @@ class Message : public comms_champion::MessageBase<demo::Message>
 {
 public:
     Message();
-    virtual ~Message();
+    virtual ~Message() noexcept;
 
 protected:
 

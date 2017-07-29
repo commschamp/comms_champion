@@ -37,7 +37,7 @@ class NullSocketPlugin : public comms_champion::Plugin
 
 public:
     NullSocketPlugin();
-    ~NullSocketPlugin();
+    ~NullSocketPlugin() noexcept;
 
 private:
     comms_champion::SocketPtr m_socket;

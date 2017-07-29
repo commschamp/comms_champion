@@ -38,7 +38,7 @@ NullSocketPlugin::NullSocketPlugin()
             });
 }
 
-NullSocketPlugin::~NullSocketPlugin() = default;
+NullSocketPlugin::~NullSocketPlugin() noexcept = default;
 
 }  // namespace plugin
 

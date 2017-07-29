@@ -95,6 +95,8 @@ namespace field
 ///     comms::option::FixedBitLength option.
 /// @extends comms::Field
 /// @headerfile comms/field/Bitfield.h
+/// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
+/// @see @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE()
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bitfield : public
         details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>
@@ -201,10 +203,10 @@ public:
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
 /// @related Bitfield
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator==(
-    const Bitfield<TArgs...>& field1,
-    const Bitfield<TArgs...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
@@ -214,10 +216,10 @@ bool operator==(
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
 /// @related Bitfield
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator!=(
-    const Bitfield<TArgs...>& field1,
-    const Bitfield<TArgs...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }
@@ -227,10 +229,10 @@ bool operator!=(
 /// @param[in] field2 Second field.
 /// @return true in case value of the first field is lower than than the value of the second.
 /// @related Bitfield
-template <typename... TArgs>
+template <typename TFieldBase, typename TMembers, typename... TOptions>
 bool operator<(
-    const Bitfield<TArgs...>& field1,
-    const Bitfield<TArgs...>& field2)
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field1,
+    const Bitfield<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() < field2.value();
 }

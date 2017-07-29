@@ -33,6 +33,7 @@ class MsgFactoryOptionsParser<>
 {
 public:
     static const bool HasInPlaceAllocation = false;
+    static const bool HasSupportGenericMessage = false;
 };
 
 template <typename... TOptions>
@@ -41,6 +42,15 @@ class MsgFactoryOptionsParser<comms::option::InPlaceAllocation, TOptions...> :
 {
 public:
     static const bool HasInPlaceAllocation = true;
+};
+
+template <typename TMsg, typename... TOptions>
+class MsgFactoryOptionsParser<comms::option::SupportGenericMessage<TMsg>, TOptions...> :
+        public MsgFactoryOptionsParser<TOptions...>
+{
+public:
+    static const bool HasSupportGenericMessage = true;
+    using GenericMessage = TMsg;
 };
 
 template <typename... TOptions>

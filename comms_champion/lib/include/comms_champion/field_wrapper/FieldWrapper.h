@@ -48,7 +48,7 @@ public:
     typedef std::unique_ptr<FieldWrapper> BasePtr;
 
     FieldWrapper();
-    virtual ~FieldWrapper();
+    virtual ~FieldWrapper() noexcept;
 
     std::size_t length() const;
 
@@ -89,7 +89,7 @@ public:
     typedef typename Base::SerialisedSeq SerialisedSeq;
     typedef typename Base::BasePtr BasePtr;
 
-    virtual ~FieldWrapperT() = default;
+    virtual ~FieldWrapperT() noexcept = default;
 
 protected:
 

@@ -27,7 +27,7 @@ namespace field_wrapper
 
 ArrayListWrapper::ArrayListWrapper() {}
 
-ArrayListWrapper::~ArrayListWrapper() {}
+ArrayListWrapper::~ArrayListWrapper() noexcept = default;
 
 void ArrayListWrapper::addField()
 {
@@ -47,6 +47,11 @@ unsigned ArrayListWrapper::size() const
 bool ArrayListWrapper::hasFixedSize() const
 {
     return hasFixedSizeImpl();
+}
+
+void ArrayListWrapper::adjustFixedSize()
+{
+    adjustFixedSizeImpl();
 }
 
 ArrayListWrapper::Members& ArrayListWrapper::getMembers()

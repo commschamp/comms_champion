@@ -27,7 +27,7 @@ PluginMgr::PluginMgr()
 {
 }
 
-PluginMgr::~PluginMgr() = default;
+PluginMgr::~PluginMgr() noexcept = default;
 
 void PluginMgr::setPluginsDir(const QString& pluginDir)
 {

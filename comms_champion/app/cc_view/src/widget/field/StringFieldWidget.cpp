@@ -43,7 +43,7 @@ StringFieldWidget::StringFieldWidget(
     refresh();
 }
 
-StringFieldWidget::~StringFieldWidget() = default;
+StringFieldWidget::~StringFieldWidget() noexcept = default;
 
 void StringFieldWidget::refreshImpl()
 {

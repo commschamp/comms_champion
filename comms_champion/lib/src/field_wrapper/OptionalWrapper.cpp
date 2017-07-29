@@ -26,7 +26,7 @@ namespace field_wrapper
 {
 
 OptionalWrapper::OptionalWrapper() = default;
-OptionalWrapper::~OptionalWrapper() = default;
+OptionalWrapper::~OptionalWrapper() noexcept = default;
 
 OptionalWrapper::Mode OptionalWrapper::getMode() const
 {

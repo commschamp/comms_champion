@@ -30,4 +30,5 @@
 #include "GenericHandler.h"
 #include "MessageBase.h"
 #include "MsgFactory.h"
+#include "GenericMessage.h"
 

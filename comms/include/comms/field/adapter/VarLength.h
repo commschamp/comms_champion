@@ -201,7 +201,7 @@ private:
         static const auto TotalBits =
             sizeof(UnsignedSerialisedType) * std::numeric_limits<std::uint8_t>::digits;
 
-        static const auto Mask =
+        static const UnsignedSerialisedType Mask =
             (static_cast<UnsignedSerialisedType>(1U) << (TotalBits - ZeroBitsCount)) - 1;
 
         return static_cast<UnsignedSerialisedType>(val) & Mask;
@@ -252,7 +252,7 @@ private:
         std::size_t minLength,
         bool& lastByte)
     {
-        static const auto Mask = ~(static_cast<UnsignedSerialisedType>(VarLengthValueBitsMask));
+        static const UnsignedSerialisedType Mask = ~(static_cast<UnsignedSerialisedType>(VarLengthValueBitsMask));
 
         if ((byteCount + 1) < minLength) {
             auto remLen = minLength - (byteCount + 1);

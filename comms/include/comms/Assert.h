@@ -37,7 +37,7 @@ class Assert
 {
 public:
     /// @brief Destructor
-    virtual ~Assert() {}
+    virtual ~Assert() noexcept {}
 
     /// @brief Pure virtual function to be called when assertion fails.
     /// @param[in] expr Assertion condition/expression
@@ -129,7 +129,7 @@ public:
     /// @brief Destructor
     /// @details Restores the assertion behaviour that was recorded during
     ///          the instantiation of this object.
-    ~EnableAssert()
+    ~EnableAssert() noexcept
     {
         AssertManager::instance().reset(prevAssert_);
     }

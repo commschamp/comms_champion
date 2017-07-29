@@ -78,7 +78,7 @@ public:
     static GuiAppMgr* instance();
     static GuiAppMgr& instanceRef();
 
-    ~GuiAppMgr();
+    ~GuiAppMgr() noexcept;
 
     bool startClean();
     bool startFromConfig(const QString& configName);

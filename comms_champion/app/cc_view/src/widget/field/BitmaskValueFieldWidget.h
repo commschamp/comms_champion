@@ -40,7 +40,7 @@ public:
         WrapperPtr&& wrapper,
         QWidget* parentObj = nullptr);
 
-    ~BitmaskValueFieldWidget();
+    ~BitmaskValueFieldWidget() noexcept;
 
 protected:
     virtual void refreshImpl() override;

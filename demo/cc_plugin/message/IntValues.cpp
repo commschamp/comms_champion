@@ -52,7 +52,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 IntValues::IntValues() = default;
-IntValues::~IntValues() = default;
+IntValues::~IntValues() noexcept = default;
 
 IntValues& IntValues::operator=(const IntValues&) = default;
 IntValues& IntValues::operator=(IntValues&&) = default;

@@ -37,7 +37,7 @@ public:
     typedef comms::field::OptionalMode Mode;
 
     OptionalWrapper();
-    virtual ~OptionalWrapper();
+    virtual ~OptionalWrapper() noexcept;
 
     Mode getMode() const;
 

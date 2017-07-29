@@ -37,7 +37,7 @@ class CC_API BitmaskValueWrapper : public NumericValueWrapper<unsigned long long
 public:
     typedef std::unique_ptr<BitmaskValueWrapper> Ptr;
 
-    virtual ~BitmaskValueWrapper();
+    virtual ~BitmaskValueWrapper() noexcept;
 
     bool bitValue(unsigned idx) const;
 
@@ -77,7 +77,7 @@ public:
 
     BitmaskValueWrapperT(const BitmaskValueWrapperT&) = default;
     BitmaskValueWrapperT(BitmaskValueWrapperT&&) = default;
-    virtual ~BitmaskValueWrapperT() = default;
+    virtual ~BitmaskValueWrapperT() noexcept = default;
 
     BitmaskValueWrapperT& operator=(const BitmaskValueWrapperT&) = delete;
 

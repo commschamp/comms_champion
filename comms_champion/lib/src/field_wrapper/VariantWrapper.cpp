@@ -29,7 +29,7 @@ namespace field_wrapper
 
 VariantWrapper::VariantWrapper() {}
 
-VariantWrapper::~VariantWrapper() {}
+VariantWrapper::~VariantWrapper() noexcept = default;
 
 FieldWrapperPtr& VariantWrapper::getCurrent()
 {

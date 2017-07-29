@@ -110,7 +110,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 Variants::Variants() = default;
-Variants::~Variants() = default;
+Variants::~Variants() noexcept = default;
 
 Variants& Variants::operator=(const Variants&) = default;
 Variants& Variants::operator=(Variants&&) = default;

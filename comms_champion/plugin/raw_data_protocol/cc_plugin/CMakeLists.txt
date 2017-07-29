@@ -45,8 +45,4 @@ find_package(Qt5Core REQUIRED)
 include_directories(
     ${Qt5Core_INCLUDE_DIRS})
 
-if (CMAKE_COMPILER_IS_GNUCC)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-backtrace-limit=0")
-endif ()
-    
 cc_plugin_raw_data_protocol ()

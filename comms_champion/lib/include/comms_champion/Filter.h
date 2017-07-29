@@ -47,7 +47,7 @@ public:
     Filter();
 
     /// @bried Destructor
-    virtual ~Filter();
+    virtual ~Filter() noexcept;
 
     /// @brief Start filter's operation
     /// @details Prior to being started, the filter is not allowed to generate

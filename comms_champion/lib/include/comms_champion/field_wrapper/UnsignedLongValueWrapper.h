@@ -39,10 +39,8 @@ public:
     typedef Base::UnderlyingType UnderlyingType;
     typedef std::unique_ptr<UnsignedLongValueWrapper> Ptr;
 
-    using Base::NumericValueWrapper;
-
     UnsignedLongValueWrapper();
-    virtual ~UnsignedLongValueWrapper();
+    virtual ~UnsignedLongValueWrapper() noexcept;
 
     UnderlyingType minValue() const;
 
@@ -92,7 +90,7 @@ public:
 
     UnsignedLongValueWrapperT(const UnsignedLongValueWrapperT&) = default;
     UnsignedLongValueWrapperT(UnsignedLongValueWrapperT&&) = default;
-    virtual ~UnsignedLongValueWrapperT() = default;
+    virtual ~UnsignedLongValueWrapperT() noexcept = default;
 
     UnsignedLongValueWrapperT& operator=(const UnsignedLongValueWrapperT&) = delete;
 

@@ -41,7 +41,7 @@ class SerialSocketPlugin : public comms_champion::Plugin
 
 public:
     SerialSocketPlugin();
-    ~SerialSocketPlugin();
+    ~SerialSocketPlugin() noexcept;
 
     virtual void getCurrentConfigImpl(QVariantMap& config) override;
     virtual void reconfigureImpl(const QVariantMap& config) override;

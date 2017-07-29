@@ -186,6 +186,11 @@ struct NoLengthImpl {};
 struct HasDoRefresh {};
 
 /// @brief Option that notifies comms::MessageBase about existence of
+///     @b doGetId() member function in derived class.
+/// @headerfile comms/options.h
+struct HasDoGetId {};
+
+/// @brief Option that notifies comms::MessageBase about existence of
 ///     access to fields.
 /// @details Can be useful when there is a chain of inheritances from
 ///     comms::MessageBase.
@@ -196,6 +201,13 @@ struct AssumeFieldsExistence {};
 ///     initialisation, instead of usage of dynamic memory allocation.
 /// @headerfile comms/options.h
 struct InPlaceAllocation {};
+
+/// @brief Option used to allow @ref comms::GenericMessage generation inside
+///  @ref comms::MsgFactory and/or @ref comms::protocol::MsgIdLayer classes.
+/// @tparam TGenericMessage Type of message, expected to be a variant of
+///     @ref comms::GenericMessage.
+template <typename TGenericMessage>
+struct SupportGenericMessage {};
 
 /// @brief Option used to specify number of bytes that is used for field serialisation.
 /// @details Applicable only to numeric fields, such as comms::field::IntValue or
@@ -942,7 +954,7 @@ private:
     static constexpr bool aboveMin(const TValue& value, CompareTag)
     {
         using ValueType = typename std::decay<decltype(value)>::type;
-        return (static_cast<ValueType>(MinValue) <= value);
+        return (static_cast<ValueType>(MinValue) <= static_cast<ValueType>(value));
     }
 
     template <typename TValue>
@@ -1057,6 +1069,16 @@ using DefaultVariantIndex = DefaultValueInitialiser<details::DefaultVariantIndex
 ///     forwarding read to the wrapped layer(s).
 /// @headerfile comms/options.h
 struct ChecksumLayerVerifyBeforeRead {};
+
+/// @brief Use "view" on original raw data instead of copying it.
+/// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList,
+///     will force usage of @ref comms::util::StringView and comms::util::ArrayView
+///     respectively as data storage type.
+/// @note The original data must be preserved until destruction of the field
+///     that uses the "view".
+/// @note Incompatible with other options that contol data storage type,
+///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
+struct OrigDataView {};
 
 }  // namespace option
 

@@ -483,7 +483,7 @@ MsgFileMgr::MessagesList convertMsgList(
 }  // namespace
 
 MsgFileMgr::MsgFileMgr() = default;
-MsgFileMgr::~MsgFileMgr() = default;
+MsgFileMgr::~MsgFileMgr() noexcept = default;
 MsgFileMgr::MsgFileMgr(const MsgFileMgr&) = default;
 MsgFileMgr::MsgFileMgr(MsgFileMgr&&) = default;
 MsgFileMgr& MsgFileMgr::operator=(const MsgFileMgr&) = default;

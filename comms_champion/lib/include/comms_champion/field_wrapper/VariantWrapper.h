@@ -36,7 +36,6 @@ class CC_API VariantWrapper : public FieldWrapper
 {
     using Base = FieldWrapper;
 public:
-    using Base::FieldWrapper;
     typedef std::unique_ptr<VariantWrapper> Ptr;
 
     using MemberCreateCallbackFunc = std::function<FieldWrapperPtr ()>;
@@ -45,7 +44,7 @@ public:
     VariantWrapper(const VariantWrapper&) =delete;
     VariantWrapper& operator=(const VariantWrapper&) =delete;
 
-    virtual ~VariantWrapper();
+    virtual ~VariantWrapper() noexcept;
 
     FieldWrapperPtr& getCurrent();
 
@@ -99,7 +98,7 @@ public:
 
     VariantWrapperT(const VariantWrapperT&) = default;
     VariantWrapperT(VariantWrapperT&&) = default;
-    virtual ~VariantWrapperT() = default;
+    virtual ~VariantWrapperT() noexcept = default;
 
     VariantWrapperT& operator=(const VariantWrapperT&) = delete;
 

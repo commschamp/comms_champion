@@ -74,7 +74,7 @@ public:
     ChecksumLayer(ChecksumLayer&&) = default;
 
     /// @brief Destructor.
-    ~ChecksumLayer() = default;
+    ~ChecksumLayer() noexcept = default;
 
     /// @brief Copy assignment
     ChecksumLayer& operator=(const ChecksumLayer&) = default;

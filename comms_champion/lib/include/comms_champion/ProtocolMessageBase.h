@@ -54,7 +54,7 @@ protected:
     ProtocolMessageBase(ProtocolMessageBase&&) = default;
 
     /// @brief Destructor
-    ~ProtocolMessageBase() = default;
+    ~ProtocolMessageBase() noexcept = default;
 
     /// @brief Copy assignment
     ProtocolMessageBase& operator=(const ProtocolMessageBase&) = default;

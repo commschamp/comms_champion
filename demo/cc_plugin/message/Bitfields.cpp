@@ -104,7 +104,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 Bitfields::Bitfields() = default;
-Bitfields::~Bitfields() = default;
+Bitfields::~Bitfields() noexcept = default;
 
 Bitfields& Bitfields::operator=(const Bitfields&) = default;
 Bitfields& Bitfields::operator=(Bitfields&&) = default;

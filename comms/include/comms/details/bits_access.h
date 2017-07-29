@@ -23,14 +23,22 @@
 
 #include "macro_common.h"
 #include "gen_enum.h"
+#include "base_detection.h"
 
+#ifdef COMMS_MUST_DEFINE_BASE
+#define COMMS_AS_BITMASK_FUNC Base& asBitmask()
+#define COMMS_AS_BITMASK_CONST_FUNC const Base& asBitmask() const
+#else // #ifdef COMMS_MUST_DEFINE_BASE
+#define COMMS_AS_BITMASK_FUNC FUNC_AUTO_REF_RETURN(asBitmask, decltype(comms::field::toFieldBase(*this)))
+#define COMMS_AS_BITMASK_CONST_FUNC FUNC_AUTO_REF_RETURN_CONST(asBitmask, decltype(comms::field::toFieldBase(*this)))
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
 
 #define COMMS_BIT_ACC_FUNC(f_, n_) \
     bool COMMS_CONCATENATE(getBitValue_, n_)() const {\
         return f_.getBitValue(COMMS_CONCATENATE(BitIdx_, n_)); \
     } \
-    void COMMS_CONCATENATE(setBitValue_, n_)(bool value) {\
-        f_.setBitValue(COMMS_CONCATENATE(BitIdx_, n_), value); \
+    void COMMS_CONCATENATE(setBitValue_, n_)(bool val) {\
+        f_.setBitValue(COMMS_CONCATENATE(BitIdx_, n_), val); \
     }
 
 #define COMMS_BIT_ACC_FUNC_1(f_, n_) COMMS_BIT_ACC_FUNC(f_, n_)

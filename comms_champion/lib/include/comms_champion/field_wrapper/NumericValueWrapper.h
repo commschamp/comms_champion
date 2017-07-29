@@ -46,7 +46,7 @@ public:
 
     NumericValueWrapper() {}
 
-    virtual ~NumericValueWrapper() {}
+    virtual ~NumericValueWrapper() noexcept = default;
 
     UnderlyingType getValue() const
     {
@@ -114,7 +114,7 @@ public:
 
     NumericValueWrapperT(const NumericValueWrapperT&) = default;
     NumericValueWrapperT(NumericValueWrapperT&&) = default;
-    virtual ~NumericValueWrapperT() = default;
+    virtual ~NumericValueWrapperT() noexcept = default;
 
     NumericValueWrapperT& operator=(const NumericValueWrapperT&) = delete;
 

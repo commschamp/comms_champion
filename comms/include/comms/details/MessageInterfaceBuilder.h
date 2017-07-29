@@ -44,7 +44,7 @@ public:
     using Field = comms::Field<comms::option::Endian<Endian> >;
 
 protected:
-    ~MessageInterfaceEndianBase() = default;
+    ~MessageInterfaceEndianBase() noexcept = default;
 
     template <typename T, typename TIter>
     static void writeData(T value, TIter& iter)
@@ -108,7 +108,7 @@ public:
         >::type;
 
 protected:
-    ~MessageInterfaceIdTypeBase() = default;
+    ~MessageInterfaceIdTypeBase() noexcept = default;
 };
 
 template <bool THasIdType>
@@ -144,7 +144,7 @@ public:
     }
 
 protected:
-    ~MessageInterfaceIdInfoBase() = default;
+    ~MessageInterfaceIdInfoBase() noexcept = default;
     virtual MsgIdParamType getIdImpl() const = 0;
 };
 
@@ -188,7 +188,7 @@ public:
     }
 
 protected:
-    ~MessageInterfaceReadOnlyBase() = default;
+    ~MessageInterfaceReadOnlyBase() noexcept = default;
     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size)
     {
         return doRead(iter, size);
@@ -214,7 +214,7 @@ public:
     }
 
 protected:
-    ~MessageInterfaceWriteOnlyBase() = default;
+    ~MessageInterfaceWriteOnlyBase() noexcept = default;
     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const
     {
         return doWrite(iter, size);
@@ -238,7 +238,7 @@ public:
     }
 
 protected:
-    ~MessageInterfaceReadWriteBase() = default;
+    ~MessageInterfaceReadWriteBase() noexcept = default;
     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size)
     {
         static_cast<void>(iter);
@@ -301,7 +301,7 @@ public:
     }
 
 protected:
-    ~MessageInterfaceHandlerBase() = default;
+    ~MessageInterfaceHandlerBase() noexcept = default;
     virtual void dispatchImpl(Handler& handler) = 0;
 };
 
@@ -342,7 +342,7 @@ public:
     }
 
 protected:
-    ~MessageInterfaceValidBase() = default;
+    ~MessageInterfaceValidBase() noexcept = default;
     virtual bool validImpl() const
     {
         return doValid();
@@ -387,7 +387,7 @@ public:
     }
 
 protected:
-    ~MessageInterfaceLengthBase() = default;
+    ~MessageInterfaceLengthBase() noexcept = default;
     virtual std::size_t lengthImpl() const
     {
         return doLength();
@@ -425,7 +425,7 @@ public:
     }
 
 protected:
-    ~MessageInterfaceRefreshBase() = default;
+    ~MessageInterfaceRefreshBase() noexcept = default;
     virtual bool refreshImpl()
     {
         return false;
@@ -471,7 +471,7 @@ template <typename TBase>
 class MessageInterfaceVirtDestructorBase : public TBase
 {
 protected:
-    virtual ~MessageInterfaceVirtDestructorBase() = default;
+    virtual ~MessageInterfaceVirtDestructorBase() noexcept = default;
 };
 
 template <bool THasVirtDestructor>

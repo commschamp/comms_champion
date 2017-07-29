@@ -37,7 +37,7 @@ public:
         WrapperPtr wrapper,
         QWidget* parentObj = nullptr);
 
-    ~LongIntValueFieldWidget();
+    ~LongIntValueFieldWidget() noexcept;
 
 protected:
     virtual void refreshImpl() override;

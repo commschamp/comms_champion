@@ -43,7 +43,7 @@ BundleFieldWidget::BundleFieldWidget(QWidget* parentObj)
     setLayout(m_membersLayout);
 }
 
-BundleFieldWidget::~BundleFieldWidget() = default;
+BundleFieldWidget::~BundleFieldWidget() noexcept = default;
 
 void BundleFieldWidget::addMemberField(FieldWidget* memberFieldWidget)
 {

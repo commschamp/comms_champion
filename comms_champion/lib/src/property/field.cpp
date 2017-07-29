@@ -113,7 +113,7 @@ Common::Common(const QVariant& props)
     }
 }
 
-Common::~Common() = default;
+Common::~Common() noexcept = default;
 
 Common& Common::operator=(const Common&) = default;
 Common& Common::operator=(Common&&) = default;
@@ -193,7 +193,7 @@ IntValue::IntValue(const QVariant& props) : Base(props)
         getFrom(props.value<QVariantMap>());
     }
 };
-IntValue::~IntValue() = default;
+IntValue::~IntValue() noexcept = default;
 
 IntValue& IntValue::operator=(const IntValue&) = default;
 IntValue& IntValue::operator=(IntValue&&) = default;
@@ -258,7 +258,7 @@ EnumValue::EnumValue(const QVariant& props) : Base(props)
     }
 };
 
-EnumValue::~EnumValue() = default;
+EnumValue::~EnumValue() noexcept = default;
 
 EnumValue& EnumValue::operator=(const EnumValue&) = default;
 EnumValue& EnumValue::operator=(EnumValue&&) = default;
@@ -312,7 +312,7 @@ BitmaskValue::BitmaskValue(const QVariant& props) : Base(props)
     }
 };
 
-BitmaskValue::~BitmaskValue() = default;
+BitmaskValue::~BitmaskValue() noexcept = default;
 
 BitmaskValue& BitmaskValue::operator=(const BitmaskValue&) = default;
 BitmaskValue& BitmaskValue::operator=(BitmaskValue&&) = default;
@@ -370,7 +370,7 @@ Bitfield::Bitfield(const QVariant& props) : Base(props)
     }
 };
 
-Bitfield::~Bitfield() = default;
+Bitfield::~Bitfield() noexcept = default;
 
 Bitfield& Bitfield::operator=(const Bitfield&) = default;
 Bitfield& Bitfield::operator=(Bitfield&&) = default;
@@ -420,7 +420,7 @@ Bundle::Bundle(const QVariant& props) : Base(props)
     }
 };
 
-Bundle::~Bundle() = default;
+Bundle::~Bundle() noexcept = default;
 
 Bundle& Bundle::operator=(const Bundle&) = default;
 Bundle& Bundle::operator=(Bundle&&) = default;
@@ -460,7 +460,7 @@ String::String(const String&) = default;
 String::String(String&&) = default;
 String::String(const QVariantMap& props) : Base(props) {};
 String::String(const QVariant& props) : Base(props) {};
-String::~String() = default;
+String::~String() noexcept = default;
 
 String& String::operator=(const String&) = default;
 String& String::operator=(String&&) = default;
@@ -489,7 +489,7 @@ ArrayList::ArrayList(const QVariant& props)
     }
 }
 
-ArrayList::~ArrayList() = default;
+ArrayList::~ArrayList() noexcept = default;
 
 ArrayList& ArrayList::operator=(const ArrayList&) = default;
 ArrayList& ArrayList::operator=(ArrayList&&) = default;
@@ -527,9 +527,9 @@ const QString& ArrayList::prefixName() const
     return m_prefixName;
 }
 
-ArrayList& ArrayList::prefixName(const QString& name)
+ArrayList& ArrayList::prefixName(const QString& nameParam)
 {
-    m_prefixName = name;
+    m_prefixName = nameParam;
     return *this;
 }
 
@@ -567,7 +567,7 @@ Optional::Optional(const QVariant& props)
     }
 }
 
-Optional::~Optional() = default;
+Optional::~Optional() noexcept = default;
 
 Optional& Optional::operator=(const Optional&) = default;
 Optional& Optional::operator=(Optional&&) = default;
@@ -629,7 +629,7 @@ FloatValue::FloatValue(const QVariant& props) : Base(props)
         getFrom(props.value<QVariantMap>());
     }
 };
-FloatValue::~FloatValue() = default;
+FloatValue::~FloatValue() noexcept = default;
 
 FloatValue& FloatValue::operator=(const FloatValue&) = default;
 FloatValue& FloatValue::operator=(FloatValue&&) = default;
@@ -673,7 +673,7 @@ Variant::Variant(const QVariant& props) : Base(props)
     }
 };
 
-Variant::~Variant() = default;
+Variant::~Variant() noexcept = default;
 
 Variant& Variant::operator=(const Variant&) = default;
 Variant& Variant::operator=(Variant&&) = default;
@@ -700,9 +700,9 @@ bool Variant::isIndexHidden() const
     return m_indexHidden;
 }
 
-Variant& Variant::setIndexHidden(bool hidden)
+Variant& Variant::setIndexHidden(bool hiddenVal)
 {
-    m_indexHidden = hidden;
+    m_indexHidden = hiddenVal;
     return *this;
 }
 
@@ -731,7 +731,7 @@ NoValue::NoValue(const QVariantMap& props) : Base(props)
 NoValue::NoValue(const QVariant& props) : Base(props)
 {
 };
-NoValue::~NoValue() = default;
+NoValue::~NoValue() noexcept = default;
 
 NoValue& NoValue::operator=(const NoValue&) = default;
 NoValue& NoValue::operator=(NoValue&&) = default;

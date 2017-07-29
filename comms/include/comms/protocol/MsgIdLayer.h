@@ -111,12 +111,16 @@ public:
     MsgIdLayer& operator=(MsgIdLayer&&) = default;
 
     /// @brief Destructor
-    ~MsgIdLayer() = default;
+    ~MsgIdLayer() noexcept = default;
 
     /// @brief Deserialise message from the input data sequence.
     /// @details The function will read message ID from the data sequence first,
-    ///          generate appropriate message object based on the read ID and
-    ///          forward the read() request to the next layer.
+    ///     generate appropriate message object based on the read ID and
+    ///     forward the read() request to the next layer.
+    ///     If the message object cannot be generated (the message type is not
+    ///     provided inside @b TAllMessages template parameter), but
+    ///     the @ref comms::option::SupportGenericMessage option has beed used,
+    ///     the @ref comms::GenericMessage may be generated instead.
     /// @tparam TIter Type of iterator used for reading.
     /// @param[in, out] msgPtr Reference to smart pointer that will hold
     ///                 allocated message object
@@ -280,7 +284,7 @@ private:
     template <typename TMsg>
     using IdRetrieveTag =
         typename std::conditional<
-            details::ProtocolLayerHasStaticIdImpl<TMsg>::Value,
+            details::ProtocolLayerHasDoGetId<TMsg>::Value,
             DirectIdTag,
             PolymorphicIdTag
         >::type;
@@ -305,6 +309,7 @@ private:
         }
 
         auto id = field.value();
+        auto remLen = size - field.length();
 
         unsigned idx = 0;
         while (true) {
@@ -317,7 +322,7 @@ private:
             static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
                 "Iterator used for reading is expected to be random access one");
             IterType readStart = iter;
-            es = reader.read(msgPtr, iter, size - field.length(), missingSize);
+            es = reader.read(msgPtr, iter, remLen, missingSize);
             if (es == ErrorStatus::Success) {
                 return es;
             }
@@ -327,16 +332,31 @@ private:
             ++idx;
         }
 
-        auto idxLimit = factory_.msgCount(id);
-        if (idxLimit == 0U) {
-            return ErrorStatus::InvalidMsgId;
-        }
-
-        if (idxLimit <= idx) {
+        if ((0U < idx) && Factory::hasUniqueIds()) {
             return es;
         }
 
-        return ErrorStatus::MsgAllocFailure;
+        GASSERT(!msgPtr);
+        auto idxLimit = factory_.msgCount(id);
+        if (idx < idxLimit) {
+            return ErrorStatus::MsgAllocFailure;
+        }
+
+        msgPtr = factory_.createGenericMsg(id);
+        if (!msgPtr) {
+            if (idx == 0) {
+                return ErrorStatus::InvalidMsgId;
+            }
+
+            return es;
+        }
+
+        es = reader.read(msgPtr, iter, remLen, missingSize);
+        if (es != comms::ErrorStatus::Success) {
+            msgPtr.reset();
+        }
+
+        return es;
     }
 
     template <typename TMsg, typename TIter, typename TWriter>

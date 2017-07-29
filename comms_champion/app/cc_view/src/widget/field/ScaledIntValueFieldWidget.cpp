@@ -63,7 +63,7 @@ ScaledIntValueFieldWidget::ScaledIntValueFieldWidget(
             this, SLOT(serialisedValueUpdated(const QString&)));
 }
 
-ScaledIntValueFieldWidget::~ScaledIntValueFieldWidget() = default;
+ScaledIntValueFieldWidget::~ScaledIntValueFieldWidget() noexcept = default;
 
 void ScaledIntValueFieldWidget::refreshImpl()
 {

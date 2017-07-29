@@ -52,7 +52,7 @@ ShortIntValueFieldWidget::ShortIntValueFieldWidget(
     refresh();
 }
 
-ShortIntValueFieldWidget::~ShortIntValueFieldWidget() = default;
+ShortIntValueFieldWidget::~ShortIntValueFieldWidget() noexcept = default;
 
 void ShortIntValueFieldWidget::refreshImpl()
 {

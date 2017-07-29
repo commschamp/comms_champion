@@ -33,7 +33,7 @@ namespace comms_champion
 {
 
 ConfigMgr::ConfigMgr() = default;
-ConfigMgr::~ConfigMgr() = default;
+ConfigMgr::~ConfigMgr() noexcept = default;
 
 const QString& ConfigMgr::getLastFile() const
 {

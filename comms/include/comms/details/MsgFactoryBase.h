@@ -46,6 +46,35 @@ constexpr bool msgFactoryAllHaveStaticNumId()
     return comms::util::tupleTypeAccumulate<TAllMessages>(true, MsgFactoryStaticNumIdCheckHelper());
 }
 
+template<bool TMustCat>
+struct AllMessagesRetrieveHelper;
+
+template<>
+struct AllMessagesRetrieveHelper<true>
+{
+    template <typename TAll, typename TOpt>
+    using Type =
+        typename std::decay<
+            decltype(
+                std::tuple_cat(
+                    std::declval<TAll>(),
+                    std::declval<std::tuple<typename TOpt::GenericMessage> >()
+                )
+            )
+        >::type;
+};
+
+template<>
+struct AllMessagesRetrieveHelper<false>
+{
+    template <typename TAll, typename TOpt>
+    using Type = TAll;
+};
+
+template <typename TAll, typename TOpt>
+using AllMessagesBundle =
+    typename AllMessagesRetrieveHelper<TOpt::HasInPlaceAllocation && TOpt::HasSupportGenericMessage>::template Type<TAll, TOpt>;
+
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryBase
 {
@@ -54,10 +83,11 @@ class MsgFactoryBase
         "Use comms::option::MsgIdType option in message interface type definition.");
     using ParsedOptionsInternal = details::MsgFactoryOptionsParser<TOptions...>;
 
+    using AllMessagesInternal = AllMessagesBundle<TAllMessages, ParsedOptionsInternal>;
     using Alloc =
         typename std::conditional<
             ParsedOptionsInternal::HasInPlaceAllocation,
-            util::alloc::InPlaceSingle<TMsgBase, TAllMessages>,
+            util::alloc::InPlaceSingle<TMsgBase, AllMessagesInternal>,
             util::alloc::DynMemory<TMsgBase>
         >::type;
 public:
@@ -67,6 +97,20 @@ public:
     using MsgIdType = typename Message::MsgIdType;
     using MsgPtr = typename Alloc::Ptr;
     using AllMessages = TAllMessages;
+
+    MsgPtr createGenericMsg(MsgIdParamType id) const
+    {
+        static_cast<void>(this);
+        using Tag =
+            typename std::conditional<
+                ParsedOptions::HasSupportGenericMessage,
+                AllocGenericTag,
+                NoAllocTag
+            >::type;
+
+        return createGenericMsgInternal(id, Tag());
+    }
+
 
 protected:
     MsgFactoryBase() = default;
@@ -100,7 +144,7 @@ protected:
     {
     public:
         using Message = TMessage;
-        static const auto MsgId = Message::MsgId;
+        static const decltype(Message::MsgId) MsgId = Message::MsgId;
         NumIdFactoryMethod() {}
 
     protected:
@@ -145,7 +189,6 @@ protected:
     template <typename TMessage>
     friend class GenericFactoryMethod;
 
-private:
     template <typename TObj, typename... TArgs>
     MsgPtr allocMsg(TArgs&&... args) const
     {
@@ -154,10 +197,26 @@ private:
 
         static_assert(
             (!ParsedOptionsInternal::HasInPlaceAllocation) ||
-                    comms::util::IsInTuple<TObj, AllMessages>::Value,
+                    comms::util::IsInTuple<TObj, AllMessagesInternal>::Value,
             "TObj must be in provided tuple of supported messages");
 
         return alloc_.template alloc<TObj>(std::forward<TArgs>(args)...);
+    }
+
+private:
+    struct AllocGenericTag {};
+    struct NoAllocTag {};
+
+    MsgPtr createGenericMsgInternal(MsgIdParamType id, AllocGenericTag) const
+    {
+        static_assert(std::is_base_of<Message, typename ParsedOptions::GenericMessage>::value,
+            "The requested GenericMessage class must have the same interface class as all other messages");
+        return allocMsg<typename ParsedOptions::GenericMessage>(id);
+    }
+
+    static MsgPtr createGenericMsgInternal(MsgIdParamType, NoAllocTag)
+    {
+        return MsgPtr();
     }
 
     mutable Alloc alloc_;

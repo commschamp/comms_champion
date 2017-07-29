@@ -39,7 +39,7 @@ public:
     using FieldWrapperPtr = field_wrapper::FieldWrapperPtr;
 
     /// @brief Destructor
-    virtual ~MessageHandler();
+    virtual ~MessageHandler() noexcept;
 
     /// @brief Handle the message.
     /// @details The function invokes virtual beginMsgHandlingImpl() at

@@ -50,7 +50,7 @@ public:
         Socket& socket,
         QWidget* parentObj = nullptr);
 
-    ~SocketConfigWidget();
+    ~SocketConfigWidget() noexcept;
 
 private slots:
     void localPortValueChanged(int value);

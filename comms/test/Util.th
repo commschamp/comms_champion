@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -48,6 +48,8 @@ public:
     void test21();
     void test22();
     void test23();
+    void test24();
+    void test25();
 };
 
 void UtilTestSuite::test1()
@@ -890,4 +892,99 @@ void UtilTestSuite::test23()
     TS_ASSERT_EQUALS(vec1, origVec2);
     TS_ASSERT_EQUALS(vec2, origVec1);
     TS_ASSERT_DIFFERS(vec1, vec2);
+}
+
+void UtilTestSuite::test24()
+{
+    typedef comms::util::StaticString<20> StaticStr;
+    typedef comms::util::StaticVector<std::uint8_t, 20> StaticVec;
+
+    static_assert(comms::field::basic::details::stringHasPushBack<std::string>(),
+            "std::string must have push_back");
+
+    static_assert(comms::field::basic::details::stringHasPushBack<StaticStr>(),
+            "StaticString must have push_back");
+
+    static_assert(!comms::field::basic::details::stringHasPushBack<comms::util::StringView>(),
+            "StringView doesn't have push_back");
+
+    static_assert(comms::field::basic::details::stringHasAssign<std::string>(),
+            "std::string must have assign");
+
+    static_assert(comms::field::basic::details::stringHasAssign<StaticStr>(),
+            "StaticString must have assign");
+
+    static_assert(!comms::field::basic::details::stringHasAssign<comms::util::StringView>(),
+            "StringView doesn't have assign");
+
+    static_assert(comms::field::basic::details::vectorHasAssign<std::vector<std::uint8_t> >(),
+            "std::vector doesn't have assign");
+
+    static_assert(comms::field::basic::details::vectorHasAssign<StaticVec>(),
+            "StaticVector doesn't have assign");
+
+    static_assert(!comms::field::basic::details::vectorHasAssign<comms::util::ArrayView<std::uint8_t> >(),
+            "ArrayView has assign");
+
+    static_assert(comms::details::hasReserveFunc<std::string>(),
+            "std::string must have reserve");
+
+    static_assert(comms::details::hasReserveFunc<StaticStr>(),
+            "StaticString must have reserve");
+
+    static_assert(comms::details::hasReserveFunc<StaticVec>(),
+            "StaticVector must have reserve");
+
+    static_assert(!comms::details::hasReserveFunc<comms::util::StringView>(),
+            "StringView mustn't have reserve");
+
+    static_assert(comms::details::hasClearFunc<std::string>(),
+            "std::string must have clear");
+
+    static_assert(comms::details::hasClearFunc<StaticStr>(),
+            "StaticString must have clear");
+
+    static_assert(comms::details::hasClearFunc<StaticVec>(),
+            "StaticVector must have clear");
+
+    static_assert(!comms::details::hasClearFunc<comms::util::StringView>(),
+            "StringView mustn't have clear");
+
+    static_assert(comms::details::hasRemoveSuffixFunc<comms::util::StringView>(),
+            "StringView must have remove_suffix");
+}
+
+void UtilTestSuite::test25()
+{
+    comms::util::StringView str("hello");
+    TS_ASSERT_EQUALS(str.size(), 5U);
+    TS_ASSERT(!str.empty());
+    TS_ASSERT_EQUALS(std::string(str.begin(), str.end()), "hello");
+    TS_ASSERT_EQUALS(std::string(str.rbegin(), str.rend()), "olleh");
+    TS_ASSERT_EQUALS(str[1], 'e');
+    TS_ASSERT_EQUALS(str[4], 'o');
+    TS_ASSERT_EQUALS(str.front(), 'h');
+    TS_ASSERT_EQUALS(str.back(), 'o');
+    TS_ASSERT_LESS_THAN(str.compare("hemmo"), 0);
+    TS_ASSERT_EQUALS(str.compare("hello"), 0);
+    TS_ASSERT_LESS_THAN(str.compare("hello1"), 0);
+    TS_ASSERT_LESS_THAN(0, str.compare("hell"));
+    TS_ASSERT_LESS_THAN(0, str.compare("hebbol"));
+    TS_ASSERT_EQUALS(str.find("el"), 1);
+    TS_ASSERT_EQUALS(str.find("le"), comms::util::StringView::npos);
+    TS_ASSERT_EQUALS(str.find('l', 3), 3);
+    TS_ASSERT_EQUALS(str.find_first_of("ollh"), 0);
+    TS_ASSERT_EQUALS(str.find_last_of("llh"), 3);
+    TS_ASSERT_EQUALS(str.find_first_not_of("hel"), 4);
+    TS_ASSERT_EQUALS(str.find_last_not_of("hlo"), 1);
+
+    auto* beg = &str[0];
+    str.remove_prefix(1);
+    TS_ASSERT_EQUALS(str.size(), 4U);
+    TS_ASSERT_EQUALS(str, "ello");
+    TS_ASSERT_EQUALS(beg + 1, str.data());
+    str.remove_suffix(2);
+    TS_ASSERT_EQUALS(str.size(), 2U);
+    TS_ASSERT_EQUALS(str, "el");
+    TS_ASSERT_EQUALS(beg + 1, str.data());
 }

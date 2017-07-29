@@ -67,6 +67,8 @@ namespace field
 ///         option.
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
+/// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
+/// @see @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE()
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bundle : public details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMembers>, TOptions...>
 {

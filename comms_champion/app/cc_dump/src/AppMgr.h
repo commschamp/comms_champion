@@ -54,7 +54,7 @@ public:
     };
 
     AppMgr();
-    ~AppMgr();
+    ~AppMgr() noexcept;
 
     bool start(const Config& config);
 

@@ -55,7 +55,7 @@ public:
     Plugin();
 
     /// @brief Destructor
-    virtual ~Plugin();
+    virtual ~Plugin() noexcept;
 
     /// @brief Get current configuration.
     /// @details Invokes getCurrentConfigImpl(), which can be overridden by

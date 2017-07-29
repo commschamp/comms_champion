@@ -27,7 +27,7 @@ namespace field_wrapper
 
 UnknownValueWrapper::UnknownValueWrapper() {}
 
-UnknownValueWrapper::~UnknownValueWrapper() {}
+UnknownValueWrapper::~UnknownValueWrapper() noexcept = default;
 
 UnknownValueWrapper::Ptr UnknownValueWrapper::clone()
 {

@@ -45,7 +45,7 @@ public:
         SerialSocket& socket,
         QWidget* parentObj = nullptr);
 
-    ~SerialSocketConfigWidget();
+    ~SerialSocketConfigWidget() noexcept;
 
 private slots:
     void nameChanged(const QString& value);

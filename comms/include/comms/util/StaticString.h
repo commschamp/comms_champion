@@ -756,7 +756,7 @@ private:
         return static_cast<std::size_t>(std::distance(str, strTmp));
     }
 
-    static const auto Ends = static_cast<TChar>('\0');
+    static const TChar Ends = static_cast<TChar>('\0');
     StaticVectorBase<TChar> vec_;
 };
 
@@ -778,6 +778,7 @@ struct StaticStringStorageBase
 ///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>.
 /// @tparam TSize Maximum length of the string, not including zero termination character.
 /// @tparam Type of the single character.
+/// @headerfile "comms/util/StaticString.h"
 template <std::size_t TSize, typename TChar = char>
 class StaticString :
     public details::StaticStringStorageBase<TChar, TSize + 1>,
@@ -811,7 +812,7 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     /// @brief Same as std::string::npos.
-    static const auto npos = Base::npos;
+    static const decltype(Base::npos) npos = Base::npos;
 
     /// @brief Default constructor
     /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/basic_string">Reference</a>
@@ -1944,7 +1945,7 @@ bool operator==(const StaticString<TSize1, TChar>& str1, const StaticString<TSiz
         std::equal(str1.begin(), str1.end(), str2.begin());
 }
 
-/// @brief Lexicographical compare between the strings.
+/// @brief Equality compare between the strings.
 /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
 /// @related StaticString
 template <std::size_t TSize1, typename TChar>
@@ -1953,6 +1954,14 @@ bool operator==(const TChar* str1, const StaticString<TSize1, TChar>& str2)
     return str2 == str1;
 }
 
+/// @brief Inequality compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StaticString
+template <std::size_t TSize1, typename TChar>
+bool operator!=(const TChar* str1, const StaticString<TSize1, TChar>& str2)
+{
+    return !(str2 == str1);
+}
 
 }  // namespace util
 

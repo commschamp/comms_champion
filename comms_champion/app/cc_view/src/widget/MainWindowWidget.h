@@ -46,7 +46,7 @@ public:
     typedef GuiAppMgr::ActivityState ActiveState;
 
     MainWindowWidget(QWidget* parentObj = nullptr);
-    ~MainWindowWidget();
+    ~MainWindowWidget() noexcept;
 
 private slots:
     void newSendMsgDialog(ProtocolPtr protocol);

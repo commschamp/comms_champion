@@ -33,7 +33,7 @@ namespace raw_data_protocol
 namespace cc_plugin
 {
 
-Protocol::~Protocol() = default;
+Protocol::~Protocol() noexcept = default;
 
 const QString& Protocol::nameImpl() const
 {

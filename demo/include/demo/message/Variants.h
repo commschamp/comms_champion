@@ -71,13 +71,13 @@ struct VariantsFields
         >
     {
         /// @brief Allow access to internal fields.
-        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS macro
+        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
         ///     related to @b comms::field::Bundle class from COMMS library
         ///     for details. @n
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for 1 byte unsigned integer field.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(id, value);
     };
 
     /// @brief Second type that can be stored in @ref field1 variant field.
@@ -96,13 +96,13 @@ struct VariantsFields
         >
     {
         /// @brief Allow access to internal fields.
-        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS macro
+        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
         ///     related to @b comms::field::Bundle class from COMMS library
         ///     for details. @n
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for 4 bytes unsigned integer field.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(id, value);
     };
 
     /// @brief Third type that can be stored in @ref field1 variant field.
@@ -126,13 +126,13 @@ struct VariantsFields
         >
     {
         /// @brief Allow access to internal fields.
-        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS macro
+        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
         ///     related to @b comms::field::Bundle class from COMMS library
         ///     for details. @n
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for string field prefixed with its size.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(id, value);
     };
 
     /// @brief Variant field.
@@ -151,14 +151,14 @@ struct VariantsFields
         >
     {
         /// @brief Allow access to internal fields.
-        /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS macro
-        ///     related to @b comms::field::Bundle class from COMMS library
+        /// @details See definition of @b COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE macro
+        ///     related to @b comms::field::Variant class from COMMS library
         ///     for details. @n
         ///     The names are:
         ///     @b val1 for @ref field1_var1
         ///     @b val2 for @ref field1_var2
         ///     @b val3 for @ref field1_var3
-        COMMS_VARIANT_MEMBERS_ACCESS(val1, val2, val3);
+        COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(val1, val2, val3);
     };
 
     /// @brief All the fields bundled in std::tuple.
@@ -183,6 +183,15 @@ class Variants : public
         comms::option::MsgType<Variants<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_Variants>,
+            comms::option::FieldsImpl<VariantsFields::All>,
+            comms::option::MsgType<Variants<TMsgBase> >
+        >;
 public:
 
     /// @brief Allow access to internal fields.
@@ -202,7 +211,7 @@ public:
     Variants(Variants&& other) = default;
 
     /// @brief Destructor
-    ~Variants() = default;
+    ~Variants() noexcept = default;
 
     /// @brief Copy assignment
     Variants& operator=(const Variants&) = default;

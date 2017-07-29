@@ -37,7 +37,7 @@ class EchoSocket : public QObject, public Socket
 
 public:
     EchoSocket();
-    ~EchoSocket();
+    ~EchoSocket() noexcept;
 
 protected:
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;

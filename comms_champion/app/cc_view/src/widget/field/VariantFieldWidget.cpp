@@ -46,7 +46,7 @@ namespace comms_champion
         this, SLOT(indexUpdated(int)));
 }
 
-VariantFieldWidget::~VariantFieldWidget() = default;
+VariantFieldWidget::~VariantFieldWidget() noexcept = default;
 
 void VariantFieldWidget::setMemberField(FieldWidget* memberFieldWidget)
 {

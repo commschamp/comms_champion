@@ -40,7 +40,7 @@ public:
     BitmaskValues();
     BitmaskValues(const BitmaskValues&) = delete;
     BitmaskValues(BitmaskValues&&) = delete;
-    virtual ~BitmaskValues();
+    virtual ~BitmaskValues() noexcept;
 
     BitmaskValues& operator=(const BitmaskValues&);
     BitmaskValues& operator=(BitmaskValues&&);

@@ -53,7 +53,7 @@ public:
 
     IntValue(const IntValue&) = default;
     IntValue(IntValue&&) = default;
-    ~IntValue() = default;
+    ~IntValue() noexcept = default;
 
     IntValue& operator=(const IntValue&) = default;
     IntValue& operator=(IntValue&&) = default;

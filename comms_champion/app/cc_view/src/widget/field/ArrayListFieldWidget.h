@@ -78,7 +78,7 @@ public:
         CreateMissingDataFieldsFunc&& updateFunc,
         QWidget* parentObj = nullptr);
 
-    ~ArrayListFieldWidget();
+    ~ArrayListFieldWidget() noexcept;
 
     template <typename TFunc>
     void setCreateMissingDataFieldsCallback(TFunc&& func)

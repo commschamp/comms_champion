@@ -59,7 +59,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 FloatValues::FloatValues() = default;
-FloatValues::~FloatValues() = default;
+FloatValues::~FloatValues() noexcept = default;
 
 FloatValues& FloatValues::operator=(const FloatValues&) = default;
 FloatValues& FloatValues::operator=(FloatValues&&) = default;

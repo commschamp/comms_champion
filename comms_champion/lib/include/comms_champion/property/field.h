@@ -62,7 +62,7 @@ public:
     explicit Common(const QVariant& props);
 
     /// @brief Destructor
-    ~Common();
+    ~Common() noexcept;
 
     /// @brief Copy assignment operator
     Common& operator=(const Common&);
@@ -165,7 +165,7 @@ public:
     explicit CommonBase(const QVariant& props) : Base(props) {}
 
     /// @brief Destructor
-    ~CommonBase() = default;
+    ~CommonBase() noexcept = default;
 
     /// @brief Copy assignment
     CommonBase& operator=(const CommonBase&) = default;
@@ -239,7 +239,7 @@ public:
     IntValue(const QVariant& props);
 
     /// @brief Destructor
-    ~IntValue();
+    ~IntValue() noexcept;
 
     /// @brief Copy assignement
     IntValue& operator=(const IntValue&);
@@ -305,7 +305,7 @@ public:
     EnumValue(const QVariant& props);
 
     /// @brief Destructor
-    ~EnumValue();
+    ~EnumValue() noexcept;
 
     /// @brief Copy assignement
     EnumValue& operator=(const EnumValue&);
@@ -363,7 +363,7 @@ public:
     BitmaskValue(const QVariant& props);
 
     /// @brief Destructor
-    ~BitmaskValue();
+    ~BitmaskValue() noexcept;
 
     /// @brief Copy assignment
     BitmaskValue& operator=(const BitmaskValue&);
@@ -420,7 +420,7 @@ public:
     Bitfield(const QVariant& props);
 
     /// @brief Desctructor
-    ~Bitfield();
+    ~Bitfield() noexcept;
 
     /// @brief Copy assignment
     Bitfield& operator=(const Bitfield&);
@@ -472,7 +472,7 @@ public:
     Bundle(const QVariant& props);
 
     ///  @brief Destructor
-    ~Bundle();
+    ~Bundle() noexcept;
 
     /// @brief Copy assignment
     Bundle& operator=(const Bundle&);
@@ -520,7 +520,7 @@ public:
     String(const QVariant& props);
 
     /// @brief Destructor
-    ~String();
+    ~String() noexcept;
 
     /// @brief Copy assignment
     String& operator=(const String&);
@@ -558,7 +558,7 @@ public:
     ArrayList(const QVariant& props);
 
     /// @brief Destructor
-    ~ArrayList();
+    ~ArrayList() noexcept;
 
     /// @brief Copy assignment
     ArrayList& operator=(const ArrayList&);
@@ -587,7 +587,7 @@ public:
     const QString& prefixName() const;
 
     /// @brief Set name of the size/length prefix displayed separately.
-    ArrayList& prefixName(const QString& name);
+    ArrayList& prefixName(const QString& nameParam);
 
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
@@ -624,7 +624,7 @@ public:
     Optional(const QVariant& props);
 
     /// @brief Destructor
-    ~Optional();
+    ~Optional() noexcept;
 
     /// @brief Copy assignment
     Optional& operator=(const Optional&);
@@ -682,7 +682,7 @@ public:
     FloatValue(const QVariant& props);
 
     /// @brief Destructor
-    ~FloatValue();
+    ~FloatValue() noexcept;
 
     /// @brief Copy assignment
     FloatValue& operator=(const FloatValue&);
@@ -732,7 +732,7 @@ public:
     Variant(const QVariant& props);
 
     /// @brief Destructor
-    ~Variant();
+    ~Variant() noexcept;
 
     /// @brief Copy assignment
     Variant& operator=(const Variant&);
@@ -753,7 +753,7 @@ public:
     bool isIndexHidden() const;
 
     /// @brief Set the member index should be hidden when displaying field.
-    Variant& setIndexHidden(bool hidden = true);
+    Variant& setIndexHidden(bool hiddenVal = true);
 
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
@@ -787,7 +787,7 @@ public:
     NoValue(const QVariant& props);
 
     /// @brief Descructor
-    ~NoValue();
+    ~NoValue() noexcept;
 
     /// @brief Copy assignment
     NoValue& operator=(const NoValue&);

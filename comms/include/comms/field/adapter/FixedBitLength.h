@@ -139,7 +139,7 @@ private:
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
     using SignExtTag = typename std::conditional<
-        BitLength < std::numeric_limits<UnsignedSerialisedType>::digits,
+        BitLength < static_cast<std::size_t>(std::numeric_limits<UnsignedSerialisedType>::digits),
         MustSignExtTag,
         NoSignExtTag
     >::type;
@@ -184,7 +184,7 @@ private:
 
         static const UnsignedSerialisedType SignExtMask =
             ~((static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1);
-        static const auto SignMask =
+        static const UnsignedSerialisedType SignMask =
             static_cast<UnsignedSerialisedType>(1U) << (BitLength - 1);
 
         if ((val & SignMask) != 0) {
@@ -201,7 +201,7 @@ private:
 
 
 private:
-    static const auto UnsignedValueMask =
+    static const UnsignedSerialisedType UnsignedValueMask =
         (static_cast<UnsignedSerialisedType>(1U) << BitLength) - 1;
 };
 

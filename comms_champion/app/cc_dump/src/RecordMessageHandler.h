@@ -37,7 +37,7 @@ class RecordMessageHandler : public comms_champion::MessageHandler
 public:
     RecordMessageHandler(const QString& filename);
 
-    virtual ~RecordMessageHandler();
+    virtual ~RecordMessageHandler() noexcept;
 
     void flush();
 

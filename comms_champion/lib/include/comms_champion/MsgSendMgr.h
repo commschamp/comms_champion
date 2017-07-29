@@ -36,7 +36,7 @@ public:
     typedef std::function<void ()> SendCompleteCallbackFunc;
 
     MsgSendMgr();
-    ~MsgSendMgr();
+    ~MsgSendMgr() noexcept;
 
     void setSendMsgsCallbackFunc(SendMsgsCallbackFunc&& func);
     void setSendCompeteCallbackFunc(SendCompleteCallbackFunc&& func);

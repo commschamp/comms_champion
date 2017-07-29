@@ -56,7 +56,7 @@ Socket::Socket()
         this, SLOT(newConnection()));
 }
 
-Socket::~Socket()
+Socket::~Socket() noexcept
 {
     for (auto* socket : m_sockets) {
         socket->flush();

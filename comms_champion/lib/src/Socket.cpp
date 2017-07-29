@@ -21,7 +21,7 @@ namespace comms_champion
 {
 
 Socket::Socket() = default;
-Socket::~Socket() = default;
+Socket::~Socket() noexcept = default;
 
 bool Socket::start()
 {

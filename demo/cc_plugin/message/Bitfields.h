@@ -40,7 +40,7 @@ public:
     Bitfields();
     Bitfields(const Bitfields&) = delete;
     Bitfields(Bitfields&&) = delete;
-    virtual ~Bitfields();
+    virtual ~Bitfields() noexcept;
 
     Bitfields& operator=(const Bitfields&);
     Bitfields& operator=(Bitfields&&);

@@ -71,7 +71,7 @@ protected:
     ///     and use it as actual handler class. To allow polymorphic delete
     ///     (destruction) make sure to declare the inherited destructor as
     ///     virtual.
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 #endif
 };
 
@@ -183,7 +183,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 
@@ -281,7 +281,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <
@@ -369,7 +369,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <
@@ -448,7 +448,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <
@@ -518,7 +518,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <
@@ -579,7 +579,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <
@@ -631,7 +631,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <typename TDefault, typename T1, typename T2, typename T3>
@@ -670,7 +670,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <typename TDefault, typename T1, typename T2>
@@ -701,7 +701,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <typename TDefault, typename T1>
@@ -724,7 +724,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 template <typename TDefault>
@@ -739,7 +739,7 @@ public:
     }
 
 protected:
-    ~GenericHandler() = default;
+    ~GenericHandler() noexcept = default;
 };
 
 /// @endcond

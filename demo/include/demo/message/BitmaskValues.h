@@ -46,10 +46,10 @@ struct BitmaskValuesFields
         >
     {
         /// @brief Provide names generates access functions for internal bits.
-        /// @details See definition of @b COMMS_BITMASK_BITS_SEQ macro
+        /// @details See definition of @b COMMS_BITMASK_BITS_SEQ_NOTEMPLATE macro
         ///     related to @b comms::field::BitmaskValue class from COMMS library
         ///     for details.
-        COMMS_BITMASK_BITS_SEQ(bit0, bit1, bit2, bit3, bit4);
+        COMMS_BITMASK_BITS_SEQ_NOTEMPLATE(bit0, bit1, bit2, bit3, bit4);
     };
 
     /// @brief Bitmask with 2 bytes length
@@ -69,10 +69,10 @@ struct BitmaskValuesFields
         COMMS_BITMASK_BITS(bit0, bit3=3, bit8=8, bit9=9);
 
         /// @brief Generated independent access functions for internal bits.
-        /// @details See definition of @b COMMS_BITMASK_BITS_ACCESS macro
+        /// @details See definition of @b COMMS_BITMASK_BITS_ACCESS_NOTEMPLATE macro
         ///     related to @b comms::field::BitmaskValue class from COMMS library
         ///     for details.
-        COMMS_BITMASK_BITS_ACCESS(bit0, bit3, bit8, bit9);
+        COMMS_BITMASK_BITS_ACCESS_NOTEMPLATE(bit0, bit3, bit8, bit9);
     };
 
     /// @brief All the fields bundled in std::tuple.
@@ -98,6 +98,15 @@ class BitmaskValues : public
         comms::option::MsgType<BitmaskValues<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
+            comms::option::FieldsImpl<BitmaskValuesFields::All>,
+            comms::option::MsgType<BitmaskValues<TMsgBase> >
+        >;
 public:
 
     /// @brief Allow access to internal fields.
@@ -117,7 +126,7 @@ public:
     BitmaskValues(BitmaskValues&& other) = default;
 
     /// @brief Destructor
-    ~BitmaskValues() = default;
+    ~BitmaskValues() noexcept = default;
 
     /// @brief Copy assignment
     BitmaskValues& operator=(const BitmaskValues&) = default;

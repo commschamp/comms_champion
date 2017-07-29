@@ -59,7 +59,7 @@ class InvalidMessage : public
     >
 {
 public:
-    virtual ~InvalidMessage() = default;
+    virtual ~InvalidMessage() noexcept = default;
 
 protected:
     virtual const char*

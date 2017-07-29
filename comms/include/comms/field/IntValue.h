@@ -290,10 +290,10 @@ private:
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
 /// @related IntValue
-template <typename... TArgs>
+template <typename TFieldBase, typename T, typename... TOptions>
 bool operator==(
-    const IntValue<TArgs...>& field1,
-    const IntValue<TArgs...>& field2)
+    const IntValue<TFieldBase, T, TOptions...>& field1,
+    const IntValue<TFieldBase, T, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
@@ -303,10 +303,10 @@ bool operator==(
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
 /// @related IntValue
-template <typename... TArgs>
+template <typename TFieldBase, typename T, typename... TOptions>
 bool operator!=(
-    const IntValue<TArgs...>& field1,
-    const IntValue<TArgs...>& field2)
+    const IntValue<TFieldBase, T, TOptions...>& field1,
+    const IntValue<TFieldBase, T, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }
@@ -316,10 +316,10 @@ bool operator!=(
 /// @param[in] field2 Second field.
 /// @return true in case value of the first field is lower than than the value of the second.
 /// @related IntValue
-template <typename... TArgs>
+template <typename TFieldBase, typename T, typename... TOptions>
 bool operator<(
-    const IntValue<TArgs...>& field1,
-    const IntValue<TArgs...>& field2)
+    const IntValue<TFieldBase, T, TOptions...>& field1,
+    const IntValue<TFieldBase, T, TOptions...>& field2)
 {
     return field1.value() < field2.value();
 }

@@ -215,7 +215,7 @@ private:
 
 }  // namespace
 
-DefaultMessageDisplayHandler::~DefaultMessageDisplayHandler() = default;
+DefaultMessageDisplayHandler::~DefaultMessageDisplayHandler() noexcept = default;
 
 DefaultMessageDisplayHandler::MsgWidgetPtr DefaultMessageDisplayHandler::getMsgWidget()
 {

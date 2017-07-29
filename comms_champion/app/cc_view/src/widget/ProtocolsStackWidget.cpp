@@ -33,7 +33,7 @@ ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parentObj)
             this, SLOT(newItemSelected()));
 }
 
-ProtocolsStackWidget::~ProtocolsStackWidget() = default;
+ProtocolsStackWidget::~ProtocolsStackWidget() noexcept = default;
 
 void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
 {

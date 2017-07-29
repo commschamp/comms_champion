@@ -27,7 +27,7 @@ namespace field_wrapper
 
 BundleWrapper::BundleWrapper() {}
 
-BundleWrapper::~BundleWrapper() {}
+BundleWrapper::~BundleWrapper() noexcept = default;
 
 BundleWrapper::Members& BundleWrapper::getMembers()
 {

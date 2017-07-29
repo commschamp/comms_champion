@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -41,6 +41,7 @@ public:
     void test9();
     void test10();
     void test11();
+    void test12();
 
 private:
 
@@ -59,6 +60,7 @@ private:
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
+        comms::option::IdInfoInterface,
         comms::option::ReadIterator<const std::uint8_t*>,
         comms::option::WriteIterator<std::uint8_t*>,
         comms::option::ValidCheckInterface,
@@ -401,6 +403,7 @@ void MessageTestSuite::test10()
     TS_ASSERT_EQUALS(value2, -1);
 }
 
+
 void MessageTestSuite::test11()
 {
     typedef
@@ -526,6 +529,44 @@ void MessageTestSuite::test11()
     static_assert(!std::has_virtual_destructor<Msg13>::value, "Error");
 }
 
+void MessageTestSuite::test12()
+{
+    using Message = comms::GenericMessage<BeMessageBase>;
+    Message msg(MessageType1);
+
+    BeMessageBase& interface = msg;
+    TS_ASSERT_EQUALS(interface.getId(), MessageType1);
+    TS_ASSERT(interface.valid());
+    TS_ASSERT_EQUALS(interface.length(), 0);
+
+    static const std::uint8_t Buf[] = {
+        0x12, 0x34, 0x56
+    };
+    static const std::size_t BufSize =
+        std::extent<decltype(Buf)>::value;
+
+    auto readIter = comms::readIteratorFor<BeMessageBase>(Buf);
+    auto es = interface.read(readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(interface.length(), BufSize);
+    TS_ASSERT_EQUALS(msg.field_data().value().size(), BufSize);
+
+    bool equal =
+        std::equal(
+            std::begin(Buf), std::end(Buf), msg.field_data().value().begin());
+    TS_ASSERT(equal);
+
+    std::vector<std::uint8_t> outBuf;
+    outBuf.resize(BufSize);
+    auto writeIter = comms::writeIteratorFor<BeMessageBase>(&outBuf[0]);
+    es = interface.write(writeIter, outBuf.size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+
+    equal =
+        std::equal(
+            std::begin(Buf), std::end(Buf), outBuf.begin());
+    TS_ASSERT(equal);
+}
 
 template <typename TMessage>
 TMessage MessageTestSuite::internalReadWriteTest(

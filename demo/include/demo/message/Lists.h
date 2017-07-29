@@ -120,6 +120,16 @@ class Lists : public
         comms::option::MsgType<Lists<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_Lists>,
+            comms::option::FieldsImpl<ListsFields::All>,
+            comms::option::MsgType<Lists<TMsgBase> >
+        >;
+
 public:
 
     /// @brief Allow access to internal fields.
@@ -139,7 +149,7 @@ public:
     Lists(Lists&& other) = default;
 
     /// @brief Destructor
-    ~Lists() = default;
+    ~Lists() noexcept = default;
 
     /// @brief Copy assignment
     Lists& operator=(const Lists&) = default;

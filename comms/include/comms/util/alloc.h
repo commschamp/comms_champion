@@ -70,7 +70,7 @@ public:
         other.allocated_ = nullptr;
     }
 
-    ~InPlaceDeleter()
+    ~InPlaceDeleter() noexcept
     {
         GASSERT(allocated_ == nullptr);
     }

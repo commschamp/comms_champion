@@ -44,7 +44,7 @@ public:
 
     NoValue(const NoValue&) = default;
     NoValue(NoValue&&) = default;
-    ~NoValue() = default;
+    ~NoValue() noexcept = default;
 
     NoValue& operator=(const NoValue&) = default;
     NoValue& operator=(NoValue&&) = default;

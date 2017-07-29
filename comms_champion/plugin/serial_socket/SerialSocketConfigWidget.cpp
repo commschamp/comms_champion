@@ -147,7 +147,7 @@ SerialSocketConfigWidget::SerialSocketConfigWidget(
         this, SLOT(flowControlChanged(int)));
 }
 
-SerialSocketConfigWidget::~SerialSocketConfigWidget() = default;
+SerialSocketConfigWidget::~SerialSocketConfigWidget() noexcept = default;
 
 void SerialSocketConfigWidget::nameChanged(const QString& value)
 {

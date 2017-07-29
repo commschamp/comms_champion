@@ -23,7 +23,8 @@
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
 #include "comms/util/StaticString.h"
-#include "basic/ArrayList.h"
+#include "comms/util/StringView.h"
+#include "basic/String.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
 #include "tag.h"
@@ -37,41 +38,64 @@ namespace field
 namespace details
 {
 
-template <bool THasCustomStorageType, bool THasFixedStorage>
-struct StringStorageType;
+template <bool THasOrigDataViewStorage>
+struct StringOrigDataViewStorageType;
 
-template <bool THasFixedStorage>
-struct StringStorageType<true, THasFixedStorage>
+template <>
+struct StringOrigDataViewStorageType<true>
 {
-    template <typename TOptions>
-    using Type = typename TOptions::CustomStorageType;
+    using Type = comms::util::StringView;
 };
 
 template <>
-struct StringStorageType<false, true>
+struct StringOrigDataViewStorageType<false>
 {
-    template <typename TOptions>
-    using Type = comms::util::StaticString<TOptions::FixedSizeStorage>;
-};
-
-template <>
-struct StringStorageType<false, false>
-{
-    template <typename TOptions>
     using Type = std::string;
 };
 
-template <typename TOptions>
+template <bool THasFixedSizeStorage>
+struct StringFixedSizeStorageType;
+
+template <>
+struct StringFixedSizeStorageType<true>
+{
+    template <typename TOpt>
+    using Type = comms::util::StaticString<TOpt::FixedSizeStorage>;
+};
+
+template <>
+struct StringFixedSizeStorageType<false>
+{
+    template <typename TOpt>
+    using Type = typename StringOrigDataViewStorageType<TOpt::HasOrigDataView>::Type;
+};
+
+template <bool THasCustomStorage>
+struct StringCustomStringStorageType;
+
+template <>
+struct StringCustomStringStorageType<true>
+{
+    template <typename TOpt>
+    using Type = typename TOpt::CustomStorageType;
+};
+
+template <>
+struct StringCustomStringStorageType<false>
+{
+    template <typename TOpt>
+    using Type =
+        typename StringFixedSizeStorageType<TOpt::HasFixedSizeStorage>::template Type<TOpt>;
+};
+
+template <typename TOpt>
 using StringStorageTypeT =
-    typename StringStorageType<
-        TOptions::HasCustomStorageType,
-        TOptions::HasFixedSizeStorage
-    >::template Type<TOptions>;
+    typename StringCustomStringStorageType<TOpt::HasCustomStorageType>::template Type<TOpt>;
 
 template <typename TFieldBase, typename... TOptions>
 using StringBase =
     AdaptBasicFieldT<
-        basic::ArrayList<TFieldBase, StringStorageTypeT<OptionsParser<TOptions...> > >,
+        basic::String<TFieldBase, StringStorageTypeT<OptionsParser<TOptions...> > >,
         TOptions...
     >;
 
@@ -99,6 +123,7 @@ using StringBase =
 ///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+///     @li comms::option::OrigDataView
 /// @extends comms::Field
 /// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>
@@ -148,7 +173,7 @@ public:
     String(String&&) = default;
 
     /// @brief Destructor
-    ~String() = default;
+    ~String() noexcept = default;
 
     /// @brief Copy assignment
     String& operator=(const String&) = default;
@@ -169,7 +194,13 @@ public:
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         auto es = Base::read(iter, len);
-        adjustValue(AdjustmentTag());
+        using Tag = typename std::conditional<
+            ParsedOptions::HasSequenceFixedSize,
+            AdjustmentNeededTag,
+            NoAdjustmentTag
+        >::type;
+
+        adjustValue(Tag());
         return es;
     }
 
@@ -227,19 +258,16 @@ public:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 private:
-    struct NoAdjustment {};
-    struct AdjustmentNeeded {};
-    using AdjustmentTag = typename std::conditional<
-        ParsedOptions::HasSequenceFixedSize,
-        AdjustmentNeeded,
-        NoAdjustment
-    >::type;
+    struct NoAdjustmentTag {};
+    struct AdjustmentNeededTag {};
+    struct HasResizeTag {};
+    struct HasRemoveSuffixTag {};
 
-    void adjustValue(NoAdjustment)
+    void adjustValue(NoAdjustmentTag)
     {
     }
 
-    void adjustValue(AdjustmentNeeded)
+    void adjustValue(AdjustmentNeededTag)
     {
         std::size_t count = 0;
         for (auto iter = Base::value().begin(); iter != Base::value().end(); ++iter) {
@@ -249,7 +277,36 @@ private:
             ++count;
         }
 
+        doResize(count);
+    }
+
+    void doResize(std::size_t count)
+    {
+        using Tag =
+            typename std::conditional<
+                comms::details::hasResizeFunc<ValueType>(),
+                HasResizeTag,
+                typename std::conditional<
+                    comms::details::hasRemoveSuffixFunc<ValueType>(),
+                    HasRemoveSuffixTag,
+                    void
+                >::type
+            >::type;
+
+        static_assert(!std::is_void<Tag>::value,
+            "The string storage value type must have either resize() or remove_suffix() "
+            "member functions");
+        doResize(count, Tag());
+    }
+
+    void doResize(std::size_t count, HasResizeTag)
+    {
         Base::value().resize(count);
+    }
+
+    void doResize(std::size_t count, HasRemoveSuffixTag)
+    {
+        Base::value().remove_suffix(Base::value().size() - count);
     }
 
 };
@@ -259,10 +316,10 @@ private:
 /// @param[in] field2 Second field.
 /// @return true in case fields are equal, false otherwise.
 /// @related String
-template <typename... TArgs>
+template <typename TFieldBase, typename... TOptions>
 bool operator==(
-    const String<TArgs...>& field1,
-    const String<TArgs...>& field2)
+    const String<TFieldBase, TOptions...>& field1,
+    const String<TFieldBase, TOptions...>& field2)
 {
     return field1.value() == field2.value();
 }
@@ -272,10 +329,10 @@ bool operator==(
 /// @param[in] field2 Second field.
 /// @return true in case fields are NOT equal, false otherwise.
 /// @related String
-template <typename... TArgs>
+template <typename TFieldBase, typename... TOptions>
 bool operator!=(
-    const String<TArgs...>& field1,
-    const String<TArgs...>& field2)
+    const String<TFieldBase, TOptions...>& field1,
+    const String<TFieldBase, TOptions...>& field2)
 {
     return field1.value() != field2.value();
 }
@@ -286,10 +343,10 @@ bool operator!=(
 /// @param[in] field2 Second field.
 /// @return true in case first field is less than second field.
 /// @related String
-template <typename... TArgs>
+template <typename TFieldBase, typename... TOptions>
 bool operator<(
-    const String<TArgs...>& field1,
-    const String<TArgs...>& field2)
+    const String<TFieldBase, TOptions...>& field1,
+    const String<TFieldBase, TOptions...>& field2)
 {
     return field1.value() < field2.value();
 }

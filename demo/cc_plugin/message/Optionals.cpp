@@ -89,7 +89,7 @@ QVariantList createFieldsProperties()
 }  // namespace
 
 Optionals::Optionals() = default;
-Optionals::~Optionals() = default;
+Optionals::~Optionals() noexcept = default;
 
 Optionals& Optionals::operator=(const Optionals&) = default;
 Optionals& Optionals::operator=(Optionals&&) = default;

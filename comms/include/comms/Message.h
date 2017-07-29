@@ -86,7 +86,7 @@ public:
     ///     any polymorphic behavior, i.e. if there is at least one virtual function.
     ///     It is possible to explicitly suppress @b virtual declaration by
     ///     using comms::option::NoVirtualDestructor option.
-    ~Message() = default;
+    ~Message() noexcept = default;
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Type used for message ID.

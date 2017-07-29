@@ -30,7 +30,7 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-Message::~Message() = default;
+Message::~Message() noexcept = default;
 
 const char* Message::name() const
 {

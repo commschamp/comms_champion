@@ -38,14 +38,13 @@ class CC_API BundleWrapper : public FieldWrapper
 public:
     typedef std::vector<FieldWrapperPtr> Members;
 
-    using Base::FieldWrapper;
     typedef std::unique_ptr<BundleWrapper> Ptr;
 
     BundleWrapper();
     BundleWrapper(const BundleWrapper&) =delete;
     BundleWrapper& operator=(const BundleWrapper&) =delete;
 
-    virtual ~BundleWrapper();
+    virtual ~BundleWrapper() noexcept;
 
     Members& getMembers();
 
@@ -81,7 +80,7 @@ public:
 
     BundleWrapperT(const BundleWrapperT&) = default;
     BundleWrapperT(BundleWrapperT&&) = default;
-    virtual ~BundleWrapperT() = default;
+    virtual ~BundleWrapperT() noexcept = default;
 
     BundleWrapperT& operator=(const BundleWrapperT&) = delete;
 

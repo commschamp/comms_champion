@@ -42,7 +42,7 @@ class TestMessageBase : public comms::Message<TTraits>
     using Base = comms::Message<TTraits>;
 public:
 
-    virtual ~TestMessageBase() {}
+    virtual ~TestMessageBase() noexcept = default;
 
     const std::string& getName() const
     {
@@ -69,13 +69,20 @@ class Message1 : public
             comms::option::MsgType<Message1<TMessage> >
         >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType1>,
+            comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
+            comms::option::MsgType<Message1<TMessage> >
+        >;
 public:
 
     COMMS_MSG_FIELDS_ACCESS(value1);
 
     Message1() = default;
 
-    virtual ~Message1() = default;
+    virtual ~Message1() noexcept = default;
 
 protected:
 
@@ -104,7 +111,7 @@ class Message2 : public
     >
 {
 public:
-    virtual ~Message2() = default;
+    virtual ~Message2() noexcept = default;
 
 protected:
     virtual const std::string& getNameImpl() const
@@ -145,12 +152,19 @@ class Message3 : public
         comms::option::MsgType<Message3<TMessage> >
     >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType3>,
+            comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
+            comms::option::MsgType<Message3<TMessage> >
+        >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
 
     Message3() = default;
 
-    virtual ~Message3() = default;
+    virtual ~Message3() noexcept = default;
 
 protected:
 
@@ -193,6 +207,14 @@ class Message4 : public
         comms::option::HasDoRefresh
     >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType4>,
+            comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
+            comms::option::MsgType<Message4<TMessage> >,
+            comms::option::HasDoRefresh
+        >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
@@ -202,7 +224,7 @@ public:
         optField.setMissing();
     }
 
-    virtual ~Message4() = default;
+    virtual ~Message4() noexcept = default;
 
     bool doRefresh()
     {
@@ -254,13 +276,20 @@ class Message5 : public
             comms::option::MsgType<Message5<TMessage> >
         >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType5>,
+            comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
+            comms::option::MsgType<Message5<TMessage> >
+        >;
 public:
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
     Message5() = default;
 
-    virtual ~Message5() = default;
+    virtual ~Message5() noexcept = default;
 
 protected:
 

@@ -43,7 +43,7 @@ Plugin::Plugin()
             });
 }
 
-Plugin::~Plugin() = default;
+Plugin::~Plugin() noexcept = default;
 
 }  // namespace cc_plugin
 

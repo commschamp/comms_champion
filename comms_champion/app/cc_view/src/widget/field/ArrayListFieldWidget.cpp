@@ -100,7 +100,7 @@ ArrayListFieldWidget::ArrayListFieldWidget(
         this, SLOT(addNewField()));
 }
 
-ArrayListFieldWidget::~ArrayListFieldWidget() = default;
+ArrayListFieldWidget::~ArrayListFieldWidget() noexcept = default;
 
 void ArrayListFieldWidget::refreshImpl()
 {

@@ -83,7 +83,7 @@ AppMgr::AppMgr()
         this, SLOT(flushOutput()));
 }
 
-AppMgr::~AppMgr() = default;
+AppMgr::~AppMgr() noexcept = default;
 
 bool AppMgr::start(const Config& config)
 {

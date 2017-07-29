@@ -39,10 +39,8 @@ public:
     typedef Base::UnderlyingType UnderlyingType;
     typedef std::unique_ptr<FloatValueWrapper> Ptr;
 
-    using Base::NumericValueWrapper;
-
     FloatValueWrapper();
-    virtual ~FloatValueWrapper();
+    virtual ~FloatValueWrapper() noexcept;
 
     Ptr clone();
 
@@ -72,7 +70,7 @@ public:
 
     FloatValueWrapperT(const FloatValueWrapperT&) = default;
     FloatValueWrapperT(FloatValueWrapperT&&) = default;
-    virtual ~FloatValueWrapperT() = default;
+    virtual ~FloatValueWrapperT() noexcept = default;
 
     FloatValueWrapperT& operator=(const FloatValueWrapperT&) = delete;
 

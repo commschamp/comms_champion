@@ -63,7 +63,7 @@ public:
     };
 
     /// @brief Destructor
-    virtual ~Protocol();
+    virtual ~Protocol() noexcept;
 
     /// @brief Retrieve name of the protocol.
     /// @details Invokes virtual nameImpl().

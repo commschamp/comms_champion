@@ -42,7 +42,7 @@ public:
         CreateMemberFieldWidgetFunc&& func,
         QWidget* parentObj = nullptr);
 
-    ~VariantFieldWidget();
+    ~VariantFieldWidget() noexcept;
 
     void setMemberField(FieldWidget* memberFieldWidget);
 

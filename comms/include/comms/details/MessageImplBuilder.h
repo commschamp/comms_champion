@@ -38,7 +38,8 @@ template <typename TBase, std::intmax_t TId>
 class MessageImplStaticNumIdBase : public TBase
 {
 public:
-    static const auto MsgId = static_cast<typename TBase::MsgIdType>(TId);
+    static const typename TBase::MsgIdType MsgId =
+            static_cast<typename TBase::MsgIdType>(TId);
 
     static constexpr typename TBase::MsgIdParamType doGetId()
     {
@@ -46,7 +47,7 @@ public:
     }
 
 protected:
-    ~MessageImplStaticNumIdBase() = default;
+    ~MessageImplStaticNumIdBase() noexcept = default;
 };
 
 template <bool THasStaticMsgId>
@@ -71,14 +72,35 @@ using MessageImplStaticNumIdBaseT =
     typename MessageImplProcessStaticNumIdBase<
         TBase::InterfaceOptions::HasMsgIdType && TOpt::HasStaticMsgId>::template Type<TBase, TOpt>;
 
-template <typename TBase>
+template <typename TBase, typename TOpt>
 class MessageImplPolymorhpicStaticNumIdBase : public TBase
 {
 protected:
-    ~MessageImplPolymorhpicStaticNumIdBase() = default;
+    ~MessageImplPolymorhpicStaticNumIdBase() noexcept = default;
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
+        using Tag =
+            typename std::conditional<
+                TOpt::HasMsgType,
+                DowncastTag,
+                NoDowncastTag
+            >::type;
+        return getIdInternal(Tag());
+    }
+
+private:
+    struct DowncastTag {};
+    struct NoDowncastTag {};
+
+    typename TBase::MsgIdParamType getIdInternal(NoDowncastTag) const
+    {
         return TBase::doGetId();
+    }
+
+    typename TBase::MsgIdParamType getIdInternal(DowncastTag) const
+    {
+        using Derived = typename TOpt::MsgType;
+        return static_cast<const Derived*>(this)->doGetId();
     }
 };
 
@@ -88,14 +110,14 @@ struct MessageImplProcessPolymorhpicStaticNumIdBase;
 template <>
 struct MessageImplProcessPolymorhpicStaticNumIdBase<true>
 {
-    template <typename TBase>
-    using Type = MessageImplPolymorhpicStaticNumIdBase<TBase>;
+    template <typename TBase, typename TOpt>
+    using Type = MessageImplPolymorhpicStaticNumIdBase<TBase, TOpt>;
 };
 
 template <>
 struct MessageImplProcessPolymorhpicStaticNumIdBase<false>
 {
-    template <typename TBase>
+    template <typename TBase, typename TOpt>
     using Type = TBase;
 };
 
@@ -103,17 +125,17 @@ template <typename TBase, typename TOpt>
 using MessageImplPolymorhpicStaticNumIdBaseT =
     typename MessageImplProcessPolymorhpicStaticNumIdBase<
         TBase::InterfaceOptions::HasMsgIdType && TBase::InterfaceOptions::HasMsgIdInfo &&
-            TOpt::HasStaticMsgId
-        >::template Type<TBase>;
+            (TOpt::HasStaticMsgId || (TOpt::HasMsgType && TOpt::HasDoGetId))
+        >::template Type<TBase, TOpt>;
 
 template <typename TBase>
 class MessageImplNoIdBase : public TBase
 {
 protected:
-    ~MessageImplNoIdBase() = default;
+    ~MessageImplNoIdBase() noexcept = default;
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
-        static const auto MsgId = typename TBase::MsgIdType();
+        static const typename TBase::MsgIdType MsgId = typename TBase::MsgIdType();
         GASSERT(!"The message id is not supposed to be retrieved");
         return MsgId;
     }
@@ -191,7 +213,7 @@ public:
     }
 
 protected:
-    ~MessageImplFieldsBase() = default;
+    ~MessageImplFieldsBase() noexcept = default;
 
     template <std::size_t TIdx, typename TIter>
     comms::ErrorStatus readFieldsUntil(
@@ -388,7 +410,7 @@ class MessageImplFieldsReadImplBase : public TBase
 {
     using Base = TBase;
 protected:
-    ~MessageImplFieldsReadImplBase() = default;
+    ~MessageImplFieldsReadImplBase() noexcept = default;
     virtual comms::ErrorStatus readImpl(
         typename Base::ReadIterator& iter,
         std::size_t size) override
@@ -460,7 +482,7 @@ class MessageImplFieldsWriteImplBase : public TBase
     using Base = TBase;
 
 protected:
-    ~MessageImplFieldsWriteImplBase() = default;
+    ~MessageImplFieldsWriteImplBase() noexcept = default;
     virtual comms::ErrorStatus writeImpl(
         typename Base::WriteIterator& iter,
         std::size_t size) const override
@@ -532,7 +554,7 @@ class MessageImplFieldsValidBase : public TBase
     using Base = TBase;
 
 protected:
-    ~MessageImplFieldsValidBase() = default;
+    ~MessageImplFieldsValidBase() noexcept = default;
     virtual bool validImpl() const override
     {
         return validImplInternal(Tag());
@@ -596,7 +618,7 @@ class MessageImplFieldsLengthBase : public TBase
     using Base = TBase;
 
 protected:
-    ~MessageImplFieldsLengthBase() = default;
+    ~MessageImplFieldsLengthBase() noexcept = default;
     virtual std::size_t lengthImpl() const override
     {
         return lengthImplInternal(Tag());
@@ -658,7 +680,7 @@ template <typename TBase, typename TOpt>
 class MessageImplRefreshBase : public TBase
 {
 protected:
-    ~MessageImplRefreshBase() = default;
+    ~MessageImplRefreshBase() noexcept = default;
     virtual bool refreshImpl() override
     {
         using Tag =
@@ -713,7 +735,7 @@ template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
 protected:
-    ~MessageImplDispatchBase() = default;
+    ~MessageImplDispatchBase() noexcept = default;
     virtual void dispatchImpl(typename TBase::Handler& handler) override
     {
         static_assert(std::is_base_of<TBase, TActual>::value,

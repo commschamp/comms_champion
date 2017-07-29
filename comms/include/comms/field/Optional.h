@@ -91,7 +91,7 @@ public:
     Optional(Optional&&) = default;
 
     /// @brief Destructor
-    ~Optional() = default;
+    ~Optional() noexcept = default;
 
     /// @brief Copy assignment
     Optional& operator=(const Optional&) = default;

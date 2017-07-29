@@ -71,6 +71,11 @@ public:
         return 1U;
     }
 
+    static constexpr bool hasUniqueIds()
+    {
+        return true;
+    }
+
 private:
 
     using FactoryMethod = typename Base::FactoryMethod;

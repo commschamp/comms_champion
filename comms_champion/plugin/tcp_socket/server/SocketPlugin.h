@@ -45,7 +45,7 @@ class SocketPlugin : public comms_champion::Plugin
 
 public:
     SocketPlugin();
-    ~SocketPlugin();
+    ~SocketPlugin() noexcept;
 
     virtual void getCurrentConfigImpl(QVariantMap& config) override;
     virtual void reconfigureImpl(const QVariantMap& config) override;

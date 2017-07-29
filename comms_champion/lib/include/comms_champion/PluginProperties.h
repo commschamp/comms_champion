@@ -56,7 +56,7 @@ public:
     PluginProperties();
 
     /// @brief Destructor
-    ~PluginProperties();
+    ~PluginProperties() noexcept;
 
     /// @brief Type of callback to be used to allocate a @ref Socket object
     using SocketCreateFunc = std::function<SocketPtr ()>;

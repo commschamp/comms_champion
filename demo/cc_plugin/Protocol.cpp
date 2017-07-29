@@ -27,7 +27,7 @@ namespace demo
 namespace cc_plugin
 {
 
-Protocol::~Protocol() = default;
+Protocol::~Protocol() noexcept = default;
 
 const QString& Protocol::nameImpl() const
 {

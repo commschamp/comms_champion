@@ -25,7 +25,7 @@ namespace comms_champion
 namespace field_wrapper
 {
 
-BitmaskValueWrapper::~BitmaskValueWrapper() {}
+BitmaskValueWrapper::~BitmaskValueWrapper() noexcept = default;
 
 bool BitmaskValueWrapper::bitValue(unsigned idx) const
 {

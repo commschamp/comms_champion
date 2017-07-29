@@ -47,7 +47,7 @@ TFunc getFuncProperty(const QVariantMap& props, const QString& name)
 }  // namespace
 
 PluginProperties::PluginProperties() = default;
-PluginProperties::~PluginProperties() = default;
+PluginProperties::~PluginProperties() noexcept = default;
 
 PluginProperties& PluginProperties::setSocketCreateFunc(
     SocketCreateFunc&& func)

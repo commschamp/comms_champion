@@ -27,7 +27,7 @@ class NullSocket : public Socket
 {
 public:
     NullSocket();
-    ~NullSocket();
+    ~NullSocket() noexcept;
 
 protected:
     virtual void sendDataImpl(DataInfoPtr dataPtr) override;

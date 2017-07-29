@@ -38,7 +38,7 @@ auto invokeCreationFunc(TFunc&& func) -> decltype(func())
 }  // namespace
 
 Plugin::Plugin() = default;
-Plugin::~Plugin() = default;
+Plugin::~Plugin() noexcept = default;
 
 void Plugin::getCurrentConfig(QVariantMap& config)
 {

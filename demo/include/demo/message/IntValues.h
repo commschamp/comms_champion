@@ -117,6 +117,16 @@ class IntValues : public
         comms::option::MsgType<IntValues<TMsgBase> >
     >
 {
+    // Required for compilation with gcc earlier than v5.0,
+    // later versions don't require this type definition.
+    using Base =
+        comms::MessageBase<
+            TMsgBase,
+            comms::option::StaticNumIdImpl<MsgId_IntValues>,
+            comms::option::FieldsImpl<IntValuesFields::All>,
+            comms::option::MsgType<IntValues<TMsgBase> >
+        >;
+
 public:
 
     /// @brief Allow access to internal fields.
@@ -136,7 +146,7 @@ public:
     IntValues(IntValues&& other) = default;
 
     /// @brief Destructor
-    ~IntValues() = default;
+    ~IntValues() noexcept = default;
 
     /// @brief Copy assignment
     IntValues& operator=(const IntValues&) = default;

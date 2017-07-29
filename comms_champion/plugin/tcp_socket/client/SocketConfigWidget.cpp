@@ -57,7 +57,7 @@ SocketConfigWidget::SocketConfigWidget(
         this, SLOT(portValueChanged(int)));
 }
 
-SocketConfigWidget::~SocketConfigWidget() = default;
+SocketConfigWidget::~SocketConfigWidget() noexcept = default;
 
 void SocketConfigWidget::hostValueChanged(const QString& value)
 {

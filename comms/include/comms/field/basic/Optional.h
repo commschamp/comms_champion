@@ -107,7 +107,7 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return Field::minLength();
+        return 0U;
     }
 
     static constexpr std::size_t maxLength()

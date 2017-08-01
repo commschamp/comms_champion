@@ -71,6 +71,9 @@ public:
         static_cast<Base&>(*this) = std::move(tmp);
         return comms::ErrorStatus::Success;
     }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
 };
 
 }  // namespace adapter

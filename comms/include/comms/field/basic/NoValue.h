@@ -89,11 +89,23 @@ public:
     }
 
     template <typename TIter>
+    static void readNoStatus(TIter& iter)
+    {
+        static_cast<void>(iter);
+    }
+
+    template <typename TIter>
     static ErrorStatus write(TIter& iter, std::size_t size)
     {
         static_cast<void>(iter);
         static_cast<void>(size);
         return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    static void writeNoStatus(TIter& iter)
+    {
+        static_cast<void>(iter);
     }
 };
 

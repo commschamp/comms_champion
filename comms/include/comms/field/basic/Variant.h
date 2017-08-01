@@ -177,6 +177,9 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         if (!currentFieldValid()) {
@@ -187,6 +190,9 @@ public:
         comms::util::tupleForSelectedType<Members>(memIdx_, makeWriteHelper(es, iter, len, &storage_));
         return es;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
     std::size_t currentField() const
     {

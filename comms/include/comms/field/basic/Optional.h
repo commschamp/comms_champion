@@ -151,6 +151,9 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         if (mode_ == Mode::Missing) {
@@ -163,6 +166,9 @@ public:
 
         return field_.write(iter, len);
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
 private:
     Field field_;

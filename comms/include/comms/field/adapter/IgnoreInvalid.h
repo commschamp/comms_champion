@@ -70,6 +70,17 @@ public:
 
         return comms::ErrorStatus::Success;
     }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        Base tmp;
+        tmp.readNoStatus(iter);
+
+        if (tmp.valid()) {
+            static_cast<Base&>(*this) = std::move(tmp);
+        }
+    }
 };
 
 }  // namespace adapter

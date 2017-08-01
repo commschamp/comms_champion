@@ -241,6 +241,9 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
     ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
@@ -285,6 +288,9 @@ public:
 
         return es;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const

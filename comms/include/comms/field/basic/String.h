@@ -253,6 +253,9 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
     ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
     {
         if (len < count) {
@@ -285,6 +288,9 @@ public:
         doAdvance(iter, value_.size());
         return comms::ErrorStatus::Success;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const

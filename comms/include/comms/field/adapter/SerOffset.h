@@ -66,10 +66,16 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
+        readNoStatus(iter);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
         auto serialisedValue =
             comms::util::readData<SerialisedType>(iter, Endian());
         Base::value() = fromSerialised(serialisedValue);
-        return ErrorStatus::Success;
     }
 
     template <typename TIter>
@@ -79,8 +85,14 @@ public:
             return ErrorStatus::BufferOverflow;
         }
 
-        comms::util::writeData(toSerialised(Base::value()), iter, Endian());
+        writeNoStatus(iter);
         return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        comms::util::writeData(toSerialised(Base::value()), iter, Endian());
     }
 
     static constexpr SerialisedType toSerialised(ValueType val)

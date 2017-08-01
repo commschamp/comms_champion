@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -100,10 +100,16 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
+        readNoStatus(iter);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
         auto serialisedValue =
             Base::template readData<SerialisedType>(iter);
         value_ = fromSerialised(serialisedValue);
-        return ErrorStatus::Success;
     }
 
     template <typename TIter>
@@ -113,8 +119,14 @@ public:
             return ErrorStatus::BufferOverflow;
         }
 
-        Base::writeData(toSerialised(value_), iter);
+        writeNoStatus(iter);
         return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        Base::writeData(toSerialised(value_), iter);
     }
 
 private:

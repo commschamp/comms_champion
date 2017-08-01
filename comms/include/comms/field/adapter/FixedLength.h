@@ -98,10 +98,16 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
+        readNoStatus(iter);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
         auto serialisedValue =
             comms::util::readData<SerialisedType, Length>(iter, Endian());
         Base::value() = fromSerialised(serialisedValue);
-        return ErrorStatus::Success;
     }
 
     template <typename TIter>

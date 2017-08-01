@@ -152,6 +152,9 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t size) const
     {
         auto val = adjustToUnsignedSerialisedVarLength(Base::toSerialised(Base::value()));
@@ -176,6 +179,9 @@ public:
 
         return ErrorStatus::Success;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
 private:
 

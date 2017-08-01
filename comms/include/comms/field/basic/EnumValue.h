@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -118,9 +118,23 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        IntValueField intField;
+        intField.readNoStatus(iter);
+        value_ = static_cast<decltype(value_)>(intField.value());
+    }
+
+    template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return IntValueField(static_cast<IntValueType>(value_)).write(iter, size);
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        IntValueField(static_cast<IntValueType>(value_)).writeNoStatus(iter);
     }
 
 private:

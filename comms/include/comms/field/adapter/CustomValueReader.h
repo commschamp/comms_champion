@@ -60,6 +60,9 @@ public:
     {
         return T()(static_cast<Base&>(*this), iter, size);
     }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
 };
 
 }  // namespace adapter

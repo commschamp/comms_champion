@@ -210,6 +210,30 @@ public:
         return util::tupleAccumulate(fields(), 0U, FieldLengthRetriever());
     }
 
+    template <std::size_t TFromIdx>
+    std::size_t doLengthFrom() const
+    {
+        return
+            util::tupleAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value>(
+                fields(), 0U, FieldLengthRetriever());
+    }
+
+    template <std::size_t TUntilIdx>
+    std::size_t doLengthUntil() const
+    {
+        return
+            util::tupleAccumulateFromUntil<0, TUntilIdx>(
+                fields(), 0U, FieldLengthRetriever());
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    std::size_t doLengthFromUntil() const
+    {
+        return
+            util::tupleAccumulateFromUntil<TFromIdx, TUntilIdx>(
+                fields(), 0U, FieldLengthRetriever());
+    }
+
     bool doRefresh() const
     {
         return util::tupleAccumulate(fields(), false, FieldRefresher());
@@ -324,19 +348,24 @@ private:
     struct NoStatusDetector
     {
         template <typename TField>
-        constexpr bool operator()(bool soFar)
+        constexpr bool operator()(bool soFar) const
         {
             return
-                soFar &&
                 (TField::minLength() == TField::maxLength()) &&
                 (!TField::ParsedOptions::HasCustomValueReader) &&
-                (!TField::ParsedOptions::HasFailOnInvalid);
+                (!TField::ParsedOptions::HasFailOnInvalid) &&
+                (!TField::ParsedOptions::HasSequenceSizeFieldPrefix)  &&
+                (!TField::ParsedOptions::HasSequenceSerLengthFieldPrefix) &&
+                (!TField::ParsedOptions::HasSequenceTrailingFieldSuffix) &&
+                (!TField::ParsedOptions::HasSequenceTerminationFieldSuffix) &&
+                soFar;
+            ;
         }
     };
 
     using StatusTag =
         typename std::conditional<
-            util::tupleTypeAccumulate<AllFields>(true, NoStatusDetector()),
+            comms::util::tupleTypeAccumulate<AllFields>(true, NoStatusDetector()),
             NoStatusTag,
             UseStatusTag
         >::type;

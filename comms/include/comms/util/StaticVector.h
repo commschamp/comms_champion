@@ -700,7 +700,7 @@ public:
 
     ~StaticVectorCasted() noexcept = default;
 
-    StaticVectorCasted& operator=(const StaticVectorCasted& other) = default;
+    StaticVectorCasted& operator=(const StaticVectorCasted&) = default;
 
     template <std::size_t TOtherSize>
     StaticVectorCasted& operator=(const StaticVectorCasted<TOrig, TCast, TOtherSize>& other)
@@ -1027,7 +1027,7 @@ public:
 
     /// @brief Copy assignement
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>
-    StaticVector& operator=(const StaticVector& other) = default;
+    StaticVector& operator=(const StaticVector&) = default;
 
     /// @brief Copy assignement
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>

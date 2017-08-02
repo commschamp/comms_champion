@@ -347,6 +347,8 @@ private:
 
     struct NoStatusDetector
     {
+        constexpr NoStatusDetector() = default;
+
         template <typename TField>
         constexpr bool operator()(bool soFar) const
         {

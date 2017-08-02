@@ -181,7 +181,24 @@ public:
     }
 
     template <typename TIter>
-    void writeNoStatus(TIter& iter) const = delete;
+    void writeNoStatus(TIter& iter) const
+    {
+        auto val = adjustToUnsignedSerialisedVarLength(Base::toSerialised(Base::value()));
+        std::size_t byteCount = 0;
+        bool lastByte = false;
+        auto minLen = std::max(length(), minLength());
+        while ((!lastByte) && (byteCount < maxLength())) {
+            auto byte = removeByteFromSerialisedValue(val, byteCount, minLen, lastByte, Endian());
+            if (!lastByte) {
+                GASSERT((byte & VarLengthContinueBit) == 0);
+                byte |= VarLengthContinueBit;
+            }
+
+            comms::util::writeData(byte, iter, Endian());
+            ++byteCount;
+            GASSERT(byteCount <= maxLength());
+        }
+    }
 
 private:
 

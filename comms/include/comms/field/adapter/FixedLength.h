@@ -117,9 +117,16 @@ public:
             return ErrorStatus::BufferOverflow;
         }
 
-        comms::util::writeData<Length>(toSerialised(Base::value()), iter, Endian());
+        writeNoStatus(iter);
         return ErrorStatus::Success;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        comms::util::writeData<Length>(toSerialised(Base::value()), iter, Endian());
+    }
+
 
 private:
 

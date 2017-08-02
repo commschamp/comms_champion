@@ -195,6 +195,12 @@ public:
         return intValue_.read(iter, size);
     }
 
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        intValue_.readNoStatus(iter);
+    }
+
     /// @brief Write current field value to output data sequence
     /// @param[in, out] iter Iterator to write the data.
     /// @param[in] size Maximal number of bytes that can be written.
@@ -204,6 +210,12 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return intValue_.write(iter, size);
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        intValue_.writeNoStatus(iter);
     }
 
     /// @brief Check validity of the field value.

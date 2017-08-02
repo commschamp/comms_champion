@@ -78,6 +78,17 @@ public:
         return Base::readN(forced_, iter, len);
     }
 
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        if (forced_ == Cleared) {
+            Base::readNoStatus(iter);
+            return;
+        }
+
+        Base::readNoStatusN(forced_, iter);
+    }
+
 private:
     static const std::size_t Cleared = std::numeric_limits<std::size_t>::max();
     std::size_t forced_ = Cleared;

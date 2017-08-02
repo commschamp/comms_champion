@@ -90,6 +90,10 @@ public:
         return readInternal(iter, len, ElemTag());
     }
 
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
@@ -101,6 +105,14 @@ public:
         }
 
         return termField.write(iter, trailLen);
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        TermField termField;
+        Base::writeNoStatus(iter);
+        termField.writeNoStatus(iter);
     }
 
 private:

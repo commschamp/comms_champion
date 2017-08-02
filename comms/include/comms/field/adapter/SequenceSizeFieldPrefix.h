@@ -99,6 +99,15 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        SizeField sizeField;
+        sizeField.readNoStatus(iter);
+        auto count = static_cast<std::size_t>(sizeField.value());
+        Base::readNoStatusN(count, iter);
+    }
+
+    template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         using SizeValueType = typename SizeField::ValueType;
@@ -110,6 +119,15 @@ public:
 
         GASSERT(sizeField.length() <= len);
         return Base::write(iter, len - sizeField.length());
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        using SizeValueType = typename SizeField::ValueType;
+        SizeField sizeField(static_cast<SizeValueType>(Base::value().size()));
+        sizeField.writeNoStatus(iter);
+        Base::writeNoStatus(iter);
     }
 };
 

@@ -182,11 +182,9 @@ public:
     }
 
     template <typename TIter>
-    comms::ErrorStatus doRead(
-        TIter& iter,
-        std::size_t size)
+    comms::ErrorStatus doRead(TIter& iter, std::size_t size)
     {
-        return readFieldsFrom<0>(iter, size);
+        return doReadInternal(iter, size, StatusTag());
     }
 
     template <typename TIter>
@@ -194,7 +192,12 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        return writeFieldsFrom<0>(iter, size);
+        if (size < doLength()) {
+            return comms::ErrorStatus::BufferOverflow;
+        }
+
+        writeFieldsNoStatusFrom<0>(iter);
+        return comms::ErrorStatus::Success;
     }
 
     bool doValid() const
@@ -226,6 +229,12 @@ protected:
     }
 
     template <std::size_t TIdx, typename TIter>
+    void readFieldsNoStatusUntil(TIter& iter)
+    {
+        util::tupleForEachUntil<TIdx>(fields(), makeFieldNoStatusReader(iter));
+    }
+
+    template <std::size_t TIdx, typename TIter>
     comms::ErrorStatus readFieldsFrom(
         TIter& iter,
         std::size_t& size)
@@ -233,6 +242,12 @@ protected:
         auto status = comms::ErrorStatus::Success;
         util::tupleForEachFrom<TIdx>(fields(), makeFieldReader(iter, status, size));
         return status;
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    void readFieldsNoStatusFrom(TIter& iter)
+    {
+        util::tupleForEachFrom<TIdx>(fields(), makeFieldNoStatusReader(iter));
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
@@ -243,6 +258,12 @@ protected:
         auto status = comms::ErrorStatus::Success;
         util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldReader(iter, status, size));
         return status;
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void readFieldsNoStatusFromUntil(TIter& iter)
+    {
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldNoStatusReader(iter));
     }
 
     template <std::size_t TIdx, typename TIter>
@@ -257,6 +278,12 @@ protected:
     }
 
     template <std::size_t TIdx, typename TIter>
+    void writeFieldsNoStatusUntil(TIter& iter) const
+    {
+        util::tupleForEachUntil<TIdx>(fields(), makeFieldNoStatusWriter(iter));
+    }
+
+    template <std::size_t TIdx, typename TIter>
     comms::ErrorStatus writeFieldsFrom(
         TIter& iter,
         std::size_t size) const
@@ -265,6 +292,12 @@ protected:
         std::size_t remainingSize = size;
         util::tupleForEachFrom<TIdx>(fields(), makeFieldWriter(iter, status, remainingSize));
         return status;
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    void writeFieldsNoStatusFrom(TIter& iter) const
+    {
+        util::tupleForEachFrom<TIdx>(fields(), makeFieldNoStatusWriter(iter));
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
@@ -278,7 +311,59 @@ protected:
         return status;
     }
 
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void writeFieldsNoStatusFromUntil(TIter& iter) const
+    {
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldNoStatusWriter(iter));
+    }
+
 private:
+    struct NoStatusTag {};
+    struct UseStatusTag {};
+
+    struct NoStatusDetector
+    {
+        template <typename TField>
+        constexpr bool operator()(bool soFar)
+        {
+            return
+                soFar &&
+                (TField::minLength() == TField::maxLength()) &&
+                (!TField::ParsedOptions::HasCustomValueReader) &&
+                (!TField::ParsedOptions::HasFailOnInvalid);
+        }
+    };
+
+    using StatusTag =
+        typename std::conditional<
+            util::tupleTypeAccumulate<AllFields>(true, NoStatusDetector()),
+            NoStatusTag,
+            UseStatusTag
+        >::type;
+
+    template <typename TIter>
+    comms::ErrorStatus doReadInternal(
+        TIter& iter,
+        std::size_t size,
+        UseStatusTag)
+    {
+        return readFieldsFrom<0>(iter, size);
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus doReadInternal(
+        TIter& iter,
+        std::size_t size,
+        NoStatusTag)
+    {
+        if (size < doLength()) {
+            return comms::ErrorStatus::NotEnoughData;
+        }
+
+        readFieldsNoStatusFrom<0>(iter);
+        return comms::ErrorStatus::Success;
+    }
+
     template <typename TIter>
     class FieldReader
     {
@@ -314,6 +399,30 @@ private:
         std::size_t& size)
     {
         return FieldReader<TIter>(iter, status, size);
+    }
+
+    template <typename TIter>
+    class FieldNoStatusReader
+    {
+    public:
+        FieldNoStatusReader(TIter& iter)
+            : iter_(iter)
+        {
+        }
+
+        template <typename TField>
+        void operator()(TField& field) {
+            field.readNoStatus(iter_);
+        }
+
+    private:
+        TIter& iter_;
+    };
+
+    template <typename TIter>
+    static FieldNoStatusReader<TIter> makeFieldNoStatusReader(TIter& iter)
+    {
+        return FieldNoStatusReader<TIter>(iter);
     }
 
     template <typename TIter>
@@ -353,6 +462,30 @@ private:
         return FieldWriter<TIter>(iter, status, size);
     }
 
+    template <typename TIter>
+    class FieldNoStatusWriter
+    {
+    public:
+        FieldNoStatusWriter(TIter& iter)
+            : iter_(iter)
+        {
+        }
+
+        template <typename TField>
+        void operator()(const TField& field) {
+            field.writeNoStatus(iter_);
+        }
+
+    private:
+        TIter& iter_;
+    };
+
+    template <typename TIter>
+    static FieldNoStatusWriter<TIter> makeFieldNoStatusWriter(TIter& iter)
+    {
+        return FieldNoStatusWriter<TIter>(iter);
+    }
+
     struct FieldValidityRetriever
     {
         template <typename TField>
@@ -371,6 +504,7 @@ private:
         }
     };
 
+
     struct FieldLengthRetriever
     {
         template <typename TField>
@@ -379,6 +513,7 @@ private:
             return size + field.length();
         }
     };
+
 
 private:
     AllFields fields_;

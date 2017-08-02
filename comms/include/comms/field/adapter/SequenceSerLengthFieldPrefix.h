@@ -99,6 +99,9 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         using LenValueType = typename LenField::ValueType;
@@ -111,6 +114,16 @@ public:
 
         GASSERT(lenField.length() <= len);
         return Base::write(iter, lenVal);
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        using LenValueType = typename LenField::ValueType;
+        auto lenVal = Base::length();
+        LenField lenField(static_cast<LenValueType>(lenVal));
+        lenField.writeNoStatus(iter);
+        Base::writeNoStatus(iter);
     }
 };
 

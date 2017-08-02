@@ -220,6 +220,12 @@ public:
     }
 
     template <typename TIter>
+    static void readElementNoStatus(ElementType& elem, TIter& iter)
+    {
+        return readElementNoStatusInternal(elem, iter, ElemTag());
+    }
+
+    template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
@@ -265,9 +271,36 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatusN(std::size_t count, TIter& iter)
+    {
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using IterCategory =
+            typename std::iterator_traits<IterType>::iterator_category;
+        static const bool IsRandomAccessIter =
+            std::is_base_of<std::random_access_iterator_tag, IterCategory>::value;
+        static const bool IsRawData =
+            std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
+
+        using Tag =
+            typename std::conditional<
+                IsRandomAccessIter && IsRawData,
+                RawDataTag,
+                FieldElemTag
+            >::type;
+
+        return readNoStatusInternalN(count, iter, Tag());
+    }
+
+    template <typename TIter>
     static ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len)
     {
         return writeElementInternal(elem, iter, len, ElemTag());
+    }
+
+    template <typename TIter>
+    static void writeElementNoStatus(const ElementType& elem, TIter& iter)
+    {
+        return writeElementNoStatusInternal(elem, iter, ElemTag());
     }
 
     template <typename TIter>
@@ -290,7 +323,12 @@ public:
     }
 
     template <typename TIter>
-    void writeNoStatus(TIter& iter) const = delete;
+    void writeNoStatus(TIter& iter) const
+    {
+        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
+            writeElementNoStatus(*fieldIter, iter);
+        }
+    }
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
@@ -316,6 +354,19 @@ public:
         return es;
     }
 
+
+    template <typename TIter>
+    void writeNoStatusN(std::size_t count, TIter& iter) const
+    {
+        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
+            if (count == 0) {
+                break;
+            }
+
+            writeElementNoStatus(*fieldIter, iter);
+            --count;
+        }
+    }
 
 private:
     struct FieldElemTag{};
@@ -409,6 +460,30 @@ private:
     }
 
     template <typename TIter>
+    static void readNoStatusFieldElement(ElementType& elem, TIter& iter)
+    {
+        elem.readNoStatus(iter);
+    }
+
+    template <typename TIter>
+    static void readNoStatusIntegralElement(ElementType& elem, TIter& iter)
+    {
+        elem = comms::util::readData<ElementType>(iter, Endian());
+    }
+
+    template <typename TIter>
+    static void readElementNoStatusInternal(ElementType& elem, TIter& iter, FieldElemTag)
+    {
+        readNoStatusFieldElement(elem, iter);
+    }
+
+    template <typename TIter>
+    static void readElementNoStatusInternal(ElementType& elem, TIter& iter, IntegralElemTag)
+    {
+        readElementNoStatusInternal(elem, iter);
+    }
+
+    template <typename TIter>
     static ErrorStatus writeFieldElement(const ElementType& elem, TIter& iter, std::size_t& len)
     {
         auto es = elem.write(iter, len);
@@ -442,6 +517,29 @@ private:
         return writeIntegralElement(elem, iter, len);
     }
 
+    template <typename TIter>
+    static void writeNoStatusFieldElement(const ElementType& elem, TIter& iter)
+    {
+        elem.writeNoStatus(iter);
+    }
+
+    template <typename TIter>
+    static void writeNoStatusIntegralElement(const ElementType& elem, TIter& iter)
+    {
+        comms::util::writeData(elem, iter, Endian());
+    }
+
+    template <typename TIter>
+    static void writeElementNoStatusInternal(const ElementType& elem, TIter& iter, FieldElemTag)
+    {
+        return writeNoStatusFieldElement(elem, iter);
+    }
+
+    template <typename TIter>
+    static void writeElementNoStatusInternal(const ElementType& elem, TIter& iter, IntegralElemTag)
+    {
+        return writeNoStatusIntegralElement(elem, iter);
+    }
 
     constexpr bool validInternal(FieldElemTag) const
     {
@@ -575,6 +673,24 @@ private:
         }
 
         return readInternal(iter, count, RawDataTag());
+    }
+
+    template <typename TIter>
+    void readNoStatusInternalN(std::size_t count, TIter& iter, FieldElemTag)
+    {
+        clear();
+        while (0 < count) {
+            auto elem = ElementType();
+            readElementNoStatus(elem, iter);
+            value_.push_back(std::move(elem));
+            --count;
+        }
+    }
+
+    template <typename TIter>
+    void readNoStatusInternalN(std::size_t count, TIter& iter, RawDataTag)
+    {
+        readInternal(iter, count, RawDataTag());
     }
 
     ValueType value_;

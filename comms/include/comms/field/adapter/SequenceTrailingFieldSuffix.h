@@ -89,6 +89,9 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         auto trailLen = trailField_.length();
@@ -98,6 +101,13 @@ public:
         }
 
         return trailField_.write(iter, trailLen);
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        Base::writeNoStatus(iter);
+        trailField_.writeNoStatus(iter);
     }
 
 private:

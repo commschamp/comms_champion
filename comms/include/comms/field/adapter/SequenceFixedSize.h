@@ -93,6 +93,12 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        return Base::readNoStatusN(fixedSize_, iter);
+    }
+
+    template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         auto writeCount = std::min(Base::value().size(), fixedSize_);
@@ -117,6 +123,24 @@ public:
         }
 
         return es;
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        auto writeCount = std::min(Base::value().size(), fixedSize_);
+        Base::writeNoStatusN(writeCount, iter);
+
+        auto remCount = fixedSize_ - writeCount;
+        if (remCount == 0) {
+            return;
+        }
+
+        auto dummyElem = ElementType();
+        while (0 < remCount) {
+            Base::writeElementNoStatus(dummyElem, iter);
+            --remCount;
+        }
     }
 
     bool valid() const

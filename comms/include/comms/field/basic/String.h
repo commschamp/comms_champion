@@ -217,6 +217,12 @@ public:
     }
 
     template <typename TIter>
+    static void readElementNoStatus(ElementType& elem, TIter& iter)
+    {
+        elem = comms::util::readData<ElementType>(iter,  Endian());
+    }
+
+    template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
@@ -266,6 +272,12 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatusN(std::size_t count, TIter& iter)
+    {
+        read(iter, count);
+    }
+
+    template <typename TIter>
     static ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len)
     {
         if (len < sizeof(ElementType)) {
@@ -278,19 +290,28 @@ public:
     }
 
     template <typename TIter>
+    static void writeElementNoStatus(const ElementType& elem, TIter& iter)
+    {
+        comms::util::writeData(elem, iter, Endian());
+    }
+
+    template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         if (len < length()) {
             return comms::ErrorStatus::BufferOverflow;
         }
 
-        std::copy_n(value_.begin(), value_.size(), iter);
-        doAdvance(iter, value_.size());
+        writeNoStatus(iter);
         return comms::ErrorStatus::Success;
     }
 
     template <typename TIter>
-    void writeNoStatus(TIter& iter) const = delete;
+    void writeNoStatus(TIter& iter) const
+    {
+        std::copy_n(value_.begin(), value_.size(), iter);
+        doAdvance(iter, value_.size());
+    }
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
@@ -302,6 +323,13 @@ public:
         }
 
         return write(iter, count);
+    }
+
+    template <typename TIter>
+    void writeNoStatusN(std::size_t count, TIter& iter) const
+    {
+        count = std::min(count, value_.size());
+        write(iter, count);
     }
 
 private:

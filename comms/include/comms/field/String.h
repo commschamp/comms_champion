@@ -127,10 +127,13 @@ using StringBase =
 /// @extends comms::Field
 /// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>
-class String : public details::StringBase<TFieldBase, TOptions...>
+class String : private details::StringBase<TFieldBase, TOptions...>
 {
     using Base = details::StringBase<TFieldBase, TOptions...>;
 public:
+
+    /// @brief Endian used for serialisation.
+    using Endian = typename Base::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -204,22 +207,54 @@ public:
         return es;
     }
 
-#ifdef FOR_DOXYGEN_DOC_ONLY
-    /// @brief Get access to the value storage.
-    ValueType& value();
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        Base::readNoStatus(iter);
+        using Tag = typename std::conditional<
+            ParsedOptions::HasSequenceFixedSize,
+            AdjustmentNeededTag,
+            NoAdjustmentTag
+        >::type;
+
+        adjustValue(Tag());
+    }
 
     /// @brief Get access to the value storage.
-    const ValueType& value() const;
+    ValueType& value()
+    {
+        return Base::value();
+    }
+
+    /// @brief Get access to the value storage.
+    const ValueType& value() const
+    {
+        return Base::value();
+    }
 
     /// @brief Get length of serialised data
-    std::size_t length() const;
+    std::size_t length() const
+    {
+        return Base::length();
+    }
 
     /// @brief Check validity of the field value.
-    bool valid() const;
+    bool valid() const
+    {
+        return Base::valid();
+    }
 
     /// @brief Refresh the field's value
     /// @return @b true if the value has been updated, @b false otherwise
-    bool refresh();
+    bool refresh()
+    {
+        return Base::refresh();
+    }
 
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the
@@ -234,28 +269,56 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const;
+    ErrorStatus write(TIter& iter, std::size_t len) const
+    {
+        return Base::write(iter, len);
+    }
+
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        Base::writeNoStatus(iter);
+    }
 
     /// @brief Get minimal length that is required to serialise field of this type.
-    static constexpr std::size_t minLength();
+    static constexpr std::size_t minLength()
+    {
+        return Base::minLength();
+    }
 
     /// @brief Get maximal length that is required to serialise field of this type.
-    static constexpr std::size_t maxLength();
+    static constexpr std::size_t maxLength()
+    {
+        return Base::maxLength();
+    }
 
     /// @brief Force number of characters that must be read in the next read()
     ///     invocation.
     /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
     ///     used.
     /// @param[in] count Number of elements to read during following read operation.
-    void forceReadElemCount(std::size_t count);
+    void forceReadElemCount(std::size_t count)
+    {
+        Base::forceReadElemCount(count);
+    }
 
     /// @brief Clear forcing of the number of characters that must be read in
     ///     the next read() invocation.
     /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
     ///     used.
-    void clearReadElemCount();
+    void clearReadElemCount()
+    {
+        Base::clearReadElemCount();
+    }
 
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+protected:
+    using Base::readData;
+    using Base::writeData;
 
 private:
     struct NoAdjustmentTag {};

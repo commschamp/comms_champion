@@ -500,7 +500,7 @@ private:
             return ErrorStatus::BufferOverflow;
         }
 
-        comms::util::writeData(elem, iter, Endian());
+        Base::writeData(elem, iter);
         len -= sizeof(ElementType);
         return ErrorStatus::Success;
     }
@@ -526,7 +526,7 @@ private:
     template <typename TIter>
     static void writeNoStatusIntegralElement(const ElementType& elem, TIter& iter)
     {
-        comms::util::writeData(elem, iter, Endian());
+        Base::writeData(elem, iter);
     }
 
     template <typename TIter>

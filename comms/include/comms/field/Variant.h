@@ -81,7 +81,7 @@ namespace field
 /// @see COMMS_VARIANT_MEMBERS_ACCESS()
 /// @see COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE()
 template <typename TFieldBase, typename TMembers, typename... TOptions>
-class Variant : public
+class Variant : private
         details::AdaptBasicFieldT<basic::Variant<TFieldBase, TMembers>, TOptions...>
 {
     using Base = details::AdaptBasicFieldT<basic::Variant<TFieldBase, TMembers>, TOptions...>;
@@ -94,6 +94,9 @@ class Variant : public
         "Number of members is expected to be at least 2.");
 
 public:
+    /// @brief Endian used for serialisation.
+    using Endian = typename Base::Endian;
+
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
 
@@ -126,29 +129,43 @@ public:
     {
     }
 
-#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to the internal storage buffer.
     /// @details Should not be used in normal operation.
-    ValueType& value();
+    ValueType& value()
+    {
+        return Base::value();
+    }
 
     /// @brief Get access to the internal storage buffer.
     /// @details Should not be used in normal operation.
-    const ValueType& value() const;
+    const ValueType& value() const
+    {
+        return Base::value();
+    }
 
     /// @brief Get length required to serialise contained fields.
     /// @details If the field doesn't contain a valid instance of other
     ///     field, the reported length is 0, otherwise the length of the
     ///     contained field is reported.
     /// @return Number of bytes it will take to serialise the field value.
-    std::size_t length() const;
+    std::size_t length() const
+    {
+        return Base::length();
+    }
 
     /// @brief Get minimal length that is required to serialise all possible contained fields.
     /// @return Always returns 0.
-    static constexpr std::size_t minLength();
+    static constexpr std::size_t minLength()
+    {
+        return Base::minLength();
+    }
 
     /// @brief Get maximal length that is required to serialise all possible contained fields.
     /// @return Maximal number of bytes required serialise the field value.
-    static constexpr std::size_t maxLength();
+    static constexpr std::size_t maxLength()
+    {
+        return Base::maxLength();
+    }
 
     /// @brief Read field value from input data sequence
     /// @details Invokes read() member function over every possible field
@@ -158,7 +175,14 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size);
+    ErrorStatus read(TIter& iter, std::size_t size)
+    {
+        return Base::read(iter, size);
+    }
+
+    /// @brief Read operation without error check and status report is not supported.
+    template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
 
     /// @brief Write current field value to output data sequence
     /// @details Invokes write() member function of the contained field if such
@@ -169,22 +193,45 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const;
+    ErrorStatus write(TIter& iter, std::size_t size) const
+    {
+        return Base::write(iter, size);
+    }
+
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        Base::writeNoStatus(iter);
+    }
 
     /// @brief Check validity of all the contained field.
     /// @details Returns @b false if doesn't contain any field.
-    bool valid() const;
+    bool valid() const
+    {
+        return Base::valid();
+    }
 
     /// @brief Refresh the field's value
     /// @details Invokes refresh() member function of the current field
     ///     if such exists, otherwise returns false.
     /// @return @b true if the value has been updated, @b false otherwise
-    bool refresh();
+    bool refresh()
+    {
+        return Base::refresh();
+    }
 
     /// @brief Get index of the current field (within the @ref Members tuple).
     /// @details If the Variant field doesn't contain any valid field, the
     ///     returned index is equivalent to size of the @ref Members tuple.
-    std::size_t currentField() const;
+    std::size_t currentField() const
+    {
+        return Base::currentField();
+    }
 
     /// @brief Select type of the variant field.
     /// @details If the same index has been selected before, the function does
@@ -193,7 +240,10 @@ public:
     ///     If provided index is equal or exceeds the size of the @ref Members
     ///     tuple, no new field is constructed.
     /// @param[in] idx Index of the type within @ref Members tuple.
-    void selectField(std::size_t idx);
+    void selectField(std::size_t idx)
+    {
+        Base::selectField(idx);
+    }
 
     /// @brief Execute provided function object with current field as
     ///     parameter.
@@ -222,7 +272,10 @@ public:
     ///     If the Variant field doesn't contain any valid field, the functor
     ///     will @b NOT be called.
     template <typename TFunc>
-    void currentFieldExec(TFunc&& func);
+    void currentFieldExec(TFunc&& func)
+    {
+        Base::currentFieldExec(std::forward<TFunc>(func));
+    }
 
     /// @brief Execute provided function object with current field as
     ///     parameter (const variant).
@@ -243,7 +296,10 @@ public:
     ///     will @b NOT be called.
 
     template <typename TFunc>
-    void currentFieldExec(TFunc&& func) const;
+    void currentFieldExec(TFunc&& func) const
+    {
+        Base::currentFieldExec(std::forward<TFunc>(func));
+    }
 
     /// @brief Construct and initialise specified contained field in the
     ///     internal buffer.
@@ -254,7 +310,10 @@ public:
     /// @param[in] args Arguments for the constructed field.
     /// @return Reference to the constructed field.
     template <std::size_t TIdx, typename... TArgs>
-    decltype(auto) initField(TArgs&&... args);
+    typename std::tuple_element<TIdx, Members>::type& initField(TArgs&&... args)
+    {
+        return Base::template initField<TIdx>(std::forward<TArgs>(args)...);
+    }
 
     /// @brief Access already constructed field at specifed index (known at compile time).
     /// @details Use this function to get a reference to the contained field type
@@ -262,7 +321,10 @@ public:
     /// @return Reference to the contained field.
     /// @pre @code currentField() == TIdx @endcode
     template <std::size_t TIdx>
-    decltype(auto) accessField();
+    typename std::tuple_element<TIdx, Members>::type& accessField()
+    {
+        return Base::template accessField<TIdx>();
+    }
 
     /// @brief Access already constructed field at specifed index (known at compile time).
     /// @details Use this function to get a const reference to the contained field type.
@@ -270,17 +332,30 @@ public:
     /// @return Const reference to the contained field.
     /// @pre @code currentField() == TIdx @endcode
     template <std::size_t TIdx>
-    decltype(auto) accessField() const;
+    const typename std::tuple_element<TIdx, Members>::type& accessField() const
+    {
+        return Base::template accessField<TIdx>();
+    }
 
     /// @brief Check whether the field contains a valid instance of other field.
     /// @details Returns @b true if and only if currentField() returns a valid
     ///     index inside the @ref Members tuple.
-    bool currentFieldValid() const;
+    bool currentFieldValid() const
+    {
+        return Base::currentFieldValid();
+    }
 
     /// @brief Invalidate current state
     /// @details Destructs currently contained field if such exists.
-    void reset();
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+    void reset()
+    {
+        Base::reset();
+    }
+
+protected:
+    using Base::readData;
+    using Base::writeData;
+
 };
 
 namespace details

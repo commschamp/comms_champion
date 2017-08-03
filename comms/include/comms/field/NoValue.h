@@ -41,10 +41,13 @@ namespace field
 /// @extends comms::Field
 /// @headerfile comms/field/NoValue.h
 template <typename TFieldBase>
-class NoValue : public details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >
+class NoValue : private details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >
 {
     using Base = details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >;
 public:
+
+    /// @brief Endian used for serialisation.
+    using Endian = typename Base::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<>;
@@ -72,32 +75,49 @@ public:
     /// @brief Copy assignment
     NoValue& operator=(const NoValue&) = default;
 
-#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to the value storage.
     /// @details Should not really be used.
     /// @return Reference to a static value. All the independent get/set
     ///     operations on the different @ref NoValue fields access the same
     ///     static value.
-    static ValueType& value();
+    static ValueType& value()
+    {
+        return Base::value();
+    }
 
     /// @brief Get length required to serialise the current field value.
     /// @return Always 0.
-    static constexpr std::size_t length();
+    static constexpr std::size_t length()
+    {
+        return Base::length();
+    }
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Always 0.
-    static constexpr std::size_t minLength();
+    static constexpr std::size_t minLength()
+    {
+        return Base::minLength();
+    }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Always 0.
-    static constexpr std::size_t maxLength();
+    static constexpr std::size_t maxLength()
+    {
+        return Base::maxLength();
+    }
 
     /// @brief Check validity of the field value.
-    bool valid() const;
+    bool valid() const
+    {
+        return Base::valid();
+    }
 
     /// @brief Refresh the field's value
     /// @return @b true if the value has been updated, @b false otherwise
-    bool refresh();
+    bool refresh()
+    {
+        return Base::refresh();
+    }
 
     /// @brief Read field value from input data sequence.
     /// @details The function does nothing, always reporting success.
@@ -105,7 +125,21 @@ public:
     /// @param[in] size Number of bytes available for reading.
     /// @return Status of read operation.
     template <typename TIter>
-    static ErrorStatus read(TIter& iter, std::size_t size);
+    static ErrorStatus read(TIter& iter, std::size_t size)
+    {
+        return Base::read(iter, size);
+    }
+
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        Base::readNoStatus(iter);
+    }
 
     /// @brief Write current field value to output data sequence
     /// @details The function does nothing, always reporting success.
@@ -113,8 +147,25 @@ public:
     /// @param[in] size Maximal number of bytes that can be written.
     /// @return Status of write operation.
     template <typename TIter>
-    static ErrorStatus write(TIter& iter, std::size_t size);
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+    static ErrorStatus write(TIter& iter, std::size_t size)
+    {
+        return Base::write(iter, size);
+    }
+
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        Base::writeNoStatus(iter);
+    }
+
+protected:
+    using Base::readData;
+    using Base::writeData;
 
 private:
 #ifdef _MSC_VER

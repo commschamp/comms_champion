@@ -160,10 +160,13 @@ using ArrayListBase =
 /// @extends comms::Field
 /// @headerfile comms/field/ArrayList.h
 template <typename TFieldBase, typename TElement, typename... TOptions>
-class ArrayList : public details::ArrayListBase<TFieldBase, TElement, TOptions...>
+class ArrayList : private details::ArrayListBase<TFieldBase, TElement, TOptions...>
 {
     using Base = details::ArrayListBase<TFieldBase, TElement, TOptions...>;
 public:
+
+    /// @brief Endian used for serialisation.
+    using Endian = typename Base::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -212,15 +215,23 @@ public:
     /// @brief Move assignment
     ArrayList& operator=(ArrayList&&) = default;
 
-#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to the value storage.
-    ValueType& value();
+    ValueType& value()
+    {
+        return Base::value();
+    }
 
     /// @brief Get access to the value storage.
-    const ValueType& value() const;
+    const ValueType& value() const
+    {
+        return Base::value();
+    }
 
     /// @brief Get length of serialised data
-    constexpr std::size_t length() const;
+    constexpr std::size_t length() const
+    {
+        return Base::length();
+    }
 
     /// @brief Read field value from input data sequence
     /// @details By default, the read operation will try to consume all the
@@ -232,7 +243,21 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len);
+    ErrorStatus read(TIter& iter, std::size_t len)
+    {
+        return Base::read(iter, len);
+    }
+
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        Base::readNoStatus(iter);
+    }
 
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the
@@ -247,39 +272,74 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const;
+    ErrorStatus write(TIter& iter, std::size_t len) const
+    {
+        return Base::write(iter, len);
+    }
+
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        Base::writeNoStatus(iter);
+    }
 
     /// @brief Check validity of the field value.
     /// @details The collection is valid if all the elements are valid. In case
     ///     comms::option::ContentsValidator option is used, the validator,
     ///     it provides, is invoked IN ADDITION to the validation of the elements.
     /// @return true in case the field's value is valid, false otherwise.
-    bool valid() const;
+    bool valid() const
+    {
+        return Base::valid();
+    }
 
     /// @brief Refresh the field.
     /// @details Calls refresh() on all the elements (if they are fields and not raw bytes).
     /// @brief Returns true if any of the elements has been updated, false otherwise.
-    bool refresh();
+    bool refresh()
+    {
+        return Base::refresh();
+    }
 
     /// @brief Get minimal length that is required to serialise field of this type.
-    static constexpr std::size_t minLength();
+    static constexpr std::size_t minLength()
+    {
+        return Base::minLength();
+    }
 
     /// @brief Get maximal length that is required to serialise field of this type.
-    static constexpr std::size_t maxLength();
+    static constexpr std::size_t maxLength()
+    {
+        return Base::maxLength();
+    }
 
     /// @brief Force number of elements that must be read in the next read()
     ///     invocation.
     /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
     ///     used.
     /// @param[in] count Number of elements to read during following read operation.
-    void forceReadElemCount(std::size_t count);
+    void forceReadElemCount(std::size_t count)
+    {
+        return Base::forceReadElemCount(count);
+    }
 
     /// @brief Clear forcing of the number of elements that must be read in the next read()
     ///     invocation.
     /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
     ///     used.
-    void clearReadElemCount();
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+    void clearReadElemCount()
+    {
+        return Base::clearReadElemCount();
+    }
+
+protected:
+    using Base::readData;
+    using Base::writeData;
 
 private:
     static_assert((!ParsedOptions::HasOrigDataView) || (std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))),

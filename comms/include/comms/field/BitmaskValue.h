@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -195,6 +195,11 @@ public:
         return intValue_.read(iter, size);
     }
 
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
@@ -212,6 +217,11 @@ public:
         return intValue_.write(iter, size);
     }
 
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {

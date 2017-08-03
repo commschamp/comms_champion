@@ -131,7 +131,7 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        comms::util::writeData<Length>(toSerialised(Base::value()), iter, Endian());
+        Base::template writeData<Length>(toSerialised(Base::value()), iter);
     }
 
 private:

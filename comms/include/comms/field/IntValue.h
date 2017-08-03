@@ -142,7 +142,6 @@ public:
         return setScaledInternal(val, Tag());
     }
 
-//#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to integral value storage.
     const ValueType& value() const
     {
@@ -200,6 +199,11 @@ public:
         return Base::read(iter, size);
     }
 
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
@@ -217,13 +221,20 @@ public:
         return Base::write(iter, size);
     }
 
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
         Base::writeNoStatus(iter);
     }
 
-//#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+protected:
+    using Base::readData;
+    using Base::writeData;
 
 private:
     struct HasScalingRatioTag {};

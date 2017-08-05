@@ -6,6 +6,12 @@ notifications:
 matrix:
   include:
     - os: linux
+      env: _CC=gcc-4.7 _CXX=g++-4.7 _BUILD="-DCC_COMMS_LIB_ONLY=ON"
+    - os: linux
+      env: _CC=gcc-4.7 _CXX=g++-4.7 _BUILD="-DCC_COMMS_LIB_ONLY=ON -DCMAKE_BUILD_TYPE=Release"
+    - os: linux
+      env: _CC=gcc-4.7 _CXX=g++-4.7 _BUILD="-DCC_COMMS_LIB_ONLY=ON -DCMAKE_BUILD_TYPE=MinSizeRel"  
+    - os: linux
       env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD="-DCC_COMMS_LIB_ONLY=ON"
     - os: linux
       env: _CC=gcc-4.8 _CXX=g++-4.8 _BUILD="-DCC_COMMS_LIB_ONLY=ON -DCMAKE_BUILD_TYPE=Release"
@@ -55,7 +61,7 @@ before_install:
   - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
   - sudo apt-add-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main" -y
   - sudo apt-get update -q
-  - sudo apt-get install g++-4.8 g++-4.9 g++-5 g++-6 clang-3.9 cmake cmake-data qt55declarative qt55serialport -y      
+  - sudo apt-get install g++-4.7 g++-4.8 g++-4.9 g++-5 g++-6 clang-3.9 cmake cmake-data qt55declarative qt55serialport -y      
 
 before_script:
   - mkdir build

@@ -45,8 +45,13 @@ void MsgSendMgrImpl::start(ProtocolPtr protocol, const MessagesList& msgs)
         property::message::RepeatDuration().copyFromTo(*m, *clonedMsg);
         property::message::RepeatDurationUnits().copyFromTo(*m, *clonedMsg);
         property::message::RepeatCount().copyFromTo(*m, *clonedMsg);
+        auto extraProps = property::message::ExtraInfo().getFrom(*m);
+        if (!extraProps.isEmpty()) {
+            property::message::ExtraInfo().setTo(std::move(extraProps), *clonedMsg);
+            m_protocol->updateMessage(*clonedMsg);
+            assert(!property::message::ExtraInfo().getFrom(*clonedMsg).isEmpty());
+        }
 
-        // TODO: copy custom properties
         m_msgsToSend.push_back(std::move(clonedMsg));
     }
     sendPendingAndWait();
@@ -113,7 +118,11 @@ void MsgSendMgrImpl::sendPendingAndWait()
             }
 
             auto clonedMsg = m_protocol->cloneMessage(*msgToSend);
-            // TODO copy extra properties
+            auto extraProps = property::message::ExtraInfo().getFrom(*msgToSend);
+            if (!extraProps.isEmpty()) {
+                property::message::ExtraInfo().setTo(std::move(extraProps), *clonedMsg);
+                m_protocol->updateMessage(*clonedMsg);
+            }
 
             std::swap(clonedMsg, msgToSend);
             property::message::Delay().setTo(newDelay, *clonedMsg);

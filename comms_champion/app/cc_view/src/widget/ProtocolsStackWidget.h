@@ -41,6 +41,8 @@ public:
 
     void displayMessage(MessagePtr msg, bool force);
     void clear();
+    bool isAppMessageSelected();
+    bool isExtraInfoSelected();
 
 signals:
     void sigMessageSelected(MessagePtr msg, bool editEnabled);

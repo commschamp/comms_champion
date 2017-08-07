@@ -40,8 +40,8 @@ protected:
 
 private slots:
     void msgSelectedInProtocol(MessagePtr msg, bool editEnabled);
+    void msgUpdated();
 private:
-    MessagePtr m_currMsg;
     MsgDetailsWidget* m_msgDetailsWidget = nullptr;
     ProtocolsStackWidget* m_protocolsDetailsWidget = nullptr;
     bool m_globalEditEnabled = true;

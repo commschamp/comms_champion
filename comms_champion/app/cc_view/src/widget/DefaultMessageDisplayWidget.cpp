@@ -43,7 +43,7 @@ DefaultMessageDisplayWidget::DefaultMessageDisplayWidget(QWidget* parentObj)
 
     connect(
         m_msgDetailsWidget, SIGNAL(sigMsgUpdated()),
-        this, SIGNAL(sigMsgUpdated()));
+        this, SLOT(msgUpdated()));
 
     auto* splitter = new QSplitter;
     splitter->setOrientation(Qt::Vertical);
@@ -91,6 +91,13 @@ void DefaultMessageDisplayWidget::msgSelectedInProtocol(
     assert(msg);
     m_msgDetailsWidget->displayMessage(msg);
     m_msgDetailsWidget->setEditEnabled(m_globalEditEnabled && editEnabled);
+}
+
+void DefaultMessageDisplayWidget::msgUpdated()
+{
+    if (!m_protocolsDetailsWidget->isExtraInfoSelected()) {
+        emit sigMsgUpdated();
+    }
 }
 
 }  // namespace comms_champion

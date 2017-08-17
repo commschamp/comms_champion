@@ -109,7 +109,7 @@ private:
             "ValueType is expected to be integral");
 
         using Tag = typename std::conditional<
-            std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(std::uint32_t)),
+            std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(std::uint64_t)),
             RegularIntTag,
             BigUnsignedTag
         >::type;

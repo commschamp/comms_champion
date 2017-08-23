@@ -232,6 +232,29 @@ public:
     /// @pre TFromIdx < TUntilIdx
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     std::size_t doLengthFromUntil() const;
+
+    /// @brief Compile time constant of minimal serialisation length.
+    /// @details This function exists only if comms::option::FieldsImpl or
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     To make this function works, every field class must provide "minLength()"
+    ///     function with following signature:
+    ///     @code
+    ///     static constexpr std::size_t minLength();
+    ///     @endcode
+    /// @return Minimal serialisation length of the message.
+    static constexpr std::size_t doMinLength();
+
+    /// @brief Compile time constant of maximal serialisation length.
+    /// @details This function exists only if comms::option::FieldsImpl or
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     To make this function works, every field class must provide "maxLength()"
+    ///     function with following signature:
+    ///     @code
+    ///     static constexpr std::size_t maxLength();
+    ///     @endcode
+    /// @return Minimal serialisation length of the message.
+    static constexpr std::size_t doMaxLength();
+
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 protected:

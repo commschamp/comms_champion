@@ -80,6 +80,9 @@ public:
 
     COMMS_MSG_FIELDS_ACCESS(value1);
 
+    static_assert(Base::doMinLength() == 2U, "Wrong serialisation length");
+    static_assert(Base::doMaxLength() == 2U, "Wrong serialisation length");
+
     Message1() = default;
 
     virtual ~Message1() noexcept = default;
@@ -110,8 +113,19 @@ class Message2 : public
         comms::option::MsgType<Message2<TMessage> >
     >
 {
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType2>,
+            comms::option::ZeroFieldsImpl,
+            comms::option::MsgType<Message2<TMessage> >
+        >;
+
 public:
     virtual ~Message2() noexcept = default;
+
+    static_assert(Base::doMinLength() == 0U, "Wrong serialisation length");
+    static_assert(Base::doMaxLength() == 0U, "Wrong serialisation length");
 
 protected:
     virtual const std::string& getNameImpl() const
@@ -161,6 +175,8 @@ class Message3 : public
         >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
+    static_assert(Base::doMinLength() == 10U, "Wrong serialisation length");
+    static_assert(Base::doMaxLength() == 10U, "Wrong serialisation length");
 
     Message3() = default;
 
@@ -217,6 +233,9 @@ class Message4 : public
         >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
+
+    static_assert(Base::doMinLength() == 1U, "Wrong serialisation length");
+    static_assert(Base::doMaxLength() == 3U, "Wrong serialisation length");
 
     Message4()
     {
@@ -286,6 +305,9 @@ class Message5 : public
 public:
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
+
+    static_assert(Base::doMinLength() == 3U, "Wrong serialisation length");
+    static_assert(Base::doMaxLength() == 3U, "Wrong serialisation length");
 
     Message5() = default;
 

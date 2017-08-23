@@ -234,6 +234,16 @@ public:
                 fields(), 0U, FieldLengthRetriever());
     }
 
+    static constexpr std::size_t doMinLength()
+    {
+        return util::tupleTypeAccumulate<AllFields>(0U, FieldMinLengthRetriever());
+    }
+
+    static constexpr std::size_t doMaxLength()
+    {
+        return util::tupleTypeAccumulate<AllFields>(0U, FieldMaxLengthRetriever());
+    }
+
     bool doRefresh() const
     {
         return util::tupleAccumulate(fields(), false, FieldRefresher());
@@ -545,8 +555,24 @@ private:
         }
     };
 
+    struct FieldMinLengthRetriever
+    {
+        template <typename TField>
+        constexpr std::size_t operator()(std::size_t size) const
+        {
+            return size + TField::minLength();
+        }
+    };
 
-private:
+    struct FieldMaxLengthRetriever
+    {
+        template <typename TField>
+        constexpr std::size_t operator()(std::size_t size) const
+        {
+            return size + TField::maxLength();
+        }
+    };
+
     AllFields fields_;
 };
 

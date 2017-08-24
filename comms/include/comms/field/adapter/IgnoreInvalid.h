@@ -33,20 +33,20 @@ namespace adapter
 template <typename TBase>
 class IgnoreInvalid : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 public:
 
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     IgnoreInvalid() = default;
 
     explicit IgnoreInvalid(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit IgnoreInvalid(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -58,14 +58,14 @@ public:
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
-        Base tmp;
+        BaseImpl tmp;
         auto es = tmp.read(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
         if (tmp.valid()) {
-            static_cast<Base&>(*this) = std::move(tmp);
+            static_cast<BaseImpl&>(*this) = std::move(tmp);
         }
 
         return comms::ErrorStatus::Success;
@@ -74,11 +74,11 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        Base tmp;
+        BaseImpl tmp;
         tmp.readNoStatus(iter);
 
         if (tmp.valid()) {
-            static_cast<Base&>(*this) = std::move(tmp);
+            static_cast<BaseImpl&>(*this) = std::move(tmp);
         }
     }
 };

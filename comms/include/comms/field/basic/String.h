@@ -114,9 +114,9 @@ constexpr bool stringHasPushBack()
 template <typename TFieldBase, typename TStorage>
 class String : public TFieldBase
 {
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 public:
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     using ValueType = TStorage;
     using ElementType = typename TStorage::value_type;

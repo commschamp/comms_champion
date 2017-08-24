@@ -34,7 +34,7 @@ namespace basic
 template <typename TFieldBase>
 class NoValue : public TFieldBase
 {
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 public:
 
     using ValueType = unsigned;

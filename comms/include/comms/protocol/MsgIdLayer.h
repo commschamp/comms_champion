@@ -61,7 +61,7 @@ class MsgIdLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
     static_assert(util::IsTuple<TAllMessages>::Value,
         "TAllMessages must be of std::tuple type");
-    using Base = ProtocolLayerBase<TField, TNextLayer>;
+    using BaseImpl = ProtocolLayerBase<TField, TNextLayer>;
 
     using Factory = comms::MsgFactory<TMessage, TAllMessages, TOptions...>;
 
@@ -89,7 +89,7 @@ public:
     using MsgIdParamType = typename Message::MsgIdParamType;
 
     /// @brief Type of the field object used to read/write message ID value.
-    using Field = typename Base::Field;
+    using Field = typename BaseImpl::Field;
 
     static_assert(
         comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
@@ -150,7 +150,7 @@ public:
         std::size_t* missingSize = nullptr)
     {
         Field field;
-        return readInternal(field, msgPtr, iter, size, missingSize, Base::createNextLayerReader());
+        return readInternal(field, msgPtr, iter, size, missingSize, BaseImpl::createNextLayerReader());
     }
 
     /// @brief Deserialise message from the input data sequence while caching
@@ -180,7 +180,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
         return
             readInternal(
                 field,
@@ -188,7 +188,7 @@ public:
                 iter,
                 size,
                 missingSize,
-                Base::template createNextLayerCachedFieldsReader<TIdx>(allFields));
+                BaseImpl::template createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
 
     /// @brief Serialise message into output data sequence.
@@ -222,7 +222,7 @@ public:
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         Field field(getMsgId(msg, IdRetrieveTag<MsgType>()));
-        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
+        return writeInternal(field, msg, iter, size, BaseImpl::createNextLayerWriter());
     }
 
     /// @brief Serialise message into output data sequence while caching the written transport
@@ -249,7 +249,7 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
 
         using MsgType = typename std::decay<decltype(msg)>::type;
         field.value() = getMsgId(msg, IdRetrieveTag<MsgType>());
@@ -259,7 +259,7 @@ public:
                 msg,
                 iter,
                 size,
-                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
+                BaseImpl::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
     }
 
     /// @copybrief ProtocolLayerBase::createMsg
@@ -301,7 +301,7 @@ private:
         GASSERT(!msgPtr);
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(field, size, missingSize);
+            BaseImpl::updateMissingSize(field, size, missingSize);
         }
 
         if (es != ErrorStatus::Success) {

@@ -162,11 +162,11 @@ using ArrayListBase =
 template <typename TFieldBase, typename TElement, typename... TOptions>
 class ArrayList : private details::ArrayListBase<TFieldBase, TElement, TOptions...>
 {
-    using Base = details::ArrayListBase<TFieldBase, TElement, TOptions...>;
+    using BaseImpl = details::ArrayListBase<TFieldBase, TElement, TOptions...>;
 public:
 
     /// @brief Endian used for serialisation.
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -183,23 +183,23 @@ public:
     ///     ValueType is std::vector<TElement>, otherwise it becomes
     ///     comms::util::StaticVector<TElement, TSize>, where TSize is a size
     ///     provided to comms::option::FixedSizeStorage option.
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     /// @brief Type of the element.
-    using ElementType = typename Base::ElementType;
+    using ElementType = typename BaseImpl::ElementType;
 
         /// @brief Default constructor
     ArrayList() = default;
 
     /// @brief Value constructor
     explicit ArrayList(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     /// @brief Value constructor
     explicit ArrayList(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -221,19 +221,19 @@ public:
     /// @brief Get access to the value storage.
     ValueType& value()
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get access to the value storage.
     const ValueType& value() const
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get length of serialised data
     constexpr std::size_t length() const
     {
-        return Base::length();
+        return BaseImpl::length();
     }
 
     /// @brief Read field value from input data sequence
@@ -248,7 +248,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        return Base::read(iter, len);
+        return BaseImpl::read(iter, len);
     }
 
     /// @brief Read field value from input data sequence without error check and status report.
@@ -259,7 +259,7 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        Base::readNoStatus(iter);
+        BaseImpl::readNoStatus(iter);
     }
 
     /// @brief Write current field value to output data sequence
@@ -277,7 +277,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        return Base::write(iter, len);
+        return BaseImpl::write(iter, len);
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.
@@ -288,7 +288,7 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 
     /// @brief Check validity of the field value.
@@ -298,7 +298,7 @@ public:
     /// @return true in case the field's value is valid, false otherwise.
     bool valid() const
     {
-        return Base::valid();
+        return BaseImpl::valid();
     }
 
     /// @brief Refresh the field.
@@ -306,19 +306,19 @@ public:
     /// @brief Returns true if any of the elements has been updated, false otherwise.
     bool refresh()
     {
-        return Base::refresh();
+        return BaseImpl::refresh();
     }
 
     /// @brief Get minimal length that is required to serialise field of this type.
     static constexpr std::size_t minLength()
     {
-        return Base::minLength();
+        return BaseImpl::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     static constexpr std::size_t maxLength()
     {
-        return Base::maxLength();
+        return BaseImpl::maxLength();
     }
 
     /// @brief Force number of elements that must be read in the next read()
@@ -328,7 +328,7 @@ public:
     /// @param[in] count Number of elements to read during following read operation.
     void forceReadElemCount(std::size_t count)
     {
-        return Base::forceReadElemCount(count);
+        return BaseImpl::forceReadElemCount(count);
     }
 
     /// @brief Clear forcing of the number of elements that must be read in the next read()
@@ -337,12 +337,12 @@ public:
     ///     used.
     void clearReadElemCount()
     {
-        return Base::clearReadElemCount();
+        return BaseImpl::clearReadElemCount();
     }
 
 protected:
-    using Base::readData;
-    using Base::writeData;
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 
 private:
     static_assert((!ParsedOptions::HasOrigDataView) || (std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))),

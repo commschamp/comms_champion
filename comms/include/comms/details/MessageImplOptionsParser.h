@@ -52,11 +52,11 @@ class MessageImplOptionsParser<
     comms::option::StaticNumIdImpl<TId>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    using Base = MessageImplOptionsParser<TOptions...>;
+    using BaseImpl = MessageImplOptionsParser<TOptions...>;
 
-    static_assert(!Base::HasStaticMsgId,
+    static_assert(!BaseImpl::HasStaticMsgId,
         "comms::option::StaticNumIdImpl option is used more than once");
-    static_assert(!Base::HasNoIdImpl,
+    static_assert(!BaseImpl::HasNoIdImpl,
         "comms::option::NoIdImpl and comms::option::StaticNumIdImpl options cannot be used together");
 public:
     static const bool HasStaticMsgId = true;
@@ -78,9 +78,9 @@ class MessageImplOptionsParser<
     comms::option::FieldsImpl<TFields>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    using Base = MessageImplOptionsParser<TOptions...>;
+    using BaseImpl = MessageImplOptionsParser<TOptions...>;
 
-    static_assert(!Base::HasFieldsImpl,
+    static_assert(!BaseImpl::HasFieldsImpl,
         "comms::option::FieldsImpl option is used more than once");
 public:
     static const bool HasFieldsImpl = true;
@@ -92,11 +92,11 @@ class MessageImplOptionsParser<
     comms::option::NoIdImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    using Base = MessageImplOptionsParser<TOptions...>;
+    using BaseImpl = MessageImplOptionsParser<TOptions...>;
 
-    static_assert(!Base::HasNoIdImpl,
+    static_assert(!BaseImpl::HasNoIdImpl,
         "comms::option::NoIdImpl option is used more than once");
-    static_assert(!Base::HasStaticMsgId,
+    static_assert(!BaseImpl::HasStaticMsgId,
         "comms::option::NoIdImpl and comms::option::StaticNumIdImpl options cannot be used together");
 public:
     static const bool HasNoIdImpl = true;
@@ -162,9 +162,9 @@ class MessageImplOptionsParser<
     comms::option::MsgType<TMsgType>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
-    using Base = MessageImplOptionsParser<TOptions...>;
+    using BaseImpl = MessageImplOptionsParser<TOptions...>;
 
-    static_assert(!Base::HasMsgType,
+    static_assert(!BaseImpl::HasMsgType,
         "comms::option::MsgType option is used more than once");
 public:
     static const bool HasMsgType = true;

@@ -35,11 +35,11 @@ namespace adapter
 template <typename TBase>
 class SequenceFixedSizeBase : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 
 public:
-    using ValueType = typename Base::ValueType;
-    using ElementType = typename Base::ElementType;
+    using ValueType = typename BaseImpl::ValueType;
+    using ElementType = typename BaseImpl::ElementType;
 
     explicit SequenceFixedSizeBase(std::size_t maxSize)
       : fixedSize_(maxSize)
@@ -47,13 +47,13 @@ public:
     }
 
     SequenceFixedSizeBase(std::size_t maxSize, const ValueType& val)
-      : Base(val),
+      : BaseImpl(val),
         fixedSize_(maxSize)
     {
     }
 
     SequenceFixedSizeBase(std::size_t maxSize, ValueType&& val)
-      : Base(std::move(val)),
+      : BaseImpl(std::move(val)),
         fixedSize_(maxSize)
     {
     }
@@ -65,15 +65,15 @@ public:
 
     std::size_t length() const
     {
-        auto currSize = Base::value().size();
+        auto currSize = BaseImpl::value().size();
         if (currSize == fixedSize_) {
-            return Base::length();
+            return BaseImpl::length();
         }
 
         if (currSize < fixedSize_) {
             auto remSize = fixedSize_ - currSize;
             auto dummyElem = ElementType();
-            return Base::length() + (remSize * Base::elementLength(dummyElem));
+            return BaseImpl::length() + (remSize * BaseImpl::elementLength(dummyElem));
         }
 
         using Tag =
@@ -89,20 +89,20 @@ public:
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
-        return Base::readN(fixedSize_, iter, len);
+        return BaseImpl::readN(fixedSize_, iter, len);
     }
 
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        return Base::readNoStatusN(fixedSize_, iter);
+        return BaseImpl::readNoStatusN(fixedSize_, iter);
     }
 
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        auto writeCount = std::min(Base::value().size(), fixedSize_);
-        auto es = Base::writeN(writeCount, iter, len);
+        auto writeCount = std::min(BaseImpl::value().size(), fixedSize_);
+        auto es = BaseImpl::writeN(writeCount, iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -114,7 +114,7 @@ public:
 
         auto dummyElem = ElementType();
         while (0 < remCount) {
-            es = Base::writeElement(dummyElem, iter, len);
+            es = BaseImpl::writeElement(dummyElem, iter, len);
             if (es != ErrorStatus::Success) {
                 break;
             }
@@ -128,8 +128,8 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        auto writeCount = std::min(Base::value().size(), fixedSize_);
-        Base::writeNoStatusN(writeCount, iter);
+        auto writeCount = std::min(BaseImpl::value().size(), fixedSize_);
+        BaseImpl::writeNoStatusN(writeCount, iter);
 
         auto remCount = fixedSize_ - writeCount;
         if (remCount == 0) {
@@ -138,19 +138,19 @@ public:
 
         auto dummyElem = ElementType();
         while (0 < remCount) {
-            Base::writeElementNoStatus(dummyElem, iter);
+            BaseImpl::writeElementNoStatus(dummyElem, iter);
             --remCount;
         }
     }
 
     bool valid() const
     {
-        return Base::valid() && (Base::value().size() <= fixedSize_);
+        return BaseImpl::valid() && (BaseImpl::value().size() <= fixedSize_);
     }
 
     bool refresh()
     {
-        if (!Base::refresh()) {
+        if (!BaseImpl::refresh()) {
             return false;
         }
 
@@ -196,17 +196,17 @@ private:
 
     std::size_t recalcLen(HasVarLengthElemsTag) const
     {
-        ValueType copy(Base::value().begin(), Base::value().begin() + fixedSize_);
-        return Base(std::move(copy)).length();
+        ValueType copy(BaseImpl::value().begin(), BaseImpl::value().begin() + fixedSize_);
+        return BaseImpl(std::move(copy)).length();
     }
 
     bool doRefresh(HasResizeTag)
     {
-        if (Base::value() == fixedSize_) {
+        if (BaseImpl::value() == fixedSize_) {
             return false;
         }
 
-        Base::value().resize(fixedSize_);
+        BaseImpl::value().resize(fixedSize_);
         return true;
     }
 
@@ -221,24 +221,24 @@ private:
 template <std::size_t TSize, typename TBase>
 class SequenceFixedSize : public SequenceFixedSizeBase<TBase>
 {
-    using Base = SequenceFixedSizeBase<TBase>;
+    using BaseImpl = SequenceFixedSizeBase<TBase>;
 
 public:
-    using ValueType = typename Base::ValueType;
-    using ElementType = typename Base::ElementType;
+    using ValueType = typename BaseImpl::ValueType;
+    using ElementType = typename BaseImpl::ElementType;
 
     explicit SequenceFixedSize()
-      : Base(TSize)
+      : BaseImpl(TSize)
     {
     }
 
     explicit SequenceFixedSize(const ValueType& val)
-      : Base(TSize, val)
+      : BaseImpl(TSize, val)
     {
     }
 
     SequenceFixedSize(ValueType&& val)
-      : Base(TSize, std::move(val))
+      : BaseImpl(TSize, std::move(val))
     {
     }
 
@@ -249,12 +249,12 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return Base::minElementLength() * TSize;
+        return BaseImpl::minElementLength() * TSize;
     }
 
     static constexpr std::size_t maxLength()
     {
-        return Base::maxElementLength() * TSize;
+        return BaseImpl::maxElementLength() * TSize;
     }
 };
 

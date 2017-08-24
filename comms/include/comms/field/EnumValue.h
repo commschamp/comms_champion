@@ -74,13 +74,13 @@ namespace field
 template <typename TFieldBase, typename TEnum, typename... TOptions>
 class EnumValue : private details::AdaptBasicFieldT<basic::EnumValue<TFieldBase, TEnum>, TOptions...>
 {
-    using Base = details::AdaptBasicFieldT<basic::EnumValue<TFieldBase, TEnum>, TOptions...>;
+    using BaseImpl = details::AdaptBasicFieldT<basic::EnumValue<TFieldBase, TEnum>, TOptions...>;
     static_assert(std::is_enum<TEnum>::value, "TEnum must be enum type");
 
 public:
 
     /// @brief Endian used for serialisation.
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -90,14 +90,14 @@ public:
 
     /// @brief Type of underlying enum value.
     /// @details Same as template parameter TEnum to this class.
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     /// @brief Default constructor.
     EnumValue() = default;
 
     /// @brief Constructor
     explicit EnumValue(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
@@ -113,34 +113,34 @@ public:
     /// @brief Get access to enum value storage.
     const ValueType& value() const
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get access to enum value storage.
     ValueType& value()
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get length required to serialise the current field value.
     /// @return Number of bytes it will take to serialise the field value.
     constexpr std::size_t length() const
     {
-        return Base::length();
+        return BaseImpl::length();
     }
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Minimal number of bytes required serialise the field value.
     static constexpr std::size_t minLength()
     {
-        return Base::minLength();
+        return BaseImpl::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
-        return Base::maxLength();
+        return BaseImpl::maxLength();
     }
 
     /// @brief Read field value from input data sequence
@@ -151,7 +151,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return Base::read(iter, size);
+        return BaseImpl::read(iter, size);
     }
 
     /// @brief Read field value from input data sequence without error check and status report.
@@ -162,7 +162,7 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        Base::readNoStatus(iter);
+        BaseImpl::readNoStatus(iter);
     }
 
     /// @brief Write current field value to output data sequence
@@ -173,7 +173,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        return Base::write(iter, size);
+        return BaseImpl::write(iter, size);
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.
@@ -184,25 +184,25 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 
     /// @brief Check validity of the field value.
     bool valid() const
     {
-        return Base::valid();
+        return BaseImpl::valid();
     }
 
     /// @brief Refresh the field's value
     /// @return @b true if the value has been updated, @b false otherwise
     bool refresh()
     {
-        return Base::refresh();
+        return BaseImpl::refresh();
     }
 
 protected:
-    using Base::readData;
-    using Base::writeData;
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 };
 
 // Implementation

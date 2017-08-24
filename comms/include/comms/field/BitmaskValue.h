@@ -103,7 +103,7 @@ using BitmaskUndertlyingTypeT =
 template <typename TFieldBase, typename... TOptions>
 class BitmaskValue : public TFieldBase
 {
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 
     using OptionsBundle = details::OptionsParser<TOptions...>;
 
@@ -291,6 +291,10 @@ public:
             clearBits(mask);
         }
     }
+
+protected:
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 
 private:
 

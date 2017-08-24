@@ -30,22 +30,22 @@ namespace adapter
 template <typename TRefresher, typename TBase>
 class CustomRefresher : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
     using Refresher = TRefresher;
 
 public:
 
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     CustomRefresher() = default;
 
     explicit CustomRefresher(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit CustomRefresher(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 

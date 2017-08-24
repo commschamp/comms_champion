@@ -40,11 +40,11 @@ class EnumValue : public TFieldBase
 
     using UnderlyingType = typename std::underlying_type<T>::type;
 
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 
     using IntValueField =
         IntValue<
-            Base,
+            BaseImpl,
             UnderlyingType
         >;
 

@@ -600,11 +600,11 @@ using MessageImplFieldsBaseT =
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsReadImplBase : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 protected:
     ~MessageImplFieldsReadImplBase() noexcept = default;
     virtual comms::ErrorStatus readImpl(
-        typename Base::ReadIterator& iter,
+        typename BaseImpl::ReadIterator& iter,
         std::size_t size) override
     {
         return readImplInternal(iter, size, Tag());
@@ -621,15 +621,15 @@ private:
     >::type;
 
     comms::ErrorStatus readImplInternal(
-        typename Base::ReadIterator& iter,
+        typename BaseImpl::ReadIterator& iter,
         std::size_t size,
         NoActual)
     {
-        return Base::doRead(iter, size);
+        return BaseImpl::doRead(iter, size);
     }
 
     comms::ErrorStatus readImplInternal(
-        typename Base::ReadIterator& iter,
+        typename BaseImpl::ReadIterator& iter,
         std::size_t size,
         HasActual)
     {
@@ -671,12 +671,12 @@ using MessageImplFieldsReadImplBaseT =
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsWriteImplBase : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 
 protected:
     ~MessageImplFieldsWriteImplBase() noexcept = default;
     virtual comms::ErrorStatus writeImpl(
-        typename Base::WriteIterator& iter,
+        typename BaseImpl::WriteIterator& iter,
         std::size_t size) const override
     {
         return writeImplInternal(iter, size, Tag());
@@ -693,15 +693,15 @@ private:
     >::type;
 
     comms::ErrorStatus writeImplInternal(
-        typename Base::WriteIterator& iter,
+        typename BaseImpl::WriteIterator& iter,
         std::size_t size,
         NoActual) const
     {
-        return Base::doWrite(iter, size);
+        return BaseImpl::doWrite(iter, size);
     }
 
     comms::ErrorStatus writeImplInternal(
-        typename Base::WriteIterator& iter,
+        typename BaseImpl::WriteIterator& iter,
         std::size_t size,
         HasActual) const
     {
@@ -743,7 +743,7 @@ using MessageImplFieldsWriteImplBaseT =
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsValidBase : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 
 protected:
     ~MessageImplFieldsValidBase() noexcept = default;
@@ -764,7 +764,7 @@ private:
 
     bool validImplInternal(NoActual) const
     {
-        return Base::doValid();
+        return BaseImpl::doValid();
     }
 
     bool validImplInternal(HasActual) const
@@ -807,7 +807,7 @@ using MessageImplFieldsValidBaseT =
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsLengthBase : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 
 protected:
     ~MessageImplFieldsLengthBase() noexcept = default;
@@ -828,7 +828,7 @@ private:
 
     std::size_t lengthImplInternal(NoActual) const
     {
-        return Base::doLength();
+        return BaseImpl::doLength();
     }
 
     std::size_t lengthImplInternal(HasActual) const

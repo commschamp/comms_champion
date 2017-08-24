@@ -33,22 +33,22 @@ namespace adapter
 template <typename TSizeField, typename TBase>
 class SequenceSizeFieldPrefix : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
     using SizeField = TSizeField;
 
 public:
-    using ValueType = typename Base::ValueType;
-    using ElementType = typename Base::ElementType;
+    using ValueType = typename BaseImpl::ValueType;
+    using ElementType = typename BaseImpl::ElementType;
 
     SequenceSizeFieldPrefix() = default;
 
     explicit SequenceSizeFieldPrefix(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit SequenceSizeFieldPrefix(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -61,26 +61,26 @@ public:
     {
         using SizeValueType = typename SizeField::ValueType;
         return
-            SizeField(static_cast<SizeValueType>(Base::value().size())).length() +
-            Base::length();
+            SizeField(static_cast<SizeValueType>(BaseImpl::value().size())).length() +
+            BaseImpl::length();
     }
 
     static constexpr std::size_t minLength()
     {
-        return SizeField::minLength() + Base::minLength();
+        return SizeField::minLength() + BaseImpl::minLength();
     }
 
     static constexpr std::size_t maxLength()
     {
-        return SizeField::maxLength() + Base::maxLength();
+        return SizeField::maxLength() + BaseImpl::maxLength();
     }
 
     bool valid() const
     {
         using SizeValueType = typename SizeField::ValueType;
         return
-            SizeField(static_cast<SizeValueType>(Base::value().size())).valid() &&
-            Base::valid();
+            SizeField(static_cast<SizeValueType>(BaseImpl::value().size())).valid() &&
+            BaseImpl::valid();
     }
 
     template <typename TIter>
@@ -95,7 +95,7 @@ public:
         auto count = static_cast<std::size_t>(sizeField.value());
         len -= sizeField.length();
 
-        return Base::readN(count, iter, len);
+        return BaseImpl::readN(count, iter, len);
     }
 
     template <typename TIter>
@@ -104,30 +104,30 @@ public:
         SizeField sizeField;
         sizeField.readNoStatus(iter);
         auto count = static_cast<std::size_t>(sizeField.value());
-        Base::readNoStatusN(count, iter);
+        BaseImpl::readNoStatusN(count, iter);
     }
 
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         using SizeValueType = typename SizeField::ValueType;
-        SizeField sizeField(static_cast<SizeValueType>(Base::value().size()));
+        SizeField sizeField(static_cast<SizeValueType>(BaseImpl::value().size()));
         auto es = sizeField.write(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
         GASSERT(sizeField.length() <= len);
-        return Base::write(iter, len - sizeField.length());
+        return BaseImpl::write(iter, len - sizeField.length());
     }
 
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
         using SizeValueType = typename SizeField::ValueType;
-        SizeField sizeField(static_cast<SizeValueType>(Base::value().size()));
+        SizeField sizeField(static_cast<SizeValueType>(BaseImpl::value().size()));
         sizeField.writeNoStatus(iter);
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 };
 

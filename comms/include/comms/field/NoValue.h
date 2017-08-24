@@ -43,11 +43,11 @@ namespace field
 template <typename TFieldBase>
 class NoValue : private details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >
 {
-    using Base = details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >;
+    using BaseImpl = details::AdaptBasicFieldT<basic::NoValue<TFieldBase> >;
 public:
 
     /// @brief Endian used for serialisation.
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<>;
@@ -57,7 +57,7 @@ public:
 
     /// @brief Type of underlying value.
     /// @details Defined to be "unsigned", not really used
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     /// @brief Default constructor
     /// @details Initialises internal value to 0.
@@ -66,7 +66,7 @@ public:
     /// @brief Constructor
     explicit NoValue(ValueType val)
     {
-        Base::value() = val;
+        BaseImpl::value() = val;
     }
 
     /// @brief Copy constructor
@@ -82,41 +82,41 @@ public:
     ///     static value.
     static ValueType& value()
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get length required to serialise the current field value.
     /// @return Always 0.
     static constexpr std::size_t length()
     {
-        return Base::length();
+        return BaseImpl::length();
     }
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Always 0.
     static constexpr std::size_t minLength()
     {
-        return Base::minLength();
+        return BaseImpl::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Always 0.
     static constexpr std::size_t maxLength()
     {
-        return Base::maxLength();
+        return BaseImpl::maxLength();
     }
 
     /// @brief Check validity of the field value.
     bool valid() const
     {
-        return Base::valid();
+        return BaseImpl::valid();
     }
 
     /// @brief Refresh the field's value
     /// @return @b true if the value has been updated, @b false otherwise
     bool refresh()
     {
-        return Base::refresh();
+        return BaseImpl::refresh();
     }
 
     /// @brief Read field value from input data sequence.
@@ -127,7 +127,7 @@ public:
     template <typename TIter>
     static ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return Base::read(iter, size);
+        return BaseImpl::read(iter, size);
     }
 
     /// @brief Read field value from input data sequence without error check and status report.
@@ -138,7 +138,7 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        Base::readNoStatus(iter);
+        BaseImpl::readNoStatus(iter);
     }
 
     /// @brief Write current field value to output data sequence
@@ -149,7 +149,7 @@ public:
     template <typename TIter>
     static ErrorStatus write(TIter& iter, std::size_t size)
     {
-        return Base::write(iter, size);
+        return BaseImpl::write(iter, size);
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.
@@ -160,12 +160,12 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 
 protected:
-    using Base::readData;
-    using Base::writeData;
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 
 private:
 #ifdef _MSC_VER

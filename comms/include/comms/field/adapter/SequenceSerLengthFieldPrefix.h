@@ -33,22 +33,22 @@ namespace adapter
 template <typename TLenField, comms::ErrorStatus TStatus, typename TBase>
 class SequenceSerLengthFieldPrefix : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
     using LenField = TLenField;
 
 public:
-    using ValueType = typename Base::ValueType;
-    using ElementType = typename Base::ElementType;
+    using ValueType = typename BaseImpl::ValueType;
+    using ElementType = typename BaseImpl::ElementType;
 
     SequenceSerLengthFieldPrefix() = default;
 
     explicit SequenceSerLengthFieldPrefix(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit SequenceSerLengthFieldPrefix(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -60,25 +60,25 @@ public:
     std::size_t length() const
     {
         using LenValueType = typename LenField::ValueType;
-        auto valLength = Base::length();
+        auto valLength = BaseImpl::length();
         return LenField(static_cast<LenValueType>(valLength)).length() + valLength;
     }
 
     static constexpr std::size_t minLength()
     {
-        return LenField::minLength() + Base::minLength();
+        return LenField::minLength() + BaseImpl::minLength();
     }
 
     static constexpr std::size_t maxLength()
     {
-        return LenField::maxLength() + Base::maxLength();
+        return LenField::maxLength() + BaseImpl::maxLength();
     }
 
     bool valid() const
     {
         return
-            LenField(Base::length()).valid() &&
-            Base::valid();
+            LenField(BaseImpl::length()).valid() &&
+            BaseImpl::valid();
     }
 
     template <typename TIter>
@@ -90,7 +90,7 @@ public:
             return es;
         }
 
-        es = Base::read(iter, static_cast<std::size_t>(lenField.value()));
+        es = BaseImpl::read(iter, static_cast<std::size_t>(lenField.value()));
         if (es == comms::ErrorStatus::NotEnoughData) {
             return TStatus;
         }
@@ -105,7 +105,7 @@ public:
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         using LenValueType = typename LenField::ValueType;
-        auto lenVal = Base::length();
+        auto lenVal = BaseImpl::length();
         LenField lenField(static_cast<LenValueType>(lenVal));
         auto es = lenField.write(iter, len);
         if (es != comms::ErrorStatus::Success) {
@@ -113,17 +113,17 @@ public:
         }
 
         GASSERT(lenField.length() <= len);
-        return Base::write(iter, lenVal);
+        return BaseImpl::write(iter, lenVal);
     }
 
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
         using LenValueType = typename LenField::ValueType;
-        auto lenVal = Base::length();
+        auto lenVal = BaseImpl::length();
         LenField lenField(static_cast<LenValueType>(lenVal));
         lenField.writeNoStatus(iter);
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 };
 

@@ -47,11 +47,11 @@ namespace field
 template <typename TField, typename... TOptions>
 class Optional : private details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>
 {
-    using Base = details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>;
+    using BaseImpl = details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>;
 public:
 
     /// @brief Endian used for serialisation.
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -76,14 +76,14 @@ public:
     /// @brief Construct the field.
     /// @param[in] fieldSrc Field to be copied from during construction.
     explicit Optional(const Field& fieldSrc)
-      : Base(fieldSrc)
+      : BaseImpl(fieldSrc)
     {
     }
 
     /// @brief Construct the field.
     /// @param[in] fieldSrc Field to be moved from during construction.
     explicit Optional(Field&& fieldSrc)
-      : Base(std::move(fieldSrc))
+      : BaseImpl(std::move(fieldSrc))
     {
     }
 
@@ -107,7 +107,7 @@ public:
     ///     @code return getMode() == Mode::Tentative; @endcode
     bool isTentative() const
     {
-        return Base::getMode() == Mode::Tentative;
+        return BaseImpl::getMode() == Mode::Tentative;
     }
 
     /// @brief Set mode to Mode::Tentative
@@ -115,7 +115,7 @@ public:
     ///     @code setMode(Mode::Tentative); @endcode
     void setTentative()
     {
-        Base::setMode(Mode::Tentative);
+        BaseImpl::setMode(Mode::Tentative);
     }
 
     /// @brief Check whether mode is equivalent to Mode::Missing
@@ -123,7 +123,7 @@ public:
     ///     @code return getMode() == Mode::Missing; @endcode
     bool isMissing() const
     {
-        return Base::getMode() == Mode::Missing;
+        return BaseImpl::getMode() == Mode::Missing;
     }
 
     /// @brief Set mode to Mode::Missing
@@ -131,7 +131,7 @@ public:
     ///     @code setMode(Mode::Missing); @endcode
     void setMissing()
     {
-        Base::setMode(Mode::Missing);
+        BaseImpl::setMode(Mode::Missing);
     }
 
     /// @brief Check whether mode is equivalent to Mode::Exists
@@ -139,7 +139,7 @@ public:
     ///     @code return getMode() == Mode::Exists; @endcode
     bool doesExist() const
     {
-        return Base::getMode() == Mode::Exists;
+        return BaseImpl::getMode() == Mode::Exists;
     }
 
     /// @brief Set mode to Mode::Exists
@@ -147,43 +147,43 @@ public:
     ///     @code setMode(Mode::Exists); @endcode
     void setExists()
     {
-        Base::setMode(Mode::Exists);
+        BaseImpl::setMode(Mode::Exists);
     }
 
     /// @brief Get an access to the wrapped field object
     Field& field()
     {
-        return Base::field();
+        return BaseImpl::field();
     }
 
     /// @brief Get an access to the wrapped field object
     const Field& field() const
     {
-        return Base::field();
+        return BaseImpl::field();
     }
 
     /// @brief Get an access to the wrapped field object
     ValueType& value()
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get an access to the wrapped field object
     const ValueType& value() const
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get current optional mode
     Mode getMode() const
     {
-        return Base::getMode();
+        return BaseImpl::getMode();
     }
 
     /// @brief Get optional mode
     void setMode(Mode val)
     {
-        Base::setMode(val);
+        BaseImpl::setMode(val);
     }
 
     /// @brief Get length required to serialise the current field value.
@@ -193,21 +193,21 @@ public:
     ///     OptionalMode::Tentative) 0 is returned.
     std::size_t length() const
     {
-        return Base::length();
+        return BaseImpl::length();
     }
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Same as Field::minLength()
     static constexpr std::size_t minLength()
     {
-        return Base::minLength();
+        return BaseImpl::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Same as Field::maxLength()
     static constexpr std::size_t maxLength()
     {
-        return Base::maxLength();
+        return BaseImpl::maxLength();
     }
 
     /// @brief Check validity of the field value.
@@ -216,7 +216,7 @@ public:
     ///     field is called.
     bool valid() const
     {
-        return Base::valid();
+        return BaseImpl::valid();
     }
 
     /// @brief Refresh the field's value
@@ -226,7 +226,7 @@ public:
     /// @return @b true if the value has been updated, @b false otherwise
     bool refresh()
     {
-        return Base::refresh();
+        return BaseImpl::refresh();
     }
 
     /// @brief Read field value from input data sequence
@@ -247,7 +247,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        return Base::read(iter, len);
+        return BaseImpl::read(iter, len);
     }
 
     /// @brief Read field value from input data sequence without error check and status report.
@@ -258,7 +258,7 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        Base::readNoStatus(iter);
+        BaseImpl::readNoStatus(iter);
     }
 
     /// @brief Write current field value to output data sequence
@@ -278,7 +278,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        return Base::write(iter, len);
+        return BaseImpl::write(iter, len);
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.
@@ -289,12 +289,12 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 
 protected:
-    using Base::readData;
-    using Base::writeData;
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 };
 
 /// @brief Equality comparison operator.

@@ -35,20 +35,20 @@ namespace adapter
 template <typename TBase>
 class SequenceSizeForcing : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 public:
-    using ValueType = typename Base::ValueType;
-    using ElementType = typename Base::ElementType;
+    using ValueType = typename BaseImpl::ValueType;
+    using ElementType = typename BaseImpl::ElementType;
 
     SequenceSizeForcing() = default;
 
     explicit SequenceSizeForcing(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit SequenceSizeForcing(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -72,21 +72,21 @@ public:
     comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
         if (forced_ == Cleared) {
-            return Base::read(iter, len);
+            return BaseImpl::read(iter, len);
         }
 
-        return Base::readN(forced_, iter, len);
+        return BaseImpl::readN(forced_, iter, len);
     }
 
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
         if (forced_ == Cleared) {
-            Base::readNoStatus(iter);
+            BaseImpl::readNoStatus(iter);
             return;
         }
 
-        Base::readNoStatusN(forced_, iter);
+        BaseImpl::readNoStatusN(forced_, iter);
     }
 
 private:

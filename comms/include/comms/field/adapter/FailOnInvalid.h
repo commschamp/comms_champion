@@ -33,20 +33,20 @@ namespace adapter
 template <comms::ErrorStatus TStatus, typename TBase>
 class FailOnInvalid : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 public:
 
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     FailOnInvalid() = default;
 
     explicit FailOnInvalid(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit FailOnInvalid(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -58,7 +58,7 @@ public:
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
-        Base tmp;
+        BaseImpl tmp;
         auto es = tmp.read(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -68,7 +68,7 @@ public:
             return TStatus;
         }
 
-        static_cast<Base&>(*this) = std::move(tmp);
+        static_cast<BaseImpl&>(*this) = std::move(tmp);
         return comms::ErrorStatus::Success;
     }
 

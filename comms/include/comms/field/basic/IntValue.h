@@ -36,7 +36,7 @@ class IntValue : public TFieldBase
 {
     static_assert(std::is_integral<T>::value, "T must be integral value");
 
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 public:
 
     using ValueType = T;
@@ -108,7 +108,7 @@ public:
     void readNoStatus(TIter& iter)
     {
         auto serialisedValue =
-            Base::template readData<SerialisedType>(iter);
+            BaseImpl::template readData<SerialisedType>(iter);
         value_ = fromSerialised(serialisedValue);
     }
 
@@ -126,7 +126,7 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::writeData(toSerialised(value_), iter);
+        BaseImpl::writeData(toSerialised(value_), iter);
     }
 
 private:

@@ -33,22 +33,22 @@ namespace adapter
 template <typename TTermField, typename TBase>
 class SequenceTerminationFieldSuffix : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
     using TermField = TTermField;
 
 public:
-    using ValueType = typename Base::ValueType;
-    using ElementType = typename Base::ElementType;
+    using ValueType = typename BaseImpl::ValueType;
+    using ElementType = typename BaseImpl::ElementType;
 
     SequenceTerminationFieldSuffix() = default;
 
     explicit SequenceTerminationFieldSuffix(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit SequenceTerminationFieldSuffix(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -59,17 +59,17 @@ public:
 
     constexpr std::size_t length() const
     {
-        return TermField().length() + Base::length();
+        return TermField().length() + BaseImpl::length();
     }
 
     static constexpr std::size_t minLength()
     {
-        return TermField::minLength() + Base::minLength();
+        return TermField::minLength() + BaseImpl::minLength();
     }
 
     static constexpr std::size_t maxLength()
     {
-        return TermField::maxLength() + Base::maxLength();
+        return TermField::maxLength() + BaseImpl::maxLength();
     }
 
     template <typename TIter>
@@ -99,7 +99,7 @@ public:
     {
         TermField termField;
         auto trailLen = termField.length();
-        auto es = Base::write(iter, len - trailLen);
+        auto es = BaseImpl::write(iter, len - trailLen);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -111,7 +111,7 @@ public:
     void writeNoStatus(TIter& iter) const
     {
         TermField termField;
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
         termField.writeNoStatus(iter);
     }
 
@@ -122,7 +122,7 @@ private:
     template <typename TIter>
     comms::ErrorStatus readInternal(TIter& iter, std::size_t len, FieldTag)
     {
-        Base::clear();
+        BaseImpl::clear();
         TermField termField;
         while (true) {
             auto iterCpy = iter;
@@ -134,12 +134,12 @@ private:
             }
 
             ElementType elem;
-            es = Base::readElement(elem, iter, len);
+            es = BaseImpl::readElement(elem, iter, len);
             if (es != comms::ErrorStatus::Success) {
                 return es;
             }
 
-            Base::pushBack(std::move(elem));
+            BaseImpl::pushBack(std::move(elem));
         }
 
         return comms::ErrorStatus::Success;
@@ -165,7 +165,7 @@ private:
             return comms::ErrorStatus::NotEnoughData;
         }
 
-        auto es = Base::read(iter, consumed);
+        auto es = BaseImpl::read(iter, consumed);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }

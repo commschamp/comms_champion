@@ -30,22 +30,22 @@ namespace adapter
 template <typename TValidator, typename TBase>
 class CustomValidator : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
     using Validator = TValidator;
 
 public:
 
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     CustomValidator() = default;
 
     explicit CustomValidator(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit CustomValidator(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -56,7 +56,7 @@ public:
 
     bool valid() const
     {
-        return Base::valid() && (Validator()(*this));
+        return BaseImpl::valid() && (Validator()(*this));
     }
 };
 

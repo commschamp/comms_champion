@@ -32,10 +32,10 @@ namespace adapter
 template <typename TInitialiser, typename TBase>
 class DefaultValueInitialiser : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
     using Initialiser = TInitialiser;
 public:
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     DefaultValueInitialiser()
     {
@@ -43,12 +43,12 @@ public:
     }
 
     explicit DefaultValueInitialiser(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit DefaultValueInitialiser(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 

@@ -28,13 +28,13 @@ namespace details
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryUniq : public MsgFactoryBinSearchBase<TMsgBase, TAllMessages, TOptions...>
 {
-    using Base = MsgFactoryBinSearchBase<TMsgBase, TAllMessages, TOptions...>;
+    using BaseImpl = MsgFactoryBinSearchBase<TMsgBase, TAllMessages, TOptions...>;
 
 public:
-    using AllMessages = typename Base::AllMessages;
-    using MsgPtr = typename Base::MsgPtr;
-    using MsgIdParamType = typename Base::MsgIdParamType;
-    using MsgIdType = typename Base::MsgIdType;
+    using AllMessages = typename BaseImpl::AllMessages;
+    using MsgPtr = typename BaseImpl::MsgPtr;
+    using MsgIdParamType = typename BaseImpl::MsgIdParamType;
+    using MsgIdType = typename BaseImpl::MsgIdType;
 
     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
     {
@@ -43,7 +43,7 @@ public:
         }
 
         auto iter = findMethod(id);
-        if (iter == Base::registry().end()) {
+        if (iter == BaseImpl::registry().end()) {
             return MsgPtr();
         }
 
@@ -59,7 +59,7 @@ public:
     {
         auto iter = findMethod(id);
 
-        if (iter == Base::registry().end()) {
+        if (iter == BaseImpl::registry().end()) {
             return 0U;
         }
 
@@ -78,13 +78,13 @@ public:
 
 private:
 
-    using FactoryMethod = typename Base::FactoryMethod;
-    using MethodsRegistry = typename Base::MethodsRegistry;
+    using FactoryMethod = typename BaseImpl::FactoryMethod;
+    using MethodsRegistry = typename BaseImpl::MethodsRegistry;
 
     typename MethodsRegistry::const_iterator findMethod(MsgIdParamType id) const
     {
         return std::lower_bound(
-            Base::registry().begin(), Base::registry().end(), id,
+            BaseImpl::registry().begin(), BaseImpl::registry().end(), id,
             [](const FactoryMethod* method, MsgIdParamType idParam) -> bool
             {
                 return method->getId() < idParam;

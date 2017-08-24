@@ -122,9 +122,9 @@ constexpr bool vectorHasAssign()
 template <typename TFieldBase, typename TStorage>
 class ArrayList : public TFieldBase
 {
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 public:
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     using ElementType = typename TStorage::value_type;
     using ValueType = TStorage;
@@ -500,7 +500,7 @@ private:
             return ErrorStatus::BufferOverflow;
         }
 
-        Base::writeData(elem, iter);
+        BaseImpl::writeData(elem, iter);
         len -= sizeof(ElementType);
         return ErrorStatus::Success;
     }
@@ -526,7 +526,7 @@ private:
     template <typename TIter>
     static void writeNoStatusIntegralElement(const ElementType& elem, TIter& iter)
     {
-        Base::writeData(elem, iter);
+        BaseImpl::writeData(elem, iter);
     }
 
     template <typename TIter>

@@ -121,7 +121,7 @@ constexpr std::size_t getMemberShiftPos()
 template <typename TFieldBase, typename TMembers>
 class Bitfield : public TFieldBase
 {
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 
     static_assert(comms::util::IsTuple<TMembers>::Value, "TMembers is expected to be a tuple of BitfieldMember<...>");
 
@@ -160,7 +160,7 @@ class Bitfield : public TFieldBase
     >::type;
 
 public:
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
     using ValueType = TMembers;
 
     Bitfield() = default;
@@ -206,7 +206,7 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
-        auto serValue = Base::template readData<SerialisedType, Length>(iter);
+        auto serValue = BaseImpl::template readData<SerialisedType, Length>(iter);
         ErrorStatus es = ErrorStatus::Success;
         comms::util::tupleForEachWithTemplateParamIdx(members_, ReadHelper(serValue, es));
         return es;
@@ -215,7 +215,7 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        auto serValue = Base::template readData<SerialisedType, Length>(iter);
+        auto serValue = BaseImpl::template readData<SerialisedType, Length>(iter);
         comms::util::tupleForEachWithTemplateParamIdx(members_, ReadNoStatusHelper(serValue));
     }
 

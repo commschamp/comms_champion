@@ -72,7 +72,7 @@ namespace field
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bundle : private details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMembers>, TOptions...>
 {
-    using Base = details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMembers>, TOptions...>;
+    using BaseImpl = details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMembers>, TOptions...>;
     static_assert(comms::util::IsTuple<TMembers>::Value,
         "TMembers is expected to be a tuple of std::tuple<...>");
 
@@ -82,7 +82,7 @@ class Bundle : private details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMemb
 
 public:
     /// @brief Endian used for serialisation.
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -93,7 +93,7 @@ public:
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
     ///     of all the wrapped fields.
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     /// @brief Default constructor
     /// @details Invokes default constructor of every wrapped field
@@ -101,26 +101,26 @@ public:
 
     /// @brief Constructor
     explicit Bundle(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     /// @brief Constructor
     explicit Bundle(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
     /// @brief Get access to the stored tuple of fields.
     ValueType& value()
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get access to the stored tuple of fields.
     const ValueType& value() const
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get length required to serialise bundled fields.
@@ -129,21 +129,21 @@ public:
     /// @return Number of bytes it will take to serialise the field value.
     constexpr std::size_t length() const
     {
-        return Base::length();
+        return BaseImpl::length();
     }
 
     /// @brief Get minimal length that is required to serialise all bundled fields.
     /// @return Minimal number of bytes required serialise the field value.
     static constexpr std::size_t minLength()
     {
-        return Base::minLength();
+        return BaseImpl::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise all bundled fields.
     /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
-        return Base::maxLength();
+        return BaseImpl::maxLength();
     }
 
     /// @brief Read field value from input data sequence
@@ -155,7 +155,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return Base::read(iter, size);
+        return BaseImpl::read(iter, size);
     }
 
     /// @brief Read field value from input data sequence without error check and status report.
@@ -166,7 +166,7 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        Base::readNoStatus(iter);
+        BaseImpl::readNoStatus(iter);
     }
 
     /// @brief Write current field value to output data sequence
@@ -178,7 +178,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        return Base::write(iter, size);
+        return BaseImpl::write(iter, size);
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.
@@ -189,13 +189,13 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 
     /// @brief Check validity of all the bundled fields.
     bool valid() const
     {
-        return Base::valid();
+        return BaseImpl::valid();
     }
 
     /// @brief Refresh the field's contents
@@ -203,12 +203,12 @@ public:
     ///     return @b true if any of the calls returns @b true.
     bool refresh()
     {
-        return Base::refresh();
+        return BaseImpl::refresh();
     }
 
 protected:
-    using Base::readData;
-    using Base::writeData;
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 };
 
 /// @brief Equality comparison operator.

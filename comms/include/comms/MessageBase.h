@@ -83,7 +83,7 @@ namespace comms
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
 {
-    using Base = details::MessageImplBuilderT<TMessage, TOptions...>;
+    using BaseImpl = details::MessageImplBuilderT<TMessage, TOptions...>;
 public:
     /// @brief All the options provided to this class bundled into struct.
     /// @details See @ref page_message_options_impl for reference.
@@ -673,6 +673,7 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 ///     @code
 ///     class Message1 : public comms::MessageBase<...>
 ///     {
+///         using Base = comms::MessageBase<...>;
 ///     public:
 ///         enum FieldIdx {
 ///             FieldIdx_name1,

@@ -65,11 +65,11 @@ namespace field
 template <typename TFieldBase, typename T, typename... TOptions>
 class IntValue : private details::AdaptBasicFieldT<basic::IntValue<TFieldBase, T>, TOptions...>
 {
-    using Base = details::AdaptBasicFieldT<basic::IntValue<TFieldBase, T>, TOptions...>;
+    using BaseImpl = details::AdaptBasicFieldT<basic::IntValue<TFieldBase, T>, TOptions...>;
 public:
 
     /// @brief Endian used for serialisation.
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -79,7 +79,7 @@ public:
 
     /// @brief Type of underlying integral value.
     /// @details Same as template parameter T to this class.
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     /// @brief Default constructor
     /// @details Initialises internal value to 0.
@@ -87,7 +87,7 @@ public:
 
     /// @brief Constructor
     explicit IntValue(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
@@ -145,47 +145,47 @@ public:
     /// @brief Get access to integral value storage.
     const ValueType& value() const
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get access to integral value storage.
     ValueType& value()
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get length required to serialise the current field value.
     /// @return Number of bytes it will take to serialise the field value.
     constexpr std::size_t length() const
     {
-        return Base::length();
+        return BaseImpl::length();
     }
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Minimal number of bytes required serialise the field value.
     static constexpr std::size_t minLength()
     {
-        return Base::minLength();
+        return BaseImpl::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
-        return Base::maxLength();
+        return BaseImpl::maxLength();
     }
 
     /// @brief Check validity of the field value.
     bool valid() const
     {
-        return Base::valid();
+        return BaseImpl::valid();
     }
 
     /// @brief Refresh the field's value
     /// @return @b true if the value has been updated, @b false otherwise
     bool refresh()
     {
-        return Base::refresh();
+        return BaseImpl::refresh();
     }
 
     /// @brief Read field value from input data sequence
@@ -196,7 +196,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return Base::read(iter, size);
+        return BaseImpl::read(iter, size);
     }
 
     /// @brief Read field value from input data sequence without error check and status report.
@@ -207,7 +207,7 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
-        Base::readNoStatus(iter);
+        BaseImpl::readNoStatus(iter);
     }
 
     /// @brief Write current field value to output data sequence
@@ -218,7 +218,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        return Base::write(iter, size);
+        return BaseImpl::write(iter, size);
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.
@@ -229,12 +229,12 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 
 protected:
-    using Base::readData;
-    using Base::writeData;
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 
 private:
     struct HasScalingRatioTag {};
@@ -259,7 +259,7 @@ private:
     {
         static_assert(std::is_floating_point<TRet>::value,
             "TRet is expected to be floating point type");
-        return static_cast<TRet>(Base::value()) * (static_cast<TRet>(ParsedOptions::ScalingRatio::num) / static_cast<TRet>(ParsedOptions::ScalingRatio::den));
+        return static_cast<TRet>(BaseImpl::value()) * (static_cast<TRet>(ParsedOptions::ScalingRatio::num) / static_cast<TRet>(ParsedOptions::ScalingRatio::den));
     }
 
     template <typename TRet>
@@ -276,13 +276,13 @@ private:
 
         return
             static_cast<TRet>(
-                (static_cast<CastType>(Base::value()) * ParsedOptions::ScalingRatio::num) / ParsedOptions::ScalingRatio::den);
+                (static_cast<CastType>(BaseImpl::value()) * ParsedOptions::ScalingRatio::num) / ParsedOptions::ScalingRatio::den);
     }
 
     template <typename TRet>
     TRet scaleAsInternal(NoScalingRatioTag) const
     {
-        return static_cast<TRet>(Base::value());
+        return static_cast<TRet>(BaseImpl::value());
     }
 
     template <typename TScaled>
@@ -314,7 +314,7 @@ private:
             epsilon = -epsilon;
         }
 
-        Base::value() =
+        BaseImpl::value() =
             static_cast<ValueType>(
                 ((val + epsilon) * static_cast<DecayedType>(ParsedOptions::ScalingRatio::den)) / static_cast<DecayedType>(ParsedOptions::ScalingRatio::num));
     }
@@ -328,7 +328,7 @@ private:
             std::uintmax_t
         >::type;
 
-        Base::value() =
+        BaseImpl::value() =
             static_cast<ValueType>(
                 (static_cast<CastType>(val) * ParsedOptions::ScalingRatio::den) / static_cast<CastType>(ParsedOptions::ScalingRatio::num));
     }
@@ -336,7 +336,7 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, NoScalingRatioTag)
     {
-        Base::value() = static_cast<ValueType>(val);
+        BaseImpl::value() = static_cast<ValueType>(val);
     }
 
 };

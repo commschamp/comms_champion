@@ -84,7 +84,7 @@ template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Variant : private
         details::AdaptBasicFieldT<basic::Variant<TFieldBase, TMembers>, TOptions...>
 {
-    using Base = details::AdaptBasicFieldT<basic::Variant<TFieldBase, TMembers>, TOptions...>;
+    using BaseImpl = details::AdaptBasicFieldT<basic::Variant<TFieldBase, TMembers>, TOptions...>;
 
     static_assert(comms::util::IsTuple<TMembers>::Value,
         "TMembers is expected to be a tuple of std::tuple<...>");
@@ -95,7 +95,7 @@ class Variant : private
 
 public:
     /// @brief Endian used for serialisation.
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -106,12 +106,12 @@ public:
     /// @brief Value type.
     /// @details Type of the internal buffer used to store contained field,
     ///     should not be used in normal operation.
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     /// @brief All the supported types.
     /// @details Same as @b TMemebers template argument, i.e. it is @b std::tuple
     ///     of all the wrapped fields.
-    using Members = typename Base::Members;
+    using Members = typename BaseImpl::Members;
 
     /// @brief Default constructor
     /// @details Invokes default constructor of every wrapped field
@@ -119,13 +119,13 @@ public:
 
     /// @brief Constructor
     explicit Variant(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     /// @brief Constructor
     explicit Variant(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -133,14 +133,14 @@ public:
     /// @details Should not be used in normal operation.
     ValueType& value()
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get access to the internal storage buffer.
     /// @details Should not be used in normal operation.
     const ValueType& value() const
     {
-        return Base::value();
+        return BaseImpl::value();
     }
 
     /// @brief Get length required to serialise contained fields.
@@ -150,21 +150,21 @@ public:
     /// @return Number of bytes it will take to serialise the field value.
     std::size_t length() const
     {
-        return Base::length();
+        return BaseImpl::length();
     }
 
     /// @brief Get minimal length that is required to serialise all possible contained fields.
     /// @return Always returns 0.
     static constexpr std::size_t minLength()
     {
-        return Base::minLength();
+        return BaseImpl::minLength();
     }
 
     /// @brief Get maximal length that is required to serialise all possible contained fields.
     /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
-        return Base::maxLength();
+        return BaseImpl::maxLength();
     }
 
     /// @brief Read field value from input data sequence
@@ -177,7 +177,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return Base::read(iter, size);
+        return BaseImpl::read(iter, size);
     }
 
     /// @brief Read operation without error check and status report is not supported.
@@ -195,7 +195,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        return Base::write(iter, size);
+        return BaseImpl::write(iter, size);
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.
@@ -206,14 +206,14 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::writeNoStatus(iter);
+        BaseImpl::writeNoStatus(iter);
     }
 
     /// @brief Check validity of all the contained field.
     /// @details Returns @b false if doesn't contain any field.
     bool valid() const
     {
-        return Base::valid();
+        return BaseImpl::valid();
     }
 
     /// @brief Refresh the field's value
@@ -222,7 +222,7 @@ public:
     /// @return @b true if the value has been updated, @b false otherwise
     bool refresh()
     {
-        return Base::refresh();
+        return BaseImpl::refresh();
     }
 
     /// @brief Get index of the current field (within the @ref Members tuple).
@@ -230,7 +230,7 @@ public:
     ///     returned index is equivalent to size of the @ref Members tuple.
     std::size_t currentField() const
     {
-        return Base::currentField();
+        return BaseImpl::currentField();
     }
 
     /// @brief Select type of the variant field.
@@ -242,7 +242,7 @@ public:
     /// @param[in] idx Index of the type within @ref Members tuple.
     void selectField(std::size_t idx)
     {
-        Base::selectField(idx);
+        BaseImpl::selectField(idx);
     }
 
     /// @brief Execute provided function object with current field as
@@ -274,7 +274,7 @@ public:
     template <typename TFunc>
     void currentFieldExec(TFunc&& func)
     {
-        Base::currentFieldExec(std::forward<TFunc>(func));
+        BaseImpl::currentFieldExec(std::forward<TFunc>(func));
     }
 
     /// @brief Execute provided function object with current field as
@@ -298,7 +298,7 @@ public:
     template <typename TFunc>
     void currentFieldExec(TFunc&& func) const
     {
-        Base::currentFieldExec(std::forward<TFunc>(func));
+        BaseImpl::currentFieldExec(std::forward<TFunc>(func));
     }
 
     /// @brief Construct and initialise specified contained field in the
@@ -312,7 +312,7 @@ public:
     template <std::size_t TIdx, typename... TArgs>
     typename std::tuple_element<TIdx, Members>::type& initField(TArgs&&... args)
     {
-        return Base::template initField<TIdx>(std::forward<TArgs>(args)...);
+        return BaseImpl::template initField<TIdx>(std::forward<TArgs>(args)...);
     }
 
     /// @brief Access already constructed field at specifed index (known at compile time).
@@ -323,7 +323,7 @@ public:
     template <std::size_t TIdx>
     typename std::tuple_element<TIdx, Members>::type& accessField()
     {
-        return Base::template accessField<TIdx>();
+        return BaseImpl::template accessField<TIdx>();
     }
 
     /// @brief Access already constructed field at specifed index (known at compile time).
@@ -334,7 +334,7 @@ public:
     template <std::size_t TIdx>
     const typename std::tuple_element<TIdx, Members>::type& accessField() const
     {
-        return Base::template accessField<TIdx>();
+        return BaseImpl::template accessField<TIdx>();
     }
 
     /// @brief Check whether the field contains a valid instance of other field.
@@ -342,19 +342,19 @@ public:
     ///     index inside the @ref Members tuple.
     bool currentFieldValid() const
     {
-        return Base::currentFieldValid();
+        return BaseImpl::currentFieldValid();
     }
 
     /// @brief Invalidate current state
     /// @details Destructs currently contained field if such exists.
     void reset()
     {
-        Base::reset();
+        BaseImpl::reset();
     }
 
 protected:
-    using Base::readData;
-    using Base::writeData;
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 
 };
 

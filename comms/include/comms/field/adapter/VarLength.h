@@ -39,12 +39,12 @@ namespace adapter
 template <std::size_t TMinLen, std::size_t TMaxLen, typename TBase>
 class VarLength : public TBase
 {
-    using Base = TBase;
-    using BaseSerialisedType = typename Base::SerialisedType;
+    using BaseImpl = TBase;
+    using BaseSerialisedType = typename BaseImpl::SerialisedType;
 
 public:
 
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     static_assert(TMaxLen <= sizeof(BaseSerialisedType),
         "The provided max length limit is too big");
@@ -55,17 +55,17 @@ public:
         BaseSerialisedType
     >::type;
 
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     VarLength() = default;
 
     explicit VarLength(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit VarLength(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -78,7 +78,7 @@ public:
     std::size_t length() const
     {
         auto serValue =
-            adjustToUnsignedSerialisedVarLength(toSerialised(Base::value()));
+            adjustToUnsignedSerialisedVarLength(toSerialised(BaseImpl::value()));
         std::size_t len = 0U;
         while (0 < serValue) {
             serValue >>= VarLengthShift;
@@ -102,13 +102,13 @@ public:
     static constexpr SerialisedType toSerialised(ValueType val)
     {
         return signExtUnsignedSerialised(
-            adjustToUnsignedSerialisedVarLength(Base::toSerialised(val)),
+            adjustToUnsignedSerialisedVarLength(BaseImpl::toSerialised(val)),
             HasSignTag());
     }
 
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return Base::fromSerialised(
+        return BaseImpl::fromSerialised(
             static_cast<BaseSerialisedType>(
                 signExtUnsignedSerialised(
                     adjustToUnsignedSerialisedVarLength(val),
@@ -128,7 +128,7 @@ public:
             auto byte = comms::util::readData<std::uint8_t>(iter, Endian());
             auto byteValue = byte & VarLengthValueBitsMask;
             addByteToSerialisedValue(
-                byteValue, byteCount, val, typename Base::Endian());
+                byteValue, byteCount, val, typename BaseImpl::Endian());
 
             ++byteCount;
 
@@ -147,7 +147,7 @@ public:
         }
 
         auto adjustedValue = signExtUnsignedSerialised(val, byteCount, HasSignTag());
-        Base::value() = Base::fromSerialised(adjustedValue);
+        BaseImpl::value() = BaseImpl::fromSerialised(adjustedValue);
         return comms::ErrorStatus::Success;
     }
 
@@ -157,7 +157,7 @@ public:
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        auto val = adjustToUnsignedSerialisedVarLength(Base::toSerialised(Base::value()));
+        auto val = adjustToUnsignedSerialisedVarLength(BaseImpl::toSerialised(BaseImpl::value()));
         std::size_t byteCount = 0;
         bool lastByte = false;
         auto minLen = std::max(length(), minLength());
@@ -183,7 +183,7 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        auto val = adjustToUnsignedSerialisedVarLength(Base::toSerialised(Base::value()));
+        auto val = adjustToUnsignedSerialisedVarLength(BaseImpl::toSerialised(BaseImpl::value()));
         std::size_t byteCount = 0;
         bool lastByte = false;
         auto minLen = std::max(length(), minLength());

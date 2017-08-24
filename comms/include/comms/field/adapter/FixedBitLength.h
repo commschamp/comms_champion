@@ -38,8 +38,8 @@ namespace adapter
 template <std::size_t TLen, typename TBase>
 class FixedBitLength : public TBase
 {
-    using Base = TBase;
-    using BaseSerialisedType = typename Base::SerialisedType;
+    using BaseImpl = TBase;
+    using BaseSerialisedType = typename BaseImpl::SerialisedType;
 
     static const std::size_t BitLength = TLen;
     static const std::size_t Length =
@@ -51,7 +51,7 @@ class FixedBitLength : public TBase
 
 public:
 
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     using SerialisedType = typename std::conditional<
         (Length < sizeof(BaseSerialisedType)),
@@ -59,12 +59,12 @@ public:
         BaseSerialisedType
     >::type;
 
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     FixedBitLength() = default;
 
     explicit FixedBitLength(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
@@ -90,12 +90,12 @@ public:
 
     static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return adjustToSerialised(Base::toSerialised(val), HasSignTag());
+        return adjustToSerialised(BaseImpl::toSerialised(val), HasSignTag());
     }
 
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return Base::fromSerialised(adjustFromSerialised(val, HasSignTag()));
+        return BaseImpl::fromSerialised(adjustFromSerialised(val, HasSignTag()));
     }
 
     template <typename TIter>
@@ -114,7 +114,7 @@ public:
     {
         auto serialisedValue =
             comms::util::readData<SerialisedType, Length>(iter, Endian());
-        Base::value() = fromSerialised(serialisedValue);
+        BaseImpl::value() = fromSerialised(serialisedValue);
     }
 
     template <typename TIter>
@@ -131,7 +131,7 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        Base::template writeData<Length>(toSerialised(Base::value()), iter);
+        BaseImpl::template writeData<Length>(toSerialised(BaseImpl::value()), iter);
     }
 
 private:

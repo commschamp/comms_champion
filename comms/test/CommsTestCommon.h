@@ -82,7 +82,6 @@ public:
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
-
     static_assert(MsgMinLen == 2U, "Wrong serialisation length");
     static_assert(MsgMaxLen == 2U, "Wrong serialisation length");
 
@@ -127,8 +126,10 @@ class Message2 : public
 public:
     virtual ~Message2() noexcept = default;
 
-    static_assert(Base::doMinLength() == 0U, "Wrong serialisation length");
-    static_assert(Base::doMaxLength() == 0U, "Wrong serialisation length");
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 0U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 0U, "Wrong serialisation length");
 
 protected:
     virtual const std::string& getNameImpl() const
@@ -178,8 +179,11 @@ class Message3 : public
         >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
-    static_assert(Base::doMinLength() == 10U, "Wrong serialisation length");
-    static_assert(Base::doMaxLength() == 10U, "Wrong serialisation length");
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 10U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 10U, "Wrong serialisation length");
 
     Message3() = default;
 
@@ -237,8 +241,10 @@ class Message4 : public
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
-    static_assert(Base::doMinLength() == 1U, "Wrong serialisation length");
-    static_assert(Base::doMaxLength() == 3U, "Wrong serialisation length");
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 1U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 3U, "Wrong serialisation length");
 
     Message4()
     {
@@ -309,8 +315,10 @@ public:
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
-    static_assert(Base::doMinLength() == 3U, "Wrong serialisation length");
-    static_assert(Base::doMaxLength() == 3U, "Wrong serialisation length");
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 3U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 3U, "Wrong serialisation length");
 
     Message5() = default;
 

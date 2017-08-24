@@ -171,6 +171,10 @@ public:
     ///
     COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
 
+    // Check serialisation lengths
+    static_assert(Base::doMinLength() == 4, "Unexpected min serialisation length");
+    static_assert(Base::doMaxLength() == 5, "Unexpected max serialisation length");
+
     /// @brief Default constructor
     EnumValues() = default;
 

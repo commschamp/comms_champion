@@ -25,6 +25,8 @@
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
 
+#include <iostream>
+
 namespace demo
 {
 
@@ -138,6 +140,9 @@ public:
     ///     for details.
     ///
     COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4);
+
+    // Check serialisation lengths
+    static_assert(Base::doMinLength() == 10, "Unexpected min serialisation length");
 
     /// @brief Default constructor
     Lists() = default;

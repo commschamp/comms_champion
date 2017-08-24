@@ -1201,6 +1201,8 @@
 /// @li Implement the non-virtual @b doRead() member function with the same
 ///     signature as provided comms::MessageBase::doRead() with default read
 ///     functionality implementation.
+/// @li Use call to @b comms::toMessageBase(*this) (see @ref comms::toMessageBase()
+///     to get a reference to the actual base class (@ref comms::MessageBase).
 ///
 /// When the two conditions above are satisfied, the comms::MessageBase class
 /// has inner meta-programming magic to identify the case and invoke the newly

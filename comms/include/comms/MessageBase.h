@@ -79,6 +79,7 @@ namespace comms
 ///         comms::option::MsgType.
 /// @extends Message
 /// @headerfile comms/MessageBase.h
+/// @see @ref toMessageBase()
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
 {

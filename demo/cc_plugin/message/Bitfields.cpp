@@ -44,7 +44,7 @@ QVariantMap createField1BitmaskProperties()
          .add("bit1")
          .add("bit2");
 
-    assert(props.bits().size() == BitfieldsFields::field1_numOfValues);
+    assert(props.bits().size() == BitfieldsFields::field1_bitmask::BitIdx_numOfValues);
     return props.asMap();
 }
 

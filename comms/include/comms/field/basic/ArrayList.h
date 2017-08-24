@@ -579,7 +579,7 @@ private:
 
     static constexpr std::size_t minElemLengthInternal(FieldElemTag)
     {
-        return sizeof(ElementType::minLength());
+        return ElementType::minLength();
     }
 
     static constexpr std::size_t maxElemLengthInternal(IntegralElemTag)
@@ -589,7 +589,7 @@ private:
 
     static constexpr std::size_t maxElemLengthInternal(FieldElemTag)
     {
-        return sizeof(ElementType::maxLength());
+        return ElementType::maxLength();
     }
 
     static constexpr std::size_t elementLengthInternal(const ElementType&, IntegralElemTag)

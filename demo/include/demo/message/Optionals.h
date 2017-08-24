@@ -120,6 +120,9 @@ public:
     ///
     COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
 
+    // Check serialisation lengths
+    static_assert(Base::doMinLength() == 1, "Unexpected min serialisation length");
+
     /// @brief Default constructor
     Optionals()
     {

@@ -185,7 +185,10 @@ public:
     ///     provided to comms::option::FixedSizeStorage option.
     using ValueType = typename Base::ValueType;
 
-    /// @brief Default constructor
+    /// @brief Type of the element.
+    using ElementType = typename Base::ElementType;
+
+        /// @brief Default constructor
     ArrayList() = default;
 
     /// @brief Value constructor

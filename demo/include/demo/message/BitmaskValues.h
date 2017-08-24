@@ -116,6 +116,10 @@ public:
     ///
     COMMS_MSG_FIELDS_ACCESS(field1, field2);
 
+    // Check serialisation lengths
+    static_assert(Base::doMinLength() == 3, "Unexpected min serialisation length");
+    static_assert(Base::doMaxLength() == 3, "Unexpected max serialisation length");
+
     /// @brief Default constructor
     BitmaskValues() = default;
 

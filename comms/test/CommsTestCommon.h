@@ -80,8 +80,11 @@ public:
 
     COMMS_MSG_FIELDS_ACCESS(value1);
 
-    static_assert(Base::doMinLength() == 2U, "Wrong serialisation length");
-    static_assert(Base::doMaxLength() == 2U, "Wrong serialisation length");
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+
+    static_assert(MsgMinLen == 2U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 2U, "Wrong serialisation length");
 
     Message1() = default;
 

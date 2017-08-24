@@ -110,6 +110,12 @@ public:
     ///
     COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
 
+    // Check serialisation lengths
+    // For some reason VS2015 compiler fails when call to doMinLength()
+    // is performed inside static_assert.
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static_assert(MsgMinLen == 8, "Unexpected min serialisation length");
+
     /// @brief Default constructor
     Strings() = default;
 

@@ -100,8 +100,12 @@ public:
     COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
 
     // Check serialisation lengths
-    static_assert(Base::doMinLength() == 13, "Unexpected min serialisation length");
-    static_assert(Base::doMaxLength() == 13, "Unexpected max serialisation length");
+    // For some reason VS2015 compiler fails when calls to doMinLength() and
+    // doMaxLength() are performed inside static_assert.
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 13, "Unexpected min serialisation length");
+    static_assert(MsgMaxLen == 13, "Unexpected max serialisation length");
 
     /// @brief Default constructor
     FloatValues() = default;

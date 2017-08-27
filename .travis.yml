@@ -61,7 +61,7 @@ before_install:
   - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
   - sudo apt-add-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main" -y
   - sudo apt-get update -q
-  - sudo apt-get install g++-4.7 g++-4.8 g++-4.9 g++-5 g++-6 clang-3.9 cmake cmake-data qt55declarative qt55serialport -y      
+  - sudo apt-get install g++-4.7 g++-4.8 g++-4.9 g++-5 g++-6 clang-3.9 cmake cmake-data qt56-meta-full qt56serialport -y      
 
 before_script:
   - mkdir build

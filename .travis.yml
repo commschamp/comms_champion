@@ -55,7 +55,7 @@ matrix:
       env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_CXX_STANDARD=14"
       
 before_install:
-  - sudo add-apt-repository ppa:beineri/opt-qt551 -y
+  - sudo add-apt-repository ppa:beineri/opt-qt562-trusty
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo add-apt-repository ppa:george-edison55/precise-backports -y
   - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
@@ -66,7 +66,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - source /opt/qt55/bin/qt55-env.sh
+  - source /opt/qt56/bin/qt56-env.sh
   - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD}
 
 script:

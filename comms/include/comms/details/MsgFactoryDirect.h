@@ -28,13 +28,13 @@ namespace details
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryDirect : public MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
-    using Base = MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
+    using BaseImpl = MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
 
 public:
-    using AllMessages = typename Base::AllMessages;
-    using MsgPtr = typename Base::MsgPtr;
-    using MsgIdParamType = typename Base::MsgIdParamType;
-    using MsgIdType = typename Base::MsgIdType;
+    using AllMessages = typename BaseImpl::AllMessages;
+    using MsgPtr = typename BaseImpl::MsgPtr;
+    using MsgIdParamType = typename BaseImpl::MsgIdParamType;
+    using MsgIdType = typename BaseImpl::MsgIdType;
 
     MsgFactoryDirect()
     {
@@ -84,9 +84,9 @@ private:
             static_cast<std::size_t>(LastMessage::ImplOptions::MsgId) + 1U;
 
     template <typename TMessage>
-    using NumIdFactoryMethod = typename Base::template NumIdFactoryMethod<TMessage>;
+    using NumIdFactoryMethod = typename BaseImpl::template NumIdFactoryMethod<TMessage>;
 
-    using FactoryMethod = typename Base::FactoryMethod;
+    using FactoryMethod = typename BaseImpl::FactoryMethod;
     using MethodsRegistry = std::array<const FactoryMethod*, NumOfMessages>;
 
     class MsgFactoryCreator

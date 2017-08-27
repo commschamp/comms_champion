@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -101,11 +101,23 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        comms::util::tupleForEach(value(), makeReadNoStatusHelper(iter));
+    }
+
+    template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         auto es = ErrorStatus::Success;
         comms::util::tupleForEach(value(), makeWriteHelper(es, iter, len));
         return es;
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        comms::util::tupleForEach(value(), makeWriteNoStatusHelper(iter));
     }
 
 private:
@@ -191,6 +203,31 @@ private:
     }
 
     template <typename TIter>
+    class ReadNoStatusHelper
+    {
+    public:
+        ReadNoStatusHelper(TIter& iter)
+          : iter_(iter)
+        {
+        }
+
+        template <typename TField>
+        void operator()(TField& field)
+        {
+            field.readNoStatus(iter_);
+        }
+
+    private:
+        TIter& iter_;
+    };
+
+    template <typename TIter>
+    static ReadNoStatusHelper<TIter> makeReadNoStatusHelper(TIter& iter)
+    {
+        return ReadNoStatusHelper<TIter>(iter);
+    }
+
+    template <typename TIter>
     class WriteHelper
     {
     public:
@@ -221,9 +258,34 @@ private:
     };
 
     template <typename TIter>
-    static WriteHelper<TIter> makeWriteHelper(comms::ErrorStatus& es, TIter& iter, std::size_t len)
+    static WriteHelper<TIter> makeWriteHelper(ErrorStatus& es, TIter& iter, std::size_t len)
     {
         return WriteHelper<TIter>(es, iter, len);
+    }
+
+    template <typename TIter>
+    class WriteNoStatusHelper
+    {
+    public:
+        WriteNoStatusHelper(TIter& iter)
+          : iter_(iter)
+        {
+        }
+
+        template <typename TField>
+        void operator()(const TField& field)
+        {
+            field.writeNoStatus(iter_);
+        }
+
+    private:
+        TIter& iter_;
+    };
+
+    template <typename TIter>
+    static WriteNoStatusHelper<TIter> makeWriteNoStatusHelper(TIter& iter)
+    {
+        return WriteNoStatusHelper<TIter>(iter);
     }
 
     static_assert(comms::util::IsTuple<ValueType>::Value, "ValueType must be tuple");

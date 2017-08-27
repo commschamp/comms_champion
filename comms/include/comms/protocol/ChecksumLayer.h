@@ -56,13 +56,13 @@ namespace protocol
 template <typename TField, typename TCalc, typename TNextLayer, typename... TOptions>
 class ChecksumLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    using Base = ProtocolLayerBase<TField, TNextLayer>;
+    using BaseImpl = ProtocolLayerBase<TField, TNextLayer>;
 public:
     /// @brief Parsed options
     using ParsedOptions = details::ChecksumLayerOptionsParser<TOptions...>;
 
     /// @brief Type of the field object used to read/write checksum value.
-    using Field = typename Base::Field;
+    using Field = typename BaseImpl::Field;
 
     /// @brief Default constructor.
     ChecksumLayer() = default;
@@ -127,7 +127,7 @@ public:
                 iter,
                 size,
                 missingSize,
-                Base::createNextLayerReader());
+                BaseImpl::createNextLayerReader());
     }
 
     /// @brief Deserialise message from the input data sequence while caching
@@ -162,7 +162,7 @@ public:
         static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
             "The read operation is expected to use random access iterator");
 
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
 
         return
             readInternal(
@@ -171,7 +171,7 @@ public:
                 iter,
                 size,
                 missingSize,
-                Base::template createNextLayerCachedFieldsReader<TIdx>(allFields));
+                BaseImpl::template createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
 
     /// @brief Serialise message into the output data sequence.
@@ -203,7 +203,7 @@ public:
         using Tag = typename std::iterator_traits<IterType>::iterator_category;
 
         Field field;
-        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), Tag());
+        return writeInternal(field, msg, iter, size, BaseImpl::createNextLayerWriter(), Tag());
     }
 
     /// @brief Serialise message into output data sequence while caching the written transport
@@ -232,7 +232,7 @@ public:
     {
         using IterType = typename std::decay<decltype(iter)>::type;
         using Tag = typename std::iterator_traits<IterType>::iterator_category;
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
         field.value() = 0;
         return
             writeInternal(
@@ -240,7 +240,7 @@ public:
                 msg,
                 iter,
                 size,
-                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
+                BaseImpl::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
                 Tag());
     }
 
@@ -254,7 +254,7 @@ public:
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
         Field field;
-        return updateInternal(field, iter, size, Base::createNextLayerUpdater());
+        return updateInternal(field, iter, size, BaseImpl::createNextLayerUpdater());
     }
 
     /// @brief Update written dummy checksum with proper value while caching the written transport
@@ -278,13 +278,13 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
         return
             updateInternal(
                 field,
                 iter,
                 size,
-                Base::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
+                BaseImpl::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
     }
 
 private:
@@ -376,7 +376,7 @@ private:
         auto remSize = size - len;
         auto checksumEs = field.read(iter, remSize);
         if (checksumEs == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(field, remSize, missingSize);
+            BaseImpl::updateMissingSize(field, remSize, missingSize);
         }
 
         if (checksumEs != ErrorStatus::Success) {

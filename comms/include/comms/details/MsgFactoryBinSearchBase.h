@@ -114,13 +114,13 @@ constexpr bool msgFactoryAreAllWeakSorted()
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryBinSearchBase : public MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
-    using Base = MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
+    using BaseImpl = MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
 
 public:
-    using AllMessages = typename Base::AllMessages;
-    using MsgPtr = typename Base::MsgPtr;
-    using MsgIdParamType = typename Base::MsgIdParamType;
-    using MsgIdType = typename Base::MsgIdType;
+    using AllMessages = typename BaseImpl::AllMessages;
+    using MsgPtr = typename BaseImpl::MsgPtr;
+    using MsgIdParamType = typename BaseImpl::MsgIdParamType;
+    using MsgIdType = typename BaseImpl::MsgIdType;
 
     MsgFactoryBinSearchBase()
     {
@@ -136,7 +136,7 @@ protected:
     static const std::size_t NumOfMessages =
         std::tuple_size<AllMessages>::value;
 
-    using FactoryMethod = typename Base::FactoryMethod;
+    using FactoryMethod = typename BaseImpl::FactoryMethod;
     using MethodsRegistry = std::array<const FactoryMethod*, NumOfMessages>;
 
     MethodsRegistry& registry()
@@ -162,10 +162,10 @@ private:
         >::type;
 
     template <typename TMessage>
-    using NumIdFactoryMethod = typename Base::template NumIdFactoryMethod<TMessage>;
+    using NumIdFactoryMethod = typename BaseImpl::template NumIdFactoryMethod<TMessage>;
 
     template <typename TMessage>
-    using GenericFactoryMethod = typename Base::template GenericFactoryMethod<TMessage>;
+    using GenericFactoryMethod = typename BaseImpl::template GenericFactoryMethod<TMessage>;
 
     class MsgFactoryCreator
     {

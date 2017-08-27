@@ -38,10 +38,11 @@ UnsignedLongLongIntValueFieldWidget::UnsignedLongLongIntValueFieldWidget(
     setValueWidget(m_ui.m_valueWidget);
     setSeparatorWidget(m_ui.m_sepLine);
     setSerialisedValueWidget(m_ui.m_serValueWidget);
-    m_ui.m_valueLineEdit->setText(QString("%1").arg(adjustRealToDisplayed(m_wrapper->getValue())));
 
     assert(m_ui.m_serValueLineEdit != nullptr);
     setSerialisedInputMask(*m_ui.m_serValueLineEdit, m_wrapper->minWidth(), m_wrapper->maxWidth());
+
+    refresh();
 
     connect(m_ui.m_valueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(valueUpdated(const QString&)));
@@ -49,7 +50,6 @@ UnsignedLongLongIntValueFieldWidget::UnsignedLongLongIntValueFieldWidget(
     connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
-    refresh();
 }
 
 UnsignedLongLongIntValueFieldWidget::~UnsignedLongLongIntValueFieldWidget() noexcept = default;
@@ -61,9 +61,10 @@ void UnsignedLongLongIntValueFieldWidget::refreshImpl()
 
     auto value = m_wrapper->getValue();
     assert(m_ui.m_valueLineEdit);
-    if (adjustDisplayedToReal(getDisplayedValue(m_ui.m_valueLineEdit->text())) != value) {
-        m_ui.m_valueLineEdit->setText(QString("%1").arg(adjustRealToDisplayed(value)));
-    }
+    auto valueTxt =
+            QString("%1")
+                .arg(adjustRealToDisplayed(value), 0, 'f', m_decimals, QChar('0'));
+    m_ui.m_valueLineEdit->setText(valueTxt);
 
     bool valid = m_wrapper->valid();
     setValidityStyleSheet(*m_ui.m_nameLabel, valid);
@@ -81,7 +82,9 @@ void UnsignedLongLongIntValueFieldWidget::editEnabledUpdatedImpl()
 
 void UnsignedLongLongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    m_offset = property::field::IntValue(props).displayOffset();
+    property::field::IntValue parsedProps(props);
+    m_offset = parsedProps.displayOffset();
+    m_decimals = parsedProps.scaledDecimals();
     refresh();
 }
 
@@ -107,20 +110,28 @@ void UnsignedLongLongIntValueFieldWidget::valueUpdated(const QString& value)
 UnsignedLongLongIntValueFieldWidget::UnderlyingType
 UnsignedLongLongIntValueFieldWidget::adjustDisplayedToReal(DisplayedType val)
 {
-    return static_cast<UnderlyingType>(val - m_offset);
+    auto uVal = static_cast<unsigned long long>(val);
+    if (0 < m_decimals) {
+        uVal = static_cast<decltype(uVal)>(val * std::pow(10, m_decimals));
+    }
+    return static_cast<UnderlyingType>(uVal - m_offset);
 }
 
 UnsignedLongLongIntValueFieldWidget::DisplayedType
 UnsignedLongLongIntValueFieldWidget::adjustRealToDisplayed(UnderlyingType val)
 {
-    return static_cast<DisplayedType>(val + m_offset);
+    auto dVal = static_cast<DisplayedType>(val + m_offset);
+    if (0 < m_decimals) {
+        dVal /= std::pow(10, m_decimals);
+    }
+    return dVal;
 }
 
 UnsignedLongLongIntValueFieldWidget::DisplayedType
 UnsignedLongLongIntValueFieldWidget::getDisplayedValue(const QString& value)
 {
     bool ok = false;
-    auto val = value.toULongLong(&ok);
+    auto val = value.toDouble(&ok);
     return val;
 }
 

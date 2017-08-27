@@ -189,6 +189,11 @@ void Protocol::setExtraInfoMsgToMessageProperties(MessagePtr extraInfoMsg, Messa
     property::message::ExtraInfoMsg().setTo(std::move(extraInfoMsg), msg);
 }
 
+MessagePtr Protocol::getExtraInfoMsgToMessageProperties(const Message& msg)
+{
+    return property::message::ExtraInfoMsg().getFrom(msg);
+}
+
 QVariantMap Protocol::getExtraInfoFromMessageProperties(const Message& msg)
 {
     return property::message::ExtraInfo().getFrom(msg);
@@ -211,6 +216,17 @@ void Protocol::mergeExtraInfoToMessageProperties(
     }
     setExtraInfoToMessageProperties(map, msg);
 }
+
+void Protocol::setForceExtraInfoExistenceToMessageProperties(Message& msg)
+{
+    property::message::ForceExtraInfoExistence().setTo(true, msg);
+}
+
+bool Protocol::getForceExtraInfoExistenceFromMessageProperties(const Message& msg)
+{
+    return property::message::ForceExtraInfoExistence().getFrom(msg);
+}
+
 
 }  // namespace comms_champion
 

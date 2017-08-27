@@ -127,10 +127,13 @@ using StringBase =
 /// @extends comms::Field
 /// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>
-class String : public details::StringBase<TFieldBase, TOptions...>
+class String : private details::StringBase<TFieldBase, TOptions...>
 {
-    using Base = details::StringBase<TFieldBase, TOptions...>;
+    using BaseImpl = details::StringBase<TFieldBase, TOptions...>;
 public:
+
+    /// @brief Endian used for serialisation.
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -143,27 +146,27 @@ public:
     ///     ValueType is std::string, otherwise it becomes
     ///     comms::util::StaticString<TSize>, where TSize is a size
     ///     provided to comms::option::FixedSizeStorage option.
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     /// @brief Default constructor
     String() = default;
 
     /// @brief Constructor
     explicit String(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     /// @brief Constructor
     explicit String(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
     /// @brief Constructor
     explicit String(const char* str)
     {
-        Base::value() = str;
+        BaseImpl::value() = str;
     }
 
     /// @brief Copy constructor
@@ -193,7 +196,7 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t len)
     {
-        auto es = Base::read(iter, len);
+        auto es = BaseImpl::read(iter, len);
         using Tag = typename std::conditional<
             ParsedOptions::HasSequenceFixedSize,
             AdjustmentNeededTag,
@@ -204,22 +207,54 @@ public:
         return es;
     }
 
-#ifdef FOR_DOXYGEN_DOC_ONLY
-    /// @brief Get access to the value storage.
-    ValueType& value();
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        BaseImpl::readNoStatus(iter);
+        using Tag = typename std::conditional<
+            ParsedOptions::HasSequenceFixedSize,
+            AdjustmentNeededTag,
+            NoAdjustmentTag
+        >::type;
+
+        adjustValue(Tag());
+    }
 
     /// @brief Get access to the value storage.
-    const ValueType& value() const;
+    ValueType& value()
+    {
+        return BaseImpl::value();
+    }
+
+    /// @brief Get access to the value storage.
+    const ValueType& value() const
+    {
+        return BaseImpl::value();
+    }
 
     /// @brief Get length of serialised data
-    std::size_t length() const;
+    std::size_t length() const
+    {
+        return BaseImpl::length();
+    }
 
     /// @brief Check validity of the field value.
-    bool valid() const;
+    bool valid() const
+    {
+        return BaseImpl::valid();
+    }
 
     /// @brief Refresh the field's value
     /// @return @b true if the value has been updated, @b false otherwise
-    bool refresh();
+    bool refresh()
+    {
+        return BaseImpl::refresh();
+    }
 
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the
@@ -234,28 +269,56 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const;
+    ErrorStatus write(TIter& iter, std::size_t len) const
+    {
+        return BaseImpl::write(iter, len);
+    }
+
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        BaseImpl::writeNoStatus(iter);
+    }
 
     /// @brief Get minimal length that is required to serialise field of this type.
-    static constexpr std::size_t minLength();
+    static constexpr std::size_t minLength()
+    {
+        return BaseImpl::minLength();
+    }
 
     /// @brief Get maximal length that is required to serialise field of this type.
-    static constexpr std::size_t maxLength();
+    static constexpr std::size_t maxLength()
+    {
+        return BaseImpl::maxLength();
+    }
 
     /// @brief Force number of characters that must be read in the next read()
     ///     invocation.
     /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
     ///     used.
     /// @param[in] count Number of elements to read during following read operation.
-    void forceReadElemCount(std::size_t count);
+    void forceReadElemCount(std::size_t count)
+    {
+        BaseImpl::forceReadElemCount(count);
+    }
 
     /// @brief Clear forcing of the number of characters that must be read in
     ///     the next read() invocation.
     /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
     ///     used.
-    void clearReadElemCount();
+    void clearReadElemCount()
+    {
+        BaseImpl::clearReadElemCount();
+    }
 
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+protected:
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 
 private:
     struct NoAdjustmentTag {};
@@ -270,7 +333,7 @@ private:
     void adjustValue(AdjustmentNeededTag)
     {
         std::size_t count = 0;
-        for (auto iter = Base::value().begin(); iter != Base::value().end(); ++iter) {
+        for (auto iter = BaseImpl::value().begin(); iter != BaseImpl::value().end(); ++iter) {
             if (*iter == 0) {
                 break;
             }
@@ -301,12 +364,12 @@ private:
 
     void doResize(std::size_t count, HasResizeTag)
     {
-        Base::value().resize(count);
+        BaseImpl::value().resize(count);
     }
 
     void doResize(std::size_t count, HasRemoveSuffixTag)
     {
-        Base::value().remove_suffix(Base::value().size() - count);
+        BaseImpl::value().remove_suffix(BaseImpl::value().size() - count);
     }
 
 };

@@ -28,19 +28,19 @@ namespace details
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryGeneric : public MsgFactoryBinSearchBase<TMsgBase, TAllMessages, TOptions...>
 {
-    using Base = MsgFactoryBinSearchBase<TMsgBase, TAllMessages, TOptions...>;
+    using BaseImpl = MsgFactoryBinSearchBase<TMsgBase, TAllMessages, TOptions...>;
 
 public:
-    using AllMessages = typename Base::AllMessages;
-    using MsgPtr = typename Base::MsgPtr;
-    using MsgIdParamType = typename Base::MsgIdParamType;
-    using MsgIdType = typename Base::MsgIdType;
+    using AllMessages = typename BaseImpl::AllMessages;
+    using MsgPtr = typename BaseImpl::MsgPtr;
+    using MsgIdParamType = typename BaseImpl::MsgIdParamType;
+    using MsgIdType = typename BaseImpl::MsgIdType;
 
     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
     {
         auto range =
             std::equal_range(
-                Base::registry().begin(), Base::registry().end(), id,
+                BaseImpl::registry().begin(), BaseImpl::registry().end(), id,
                 [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
                 {
                     return idWrapper1.getId() < idWrapper2.getId();
@@ -60,7 +60,7 @@ public:
     {
         auto range =
             std::equal_range(
-                Base::registry().begin(), Base::registry().end(), id,
+                BaseImpl::registry().begin(), BaseImpl::registry().end(), id,
                 [](const CompWrapper& idWrapper1, const CompWrapper& idWrapper2) -> bool
                 {
                     return idWrapper1.getId() < idWrapper2.getId();
@@ -76,7 +76,7 @@ public:
 
 private:
 
-    using FactoryMethod = typename Base::FactoryMethod;
+    using FactoryMethod = typename BaseImpl::FactoryMethod;
 
     class CompWrapper
     {

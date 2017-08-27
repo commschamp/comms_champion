@@ -32,20 +32,20 @@ namespace adapter
 template <typename T, typename TBase>
 class CustomValueReader : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
 public:
 
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     CustomValueReader() = default;
 
     explicit CustomValueReader(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit CustomValueReader(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -58,8 +58,11 @@ public:
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t size)
     {
-        return T()(static_cast<Base&>(*this), iter, size);
+        return T()(static_cast<BaseImpl&>(*this), iter, size);
     }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
 };
 
 }  // namespace adapter

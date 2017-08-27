@@ -98,12 +98,15 @@ namespace field
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE()
 template <typename TFieldBase, typename TMembers, typename... TOptions>
-class Bitfield : public
+class Bitfield : private
         details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>
 {
-    using Base = details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>;
+    using BaseImpl = details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>;
 
 public:
+    /// @brief Endian used for serialisation.
+    using Endian = typename BaseImpl::Endian;
+
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
 
@@ -113,7 +116,7 @@ public:
     /// @brief Value type.
     /// @details Same as TMemebers template argument, i.e. it is std::tuple
     ///     of all the member fields.
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     /// @brief Default constructor
     /// @details All field members are initialised using their default constructors.
@@ -122,14 +125,14 @@ public:
     /// @brief Constructor
     /// @param[in] val Value of the field to initialise it with.
     explicit Bitfield(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     /// @brief Constructor
     /// @param[in] val Value of the field to initialise it with.
     explicit Bitfield(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -150,26 +153,40 @@ public:
     }
 
 
-#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get access to the stored tuple of fields.
     /// @return Const reference to the underlying stored value.
-    const ValueType& value() const;
+    const ValueType& value() const
+    {
+        return BaseImpl::value();
+    }
 
     /// @brief Get access to the stored tuple of fields.
     /// @return Reference to the underlying stored value.
-    ValueType& value();
+    ValueType& value()
+    {
+        return BaseImpl::value();
+    }
 
     /// @brief Get length required to serialise the current field value.
     /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const;
+    constexpr std::size_t length() const
+    {
+        return BaseImpl::length();
+    }
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Minimal number of bytes required serialise the field value.
-    static constexpr std::size_t minLength();
+    static constexpr std::size_t minLength()
+    {
+        return BaseImpl::minLength();
+    }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Maximal number of bytes required serialise the field value.
-    static constexpr std::size_t maxLength();
+    static constexpr std::size_t maxLength()
+    {
+        return BaseImpl::maxLength();
+    }
 
     /// @brief Read field value from input data sequence
     /// @param[in, out] iter Iterator to read the data.
@@ -177,7 +194,21 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t size);
+    ErrorStatus read(TIter& iter, std::size_t size)
+    {
+        return BaseImpl::read(iter, size);
+    }
+
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        BaseImpl::readNoStatus(iter);
+    }
 
     /// @brief Write current field value to output data sequence
     /// @param[in, out] iter Iterator to write the data.
@@ -185,17 +216,39 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t size) const;
+    ErrorStatus write(TIter& iter, std::size_t size) const
+    {
+        return BaseImpl::write(iter, size);
+    }
+
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        BaseImpl::writeNoStatus(iter);
+    }
 
     /// @brief Check validity of the field value.
-    bool valid() const;
+    bool valid() const
+    {
+        return BaseImpl::valid();
+    }
 
     /// @brief Refresh the field's contents
     /// @details Calls refresh() member function on every member field, will
     ///     return @b true if any of the calls returns @b true.
-    bool refresh();
+    bool refresh()
+    {
+        return BaseImpl::refresh();
+    }
 
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+protected:
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 };
 
 /// @brief Equality comparison operator.

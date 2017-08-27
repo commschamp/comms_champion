@@ -33,23 +33,23 @@ namespace adapter
 template <long long int TOffset, typename TBase>
 class SerOffset : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
     static const auto Offset = TOffset;
 public:
 
-    using ValueType = typename Base::ValueType;
-    using SerialisedType = typename Base::SerialisedType;
-    using Endian = typename Base::Endian;
+    using ValueType = typename BaseImpl::ValueType;
+    using SerialisedType = typename BaseImpl::SerialisedType;
+    using Endian = typename BaseImpl::Endian;
 
     SerOffset() = default;
 
     explicit SerOffset(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit SerOffset(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -62,35 +62,47 @@ public:
     template <typename TIter>
     ErrorStatus read(TIter& iter, std::size_t size)
     {
-        if (size < Base::length()) {
+        if (size < BaseImpl::length()) {
             return ErrorStatus::NotEnoughData;
         }
 
+        readNoStatus(iter);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
         auto serialisedValue =
             comms::util::readData<SerialisedType>(iter, Endian());
-        Base::value() = fromSerialised(serialisedValue);
-        return ErrorStatus::Success;
+        BaseImpl::value() = fromSerialised(serialisedValue);
     }
 
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        if (size < Base::length()) {
+        if (size < BaseImpl::length()) {
             return ErrorStatus::BufferOverflow;
         }
 
-        comms::util::writeData(toSerialised(Base::value()), iter, Endian());
+        writeNoStatus(iter);
         return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        comms::util::writeData(toSerialised(BaseImpl::value()), iter, Endian());
     }
 
     static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return adjustToSerialised(Base::toSerialised(val));
+        return adjustToSerialised(BaseImpl::toSerialised(val));
     }
 
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return Base::fromSerialised(adjustFromSerialised(val));
+        return BaseImpl::fromSerialised(adjustFromSerialised(val));
     }
 
 private:

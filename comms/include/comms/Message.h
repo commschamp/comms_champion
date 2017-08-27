@@ -74,7 +74,7 @@ namespace comms
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
 {
-    using Base = details::MessageInterfaceBuilderT<TOptions...>;
+    using BaseImpl = details::MessageInterfaceBuilderT<TOptions...>;
 public:
 
     /// @brief All the options bundled into struct.
@@ -92,25 +92,25 @@ public:
     /// @brief Type used for message ID.
     /// @details The type exists only if comms::option::MsgIdType option
     ///     was provided to comms::Message to specify it.
-    using MsgIdType = typename Base::MsgIdType;
+    using MsgIdType = typename BaseImpl::MsgIdType;
 
     /// @brief Type used for message ID passed as parameter or returned from function.
     /// @details It is equal to @ref MsgIdType for numeric types and becomes
     ///     "const-reference-to" @ref MsgIdType for more complex types.
     ///      The type exists only if @ref MsgIdType exists, i.e.
     ///      the comms::option::MsgIdType option was used.
-    using MsgIdParamType = typename Base::MsgIdParamType;
+    using MsgIdParamType = typename BaseImpl::MsgIdParamType;
 
     /// @brief Serialisation endian type.
     /// @details The type exists only if comms::option::BigEndian or
     ///     comms::option::LittleEndian options were used to specify it.
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief Type of default base class for all the fields.
     /// @details Requires definition of the @ref Endian type, i.e. the type
     ///     exist only if comms::option::BigEndian or
     ///     comms::option::LittleEndian options were used.
-    using Field = Base::Field;
+    using Field = BaseImpl::Field;
 
     /// @brief Retrieve ID of the message.
     /// @details Invokes pure virtual getIdImpl(). This function exists

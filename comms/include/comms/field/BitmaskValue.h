@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2015 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -103,7 +103,7 @@ using BitmaskUndertlyingTypeT =
 template <typename TFieldBase, typename... TOptions>
 class BitmaskValue : public TFieldBase
 {
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 
     using OptionsBundle = details::OptionsParser<TOptions...>;
 
@@ -195,6 +195,17 @@ public:
         return intValue_.read(iter, size);
     }
 
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        intValue_.readNoStatus(iter);
+    }
+
     /// @brief Write current field value to output data sequence
     /// @param[in, out] iter Iterator to write the data.
     /// @param[in] size Maximal number of bytes that can be written.
@@ -204,6 +215,17 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return intValue_.write(iter, size);
+    }
+
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        intValue_.writeNoStatus(iter);
     }
 
     /// @brief Check validity of the field value.
@@ -269,6 +291,10 @@ public:
             clearBits(mask);
         }
     }
+
+protected:
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 
 private:
 

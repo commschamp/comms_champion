@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -121,7 +121,7 @@ constexpr std::size_t getMemberShiftPos()
 template <typename TFieldBase, typename TMembers>
 class Bitfield : public TFieldBase
 {
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 
     static_assert(comms::util::IsTuple<TMembers>::Value, "TMembers is expected to be a tuple of BitfieldMember<...>");
 
@@ -160,7 +160,7 @@ class Bitfield : public TFieldBase
     >::type;
 
 public:
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
     using ValueType = TMembers;
 
     Bitfield() = default;
@@ -206,10 +206,17 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
-        auto serValue = Base::template readData<SerialisedType, Length>(iter);
+        auto serValue = BaseImpl::template readData<SerialisedType, Length>(iter);
         ErrorStatus es = ErrorStatus::Success;
         comms::util::tupleForEachWithTemplateParamIdx(members_, ReadHelper(serValue, es));
         return es;
+    }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        auto serValue = BaseImpl::template readData<SerialisedType, Length>(iter);
+        comms::util::tupleForEachWithTemplateParamIdx(members_, ReadNoStatusHelper(serValue));
     }
 
     template <typename TIter>
@@ -227,6 +234,15 @@ public:
         }
         return es;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        SerialisedType serValue = 0;
+        comms::util::tupleForEachWithTemplateParamIdx(members_, WriteNoStatusHelper(serValue));
+        comms::util::writeData<Length>(serValue, iter, Endian());
+    }
+
 
     constexpr bool valid() const
     {
@@ -281,6 +297,41 @@ private:
         ErrorStatus& es_;
     };
 
+    class ReadNoStatusHelper
+    {
+    public:
+        ReadNoStatusHelper(SerialisedType val)
+          : value_(val) {}
+
+        template <std::size_t TIdx, typename TFieldParam>
+        void operator()(TFieldParam&& field)
+        {
+            using FieldType = typename std::decay<decltype(field)>::type;
+            using FieldOptions = typename FieldType::ParsedOptions;
+            static const auto Pos = details::getMemberShiftPos<TIdx, ValueType>();
+            static const auto Mask =
+                (static_cast<SerialisedType>(1) << FieldOptions::FixedBitLength) - 1;
+
+            auto fieldSerValue =
+                static_cast<SerialisedType>((value_ >> Pos) & Mask);
+
+            static_assert(FieldType::minLength() == FieldType::maxLength(),
+                "Bitfield doesn't support members with variable length");
+
+            static const std::size_t MaxLength = FieldType::maxLength();
+            std::uint8_t buf[MaxLength];
+            auto* writeIter = &buf[0];
+            using FieldEndian = typename FieldType::Endian;
+            comms::util::writeData<MaxLength>(fieldSerValue, writeIter, FieldEndian());
+
+            const auto* readIter = &buf[0];
+            field.readNoStatus(readIter);
+        }
+
+    private:
+        SerialisedType value_;
+    };
+
     class WriteHelper
     {
     public:
@@ -330,6 +381,48 @@ private:
     private:
         SerialisedType& value_;
         ErrorStatus& es_;
+    };
+
+    class WriteNoStatusHelper
+    {
+    public:
+        WriteNoStatusHelper(SerialisedType& val)
+          : value_(val) {}
+
+        template <std::size_t TIdx, typename TFieldParam>
+        void operator()(TFieldParam&& field)
+        {
+
+            using FieldType = typename std::decay<decltype(field)>::type;
+
+            static_assert(FieldType::minLength() == FieldType::maxLength(),
+                "Bitfield supports fixed length members only.");
+
+            static const std::size_t MaxLength = FieldType::maxLength();
+            std::uint8_t buf[MaxLength];
+            auto* writeIter = &buf[0];
+            field.writeNoStatus(writeIter);
+
+            using FieldEndian = typename FieldType::Endian;
+            const auto* readIter = &buf[0];
+            auto fieldSerValue = comms::util::readData<SerialisedType, MaxLength>(readIter, FieldEndian());
+
+            using FieldOptions = typename FieldType::ParsedOptions;
+            static const auto Pos = details::getMemberShiftPos<TIdx, ValueType>();
+            static const auto Mask =
+                (static_cast<SerialisedType>(1) << FieldOptions::FixedBitLength) - 1;
+
+            static const auto ClearMask = ~(Mask << Pos);
+
+            auto valueMask =
+                (static_cast<SerialisedType>(fieldSerValue) & Mask) << Pos;
+
+            value_ &= ClearMask;
+            value_ |= valueMask;
+        }
+
+    private:
+        SerialisedType& value_;
     };
 
     struct ValidHelper

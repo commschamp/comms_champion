@@ -26,6 +26,9 @@
 
 CC_DISABLE_WARNINGS()
 #include <QtCore/QString>
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QByteArray>
 CC_ENABLE_WARNINGS()
 
 #include "comms/comms.h"
@@ -38,12 +41,29 @@ namespace comms_champion
 namespace details
 {
 
+template <typename TFieldBase>
+struct ExtraInfoMessageData : public comms::field::String<TFieldBase>
+{
+    bool valid() const
+    {
+        using Base = comms::field::String<TFieldBase>;
+
+        auto& val = Base::value();
+        if (val.empty()) {
+            return true;
+        }
+
+        auto doc = QJsonDocument::fromJson(QByteArray(val.c_str(), val.size()));
+        return doc.isObject();
+    }
+};
+
 template <typename TMsgBase>
 class ExtraInfoMessageImpl : public
     comms::MessageBase<
         TMsgBase,
         comms::option::NoIdImpl,
-        comms::option::FieldsImpl<std::tuple<comms::field::String<typename TMsgBase::Field> > >,
+        comms::option::FieldsImpl<std::tuple<ExtraInfoMessageData<typename TMsgBase::Field> > >,
         comms::option::MsgType<ExtraInfoMessageImpl<TMsgBase> >
     >
 {

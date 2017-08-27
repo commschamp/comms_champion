@@ -40,11 +40,11 @@ namespace protocol
 template <typename TField, typename TNextLayer>
 class SyncPrefixLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    using Base = ProtocolLayerBase<TField, TNextLayer>;
+    using BaseImpl = ProtocolLayerBase<TField, TNextLayer>;
 
 public:
     /// @brief Type of the field object used to read/write "sync" value.
-    using Field = typename Base::Field;
+    using Field = typename BaseImpl::Field;
 
     /// @brief Default constructor
     SyncPrefixLayer() = default;
@@ -97,7 +97,7 @@ public:
                 iter,
                 size,
                 missingSize,
-                Base::createNextLayerReader());
+                BaseImpl::createNextLayerReader());
     }
 
     /// @brief Deserialise message from the input data sequence while caching
@@ -128,7 +128,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
 
         return
             readInternal(
@@ -137,7 +137,7 @@ public:
                 iter,
                 size,
                 missingSize,
-                Base::template createNextLayerCachedFieldsReader<TIdx>(allFields));
+                BaseImpl::template createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
 
     /// @brief Serialise message into the output data sequence.
@@ -158,7 +158,7 @@ public:
     ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
     {
         Field field;
-        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter());
+        return writeInternal(field, msg, iter, size, BaseImpl::createNextLayerWriter());
     }
 
     /// @brief Serialise message into output data sequence while caching the written transport
@@ -185,14 +185,14 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
         return
             writeInternal(
                 field,
                 msg,
                 iter,
                 size,
-                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
+                BaseImpl::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
     }
 
 private:
@@ -208,7 +208,7 @@ private:
     {
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(field, size, missingSize);
+            BaseImpl::updateMissingSize(field, size, missingSize);
         }
 
         if (es != ErrorStatus::Success) {

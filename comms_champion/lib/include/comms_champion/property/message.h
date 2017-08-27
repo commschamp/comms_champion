@@ -190,6 +190,18 @@ private:
     static const QByteArray PropName;
 };
 
+class CC_API ForceExtraInfoExistence : public PropBase<bool>
+{
+    typedef PropBase<bool> Base;
+public:
+    ForceExtraInfoExistence() : Base(Name, PropName) {};
+
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+
 class CC_API Delay : public PropBase<unsigned long long>
 {
     typedef PropBase<unsigned long long> Base;

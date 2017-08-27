@@ -36,25 +36,23 @@ namespace message
 /// @see Bitfields
 struct BitfieldsFields
 {
-    /// @brief Bit access indices for @ref field1_bitmask
-    enum
-    {
-        field1_bit0, ///< index of bit 0
-        field1_bit1, ///< index of bit 1
-        field1_bit2, ///< index of bit 2
-        field1_numOfValues ///< limit to available bits
-    };
-
     /// @brief Simple 4 bits bitmask value, residing as a member in @ref field1 bitfield.
     /// @details It uses 4 bits of @ref field1. The "bit 3" of the bitmask is
     ///     defined to be reserved and must be 0.
-    using field1_bitmask =
+    struct field1_bitmask : public
         comms::field::BitmaskValue<
             FieldBase,
             comms::option::FixedLength<1>,
             comms::option::FixedBitLength<4>,
             comms::option::BitmaskReservedBits<0xf8, 0>
-    >;
+        >
+    {
+        /// @brief Provide names for internal bits.
+        /// @details See definition of @b COMMS_BITMASK_BITS_SEQ_NOTEMPLATE macro
+        ///     related to @b comms::field::BitmaskValue class from COMMS library
+        ///     for details.
+        COMMS_BITMASK_BITS_SEQ_NOTEMPLATE(bit0, bit1, bit2);
+    };
 
     /// @brief Enumeration type for the @ref field1_enum
     enum class Field1Enum : std::uint8_t
@@ -157,6 +155,14 @@ public:
     ///     for details.
     ///
     COMMS_MSG_FIELDS_ACCESS(field1);
+
+    // Check serialisation lengths
+    // For some reason VS2015 compiler fails when calls to doMinLength() and
+    // doMaxLength() are performed inside static_assert.
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 2, "Unexpected min serialisation length");
+    static_assert(MsgMaxLen == 2, "Unexpected max serialisation length");
 
     /// @brief Default constructor
     Bitfields() = default;

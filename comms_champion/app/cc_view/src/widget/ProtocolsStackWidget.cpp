@@ -24,6 +24,12 @@
 namespace comms_champion
 {
 
+namespace
+{
+
+const char* ApplicationStr = "Application";
+const char* ExtraInfoStr ="Extra Info";
+} // namespace
 ProtocolsStackWidget::ProtocolsStackWidget(QWidget* parentObj)
   : Base(parentObj)
 {
@@ -112,11 +118,11 @@ void ProtocolsStackWidget::displayMessage(MessagePtr msg, bool force)
         };
 
     if (!msg->idAsString().isEmpty()) {
-        addMsgFunc(msg, "Application");
+        addMsgFunc(msg, ApplicationStr);
     }
     addMsgFunc(property::message::TransportMsg().getFrom(*msg), "Transport");
     addMsgFunc(property::message::RawDataMsg().getFrom(*msg), "Raw Data");
-    addMsgFunc(property::message::ExtraInfoMsg().getFrom(*msg), "Extra Info");
+    addMsgFunc(property::message::ExtraInfoMsg().getFrom(*msg), ExtraInfoStr);
 
     m_ui.m_protocolsTreeWidget->addTopLevelItem(topLevelItem);
 
@@ -135,6 +141,26 @@ void ProtocolsStackWidget::clear()
     m_ui.m_protocolsTreeWidget->blockSignals(true);
     m_ui.m_protocolsTreeWidget->clear();
     m_ui.m_protocolsTreeWidget->blockSignals(false);
+}
+
+bool ProtocolsStackWidget::isAppMessageSelected()
+{
+    auto* currentItem = m_ui.m_protocolsTreeWidget->currentItem();
+    if (currentItem == nullptr) {
+        return false;
+    }
+
+    return currentItem->text(0) == ApplicationStr;
+}
+
+bool ProtocolsStackWidget::isExtraInfoSelected()
+{
+    auto* currentItem = m_ui.m_protocolsTreeWidget->currentItem();
+    if (currentItem == nullptr) {
+        return false;
+    }
+
+    return currentItem->text(0) == ExtraInfoStr;
 }
 
 void ProtocolsStackWidget::newItemSelected()
@@ -161,7 +187,10 @@ void ProtocolsStackWidget::reportMessageSelected(QTreeWidgetItem* item)
 {
     auto msgPtr = msgFromItem(item);
     assert(msgPtr);
-    bool editEnabled = (item == m_ui.m_protocolsTreeWidget->topLevelItem(0)->child(0));
+    auto name = item->text(0);
+    bool editEnabled =
+        (name == ApplicationStr) ||
+        (name == ExtraInfoStr);
     emit sigMessageSelected(msgPtr, editEnabled);
 }
 

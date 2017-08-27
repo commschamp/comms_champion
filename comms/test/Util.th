@@ -898,6 +898,7 @@ void UtilTestSuite::test24()
 {
     typedef comms::util::StaticString<20> StaticStr;
     typedef comms::util::StaticVector<std::uint8_t, 20> StaticVec;
+    typedef comms::util::StaticVector<char, 20> StaticVecChar;
 
     static_assert(comms::field::basic::details::stringHasPushBack<std::string>(),
             "std::string must have push_back");
@@ -952,6 +953,12 @@ void UtilTestSuite::test24()
 
     static_assert(comms::details::hasRemoveSuffixFunc<comms::util::StringView>(),
             "StringView must have remove_suffix");
+
+    static_assert(std::is_base_of<comms::util::details::StaticVectorCasted<char, unsigned char, 20>, StaticVecChar>::value,
+            "Wrong base class");
+
+    static_assert(std::is_base_of<comms::util::details::StaticVectorGeneric<unsigned char, 20>, StaticVecChar>::value,
+            "Wrong base class");
 }
 
 void UtilTestSuite::test25()

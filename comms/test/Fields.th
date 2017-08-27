@@ -1399,6 +1399,9 @@ void FieldsTestSuite::test36()
         comms::option::SequenceFixedSize<5>
     > Field;
 
+    static_assert(Field::minLength() == 5U, "Invalid min length");
+    static_assert(Field::maxLength() == 5U, "Invalid max length");
+
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(Field::minLength(), 5U);
@@ -1424,6 +1427,9 @@ void FieldsTestSuite::test37()
         >,
         comms::option::SequenceFixedSize<3>
     > Field;
+
+    static_assert(Field::minLength() == 6U, "Invalid min length");
+    static_assert(Field::maxLength() == 6U, "Invalid max length");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -1454,6 +1460,9 @@ void FieldsTestSuite::test38()
         comms::option::SequenceFixedSize<5>,
         comms::option::SequenceTrailingFieldSuffix<TrailField>
     > Field;
+
+    static_assert(Field::minLength() == 6U, "Invalid min length");
+    static_assert(Field::maxLength() == 6U, "Invalid max length");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -2139,6 +2148,9 @@ void FieldsTestSuite::test56()
         comms::option::FixedSizeStorage<5>,
         comms::option::SequenceTrailingFieldSuffix<TrailField>
     > Field;
+
+    static_assert(Field::minLength() == 6U, "Invalid min length");
+    static_assert(Field::maxLength() == 6U, "Invalid max length");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -3200,6 +3212,9 @@ void FieldsTestSuite::test74()
         comms::option::OrigDataView
     > Field;
 
+    static_assert(Field::minLength() == 6U, "Invalid min length");
+    static_assert(Field::maxLength() == 6U, "Invalid max length");
+
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(field.length(), 6U);
@@ -3308,6 +3323,9 @@ void FieldsTestSuite::test77()
         comms::option::SequenceFixedSize<6>,
         comms::option::OrigDataView
     > Field;
+
+    static_assert(Field::minLength() == 6U, "Invalid min length");
+    static_assert(Field::maxLength() == 6U, "Invalid max length");
 
     Field field;
     TS_ASSERT(field.valid());

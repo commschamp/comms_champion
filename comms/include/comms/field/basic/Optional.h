@@ -107,7 +107,7 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return Field::minLength();
+        return 0U;
     }
 
     static constexpr std::size_t maxLength()
@@ -151,6 +151,18 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        if (mode_ != Mode::Exists) {
+            mode_ = Mode::Missing;
+            return;
+        }
+
+        mode_ = Mode::Exists;
+        field_.readNoStatus(iter);
+    }
+
+    template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         if (mode_ == Mode::Missing) {
@@ -162,6 +174,16 @@ public:
         }
 
         return field_.write(iter, len);
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        if (mode_ != Mode::Exists) {
+            return;
+        }
+
+        field_.writeNoStatus(iter);
     }
 
 private:

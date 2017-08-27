@@ -30,6 +30,9 @@
 CC_DISABLE_WARNINGS()
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QPushButton>
+#include <QtCore/QJsonObject>
+#include <QtCore/QJsonDocument>
+#include <QtCore/QByteArray>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/property/message.h"
@@ -185,6 +188,7 @@ MessageUpdateDialog::MessageUpdateDialog(
             assert(msgTmp);
             auto idTmp = msgTmp->idAsString();
             if ((idTmp == id) && msgTmp->assign(*m_msg)) {
+                property::message::ExtraInfo().copyFromTo(*m_msg, *msgTmp);
                 m_protocol->updateMessage(*msgTmp);
                 property::message::ScrollPos().setTo(m_origScrollPos, *msgTmp);
 
@@ -493,6 +497,25 @@ void MessageUpdateDialog::accept()
 
     property::message::ScrollPos().setTo(m_origScrollPos, *msg);
 
+    do {
+        auto extraInfoMsg = property::message::ExtraInfoMsg().getFrom(*msg);
+        if (!extraInfoMsg) {
+            break;
+        }
+
+        auto extraData = extraInfoMsg->encodeData();
+        if (extraData.empty()) {
+            property::message::ExtraInfo().setTo(QVariantMap(), *msg);
+            break;
+        }
+
+        auto doc =
+            QJsonDocument::fromJson(
+                QByteArray(
+                    reinterpret_cast<const char*>(&extraData[0]),
+                    extraData.size()));
+        property::message::ExtraInfo().setTo(doc.object().toVariantMap(), *msg);
+    } while (false);
     m_msg = std::move(msg);
     assert(m_msg);
     Base::accept();

@@ -45,10 +45,13 @@ namespace field
 /// @extends comms::Field
 /// @headerfile comms/field/Optional.h
 template <typename TField, typename... TOptions>
-class Optional : public details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>
+class Optional : private details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>
 {
-    using Base = details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>;
+    using BaseImpl = details::AdaptBasicFieldT<basic::Optional<TField>, TOptions...>;
 public:
+
+    /// @brief Endian used for serialisation.
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -73,14 +76,14 @@ public:
     /// @brief Construct the field.
     /// @param[in] fieldSrc Field to be copied from during construction.
     explicit Optional(const Field& fieldSrc)
-      : Base(fieldSrc)
+      : BaseImpl(fieldSrc)
     {
     }
 
     /// @brief Construct the field.
     /// @param[in] fieldSrc Field to be moved from during construction.
     explicit Optional(Field&& fieldSrc)
-      : Base(std::move(fieldSrc))
+      : BaseImpl(std::move(fieldSrc))
     {
     }
 
@@ -104,7 +107,7 @@ public:
     ///     @code return getMode() == Mode::Tentative; @endcode
     bool isTentative() const
     {
-        return Base::getMode() == Mode::Tentative;
+        return BaseImpl::getMode() == Mode::Tentative;
     }
 
     /// @brief Set mode to Mode::Tentative
@@ -112,7 +115,7 @@ public:
     ///     @code setMode(Mode::Tentative); @endcode
     void setTentative()
     {
-        Base::setMode(Mode::Tentative);
+        BaseImpl::setMode(Mode::Tentative);
     }
 
     /// @brief Check whether mode is equivalent to Mode::Missing
@@ -120,7 +123,7 @@ public:
     ///     @code return getMode() == Mode::Missing; @endcode
     bool isMissing() const
     {
-        return Base::getMode() == Mode::Missing;
+        return BaseImpl::getMode() == Mode::Missing;
     }
 
     /// @brief Set mode to Mode::Missing
@@ -128,7 +131,7 @@ public:
     ///     @code setMode(Mode::Missing); @endcode
     void setMissing()
     {
-        Base::setMode(Mode::Missing);
+        BaseImpl::setMode(Mode::Missing);
     }
 
     /// @brief Check whether mode is equivalent to Mode::Exists
@@ -136,7 +139,7 @@ public:
     ///     @code return getMode() == Mode::Exists; @endcode
     bool doesExist() const
     {
-        return Base::getMode() == Mode::Exists;
+        return BaseImpl::getMode() == Mode::Exists;
     }
 
     /// @brief Set mode to Mode::Exists
@@ -144,55 +147,87 @@ public:
     ///     @code setMode(Mode::Exists); @endcode
     void setExists()
     {
-        Base::setMode(Mode::Exists);
+        BaseImpl::setMode(Mode::Exists);
     }
 
-#ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Get an access to the wrapped field object
-    Field& field();
+    Field& field()
+    {
+        return BaseImpl::field();
+    }
 
     /// @brief Get an access to the wrapped field object
-    const Field& field() const;
+    const Field& field() const
+    {
+        return BaseImpl::field();
+    }
 
     /// @brief Get an access to the wrapped field object
-    ValueType& value();
+    ValueType& value()
+    {
+        return BaseImpl::value();
+    }
 
     /// @brief Get an access to the wrapped field object
-    const ValueType& value() const;
+    const ValueType& value() const
+    {
+        return BaseImpl::value();
+    }
 
     /// @brief Get current optional mode
-    Mode getMode() const;
+    Mode getMode() const
+    {
+        return BaseImpl::getMode();
+    }
 
     /// @brief Get optional mode
-    void setMode(Mode val);
+    void setMode(Mode val)
+    {
+        BaseImpl::setMode(val);
+    }
 
     /// @brief Get length required to serialise the current field value.
     /// @return If current mode is OptionalMode::Exists, then the function
     ///     returns whatever length() member function of the wrapped field
     ///     returns. Otherwise (for both OptionalMode::Missing and
     ///     OptionalMode::Tentative) 0 is returned.
-    std::size_t length() const;
+    std::size_t length() const
+    {
+        return BaseImpl::length();
+    }
 
     /// @brief Get minimal length that is required to serialise field of this type.
     /// @return Same as Field::minLength()
-    static constexpr std::size_t minLength();
+    static constexpr std::size_t minLength()
+    {
+        return BaseImpl::minLength();
+    }
 
     /// @brief Get maximal length that is required to serialise field of this type.
     /// @return Same as Field::maxLength()
-    static constexpr std::size_t maxLength();
+    static constexpr std::size_t maxLength()
+    {
+        return BaseImpl::maxLength();
+    }
 
     /// @brief Check validity of the field value.
     /// @return If field is marked to be missing (mode is OptionalMode::Missing),
     ///     "true" is returned, otherwise valid() member function of the wrapped
     ///     field is called.
-    bool valid() const;
+    bool valid() const
+    {
+        return BaseImpl::valid();
+    }
 
     /// @brief Refresh the field's value
     /// @details Will invoke the refresh() member function of the contained
     ///     field, only if it is marked as "exists", otherwise @b false will be
     ///     returned.
     /// @return @b true if the value has been updated, @b false otherwise
-    bool refresh();
+    bool refresh()
+    {
+        return BaseImpl::refresh();
+    }
 
     /// @brief Read field value from input data sequence
     /// @details If field is marked as missing (mode is OptionalMode::Missing),
@@ -210,7 +245,21 @@ public:
     /// @return Status of read operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus read(TIter& iter, std::size_t len);
+    ErrorStatus read(TIter& iter, std::size_t len)
+    {
+        return BaseImpl::read(iter, len);
+    }
+
+    /// @brief Read field value from input data sequence without error check and status report.
+    /// @details Similar to @ref read(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        BaseImpl::readNoStatus(iter);
+    }
 
     /// @brief Write current field value to output data sequence
     /// @details If field is marked as missing (mode is OptionalMode::Missing),
@@ -227,8 +276,25 @@ public:
     /// @return Status of write operation.
     /// @post Iterator is advanced.
     template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const;
-#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+    ErrorStatus write(TIter& iter, std::size_t len) const
+    {
+        return BaseImpl::write(iter, len);
+    }
+
+    /// @brief Write current field value to output data sequence  without error check and status report.
+    /// @details Similar to @ref write(), but doesn't perform any correctness
+    ///     checks and doesn't report any failures.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @post Iterator is advanced.
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        BaseImpl::writeNoStatus(iter);
+    }
+
+protected:
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 };
 
 /// @brief Equality comparison operator.

@@ -40,12 +40,12 @@ namespace comms
 template <typename... TOptions>
 class Field : public details::FieldBase<TOptions...>
 {
-    using Base = details::FieldBase<TOptions...>;
+    using BaseImpl = details::FieldBase<TOptions...>;
 public:
     /// @brief Endian type
     /// @details Equal to either comms::traits::endian::Big or
     ///     comms::traits::endian::Little
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     /// @brief Default validity check
     /// @details Always returns true, can be overriden by the derived class

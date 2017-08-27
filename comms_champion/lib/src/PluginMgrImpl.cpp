@@ -61,7 +61,24 @@ struct PluginLoaderDeleter
 
 Plugin* getPlugin(QPluginLoader& loader)
 {
-    return qobject_cast<Plugin*>(loader.instance());
+    auto* inst = loader.instance();
+    auto* plugin = qobject_cast<Plugin*>(loader.instance());
+
+    do {
+        if (plugin != nullptr) {
+            break;
+        }
+
+        if (inst == nullptr) {
+            std::cerr << "ERROR: The selected library \"" <<
+                loader.fileName().toStdString() << "\" is not a Qt5 plugin!" << std::endl;
+            break;
+        }
+
+        std::cerr << "ERROR: The selected library \"" <<
+            loader.fileName().toStdString() << "\" is not a CommsChampion plugin!" << std::endl;
+    } while (false);
+    return plugin;
 }
 
 PluginMgrImpl::PluginInfo::Type parseType(const QString& val)

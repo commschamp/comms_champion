@@ -92,10 +92,10 @@ template <
 class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TRest...> >
                     : public GenericHandler<TDefault, std::tuple<TRest...> >
 {
-    using Base = GenericHandler<TDefault, std::tuple<TRest...> >;
+    using BaseImpl = GenericHandler<TDefault, std::tuple<TRest...> >;
 public:
 
-    using Base::handle;
+    using BaseImpl::handle;
     virtual void handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,

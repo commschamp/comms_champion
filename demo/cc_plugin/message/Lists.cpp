@@ -41,7 +41,7 @@ QVariantMap createField2Properties()
     static const auto ElemCount =
         Field2::ParsedOptions::SequenceFixedSize;
 
-    cc::property::field::ForField<ListsFields::field2> props;
+    cc::property::field::ForField<Field2> props;
     props.name("field2");
 
     for (auto idx = 0U; idx < ElemCount; ++idx) {

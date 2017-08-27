@@ -51,14 +51,15 @@ private slots:
 private:
     using WrapperType = WrapperPtr::element_type;
     using UnderlyingType = WrapperType::UnderlyingType;
-    typedef long long unsigned DisplayedType;
+    typedef double DisplayedType;
     UnderlyingType adjustDisplayedToReal(DisplayedType val);
     DisplayedType adjustRealToDisplayed(UnderlyingType val);
     static DisplayedType getDisplayedValue(const QString& value);
 
     Ui::UnsignedLongLongIntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
-    DisplayedType m_offset = 0;
+    long long m_offset = 0;
+    int m_decimals = 0;
 };
 
 

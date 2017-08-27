@@ -40,11 +40,11 @@ template <typename TField,
           typename TNextLayer>
 class MsgSizeLayer : public ProtocolLayerBase<TField, TNextLayer>
 {
-    using Base = ProtocolLayerBase<TField, TNextLayer>;
+    using BaseImpl = ProtocolLayerBase<TField, TNextLayer>;
 
 public:
     /// @brief Type of the field object used to read/write remaining size value.
-    using Field = typename Base::Field;
+    using Field = typename BaseImpl::Field;
 
     static_assert(comms::field::isIntValue<Field>(),
         "Field must be of IntValue type");
@@ -70,7 +70,7 @@ public:
     /// @cond SKIP_DOC
     constexpr std::size_t length() const
     {
-        return Base::length();
+        return BaseImpl::length();
     }
 
     template <typename TMsg>
@@ -123,7 +123,7 @@ public:
                 iter,
                 size,
                 missingSize,
-                Base::createNextLayerReader());
+                BaseImpl::createNextLayerReader());
     }
 
     /// @brief Deserialise message from the input data sequence while caching
@@ -154,7 +154,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
 
         return
             readInternal(
@@ -163,7 +163,7 @@ public:
                 iter,
                 size,
                 missingSize,
-                Base::template createNextLayerCachedFieldsReader<TIdx>(allFields));
+                BaseImpl::template createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
 
     /// @brief Serialise message into the output data sequence.
@@ -187,7 +187,7 @@ public:
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         Field field;
-        return writeInternal(field, msg, iter, size, Base::createNextLayerWriter(), MsgLengthTag<MsgType>());
+        return writeInternal(field, msg, iter, size, BaseImpl::createNextLayerWriter(), MsgLengthTag<MsgType>());
     }
 
     /// @brief Serialise message into output data sequence while caching the written transport
@@ -215,14 +215,14 @@ public:
         std::size_t size) const
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
         return
             writeInternal(
                 field,
                 msg,
                 iter,
                 size,
-                Base::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
+                BaseImpl::template createNextLayerCachedFieldsWriter<TIdx>(allFields),
                 MsgLengthTag<MsgType>());
     }
 
@@ -235,7 +235,7 @@ public:
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
         Field field;
-        return updateInternal(field, iter, size, Base::createNextLayerUpdater());
+        return updateInternal(field, iter, size, BaseImpl::createNextLayerUpdater());
     }
 
     /// @brief Update written dummy size with proper value while caching the written transport
@@ -258,20 +258,20 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        auto& field = Base::template getField<TIdx>(allFields);
+        auto& field = BaseImpl::template getField<TIdx>(allFields);
         return
             updateInternal(
                 field,
                 iter,
                 size,
-                Base::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
+                BaseImpl::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
     }
 
 private:
 
-    using FixedLengthTag = typename Base::FixedLengthTag;
-    using VarLengthTag = typename Base::VarLengthTag;
-    using LengthTag = typename Base::LengthTag;
+    using FixedLengthTag = typename BaseImpl::FixedLengthTag;
+    using VarLengthTag = typename BaseImpl::VarLengthTag;
+    using LengthTag = typename BaseImpl::LengthTag;
     struct MsgHasLengthTag {};
     struct MsgNoLengthTag {};
 
@@ -300,7 +300,7 @@ private:
 
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
-            Base::updateMissingSize(field, size, missingSize);
+            BaseImpl::updateMissingSize(field, size, missingSize);
         }
 
         if (es != ErrorStatus::Success) {
@@ -348,7 +348,7 @@ private:
     {
         using FieldValueType = typename Field::ValueType;
         field.value() =
-            static_cast<FieldValueType>(Base::nextLayer().length(msg));
+            static_cast<FieldValueType>(BaseImpl::nextLayer().length(msg));
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
@@ -474,14 +474,14 @@ private:
     template <typename TMsg>
     constexpr std::size_t lengthInternal(const TMsg& msg, FixedLengthTag) const
     {
-        return Base::length(msg);
+        return BaseImpl::length(msg);
     }
 
     template <typename TMsg>
     std::size_t lengthInternal(const TMsg& msg, VarLengthTag) const
     {
         using FieldValueType = typename Field::ValueType;
-        auto remSize = Base::nextLayer().length(msg);
+        auto remSize = BaseImpl::nextLayer().length(msg);
         return Field(static_cast<FieldValueType>(remSize)).length() + remSize;
     }
 

@@ -499,7 +499,7 @@ void tupleForEachWithTemplateParamIdx(TTuple&& tuple, TFunc&& func)
 namespace details
 {
 
-template <std::size_t TRem>
+template <std::size_t TOff, std::size_t TRem>
 class TupleAccumulateHelper
 {
 
@@ -509,19 +509,18 @@ public:
     {
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
-        static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
+        static_assert((TOff + TRem) <= std::tuple_size<Tuple>::value, "Incorrect params");
 
-        return TupleAccumulateHelper<TRem - 1>::exec(
+        return TupleAccumulateHelper<TOff + 1, TRem - 1>::exec(
                     std::forward<TTuple>(tuple),
-                    func(value, std::get<std::tuple_size<Tuple>::value - TRem>(std::forward<TTuple>(tuple))),
+                    func(value, std::get<TOff>(std::forward<TTuple>(tuple))),
                     std::forward<TFunc>(func));
     }
 };
 
-template <>
-class TupleAccumulateHelper<0>
+template <std::size_t TOff>
+class TupleAccumulateHelper<TOff, 0>
 {
-
 public:
     template <typename TTuple, typename TValue, typename TFunc>
     static constexpr TValue exec(TTuple&& /* tuple */, const TValue& value, TFunc&& /* func */)
@@ -555,7 +554,38 @@ constexpr TValue tupleAccumulate(TTuple&& tuple, const TValue& value, TFunc&& fu
 {
     using Tuple = typename std::decay<TTuple>::type;
 
-    return details::TupleAccumulateHelper<std::tuple_size<Tuple>::value>::exec(
+    return details::TupleAccumulateHelper<0, std::tuple_size<Tuple>::value>::exec(
+                std::forward<TTuple>(tuple),
+                value,
+                std::forward<TFunc>(func));
+}
+
+/// @brief Performs "accumulate" algorithm on every element of the tuple.
+/// @details Similar to @ref tupleAccumulate(), but allows specifying range of
+///     indices of tuple elements.
+/// @tparam TFrom Index of the first tuple element to evaluate
+/// @tparam TUntil Index of the one past the last tuple element to evaluate.
+/// @param[in] tuple Reference (l- or r-value) to tuple object.
+/// @param[in] value Initial value.
+/// @param[in] func Functor object. The class must provide operator() with the
+///     following signature:
+///     @code
+///     struct MyFunc
+///     {
+///         template <typename TValue, typename TTupleElem>
+///         TValue operator()(const TValue& value, TTupleElem&& elem) {...}
+///     };
+///     @endcode
+/// @return Returns the result of the last invocation of the functor's operator().
+template <std::size_t TFrom, std::size_t TUntil, typename TTuple, typename TValue, typename TFunc>
+constexpr TValue tupleAccumulateFromUntil(TTuple&& tuple, const TValue& value, TFunc&& func)
+{
+    using Tuple = typename std::decay<TTuple>::type;
+
+    static_assert(TFrom <= TUntil, "TFrom mustn't be greater that TUntil");
+    static_assert(TUntil <= std::tuple_size<Tuple>::value, "TUntil mustn't exceed size of the tuple");
+
+    return details::TupleAccumulateHelper<TFrom, TUntil - TFrom>::exec(
                 std::forward<TTuple>(tuple),
                 value,
                 std::forward<TFunc>(func));

@@ -163,6 +163,10 @@ protected:
     ///     of application message object.
     static void setExtraInfoMsgToMessageProperties(MessagePtr extraInfoMsg, Message& msg);
 
+    /// @brief Helper function to retrieve "extra info message" object from properties
+    ///     of the application message object.
+    static MessagePtr getExtraInfoMsgToMessageProperties(const Message& msg);
+
     /// @brief Helper function to retrieve "extra info" from message properties.
     static QVariantMap getExtraInfoFromMessageProperties(const Message& msg);
 
@@ -171,6 +175,13 @@ protected:
 
     /// @brief Helper function to merge existing "extra info" and provided one.
     static void mergeExtraInfoToMessageProperties(const QVariantMap& extraInfo, Message& msg);
+
+    /// @brief Helper function to force "extra info" existence.
+    static void setForceExtraInfoExistenceToMessageProperties(Message& msg);
+
+    /// @brief Helper function to check whether "extra info" existence is force.
+    static bool getForceExtraInfoExistenceFromMessageProperties(const Message& msg);
+
 };
 
 /// @brief Pointer to @ref Protocol object.

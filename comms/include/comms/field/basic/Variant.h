@@ -177,6 +177,9 @@ public:
     }
 
     template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         if (!currentFieldValid()) {
@@ -187,6 +190,17 @@ public:
         comms::util::tupleForSelectedType<Members>(memIdx_, makeWriteHelper(es, iter, len, &storage_));
         return es;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        if (!currentFieldValid()) {
+            return;
+        }
+
+        comms::util::tupleForSelectedType<Members>(memIdx_, makeWriteNoStatusHelper(iter, &storage_));
+    }
+
 
     std::size_t currentField() const
     {
@@ -563,6 +577,33 @@ private:
     static WriteHelper<TIter> makeWriteHelper(comms::ErrorStatus& es, TIter& iter, std::size_t len, const void* storage)
     {
         return WriteHelper<TIter>(es, iter, len, storage);
+    }
+
+    template <typename TIter>
+    class WriteNoStatusHelper
+    {
+    public:
+        WriteNoStatusHelper(TIter& iter, const void* storage)
+          : iter_(iter),
+            storage_(storage)
+        {
+        }
+
+        template <std::size_t TIdx, typename TField>
+        void operator()()
+        {
+            reinterpret_cast<const TField*>(storage_)->writeNoStatus(iter_);
+        }
+
+    private:
+        TIter& iter_;
+        const void* storage_ = nullptr;
+    };
+
+    template <typename TIter>
+    static WriteNoStatusHelper<TIter> makeWriteNoStatusHelper(TIter& iter, const void* storage)
+    {
+        return WriteNoStatusHelper<TIter>(iter, storage);
     }
 
     void checkDestruct()

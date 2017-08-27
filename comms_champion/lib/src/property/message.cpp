@@ -47,6 +47,9 @@ const QByteArray ExtraInfoMsg::PropName = ExtraInfoMsg::Name.toUtf8();
 const QString ExtraInfo::Name("cc.msg_extra_info_map");
 const QByteArray ExtraInfo::PropName = ExtraInfo::Name.toUtf8();
 
+const QString ForceExtraInfoExistence::Name("cc.force_extra_info_exist");
+const QByteArray ForceExtraInfoExistence::PropName = ForceExtraInfoExistence::Name.toUtf8();
+
 const QString Delay::Name("cc.msg_delay");
 const QByteArray Delay::PropName = Delay::Name.toUtf8();
 

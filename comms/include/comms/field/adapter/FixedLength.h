@@ -37,11 +37,11 @@ namespace adapter
 template <std::size_t TLen, typename TBase>
 class FixedLength : public TBase
 {
-    using Base = TBase;
-    using BaseSerialisedType = typename Base::SerialisedType;
+    using BaseImpl = TBase;
+    using BaseSerialisedType = typename BaseImpl::SerialisedType;
 public:
 
-    using ValueType = typename Base::ValueType;
+    using ValueType = typename BaseImpl::ValueType;
 
     static_assert(TLen <= sizeof(BaseSerialisedType),
         "The provided length limit is too big");
@@ -52,12 +52,12 @@ public:
         BaseSerialisedType
     >::type;
 
-    using Endian = typename Base::Endian;
+    using Endian = typename BaseImpl::Endian;
 
     FixedLength() = default;
 
     explicit FixedLength(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
@@ -83,12 +83,12 @@ public:
 
     static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return adjustToSerialised(Base::toSerialised(val), ConversionTag());
+        return adjustToSerialised(BaseImpl::toSerialised(val), ConversionTag());
     }
 
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return Base::fromSerialised(adjustFromSerialised(val, ConversionTag()));
+        return BaseImpl::fromSerialised(adjustFromSerialised(val, ConversionTag()));
     }
 
     template <typename TIter>
@@ -98,10 +98,16 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
+        readNoStatus(iter);
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
         auto serialisedValue =
             comms::util::readData<SerialisedType, Length>(iter, Endian());
-        Base::value() = fromSerialised(serialisedValue);
-        return ErrorStatus::Success;
+        BaseImpl::value() = fromSerialised(serialisedValue);
     }
 
     template <typename TIter>
@@ -111,8 +117,14 @@ public:
             return ErrorStatus::BufferOverflow;
         }
 
-        comms::util::writeData<Length>(toSerialised(Base::value()), iter, Endian());
+        writeNoStatus(iter);
         return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        BaseImpl::template writeData<Length>(toSerialised(BaseImpl::value()), iter);
     }
 
 private:

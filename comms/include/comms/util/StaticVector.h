@@ -530,6 +530,394 @@ struct StaticVectorStorageBase
     StorageType data_;
 };
 
+template <typename T, std::size_t TSize>
+class StaticVectorGeneric :
+    public StaticVectorStorageBase<T, TSize>,
+    public StaticVectorBase<T>
+{
+    using StorageBase = StaticVectorStorageBase<T, TSize>;
+    using Base = StaticVectorBase<T>;
+
+public:
+    using value_type = typename Base::value_type;
+    using size_type = typename Base::size_type;
+    using difference_type = typename StorageBase::StorageType::difference_type;
+    using reference = typename Base::reference;
+    using const_reference = typename Base::const_reference;
+    using pointer = typename Base::pointer;
+    using const_pointer = typename Base::const_pointer;
+    using iterator = typename Base::iterator;
+    using const_iterator = typename Base::const_iterator;
+    using reverse_iterator = typename Base::reverse_iterator;
+    using const_reverse_iterator = typename Base::const_reverse_iterator;
+
+    StaticVectorGeneric()
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+    }
+
+    StaticVectorGeneric(size_type count, const T& value)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        assign(count, value);
+    }
+
+    explicit StaticVectorGeneric(size_type count)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        GASSERT(count < Base::capacity());
+        while (0 < count) {
+            Base::emplace_back();
+            --count;
+        }
+    }
+
+    template <typename TIter>
+    StaticVectorGeneric(TIter from, TIter to)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        assign(from, to);
+    }
+
+    template <std::size_t TOtherSize>
+    StaticVectorGeneric(const StaticVectorGeneric<T, TOtherSize>& other)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        assign(other.begin(), other.end());
+    }
+
+    StaticVectorGeneric(const StaticVectorGeneric& other)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        assign(other.begin(), other.end());
+    }
+
+    StaticVectorGeneric(std::initializer_list<value_type> init)
+      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+    {
+        assign(init.begin(), init.end());
+    }
+
+    ~StaticVectorGeneric() noexcept = default;
+
+    StaticVectorGeneric& operator=(const StaticVectorGeneric& other)
+    {
+        if (&other == this) {
+            return *this;
+        }
+
+        assign(other.begin(), other.end());
+        return *this;
+    }
+
+    template <std::size_t TOtherSize>
+    StaticVectorGeneric& operator=(const StaticVectorGeneric<T, TOtherSize>& other)
+    {
+        assign(other.cbegin(), other.cend());
+        return *this;
+    }
+
+    StaticVectorGeneric& operator=(std::initializer_list<value_type> init)
+    {
+        assign(init);
+        return *this;
+    }
+
+    void assign(size_type count, const T& value)
+    {
+        GASSERT(count <= TSize);
+        Base::fill(count, value);
+    }
+
+    template <typename TIter>
+    void assign(TIter from, TIter to)
+    {
+        Base::assign(from, to);
+    }
+
+    void assign(std::initializer_list<value_type> init)
+    {
+        assign(init.begin(), init.end());
+    }
+
+    void reserve(size_type new_cap)
+    {
+        static_cast<void>(new_cap);
+        GASSERT(new_cap <= Base::capacity());
+    }
+};
+
+template <typename TOrig, typename TCast, std::size_t TSize>
+class StaticVectorCasted : public StaticVectorGeneric<TCast, TSize>
+{
+    using Base = StaticVectorGeneric<TCast, TSize>;
+    static_assert(sizeof(TOrig) == sizeof(TCast), "The sizes are not equal");
+
+public:
+    using value_type = TOrig;
+    using size_type = typename Base::size_type;
+    using difference_type = typename Base::difference_type;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+
+    StaticVectorCasted() = default;
+
+    StaticVectorCasted(size_type count, const_reference& value)
+      : Base(count, *(reinterpret_cast<typename Base::const_pointer>(&value)))
+    {
+    }
+
+    explicit StaticVectorCasted(size_type count)
+      : Base(count)
+    {
+    }
+
+    template <typename TIter>
+    StaticVectorCasted(TIter from, TIter to)
+      : Base(from, to)
+    {
+    }
+
+    template <std::size_t TOtherSize>
+    StaticVectorCasted(const StaticVectorCasted<TOrig, TCast, TOtherSize>& other)
+      : Base(other)
+    {
+    }
+
+    StaticVectorCasted(const StaticVectorCasted& other)
+      : Base(other)
+    {
+    }
+
+    StaticVectorCasted(std::initializer_list<value_type> init)
+      : Base(init.begin(), init.end())
+    {
+    }
+
+    ~StaticVectorCasted() noexcept = default;
+
+    StaticVectorCasted& operator=(const StaticVectorCasted&) = default;
+
+    template <std::size_t TOtherSize>
+    StaticVectorCasted& operator=(const StaticVectorCasted<TOrig, TCast, TOtherSize>& other)
+    {
+        Base::operator=(other);
+        return *this;
+    }
+
+    StaticVectorCasted& operator=(std::initializer_list<value_type> init)
+    {
+        Base::operator=(init);
+        return *this;
+    }
+
+    void assign(size_type count, const_reference& value)
+    {
+        Base::assign(count, value);
+    }
+
+    template <typename TIter>
+    void assign(TIter from, TIter to)
+    {
+        Base::assign(from, to);
+    }
+
+    void assign(std::initializer_list<value_type> init)
+    {
+        assign(init.begin(), init.end());
+    }
+
+    reference at(size_type pos)
+    {
+        return *(reinterpret_cast<pointer>(&(Base::at(pos))));
+    }
+
+    const_reference at(size_type pos) const
+    {
+        return *(reinterpret_cast<const_pointer>(&(Base::at(pos))));
+    }
+
+    reference operator[](size_type pos)
+    {
+        return *(reinterpret_cast<pointer>(&(Base::operator[](pos))));
+    }
+
+    const_reference operator[](size_type pos) const
+    {
+        return *(reinterpret_cast<const_pointer>(&(Base::operator[](pos))));
+    }
+
+    reference front()
+    {
+        return *(reinterpret_cast<pointer>(&(Base::front())));
+    }
+
+    const_reference front() const
+    {
+        return *(reinterpret_cast<const_pointer>(&(Base::front())));
+    }
+
+    reference back()
+    {
+        return *(reinterpret_cast<pointer>(&(Base::back())));
+    }
+
+    const_reference back() const
+    {
+        return *(reinterpret_cast<const_pointer>(&(Base::back())));
+    }
+
+    pointer data()
+    {
+        return reinterpret_cast<pointer>(Base::data());
+    }
+
+    const_pointer data() const
+    {
+        return reinterpret_cast<const_pointer>(Base::data());
+    }
+
+    iterator begin()
+    {
+        return reinterpret_cast<iterator>(Base::begin());
+    }
+
+    const_iterator begin() const
+    {
+        return cbegin();
+    }
+
+    const_iterator cbegin() const
+    {
+        return reinterpret_cast<const_iterator>(Base::cbegin());
+    }
+
+    iterator end()
+    {
+        return reinterpret_cast<iterator>(Base::end());
+    }
+
+    const_iterator end() const
+    {
+        return cend();
+    }
+
+    const_iterator cend() const
+    {
+        return reinterpret_cast<const_iterator>(Base::cend());
+    }
+
+    iterator insert(const_iterator iter, const_reference value)
+    {
+        return
+            reinterpret_cast<iterator>(
+                Base::insert(
+                    reinterpret_cast<typename Base::const_iterator>(iter),
+                    *(reinterpret_cast<typename Base::const_pointer>(&value))));
+    }
+
+    iterator insert(const_iterator iter, TCast&& value)
+    {
+        return
+            reinterpret_cast<iterator>(
+                Base::insert(
+                    reinterpret_cast<typename Base::const_iterator>(iter),
+                    std::move(*(reinterpret_cast<typename Base::pointer>(&value)))));
+    }
+
+    iterator insert(const_iterator iter, size_type count, const_reference value)
+    {
+        return
+            reinterpret_cast<iterator>(
+                Base::insert(
+                    reinterpret_cast<typename Base::const_iterator>(iter),
+                    count,
+                    *(reinterpret_cast<typename Base::const_pointer>(&value))));
+    }
+
+    template <typename TIter>
+    iterator insert(const_iterator iter, TIter from, TIter to)
+    {
+        return
+            reinterpret_cast<iterator>(
+                Base::insert(
+                    reinterpret_cast<typename Base::const_iterator>(iter),
+                    from,
+                    to));
+    }
+
+    iterator insert(const_iterator iter, std::initializer_list<value_type> init)
+    {
+        return
+            reinterpret_cast<iterator>(
+                Base::insert(
+                    reinterpret_cast<typename Base::const_iterator>(iter),
+                    init.begin(),
+                    init.end()));
+    }
+
+    template <typename... TArgs>
+    iterator emplace(const_iterator iter, TArgs&&... args)
+    {
+        return
+            reinterpret_cast<iterator>(
+                Base::emplace(
+                    reinterpret_cast<typename Base::const_iterator>(iter),
+                    std::forward<TArgs>(args)...));
+    }
+
+    iterator erase(const_iterator iter)
+    {
+        return erase(iter, iter + 1);
+    }
+
+    /// @brief Erases elements.
+    /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/erase">Reference</a>
+    iterator erase(const_iterator from, const_iterator to)
+    {
+        return
+            reinterpret_cast<iterator>(
+                Base::erase(
+                    reinterpret_cast<typename Base::const_iterator>(from),
+                    reinterpret_cast<typename Base::const_iterator>(to)));
+    }
+
+    void push_back(const_reference value)
+    {
+        Base::push_back(*(reinterpret_cast<typename Base::const_pointer>(&value)));
+    }
+
+    void push_back(TCast&& value)
+    {
+        Base::push_back(std::move(*(reinterpret_cast<TCast*>(&value))));
+    }
+};
+
+template <bool TSignedIntegral>
+struct StaticVectorBaseSignedIntegral;
+
+template <>
+struct StaticVectorBaseSignedIntegral<true>
+{
+    template <typename T, std::size_t TSize>
+    using Type = StaticVectorCasted<T, typename std::make_unsigned<T>::type, TSize>;
+};
+
+template <>
+struct StaticVectorBaseSignedIntegral<false>
+{
+    template <typename T, std::size_t TSize>
+    using Type = StaticVectorGeneric<T, TSize>;
+};
+
+template <typename T, std::size_t TSize>
+using ChooseStaticVectorBase =
+    typename StaticVectorBaseSignedIntegral<std::is_integral<T>::value && std::is_signed<T>::value>::template Type<T, TSize>;
+
 }  // namespace details
 
 /// @brief Replacement to <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>
@@ -542,14 +930,10 @@ struct StaticVectorStorageBase
 /// @tparam TSize Maximum number of elements that StaticVector can store.
 /// @headerfile "comms/util/StaticVector.h"
 template <typename T, std::size_t TSize>
-class StaticVector :
-    public details::StaticVectorStorageBase<T, TSize>,
-    public details::StaticVectorBase<T>
+class StaticVector : public details::ChooseStaticVectorBase<T, TSize>
 {
-    using StorageBase = details::StaticVectorStorageBase<T, TSize>;
-    using Base = details::StaticVectorBase<T>;
-
-    using ElementType = typename StorageBase::ElementType;
+    using Base = details::ChooseStaticVectorBase<T, TSize>;
+    using ElementType = typename Base::ElementType;
 
     static_assert(sizeof(T) == sizeof(ElementType),
         "Sizes are not equal as expected.");
@@ -565,7 +949,7 @@ public:
     using size_type = typename Base::size_type;
 
     /// @brief Type used in pointer arithmetics
-    using difference_type = typename StorageBase::StorageType::difference_type;
+    using difference_type = typename Base::StorageType::difference_type;
 
     /// @brief Reference to single element
     using reference = typename Base::reference;
@@ -592,63 +976,50 @@ public:
     using const_reverse_iterator = typename Base::const_reverse_iterator;
 
     /// @brief Default constructor.
-    StaticVector()
-      : Base(&StorageBase::data_[0], StorageBase::data_.size())
-    {
-    }
+    StaticVector() = default;
 
     /// @brief Constructor
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     StaticVector(size_type count, const T& value)
-      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+      : Base(count, value)
     {
-        assign(count, value);
     }
 
     /// @brief Constructor
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     explicit StaticVector(size_type count)
-      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+      : Base(count)
     {
-        GASSERT(count < capacity());
-        while (0 < count) {
-            emplace_back();
-            --count;
-        }
     }
 
     /// @brief Constructor
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     template <typename TIter>
     StaticVector(TIter from, TIter to)
-      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+      : Base(from, to)
     {
-        assign(from, to);
     }
 
     /// @brief Copy constructor
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     template <std::size_t TOtherSize>
     StaticVector(const StaticVector<T, TOtherSize>& other)
-      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+      : Base(other)
     {
-        assign(other.begin(), other.end());
     }
 
     /// @brief Copy constructor
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     StaticVector(const StaticVector& other)
-      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+      : Base(other)
     {
-        assign(other.begin(), other.end());
     }
 
     /// @brief Constructor
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/vector">Reference</a>
     StaticVector(std::initializer_list<value_type> init)
-      : Base(&StorageBase::data_[0], StorageBase::data_.size())
+      : Base(init)
     {
-        assign(init.begin(), init.end());
     }
 
     /// @brief Destructor
@@ -656,22 +1027,14 @@ public:
 
     /// @brief Copy assignement
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>
-    StaticVector& operator=(const StaticVector& other)
-    {
-        if (&other == this) {
-            return *this;
-        }
-
-        assign(other.begin(), other.end());
-        return *this;
-    }
+    StaticVector& operator=(const StaticVector&) = default;
 
     /// @brief Copy assignement
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>
     template <std::size_t TOtherSize>
     StaticVector& operator=(const StaticVector<T, TOtherSize>& other)
     {
-        assign(other.begin(), other.end());
+        Base::operator=(other);
         return *this;
     }
 
@@ -679,7 +1042,7 @@ public:
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/operator%3D">Reference</a>
     StaticVector& operator=(std::initializer_list<value_type> init)
     {
-        assign(init);
+        Base::operator=(init);
         return *this;
     }
 
@@ -687,8 +1050,7 @@ public:
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/assign">Reference</a>
     void assign(size_type count, const T& value)
     {
-        GASSERT(count <= TSize);
-        Base::fill(count, value);
+        Base::assign(count, value);
     }
 
     /// @brief Assigns values to the container.
@@ -840,7 +1202,7 @@ public:
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/rbegin">Reference</a>
     const_reverse_iterator rbegin() const
     {
-        return crbegin();
+        return rbegin();
     }
 
     /// @brief Returns a reverse iterator to the beginning.
@@ -899,8 +1261,7 @@ public:
     /// @see <a href="http://en.cppreference.com/w/cpp/container/vector/reserve">Reference</a>
     void reserve(size_type new_cap)
     {
-        static_cast<void>(new_cap);
-        GASSERT(new_cap <= capacity());
+        return Base::reserve(new_cap);
     }
 
     /// @brief Returns the number of elements that can be held in currently allocated storage.

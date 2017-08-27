@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ class FloatValue : public TFieldBase
 {
     static_assert(std::is_floating_point<T>::value, "T must be floating point value");
 
-    using Base = TFieldBase;
+    using BaseImpl = TFieldBase;
 public:
 
     using ValueType = T;
@@ -107,10 +107,16 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
-        auto serialisedValue =
-            Base::template readData<SerialisedType>(iter);
-        value_ = fromSerialised(serialisedValue);
+        readNoStatus(iter);
         return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter)
+    {
+        auto serialisedValue =
+            BaseImpl::template readData<SerialisedType>(iter);
+        value_ = fromSerialised(serialisedValue);
     }
 
     template <typename TIter>
@@ -120,8 +126,14 @@ public:
             return ErrorStatus::BufferOverflow;
         }
 
-        Base::writeData(toSerialised(value_), iter);
+        writeNoStatus(iter);
         return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        BaseImpl::writeData(toSerialised(value_), iter);
     }
 
 private:

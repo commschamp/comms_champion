@@ -33,22 +33,22 @@ namespace adapter
 template <typename TTrailField, typename TBase>
 class SequenceTrailingFieldSuffix : public TBase
 {
-    using Base = TBase;
+    using BaseImpl = TBase;
     using TrailField = TTrailField;
 
 public:
-    using ValueType = typename Base::ValueType;
-    using ElementType = typename Base::ElementType;
+    using ValueType = typename BaseImpl::ValueType;
+    using ElementType = typename BaseImpl::ElementType;
 
     SequenceTrailingFieldSuffix() = default;
 
     explicit SequenceTrailingFieldSuffix(const ValueType& val)
-      : Base(val)
+      : BaseImpl(val)
     {
     }
 
     explicit SequenceTrailingFieldSuffix(ValueType&& val)
-      : Base(std::move(val))
+      : BaseImpl(std::move(val))
     {
     }
 
@@ -59,45 +59,55 @@ public:
 
     constexpr std::size_t length() const
     {
-        return trailField_.length() + Base::length();
+        return trailField_.length() + BaseImpl::length();
     }
 
     static constexpr std::size_t minLength()
     {
-        return TrailField::minLength() + Base::minLength();
+        return TrailField::minLength() + BaseImpl::minLength();
     }
 
     static constexpr std::size_t maxLength()
     {
-        return TrailField::maxLength() + Base::maxLength();
+        return TrailField::maxLength() + BaseImpl::maxLength();
     }
 
     bool valid() const
     {
-        return trailField_.valid() && Base::valid();
+        return trailField_.valid() && BaseImpl::valid();
     }
 
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
-        auto es = Base::read(iter, len - TrailField::minLength());
+        auto es = BaseImpl::read(iter, len - TrailField::minLength());
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        return trailField_.read(iter, len - Base::length());
+        return trailField_.read(iter, len - BaseImpl::length());
     }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
 
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         auto trailLen = trailField_.length();
-        auto es = Base::write(iter, len - trailLen);
+        auto es = BaseImpl::write(iter, len - trailLen);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
         return trailField_.write(iter, trailLen);
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        BaseImpl::writeNoStatus(iter);
+        trailField_.writeNoStatus(iter);
     }
 
 private:

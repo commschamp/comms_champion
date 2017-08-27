@@ -171,6 +171,14 @@ public:
     ///
     COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
 
+    // Check serialisation lengths
+    // For some reason VS2015 compiler fails when calls to doMinLength() and
+    // doMaxLength() are performed inside static_assert.
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 4, "Unexpected min serialisation length");
+    static_assert(MsgMaxLen == 5, "Unexpected max serialisation length");
+
     /// @brief Default constructor
     EnumValues() = default;
 

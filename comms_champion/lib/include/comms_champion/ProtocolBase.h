@@ -355,15 +355,21 @@ protected:
             setRawDataToMessageProperties(MessagePtr(rawDataMsgPtr.release()), msg);
 
             auto extraProps = getExtraInfoFromMessageProperties(msg);
-            if (extraProps.isEmpty()) {
+            bool extraInfoMsgIsForced = getForceExtraInfoExistenceFromMessageProperties(msg);
+            if (extraProps.isEmpty() && (!extraInfoMsgIsForced)) {
                 setExtraInfoMsgToMessageProperties(MessagePtr(), msg);
+                break;
+            }
+
+            std::unique_ptr<ExtraInfoMsg> extraInfoMsgPtr(new ExtraInfoMsg());
+            if (extraProps.isEmpty()) {
+                setExtraInfoMsgToMessageProperties(MessagePtr(extraInfoMsgPtr.release()), msg);
                 break;
             }
 
             auto jsonObj = QJsonObject::fromVariantMap(extraProps);
             QJsonDocument doc(jsonObj);
 
-            std::unique_ptr<ExtraInfoMsg> extraInfoMsgPtr(new ExtraInfoMsg());
             auto& str = std::get<0>(extraInfoMsgPtr->fields());
             str.value() = doc.toJson().constData();
             setExtraInfoMsgToMessageProperties(
@@ -465,6 +471,7 @@ protected:
         comms::util::tupleForEachType<TMsgsTuple>(AllMsgsCreateHelper(allMsgs));
         for (auto& msgPtr : allMsgs) {
             setNameToMessageProperties(*msgPtr);
+            setForceExtraInfoExistenceToMessageProperties(*msgPtr);
             updateMessage(*msgPtr);
         }
         return allMsgs;

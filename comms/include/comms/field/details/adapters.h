@@ -23,6 +23,7 @@
 #include "comms/field/adapter/FixedLength.h"
 #include "comms/field/adapter/FixedBitLength.h"
 #include "comms/field/adapter/VarLength.h"
+#include "comms/field/adapter/SequenceElemLengthForcing.h"
 #include "comms/field/adapter/SequenceSizeForcing.h"
 #include "comms/field/adapter/SequenceFixedSize.h"
 #include "comms/field/adapter/SequenceSizeFieldPrefix.h"

@@ -496,6 +496,8 @@ struct SequenceTrailingFieldSuffix {};
 /// @headerfile comms/options.h
 struct SequenceSizeForcingEnabled {};
 
+struct SequenceElemLengthForcingEnabled {};
+
 /// @brief Option used to define exact number of elements in the collection field.
 /// @details Protocol specification may define that there is exact number of
 ///     elements in the sequence. Use SequenceFixedSize option to convey

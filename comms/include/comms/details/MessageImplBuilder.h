@@ -366,6 +366,8 @@ private:
                 (TField::minLength() == TField::maxLength()) &&
                 (!TField::ParsedOptions::HasCustomValueReader) &&
                 (!TField::ParsedOptions::HasFailOnInvalid) &&
+                (!TField::ParsedOptions::HasSequenceElemLengthForcing)  &&
+                (!TField::ParsedOptions::HasSequenceSizeForcing)  &&
                 (!TField::ParsedOptions::HasSequenceSizeFieldPrefix)  &&
                 (!TField::ParsedOptions::HasSequenceSerLengthFieldPrefix) &&
                 (!TField::ParsedOptions::HasSequenceTrailingFieldSuffix) &&

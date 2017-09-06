@@ -154,6 +154,28 @@ template <typename TField, typename TOpts>
 using AdaptFieldVarLengthT =
     typename AdaptFieldVarLength<TOpts::HasVarLengthLimits>::template Type<TField, TOpts>;
 
+template <bool THasSequenceElemLengthForcing>
+struct AdaptFieldSequenceElemLengthForcing;
+
+template <>
+struct AdaptFieldSequenceElemLengthForcing<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::SequenceElemLengthForcing<TField>;
+};
+
+template <>
+struct AdaptFieldSequenceElemLengthForcing<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldSequenceElemLengthForcingT =
+    typename AdaptFieldSequenceElemLengthForcing<TOpts::HasSequenceElemLengthForcing>::template Type<TField>;
+
+
 template <bool THasSequenceSizeForcing>
 struct AdaptFieldSequenceSizeForcing;
 
@@ -403,6 +425,7 @@ class AdaptBasicField
             ParsedOptions::HasFixedLengthLimit ||
             ParsedOptions::HasFixedBitLengthLimit ||
             ParsedOptions::HasVarLengthLimits ||
+            ParsedOptions::HasSequenceElemLengthForcing ||
             ParsedOptions::HasSequenceSizeForcing ||
             ParsedOptions::HasSequenceFixedSize ||
             ParsedOptions::HasSequenceSizeFieldPrefix ||
@@ -414,6 +437,7 @@ class AdaptBasicField
             (!ParsedOptions::HasCustomValueReader) || (!CustomReaderIncompatible),
             "CustomValueReader option is incompatible with following options: "
             "NumValueSerOffset, FixedLength, FixedBitLength, VarLength, "
+            "HasSequenceElemLengthForcing, "
             "SequenceSizeForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
             "SequenceSerLengthFieldPrefix, SequenceTrailingFieldSuffix, "
             "SequenceTerminationFieldSuffix");
@@ -468,8 +492,10 @@ class AdaptBasicField
         FixedLengthAdapted, ParsedOptions>;
     using VarLengthAdapted = AdaptFieldVarLengthT<
         FixedBitLengthAdapted, ParsedOptions>;
-    using SequenceSizeForcingAdapted = AdaptFieldSequenceSizeForcingT<
+    using SequenceElemLengthForcingAdapted = AdaptFieldSequenceElemLengthForcingT<
         VarLengthAdapted, ParsedOptions>;
+    using SequenceSizeForcingAdapted = AdaptFieldSequenceSizeForcingT<
+        SequenceElemLengthForcingAdapted, ParsedOptions>;
     using SequenceFixedSizeAdapted = AdaptFieldSequenceFixedSizeT<
         SequenceSizeForcingAdapted, ParsedOptions>;
     using SequenceSizeFieldPrefixAdapted = AdaptFieldSequenceSizeFieldPrefixT<

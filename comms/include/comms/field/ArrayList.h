@@ -340,6 +340,26 @@ public:
         return BaseImpl::clearReadElemCount();
     }
 
+    /// @brief Force serialisation length of a single element.
+    /// @details The function can be used to force a serialisation length of a
+    ///     single element within the ArrayList.
+    ///     Exists only if @ref comms::option::SequenceElemLengthForcingEnabled option has been
+    ///     used.
+    /// @param[in] count Number of elements to read during following read operation.
+    void forceElemLength(std::size_t count)
+    {
+        return BaseImpl::forceElemLength(count);
+    }
+
+    /// @brief Clear forcing the serialisation length of the single element.
+    /// @details Exists only if comms::option::SequenceElemLengthForcingEnabled option has been
+    ///     used.
+    void clearElemLengthForcing()
+    {
+        return BaseImpl::clearElemLengthForcing();
+    }
+
+
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;

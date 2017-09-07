@@ -1155,6 +1155,87 @@
 /// assert((myList.value())[2] == 0xc); // Third element
 /// @endcode
 ///
+/// @subsection sec_field_tutorial_array_list_force_element_size Forcing Element Serialisation Length
+/// In addition to prefixing variable length lists with amount of elements to
+/// follow, some protocols may also prefix them with serialisation
+/// length of the <b>single element</b>. Such technique is usually used to
+/// maintain data exchange compatibility with earlier versions of the protocol,
+/// which may be used on the other side of the communication link. The @b COMMS
+/// library allows forcing the serialisation length of a single element when
+/// such information becomes available. It is similar to 
+/// @ref sec_field_tutorial_array_list_detached_size_prefix. The option
+/// @ref comms::option::SequenceElemLengthForcingEnabled needs to be used when
+/// defining the field type, and @ref comms::field::ArrayList::forceElemLength()
+/// and @ref comms::field::ArrayList::clearElemLengthForcing() functions to
+/// set/clear the forcing information.
+/// @code
+/// // Common base class for all the fields
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///
+/// // Field used to serialise serialisation length of a single element in the list
+/// using ElemLengthPrefixField = comms::field::IntValue<MyFieldBase, std::uint8_t>;
+/// 
+/// // Field used to serialise number of elements in the list
+/// using SizePrefixField = comms::field::IntValue<MyFieldBase, std::uint8_t>;
+///
+/// using MyList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         comms::field::IntValue< // 3 bytes integers
+///             MyFieldBas, 
+///             std::uint32_t, 
+///             comms::option::FixedLength<3> >,
+///         comms::option::SequenceSizeFieldPrefix<SizePrefixField>, // 1 byte prefix
+///         comms::option::SequenceElemLengthForcingEnabled // enable forcing of the element length
+///     >;
+///
+/// static const std::uint8_t InputBuffer[] = {
+///     0x4, // single element serialisation length
+///     0x2, // number of elements in the list,
+///     0xa, 0xa, 0xa, 0x0, // first element + padding 
+///     0xb, 0xb, 0xb, 0x0 // second element + padding
+/// }
+/// static const auto InputBufferSize = std::extent<decltype(InputBuffer)>::value;
+///
+/// ElemLengthPrefixField lengthPrefix;
+/// MyList myList;
+/// const auto* readIter = &InputBuffer[0];
+/// auto es = lengthPrefix(readIter, InputBufferSize);
+/// assert(es == comms::ErrorStatus::Success); // No error is expected;
+/// assert(lengthPrefix.value() == 4U);
+///
+/// myList.forceElemLength(lengthPrefix.value()); // force serialisation length of the single element
+/// auto es = myList.read(readIter, InputBufferSize - lengthPrefix.length()); 
+/// assert(es == comms::ErrorStatus::Success); // No error is expected;
+/// assert(myList.value().size() == 2U); // Reading only 2 elements
+/// assert((myList.value())[0] == 0x0a0a0a); // First element
+/// assert((myList.value())[1] == 0x0b0b0b); // Second element 
+/// assert(std::distance(&InputBuffer[0], readIter) == 10); // Expected to consume in the
+/// @endcode
+/// When writing a list, the padding at the end of each element may be forced
+/// using the same option and function:
+/// @code
+/// MyList myList;
+/// myList.push_back(0x123456);
+/// myList.push_back(0x789abc);
+/// myList.forceElemLength(4);
+///
+/// std::vector<std::uint8_t> outputBuffer;
+/// auto writeIter = std::back_inserter(outputBuffer);
+/// es = myList.write(writeIter, outputBuffer.max_size());
+/// assert(es == comms::ErrorStatus::Success); // No error is expected;
+/// assert(outputBuffer.size() == 9U); // Expected to write 9 bytes, 1 bytes for size, and 8 for elements (4 bytes each).
+/// assert(outputBuffer[0] == 2U); // Number of elements to follow
+/// assert(outputBuffer[1] == 0x12);
+/// assert(outputBuffer[2] == 0x34);
+/// assert(outputBuffer[3] == 0x56);
+/// assert(outputBuffer[4] == 0x0); // padding
+/// assert(outputBuffer[5] == 0x78);
+/// assert(outputBuffer[6] == 0x9a);
+/// assert(outputBuffer[7] == 0xbc);
+/// assert(outputBuffer[8] == 0x0); // padding  
+/// @endcode
+///
 /// @subsection sec_field_tutorial_array_list_term_suffix Terminating Sequence with Suffix
 /// Sometimes there is no information about size of the sequence up front. It
 /// may be terminating using some kind of special value. For example, the

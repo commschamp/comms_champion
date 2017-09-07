@@ -1301,6 +1301,23 @@
 /// assert((myList.value())[4] == 0x4); // Fourth element
 /// assert(std::distance(&InputBuffer[0], readIter) == 8); // Consumed only 4 element (2 bytes each) 
 /// @endcode
+/// @b NOTE, that comms::option::SequenceFixedSize option insures existence of
+/// the right number of elements "on the wire", but doesn't influence number
+/// of elements in the newly created list field:
+/// @code
+/// MyList myList;
+/// auto& storageVector = myList.value();
+/// assert(storageVector.empty());
+/// @endcode
+/// Also nothing prevents from having too many values in the storage vector, but
+/// only specified number of the elements will be serialised:
+/// @code
+/// myList.push_back(0x1); // will be serialised
+/// myList.push_back(0x2); // will be serialised
+/// myList.push_back(0x3); // will be serialised
+/// myList.push_back(0x4); // will be serialised
+/// myList.push_back(0x5); // WON'T be serialised
+/// @endcode
 ///
 /// All the @ref sec_field_tutorial_common_options are also applicable to
 /// comms::field::ArrayList field.

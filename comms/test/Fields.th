@@ -114,6 +114,7 @@ public:
     void test77();
     void test78();
     void test79();
+    void test80();
 
     enum Enum1 {
         Enum1_Value1,
@@ -3422,6 +3423,82 @@ void FieldsTestSuite::test79()
     TS_ASSERT_EQUALS(field.value()[0].value(), 0x1);
     TS_ASSERT_EQUALS(field.value()[1].value(), 0x2);
     TS_ASSERT_EQUALS(field.value()[2].value(), 0x3);
+}
+
+void FieldsTestSuite::test80()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t,
+                comms::option::ValidNumValueRange<0, 10>,
+                comms::option::DefaultNumValue<5>
+            >,
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t,
+                comms::option::ValidNumValueRange<100, 100>,
+                comms::option::DefaultNumValue<100>,
+                comms::option::EmptySerialization
+            >,
+            comms::field::EnumValue<
+                comms::Field<BigEndianOpt>,
+                Enum1,
+                comms::option::FixedLength<1>,
+                comms::option::ValidNumValueRange<0, Enum1_NumOfValues - 1>,
+                comms::option::DefaultNumValue<Enum1_Value2>
+            >
+        >
+    > Field;
+
+    TS_ASSERT_EQUALS(Field::minLength(), 3U);
+    TS_ASSERT_EQUALS(Field::maxLength(), 3U);
+
+    Field field;
+    TS_ASSERT(field.valid());
+    auto& intValField = std::get<0>(field.value());
+    auto& constValField = std::get<1>(field.value());
+    auto& enumValField = std::get<2>(field.value());
+    TS_ASSERT_EQUALS(intValField.value(), 5U);
+    TS_ASSERT_EQUALS(constValField.value(), 100U);
+    TS_ASSERT_EQUALS(enumValField.value(), Enum1_Value2);
+
+    intValField.value() = 50U;
+    TS_ASSERT(!field.valid());
+    intValField.value() = 1U;
+    TS_ASSERT(field.valid());
+    enumValField.value() = Enum1_NumOfValues;
+    TS_ASSERT(!field.valid());
+    enumValField.value() = Enum1_Value1;
+    TS_ASSERT(field.valid());
+    constValField.value() = 10;
+    TS_ASSERT(!field.valid());
+    constValField.value() = 100;
+    TS_ASSERT(field.valid());
+
+    static const char Buf[] = {
+        0x00, 0x3, Enum1_Value3, (char)0xff
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(intValField.value(), 3U);
+    TS_ASSERT_EQUALS(constValField.value(), 100U);
+    TS_ASSERT_EQUALS(enumValField.value(), Enum1_Value3);
+
+    intValField.value() = 0xabcd;
+    enumValField.value() = Enum1_Value1;
+
+    static const char ExpectedBuf[] = {
+        (char)0xab, (char)0xcd, (char)Enum1_Value1
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
 }
 
 template <typename TField>

@@ -124,6 +124,7 @@ using StringBase =
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 ///     @li comms::option::OrigDataView
+///     @li comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>

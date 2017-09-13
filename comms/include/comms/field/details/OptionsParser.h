@@ -60,6 +60,7 @@ public:
     static const bool HasScalingRatio = false;
     static const bool HasUnits = false;
     static const bool HasOrigDataView = false;
+    static const bool HasEmptySerialization = false;
 };
 
 template <typename T, typename... TOptions>
@@ -280,6 +281,16 @@ class OptionsParser<
 public:
     static const bool HasOrigDataView = true;
 };
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::EmptySerialization,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasEmptySerialization = true;
+};
+
 
 template <typename... TOptions>
 class OptionsParser<

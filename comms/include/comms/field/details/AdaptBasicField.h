@@ -415,6 +415,27 @@ template <typename TField, typename TOpts>
 using AdaptFieldIgnoreInvalidT =
     typename AdaptFieldIgnoreInvalid<TOpts::HasIgnoreInvalid>::template Type<TField>;
 
+template <bool THasEmptySerialization>
+struct AdaptFieldEmptySerialization;
+
+template <>
+struct AdaptFieldEmptySerialization<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::EmptySerialization<TField>;
+};
+
+template <>
+struct AdaptFieldEmptySerialization<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldEmptySerializationT =
+    typename AdaptFieldEmptySerialization<TOpts::HasEmptySerialization>::template Type<TField>;
+
 template <typename TBasic, typename... TOptions>
 class AdaptBasicField
 {
@@ -431,7 +452,8 @@ class AdaptBasicField
             ParsedOptions::HasSequenceSizeFieldPrefix ||
             ParsedOptions::HasSequenceSerLengthFieldPrefix ||
             ParsedOptions::HasSequenceTrailingFieldSuffix ||
-            ParsedOptions::HasSequenceTerminationFieldSuffix;
+            ParsedOptions::HasSequenceTerminationFieldSuffix |\
+            ParsedOptions::HasEmptySerialization;
 
     static_assert(
             (!ParsedOptions::HasCustomValueReader) || (!CustomReaderIncompatible),
@@ -440,7 +462,7 @@ class AdaptBasicField
             "HasSequenceElemLengthForcing, "
             "SequenceSizeForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
             "SequenceSerLengthFieldPrefix, SequenceTrailingFieldSuffix, "
-            "SequenceTerminationFieldSuffix");
+            "SequenceTerminationFieldSuffix, EmptySerialization");
 
     static const bool VarLengthIncompatible =
             ParsedOptions::HasFixedLengthLimit ||
@@ -516,8 +538,11 @@ class AdaptBasicField
         CustomRefresherAdapted, ParsedOptions>;
     using IgnoreInvalidAdapted = AdaptFieldIgnoreInvalidT<
         FailOnInvalidAdapted, ParsedOptions>;
+    using EmptySerializationAdapted = AdaptFieldEmptySerializationT<
+        IgnoreInvalidAdapted, ParsedOptions>;
+
 public:
-    using Type = IgnoreInvalidAdapted;
+    using Type = EmptySerializationAdapted;
 };
 
 template <typename TBasic, typename... TOptions>

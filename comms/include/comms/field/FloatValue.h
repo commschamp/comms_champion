@@ -54,6 +54,7 @@ namespace field
 ///     @li comms::option::IgnoreInvalid
 ///     @li comms::option::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
+///     @li comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/FloatValue.h
 template <typename TFieldBase, typename T, typename... TOptions>

@@ -35,3 +35,4 @@
 #include "comms/field/adapter/CustomRefresher.h"
 #include "comms/field/adapter/FailOnInvalid.h"
 #include "comms/field/adapter/IgnoreInvalid.h"
+#include "comms/field/adapter/EmptySerialization.h"

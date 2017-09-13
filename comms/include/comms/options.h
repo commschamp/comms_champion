@@ -1095,6 +1095,19 @@ struct ChecksumLayerVerifyBeforeRead {};
 ///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
 struct OrigDataView {};
 
+/// @brief Force field not to be serialized during read/write operations
+/// @details Some protocols may define some constant values that are predefined
+///     and are not present on I/O link when serialized. Sometimes it is convenient
+///     to have such values abstracted away as fields, which are not actually
+///     serialised. Using this option will have such effect: read/write operaitons
+///     will not change the value of iterators and will report immediate success.
+///     The serialisation length is always reported as 0.
+struct EmptySerialization {};
+
+/// @brief Same as @ref EmptySerialization.
+/// @details Just British English spelling.
+using EmptySerialisation = EmptySerialization;
+
 }  // namespace option
 
 }  // namespace comms

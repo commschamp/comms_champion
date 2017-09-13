@@ -2264,6 +2264,32 @@
 /// assert(myField.value() == 1U); // Value is expected to be updated
 /// @endcode
 ///
+/// @subsection sec_field_tutorial_common_options_empty_ser Empty Serialisation
+/// Some protocols may define some constants which are NOT being sent over I/O
+/// link. Sometimes it may be useful to still treat these values as message fields.
+/// Usage of @ref comms::option::EmptySerialization (or @ref 
+/// comms::option::EmptySerialisation for those who prefer British spelling) can
+/// be used to achieve such effect.
+/// @code
+/// using MyField = comms::field::IntValue<
+///     MyFieldBase,
+///     std::uint8_t,
+///     comms::option::ValidNumValueRange<5, 5>,
+///     comms::option::DefaultNumValue<5>,
+///     comms::option::EmptySerialization
+/// >;
+/// 
+/// MyField field;
+/// assert(field.length() == 0U); // Not expected to have any serialisation length
+/// assert(field.value() == 5U); // The value is still accessible;
+///
+/// std::vector<std::uint8_t> outBuf;
+/// auto writeIter = std::back_inserter(outBuf);
+/// auto es == field.write(writeIter, outBuf.max_size());
+/// assert(es == comms::ErrorStatus::Success); // No failure is expected
+/// assert(outBuf.empty()); // No data has been written
+/// @endcode
+///
 /// @section sec_field_tutorial_custom_fields Custom Fields
 /// There may be a case when communication protocol demands implementation of
 /// some intricate field's logic that is not covered by the COMMS library. It 

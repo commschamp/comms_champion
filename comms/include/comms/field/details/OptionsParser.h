@@ -61,6 +61,7 @@ public:
     static const bool HasUnits = false;
     static const bool HasOrigDataView = false;
     static const bool HasEmptySerialization = false;
+    static const bool HasMultiRangeValidation = false;
 };
 
 template <typename T, typename... TOptions>
@@ -291,6 +292,54 @@ public:
     static const bool HasEmptySerialization = true;
 };
 
+template <bool THasMultiRangeValidation>
+struct MultiRangeAssembler;
+
+template <>
+struct MultiRangeAssembler<false>
+{
+    template <typename TBase, std::intmax_t TMinValue, std::intmax_t TMaxValue>
+    using Type =
+        std::tuple<
+            std::tuple<
+                std::integral_constant<std::intmax_t, TMinValue>,
+                std::integral_constant<std::intmax_t, TMaxValue>
+            >
+        >;
+};
+
+template <>
+struct MultiRangeAssembler<true>
+{
+    using FalseAssembler = MultiRangeAssembler<false>;
+
+    template <typename TBase, std::intmax_t TMinValue, std::intmax_t TMaxValue>
+    using Type =
+        typename std::decay<
+            decltype(
+                std::tuple_cat(
+                    std::declval<typename TBase::MultiRangeValidationRanges>(),
+                    std::declval<typename FalseAssembler::template Type<TBase, TMinValue, TMaxValue> >()
+                )
+            )
+        >::type;
+};
+
+
+template <typename TBase, std::intmax_t TMinValue, std::intmax_t TMaxValue>
+using MultiRangeAssemblerT =
+    typename MultiRangeAssembler<TBase::HasMultiRangeValidation>::template Type<TBase, TMinValue, TMaxValue>;
+
+template <std::intmax_t TMinValue, std::intmax_t TMaxValue, typename... TOptions>
+class OptionsParser<
+    comms::option::ValidNumValueRange<TMinValue, TMaxValue>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    using BaseImpl = OptionsParser<TOptions...>;
+public:
+    using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, TMinValue, TMaxValue>;
+    static const bool HasMultiRangeValidation = true;
+};
 
 template <typename... TOptions>
 class OptionsParser<

@@ -137,7 +137,6 @@ public:
         if (consumed < forced_) {
             std::advance(iter, forced_ - consumed);
         }
-        return comms::ErrorStatus::Success;
     }
 
     template <typename TIter>
@@ -187,7 +186,6 @@ public:
             BaseImpl::push_back(std::move(elem));
             --count;
         }
-        return comms::ErrorStatus::Success;
     }
 
     template <typename TIter>

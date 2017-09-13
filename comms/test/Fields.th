@@ -334,12 +334,19 @@ void FieldsTestSuite::test9()
         comms::Field<BigEndianOpt>,
         std::uint8_t,
         comms::option::ValidNumValueRange<0, 10>,
+        comms::option::ValidNumValueRange<20, 30>,
         comms::option::DefaultNumValue<100>
     > Field;
 
     Field field;
     TS_ASSERT_EQUALS(field.value(), 100);
     TS_ASSERT(!field.valid());
+    field.value() = 5U;
+    TS_ASSERT(field.valid());
+    field.value() = 15U;
+    TS_ASSERT(!field.valid());
+    field.value() = 25U;
+    TS_ASSERT(field.valid());
 
     static const char Buf[] = {
         0x05, 0x02

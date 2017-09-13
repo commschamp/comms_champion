@@ -2074,9 +2074,11 @@
 /// defined field's base classes, which is implementation dependent. Just use
 /// the provided @b value() member function to access the value.
 ///
-/// Quite often the valid values of the numeric fields can be expressed in one
-/// range: [minValid - maxValid]. The COMMS library provides comms::option::ValidNumValueRange,
-/// which is a convenience wrapper around comms::option::ContentsValidator. It
+/// Quite often the valid values of the numeric fields can be expressed in limited
+/// number of ranges: [minValid - maxValid]. The COMMS library provides 
+/// @ref comms::option::ValidNumValueRange option (and @ref comms::option::ValidNumValue alias),
+/// which can be used multiple times. The field's value is considered to be valid if
+/// <b>at least one</b> of the provided ranges contains it. The range validation option
 /// can be used only with numeric value fields, such as comms::field::IntValue, 
 /// or comms::field::EnumValue. For example:
 /// @code
@@ -2102,6 +2104,18 @@
 ///
 /// myEnum.value() = static_cast<SomeEnum>(0); // Assigning invalid value.
 /// assert(!myEnum.valid()); // The field being invalid must be reported
+/// @endcode
+///
+/// Another example could be a single character numeric field with valid values
+/// range of [0x20 - 0x7e], as well as value 0. Such field can be defined as:
+/// @code
+/// using MyChar = 
+///     comms::field::IntValue<
+///         MyFieldBase,
+///         char,
+///         comms::option::ValidNumValueRange<0x20, 0x7e>,
+///         comms::option::ValidNumValue<0>
+///     >;
 /// @endcode
 ///
 /// There is a also a convenience alias to comms::option::ContentsValidator intended

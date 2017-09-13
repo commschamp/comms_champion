@@ -1038,18 +1038,25 @@ struct DefaultVariantIndexInitialiser
 template<std::intmax_t TVal>
 using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitialiser<TVal> >;
 
-/// @brief Alias to ContentsValidator, it defines validator class that checks
-///     that the field's value is between two numeric values provided template
-///     parameters to this option.
+/// @brief Provide range of valid numeric values.
 /// @details Quite often numeric fields such as comms::field::IntValue or
-///     comms::option::EnumValue have a single valid values range. This alias
-///     to comms::option::ContentsValidator provides an easy way to specify
-///     such range.
+///     comms::option::EnumValue have limited number of valid values ranges.
+///     This option can be used multiple times to provide several valid ranges.
 /// @tparam TMinValue Minimal valid numeric value
 /// @tparam TMaxValue Maximal valid numeric value
+/// @note The intersection of the provided multiple ranges is @b NOT checked.
+/// @see @ref ValidNumValue
 /// @headerfile comms/options.h
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
-using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMinValue, TMaxValue> >;
+struct ValidNumValueRange
+{
+    static_assert(TMinValue <= TMaxValue, "Invalid range");
+};
+
+/// @brief Alias to @ref ValidNumValueRange.
+/// @details Equivalent to @b ValidNumValueRange<TValue, TValue>
+template<std::intmax_t TValue>
+using ValidNumValue = ValidNumValueRange<TValue, TValue>;
 
 /// @brief Alias to ContentsValidator, it defines validator class that checks
 ///     that reserved bits of the field have expected values.

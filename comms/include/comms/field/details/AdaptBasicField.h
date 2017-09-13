@@ -331,6 +331,28 @@ template <typename TField, typename TOpts>
 using AdaptFieldDefaultValueInitialiserT =
     typename AdaptFieldDefaultValueInitialiser<TOpts::HasDefaultValueInitialiser>::template Type<TField, TOpts>;
 
+template <bool THasMultiRangeValidation>
+struct AdaptFieldNumValueMultiRangeValidator;
+
+template <>
+struct AdaptFieldNumValueMultiRangeValidator<true>
+{
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::NumValueMultiRangeValidator<typename TOpts::MultiRangeValidationRanges, TField>;
+};
+
+template <>
+struct AdaptFieldNumValueMultiRangeValidator<false>
+{
+    template <typename TField, typename TOpts>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldNumValueMultiRangeValidatorT =
+    typename AdaptFieldNumValueMultiRangeValidator<TOpts::HasMultiRangeValidation>::template Type<TField, TOpts>;
+
+
 template <bool THasCustomValidator>
 struct AdaptFieldCustomValidator;
 
@@ -530,8 +552,10 @@ class AdaptBasicField
         SequenceTrailingFieldSuffixAdapted, ParsedOptions>;
     using DefaultValueInitialiserAdapted = AdaptFieldDefaultValueInitialiserT<
         SequenceTerminationFieldSuffixAdapted, ParsedOptions>;
-    using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
+    using NumValueMultiRangeValidatorAdapted = AdaptFieldNumValueMultiRangeValidatorT<
         DefaultValueInitialiserAdapted, ParsedOptions>;
+    using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
+        NumValueMultiRangeValidatorAdapted, ParsedOptions>;
     using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
         CustomValidatorAdapted, ParsedOptions>;
     using FailOnInvalidAdapted = AdaptFieldFailOnInvalidT<

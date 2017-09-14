@@ -91,12 +91,6 @@ public:
     void writeNoStatus(TIter&)
     {
     }
-private:
-    using BaseImpl::read;
-    using BaseImpl::write;
-    using BaseImpl::length;
-    using BaseImpl::minLength;
-    using BaseImpl::maxLength;
 };
 
 }  // namespace adapter

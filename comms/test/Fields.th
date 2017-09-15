@@ -334,7 +334,9 @@ void FieldsTestSuite::test9()
         comms::Field<BigEndianOpt>,
         std::uint8_t,
         comms::option::ValidNumValueRange<0, 10>,
+#ifndef CC_COMPILER_GCC47
         comms::option::ValidNumValueRange<20, 30>,
+#endif
         comms::option::DefaultNumValue<100>
     > Field;
 
@@ -345,8 +347,10 @@ void FieldsTestSuite::test9()
     TS_ASSERT(field.valid());
     field.value() = 15U;
     TS_ASSERT(!field.valid());
+#ifndef CC_COMPILER_GCC47
     field.value() = 25U;
     TS_ASSERT(field.valid());
+#endif
 
     static const char Buf[] = {
         0x05, 0x02

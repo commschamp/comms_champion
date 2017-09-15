@@ -2117,6 +2117,9 @@
 ///         comms::option::ValidNumValue<0>
 ///     >;
 /// @endcode
+/// @b WARNING: Some older compilers (@b gcc-4.7) fail to compile valid C++11 code
+/// that allows usage of multiple @ref comms::option::ValidNumValueRange options. If this is
+/// the case, please don't pass more than one @ref comms::option::ValidNumValueRange option.
 ///
 /// There is a also a convenience alias to comms::option::ContentsValidator intended
 /// for use with bitmasks (comms::field::BitmaskValue). Many bitmask fields

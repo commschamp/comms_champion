@@ -1045,6 +1045,9 @@ using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitiali
 /// @tparam TMinValue Minimal valid numeric value
 /// @tparam TMaxValue Maximal valid numeric value
 /// @note The intersection of the provided multiple ranges is @b NOT checked.
+/// @warning Some older compilers (@b gcc-4.7) fail to compile valid C++11 code
+///     that allows usage of multiple @ref ValidNumValueRange options. If this is
+///     the case, please don't pass more than one @ref ValidNumValueRange option.
 /// @see @ref ValidNumValue
 /// @headerfile comms/options.h
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>

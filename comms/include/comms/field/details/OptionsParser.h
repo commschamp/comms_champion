@@ -21,6 +21,7 @@
 #include <tuple>
 #include <ratio>
 #include "comms/options.h"
+#include "comms/CompileControl.h"
 
 namespace comms
 {
@@ -337,6 +338,12 @@ class OptionsParser<
 {
     using BaseImpl = OptionsParser<TOptions...>;
 public:
+#ifdef CC_COMPILER_GCC47
+    static_assert(!BaseImpl::HasMultiRangeValidation,
+        "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
+        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "upgrade your compiler.");
+#endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, TMinValue, TMaxValue>;
     static const bool HasMultiRangeValidation = true;
 };

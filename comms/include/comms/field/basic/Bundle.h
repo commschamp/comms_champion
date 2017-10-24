@@ -72,14 +72,98 @@ public:
         return comms::util::tupleAccumulate(value(), std::size_t(0), LengthCalcHelper());
     }
 
+    template <std::size_t TFromIdx>
+    constexpr std::size_t lengthFrom() const
+    {
+        return
+            comms::util::tupleAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value>(
+                value(),
+                std::size_t(0),
+                LengthCalcHelper());
+    }
+
+    template <std::size_t TUntilIdx>
+    constexpr std::size_t lengthUntil() const
+    {
+        return
+            comms::util::tupleAccumulateFromUntil<0, TUntilIdx>(
+                value(),
+                std::size_t(0),
+                LengthCalcHelper());
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    constexpr std::size_t lengthFromUntil() const
+    {
+        return
+            comms::util::tupleAccumulateFromUntil<TFromIdx, TUntilIdx>(
+                value(),
+                std::size_t(0),
+                LengthCalcHelper());
+    }
+
     static constexpr std::size_t minLength()
     {
         return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MinLengthCalcHelper());
     }
 
+    template <std::size_t TFromIdx>
+    static constexpr std::size_t minLengthFrom()
+    {
+        return
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, ValueType>(
+               std::size_t(0),
+                MinLengthCalcHelper());
+    }
+
+    template <std::size_t TUntilIdx>
+    static constexpr std::size_t minLengthUntil()
+    {
+        return
+            comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, ValueType>(
+               std::size_t(0),
+                MinLengthCalcHelper());
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    static constexpr std::size_t minLengthFromUntil()
+    {
+        return
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, ValueType>(
+               std::size_t(0),
+                MinLengthCalcHelper());
+    }
+
     static constexpr std::size_t maxLength()
     {
         return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MaxLengthCalcHelper());
+    }
+
+    template <std::size_t TFromIdx>
+    static constexpr std::size_t maxLengthFrom()
+    {
+        return
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, ValueType>(
+               std::size_t(0),
+                MaxLengthCalcHelper());
+    }
+
+    template <std::size_t TUntilIdx>
+    static constexpr std::size_t maxLengthUntil()
+    {
+        return
+            comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, ValueType>(
+               std::size_t(0),
+                MaxLengthCalcHelper());
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    static constexpr std::size_t maxLengthFromUntil()
+    {
+        return
+            comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, ValueType>(
+               std::size_t(0),
+                MaxLengthCalcHelper());
     }
 
     constexpr bool valid() const

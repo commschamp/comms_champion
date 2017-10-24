@@ -1267,10 +1267,17 @@ void FieldsTestSuite::test32()
         >
     > Field;
 
-    TS_ASSERT_EQUALS(Field::minLength(), 3U);
-    TS_ASSERT_EQUALS(Field::maxLength(), 3U);
+    static_assert(Field::minLength() == 3U, "Invalid minLength");
+    static_assert(Field::minLengthFrom<1>() == 1U, "Invalid minLength");
+    static_assert(Field::minLengthUntil<1>() == 2U, "Invalid minLength");
+    static_assert(Field::maxLength() == 3U, "Invalid maxLength");
+    static_assert(Field::maxLengthFrom<1>() == 1U, "Invalid minLength");
+    static_assert(Field::maxLengthUntil<1>() == 2U, "Invalid minLength");
 
     Field field;
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT_EQUALS(field.lengthFrom<1>(), 1U);
+    TS_ASSERT_EQUALS(field.lengthUntil<1>(), 2U);
     TS_ASSERT(field.valid());
     auto& intValField = std::get<0>(field.value());
     auto& enumValField = std::get<1>(field.value());
@@ -1924,6 +1931,14 @@ void FieldsTestSuite::test49()
         >,
         comms::option::CustomValueReader<BundleCustomReaderTest49>
     > Field;
+
+    static_assert(Field::minLength() == 1U, "Invalid minLength");
+    static_assert(Field::maxLength() == 3U, "Invalid maxLength");
+    static_assert(Field::minLengthUntil<1>() == 1U, "Invalid minLength");
+    static_assert(Field::maxLengthUntil<1>() == 1U, "Invalid maxLength");
+    static_assert(Field::minLengthFrom<1>() == 0U, "Invalid minLength");
+    static_assert(Field::maxLengthFrom<1>() == 2U, "Invalid maxLength");
+
 
     Field field;
     TS_ASSERT(field.valid());
@@ -3464,8 +3479,12 @@ void FieldsTestSuite::test80()
         >
     > Field;
 
-    TS_ASSERT_EQUALS(Field::minLength(), 3U);
-    TS_ASSERT_EQUALS(Field::maxLength(), 3U);
+    static_assert(Field::minLength() == 3U, "Invalid minLength");
+    static_assert(Field::maxLength() == 3U, "Invalid maxLength");
+    static_assert(Field::minLengthFromUntil<1, 2>() == 0U, "Invalid minLength");
+    static_assert(Field::maxLengthFromUntil<1, 2>() == 0U, "Invalid maxLength");
+    static_assert(Field::minLengthFrom<1>() == 1U, "Invalid minLength");
+    static_assert(Field::maxLengthFrom<1>() == 1U, "Invalid maxLength");
 
     Field field;
     TS_ASSERT(field.valid());

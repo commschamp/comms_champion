@@ -128,9 +128,47 @@ public:
     /// @details Summarises all the results returned by the call to length() for
     ///     every field in the bundle.
     /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const
+    std::size_t length() const
     {
         return BaseImpl::length();
+    }
+
+    /// @brief Get length required to serialise specified bundled member fields.
+    /// @details Summarises all the results returned by the call to length() for
+    ///     every specified field in the bundle.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @return Number of bytes it will take to serialise the specified member fields.
+    /// @pre TFromIdx < std::tuple_size<ValueType>::value
+    template <std::size_t TFromIdx>
+    std::size_t lengthFrom() const
+    {
+        return BaseImpl::template lengthFrom<TFromIdx>();
+    }
+
+    /// @brief Get length required to serialise specified bundled member fields.
+    /// @details Summarises all the results returned by the call to length() for
+    ///     every specified field in the bundle.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Number of bytes it will take to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    template <std::size_t TUntilIdx>
+    std::size_t lengthUntil() const
+    {
+        return BaseImpl::template lengthUntil<TUntilIdx>();
+    }
+
+    /// @brief Get length required to serialise specified bundled member fields.
+    /// @details Summarises all the results returned by the call to length() for
+    ///     every specified field in the bundle.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Number of bytes it will take to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    /// @pre TFromIdx < TUntilIdx
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    std::size_t lengthFromUntil() const
+    {
+        return BaseImpl::template lengthFromUntil<TFromIdx, TUntilIdx>();
     }
 
     /// @brief Get minimal length that is required to serialise all bundled fields.
@@ -140,11 +178,75 @@ public:
         return BaseImpl::minLength();
     }
 
+    /// @brief Get minimal length that is required to serialise specified bundled fields.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TFromIdx < std::tuple_size<ValueType>::value
+    template <std::size_t TFromIdx>
+    static constexpr std::size_t minLengthFrom()
+    {
+        return BaseImpl::template minLengthFrom<TFromIdx>();
+    }
+
+    /// @brief Get minimal length that is required to serialise specified bundled fields.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    template <std::size_t TUntilIdx>
+    static constexpr std::size_t minLengthUntil()
+    {
+        return BaseImpl::template minLengthUntil<TUntilIdx>();
+    }
+
+    /// @brief Get minimal length that is required to serialise specified bundled fields.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    /// @pre TFromIdx < TUntilIdx
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    static constexpr std::size_t minLengthFromUntil()
+    {
+        return BaseImpl::template minLengthFromUntil<TFromIdx, TUntilIdx>();
+    }
+
     /// @brief Get maximal length that is required to serialise all bundled fields.
     /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
         return BaseImpl::maxLength();
+    }
+
+    /// @brief Get maximal length that is required to serialise specified bundled fields.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TFromIdx < std::tuple_size<ValueType>::value
+    template <std::size_t TFromIdx>
+    static constexpr std::size_t maxLengthFrom()
+    {
+        return BaseImpl::template maxLengthFrom<TFromIdx>();
+    }
+
+    /// @brief Get maximal length that is required to serialise specified bundled fields.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    template <std::size_t TUntilIdx>
+    static constexpr std::size_t maxLengthUntil()
+    {
+        return BaseImpl::template maxLengthUntil<TUntilIdx>();
+    }
+
+    /// @brief Get maximal length that is required to serialise specified bundled fields.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    /// @pre TFromIdx < TUntilIdx
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    static constexpr std::size_t maxLengthFromUntil()
+    {
+        return BaseImpl::template maxLengthFromUntil<TFromIdx, TUntilIdx>();
     }
 
     /// @brief Read field value from input data sequence

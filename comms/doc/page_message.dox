@@ -791,37 +791,37 @@
 ///
 /// protected:
 ///     template<std::size_t TIdx, typename TIter > 
-///     comms::ErrorStatus readFieldsFrom(TIter& iter, std::size_t len)
+///     comms::ErrorStatus doReadFieldsFrom(TIter& iter, std::size_t len)
 ///     {
 ///         // Read fields from and including the specified until the end
 ///     }
 ///
 ///     template<std::size_t TIdx, typename TIter > 
-///     comms::ErrorStatus readFieldsUntil(TIter& iter, std::size_t len)
+///     comms::ErrorStatus doReadFieldsUntil(TIter& iter, std::size_t len)
 ///     {
 ///         // Read fields from the beginning until (not including) specified
 ///     }
 ///
 ///     template<std::size_t TFromIdx, std::size_t TToIdx, typename TIter > 
-///     comms::ErrorStatus readFieldsFromUntil(TIter& iter, std::size_t len)
+///     comms::ErrorStatus doReadFieldsFromUntil(TIter& iter, std::size_t len)
 ///     {
 ///         // Read fields from and including and until (not including) specified.
 ///     }
 ///
 ///     template<std::size_t TIdx, typename TIter > 
-///     comms::ErrorStatus writeFieldsFrom(TIter& iter, std::size_t len) const
+///     comms::ErrorStatus doWriteFieldsFrom(TIter& iter, std::size_t len) const
 ///     {
 ///         // Write fields from and including the specified until the end
 ///     }
 ///
 ///     template<std::size_t TIdx, typename TIter > 
-///     comms::ErrorStatus writeFieldsUntil(TIter& iter, std::size_t len) const
+///     comms::ErrorStatus doWriteFieldsUntil(TIter& iter, std::size_t len) const
 ///     {
 ///         // Write fields from the beginning until (not including) specified
 ///     }
 ///
 ///     template<std::size_t TFromIdx, std::size_t TToIdx, typename TIter > 
-///     comms::ErrorStatus writeFieldsFromUntil(TIter& iter, std::size_t len) const
+///     comms::ErrorStatus doWriteFieldsFromUntil(TIter& iter, std::size_t len) const
 ///     {
 ///         // Write fields from and including and until (not including) specified.
 ///     }
@@ -836,18 +836,18 @@
 /// of required virtual functions.
 ///
 /// See also relevant API documentation:
-/// @li comms::MessageBase::fields()
-/// @li comms::MessageBase::doRead()
-/// @li comms::MessageBase::doWrite()
-/// @li comms::MessageBase::doLength()
-/// @li comms::MessageBase::doValid()
-/// @li comms::MessageBase::doRefresh()
-/// @li comms::MessageBase::readFieldsFrom()
-/// @li comms::MessageBase::readFieldsUntil()
-/// @li comms::MessageBase::readFieldsFromUntil()
-/// @li comms::MessageBase::writeFieldsFrom()
-/// @li comms::MessageBase::writeFieldsUntil()
-/// @li comms::MessageBase::writeFieldsFromUntil()
+/// @li @ref comms::MessageBase::fields()
+/// @li @ref comms::MessageBase::doRead()
+/// @li @ref comms::MessageBase::doWrite()
+/// @li @ref comms::MessageBase::doLength()
+/// @li @ref comms::MessageBase::doValid()
+/// @li @ref comms::MessageBase::doRefresh()
+/// @li @ref comms::MessageBase::doReadFieldsFrom()
+/// @li @ref comms::MessageBase::doReadFieldsUntil()
+/// @li @ref comms::MessageBase::doReadFieldsFromUntil()
+/// @li @ref comms::MessageBase::doWriteFieldsFrom()
+/// @li @ref comms::MessageBase::doWriteFieldsUntil()
+/// @li @ref comms::MessageBase::doWriteFieldsFromUntil()
 ///
 /// @subsubsection page_message_tutorial_impl_fields_read Polymorhic Read Implementation
 /// If message interface class allowed polymorphic read (see
@@ -1178,7 +1178,7 @@
 ///         using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
 ///
 ///         // Read only the flags value
-///         auto es = Base::template readFieldsUntil<FieldIdx_data>(iter, len);
+///         auto es = Base::template doReadFieldsUntil<FieldIdx_data>(iter, len);
 ///         if (es != comms::ErrorStatus::Success) {
 ///             return es;
 ///         }
@@ -1191,7 +1191,7 @@
 ///         }
 ///     
 ///         // Read the rest of the fields
-///         return Base::template readFieldsFrom<FieldIdx_data>(iter, len - field_flags().length());
+///         return Base::template doReadFieldsFrom<FieldIdx_data>(iter, len - field_flags().length());
 ///     }
 /// };
 /// @endcode

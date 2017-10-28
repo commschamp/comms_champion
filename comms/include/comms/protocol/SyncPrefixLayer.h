@@ -38,9 +38,19 @@ namespace protocol
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @headerfile comms/protocol/SyncPrefixLayer.h
 template <typename TField, typename TNextLayer>
-class SyncPrefixLayer : public ProtocolLayerBase<TField, TNextLayer>
+class SyncPrefixLayer : public
+        ProtocolLayerBase<
+            TField,
+            TNextLayer,
+            SyncPrefixLayer<TField, TNextLayer>
+        >
 {
-    using BaseImpl = ProtocolLayerBase<TField, TNextLayer>;
+    using BaseImpl =
+        ProtocolLayerBase<
+            TField,
+            TNextLayer,
+            SyncPrefixLayer<TField, TNextLayer>
+        >;
 
 public:
     /// @brief Type of the field object used to read/write "sync" value.
@@ -66,6 +76,8 @@ public:
     ///     the next layer is called.
     /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
     /// @tparam TIter Type of iterator used for reading.
+    /// @tparam TNextLayerReader next layer reader object type.
+    /// @param[out] field Field object to read.
     /// @param[in, out] msgPtr Reference to smart pointer that already holds or
     ///     will hold allocated message object
     /// @param[in, out] iter Input iterator used for reading.
@@ -74,6 +86,7 @@ public:
     ///     comms::ErrorStatus::NotEnoughData it will contain
     ///     minimal missing data length required for the successful
     ///     read attempt.
+    /// @param[in] nextLayerReader Next layer reader object.
     /// @return Status of the read operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
@@ -82,62 +95,30 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr, typename TIter>
-    ErrorStatus read(
+    template <typename TMsgPtr, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus doRead(
+        Field& field,
         TMsgPtr& msgPtr,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader)
     {
-        Field field;
-        return
-            readInternal(
-                field,
-                msgPtr,
-                iter,
-                size,
-                missingSize,
-                BaseImpl::createNextLayerReader());
-    }
+        auto es = field.read(iter, size);
+        if (es == comms::ErrorStatus::NotEnoughData) {
+            BaseImpl::updateMissingSize(field, size, missingSize);
+        }
 
-    /// @brief Deserialise message from the input data sequence while caching
-    ///     the read transport information fields.
-    /// @details Very similar to read() member function, but adds "allFields"
-    ///     parameter to store read transport information fields.
-    /// @tparam TIdx Index of the message ID field in TAllFields tuple.
-    /// @tparam TAllFields std::tuple of all the transport fields, must be
-    ///     @ref AllFields type defined in the last layer class that defines
-    ///     protocol stack.
-    /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
-    /// @tparam TIter Type of iterator used for reading.
-    /// @param[out] allFields Reference to the std::tuple object that wraps all
-    ///     transport fields (@ref AllFields type of the last protocol layer class).
-    /// @param[in] msgPtr Reference to the smart pointer holding message object.
-    /// @param[in, out] iter Iterator used for reading.
-    /// @param[in] size Number of bytes available for reading.
-    /// @param[out] missingSize If not nullptr and return value is
-    ///             comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
-    /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
-    ErrorStatus readFieldsCached(
-        TAllFields& allFields,
-        TMsgPtr& msgPtr,
-        TIter& iter,
-        std::size_t size,
-        std::size_t* missingSize = nullptr)
-    {
-        auto& field = BaseImpl::template getField<TIdx>(allFields);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
 
-        return
-            readInternal(
-                field,
-                msgPtr,
-                iter,
-                size,
-                missingSize,
-                BaseImpl::template createNextLayerCachedFieldsReader<TIdx>(allFields));
+        if (field != Field()) {
+            // doesn't match expected
+            return comms::ErrorStatus::ProtocolError;
+        }
+
+        return nextLayerReader.read(msgPtr, iter, size - field.length(), missingSize);
     }
 
     /// @brief Serialise message into the output data sequence.
@@ -145,91 +126,25 @@ public:
     ///     buffer, then call the write() function of the next layer.
     /// @tparam TMsg Type of message object.
     /// @tparam TIter Type of iterator used for writing.
+    /// @tparam TNextLayerWriter next layer writer object type.
+    /// @param[out] field Field object to update and write.
     /// @param[in] msg Reference to message object
     /// @param[in, out] iter Output iterator.
     /// @param[in] size Max number of bytes that can be written.
+    /// @param[in] nextLayerWriter Next layer writer object.
     /// @return Status of the write operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       written. In case of an error, distance between original position
     ///       and advanced will pinpoint the location of the error.
-    template <typename TMsg, typename TIter>
-    ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
-    {
-        Field field;
-        return writeInternal(field, msg, iter, size, BaseImpl::createNextLayerWriter());
-    }
-
-    /// @brief Serialise message into output data sequence while caching the written transport
-    ///     information fields.
-    /// @details Very similar to write() member function, but adds "allFields"
-    ///     parameter to store raw data of the message.
-    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
-    ///     element in the tuple.
-    /// @tparam TAllFields std::tuple of all the transport fields, must be
-    ///     @ref AllFields type defined in the last layer class that defines
-    ///     protocol stack.
-    /// @tparam TMsg Type of message object.
-    /// @tparam TIter Type of iterator used for writing.
-    /// @param[out] allFields Reference to the std::tuple object that wraps all
-    ///     transport fields (@ref AllFields type of the last protocol layer class).
-    /// @param[in] msg Reference to the message object that is being written,
-    /// @param[in, out] iter Iterator used for writing.
-    /// @param[in] size Max number of bytes that can be written.
-    /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
-    ErrorStatus writeFieldsCached(
-        TAllFields& allFields,
-        const TMsg& msg,
-        TIter& iter,
-        std::size_t size) const
-    {
-        auto& field = BaseImpl::template getField<TIdx>(allFields);
-        return
-            writeInternal(
-                field,
-                msg,
-                iter,
-                size,
-                BaseImpl::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
-    }
-
-private:
-
-    template <typename TMsgPtr, typename TIter, typename TReader>
-    ErrorStatus readInternal(
+    template <typename TMsg, typename TIter, typename TNextLayerWriter>
+    comms::ErrorStatus doWrite(
         Field& field,
-        TMsgPtr& msgPtr,
-        TIter& iter,
-        std::size_t size,
-        std::size_t* missingSize,
-        TReader&& reader)
-    {
-        auto es = field.read(iter, size);
-        if (es == ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, missingSize);
-        }
-
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        if (field != Field()) {
-            // doesn't match expected
-            return ErrorStatus::ProtocolError;
-        }
-
-        return reader.read(msgPtr, iter, size - field.length(), missingSize);
-    }
-
-    template <typename TMsg, typename TIter, typename TWriter>
-    ErrorStatus writeInternal(
-        const Field& field,
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TWriter&& nextLayerWriter) const
+        TNextLayerWriter&& nextLayerWriter) const
     {
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {

@@ -57,11 +57,21 @@ template <typename TField,
           typename TAllMessages,
           typename TNextLayer,
           typename... TOptions>
-class MsgIdLayer : public ProtocolLayerBase<TField, TNextLayer>
+class MsgIdLayer : public
+        ProtocolLayerBase<
+            TField,
+            TNextLayer,
+            MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>
+        >
 {
     static_assert(util::IsTuple<TAllMessages>::Value,
         "TAllMessages must be of std::tuple type");
-    using BaseImpl = ProtocolLayerBase<TField, TNextLayer>;
+    using BaseImpl =
+        ProtocolLayerBase<
+            TField,
+            TNextLayer,
+            MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>
+        >;
 
     using Factory = comms::MsgFactory<TMessage, TAllMessages, TOptions...>;
 
@@ -122,6 +132,8 @@ public:
     ///     the @ref comms::option::SupportGenericMessage option has beed used,
     ///     the @ref comms::GenericMessage may be generated instead.
     /// @tparam TIter Type of iterator used for reading.
+    /// @tparam TNextLayerReader next layer reader object type.
+    /// @param[out] field Field object to read.
     /// @param[in, out] msgPtr Reference to smart pointer that will hold
     ///                 allocated message object
     /// @param[in, out] iter Input iterator used for reading.
@@ -130,6 +142,7 @@ public:
     ///             comms::ErrorStatus::NotEnoughData it will contain
     ///             minimal missing data length required for the successful
     ///             read attempt.
+    /// @param[in] nextLayerReader Next layer reader object.
     /// @return Status of the operation.
     /// @pre msgPtr doesn't point to any object:
     ///      @code assert(!msgPtr); @endcode
@@ -142,53 +155,74 @@ public:
     ///       to a valid object.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TIter>
-    ErrorStatus read(
+    template <typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus doRead(
+        Field& field,
         MsgPtr& msgPtr,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader)
     {
-        Field field;
-        return readInternal(field, msgPtr, iter, size, missingSize, BaseImpl::createNextLayerReader());
-    }
+        GASSERT(!msgPtr);
+        auto es = field.read(iter, size);
+        if (es == comms::ErrorStatus::NotEnoughData) {
+            BaseImpl::updateMissingSize(field, size, missingSize);
+        }
 
-    /// @brief Deserialise message from the input data sequence while caching
-    ///     the read transport information fields.
-    /// @details Very similar to read() member function, but adds "allFields"
-    ///     parameter to store read transport information fields.
-    /// @tparam TIdx Index of the message ID field in TAllFields tuple.
-    /// @tparam TAllFields std::tuple of all the transport fields, must be
-    ///     @ref AllFields type defined in the last layer class that defines
-    ///     protocol stack.
-    /// @tparam TIter Type of iterator used for reading.
-    /// @param[out] allFields Reference to the std::tuple object that wraps all
-    ///     transport fields (@ref AllFields type of the last protocol layer class).
-    /// @param[in] msgPtr Reference to the smart pointer holding message object.
-    /// @param[in, out] iter Iterator used for reading.
-    /// @param[in] size Number of bytes available for reading.
-    /// @param[out] missingSize If not nullptr and return value is
-    ///             comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
-    /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TIter>
-    ErrorStatus readFieldsCached(
-        TAllFields& allFields,
-        MsgPtr& msgPtr,
-        TIter& iter,
-        std::size_t size,
-        std::size_t* missingSize = nullptr)
-    {
-        auto& field = BaseImpl::template getField<TIdx>(allFields);
-        return
-            readInternal(
-                field,
-                msgPtr,
-                iter,
-                size,
-                missingSize,
-                BaseImpl::template createNextLayerCachedFieldsReader<TIdx>(allFields));
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        auto id = field.value();
+        auto remLen = size - field.length();
+
+        unsigned idx = 0;
+        while (true) {
+            msgPtr = createMsg(id, idx);
+            if (!msgPtr) {
+                break;
+            }
+
+            using IterType = typename std::decay<decltype(iter)>::type;
+            static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
+                "Iterator used for reading is expected to be random access one");
+            IterType readStart = iter;
+            es = nextLayerReader.read(msgPtr, iter, remLen, missingSize);
+            if (es == comms::ErrorStatus::Success) {
+                return es;
+            }
+
+            msgPtr.reset();
+            iter = readStart;
+            ++idx;
+        }
+
+        if ((0U < idx) && Factory::hasUniqueIds()) {
+            return es;
+        }
+
+        GASSERT(!msgPtr);
+        auto idxLimit = factory_.msgCount(id);
+        if (idx < idxLimit) {
+            return comms::ErrorStatus::MsgAllocFailure;
+        }
+
+        msgPtr = factory_.createGenericMsg(id);
+        if (!msgPtr) {
+            if (idx == 0) {
+                return comms::ErrorStatus::InvalidMsgId;
+            }
+
+            return es;
+        }
+
+        es = nextLayerReader.read(msgPtr, iter, remLen, missingSize);
+        if (es != comms::ErrorStatus::Success) {
+            msgPtr.reset();
+        }
+
+        return es;
     }
 
     /// @brief Serialise message into output data sequence.
@@ -204,9 +238,12 @@ public:
     ///     option to define appropriate interface.
     /// @tparam TMsg Type of the message being written.
     /// @tparam TIter Type of iterator used for writing.
+    /// @tparam TNextLayerWriter next layer writer object type.
+    /// @param[out] field Field object to update and write.
     /// @param[in] msg Reference to message object
     /// @param[in, out] iter Output iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
+    /// @param[in] nextLayerWriter Next layer writer object.
     /// @return Status of the write operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
@@ -214,58 +251,29 @@ public:
     ///       written. In case of an error, distance between original position
     ///       and advanced will pinpoint the location of the error.
     /// @return Status of the write operation.
-    template <typename TMsg, typename TIter>
-    ErrorStatus write(
+    template <typename TMsg, typename TIter, typename TNextLayerWriter>
+    ErrorStatus doWrite(
+        Field& field,
         const TMsg& msg,
         TIter& iter,
-        std::size_t size) const
+        std::size_t size,
+        TNextLayerWriter&& nextLayerWriter) const
     {
-        using MsgType = typename std::decay<decltype(msg)>::type;
-        Field field(getMsgId(msg, IdRetrieveTag<MsgType>()));
-        return writeInternal(field, msg, iter, size, BaseImpl::createNextLayerWriter());
-    }
-
-    /// @brief Serialise message into output data sequence while caching the written transport
-    ///     information fields.
-    /// @details Very similar to write() member function, but adds "allFields"
-    ///     parameter to store raw data of the message.
-    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
-    ///     element in the tuple.
-    /// @tparam TAllFields std::tuple of all the transport fields, must be
-    ///     @ref AllFields type defined in the last layer class that defines
-    ///     protocol stack.
-    /// @tparam TMsg Type of the message being written.
-    /// @tparam TIter Type of iterator used for writing.
-    /// @param[out] allFields Reference to the std::tuple object that wraps all
-    ///     transport fields (@ref AllFields type of the last protocol layer class).
-    /// @param[in] msg Reference to the message object that is being written,
-    /// @param[in, out] iter Iterator used for writing.
-    /// @param[in] size Max number of bytes that can be written.
-    /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
-    ErrorStatus writeFieldsCached(
-        TAllFields& allFields,
-        const TMsg& msg,
-        TIter& iter,
-        std::size_t size) const
-    {
-        auto& field = BaseImpl::template getField<TIdx>(allFields);
-
         using MsgType = typename std::decay<decltype(msg)>::type;
         field.value() = getMsgId(msg, IdRetrieveTag<MsgType>());
-        return
-            writeInternal(
-                field,
-                msg,
-                iter,
-                size,
-                BaseImpl::template createNextLayerCachedFieldsWriter<TIdx>(allFields));
+        auto es = field.write(iter, size);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        GASSERT(field.length() <= size);
+        return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
-    /// @copybrief ProtocolLayerBase::createMsg
-    /// @details Hides and overrides createMsg() function inherited from
-    ///     ProtocolLayerBase. This function forwards the request to the
-    ///     message factory object (comms::MsgFactory) embedded as a private
+    /// @copybrief ProtocolLayerBase::doCreateMsg
+    /// @details Hides and overrides doCreateMsg() function inherited from
+    ///     @ref ProtocolLayerBase. This function forwards the request to the
+    ///     message factory object (@ref comms::MsgFactory) embedded as a private
     ///     data member of this class.
     /// @param[in] id ID of the message
     /// @param[in] idx Relative index of the message with the same ID.
@@ -289,92 +297,6 @@ private:
             PolymorphicIdTag
         >::type;
 
-    template <typename TIter, typename TReader>
-    ErrorStatus readInternal(
-        Field& field,
-        MsgPtr& msgPtr,
-        TIter& iter,
-        std::size_t size,
-        std::size_t* missingSize,
-        TReader&& reader)
-    {
-        GASSERT(!msgPtr);
-        auto es = field.read(iter, size);
-        if (es == ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, missingSize);
-        }
-
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        auto id = field.value();
-        auto remLen = size - field.length();
-
-        unsigned idx = 0;
-        while (true) {
-            msgPtr = createMsg(id, idx);
-            if (!msgPtr) {
-                break;
-            }
-
-            using IterType = typename std::decay<decltype(iter)>::type;
-            static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
-                "Iterator used for reading is expected to be random access one");
-            IterType readStart = iter;
-            es = reader.read(msgPtr, iter, remLen, missingSize);
-            if (es == ErrorStatus::Success) {
-                return es;
-            }
-
-            msgPtr.reset();
-            iter = readStart;
-            ++idx;
-        }
-
-        if ((0U < idx) && Factory::hasUniqueIds()) {
-            return es;
-        }
-
-        GASSERT(!msgPtr);
-        auto idxLimit = factory_.msgCount(id);
-        if (idx < idxLimit) {
-            return ErrorStatus::MsgAllocFailure;
-        }
-
-        msgPtr = factory_.createGenericMsg(id);
-        if (!msgPtr) {
-            if (idx == 0) {
-                return ErrorStatus::InvalidMsgId;
-            }
-
-            return es;
-        }
-
-        es = reader.read(msgPtr, iter, remLen, missingSize);
-        if (es != comms::ErrorStatus::Success) {
-            msgPtr.reset();
-        }
-
-        return es;
-    }
-
-    template <typename TMsg, typename TIter, typename TWriter>
-    ErrorStatus writeInternal(
-        Field& field,
-        const TMsg& msg,
-        TIter& iter,
-        std::size_t size,
-        TWriter&& nextLayerWriter) const
-    {
-        auto es = field.write(iter, size);
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        GASSERT(field.length() <= size);
-        return nextLayerWriter.write(msg, iter, size - field.length());
-    }
 
     template <typename TMsg>
     static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicIdTag)

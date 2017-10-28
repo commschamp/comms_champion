@@ -270,8 +270,8 @@ public:
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
-    /// @copybrief ProtocolLayerBase::doCreateMsg
-    /// @details Hides and overrides doCreateMsg() function inherited from
+    /// @copybrief ProtocolLayerBase::createMsg
+    /// @details Hides and overrides createMsg() function inherited from
     ///     @ref ProtocolLayerBase. This function forwards the request to the
     ///     message factory object (@ref comms::MsgFactory) embedded as a private
     ///     data member of this class.

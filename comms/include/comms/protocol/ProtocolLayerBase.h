@@ -187,7 +187,7 @@ public:
     /// @details Same as NextLayer::MsgPtr or void if such doesn't exist.
     using MsgPtr = typename details::ProtocolLayerMsgPtr<NextLayer>::Type;
 
-    /// @copydoc MsgDataLayer::NumOfLayers
+    /// @brief Static constant indicating amount of transport layers used.
     static const std::size_t NumOfLayers = 1 + NextLayer::NumOfLayers;
 
     /// @brief Copy constructor
@@ -336,7 +336,7 @@ public:
     ///             field.value() = ...;
     ///             auto es = field.write(iter, size);
     ///             ...
-    ///             // request next layer to perform read operation
+    ///             // request next layer to perform write operation
     ///             es = nextLayerWriter.write(msg, iter, size - field.length());
     ///             ... // internal logic after next layer write if applicable
     ///             return es;
@@ -448,7 +448,7 @@ public:
     ///             field.value() = ...;
     ///             auto es = field.write(iter, size);
     ///             ...
-    ///             // request next layer to perform read operation
+    ///             // request next layer to perform update operation
     ///             es = nextLayerUpdater.update(iter, size - field.length());
     ///             ... // internal logic after next layer write if applicable
     ///             return es;

@@ -744,6 +744,23 @@ protected:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
+/// @brief Message object equality comparison operator
+/// @details Messages are considered equal if all their fields are considered equal
+template <typename TMessage, typename... TOptions>
+bool operator==(const MessageBase<TMessage, TOptions...>& msg1, const MessageBase<TMessage, TOptions...>& msg2)
+{
+    return msg1.fields() == msg2.fields();
+}
+
+/// @brief Message object inequality comparison operator
+/// @details Messages are considered not equal if any their fields are considered inequal.
+template <typename TMessage, typename... TOptions>
+bool operator!=(const MessageBase<TMessage, TOptions...>& msg1, const MessageBase<TMessage, TOptions...>& msg2)
+{
+    return !(msg1 == msg2);
+}
+
+
 /// @brief Upcast type of the message object to comms::MessageBase in order to have
 ///     access to its internal types.
 template <typename TMessage, typename... TOptions>

@@ -747,8 +747,8 @@ protected:
 /// @brief Message object equality comparison operator
 /// @details Messages are considered equal if all their fields are considered equal
 /// @related MessageBase
-template <typename TMessage, typename... TOptions>
-bool operator==(const MessageBase<TMessage, TOptions...>& msg1, const MessageBase<TMessage, TOptions...>& msg2)
+template <typename TMessage1, typename TMessage2, typename... TOptions>
+bool operator==(const MessageBase<TMessage1, TOptions...>& msg1, const MessageBase<TMessage2, TOptions...>& msg2)
 {
     return msg1.fields() == msg2.fields();
 }
@@ -756,8 +756,8 @@ bool operator==(const MessageBase<TMessage, TOptions...>& msg1, const MessageBas
 /// @brief Message object inequality comparison operator
 /// @details Messages are considered not equal if any their fields are considered inequal.
 /// @related MessageBase
-template <typename TMessage, typename... TOptions>
-bool operator!=(const MessageBase<TMessage, TOptions...>& msg1, const MessageBase<TMessage, TOptions...>& msg2)
+template <typename TMessage1, typename TMessage2, typename... TOptions>
+bool operator!=(const MessageBase<TMessage1, TOptions...>& msg1, const MessageBase<TMessage2, TOptions...>& msg2)
 {
     return !(msg1 == msg2);
 }

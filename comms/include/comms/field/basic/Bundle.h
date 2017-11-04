@@ -184,10 +184,52 @@ public:
         return es;
     }
 
+    template <std::size_t TFromIdx, typename TIter>
+    ErrorStatus readFrom(TIter& iter, std::size_t len)
+    {
+        auto es = ErrorStatus::Success;
+        comms::util::template tupleForEachFrom<TFromIdx>(value(), makeReadHelper(es, iter, len));
+        return es;
+    }
+
+    template <std::size_t TUntilIdx, typename TIter>
+    ErrorStatus readUntil(TIter& iter, std::size_t len)
+    {
+        auto es = ErrorStatus::Success;
+        comms::util::template tupleForEachUntil<TUntilIdx>(value(), makeReadHelper(es, iter, len));
+        return es;
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    ErrorStatus readFromUntil(TIter& iter, std::size_t len)
+    {
+        auto es = ErrorStatus::Success;
+        comms::util::template tupleForEachFromUntil<TFromIdx, TUntilIdx>(value(), makeReadHelper(es, iter, len));
+        return es;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
         comms::util::tupleForEach(value(), makeReadNoStatusHelper(iter));
+    }
+
+    template <std::size_t TFromIdx, typename TIter>
+    void readFromNoStatus(TIter& iter)
+    {
+        comms::util::template tupleForEachFrom<TFromIdx>(value(), makeReadNoStatusHelper(iter));
+    }
+
+    template <std::size_t TUntilIdx, typename TIter>
+    void readUntilNoStatus(TIter& iter)
+    {
+        comms::util::template tupleForEachUntil<TUntilIdx>(value(), makeReadNoStatusHelper(iter));
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void readFromUntilNoStatus(TIter& iter)
+    {
+        comms::util::template tupleForEachFromUntil<TFromIdx, TUntilIdx>(value(), makeReadNoStatusHelper(iter));
     }
 
     template <typename TIter>
@@ -198,10 +240,52 @@ public:
         return es;
     }
 
+    template <std::size_t TFromIdx, typename TIter>
+    ErrorStatus writeFrom(TIter& iter, std::size_t len) const
+    {
+        auto es = ErrorStatus::Success;
+        comms::util::template tupleForEachFrom<TFromIdx>(value(), makeWriteHelper(es, iter, len));
+        return es;
+    }
+
+    template <std::size_t TUntilIdx, typename TIter>
+    ErrorStatus writeUntil(TIter& iter, std::size_t len) const
+    {
+        auto es = ErrorStatus::Success;
+        comms::util::template tupleForEachUntil<TUntilIdx>(value(), makeWriteHelper(es, iter, len));
+        return es;
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    ErrorStatus writeFromUntil(TIter& iter, std::size_t len) const
+    {
+        auto es = ErrorStatus::Success;
+        comms::util::template tupleForEachFromUntil<TFromIdx, TUntilIdx>(value(), makeWriteHelper(es, iter, len));
+        return es;
+    }
+
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
         comms::util::tupleForEach(value(), makeWriteNoStatusHelper(iter));
+    }
+
+    template <std::size_t TFromIdx, typename TIter>
+    void writeFromNoStatus(TIter& iter) const
+    {
+        comms::util::template tupleForEachFrom<TFromIdx>(value(), makeWriteNoStatusHelper(iter));
+    }
+
+    template <std::size_t TUntilIdx, typename TIter>
+    void writeUntilNoStatus(TIter& iter) const
+    {
+        comms::util::template tupleForEachUntil<TUntilIdx>(value(), makeWriteNoStatusHelper(iter));
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void writeFromUntilNoStatus(TIter& iter) const
+    {
+        comms::util::template tupleForEachFromUntil<TFromIdx, TUntilIdx>(value(), makeWriteNoStatusHelper(iter));
     }
 
 private:

@@ -1311,6 +1311,38 @@ void FieldsTestSuite::test32()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    Field fieldTmp;
+    auto readIter = &ExpectedBuf[0];
+    auto es = fieldTmp.readFromUntil<0, 2>(readIter, ExpectedBufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(fieldTmp, field);
+
+    fieldTmp = Field();
+    TS_ASSERT_DIFFERS(fieldTmp, field);
+
+    readIter = &ExpectedBuf[0];
+    es = fieldTmp.readUntil<1>(readIter, 2);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    es = fieldTmp.readFrom<1>(readIter, 1);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(fieldTmp, field);
+
+    std::vector<std::uint8_t> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    es = fieldTmp.writeFromUntil<0, 2>(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(outBuf.size(), ExpectedBufSize);
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), (const std::uint8_t*)&ExpectedBuf[0]));
+
+    outBuf.clear();
+    writeIter = std::back_inserter(outBuf);
+    es = fieldTmp.writeUntil<1>(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    es = fieldTmp.writeFrom<1>(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(outBuf.size(), ExpectedBufSize);
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), (const std::uint8_t*)&ExpectedBuf[0]));
 }
 
 void FieldsTestSuite::test33()

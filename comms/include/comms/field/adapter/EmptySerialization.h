@@ -77,7 +77,7 @@ public:
     }
 
     template <typename TIter>
-    void readNoStatus(TIter&)
+    static void readNoStatus(TIter&)
     {
     }
 
@@ -88,7 +88,7 @@ public:
     }
 
     template <typename TIter>
-    void writeNoStatus(TIter&)
+    static void writeNoStatus(TIter&)
     {
     }
 };

@@ -115,6 +115,7 @@ public:
     void test78();
     void test79();
     void test80();
+    void test81();
 
     enum Enum1 {
         Enum1_Value1,
@@ -3561,6 +3562,21 @@ void FieldsTestSuite::test80()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test81()
+{
+    using Field = comms::field::IntValue<
+            comms::Field<comms::option::BigEndian>,
+            std::int64_t,
+            comms::option::ValidNumValueRange<-9223372036854775807LL, 9223372036854775807LL>,
+            comms::option::ValidNumValue<std::numeric_limits<std::intmax_t>::min()>,
+            comms::option::DefaultNumValue<std::numeric_limits<std::intmax_t>::min()>
+        >;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.value(), std::numeric_limits<std::intmax_t>::min());
 }
 
 template <typename TField>

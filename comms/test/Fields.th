@@ -3570,12 +3570,11 @@ void FieldsTestSuite::test81()
             comms::Field<comms::option::BigEndian>,
             std::int64_t,
             comms::option::ValidNumValueRange<-9223372036854775807LL, 9223372036854775807LL>,
-            comms::option::ValidNumValue<std::numeric_limits<std::intmax_t>::min()>,
             comms::option::DefaultNumValue<std::numeric_limits<std::intmax_t>::min()>
         >;
 
     Field field;
-    TS_ASSERT(field.valid());
+    TS_ASSERT(!field.valid());
     TS_ASSERT_EQUALS(field.value(), std::numeric_limits<std::intmax_t>::min());
 }
 

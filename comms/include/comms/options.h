@@ -924,7 +924,7 @@ using UnitsKilovolts =
 namespace details
 {
 
-template<std::intmax_t TVal>
+template<typename T, T TVal>
 struct DefaultNumValueInitialiser
 {
     template <typename TField>
@@ -1033,15 +1033,39 @@ struct DefaultVariantIndexInitialiser
 
 /// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
 ///     assigns numeric value provided as the template argument to this option.
+/// @details If the required numeric value is too big (doesn't fit into @b
+///     std::intmax_t type), please use @ref DefaultBigUnsignedNumValue option
+///     class instead.
 /// @tparam TVal Numeric value is to be assigned to the field in default constructor.
+/// @see @ref DefaultBigUnsignedNumValue
 /// @headerfile comms/options.h
 template<std::intmax_t TVal>
-using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitialiser<TVal> >;
+using DefaultNumValue =
+    DefaultValueInitialiser<
+        details::DefaultNumValueInitialiser<std::intmax_t, TVal>
+    >;
+
+/// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
+///     assigns big unsigned numeric value provided as the template argument to this option.
+/// @details If the required numeric value is small enough to fit into @b
+///     std::intmax_t type, it is recommended to use @ref DefaultNumValue option
+///     class instead.
+/// @tparam TVal Numeric value is to be assigned to the field in default constructor.
+/// @see @ref DefaultBigUnsignedNumValue
+/// @headerfile comms/options.h
+template<std::uintmax_t TVal>
+using DefaultBigUnsignedNumValue =
+    DefaultValueInitialiser<
+        details::DefaultNumValueInitialiser<std::uintmax_t, TVal>
+    >;
+
 
 /// @brief Provide range of valid numeric values.
 /// @details Quite often numeric fields such as comms::field::IntValue or
 ///     comms::option::EnumValue have limited number of valid values ranges.
-///     This option can be used multiple times to provide several valid ranges.
+///     This option can be used multiple times to provide several valid ranges.@n
+///     If values are too big to fit into @b std::intmax_t type, please use
+///     @ref ValidBigUnsignedNumValueRange option instead.
 /// @tparam TMinValue Minimal valid numeric value
 /// @tparam TMaxValue Maximal valid numeric value
 /// @note The intersection of the provided multiple ranges is @b NOT checked.
@@ -1049,6 +1073,7 @@ using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitiali
 ///     that allows usage of multiple @ref ValidNumValueRange options. If this is
 ///     the case, please don't pass more than one @ref ValidNumValueRange option.
 /// @see @ref ValidNumValue
+/// @see @ref ValidBigUnsignedNumValueRange
 /// @headerfile comms/options.h
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
 struct ValidNumValueRange
@@ -1060,6 +1085,30 @@ struct ValidNumValueRange
 /// @details Equivalent to @b ValidNumValueRange<TValue, TValue>
 template<std::intmax_t TValue>
 using ValidNumValue = ValidNumValueRange<TValue, TValue>;
+
+/// @brief Provide range of valid unsigned numeric values.
+/// @details Similar to @ref ValidNumValueRange, but dedicated to
+///     big unsigned numbers, which don't fit into @b std::intmax_t type.
+/// @tparam TMinValue Minimal valid numeric value
+/// @tparam TMaxValue Maximal valid numeric value
+/// @note The intersection of the provided multiple ranges is @b NOT checked.
+/// @warning Some older compilers (@b gcc-4.7) fail to compile valid C++11 code
+///     that allows usage of multiple @ref ValidNumValueRange options. If this is
+///     the case, please don't pass more than one
+///     @ref ValidNumValueRange or @ref ValidBigUnsignedNumValueRange option.
+/// @see @ref ValidNumValueRange
+/// @see @ref ValidBigUnsignedNumValue
+/// @headerfile comms/options.h
+template<std::uintmax_t TMinValue, std::uintmax_t TMaxValue>
+struct ValidBigUnsignedNumValueRange
+{
+    static_assert(TMinValue <= TMaxValue, "Invalid range");
+};
+
+/// @brief Alias to @ref ValidBigUnsignedNumValueRange.
+/// @details Equivalent to @b ValidBigUnsignedNumValueRange<TValue, TValue>
+template<std::uintmax_t TValue>
+using ValidBigUnsignedNumValue = ValidBigUnsignedNumValueRange<TValue, TValue>;
 
 /// @brief Alias to ContentsValidator, it defines validator class that checks
 ///     that reserved bits of the field have expected values.

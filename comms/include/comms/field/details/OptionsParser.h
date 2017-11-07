@@ -299,12 +299,12 @@ struct MultiRangeAssembler;
 template <>
 struct MultiRangeAssembler<false>
 {
-    template <typename TBase, std::intmax_t TMinValue, std::intmax_t TMaxValue>
+    template <typename TBase, typename T, T TMinValue, T TMaxValue>
     using Type =
         std::tuple<
             std::tuple<
-                std::integral_constant<std::intmax_t, TMinValue>,
-                std::integral_constant<std::intmax_t, TMaxValue>
+                std::integral_constant<T, TMinValue>,
+                std::integral_constant<T, TMaxValue>
             >
         >;
 };
@@ -314,22 +314,22 @@ struct MultiRangeAssembler<true>
 {
     using FalseAssembler = MultiRangeAssembler<false>;
 
-    template <typename TBase, std::intmax_t TMinValue, std::intmax_t TMaxValue>
+    template <typename TBase, typename T, T TMinValue, T TMaxValue>
     using Type =
         typename std::decay<
             decltype(
                 std::tuple_cat(
                     std::declval<typename TBase::MultiRangeValidationRanges>(),
-                    std::declval<typename FalseAssembler::template Type<TBase, TMinValue, TMaxValue> >()
+                    std::declval<typename FalseAssembler::template Type<TBase, T, TMinValue, TMaxValue> >()
                 )
             )
         >::type;
 };
 
 
-template <typename TBase, std::intmax_t TMinValue, std::intmax_t TMaxValue>
+template <typename TBase, typename T, T TMinValue, T TMaxValue>
 using MultiRangeAssemblerT =
-    typename MultiRangeAssembler<TBase::HasMultiRangeValidation>::template Type<TBase, TMinValue, TMaxValue>;
+    typename MultiRangeAssembler<TBase::HasMultiRangeValidation>::template Type<TBase, T, TMinValue, TMaxValue>;
 
 template <std::intmax_t TMinValue, std::intmax_t TMaxValue, typename... TOptions>
 class OptionsParser<
@@ -344,7 +344,24 @@ public:
         "of comms::option::ValidNumValueRange options. Either use it only once or"
         "upgrade your compiler.");
 #endif
-    using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, TMinValue, TMaxValue>;
+    using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::intmax_t, TMinValue, TMaxValue>;
+    static const bool HasMultiRangeValidation = true;
+};
+
+template <std::uintmax_t TMinValue, std::uintmax_t TMaxValue, typename... TOptions>
+class OptionsParser<
+    comms::option::ValidBigUnsignedNumValueRange<TMinValue, TMaxValue>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    using BaseImpl = OptionsParser<TOptions...>;
+public:
+#ifdef CC_COMPILER_GCC47
+    static_assert(!BaseImpl::HasMultiRangeValidation,
+        "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
+        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "upgrade your compiler.");
+#endif
+    using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::uintmax_t, TMinValue, TMaxValue>;
     static const bool HasMultiRangeValidation = true;
 };
 

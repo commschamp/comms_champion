@@ -48,7 +48,9 @@ namespace field
 ///     be serialised using big endian notation.@n
 ///     Supported options are:
 ///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
-///     @li comms::option::ContentsValidator or comms::option::ValidNumValueRange.
+///     @li comms::option::ContentsValidator
+///     @li comms::option::ValidNumValueRange, comms::option::ValidNumValue,
+///         comms::option::ValidBigUnsignedNumValueRange or comms::option::ValidBigUnsignedNumValue
 ///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid

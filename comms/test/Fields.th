@@ -3569,7 +3569,6 @@ void FieldsTestSuite::test81()
     using Field = comms::field::IntValue<
             comms::Field<comms::option::BigEndian>,
             std::uint64_t,
-            comms::option::ValidNumValue<0>,
             comms::option::ValidBigUnsignedNumValueRange<0xffffffff, std::numeric_limits<std::uintmax_t>::max() - 1>,
             comms::option::DefaultBigUnsignedNumValue<std::numeric_limits<std::uintmax_t>::max()>
         >;
@@ -3577,8 +3576,6 @@ void FieldsTestSuite::test81()
     Field field;
     TS_ASSERT(!field.valid());
     TS_ASSERT_EQUALS(field.value(), std::numeric_limits<std::uintmax_t>::max());
-    field.value() = 0U;
-    TS_ASSERT(field.valid());
 }
 
 template <typename TField>

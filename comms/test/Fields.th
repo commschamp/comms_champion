@@ -116,6 +116,7 @@ public:
     void test79();
     void test80();
     void test81();
+    void test82();
 
     enum Enum1 {
         Enum1_Value1,
@@ -3609,6 +3610,66 @@ TField FieldsTestSuite::readWriteField(
     TS_ASSERT_EQUALS(field.length(), writeDiff);
     TS_ASSERT_EQUALS(diff, writeDiff);
     return field;
+}
+
+void FieldsTestSuite::test82()
+{
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t,
+                comms::option::ValidNumValueRange<0, 10>,
+                comms::option::DefaultNumValue<5>
+            >
+        >
+    > Field;
+
+    static_assert(Field::minLength() == 2U, "Invalid minLength");
+    static_assert(Field::minLengthFrom<0>() == 2U, "Invalid minLength");
+    static_assert(Field::minLengthUntil<1>() == 2U, "Invalid minLength");
+    static_assert(Field::maxLength() == 2U, "Invalid maxLength");
+    static_assert(Field::maxLengthFrom<0>() == 2U, "Invalid minLength");
+    static_assert(Field::maxLengthUntil<1>() == 2U, "Invalid minLength");
+
+    Field field;
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT_EQUALS(field.lengthFrom<0>(), 2U);
+    TS_ASSERT_EQUALS(field.lengthUntil<1>(), 2U);
+    TS_ASSERT(field.valid());
+    auto& intValField = std::get<0>(field.value());
+    TS_ASSERT_EQUALS(intValField.value(), 5U);
+
+    intValField.value() = 50U;
+    TS_ASSERT(!field.valid());
+    intValField.value() = 1U;
+    TS_ASSERT(field.valid());
+    static const char Buf[] = {
+        0x00, 0x3, (char)0xff
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(intValField.value(), 3U);
+
+    intValField.value() = 0xabcd;
+
+    static const char ExpectedBuf[] = {
+        (char)0xab, (char)0xcd
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    Field fieldTmp;
+    auto readIter = &ExpectedBuf[0];
+    auto es = fieldTmp.readFromUntil<0, 1>(readIter, ExpectedBufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(fieldTmp, field);
 }
 
 template <typename TField>

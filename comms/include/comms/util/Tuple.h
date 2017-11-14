@@ -582,7 +582,7 @@ constexpr TValue tupleAccumulateFromUntil(TTuple&& tuple, const TValue& value, T
 {
     using Tuple = typename std::decay<TTuple>::type;
 
-    static_assert(TFrom < TUntil, "TFrom mustn't be greater that TUntil");
+    static_assert(TFrom <= TUntil, "TFrom mustn't be greater that TUntil");
     static_assert(TUntil <= std::tuple_size<Tuple>::value, "TUntil mustn't exceed size of the tuple");
 
     return details::TupleAccumulateHelper<TFrom, TUntil - TFrom>::exec(
@@ -678,7 +678,7 @@ template <std::size_t TFrom, std::size_t TUntil, typename TTuple, typename TValu
 constexpr TValue tupleTypeAccumulateFromUntil(const TValue& value, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    static_assert(TFrom < TUntil, "TFrom mustn't be greater that TUntil");
+    static_assert(TFrom <= TUntil, "TFrom mustn't be greater that TUntil");
     static_assert(TUntil <= std::tuple_size<Tuple>::value, "TUntil mustn't exceed size of the tuple");
     return details::TupleTypeAccumulateHelper<TFrom, TUntil - TFrom>::template exec<Tuple>(
         value,

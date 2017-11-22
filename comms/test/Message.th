@@ -367,6 +367,7 @@ void MessageTestSuite::test8()
     bool refreshResult = msg.refresh();
     TS_ASSERT(refreshResult);
     TS_ASSERT_EQUALS(msg.length(), 3U);
+    TS_ASSERT_EQUALS(msg.field_value2().getMode(), comms::field::OptionalMode::Exists);
 
     outData.clear();
     outData.resize(msg.length());

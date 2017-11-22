@@ -277,6 +277,23 @@ public:
 
     virtual ~Message4() noexcept = default;
 
+    template <typename TIter>
+    comms::ErrorStatus doRead(TIter& iter, std::size_t len)
+    {
+        auto es = Base::template doReadFieldsUntil<FieldIdx_value2>(iter, len);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        auto expectedNextFieldMode = comms::field::OptionalMode::Missing;
+        if ((field_value1().value() & 0x1) != 0) {
+            expectedNextFieldMode = comms::field::OptionalMode::Exists;
+        }
+
+        field_value2().setMode(expectedNextFieldMode);
+        return Base::template doReadFieldsFrom<FieldIdx_value2>(iter, len);
+    }
+
     bool doRefresh()
     {
         auto& mask = field_value1();

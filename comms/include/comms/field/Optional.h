@@ -307,6 +307,14 @@ bool operator==(
     const Optional<TField, TOptions...>& field1,
     const Optional<TField, TOptions...>& field2)
 {
+    if (field1.getMode() != field2.getMode()) {
+        return false;
+    }
+    
+    if (field1.isMissing()) {
+        return true;
+    }
+    
     return field1.field() == field2.field();
 }
 
@@ -320,20 +328,7 @@ bool operator!=(
     const Optional<TField, TOptions...>& field1,
     const Optional<TField, TOptions...>& field2)
 {
-    return field1.field() != field2.field();
-}
-
-/// @brief Equivalence comparison operator.
-/// @param[in] field1 First field.
-/// @param[in] field2 Second field.
-/// @return Result of the equivalence comparison of the contained fields.
-/// @related Optional
-template <typename TField, typename... TOptions>
-bool operator<(
-    const Optional<TField, TOptions...>& field1,
-    const Optional<TField, TOptions...>& field2)
-{
-    return field1.field() < field2.field();
+    return !(field1 == field2);
 }
 
 /// @brief Compile time check function of whether a provided type is any

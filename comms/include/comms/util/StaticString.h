@@ -78,7 +78,7 @@ protected:
     {
         vec_.clear();
         auto countLimit = std::min(count, capacity());
-        while ((*str != Ends) && (vec_.size() < countLimit)) {
+        while ((vec_.size() < countLimit) && (*str != Ends)) {
             vec_.push_back(*str);
             ++str;
         }

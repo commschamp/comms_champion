@@ -18,6 +18,14 @@ function (test_func test_suite_name)
     
     CXXTEST_ADD_TEST (${name} ${runner} ${tests} ${extra_sources})
     
+    if (VALGRIND_EXECUTABLE)
+        add_test(NAME "${name}_valgrind"
+             COMMAND ${CMAKE_COMMAND} 
+                -DTEST_EXECUTABLE=$<TARGET_FILE:${name}>
+                -DVALGRIND_EXECUTABLE=${VALGRIND_EXECUTABLE}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/ScriptRunUnitTestWithValgrind.cmake) 
+    endif ()
+    
 endfunction ()
 
 #################################################################
@@ -80,6 +88,13 @@ include_directories ("${CXXTEST_INCLUDE_DIR}")
 
 if (CMAKE_COMPILER_IS_GNUCC)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-old-style-cast -Wno-shadow")
+endif ()
+
+if (NOT CC_NO_VALGRIND)
+    if ("${CC_VALGRAND_EXE_NAME}" STREQUAL "")
+        set (CC_VALGRAND_EXE_NAME "valgrind")
+    endif ()
+    find_program(VALGRIND_EXECUTABLE NAMES "${CC_VALGRAND_EXE_NAME}")
 endif ()
 
 test_fields()

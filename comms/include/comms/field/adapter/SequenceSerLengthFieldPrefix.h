@@ -61,7 +61,9 @@ public:
     {
         using LenValueType = typename LenField::ValueType;
         auto valLength = BaseImpl::length();
-        return LenField(static_cast<LenValueType>(valLength)).length() + valLength;
+        LenField lenField;
+        lenField.value() = static_cast<LenValueType>(valLength);
+        return lenField.length() + valLength;
     }
 
     static constexpr std::size_t minLength()

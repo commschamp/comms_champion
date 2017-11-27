@@ -57,12 +57,12 @@ public:
     SequenceSizeFieldPrefix& operator=(const SequenceSizeFieldPrefix&) = default;
     SequenceSizeFieldPrefix& operator=(SequenceSizeFieldPrefix&&) = default;
 
-    constexpr std::size_t length() const
+    std::size_t length() const
     {
         using SizeValueType = typename SizeField::ValueType;
-        return
-            SizeField(static_cast<SizeValueType>(BaseImpl::value().size())).length() +
-            BaseImpl::length();
+        SizeField sizeField;
+        sizeField.value() = static_cast<SizeValueType>(BaseImpl::value().size());
+        return sizeField.length() + BaseImpl::length();
     }
 
     static constexpr std::size_t minLength()

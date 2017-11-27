@@ -596,10 +596,13 @@ void FieldsTestSuite::test15()
 
 void FieldsTestSuite::test16()
 {
-    typedef comms::field::IntValue<
-        comms::Field<BigEndianOpt>,
-        std::uint8_t
-    > SizeField;
+    struct SizeField : public 
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t
+        >
+    {
+    };        
 
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
@@ -2865,10 +2868,13 @@ void FieldsTestSuite::test68()
 
 void FieldsTestSuite::test69()
 {
-    typedef comms::field::IntValue<
-        comms::Field<BigEndianOpt>,
-        std::uint8_t
-    > LenField;
+    struct LenField : public
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t
+        >
+    {
+    };
 
     typedef comms::field::ArrayList<
         comms::Field<BigEndianOpt>,

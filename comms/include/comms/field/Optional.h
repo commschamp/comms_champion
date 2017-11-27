@@ -331,6 +331,66 @@ bool operator!=(
     return !(field1 == field2);
 }
 
+/// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return Result of the equivalence comparison of the contained fields.
+/// @related Optional
+template <typename TField, typename... TOptions>
+bool operator<(
+    const Optional<TField, TOptions...>& field1,
+    const Optional<TField, TOptions...>& field2)
+{
+    if (field1.isMissing()) {
+        return !field2.isMissing();
+    }
+    
+    if (field2.isMissing()) {
+        return false;
+    }
+    
+    return false;
+}
+
+/// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return Result of the equivalence comparison of the contained fields.
+/// @related Optional
+template <typename TField, typename... TOptions>
+bool operator>(
+    const Optional<TField, TOptions...>& field1,
+    const Optional<TField, TOptions...>& field2)
+{
+    return (field2 < field1);
+}
+
+/// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return Result of the equivalence comparison of the contained fields.
+/// @related Optional
+template <typename TField, typename... TOptions>
+bool operator<=(
+    const Optional<TField, TOptions...>& field1,
+    const Optional<TField, TOptions...>& field2)
+{
+    return (field1 < field2) || (field1 == field2);
+}
+
+/// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @return Result of the equivalence comparison of the contained fields.
+/// @related Optional
+template <typename TField, typename... TOptions>
+bool operator>=(
+    const Optional<TField, TOptions...>& field1,
+    const Optional<TField, TOptions...>& field2)
+{
+    return field2 <= field1;
+}
+
 /// @brief Compile time check function of whether a provided type is any
 ///     variant of comms::field::Optional.
 /// @tparam T Any type.

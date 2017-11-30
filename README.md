@@ -73,8 +73,8 @@ embedded systems development.
 
 The main idea is to have a library (see [COMMS Library](#comms-library) below), that
 provide all the necessary, highly configurable C++ classes. The messages 
-themselves and their fields are defined using simple declarative types and 
-class definition statements which specify **WHAT** needs to be implemented. 
+themselves and their fields are defined using simple declarative statements of types and 
+class definitions, which specify **WHAT** needs to be implemented. 
 The **COMMS** library internals handle the **HOW** part. Thanks to the heavy
 use of templates and multiple meta-programming techniques, only the needed code
 gets generated and compiled. The polymorphic common interfaces are highly 
@@ -117,6 +117,8 @@ embedded systems.
 
 Core ideas and architecture of the **COMMS** library is described in
 [Guide to Implementing Communication Protocols in C++](https://www.gitbook.com/book/arobenko/comms-protocols-cpp/details) free e-book.
+However, at this stage the library internals are much more advanced and sophisticated, than
+examples in the e-book, please don't treat the latter as a guide to library's internals.
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
 downloaded as **doc_comms.zip** archive from 
@@ -125,9 +127,10 @@ downloaded as **doc_comms.zip** archive from
 For quick usage examples please refer to [EXAMPLES.md](EXAMPLES.md).
 
 # CommsChampion Tools
-**CommsChampion** is a name for set of tool applications, which can be used to 
+**CommsChampion** is a name for set of tool applications (in addition to the 
+[COMMS Library](#comms-library)), which can be used to 
 develop, monitor and debug custom binary communication protocols, that where
-developed using [COMMS Library](#comms-library). 
+developed using the [COMMS Library](#comms-library). 
 All the applications are plug-in based, i.e. plug-ins are used to define 
 I/O socket, data filters, and the custom protocol itself. The tools
 use [Qt5](http://www.qt.io/) framework for GUI interfaces as well as loading
@@ -153,8 +156,8 @@ plugins that can be used with any application:
 
 - **null_socket** - NULL socket, that doesn't produce any incoming data and
 discards any outgoing data.
-- **echo_socket** - Echo socket, all the data being sent immediately reports
-as incoming data.
+- **echo_socket** - Echo socket, all the data being sent is immediately reported
+as an incoming data.
 - **serial_socket** - Low level socket that sends and receives data over serial
 (RS-232) I/O link.
 - **tcp_client_socket** - Client TCP/IP socket, that connects to remote 
@@ -174,7 +177,7 @@ raw data being received from I/O socket.
 the [COMMS Library](#comms-library). The protocol definition classes are
 also extended to implement the protocol plugin for
 the [CommsChampion](#commschampion-tools) application. The plugin is used for testing
-and demostration purposes.
+and demonstration purposes.
 
 The demo protocol as well as [Other Available Protocols](#other-available-protocols) 
 may serve as reference on how to implement any other custom binary protocol.
@@ -205,28 +208,8 @@ from [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # Licence
 The [COMMS Library](#comms-library) is licensed under
-the classic **GPLv3 / Commercial** dual licensing scheme. The
-source code is available for anyone to use as long as the derivative work
-remains open source with compatible licence. **Download** and **try** it! 
-If it works as expected and commercial closed source licence is required for the final
-product, it can be obtained on [binpress](http://arobenko.binpress.com/product/comms-library/4578).
-If the offered licences do not satisfy your needs and special conditions need to be
-included please send me an e-mail (see [Contact Information](#contact-information) below).
-
-The [CommsChampion Tools](#commschampion-tools),
-and the [Demo Protocol](#demo-protocol) are licensed under the same **GPLv3**
-licence. If a commercial closed source licence is needed for these products 
-as well, please get it touch. As the author and full copyright owner I will be
-able to provide one.
-
-Some icons, used in [CommsChampion](#commschampion-tools) tools, were taken from
-[Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter
-applies - requires attribution.
-
-The [application icon](src/app/cc_view/src/image/app_icon.png) of the
-[CommsChampion](#commschampion-tools) tool must
-be replaced in any derivative work to differentiate between the original and
-the forked versions.
+the classic **GPLv3 / Commercial** dual licensing scheme. Please refer to 
+[LICENSE.md](LICENSE.md) for details.
 
 # How to Build
 Detailed instructions on how to build and install all the components can be

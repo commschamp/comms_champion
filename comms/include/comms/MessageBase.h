@@ -382,8 +382,8 @@ protected:
     ///     @code
     ///     class MyHandler {
     ///     public:
-    ///         void handle(Message1& msg);
-    ///         void handle(Message2& msg);
+    ///         DispatchRetType handle(Message1& msg);
+    ///         DispatchRetType handle(Message2& msg);
     ///         ...
     ///     }
     ///     @endcode
@@ -396,7 +396,7 @@ protected:
     ///     class MyHandler {
     ///     public:
     ///         ...
-    ///         void handle(MessageBase& msg);
+    ///         DispatchRetType handle(MessageBase& msg);
     ///     }
     ///     @endcode
     ///     Where "MessageBase" is a common base class for all the possible
@@ -405,10 +405,10 @@ protected:
     ///     Once the requirements above are properly implemented, the implementation
     ///     of this message is very simple:
     ///     @code
-    ///     void dispatchImpl(Handler& handler)
+    ///     DispatchRetType dispatchImpl(Handler& handler)
     ///     {
     ///         typedef <actual-message-type-provided-with-option> Actual;
-    ///         handler.handle(static_cast<Actual&>(*this));
+    ///         return handler.handle(static_cast<Actual&>(*this));
     ///     }
     ///     @endcode
     ///     The code above forces a compiler to choose appropriate @b handle()
@@ -416,7 +416,7 @@ protected:
     ///     If such function is not found, the compiler will choose to call
     ///     the one that covers all possible messages @b "void handle(MessageBase& msg)".
     /// @param handler Reference to handler object.
-    virtual void dispatchImpl(Handler& handler) override;
+    virtual DispatchRetType dispatchImpl(Handler& handler) override;
 
     /// @brief Implementation of polymorphic read functionality.
     /// @details This function exists if comms::option::ReadIterator option

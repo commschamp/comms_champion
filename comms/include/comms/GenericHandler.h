@@ -34,12 +34,12 @@ namespace comms
 ///          type of message as default behaviour. The declaration of the
 ///          handling function is as following:
 ///          @code
-///          virtual void handle(ActualMessageType& msg);
+///          virtual TRetType handle(ActualMessageType& msg);
 ///          @endcode
 ///          All the handling functions will upcast the message to TDefault and
 ///          call the default message handling function with signature:
 ///          @code
-///          virtual void handle(TDefault& msg);
+///          virtual TRetType handle(TDefault& msg);
 ///          @endcode
 ///          which does nothing. To override the handling behaviour just inherit
 ///          your handler from comms::GenericHandler and override the appropriate
@@ -47,6 +47,7 @@ namespace comms
 /// @tparam TDefault Base class of all custom messages bundled in TAll.
 /// @tparam TAll All message types bundled in std::tuple that need to
 ///         be handled.
+/// @tparam TRetType Return type of the implemented handle() functions.
 /// @pre TAll is any variation of std::tuple
 /// @pre TDefault is a base class for all the custom messages in TAll.
 /// @note The default destructor is @b NOT virtual. To allow polymorphic delete
@@ -60,6 +61,9 @@ class GenericHandler
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
 public:
+    /// @brief Return type of every handle() member function.
+    using RetType = TRetType;
+
     /// @brief Handle message object
     /// @details Does nothing, can be overridden in the derived class.
     virtual TRetType handle(TDefault& msg);
@@ -188,6 +192,8 @@ template <typename TDefault, typename TRetType>
 class GenericHandlerBase
 {
 public:
+    using RetType = TRetType;
+
     virtual TRetType handle(TDefault& msg)
     {
         // Nothing to do

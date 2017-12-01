@@ -190,12 +190,16 @@ public:
     ///     was provided to comms::Message to specify one.
     using Handler = TypeProvidedWithOption;
 
+    /// @brief Return type of the @ref dispatch() member function.
+    /// @details Equal to @b Handler::RetType if such exists, @b void otherwise.
+    using DispatchRetType = typename Handler::RetType;
+
     /// @brief Dispatch message to the handler for processing.
     /// @details The function exists only if comms::option::Handler option
     ///     was provided to comms::Message to specify type of the handler.
     ///     The function invokes virtual dispatchImpl() function.
     /// @param handler Handler object to dispatch message to.
-    void dispatch(Handler& handler);
+    DispatchRetType dispatch(Handler& handler);
 
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 

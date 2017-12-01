@@ -1054,13 +1054,14 @@ using MessageImplRefreshBaseT =
 template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
+    using BaseImpl = TBase;
 protected:
     ~MessageImplDispatchBase() noexcept = default;
-    virtual void dispatchImpl(typename TBase::Handler& handler) override
+    virtual typename TBase::DispatchRetType dispatchImpl(typename TBase::Handler& handler) override
     {
         static_assert(std::is_base_of<TBase, TActual>::value,
             "TActual is not derived class");
-        handler.handle(static_cast<TActual&>(*this));
+        return handler.handle(static_cast<TActual&>(*this));
     }
 };
 

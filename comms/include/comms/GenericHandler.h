@@ -52,7 +52,7 @@ namespace comms
 /// @note The default destructor is @b NOT virtual. To allow polymorphic delete
 ///     make sure to declare the destructor virtual in the inherited class.
 /// @headerfile comms/GenericHandler.h
-template <typename TDefault, typename TAll>
+template <typename TDefault, typename TAll, typename TRetType = void>
 class GenericHandler
 {
     static_assert(util::IsTuple<TAll>::Value,
@@ -62,7 +62,7 @@ class GenericHandler
 public:
     /// @brief Handle message object
     /// @details Does nothing, can be overridden in the derived class.
-    virtual void handle(TDefault& msg);
+    virtual TRetType handle(TDefault& msg);
 
 protected:
     /// @brief Destructor
@@ -88,104 +88,146 @@ template <
     typename T8,
     typename T9,
     typename T10,
-    typename... TRest>
-class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TRest...> >
+    typename... TRest,
+    typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TRest...>, TRetType>
                     : public GenericHandler<TDefault, std::tuple<TRest...> >
 {
     using BaseImpl = GenericHandler<TDefault, std::tuple<TRest...> >;
 public:
 
     using BaseImpl::handle;
-    virtual void handle(T1& msg)
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T3& msg)
+    virtual TRetType handle(T3& msg)
     {
         static_assert(std::is_base_of<TDefault, T3>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T4& msg)
+    virtual TRetType handle(T4& msg)
     {
         static_assert(std::is_base_of<TDefault, T4>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T5& msg)
+    virtual TRetType handle(T5& msg)
     {
         static_assert(std::is_base_of<TDefault, T5>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T6& msg)
+    virtual TRetType handle(T6& msg)
     {
         static_assert(std::is_base_of<TDefault, T6>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T7& msg)
+    virtual TRetType handle(T7& msg)
     {
         static_assert(std::is_base_of<TDefault, T7>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T8& msg)
+    virtual TRetType handle(T8& msg)
     {
         static_assert(std::is_base_of<TDefault, T8>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T9& msg)
+    virtual TRetType handle(T9& msg)
     {
         static_assert(std::is_base_of<TDefault, T9>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T10& msg)
+    virtual TRetType handle(T10& msg)
     {
         static_assert(std::is_base_of<TDefault, T10>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
-    }
-
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
 protected:
     ~GenericHandler() noexcept = default;
 };
 
+namespace details
+{
+
+template <typename TDefault, typename TRetType>
+class GenericHandlerBase
+{
+public:
+    virtual TRetType handle(TDefault& msg)
+    {
+        // Nothing to do
+        static_cast<void>(msg);
+        using Tag =
+            typename std::conditional<
+                std::is_void<TRetType>::value,
+                VoidReturnTag,
+                typename std::conditional<
+                    std::is_lvalue_reference<TRetType>::value,
+                    ReferenceReturnTag,
+                    ValueReturnTag
+                >::type
+            >::type;
+        return defaultHandle(Tag());
+    }
+
+private:
+    struct VoidReturnTag {};
+    struct ReferenceReturnTag {};
+    struct ValueReturnTag {};
+
+    void defaultHandle(VoidReturnTag)
+    {
+    }
+
+    TRetType defaultHandle(ReferenceReturnTag)
+    {
+        static typename std::decay<TRetType>::type Value;
+        return Value;
+    }
+
+    TRetType defaultHandle(ValueReturnTag)
+    {
+        return typename std::decay<TRetType>::type();
+    }
+
+};
+
+} // namespace details
 
 template <
     typename TDefault,
@@ -197,87 +239,85 @@ template <
     typename T6,
     typename T7,
     typename T8,
-    typename T9>
-class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9> >
+    typename T9,
+    typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T3& msg)
+    virtual TRetType handle(T3& msg)
     {
         static_assert(std::is_base_of<TDefault, T3>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T4& msg)
+    virtual TRetType handle(T4& msg)
     {
         static_assert(std::is_base_of<TDefault, T4>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T5& msg)
+    virtual TRetType handle(T5& msg)
     {
         static_assert(std::is_base_of<TDefault, T5>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T6& msg)
+    virtual TRetType handle(T6& msg)
     {
         static_assert(std::is_base_of<TDefault, T6>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T7& msg)
+    virtual TRetType handle(T7& msg)
     {
         static_assert(std::is_base_of<TDefault, T7>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T8& msg)
+    virtual TRetType handle(T8& msg)
     {
         static_assert(std::is_base_of<TDefault, T8>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T9& msg)
+    virtual TRetType handle(T9& msg)
     {
         static_assert(std::is_base_of<TDefault, T9>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
-    }
-
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
 protected:
@@ -293,79 +333,77 @@ template <
     typename T5,
     typename T6,
     typename T7,
-    typename T8>
-class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8> >
+    typename T8,
+    typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T3& msg)
+    virtual TRetType handle(T3& msg)
     {
         static_assert(std::is_base_of<TDefault, T3>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T4& msg)
+    virtual TRetType handle(T4& msg)
     {
         static_assert(std::is_base_of<TDefault, T4>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T5& msg)
+    virtual TRetType handle(T5& msg)
     {
         static_assert(std::is_base_of<TDefault, T5>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T6& msg)
+    virtual TRetType handle(T6& msg)
     {
         static_assert(std::is_base_of<TDefault, T6>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T7& msg)
+    virtual TRetType handle(T7& msg)
     {
         static_assert(std::is_base_of<TDefault, T7>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T8& msg)
+    virtual TRetType handle(T8& msg)
     {
         static_assert(std::is_base_of<TDefault, T8>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
-    }
-
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
 protected:
@@ -380,72 +418,71 @@ template <
     typename T4,
     typename T5,
     typename T6,
-    typename T7>
-class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7> >
+    typename T7,
+    typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T3& msg)
+    virtual TRetType handle(T3& msg)
     {
         static_assert(std::is_base_of<TDefault, T3>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T4& msg)
+    virtual TRetType handle(T4& msg)
     {
         static_assert(std::is_base_of<TDefault, T4>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T5& msg)
+    virtual TRetType handle(T5& msg)
     {
         static_assert(std::is_base_of<TDefault, T5>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T6& msg)
+    virtual TRetType handle(T6& msg)
     {
         static_assert(std::is_base_of<TDefault, T6>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T7& msg)
+    virtual TRetType handle(T7& msg)
     {
         static_assert(std::is_base_of<TDefault, T7>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
-    }
 
 protected:
     ~GenericHandler() noexcept = default;
@@ -458,64 +495,63 @@ template <
     typename T3,
     typename T4,
     typename T5,
-    typename T6>
-class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6> >
+    typename T6,
+    typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T3& msg)
+    virtual TRetType handle(T3& msg)
     {
         static_assert(std::is_base_of<TDefault, T3>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T4& msg)
+    virtual TRetType handle(T4& msg)
     {
         static_assert(std::is_base_of<TDefault, T4>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T5& msg)
+    virtual TRetType handle(T5& msg)
     {
         static_assert(std::is_base_of<TDefault, T5>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T6& msg)
+    virtual TRetType handle(T6& msg)
     {
         static_assert(std::is_base_of<TDefault, T6>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
-    }
 
 protected:
     ~GenericHandler() noexcept = default;
@@ -527,56 +563,55 @@ template <
     typename T2,
     typename T3,
     typename T4,
-    typename T5>
-class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5> >
+    typename T5,
+    typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T3& msg)
+    virtual TRetType handle(T3& msg)
     {
         static_assert(std::is_base_of<TDefault, T3>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T4& msg)
+    virtual TRetType handle(T4& msg)
     {
         static_assert(std::is_base_of<TDefault, T4>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T5& msg)
+    virtual TRetType handle(T5& msg)
     {
         static_assert(std::is_base_of<TDefault, T5>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
-    }
 
 protected:
     ~GenericHandler() noexcept = default;
@@ -587,157 +622,142 @@ template <
     typename T1,
     typename T2,
     typename T3,
-    typename T4>
-class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4> >
+    typename T4,
+    typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T3& msg)
+    virtual TRetType handle(T3& msg)
     {
         static_assert(std::is_base_of<TDefault, T3>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T4& msg)
+    virtual TRetType handle(T4& msg)
     {
         static_assert(std::is_base_of<TDefault, T4>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
-    }
-
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
 protected:
     ~GenericHandler() noexcept = default;
 };
 
-template <typename TDefault, typename T1, typename T2, typename T3>
-class GenericHandler<TDefault, std::tuple<T1, T2, T3> >
+template <typename TDefault, typename T1, typename T2, typename T3, typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2, T3>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T3& msg)
+    virtual TRetType handle(T3& msg)
     {
         static_assert(std::is_base_of<TDefault, T3>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
-    }
-
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
 protected:
     ~GenericHandler() noexcept = default;
 };
 
-template <typename TDefault, typename T1, typename T2>
-class GenericHandler<TDefault, std::tuple<T1, T2> >
+template <typename TDefault, typename T1, typename T2, typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1, T2>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
-    virtual void handle(T2& msg)
+    virtual TRetType handle(T2& msg)
     {
         static_assert(std::is_base_of<TDefault, T2>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
-    }
-
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
 protected:
     ~GenericHandler() noexcept = default;
 };
 
-template <typename TDefault, typename T1>
-class GenericHandler<TDefault, std::tuple<T1> >
+template <typename TDefault, typename T1, typename TRetType>
+class GenericHandler<TDefault, std::tuple<T1>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
 
-    virtual void handle(T1& msg)
+    using BaseImpl::handle;
+    virtual TRetType handle(T1& msg)
     {
         static_assert(std::is_base_of<TDefault, T1>::value,
             "TDefault must be base class for every element in TAll");
 
-        this->handle(static_cast<TDefault&>(msg));
-    }
-
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
+        return this->handle(static_cast<TDefault&>(msg));
     }
 
 protected:
     ~GenericHandler() noexcept = default;
 };
 
-template <typename TDefault>
-class GenericHandler<TDefault, std::tuple<> >
+template <typename TDefault, typename TRetType>
+class GenericHandler<TDefault, std::tuple<>, TRetType> : public
+    details::GenericHandlerBase<TDefault, TRetType>
 {
+    using BaseImpl = details::GenericHandlerBase<TDefault, TRetType>;
 public:
-
-    virtual void handle(TDefault& msg)
-    {
-        // Nothing to do
-        static_cast<void>(msg);
-    }
-
+    using BaseImpl::handle;
 protected:
     ~GenericHandler() noexcept = default;
 };

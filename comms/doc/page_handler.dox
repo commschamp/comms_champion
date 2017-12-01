@@ -158,7 +158,7 @@
 ///
 /// @section page_handler_tutorial_generic Generic Handling
 /// The COMMS library provides some help in defining custom message handlers.
-/// There is comms::GenericHandler class that receives two template
+/// There is comms::GenericHandler class that receives at least two template
 /// parameters. The first one is a common interface class for all the messages
 /// (@b MyMessage in the examples above). The second template parameter is
 /// all the types of all the custom messages the handler is supposed to handle,
@@ -221,3 +221,33 @@
 /// @b NOTE, that comms::GenericHandler doesn't declare its destructor as virtual.
 /// If the handler object requires support for polymorphic delete (destruction),
 /// make sure to declare its destructor as virtual.
+///
+/// @section page_handler_tutorial_return_value Returning Handling Result
+/// All the examples above used @b void as a return type from handling functions. It
+/// is possible, however, to return value of handling result. In order to achieve
+/// this the handler class needs to define inner @b RetType type and all the
+/// @b handle() functions must return it. For example:
+/// @code
+/// class MyHandler
+/// {
+/// public:
+///     // Return type of all the handle() functions
+///     typedef bool RetType;
+///
+///     bool handle(Message1& msg) {...}
+///     bool handle(Message2& msg) {...}
+///     bool handle(Message3& msg) {...}
+///     ...
+/// };
+/// @endcode
+/// If inner @b RetType type is defined, it is propagated to be also the return type of
+/// the @ref comms::Message::dispatch() member function as well. As the result the developer may 
+/// use constructs like this:
+/// @code
+/// bool result = msg.dispatch(handler);
+/// @endcode
+///
+/// NOTE, that @ref comms::GenericHandler class has a third template parameter, which
+/// defaults to @b void, and may be used to specify the return type of its handling functions.
+///
+

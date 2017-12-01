@@ -112,6 +112,7 @@
 ///         comms::option::BigEndian, // Fix the endian, usually known up front
 ///         comms::option::MsgIdType<MsgId>, // Type used to differentiate messages (usually some enum)
 ///         TOptions... // Extend it with provided options
+///     >;
 /// @endcode
 /// The definition above fixes endian and type used to specify message ID. The
 /// variadic @b TOptions parameter allows to choose any polymorphic (virtual)
@@ -391,14 +392,18 @@
 ///     // The same type as passed via comms::option::Handler option     
 ///     typedef ... Handler;
 ///
+///     // Return type of the dispatch function, which is the same as return type of
+///     // every Handler::handle() member function
+///     typedef ... DispatchRetType;
+///
 ///     // Dispatch this message to handler
-///     void dispatch(Handler& handler)
+///     DispatchRetType dispatch(Handler& handler)
 ///     {
-///         dispatchImpl(handler);
+///         return dispatchImpl(handler);
 ///     }
 ///
 /// protected:
-///     virtual void dispatchImpl(Handler& handler) = 0; // Must be implemented in the derived class
+///     virtual DispatchRetType dispatchImpl(Handler& handler) = 0; // Must be implemented in the derived class
 /// };
 /// @endcode
 /// More details about dispatching will be provided below in @ref page_message_tutorial_impl_msg_type
@@ -1357,7 +1362,7 @@
 ///         comms::option::StaticNumIdImpl<MyMsgId_Message2>, 
 ///         comms::option::MsgType<Message2<TMessage> >, 
 ///         comms::option::FieldsImpl<Message2Fields> ,
-///         comms::option::HadDoRefresh
+///         comms::option::HasDoRefresh
 ///     >
 /// {
 /// public:

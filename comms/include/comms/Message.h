@@ -266,7 +266,7 @@ protected:
     ///     The function exists only if comms::option::Handler option was
     ///     provided to comms::Message to specify type of the handler.
     /// @param handler Handler object to dispatch message to.
-    virtual void dispatchImpl(Handler& handler) = 0;
+    virtual DispatchRetType dispatchImpl(Handler& handler) = 0;
 
     /// @brief Write data into the output area.
     /// @details Use this function to write data to the output area using

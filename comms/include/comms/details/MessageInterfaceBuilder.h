@@ -33,6 +33,25 @@ namespace comms
 namespace details
 {
 
+template <class T, class R = void>
+struct MessageInterfaceIfHasRetType { using Type = R; };
+
+template <class T, class Enable = void>
+struct MessageInterfaceDispatchRetTypeHelper
+{
+    using Type = void;
+};
+
+template <class T>
+struct MessageInterfaceDispatchRetTypeHelper<T, typename MessageInterfaceIfHasRetType<typename T::RetType>::Type>
+{
+    using Type = typename T::RetType;
+};
+
+template <class T>
+using MessageInterfaceDispatchRetType = typename MessageInterfaceDispatchRetTypeHelper<T>::Type;
+
+
 class MessageInterfaceEmptyBase {};
 
 template <typename TEndian>
@@ -294,15 +313,16 @@ class MessageInterfaceHandlerBase : public TBase
 {
 public:
     using Handler = THandler;
+    using DispatchRetType = MessageInterfaceDispatchRetType<Handler>;
 
-    void dispatch(Handler& handler)
+    DispatchRetType dispatch(Handler& handler)
     {
-        dispatchImpl(handler);
+        return dispatchImpl(handler);
     }
 
 protected:
     ~MessageInterfaceHandlerBase() noexcept = default;
-    virtual void dispatchImpl(Handler& handler) = 0;
+    virtual DispatchRetType dispatchImpl(Handler& handler) = 0;
 };
 
 template <bool THasHandler>

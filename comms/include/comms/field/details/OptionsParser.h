@@ -47,6 +47,7 @@ public:
     static const bool HasSequenceElemLengthForcing = false;
     static const bool HasSequenceSizeForcing = false;
     static const bool HasSequenceFixedSize = false;
+    static const bool HasSequenceFixedSizeUseFixedSizeStorage = false;
     static const bool HasSequenceSizeFieldPrefix = false;
     static const bool HasSequenceSerLengthFieldPrefix = false;
     static const bool HasSequenceTrailingFieldSuffix = false;
@@ -142,6 +143,15 @@ class OptionsParser<
 public:
     static const bool HasSequenceFixedSize = true;
     static const auto SequenceFixedSize = TSize;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceFixedSizeUseFixedSizeStorage,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasSequenceFixedSizeUseFixedSizeStorage = true;
 };
 
 template <typename TSizeField, typename... TOptions>

@@ -327,7 +327,7 @@ struct NumValueSerOffset {};
 ///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> or
 ///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
 ///     for their internal data storage. If this option is used, it will force
-///     such fields to use comms::util::StaticVector or comms::util::StaticString
+///     such fields to use @ref comms::util::StaticVector or @ref comms::util::StaticString
 ///     with the capacity provided by this option.
 /// @tparam TSize Size of the storage area, for strings it does @b NOT include
 ///     the '\0' terminating character.
@@ -519,6 +519,15 @@ struct SequenceElemLengthForcingEnabled {};
 /// @headerfile comms/options.h
 template <std::size_t TSize>
 struct SequenceFixedSize {};
+
+/// @brief Option that forces usage of fixed size storage for sequences with fixed
+///     size.
+/// @details Equivalent to @ref FixedSizeStorage option, but applicable only
+///     to sequence types @ref comms::field::ArrayList or @ref comms::field::String, that
+///     alrady use @ref SequenceFixedSize option. Usage of this option do not
+///     require knowledge of the storage area size.
+/// @headerfile comms/options.h
+struct SequenceFixedSizeUseFixedSizeStorage {};
 
 /// @brief Option that specifies default initialisation class.
 /// @details Use this option when default constructor of the field must assign

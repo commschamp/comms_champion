@@ -55,6 +55,26 @@ struct ArrayListOrigDataViewStorageType<false>
     using Type = std::vector<TElement>;
 };
 
+template <bool THasSequenceFixedSizeUseFixedSizeStorage>
+struct ArrayListSequenceFixedSizeUseFixedSizeStorageType;
+
+template <>
+struct ArrayListSequenceFixedSizeUseFixedSizeStorageType<true>
+{
+    template <typename TElement, typename TOpt>
+    using Type = comms::util::StaticVector<TElement, TOpt::SequenceFixedSize>;
+};
+
+template <>
+struct ArrayListSequenceFixedSizeUseFixedSizeStorageType<false>
+{
+    template <typename TElement, typename TOpt>
+    using Type =
+        typename ArrayListOrigDataViewStorageType<
+            TOpt::HasOrigDataView && std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))
+        >::template Type<TElement>;
+};
+
 template <bool THasFixedSizeStorage>
 struct ArrayListFixedSizeStorageType;
 
@@ -70,9 +90,8 @@ struct ArrayListFixedSizeStorageType<false>
 {
     template <typename TElement, typename TOpt>
     using Type =
-        typename ArrayListOrigDataViewStorageType<
-            TOpt::HasOrigDataView && std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))
-        >::template Type<TElement>;
+        typename ArrayListSequenceFixedSizeUseFixedSizeStorageType<TOpt::HasSequenceFixedSizeUseFixedSizeStorage>
+            ::template Type<TElement, TOpt>;
 };
 
 template <bool THasCustomStorage>

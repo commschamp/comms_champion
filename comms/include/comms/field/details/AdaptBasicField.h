@@ -526,6 +526,17 @@ class AdaptBasicField
             "The following options are incompatible, cannot be used together: "
             "CustomStorageType, FixedSizeStorage, OrigDataView");
 
+    static_assert(
+            (!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage) ||
+            (ParsedOptions::HasSequenceFixedSize),
+            "The option SequenceFixedSizeUseFixedSizeStorage cannot be used without SequenceFixedSize.");
+
+    static_assert(
+            (!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage) ||
+            (!ParsedOptions::HasFixedSizeStorage),
+            "The following options are incompatible, cannot be used together: "
+            "SequenceFixedSizeUseFixedSizeStorage, FixedSizeStorage");
+
     using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
         TBasic, ParsedOptions>;
     using SerOffsetAdapted = AdaptFieldSerOffsetT<

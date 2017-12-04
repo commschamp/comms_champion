@@ -1319,6 +1319,28 @@
 /// myList.push_back(0x5); // WON'T be serialised
 /// @endcode
 ///
+/// It is possible to combine fixed size sequences with fixed size storage for them
+/// (see @ref sec_field_tutorial_array_list_storage). It can be achieved by using
+/// @ref comms::option::SequenceFixedSizeUseFixedSizeStorage option.
+/// @code
+/// using MyList = 
+///     comms::field::ArrayList<
+///         ...,
+///         comms::option::SequenceFixedSize<4>,
+///         comms::option::SequenceFixedSizeUseFixedSizeStorage
+///     >;
+/// @endcode
+/// It is equivalent to 
+/// @code
+/// using MyList = 
+///     comms::field::ArrayList<
+///         ...,
+///         comms::option::SequenceFixedSize<4>,
+///         comms::option::FixedSizeStorage<4>
+///     >;
+/// @endcode
+/// but without a need to specify the size of the storage (@b 4) the second time.
+///
 /// All the @ref sec_field_tutorial_common_options are also applicable to
 /// comms::field::ArrayList field.
 ///
@@ -1474,6 +1496,26 @@
 /// <b>Also note</b>, that size limit is specified (using comms::option::SequenceFixedSize)
 /// to be 31. One more byte is added by the "trailing" suffix to complete to 32
 /// bytes.
+///
+/// Just like with @ref comms::field::ArrayList, it is possible to use static
+/// storage for fixed size strings:
+/// @code
+/// using MyString = 
+///     comms::field::String<
+///         ..., 
+///         comms::option::SequenceFixedSize<16>,
+///         comms::option::SequenceFixedSizeUseFixedSizeStorage 
+///     >;
+/// @endcode
+/// or 
+/// @code
+/// using MyString = 
+///     comms::field::String<
+///         ..., 
+///         comms::option::SequenceFixedSize<16>,
+///         comms::option::FixedSizeStorage<16> 
+///     >;
+/// @endcode
 ///
 /// @section sec_field_tutorial_fp_value Floating Point Value Fields
 /// Floating point value fields (comms::field::FloatValue) are very similar to 

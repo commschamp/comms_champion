@@ -262,7 +262,8 @@ private:
                       (std::is_signed<typename SizeField::ValueType>::value),
                       "Prefix field is too big");
 
-        SizeField sizeField(Base::field().value().size());
+        SizeField sizeField;
+        sizeField.value() = Base::field().value().size();
         return std::make_pair(sizeField.value(), getPrefixFieldSerialised(sizeField));
     }
 
@@ -287,7 +288,8 @@ private:
                       (std::is_signed<typename LengthField::ValueType>::value),
                       "Prefix field is too big");
 
-        LengthField lenField(Base::field().length() - LengthField::maxLength());
+        LengthField lenField;
+        lenField.value() = Base::field().length() - LengthField::maxLength();
         return std::make_pair(lenField.value(), getPrefixFieldSerialised(lenField));
     }
 
@@ -296,9 +298,11 @@ private:
         using LengthField = typename Field::ParsedOptions::SequenceSerLengthFieldPrefix;
 
         auto fullLen = Base::field().length();
-        LengthField lenFieldTmp(fullLen);
+        LengthField lenFieldTmp;
+        lenFieldTmp.value() = fullLen;
         auto tmpLen = lenFieldTmp.length();
-        LengthField lenField(fullLen - tmpLen);
+        LengthField lenField;
+        lenField.value() = (fullLen - tmpLen);
         if (lenField.length() == tmpLen) {
             assert(static_cast<int>(lenField.value()) <= std::numeric_limits<int>::max());
             return std::make_pair(lenField.value(), getPrefixFieldSerialised(lenField));

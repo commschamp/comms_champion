@@ -117,7 +117,8 @@ protected:
 
     virtual double scaleValueImpl(UnderlyingType value) const override
     {
-        Field fieldTmp(value);
+        Field fieldTmp;
+        fieldTmp.value() = value;
         return fieldTmp.template scaleAs<double>();
     }
 

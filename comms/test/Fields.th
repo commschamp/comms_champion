@@ -119,6 +119,7 @@ public:
     void test82();
     void test83();
     void test84();
+    void test85();
 
     enum Enum1 {
         Enum1_Value1,
@@ -3750,6 +3751,35 @@ void FieldsTestSuite::test84()
 
     field = readWriteField<Field>(&ExpectedBuf2[0], ExpectedBufSize2);
     TS_ASSERT_EQUALS(field.value(), "foo");
+}
+
+void FieldsTestSuite::test85()
+{
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceFixedSize<5>
+    > Field;
+
+    static_assert(Field::minLength() == 5U, "Invalid min length");
+    static_assert(Field::maxLength() == 5U, "Invalid max length");
+
+    Field field;
+
+    field.value() = "blabla";
+    TS_ASSERT_EQUALS(field.value().size(), 6U);
+    TS_ASSERT_EQUALS(field.length(), 5U);
+
+    static const char ExpectedBuf[] = {
+        'b', 'l', 'a', 'b', 'l'
+    };
+    static const std::size_t ExpectedBufSize3 = std::extent<decltype(ExpectedBuf)>::value;
+
+    std::vector<std::uint8_t> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    auto es = field.write(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(outBuf.size(), ExpectedBufSize3);
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), std::begin(ExpectedBuf)));
 }
 
 template <typename TField>

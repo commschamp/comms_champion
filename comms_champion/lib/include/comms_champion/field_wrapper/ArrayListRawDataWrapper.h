@@ -19,8 +19,6 @@
 #pragma once
 
 
-#pragma once
-
 #include <cstdint>
 #include <cassert>
 #include <memory>
@@ -168,6 +166,7 @@ protected:
 
 private:
     struct SizeFieldExistsTag {};
+    struct SerLengthFieldExistsTag {};
     struct FixedSizeTag {};
     struct NoLimitsTag {};
 
@@ -176,23 +175,39 @@ private:
         FieldOptions::HasSequenceSizeFieldPrefix,
         SizeFieldExistsTag,
         typename std::conditional<
-            FieldOptions::HasSequenceFixedSize,
-            FixedSizeTag,
-            NoLimitsTag
+            FieldOptions::HasSequenceSerLengthFieldPrefix,
+            SerLengthFieldExistsTag,
+            typename std::conditional<
+                FieldOptions::HasSequenceFixedSize,
+                FixedSizeTag,
+                NoLimitsTag
+            >::type
         >::type
     >::type SizeExistanceTag;
 
-    static int maxSizeInternal(SizeFieldExistsTag)
+    template <typename TPrefixField>
+    static int maxSizeByPrefix()
     {
-        typedef typename FieldOptions::SequenceSizeFieldPrefix SizeField;
-        if (sizeof(int) <= SizeField::maxLength()) {
+        if (sizeof(int) <= TPrefixField::maxLength()) {
             return std::numeric_limits<int>::max();
         }
 
         auto shift =
-            SizeField::maxLength() * std::numeric_limits<std::uint8_t>::digits;
+            TPrefixField::maxLength() * std::numeric_limits<std::uint8_t>::digits;
 
         return static_cast<int>((1U << shift) - 1);
+    }
+
+    static int maxSizeInternal(SizeFieldExistsTag)
+    {
+        typedef typename FieldOptions::SequenceSizeFieldPrefix PrefixField;
+        return maxSizeByPrefix<PrefixField>();
+    }
+
+    static int maxSizeInternal(SerLengthFieldExistsTag)
+    {
+        typedef typename FieldOptions::SequenceSerLengthFieldPrefix PrefixField;
+        return maxSizeByPrefix<PrefixField>();
     }
 
     static int maxSizeInternal(FixedSizeTag)
@@ -210,6 +225,11 @@ private:
     }
 
     static int minSizeInternal(SizeFieldExistsTag)
+    {
+        return 0;
+    }
+
+    static int minSizeInternal(SerLengthFieldExistsTag)
     {
         return 0;
     }

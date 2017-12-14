@@ -139,6 +139,7 @@ protected:
         }
 
         if ((!Field::ParsedOptions::HasSequenceSizeFieldPrefix) &&
+            (!Field::ParsedOptions::HasSequenceSerLengthFieldPrefix) &&
             (!Field::ParsedOptions::HasSequenceTrailingFieldSuffix) &&
             (!Field::ParsedOptions::HasSequenceTerminationFieldSuffix)){
             auto iter = &value[0];
@@ -148,6 +149,10 @@ protected:
 
         SerialisedSeq newVal;
         if (!writeSerialisedSize(newVal, value.size(), SerialisedSizePrefixTag())) {
+            return false;
+        }
+
+        if (!writeSerialisedLength(newVal, value.size(), SerialisedLengthPrefixTag())) {
             return false;
         }
 
@@ -180,6 +185,12 @@ private:
     >::type SerialisedSizePrefixTag;
 
     typedef typename std::conditional<
+        Field::ParsedOptions::HasSequenceSerLengthFieldPrefix,
+        HasPrefixSuffixTag,
+        NoPrefixSuffixTag
+    >::type SerialisedLengthPrefixTag;
+
+    typedef typename std::conditional<
         Field::ParsedOptions::HasSequenceTrailingFieldSuffix,
         HasPrefixSuffixTag,
         NoPrefixSuffixTag
@@ -195,13 +206,32 @@ private:
     {
         typedef typename Field::ParsedOptions::SequenceSizeFieldPrefix SizePrefixField;
 
-        SizePrefixField sizePrefixField(sizeVal);
+        SizePrefixField sizePrefixField;
+        sizePrefixField.value() = sizeVal;
         auto writeIter = std::back_inserter(seq);
         auto es = sizePrefixField.write(writeIter, seq.max_size() - seq.size());
         return es == comms::ErrorStatus::Success;
     }
 
     bool writeSerialisedSize(SerialisedSeq& seq, std::size_t sizeVal, NoPrefixSuffixTag)
+    {
+        static_cast<void>(seq);
+        static_cast<void>(sizeVal);
+        return true;
+    }
+
+    bool writeSerialisedLength(SerialisedSeq& seq, std::size_t sizeVal, HasPrefixSuffixTag)
+    {
+        typedef typename Field::ParsedOptions::SequenceSerLengthFieldPrefix LengthPrefixField;
+
+        LengthPrefixField lengthPrefixField;
+        lengthPrefixField.value() = sizeVal;
+        auto writeIter = std::back_inserter(seq);
+        auto es = lengthPrefixField.write(writeIter, seq.max_size() - seq.size());
+        return es == comms::ErrorStatus::Success;
+    }
+
+    bool writeSerialisedLength(SerialisedSeq& seq, std::size_t sizeVal, NoPrefixSuffixTag)
     {
         static_cast<void>(seq);
         static_cast<void>(sizeVal);

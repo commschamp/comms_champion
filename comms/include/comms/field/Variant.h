@@ -253,16 +253,25 @@ public:
     ///     @code
     ///     struct MyFunc
     ///     {
+    ///         template <std::size_t TIdx>
     ///         void operator()(Type1& field) {...}
+    ///
+    ///         template <std::size_t TIdx>
     ///         void operator()(Type2& field) {...}
     ///         ...
     ///     }
     ///     @endcode
-    ///     Template @b operator() may also be used
+    ///     @b NOTE, that every @b operator() is expecting to receive
+    ///     an index of the type within the holding tuple as a template
+    ///     parameter. If the index information is not needed it may be
+    ///     either ignored or static_assert-ed upon.
+    ///
+    ///     The @b operator() may also receive a member field type as a
+    ///     template parameter.
     ///     @code
     ///     struct MyFunc
     ///     {
-    ///         template <typename TField>
+    ///         template <std::size_t TIdx, typename TField>
     ///         void operator()(TField& field)
     ///         {
     ///             ... // do somethign with the field
@@ -285,7 +294,7 @@ public:
     ///     @code
     ///     struct MyFunc
     ///     {
-    ///         template <typename TField>
+    ///         template <std::size_t TIdx, typename TField>
     ///         void operator()(const TField& field)
     ///         {
     ///             ... // do somethign with the field
@@ -295,7 +304,6 @@ public:
     ///     The TField will be the actual type of the contained field.
     ///     If the Variant field doesn't contain any valid field, the functor
     ///     will @b NOT be called.
-
     template <typename TFunc>
     void currentFieldExec(TFunc&& func) const
     {

@@ -1817,8 +1817,13 @@
 /// @code
 /// struct MyVariantHandler
 /// {
+///     template <std::size_t TIdx>
 ///     void operator()(Property1& prop) {...}
+///
+///     template <std::size_t TIdx>
 ///     void operator()(Property2& prop) {...}
+///
+///     template <std::size_t TIdx>
 ///     void operator()(Property3& prop) {...}
 /// }
 ///
@@ -1827,12 +1832,17 @@
 ///     var.currentFieldExec(MyVariantHandler());
 /// }
 /// @endcode
-/// The class of the handling object may also provide template @b operator() if
-/// the code is common for all the fields
+/// @b NOTE, that every @b operator() function receives a compile time index
+/// of the handed field within a containing tuple. If it's not needed when
+/// handling the member field, just ignore it or static_assert on its value if
+/// the index's value is known.
+///
+/// The class of the handling object may also receive the handled member type
+/// as a template parameter
 /// @code
 /// struct MyVariantHandler
 /// {
-///     template <typename TField>
+///     template <std::size_t TIdx, typename TField>
 ///     void operator()(TField& prop) {...}
 /// }
 /// @endcode
@@ -1879,7 +1889,7 @@
 ///     COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(prop1, prop2, prop3);
 /// };
 /// @endcode 
-/// However, when the defined bitfield class is a template, then the inner
+/// However, when the defined variant class is a template, then the inner
 /// definition of @b Base type, which specifies the exact type of the base
 /// class, is required. For example:
 /// @code

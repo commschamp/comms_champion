@@ -15,7 +15,7 @@ your product name, and I will send you back a signed PDF document with the licen
 inside granting all the relevant permissions.
 
 If the offered licences do not satisfy your needs and special conditions need to be
-included please send me an e-mail (see [Contact Information](#contact-information) below).
+included please send me an e-mail (see [Contact Information](https://github.com/arobenko/comms_champion#contact-information) for details).
 
 The [CommsChampion Tools](#commschampion-tools),
 and the [Demo Protocol](#demo-protocol) are licensed under the same **GPLv3**
@@ -27,7 +27,7 @@ Some icons, used in [CommsChampion](#commschampion-tools) tools, were taken from
 [Fat Cow](http://www.fatcow.com/free-icons) and the license of the latter
 applies - requires attribution.
 
-The [application icon](src/app/cc_view/src/image/app_icon.png) of the
+The [application icon](comms_champion/app/cc_view/src/image/app_icon.png) of the
 [CommsChampion](#commschampion-tools) tool must
 be replaced in any derivative work to differentiate between the original and
 the forked versions.

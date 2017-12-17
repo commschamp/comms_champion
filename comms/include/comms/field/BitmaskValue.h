@@ -93,6 +93,7 @@ using BitmaskUndertlyingTypeT =
 ///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
+///     @li comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/BitmaskValue.h
 /// @see COMMS_BITMASK_BITS()

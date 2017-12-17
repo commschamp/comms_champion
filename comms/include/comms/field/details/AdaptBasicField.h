@@ -154,6 +154,28 @@ template <typename TField, typename TOpts>
 using AdaptFieldVarLengthT =
     typename AdaptFieldVarLength<TOpts::HasVarLengthLimits>::template Type<TField, TOpts>;
 
+template <bool THasSequenceElemLengthForcing>
+struct AdaptFieldSequenceElemLengthForcing;
+
+template <>
+struct AdaptFieldSequenceElemLengthForcing<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::SequenceElemLengthForcing<TField>;
+};
+
+template <>
+struct AdaptFieldSequenceElemLengthForcing<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldSequenceElemLengthForcingT =
+    typename AdaptFieldSequenceElemLengthForcing<TOpts::HasSequenceElemLengthForcing>::template Type<TField>;
+
+
 template <bool THasSequenceSizeForcing>
 struct AdaptFieldSequenceSizeForcing;
 
@@ -309,6 +331,28 @@ template <typename TField, typename TOpts>
 using AdaptFieldDefaultValueInitialiserT =
     typename AdaptFieldDefaultValueInitialiser<TOpts::HasDefaultValueInitialiser>::template Type<TField, TOpts>;
 
+template <bool THasMultiRangeValidation>
+struct AdaptFieldNumValueMultiRangeValidator;
+
+template <>
+struct AdaptFieldNumValueMultiRangeValidator<true>
+{
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::NumValueMultiRangeValidator<typename TOpts::MultiRangeValidationRanges, TField>;
+};
+
+template <>
+struct AdaptFieldNumValueMultiRangeValidator<false>
+{
+    template <typename TField, typename TOpts>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldNumValueMultiRangeValidatorT =
+    typename AdaptFieldNumValueMultiRangeValidator<TOpts::HasMultiRangeValidation>::template Type<TField, TOpts>;
+
+
 template <bool THasCustomValidator>
 struct AdaptFieldCustomValidator;
 
@@ -393,6 +437,27 @@ template <typename TField, typename TOpts>
 using AdaptFieldIgnoreInvalidT =
     typename AdaptFieldIgnoreInvalid<TOpts::HasIgnoreInvalid>::template Type<TField>;
 
+template <bool THasEmptySerialization>
+struct AdaptFieldEmptySerialization;
+
+template <>
+struct AdaptFieldEmptySerialization<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::EmptySerialization<TField>;
+};
+
+template <>
+struct AdaptFieldEmptySerialization<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldEmptySerializationT =
+    typename AdaptFieldEmptySerialization<TOpts::HasEmptySerialization>::template Type<TField>;
+
 template <typename TBasic, typename... TOptions>
 class AdaptBasicField
 {
@@ -403,20 +468,23 @@ class AdaptBasicField
             ParsedOptions::HasFixedLengthLimit ||
             ParsedOptions::HasFixedBitLengthLimit ||
             ParsedOptions::HasVarLengthLimits ||
+            ParsedOptions::HasSequenceElemLengthForcing ||
             ParsedOptions::HasSequenceSizeForcing ||
             ParsedOptions::HasSequenceFixedSize ||
             ParsedOptions::HasSequenceSizeFieldPrefix ||
             ParsedOptions::HasSequenceSerLengthFieldPrefix ||
             ParsedOptions::HasSequenceTrailingFieldSuffix ||
-            ParsedOptions::HasSequenceTerminationFieldSuffix;
+            ParsedOptions::HasSequenceTerminationFieldSuffix |\
+            ParsedOptions::HasEmptySerialization;
 
     static_assert(
             (!ParsedOptions::HasCustomValueReader) || (!CustomReaderIncompatible),
             "CustomValueReader option is incompatible with following options: "
             "NumValueSerOffset, FixedLength, FixedBitLength, VarLength, "
+            "HasSequenceElemLengthForcing, "
             "SequenceSizeForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
             "SequenceSerLengthFieldPrefix, SequenceTrailingFieldSuffix, "
-            "SequenceTerminationFieldSuffix");
+            "SequenceTerminationFieldSuffix, EmptySerialization");
 
     static const bool VarLengthIncompatible =
             ParsedOptions::HasFixedLengthLimit ||
@@ -458,6 +526,17 @@ class AdaptBasicField
             "The following options are incompatible, cannot be used together: "
             "CustomStorageType, FixedSizeStorage, OrigDataView");
 
+    static_assert(
+            (!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage) ||
+            (ParsedOptions::HasSequenceFixedSize),
+            "The option SequenceFixedSizeUseFixedSizeStorage cannot be used without SequenceFixedSize.");
+
+    static_assert(
+            (!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage) ||
+            (!ParsedOptions::HasFixedSizeStorage),
+            "The following options are incompatible, cannot be used together: "
+            "SequenceFixedSizeUseFixedSizeStorage, FixedSizeStorage");
+
     using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
         TBasic, ParsedOptions>;
     using SerOffsetAdapted = AdaptFieldSerOffsetT<
@@ -468,8 +547,10 @@ class AdaptBasicField
         FixedLengthAdapted, ParsedOptions>;
     using VarLengthAdapted = AdaptFieldVarLengthT<
         FixedBitLengthAdapted, ParsedOptions>;
-    using SequenceSizeForcingAdapted = AdaptFieldSequenceSizeForcingT<
+    using SequenceElemLengthForcingAdapted = AdaptFieldSequenceElemLengthForcingT<
         VarLengthAdapted, ParsedOptions>;
+    using SequenceSizeForcingAdapted = AdaptFieldSequenceSizeForcingT<
+        SequenceElemLengthForcingAdapted, ParsedOptions>;
     using SequenceFixedSizeAdapted = AdaptFieldSequenceFixedSizeT<
         SequenceSizeForcingAdapted, ParsedOptions>;
     using SequenceSizeFieldPrefixAdapted = AdaptFieldSequenceSizeFieldPrefixT<
@@ -482,16 +563,21 @@ class AdaptBasicField
         SequenceTrailingFieldSuffixAdapted, ParsedOptions>;
     using DefaultValueInitialiserAdapted = AdaptFieldDefaultValueInitialiserT<
         SequenceTerminationFieldSuffixAdapted, ParsedOptions>;
-    using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
+    using NumValueMultiRangeValidatorAdapted = AdaptFieldNumValueMultiRangeValidatorT<
         DefaultValueInitialiserAdapted, ParsedOptions>;
+    using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
+        NumValueMultiRangeValidatorAdapted, ParsedOptions>;
     using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
         CustomValidatorAdapted, ParsedOptions>;
     using FailOnInvalidAdapted = AdaptFieldFailOnInvalidT<
         CustomRefresherAdapted, ParsedOptions>;
     using IgnoreInvalidAdapted = AdaptFieldIgnoreInvalidT<
         FailOnInvalidAdapted, ParsedOptions>;
+    using EmptySerializationAdapted = AdaptFieldEmptySerializationT<
+        IgnoreInvalidAdapted, ParsedOptions>;
+
 public:
-    using Type = IgnoreInvalidAdapted;
+    using Type = EmptySerializationAdapted;
 };
 
 template <typename TBasic, typename... TOptions>

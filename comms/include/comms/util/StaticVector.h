@@ -1460,6 +1460,33 @@ bool operator!=(const StaticVector<T, TSize1>& v1, const StaticVector<T, TSize2>
     return !(v1 == v2);
 }
 
+namespace details
+{
+
+
+template <typename T>
+struct IsStaticVector
+{
+    static const bool Value = false;
+};
+
+template <typename T, std::size_t TSize>
+struct IsStaticVector<comms::util::StaticVector<T, TSize> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check whether the provided type is a variant of
+///     @ref comms::util::StaticVector
+/// @related comms::util::StaticVector
+template <typename T>
+static constexpr bool isStaticVector()
+{
+    return details::IsStaticVector<T>::Value;
+}
+
 }  // namespace util
 
 }  // namespace comms

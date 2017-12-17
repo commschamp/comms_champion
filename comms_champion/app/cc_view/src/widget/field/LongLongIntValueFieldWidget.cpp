@@ -119,10 +119,24 @@ LongLongIntValueFieldWidget::adjustRealToDisplayed(UnderlyingType val)
 LongLongIntValueFieldWidget::DisplayedType
 LongLongIntValueFieldWidget::getDisplayedValue(const QString& value)
 {
+    if ((value.isEmpty()) || (value == " ") || (value == "-") || (value == "+")) {
+        return 0;
+    }
+
     bool ok = false;
     auto val = value.toLongLong(&ok);
-    static_cast<void>(ok);
-    assert(ok);
+    if (ok) {
+        return val;
+    }
+
+    static const int MinLength = std::numeric_limits<qlonglong>::digits10;
+    assert(MinLength < value.size());
+    QString valueCpy(value);
+    while ((!ok) && (MinLength < valueCpy.size())) {
+        valueCpy.resize(valueCpy.size() - 1);
+        val = value.toLongLong(&ok);
+    }
+
     return val;
 }
 

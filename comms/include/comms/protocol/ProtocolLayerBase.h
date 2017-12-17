@@ -155,8 +155,9 @@ struct ProtocolLayerMsgPtr<T, typename ProtocolLayerEnableIfHasMsgPtr<typename T
 ///     information for this layer. This template parameter is a type of such
 ///     field.
 /// @tparam TNextLayer Next layer this one wraps and forwards the calls to.
+/// @tparam TDerived Actual protocol layer class that extends this one.
 /// @headerfile comms/protocol/ProtocolLayerBase.h
-template <typename TField, typename TNextLayer>
+template <typename TField, typename TNextLayer, typename TDerived>
 class ProtocolLayerBase
 {
 public:
@@ -186,7 +187,7 @@ public:
     /// @details Same as NextLayer::MsgPtr or void if such doesn't exist.
     using MsgPtr = typename details::ProtocolLayerMsgPtr<NextLayer>::Type;
 
-    /// @copydoc MsgDataLayer::NumOfLayers
+    /// @brief Static constant indicating amount of transport layers used.
     static const std::size_t NumOfLayers = 1 + NextLayer::NumOfLayers;
 
     /// @brief Copy constructor
@@ -223,6 +224,180 @@ public:
         return nextLayer_;
     }
 
+    /// @brief Deserialise message from the input data sequence.
+    /// @details The function will invoke @b doRead() member function
+    ///     provided by the derived class, which must have the following signature
+    ///     and logic:
+    ///     @code
+    ///         template<typename TMsgPtr, typename TIter, typename TNextLayerReader>
+    ///         comms::ErrorStatus doRead(
+    ///             Field& field, // field object used to read required data
+    ///             TMsgPtr& msgPtr, // smart pointer to message object
+    ///             TIter& iter, // iterator used for reading
+    ///             std::size_t size, // size of the remaining data
+    ///             std::size_t* missingSize, // output of missing bytest count
+    ///             TNextLayerReader&& nextLayerReader // next layer reader object
+    ///             )
+    ///         {
+    ///             // internal logic prior next layer read, such as reading the field value
+    ///             auto es = field.read(msgPtr, iter, size, missingSize);
+    ///             ...
+    ///             // request next layer to perform read operation
+    ///             es = nextLayerReader.read(msgPtr, iter, size - field.length(), missingSize);
+    ///             ... // internal logic after next layer read if applicable
+    ///             return es;
+    ///         };
+    ///     @endcode
+    ///     The signature of the @b nextLayerReader.read() function is
+    ///     the same as the signature of this @b read() member function.
+    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TIter Type of iterator used for reading.
+    /// @param[in, out] msgPtr Reference to smart pointer that will hold
+    ///                 allocated message object
+    /// @param[in, out] iter Input iterator used for reading.
+    /// @param[in] size Size of the data in the sequence
+    /// @param[out] missingSize If not nullptr and return value is
+    ///             comms::ErrorStatus::NotEnoughData it will contain
+    ///             minimal missing data length required for the successful
+    ///             read attempt.
+    /// @return Status of the operation.
+    /// @pre Iterator must be valid and can be dereferenced and incremented at
+    ///      least "size" times;
+    /// @post The iterator will be advanced by the number of bytes was actually
+    ///       read. In case of an error, distance between original position and
+    ///       advanced will pinpoint the location of the error.
+    /// @post Returns comms::ErrorStatus::Success if and only if msgPtr points
+    ///       to a valid object.
+    /// @post missingSize output value is updated if and only if function
+    ///       returns comms::ErrorStatus::NotEnoughData.
+    template <typename TMsgPtr, typename TIter>
+    comms::ErrorStatus read(
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        Field field;
+        auto& derivedObj = static_cast<TDerived&>(*this);
+        return derivedObj.doRead(field, msgPtr, iter, size, missingSize, createNextLayerReader());
+    }
+
+    /// @brief Deserialise message from the input data sequence while caching
+    ///     the read transport information fields.
+    /// @details Very similar to @ref read() member function, but adds "allFields"
+    ///     parameter to store read transport information fields.
+    ///     The function will also invoke the same @b doRead() member function
+    ///     provided by the derived class, as described with @ref read().
+    /// @tparam TIdx Index of the message ID field in TAllFields tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TIter Type of iterator used for reading.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msgPtr Reference to the smart pointer holding message object.
+    /// @param[in, out] iter Iterator used for reading.
+    /// @param[in] size Number of bytes available for reading.
+    /// @param[out] missingSize If not nullptr and return value is
+    ///             comms::ErrorStatus::NotEnoughData it will contain
+    ///             minimal missing data length required for the successful
+    ///             read attempt.
+    /// @return Status of the operation.
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
+    comms::ErrorStatus readFieldsCached(
+        TAllFields& allFields,
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        auto& field = getField<TIdx>(allFields);
+        auto& derivedObj = static_cast<TDerived&>(*this);
+        return derivedObj.doRead(field, msgPtr, iter, size, missingSize, createNextLayerCachedFieldsReader<TIdx>(allFields));
+    }
+
+    /// @brief Serialise message into output data sequence.
+    /// @details The function will invoke @b doWrite() member function
+    ///     provided by the derived class, which must have the following signature
+    ///     and logic:
+    ///     @code
+    ///         template<typename TMsg, typename TIter, typename TNextLayerWriter>
+    ///         comms::ErrorStatus doWrite(
+    ///             Field& field, // field object used to update and write required data
+    ///             const TMsg& msg, // reference to ready to be sent message object
+    ///             TIter& iter, // iterator used for writing
+    ///             std::size_t size, // Max number of bytes that can be written.
+    ///             TNextLayerWriter&& nextLayerWriter // next layer writer object
+    ///             )
+    ///         {
+    ///             // internal logic prior next layer write, such as
+    ///             // updating field's value and writing it.
+    ///             field.value() = ...;
+    ///             auto es = field.write(iter, size);
+    ///             ...
+    ///             // request next layer to perform write operation
+    ///             es = nextLayerWriter.write(msg, iter, size - field.length());
+    ///             ... // internal logic after next layer write if applicable
+    ///             return es;
+    ///         };
+    ///     @endcode
+    ///     The signature of the @b nextLayerWriter.write() function is
+    ///     the same as the signature of this @b write() member function.
+    /// @tparam TMsg Type of the message being written.
+    /// @tparam TIter Type of iterator used for writing.
+    /// @param[in] msg Reference to message object
+    /// @param[in, out] iter Output iterator used for writing.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
+    /// @pre Iterator must be valid and can be dereferenced and incremented at
+    ///      least "size" times;
+    /// @post The iterator will be advanced by the number of bytes was actually
+    ///       written. In case of an error, distance between original position
+    ///       and advanced will pinpoint the location of the error.
+    /// @return Status of the write operation.
+    template <typename TMsg, typename TIter>
+    comms::ErrorStatus write(
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size) const
+    {
+        Field field;
+        auto& derivedObj = static_cast<const TDerived&>(*this);
+        return derivedObj.doWrite(field, msg, iter, size, createNextLayerWriter());
+    }
+
+    /// @brief Serialise message into output data sequence while caching the written transport
+    ///     information fields.
+    /// @details Very similar to @ref write() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.
+    ///     The function will also invoke the same @b doWrite() member function
+    ///     provided by the derived class, as described with @ref write().
+    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
+    ///     element in the tuple.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @tparam TMsg Type of the message being written.
+    /// @tparam TIter Type of iterator used for writing.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msg Reference to the message object that is being written,
+    /// @param[in, out] iter Iterator used for writing.
+    /// @param[in] size Max number of bytes that can be written.
+    /// @return Status of the write operation.
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    comms::ErrorStatus writeFieldsCached(
+        TAllFields& allFields,
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size) const
+    {
+        auto& field = getField<TIdx>(allFields);
+        auto& derivedObj = static_cast<const TDerived&>(*this);
+        return derivedObj.doWrite(field, msg, iter, size, createNextLayerCachedFieldsWriter<TIdx>(allFields));
+    }
+
     /// @brief Get remaining length of wrapping transport information.
     /// @details The message data always get wrapped with transport information
     ///     to be successfully delivered to and unpacked on the other side.
@@ -251,26 +426,53 @@ public:
     /// @brief Update recently written (using write()) message contents data.
     /// @details Sometimes, when NON random access iterator is used for writing
     ///     (for example std::back_insert_iterator), some transport data cannot
-    ///     be properly written. In this case, write() function will return
+    ///     be properly written. In this case, @ref write() function will return
     ///     comms::ErrorStatus::UpdateRequired. When such status is returned
     ///     it is necessary to call update() with random access iterator on
     ///     the written buffer to update written dummy information with
-    ///     proper values.
-    ///     This function in this layer does nothing, just advances the iterator
-    ///     by the length of the @ref Field.
+    ///     proper values.@n
+    ///     The function will invoke @b doUpdate() member function
+    ///     provided (or inherited) by the derived class, which must have the following signature
+    ///     and logic:
+    ///     @code
+    ///         template<typename TIter, typename TNextLayerUpdater>
+    ///         comms::ErrorStatus doUpdate(
+    ///             Field& field, // field object to update and re-write if necessary
+    ///             TIter& iter, // iterator used for updateing
+    ///             std::size_t size, // Number of remaning bytes in the output buffer.
+    ///             TNextLayerUpdater&& nextLayerUpdater // next layer updater object
+    ///             )
+    ///         {
+    ///             // internal logic prior next layer update, such as
+    ///             // updating field's value and re-writing it.
+    ///             field.value() = ...;
+    ///             auto es = field.write(iter, size);
+    ///             ...
+    ///             // request next layer to perform update operation
+    ///             es = nextLayerUpdater.update(iter, size - field.length());
+    ///             ... // internal logic after next layer write if applicable
+    ///             return es;
+    ///         };
+    ///     @endcode
+    ///     The signature of the @b nextLayerUpdater.update() function is
+    ///     the same as the signature of this @b update() member function.
     /// @param[in, out] iter Any random access iterator.
     /// @param[in] size Number of bytes that have been written using write().
     /// @return Status of the update operation.
     template <typename TIter>
     comms::ErrorStatus update(TIter& iter, std::size_t size) const
     {
-        return updateInternal(iter, size, LengthTag());
+        Field field;
+        auto& derivedObj = static_cast<const TDerived&>(*this);
+        return derivedObj.doUpdate(field, iter, size, createNextLayerUpdater());
     }
 
     /// @brief Update recently written (using writeFieldsCached()) message data as
     ///     well as cached transport information fields.
-    /// @details Very similar to update() member function, but adds "allFields"
-    ///     parameter to store raw data of the message.
+    /// @details Very similar to @ref update() member function, but adds "allFields"
+    ///     parameter to store raw data of the message.@n
+    ///     The function will also invoke the same @b doUpdate() member function
+    ///     provided by the derived class, as described with @ref write().
     /// @tparam TIdx Index of the data field in TAllFields.
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
@@ -287,7 +489,31 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        return updateFieldsCachedInternal<TIdx>(allFields, iter, size, LengthTag());
+        auto& field = getField<TIdx>(allFields);
+        auto& derivedObj = static_cast<const TDerived&>(*this);
+        return derivedObj.doUpdate(field, iter, size, createNextLayerCachedFieldsUpdater<TIdx>(allFields));
+    }
+
+    /// @brief Default implementation of the "update" functaionality.
+    /// @details It will be invoked by @ref update() or @ref updateFieldsCached()
+    ///     member function, unless the derived class provides its own @ref doUpdate()
+    ///     member function to override the default behavior.@n
+    ///     This function in this layer does nothing, just advances the iterator
+    ///     by the length of the @ref Field.
+    /// @tparam TIter Type of iterator used for updating.
+    /// @tparam TNextLayerWriter next layer updater object type.
+    /// @param[out] field Field that needs to be updated.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using @ref write().
+    /// @param[in] nextLayerUpdater Next layer updater object.
+    template <typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdate(
+        Field& field,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater) const
+    {
+        return updateInternal(field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), LengthTag());
     }
 
     /// @brief Create message object given the ID.
@@ -300,9 +526,9 @@ public:
     /// @return Smart pointer (variant of std::unique_ptr) to allocated message
     ///     object
     template <typename TId>
-    MsgPtr createMsg(TId id, unsigned idx = 0)
+    MsgPtr createMsg(TId&& id, unsigned idx = 0)
     {
-        return nextLayer().createMsg(id, idx);
+        return nextLayer().createMsg(std::forward<TId>(id), idx);
     }
 
 protected:
@@ -525,54 +751,34 @@ protected:
     /// @endcond
 private:
 
-    template <typename TIter>
-    comms::ErrorStatus updateInternal(TIter& iter, std::size_t size, FixedLengthTag) const
-    {
-        auto len = Field().length();
-        GASSERT(len <= size);
-        std::advance(iter, len);
-        return nextLayer_.update(iter, size - len);
-    }
-
-    template <typename TIter>
-    comms::ErrorStatus updateInternal(TIter& iter, std::size_t size, VarLengthTag) const
-    {
-        Field field;
-        auto es = field.read(iter, size);
-        if (es == comms::ErrorStatus::Success) {
-            es = nextLayer_.update(iter, size - field.length());
-        }
-        return es;
-    }
-
-    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
-    ErrorStatus updateFieldsCachedInternal(
-        TAllFields& allFields,
-        TUpdateIter& iter,
+    template <typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus updateInternal(
+        Field& field,
+        TIter& iter,
         std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater,
         FixedLengthTag) const
     {
-        auto len = Field().length();
+        auto len = field.length();
         GASSERT(len <= size);
         std::advance(iter, len);
-        return nextLayer_.updateFieldsCached<TIdx + 1>(allFields, iter, size - len);
+        return nextLayerUpdater.update(iter, size - len);
     }
 
-    template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
-    ErrorStatus updateFieldsCachedInternal(
-        TAllFields& allFields,
-        TUpdateIter& iter,
+    template <typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus updateInternal(
+        Field& field,
+        TIter& iter,
         std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater,
         VarLengthTag) const
     {
-        Field field;
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::Success) {
-            es = nextLayer_.updateFieldsCached<TIdx + 1>(allFields, iter, size - field.length());
+            es = nextLayerUpdater.update(iter, size - field.length());
         }
         return es;
     }
-
 
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");
     NextLayer nextLayer_;

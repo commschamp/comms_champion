@@ -21,6 +21,8 @@
 #include <cassert>
 #include <limits>
 
+#include <QtCore/QTimer>
+
 #include "comms_champion/property/field.h"
 
 namespace comms_champion
@@ -30,6 +32,14 @@ namespace
 {
 
 const int DefaultDecimals = 6;
+
+enum ValueType
+{
+    ValueType_val,
+    ValueType_nan,
+    ValueType_inf,
+    ValueType_numOfValues
+};
 
 }  // namespace
 
@@ -57,20 +67,29 @@ FloatValueFieldWidget::FloatValueFieldWidget(
     connect(m_ui.m_serValueLineEdit, SIGNAL(textEdited(const QString&)),
             this, SLOT(serialisedValueUpdated(const QString&)));
 
+    connect(m_ui.m_typeComboBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(typeUpdated(int)));
+
 }
 
 FloatValueFieldWidget::~FloatValueFieldWidget() noexcept = default;
 
 void FloatValueFieldWidget::refreshImpl()
 {
-    updateSpinBoxValueRange();
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
-    auto value = m_wrapper->getValue();
-    assert(m_ui.m_valueSpinBox);
-    if (m_ui.m_valueSpinBox->value() != value) {
-        m_ui.m_valueSpinBox->setValue(value);
+    updateType();
+
+    if (getTypeIndex() == ValueType_val) {
+        updateSpinBoxValueRange();
+        auto value = m_wrapper->getValue();
+        assert(m_ui.m_valueSpinBox);
+        if (m_ui.m_valueSpinBox->value() != value) {
+            m_ui.m_valueSpinBox->setValue(value);
+        }
+
+        m_oldValue = m_wrapper->getValue();
     }
 
     bool valid = m_wrapper->valid();
@@ -113,6 +132,40 @@ void FloatValueFieldWidget::valueUpdated(double value)
     emitFieldUpdated();
 }
 
+void FloatValueFieldWidget::typeUpdated(int value)
+{
+    assert(value < ValueType_numOfValues);
+    bool updated = false;
+    do {
+        if (!isEditEnabled()) {
+            break;
+        }
+
+        if (getTypeIndex() == value) {
+            break;
+        }
+
+        updated = true;
+        if (value == ValueType_nan) {
+            m_wrapper->setNan();
+            break;
+        }
+
+        if (value == ValueType_inf) {
+            m_wrapper->setInf();
+            break;
+        }
+
+        m_wrapper->setValue(m_oldValue);
+    } while (false);
+
+    refresh();
+
+    if (updated) {
+        emitFieldUpdated();
+    }
+}
+
 void FloatValueFieldWidget::updateSpinBoxValueRange()
 {
     auto value = m_wrapper->getValue();
@@ -132,7 +185,33 @@ void FloatValueFieldWidget::updateSpinBoxValueRange()
         minValue = -10.0;
     } while (false);
 
+    m_ui.m_valueSpinBox->blockSignals(true);
     m_ui.m_valueSpinBox->setRange(minValue, maxValue);
+    m_ui.m_valueSpinBox->blockSignals(false);
+}
+
+void FloatValueFieldWidget::updateType()
+{
+    int idx = getTypeIndex();
+    bool valueVisible = (idx == ValueType_val);
+    m_ui.m_valueSpinBox->setVisible(valueVisible);
+
+    m_ui.m_typeComboBox->blockSignals(true);
+    m_ui.m_typeComboBox->setCurrentIndex(idx);
+    m_ui.m_typeComboBox->blockSignals(false);
+}
+
+int FloatValueFieldWidget::getTypeIndex()
+{
+    if (m_wrapper->isNan()) {
+        return ValueType_nan;
+    }
+
+    if (m_wrapper->isInf()) {
+        return ValueType_inf;
+    }
+
+    return ValueType_val;
 }
 
 }  // namespace comms_champion

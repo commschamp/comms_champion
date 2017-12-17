@@ -1155,6 +1155,87 @@
 /// assert((myList.value())[2] == 0xc); // Third element
 /// @endcode
 ///
+/// @subsection sec_field_tutorial_array_list_force_element_size Forcing Element Serialisation Length
+/// In addition to prefixing variable length lists with amount of elements to
+/// follow, some protocols may also prefix them with serialisation
+/// length of the <b>single element</b>. Such technique is usually used to
+/// maintain data exchange compatibility with earlier versions of the protocol,
+/// which may be used on the other side of the communication link. The @b COMMS
+/// library allows forcing the serialisation length of a single element when
+/// such information becomes available. It is similar to 
+/// @ref sec_field_tutorial_array_list_detached_size_prefix. The option
+/// @ref comms::option::SequenceElemLengthForcingEnabled needs to be used when
+/// defining the field type, and @ref comms::field::ArrayList::forceElemLength()
+/// and @ref comms::field::ArrayList::clearElemLengthForcing() functions to
+/// set/clear the forcing information.
+/// @code
+/// // Common base class for all the fields
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///
+/// // Field used to serialise serialisation length of a single element in the list
+/// using ElemLengthPrefixField = comms::field::IntValue<MyFieldBase, std::uint8_t>;
+/// 
+/// // Field used to serialise number of elements in the list
+/// using SizePrefixField = comms::field::IntValue<MyFieldBase, std::uint8_t>;
+///
+/// using MyList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         comms::field::IntValue< // 3 bytes integers
+///             MyFieldBas, 
+///             std::uint32_t, 
+///             comms::option::FixedLength<3> >,
+///         comms::option::SequenceSizeFieldPrefix<SizePrefixField>, // 1 byte prefix
+///         comms::option::SequenceElemLengthForcingEnabled // enable forcing of the element length
+///     >;
+///
+/// static const std::uint8_t InputBuffer[] = {
+///     0x4, // single element serialisation length
+///     0x2, // number of elements in the list,
+///     0xa, 0xa, 0xa, 0x0, // first element + padding 
+///     0xb, 0xb, 0xb, 0x0 // second element + padding
+/// }
+/// static const auto InputBufferSize = std::extent<decltype(InputBuffer)>::value;
+///
+/// ElemLengthPrefixField lengthPrefix;
+/// MyList myList;
+/// const auto* readIter = &InputBuffer[0];
+/// auto es = lengthPrefix(readIter, InputBufferSize);
+/// assert(es == comms::ErrorStatus::Success); // No error is expected;
+/// assert(lengthPrefix.value() == 4U);
+///
+/// myList.forceElemLength(lengthPrefix.value()); // force serialisation length of the single element
+/// auto es = myList.read(readIter, InputBufferSize - lengthPrefix.length()); 
+/// assert(es == comms::ErrorStatus::Success); // No error is expected;
+/// assert(myList.value().size() == 2U); // Reading only 2 elements
+/// assert((myList.value())[0] == 0x0a0a0a); // First element
+/// assert((myList.value())[1] == 0x0b0b0b); // Second element 
+/// assert(std::distance(&InputBuffer[0], readIter) == 10); // Expected to consume in the
+/// @endcode
+/// When writing a list, the padding at the end of each element may be forced
+/// using the same option and function:
+/// @code
+/// MyList myList;
+/// myList.push_back(0x123456);
+/// myList.push_back(0x789abc);
+/// myList.forceElemLength(4);
+///
+/// std::vector<std::uint8_t> outputBuffer;
+/// auto writeIter = std::back_inserter(outputBuffer);
+/// es = myList.write(writeIter, outputBuffer.max_size());
+/// assert(es == comms::ErrorStatus::Success); // No error is expected;
+/// assert(outputBuffer.size() == 9U); // Expected to write 9 bytes, 1 bytes for size, and 8 for elements (4 bytes each).
+/// assert(outputBuffer[0] == 2U); // Number of elements to follow
+/// assert(outputBuffer[1] == 0x12);
+/// assert(outputBuffer[2] == 0x34);
+/// assert(outputBuffer[3] == 0x56);
+/// assert(outputBuffer[4] == 0x0); // padding
+/// assert(outputBuffer[5] == 0x78);
+/// assert(outputBuffer[6] == 0x9a);
+/// assert(outputBuffer[7] == 0xbc);
+/// assert(outputBuffer[8] == 0x0); // padding  
+/// @endcode
+///
 /// @subsection sec_field_tutorial_array_list_term_suffix Terminating Sequence with Suffix
 /// Sometimes there is no information about size of the sequence up front. It
 /// may be terminating using some kind of special value. For example, the
@@ -1220,6 +1301,45 @@
 /// assert((myList.value())[4] == 0x4); // Fourth element
 /// assert(std::distance(&InputBuffer[0], readIter) == 8); // Consumed only 4 element (2 bytes each) 
 /// @endcode
+/// @b NOTE, that comms::option::SequenceFixedSize option insures existence of
+/// the right number of elements "on the wire", but doesn't influence number
+/// of elements in the newly created list field:
+/// @code
+/// MyList myList;
+/// auto& storageVector = myList.value();
+/// assert(storageVector.empty());
+/// @endcode
+/// Also nothing prevents from having too many values in the storage vector, but
+/// only specified number of the elements will be serialised:
+/// @code
+/// myList.push_back(0x1); // will be serialised
+/// myList.push_back(0x2); // will be serialised
+/// myList.push_back(0x3); // will be serialised
+/// myList.push_back(0x4); // will be serialised
+/// myList.push_back(0x5); // WON'T be serialised
+/// @endcode
+///
+/// It is possible to combine fixed size sequences with fixed size storage for them
+/// (see @ref sec_field_tutorial_array_list_storage). It can be achieved by using
+/// @ref comms::option::SequenceFixedSizeUseFixedSizeStorage option.
+/// @code
+/// using MyList = 
+///     comms::field::ArrayList<
+///         ...,
+///         comms::option::SequenceFixedSize<4>,
+///         comms::option::SequenceFixedSizeUseFixedSizeStorage
+///     >;
+/// @endcode
+/// It is equivalent to 
+/// @code
+/// using MyList = 
+///     comms::field::ArrayList<
+///         ...,
+///         comms::option::SequenceFixedSize<4>,
+///         comms::option::FixedSizeStorage<4>
+///     >;
+/// @endcode
+/// but without a need to specify the size of the storage (@b 4) the second time.
 ///
 /// All the @ref sec_field_tutorial_common_options are also applicable to
 /// comms::field::ArrayList field.
@@ -1376,6 +1496,26 @@
 /// <b>Also note</b>, that size limit is specified (using comms::option::SequenceFixedSize)
 /// to be 31. One more byte is added by the "trailing" suffix to complete to 32
 /// bytes.
+///
+/// Just like with @ref comms::field::ArrayList, it is possible to use static
+/// storage for fixed size strings:
+/// @code
+/// using MyString = 
+///     comms::field::String<
+///         ..., 
+///         comms::option::SequenceFixedSize<16>,
+///         comms::option::SequenceFixedSizeUseFixedSizeStorage 
+///     >;
+/// @endcode
+/// or 
+/// @code
+/// using MyString = 
+///     comms::field::String<
+///         ..., 
+///         comms::option::SequenceFixedSize<16>,
+///         comms::option::FixedSizeStorage<16> 
+///     >;
+/// @endcode
 ///
 /// @section sec_field_tutorial_fp_value Floating Point Value Fields
 /// Floating point value fields (comms::field::FloatValue) are very similar to 
@@ -1677,8 +1817,13 @@
 /// @code
 /// struct MyVariantHandler
 /// {
+///     template <std::size_t TIdx>
 ///     void operator()(Property1& prop) {...}
+///
+///     template <std::size_t TIdx>
 ///     void operator()(Property2& prop) {...}
+///
+///     template <std::size_t TIdx>
 ///     void operator()(Property3& prop) {...}
 /// }
 ///
@@ -1687,12 +1832,17 @@
 ///     var.currentFieldExec(MyVariantHandler());
 /// }
 /// @endcode
-/// The class of the handling object may also provide template @b operator() if
-/// the code is common for all the fields
+/// @b NOTE, that every @b operator() function receives a compile time index
+/// of the handed field within a containing tuple. If it's not needed when
+/// handling the member field, just ignore it or static_assert on its value if
+/// the index's value is known.
+///
+/// The class of the handling object may also receive the handled member type
+/// as a template parameter
 /// @code
 /// struct MyVariantHandler
 /// {
-///     template <typename TField>
+///     template <std::size_t TIdx, typename TField>
 ///     void operator()(TField& prop) {...}
 /// }
 /// @endcode
@@ -1739,7 +1889,7 @@
 ///     COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(prop1, prop2, prop3);
 /// };
 /// @endcode 
-/// However, when the defined bitfield class is a template, then the inner
+/// However, when the defined variant class is a template, then the inner
 /// definition of @b Base type, which specifies the exact type of the base
 /// class, is required. For example:
 /// @code
@@ -1976,9 +2126,11 @@
 /// defined field's base classes, which is implementation dependent. Just use
 /// the provided @b value() member function to access the value.
 ///
-/// Quite often the valid values of the numeric fields can be expressed in one
-/// range: [minValid - maxValid]. The COMMS library provides comms::option::ValidNumValueRange,
-/// which is a convenience wrapper around comms::option::ContentsValidator. It
+/// Quite often the valid values of the numeric fields can be expressed in limited
+/// number of ranges: [minValid - maxValid]. The COMMS library provides 
+/// @ref comms::option::ValidNumValueRange option (and @ref comms::option::ValidNumValue alias),
+/// which can be used multiple times. The field's value is considered to be valid if
+/// <b>at least one</b> of the provided ranges contains it. The range validation option
 /// can be used only with numeric value fields, such as comms::field::IntValue, 
 /// or comms::field::EnumValue. For example:
 /// @code
@@ -2005,6 +2157,21 @@
 /// myEnum.value() = static_cast<SomeEnum>(0); // Assigning invalid value.
 /// assert(!myEnum.valid()); // The field being invalid must be reported
 /// @endcode
+///
+/// Another example could be a single character numeric field with valid values
+/// range of [0x20 - 0x7e], as well as value 0. Such field can be defined as:
+/// @code
+/// using MyChar = 
+///     comms::field::IntValue<
+///         MyFieldBase,
+///         char,
+///         comms::option::ValidNumValueRange<0x20, 0x7e>,
+///         comms::option::ValidNumValue<0>
+///     >;
+/// @endcode
+/// @b WARNING: Some older compilers (@b gcc-4.7) fail to compile valid C++11 code
+/// that allows usage of multiple @ref comms::option::ValidNumValueRange options. If this is
+/// the case, please don't pass more than one @ref comms::option::ValidNumValueRange option.
 ///
 /// There is a also a convenience alias to comms::option::ContentsValidator intended
 /// for use with bitmasks (comms::field::BitmaskValue). Many bitmask fields
@@ -2164,6 +2331,32 @@
 /// es = myField.read(readIter, ValidBufSize);
 /// assert(es == comms::ErrorStatus::Success); // No failure is expected
 /// assert(myField.value() == 1U); // Value is expected to be updated
+/// @endcode
+///
+/// @subsection sec_field_tutorial_common_options_empty_ser Empty Serialisation
+/// Some protocols may define some constants which are NOT being sent over I/O
+/// link. Sometimes it may be useful to still treat these values as message fields.
+/// Usage of @ref comms::option::EmptySerialization (or @ref 
+/// comms::option::EmptySerialisation for those who prefer British spelling) can
+/// be used to achieve such effect.
+/// @code
+/// using MyField = comms::field::IntValue<
+///     MyFieldBase,
+///     std::uint8_t,
+///     comms::option::ValidNumValueRange<5, 5>,
+///     comms::option::DefaultNumValue<5>,
+///     comms::option::EmptySerialization
+/// >;
+/// 
+/// MyField field;
+/// assert(field.length() == 0U); // Not expected to have any serialisation length
+/// assert(field.value() == 5U); // The value is still accessible;
+///
+/// std::vector<std::uint8_t> outBuf;
+/// auto writeIter = std::back_inserter(outBuf);
+/// auto es == field.write(writeIter, outBuf.max_size());
+/// assert(es == comms::ErrorStatus::Success); // No failure is expected
+/// assert(outBuf.empty()); // No data has been written
 /// @endcode
 ///
 /// @section sec_field_tutorial_custom_fields Custom Fields

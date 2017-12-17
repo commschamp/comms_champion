@@ -57,12 +57,12 @@ public:
     SequenceSizeFieldPrefix& operator=(const SequenceSizeFieldPrefix&) = default;
     SequenceSizeFieldPrefix& operator=(SequenceSizeFieldPrefix&&) = default;
 
-    constexpr std::size_t length() const
+    std::size_t length() const
     {
         using SizeValueType = typename SizeField::ValueType;
-        return
-            SizeField(static_cast<SizeValueType>(BaseImpl::value().size())).length() +
-            BaseImpl::length();
+        SizeField sizeField;
+        sizeField.value() = static_cast<SizeValueType>(BaseImpl::value().size());
+        return sizeField.length() + BaseImpl::length();
     }
 
     static constexpr std::size_t minLength()
@@ -78,9 +78,9 @@ public:
     bool valid() const
     {
         using SizeValueType = typename SizeField::ValueType;
-        return
-            SizeField(static_cast<SizeValueType>(BaseImpl::value().size())).valid() &&
-            BaseImpl::valid();
+        SizeField sizeField;
+        sizeField.value() = static_cast<SizeValueType>(BaseImpl::value().size());
+        return sizeField.valid() && BaseImpl::valid();
     }
 
     template <typename TIter>
@@ -111,7 +111,8 @@ public:
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
         using SizeValueType = typename SizeField::ValueType;
-        SizeField sizeField(static_cast<SizeValueType>(BaseImpl::value().size()));
+        SizeField sizeField;
+        sizeField.value() = static_cast<SizeValueType>(BaseImpl::value().size());
         auto es = sizeField.write(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -125,7 +126,8 @@ public:
     void writeNoStatus(TIter& iter) const
     {
         using SizeValueType = typename SizeField::ValueType;
-        SizeField sizeField(static_cast<SizeValueType>(BaseImpl::value().size()));
+        SizeField sizeField;
+        sizeField.value() = static_cast<SizeValueType>(BaseImpl::value().size());
         sizeField.writeNoStatus(iter);
         BaseImpl::writeNoStatus(iter);
     }

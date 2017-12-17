@@ -182,8 +182,26 @@ public:
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static const std::size_t MsgMinLen_0_1 = Base::template doMinLengthUntil<FieldIdx_value2>();
+    static const std::size_t MsgMaxLen_0_1 = Base::template doMaxLengthUntil<FieldIdx_value2>();
+    static const std::size_t MsgMinLen_0_2 = Base::template doMinLengthUntil<FieldIdx_value3>();
+    static const std::size_t MsgMaxLen_0_2 = Base::template doMaxLengthUntil<FieldIdx_value3>();
+    static const std::size_t MsgMinLen_1_4 = Base::template doMinLengthFrom<FieldIdx_value2>();
+    static const std::size_t MsgMaxLen_1_4 = Base::template doMaxLengthFrom<FieldIdx_value2>();
+    static const std::size_t MsgMinLen_1_3 = Base::template doMinLengthFromUntil<FieldIdx_value2, FieldIdx_value4>();
+    static const std::size_t MsgMaxLen_1_3 = Base::template doMaxLengthFromUntil<FieldIdx_value2, FieldIdx_value4>();
+
+
     static_assert(MsgMinLen == 10U, "Wrong serialisation length");
     static_assert(MsgMaxLen == 10U, "Wrong serialisation length");
+    static_assert(MsgMinLen_0_1 == 4U, "Wrong serialisation length");
+    static_assert(MsgMaxLen_0_1 == 4U, "Wrong serialisation length");
+    static_assert(MsgMinLen_0_2 == 5U, "Wrong serialisation length");
+    static_assert(MsgMaxLen_0_2 == 5U, "Wrong serialisation length");
+    static_assert(MsgMinLen_1_4 == 6U, "Wrong serialisation length");
+    static_assert(MsgMaxLen_1_4 == 6U, "Wrong serialisation length");
+    static_assert(MsgMinLen_1_3 == 3U, "Wrong serialisation length");
+    static_assert(MsgMaxLen_1_3 == 3U, "Wrong serialisation length");
 
     Message3() = default;
 
@@ -243,8 +261,13 @@ public:
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static const std::size_t MsgMinLen_1_2 = Base::template doMinLengthFrom<FieldIdx_value2>();
+    static const std::size_t MsgMaxLen_1_2 = Base::template doMaxLengthFrom<FieldIdx_value2>();
+
     static_assert(MsgMinLen == 1U, "Wrong serialisation length");
     static_assert(MsgMaxLen == 3U, "Wrong serialisation length");
+    static_assert(MsgMinLen_1_2 == 0U, "Wrong serialisation length");
+    static_assert(MsgMaxLen_1_2 == 2U, "Wrong serialisation length");
 
     Message4()
     {
@@ -253,6 +276,23 @@ public:
     }
 
     virtual ~Message4() noexcept = default;
+
+    template <typename TIter>
+    comms::ErrorStatus doRead(TIter& iter, std::size_t len)
+    {
+        auto es = Base::template doReadFieldsUntil<FieldIdx_value2>(iter, len);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        auto expectedNextFieldMode = comms::field::OptionalMode::Missing;
+        if ((field_value1().value() & 0x1) != 0) {
+            expectedNextFieldMode = comms::field::OptionalMode::Exists;
+        }
+
+        field_value2().setMode(expectedNextFieldMode);
+        return Base::template doReadFieldsFrom<FieldIdx_value2>(iter, len);
+    }
 
     bool doRefresh()
     {

@@ -596,7 +596,7 @@ constexpr TValue tupleAccumulateFromUntil(TTuple&& tuple, const TValue& value, T
 namespace details
 {
 
-template <std::size_t TRem>
+template <std::size_t TOff, std::size_t TRem>
 class TupleTypeAccumulateHelper
 {
 
@@ -606,23 +606,23 @@ public:
     {
         using Tuple = typename std::decay<TTuple>::type;
         static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
-        static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
+        static_assert((TOff + TRem) <= std::tuple_size<Tuple>::value, "Incorrect TRem");
 
-        return TupleTypeAccumulateHelper<TRem - 1>::template exec<Tuple>(
+        return TupleTypeAccumulateHelper<TOff + 1, TRem - 1>::template exec<Tuple>(
 #ifdef _MSC_VER
             func.operator()
 #else
             func.template operator()
 #endif
-            <typename std::tuple_element<std::tuple_size<Tuple>::value - TRem, Tuple>::type>(value),
+            <typename std::tuple_element<TOff, Tuple>::type>(value),
             std::forward<TFunc>(func));
 
     }
 
 };
 
-template <>
-class TupleTypeAccumulateHelper<0>
+template <std::size_t TOff>
+class TupleTypeAccumulateHelper<TOff, 0>
 {
 
 public:
@@ -653,10 +653,38 @@ template <typename TTuple, typename TValue, typename TFunc>
 constexpr TValue tupleTypeAccumulate(const TValue& value, TFunc&& func)
 {
     using Tuple = typename std::decay<TTuple>::type;
-    return details::TupleTypeAccumulateHelper<std::tuple_size<Tuple>::value>::template exec<Tuple>(
+    return details::TupleTypeAccumulateHelper<0, std::tuple_size<Tuple>::value>::template exec<Tuple>(
         value,
         std::forward<TFunc>(func));
 }
+
+/// @brief Performs "accumulate" algorithm on specified types inside the tuple.
+/// @details Very similar to @ref tupleTypeAccumulate(), but allows specifying range of
+///     indices of tuple elements.
+/// @tparam TFrom Index of the first tuple type to evaluate
+/// @tparam TUntil Index of the one past the last tuple type to evaluate.
+/// @param[in] value Initial value.
+/// @param[in] func Functor object. The class must provide operator() with the
+///     following signature:
+///     @code
+///     struct MyFunc
+///     {
+///         template <typename TTupleElem, typename TValue>
+///         TValue operator()(const TValue& value) {...}
+///     };
+///     @endcode
+/// @return Returns the result of the last invocation of the functor's operator().
+template <std::size_t TFrom, std::size_t TUntil, typename TTuple, typename TValue, typename TFunc>
+constexpr TValue tupleTypeAccumulateFromUntil(const TValue& value, TFunc&& func)
+{
+    using Tuple = typename std::decay<TTuple>::type;
+    static_assert(TFrom <= TUntil, "TFrom mustn't be greater that TUntil");
+    static_assert(TUntil <= std::tuple_size<Tuple>::value, "TUntil mustn't exceed size of the tuple");
+    return details::TupleTypeAccumulateHelper<TFrom, TUntil - TFrom>::template exec<Tuple>(
+        value,
+        std::forward<TFunc>(func));
+}
+
 
 //----------------------------------------
 

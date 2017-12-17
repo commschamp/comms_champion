@@ -78,7 +78,7 @@ protected:
     {
         vec_.clear();
         auto countLimit = std::min(count, capacity());
-        while ((*str != Ends) && (vec_.size() < countLimit)) {
+        while ((vec_.size() < countLimit) && (*str != Ends)) {
             vec_.push_back(*str);
             ++str;
         }
@@ -1961,6 +1961,33 @@ template <std::size_t TSize1, typename TChar>
 bool operator!=(const TChar* str1, const StaticString<TSize1, TChar>& str2)
 {
     return !(str2 == str1);
+}
+
+namespace details
+{
+
+
+template <typename T>
+struct IsStaticString
+{
+    static const bool Value = false;
+};
+
+template <std::size_t TSize>
+struct IsStaticString<comms::util::StaticString<TSize> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check whether the provided type is a variant of
+///     @ref comms::util::StaticString
+/// @related comms::util::StaticString
+template <typename T>
+static constexpr bool isStaticString()
+{
+    return details::IsStaticString<T>::Value;
 }
 
 }  // namespace util

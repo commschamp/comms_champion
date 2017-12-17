@@ -53,6 +53,23 @@ struct StringOrigDataViewStorageType<false>
     using Type = std::string;
 };
 
+template <bool THasSequenceFixedSizeUseFixedSizeStorage>
+struct StringFixedSizeUseFixedSizeStorageType;
+
+template <>
+struct StringFixedSizeUseFixedSizeStorageType<true>
+{
+    template <typename TOpt>
+    using Type = comms::util::StaticString<TOpt::SequenceFixedSize>;
+};
+
+template <>
+struct StringFixedSizeUseFixedSizeStorageType<false>
+{
+    template <typename TOpt>
+    using Type = typename StringOrigDataViewStorageType<TOpt::HasOrigDataView>::Type;
+};
+
 template <bool THasFixedSizeStorage>
 struct StringFixedSizeStorageType;
 
@@ -67,7 +84,8 @@ template <>
 struct StringFixedSizeStorageType<false>
 {
     template <typename TOpt>
-    using Type = typename StringOrigDataViewStorageType<TOpt::HasOrigDataView>::Type;
+    using Type = typename StringFixedSizeUseFixedSizeStorageType<TOpt::HasSequenceFixedSizeUseFixedSizeStorage>
+        ::template Type<TOpt>;
 };
 
 template <bool THasCustomStorage>
@@ -124,6 +142,7 @@ using StringBase =
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid
 ///     @li comms::option::OrigDataView
+///     @li comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>

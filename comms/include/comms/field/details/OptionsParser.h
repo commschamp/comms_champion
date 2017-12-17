@@ -21,6 +21,7 @@
 #include <tuple>
 #include <ratio>
 #include "comms/options.h"
+#include "comms/CompileControl.h"
 
 namespace comms
 {
@@ -43,8 +44,10 @@ public:
     static const bool HasFixedLengthLimit = false;
     static const bool HasFixedBitLengthLimit = false;
     static const bool HasVarLengthLimits = false;
+    static const bool HasSequenceElemLengthForcing = false;
     static const bool HasSequenceSizeForcing = false;
     static const bool HasSequenceFixedSize = false;
+    static const bool HasSequenceFixedSizeUseFixedSizeStorage = false;
     static const bool HasSequenceSizeFieldPrefix = false;
     static const bool HasSequenceSerLengthFieldPrefix = false;
     static const bool HasSequenceTrailingFieldSuffix = false;
@@ -59,6 +62,8 @@ public:
     static const bool HasScalingRatio = false;
     static const bool HasUnits = false;
     static const bool HasOrigDataView = false;
+    static const bool HasEmptySerialization = false;
+    static const bool HasMultiRangeValidation = false;
 };
 
 template <typename T, typename... TOptions>
@@ -121,6 +126,15 @@ public:
     static const bool HasSequenceSizeForcing = true;
 };
 
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceElemLengthForcingEnabled,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasSequenceElemLengthForcing = true;
+};
+
 template <std::size_t TSize, typename... TOptions>
 class OptionsParser<
     comms::option::SequenceFixedSize<TSize>,
@@ -129,6 +143,15 @@ class OptionsParser<
 public:
     static const bool HasSequenceFixedSize = true;
     static const auto SequenceFixedSize = TSize;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceFixedSizeUseFixedSizeStorage,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasSequenceFixedSizeUseFixedSizeStorage = true;
 };
 
 template <typename TSizeField, typename... TOptions>
@@ -269,6 +292,87 @@ class OptionsParser<
 {
 public:
     static const bool HasOrigDataView = true;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::EmptySerialization,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasEmptySerialization = true;
+};
+
+template <bool THasMultiRangeValidation>
+struct MultiRangeAssembler;
+
+template <>
+struct MultiRangeAssembler<false>
+{
+    template <typename TBase, typename T, T TMinValue, T TMaxValue>
+    using Type =
+        std::tuple<
+            std::tuple<
+                std::integral_constant<T, TMinValue>,
+                std::integral_constant<T, TMaxValue>
+            >
+        >;
+};
+
+template <>
+struct MultiRangeAssembler<true>
+{
+    using FalseAssembler = MultiRangeAssembler<false>;
+
+    template <typename TBase, typename T, T TMinValue, T TMaxValue>
+    using Type =
+        typename std::decay<
+            decltype(
+                std::tuple_cat(
+                    std::declval<typename TBase::MultiRangeValidationRanges>(),
+                    std::declval<typename FalseAssembler::template Type<TBase, T, TMinValue, TMaxValue> >()
+                )
+            )
+        >::type;
+};
+
+
+template <typename TBase, typename T, T TMinValue, T TMaxValue>
+using MultiRangeAssemblerT =
+    typename MultiRangeAssembler<TBase::HasMultiRangeValidation>::template Type<TBase, T, TMinValue, TMaxValue>;
+
+template <std::intmax_t TMinValue, std::intmax_t TMaxValue, typename... TOptions>
+class OptionsParser<
+    comms::option::ValidNumValueRange<TMinValue, TMaxValue>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    using BaseImpl = OptionsParser<TOptions...>;
+public:
+#ifdef CC_COMPILER_GCC47
+    static_assert(!BaseImpl::HasMultiRangeValidation,
+        "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
+        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "upgrade your compiler.");
+#endif
+    using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::intmax_t, TMinValue, TMaxValue>;
+    static const bool HasMultiRangeValidation = true;
+};
+
+template <std::uintmax_t TMinValue, std::uintmax_t TMaxValue, typename... TOptions>
+class OptionsParser<
+    comms::option::ValidBigUnsignedNumValueRange<TMinValue, TMaxValue>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    using BaseImpl = OptionsParser<TOptions...>;
+public:
+#ifdef CC_COMPILER_GCC47
+    static_assert(!BaseImpl::HasMultiRangeValidation,
+        "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
+        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "upgrade your compiler.");
+#endif
+    using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::uintmax_t, TMinValue, TMaxValue>;
+    static const bool HasMultiRangeValidation = true;
 };
 
 template <typename... TOptions>

@@ -110,10 +110,15 @@ void ArrayListFieldWidget::refreshImpl()
         m_elements.pop_back();
     }
 
+    if (m_wrapper->hasFixedSize()) {
+        m_wrapper->adjustFixedSize();
+    }
+
     m_wrapper->refreshMembers();
 
     refreshInternal();
     addMissingFields();
+    updatePrefixField();
     assert(m_elements.size() == m_wrapper->size());
 }
 

@@ -47,15 +47,19 @@ protected:
 private slots:
     void serialisedValueUpdated(const QString& value);
     void valueUpdated(double value);
+    void typeUpdated(int index);
 
 private:
     using WrapperType = WrapperPtr::element_type;
     using UnderlyingType = WrapperType::UnderlyingType;
 
     void updateSpinBoxValueRange();
+    void updateType();
+    int getTypeIndex();
 
     Ui::FloatValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
+    double m_oldValue = 0.0;
 };
 
 

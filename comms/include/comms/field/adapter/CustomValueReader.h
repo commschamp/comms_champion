@@ -61,8 +61,26 @@ public:
         return T()(static_cast<BaseImpl&>(*this), iter, size);
     }
 
+    template <std::size_t TFromIdx, typename TIter>
+    comms::ErrorStatus readFrom(TIter& iter, std::size_t size) = delete;
+
+    template <std::size_t TUntilIdx, typename TIter>
+    comms::ErrorStatus readUntil(TIter& iter, std::size_t size) = delete;
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    comms::ErrorStatus readFromUntil(TIter& iter, std::size_t size) = delete;
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
+
+    template <std::size_t TFromIdx, typename TIter>
+    void readFromNoStatus(TIter& iter) = delete;
+
+    template <std::size_t TUntilIdx, typename TIter>
+    void readUntilNoStatus(TIter& iter) = delete;
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void readFromUntilNoStatus(TIter& iter) = delete;
 };
 
 }  // namespace adapter

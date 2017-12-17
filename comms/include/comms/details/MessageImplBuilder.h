@@ -196,7 +196,7 @@ public:
             return comms::ErrorStatus::BufferOverflow;
         }
 
-        writeFieldsNoStatusFrom<0>(iter);
+        doWriteFieldsNoStatusFrom<0>(iter);
         return comms::ErrorStatus::Success;
     }
 
@@ -239,9 +239,51 @@ public:
         return util::tupleTypeAccumulate<AllFields>(0U, FieldMinLengthRetriever());
     }
 
+    template <std::size_t TFromIdx>
+    static constexpr std::size_t doMinLengthFrom()
+    {
+        return util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
+                    0U, FieldMinLengthRetriever());
+    }
+
+    template <std::size_t TUntilIdx>
+    static constexpr std::size_t doMinLengthUntil()
+    {
+        return util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
+                    0U, FieldMinLengthRetriever());
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    static constexpr std::size_t doMinLengthFromUntil()
+    {
+        return util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
+                    0U, FieldMinLengthRetriever());
+    }
+
     static constexpr std::size_t doMaxLength()
     {
         return util::tupleTypeAccumulate<AllFields>(0U, FieldMaxLengthRetriever());
+    }
+
+    template <std::size_t TFromIdx>
+    static constexpr std::size_t doMaxLengthFrom()
+    {
+        return util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
+                    0U, FieldMaxLengthRetriever());
+    }
+
+    template <std::size_t TUntilIdx>
+    static constexpr std::size_t doMaxLengthUntil()
+    {
+        return util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
+                    0U, FieldMaxLengthRetriever());
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    static constexpr std::size_t doMaxLengthFromUntil()
+    {
+        return util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
+                    0U, FieldMaxLengthRetriever());
     }
 
     bool doRefresh() const
@@ -253,7 +295,7 @@ protected:
     ~MessageImplFieldsBase() noexcept = default;
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus readFieldsUntil(
+    comms::ErrorStatus doReadFieldsUntil(
         TIter& iter,
         std::size_t& size)
     {
@@ -263,13 +305,27 @@ protected:
     }
 
     template <std::size_t TIdx, typename TIter>
-    void readFieldsNoStatusUntil(TIter& iter)
+    comms::ErrorStatus readFieldsUntil(
+        TIter& iter,
+        std::size_t& size)
+    {
+        return doReadFieldsUntil<TIdx, TIter>(iter, size);
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    void doReadFieldsNoStatusUntil(TIter& iter)
     {
         util::tupleForEachUntil<TIdx>(fields(), makeFieldNoStatusReader(iter));
     }
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus readFieldsFrom(
+    void readFieldsNoStatusUntil(TIter& iter)
+    {
+        doReadFieldsNoStatusUntil<TIdx, TIter>(iter);
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    comms::ErrorStatus doReadFieldsFrom(
         TIter& iter,
         std::size_t& size)
     {
@@ -279,13 +335,27 @@ protected:
     }
 
     template <std::size_t TIdx, typename TIter>
-    void readFieldsNoStatusFrom(TIter& iter)
+    comms::ErrorStatus readFieldsFrom(
+        TIter& iter,
+        std::size_t& size)
+    {
+        return doReadFieldsFrom<TIdx, TIter>(iter, size);
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    void doReadFieldsNoStatusFrom(TIter& iter)
     {
         util::tupleForEachFrom<TIdx>(fields(), makeFieldNoStatusReader(iter));
     }
 
+    template <std::size_t TIdx, typename TIter>
+    void readFieldsNoStatusFrom(TIter& iter)
+    {
+        doReadFieldsNoStatusFrom<TIdx, TIter>(iter);
+    }
+
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    comms::ErrorStatus readFieldsFromUntil(
+    comms::ErrorStatus doReadFieldsFromUntil(
         TIter& iter,
         std::size_t& size)
     {
@@ -295,13 +365,27 @@ protected:
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void readFieldsNoStatusFromUntil(TIter& iter)
+    comms::ErrorStatus readFieldsFromUntil(
+        TIter& iter,
+        std::size_t& size)
+    {
+        return doReadFieldsFromUntil<TFromIdx, TUntilIdx, TIter>(iter, size);
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void doReadFieldsNoStatusFromUntil(TIter& iter)
     {
         util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldNoStatusReader(iter));
     }
 
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void readFieldsNoStatusFromUntil(TIter& iter)
+    {
+        doReadFieldsNoStatusFromUntil<TFromIdx, TUntilIdx, TIter>(iter);
+    }
+
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus writeFieldsUntil(
+    comms::ErrorStatus doWriteFieldsUntil(
         TIter& iter,
         std::size_t size) const
     {
@@ -312,13 +396,27 @@ protected:
     }
 
     template <std::size_t TIdx, typename TIter>
-    void writeFieldsNoStatusUntil(TIter& iter) const
+    comms::ErrorStatus writeFieldsUntil(
+        TIter& iter,
+        std::size_t size) const
+    {
+        return doWriteFieldsUntil<TIdx, TIter>(iter, size);
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    void doWriteFieldsNoStatusUntil(TIter& iter) const
     {
         util::tupleForEachUntil<TIdx>(fields(), makeFieldNoStatusWriter(iter));
     }
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus writeFieldsFrom(
+    void writeFieldsNoStatusUntil(TIter& iter) const
+    {
+        doWriteFieldsNoStatusUntil<TIdx, TIter>(iter);
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    comms::ErrorStatus doWriteFieldsFrom(
         TIter& iter,
         std::size_t size) const
     {
@@ -329,13 +427,27 @@ protected:
     }
 
     template <std::size_t TIdx, typename TIter>
-    void writeFieldsNoStatusFrom(TIter& iter) const
+    comms::ErrorStatus writeFieldsFrom(
+        TIter& iter,
+        std::size_t size) const
+    {
+        return doWriteFieldsFrom<TIdx, TIter>(iter, size);
+    }
+
+    template <std::size_t TIdx, typename TIter>
+    void doWriteFieldsNoStatusFrom(TIter& iter) const
     {
         util::tupleForEachFrom<TIdx>(fields(), makeFieldNoStatusWriter(iter));
     }
 
+    template <std::size_t TIdx, typename TIter>
+    void writeFieldsNoStatusFrom(TIter& iter) const
+    {
+        doWriteFieldsNoStatusFrom<TIdx, TIter>(iter);
+    }
+
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    comms::ErrorStatus writeFieldsFromUntil(
+    comms::ErrorStatus doWriteFieldsFromUntil(
         TIter& iter,
         std::size_t size) const
     {
@@ -346,9 +458,23 @@ protected:
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void writeFieldsNoStatusFromUntil(TIter& iter) const
+    comms::ErrorStatus writeFieldsFromUntil(
+        TIter& iter,
+        std::size_t size) const
+    {
+        return doWriteFieldsFromUntil<TFromIdx, TUntilIdx, TIter>(iter, size);
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void doWriteFieldsNoStatusFromUntil(TIter& iter) const
     {
         util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldNoStatusWriter(iter));
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void writeFieldsNoStatusFromUntil(TIter& iter) const
+    {
+        doWriteFieldsNoStatusFromUntil<TFromIdx, TUntilIdx, TIter>(iter);
     }
 
 private:
@@ -366,6 +492,8 @@ private:
                 (TField::minLength() == TField::maxLength()) &&
                 (!TField::ParsedOptions::HasCustomValueReader) &&
                 (!TField::ParsedOptions::HasFailOnInvalid) &&
+                (!TField::ParsedOptions::HasSequenceElemLengthForcing)  &&
+                (!TField::ParsedOptions::HasSequenceSizeForcing)  &&
                 (!TField::ParsedOptions::HasSequenceSizeFieldPrefix)  &&
                 (!TField::ParsedOptions::HasSequenceSerLengthFieldPrefix) &&
                 (!TField::ParsedOptions::HasSequenceTrailingFieldSuffix) &&
@@ -375,6 +503,13 @@ private:
         }
     };
 
+#ifdef _MSC_VER
+// For some reason VS2015 32 bit compiler may generate "integral constant overflow"
+// warning on the code below
+#pragma warning( push )
+#pragma warning( disable : 4307)
+#endif
+
     using StatusTag =
         typename std::conditional<
             comms::util::tupleTypeAccumulate<AllFields>(true, NoStatusDetector()),
@@ -382,13 +517,17 @@ private:
             UseStatusTag
         >::type;
 
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
+
     template <typename TIter>
     comms::ErrorStatus doReadInternal(
         TIter& iter,
         std::size_t size,
         UseStatusTag)
     {
-        return readFieldsFrom<0>(iter, size);
+        return doReadFieldsFrom<0>(iter, size);
     }
 
     template <typename TIter>
@@ -401,7 +540,7 @@ private:
             return comms::ErrorStatus::NotEnoughData;
         }
 
-        readFieldsNoStatusFrom<0>(iter);
+        doReadFieldsNoStatusFrom<0>(iter);
         return comms::ErrorStatus::Success;
     }
 
@@ -926,13 +1065,14 @@ using MessageImplRefreshBaseT =
 template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
+    using BaseImpl = TBase;
 protected:
     ~MessageImplDispatchBase() noexcept = default;
-    virtual void dispatchImpl(typename TBase::Handler& handler) override
+    virtual typename TBase::DispatchRetType dispatchImpl(typename TBase::Handler& handler) override
     {
         static_assert(std::is_base_of<TBase, TActual>::value,
             "TActual is not derived class");
-        handler.handle(static_cast<TActual&>(*this));
+        return handler.handle(static_cast<TActual&>(*this));
     }
 };
 

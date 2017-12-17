@@ -113,6 +113,13 @@ public:
     void test76();
     void test77();
     void test78();
+    void test79();
+    void test80();
+    void test81();
+    void test82();
+    void test83();
+    void test84();
+    void test85();
 
     enum Enum1 {
         Enum1_Value1,
@@ -332,12 +339,23 @@ void FieldsTestSuite::test9()
         comms::Field<BigEndianOpt>,
         std::uint8_t,
         comms::option::ValidNumValueRange<0, 10>,
+#ifndef CC_COMPILER_GCC47
+        comms::option::ValidNumValueRange<20, 30>,
+#endif
         comms::option::DefaultNumValue<100>
     > Field;
 
     Field field;
     TS_ASSERT_EQUALS(field.value(), 100);
     TS_ASSERT(!field.valid());
+    field.value() = 5U;
+    TS_ASSERT(field.valid());
+    field.value() = 15U;
+    TS_ASSERT(!field.valid());
+#ifndef CC_COMPILER_GCC47
+    field.value() = 25U;
+    TS_ASSERT(field.valid());
+#endif
 
     static const char Buf[] = {
         0x05, 0x02
@@ -581,10 +599,13 @@ void FieldsTestSuite::test15()
 
 void FieldsTestSuite::test16()
 {
-    typedef comms::field::IntValue<
-        comms::Field<BigEndianOpt>,
-        std::uint8_t
-    > SizeField;
+    struct SizeField : public 
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t
+        >
+    {
+    };        
 
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
@@ -1254,10 +1275,17 @@ void FieldsTestSuite::test32()
         >
     > Field;
 
-    TS_ASSERT_EQUALS(Field::minLength(), 3U);
-    TS_ASSERT_EQUALS(Field::maxLength(), 3U);
+    static_assert(Field::minLength() == 3U, "Invalid minLength");
+    static_assert(Field::minLengthFrom<1>() == 1U, "Invalid minLength");
+    static_assert(Field::minLengthUntil<1>() == 2U, "Invalid minLength");
+    static_assert(Field::maxLength() == 3U, "Invalid maxLength");
+    static_assert(Field::maxLengthFrom<1>() == 1U, "Invalid minLength");
+    static_assert(Field::maxLengthUntil<1>() == 2U, "Invalid minLength");
 
     Field field;
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT_EQUALS(field.lengthFrom<1>(), 1U);
+    TS_ASSERT_EQUALS(field.lengthUntil<1>(), 2U);
     TS_ASSERT(field.valid());
     auto& intValField = std::get<0>(field.value());
     auto& enumValField = std::get<1>(field.value());
@@ -1291,6 +1319,38 @@ void FieldsTestSuite::test32()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    Field fieldTmp;
+    auto readIter = &ExpectedBuf[0];
+    auto es = fieldTmp.readFromUntil<0, 2>(readIter, ExpectedBufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(fieldTmp, field);
+
+    fieldTmp = Field();
+    TS_ASSERT_DIFFERS(fieldTmp, field);
+
+    readIter = &ExpectedBuf[0];
+    es = fieldTmp.readUntil<1>(readIter, 2);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    es = fieldTmp.readFrom<1>(readIter, 1);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(fieldTmp, field);
+
+    std::vector<std::uint8_t> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    es = fieldTmp.writeFromUntil<0, 2>(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(outBuf.size(), ExpectedBufSize);
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), (const std::uint8_t*)&ExpectedBuf[0]));
+
+    outBuf.clear();
+    writeIter = std::back_inserter(outBuf);
+    es = fieldTmp.writeUntil<1>(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    es = fieldTmp.writeFrom<1>(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(outBuf.size(), ExpectedBufSize);
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), (const std::uint8_t*)&ExpectedBuf[0]));
 }
 
 void FieldsTestSuite::test33()
@@ -1911,6 +1971,14 @@ void FieldsTestSuite::test49()
         >,
         comms::option::CustomValueReader<BundleCustomReaderTest49>
     > Field;
+
+    static_assert(Field::minLength() == 1U, "Invalid minLength");
+    static_assert(Field::maxLength() == 3U, "Invalid maxLength");
+    static_assert(Field::minLengthUntil<1>() == 1U, "Invalid minLength");
+    static_assert(Field::maxLengthUntil<1>() == 1U, "Invalid maxLength");
+    static_assert(Field::minLengthFrom<1>() == 0U, "Invalid minLength");
+    static_assert(Field::maxLengthFrom<1>() == 2U, "Invalid maxLength");
+
 
     Field field;
     TS_ASSERT(field.valid());
@@ -2803,10 +2871,13 @@ void FieldsTestSuite::test68()
 
 void FieldsTestSuite::test69()
 {
-    typedef comms::field::IntValue<
-        comms::Field<BigEndianOpt>,
-        std::uint8_t
-    > LenField;
+    struct LenField : public
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t
+        >
+    {
+    };
 
     typedef comms::field::ArrayList<
         comms::Field<BigEndianOpt>,
@@ -3385,6 +3456,138 @@ void FieldsTestSuite::test78()
     static_cast<void>(mem2_2);
 }
 
+void FieldsTestSuite::test79()
+{
+    class Field : public
+        comms::field::ArrayList<
+            comms::Field<BigEndianOpt>,
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >,
+            comms::option::SequenceElemLengthForcingEnabled,
+            comms::option::SequenceFixedSize<3>
+        >
+    {
+    public:
+        Field()
+        {
+            forceElemLength(2U);
+        }
+    };
+
+    Field field;
+    TS_ASSERT(field.valid());
+    static_assert(Field::minLength() == 3U, "Min length is incorrect");
+    static_assert(3U < Field::maxLength(), "Max length is incorrect");
+
+    static const char Buf[] = {
+        0x1, 0x0, 0x2, 0x0, 0x3, 0x0, 0x4, 0x0, 0x5, 0x0, 0x6, 0x0, 0x7, 0x0, 0x8, 0x0
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 6U);
+    TS_ASSERT_EQUALS(field.value().size(), 3U);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.value()[0].value(), 0x1);
+    TS_ASSERT_EQUALS(field.value()[1].value(), 0x2);
+    TS_ASSERT_EQUALS(field.value()[2].value(), 0x3);
+}
+
+void FieldsTestSuite::test80()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t,
+                comms::option::ValidNumValueRange<0, 10>,
+                comms::option::DefaultNumValue<5>
+            >,
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t,
+                comms::option::ValidNumValueRange<100, 100>,
+                comms::option::DefaultNumValue<100>,
+                comms::option::EmptySerialization
+            >,
+            comms::field::EnumValue<
+                comms::Field<BigEndianOpt>,
+                Enum1,
+                comms::option::FixedLength<1>,
+                comms::option::ValidNumValueRange<0, Enum1_NumOfValues - 1>,
+                comms::option::DefaultNumValue<Enum1_Value2>
+            >
+        >
+    > Field;
+
+    static_assert(Field::minLength() == 3U, "Invalid minLength");
+    static_assert(Field::maxLength() == 3U, "Invalid maxLength");
+    static_assert(Field::minLengthFromUntil<1, 2>() == 0U, "Invalid minLength");
+    static_assert(Field::maxLengthFromUntil<1, 2>() == 0U, "Invalid maxLength");
+    static_assert(Field::minLengthFrom<1>() == 1U, "Invalid minLength");
+    static_assert(Field::maxLengthFrom<1>() == 1U, "Invalid maxLength");
+
+    Field field;
+    TS_ASSERT(field.valid());
+    auto& intValField = std::get<0>(field.value());
+    auto& constValField = std::get<1>(field.value());
+    auto& enumValField = std::get<2>(field.value());
+    TS_ASSERT_EQUALS(intValField.value(), 5U);
+    TS_ASSERT_EQUALS(constValField.value(), 100U);
+    TS_ASSERT_EQUALS(enumValField.value(), Enum1_Value2);
+
+    intValField.value() = 50U;
+    TS_ASSERT(!field.valid());
+    intValField.value() = 1U;
+    TS_ASSERT(field.valid());
+    enumValField.value() = Enum1_NumOfValues;
+    TS_ASSERT(!field.valid());
+    enumValField.value() = Enum1_Value1;
+    TS_ASSERT(field.valid());
+    constValField.value() = 10;
+    TS_ASSERT(!field.valid());
+    constValField.value() = 100;
+    TS_ASSERT(field.valid());
+
+    static const char Buf[] = {
+        0x00, 0x3, Enum1_Value3, (char)0xff
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(intValField.value(), 3U);
+    TS_ASSERT_EQUALS(constValField.value(), 100U);
+    TS_ASSERT_EQUALS(enumValField.value(), Enum1_Value3);
+
+    intValField.value() = 0xabcd;
+    enumValField.value() = Enum1_Value1;
+
+    static const char ExpectedBuf[] = {
+        (char)0xab, (char)0xcd, (char)Enum1_Value1
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test81()
+{
+    using Field = comms::field::IntValue<
+            comms::Field<comms::option::BigEndian>,
+            std::uint64_t,
+            comms::option::ValidBigUnsignedNumValueRange<0xffffffff, std::numeric_limits<std::uintmax_t>::max() - 1>,
+            comms::option::DefaultBigUnsignedNumValue<std::numeric_limits<std::uintmax_t>::max()>
+        >;
+
+    Field field;
+    TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.value(), std::numeric_limits<std::uintmax_t>::max());
+}
+
 template <typename TField>
 TField FieldsTestSuite::readWriteField(
     const char* buf,
@@ -3416,6 +3619,167 @@ TField FieldsTestSuite::readWriteField(
     TS_ASSERT_EQUALS(field.length(), writeDiff);
     TS_ASSERT_EQUALS(diff, writeDiff);
     return field;
+}
+
+void FieldsTestSuite::test82()
+{
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t,
+                comms::option::ValidNumValueRange<0, 10>,
+                comms::option::DefaultNumValue<5>
+            >
+        >
+    > Field;
+
+    static_assert(Field::minLength() == 2U, "Invalid minLength");
+    static_assert(Field::minLengthFrom<0>() == 2U, "Invalid minLength");
+    static_assert(Field::minLengthUntil<1>() == 2U, "Invalid minLength");
+    static_assert(Field::maxLength() == 2U, "Invalid maxLength");
+    static_assert(Field::maxLengthFrom<0>() == 2U, "Invalid minLength");
+    static_assert(Field::maxLengthUntil<1>() == 2U, "Invalid minLength");
+
+    Field field;
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT_EQUALS(field.lengthFrom<0>(), 2U);
+    TS_ASSERT_EQUALS(field.lengthUntil<1>(), 2U);
+    TS_ASSERT(field.valid());
+    auto& intValField = std::get<0>(field.value());
+    TS_ASSERT_EQUALS(intValField.value(), 5U);
+
+    intValField.value() = 50U;
+    TS_ASSERT(!field.valid());
+    intValField.value() = 1U;
+    TS_ASSERT(field.valid());
+    static const char Buf[] = {
+        0x00, 0x3, (char)0xff
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(intValField.value(), 3U);
+
+    intValField.value() = 0xabcd;
+
+    static const char ExpectedBuf[] = {
+        (char)0xab, (char)0xcd
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    Field fieldTmp;
+    auto readIter = &ExpectedBuf[0];
+    auto es = fieldTmp.readFromUntil<0, 1>(readIter, ExpectedBufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(fieldTmp, field);
+}
+
+void FieldsTestSuite::test83()
+{
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::SequenceFixedSize<5>,
+        comms::option::SequenceFixedSizeUseFixedSizeStorage
+    > Field;
+
+    static_assert(Field::minLength() == 5U, "Invalid min length");
+    static_assert(Field::maxLength() == 5U, "Invalid max length");
+
+    static_assert(comms::util::isStaticVector<Field::ValueType>(), "The storage typ is incorrect");
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(Field::minLength(), 5U);
+    TS_ASSERT_EQUALS(Field::maxLength(), 5U);
+
+    static const char Buf[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), BufSize);
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.value().size(), BufSize);
+}
+
+void FieldsTestSuite::test84()
+{
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceFixedSize<5>,
+        comms::option::SequenceFixedSizeUseFixedSizeStorage
+    > Field;
+
+    static_assert(Field::minLength() == 5U, "Invalid min length");
+    static_assert(Field::maxLength() == 5U, "Invalid max length");
+    static_assert(comms::util::isStaticString<Field::ValueType>(), "Invalid storage type");
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.length(), 5U);
+
+    static const char* HelloStr = "hello";
+    field.value() = HelloStr;
+    TS_ASSERT(field.value().size() == 5U);
+    TS_ASSERT_EQUALS(field.length(), 5U);
+    TS_ASSERT_EQUALS(&(*field.value().begin()), HelloStr);
+
+    static const char ExpectedBuf[] = {
+        'h', 'e', 'l', 'l', 'o'
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    field.value() = "foo";
+    TS_ASSERT_EQUALS(field.value().size(), 3U);
+    TS_ASSERT_EQUALS(std::string(field.value().data()), "foo");
+    TS_ASSERT_EQUALS(field.length(), 5U);
+
+    static const char ExpectedBuf2[] = {
+        'f', 'o', 'o', 0x0, 0x0
+    };
+    static const std::size_t ExpectedBufSize2 = std::extent<decltype(ExpectedBuf2)>::value;
+    writeReadField(field, ExpectedBuf2, ExpectedBufSize2);
+
+    field = readWriteField<Field>(&ExpectedBuf2[0], ExpectedBufSize2);
+    TS_ASSERT_EQUALS(field.value(), "foo");
+}
+
+void FieldsTestSuite::test85()
+{
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceFixedSize<5>
+    > Field;
+
+    static_assert(Field::minLength() == 5U, "Invalid min length");
+    static_assert(Field::maxLength() == 5U, "Invalid max length");
+
+    Field field;
+
+    field.value() = "blabla";
+    TS_ASSERT_EQUALS(field.value().size(), 6U);
+    TS_ASSERT_EQUALS(field.length(), 5U);
+
+    static const char ExpectedBuf[] = {
+        'b', 'l', 'a', 'b', 'l'
+    };
+    static const std::size_t ExpectedBufSize3 = std::extent<decltype(ExpectedBuf)>::value;
+
+    std::vector<std::uint8_t> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    auto es = field.write(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(outBuf.size(), ExpectedBufSize3);
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), std::begin(ExpectedBuf)));
 }
 
 template <typename TField>

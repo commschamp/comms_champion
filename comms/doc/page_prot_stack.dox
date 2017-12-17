@@ -546,7 +546,7 @@
 /// @endcode
 /// In this case the comms::protocol::ChecksumLayer won't be able to inspect the
 /// written code right away and calculate the checksum value. As the result,
-/// comms::ErrorStatus::Update is expected to be returned. To fix the serialised
+/// @ref comms::ErrorStatus::UpdateRequired is expected to be returned. To fix the serialised
 /// data, random access iterator to the written data needs to be created and 
 /// @b update() member function of the protocol stack invoked.
 ///
@@ -615,76 +615,147 @@
 /// of the protocol. The COMMS library allows implementation and usage of 
 /// custom layers as long as it defines the required types and implements required
 /// functions. It is strongly recommended to inherit from comms::protocol::ProtocolLayerBase
-/// and implement missing read/write functionality
+/// and implement missing functionality
 /// @code
 /// // Must receive the next layer type as template parameter
 /// template <typename TField, typename TNextLayer>
-/// class MyLayer : public comms::protocol::ProtocolLayerBase<TField, TNextLayer>
+/// class MyLayer : public 
+///     comms::protocol::ProtocolLayerBase<
+///         TField, 
+///         TNextLayer,
+///         MyLayer<TField, TNextLayer>
+///     >
 /// {
-///     typedef comms::protocol::ProtocolLayerBase<TField, TNextLayer> Base;
-///
 /// public:
-///     typedef typename Base::ReadIterator ReadIterator;
-///
 ///     // Implement read
-///     template <typename TMsgPtr>
-///     comms::ErrorStatus read(
+///     template <typename TMsgPtr, typename TIter, typename TNextLayerReader>
+///     comms::ErrorStatus doRead(
+///         Field& field,
 ///         TMsgPtr& msgPtr,
-///         ReadIterator& iter,
+///         TIter& iter,
 ///         std::size_t size,
-///         std::size_t* missingSize = nullptr) {...}
+///         std::size_t* missingSize,
+///         TNextLayerReader&& nextLayerReader)
+///     {
+///         // read the field's value
+///         auto es = field.read(iter, size);
+///         if (es != comms::ErrorStatus::Success) {
+///             return es;
+///         }
 ///
-///     // Implement read with caching fields:
-///     template <std::size_t TIdx, typename TAllFields, typename TMsgPtr>
-///     comms::ErrorStatus readFieldsCached(
-///         TAllFields& allFields,
-///         TMsgPtr& msgPtr,
-///         ReadIterator& iter,
-///         std::size_t size,
-///         std::size_t* missingSize = nullptr) {...}
-///
-///     typedef typename Base::WriteIterator WriteIterator;
+///         ... // do something with field's value
+///         
+///         // forward the read to the next layer.
+///         return nextLayerReader.read(msgPtr, iter, size - field.length(), missingSize);
+///     }
 ///
 ///     // Implement write
-///     comms::ErrorStatus write(
-///         const Message& msg,
-///         WriteIterator& iter,
-///         std::size_t size) const {...}
-///
-///     // Implement write with caching fields
-///     template <std::size_t TIdx, typename TAllFields>
-///     comms::ErrorStatus writeFieldsCached(
-///         TAllFields& allFields,
-///         const Message& msg,
-///         WriteIterator& iter,
-///         std::size_t size) const {...}
+///     template <typename TMsg, typename TIter, typename TNextLayerWriter>
+///     comms::ErrorStatus doWrite(
+///         Field& field,
+///         const TMsg& msg,
+///         TIter& iter,
+///         std::size_t size,
+///         TNextLayerWriter&& nextLayerWriter) const
+///     {
+///         // Update field with appropriate value
+///         field.value() = ...;
+///     
+///         // write the field
+///         auto es = field.write(iter, size);
+///         if (es != comms::ErrorStatus::Success) {
+///             return es;
+///         }
+///     
+///         // forward the write to the next layer
+///         return nextLayerWriter.write(msg, iter, size - field.length());
+///     }
 /// };
 /// @endcode
-/// The comms::protocol::ProtocolLayerBase class provides default implementation
-/// of update functionality which does nothing. See comms::protocol::ProtocolLayerBase::update()
-/// and comms::protocol::ProtocolLayerBase::updateFieldsCached(). It also
-/// provides the default implementation @b createMsg() function (see 
-/// comms::protocol::ProtocolLayerBase::createMsg()). This function receives the
-/// message ID and returns allocated proper message object. The default implementation
-/// is to call the @b createMsg() member function of the next layer. If one or
-/// more of these default functionalities need to be changed, just override
-/// appropriate function in the custom layer class implementation:
+/// Note that the third template parameter to the comms::protocol::ProtocolLayerBase
+/// base class is the inheriting class itself.
+///
+/// The comms::protocol::ProtocolLayerBase implements @ref 
+/// comms::protocol::ProtocolLayerBase::read() and @ref
+/// comms::protocol::ProtocolLayerBase::readFieldsCached() member functions which
+/// are actual "read" interface, they invoke the @b doRead() member function implemented
+/// the derived layer class, while providing the "nextLayerReader" object to be
+/// used to forward the read operation to the next layer. The signature of the
+/// @b nextLayerReader.read() function is the same as @ref 
+/// comms::protocol::ProtocolLayerBase::read().
+///
+/// In similar way comms::protocol::ProtocolLayerBase implements @ref 
+/// comms::protocol::ProtocolLayerBase::write() and @ref
+/// comms::protocol::ProtocolLayerBase::writeFieldsCached() member functions which
+/// are actual "write" interface, they invoke the @b doWrite() member function implemented
+/// the derived layer class, while providing the "nextLayerWriter" object to be
+/// used to forward the read operation to the next layer. The signature of the
+/// @b nextLayerWriter.write() function is the same as @ref 
+/// comms::protocol::ProtocolLayerBase::write().
+///
+/// The comms::protocol::ProtocolLayerBase base class defines also "update"
+/// interface functions @ref comms::protocol::ProtocolLayerBase::update() and
+/// @ref comms::protocol::ProtocolLayerBase::updateFieldsCached(), which in the
+/// similar way invoke @b doUpdate(). However, @ref
+/// comms::protocol::ProtocolLayerBase class provides a default implementation
+/// of @b doUpdate() (see @ref comms::protocol::ProtocolLayerBase::doUpdate()) 
+/// member function, which does nothing, just advances the iterator. If there
+/// is a need for a custom update functionality, please provide it in you
+/// layer class by implementing the custom version of @b doUpdate() member function.
 /// @code
+/// // Must receive the next layer type as template parameter
 /// template <typename TField, typename TNextLayer>
-/// class MyLayer : public comms::protocol::ProtocolLayerBase<TField, TNextLayer>
+/// class MyLayer : public 
+///     comms::protocol::ProtocolLayerBase<
+///         TField, 
+///         TNextLayer,
+///         MyLayer<TField, TNextLayer>
+///     >
 /// {
-///     typedef comms::protocol::ProtocolLayerBase<TField, TNextLayer> Base;
-///
 /// public:
-///     template <typename TIter>
-///     comms::ErrorStatus update(TIter& iter, std::size_t size) const {...}
+///     ...
+///     template <typename TIter, typename TNextLayerUpdater>
+///     comms::ErrorStatus doUpdate(
+///         Field& field,
+///         TIter& iter,
+///         std::size_t size,
+///         TNextLayerUpdater&& nextLayerUpdater) const
+///     {
+///         // Update field with the new value and rewrite it to the output buffer
+///         field.value() = ...; 
+///         auto es = field.write(iter, size);
+///         if (es != comms::ErrorStatus::Success) {
+///             return es;
+///         }
 ///
-///     template <std::size_t TIdx, typename TAllFields, typename TUpdateIter>
-///     comms::ErrorStatus updateFieldsCached(
-///         TAllFields& allFields,
-///         TUpdateIter& iter,
-///         std::size_t size) const {...}
+///         // forward the update to the next layer
+///         return nextLayerUpdater.update(iter, size - field.length());
+///     }
 /// };
 /// @endcode
+/// The signature of the
+/// @b nextLayerUpdater.update() function is the same as @ref 
+/// comms::protocol::ProtocolLayerBase::update().
 /// 
+/// If the new layer being implemented is similar to @ref comms::protocol::MsgIdLayer,
+/// i.e. creates message objects when id of the message is known, then it must
+/// also override (hide) the inherited @ref comms::protocol::ProtocolLayerBase::createMsg() 
+/// and implement its own version:
+/// @code
+/// class MyLayer : public 
+///     comms::protocol::ProtocolLayerBase<
+///         TField, 
+///         TNextLayer,
+///         MyLayer<TField, TNextLayer>
+///     >
+/// {
+/// public:
+///     ...
+///     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
+///     {
+///         return someInternalFactor.createMsg(id, idx);
+///     }
+/// };
+/// @endcode
+///
 

@@ -65,6 +65,7 @@ namespace field
 ///         invoking read() member function of every member field. It is possible
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
+///     @li comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
@@ -77,8 +78,8 @@ class Bundle : private details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMemb
         "TMembers is expected to be a tuple of std::tuple<...>");
 
     static_assert(
-        1U < std::tuple_size<TMembers>::value,
-        "Number of members is expected to be at least 2.");
+        1U <= std::tuple_size<TMembers>::value,
+        "Number of members is expected to be at least 1.");
 
 public:
     /// @brief Endian used for serialisation.
@@ -127,9 +128,47 @@ public:
     /// @details Summarises all the results returned by the call to length() for
     ///     every field in the bundle.
     /// @return Number of bytes it will take to serialise the field value.
-    constexpr std::size_t length() const
+    std::size_t length() const
     {
         return BaseImpl::length();
+    }
+
+    /// @brief Get length required to serialise specified bundled member fields.
+    /// @details Summarises all the results returned by the call to length() for
+    ///     every specified field in the bundle.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @return Number of bytes it will take to serialise the specified member fields.
+    /// @pre TFromIdx < std::tuple_size<ValueType>::value
+    template <std::size_t TFromIdx>
+    std::size_t lengthFrom() const
+    {
+        return BaseImpl::template lengthFrom<TFromIdx>();
+    }
+
+    /// @brief Get length required to serialise specified bundled member fields.
+    /// @details Summarises all the results returned by the call to length() for
+    ///     every specified field in the bundle.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Number of bytes it will take to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    template <std::size_t TUntilIdx>
+    std::size_t lengthUntil() const
+    {
+        return BaseImpl::template lengthUntil<TUntilIdx>();
+    }
+
+    /// @brief Get length required to serialise specified bundled member fields.
+    /// @details Summarises all the results returned by the call to length() for
+    ///     every specified field in the bundle.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Number of bytes it will take to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    /// @pre TFromIdx < TUntilIdx
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    std::size_t lengthFromUntil() const
+    {
+        return BaseImpl::template lengthFromUntil<TFromIdx, TUntilIdx>();
     }
 
     /// @brief Get minimal length that is required to serialise all bundled fields.
@@ -139,11 +178,75 @@ public:
         return BaseImpl::minLength();
     }
 
+    /// @brief Get minimal length that is required to serialise specified bundled fields.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TFromIdx < std::tuple_size<ValueType>::value
+    template <std::size_t TFromIdx>
+    static constexpr std::size_t minLengthFrom()
+    {
+        return BaseImpl::template minLengthFrom<TFromIdx>();
+    }
+
+    /// @brief Get minimal length that is required to serialise specified bundled fields.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    template <std::size_t TUntilIdx>
+    static constexpr std::size_t minLengthUntil()
+    {
+        return BaseImpl::template minLengthUntil<TUntilIdx>();
+    }
+
+    /// @brief Get minimal length that is required to serialise specified bundled fields.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    /// @pre TFromIdx < TUntilIdx
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    static constexpr std::size_t minLengthFromUntil()
+    {
+        return BaseImpl::template minLengthFromUntil<TFromIdx, TUntilIdx>();
+    }
+
     /// @brief Get maximal length that is required to serialise all bundled fields.
     /// @return Maximal number of bytes required serialise the field value.
     static constexpr std::size_t maxLength()
     {
         return BaseImpl::maxLength();
+    }
+
+    /// @brief Get maximal length that is required to serialise specified bundled fields.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TFromIdx < std::tuple_size<ValueType>::value
+    template <std::size_t TFromIdx>
+    static constexpr std::size_t maxLengthFrom()
+    {
+        return BaseImpl::template maxLengthFrom<TFromIdx>();
+    }
+
+    /// @brief Get maximal length that is required to serialise specified bundled fields.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    template <std::size_t TUntilIdx>
+    static constexpr std::size_t maxLengthUntil()
+    {
+        return BaseImpl::template maxLengthUntil<TUntilIdx>();
+    }
+
+    /// @brief Get maximal length that is required to serialise specified bundled fields.
+    /// @tparam TFromIdx Index of the field (included) from which the counting must start.
+    /// @tparam TUntilIdx Index of the field (not included) until which the counting must be performed.
+    /// @return Minimal number of bytes required to serialise the specified member fields.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>::value
+    /// @pre TFromIdx < TUntilIdx
+    template <std::size_t TFromIdx, std::size_t TUntilIdx>
+    static constexpr std::size_t maxLengthFromUntil()
+    {
+        return BaseImpl::template maxLengthFromUntil<TFromIdx, TUntilIdx>();
     }
 
     /// @brief Read field value from input data sequence
@@ -158,6 +261,57 @@ public:
         return BaseImpl::read(iter, size);
     }
 
+    /// @brief Read selected number of member fields (from specified index).
+    /// @details Similar to @ref read(), but invokes @b read() member function
+    ///     of only selected member fields.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "read" operation starts
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] size Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @pre TFromIdx < std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, typename TIter>
+    ErrorStatus readFrom(TIter& iter, std::size_t size)
+    {
+        return BaseImpl::template readFrom<TFromIdx>(iter, size);
+    }
+
+    /// @brief Read selected number of member fields (until specified index).
+    /// @details Similar to @ref read(), but invokes @b read() member function
+    ///     of only selected member fields.
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "read" operation continues.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] size Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TUntilIdx, typename TIter>
+    ErrorStatus readUntil(TIter& iter, std::size_t size)
+    {
+        return BaseImpl::template readUntil<TUntilIdx>(iter, size);
+    }
+
+    /// @brief Read selected number of member fields (between specified indices).
+    /// @details Similar to @ref read(), but invokes @b read() member function
+    ///     of only selected member fields.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "read" operation starts
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "read" operation continues.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in] size Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @pre TFromIdx < TUntilIdx
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    ErrorStatus readFromUntil(TIter& iter, std::size_t size)
+    {
+        return BaseImpl::template readFromUntil<TFromIdx, TUntilIdx>(iter, size);
+    }
+
     /// @brief Read field value from input data sequence without error check and status report.
     /// @details Similar to @ref read(), but doesn't perform any correctness
     ///     checks and doesn't report any failures.
@@ -167,6 +321,54 @@ public:
     void readNoStatus(TIter& iter)
     {
         BaseImpl::readNoStatus(iter);
+    }
+
+    /// @brief Read selected member fields from input data sequence
+    ///     without error check and status report.
+    /// @details Similar to @ref readNoStatus(), but invokes @b readNoStatus()
+    ///     of only selected member fields.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "read" operation starts
+    /// @param[in, out] iter Iterator to read the data.
+    /// @pre TFromIdx < std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, typename TIter>
+    void readFromNoStatus(TIter& iter)
+    {
+        BaseImpl::template readFromNoStatus<TFromIdx>(iter);
+    }
+
+    /// @brief Read selected member fields from input data sequence
+    ///     without error check and status report.
+    /// @details Similar to @ref readNoStatus(), but invokes @b readNoStatus()
+    ///     of only selected member fields.
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "read" operation continues.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TUntilIdx, typename TIter>
+    void readUntilNoStatus(TIter& iter)
+    {
+        BaseImpl::template readUntilNoStatus<TUntilIdx>(iter);
+    }
+
+    /// @brief Read selected member fields from input data sequence
+    ///     without error check and status report.
+    /// @details Similar to @ref readNoStatus(), but invokes @b readNoStatus()
+    ///     of only selected member fields.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "read" operation starts
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "read" operation continues.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @pre TFromIdx < TUntilIdx
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void readFromUntilNoStatus(TIter& iter)
+    {
+        BaseImpl::template readFromUntilNoStatus<TFromIdx, TUntilIdx>(iter);
     }
 
     /// @brief Write current field value to output data sequence
@@ -181,6 +383,57 @@ public:
         return BaseImpl::write(iter, size);
     }
 
+    /// @brief Write selected member fields to output data sequence.
+    /// @details Similar to @ref write(), but invokes @b write member
+    ///     function of only selected member fields.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "write" operation starts.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] size Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @pre TFromIdx < std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, typename TIter>
+    ErrorStatus writeFrom(TIter& iter, std::size_t size) const
+    {
+        return BaseImpl::template writeFrom<TFromIdx>(iter, size);
+    }
+
+    /// @brief Write selected member fields to output data sequence.
+    /// @details Similar to @ref write(), but invokes @b write member
+    ///     function of only selected member fields.
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "write" operation continues.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] size Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TUntilIdx, typename TIter>
+    ErrorStatus writeUntil(TIter& iter, std::size_t size) const
+    {
+        return BaseImpl::template writeUntil<TUntilIdx>(iter, size);
+    }
+
+    /// @brief Write selected member fields to output data sequence.
+    /// @details Similar to @ref write(), but invokes @b write member
+    ///     function of only selected member fields.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "write" operation starts.
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "write" operation continues.
+    /// @param[in, out] iter Iterator to write the data.
+    /// @param[in] size Maximal number of bytes that can be written.
+    /// @return Status of write operation.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @pre TFromIdx < TUntilIdx
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    ErrorStatus writeFromUntil(TIter& iter, std::size_t size) const
+    {
+        return BaseImpl::template writeFromUntil<TFromIdx, TUntilIdx>(iter, size);
+    }
+
     /// @brief Write current field value to output data sequence  without error check and status report.
     /// @details Similar to @ref write(), but doesn't perform any correctness
     ///     checks and doesn't report any failures.
@@ -190,6 +443,53 @@ public:
     void writeNoStatus(TIter& iter) const
     {
         BaseImpl::writeNoStatus(iter);
+    }
+
+    /// @brief Write selected member fields to output data sequence
+    ///     without error check and status report.
+    /// @details Similar to @ref writeNoStatus(), but invokes @b writeNoStatus()
+    ///     of only selected member fields.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "write" operation starts
+    /// @param[in, out] iter Iterator to read the data.
+    /// @pre TFromIdx < std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, typename TIter>
+    void writeFromNoStatus(TIter& iter)
+    {
+        BaseImpl::template writeFromNoStatus<TFromIdx>(iter);
+    }
+
+    /// @brief Write selected member fields to output data sequence
+    ///     without error check and status report.
+    /// @details Similar to @ref writeNoStatus(), but invokes @b writeNoStatus()
+    ///     of only selected member fields.
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "write" operation continues.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TUntilIdx, typename TIter>
+    void writeUntilNoStatus(TIter& iter)
+    {
+        BaseImpl::template writeUntilNoStatus<TUntilIdx>(iter);
+    }
+
+    /// @brief Write selected member fields to output data sequence
+    ///     without error check and status report.
+    /// @details Similar to @ref writeNoStatus(), but invokes @b writeNoStatus()
+    ///     of only selected member fields.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "write" operation starts
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "write" operation continues.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    void writeFromUntilNoStatus(TIter& iter)
+    {
+        BaseImpl::template writeFromUntilNoStatus<TFromIdx, TUntilIdx>(iter);
     }
 
     /// @brief Check validity of all the bundled fields.
@@ -235,6 +535,54 @@ bool operator!=(
     const Bundle<TFieldBase, TMembers, TOptions...>& field2)
 {
     return field1.value() != field2.value();
+}
+
+/// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @related Bundle
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+bool operator<(
+    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+{
+    return field1.value() < field2.value();
+}
+
+/// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @related Bundle
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+bool operator<=(
+    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+{
+    return field1.value() <= field2.value();
+}
+
+/// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @related Bundle
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+bool operator>(
+    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+{
+    return field1.value() > field2.value();
+}
+
+/// @brief Equivalence comparison operator.
+/// @param[in] field1 First field.
+/// @param[in] field2 Second field.
+/// @related Bundle
+template <typename TFieldBase, typename TMembers, typename... TOptions>
+bool operator>=(
+    const Bundle<TFieldBase, TMembers, TOptions...>& field1,
+    const Bundle<TFieldBase, TMembers, TOptions...>& field2)
+{
+    return field1.value() >= field2.value();
 }
 
 /// @brief Compile time check function of whether a provided type is any

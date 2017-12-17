@@ -21,6 +21,8 @@
 #include <cstdint>
 #include <cassert>
 #include <memory>
+#include <cmath>
+#include <limits>
 
 #include "comms/field/IntValue.h"
 #include "NumericValueWrapper.h"
@@ -43,12 +45,19 @@ public:
     virtual ~FloatValueWrapper() noexcept;
 
     Ptr clone();
+    bool isNan() const;
+    void setNan();
+    bool isInf() const;
+    void setInf();
 
 protected:
     virtual Ptr cloneImpl() = 0;
+    virtual bool isNanImpl() const = 0;
+    virtual void setNanImpl() = 0;
+    virtual bool isInfImpl() const = 0;
+    virtual void setInfImpl() = 0;
 
-    void dispatchImpl(FieldWrapperHandler& handler);
-
+    virtual void dispatchImpl(FieldWrapperHandler& handler) override;
 };
 
 template <typename TField>
@@ -78,6 +87,26 @@ protected:
     virtual Ptr cloneImpl() override
     {
         return Ptr(new FloatValueWrapperT<TField>(Base::field()));
+    }
+
+    virtual bool isNanImpl() const override
+    {
+        return std::isnan(Base::field().value());
+    }
+
+    virtual void setNanImpl() override
+    {
+        Base::field().value() = std::numeric_limits<typename TField::ValueType>::quiet_NaN();
+    }
+
+    virtual bool isInfImpl() const override
+    {
+        return std::isinf(Base::field().value());
+    }
+
+    virtual void setInfImpl() override
+    {
+        Base::field().value() = std::numeric_limits<typename TField::ValueType>::infinity();
     }
 };
 

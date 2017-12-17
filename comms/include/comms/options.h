@@ -327,7 +327,7 @@ struct NumValueSerOffset {};
 ///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> or
 ///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
 ///     for their internal data storage. If this option is used, it will force
-///     such fields to use comms::util::StaticVector or comms::util::StaticString
+///     such fields to use @ref comms::util::StaticVector or @ref comms::util::StaticString
 ///     with the capacity provided by this option.
 /// @tparam TSize Size of the storage area, for strings it does @b NOT include
 ///     the '\0' terminating character.
@@ -496,6 +496,21 @@ struct SequenceTrailingFieldSuffix {};
 /// @headerfile comms/options.h
 struct SequenceSizeForcingEnabled {};
 
+/// @brief Option to enable external forcing of the collection element
+///     serialisation length.
+/// @details Some protocols may prefix the variable length lists with serialisation
+///     length of a <b>single element</b> in addition to the number of elements
+///     in the list. Usage of this option
+///     enables @b forceElemLength() and @b clearElemLengthForcing() functions in
+///     the comms::field::ArrayList
+///     which can be used to specify the element serialisation length after it was read
+///     independently. @n
+///     When writing such comms::field::ArrayList field (defined with this option),
+///     the call to @b forceElemLength() may be used to add padding bytes at
+///     the end of each element. It may be used to force alignment of the next element.
+/// @headerfile comms/options.h
+struct SequenceElemLengthForcingEnabled {};
+
 /// @brief Option used to define exact number of elements in the collection field.
 /// @details Protocol specification may define that there is exact number of
 ///     elements in the sequence. Use SequenceFixedSize option to convey
@@ -504,6 +519,15 @@ struct SequenceSizeForcingEnabled {};
 /// @headerfile comms/options.h
 template <std::size_t TSize>
 struct SequenceFixedSize {};
+
+/// @brief Option that forces usage of fixed size storage for sequences with fixed
+///     size.
+/// @details Equivalent to @ref FixedSizeStorage option, but applicable only
+///     to sequence types @ref comms::field::ArrayList or @ref comms::field::String, that
+///     alrady use @ref SequenceFixedSize option. Usage of this option do not
+///     require knowledge of the storage area size.
+/// @headerfile comms/options.h
+struct SequenceFixedSizeUseFixedSizeStorage {};
 
 /// @brief Option that specifies default initialisation class.
 /// @details Use this option when default constructor of the field must assign
@@ -909,7 +933,7 @@ using UnitsKilovolts =
 namespace details
 {
 
-template<std::intmax_t TVal>
+template<typename T, T TVal>
 struct DefaultNumValueInitialiser
 {
     template <typename TField>
@@ -1018,23 +1042,82 @@ struct DefaultVariantIndexInitialiser
 
 /// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
 ///     assigns numeric value provided as the template argument to this option.
+/// @details If the required numeric value is too big (doesn't fit into @b
+///     std::intmax_t type), please use @ref DefaultBigUnsignedNumValue option
+///     class instead.
 /// @tparam TVal Numeric value is to be assigned to the field in default constructor.
+/// @see @ref DefaultBigUnsignedNumValue
 /// @headerfile comms/options.h
 template<std::intmax_t TVal>
-using DefaultNumValue = DefaultValueInitialiser<details::DefaultNumValueInitialiser<TVal> >;
+using DefaultNumValue =
+    DefaultValueInitialiser<
+        details::DefaultNumValueInitialiser<std::intmax_t, TVal>
+    >;
 
-/// @brief Alias to ContentsValidator, it defines validator class that checks
-///     that the field's value is between two numeric values provided template
-///     parameters to this option.
+/// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
+///     assigns big unsigned numeric value provided as the template argument to this option.
+/// @details If the required numeric value is small enough to fit into @b
+///     std::intmax_t type, it is recommended to use @ref DefaultNumValue option
+///     class instead.
+/// @tparam TVal Numeric value is to be assigned to the field in default constructor.
+/// @see @ref DefaultBigUnsignedNumValue
+/// @headerfile comms/options.h
+template<std::uintmax_t TVal>
+using DefaultBigUnsignedNumValue =
+    DefaultValueInitialiser<
+        details::DefaultNumValueInitialiser<std::uintmax_t, TVal>
+    >;
+
+
+/// @brief Provide range of valid numeric values.
 /// @details Quite often numeric fields such as comms::field::IntValue or
-///     comms::option::EnumValue have a single valid values range. This alias
-///     to comms::option::ContentsValidator provides an easy way to specify
-///     such range.
+///     comms::option::EnumValue have limited number of valid values ranges.
+///     This option can be used multiple times to provide several valid ranges.@n
+///     If values are too big to fit into @b std::intmax_t type, please use
+///     @ref ValidBigUnsignedNumValueRange option instead.
 /// @tparam TMinValue Minimal valid numeric value
 /// @tparam TMaxValue Maximal valid numeric value
+/// @note The intersection of the provided multiple ranges is @b NOT checked.
+/// @warning Some older compilers (@b gcc-4.7) fail to compile valid C++11 code
+///     that allows usage of multiple @ref ValidNumValueRange options. If this is
+///     the case, please don't pass more than one @ref ValidNumValueRange option.
+/// @see @ref ValidNumValue
+/// @see @ref ValidBigUnsignedNumValueRange
 /// @headerfile comms/options.h
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
-using ValidNumValueRange = ContentsValidator<details::NumValueRangeValidator<TMinValue, TMaxValue> >;
+struct ValidNumValueRange
+{
+    static_assert(TMinValue <= TMaxValue, "Invalid range");
+};
+
+/// @brief Alias to @ref ValidNumValueRange.
+/// @details Equivalent to @b ValidNumValueRange<TValue, TValue>
+template<std::intmax_t TValue>
+using ValidNumValue = ValidNumValueRange<TValue, TValue>;
+
+/// @brief Provide range of valid unsigned numeric values.
+/// @details Similar to @ref ValidNumValueRange, but dedicated to
+///     big unsigned numbers, which don't fit into @b std::intmax_t type.
+/// @tparam TMinValue Minimal valid numeric value
+/// @tparam TMaxValue Maximal valid numeric value
+/// @note The intersection of the provided multiple ranges is @b NOT checked.
+/// @warning Some older compilers (@b gcc-4.7) fail to compile valid C++11 code
+///     that allows usage of multiple @ref ValidNumValueRange options. If this is
+///     the case, please don't pass more than one
+///     @ref ValidNumValueRange or @ref ValidBigUnsignedNumValueRange option.
+/// @see @ref ValidNumValueRange
+/// @see @ref ValidBigUnsignedNumValue
+/// @headerfile comms/options.h
+template<std::uintmax_t TMinValue, std::uintmax_t TMaxValue>
+struct ValidBigUnsignedNumValueRange
+{
+    static_assert(TMinValue <= TMaxValue, "Invalid range");
+};
+
+/// @brief Alias to @ref ValidBigUnsignedNumValueRange.
+/// @details Equivalent to @b ValidBigUnsignedNumValueRange<TValue, TValue>
+template<std::uintmax_t TValue>
+using ValidBigUnsignedNumValue = ValidBigUnsignedNumValueRange<TValue, TValue>;
 
 /// @brief Alias to ContentsValidator, it defines validator class that checks
 ///     that reserved bits of the field have expected values.
@@ -1079,6 +1162,19 @@ struct ChecksumLayerVerifyBeforeRead {};
 /// @note Incompatible with other options that contol data storage type,
 ///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
 struct OrigDataView {};
+
+/// @brief Force field not to be serialized during read/write operations
+/// @details Some protocols may define some constant values that are predefined
+///     and are not present on I/O link when serialized. Sometimes it is convenient
+///     to have such values abstracted away as fields, which are not actually
+///     serialised. Using this option will have such effect: read/write operaitons
+///     will not change the value of iterators and will report immediate success.
+///     The serialisation length is always reported as 0.
+struct EmptySerialization {};
+
+/// @brief Same as @ref EmptySerialization.
+/// @details Just British English spelling.
+using EmptySerialisation = EmptySerialization;
 
 }  // namespace option
 

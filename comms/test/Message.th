@@ -42,6 +42,7 @@ public:
     void test10();
     void test11();
     void test12();
+    void test13();
 
 private:
 
@@ -187,6 +188,47 @@ private:
         > NoEndianMsgBase;
 
     typedef Message5<NoIdMsgBase> NoEndianMsg5;
+
+    class BoolHandler;
+
+    typedef
+        comms::Message<
+            comms::option::MsgIdType<MessageType>,
+            comms::option::Handler<BoolHandler>,
+            comms::option::IdInfoInterface,
+            comms::option::BigEndian
+        > BoolHandlerMsgBase;
+
+    typedef Message1<BoolHandlerMsgBase> BoolHandlerMsg1;
+    typedef Message2<BoolHandlerMsgBase> BoolHandlerMsg2;
+    typedef Message3<BoolHandlerMsgBase> BoolHandlerMsg3;
+
+    typedef std::tuple<
+        BoolHandlerMsg1,
+        BoolHandlerMsg2,
+        BoolHandlerMsg3
+    > BoolHandlerAllMessages;
+
+    class BoolHandler : public comms::GenericHandler<BoolHandlerMsgBase, BoolHandlerAllMessages, bool>
+    {
+        using Base = comms::GenericHandler<BoolHandlerMsgBase, BoolHandlerAllMessages, bool>;
+    public:
+        using Base::handle;
+        virtual bool handle(BoolHandlerMsgBase& msg) override
+        {
+            m_lastId = msg.getId();
+            return true;
+        }
+
+        BoolHandlerMsgBase::MsgIdType getLastId() const
+        {
+            return m_lastId;
+        }
+
+    private:
+        BoolHandlerMsgBase::MsgIdType m_lastId = BoolHandlerMsgBase::MsgIdType();
+    };
+
 };
 
 void MessageTestSuite::test1()
@@ -367,6 +409,7 @@ void MessageTestSuite::test8()
     bool refreshResult = msg.refresh();
     TS_ASSERT(refreshResult);
     TS_ASSERT_EQUALS(msg.length(), 3U);
+    TS_ASSERT_EQUALS(msg.field_value2().getMode(), comms::field::OptionalMode::Exists);
 
     outData.clear();
     outData.resize(msg.length());
@@ -566,6 +609,21 @@ void MessageTestSuite::test12()
         std::equal(
             std::begin(Buf), std::end(Buf), outBuf.begin());
     TS_ASSERT(equal);
+}
+
+void MessageTestSuite::test13()
+{
+    BoolHandlerMsg1 msg1;
+    BoolHandlerMsg2 msg2;
+    BoolHandlerMsg3 msg3;
+
+    BoolHandler handler;
+    TS_ASSERT(msg1.dispatch(handler));
+    TS_ASSERT_EQUALS(handler.getLastId(), msg1.getId());
+    TS_ASSERT(msg2.dispatch(handler));
+    TS_ASSERT_EQUALS(handler.getLastId(), msg2.getId());
+    TS_ASSERT(msg3.dispatch(handler));
+    TS_ASSERT_EQUALS(handler.getLastId(), msg3.getId());
 }
 
 template <typename TMessage>

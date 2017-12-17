@@ -37,4 +37,6 @@
 #define CC_ENABLE_WARNINGS()
 #endif
 
-
+#if !defined(CC_COMPILER_GCC47) && !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ < 8)
+#define CC_COMPILER_GCC47
+#endif

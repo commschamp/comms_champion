@@ -322,14 +322,16 @@ public:
             return comms::ErrorStatus::BufferOverflow;
         }
 
-        return write(iter, count);
+        writeNoStatusN(count, iter);
+        return comms::ErrorStatus::Success;
     }
 
     template <typename TIter>
     void writeNoStatusN(std::size_t count, TIter& iter) const
     {
         count = std::min(count, value_.size());
-        write(iter, count);
+        std::copy_n(value_.begin(), count, iter);
+        doAdvance(iter, count);
     }
 
 private:

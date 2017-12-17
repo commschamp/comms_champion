@@ -115,26 +115,43 @@ protected:
 
 private:
     struct SizeFieldExistsTag {};
+    struct SerLengthFieldExistsTag {};
     struct NoSizeFieldTag {};
 
     typedef typename Field::ParsedOptions FieldOptions;
     typedef typename std::conditional<
         FieldOptions::HasSequenceSizeFieldPrefix,
         SizeFieldExistsTag,
-        NoSizeFieldTag
+        typename std::conditional<
+            FieldOptions::HasSequenceSerLengthFieldPrefix,
+            SerLengthFieldExistsTag,
+            NoSizeFieldTag
+        >::type
     >::type SizeExistanceTag;
 
-    static int maxSizeInternal(SizeFieldExistsTag)
+    template <typename TPrefixField>
+    static int maxSizeByPrefix()
     {
-        typedef typename FieldOptions::SequenceSizeFieldPrefix SizeField;
-        if (sizeof(int) <= SizeField::maxLength()) {
+        if (sizeof(int) <= TPrefixField::maxLength()) {
             return std::numeric_limits<int>::max();
         }
 
         auto shift =
-            SizeField::maxLength() * std::numeric_limits<std::uint8_t>::digits;
+            TPrefixField::maxLength() * std::numeric_limits<std::uint8_t>::digits;
 
         return static_cast<int>((1U << shift) - 1);
+    }
+
+    static int maxSizeInternal(SizeFieldExistsTag)
+    {
+        typedef typename FieldOptions::SequenceSizeFieldPrefix SizeField;
+        return maxSizeByPrefix<SizeField>();
+    }
+
+    static int maxSizeInternal(SerLengthFieldExistsTag)
+    {
+        typedef typename FieldOptions::SequenceSerLengthFieldPrefix LengthField;
+        return maxSizeByPrefix<LengthField>();
     }
 
     int maxSizeInternal(NoSizeFieldTag) const

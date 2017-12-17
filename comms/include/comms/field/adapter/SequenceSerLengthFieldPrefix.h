@@ -61,7 +61,9 @@ public:
     {
         using LenValueType = typename LenField::ValueType;
         auto valLength = BaseImpl::length();
-        return LenField(static_cast<LenValueType>(valLength)).length() + valLength;
+        LenField lenField;
+        lenField.value() = static_cast<LenValueType>(valLength);
+        return lenField.length() + valLength;
     }
 
     static constexpr std::size_t minLength()
@@ -76,9 +78,9 @@ public:
 
     bool valid() const
     {
-        return
-            LenField(BaseImpl::length()).valid() &&
-            BaseImpl::valid();
+        LenField lenField;
+        lenField.value() = BaseImpl::length();
+        return lenField.valid() && BaseImpl::valid();
     }
 
     template <typename TIter>
@@ -106,7 +108,8 @@ public:
     {
         using LenValueType = typename LenField::ValueType;
         auto lenVal = BaseImpl::length();
-        LenField lenField(static_cast<LenValueType>(lenVal));
+        LenField lenField;
+        lenField.value() = static_cast<LenValueType>(lenVal);
         auto es = lenField.write(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -121,7 +124,8 @@ public:
     {
         using LenValueType = typename LenField::ValueType;
         auto lenVal = BaseImpl::length();
-        LenField lenField(static_cast<LenValueType>(lenVal));
+        LenField lenField;
+        lenField.value() = static_cast<LenValueType>(lenVal);
         lenField.writeNoStatus(iter);
         BaseImpl::writeNoStatus(iter);
     }

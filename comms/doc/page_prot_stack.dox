@@ -546,7 +546,7 @@
 /// @endcode
 /// In this case the comms::protocol::ChecksumLayer won't be able to inspect the
 /// written code right away and calculate the checksum value. As the result,
-/// comms::ErrorStatus::Update is expected to be returned. To fix the serialised
+/// @ref comms::ErrorStatus::UpdateRequired is expected to be returned. To fix the serialised
 /// data, random access iterator to the written data needs to be created and 
 /// @b update() member function of the protocol stack invoked.
 ///

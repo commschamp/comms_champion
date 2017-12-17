@@ -90,7 +90,7 @@ public:
     }
     /// @endcond
 
-    /// @brief Deserialise message from the input data sequence.
+    /// @brief Customized read functionality, invoked by @ref read().
     /// @details Reads size of the subsequent data from the input data sequence
     ///          and calls read() member function of the next layer with
     ///          the size specified in the size field.The function will also
@@ -177,7 +177,7 @@ public:
     }
 
 
-    /// @brief Serialise message into the output data sequence.
+    /// @brief Customized write functionality, invoked by @ref write().
     /// @details The function will write number of bytes required to serialise
     ///     the message, then invoke the write() member function of the next
     ///     layer. The calculation of the required length is performed by invoking
@@ -208,7 +208,7 @@ public:
         return writeInternal(field, msg, iter, size, std::forward<TNextLayerWriter>(nextLayerWriter), MsgLengthTag<MsgType>());
     }
 
-    /// @brief Update written dummy size with proper value.
+    /// @brief Customized update functionality, invoked by @ref update().
     /// @details Should be called when @ref doWrite() returns comms::ErrorStatus::UpdateRequired.
     /// @tparam TIter Type of iterator used for updating.
     /// @tparam TNextLayerWriter next layer updater object type.

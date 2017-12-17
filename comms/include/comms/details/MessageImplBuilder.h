@@ -488,6 +488,10 @@ private:
         template <typename TField>
         constexpr bool operator()(bool soFar) const
         {
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4307)
+#endif
             return
                 (TField::minLength() == TField::maxLength()) &&
                 (!TField::ParsedOptions::HasCustomValueReader) &&
@@ -500,6 +504,9 @@ private:
                 (!TField::ParsedOptions::HasSequenceTerminationFieldSuffix) &&
                 soFar;
             ;
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
         }
     };
 

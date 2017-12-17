@@ -34,6 +34,26 @@ FloatValueWrapper::Ptr FloatValueWrapper::clone()
     return cloneImpl();
 }
 
+bool FloatValueWrapper::isNan() const
+{
+    return isNanImpl();
+}
+
+void FloatValueWrapper::setNan()
+{
+    setNanImpl();
+}
+
+bool FloatValueWrapper::isInf() const
+{
+    return isInfImpl();
+}
+
+void FloatValueWrapper::setInf()
+{
+    setInfImpl();
+}
+
 void FloatValueWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

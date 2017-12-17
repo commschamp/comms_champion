@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>443</width>
+    <width>538</width>
     <height>27</height>
    </rect>
   </property>
@@ -46,6 +46,28 @@
         <property name="text">
          <string>Field:</string>
         </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="m_typeComboBox">
+        <property name="toolTip">
+         <string>Type of the value</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>val</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>nan</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>inf</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>

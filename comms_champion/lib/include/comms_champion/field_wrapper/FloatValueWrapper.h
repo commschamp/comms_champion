@@ -89,22 +89,22 @@ protected:
         return Ptr(new FloatValueWrapperT<TField>(Base::field()));
     }
 
-    virtual bool isNanImpl() const
+    virtual bool isNanImpl() const override
     {
         return std::isnan(Base::field().value());
     }
 
-    virtual void setNanImpl()
+    virtual void setNanImpl() override
     {
         Base::field().value() = std::numeric_limits<typename TField::ValueType>::quiet_NaN();
     }
 
-    virtual bool isInfImpl() const
+    virtual bool isInfImpl() const override
     {
         return std::isinf(Base::field().value());
     }
 
-    virtual void setInfImpl()
+    virtual void setInfImpl() override
     {
         Base::field().value() = std::numeric_limits<typename TField::ValueType>::infinity();
     }

@@ -488,10 +488,6 @@ private:
         template <typename TField>
         constexpr bool operator()(bool soFar) const
         {
-#ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4307)
-#endif
             return
                 (TField::minLength() == TField::maxLength()) &&
                 (!TField::ParsedOptions::HasCustomValueReader) &&
@@ -504,11 +500,15 @@ private:
                 (!TField::ParsedOptions::HasSequenceTerminationFieldSuffix) &&
                 soFar;
             ;
-#ifdef _MSC_VER
-#pragma warning( pop )
-#endif
         }
     };
+
+#ifdef _MSC_VER
+// For some reason VS2015 32 bit compiler may generate "integral constant overflow"
+// warning on the code below
+#pragma warning( push )
+#pragma warning( disable : 4307)
+#endif
 
     using StatusTag =
         typename std::conditional<
@@ -516,6 +516,10 @@ private:
             NoStatusTag,
             UseStatusTag
         >::type;
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
     template <typename TIter>
     comms::ErrorStatus doReadInternal(

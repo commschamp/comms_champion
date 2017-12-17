@@ -68,7 +68,7 @@ public:
     /// @brief Destructor
     ~SyncPrefixLayer() noexcept = default;
 
-    /// @brief Deserialise message from the input data sequence.
+    /// @brief Customized read functionality, invoked by @ref read().
     /// @details Reads the "sync" value from the input data. If the read value
     ///     is NOT as expected (doesn't equal to the default constructed
     ///     @ref Field), then comms::ErrorStatus::ProtocolError is returned.
@@ -121,7 +121,7 @@ public:
         return nextLayerReader.read(msgPtr, iter, size - field.length(), missingSize);
     }
 
-    /// @brief Serialise message into the output data sequence.
+    /// @brief Customized write functionality, invoked by @ref write().
     /// @details The function will write proper "sync" value to the output
     ///     buffer, then call the write() function of the next layer.
     /// @tparam TMsg Type of message object.

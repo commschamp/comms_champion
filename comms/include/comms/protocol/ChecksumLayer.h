@@ -92,7 +92,7 @@ public:
     /// @brief Move assignment
     ChecksumLayer& operator=(ChecksumLayer&&) = default;
 
-    /// @brief Deserialise message from the input data sequence.
+    /// @brief Customized read functionality, invoked by @ref read().
     /// @details First, executes the read() member function of the next layer.
     ///     If the call returns comms::ErrorStatus::Success, it calculated the
     ///     checksum of the read data, reads the expected checksum value and
@@ -141,7 +141,7 @@ public:
         return readInternal(field, msgPtr, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), VerifyTag());
     }
 
-    /// @brief Serialise message into the output data sequence.
+    /// @brief Customized write functionality, invoked by @ref write().
     /// @details First, executes the write() member function of the next layer.
     ///     If the call returns comms::ErrorStatus::Success and it is possible
     ///     to re-read what has been written (random access iterator is used
@@ -180,7 +180,7 @@ public:
         return writeInternal(field, msg, iter, size, std::forward<TNextLayerWriter>(nextLayerWriter), Tag());
     }
 
-    /// @brief Update written dummy checksum with proper value.
+    /// @brief Customized update functionality, invoked by @ref update().
     /// @details Should be called when @ref doWrite() returns comms::ErrorStatus::UpdateRequired.
     /// @tparam TIter Type of iterator used for updating.
     /// @tparam TNextLayerWriter next layer updater object type.

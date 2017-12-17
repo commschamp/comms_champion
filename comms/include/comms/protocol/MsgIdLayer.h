@@ -123,7 +123,7 @@ public:
     /// @brief Destructor
     ~MsgIdLayer() noexcept = default;
 
-    /// @brief Deserialise message from the input data sequence.
+    /// @brief Customized read functionality, invoked by @ref read().
     /// @details The function will read message ID from the data sequence first,
     ///     generate appropriate message object based on the read ID and
     ///     forward the read() request to the next layer.
@@ -225,7 +225,7 @@ public:
         return es;
     }
 
-    /// @brief Serialise message into output data sequence.
+    /// @brief Customized write functionality, invoked by @ref write().
     /// @details The function will write ID of the message to the data
     ///     sequence, then call write() member function of the next
     ///     protocol layer. If @b TMsg type is recognised to be actual message

@@ -95,7 +95,7 @@ public:
     /// @brief Move assignment
     ChecksumPrefixLayer& operator=(ChecksumPrefixLayer&&) = default;
 
-    /// @brief Deserialise message from the input data sequence.
+    /// @brief Customized read functionality, invoked by @ref read().
     /// @details First, reads the expected checksum value field, then
     ///     executes the read() member function of the next layer.
     ///     If the call returns comms::ErrorStatus::Success, it calculated the
@@ -154,7 +154,7 @@ public:
         return readInternal(field, msgPtr, iter, size - field.length(), missingSize, std::forward<TNextLayerReader>(nextLayerReader), VerifyTag());
     }
 
-    /// @brief Serialise message into the output data sequence.
+    /// @brief Customized write functionality, invoked by @ref write().
     /// @details First, reserves the appropriate number of bytes in the
     ///     output buffer which are supposed to contain valid checksum
     ///     value, then executes the write() member function of the next layer.
@@ -196,7 +196,7 @@ public:
         return writeInternal(field, msg, iter, size, std::forward<TNextLayerWriter>(nextLayerWriter), Tag());
     }
 
-    /// @brief Update written dummy checksum with proper value.
+    /// @brief Customized update functionality, invoked by @ref update().
     /// @details Should be called when @ref doWrite() returns comms::ErrorStatus::UpdateRequired.
     /// @tparam TIter Type of iterator used for updating.
     /// @tparam TNextLayerWriter next layer updater object type.
@@ -228,36 +228,6 @@ public:
         field.value() = static_cast<FieldValueType>(TCalc()(fromIter, len));
         es = field.write(checksumIter, Field::maxLength());
         return es;
-    }
-
-    /// @brief Update written dummy checksum with proper value while caching the written transport
-    ///     information fields.
-    /// @details Very similar to update() member function, but adds "allFields"
-    ///     parameter to store raw data of the message.
-    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
-    ///     element in the tuple.
-    /// @tparam TAllFields std::tuple of all the transport fields, must be
-    ///     @ref AllFields type defined in the last layer class that defines
-    ///     protocol stack.
-    /// @tparam TIter Type of iterator used for updating.
-    /// @param[out] allFields Reference to the std::tuple object that wraps all
-    ///     transport fields (@ref AllFields type of the last protocol layer class).
-    /// @param[in, out] iter Any random access iterator.
-    /// @param[in] size Max number of bytes that can be written.
-    /// @return Status of the update operation.
-    template <std::size_t TIdx, typename TAllFields, typename TIter>
-    ErrorStatus updateFieldsCached(
-        TAllFields& allFields,
-        TIter& iter,
-        std::size_t size) const
-    {
-        auto& field = BaseImpl::template getField<TIdx>(allFields);
-        return
-            updateInternal(
-                field,
-                iter,
-                size,
-                BaseImpl::template createNextLayerCachedFieldsUpdater<TIdx>(allFields));
     }
 
 private:

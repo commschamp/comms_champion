@@ -36,20 +36,21 @@ namespace protocol
 /// @tparam TField Type of the field that describes the "size" field.
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @headerfile comms/protocol/MsgSizeLayer.h
-template <typename TField,
-          typename TNextLayer>
+template <typename TField, typename TNextLayer>
 class MsgSizeLayer : public
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            MsgSizeLayer<TField, TNextLayer>
+            MsgSizeLayer<TField, TNextLayer>,
+            comms::option::ProtocolLayerDisallowReadUntilDataSplit
         >
 {
     using BaseImpl =
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            MsgSizeLayer<TField, TNextLayer>
+            MsgSizeLayer<TField, TNextLayer>,
+            comms::option::ProtocolLayerDisallowReadUntilDataSplit
         >;
 
 public:

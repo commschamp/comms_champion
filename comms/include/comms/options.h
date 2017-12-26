@@ -1195,6 +1195,20 @@ struct EmptySerialization {};
 /// @details Just British English spelling.
 using EmptySerialisation = EmptySerialization;
 
+/// @brief Option to force @ref comms::protocol::ProtocolLayerBase class to
+///     split read operation "until" and "from" data (payload) layer.
+/// @details Can be used by some layers which require its read operation to be
+///     fully complete before read is forwared to data layer, i.e. until message
+///     contents being read.
+struct ProtocolLayerForceReadUntilDataSplit {};
+
+/// @brief Disallow usage of @ref ProtocolLayerForceReadUntilDataSplit option in
+///     earlier (outer wrapping) layers.
+/// @details Some layers, such as @ref comms::protocol::ChecksumLayer cannot
+///     split their "read" operation to "until" and "from" data layer. They can
+///     use this option to prevent outer layers from using this option.
+struct ProtocolLayerDisallowReadUntilDataSplit {};
+
 }  // namespace option
 
 }  // namespace comms

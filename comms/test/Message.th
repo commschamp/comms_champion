@@ -43,6 +43,7 @@ public:
     void test11();
     void test12();
     void test13();
+    void test14();
 
 private:
 
@@ -86,6 +87,17 @@ private:
     static_assert(std::has_virtual_destructor<LeMessageBase>::value,
         "LeMessageBase is expected to have virtual destructor");
 
+    static_assert(BeMessageBase::hasMsgIdType(), "Wrong interface");
+    static_assert(BeMessageBase::hasEndian(), "Wrong interface");
+    static_assert(BeMessageBase::hasGetId(), "Wrong interface");
+    static_assert(BeMessageBase::hasRead(), "Wrong interface");
+    static_assert(BeMessageBase::hasWrite(), "Wrong interface");
+    static_assert(BeMessageBase::hasValid(), "Wrong interface");
+    static_assert(BeMessageBase::hasLength(), "Wrong interface");
+    static_assert(!BeMessageBase::hasRefresh(), "Wrong interface");
+    static_assert(BeMessageBase::hasDispatch(), "Wrong interface");
+    static_assert(!BeMessageBase::hasTransportFields(), "Wrong interface");
+
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>
@@ -100,6 +112,16 @@ private:
     static_assert(!std::has_virtual_destructor<BeBasicMessageBase>::value,
         "BeBasicMessageBase is expected to NOT have virtual destructor");
 
+    static_assert(BeBasicMessageBase::hasMsgIdType(), "Wrong interface");
+    static_assert(BeBasicMessageBase::hasEndian(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasGetId(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasRead(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasWrite(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasValid(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasLength(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasRefresh(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasDispatch(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasTransportFields(), "Wrong interface");
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
@@ -127,6 +149,17 @@ private:
             WriteOnlyCommonOptions
         > BeWriteOnlyMessageBase;
 
+    static_assert(BeWriteOnlyMessageBase::hasMsgIdType(), "Wrong interface");
+    static_assert(BeWriteOnlyMessageBase::hasEndian(), "Wrong interface");
+    static_assert(!BeWriteOnlyMessageBase::hasGetId(), "Wrong interface");
+    static_assert(!BeWriteOnlyMessageBase::hasRead(), "Wrong interface");
+    static_assert(BeWriteOnlyMessageBase::hasWrite(), "Wrong interface");
+    static_assert(!BeWriteOnlyMessageBase::hasValid(), "Wrong interface");
+    static_assert(!BeWriteOnlyMessageBase::hasLength(), "Wrong interface");
+    static_assert(!BeWriteOnlyMessageBase::hasRefresh(), "Wrong interface");
+    static_assert(!BeWriteOnlyMessageBase::hasDispatch(), "Wrong interface");
+    static_assert(!BeWriteOnlyMessageBase::hasTransportFields(), "Wrong interface");
+
     static_assert(std::has_virtual_destructor<BeWriteOnlyMessageBase>::value,
         "BeWriteOnlyMessageBase is expected to have virtual destructor");
 
@@ -141,6 +174,17 @@ private:
             comms::option::BigEndian,
             LengthOnlyCommonOptions
         > BeLengthOnlyMessageBase;
+
+    static_assert(BeLengthOnlyMessageBase::hasMsgIdType(), "Wrong interface");
+    static_assert(BeLengthOnlyMessageBase::hasEndian(), "Wrong interface");
+    static_assert(!BeLengthOnlyMessageBase::hasGetId(), "Wrong interface");
+    static_assert(!BeLengthOnlyMessageBase::hasRead(), "Wrong interface");
+    static_assert(!BeLengthOnlyMessageBase::hasWrite(), "Wrong interface");
+    static_assert(!BeLengthOnlyMessageBase::hasValid(), "Wrong interface");
+    static_assert(BeLengthOnlyMessageBase::hasLength(), "Wrong interface");
+    static_assert(!BeLengthOnlyMessageBase::hasRefresh(), "Wrong interface");
+    static_assert(!BeLengthOnlyMessageBase::hasDispatch(), "Wrong interface");
+    static_assert(!BeLengthOnlyMessageBase::hasTransportFields(), "Wrong interface");
 
     static_assert(std::has_virtual_destructor<BeLengthOnlyMessageBase>::value,
         "BeLengthOnlyMessageBase is expected to have virtual destructor");
@@ -163,6 +207,17 @@ private:
             comms::option::RefreshInterface
         > BeRefreshableMessageBase;
 
+    static_assert(BeRefreshableMessageBase::hasMsgIdType(), "Wrong interface");
+    static_assert(BeRefreshableMessageBase::hasEndian(), "Wrong interface");
+    static_assert(BeRefreshableMessageBase::hasGetId(), "Wrong interface");
+    static_assert(BeRefreshableMessageBase::hasRead(), "Wrong interface");
+    static_assert(BeRefreshableMessageBase::hasWrite(), "Wrong interface");
+    static_assert(BeRefreshableMessageBase::hasValid(), "Wrong interface");
+    static_assert(BeRefreshableMessageBase::hasLength(), "Wrong interface");
+    static_assert(BeRefreshableMessageBase::hasRefresh(), "Wrong interface");
+    static_assert(BeRefreshableMessageBase::hasDispatch(), "Wrong interface");
+    static_assert(!BeRefreshableMessageBase::hasTransportFields(), "Wrong interface");
+
     static_assert(std::has_virtual_destructor<BeRefreshableMessageBase>::value,
         "BeRefreshableMessageBase is expected to have virtual destructor");
 
@@ -176,6 +231,17 @@ private:
             comms::option::WriteIterator<std::uint8_t*>
         > NoIdMsgBase;
 
+    static_assert(!NoIdMsgBase::hasMsgIdType(), "Wrong interface");
+    static_assert(NoIdMsgBase::hasEndian(), "Wrong interface");
+    static_assert(!NoIdMsgBase::hasGetId(), "Wrong interface");
+    static_assert(NoIdMsgBase::hasRead(), "Wrong interface");
+    static_assert(NoIdMsgBase::hasWrite(), "Wrong interface");
+    static_assert(!NoIdMsgBase::hasValid(), "Wrong interface");
+    static_assert(!NoIdMsgBase::hasLength(), "Wrong interface");
+    static_assert(!NoIdMsgBase::hasRefresh(), "Wrong interface");
+    static_assert(!NoIdMsgBase::hasDispatch(), "Wrong interface");
+    static_assert(!NoIdMsgBase::hasTransportFields(), "Wrong interface");
+
     static_assert(std::has_virtual_destructor<NoIdMsgBase>::value,
         "NoIdMsgBase is expected to have virtual destructor");
 
@@ -186,6 +252,17 @@ private:
             comms::option::ReadIterator<const std::uint8_t*>,
             comms::option::WriteIterator<std::uint8_t*>
         > NoEndianMsgBase;
+
+    static_assert(!NoEndianMsgBase::hasMsgIdType(), "Wrong interface");
+    static_assert(!NoEndianMsgBase::hasEndian(), "Wrong interface");
+    static_assert(!NoEndianMsgBase::hasGetId(), "Wrong interface");
+    static_assert(NoEndianMsgBase::hasRead(), "Wrong interface");
+    static_assert(NoEndianMsgBase::hasWrite(), "Wrong interface");
+    static_assert(!NoEndianMsgBase::hasValid(), "Wrong interface");
+    static_assert(!NoEndianMsgBase::hasLength(), "Wrong interface");
+    static_assert(!NoEndianMsgBase::hasRefresh(), "Wrong interface");
+    static_assert(!NoEndianMsgBase::hasDispatch(), "Wrong interface");
+    static_assert(!NoEndianMsgBase::hasTransportFields(), "Wrong interface");
 
     typedef Message5<NoIdMsgBase> NoEndianMsg5;
 
@@ -229,6 +306,46 @@ private:
         BoolHandlerMsgBase::MsgIdType m_lastId = BoolHandlerMsgBase::MsgIdType();
     };
 
+    static_assert(BoolHandlerMsgBase::hasMsgIdType(), "Wrong interface");
+    static_assert(BoolHandlerMsgBase::hasEndian(), "Wrong interface");
+    static_assert(BoolHandlerMsgBase::hasGetId(), "Wrong interface");
+    static_assert(!BoolHandlerMsgBase::hasRead(), "Wrong interface");
+    static_assert(!BoolHandlerMsgBase::hasWrite(), "Wrong interface");
+    static_assert(!BoolHandlerMsgBase::hasValid(), "Wrong interface");
+    static_assert(!BoolHandlerMsgBase::hasLength(), "Wrong interface");
+    static_assert(!BoolHandlerMsgBase::hasRefresh(), "Wrong interface");
+    static_assert(BoolHandlerMsgBase::hasDispatch(), "Wrong interface");
+    static_assert(!BoolHandlerMsgBase::hasTransportFields(), "Wrong interface");
+
+    typedef std::tuple<
+        comms::field::IntValue<
+            comms::Field<comms::option::BigEndian>,
+            std::uint16_t,
+            comms::option::DefaultNumValue<5>
+        >
+    > ExtraVersionTransport;
+
+    struct ExtraTransportMessageBase : public
+        comms::Message<
+            comms::option::BigEndian,
+            CommonOptions,
+            comms::option::ExtraTransportFields<ExtraVersionTransport>
+        >
+    {
+    public:
+        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version);
+    };
+
+    static_assert(ExtraTransportMessageBase::hasMsgIdType(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasEndian(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasGetId(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasRead(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasWrite(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasValid(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasLength(), "Wrong interface");
+    static_assert(!ExtraTransportMessageBase::hasRefresh(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasDispatch(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasTransportFields(), "Wrong interface");
 };
 
 void MessageTestSuite::test1()
@@ -446,7 +563,6 @@ void MessageTestSuite::test10()
     TS_ASSERT_EQUALS(value2, -1);
 }
 
-
 void MessageTestSuite::test11()
 {
     typedef
@@ -624,6 +740,24 @@ void MessageTestSuite::test13()
     TS_ASSERT_EQUALS(handler.getLastId(), msg2.getId());
     TS_ASSERT(msg3.dispatch(handler));
     TS_ASSERT_EQUALS(handler.getLastId(), msg3.getId());
+}
+
+void MessageTestSuite::test14()
+{
+    static const std::uint8_t Buf[] = {
+        0x12, 0x34, 0xff
+    };
+    static const std::size_t BufSize =
+        std::extent<decltype(Buf)>::value;
+
+    using Msg5 = Message5<ExtraTransportMessageBase>;
+
+    auto msg = internalReadWriteTest<Msg5>(&Buf[0], BufSize);
+    auto value1 = std::get<0>(msg.fields()).value();
+    auto value2 = std::get<1>(msg.fields()).value();
+    TS_ASSERT_EQUALS(value1, 0x1234);
+    TS_ASSERT_EQUALS(value2, -1);
+    TS_ASSERT_EQUALS(msg.transportField_version().value(), 5U);
 }
 
 template <typename TMessage>

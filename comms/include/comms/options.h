@@ -141,6 +141,25 @@ struct MsgType {};
 /// @headerfile comms/options.h
 struct NoDispatchImpl {};
 
+/// @brief Option used to specify some extra fields from transport framing.
+/// @details Some fields from transport framing may influence the way on how
+///     message fields get read or written. It may also have an influence on
+///     how message is handled. This option is intended to provide a list
+///     of such fields, bundled in @b std::tuple, to @ref comms::Message interface
+///     class.
+/// @tparam TFields The fields of the message bundled in std::tuple.
+/// @headerfile comms/options.h
+template <typename TFields>
+struct ExtraTransportFields;
+
+/// @cond SKIP_DOC
+template <typename... TFields>
+struct ExtraTransportFields<std::tuple<TFields...> >
+{
+};
+/// @endcond
+
+
 /// @brief Option used to specify fields of the message and force implementation
 ///     of default read, write, validity check, and length retrieval information
 ///     of the message.

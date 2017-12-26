@@ -47,6 +47,7 @@ public:
     static const bool HasLength = false;
     static const bool HasRefresh = false;
     static const bool HasNoVirtualDestructor = false;
+    static const bool HasExtraTransportFields = false;
 };
 
 template <typename T, typename... TOptions>
@@ -143,6 +144,17 @@ class MessageInterfaceOptionsParser<
 public:
     static const bool HasNoVirtualDestructor = true;
 };
+
+template <typename TFields, typename... TOptions>
+class MessageInterfaceOptionsParser<
+    comms::option::ExtraTransportFields<TFields>,
+    TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
+{
+public:
+    static const bool HasExtraTransportFields = true;
+    using ExtraTransportFields = TFields;
+};
+
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<

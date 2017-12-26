@@ -782,7 +782,7 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
     return msg;
 }
 
-/// @brief Add convenience access enum, structs and functions to message fields.
+/// @brief Add convenience access enum and functions to message fields.
 /// @details The comms::MessageBase class provides access to its fields via
 ///     comms::MessageBase::fields() member function(s). The fields are bundled
 ///     into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
@@ -805,9 +805,7 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 ///         COMMS_MSG_FIELDS_ACCESS(name1, name2, name3);
 ///     };
 ///     @endcode
-///     The usage of the COMMS_MSG_FIELDS_ACCESS() macro with type of the base
-///     class (a variant of comms::MessageBase with comms::option::FieldsImpl option)
-///     as the first parameter followed by the list of the field's names
+///     The usage of the COMMS_MSG_FIELDS_ACCESS() macro with the list of the field's names
 ///     is equivalent to having the following definitions inside the message class
 ///     @code
 ///     class Message1 : public comms::MessageBase<...>
@@ -825,39 +823,39 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 ///             "Number of expected fields is incorrect");
 ///
 ///         // Accessor to "name1" field.
-///         auto field_name1() -> decltype(std::get<FieldIdx_name1>(value()))
+///         auto field_name1() -> decltype(std::get<FieldIdx_name1>(Base::fields()))
 ///         {
-///             return std::get<FieldIdx_name1>(value());
+///             return std::get<FieldIdx_name1>(Base::fields());
 ///         }
 ///
 ///         // Accessor to "name1" field.
-///         auto field_name1() const -> decltype(std::get<FieldIdx_name1>(value()))
+///         auto field_name1() const -> decltype(std::get<FieldIdx_name1>(Base::fields()))
 ///         {
-///             return std::get<FieldIdx_name1>(value());
+///             return std::get<FieldIdx_name1>(Base::fields());
 ///         }
 ///
 ///         // Accessor to "name2" field.
-///         auto field_name2() -> decltype(std::get<FieldIdx_name2>(value()))
+///         auto field_name2() -> decltype(std::get<FieldIdx_name2>(Base::fields()))
 ///         {
-///             return std::get<FieldIdx_name2>(value());
+///             return std::get<FieldIdx_name2>(Base::fields());
 ///         }
 ///
 ///         // Accessor to "name2" field.
-///         auto field_name2() const -> decltype(std::get<FieldIdx_name2>(value()))
+///         auto field_name2() const -> decltype(std::get<FieldIdx_name2>(Base::fields()))
 ///         {
-///             return std::get<FieldIdx_name2>(value());
+///             return std::get<FieldIdx_name2>(Base::fields());
 ///         }
 ///
 ///         // Accessor to "name3" field.
-///         auto field_name3() -> decltype(std::get<FieldIdx_name3>(value()))
+///         auto field_name3() -> decltype(std::get<FieldIdx_name3>(Base::fields()))
 ///         {
-///             return std::get<FieldIdx_name3>(value());
+///             return std::get<FieldIdx_name3>(Base::fields());
 ///         }
 ///
 ///         // Accessor to "name3" field.
-///         auto field_name3() const -> decltype(std::get<FieldIdx_name3>(value()))
+///         auto field_name3() const -> decltype(std::get<FieldIdx_name3>(Base::fields()))
 ///         {
-///             return std::get<FieldIdx_name3>(value());
+///             return std::get<FieldIdx_name3>(Base::fields());
 ///         }
 ///     };
 ///     @endcode
@@ -872,9 +870,9 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
 ///     void handle(Message1& msg)
 ///     {
 ///         auto& allFields = msg.fields();
-///         auto& field1 = std::get<MyMessage::FieldIdx_name1>(allFields);
-///         auto& field2 = std::get<MyMessage::FieldIdx_name2>(allFields);
-///         auto& field3 = std::get<MyMessage::FieldIdx_name3>(allFields);
+///         auto& field1 = std::get<Message1::FieldIdx_name1>(allFields);
+///         auto& field2 = std::get<Message1::FieldIdx_name2>(allFields);
+///         auto& field3 = std::get<Message1::FieldIdx_name3>(allFields);
 ///
 ///         auto value1 = field1.value();
 ///         auto value2 = field2.value();

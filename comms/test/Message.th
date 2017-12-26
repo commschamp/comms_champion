@@ -332,6 +332,12 @@ private:
             comms::option::ExtraTransportFields<ExtraVersionTransport>
         >
     {
+        using Base =
+            comms::Message<
+                comms::option::BigEndian,
+                CommonOptions,
+                comms::option::ExtraTransportFields<ExtraVersionTransport>
+            >;
     public:
         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version);
     };

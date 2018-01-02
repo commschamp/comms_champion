@@ -310,7 +310,7 @@ public:
     }
 
     /// @brief Perform read of data fields until data layer (message payload).
-    /// @details Same as @read by stops read operation when data layer is reached.
+    /// @details Same as @b read by stops read operation when data layer is reached.
     ///     Expected to be followed by a call to @ref readFromData().
     /// @tparam TMsgPtr Type of smart pointer that holds message object.
     /// @tparam TIter Type of iterator used for reading.

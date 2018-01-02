@@ -1206,7 +1206,8 @@ struct ProtocolLayerForceReadUntilDataSplit {};
 ///     earlier (outer wrapping) layers.
 /// @details Some layers, such as @ref comms::protocol::ChecksumLayer cannot
 ///     split their "read" operation to "until" and "from" data layer. They can
-///     use this option to prevent outer layers from using this option.
+///     use this option to prevent outer layers from using
+///     @ref ProtocolLayerForceReadUntilDataSplit one.
 struct ProtocolLayerDisallowReadUntilDataSplit {};
 
 }  // namespace option

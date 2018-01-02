@@ -509,6 +509,153 @@
 /// virtual function. The message object that require proper "refresh" functionality
 /// may just override it with proper implementation.
 ///
+/// @subsection page_message_tutorial_interface_extra_transport Extra Transport Values
+/// Some protocols may use extra values in their transport information, which
+/// may influence the way how message payload is being read and/or message 
+/// object being handled. Good example would be having a protocol version, which
+/// defines what message payload fields were serialised and which were not (because
+/// they were introduced in later version of the protocol).
+/// Such extra information needs to be stored in the message object itself.
+/// The most straightforward way of achieving this is to define appropriate API
+/// functions and member fields in common message interface class:
+/// @code
+/// class MyMessage : public comms::Message<...>
+/// {
+/// public:
+///     unsigned getVersion() const { return m_version; }
+///     void setVersion(unsigned value) { m_version = value; }
+/// private:
+///     unsigned m_version = 0;
+/// @endcode
+/// @b HOWEVER, it will require implementation of a custom protocol transport layer
+/// (See @ref page_prot_stack_tutorial_new_layers) that reads the required value
+/// and re-assigns it to the message object using appropriate API function. The
+/// COMMS library has a built-in way to automate such assignments (see 
+/// @ref page_prot_stack_tutorial_transport_value section in @ref page_prot_stack_tutorial). 
+/// In order to support usage
+/// of @ref comms::protocol::TransportValueLayer the message interface class must
+/// define "extra transport fields".
+///
+/// First, such extra transport field(s) must be defined using a field abstraction
+/// (see @ref page_field_tutorial) and bundled in @b std::tuple:
+/// @code
+/// // Base class of all the fields
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///
+/// // Field describing protocol version.
+/// using MyVersionField = comms::field::IntValue<MyFieldBase, std::uint16_t>;
+///
+/// // Relevant extra transport fields, bundled in std::tuple
+/// using MyExtraTransportFields =
+///     std::tuple<
+///         MyVersionField
+///     >;
+/// @endcode
+///
+/// Second, provide the defined tuple to message interface class using 
+/// @ref comms::option::ExtraTransportFields option.
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>
+///     >
+/// {
+/// };
+/// @endcode
+/// It is equivalent to having the following public interface defined:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Type of extra fields
+///     using TransportFields = MyExtraTransportFields;
+///
+///     // Accessors for defined transport fields
+///     TransportFields& transportFields() { return m_transportFields; }
+///     const TransportFields& transportFields() const { return m_transportFields; }
+///
+/// private:
+///     TransportFields m_transportFields;
+/// };
+/// @endcode
+/// An access to the version information, given a reference to the message object
+/// will look like this:
+/// @code
+/// void handle(MyMessage& msg)
+/// {
+///     // Access to tuple of extra transport fields
+///     auto& extraTransportFields = msg.transportFields();
+///
+///     // Access the version field
+///     auto& versionField = std::get<0>(extraTransportFields);
+///
+///     // Retrieve the version numeric value
+///     auto versionValue = versionField.value();
+///
+///     ... // do something with version information
+/// }
+/// @endcode
+/// The version information may be accessed in the same way when implementing
+/// @ref page_message_tutorial_impl_custom_read and acted accordingly.
+///
+/// @b NOTE, that example above accesses the index of the field within the holding
+/// tuple. For convenience, the COMMS library defines 
+/// COMMS_MSG_TRANSPORT_FIELDS_ACCESS() macro which allows provding meaningful
+/// names to the extra transport fields:
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>
+///     >
+/// {
+/// public:
+///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version)
+/// };
+/// @endcode
+/// Using such macro is equivalent to manually defining the following public
+/// interface:
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>
+///     >
+/// {
+/// public:
+///     enum TransportFieldIdx
+///     {
+///         TransportFieldIdx_version,
+///         TransportFieldIdx_numOfValues
+///     };
+///
+///     auto transportField_version() -> decltype(std::get<TransportFieldIdx_version>(transportFields()))
+///     {
+///         return std::get<TransportFieldIdx_version>(transportFields());
+///     }
+///
+///     auto transportField_version() const -> decltype(std::get<TransportFieldIdx_version>(transportFields()))
+///     {
+///         return std::get<TransportFieldIdx_version>(transportFields());
+///     }
+/// };
+/// @endcode
+/// Access to the version information given a reference to message object may
+/// now be implemented as:
+/// @code
+/// void handle(MyMessage& msg)
+/// {
+///     // Retrieve the version numeric value
+///     auto versionValue = msg.transportField_version().value();
+///
+///     ... // do something with version information
+/// @endcode
+/// @b NOTE, that the defined "extra transport fields" are there to attach 
+/// some extra information, delivered as part of transport framing, to message 
+/// object itself. These fields are @b NOT getting serialised / deserialised when message
+/// object being read / written.
+///
 /// @subsection page_message_tutorial_interface_summary Interface Options Summary
 /// All the options introduced above can be used in any order. They can also
 /// be repeated multiple times. However, the option that was defined first takes

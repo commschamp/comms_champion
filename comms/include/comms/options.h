@@ -1159,6 +1159,12 @@ using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValida
 template<comms::field::OptionalMode TVal>
 using DefaultOptionalMode = DefaultValueInitialiser<details::DefaultOptModeInitialiser<TVal> >;
 
+/// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Missing>
+using OptionalMissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing>;
+
+/// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Exists>
+using OptionalExistsByDefault = DefaultOptionalMode<comms::field::OptionalMode::Exists>;
+
 /// @brief Alias to DefaultValueInitialiser, it initalises comms::field::Variant field
 ///     to contain valid default value of the specified member.
 /// @tparam TIdx Index of the default member.

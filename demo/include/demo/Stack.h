@@ -122,8 +122,12 @@ using Stack =
                     MsgIdField,
                     TMsgBase,
                     TMessages,
-                    comms::protocol::MsgDataLayer<
-                        DataField<TDataFieldStorageOptions>
+                    comms::protocol::TransportValueLayer<
+                        VersionField,
+                        Message<>::TransportFieldIdx_version,
+                        comms::protocol::MsgDataLayer<
+                            DataField<TDataFieldStorageOptions>
+                        >
                     >,
                     TMsgAllocOptions
                 >

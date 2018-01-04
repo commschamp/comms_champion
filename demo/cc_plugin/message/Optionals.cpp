@@ -75,12 +75,27 @@ QVariantMap createField3Properties()
             .asMap();
 }
 
+QVariantMap createField4Properties()
+{
+    static const char* Name = "field4";
+    return
+        cc::property::field::ForField<OptionalsFields::field4>()
+            .name(Name)
+            .field(
+                cc::property::field::ForField<OptionalsFields::field4::Field>()
+                    .name(Name)
+                    .asMap())
+            .uncheckable()
+            .asMap();
+}
+
 QVariantList createFieldsProperties()
 {
     QVariantList props;
     props.append(createField1Properties());
     props.append(createField2Properties());
     props.append(createField3Properties());
+    props.append(createField4Properties());
 
     assert(props.size() == Optionals::FieldIdx_numOfValues);
     return props;

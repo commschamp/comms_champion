@@ -23,11 +23,31 @@
 #include <cstdint>
 
 #include "comms/Message.h"
+#include "comms/field/IntValue.h"
+#include "comms/Field.h"
 
 #include "MsgId.h"
 
 namespace demo
 {
+
+/// @brief Endian option for the protocol
+using ProtocolEndian = comms::option::BigEndian;
+
+/// @brief Field containing version information
+using VersionField =
+    comms::field::IntValue<
+        comms::Field<ProtocolEndian>,
+        std::uint8_t,
+        comms::option::DefaultNumValue<1>,
+        comms::option::ValidNumValueRange<0, 1>
+    >;
+
+/// @brief Extra transport fields that every message object will contain
+using ExtraTransportFields =
+    std::tuple<
+        VersionField
+    >;
 
 /// @brief Interface class of all the Demo binary protocol messages.
 /// @details Defined as alias to @b comms::Message
@@ -40,12 +60,30 @@ namespace demo
 /// @tparam TOptions Zero or more extra options to be passed to @b comms::Message
 ///     to define the interface.
 template <typename... TOptions>
-using Message =
+struct Message : public
     comms::Message<
-        comms::option::BigEndian,
+        ProtocolEndian,
         comms::option::MsgIdType<MsgId>,
+        comms::option::ExtraTransportFields<ExtraTransportFields>,
         TOptions...
-    >;
+    >
+{
+    using Base =
+        comms::Message<
+            ProtocolEndian,
+            comms::option::MsgIdType<MsgId>,
+            comms::option::ExtraTransportFields<ExtraTransportFields>,
+            TOptions...
+        >;
+public:
+
+    /// @brief Allow access to extra transport fields.
+    /// @details See definition of @b COMMS_MSG_TRANSPORT_FIELDS_ACCESS macro
+    ///     related to @b comms::Message class from COMMS library
+    ///     for details.
+    ///
+    COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version);
+};
 
 }  // namespace demo
 

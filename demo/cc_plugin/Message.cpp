@@ -17,14 +17,42 @@
 
 #include "Message.h"
 
+#include <cassert>
+
+namespace cc = comms_champion;
+
 namespace demo
 {
 
 namespace cc_plugin
 {
 
+namespace
+{
+
+static QVariantList createFieldsProperties()
+{
+    QVariantList props;
+    props.append(cc::property::field::IntValue().name("Version").serialisedHidden().asMap());
+
+    assert(props.size() == demo::Message<>::TransportFieldIdx_numOfValues);
+    return props;
+}
+
+} // namespace
+
 Message::Message() = default;
 Message::~Message() noexcept = default;
+
+const QVariantList& Message::extraTransportFieldsPropertiesImpl() const
+{
+    if (getId() != demo::MsgId_Optionals) {
+        return Base::extraTransportFieldsPropertiesImpl();
+    }
+
+    static const QVariantList Props = createFieldsProperties();
+    return Props;
+}
 
 QString Message::idAsStringImpl() const
 {

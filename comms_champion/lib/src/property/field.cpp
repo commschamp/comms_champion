@@ -59,6 +59,12 @@ const QString& readOnlyKey()
     return Str;
 }
 
+const QString& hiddenWhenReadOnlyKey()
+{
+    static const QString Str("cc.hidden_when_read_only");
+    return Str;
+}
+
 const QString& floatDecimalsKey()
 {
     static const QString Str("cc.float_dec");
@@ -138,6 +144,11 @@ bool Common::isReadOnly() const
     return m_readOnly;
 }
 
+bool Common::isHiddenWhenReadOnly() const
+{
+    return m_hiddenWhenReadOnly;
+}
+
 void Common::setName(const QString& value)
 {
     m_name = value;
@@ -163,12 +174,18 @@ void Common::readOnly(bool value)
     m_readOnly = value;
 }
 
+void Common::hiddenWhenReadOnly(bool value)
+{
+    m_hiddenWhenReadOnly = value;
+}
+
 void Common::setTo(QVariantMap& props) const
 {
     setElemTo(m_name, nameKey(), props);
     setElemTo(m_hidden, fieldHiddenKey(), props);
     setElemTo(m_serialisedHidden, serialisedHiddenKey(), props);
     setElemTo(m_readOnly, readOnlyKey(), props);
+    setElemTo(m_hiddenWhenReadOnly, hiddenWhenReadOnlyKey(), props);
 }
 
 void Common::getFrom(const QVariantMap& props)
@@ -177,6 +194,7 @@ void Common::getFrom(const QVariantMap& props)
     m_hidden = getElemFrom<decltype(m_hidden)>(props, fieldHiddenKey());
     m_serialisedHidden = getElemFrom<decltype(m_serialisedHidden)>(props, serialisedHiddenKey());
     m_readOnly = getElemFrom<decltype(m_readOnly)>(props, readOnlyKey());
+    m_hiddenWhenReadOnly = getElemFrom<decltype(m_hiddenWhenReadOnly)>(props, hiddenWhenReadOnlyKey());
 }
 
 IntValue::IntValue() = default;

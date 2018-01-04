@@ -82,6 +82,9 @@ public:
     /// @brief Check whether the field cannot be modified.
     bool isReadOnly() const;
 
+    /// @brief Check the field is hidden when readOnly
+    bool isHiddenWhenReadOnly() const;
+
 protected:
 
     /// @brief Update the name value
@@ -98,6 +101,9 @@ protected:
 
     /// @brief Set whether the field cannot be modified
     void readOnly(bool value = true);
+
+    /// @brief Set whether the field must be hidden when cannot be modified
+    void hiddenWhenReadOnly(bool value = true);
 
     /// @brief Copy all the properties value into provided properties map
     void setTo(QVariantMap& props) const;
@@ -139,6 +145,7 @@ private:
     bool m_hidden = false;
     bool m_serialisedHidden = false;
     bool m_readOnly = false;
+    bool m_hiddenWhenReadOnly = false;
 };
 
 /// @brief Intermediate helper class to define properties describing one
@@ -212,6 +219,14 @@ public:
     TDerived& readOnly(bool value = true)
     {
         Base::readOnly(value);
+        return static_cast<TDerived&>(*this);
+    }
+
+    /// @brief Set whether the field must be hidden when cannot be modified
+    /// @return `*this`
+    TDerived& hiddenWhenReadOnly(bool value = true)
+    {
+        Base::hiddenWhenReadOnly(value);
         return static_cast<TDerived&>(*this);
     }
 };

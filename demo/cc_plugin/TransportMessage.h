@@ -28,16 +28,21 @@ namespace demo
 namespace cc_plugin
 {
 
+using TransportMessageFields =
+    std::tuple<
+        demo::SyncField,
+        demo::LengthField,
+        demo::MsgIdField,
+        demo::VersionField,
+        demo::DataField<>,
+        demo::ChecksumField
+    >;
+
+
 class TransportMessage : public
     comms_champion::TransportMessageBase<
         cc_plugin::Message,
-        std::tuple<
-            demo::SyncField,
-            demo::LengthField,
-            demo::MsgIdField,
-            demo::DataField<>,
-            demo::ChecksumField
-        >
+        TransportMessageFields
     >
 {
 public:
@@ -46,10 +51,14 @@ public:
         FieldIdx_Sync,
         FieldIdx_Len,
         FieldIdx_Id,
+        FieldIdx_Version,
         FieldIdx_Payload,
         FieldIdx_Checksum,
         FieldIdx_NumOfValues
     };
+
+    static_assert(FieldIdx_NumOfValues == std::tuple_size<TransportMessageFields>::value,
+            "Wrong indices");
 
     TransportMessage() = default;
     TransportMessage(const TransportMessage&) = default;

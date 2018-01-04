@@ -37,6 +37,11 @@ const char* Message::name() const
     return nameImpl();
 }
 
+const QVariantList& Message::extraTransportFieldsProperties() const
+{
+    return extraTransportFieldsPropertiesImpl();
+}
+
 const QVariantList& Message::fieldsProperties() const
 {
     return fieldsPropertiesImpl();
@@ -80,6 +85,12 @@ Message::DataSeq Message::encodeData() const
 bool Message::decodeData(const DataSeq& data)
 {
     return decodeDataImpl(data);
+}
+
+const QVariantList& Message::extraTransportFieldsPropertiesImpl() const
+{
+    static const QVariantList Props;
+    return Props;
 }
 
 const QVariantList& Message::fieldsPropertiesImpl() const

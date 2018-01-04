@@ -48,6 +48,7 @@ public:
 protected:
 
     virtual void beginMsgHandlingImpl(Message& msg) override;
+    virtual void addExtraTransportFieldImpl(FieldWrapperPtr wrapper) override;
     virtual void addFieldImpl(FieldWrapperPtr wrapper) override;
 
 private:

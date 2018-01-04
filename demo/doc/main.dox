@@ -13,12 +13,14 @@
 /// contents (PAYLOAD) of every message is wrapped in the following
 /// transport data:
 /// @code
-/// SYNC | LENGTH | ID | PAYLOAD | CHECKSUM
+/// SYNC | LENGTH | ID | VERSION | PAYLOAD | CHECKSUM
 /// @endcode
 /// where
 /// @li @b SYNC (2 bytes) is synchronisation sequence <b>0xab 0xbc</b>.
 /// @li @b LENGTH (2 bytes) the length remaining data (including checksum) in bytes.
 /// @li @b ID (1 byte) is the ID of the message. See @ref demo::MsgId.
+/// @li @b VERSION (1 byte) is the version of the protocol, may control existence
+///     of some fields.
 /// @li @b PAYLOAD is serialised contents of the message
 /// @li @b CHECKSUM (2 bytes) is the checksum of all the bytes between @b LENGTH and
 /// @b PAYLOAD (including both). The checksum is calculated as a summary of

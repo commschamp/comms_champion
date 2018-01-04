@@ -53,6 +53,7 @@ public:
     void handle(TMessage& msg)
     {
         beginMsgHandlingImpl(msg);
+        addExtraTransportFieldsInternal(msg);
         auto& fields = msg.fields();
         comms::util::tupleForEach(
             fields,
@@ -68,6 +69,10 @@ protected:
     /// @brief Polymorphic report about starting message handling
     /// @param[in] msg Reference to message object.
     virtual void beginMsgHandlingImpl(Message& msg);
+
+    /// @brief Polymorphic request to add handling of the extra transport field.
+    /// @param [in] wrapper Pointer to field wrapper.
+    virtual void addExtraTransportFieldImpl(FieldWrapperPtr wrapper);
 
     /// @brief Polymorphic request to add handling of the message field.
     /// @param [in] wrapper Pointer to field wrapper.
@@ -98,6 +103,43 @@ private:
     private:
         WrapperDispatchFunc m_dispatchOp;
     };
+
+    struct HasExtraTransportFieldsTag {};
+    struct NoExtraTransportFieldsTag {};
+
+    template <typename TMessage>
+    void addExtraTransportFieldsInternal(TMessage& msg)
+    {
+        using MessageType = typename std::decay<decltype(msg)>::type;
+        using Tag =
+            typename std::conditional<
+                MessageType::hasTransportFields(),
+                HasExtraTransportFieldsTag,
+                NoExtraTransportFieldsTag
+            >::type;
+
+        addExtraTransportFieldsInternal(msg, Tag());
+    }
+
+    template <typename TMessage>
+    void addExtraTransportFieldsInternal(TMessage&, NoExtraTransportFieldsTag)
+    {
+        // do nothing
+    }
+
+    template <typename TMessage>
+    void addExtraTransportFieldsInternal(TMessage& msg, HasExtraTransportFieldsTag)
+    {
+        auto& fields = msg.transportFields();
+        comms::util::tupleForEach(
+            fields,
+            FieldsWrapperCreateHelper(
+                [this](FieldWrapperPtr wrapper)
+                {
+                    addExtraTransportFieldImpl(std::move(wrapper));
+                }));
+    }
+
 };
 
 }  // namespace comms_champion

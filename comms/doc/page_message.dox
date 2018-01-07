@@ -91,7 +91,7 @@
 ///         >;
 ///     @endcode
 /// @li If the definition of the common interface class using comms::Message 
-///     doesn't have any virtual function, but still requires and ability to 
+///     doesn't have any virtual function, but still requires an ability to 
 ///     be polymorphically deleted, i.e. must have virtual destructor, just 
 ///     inherit from comms::Message and define the destructor as virtual.
 ///     @code
@@ -181,6 +181,12 @@
 /// @b writeData() member functions which can be used to serialise stored value.
 /// The internal @b Field type definition inside the
 /// @b MyMessage interface class may be used as such.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasEndian()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the endian specifying option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///  
 /// @subsection page_message_tutorial_interface_id_type Type of Message ID
 /// Every message must have an ID. Most communication protocols define it
@@ -225,6 +231,12 @@
 /// However, if some other type is used, such as std::string, then @b MsgIdParamType
 /// is a const-reference to @b MsgIdType.
 ///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasMsgIdType()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::MsgIdType option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types.
+///
 /// @subsection page_message_tutorial_interface_id_retrieve Polymorphic Retrieval of Message ID
 /// When there is a need to be able to polymorphically retrieve message ID,
 /// the comms::option::IdInfoInterface option needs to be used in addition
@@ -255,6 +267,12 @@
 /// The usage of comms::option::IdInfoInterface without comms::option::MsgIdType
 /// will be ignored, and @b getId() as well as @b getIdImpl() member functions
 /// won't be created.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasGetId()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::IdInfoInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
 ///
 /// @subsection page_message_tutorial_interface_read Polymorphic Read of Payload (Deserialisation)
 /// If the implementation requires polymorphic read and process of input messages, the @b read()
@@ -313,6 +331,11 @@
 ///     return bytesCount;
 /// }
 /// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasRead()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ReadIterator option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///
 /// @subsection page_message_tutorial_interface_write Polymorphic Write of Payload (Serialisation)
 /// If the implementation requires polymorhpic serialisation of the messages and sending them over I/O
@@ -358,6 +381,12 @@
 /// being chosen as @b WriteIterator). @n
 /// Also @b note, that iterator is passed by reference, which allows advancing 
 /// operator when write operation is performed. 
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasWrite()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::WriteIterator option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///
 /// @subsection page_message_tutorial_interface_handle Polymorphic Dispatch Message for Handling
 /// When new data arrives on I/O link, the <b>Protocol Stack</b>
@@ -409,6 +438,12 @@
 /// More details about dispatching will be provided below in @ref page_message_tutorial_impl_msg_type
 /// section.
 ///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasDispatch()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::Handler option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
+///
 /// @subsection page_message_tutorial_interface_length Polymorphic Serialisation Length Retrieval
 /// Sometimes it may be needed to polymorphically retrieve the serialisation length of the message
 /// in order to be able to reserve or allocate enough space for output buffer.
@@ -436,6 +471,11 @@
 ///     virtual std::size_t lengthImpl() const = 0; // Must be implemented in the derived class
 /// };
 /// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasLength()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::LengthInfoInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
 ///
 /// @subsection page_message_tutorial_interface_valid Polymorphic Validity Check
 /// Sometimes it may be needed to be able to check whether the message contents
@@ -466,6 +506,11 @@
 ///     }
 /// };
 /// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasValid()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ValidCheckInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
 ///
 /// @subsection page_message_tutorial_interface_refresh Keeping Message Contents in a Consistent State
 /// Some communication protocol may define fields that depend on other fields.
@@ -508,6 +553,12 @@
 /// Also note, that interface provide default implementation of @b refreshImpl()
 /// virtual function. The message object that require proper "refresh" functionality
 /// may just override it with proper implementation.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasRefresh()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::RefreshInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
 ///
 /// @subsection page_message_tutorial_interface_extra_transport Extra Transport Values
 /// Some protocols may use extra values in their transport information, which
@@ -655,6 +706,12 @@
 /// some extra information, delivered as part of transport framing, to message 
 /// object itself. These fields are @b NOT getting serialised / deserialised when message
 /// object being read / written.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasTransportFields()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ExtraTransportFields option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///
 /// @subsection page_message_tutorial_interface_summary Interface Options Summary
 /// All the options introduced above can be used in any order. They can also
@@ -1043,6 +1100,9 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// It is possible to inhibit the generation of @ref comms::MessageBase::readImpl()
+/// by passing @ref comms::option::NoReadImpl option to the @ref comms::MessageBase
+/// class.
 ///
 /// @subsubsection page_message_tutorial_impl_fields_write Polymorhic Write Implementation
 /// If message interface class allowed polymorphic write (see
@@ -1086,6 +1146,9 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// It is possible to inhibit the generation of @ref comms::MessageBase::writeImpl()
+/// by passing @ref comms::option::NoWriteImpl option to the @ref comms::MessageBase
+/// class.
 ///
 /// @subsubsection page_message_tutorial_impl_fields_length Polymorphic Length Calculation
 /// If message interface class allowed polymorphic length calculation (see
@@ -1123,6 +1186,9 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// It is possible to inhibit the generation of @ref comms::MessageBase::lengthImpl()
+/// by passing @ref comms::option::NoLengthImpl option to the @ref comms::MessageBase
+/// class.
 ///
 /// @subsubsection page_message_tutorial_impl_fields_valid Polymorphic Validity Check
 /// If message interface class allowed polymorphic validity check (see
@@ -1160,6 +1226,10 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// It is possible to inhibit the generation of @ref comms::MessageBase::validImpl()
+/// by passing @ref comms::option::NoValidImpl option to the @ref comms::MessageBase
+/// class.
+///
 /// @subsubsection page_message_tutorial_impl_fields_refresh Polymorphic Refreh
 /// If message interface class allowed polymorphic refresh (see
 /// @ref page_message_tutorial_interface_refresh), the comms::MessageBase will

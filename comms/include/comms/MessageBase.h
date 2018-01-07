@@ -86,7 +86,6 @@ class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
     using BaseImpl = details::MessageImplBuilderT<TMessage, TOptions...>;
 public:
     /// @brief All the options provided to this class bundled into struct.
-    /// @details See @ref page_message_options_impl for reference.
     using ImplOptions = details::MessageImplOptionsParser<TOptions...>;
 
 #ifdef FOR_DOXYGEN_DOC_ONLY

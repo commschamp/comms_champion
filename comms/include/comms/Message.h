@@ -82,7 +82,6 @@ class Message : public details::MessageInterfaceBuilderT<TOptions...>
 public:
 
     /// @brief All the options bundled into struct.
-    /// @details See @ref page_message_options_interface for reference.
     using InterfaceOptions = details::MessageInterfaceOptionsParser<TOptions...>;
 
     /// @brief Destructor.

@@ -48,19 +48,21 @@ namespace field
 ///     consume 2 bytes (because sizeof(std::uint16_t) == 2) and will
 ///     be serialised using big endian notation.@n
 ///     Supported options are:
-///     @li comms::option::FixedLength
-///     @li comms::option::FixedBitLength
-///     @li comms::option::VarLength
-///     @li comms::option::NumValueSerOffset
-///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
-///     @li comms::option::ContentsValidator
-///     @li comms::option::ValidNumValueRange, comms::option::ValidNumValue,
-///         comms::option::ValidBigUnsignedNumValueRange or comms::option::ValidBigUnsignedNumValue
-///     @li comms::option::ContentsRefresher
-///     @li comms::option::FailOnInvalid
-///     @li comms::option::IgnoreInvalid
-///     @li comms::option::ScalingRatio
-///     @li comms::option::Units* - all variants of value units, see
+///     @li @ref comms::option::FixedLength
+///     @li @ref comms::option::FixedBitLength
+///     @li @ref comms::option::VarLength
+///     @li @ref comms::option::NumValueSerOffset
+///     @li @ref comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
+///     @li @ref comms::option::ContentsValidator
+///     @li @ref comms::option::ValidNumValueRange, @ref comms::option::ValidNumValue,
+///         @ref comms::option::ValidNumValueRangeOverride, @ref comms::option::ValidNumValueOverride
+///         @ref comms::option::ValidBigUnsignedNumValueRange, @ref comms::option::ValidBigUnsignedNumValue
+///         @ref comms::option::ValidBigUnsignedNumValueRangeOverride, @ref comms::option::ValidBigUnsignedNumValueOverride
+///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::FailOnInvalid
+///     @li @ref comms::option::IgnoreInvalid
+///     @li @ref comms::option::ScalingRatio
+///     @li @b comms::option::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
 ///     @li comms::option::EmptySerialization
 /// @extends comms::Field

@@ -1109,10 +1109,25 @@ struct ValidNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
+/// @brief Similar to \\ref ValidNumValueRange, but overrides (nullifies)
+///     all previously set valid values ranges.
+/// @see @ref ValidNumValueOverride
+/// @see @ref ValidBigUnsignedNumValueRangeOverride
+template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
+struct ValidNumValueRangeOverride
+{
+    static_assert(TMinValue <= TMaxValue, "Invalid range");
+};
+
 /// @brief Alias to @ref ValidNumValueRange.
 /// @details Equivalent to @b ValidNumValueRange<TValue, TValue>
 template<std::intmax_t TValue>
 using ValidNumValue = ValidNumValueRange<TValue, TValue>;
+
+/// @brief Alias to @ref ValidNumValueRangeOverride.
+/// @details Equivalent to @b ValidNumValueRangeOverride<TValue, TValue>
+template<std::intmax_t TValue>
+using ValidNumValueOverride = ValidNumValueRangeOverride<TValue, TValue>;
 
 /// @brief Provide range of valid unsigned numeric values.
 /// @details Similar to @ref ValidNumValueRange, but dedicated to
@@ -1133,10 +1148,25 @@ struct ValidBigUnsignedNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
+/// @brief Similar to \\ref ValidBigUnsignedNumValueRange, but overrides (nullifies)
+///     all previously set valid values ranges.
+/// @see @ref ValidNumValueOverride
+/// @see @ref ValidBigUnsignedNumValueOverride
+template<std::uintmax_t TMinValue, std::uintmax_t TMaxValue>
+struct ValidBigUnsignedNumValueRangeOverride
+{
+    static_assert(TMinValue <= TMaxValue, "Invalid range");
+};
+
 /// @brief Alias to @ref ValidBigUnsignedNumValueRange.
 /// @details Equivalent to @b ValidBigUnsignedNumValueRange<TValue, TValue>
 template<std::uintmax_t TValue>
 using ValidBigUnsignedNumValue = ValidBigUnsignedNumValueRange<TValue, TValue>;
+
+/// @brief Alias to @ref ValidBigUnsignedNumValueRangeOverride.
+/// @details Equivalent to @b ValidBigUnsignedNumValueRangeOverride<TValue, TValue>
+template<std::uintmax_t TValue>
+using ValidBigUnsignedNumValueOverride = ValidBigUnsignedNumValueRangeOverride<TValue, TValue>;
 
 /// @brief Alias to ContentsValidator, it defines validator class that checks
 ///     that reserved bits of the field have expected values.

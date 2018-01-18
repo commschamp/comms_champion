@@ -546,8 +546,8 @@
 ///     @endcode
 /// @li The innermost layer of protocol stack (comms::protocol::MsgDataLayer)
 ///     will invoke @b polymorphic read interface of the allocated message
-///     (see comms::Message::read()). It means that the iterator used the
-///     full read needs to be convertible to comms::Message::ReadIterator. It
+///     (see comms::Message::read()). It means that the iterator used 
+///     for reading needs to be convertible to comms::Message::ReadIterator. It
 ///     can be achieved by using comms::readIteratorFor() template function, 
 ///     which will initialise and return appropriate iterator type. Another 
 ///     possible way of allocating the iterator can be as following:
@@ -589,13 +589,13 @@
 ///     the write operation is expected to succeed.
 /// @li The innermost layer of protocol stack (comms::protocol::MsgDataLayer)
 ///     will invoke @b polymorphic write interface of the allocated message
-///     (see comms::Message::write()). It means that the iterator used the
-///     full read needs to be convertible to comms::Message::WriteIterator. It
+///     (see comms::Message::write()). It means that the iterator used for
+///     writing needs to be convertible to comms::Message::WriteIterator. It
 ///     can be achieved by using comms::writeIteratorFor() template function, 
 ///     which will initialise and return appropriate iterator type. Another 
 ///     possible way of allocating the iterator can be as following:
 ///     @code
-///     MsgType::WriteIterator iter = buf + consumed;
+///     MyMessage::WriteIterator iter = buf + consumed;
 ///     @endcode
 ///
 /// As an extra example, let's rewrite the code above to use the 

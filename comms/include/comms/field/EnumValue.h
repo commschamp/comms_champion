@@ -60,14 +60,16 @@ namespace field
 ///     defined to be std::uint16_t. The value is serialised using big endian
 ///     notation because base field class receives comms::option::BigEndian option.@n
 ///     Supported options are:
-///     @li comms::option::FixedLength
-///     @li comms::option::FixedBitLength
-///     @li comms::option::VarLength
-///     @li comms::option::NumValueSerOffset
-///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
-///     @li comms::option::ContentsValidator
-///     @li comms::option::ValidNumValueRange, comms::option::ValidNumValue,
-///         comms::option::ValidBigUnsignedNumValueRange or comms::option::ValidBigUnsignedNumValue
+///     @li @ref comms::option::FixedLength
+///     @li @ref comms::option::FixedBitLength
+///     @li @ref comms::option::VarLength
+///     @li @ref comms::option::NumValueSerOffset
+///     @li @ref comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
+///     @li @ref comms::option::ContentsValidator
+///     @li @ref comms::option::ValidNumValueRange, @ref comms::option::ValidNumValue,
+///         @ref comms::option::ValidNumValueRangeOverride, @ref comms::option::ValidNumValueOverride
+///         @ref comms::option::ValidBigUnsignedNumValueRange, @ref comms::option::ValidBigUnsignedNumValue
+///         @ref comms::option::ValidBigUnsignedNumValueRangeOverride, @ref comms::option::ValidBigUnsignedNumValueOverride
 ///     @li comms::option::ContentsRefresher
 ///     @li comms::option::FailOnInvalid
 ///     @li comms::option::IgnoreInvalid

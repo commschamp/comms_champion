@@ -299,6 +299,40 @@ protected:
 
 private:
 
+    static_assert(!ParsedOptions::HasSerOffset,
+            "comms::option::NumValueSerOffset option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasVarLengthLimits,
+            "comms::option::VarLength option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasSequenceElemLengthForcing,
+            "comms::option::SequenceElemLengthForcingEnabled option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasSequenceSizeForcing,
+            "comms::option::SequenceSizeForcingEnabled option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasSequenceFixedSize,
+            "comms::option::SequenceFixedSize option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,
+            "comms::option::SequenceFixedSizeUseFixedSizeStorage option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasSequenceSizeFieldPrefix,
+            "comms::option::SequenceSizeFieldPrefix option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasSequenceSerLengthFieldPrefix,
+            "comms::option::SequenceSerLengthFieldPrefix option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
+            "comms::option::SequenceTrailingFieldSuffix option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,
+            "comms::option::SequenceTerminationFieldSuffix option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasFixedSizeStorage,
+            "comms::option::FixedSizeStorage option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasCustomStorageType,
+            "comms::option::CustomStorageType option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasScalingRatio,
+            "comms::option::ScalingRatio option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasUnits,
+            "comms::option::Units option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasOrigDataView,
+            "comms::option::OrigDataView option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasMultiRangeValidation,
+            "comms::option::ValidNumValueRange (or similar) option is not applicable to BitmaskValue field");
+
+
     IntValueField intValue_;
 };
 

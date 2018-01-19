@@ -208,6 +208,33 @@ public:
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;
+private:
+    static_assert(!ParsedOptions::HasSequenceElemLengthForcing,
+            "comms::option::SequenceElemLengthForcingEnabled option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasSequenceSizeForcing,
+            "comms::option::SequenceSizeForcingEnabled option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasSequenceFixedSize,
+            "comms::option::SequenceFixedSize option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,
+            "comms::option::SequenceFixedSizeUseFixedSizeStorage option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasSequenceSizeFieldPrefix,
+            "comms::option::SequenceSizeFieldPrefix option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasSequenceSerLengthFieldPrefix,
+            "comms::option::SequenceSerLengthFieldPrefix option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
+            "comms::option::SequenceTrailingFieldSuffix option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,
+            "comms::option::SequenceTerminationFieldSuffix option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasFixedSizeStorage,
+            "comms::option::FixedSizeStorage option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasCustomStorageType,
+            "comms::option::CustomStorageType option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasScalingRatio,
+            "comms::option::ScalingRatio option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasUnits,
+            "comms::option::Units option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasOrigDataView,
+            "comms::option::OrigDataView option is not applicable to EnumValue field");
 };
 
 // Implementation

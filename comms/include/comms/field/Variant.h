@@ -365,6 +365,43 @@ protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;
 
+private:
+    static_assert(!ParsedOptions::HasSerOffset,
+            "comms::option::NumValueSerOffset option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasFixedLengthLimit,
+            "comms::option::FixedLength option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasFixedBitLengthLimit,
+            "comms::option::FixedBitLength option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasVarLengthLimits,
+            "comms::option::VarLength option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasSequenceElemLengthForcing,
+            "comms::option::SequenceElemLengthForcingEnabled option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasSequenceSizeForcing,
+            "comms::option::SequenceSizeForcingEnabled option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasSequenceFixedSize,
+            "comms::option::SequenceFixedSize option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,
+            "comms::option::SequenceFixedSizeUseFixedSizeStorage option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasSequenceSizeFieldPrefix,
+            "comms::option::SequenceSizeFieldPrefix option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasSequenceSerLengthFieldPrefix,
+            "comms::option::SequenceSerLengthFieldPrefix option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
+            "comms::option::SequenceTrailingFieldSuffix option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,
+            "comms::option::SequenceTerminationFieldSuffix option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasFixedSizeStorage,
+            "comms::option::FixedSizeStorage option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasCustomStorageType,
+            "comms::option::CustomStorageType option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasScalingRatio,
+            "comms::option::ScalingRatio option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasUnits,
+            "comms::option::Units option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasOrigDataView,
+            "comms::option::OrigDataView option is not applicable to Variant field");
+    static_assert(!ParsedOptions::HasMultiRangeValidation,
+            "comms::option::ValidNumValueRange (or similar) option is not applicable to Variant field");
 };
 
 namespace details
@@ -388,6 +425,7 @@ public:
 private:
     const TVar& other_;
     bool& result_;
+
 };
 
 template <typename TVar>
@@ -599,7 +637,7 @@ toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
 ///     COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE() macro instead. In
 ///     case this macro needs to reside inside a @b template class, then
 ///     there is a need to define inner @b Base type, which specifies
-///     exact type of the @ref comms::field::Bitfield class. For example:
+///     exact type of the @ref comms::field::Variant class. For example:
 ///     @code
 ///     template <typename... TExtraOptions>
 ///     class MyField : public
@@ -648,7 +686,7 @@ toFieldBase(const Variant<TFieldBase, TMembers, TOptions...>& field)
 ///     compilation fails and the class it is being used in is @b NOT a
 ///     template one, please use @ref COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE()
 ///     instead.
-/// @related comms::field::Bitfield
+/// @related comms::field::Variant
 #define COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
     COMMS_DO_VARIANT_MEM_ACC_FUNC_NOTEMPLATE(__VA_ARGS__)

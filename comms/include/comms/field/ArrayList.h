@@ -385,6 +385,21 @@ protected:
     using BaseImpl::writeData;
 
 private:
+    static_assert(!ParsedOptions::HasSerOffset,
+            "comms::option::NumValueSerOffset option is not applicable to ArrayList field");
+    static_assert(!ParsedOptions::HasFixedLengthLimit,
+            "comms::option::FixedLength option is not applicable to ArrayList field");
+    static_assert(!ParsedOptions::HasFixedBitLengthLimit,
+            "comms::option::FixedBitLength option is not applicable to ArrayList field");
+    static_assert(!ParsedOptions::HasVarLengthLimits,
+            "comms::option::VarLength option is not applicable to ArrayList field");
+    static_assert(!ParsedOptions::HasScalingRatio,
+            "comms::option::ScalingRatio option is not applicable to ArrayList field");
+    static_assert(!ParsedOptions::HasUnits,
+            "comms::option::Units option is not applicable to ArrayList field");
+    static_assert(!ParsedOptions::HasMultiRangeValidation,
+            "comms::option::ValidNumValueRange (or similar) option is not applicable to ArrayList field");
+
     static_assert((!ParsedOptions::HasOrigDataView) || (std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))),
         "Usage of comms::option::OrigDataView option is allowed only for raw binary data (std::uint8_t) types.");
 };

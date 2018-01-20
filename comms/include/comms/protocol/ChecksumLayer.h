@@ -58,14 +58,16 @@ class ChecksumLayer : public
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>
+            ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>,
+            comms::option::ProtocolLayerDisallowReadUntilDataSplit
         >
 {
     using BaseImpl =
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>
+            ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>,
+            comms::option::ProtocolLayerDisallowReadUntilDataSplit
         >;
 public:
     /// @brief Parsed options

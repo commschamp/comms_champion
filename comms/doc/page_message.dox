@@ -91,7 +91,7 @@
 ///         >;
 ///     @endcode
 /// @li If the definition of the common interface class using comms::Message 
-///     doesn't have any virtual function, but still requires and ability to 
+///     doesn't have any virtual function, but still requires an ability to 
 ///     be polymorphically deleted, i.e. must have virtual destructor, just 
 ///     inherit from comms::Message and define the destructor as virtual.
 ///     @code
@@ -181,6 +181,12 @@
 /// @b writeData() member functions which can be used to serialise stored value.
 /// The internal @b Field type definition inside the
 /// @b MyMessage interface class may be used as such.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasEndian()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the endian specifying option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///  
 /// @subsection page_message_tutorial_interface_id_type Type of Message ID
 /// Every message must have an ID. Most communication protocols define it
@@ -225,6 +231,12 @@
 /// However, if some other type is used, such as std::string, then @b MsgIdParamType
 /// is a const-reference to @b MsgIdType.
 ///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasMsgIdType()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::MsgIdType option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types.
+///
 /// @subsection page_message_tutorial_interface_id_retrieve Polymorphic Retrieval of Message ID
 /// When there is a need to be able to polymorphically retrieve message ID,
 /// the comms::option::IdInfoInterface option needs to be used in addition
@@ -255,6 +267,12 @@
 /// The usage of comms::option::IdInfoInterface without comms::option::MsgIdType
 /// will be ignored, and @b getId() as well as @b getIdImpl() member functions
 /// won't be created.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasGetId()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::IdInfoInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
 ///
 /// @subsection page_message_tutorial_interface_read Polymorphic Read of Payload (Deserialisation)
 /// If the implementation requires polymorphic read and process of input messages, the @b read()
@@ -313,6 +331,11 @@
 ///     return bytesCount;
 /// }
 /// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasRead()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ReadIterator option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///
 /// @subsection page_message_tutorial_interface_write Polymorphic Write of Payload (Serialisation)
 /// If the implementation requires polymorhpic serialisation of the messages and sending them over I/O
@@ -358,6 +381,12 @@
 /// being chosen as @b WriteIterator). @n
 /// Also @b note, that iterator is passed by reference, which allows advancing 
 /// operator when write operation is performed. 
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasWrite()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::WriteIterator option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///
 /// @subsection page_message_tutorial_interface_handle Polymorphic Dispatch Message for Handling
 /// When new data arrives on I/O link, the <b>Protocol Stack</b>
@@ -409,6 +438,12 @@
 /// More details about dispatching will be provided below in @ref page_message_tutorial_impl_msg_type
 /// section.
 ///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasDispatch()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::Handler option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
+///
 /// @subsection page_message_tutorial_interface_length Polymorphic Serialisation Length Retrieval
 /// Sometimes it may be needed to polymorphically retrieve the serialisation length of the message
 /// in order to be able to reserve or allocate enough space for output buffer.
@@ -436,6 +471,11 @@
 ///     virtual std::size_t lengthImpl() const = 0; // Must be implemented in the derived class
 /// };
 /// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasLength()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::LengthInfoInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
 ///
 /// @subsection page_message_tutorial_interface_valid Polymorphic Validity Check
 /// Sometimes it may be needed to be able to check whether the message contents
@@ -466,6 +506,11 @@
 ///     }
 /// };
 /// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasValid()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ValidCheckInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
 ///
 /// @subsection page_message_tutorial_interface_refresh Keeping Message Contents in a Consistent State
 /// Some communication protocol may define fields that depend on other fields.
@@ -508,6 +553,165 @@
 /// Also note, that interface provide default implementation of @b refreshImpl()
 /// virtual function. The message object that require proper "refresh" functionality
 /// may just override it with proper implementation.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasRefresh()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::RefreshInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
+///
+/// @subsection page_message_tutorial_interface_extra_transport Extra Transport Values
+/// Some protocols may use extra values in their transport information, which
+/// may influence the way how message payload is being read and/or message 
+/// object being handled. Good example would be having a protocol version, which
+/// defines what message payload fields were serialised and which were not (because
+/// they were introduced in later version of the protocol).
+/// Such extra information needs to be stored in the message object itself.
+/// The most straightforward way of achieving this is to define appropriate API
+/// functions and member fields in common message interface class:
+/// @code
+/// class MyMessage : public comms::Message<...>
+/// {
+/// public:
+///     unsigned getVersion() const { return m_version; }
+///     void setVersion(unsigned value) { m_version = value; }
+/// private:
+///     unsigned m_version = 0;
+/// @endcode
+/// @b HOWEVER, it will require implementation of a custom protocol transport layer
+/// (See @ref page_prot_stack_tutorial_new_layers) that reads the required value
+/// and re-assigns it to the message object using appropriate API function. The
+/// COMMS library has a built-in way to automate such assignments (see 
+/// @ref page_prot_stack_tutorial_transport_value section in @ref page_prot_stack_tutorial). 
+/// In order to support usage
+/// of @ref comms::protocol::TransportValueLayer the message interface class must
+/// define "extra transport fields".
+///
+/// First, such extra transport field(s) must be defined using a field abstraction
+/// (see @ref page_field_tutorial) and bundled in @b std::tuple:
+/// @code
+/// // Base class of all the fields
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///
+/// // Field describing protocol version.
+/// using MyVersionField = comms::field::IntValue<MyFieldBase, std::uint16_t>;
+///
+/// // Relevant extra transport fields, bundled in std::tuple
+/// using MyExtraTransportFields =
+///     std::tuple<
+///         MyVersionField
+///     >;
+/// @endcode
+///
+/// Second, provide the defined tuple to message interface class using 
+/// @ref comms::option::ExtraTransportFields option.
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>
+///     >
+/// {
+/// };
+/// @endcode
+/// It is equivalent to having the following public interface defined:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Type of extra fields
+///     using TransportFields = MyExtraTransportFields;
+///
+///     // Accessors for defined transport fields
+///     TransportFields& transportFields() { return m_transportFields; }
+///     const TransportFields& transportFields() const { return m_transportFields; }
+///
+/// private:
+///     TransportFields m_transportFields;
+/// };
+/// @endcode
+/// An access to the version information, given a reference to the message object
+/// will look like this:
+/// @code
+/// void handle(MyMessage& msg)
+/// {
+///     // Access to tuple of extra transport fields
+///     auto& extraTransportFields = msg.transportFields();
+///
+///     // Access the version field
+///     auto& versionField = std::get<0>(extraTransportFields);
+///
+///     // Retrieve the version numeric value
+///     auto versionValue = versionField.value();
+///
+///     ... // do something with version information
+/// }
+/// @endcode
+/// The version information may be accessed in the same way when implementing
+/// @ref page_message_tutorial_impl_custom_read and acted accordingly.
+///
+/// @b NOTE, that example above accesses the index of the field within the holding
+/// tuple. For convenience, the COMMS library defines 
+/// COMMS_MSG_TRANSPORT_FIELDS_ACCESS() macro which allows provding meaningful
+/// names to the extra transport fields:
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>
+///     >
+/// {
+/// public:
+///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version)
+/// };
+/// @endcode
+/// Using such macro is equivalent to manually defining the following public
+/// interface:
+/// @code
+/// class MyMessage : public
+///     comms::Message<
+///         ...,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>
+///     >
+/// {
+/// public:
+///     enum TransportFieldIdx
+///     {
+///         TransportFieldIdx_version,
+///         TransportFieldIdx_numOfValues
+///     };
+///
+///     auto transportField_version() -> decltype(std::get<TransportFieldIdx_version>(transportFields()))
+///     {
+///         return std::get<TransportFieldIdx_version>(transportFields());
+///     }
+///
+///     auto transportField_version() const -> decltype(std::get<TransportFieldIdx_version>(transportFields()))
+///     {
+///         return std::get<TransportFieldIdx_version>(transportFields());
+///     }
+/// };
+/// @endcode
+/// Access to the version information given a reference to message object may
+/// now be implemented as:
+/// @code
+/// void handle(MyMessage& msg)
+/// {
+///     // Retrieve the version numeric value
+///     auto versionValue = msg.transportField_version().value();
+///
+///     ... // do something with version information
+/// @endcode
+/// @b NOTE, that the defined "extra transport fields" are there to attach 
+/// some extra information, delivered as part of transport framing, to message 
+/// object itself. These fields are @b NOT getting serialised / deserialised when message
+/// object being read / written.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasTransportFields()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ExtraTransportFields option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///
 /// @subsection page_message_tutorial_interface_summary Interface Options Summary
 /// All the options introduced above can be used in any order. They can also
@@ -896,6 +1100,9 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// It is possible to inhibit the generation of @ref comms::MessageBase::readImpl()
+/// by passing @ref comms::option::NoReadImpl option to the @ref comms::MessageBase
+/// class.
 ///
 /// @subsubsection page_message_tutorial_impl_fields_write Polymorhic Write Implementation
 /// If message interface class allowed polymorphic write (see
@@ -939,6 +1146,9 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// It is possible to inhibit the generation of @ref comms::MessageBase::writeImpl()
+/// by passing @ref comms::option::NoWriteImpl option to the @ref comms::MessageBase
+/// class.
 ///
 /// @subsubsection page_message_tutorial_impl_fields_length Polymorphic Length Calculation
 /// If message interface class allowed polymorphic length calculation (see
@@ -976,6 +1186,9 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// It is possible to inhibit the generation of @ref comms::MessageBase::lengthImpl()
+/// by passing @ref comms::option::NoLengthImpl option to the @ref comms::MessageBase
+/// class.
 ///
 /// @subsubsection page_message_tutorial_impl_fields_valid Polymorphic Validity Check
 /// If message interface class allowed polymorphic validity check (see
@@ -1013,6 +1226,10 @@
 /// };
 /// } // namespace comms
 /// @endcode
+/// It is possible to inhibit the generation of @ref comms::MessageBase::validImpl()
+/// by passing @ref comms::option::NoValidImpl option to the @ref comms::MessageBase
+/// class.
+///
 /// @subsubsection page_message_tutorial_impl_fields_refresh Polymorphic Refreh
 /// If message interface class allowed polymorphic refresh (see
 /// @ref page_message_tutorial_interface_refresh), the comms::MessageBase will

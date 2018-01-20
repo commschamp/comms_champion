@@ -67,12 +67,16 @@ void FieldWidget::refresh()
 void FieldWidget::setEditEnabled(bool enabled)
 {
     m_editEnabled = enabled;
+    if ((!m_editEnabled) && (m_hiddenWhenReadOnly) && (!isHidden())) {
+        setHidden(true);
+    }
     editEnabledUpdatedImpl();
 }
 
 void FieldWidget::updateProperties(const QVariantMap& props)
 {
     property::field::Common commonProps(props);
+    m_hiddenWhenReadOnly = commonProps.isHiddenWhenReadOnly();
     performNameLabelUpdate(commonProps);
     updatePropertiesImpl(props);
     performUiElementsVisibilityCheck(commonProps);
@@ -168,7 +172,9 @@ void FieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void FieldWidget::performUiElementsVisibilityCheck(const property::field::Common& props)
 {
-    auto allHidden = props.isHidden();
+    auto allHidden =
+        (props.isHidden()) ||
+        (props.isReadOnly() && props.isHiddenWhenReadOnly());
     setHidden(allHidden);
     if (allHidden) {
         return;

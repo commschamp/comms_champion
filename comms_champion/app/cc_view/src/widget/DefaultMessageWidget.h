@@ -42,8 +42,8 @@ public:
     DefaultMessageWidget(Message& msg, QWidget* parentObj = nullptr);
     ~DefaultMessageWidget() noexcept = default;
 
+    void addExtraTransportFieldWidget(FieldWidget* field);
     void addFieldWidget(FieldWidget* field);
-    void insertFieldWidget(int fieldIdx, FieldWidget* field);
 
 protected:
     virtual void refreshImpl() override;
@@ -60,6 +60,7 @@ private:
     using LayoutType = QVBoxLayout;
     Message& m_msg;
     LayoutType* m_layout;
+    uint m_curExtraTransportFieldIdx = 0;
     uint m_curFieldIdx = 0;
 };
 

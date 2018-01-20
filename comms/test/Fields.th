@@ -120,6 +120,7 @@ public:
     void test83();
     void test84();
     void test85();
+    void test86();
 
     enum Enum1 {
         Enum1_Value1,
@@ -3781,6 +3782,26 @@ void FieldsTestSuite::test85()
     TS_ASSERT_EQUALS(outBuf.size(), ExpectedBufSize3);
     TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), std::begin(ExpectedBuf)));
 }
+
+void FieldsTestSuite::test86()
+{
+#ifndef CC_COMPILER_GCC47
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ValidNumValueRangeOverride<0, 10>,
+        comms::option::ValidNumValueRange<20, 30>,
+        comms::option::DefaultNumValue<20>
+    > Field;
+
+    Field field;
+    TS_ASSERT_EQUALS(field.value(), 20);
+    TS_ASSERT(!field.valid());
+    field.value() = 5U;
+    TS_ASSERT(field.valid());
+#endif
+}
+
 
 template <typename TField>
 void FieldsTestSuite::writeField(

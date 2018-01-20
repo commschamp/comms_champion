@@ -27,6 +27,11 @@ void MessageHandler::beginMsgHandlingImpl(Message& msg)
     static_cast<void>(msg);
 }
 
+void MessageHandler::addExtraTransportFieldImpl(FieldWrapperPtr wrapper)
+{
+    static_cast<void>(wrapper);
+}
+
 void MessageHandler::addFieldImpl(FieldWrapperPtr wrapper)
 {
     static_cast<void>(wrapper);

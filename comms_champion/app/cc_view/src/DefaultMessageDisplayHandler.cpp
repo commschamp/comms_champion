@@ -228,6 +228,16 @@ void DefaultMessageDisplayHandler::beginMsgHandlingImpl(
     m_widget.reset(new DefaultMessageWidget(msg));
 }
 
+void DefaultMessageDisplayHandler::addExtraTransportFieldImpl(FieldWrapperPtr wrapper)
+{
+    assert(m_widget);
+    WidgetCreator creator;
+    wrapper->dispatch(creator);
+    auto fieldWidget = creator.getWidget();
+    fieldWidget->hide();
+    m_widget->addExtraTransportFieldWidget(fieldWidget.release());
+}
+
 void DefaultMessageDisplayHandler::addFieldImpl(FieldWrapperPtr wrapper)
 {
     assert(m_widget);

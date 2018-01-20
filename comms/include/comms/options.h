@@ -141,6 +141,25 @@ struct MsgType {};
 /// @headerfile comms/options.h
 struct NoDispatchImpl {};
 
+/// @brief Option used to specify some extra fields from transport framing.
+/// @details Some fields from transport framing may influence the way on how
+///     message fields get read or written. It may also have an influence on
+///     how message is handled. This option is intended to provide a list
+///     of such fields, bundled in @b std::tuple, to @ref comms::Message interface
+///     class.
+/// @tparam TFields The fields of the message bundled in std::tuple.
+/// @headerfile comms/options.h
+template <typename TFields>
+struct ExtraTransportFields;
+
+/// @cond SKIP_DOC
+template <typename... TFields>
+struct ExtraTransportFields<std::tuple<TFields...> >
+{
+};
+/// @endcond
+
+
 /// @brief Option used to specify fields of the message and force implementation
 ///     of default read, write, validity check, and length retrieval information
 ///     of the message.
@@ -1090,10 +1109,25 @@ struct ValidNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
+/// @brief Similar to \\ref ValidNumValueRange, but overrides (nullifies)
+///     all previously set valid values ranges.
+/// @see @ref ValidNumValueOverride
+/// @see @ref ValidBigUnsignedNumValueRangeOverride
+template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
+struct ValidNumValueRangeOverride
+{
+    static_assert(TMinValue <= TMaxValue, "Invalid range");
+};
+
 /// @brief Alias to @ref ValidNumValueRange.
 /// @details Equivalent to @b ValidNumValueRange<TValue, TValue>
 template<std::intmax_t TValue>
 using ValidNumValue = ValidNumValueRange<TValue, TValue>;
+
+/// @brief Alias to @ref ValidNumValueRangeOverride.
+/// @details Equivalent to @b ValidNumValueRangeOverride<TValue, TValue>
+template<std::intmax_t TValue>
+using ValidNumValueOverride = ValidNumValueRangeOverride<TValue, TValue>;
 
 /// @brief Provide range of valid unsigned numeric values.
 /// @details Similar to @ref ValidNumValueRange, but dedicated to
@@ -1114,10 +1148,25 @@ struct ValidBigUnsignedNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
+/// @brief Similar to \\ref ValidBigUnsignedNumValueRange, but overrides (nullifies)
+///     all previously set valid values ranges.
+/// @see @ref ValidNumValueOverride
+/// @see @ref ValidBigUnsignedNumValueOverride
+template<std::uintmax_t TMinValue, std::uintmax_t TMaxValue>
+struct ValidBigUnsignedNumValueRangeOverride
+{
+    static_assert(TMinValue <= TMaxValue, "Invalid range");
+};
+
 /// @brief Alias to @ref ValidBigUnsignedNumValueRange.
 /// @details Equivalent to @b ValidBigUnsignedNumValueRange<TValue, TValue>
 template<std::uintmax_t TValue>
 using ValidBigUnsignedNumValue = ValidBigUnsignedNumValueRange<TValue, TValue>;
+
+/// @brief Alias to @ref ValidBigUnsignedNumValueRangeOverride.
+/// @details Equivalent to @b ValidBigUnsignedNumValueRangeOverride<TValue, TValue>
+template<std::uintmax_t TValue>
+using ValidBigUnsignedNumValueOverride = ValidBigUnsignedNumValueRangeOverride<TValue, TValue>;
 
 /// @brief Alias to ContentsValidator, it defines validator class that checks
 ///     that reserved bits of the field have expected values.
@@ -1139,6 +1188,12 @@ using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValida
 /// @headerfile comms/options.h
 template<comms::field::OptionalMode TVal>
 using DefaultOptionalMode = DefaultValueInitialiser<details::DefaultOptModeInitialiser<TVal> >;
+
+/// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Missing>
+using OptionalMissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing>;
+
+/// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Exists>
+using OptionalExistsByDefault = DefaultOptionalMode<comms::field::OptionalMode::Exists>;
 
 /// @brief Alias to DefaultValueInitialiser, it initalises comms::field::Variant field
 ///     to contain valid default value of the specified member.
@@ -1175,6 +1230,21 @@ struct EmptySerialization {};
 /// @brief Same as @ref EmptySerialization.
 /// @details Just British English spelling.
 using EmptySerialisation = EmptySerialization;
+
+/// @brief Option to force @ref comms::protocol::ProtocolLayerBase class to
+///     split read operation "until" and "from" data (payload) layer.
+/// @details Can be used by some layers which require its read operation to be
+///     fully complete before read is forwared to data layer, i.e. until message
+///     contents being read.
+struct ProtocolLayerForceReadUntilDataSplit {};
+
+/// @brief Disallow usage of @ref ProtocolLayerForceReadUntilDataSplit option in
+///     earlier (outer wrapping) layers.
+/// @details Some layers, such as @ref comms::protocol::ChecksumLayer cannot
+///     split their "read" operation to "until" and "from" data layer. They can
+///     use this option to prevent outer layers from using
+///     @ref ProtocolLayerForceReadUntilDataSplit one.
+struct ProtocolLayerDisallowReadUntilDataSplit {};
 
 }  // namespace option
 

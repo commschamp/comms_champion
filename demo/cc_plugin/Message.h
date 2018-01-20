@@ -29,12 +29,14 @@ namespace cc_plugin
 
 class Message : public comms_champion::MessageBase<demo::Message>
 {
+    using Base = comms_champion::MessageBase<demo::Message>;
 public:
     Message();
     virtual ~Message() noexcept;
 
 protected:
 
+    virtual const QVariantList& extraTransportFieldsPropertiesImpl() const override;
     virtual QString idAsStringImpl() const override;
 };
 

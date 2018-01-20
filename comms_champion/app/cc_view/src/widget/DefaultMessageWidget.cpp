@@ -44,6 +44,33 @@ DefaultMessageWidget::DefaultMessageWidget(
     hide();
 }
 
+void DefaultMessageWidget::addExtraTransportFieldWidget(FieldWidget* field)
+{
+    if (field == nullptr) {
+        assert(!"Field object should be provided");
+        return;
+    }
+
+    auto& props = m_msg.extraTransportFieldsProperties();
+    if (static_cast<decltype(m_curExtraTransportFieldIdx)>(props.size()) <= m_curExtraTransportFieldIdx) {
+        return;
+    }
+
+    auto& propsMapVar = props.at(m_curExtraTransportFieldIdx);
+    if (propsMapVar.isValid() && propsMapVar.canConvert<QVariantMap>()) {
+        auto propsMap = propsMapVar.value<QVariantMap>();
+        field->updateProperties(propsMap);
+    }
+
+    if (m_curExtraTransportFieldIdx != 0) {
+        m_layout->insertWidget(m_layout->count() - 1, createFieldSeparator().release());
+    }
+    m_layout->insertWidget(m_layout->count() - 1, field);
+    connectFieldSignals(field);
+
+    ++m_curExtraTransportFieldIdx;
+}
+
 void DefaultMessageWidget::addFieldWidget(FieldWidget* field)
 {
     if (field == nullptr) {
@@ -60,44 +87,13 @@ void DefaultMessageWidget::addFieldWidget(FieldWidget* field)
         }
     }
 
-    if (m_curFieldIdx != 0) {
+    if ((m_curFieldIdx != 0) || (m_curExtraTransportFieldIdx != 0)) {
         m_layout->insertWidget(m_layout->count() - 1, createFieldSeparator().release());
     }
     m_layout->insertWidget(m_layout->count() - 1, field);
     connectFieldSignals(field);
 
     ++m_curFieldIdx;
-}
-
-void DefaultMessageWidget::insertFieldWidget(int idx, FieldWidget* field)
-{
-    if (field == nullptr) {
-        assert(!"Field object should be provided");
-        return;
-    }
-
-    if (idx < 0) {
-        assert(!"Unexpected field index");
-        return;
-    }
-
-    auto adjustedIdx = std::min(idx * 2, m_layout->count() - 1);
-
-    m_layout->insertWidget(adjustedIdx, field);
-    connectFieldSignals(field);
-
-    if (m_layout->count() <= 2) {
-        return;
-    }
-
-    auto sep = createFieldSeparator();
-    if ((m_layout->count() - 2) <= adjustedIdx) {
-
-        m_layout->insertWidget(adjustedIdx, sep.release());
-        return;
-    }
-
-    m_layout->insertWidget(adjustedIdx + 1, sep.release());
 }
 
 void DefaultMessageWidget::refreshImpl()

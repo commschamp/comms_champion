@@ -48,8 +48,8 @@ using GenericMessageFields =
     >;
 
 /// @brief Generic Message
-/// @details Generic message is there to substitude definition of actual message
-///     when contents of the latter are not impotant. It defines single @b data
+/// @details Generic message is there to substitute definition of actual message
+///     when contents of the latter are not important. It defines single @b data
 ///     field as variable length sequence of raw bytes (see @ref GenericMessageFields).
 ///     The GenericMessage can be useful when implementing some kind of
 ///     "bridge" or "firewall", that requires knowledge only about message

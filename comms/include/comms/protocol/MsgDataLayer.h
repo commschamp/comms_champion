@@ -75,6 +75,14 @@ public:
     /// @brief Move assignment operator
     MsgDataLayer& operator=(MsgDataLayer&&) = default;
 
+    /// @brief Compile time check whether split read "until" and "from" data
+    ///     layer is allowed.
+    /// @return Always @b true.
+    static constexpr bool canSplitRead()
+    {
+        return true;
+    }
+
     /// @brief Read the message contents.
     /// @details Calls the read() member function of the message object.
     /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
@@ -133,6 +141,37 @@ public:
             }
         }
         return result;
+    }
+
+    /// @brief Read transport fields until data layer.
+    /// @details Does nothing because it is data layer.
+    /// @return @ref comms::ErrorStatus::Success;
+    template <typename TMsgPtr, typename TIter>
+    static ErrorStatus readUntilData(
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        static_cast<void>(msgPtr);
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        static_cast<void>(missingSize);
+        return comms::ErrorStatus::Success;
+    }
+
+    /// @brief Same as @ref read().
+    /// @details Expected to be called by the privous layers to properly
+    ///     finalise read operation after the call to @ref readUntilData();
+    /// @return @ref comms::ErrorStatus::Success;
+    template <typename TMsgPtr, typename TIter>
+    static ErrorStatus readFromData(
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        return read(msgPtr, iter, size, missingSize);
     }
 
     /// @brief Read the message contents while caching the read transport
@@ -195,6 +234,41 @@ public:
             "Field has wrong type");
         return readWithFieldCachedInternal(dataField, msgPtr, iter, size, missingSize, IterTag());
     }
+
+    /// @brief Read transport fields with caching until data layer.
+    /// @details Does nothing because it is data layer.
+    /// @return @ref comms::ErrorStatus::Success;
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
+    static ErrorStatus readUntilDataFieldsCached(
+        TAllFields& allFields,
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        static_cast<void>(allFields);
+        static_cast<void>(msgPtr);
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        static_cast<void>(missingSize);
+        return comms::ErrorStatus::Success;
+    }
+
+    /// @brief Same as @ref readFieldsCached().
+    /// @details Expected to be called by the privous layers to properly
+    ///     finalise read operation after the call to @ref readUntilDataFieldsCached();
+    /// @return @ref comms::ErrorStatus::Success;
+    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
+    static ErrorStatus readFromDataFeildsCached(
+        TAllFields& allFields,
+        TMsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize = nullptr)
+    {
+        return readFieldsCached(allFields, msgPtr, iter, size, missingSize);
+    }
+
 
     /// @brief Write the message contents.
     /// @details The way the message contents are written is determined by the

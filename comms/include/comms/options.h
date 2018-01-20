@@ -1109,7 +1109,7 @@ struct ValidNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
-/// @brief Similar to \\ref ValidNumValueRange, but overrides (nullifies)
+/// @brief Similar to @ref ValidNumValueRange, but overrides (nullifies)
 ///     all previously set valid values ranges.
 /// @see @ref ValidNumValueOverride
 /// @see @ref ValidBigUnsignedNumValueRangeOverride
@@ -1148,7 +1148,7 @@ struct ValidBigUnsignedNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
-/// @brief Similar to \\ref ValidBigUnsignedNumValueRange, but overrides (nullifies)
+/// @brief Similar to @ref ValidBigUnsignedNumValueRange, but overrides (nullifies)
 ///     all previously set valid values ranges.
 /// @see @ref ValidNumValueOverride
 /// @see @ref ValidBigUnsignedNumValueOverride

@@ -39,7 +39,8 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultOptionalMode.
+///     @li comms::option::DefaultValueInitialiser, comms::option::DefaultOptionalMode,
+///         comms::option::OptionalMissingByDefault, or comms::option::OptionalExistsByDefault.
 ///     @li comms::option::ContentsValidator.
 ///     @li comms::option::ContentsRefresher
 /// @extends comms::Field

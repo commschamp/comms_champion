@@ -73,6 +73,13 @@ protected:
         return Str;
     }
 
+    /// @brief Overriding virtual comms_champion::Message::extraTransportFieldsPropertiesImpl()
+    virtual const QVariantList&  extraTransportFieldsPropertiesImpl() const override
+    {
+        static const QVariantList List;
+        return List;
+    }
+
     /// @brief Overriding virtual comms_champion::Message::idAsStringImpl()
     virtual QString idAsStringImpl() const override
     {

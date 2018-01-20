@@ -71,6 +71,7 @@ QVariantList createFieldsProperties()
             .displayOffset(2)
             .asMap());
     props.append(createMsgIdProperties());
+    props.append(cc::property::field::ForField<demo::VersionField>().name("VERSION").asMap());
     props.append(cc::property::field::ForField<demo::DataField<> >().name("PAYLOAD").asMap());
     props.append(cc::property::field::ForField<demo::ChecksumField>().name("CHECKSUM").asMap());
     assert(props.size() == TransportMessage::FieldIdx_NumOfValues);
@@ -96,6 +97,7 @@ comms::ErrorStatus TransportMessage::readImpl(ReadIterator& iter, std::size_t si
         size += ChecksumLen;
         es = doReadFieldsFrom<FieldIdx_Checksum>(iter, size);
     }
+
     return es;
 }
 

@@ -57,7 +57,8 @@ struct OptionalsFields
             comms::field::IntValue<
                 FieldBase,
                 std::uint16_t
-            >
+            >,
+            comms::option::OptionalMissingByDefault
         >;
 
     /// @brief Optional string with 1 byte size information prefix.
@@ -72,15 +73,30 @@ struct OptionalsFields
                         std::uint8_t
                     >
                 >
-            >
+            >,
+            comms::option::OptionalMissingByDefault
         >;
 
+    /// @brief Optional 2 bytes signed integer value
+    /// @details Existence of this field is controlled by the version
+    ///     information in transport framing. If version is 0, this field
+    ///     does NOT exist. If the version is 1 or greater, this field does
+    ///     exist.
+    using field4 =
+        comms::field::Optional<
+            comms::field::IntValue<
+                FieldBase,
+                std::int16_t
+            >,
+            comms::option::OptionalExistsByDefault
+        >;
 
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
         field1,
         field2,
-        field3
+        field3,
+        field4
     >;
 };
 
@@ -118,7 +134,7 @@ public:
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
+    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when call to doMinLength()
@@ -127,11 +143,7 @@ public:
     static_assert(MsgMinLen == 1, "Unexpected min serialisation length");
 
     /// @brief Default constructor
-    Optionals()
-    {
-        field_field2().setMissing();
-        field_field3().setMissing();
-    }
+    Optionals() = default;
 
     /// @brief Copy constructor
     Optionals(const Optionals&) = default;
@@ -173,6 +185,13 @@ public:
 
         field_field2().setMode(field2Mode);
         field_field3().setMode(field3Mode);
+
+        auto field4Mode = comms::field::OptionalMode::Exists;
+        if (Base::transportField_version().value() == 0U) {
+            field4Mode = comms::field::OptionalMode::Missing;
+        }
+        field_field4().setMode(field4Mode);
+
         return Base::template doReadFieldsFrom<FieldIdx_field2>(iter, len);
     }
 
@@ -201,6 +220,16 @@ public:
 
         if (field_field3().getMode() != field3ExpectedMode) {
             field_field3().setMode(field3ExpectedMode);
+            refreshed = true;
+        }
+
+        auto field4ExpectedMode = comms::field::OptionalMode::Exists;
+        if (Base::transportField_version().value() == 0U) {
+            field4ExpectedMode = comms::field::OptionalMode::Missing;
+        }
+
+        if (field_field4().getMode() != field4ExpectedMode) {
+            field_field4().setMode(field4ExpectedMode);
             refreshed = true;
         }
 

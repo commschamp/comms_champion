@@ -151,6 +151,50 @@ template <typename TBase, typename TOpt>
 using MessageInterfaceIdTypeBaseT =
     typename MessageInterfaceProcessIdTypeBase<TOpt::HasMsgIdType>::template Type<TBase, TOpt>;
 
+template <typename TBase, typename TFields>
+class MessageInterfaceExtraTransportFieldsBase : public TBase
+{
+public:
+    using TransportFields = TFields;
+
+    TransportFields& transportFields()
+    {
+        return transportFields_;
+    }
+
+    const TransportFields& transportFields() const
+    {
+        return transportFields_;
+    }
+
+protected:
+    ~MessageInterfaceExtraTransportFieldsBase() noexcept = default;
+private:
+    TransportFields transportFields_;
+};
+
+template <bool THasExtraTransportFields>
+struct MessageInterfaceProcessExtraTransportFieldsBase;
+
+template <>
+struct MessageInterfaceProcessExtraTransportFieldsBase<true>
+{
+    template<typename TBase, typename TOpt>
+    using Type = MessageInterfaceExtraTransportFieldsBase<TBase, typename TOpt::ExtraTransportFields>;
+};
+
+template <>
+struct MessageInterfaceProcessExtraTransportFieldsBase<false>
+{
+    template<typename TBase, typename TOpt>
+    using Type = TBase;
+};
+
+template <typename TBase, typename TOpt>
+using MessageInterfaceExtraTransportFieldsBaseT =
+    typename MessageInterfaceProcessExtraTransportFieldsBase<TOpt::HasExtraTransportFields>::template Type<TBase, TOpt>;
+
+
 template <typename TBase>
 class MessageInterfaceIdInfoBase : public TBase
 {
@@ -523,12 +567,13 @@ class MessageInterfaceBuilder
 {
     using ParsedOptions = MessageInterfaceOptionsParser<TOptions...>;
 
-    static_assert(ParsedOptions::HasEndian,
-        "The Message interface must specify Endian in its options");
+//    static_assert(ParsedOptions::HasEndian,
+//        "The Message interface must specify Endian in its options");
 
     using EndianBase = MessageInterfaceEndianBaseT<ParsedOptions>;
     using IdTypeBase = MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions>;
-    using IdInfoBase = MessageInterfaceIdInfoBaseT<IdTypeBase, ParsedOptions>;
+    using TransportFieldsBase = MessageInterfaceExtraTransportFieldsBaseT<IdTypeBase, ParsedOptions>;
+    using IdInfoBase = MessageInterfaceIdInfoBaseT<TransportFieldsBase, ParsedOptions>;
     using ReadWriteBase = MessageInterfaceReadWriteBaseT<IdInfoBase, ParsedOptions>;
     using ValidBase = MessageInterfaceValidBaseT<ReadWriteBase, ParsedOptions>;
     using LengthBase = MessageInterfaceLengthBaseT<ValidBase, ParsedOptions>;

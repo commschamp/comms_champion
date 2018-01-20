@@ -358,6 +358,24 @@ public:
     static const bool HasMultiRangeValidation = true;
 };
 
+template <std::intmax_t TMinValue, std::intmax_t TMaxValue, typename... TOptions>
+class OptionsParser<
+    comms::option::ValidNumValueRangeOverride<TMinValue, TMaxValue>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    using BaseImpl = OptionsParser<TOptions...>;
+public:
+#ifdef CC_COMPILER_GCC47
+    static_assert(!BaseImpl::HasMultiRangeValidation,
+        "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
+        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "upgrade your compiler.");
+#endif
+    using MultiRangeValidationRanges = typename MultiRangeAssembler<false>::template Type<BaseImpl, std::intmax_t, TMinValue, TMaxValue>;
+    static const bool HasMultiRangeValidation = true;
+};
+
+
 template <std::uintmax_t TMinValue, std::uintmax_t TMaxValue, typename... TOptions>
 class OptionsParser<
     comms::option::ValidBigUnsignedNumValueRange<TMinValue, TMaxValue>,

@@ -1093,8 +1093,37 @@
 /// 
 /// Some protocols prefix the sequence with <b>serialisation length</b> rather
 /// than <b>number of elements to follow</b>. In this case the 
-/// comms::option::SequenceSerLengthFieldPrefix option needs to be used
-/// instead of comms::option::SequenceSizeFieldPrefix.
+/// @ref comms::option::SequenceSerLengthFieldPrefix option needs to be used
+/// instead of @ref comms::option::SequenceSizeFieldPrefix.
+///
+/// @subsection sec_field_tutorial_array_list_elem_length_prefix Element Serialisation Length Prefix
+/// Also some protocols, for easier exchange of lists between nodes that use 
+/// different versions of the same protocol, may require prefixing <b>every
+/// element</b> of the list with its serialisation length. In this case
+/// @ref comms::option::SequenceElemSerLengthFieldPrefix option may be used.
+/// For example, the list of bundles prefixed with 2 bytes specifying number of
+/// elements to follow, and with every element prefixed with its size using
+/// variable length base-128 encoding may look like this:
+/// @code
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///
+/// using SizePrefixField = comms::field::IntValue<MyFieldBase, std::uint16_t>;
+/// using ElemLengthPrefixField = 
+///     comms::field::IntValue<
+///         MyFieldBase, 
+///         std::uint32_t,
+///         comms::option::VarLength<1, 4> // variable length encoding up to 4 bytes
+///     >;
+///
+/// using MyList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         MyBundle, // some bundle of fields
+///         comms::option::SequenceSizeFieldPrefix<SizePrefixField>,
+///         comms::option::SequenceElemSerLengthFieldPrefix<ElemLengthPrefixField>
+///     >;
+/// @endcode
 ///
 /// @subsection sec_field_tutorial_array_list_detached_size_prefix Detached Size Information
 /// There may be cases when size information is detached from the sequence itself, i.e.

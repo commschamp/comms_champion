@@ -453,11 +453,18 @@ struct SequenceSizeFieldPrefix {};
 ///         >;
 ///     @endcode
 /// @tparam TField Type of the field that represents serialisation length
-/// @tparam TReadErrorStatus Error status to return when read operation fails when should not
+/// @tparam TReadErrorStatus Error status to return in case read operation fails when should not
 /// @headerfile comms/options.h
 template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct SequenceSerLengthFieldPrefix {};
 
+/// @brief Option that forces <b>every element</b> of @ref comms::field::ArrayList to
+///     be prepended with its serialisation length.
+/// @details Similar to @ref SequenceSerLengthFieldPrefix but instead of the whole
+///     list, every element is prepended with its serialisation length.
+/// @tparam TField Type of the field that represents serialisation length
+/// @tparam TReadErrorStatus Error status to return in case read operation fails when should not
+/// @headerfile comms/options.h
 template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct SequenceElemSerLengthFieldPrefix {};
 

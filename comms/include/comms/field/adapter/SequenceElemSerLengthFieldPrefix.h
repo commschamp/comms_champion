@@ -176,13 +176,9 @@ public:
     {
         auto elemLength = BaseImpl::elementLength(elem);
         LenField lenField;
-        lenField.value() = elemLength();
-        auto es = lenField.write(iter, LenField::maxLength());
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        return BaseImpl::writeElementNoStatus(elem);
+        lenField.value() = elemLength;
+        lenField.writeNoStatus(iter);
+        BaseImpl::writeElementNoStatus(elem, iter);
     }
 
     template <typename TIter>

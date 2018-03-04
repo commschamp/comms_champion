@@ -71,11 +71,14 @@ QVariantMap createField4Properties()
             .add(
                 cc::property::field::ForField<ListsFields::field4::ValueType::value_type>()
                     .name("element")
-                    .add(cc::property::field::IntValue().name("memeber1").asMap())
-                    .add(cc::property::field::IntValue().name("memeber2").asMap())
+                    .add(cc::property::field::IntValue().name("memeber1").serialisedHidden().asMap())
+                    .add(cc::property::field::IntValue().name("memeber2").serialisedHidden().asMap())
+                    .add(cc::property::field::String().name("memeber3").serialisedHidden().asMap())
                     .serialisedHidden()
                     .asMap())
-            .serialisedHidden()
+//            .serialisedHidden()
+//            .showPrefix()
+//            .prefixName("length")
             .asMap();
 }
 

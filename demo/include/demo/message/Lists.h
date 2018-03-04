@@ -78,7 +78,18 @@ struct ListsFields
             >
         >;
 
-    /// @brief List of bundles, every bundle has two integer values member fields.
+    /// @brief List of bundles
+    /// @details Every bundle contains:
+    ///     @li 2 byte unsigned integer field
+    ///     @li 1 byte unsigned integer field
+    ///     @li string with serialisation length prefix. The prefix is of variable
+    ///         length, i.e. uses base-128 encoding.
+    ///
+    ///     Every list element (bundle) is prefixed with its total serialisation
+    ///     length. The length info is written using base-128 encoding.
+    ///
+    ///     The list itself is prefixed with total serialisation length. The length
+    ///     info is written using base-128 encoding.
     using field4 =
         comms::field::ArrayList<
             FieldBase,
@@ -92,7 +103,31 @@ struct ListsFields
                     comms::field::IntValue<
                         FieldBase,
                         std::int8_t
+                    >,
+                    comms::field::String<
+                        FieldBase,
+                        comms::option::SequenceSizeFieldPrefix<
+                            comms::field::IntValue<
+                                FieldBase,
+                                std::uint32_t,
+                                comms::option::VarLength<1, 4>
+                            >
+                        >
                     >
+                >
+            >,
+            comms::option::SequenceSerLengthFieldPrefix<
+                comms::field::IntValue<
+                    FieldBase,
+                    std::uint32_t,
+                    comms::option::VarLength<1, 4>
+                >
+            >,
+            comms::option::SequenceElemSerLengthFieldPrefix<
+                comms::field::IntValue<
+                    FieldBase,
+                    std::uint32_t,
+                    comms::option::VarLength<1, 4>
                 >
             >
         >;
@@ -145,7 +180,7 @@ public:
     // For some reason VS2015 compiler fails when call to doMinLength() and
     // is performed inside static_assert.
     static const std::size_t MsgMinLen = Base::doMinLength();
-    static_assert(MsgMinLen == 10, "Unexpected min serialisation length");
+    static_assert(MsgMinLen == 11, "Unexpected min serialisation length");
 
     /// @brief Default constructor
     Lists() = default;

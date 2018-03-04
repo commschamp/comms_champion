@@ -165,6 +165,7 @@ using ArrayListBase =
 ///     @li comms::option::CustomStorageType
 ///     @li comms::option::SequenceSizeFieldPrefix
 ///     @li comms::option::SequenceSerLengthFieldPrefix
+///     @li comms::option::SequenceElemSerLengthFieldPrefix
 ///     @li comms::option::SequenceSizeForcingEnabled
 ///     @li comms::option::SequenceFixedSize
 ///     @li comms::option::SequenceTerminationFieldSuffix

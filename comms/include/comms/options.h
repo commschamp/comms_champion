@@ -458,6 +458,9 @@ struct SequenceSizeFieldPrefix {};
 template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct SequenceSerLengthFieldPrefix {};
 
+template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
+struct SequenceElemSerLengthFieldPrefix {};
+
 /// @brief Option that forces termination of the sequence when predefined value
 ///     is encountered.
 /// @details Sometimes protocols use zero-termination for strings instead of

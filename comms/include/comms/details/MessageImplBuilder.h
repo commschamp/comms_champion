@@ -496,6 +496,7 @@ private:
                 (!TField::ParsedOptions::HasSequenceSizeForcing)  &&
                 (!TField::ParsedOptions::HasSequenceSizeFieldPrefix)  &&
                 (!TField::ParsedOptions::HasSequenceSerLengthFieldPrefix) &&
+                (!TField::ParsedOptions::HasSequenceElemSerLengthFieldPrefix) &&
                 (!TField::ParsedOptions::HasSequenceTrailingFieldSuffix) &&
                 (!TField::ParsedOptions::HasSequenceTerminationFieldSuffix) &&
                 soFar;

@@ -199,6 +199,8 @@ private:
             "comms::option::SequenceSizeFieldPrefix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceSerLengthFieldPrefix,
             "comms::option::SequenceSerLengthFieldPrefix option is not applicable to FloatValue field");
+    static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
+            "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
             "comms::option::SequenceTrailingFieldSuffix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,

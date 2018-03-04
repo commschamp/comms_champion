@@ -3919,7 +3919,7 @@ void FieldsTestSuite::test88()
     expBuf.push_back(0x81); // high byte of length
     expBuf.push_back(0x02); // low byte of length
     expBuf.push_back(0x4); // value of first integral byte
-    expBuf.push_back(128); // length of string
+    expBuf.push_back((char)128); // length of string
     for (auto idx = 0; idx < 128; ++idx) {
         expBuf.push_back('a'); // string itself
     }

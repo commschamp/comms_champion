@@ -160,6 +160,12 @@ public:
         value_.push_back(static_cast<typename ValueType::value_type>(val));
     }
 
+    ValueType& createBack()
+    {
+        value_.push_back(ValueType());
+        return value_.back();
+    }
+
     void clear()
     {
         static_assert(comms::details::hasClearFunc<ValueType>(),

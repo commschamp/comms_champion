@@ -133,13 +133,12 @@ private:
                 return es;
             }
 
-            ElementType elem;
+            auto& elem = BaseImpl::createBack();
             es = BaseImpl::readElement(elem, iter, len);
             if (es != comms::ErrorStatus::Success) {
+                BaseImpl::value().pop_back();
                 return es;
             }
-
-            BaseImpl::pushBack(std::move(elem));
         }
 
         return comms::ErrorStatus::Success;

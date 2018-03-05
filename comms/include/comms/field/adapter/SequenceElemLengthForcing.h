@@ -145,13 +145,12 @@ public:
         BaseImpl::clear();
         auto remLen = len;
         while (0 < remLen) {
-            auto elem = ElementType();
+            auto& elem = BaseImpl::createBack();
             auto es = readElement(elem, iter, remLen);
             if (es != ErrorStatus::Success) {
+                BaseImpl::value().pop_back();
                 return es;
             }
-
-            BaseImpl::pushBack(std::move(elem));
         }
 
         return ErrorStatus::Success;
@@ -165,12 +164,12 @@ public:
     {
         BaseImpl::clear();
         while (0 < count) {
-            auto elem = ElementType();
+            auto& elem = BaseImpl::createBack();
             auto es = readElement(elem, iter, len);
             if (es != comms::ErrorStatus::Success) {
+                BaseImpl::value().pop_back();
                 return es;
             }
-            BaseImpl::pushBack(std::move(elem));
             --count;
         }
         return comms::ErrorStatus::Success;
@@ -181,9 +180,8 @@ public:
     {
         BaseImpl::clear();
         while (0 < count) {
-            auto elem = ElementType();
+            auto& elem = BaseImpl::createBack();
             readElementNoStatus(elem, iter);
-            BaseImpl::push_back(std::move(elem));
             --count;
         }
     }

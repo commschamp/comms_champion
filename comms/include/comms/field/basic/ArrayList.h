@@ -163,6 +163,12 @@ public:
         value_.push_back(std::forward<U>(val));
     }
 
+    ElementType& createBack()
+    {
+        value_.emplace_back();
+        return value_.back();
+    }
+
     void clear()
     {
         static_assert(comms::details::hasClearFunc<ValueType>(),
@@ -610,13 +616,12 @@ private:
         value_.clear();
         auto remLen = len;
         while (0 < remLen) {
-            auto elem = ElementType();
+            ElementType& elem = createBack();
             auto es = readElement(elem, iter, remLen);
             if (es != ErrorStatus::Success) {
+                value_.pop_back();
                 return es;
             }
-
-            value_.push_back(std::move(elem));
         }
 
         return ErrorStatus::Success;
@@ -652,13 +657,13 @@ private:
     {
         clear();
         while (0 < count) {
-            auto elem = ElementType();
+            auto& elem = createBack();
             auto es = readElement(elem, iter, len);
             if (es != ErrorStatus::Success) {
+                value_.pop_back();
                 return es;
             }
 
-            value_.push_back(std::move(elem));
             --count;
         }
 
@@ -680,9 +685,8 @@ private:
     {
         clear();
         while (0 < count) {
-            auto elem = ElementType();
+            auto& elem = createBack();
             readElementNoStatus(elem, iter);
-            value_.push_back(std::move(elem));
             --count;
         }
     }

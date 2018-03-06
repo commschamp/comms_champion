@@ -145,6 +145,11 @@ struct CommonFuncs
         }
     }
 
+    static constexpr std::size_t maxSupportedLength()
+    {
+        return 0xffff;
+    }
+
 };
 
 } // namespace basic

@@ -72,7 +72,7 @@ public:
 
     static constexpr std::size_t maxLength()
     {
-        return LenField::maxLength() + BaseImpl::maxLength();
+        return basic::CommonFuncs::maxSupportedLength();
     }
 
     template <typename TIter>
@@ -244,6 +244,7 @@ private:
     static_assert(BaseImpl::minElementLength() == BaseImpl::maxElementLength(),
             "Option SequenceElemFixedSerLengthFieldPrefix can be used only with fixed length "
             "elements.");
+    static_assert(1U <= LenField::minLength(), "Invalid min length assumption");
 
     static const std::size_t MaxLengthLimit =
         std::numeric_limits<std::size_t>::max();

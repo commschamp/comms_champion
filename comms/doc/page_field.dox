@@ -1102,9 +1102,8 @@
 /// element</b> of the list with its serialisation length. In this case
 /// @ref comms::option::SequenceElemSerLengthFieldPrefix option may be used.
 /// For example, the list of bundles prefixed with 2 bytes specifying number of
-/// elements to follow, and with every element prefixed with its size using
+/// elements to follow, and with every element prefixed with its serialisation length using
 /// variable length base-128 encoding may look like this:
-/// @code
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::BigEndian>;
 ///
@@ -1122,6 +1121,34 @@
 ///         MyBundle, // some bundle of fields
 ///         comms::option::SequenceSizeFieldPrefix<SizePrefixField>,
 ///         comms::option::SequenceElemSerLengthFieldPrefix<ElemLengthPrefixField>
+///     >;
+/// @endcode
+/// When every element of the list is of fixed size, i.e. has the same serialisation
+/// length, it becomes redundant to prefix @b every element with its length.
+/// Instead, only first element can be prefixed with one, and all others may 
+/// reuse the same information. To achieve such behaviour 
+/// @ref comms::option::SequenceElemFixedSerLengthFieldPrefix should be used instead.
+/// For example, the list of <b>fixed length</b> bundles prefixed with 1 byte specifying number of
+/// elements to follow, and with first element prefixed with 1 byte containing its serialisation length
+/// may look like this:
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///
+/// using SizePrefixField = comms::field::IntValue<MyFieldBase, std::uint8_t>;
+/// using ElemLengthPrefixField = comms::field::IntValue<MyFieldBase, std::uint8_t>;
+///
+/// using MyList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         comms::field::Bundle<
+///             MyFieldBase,
+///             std::tuple<
+///                 comms::field::IntValue<MyFieldBase, std::uint16_t>,
+///                 comms::field::IntValue<MyFieldBase, std::uint8_t>
+///             >
+///         >,
+///         comms::option::SequenceSizeFieldPrefix<SizePrefixField>,
+///         comms::option::SequenceElemFixedSerLengthFieldPrefix<ElemLengthPrefixField>
 ///     >;
 /// @endcode
 ///

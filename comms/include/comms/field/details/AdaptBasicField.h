@@ -296,6 +296,34 @@ using AdaptFieldSequenceElemSerLengthFieldPrefixT =
 
 //--
 
+template <bool THasSequenceElemFixedSerLengthFieldPrefix>
+struct AdaptFieldSequenceElemFixedSerLengthFieldPrefix;
+
+template <>
+struct AdaptFieldSequenceElemFixedSerLengthFieldPrefix<true>
+{
+    template <typename TField, typename TOpts>
+    using Type =
+        comms::field::adapter::SequenceElemFixedSerLengthFieldPrefix<
+            typename TOpts::SequenceElemFixedSerLengthFieldPrefix,
+            TOpts::SequenceElemFixedSerLengthFieldReadErrorStatus,
+            TField
+        >;
+};
+
+template <>
+struct AdaptFieldSequenceElemFixedSerLengthFieldPrefix<false>
+{
+    template <typename TField, typename TOpts>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldSequenceElemFixedSerLengthFieldPrefixT =
+    typename AdaptFieldSequenceElemFixedSerLengthFieldPrefix<TOpts::HasSequenceElemFixedSerLengthFieldPrefix>::template Type<TField, TOpts>;
+
+//--
+
 template <bool THasSequenceTrailingFieldSuffix>
 struct AdaptFieldSequenceTrailingFieldSuffix;
 
@@ -502,6 +530,7 @@ class AdaptBasicField
             ParsedOptions::HasSequenceSizeFieldPrefix ||
             ParsedOptions::HasSequenceSerLengthFieldPrefix ||
             ParsedOptions::HasSequenceElemSerLengthFieldPrefix ||
+            ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix ||
             ParsedOptions::HasSequenceTrailingFieldSuffix ||
             ParsedOptions::HasSequenceTerminationFieldSuffix |\
             ParsedOptions::HasEmptySerialization;
@@ -512,7 +541,8 @@ class AdaptBasicField
             "NumValueSerOffset, FixedLength, FixedBitLength, VarLength, "
             "HasSequenceElemLengthForcing, "
             "SequenceSizeForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
-            "SequenceSerLengthFieldPrefix, SequenceElemSerLengthFieldPrefix, SequenceTrailingFieldSuffix, "
+            "SequenceSerLengthFieldPrefix, SequenceElemSerLengthFieldPrefix, "
+            "SequenceElemFixedSerLengthFieldPrefix, SequenceTrailingFieldSuffix, "
             "SequenceTerminationFieldSuffix, EmptySerialization");
 
     static const bool VarLengthIncompatible =
@@ -538,9 +568,10 @@ class AdaptBasicField
     static_assert(
             1U >= FieldsOptionsCompatibilityCalc<
                 ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
+                ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
                 ParsedOptions::HasSequenceTerminationFieldSuffix>::Value,
             "The following options are incompatible, cannot be used together: "
-            "SequenceElemSerLengthFieldPrefix, "
+            "SequenceElemSerLengthFieldPrefix, SequenceElemFixedSerLengthFieldPrefix "
             "SequenceTerminationFieldSuffix");
 
     static_assert(
@@ -588,8 +619,10 @@ class AdaptBasicField
         VarLengthAdapted, ParsedOptions>;
     using SequenceElemSerLengthFieldPrefixAdapted = AdaptFieldSequenceElemSerLengthFieldPrefixT<
         SequenceElemLengthForcingAdapted, ParsedOptions>;
-    using SequenceSizeForcingAdapted = AdaptFieldSequenceSizeForcingT<
+    using SequenceElemFixedSerLengthFieldPrefixAdapted = AdaptFieldSequenceElemFixedSerLengthFieldPrefixT<
         SequenceElemSerLengthFieldPrefixAdapted, ParsedOptions>;
+    using SequenceSizeForcingAdapted = AdaptFieldSequenceSizeForcingT<
+        SequenceElemFixedSerLengthFieldPrefixAdapted, ParsedOptions>;
     using SequenceFixedSizeAdapted = AdaptFieldSequenceFixedSizeT<
         SequenceSizeForcingAdapted, ParsedOptions>;
     using SequenceSizeFieldPrefixAdapted = AdaptFieldSequenceSizeFieldPrefixT<

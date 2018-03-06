@@ -29,6 +29,7 @@
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/details/detect.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -312,66 +313,26 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        if (len < length()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        auto es = ErrorStatus::Success;
-        auto remainingLen = len;
-        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            es = writeElement(*fieldIter, iter, remainingLen);
-            if (es != ErrorStatus::Success) {
-                break;
-            }
-        }
-
-        return es;
+        return CommonFuncs::writeSequence(*this, iter, len);
     }
 
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            writeElementNoStatus(*fieldIter, iter);
-        }
+        CommonFuncs::writeSequenceNoStatus(*this, iter);
     }
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
     {
-        if ((value_.size() <= count) && (len < length())) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        auto es = ErrorStatus::Success;
-        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            if (count == 0) {
-                break;
-            }
-
-            es = writeElement(*fieldIter, iter, len);
-            if (es != ErrorStatus::Success) {
-                break;
-            }
-
-            --count;
-        }
-
-        return es;
+        return CommonFuncs::writeSequenceN(*this, count, iter, len);
     }
 
 
     template <typename TIter>
     void writeNoStatusN(std::size_t count, TIter& iter) const
     {
-        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            if (count == 0) {
-                break;
-            }
-
-            writeElementNoStatus(*fieldIter, iter);
-            --count;
-        }
+        CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
     }
 
 private:

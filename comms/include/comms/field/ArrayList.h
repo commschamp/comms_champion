@@ -166,6 +166,7 @@ using ArrayListBase =
 ///     @li @ref comms::option::SequenceSizeFieldPrefix
 ///     @li @ref comms::option::SequenceSerLengthFieldPrefix
 ///     @li @ref comms::option::SequenceElemSerLengthFieldPrefix
+///     @li @ref comms::option::SequenceElemFixedSerLengthFieldPrefix
 ///     @li @ref comms::option::SequenceSizeForcingEnabled
 ///     @li @ref comms::option::SequenceFixedSize
 ///     @li @ref comms::option::SequenceTerminationFieldSuffix

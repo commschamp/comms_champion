@@ -79,6 +79,10 @@ public:
     }
 
     template <typename TIter>
+    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len) = delete;
+
+
+    template <typename TIter>
     void readNoStatus(TIter& iter)
     {
         if (forced_ == Cleared) {
@@ -88,6 +92,10 @@ public:
 
         BaseImpl::readNoStatusN(forced_, iter);
     }
+
+    template <typename TIter>
+    void readNoStatusN(std::size_t count, TIter& iter) = delete;
+
 
 private:
     static const std::size_t Cleared = std::numeric_limits<std::size_t>::max();

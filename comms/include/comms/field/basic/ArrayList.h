@@ -71,7 +71,7 @@ struct ArrayListFieldHasVarLength
 template <typename TStorage>
 struct ArrayListMaxLengthRetrieveHelper
 {
-    static const std::size_t Value = 0xffff;
+    static const std::size_t Value = CommonFuncs::maxSupportedLength();
 };
 
 template <typename T, std::size_t TSize>

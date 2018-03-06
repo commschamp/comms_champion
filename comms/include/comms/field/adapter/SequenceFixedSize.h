@@ -22,6 +22,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/details/detect.h"
+#include "comms/field/basic/CommonFuncs.h"
 
 namespace comms
 {
@@ -258,12 +259,12 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return BaseImpl::minElementLength() * TSize;
+        return BaseImpl::minLength() + BaseImpl::minElementLength() * TSize;
     }
 
     static constexpr std::size_t maxLength()
     {
-        return BaseImpl::maxElementLength() * TSize;
+        return BaseImpl::minLength() + BaseImpl::maxElementLength() * TSize;
     }
 };
 

@@ -22,6 +22,7 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
+#include "comms/field/basic/CommonFuncs.h"
 
 namespace comms
 {
@@ -105,9 +106,7 @@ public:
         }
 
         GASSERT(elemLen <= reqLen);
-        auto consumed = reqLen - elemLen;
-        auto diff = reqLen - consumed;
-        std::advance(iter, diff);
+        std::advance(iter, elemLen);
         len -= reqLen;
         return ErrorStatus::Success;
     }
@@ -118,19 +117,7 @@ public:
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
-        BaseImpl::clear();
-        auto remLen = len;
-        while (0 < remLen) {
-            BaseImpl::value().emplace_back();
-            ElementType& elem = BaseImpl::value().back();
-            auto es = readElement(elem, iter, remLen);
-            if (es != ErrorStatus::Success) {
-                BaseImpl::value().pop_back();
-                return es;
-            }
-        }
-
-        return ErrorStatus::Success;
+        return basic::CommonFuncs::readSequence(*this, iter, len);
     }
 
     template <typename TIter>
@@ -139,18 +126,7 @@ public:
     template <typename TIter>
     ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
     {
-        BaseImpl::clear();
-        while (0 < count) {
-            BaseImpl::value().emplace_back();
-            auto& elem = BaseImpl::value().back();
-            auto es = readElement(elem, iter, len);
-            if (es != comms::ErrorStatus::Success) {
-                BaseImpl::value().pop_back();
-                return es;
-            }
-            --count;
-        }
-        return comms::ErrorStatus::Success;
+        return basic::CommonFuncs::readSequenceN(*this, count, iter, len);
     }
 
     template <typename TIter>
@@ -184,57 +160,25 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        auto es = ErrorStatus::Success;
-        auto remainingLen = len;
-        for (auto& elem : BaseImpl::value()) {
-            es = writeElement(elem, iter, remainingLen);
-            if (es != ErrorStatus::Success) {
-                break;
-            }
-        }
-
-        return es;
+        return basic::CommonFuncs::writeSequence(*this, iter, len);
     }
 
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        for (auto& elem : BaseImpl::value()) {
-            writeElementNoStatus(elem, iter);
-        }
+        basic::CommonFuncs::writeSequenceNoStatus(*this, iter);
     }
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
     {
-        auto es = ErrorStatus::Success;
-        for (auto& elem : BaseImpl::value()) {
-            if (count == 0) {
-                break;
-            }
-
-            es = writeElement(elem, iter, len);
-            if (es != ErrorStatus::Success) {
-                break;
-            }
-
-            --count;
-        }
-
-        return es;
+        return basic::CommonFuncs::writeSequenceN(*this, count, iter, len);
     }
 
     template <typename TIter>
     void writeNoStatusN(std::size_t count, TIter& iter) const
     {
-        for (auto& elem : BaseImpl::value()) {
-            if (count == 0) {
-                break;
-            }
-
-            writeElementNoStatus(elem, iter);
-            --count;
-        }
+        basic::CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
     }
 
 private:

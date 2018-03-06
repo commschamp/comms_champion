@@ -408,6 +408,8 @@ private:
             "comms::option::ValidNumValueRange (or similar) option is not applicable to String field");
     static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
             "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to String field");
+    static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
+            "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to String field");
 };
 
 /// @brief Equality comparison operator.

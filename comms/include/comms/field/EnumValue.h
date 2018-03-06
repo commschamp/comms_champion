@@ -223,6 +223,8 @@ private:
             "comms::option::SequenceSerLengthFieldPrefix option is not applicable to EnumValue field");
     static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
             "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
+            "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to EnumValue field");
     static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
             "comms::option::SequenceTrailingFieldSuffix option is not applicable to EnumValue field");
     static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,

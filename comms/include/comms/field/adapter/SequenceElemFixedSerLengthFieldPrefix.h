@@ -1,0 +1,261 @@
+//
+// Copyright 2018 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+#pragma once
+
+#include <iterator>
+
+#include "comms/Assert.h"
+#include "comms/ErrorStatus.h"
+#include "comms/field/basic/CommonFuncs.h"
+
+namespace comms
+{
+
+namespace field
+{
+
+namespace adapter
+{
+
+template <typename TLenField, comms::ErrorStatus TStatus, typename TBase>
+class SequenceElemFixedSerLengthFieldPrefix : public TBase
+{
+    using BaseImpl = TBase;
+    using LenField = TLenField;
+
+public:
+    using ValueType = typename BaseImpl::ValueType;
+    using ElementType = typename BaseImpl::ElementType;
+
+    SequenceElemFixedSerLengthFieldPrefix() = default;
+
+    explicit SequenceElemFixedSerLengthFieldPrefix(const ValueType& val)
+      : BaseImpl(val)
+    {
+    }
+
+    explicit SequenceElemFixedSerLengthFieldPrefix(ValueType&& val)
+      : BaseImpl(std::move(val))
+    {
+    }
+
+    SequenceElemFixedSerLengthFieldPrefix(const SequenceElemFixedSerLengthFieldPrefix&) = default;
+    SequenceElemFixedSerLengthFieldPrefix(SequenceElemFixedSerLengthFieldPrefix&&) = default;
+    SequenceElemFixedSerLengthFieldPrefix& operator=(const SequenceElemFixedSerLengthFieldPrefix&) = default;
+    SequenceElemFixedSerLengthFieldPrefix& operator=(SequenceElemFixedSerLengthFieldPrefix&&) = default;
+
+    std::size_t length() const
+    {
+        return lengthInternal(LenFieldLengthTag());
+    }
+
+    static constexpr std::size_t minLength()
+    {
+        return LenField::minLength() + BaseImpl::minLength();
+    }
+
+    static constexpr std::size_t maxLength()
+    {
+        return LenField::maxLength() + BaseImpl::maxLength();
+    }
+
+    template <typename TIter>
+    ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len) const
+    {
+        GASSERT(elemLen_ < MaxLengthLimit);
+
+        if (len < elemLen_) {
+            return ErrorStatus::NotEnoughData;
+        }
+
+        std::size_t elemLen = elemLen_;
+        auto es = BaseImpl::readElement(elem, iter, elemLen);
+        if (es == ErrorStatus::NotEnoughData) {
+            return TStatus;
+        }
+
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        GASSERT(elemLen <= elemLen_);
+        std::advance(iter, elemLen);
+        len -= elemLen_;
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    void readElementNoStatus(ElementType& elem, TIter& iter) const = delete;
+
+    template <typename TIter>
+    comms::ErrorStatus read(TIter& iter, std::size_t len)
+    {
+        auto es = readLen(iter, len);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        return basic::CommonFuncs::readSequence(*this, iter, len);
+    }
+
+    template <typename TIter>
+    void readNoStatus(TIter& iter) = delete;
+
+    template <typename TIter>
+    ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
+    {
+        auto es = readLen(iter, len);
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        return basic::CommonFuncs::readSequenceN(*this, count, iter, len);
+    }
+
+    template <typename TIter>
+    void readNoStatusN(std::size_t count, TIter& iter) = delete;
+
+
+    template <typename TIter>
+    ErrorStatus write(TIter& iter, std::size_t len) const
+    {
+        auto es = writeLen(iter, len); // len is updated
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        return basic::CommonFuncs::writeSequence(*this, iter, len);
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const
+    {
+        writeLenNoStatus(iter);
+        basic::CommonFuncs::writeSequenceNoStatus(*this, iter);
+    }
+
+    template <typename TIter>
+    ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
+    {
+        auto es = writeLen(iter, len); // len is updated
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        return basic::CommonFuncs::writeSequenceN(*this, count, iter, len);
+    }
+
+    template <typename TIter>
+    void writeNoStatusN(std::size_t count, TIter& iter) const
+    {
+        writeLenNoStatus(iter);
+        basic::CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
+    }
+
+private:
+
+    struct FixedLengthLenFieldTag {};
+    struct VarLengthLenFieldTag {};
+
+    using LenFieldLengthTag =
+        typename std::conditional<
+            LenField::minLength() == LenField::maxLength(),
+            FixedLengthLenFieldTag,
+            VarLengthLenFieldTag
+        >::type;
+
+    std::size_t lengthInternal(FixedLengthLenFieldTag) const
+    {
+        return (LenField::minLength() + BaseImpl::length());
+    }
+
+    std::size_t lengthInternal(VarLengthLenFieldTag) const
+    {
+        LenField lenField;
+        lenField.value() = BaseImpl::minElementLength();
+        return (lenField.length() + BaseImpl::minElementLength()) * BaseImpl::value().size();
+    }
+
+    template <typename TIter>
+    static void advanceWriteIterator(TIter& iter, std::size_t len)
+    {
+        basic::CommonFuncs::advanceWriteIterator(iter, len);
+    }
+
+    template <typename TIter>
+    ErrorStatus readLen(TIter& iter, std::size_t& len)
+    {
+        LenField lenField;
+        auto es = lenField.read(iter, len);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        len -= lenField.length();
+
+        elemLen_ = static_cast<std::size_t>(lenField.value());
+        if (elemLen_ == MaxLengthLimit) {
+            return TStatus;
+        }
+
+        return ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    ErrorStatus writeLen(TIter& iter, std::size_t& len) const
+    {
+        auto elemLength = BaseImpl::minElementLength();
+        LenField lenField;
+        lenField.value() = elemLength;
+        auto es = lenField.write(iter, len);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        len -= lenField.length();
+        return es;
+    }
+
+    template <typename TIter>
+    void writeLenNoStatus(TIter& iter) const
+    {
+        auto elemLength = BaseImpl::minElementLength();
+        LenField lenField;
+        lenField.value() = elemLength;
+        lenField.writeNoStatus(iter);
+    }
+
+    static_assert(BaseImpl::minElementLength() == BaseImpl::maxElementLength(),
+            "Option SequenceElemFixedSerLengthFieldPrefix can be used only with fixed length "
+            "elements.");
+
+    static const std::size_t MaxLengthLimit =
+        std::numeric_limits<std::size_t>::max();
+    std::size_t elemLen_ = MaxLengthLimit;
+};
+
+}  // namespace adapter
+
+}  // namespace field
+
+}  // namespace comms
+
+
+
+

@@ -29,6 +29,7 @@
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/details/detect.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -45,7 +46,7 @@ namespace details
 template <typename TStorage>
 struct StringMaxLengthRetrieveHelper
 {
-    static const std::size_t Value = 0xffff;
+    static const std::size_t Value = CommonFuncs::maxSupportedLength();
 };
 
 template <std::size_t TSize>

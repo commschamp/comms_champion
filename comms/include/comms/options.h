@@ -459,7 +459,7 @@ template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorSta
 struct SequenceSerLengthFieldPrefix {};
 
 /// @brief Option that forces <b>every element</b> of @ref comms::field::ArrayList to
-///     be prepended with its serialisation length.
+///     be prefixed with its serialisation length.
 /// @details Similar to @ref SequenceSerLengthFieldPrefix but instead of the whole
 ///     list, every element is prepended with its serialisation length.
 /// @tparam TField Type of the field that represents serialisation length
@@ -468,6 +468,15 @@ struct SequenceSerLengthFieldPrefix {};
 template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct SequenceElemSerLengthFieldPrefix {};
 
+/// @brief Option that forces @b first element only of @ref comms::field::ArrayList to
+///     be prefixed with its serialisation length.
+/// @details Similar to @ref SequenceElemSerLengthFieldPrefix, but
+///     applicable only to the lists where elements are of the same
+///     fixed size, where there is no need to prefix @b every element
+///     with its size.
+/// @tparam TField Type of the field that represents serialisation length
+/// @tparam TReadErrorStatus Error status to return in case read operation fails when should not
+/// @headerfile comms/options.h
 template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct SequenceElemFixedSerLengthFieldPrefix {};
 

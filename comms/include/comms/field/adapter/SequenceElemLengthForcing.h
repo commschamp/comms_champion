@@ -89,7 +89,7 @@ public:
 
     static constexpr std::size_t maxElementLength()
     {
-        return 0xffff;
+        return basic::CommonFuncs::maxSupportedLength();
     }
 
     template <typename TIter>

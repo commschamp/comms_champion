@@ -86,6 +86,12 @@ struct ProtocolLayerHasImplOptions<T, typename ProtocolLayerEnableIfHasImplOptio
     static const bool Value = true;
 };
 
+template <class T>
+constexpr bool protocolLayerHasImplOptions()
+{
+    return ProtocolLayerHasImplOptions<T>::Value;
+}
+
 template <typename T, bool THasImpl>
 struct ProtocolLayerHasFieldsImplHelper;
 
@@ -107,6 +113,12 @@ struct ProtocolLayerHasFieldsImpl
     static const bool Value =
         ProtocolLayerHasFieldsImplHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
 };
+
+template <class T>
+constexpr bool protocolLayerHasFieldsImpl()
+{
+    return ProtocolLayerHasFieldsImpl<T>::Value;
+}
 
 template <typename T, bool THasImpl>
 struct ProtocolLayerHasDoGetIdHelper;
@@ -690,6 +702,13 @@ public:
     }
 
 protected:
+
+    template <typename T>
+    static constexpr bool isMessageObjRef()
+    {
+        return details::protocolLayerHasImplOptions<T>();
+    }
+
 
     void updateMissingSize(std::size_t size, std::size_t* missingSize) const
     {

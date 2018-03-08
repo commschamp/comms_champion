@@ -37,6 +37,7 @@ public:
     void test5();
     void test6();
     void test7();
+    void test8();
 
 private:
 
@@ -67,8 +68,14 @@ private:
         CommonOptions
     > LeTraits;
 
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian
+    > NonPolymorphicBigEndianTraits;
+
     typedef TestMessageBase<BeTraits> BeMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;
+    typedef comms::Message<NonPolymorphicBigEndianTraits> BeNonPolymorphicMessageBase;
 
     typedef BeMsgBase::Field BeField;
     typedef LeMsgBase::Field LeField;
@@ -79,6 +86,8 @@ private:
     typedef Message2<LeMsgBase> LeMsg2;
     typedef Message3<BeMsgBase> BeMsg3;
     typedef Message3<LeMsgBase> LeMsg3;
+    typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
+    typedef Message2<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg2;
 
 
     template <typename TField>
@@ -282,3 +291,31 @@ void MsgIdLayerTestSuite::test7()
     TS_ASSERT_EQUALS(fields, fields2);
 }
 
+void MsgIdLayerTestSuite::test8()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    NonPolymorphicBeMsg1 msg;
+    TS_ASSERT_EQUALS(msg.doGetId(), MessageType1);
+    commonReadWriteMsgDirectTest(stack, msg, &Buf[0], BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
+
+    ProtStack::AllFields fields;
+    commonReadWriteMsgDirectTest(stack, fields, msg, &Buf[0], BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(fields).value(), MessageType1);
+
+    NonPolymorphicBeMsg2 msg2;
+    TS_ASSERT_EQUALS(msg2.doGetId(), MessageType2);
+    commonReadWriteMsgDirectTest(stack, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+
+    ProtStack::AllFields fields2;
+    std::get<0>(fields2).value() = MessageType5; // just to make sure it is updated.
+    commonReadWriteMsgDirectTest(stack, fields2, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+    TS_ASSERT_EQUALS(std::get<0>(fields2).value(), MessageType1);
+}

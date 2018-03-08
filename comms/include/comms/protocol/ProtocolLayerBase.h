@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -142,6 +142,12 @@ struct ProtocolLayerHasDoGetId
         ProtocolLayerHasDoGetIdHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
 };
 
+template <typename T>
+constexpr bool protocolLayerHasDoGetId()
+{
+    return ProtocolLayerHasDoGetId<T>::Value;
+}
+
 template <class T, class R = void>
 struct ProtocolLayerEnableIfHasMsgPtr { using Type = R; };
 
@@ -282,9 +288,9 @@ public:
     ///     @endcode
     ///     The signature of the @b nextLayerReader.read() function is
     ///     the same as the signature of this @b read() member function.
-    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TMsg Type of @b msg parameter
     /// @tparam TIter Type of iterator used for reading.
-    /// @param[in, out] msgPtr Reference to smart pointer that will hold
+    /// @param[in, out] msg Reference to smart pointer that will hold
     ///                 allocated message object
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
@@ -298,13 +304,13 @@ public:
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       read. In case of an error, distance between original position and
     ///       advanced will pinpoint the location of the error.
-    /// @post Returns comms::ErrorStatus::Success if and only if msgPtr points
+    /// @post Returns comms::ErrorStatus::Success if and only if msg points
     ///       to a valid object.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr, typename TIter>
+    template <typename TMsg, typename TIter>
     comms::ErrorStatus read(
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
@@ -318,7 +324,7 @@ public:
 
         static_assert(std::is_same<Tag, NormalReadTag>::value || canSplitRead(),
             "Read split is disallowed by at least one of the inner layers");
-        return readInternal(msgPtr, iter, size, missingSize, Tag());
+        return readInternal(msg, iter, size, missingSize, Tag());
     }
 
     /// @brief Perform read of data fields until data layer (message payload).
@@ -991,9 +997,9 @@ private:
     struct NormalReadTag {};
     struct SplitReadTag {};
 
-    template <typename TMsgPtr, typename TIter>
+    template <typename TMsg, typename TIter>
     comms::ErrorStatus readInternal(
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
@@ -1001,7 +1007,7 @@ private:
     {
         Field field;
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msgPtr, iter, size, missingSize, createNextLayerReader());
+        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerReader());
     }
 
     template <typename TMsgPtr, typename TIter>

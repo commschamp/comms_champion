@@ -579,3 +579,54 @@ void vectorBackInsertWriteReadMsgTest(
     TS_ASSERT_EQUALS(*castedMsg, msg);
 }
 
+template <typename TProtStack, typename TMsg>
+void commonReadWriteMsgDirectTest(
+    TProtStack& stack,
+    TMsg& msg,
+    const char* const buf,
+    std::size_t bufSize,
+    comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
+{
+    auto readIter = buf;
+    auto es = stack.read(msg, readIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedEs);
+    if (es != comms::ErrorStatus::Success) {
+        return;
+    }
+
+    auto actualBufSize = static_cast<std::size_t>(std::distance(buf, readIter));
+    TS_ASSERT_EQUALS(actualBufSize, stack.length(msg));
+    std::unique_ptr<char []> outCheckBuf(new char[actualBufSize]);
+    auto writeIter = &outCheckBuf[0];
+    es = stack.write(msg, writeIter, actualBufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
+}
+
+template <typename TProtStack, typename TMsg>
+void commonReadWriteMsgDirectTest(
+    TProtStack& stack,
+    typename TProtStack::AllFields& fields,
+    TMsg& msg,
+    const char* const buf,
+    std::size_t bufSize,
+    comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
+{
+    auto readIter = buf;
+    auto es = stack.template readFieldsCached<0>(fields, msg, readIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedEs);
+    if (es != comms::ErrorStatus::Success) {
+        return;
+    }
+
+    auto actualBufSize = static_cast<std::size_t>(std::distance(buf, readIter));
+    TS_ASSERT_EQUALS(actualBufSize, stack.length(msg));
+    std::unique_ptr<char []> outCheckBuf(new char[actualBufSize]);
+    typename TProtStack::AllFields writtenFields;
+    auto writeIter = &outCheckBuf[0];
+    es = stack.template writeFieldsCached<0>(writtenFields, msg, writeIter, actualBufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(fields, writtenFields);
+    TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
+}
+

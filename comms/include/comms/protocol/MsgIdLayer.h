@@ -141,7 +141,7 @@ public:
     /// @param[out] field Field object to read.
     /// @param[in, out] msg Reference to smart pointer that will hold
     ///                 allocated message object, or to the previously allocated
-    ///                 message object itself.
+    ///                 message object itself (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is

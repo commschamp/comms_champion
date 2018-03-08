@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -44,6 +44,7 @@ public:
     void test12();
     void test13();
     void test14();
+    void test15();
 
 private:
 
@@ -92,12 +93,18 @@ private:
         CommonOptions
     > LeTraits;
 
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian
+    > NonPolymorphicBigEndianTraits;
+
 
     typedef TestMessageBase<BeTraits> BeMsgBase;
     typedef TestMessageBase<BeNoLengthTraits> BeNoLengthMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;
     typedef TestMessageBase<BeBackInsertTraits> BeBackInsertMsgBase;
     typedef TestMessageBase<BeNoLengthBackInsertTraits> BeNoLengthBackInsertMsgBase;
+    typedef comms::Message<NonPolymorphicBigEndianTraits> BeNonPolymorphicMessageBase;
 
     typedef BeMsgBase::Field BeField;
     typedef LeMsgBase::Field LeField;
@@ -113,6 +120,8 @@ private:
     typedef Message3<BeMsgBase> BeMsg3;
     typedef Message3<LeMsgBase> LeMsg3;
     typedef Message3<BeBackInsertMsgBase> BeBackInsertMsg3;
+    typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
+    typedef Message2<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg2;
 
 
     template <typename TField, std::size_t TSize, std::size_t TOffset = 0>
@@ -506,3 +515,31 @@ void MsgSizeLayerTestSuite::test14()
 
 }
 
+void MsgSizeLayerTestSuite::test15()
+{
+    static const char Buf[] = {
+        0x0, 0x3, MessageType1, 0x01, 0x02, static_cast<char>(0x3f)
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeSizeField20, BeIdField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    NonPolymorphicBeMsg1 msg;
+    commonReadWriteMsgDirectTest(stack, msg, &Buf[0], BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
+
+    ProtStack::AllFields fields;
+    commonReadWriteMsgDirectTest(stack, fields, msg, &Buf[0], BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(fields).value(), 3U);
+    TS_ASSERT_EQUALS(std::get<1>(fields).value(), MessageType1);
+
+    NonPolymorphicBeMsg2 msg2;
+    commonReadWriteMsgDirectTest(stack, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+
+    ProtStack::AllFields fields2;
+    commonReadWriteMsgDirectTest(stack, fields2, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+
+    TS_ASSERT_EQUALS(std::get<0>(fields2).value(), 3U);
+    TS_ASSERT_EQUALS(std::get<1>(fields2).value(), MessageType1);
+}

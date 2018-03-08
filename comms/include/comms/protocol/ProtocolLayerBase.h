@@ -715,6 +715,17 @@ protected:
         return details::protocolLayerHasImplOptions<T>();
     }
 
+    template <typename TMsg>
+    static void resetMsg(TMsg& msg)
+    {
+        using Tag =
+            typename std::conditional<
+                isMessageObjRef<typename std::decay<decltype(msg)>::type>(),
+                MessageObjTag,
+                SmartPtrTag
+            >::type;
+        resetMsgInternal(msg, Tag());
+    }
 
     void updateMissingSize(std::size_t size, std::size_t* missingSize) const
     {
@@ -996,6 +1007,8 @@ private:
 
     struct NormalReadTag {};
     struct SplitReadTag {};
+    struct MessageObjTag {};
+    struct SmartPtrTag {};
 
     template <typename TMsg, typename TIter>
     comms::ErrorStatus readInternal(
@@ -1056,6 +1069,18 @@ private:
             es = nextLayerUpdater.update(iter, size - field.length());
         }
         return es;
+    }
+
+    template <typename TMsg>
+    static void resetMsgInternal(TMsg&, MessageObjTag)
+    {
+        // Do nothing
+    }
+
+    template <typename TMsg>
+    static void resetMsgInternal(TMsg& msg, SmartPtrTag)
+    {
+        msg.reset();
     }
 
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");

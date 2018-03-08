@@ -243,6 +243,7 @@ TMessage MsgDataLayerTestSuite::internalReadWriteCachedTest(
     using ProtStack = ProtocolStack<Interface>;
 
     ProtStack stack;
+    static_cast<void>(stack);
     ProtStack::AllFields allFields;
     auto readIter = buf;
     std::unique_ptr<TMessage> msg(new TMessage);
@@ -351,6 +352,7 @@ void MsgDataLayerTestSuite::internalDirectReadWriteTest(
     using InterfaceType = typename std::decay<decltype(comms::toMessage(msg))>::type;
     using ProtStack = ProtocolStack<InterfaceType>;
     ProtStack stack;
+    static_cast<void>(stack);
     auto readIter = buf;
     auto es = stack.read(msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedErrStatus);

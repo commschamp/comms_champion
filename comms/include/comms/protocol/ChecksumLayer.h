@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -101,12 +101,13 @@ public:
     ///     compares it to the calculated. If checksums match,
     ///     comms::ErrorStatus::Success is returned, otherwise
     ///     function returns comms::ErrorStatus::ProtocolError.
-    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TMsg Type of @b msg parameter.
     /// @tparam TIter Type of iterator used for reading.
     /// @tparam TNextLayerReader next layer reader object type.
     /// @param[out] field Field object to read.
-    /// @param[in, out] msgPtr Reference to smart pointer that already holds or
-    ///     will hold allocated message object
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
@@ -123,10 +124,10 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     ErrorStatus doRead(
         Field& field,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
@@ -140,7 +141,7 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
-        return readInternal(field, msgPtr, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), VerifyTag());
+        return readInternal(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), VerifyTag());
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -232,10 +233,10 @@ private:
         >::type;
 
 
-    template <typename TMsgPtr, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader>
     ErrorStatus verifyRead(
         Field& field,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
@@ -254,11 +255,11 @@ private:
         auto expectedValue = field.value();
 
         if (expectedValue != static_cast<decltype(expectedValue)>(checksum)) {
-            msgPtr.reset();
+            BaseImpl::resetMsg(msg);
             return ErrorStatus::ProtocolError;
         }
 
-        auto es = nextLayerReader.read(msgPtr, iter, size - Field::minLength(), missingSize);
+        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), missingSize);
         if (es == ErrorStatus::Success) {
             iter = toIter;
         }
@@ -266,10 +267,10 @@ private:
         return es;
     }
 
-    template <typename TMsgPtr, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader>
     ErrorStatus readVerify(
         Field& field,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
@@ -277,7 +278,7 @@ private:
     {
         auto fromIter = iter;
 
-        auto es = nextLayerReader.read(msgPtr, iter, size - Field::minLength(), missingSize);
+        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), missingSize);
         if ((es == ErrorStatus::NotEnoughData) ||
             (es == ErrorStatus::ProtocolError)) {
             return es;
@@ -292,7 +293,7 @@ private:
         }
 
         if (checksumEs != ErrorStatus::Success) {
-            msgPtr.reset();
+            BaseImpl::resetMsg(msg);
             return checksumEs;
         }
 
@@ -300,37 +301,37 @@ private:
         auto expectedValue = field.value();
 
         if (expectedValue != static_cast<decltype(expectedValue)>(checksum)) {
-            msgPtr.reset();
+            BaseImpl::resetMsg(msg);
             return ErrorStatus::ProtocolError;
         }
 
         return es;
     }
 
-    template <typename TMsgPtr, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader>
     ErrorStatus readInternal(
         Field& field,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         TReader&& nextLayerReader,
         VerifyBeforeReadTag)
     {
-        return verifyRead(field, msgPtr, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
+        return verifyRead(field, msg, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
     }
 
-    template <typename TMsgPtr, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader>
     ErrorStatus readInternal(
         Field& field,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         TReader&& nextLayerReader,
         VerifyAfterReadTag)
     {
-        return readVerify(field, msgPtr, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
+        return readVerify(field, msg, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
     }
 
     template <typename TMsg, typename TIter, typename TWriter>

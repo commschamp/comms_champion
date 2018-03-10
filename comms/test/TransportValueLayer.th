@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -33,6 +33,7 @@ public:
     void test1();
     void test2();
     void test3();
+    void test4();
 
 private:
 
@@ -53,6 +54,11 @@ private:
         comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >,
         comms::option::LengthInfoInterface
     > BeBackInsertOptions;
+
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian
+    > NonPolymorphicBigEndianTraits;
 
     using FieldBase = comms::Field<comms::option::BigEndian>;
 
@@ -82,6 +88,11 @@ private:
     public:
         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version);
     };
+
+    typedef ExtraTransportMessageBase<NonPolymorphicBigEndianTraits> BeNonPolymorphicMessageBase;
+
+    typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
+    typedef Message2<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg2;
 
     using SizeField =
         comms::field::IntValue<
@@ -207,4 +218,43 @@ void TransportValueLayerTestSuite::test3()
 
     auto& msg1 = dynamic_cast<Message1<MsgBase>&>(*msgPtr);
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
+}
+
+void TransportValueLayerTestSuite::test4()
+{
+    static const char Buf[] = {
+        0x0, 0x6, 0x0, 0x4, 0x0, MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = BeforeIdProtocolStack<BeNonPolymorphicMessageBase>;
+
+    Stack stack;
+
+    TS_ASSERT_EQUALS(stack.length(), 6U);
+
+    NonPolymorphicBeMsg1 msg;
+    commonReadWriteMsgDirectTest(stack, msg, &Buf[0], BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
+    TS_ASSERT_EQUALS(msg.transportField_version().value(), 4U);
+
+    Stack::AllFields fields;
+    commonReadWriteMsgDirectTest(stack, fields, msg, &Buf[0], BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(fields).value(), 0x6);
+    TS_ASSERT_EQUALS(std::get<1>(fields).value(), 0x4);
+    TS_ASSERT_EQUALS(std::get<2>(fields).value(), MessageType1);
+    TS_ASSERT_EQUALS(std::get<3>(fields).value(), std::vector<std::uint8_t>(Buf + 6, Buf + 8));
+    TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
+    TS_ASSERT_EQUALS(msg.transportField_version().value(), 4U);
+
+    NonPolymorphicBeMsg2 msg2;
+    commonReadWriteMsgDirectTest(stack, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+
+    Stack::AllFields fields2;
+    commonReadWriteMsgDirectTest(stack, fields2, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+    TS_ASSERT_EQUALS(std::get<0>(fields2).value(), 0x6);
+    TS_ASSERT_EQUALS(std::get<1>(fields2).value(), 0x4);
+    TS_ASSERT_EQUALS(std::get<2>(fields2).value(), MessageType1);
+
 }

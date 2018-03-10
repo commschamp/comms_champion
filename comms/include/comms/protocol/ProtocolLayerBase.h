@@ -267,10 +267,10 @@ public:
     ///     provided by the derived class, which must have the following signature
     ///     and logic:
     ///     @code
-    ///         template<typename TMsgPtr, typename TIter, typename TNextLayerReader>
+    ///         template<typename TMsg, typename TIter, typename TNextLayerReader>
     ///         comms::ErrorStatus doRead(
     ///             Field& field, // field object used to read required data
-    ///             TMsgPtr& msgPtr, // smart pointer to message object
+    ///             TMsg& msg, // Ref to smart pointer to message object, or message object itself
     ///             TIter& iter, // iterator used for reading
     ///             std::size_t size, // size of the remaining data
     ///             std::size_t* missingSize, // output of missing bytest count
@@ -278,10 +278,10 @@ public:
     ///             )
     ///         {
     ///             // internal logic prior next layer read, such as reading the field value
-    ///             auto es = field.read(msgPtr, iter, size, missingSize);
+    ///             auto es = field.read(iter, size);
     ///             ...
     ///             // request next layer to perform read operation
-    ///             es = nextLayerReader.read(msgPtr, iter, size - field.length(), missingSize);
+    ///             es = nextLayerReader.read(msg, iter, size - field.length(), missingSize);
     ///             ... // internal logic after next layer read if applicable
     ///             return es;
     ///         };
@@ -290,8 +290,9 @@ public:
     ///     the same as the signature of this @b read() member function.
     /// @tparam TMsg Type of @b msg parameter
     /// @tparam TIter Type of iterator used for reading.
-    /// @param[in, out] msg Reference to smart pointer that will hold
-    ///                 allocated message object
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
@@ -330,10 +331,11 @@ public:
     /// @brief Perform read of data fields until data layer (message payload).
     /// @details Same as @b read by stops read operation when data layer is reached.
     ///     Expected to be followed by a call to @ref readFromData().
-    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TMsg Type of @b msg parameter.
     /// @tparam TIter Type of iterator used for reading.
-    /// @param[in, out] msgPtr Reference to smart pointer that will hold
-    ///                 allocated message object
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
@@ -348,9 +350,9 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr, typename TIter>
+    template <typename TMsg, typename TIter>
     comms::ErrorStatus readUntilData(
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
@@ -358,16 +360,17 @@ public:
 
         Field field;
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msgPtr, iter, size, missingSize, createNextLayerUntilDataReader());
+        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerUntilDataReader());
     }
 
     /// @brief Finalise the read operation by reading the message payload.
     /// @details Should be called to finalise the read operation started by
     ///     @ref readUntilData().
-    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TMsg Type of @b msg parameter
     /// @tparam TIter Type of iterator used for reading.
-    /// @param[in, out] msgPtr Reference to smart pointer that will hold
-    ///                 allocated message object
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
@@ -382,14 +385,14 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr, typename TIter>
+    template <typename TMsg, typename TIter>
     comms::ErrorStatus readFromData(
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        return nextLayer().readFromData(msgPtr, iter, size, missingSize);
+        return nextLayer().readFromData(msg, iter, size, missingSize);
     }
 
     /// @brief Deserialise message from the input data sequence while caching
@@ -402,11 +405,13 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
-    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TMsg Type of @b msg parameter.
     /// @tparam TIter Type of iterator used for reading.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
-    /// @param[in] msgPtr Reference to the smart pointer holding message object.
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
     /// @param[out] missingSize If not nullptr and return value is
@@ -414,17 +419,17 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
     comms::ErrorStatus readFieldsCached(
         TAllFields& allFields,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
         auto& field = getField<TIdx>(allFields);
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msgPtr, iter, size, missingSize, createNextLayerCachedFieldsReader<TIdx>(allFields));
+        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsReader<TIdx>(allFields));
     }
 
     /// @brief Perform read of data fields until data layer (message payload) while caching
@@ -437,11 +442,13 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
-    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TMsg Type of @b msg parameter
     /// @tparam TIter Type of iterator used for reading.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
-    /// @param[in] msgPtr Reference to the smart pointer holding message object.
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
     /// @param[out] missingSize If not nullptr and return value is
@@ -449,17 +456,17 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
     comms::ErrorStatus readUntilDataFieldsCached(
         TAllFields& allFields,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
         auto& field = getField<TIdx>(allFields);
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msgPtr, iter, size, missingSize, createNextLayerCachedFieldsUntilDataReader<TIdx>(allFields));
+        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsUntilDataReader<TIdx>(allFields));
     }
 
     /// @brief Finalise the read operation by reading the message payload while caching
@@ -470,11 +477,13 @@ public:
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
-    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TMsg Type of @b msg parameter
     /// @tparam TIter Type of iterator used for reading.
     /// @param[out] allFields Reference to the std::tuple object that wraps all
     ///     transport fields (@ref AllFields type of the last protocol layer class).
-    /// @param[in] msgPtr Reference to the smart pointer holding message object.
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
     /// @param[out] missingSize If not nullptr and return value is
@@ -482,15 +491,15 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsgPtr, typename TIter>
+    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
     comms::ErrorStatus readFromDataFieldsCached(
         TAllFields& allFields,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        return nextLayer().template readFromDataFieldsCached<TIdx>(allFields, msgPtr, iter, size, missingSize);
+        return nextLayer().template readFromDataFieldsCached<TIdx>(allFields, msg, iter, size, missingSize);
     }
 
     /// @brief Serialise message into output data sequence.

@@ -223,9 +223,9 @@ public:
             return es;
         }
 
-        GASSERT(fromIter <= iter);
+        COMMS_ASSERT(fromIter <= iter);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
-        GASSERT(len == (size - Field::maxLength()));
+        COMMS_ASSERT(len == (size - Field::maxLength()));
         using FieldValueType = typename Field::ValueType;
         field.value() = static_cast<FieldValueType>(TCalc()(fromIter, len));
         es = field.write(checksumIter, Field::maxLength());
@@ -350,7 +350,7 @@ private:
             return es;
         }
 
-        GASSERT(fromIter <= iter);
+        COMMS_ASSERT(fromIter <= iter);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
 
         using FieldValueType = typename Field::ValueType;
@@ -359,7 +359,7 @@ private:
 
         auto checksumEs = field.write(checksumIter, checksumLen);
         static_cast<void>(checksumEs);
-        GASSERT(checksumEs == comms::ErrorStatus::Success);
+        COMMS_ASSERT(checksumEs == comms::ErrorStatus::Success);
         return es;
     }
 

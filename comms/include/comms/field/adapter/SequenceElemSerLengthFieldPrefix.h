@@ -105,7 +105,7 @@ public:
             return es;
         }
 
-        GASSERT(elemLen <= reqLen);
+        COMMS_ASSERT(elemLen <= reqLen);
         std::advance(iter, elemLen);
         len -= reqLen;
         return ErrorStatus::Success;

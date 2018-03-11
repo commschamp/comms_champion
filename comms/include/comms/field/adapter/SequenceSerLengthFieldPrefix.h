@@ -115,7 +115,7 @@ public:
             return es;
         }
 
-        GASSERT(lenField.length() <= len);
+        COMMS_ASSERT(lenField.length() <= len);
         return BaseImpl::write(iter, lenVal);
     }
 

@@ -136,7 +136,7 @@ protected:
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
         static const typename TBase::MsgIdType MsgId = typename TBase::MsgIdType();
-        GASSERT(!"The message id is not supposed to be retrieved");
+        COMMS_ASSERT(!"The message id is not supposed to be retrieved");
         return MsgId;
     }
 };
@@ -562,7 +562,7 @@ private:
             if (status_ == comms::ErrorStatus::Success) {
                 status_ = field.read(iter_, size_);
                 if (status_ == comms::ErrorStatus::Success) {
-                    GASSERT(field.length() <= size_);
+                    COMMS_ASSERT(field.length() <= size_);
                     size_ -= field.length();
                 }
             }
@@ -623,7 +623,7 @@ private:
             if (status_ == comms::ErrorStatus::Success) {
                 status_ = field.write(iter_, size_);
                 if (status_ == comms::ErrorStatus::Success) {
-                    GASSERT(field.length() <= size_);
+                    COMMS_ASSERT(field.length() <= size_);
                     size_ -= field.length();
                 }
             }

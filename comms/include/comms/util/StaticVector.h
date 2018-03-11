@@ -97,25 +97,25 @@ public:
 
     T& back()
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return elem(size() - 1);
     }
 
     const T& back() const
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return elem(size() - 1);
     }
 
     T& front()
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return elem(0);
     }
 
     const T& front() const
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return elem(0);
     }
 
@@ -125,7 +125,7 @@ public:
         clear();
         for (auto iter = from; iter != to; ++iter) {
             if (capacity() <= size()) {
-                GASSERT(!"Not all elements are copied");
+                COMMS_ASSERT(!"Not all elements are copied");
                 return;
             }
 
@@ -137,7 +137,7 @@ public:
     void fill(std::size_t count, const T& value)
     {
         clear();
-        GASSERT(count <= capacity());
+        COMMS_ASSERT(count <= capacity());
         for (auto idx = 0U; idx < count; ++idx) {
             new (cellPtr(idx)) T(value);
         }
@@ -184,13 +184,13 @@ public:
 
     T& at(std::size_t pos)
     {
-        GASSERT(pos < size());
+        COMMS_ASSERT(pos < size());
         return elem(pos);
     }
 
     const T& at(std::size_t pos) const
     {
-        GASSERT(pos < size());
+        COMMS_ASSERT(pos < size());
         return elem(pos);
     }
 
@@ -217,14 +217,14 @@ public:
     template <typename U>
     T* insert(const T* pos, U&& value)
     {
-        GASSERT(pos <= end());
-        GASSERT(size() < capacity());
+        COMMS_ASSERT(pos <= end());
+        COMMS_ASSERT(size() < capacity());
         if (end() <= pos) {
             push_back(std::forward<U>(value));
             return &(back());
         }
 
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         push_back(std::move(back()));
         auto* insertIter = begin() + std::distance(cbegin(), pos);
         std::move_backward(insertIter, end() - 2, end() - 1);
@@ -234,8 +234,8 @@ public:
 
     T* insert(const T* pos, std::size_t count, const T& value)
     {
-        GASSERT(pos <= end());
-        GASSERT((size() + count) <= capacity());
+        COMMS_ASSERT(pos <= end());
+        COMMS_ASSERT((size() + count) <= capacity());
         auto* posIter = begin() + std::distance(cbegin(), pos);
         if (end() <= posIter) {
             while (0 < count) {
@@ -245,7 +245,7 @@ public:
             return posIter;
         }
 
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         auto tailCount = static_cast<std::size_t>(std::distance(posIter, end()));
         if (count <= tailCount) {
             auto pushBegIter = end() - count;
@@ -256,7 +256,7 @@ public:
 
             auto moveBegIter = posIter;
             auto moveEndIter = moveBegIter + (tailCount - count);
-            GASSERT(moveEndIter < pushEndIter);
+            COMMS_ASSERT(moveEndIter < pushEndIter);
             std::move_backward(moveBegIter, moveEndIter, pushEndIter);
 
             auto* assignBegIter = posIter;
@@ -302,7 +302,7 @@ public:
             return insertIter;
         }
 
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         push_back(std::move(back()));
         std::move_backward(insertIter, end() - 2, end() - 1);
         insertIter->~T();
@@ -312,9 +312,9 @@ public:
 
     T* erase(const T* from, const T* to)
     {
-        GASSERT(from <= cend());
-        GASSERT(to <= cend());
-        GASSERT(from <= to);
+        COMMS_ASSERT(from <= cend());
+        COMMS_ASSERT(to <= cend());
+        COMMS_ASSERT(from <= to);
 
         auto tailCount = static_cast<std::size_t>(std::distance(to, cend()));
         auto eraseCount = static_cast<std::size_t>(std::distance(from, to));
@@ -325,9 +325,9 @@ public:
 
         auto* eraseFrom = moveDest + tailCount;
         auto* eraseTo = end();
-        GASSERT(eraseFrom <= end());
-        GASSERT(eraseCount <= size());
-        GASSERT(static_cast<std::size_t>(std::distance(eraseFrom, eraseTo)) == eraseCount);
+        COMMS_ASSERT(eraseFrom <= end());
+        COMMS_ASSERT(eraseCount <= size());
+        COMMS_ASSERT(static_cast<std::size_t>(std::distance(eraseFrom, eraseTo)) == eraseCount);
         for (auto iter = eraseFrom; iter != eraseTo; ++iter) {
             iter->~T();
         }
@@ -338,7 +338,7 @@ public:
     template <typename U>
     void push_back(U&& value)
     {
-        GASSERT(size() < capacity());
+        COMMS_ASSERT(size() < capacity());
         new (cellPtr(size())) T(std::forward<U>(value));
         ++size_;
     }
@@ -346,7 +346,7 @@ public:
     template <typename... TArgs>
     void emplace_back(TArgs&&... args)
     {
-        GASSERT(size() < capacity());
+        COMMS_ASSERT(size() < capacity());
         new (cellPtr(size())) T(std::forward<TArgs>(args)...);
         ++size_;
     }
@@ -355,7 +355,7 @@ public:
     {
         if (count < size()) {
             erase(begin() + count, end());
-            GASSERT(count == size());
+            COMMS_ASSERT(count == size());
             return;
         }
 
@@ -400,19 +400,19 @@ public:
 private:
     CellType& cell(std::size_t idx)
     {
-        GASSERT(idx < capacity());
+        COMMS_ASSERT(idx < capacity());
         return data_[idx];
     }
 
     const CellType& cell(std::size_t idx) const
     {
-        GASSERT(idx < capacity());
+        COMMS_ASSERT(idx < capacity());
         return data_[idx];
     }
 
     CellType* cellPtr(std::size_t idx)
     {
-        GASSERT(idx < capacity());
+        COMMS_ASSERT(idx < capacity());
         return &data_[idx];
     }
 
@@ -429,7 +429,7 @@ private:
     template <typename TIter>
     T* insert_random_access(const T* pos, TIter from, TIter to)
     {
-        GASSERT(pos <= end());
+        COMMS_ASSERT(pos <= end());
         auto* posIter = begin() + std::distance(cbegin(), pos);
         if (end() <= posIter) {
             for (; from != to; ++from) {
@@ -440,7 +440,7 @@ private:
         }
 
         auto count = static_cast<std::size_t>(std::distance(from, to));
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         auto tailCount = static_cast<std::size_t>(std::distance(posIter, end()));
         if (count <= tailCount) {
             auto pushBegIter = end() - count;
@@ -451,7 +451,7 @@ private:
 
             auto moveBegIter = posIter;
             auto moveEndIter = moveBegIter + (tailCount - count);
-            GASSERT(moveEndIter < pushEndIter);
+            COMMS_ASSERT(moveEndIter < pushEndIter);
             std::move_backward(moveBegIter, moveEndIter, pushEndIter);
 
             auto* assignBegIter = posIter;
@@ -565,7 +565,7 @@ public:
     explicit StaticVectorGeneric(size_type count)
       : Base(&StorageBase::data_[0], StorageBase::data_.size())
     {
-        GASSERT(count < Base::capacity());
+        COMMS_ASSERT(count < Base::capacity());
         while (0 < count) {
             Base::emplace_back();
             --count;
@@ -625,7 +625,7 @@ public:
 
     void assign(size_type count, const T& value)
     {
-        GASSERT(count <= TSize);
+        COMMS_ASSERT(count <= TSize);
         Base::fill(count, value);
     }
 
@@ -643,7 +643,7 @@ public:
     void reserve(size_type new_cap)
     {
         static_cast<void>(new_cap);
-        GASSERT(new_cap <= Base::capacity());
+        COMMS_ASSERT(new_cap <= Base::capacity());
     }
 };
 
@@ -1069,7 +1069,7 @@ public:
     }
 
     /// @brief Access specified element with bounds checking.
-    /// @details The bounds check is performed with GASSERT() macro, which means
+    /// @details The bounds check is performed with COMMS_ASSERT() macro, which means
     ///     it is performed only in DEBUG mode compilation. In case NDEBUG
     ///     symbol is defined (RELEASE mode compilation), this call is equivalent
     ///     to operator[]().
@@ -1079,7 +1079,7 @@ public:
         return Base::at(pos);
     }
     /// @brief Access specified element with bounds checking.
-    /// @details The bounds check is performed with GASSERT() macro, which means
+    /// @details The bounds check is performed with COMMS_ASSERT() macro, which means
     ///     it is performed only in DEBUG mode compilation. In case NDEBUG
     ///     symbol is defined (RELEASE mode compilation), this call is equivalent
     ///     to operator[]().

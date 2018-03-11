@@ -230,7 +230,7 @@ public:
             return es;
         }
 
-        GASSERT(field.length() <= size);
+        COMMS_ASSERT(field.length() <= size);
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
@@ -290,7 +290,7 @@ private:
         std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader)
     {
-        GASSERT(!msgPtr);
+        COMMS_ASSERT(!msgPtr);
         auto& id = field.value();
         auto remLen = size;
 
@@ -320,7 +320,7 @@ private:
             return es;
         }
 
-        GASSERT(!msgPtr);
+        COMMS_ASSERT(!msgPtr);
         auto idxLimit = factory_.msgCount(id);
         if (idx < idxLimit) {
             return comms::ErrorStatus::MsgAllocFailure;

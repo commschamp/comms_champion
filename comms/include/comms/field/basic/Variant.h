@@ -170,8 +170,8 @@ public:
         checkDestruct();
         auto es = comms::ErrorStatus::NumOfErrorStatuses;
         comms::util::tupleForEachType<Members>(makeReadHelper(es, iter, len, &storage_));
-        GASSERT((es == comms::ErrorStatus::Success) || (MembersCount <= memIdx_));
-        GASSERT((es != comms::ErrorStatus::Success) || (memIdx_ < MembersCount));
+        COMMS_ASSERT((es == comms::ErrorStatus::Success) || (MembersCount <= memIdx_));
+        COMMS_ASSERT((es != comms::ErrorStatus::Success) || (memIdx_ < MembersCount));
 
         return es;
     }
@@ -226,7 +226,7 @@ public:
     void currentFieldExec(TFunc&& func)
     {
         if (!currentFieldValid()) {
-            GASSERT(!"Invalid field execution");
+            COMMS_ASSERT(!"Invalid field execution");
             return;
         }
 
@@ -237,7 +237,7 @@ public:
     void currentFieldExec(TFunc&& func) const
     {
         if (!currentFieldValid()) {
-            GASSERT(!"Invalid field execution");
+            COMMS_ASSERT(!"Invalid field execution");
             return;
         }
 
@@ -260,7 +260,7 @@ public:
     typename std::tuple_element<TIdx, Members>::type& accessField()
     {
         static_assert(isIdxValid(TIdx), "Only valid field index can be used");
-        GASSERT(TIdx == memIdx_); // Accessing non initialised field
+        COMMS_ASSERT(TIdx == memIdx_); // Accessing non initialised field
 
         using Field = typename std::tuple_element<TIdx, Members>::type;
         return reinterpret_cast<Field&>(storage_);
@@ -270,7 +270,7 @@ public:
     const typename std::tuple_element<TIdx, Members>::type& accessField() const
     {
         static_assert(isIdxValid(TIdx), "Something is wrong");
-        GASSERT(TIdx == memIdx_); // Accessing non initialised field
+        COMMS_ASSERT(TIdx == memIdx_); // Accessing non initialised field
 
         using Field = typename std::tuple_element<TIdx, Members>::type;
         return reinterpret_cast<const Field&>(storage_);
@@ -284,7 +284,7 @@ public:
     void reset()
     {
         checkDestruct();
-        GASSERT(!currentFieldValid());
+        COMMS_ASSERT(!currentFieldValid());
     }
 
 private:

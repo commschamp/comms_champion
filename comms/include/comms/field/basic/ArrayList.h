@@ -396,7 +396,7 @@ private:
     {
         auto es = elem.read(iter, len);
         if (es == ErrorStatus::Success) {
-            GASSERT(elem.length() <= len);
+            COMMS_ASSERT(elem.length() <= len);
             len -= elem.length();
         }
         return es;

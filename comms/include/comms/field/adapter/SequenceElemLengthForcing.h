@@ -61,7 +61,7 @@ public:
 
     void forceElemLength(std::size_t val)
     {
-        GASSERT(val != Cleared);
+        COMMS_ASSERT(val != Cleared);
         forced_ = val;
     }
 

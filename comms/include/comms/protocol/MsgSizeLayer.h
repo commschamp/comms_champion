@@ -272,7 +272,7 @@ private:
             return es;
         }
 
-        GASSERT(field.length() <= size);
+        COMMS_ASSERT(field.length() <= size);
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
@@ -301,7 +301,7 @@ private:
         }
 
         field.value() = static_cast<typename Field::ValueType>(std::distance(dataIter, iter));
-        GASSERT(field.length() == sizeLen);
+        COMMS_ASSERT(field.length() == sizeLen);
         return field.write(valueIter, sizeLen);
     }
 

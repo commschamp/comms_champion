@@ -51,7 +51,7 @@
 /// The COMMS library is intended to be used in embedded systems (including 
 /// bare metal), which means the library cannot use exceptions to report errors.
 /// The runtime errors are reported via comms::ErrorStatus return values. All
-/// pre- and post-conditions are checked using GASSERT() macro.
+/// pre- and post-conditions are checked using COMMS_ASSERT() macro.
 /// It is, just like regular standard @b assert() macro, is compiled in if @b NDEBUG symbol
 /// is not defined. In case the provided condition doesn't hold true, the macro
 /// checks whether custom assertion failure behaviour was registered. If yes,

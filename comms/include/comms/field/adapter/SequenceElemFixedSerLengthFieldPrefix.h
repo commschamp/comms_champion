@@ -78,7 +78,7 @@ public:
     template <typename TIter>
     ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len) const
     {
-        GASSERT(elemLen_ < MaxLengthLimit);
+        COMMS_ASSERT(elemLen_ < MaxLengthLimit);
 
         if (len < elemLen_) {
             return ErrorStatus::NotEnoughData;
@@ -94,7 +94,7 @@ public:
             return es;
         }
 
-        GASSERT(elemLen <= elemLen_);
+        COMMS_ASSERT(elemLen <= elemLen_);
         std::advance(iter, elemLen);
         len -= elemLen_;
         return ErrorStatus::Success;

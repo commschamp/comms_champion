@@ -152,15 +152,15 @@ private:
 
 /// @cond DOCUCMENT_AM_ASSERT_FUNCTION
 #ifndef __ASSERT_FUNCTION
-#define GASSERT_FUNCTION_STR __FUNCTION__
+#define COMMS_ASSERT_FUNCTION_STR __FUNCTION__
 #else // #ifndef __ASSERT_FUNCTION
-#define GASSERT_FUNCTION_STR __ASSERT_FUNCTION
+#define COMMS_ASSERT_FUNCTION_STR __ASSERT_FUNCTION
 #endif // #ifndef __ASSERT_FUNCTION
 
 #ifndef NOSTDLIB
-#define GASSERT_FAIL_FUNC(expr) assert(expr)
+#define COMMS_ASSERT_FAIL_FUNC(expr) assert(expr)
 #else // #ifndef NOSTDLIB
-#define GASSERT_FAIL_FUNC(expr) comms::AssertManager::instance().infiniteLoop()
+#define COMMS_ASSERT_FAIL_FUNC(expr) comms::AssertManager::instance().infiniteLoop()
 #endif // #ifndef NOSTDLIB
 
 /// @endcond
@@ -171,19 +171,22 @@ private:
 ///          In case NOSTDLIB is defined and no custom assertion failure was
 ///          enabled, infinite loop will be executed.
 /// @param expr Boolean expression
-#define GASSERT(expr) \
+#define COMMS_ASSERT(expr) \
     ((expr)                               \
       ? static_cast<void>(0)                     \
       : (comms::AssertManager::instance().hasAssertRegistered() \
             ? comms::AssertManager::instance().getAssert()->fail( \
-                #expr, __FILE__, __LINE__, GASSERT_FUNCTION_STR) \
-            : GASSERT_FAIL_FUNC(expr)))
+                #expr, __FILE__, __LINE__, COMMS_ASSERT_FUNCTION_STR) \
+            : COMMS_ASSERT_FAIL_FUNC(expr)))
 
 #else // #ifndef NDEBUG
 
-#define GASSERT(expr) static_cast<void>(0)
+#define COMMS_ASSERT(expr) static_cast<void>(0)
 
 #endif // #ifndef NDEBUG
 
+/// @brief Same as @ref COMMS_ASSERT
+/// @details Kept for backward compatibility of already written protocols.
+#define GASSERT(expr) COMMS_ASSERT(expr)
 
 }  // namespace comms

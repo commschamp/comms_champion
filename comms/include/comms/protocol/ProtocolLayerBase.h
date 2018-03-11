@@ -739,7 +739,7 @@ protected:
     void updateMissingSize(std::size_t size, std::size_t* missingSize) const
     {
         if (missingSize != nullptr) {
-            GASSERT(size <= length());
+            COMMS_ASSERT(size <= length());
             *missingSize = std::max(std::size_t(1U), length() - size);
         }
     }
@@ -751,7 +751,7 @@ protected:
     {
         if (missingSize != nullptr) {
             auto totalLen = field.length() + nextLayer_.length();
-            GASSERT(size <= totalLen);
+            COMMS_ASSERT(size <= totalLen);
             *missingSize = std::max(std::size_t(1U), totalLen - size);
         }
     }
@@ -1047,7 +1047,7 @@ private:
         }
 
         auto consumed = static_cast<std::size_t>(std::distance(fromIter, iter));
-        GASSERT(consumed <= size);
+        COMMS_ASSERT(consumed <= size);
         return readFromData(msgPtr, iter, size - consumed, missingSize);
     }
 
@@ -1060,7 +1060,7 @@ private:
         FixedLengthTag) const
     {
         auto len = field.length();
-        GASSERT(len <= size);
+        COMMS_ASSERT(len <= size);
         std::advance(iter, len);
         return nextLayerUpdater.update(iter, size - len);
     }

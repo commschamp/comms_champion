@@ -118,7 +118,7 @@ public:
             return es;
         }
 
-        GASSERT(sizeField.length() <= len);
+        COMMS_ASSERT(sizeField.length() <= len);
         return BaseImpl::write(iter, len - sizeField.length());
     }
 

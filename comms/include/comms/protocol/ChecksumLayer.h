@@ -205,9 +205,9 @@ public:
             return es;
         }
 
-        GASSERT(fromIter <= iter);
+        COMMS_ASSERT(fromIter <= iter);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
-        GASSERT(len == (size - Field::maxLength()));
+        COMMS_ASSERT(len == (size - Field::maxLength()));
         auto remSize = size - len;
         using FieldValueType = typename Field::ValueType;
         field.value() = static_cast<FieldValueType>(TCalc()(fromIter, len));
@@ -285,7 +285,7 @@ private:
         }
 
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
-        GASSERT(len <= size);
+        COMMS_ASSERT(len <= size);
         auto remSize = size - len;
         auto checksumEs = field.read(iter, remSize);
         if (checksumEs == ErrorStatus::NotEnoughData) {
@@ -349,7 +349,7 @@ private:
             return es;
         }
 
-        GASSERT(fromIter <= iter);
+        COMMS_ASSERT(fromIter <= iter);
         auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
         auto remSize = size - len;
 
@@ -360,7 +360,7 @@ private:
         if (es == comms::ErrorStatus::UpdateRequired) {
             auto esTmp = field.write(iter, remSize);
             static_cast<void>(esTmp);
-            GASSERT(esTmp == comms::ErrorStatus::Success);
+            COMMS_ASSERT(esTmp == comms::ErrorStatus::Success);
             return es;
         }
 
@@ -387,7 +387,7 @@ private:
 
         auto esTmp = field.write(iter, Field::maxLength());
         static_cast<void>(esTmp);
-        GASSERT(esTmp == comms::ErrorStatus::Success);
+        COMMS_ASSERT(esTmp == comms::ErrorStatus::Success);
         return comms::ErrorStatus::UpdateRequired;
     }
 

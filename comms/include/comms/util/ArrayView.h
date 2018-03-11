@@ -209,10 +209,10 @@ public:
     }
 
     /// @brief Element access with range check
-    /// @details Checks the range with @ref GASSERT() macro without throwing exception.
+    /// @details Checks the range with @ref COMMS_ASSERT() macro without throwing exception.
     const_reference at(size_type pos) const
     {
-        GASSERT(pos < len_);
+        COMMS_ASSERT(pos < len_);
         return data_[pos];
     }
 

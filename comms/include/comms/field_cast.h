@@ -45,19 +45,19 @@ struct FieldCastNonEqualHelper<TFieldTo, TFieldFrom, true>
         std::uint8_t buf[MaxBufSize] = {0};
         auto* writeIter = &buf[0];
         auto es = field.write(writeIter, MaxBufSize);
-        GASSERT(es == comms::ErrorStatus::Success);
+        COMMS_ASSERT(es == comms::ErrorStatus::Success);
         if (es != comms::ErrorStatus::Success) {
             return TFieldTo();
         }
 
         auto len = static_cast<std::size_t>(std::distance(&buf[0], writeIter));
-        GASSERT(len <= MaxBufSize);
+        COMMS_ASSERT(len <= MaxBufSize);
 
         TFieldTo result;
         const auto* readIter = &buf[0];
         es = result.read(readIter, len);
         static_cast<void>(es);
-        GASSERT(es == comms::ErrorStatus::Success);
+        COMMS_ASSERT(es == comms::ErrorStatus::Success);
         return result;
     }
 };
@@ -68,7 +68,7 @@ struct FieldCastNonEqualHelper<TFieldTo, TFieldFrom, false>
     static TFieldTo cast(const TFieldFrom& field)
     {
         static_cast<void>(field);
-        GASSERT(!"Casting between different fields of variable sizes is not supported.");
+        COMMS_ASSERT(!"Casting between different fields of variable sizes is not supported.");
         return TFieldTo();
     }
 };

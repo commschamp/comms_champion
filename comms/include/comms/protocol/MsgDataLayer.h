@@ -210,7 +210,7 @@ public:
         auto dataSize = static_cast<std::size_t>(std::distance(dataIter, iter));
         auto dataEs = dataField.read(dataIter, dataSize);
         static_cast<void>(dataEs);
-        GASSERT(dataEs == comms::ErrorStatus::Success);
+        COMMS_ASSERT(dataEs == comms::ErrorStatus::Success);
         return es;
     }
 
@@ -463,7 +463,7 @@ private:
 
         auto writtenCount = static_cast<std::size_t>(std::distance(dataReadIter, iter));
         auto dataEs = field.read(dataReadIter, writtenCount);
-        GASSERT(dataEs == comms::ErrorStatus::Success);
+        COMMS_ASSERT(dataEs == comms::ErrorStatus::Success);
         static_cast<void>(dataEs);
         return comms::ErrorStatus::Success;
     }
@@ -483,12 +483,12 @@ private:
         TCollection col;
         auto dataWriteIter = std::back_inserter(col);
         auto dataWriteEs = write(msg, dataWriteIter, size);
-        GASSERT(dataWriteEs == comms::ErrorStatus::Success);
+        COMMS_ASSERT(dataWriteEs == comms::ErrorStatus::Success);
         static_cast<void>(dataWriteEs);
 
         auto dataReadIter = col.cbegin();
         auto dataReadEs = field.read(dataReadIter, col.size());
-        GASSERT(dataReadEs == comms::ErrorStatus::Success);
+        COMMS_ASSERT(dataReadEs == comms::ErrorStatus::Success);
         static_cast<void>(dataReadEs);
 
         return comms::ErrorStatus::Success;
@@ -540,7 +540,7 @@ private:
 
         using ReadIter = typename std::add_lvalue_reference<typename MsgType::ReadIterator>::type;
 
-        GASSERT(msgPtr);
+        COMMS_ASSERT(msgPtr);
         auto result = msgPtr->read(static_cast<ReadIter>(iter), size);
         if ((result == ErrorStatus::NotEnoughData) &&
             (missingSize != nullptr)) {

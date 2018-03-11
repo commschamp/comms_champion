@@ -106,7 +106,7 @@ private:
             static_assert(Idx < NumOfMessages, "Invalid message id");
 
             static const NumIdFactoryMethod<TMessage> Factory;
-            GASSERT(registry_[Idx] == nullptr);
+            COMMS_ASSERT(registry_[Idx] == nullptr);
             registry_[Idx] = &Factory;
         }
 

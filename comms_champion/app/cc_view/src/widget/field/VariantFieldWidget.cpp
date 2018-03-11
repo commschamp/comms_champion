@@ -50,7 +50,7 @@ VariantFieldWidget::~VariantFieldWidget() noexcept = default;
 
 void VariantFieldWidget::setMemberField(FieldWidget* memberFieldWidget)
 {
-    GASSERT(memberFieldWidget != nullptr);
+    assert(memberFieldWidget != nullptr);
     if (m_member != nullptr) {
         delete m_member;
     }

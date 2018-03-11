@@ -85,7 +85,7 @@ public:
             ++len;
         }
 
-        GASSERT(len <= maxLength());
+        COMMS_ASSERT(len <= maxLength());
         return std::max(std::size_t(MinLength), len);
     }
 
@@ -167,13 +167,13 @@ public:
             }
             auto byte = removeByteFromSerialisedValue(val, byteCount, minLen, lastByte, Endian());
             if (!lastByte) {
-                GASSERT((byte & VarLengthContinueBit) == 0);
+                COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
                 byte |= VarLengthContinueBit;
             }
 
             comms::util::writeData(byte, iter, Endian());
             ++byteCount;
-            GASSERT(byteCount <= maxLength());
+            COMMS_ASSERT(byteCount <= maxLength());
             --size;
         }
 
@@ -190,13 +190,13 @@ public:
         while ((!lastByte) && (byteCount < maxLength())) {
             auto byte = removeByteFromSerialisedValue(val, byteCount, minLen, lastByte, Endian());
             if (!lastByte) {
-                GASSERT((byte & VarLengthContinueBit) == 0);
+                COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
                 byte |= VarLengthContinueBit;
             }
 
             comms::util::writeData(byte, iter, Endian());
             ++byteCount;
-            GASSERT(byteCount <= maxLength());
+            COMMS_ASSERT(byteCount <= maxLength());
         }
     }
 
@@ -234,7 +234,7 @@ private:
         std::uint8_t byte,
         UnsignedSerialisedType& val)
     {
-        GASSERT((byte & VarLengthContinueBit) == 0);
+        COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
         val <<= VarLengthShift;
         val |= byte;
     }
@@ -244,7 +244,7 @@ private:
         std::size_t byteCount,
         UnsignedSerialisedType& val)
     {
-        GASSERT((byte & VarLengthContinueBit) == 0);
+        COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
         auto shift =
             byteCount * VarLengthShift;
         val = (static_cast<SerialisedType>(byte) << shift) | val;

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -1207,9 +1207,25 @@ using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValida
 /// @brief Alias to DefaultValueInitialiser, it sets default mode
 ///     to field::Optional field.
 /// @tparam TVal Optional mode value is to be assigned to the field in default constructor.
+/// @see @ref MissingByDefault
+/// @see @ref ExistsByDefault
 /// @headerfile comms/options.h
 template<comms::field::OptionalMode TVal>
 using DefaultOptionalMode = DefaultValueInitialiser<details::DefaultOptModeInitialiser<TVal> >;
+
+/// @brief Alias to @ref DefaultOptionalMode.
+/// @details Equivalent to
+///     @code
+///     DefaultOptionalMode<comms::field::OptionalMode::Missing>
+///     @endcode
+using MissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing>;
+
+/// @brief Alias to @ref DefaultOptionalMode.
+/// @details Equivalent to
+///     @code
+///     DefaultOptionalMode<comms::field::OptionalMode::Exists>
+///     @endcode
+using ExistsByDefault = DefaultOptionalMode<comms::field::OptionalMode::Exists>;
 
 /// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Missing>
 using OptionalMissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing>;

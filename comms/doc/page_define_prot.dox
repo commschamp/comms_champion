@@ -1,0 +1,634 @@
+/// @page page_define_prot How to Define New Custom Protocol
+/// @tableofcontents
+/// The protocol definition is mostly about defining messages and their fields.
+/// As the first stage please read @ref page_field_tutorial in order to understand
+/// what types of fields are available and how to define them.
+///
+/// @section page_define_prot_headers Headers and Libraries
+/// COMMS is a headers only library without any object files to link against. 
+/// In order to include the whole functionality of the library please use
+/// single include statement:
+/// @code
+/// #include "comms/comms.h"
+/// @endcode
+///
+/// If the protocol grows and the compilation takes a significant amount of time,
+/// more fine-grained include statements may be used:
+/// @code
+/// #include "comms/fields.h" // Provides all definitions from comms::field namespace
+/// #include "comms/protocols.h" // Provides all definitions from comms::protocol namespace
+/// #include "comms/units.h" // Provides all definitions from comms::units namespace
+/// #include "comms/Message.h" // Definition of comms::Message class to define interface
+/// #include "comms/MessageBase.h" // Definition of comms::MessageBase class to define message impl
+/// #include "comms/GenericHandler.h" // Definition of comms::GenericHandler class
+/// #include "comms/MsgFactory.h" // Definition of comms::MessageFactory class
+/// @endcode
+///
+/// @section page_define_prot_conditions Checking pre- and post- Conditions
+/// The COMMS library is intended to be used in embedded systems (including 
+/// bare metal), which may have standard library excluded from the compilation.
+/// In order to check pre- and post- conditions as well as inner assumptions, please
+/// use @ref COMMS_ASSERT macro (instead of standard @b assert()). 
+/// It gives and ability to the application being developed
+/// in the future to choose and use its own means to report assertion failures.
+///
+/// @section page_define_prot_interface Common Interface Class.
+/// Protocol definition needs to be started by defining all the available 
+/// numeric IDs of the messages as separate enum. For example in file @b MsgId.h
+/// @code
+/// // file MsgId.h
+/// #pragma once
+/// #include <cstdint>
+///
+/// namespace my_protocol
+/// {
+///     enum MsgId : std::uint16_t
+///     {
+///         MsgId_Message1,
+///         MsgId_Message2,
+///         MsgId_Message3,
+///         ...
+///     };
+/// } // namespace my_protocol
+/// @endcode
+/// @b NOTE, that most probably the same enum will be used to define a field that
+/// responsible to read / write message ID information in the transport framing. That's
+/// the reason why the underlying type of the enum needs to be specified (please
+/// see @ref sec_field_tutorial_enum_value for more details).
+///
+/// After the numeric IDs are specified, there is a need to define common
+/// message interface class by extending @ref comms::Message. 
+/// The defined class / type needs to pin the type used for message IDs 
+/// with @ref comms::option::MsgIdType and defined
+/// earlier enum. It also should specify the serialisation endian with either
+/// @ref comms::option::BigEndian or @ref comms::option::LittleEndian options.
+/// However it must also
+/// allow extension with other options by the application. 
+/// @code
+/// // file Message.h
+/// #pragma once
+/// namespace my_protocol
+/// {
+/// 
+/// template <typename... TOptions>
+/// using Message = 
+///     comms::Message<
+///         comms::option::BigEndian,
+///         comms::option::MsgIdType<MsgId>,
+///         TOptions...
+///     >;
+///
+/// } // namespace my_protocol
+/// @endcode
+/// The application, that is going to use protocol definition later, will use
+/// extra options to specify polymorphic behaviour it needs.
+///
+/// @section page_define_prot_message_base Message Implementation Class
+/// The next stage is to define protocol messages with their fields.
+/// 
+/// <b>Recommended Practice</b>
+/// @li Use separate header file for every message class.
+/// @li Use separate folder and/or namespace for all the messages (for example @b message)
+/// @li Define all the relevant to the message fields in the same file, but 
+///     in separate scope (struct), that has the same name as the message, but 
+///     has extra suffix (@b *Fields).
+/// @li Define inner type (for example @b All) that bundles all the defined fields
+///     in single @b std::tuple.
+///
+/// For example, let's assume there is a protocol message called "Message1". Then,
+/// define it in separate header filed (@b Message1.h)
+/// @code
+/// #pragma once
+/// #include "comms/comms.h"
+///
+/// #include "MyFieldBase.h" // Defines MyFieldBase common base class for all the fields
+///
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// struct Message1Fields
+/// {
+///     using field1 = comms::field::IntValue<MyFieldBase, std::uint16_t>;
+///     using field2 = ...
+///     using field3 = ...
+///
+///     // bunding type
+///     using All = 
+///         std::tuple<
+///             field1,
+///             field2,
+///             field3
+///         >;
+/// };
+///
+/// // Definition of the message itself, described and explained later
+/// template <typename TBase>
+/// class Message1 : public comms::MessageBase<TBase, ...> 
+/// {
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+///
+/// The message definition class has to extend @ref comms::MessageBase and receive
+/// at least one template parameter, that is past as first one to @ref comms::MessageBase.
+/// @code
+/// template <typename TBase>
+/// class Message1 : comms::MessageBase<TBase, ...> 
+/// {
+///     ...
+/// };
+/// @endcode
+/// The @b TBase template parameter is chosen by the application being developed. 
+/// It is expected to be a variant of @ref page_define_prot_interface (@b my_protocol::Message),
+/// which specifies polymorphic interface that needs to be implemented. 
+/// The @ref comms::MessageBase class in turn will publicly inherit
+/// from the provided common interface class. As the result the full class inheritance graph may look
+/// like this:
+/// @diafile message_class_hierarchy.dia
+/// @n
+///
+/// There are <b>at least</b> 3 additional options that should be passed to
+/// @ref comms::MessageBase.
+/// @li @ref comms::option::StaticNumIdImpl with numeric ID of the message.
+/// @li @ref comms::option::FieldsImpl with @b std::tuple of message fields (
+///     defined earlier @b my_protocol::Message1Fields::All)
+/// @li @ref comms::option::MsgType with actual message type (@b Message1).
+///
+/// For example
+/// @code
+/// ...
+///
+/// template <typename TBase>
+/// class Message1 : public 
+///     comms::MessageBase<
+///         TBase, 
+///         comms::option::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::FieldsImpl<Message1Fields::All>,
+///         comms::option::MsgType<Message1<TBase> > // type of the message being defined
+/// {
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+///
+/// It is equivalent to having the following types and @b NON-virtual functions defined
+/// @code
+/// template <typename TBase>
+/// class Message1 : public TBase
+/// {
+/// public:
+///     // Redefining the provided std::tuple of fields as internal type
+///     typedef ... AllFields;
+///     
+///     // Access the stored std::tuple of fields
+///     AllFields& fields()
+///     {
+///         return fields_;
+///     }
+///
+///     // Access the stored std::tuple of fields
+///     const AllFields& fields() const
+///     {
+///         return fields_;
+///     }
+///
+///     // Default implementation of read functionality
+///     template <typename TIter>
+///     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
+///     {
+///         // Read all the fields one by one by invoking
+///         // read() member function of all the fields.
+///     }
+///
+///     // Default implementation of write functionality
+///     template <typename TIter>
+///     comms::ErrorStatus doWrite(TIter& iter, std::size_t len) const
+///     {
+///         // Write all the fields one by one by invoking
+///         // write() member function of all the fields.
+///     }
+///
+///     // Default implementation of validity check functionality
+///     bool doValid() const
+///     {
+///         // Call to valid() member function of all the fields one by one.
+///         // The message is valid if all the fields are valid.
+///     }
+///
+///     // Default implementation of length calculation functionality
+///     std::size_t doLength() const
+///     {
+///         // Invoke the length() member function of every field and
+///         // report sum of the values
+///     }
+///
+///     // Defalut implementation of the refreshing functionality
+///     bool doRefresh()
+///     {
+///         // Invokes refresh() member function of every field and returns
+///         // true if at least one of the fields has been updated (returned true).
+///     }
+///
+/// private:
+///     AllFields fields_; // Fields stored as tuple.
+/// };
+/// @endcode
+/// See also relevant API documentation:
+/// @li @ref comms::MessageBase::fields()
+/// @li @ref comms::MessageBase::doRead()
+/// @li @ref comms::MessageBase::doWrite()
+/// @li @ref comms::MessageBase::doLength()
+/// @li @ref comms::MessageBase::doValid()
+/// @li @ref comms::MessageBase::doRefresh()
+///
+/// In case the passed message interface class as template parameter (@b TBase)
+/// defines some polymorphic interface functions, their implementation is automatically
+/// generated by the @ref comms::MessageBase. For example if passed interface
+/// class required polymorphic read operation, the following member function will
+/// also be automatically implemented:
+/// @code
+/// template <typename TBase>
+/// class Message1 : public TBase
+/// {
+///     ...
+/// protected:
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len)
+///     {
+///         return doRead(iter, len);
+///     }
+/// };
+/// @endcode
+///
+/// @subsection page_define_prot_message_base_field_names Providing Names to the Fields
+/// When preparing message object to send or when handling received message, the
+/// fields it contains need to be accessed to set or get their values. The default
+/// (build-in) way of achieving that is to get access to the fields tuple 
+/// using inherited comms::MessageBase::fields() member function and then using
+/// @b std::get() function to access the fields inside the tuple.
+/// @code
+/// Message1<SomeInterface> msg;
+/// auto& allFields = msg.fields();
+/// auto& field1 = std::get<0>(allFields);
+/// auto& field2 = std::get<1>(allFields);
+///
+/// field1.value() = 100;
+/// field2.value() = 32;
+/// sendMessage(msg);
+/// @endcode
+/// Although it works, it is not very convenient way to access and operate the fields.
+/// There is COMMS_MSG_FIELDS_ACCESS() macro that allows to provide meaningful names
+/// for the fields:
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public
+///     comms::MessageBase<...>
+/// {
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
+/// };
+/// @endcode
+/// The said macro creates the following definitions of inner enum @b FieldIdx
+/// type as well as @b field_* accessor functions.
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public
+///     comms::MessageBase<...>
+/// {
+/// public:
+///     enum FieldIdx
+///     {
+///         FieldIdx_value1,
+///         FieldIdx_value2,
+///         FieldIdx_value3,
+///         FieldIdx_numOfValues
+///     }
+///
+///     // Access the "value1" field
+///     auto field_value1() -> decltype(std::get<FieldIdx_value1>(fields()))
+///     {
+///         return std::get<FieldIdx_value1>(fields());
+///     }
+///
+///     // Access the "value1" field (const variant)
+///     auto field_value1() const -> decltype(std::get<FieldIdx_value1>(fields()))
+///     {
+///         return std::get<FieldIdx_value1>(fields());
+///     }
+///
+///     // Access the "value2" field
+///     auto field_value2() -> decltype(std::get<FieldIdx_value2>(fields()))
+///     {
+///         return std::get<FieldIdx_value2>(fields());
+///     }
+///
+///     // Access the "value2" field (const variant)
+///     auto field_value2() const -> decltype(std::get<FieldIdx_value2>(fields()))
+///     {
+///         return std::get<FieldIdx_value2>(fields());
+///     }
+///
+///     // Access the "value3" field
+///     auto field_value3() -> decltype(std::get<FieldIdx_value3>(fields()))
+///     {
+///         return std::get<FieldIdx_value3>(fields());
+///     }
+///
+///     // Access the "value3" field (const variant)
+///     auto field_value3() const -> decltype(std::get<FieldIdx_value3>(fields()))
+///     {
+///         return std::get<FieldIdx_value3>(fields());
+///     }
+/// };
+/// @endcode
+/// As the result, accessing to the fields becomes much easier and clearer:
+/// @code
+/// Message1<SomeInterface> msg;
+/// msg.field_value1().value() = 100;
+/// msg.field_value2().value() = 32;
+/// sendMessage(msg);
+/// @endcode
+/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
+/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
+/// @ref COMMS_MSG_FIELDS_ACCESS() macro
+/// even though it contains valid C++11 code to help in identification the 
+/// actual base class type. If the compilation failure 
+/// happens try to specify the exact base class type using inner @b Base
+/// type definition. For example:
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public
+///     comms::MessageBase<...>
+/// {
+///     // Duplicate the base class definition
+///     using Base = comms::MessageBase<...>;
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
+/// };
+/// @endcode
+///
+/// @subsection page_define_prot_message_base_custom_read Custom Read Functionality
+/// Sometimes the default implementation of read functionality implemented by
+/// comms::MessageBase::doRead() may be incomplete or incorrect and may required
+/// additional or different implementation. It is very easy to fix by defining
+/// new @b doRead() public member function with updated functionality. The 
+/// @ref comms::MessageBase class contains inner magic to call the provided @b doRead()
+/// instead of default one when implementing virtual @ref comms::MessageBase::readImpl(). 
+/// As an example let's define new message
+/// type (@b Message2), which has two fields. The first one is a 1 byte bitmask,
+/// the least significant bit of which defines whether the second field exists.
+/// The second field is optional 2 byte unsigned integer one.
+/// @code
+/// // file Message2.h
+///
+/// #include "comms/comms.h"
+/// 
+/// #include "MyFieldBase.h" // Defines MyFieldBase common base class for all the fields
+///
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// class Message2Fields
+/// {
+///     using field1 =     
+///         comms::field::BitmaskValue<
+///             MyFieldBase, 
+///             comms::option::FixedLength<1>,
+///             comms::option::BitmaskReservedBits<0xfe, 0> 
+///         >;
+///
+///     using field2 = 
+///         comms::field::Optional<
+///             comms::field::IntValue<MyFieldBase, std::uint16_t>,
+///             comms::option::MissingByDefault
+///         >;
+///
+///     // bundle all the fields
+///     using All = std::tuple<
+///         field1,
+///         field2
+///     >;
+/// };
+///
+/// template <typename TBase>
+/// class Message2 : public
+///     comms::MessageBase<
+///         TBase, 
+///         comms::option::StaticNumIdImpl<MsgId_Message2>, 
+///         comms::option::FieldsImpl<Message2Fields::All>,
+///         comms::option::MsgType<Message2<TBase> >
+///     >
+/// {
+/// public:
+///     COMMS_MSG_FIELDS_ACCESS(flags, data);
+///     
+///     template <typename TIter>
+///     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
+///     {
+///         // Get type of the base class
+///         using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
+///
+///         // Read only the flags value
+///         auto es = Base::template doReadFieldsUntil<FieldIdx_data>(iter, len);
+///         if (es != comms::ErrorStatus::Success) {
+///             return es;
+///         }
+///
+///         // Update mode (exists/missing) of the optional value to follow
+///         if (field_flags().value() != 0) {
+///             field_data().setExists();
+///         else {
+///             field_data().setMissing();
+///         }
+///     
+///         // Read the rest of the fields
+///         return Base::template doReadFieldsFrom<FieldIdx_data>(iter, len - field_flags().length());
+///     }
+/// };
+/// @endcode
+/// Please @b note, that due to the fact that defined message class is a template one, the member
+/// functions defined in @ref comms::MessageBase are not accessible directly, there
+/// is a need to specify the base class scope. If there is no inner @b Base
+/// type defined in the class scope (required to support clang and earlier versions of gcc), 
+/// it is possible to use @ref comms::toMessageBase()
+/// function to detect it.
+///
+/// Also @b note, that comms::MessageBase provides the following member functions
+/// in order to allow read / write of the selected fields.
+/// @li @ref comms::MessageBase::doReadFieldsFrom()
+/// @li @ref comms::MessageBase::doReadFieldsUntil()
+/// @li @ref comms::MessageBase::doReadFieldsFromUntil()
+/// @li @ref comms::MessageBase::doWriteFieldsFrom()
+/// @li @ref comms::MessageBase::doWriteFieldsUntil()
+/// @li @ref comms::MessageBase::doWriteFieldsFromUntil()
+///
+/// @subsection page_define_prot_message_base_custom_refresh Custom Refresh Functionality
+/// Let's take a look again at the definition of @b Message2 mentioned earlier, where
+/// the existence of second field (@b data) depends on the value of the least
+/// significant bit in the first field (@b flags). During read operation the
+/// mode of the @b data is updated after value of the @b flags is read. However,
+/// when preparing the same message for write, there is a chance that message 
+/// contents are going to be put in invalid state:
+/// @code
+/// Message2<SomeInterface> msg;
+/// msg.field_flags().value() = 0x1;
+/// msg.field_data().field().value() = 10U;
+/// msg.field_data().setMissing(); // Bug, the field should exist
+/// sendMessage(msg);
+/// @endcode
+/// If message is sent, the @b flags will indicate that the @b data field follows,
+/// but it won't be serialised, due to being marked as "missing" by mistake. Please note,
+/// that all the "write" functions are marked as @b const and are not allowed
+/// to update the message fields during write operation. It may be useful to have
+/// member function that brings message contents into the valid and consistent
+/// state. It should be called @b doRefresh() and return boolean value (@b true
+/// in case the message contents were updated, and @b false if they remain
+/// intact.
+/// @code
+/// template <typename TBase>
+/// class Message2 : public comms::MessageBase<...>
+/// {
+/// public:
+///     COMMS_MSG_FIELDS_ACCESS(flags, data);
+///     
+///     bool doRefresh()
+///     {
+///         auto expectedDataMode = comms::field::OptionalMode::Missing;
+///         if ((field_flags().value() & 0x1) != 0U) {
+///             expectedDataMode = comms::field::OptionalMode::Exists;
+///         }
+///
+///         if (field_data().getMode() == expectedDataMode) {
+///             // No need to change anything
+///             return false;
+///         }
+///
+///         field_data().setMode(expectedDataMode);
+///         return true;
+///     }
+/// };
+/// @endcode
+/// As the result the code preparing message for sending may look like this:
+/// @code
+/// Message2<SomeInterface> msg;
+/// msg.field_flags().value() = 0x1;
+/// msg.field_data().field().value() = 10U;
+/// msg.doRefresh(); // Bring message contents into a valid state
+/// sendMessage(msg);
+/// @endcode
+/// In order to support polymorphic refresh functionality when required (see
+/// @ref page_message_tutorial_interface_refresh), the actual message class
+/// implementation must also pass @ref comms::option::HasDoRefresh option to
+/// @ref comms::MessageBase class:
+/// @code
+/// template <typename TBase>
+/// class Message2 : public
+///     comms::MessageBase<
+///         TBase, 
+///         comms::option::StaticNumIdImpl<MyMsgId_Message2>, 
+///         comms::option::MsgType<Message2<TMessage> >, 
+///         comms::option::FieldsImpl<Message2Fields> ,
+///         comms::option::HasDoRefresh // Support polymorphic refresh when needed
+///     >
+/// {
+/// public:
+///     COMMS_MSG_FIELDS_ACCESS(flags, data);
+///     
+///     template <typename TIter>
+///     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
+///     {
+///         ... // see implementation above
+///     }
+///
+///     bool doRefresh()
+///     {
+///         ... // see implementation above
+///     }
+/// };
+/// @endcode
+/// @b NOTE, that lack of @ref comms::option::HasDoRefresh option will result in
+/// polymorphic call to @ref comms::Message::refresh() member function always
+/// returning @b false (reporting that message fields weren't updated) without proper execution
+/// of refresh functionality.
+///
+/// @subsection page_define_prot_message_base_custom_write Custom Write Functionality
+/// Usually there is no need to provide custom write functionality for the messages
+/// in consistent state (see @ref page_define_prot_message_base_custom_refresh), but if 
+/// the need arises it is enough just to provide custom @b doWrite() member
+/// function.
+/// @code
+/// template <typename TBase>
+/// class SomeMessage : public comms::MessageBase<...>
+/// {
+/// public:
+///     COMMS_MSG_FIELDS_ACCESS(...);
+///     
+///     template <typename TIter>
+///     comms::ErrorStatus doWrite(TIter& iter, std::size_t len) const
+///     {
+///         ... 
+///     }
+/// };
+/// @endcode
+///
+/// @subsection page_define_prot_message_base_custom_length Custom Length Calculation
+/// Just like with @ref page_define_prot_message_base_custom_write providing
+/// custom length calculation is usually not required, but if need arises, just
+/// provide your own variant of @b doLength() member function.
+/// @code
+/// template <typename TBase>
+/// class SomeMessage : public comms::MessageBase<...>
+/// {
+/// public:
+///     std::size_t doLength() const
+///     {
+///         ... 
+///     }
+/// };
+/// @endcode
+///
+/// @subsection page_define_prot_message_base_custom_valid Custom Validity Check
+/// The default implementation of @ref comms::MessageBase::doValid() calls 
+/// @b valid() member function of every message field and returns @b true if
+/// all the calls returned @b true. However, there may be a need to provide extra
+/// checks in case specific value of one field may require tighter constrains on
+/// the value of another. In order to provide custom validity check, just implement
+/// custom @b doValid() member function.
+/// @code
+/// template <typename TBase>
+/// class SomeMessage : public comms::MessageBase<...>
+/// {
+/// public:
+///     bool doValid() const
+///     {
+///         // Get type of the base class
+///         using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
+///         
+///         // Check that all fields are valid by themselves
+///         if (!Base::doValid()) {
+///             return false;
+///         }
+/// 
+///         ... // do custom validation logic
+///         return true;
+///     }
+/// };
+/// @endcode
+///
+/// @section page_define_prot_customisation Application Specific Customisation
+/// 
+

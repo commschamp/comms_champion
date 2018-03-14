@@ -49,7 +49,7 @@ namespace protocol
 ///     assigning it as a value of the check field being read and/or written.
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @tparam TOptions Extending functionality options. Supported options are:
-///     @li comms::option::ChecksumPrefixLayerVerifyBeforeRead - By default, the
+///     @li comms::option::ChecksumLayerVerifyBeforeRead - By default, the
 ///         @b ChecksumPrefixLayer will invoke @b read operation of inner (wrapped) layers
 ///         and only if it is successful, it will calculate and verify the
 ///         checksum value. Usage of comms::option::ChecksumPrefixLayerVerifyBeforeRead

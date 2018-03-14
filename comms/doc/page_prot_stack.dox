@@ -54,28 +54,6 @@
 /// The COMMS library provides multiple classes to define various layers when
 /// assembling the full <b>protocol stack</b> of layers. All these classes reside in
 /// comms::protocol namespace.
-///
-/// The main objective here is to be able to assemble the full protocol stack and
-/// to do the following simple steps when processing the input data:
-/// @code
-/// // Definition and instantiation of protocol stack.
-/// using ProtocolStack = ...;
-/// ProtocolStack protStack;
-///
-/// // Smart pointer to the common message interface
-/// ProtocolStack::MsgPtr msgPtr;
-///
-/// // Messages handler 
-/// MyHandler handler;
-///
-/// // Read the data, create the message object and dispatch it to appropriate handling function
-/// auto readIter = ...; // Get iterator to read data
-/// auto es = protStack.read(msgPtr, readIter, inData.size()); // Read data and create message
-/// if (es == comms::ErrorStatus::Success) {
-///     assert(msgPtr); // msgPtr must hold a valid message object
-///     msgPtr->dispatch(handler); // Dispatch for handling
-/// }
-/// @endcode
 /// The following sections will cover all the layer classes required to
 /// assemble the protocol stack described above.
 ///
@@ -86,98 +64,125 @@
 /// @code
 /// using MyMsgData = comms::protocol::MsgDataLayer<>;
 /// @endcode
-/// During the "read" operation, the comms::protocol::MsgDataLayer::read()
-/// function is executed, which invokes @b read() member function of the message
-/// (see comms::Message::read()). Note, that allocated message object is
-/// passed to comms::protocol::MsgDataLayer::read() function as smart pointer to
-/// common interface class, which must expose polymorphic @b read (see 
-/// @ref page_message_tutorial_interface_read).
-///
-/// During the "write" operation, the comms::protocol::MsgDataLayer::write()
-/// function is executed. It receives the message object as a const reference
-/// to unknown type. If the passed reference is detected to be the reference
-/// to actual message class extending comms::MessageBase, then its non-virtual
-/// @b doWrite() member function will be invoked (see comms::MessageBase::doWrite()).
-/// Otherwise, the reference is assumed to be to the common interface class with
-/// polymorphic @b write (see @ref page_message_tutorial_interface_write), and
-/// its @b write() member function will be called.
+/// @b NOTE, that @ref comms::protocol::MsgDataLayer receives a template parameter.
+/// In the normal operation, when transport frame fields are not stored anywhere,
+/// it is never used. However, there is way to perform @b read operation while
+/// caching transport fields (by using @ref comms::protocol::MsgDataLayer::readFieldsCached())
+/// The payload field is defined to be @ref comms::field::ArrayList of raw data
+/// (see @ref comms::protocol::MsgDataLayer::Field). It would be wise to provide
+/// a way to supply extra options to choose storage type for this field,
+/// when defining protocol stack. As the result the definition becomes:
+/// @code
+/// template <typename TPayloadOptions = comms::option::EmptyOption>
+/// using MyMsgData = comms::protocol::MsgDataLayer<TPayloadOptions>;
+/// @endcode
 ///
 /// @section page_prot_stack_tutorial_id ID Layer
 /// The @b ID layer is responsible to process the ID of the message
 /// and based on this ID, create proper message object. The COMMS library implements
 /// this functionality in comms::protocol::MsgIdLayer class. It receives 
 /// <b>at least</b> four template parameters. The first one is a type of the
-/// field that can be used to read/write the ID information. 
+/// field that can be used to read/write the ID information. The @ref
+/// page_define_prot_interface section described @b my_protocol::MsgId enum
+/// type used to define message IDs, it can be reused to define a field responsible
+/// to read / write message ID value 
 /// @code
-/// enum MyMsgId : std::uint8_t
+/// namespace my_protocol
 /// {
-///     MyMsgId_Message1,
-///     MyMsgId_Message2,
-///     MyMsgId_Message3,
-///     ...
-/// };
 ///
-/// using CommonFieldBase = comms::Field<comms::option::BigEndian>;
-/// using MsgIdField = comms::field::EnumValue<CommonFieldBase, MyMsgId>;
+/// enum MsgId : std::uint8_t {...} // enum described earlier
+///
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>; // Use big endian for all fields serialisation
+///
+/// using MsgIdField = 
+///     comms::field::EnumValue<
+///         MyFieldBase, 
+///         MsgId // enum type
+///     >;
+///
+/// } // namespace my_protocol
 /// @endcode
+/// @b NOTE, that underlying enum type is defined to be @b std::uint8_t, which
+/// will result in 1 byte serialisation length.
 ///
 /// The second parameter is common interface class for all @b input messages
-/// that need to be recognised during @b read operation. 
-/// @code
-/// using MyMessage = 
-///     comms::Message<
-///         comms::option::ReadIterator<const std::uint8_t*>,
-///         comms::option::Handler<MyHandler>,
-///         ...
-///     >;
-/// @endcode
+/// that need to be recognised during @b read operation. This type will be defined
+/// by the application and is expected to be an alias (typedef) or extending 
+/// class to @b my_protocol::Message (described in @ref page_define_prot_interface)
 /// 
 /// The third parameter
 /// is all the types of all the custom messages, that need to be recognised in
-/// @b read operation, bundled in
-/// std::tuple. 
+/// @b read operation, bundled in std::tuple. 
 /// @code
+/// template <typename TMessage>
 /// using AllInputMessages =
 ///     std::tuple<
-///         Message1<MyMessage>,
-///         Message2<MyMessage>,
-///         Message3<MyMessage>,
+///         Message1<TMessage>,
+///         Message2<TMessage>,
+///         Message3<TMessage>,
 ///         ...
 ///     >;
 /// @endcode
-/// @b NOTE, that the interface class (@b MyMessage) passed as
+/// @b NOTE, that the interface class (@b TMessage) passed as
 /// the second parameter is expected to be the common base class for all the messages
 /// passed as third one.
 /// 
 /// The fourth template parameter is the upper layer it needs to wrap:
 /// @code
-/// using MyMsgId = comms::protocol::MsgIdLayer<MsgIdField, MyMessage, AllInputMessages, MyMsgData>;
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// using MyMsgId = 
+///     comms::protocol::MsgIdLayer<
+///         MsgIdField, 
+///         TMessage, 
+///         TInputMessages, 
+///         MyMsgData<TPayloadOptions>
+///     >;
 /// @endcode 
+/// @b NOTE, that all the input messages are passed as a template parameter with
+/// a default value (bundling all the available messages). It will give an opportunity
+/// to the application to use only messages it needs.
+///
+/// Also @b note, input messages in the bundle (@b TInputMessages) are expected
+/// to be defined in order of their numeric IDs. It is allowed to have separate
+/// message classes to report the same numeric ID. However, the @b read operation will
+/// try to read all the messages with the found ID one by one <b>in
+/// order</b> of their definition until success is reported.
+///
 /// The comms::protocol::MsgIdLayer defines @b MsgPtr 
 /// (see comms::protocol::MsgIdLayer::MsgPtr) internal type, which is
 /// smart pointer (@b std::unique_ptr) to the input message interface
-/// class (@b MyMessage) provided as second template parameter.
+/// class (@b TMessage) provided as second template parameter.
 ///
-/// During the @b read() operation, the comms::protocol::MsgIdLayer will
-/// dynamically allocate the proper message object and will assign it to the
-/// smart pointer (of type comms::protocol::MsgIdLayer::MsgPtr), reference
-/// to which is passed as the function parameter.
+/// During the normal @b read operation, the comms::protocol::MsgIdLayer will
+/// dynamically allocate the proper message object.
 ///
 /// The comms::protocol::MsgIdLayer can also be used in <b>bare metal</b> systems,
 /// that do NOT use dynamic memory allocation. In order to prevent this layer 
 /// from using dynamic memory allocation, the comms::option::InPlaceAllocation
 /// option needs to be passed as fifth template parameter to the
-/// comms::protocol::MsgIdLayer class.
+/// comms::protocol::MsgIdLayer class. However, an ability to use this option
+/// needs to be provided to the application itself only if needed. In order to
+/// achive that additional template parameter needs to be used.
 /// @code
-/// using MyMsgId =
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// using MyMsgId = 
 ///     comms::protocol::MsgIdLayer<
 ///         MsgIdField, 
-///         MyMessage,
-///         AllInputMessages, 
-///         MyMsgData,
-///         comms::option::InPlaceAllocation
+///         TMessage, 
+///         TInputMessages, 
+///         MyMsgData<TPayloadOptions>,
+///         TAllocationOptions
 ///     >;
-/// @endcode
+/// @endcode 
 /// In this case, the comms::protocol::MsgIdLayer will statically allocate 
 /// internal buffer in its private data members, big enough to hold any message object
 /// of any type listed in @b AllInputMessages bundle. It means that only one message
@@ -192,7 +197,7 @@
 /// error.
 ///
 /// By default, if the received data contains unknown message ID (the message
-/// type is not in @b AllInputMessages bundle), the @b read() operation returns
+/// type is not in @b AllInputMessages bundle), the @b read operation returns
 /// @ref comms::ErrorStatus::InvalidMsgId and no message object is allocated.
 /// However, there are @b bridge / @b gateway / @b firewall type of applications
 /// which are interested to decode only limited number of messages, but still
@@ -202,25 +207,25 @@
 /// message definition which has a single variable length data field 
 /// (defined using @ref comms::field::ArrayList class). The @ref
 /// comms::protocol::MsgIdLayer may also receive @ref comms::option::SupportGenericMessage
-/// option specifying type of the GenericMessage.
-/// @code
-/// using MyMsgId =
-///     comms::protocol::MsgIdLayer<
-///         MsgIdField, 
-///         MyMessage,
-///         AllInputMessages, 
-///         MyMsgData,
-///         comms::option::SupportGenericMessage<comms::GenericMessage<MyMessage> >
-///     >;
-/// @endcode
+/// option specifying type of the GenericMessage. 
 /// In this case, if the appropriate message type hasn't been found in 
 /// @b AllInputMessages bundle, the appropriate @ref comms::GenericMessage object
-/// will be created instead. 
+/// will be created instead. However, just like with
+/// @ref comms::option::InPlaceAllocation, this option should be used by the application
+/// if needed.
 ///
 /// Note, that comms::option::SupportGenericMessage and comms::option::InPlaceAllocation
 /// options can be used together. In this case the @ref comms::GenericMessage
-/// message object will be allocated in the same allocation area.
-///
+/// message object will be allocated in the same allocation area. The client
+/// application will be able to combine these option together in single tuple
+/// and use pass as @b TAllocationOptions parameter.
+/// @code
+/// using MyAllocOptions = 
+///     std::tuple<
+///         comms::option::SupportGenericMessage<comms::GenericMessage<MyInterfaceMessage> >,
+///         comms::option::InPlaceAllocation
+///     >;
+/// @endcode
 /// When constructed, the comms::protocol::MsgIdLayer creates an array of
 /// statically allocated factory methods, which are responsible to allocate
 /// right message objects. This array is used as a map of message ID to the
@@ -234,91 +239,61 @@
 /// is executed to get appropriate factory method having the numeric message ID 
 /// value (O(log(n))).
 ///
-/// During the "read" operation, the comms::protocol::MsgIdLayer::read() function
-/// is executed. It reads the ID value information and performs an @b efficient search
-/// in the array of factory methods to find a right one. If such is found, the
-/// new message object is allocated using help of the found factory method, and
-/// held in the smart pointer (see comms::protocol::MsgIdLayer::MsgPtr). If
-/// allocation is successful, the layer invokes @b read() member function of
-/// the layer it wraps (comms::protocol::MsgDataLayer in our example) passing
-/// the reference to the smart pointer as first parameter. 
-///
-/// During the "write" operation, the comms::protocol::MsgIdLayer::write()
-/// function is executed. It receives the message object as a const reference
-/// to unknown type. If the passed reference is detected to be the reference
-/// to actual message class extending comms::MessageBase, then its non-virtual
-/// @b doGetId() member function will be invoked (see comms::MessageBase::doGetId()).
-/// Otherwise, the reference is assumed to be to the common interface class with
-/// polymorphic id retrieval available (see @ref page_message_tutorial_interface_id_retrieve), and
-/// its @b getId() member function will be called.
-///
 /// @b NOTE, that comms::protocol::MsgIdLayer doesn't use any dynamic memory
 /// allocation to store internal factory methods, that create proper message
 /// object given the ID of the message, which makes it possible and safe to
 /// use in bare-metal environment without any HEAP.
 ///
-/// It may happen that comms::protocol::MsgIdLayer class as-is is not really
-/// suitable for implementing message identification and creatation of message
+/// It may happen that @b comms::protocol::MsgIdLayer class as-is is not really
+/// suitable for implementing message identification and creation of message
 /// object when implementing custom protocol. 
 /// It is possible to implement a new custom layer (see @ref
 /// page_prot_stack_tutorial_new_layers section below) with the required
 /// functionality. However, it is recommended
-/// to use comms::MsgFactory object internally. It will help in creation the proper
+/// to use @ref comms::MsgFactory object internally. It will help in creation the proper
 /// message object once the ID value is known.
 ///
 /// @section page_prot_stack_tutorial_size SIZE Layer
 /// The @b SIZE layer is responsible to process information on the remaining
-/// message length, and forward the @b read()/write() operations to the upper layer
+/// message length, and forward the @b read/write operations to the upper layer
 /// in case it is safe to do so. The COMMS library provides 
-/// comms::protocol::MsgSizeLayer class for that purpose.
+/// @ref comms::protocol::MsgSizeLayer class for that purpose.
 /// @code
+/// namespace my_protocol
+/// {
+///
 /// using RemSizeField =
 ///     comms::field::IntValue<
-///         CommonFieldBase, 
+///         MyFieldBase, 
 ///         std::uint16_t, 
 ///         comms::option::NumValueSerOffset<sizeof(std::uint16_t)> 
 ///     >;
-/// using MyMsgSize = comms::protocol::MsgSizeLayer<RemSizeField, MyMsgId>;
+///
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// using MyMsgSize = 
+///     comms::protocol::MsgSizeLayer<
+///         RemSizeField, 
+///         MyMsgId<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+///     >;
+/// 
+/// } // namespace my_protocol
 /// @endcode
-/// The comms::protocol::MsgSizeLayer receives two template parameters. The first
+/// The @ref comms::protocol::MsgSizeLayer receives two template parameters. The first
 /// one is the definition of the @b field (see @ref page_field_tutorial for details)
 /// that is responsible to read/write the remaining length information. The
 /// second template parameter is an upper layer that is being wrapped. @n
-/// Please note the usage of comms::option::NumValueSerOffset option when
+/// Please note the usage of @b comms::option::NumValueSerOffset option when
 /// defining the @b field type. If it is NOT used, the serialised length value
-/// will cover only @b ID and @b PAYLOAD. However, according to the protocol
+/// will cover only @b ID and @b PAYLOAD (layers it wraps). However, according to the protocol
 /// specification, the @b SIZE value must also include @b CHECKSUM. Usage of
 /// comms::option::NumValueSerOffset <sizeof(std::uint16_t)> will add 2
 /// (@b sizeof(std::uint16_t)) when serialising the length of wrapped fields.
 /// See also @ref sec_field_tutorial_int_value_ser_offset for more details.
-///
-/// During the "read" operation, the comms::protocol::MsgSizeLayer::read() 
-/// function is called. It reads the required remaing size value and compares to
-/// the number of actual bytes in the buffer available for reading. If the buffer
-/// doesn't contain enough data, comms::ErrorStatus::NotEnoughData is returned.
-/// Otherwise, the @b read() member function of the upper (or inner) layer is
-/// called.
-///
-/// During the "write" operation the comms::protocol::MsgSizeLayer::write()
-/// function is called. It receives the message object as a const reference
-/// to unknown type, and needs to write the remaining serialisation length
-/// information. If the passed reference is detected to be the reference
-/// to actual message class extending comms::MessageBase, then its non-virtual
-/// @b doLength() member function will be invoked (see comms::MessageBase::doLength())
-/// to retrieve the necessary information. Otherwise the message type is assumed to
-/// be the common interface one and checked for availability of 
-/// polymorphic length information retrieval (see @ref page_message_tutorial_interface_length).
-/// If it exists, then the @b length() member function (see comms::Message::length())
-/// of the message object will be invoked. If not, then the dummy value (=0)
-/// will be written instead and @b write() member function of the next layer
-/// will be invoked. After the write operation of the upper (or inner) layers
-/// is complete, the comms::protocol::MsgSizeLayer tries to evaluate the
-/// written size and update the written dummy value with the correct one.
-/// If such evaluation and update is not possible (non-random access iterator
-/// is used for write operation), the comms::ErrorStatus::UpdateRequired
-/// error status will be returned, indicating a need to perform an update
-/// on written data prior to sending it over. See @ref page_prot_stack_tutorial_write
-/// for more details.
 ///
 /// @section page_prot_stack_tutorial_checksum CHECKSUM Layer
 /// The @b CHECKSUM layer is responsible to calculate and verify the checksum
@@ -328,58 +303,97 @@
 /// The only difference is that comms::protocol::ChecksumLayer appends the 
 /// checksum value, while comms::protocol::ChecksumPrefixLayer prepends it.
 /// @code
-/// using ChecksumField = comms::field::IntValue<CommonFieldBase, std::uint16_t>;
+/// namespace my_protocol
+/// {
+///
+/// using ChecksumField = comms::field::IntValue<MyFieldBase, std::uint16_t>;
+///
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
 /// using MyChecksum =
 ///     comms::protocol::ChecksumLayer<
 ///         ChecksumField,
 ///         comms::protocol::checksum::Crc_CCITT
-///         MyMsgSize
+///         MyMsgSize<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions>
 ///     >;
+/// 
+/// } // my_protocol
 /// @endcode
 /// The both layer classes receives three template parameters. The
 /// first one is a @b field that is responsible to read/write the checksum value.
 ///
 /// The second template parameter is a checksum calculator class which is used
 /// to calculate a checksum value. Please refer to the documentation of
-/// comms::protocol::ChecksumLayer or comms::protocol::ChecksumPrefixLayer class 
+/// @ref comms::protocol::ChecksumLayer or @ref comms::protocol::ChecksumPrefixLayer class 
 /// for the details on the interface this
 /// checksum calculator class must provide. The example above uses 
-/// comms::protocol::checksum::Crc_CCITT, which calculates the the standard
+/// @ref comms::protocol::checksum::Crc_CCITT, which calculates the the standard
 /// CRC-CCITT value. All the checksum calculators the COMMS library provides reside
 /// in comms::protocol::checksum namespace. 
 ///
 /// The third template parameter is an upper layer that is being wrapped.
 ///
-/// During the "read" operation, the comms::protocol::ChecksumLayer::read() 
-/// function is called. It immediatelly calls @b read() member function of the
-/// upper (or inner) layer being wrapped. Only of it is successful, the layer 
-/// reads the expected checksum value and compares it to the calculated one.
-/// If there is a mismatch, comms::ErrorStatus::ProtocolError will be reported.
-///
-/// During the "write" operation the comms::protocol::ChecksumLayer::write()
-/// function is called. Just like with read operation, it immediatelly 
-/// invokes @b write() member function of the upper (or inner) layer being
-/// wrapped. If it is successful, the checksum value on the written value
-/// will be calculated and written if possible (when random access iterator is used).
-/// In case the checksum value calculation is @b NOT possible (output 
-/// iterator is used) the dummy checksum value (=0) will be written and 
-/// comms::ErrorStatus::UpdateRequired error status will be returned to indicate
-/// that update is required. See @ref page_prot_stack_tutorial_write
-/// for more details.
+/// By default both @ref comms::protocol::ChecksumLayer and 
+/// @ref comms::protocol::ChecksumPrefixLayer allow inner (upper) layers to 
+/// complete their read operation before calculating and verifying checksum on
+/// read data. However, there may be protocols that may allow checksum verification
+/// before attempting to read message contents. In this case 
+/// @ref comms::option::ChecksumLayerVerifyBeforeRead option may be used as
+/// fourth template parameter.
+/// @code
+/// namespace my_protocol
+/// {
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// using MyChecksum =
+///     comms::protocol::ChecksumLayer<
+///         ChecksumField,
+///         comms::protocol::checksum::Crc_CCITT
+///         MyMsgSize<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions>,
+///         comms::option::ChecksumLayerVerifyBeforeRead
+///     >;
+/// 
+/// @endcode
 ///
 /// @section page_prot_stack_tutorial_sync SYNC Layer
 /// The @b SYNC layer is responsible to recognise the synchronisation byte(s)
 /// in the input stream as well as write appropriate value when the write
-/// operation takes place. The COMMS library provides comms::protocol::SyncPrefixLayer
+/// operation takes place. The COMMS library provides @ref comms::protocol::SyncPrefixLayer
 /// class that helps with this task.
 /// @code
+/// namespace my_protocol
+/// {
+///
 /// using SyncField =
 ///     comms::field::IntValue<
-///         CommonFieldBase, 
+///         MyFieldBase, 
 ///         std::uint16_t, 
-///         comms::option::DefaultNumValue<0xabcd> 
+///         comms::option::DefaultNumValue<0xabcd>,
+///         comms::option::ValidNumValue<0xabcd>,
+///         comms::option::FailOnInvalid // fail read operation if read value is invalid 
 ///     >;
-/// using MySyncPrefix = comms::protocol::SyncPrefixLayer<SyncField, MyChecksum>;
+///
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// using MySyncPrefix = 
+///     comms::protocol::SyncPrefixLayer<
+///         SyncField, 
+///         MyChecksum<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+///     >;
+/// 
+/// } // namespace my_protocol
 /// @endcode
 /// The comms::protocol::SyncPrefixLayer class receives two template parameters.
 /// The first one is the type of the @b field, that is responsible to read/write
@@ -403,7 +417,7 @@
 /// The COMMS library provides @ref comms::protocol::TransportValueLayer to handle
 /// such fields. @b HOWEVER it requires extra support from common message interface class.
 /// The latter must use @ref comms::option::ExtraTransportFields option in order
-/// to define expected interface (please refer to @ref page_message_tutorial_interface_extra_transport
+/// to define expected interface (please refer to @ref page_define_prot_interface_extra_transport
 /// for details).
 ///
 /// The @ref comms::protocol::TransportValueLayer class receives three 

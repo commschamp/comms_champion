@@ -630,5 +630,87 @@
 /// @endcode
 ///
 /// @section page_define_prot_customisation Application Specific Customisation
+/// As was mentioned in @ref page_field_tutorial, there may be a need to provide a way for
+/// extra application specific customisation for used fields, especially for fields like lists
+/// (@ref comms::field::ArrayList) or strings (@ref comms::field::String). By
+/// default they use @b std::vector and @b std::string respectively as
+/// their inner value storage types. They may be un-applicable to some aplications,
+/// especially bare-metal ones. In order to solve such problem the message classes
+/// are expected to receive extra template parameters, which will be propagated
+/// to fields definition.
+///
+/// <b>Recommended Practice</b>
 /// 
-
+/// It is recommended to have a separate class / struct called @b DefaultOptions
+/// wich defines relevant inner types to be @ref comms::option::EmptyOption (option that
+/// does nothing). For example, let's assume that third field in @b Message1
+/// message is a string. Then the @b DefaultOptions struct may be defined as
+/// @code
+/// struct DefaultOptions
+/// {
+///     struct message
+///     {
+///         struct Message1Fields
+///         {
+///             using field3 = comms::option::EmptyOption; // no extra functionality by default
+///         };
+///     };
+/// };
+/// @endcode
+/// @b NOTE, that inner structure of @b DefaultOptions in not important, but it
+/// is recommended to resemble the full scope of fields, options for which are
+/// being prepared. Then the message definition need to be changed to receive
+/// and use extra options struct.
+/// @code
+/// #pragma once
+/// #include "comms/comms.h"
+///
+/// #include "MyFieldBase.h" // Defines MyFieldBase common base class for all the fields
+/// #include "DefaultOptions.h" // Defines DefaultOptions struct
+///
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TOpt = DefaultOptions>
+/// struct Message1Fields
+/// {
+///     using field1 = ...;
+///     using field2 = ...
+///     using field3 = 
+///         comms::field::String<
+///             MyFieldBase,
+///             typename TOpt::message::Message1Fields::field3 // Extra option(s) 
+///         >
+///
+///     // bunding type
+///     using All = 
+///         std::tuple<
+///             field1,
+///             field2,
+///             field3
+///         >;
+/// };
+///
+/// // Definition of the message itself, described and explained later
+/// template <typename TBase, typename TOpt = DefaultOptions>
+/// class Message1 : public 
+///     comms::MessageBase<
+///         TBase, 
+///         comms::option::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::FieldsImpl<Message1Fields<TOpt>::All>,
+///         comms::option::MsgType<Message1<TBase, TOpt> > 
+///     >
+/// {
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+/// It gives opportunity to the application to define its own single structure
+/// of options for all the messages by extending the provided @b DefaultOptions 
+/// and override selected number inner types with its own extension options.

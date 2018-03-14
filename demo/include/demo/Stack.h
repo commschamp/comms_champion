@@ -66,12 +66,7 @@ using MsgIdField =
 
 /// @brief Field representing full message payload.
 template <typename... TOptions>
-using DataField =
-    comms::field::ArrayList<
-        FieldBase,
-        std::uint8_t,
-        TOptions...
-    >;
+using DataField = typename comms::protocol::MsgDataLayer<TOptions...>::Field;
 
 /// @brief Definition of Demo binary protocol stack of layers.
 /// @details It is used to process incoming binary stream of data and create
@@ -108,8 +103,8 @@ using DataField =
 template <
     typename TMsgBase,
     typename TMessages,
-    typename TMsgAllocOptions = std::tuple<>,
-    typename TDataFieldStorageOptions = std::tuple<> >
+    typename TMsgAllocOptions = comms::option::EmptyOption,
+    typename TDataFieldStorageOptions = comms::option::EmptyOption >
 using Stack =
     comms::protocol::SyncPrefixLayer<
         SyncField,
@@ -126,7 +121,7 @@ using Stack =
                         VersionField,
                         Message<>::TransportFieldIdx_version,
                         comms::protocol::MsgDataLayer<
-                            DataField<TDataFieldStorageOptions>
+                            TDataFieldStorageOptions
                         >
                     >,
                     TMsgAllocOptions

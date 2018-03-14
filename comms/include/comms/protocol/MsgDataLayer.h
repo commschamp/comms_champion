@@ -35,21 +35,23 @@ namespace protocol
 
 /// @brief Message data layer.
 /// @details Must always be the last layer in protocol stack.
-/// @tparam TField Field that can be used to store raw data of the message.
+/// @tparam TExtraOpts Extra options to inner @ref Field type which is defined
+///     to be @ref comms::field::ArrayList. This field is used only in @ref
+///     AllFields type and @ref readFieldsCached() member function.
 /// @headerfile comms/protocol/MsgDataLayer.h
-template <
-    typename TField =
-        comms::field::ArrayList<
-            comms::Field<comms::option::BigEndian>,
-            std::uint8_t
-        >
->
+template <typename... TExtraOpts>
 class MsgDataLayer
 {
 public:
-
     /// @brief Raw data field type.
-    using Field = TField;
+    /// @details This field is used only in @ref AllFields field and @ref
+    ///     readFieldsCached() member function.
+    using Field =
+        comms::field::ArrayList<
+            comms::Field<comms::option::BigEndian>,
+            std::uint8_t,
+            TExtraOpts...
+        >;
 
     /// @brief All fields of the remaining transport layers, contains only @ref Field.
     using AllFields = std::tuple<Field>;

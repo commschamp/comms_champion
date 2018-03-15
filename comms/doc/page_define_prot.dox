@@ -570,11 +570,13 @@
 /// @endcode
 ///
 /// @subsection page_define_prot_message_base_custom_read Custom Read Functionality
-/// Sometimes the default implementation of read functionality implemented by
-/// comms::MessageBase::doRead() may be incomplete or incorrect and may required
+/// The default read functionality implemented by @ref comms::MessageBase::doRead()
+/// is to invoke @b read() member function of every field and return @b success
+/// if all the invocations returned @b success.
+/// Sometimes such default implementation may be incomplete or incorrect and may require
 /// additional or different implementation. It is very easy to fix by defining
 /// new @b doRead() public member function with updated functionality. The 
-/// @ref comms::MessageBase class contains inner magic to call the provided @b doRead()
+/// @ref comms::MessageBase class contains inner "magic" to call the provided @b doRead()
 /// instead of default one when implementing virtual @ref comms::MessageBase::readImpl(). 
 /// As an example let's define new message
 /// type (@b Message2), which has two fields. The first one is a 1 byte bitmask,
@@ -668,6 +670,10 @@
 /// @li @ref comms::MessageBase::doWriteFieldsFromUntil()
 ///
 /// @subsection page_define_prot_message_base_custom_refresh Custom Refresh Functionality
+/// The default refresh functionality implemented by @ref comms::MessageBase::doRefresh()
+/// is to invoke @b refresh() member function of every field. The function will
+/// return @b true (indicating that at message contents have been updated) if
+/// at least one of the fields returns @b true. 
 /// Let's take a look again at the definition of @b Message2 mentioned earlier, where
 /// the existence of second field (@b data) depends on the value of the least
 /// significant bit in the first field (@b flags). During read operation the
@@ -758,7 +764,9 @@
 ///
 /// @subsection page_define_prot_message_base_custom_write Custom Write Functionality
 /// Usually there is no need to provide custom write functionality for the messages
-/// in consistent state (see @ref page_define_prot_message_base_custom_refresh), but if 
+/// in consistent state (see @ref page_define_prot_message_base_custom_refresh).
+/// The default one implemented by @ref comms::MessageBase::doWrite(), which invokes
+/// @b write() member function of every field, is correct. However, if 
 /// the need arises it is enough just to provide custom @b doWrite() member
 /// function.
 /// @code
@@ -817,6 +825,45 @@
 ///         ... // do custom validation logic
 ///         return true;
 ///     }
+/// };
+/// @endcode
+///
+/// @section page_define_prot_lenth_verification Extra Compile Time Checks
+/// Quite often it is obvious from the protocol specification what minimal length
+/// of the serialised message contents is expected to be, and if there are not
+/// variable length fields, such as @b string or @b list, then maximum serialisation
+/// length is also known. It would be wise to slip in compile time checks in
+/// message definition as well. There are several static constexpr member functions 
+/// inherited from @b comms::MessageBase that can be used:
+/// 
+/// @li @ref comms::MessageBase::doMinLength()
+/// @li @ref comms::MessageBase::doMaxLength()
+/// @li @ref comms::MessageBase::doMinLengthFromUntil()
+/// @li @ref comms::MessageBase::doMaxLengthFromUntil()
+///
+/// For example, the implementation of @b Message2 may be updated as below:
+/// @code
+/// // file Message2.h
+///
+/// #include "comms/comms.h"
+/// 
+/// #include "MyFieldBase.h" // Defines MyFieldBase common base class for all the fields
+///
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TBase>
+/// class Message2 : public comms::MessageBase<...>
+///     >
+/// {
+///     using Base =  comms::MessageBase<...>
+/// public:
+///     static_assert(Base::doMinLength() == 1U, "Unexpected min length");
+///     static_assert(Base::doMaxLength() == 3U, "Unexpected max length");
+///     ...
 /// };
 /// @endcode
 ///

@@ -718,12 +718,19 @@ public:
 
 protected:
 
+    /// @brief Detect whether type is actual message object
+    /// @tparam T Type of the object
+    /// @return @b true if @b T type is extending @b comms::MessageBase,
+    ///     @b false otherwise.
     template <typename T>
     static constexpr bool isMessageObjRef()
     {
         return details::protocolLayerHasImplOptions<T>();
     }
 
+    /// @brief Reset msg in case it is a smart pointer (@ref MsgPtr).
+    /// @details Does nothing if passed parameter is actual message object.
+    /// @see @ref isMessageObjRef().
     template <typename TMsg>
     static void resetMsg(TMsg& msg)
     {

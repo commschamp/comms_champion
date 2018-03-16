@@ -1,4 +1,4 @@
-/// @page page_field_tutorial Fields Tutorial
+/// @page page_field_tutorial Fields Definition Tutorial
 /// @tableofcontents
 /// Fields are abstractions around value storage primitives and/or objects, 
 /// such as integral values, floating point values, strings, arrays, vectors, etc..

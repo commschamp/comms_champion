@@ -952,3 +952,15 @@
 /// It gives opportunity to the application to define its own single structure
 /// of options for all the messages by extending the provided @b DefaultOptions 
 /// and overriding selected number inner types with its own extension options.
+///
+/// @section page_define_prot_transport_framing Transport Framing Definition
+/// In addition to definition of the messages and their contents, every 
+/// communication protocol must ensure that the message is successfully 
+/// delivered over the I/O link to the other side and recognised (based on its ID). 
+/// The serialised message payload must be wrapped in some kind of transport 
+/// framing prior to being sent and unwrapped on the other side when received. 
+/// The @ref page_prot_stack_tutorial page contains detailed information on
+/// how define such a frame and make it usable to the client application. Note,
+/// that the same protocol may be used over multiple I/O link, every one of 
+/// which may require different framing. There is no limit on amount of different
+/// frames that may be defined.

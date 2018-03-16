@@ -1,0 +1,480 @@
+/// @page page_use_prot How to Use Defined Custom Protocol
+/// @tableofcontents
+/// This page is oriented to client application developers. It provides instructions
+/// on how to use protocol defininition after it was developed following
+/// @ref page_define_prot instructions. All the examples below will use
+/// @b my_protocol namespace for classes that are expectected to be already
+/// defined by the custom protocol implementation.
+///
+/// @section page_use_prot_headers Headers and Libraries
+/// The protocol definition as well as @b COMMS library are headers-only. The
+/// protocol definition should already include all the required headers from
+/// the @b COMMS library. The client application will have to include only relevant
+/// headers from the protocol definition.
+///
+/// @section page_use_prot_error_handling Error Handling
+/// The COMMS library is intended to be used in embedded systems (including 
+/// bare metal), which means the library does not use exceptions to report errors.
+/// The runtime errors are reported via @ref comms::ErrorStatus return values. All
+/// pre- and post-conditions are checked using COMMS_ASSERT() macro.
+/// It is, just like regular standard @b assert(), is compiled in if @b NDEBUG symbol
+/// is not defined. In case the provided condition doesn't hold true, the macro
+/// checks whether custom assertion failure behaviour was registered. If yes,
+/// the registered custom assertion failure report is invoked, otherwise the
+/// standard failure report used by standard @b assert() macro is used. If COMMS
+/// library is used in bare metal environment without standard library, the
+/// @b NOSTDLIB symbol should be defined. In this case infinite loop is a default
+/// assertion failure report behaviour.
+///
+/// See @ref page_assert for details on how to define custom assertion failure
+/// behaviour.  
+///
+/// @section page_use_prot_interface Defining Message Interface Class
+/// The protocol definition is expected to define extendable message interface
+/// class pinning only serialisation endian and numeric message ID type (most
+/// probably enum).
+/// @code
+/// namespace my_protocol
+/// {
+///     // Used IDs definition
+///     enum MsgId : std::uint8_t
+///     {
+///         MsgId_Message1,
+///         MsgId_Message2,
+///         MsgId_Message3,
+///         ...
+///     };
+///
+/// template <typename... TOptions>
+/// using Message = 
+///     comms::Message<
+///         comms::option::BigEndian, // endian
+///         comms::option::MsgIdType<MsgId>, // type of message ID
+///         TOptions...
+///     >;
+///
+/// } // namespace my_protocol
+/// @endcode
+/// Such interface class is NOT polymorphic, it defines the following inner types
+/// @code
+/// namespace my_protocol
+/// {
+///     
+/// class Message : public comms::Message
+///     // comms::Field class with the same endian option. 
+///     // Can (and should) be provided as a base class to all the
+///     // fields.
+///     typedef comms::Field<.../* Same endian option*/> Field;
+///
+///     // Type of the ID, same as the one passed with comms::option::MsgIdType
+///     typedef MsgId MsgIdType;
+///
+///     // Type of the ID, when it is passed as a parameter and/or returned from the function:
+///     typedef MsgId MsgIdParamType;
+///
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
+/// @b Note the existence of @b MsgIdType and @b MsgIdParamType. When the
+/// type used for message ID is simple integral one or enum, these types
+/// are equal.
+/// However, if some other type is used, such as std::string, then @b MsgIdParamType
+/// is a const-reference to @b MsgIdType.
+///
+/// The message interface class may be extended with multiple options, which 
+/// automatically add virtual functions, and hence create polymorphic behaviour
+/// relevant to the client application.
+///
+/// In general, all the API functions that are being added to the interface (and described below)
+/// use <a href="https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Non-Virtual_Interface">Non-Virtual Interface</a>
+/// idiom:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     void someFunction(...)
+///     {
+///         ...; // Pre-conditions check and/or other common operations
+///         someFunctionImpl(...); // Invocation of polymorphic functionality
+///         ...; // Post-conditions check and/or other common operations
+///     }
+///
+/// protected:
+///     virtual void someFunctionImpl(...) = 0; // Must be implemented in the derived class
+/// };
+/// @endcode
+/// The polymorphic behaviour is exposed via @b protected virtual functions having
+/// the same name, but with @b Impl suffix.
+///
+/// All the variants of message interface class that are going to be described
+/// below are descendants of @ref comms::Message class. Please refer to the
+/// documentation of the latter for detailed info on the described functions and
+/// their parameters.
+///
+/// @subsection page_use_prot_interface_id_retrieve Polymorphic Retrieval of Message ID
+/// When there is a need to be able to polymorphically retrieve message ID,
+/// the comms::option::IdInfoInterface option needs to be used. Note, that this
+/// option requires presence of @ref comms::option::MsgIdType (which is expected to
+/// be used in protocol definition) to specify type
+/// of the message ID in order to work properly.
+/// @code
+/// using MyMessage =
+///     my_protocol::Message<
+///         comms::option::IdInfoInterface,
+///         ...
+///     >;
+/// @endcode
+/// It adds the following functions:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // API function to retrieve ID of the function
+///     MsgIdParamType getId() const
+///     {
+///         return getIdImpl();
+///     }
+///
+/// protected:
+///     virtual MsgIdParamType getIdImpl() const = 0; // Automatically implemented in the actual message class
+/// }
+/// @endcode
+/// The usage of comms::option::IdInfoInterface without comms::option::MsgIdType
+/// will be ignored, and @b getId() as well as @b getIdImpl() member functions
+/// won't be created.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasGetId()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::IdInfoInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
+///
+/// @subsection page_use_prot_interface_read Polymorphic Read of Payload (Deserialisation)
+/// If the implementation requires polymorphic read and process of input messages, the @b read()
+/// operation needs to be added to the interface. It is achieved by using 
+/// @ref comms::option::ReadIterator option to provide a type of the iterator that
+/// is going to be used for reading:
+/// @code
+/// using MyMessage = 
+///     my_protocol::Message<
+///         ...
+///         comms::option::ReadIterator<const std::uint8_t*>,
+///         ...
+///     >;
+/// @endcode
+/// As the result the interface class defines the following types and functions:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Type of the the iterator used for reading, the same as provided with
+///     // comms::option::ReadIterator option.
+///     typedef ... ReadIterator;
+///
+///     // API function to perform read
+///     comms::ErrorStatus read(ReadIterator& iter, std::size_t len)
+///     {
+///         return readImpl(iter, len);
+///     }
+///
+/// protected:
+///     // Expected to be overriden in the derived class.
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len) 
+///     {
+///         return comms::ErrorStatus::NotSupported;
+///     }
+/// }
+/// @endcode
+/// Please @b note, that COMMS library doesn't impose any restrictions on
+/// how the input data is collected and stored. It is a responsibility of the 
+/// @b caller to allocate and maintain the input buffer, while providing only an 
+/// iterator for read operation. @n
+/// Also @b note, that iterator is passed by reference, which allows advancing 
+/// operator when read operation is performed. @n
+/// For example:
+/// @code
+/// std::size_t readMessage(MyMessage& msg, const std::uint8_t* buf, std::size_t len)
+/// {
+///     MyMessage::ReadIterator readIter = buf;
+///     auto es = msg->read(readIter, len); // readIter is advanced in the read operation
+///     if (es != comms::ErrorStatus::Success) {
+///         ... // Report and handle error
+///         return 0U; 
+///     }
+///     
+///     // Report number of processed bytes from buffer:
+///     auto bytesCount = std::distance(MyMessage::ReadIterator(buf), readIter);
+///     return bytesCount;
+/// }
+/// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasRead()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ReadIterator option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
+///
+/// @subsection page_use_prot_interface_write Polymorphic Write of Payload (Serialisation)
+/// If the implementation requires polymorphic serialisation of the messages and sending them over I/O
+/// link, the @b write() operation needs to be added to the interface. It is 
+/// achieved by using  comms::option::WriteIterator option to provide a type of 
+/// the iterator that is going to be used for writing:
+/// @code
+/// using MyMessage = 
+///     my_protocol::Message<
+///         ...
+///         comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >,
+///         ...
+///     >;
+/// @endcode
+/// As the result the interface class defines the following types and functions:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Type of the the iterator used for writing, the same as provided with
+///     // comms::option::WriteIterator option.
+///     typedef ... WriteIterator;
+///
+///     // API function to perform write
+///     comms::ErrorStatus write(WriteIterator& iter, std::size_t len)
+///     {
+///         return writeImpl(iter, len);
+///     }
+///
+/// protected:
+///     // Expected to be overriden in the derived class.
+///     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len)
+///     {
+///         return comms::ErrorStatus::NotSupported;
+///     }
+/// }
+/// @endcode
+/// Please @b note, that COMMS library doesn't impose any restrictions on
+/// storage type for the output buffer. It is a responsibility of the 
+/// @b caller to allocate and maintain the output buffer, while providing only an 
+/// iterator for write operation. In the example above the output buffer
+/// is chosen to be @b std::vector<std::uint8_t> and the write operation will
+/// be performed using @b push_back() calls on this vector (due to @b std::back_insert_iterator
+/// being chosen as @b WriteIterator). @n
+/// Also @b note, that iterator is passed by reference, which allows advancing 
+/// operator when write operation is performed. 
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasWrite()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::WriteIterator option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
+///
+/// @subsection page_use_prot_interface_length Polymorphic Serialisation Length Retrieval
+/// Sometimes it may be needed to polymorphically retrieve the serialisation length of the message
+/// in order to be able to reserve or allocate enough space for output buffer.
+/// The COMMS library provides comms::option::LengthInfoInterface option that
+/// adds @b length() member function to the interface.
+/// @code
+/// using MyMessage = 
+///     my_protocol::Message<
+///         ...
+///         comms::option::LengthInfoInterface,
+///         ...
+///     >;
+/// @endcode
+/// This option adds the following functions to the interface definition:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Retrieve the serialisation length
+///     std::size_t length() const
+///     {
+///         return lengthImpl();
+///     }
+///
+/// protected:
+///     virtual std::size_t lengthImpl() const = 0; // Implemented in the derived class
+/// };
+/// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasLength()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::LengthInfoInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
+///
+/// @subsection page_use_prot_interface_valid Polymorphic Validity Check
+/// Sometimes it may be needed to be able to check whether the message contents
+/// (fields) have valid values. The COMMS library provides comms::option::ValidCheckInterface
+/// option that adds @b valid() member function to the interface:
+/// @code
+/// using MyMessage =
+///     my_protocol::Message<
+///         ...
+///         comms::option::ValidCheckInterface,
+///         ...
+///     >;
+/// @endcode
+/// This option adds the following functions to the interface definition:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Retrieve the serialisation length
+///     bool valid() const
+///     {
+///         return validImpl();
+///     }
+///
+/// protected:
+///     virtual bool validImpl() const
+///     {
+///         return true; // By default all messages are valid, can be overridden in derived class.
+///     }
+/// };
+/// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasValid()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ValidCheckInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
+///
+/// @subsection page_use_prot_interface_handle Polymorphic Dispatch Message for Handling
+/// When new data arrives on I/O link, it's transport framing is going to
+/// be processed (described in detailed in @ref page_use_prot_transport section below).
+/// and new message object is going to be created. It's going to be returned
+/// as a smart pointer (std::unique_ptr) to the defined interface class (@b MyMessage).
+/// The actual type of this message object needs to be recognised and message
+/// properly handled. Using simple
+/// switch statement on message ID (returned by @b getId() interface function)
+/// can be very @b INEFFICIENT. The COMMS library provides much more efficient way
+/// to dispatch messages to appropriate handler. 
+///
+/// The handler class needs to be forward declared and passed
+/// to the definition of @b MyMessage interface via comms::option::Handler option.
+/// @code
+/// // Forward declaration
+/// class MyHandler;
+///
+/// using MyHandler = 
+///     my_protocol::Message<
+///         ...
+///         comms::option::Handler<MyHandler>,
+///         ...
+///     >;
+/// @endcode
+/// When this option is used the @b MyMessage will define the following interface
+/// types and functions:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // The same type as passed via comms::option::Handler option     
+///     typedef ... Handler;
+///
+///     // Return type of the dispatch function, which is the same as return type of
+///     // every Handler::handle() member function
+///     typedef ... DispatchRetType;
+///
+///     // Dispatch this message to handler
+///     DispatchRetType dispatch(Handler& handler)
+///     {
+///         return dispatchImpl(handler);
+///     }
+///
+/// protected:
+///     virtual DispatchRetType dispatchImpl(Handler& handler) = 0; // Must be implemented in the derived class
+/// };
+/// @endcode
+/// More details about polymorphic dispatching and handling will be provided 
+/// below in @ref page_use_prot_handling section.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasDispatch()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::Handler option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
+///
+/// @subsection page_use_prot_interface_refresh Keeping Message Contents in a Consistent State
+/// Some communication protocol may define fields that depend on other fields.
+/// For example, bits in a bitmask field may be used to define whether some
+/// optional fields exist. Or the information about amount of elements in 
+/// the list to follow may reside in an independent numeric field. @n 
+/// After updating such fields directly, using the interface of the message object,
+/// the message contents may end up being in an inconsistent (or invalid) state.
+/// There may be a need to polymorphically normalise the state of the message object. The
+/// COMMS library provides comms::option::RefreshInterface option, that adds
+/// @b refresh() member function to the message interface.
+/// @code
+/// using MyMessage = 
+///     comms::Message<
+///         ...
+///         comms::option::RefreshInterface,
+///         ...
+///     >;
+/// @endcode
+/// This option adds the following functions to the interface definition:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Refresh message contents
+///     bool refresh()
+///     {
+///         return refreshImpl();
+///     }
+///
+/// protected:
+///     virtual bool refreshImpl()
+///     {
+///         return false;
+///     }
+/// };
+/// @endcode
+/// Note, that the @b refresh() member function returns boolean value, which
+/// is expected to be @b true in case at least one of the internal fields has
+/// been updated, and @b false if message state remains unchanged. @n
+/// Also note, that interface provide default implementation of @b refreshImpl()
+/// virtual function. The message object that require proper "refresh" functionality
+/// may just override it with proper implementation.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasRefresh()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::RefreshInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
+///
+/// @subsection page_use_prot_interface_summary Interface Options Summary
+/// All the options introduced above can be used in any order. They can also
+/// be repeated multiple times. However, the option that was defined first takes
+/// priority over (or overrides) the same option defined later. @n 
+/// For example, the definition below defines @b WriteIterator to be
+/// <b>std::uint8_t*</b>, because it was defined with first 
+/// comms::option::WriteIterator option:
+/// @code
+/// using MyMessage = 
+///     my_protocol::Message<
+///         ...
+///         comms::option::WriteIterator<std::uint8_t*>, 
+///         ...
+///         comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> >,
+///         ...
+///     >;
+/// @endcode  
+/// The definition below gives a full interface of all
+/// the introduced functions: @b getId(), @b read(), @b write(), @b dispatch(),
+/// @b length(), @b valid(), and @b refresh().
+/// @code
+/// using MyMessage = my_protocol::Message<
+///     comms::option::IdInfoInterface, // Add an ability to retrieve message ID value
+///     comms::option::ReadIterator<const std::uint8_t*>, // Use const std::uint8_t* as iterator for reading
+///     comms::option::WriteIterator<std::uint8_t*>, // Use std::uint8_t* as iterator for writing
+///     comms::option::Handler<MyHandler>, // My MyHandler class declared earlier as a handler for messages
+///     comms::option::LengthInfoInterface, // Add an ability to retrieve serialisation length
+///     comms::option::ValidCheckInterface, // Add an ability to check contents validity
+///     comms::option::RefreshInterface  // Add an ability to refresh message contents
+/// >;
+/// @endcode
+///
+/// @section page_use_prot_transport Transport Framing
+///
+/// @section page_use_prot_handling Message Handling
+///
+

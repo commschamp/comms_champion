@@ -473,8 +473,335 @@
 /// >;
 /// @endcode
 ///
+/// @section page_use_prot_messages Protocol Messages
+/// The protocol messages are expected to be defined as template classes, receiving
+/// at least one template parameter, which specifies the application specific interface 
+/// class. For example
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TBase>
+/// class Message1 : public
+///     comms::MessageBase<
+///         TBase,
+///         ...
+///     >
+/// {
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+/// The interface class that was defined for the application (@b MyMessage) needs
+/// to be passed as @b TBase template parameter. The defined message class 
+/// extends @ref comms::MessageBase, which in turn extends provided interface
+/// class @b TBase, which in turn extends @ref comms::Message. The inheritence
+/// hierarchy may look like this:
+/// @diafile message_class_hierarchy.dia
+///
+/// Due to the fact that every protocol message class extends @ref comms::MessageBase,
+/// the detailed documentation on available member types and functions
+/// can be viewed on @ref comms::MessageBase reference page.
+///
+/// All the protocol message classes implement non-virtual functions that may be
+/// used to implement polymorphic behavior. These function has the same name as
+/// described earlier interface, but start with @b do* prefix.
+///
+/// @li @b doRead() - implements message read functionality (see @ref comms::MessageBase::doRead())
+/// @li @b doWrite() - implements message write functionality (see @ref comms::MessageBase::doWrite())
+/// @li @b doLength() - implements message serialisation length calculation (see @ref comms::MessageBase::doLength())
+/// @li @b doValid() - implements message contents validity check (see @ref comms::MessageBase::doValid())
+/// @li @b doRefresh() - implements bringing message to a consistent state (see @ref comms::MessageBase::doRefresh())
+///
+/// Based on the requested polymorphic functionality, the @b comms::MessageBase
+/// class automatically implements virtual @b *Impl() member functions (but only when needed).
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TBase>
+/// class Message1 : public
+///     comms::MessageBase<
+///         TBase,
+///         ...
+///     >
+/// {
+/// public:
+///     template <typename TIter>
+///     comms::ErrorStatus doRead(TIter& iter, std::size_t len) {...}
+///
+///     template <typename TIter>
+///     comms::ErrorStatus doWrite(TIter& iter, std::size_t len) const {...}
+///
+///     ...
+/// protected:
+///     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t len)
+///     {
+///         return doRead(iter, len);
+///     }
+///
+///     virtual comms::ErrorStatus writeImpl(WriteIterator& iter, std::size_t len) const
+///     {
+///         return doWrite(iter, len);
+///     }
+///
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+/// Such architecture allows usage of non-virtual functions when actual type
+/// of the message is known. For example
+/// @code
+/// template <typename TMsg>
+/// void writeMessage(const TMsg& msg)
+/// {
+///     auto es = msg.doWrite(...);
+///     ...
+/// }
+/// @endcode
+/// and using polymorphic behaviour when not
+/// @code
+/// void writeMessage(const MyMessage& msg)
+/// {
+///     auto es = msg.write(...);
+///     ...
+/// }
+/// @endcode
+/// Every message has zero or more fields, which are stored in @b std::tuple
+/// as private members of @ref comms::MessageBase. The access to the fields
+/// can be obtained using @b fields() member function (see @ref comms::MessageBase::fields()).
+///
+/// However, every message that has at least one field is expected to use
+/// @ref COMMS_MSG_FIELDS_ACCESS() macro to provide names to inner fields.
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TBase>
+/// class Message1 : public
+///     comms::MessageBase<
+///         TBase,
+///         ...
+///     >
+/// {
+/// public:
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+/// It is equivalent of having the following types and member functions defined.
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TBase>
+/// class Message1 : public
+///     comms::MessageBase<
+///         TBase,
+///         ...
+///     >
+/// {
+/// public:
+///     enum FieldIdx
+///     {
+///         FieldIdx_value1,
+///         FieldIdx_value2,
+///         FieldIdx_value3,
+///         FieldIdx_numOfValues
+///     }
+///
+///     // Access the "value1" field
+///     auto field_value1() -> decltype(std::get<FieldIdx_value1>(fields()))
+///     {
+///         return std::get<FieldIdx_value1>(fields());
+///     }
+///
+///     // Access the "value1" field (const variant)
+///     auto field_value1() const -> decltype(std::get<FieldIdx_value1>(fields()))
+///     {
+///         return std::get<FieldIdx_value1>(fields());
+///     }
+///
+///     // Access the "value2" field
+///     auto field_value2() -> decltype(std::get<FieldIdx_value2>(fields()))
+///     {
+///         return std::get<FieldIdx_value2>(fields());
+///     }
+///
+///     // Access the "value2" field (const variant)
+///     auto field_value2() const -> decltype(std::get<FieldIdx_value2>(fields()))
+///     {
+///         return std::get<FieldIdx_value2>(fields());
+///     }
+///
+///     // Access the "value3" field
+///     auto field_value3() -> decltype(std::get<FieldIdx_value3>(fields()))
+///     {
+///         return std::get<FieldIdx_value3>(fields());
+///     }
+///
+///     // Access the "value3" field (const variant)
+///     auto field_value3() const -> decltype(std::get<FieldIdx_value3>(fields()))
+///     {
+///         return std::get<FieldIdx_value3>(fields());
+///     }
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+/// As the result every message field can be accessed by index
+/// @code
+/// using MyMessage1 = my_protocol::Message1<MyMessage>;
+/// MyMessage1 msg;
+/// auto& msg1Fields = msg.fields(); // access to std::tuple of message fields.
+/// auto& value1Field = std::get<MyMessage1::FieldIdx_value1>(msg1Fields);
+/// auto& value2Field = std::get<MyMessage1::FieldIdx_value2>(msg1Fields);
+/// auto& value2Field = std::get<MyMessage1::FieldIdx_value2>(msg1Fields);
+/// @endcode
+/// or by name
+/// @code
+/// auto& value1Field = msg.field_value1();
+/// auto& value2Field = msg.field_value2();
+/// auto& value2Field = msg.field_value3();
+/// @endcode
+///
+/// @section page_use_prot_fields Message Fields
+/// In order to continue with the tutorial, it is paramount to understand a 
+/// concept of @b fields, which are abstractions around value storage primitives and/or objects, 
+/// such as integral values, floating point values, strings, arrays, etc..
+/// Every @b field class is defined in @ref comms::field namespace and 
+/// exposes predefined interface in order to
+/// make template meta-programming as easy as possible. As an example let's
+/// take a look at @ref comms::field::IntValue class which is used to 
+/// define integral value field.
+/// @code
+/// template <typename TBase, typename T, typename... TOptions>
+/// class comms::field::IntValue : public TBase
+/// {
+/// public:
+///     // Define inner storage type
+///     using ValueType = T;
+///     
+///     // Get access to the stored value
+///     ValueType& value() { return m_value; }
+///     const ValueType& value() const { return m_value; }
+///
+///     // Read
+///     template <typename TIter>
+///     comms::ErrorStatus read(TIter& iter, std::size_t len) {...}
+///
+///     // Write
+///     template <typename TIter>
+///     comms::ErrorStatus write(TIter& iter, std::size_t len) const {...}
+///
+///     // Serialisation length
+///     std::size_t length() const {...}
+///
+///     // Validity of the value
+///     bool valid() const {...}
+///
+///     // Bring field's contents into a consistent state
+///     bool refresh() {...}
+///
+/// private:
+///     ValueType m_value;
+/// }
+/// @endcode
+/// The main things to note are that every field definition class:
+/// @li receives its base class as the first 
+///     template parameter. It is expected to be a variant of @ref
+///     comms::Field with @ref comms::option::BigEndian or @ref 
+///     comms::option::LittleEndian option to specify the serialisation endian.
+///     It may be inner @b Field type of @b MyMessage interface class defined
+///     earlier (@b MyMessage::Field - documented as @ref comms::Message::Field)
+/// @li exhibits some default behaviour which can be modified by
+///     passing various options from @ref comms::option namespace as additional template
+///     parameters. The options that define how field is serialised are expected
+///     to be used as part of protocol definition. The protocol definition is
+///     also expected to allow passing extra options that are relevant to application
+///     environment and/or behaviour (such as modifying the default storage type).
+/// @li defines @b ValueType inner value storage
+///     type and provides @b value() member functions to access the stored value.
+/// @li provides @b read() and @b write() member functions to read and write the 
+///     inner value given the iterator used for reading / writing and available
+///     length of the buffer.
+/// @li has @b length() member function to report how many bytes are required to
+///     serialise currently stored value.
+/// @li provides @b valid() member function to check whether the stored value is
+///     valid (within expected range of values).
+/// @li has @b refresh() member function to bring its contents to consistent / valid
+///     state when required.
+///
+/// Also note that all the member function are NON-virtual, i.e. the field 
+/// abstractions do not have polymorphic behaviour.
+///
+/// The available fields abstractions are:
+/// @li @ref comms::field::IntValue - used to define @ref page_use_prot_fields_int_value
+/// @li @ref comms::field::EnumValue - used to define @ref page_use_prot_fields_enum_value
+/// @li @ref comms::field::BitmaskValue - used to define @ref page_use_prot_fields_bitmask_value
+/// @li @ref comms::field::Bitfield - used to define @ref page_use_prot_fields_bitfield
+/// @li @ref comms::field::Bundle - used to define @ref page_use_prot_fields_bundle
+/// @li @ref comms::field::ArrayList - used to define @ref page_use_prot_fields_array_list
+/// @li @ref comms::field::String - used to define @ref page_use_prot_fields_string
+/// @li @ref comms::field::FloatValue - used to define @ref page_use_prot_fields_fp_value
+/// @li @ref comms::field::Optional - used to define @ref page_use_prot_fields_optional
+/// @li @ref comms::field::Variant - used to define @ref page_use_prot_fields_variant
+///
+/// @subsection page_use_prot_fields_int_value Integral Value Fields
+///
+/// @subsection page_use_prot_fields_enum_value Enum Value Fields
+///
+/// @subsection page_use_prot_fields_bitmask_value Bitmask Value Fields
+///
+/// @subsection page_use_prot_fields_bitfield Bitfield Fields
+///
+/// @subsection page_use_prot_fields_bundle Bundle Fields
+///
+/// @subsection page_use_prot_fields_array_list Array List Fields
+///
+/// @subsection page_use_prot_fields_string String Fields
+///
+/// @subsection page_use_prot_fields_fp_value Floating Point Value Fields
+///
+/// @subsection page_use_prot_fields_optional Optional Fields
+///
+/// @subsection page_use_prot_fields_variant Variant Fields
+///
+/// @subsection page_use_prot_fields_customisation Application Specific Customisation of Fields
+///
 /// @section page_use_prot_transport Transport Framing
 ///
 /// @section page_use_prot_handling Message Handling
+///
+/// @section page_use_prot_extra_transport Extra Transport Values
+///
+/// @subsection page_use_prot_msg_customisation Application Specific Customisation of Messages
+///
+/// @subsection page_use_prot_msg_extension Message Interface Extension
+///
 ///
 

@@ -953,6 +953,87 @@
 /// of options for all the messages by extending the provided @b DefaultOptions 
 /// and overriding selected number inner types with its own extension options.
 ///
+/// @b NOTE, that allowing additional customisation for fields like @b list
+/// (@ref comms::field::ArrayList) and @b string (@ref comms::field::String) is
+/// a <b>must have</b> feature to allow usage of the same protocol definition in
+/// bare-metal applications. However, it would be wise to allow extra customisation
+/// for @b all the used fields, even for ones like <b>integral values</b> (@ref comms::field::IntValue)
+/// or @b enum (@ref comms::field::IntValue). The client application developer
+/// may want to change the default value of some field, maybe even add or
+/// change (override) provided ranges of valid values, force failing of read
+/// operation on invalid values, etc... @b NOTE, that when allowing such
+/// customisation of fields, make sure that passed options are listed before
+/// the default ones
+/// @code
+/// template <typename... TExtraOpts>
+/// using MyField = 
+///     comms::field::IntValue<
+///         MyFieldBase,
+///         std::uint16_t,
+///         TExtraOpts..., // extra options
+///         comms::option::DefaultNumValue<10>, // default value
+///         comms::option::ValidNumValueRange<10, 20> // default range of valid values
+///     >;
+/// @endcode
+/// This is because earlier used options take priority over ones used later.
+///
+/// Depending on the protocol there may be a need to provide additional customisation
+/// for messages themselves. For example, when most messages are bi-directional
+/// (which will require both read and write operation for every message) except
+/// a only a few, that go only one direction (from client to server or the opposite).
+/// In this case the generated code will contain implementation for
+/// both polymorphic read (@ref comms::MessageBase::readImpl()) and write
+/// (@ref comms::MessageBase::writeImpl()). For uni-directional messages some
+/// of these function may be redundant, which unnecessary increases the binary
+/// size. It may become a problem for bare-metal platforms with limited amount
+/// of ROM space. The @b COMMS library provides options that may suppress automatic
+/// generation of some virtual functions by the @b comms::MessageBase. The available
+/// options are:
+/// @li @ref comms::option::NoReadImpl
+/// @li @ref comms::option::NoWriteImpl
+/// @li @ref comms::option::NoValidImpl
+/// @li @ref comms::option::NoLengthImpl
+///
+/// These options should not be used in the definition of protocol messages, but
+/// it would be wise to allow the client application use them when necessary. It
+/// can easily achieved using @b DefaultOptions structure described earlier.
+/// @code
+/// struct DefaultOptions
+/// {
+///     struct message
+///     {
+///         using Message1 = comms::option::EmptyOption;
+///         using Message2 = comms::option::EmptyOption;
+///         ...
+///     };
+/// };
+/// @endcode
+/// Add passing these options to message definition classes:
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TBase, typename TOpt = DefaultOptions>
+/// class Message1 : public 
+///     comms::MessageBase<
+///         TBase, 
+///         comms::option::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::FieldsImpl<Message1Fields<TOpt>::All>,
+///         comms::option::MsgType<Message1<TBase, TOpt> >,
+///         typename TOpt::message::Message1 // Extra options 
+///     >
+/// {
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+///
 /// @section page_define_prot_transport_framing Transport Framing Definition
 /// In addition to definition of the messages and their contents, every 
 /// communication protocol must ensure that the message is successfully 

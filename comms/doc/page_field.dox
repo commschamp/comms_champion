@@ -1,7 +1,7 @@
 /// @page page_field_tutorial Fields Definition Tutorial
 /// @tableofcontents
 /// Fields are abstractions around value storage primitives and/or objects, 
-/// such as integral values, floating point values, strings, arrays, vectors, etc..
+/// such as integral values, floating point values, strings, arrays, etc..
 /// Every @b field class is defined in @ref comms::field namespace and 
 /// exposes predefined interface in order to
 /// make template meta-programming as easy as possible. As an example let's

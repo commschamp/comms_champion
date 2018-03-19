@@ -558,12 +558,12 @@
 /// {
 ///     enum BitIdx {...}
 ///
-///     getBitValue_first() const { return getBitValue(BitIdx_first); }
-///     setBitValue_first(vool val) { setBitValue(BitIdx_first, val); }
-///     getBitValue_third() const { ... }
-///     setBitValue_third(vool val) { ... }
-///     getBitValue_fourth() const { ... }
-///     setBitValue_fourth(vool val) { ... }
+///     bool getBitValue_first() const { return getBitValue(BitIdx_first); }
+///     void setBitValue_first(bool val) { setBitValue(BitIdx_first, val); }
+///     bool getBitValue_third() const { ... }
+///     void setBitValue_third(bool val) { ... }
+///     bool getBitValue_fourth() const { ... }
+///     void setBitValue_fourth(bool val) { ... }
 ///     ...
 /// }
 /// @endcode
@@ -785,9 +785,9 @@
 /// @code
 /// SerialConfigField field;
 /// auto& members = field.value(); // get access to the std::tuple of member fields
-/// auto& baudField = std::get<AccessibleSerialConfigField::FieldIdx_baud>(members);
-/// auto& parityField = std::get<AccessibleSerialConfigField::FieldIdx_parity>(members);
-/// auto& flagsField = std::get<AccessibleSerialConfigField::FieldIdx_flags>(members);
+/// auto& baudField = std::get<SerialConfigField::FieldIdx_baud>(members);
+/// auto& parityField = std::get<SerialConfigField::FieldIdx_parity>(members);
+/// auto& flagsField = std::get<SerialConfigField::FieldIdx_flags>(members);
 ///
 /// auto baud = baudField.value();
 /// auto parity = parityField.value();
@@ -949,7 +949,7 @@
 /// using MyComplexList = 
 ///     comms::field::ArrayList<
 ///         MyFieldBase,
-///         MyBundle // Complex bundle field, defined in previous section 
+///         MyBundle<> // Complex bundle field, defined in previous section 
 ///     >;
 /// @endcode
 /// By default the read operation on comms::field::ArrayList continues as
@@ -1317,8 +1317,8 @@
 /// comms::field::ArrayList field.
 ///
 /// @section sec_field_tutorial_string String Fields
-/// Many protocols have to transfer strings. They can be handled using
-/// comms::field::String field.
+/// Many protocols have to transfer strings. They are defined using
+/// @ref comms::field::String field.
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::BigEndian>;
 /// using MyString = comms::field::String<MyFieldBase>;
@@ -1331,7 +1331,7 @@
 /// MyString myStr;
 /// auto& myStrStorage = myStr.value(); // Reference to std::string.
 /// @endcode
-/// Just like desribed in @ref sec_field_tutorial_array_list_storage section
+/// Just like described in @ref sec_field_tutorial_array_list_storage section
 /// above the same options can be used to modify the storage type of the 
 /// comms::field::String field, but should @b NOT be used in protocol definition, but
 /// instead there should be an ability to provide extra options.

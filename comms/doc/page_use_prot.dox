@@ -759,6 +759,17 @@
 /// Also note that all the member function are NON-virtual, i.e. the field 
 /// abstractions do not have polymorphic behaviour.
 ///
+/// The most important member function to a client application is @b value().
+/// It allows access to the stored value. Note, that the stored value is accessed
+/// by reference. It allows both get and set operations:
+/// @code
+/// auto myFieldValue = myField.value();
+/// myField.value() = 5U;
+/// @endcode
+/// Other member functions are of lesser importance to the client application, 
+/// they are used by the protocol definition itself to properly (de)serialise
+/// message contents and provide other useful functionality.
+///
 /// The available fields abstractions are:
 /// @li @ref comms::field::IntValue - used to define @ref page_use_prot_fields_int_value
 /// @li @ref comms::field::EnumValue - used to define @ref page_use_prot_fields_enum_value
@@ -772,24 +783,575 @@
 /// @li @ref comms::field::Variant - used to define @ref page_use_prot_fields_variant
 ///
 /// @subsection page_use_prot_fields_int_value Integral Value Fields
+/// Integral value fields are defined using @ref comms::field::IntValue class.
+/// Its inner @b ValueType type is the same as second template parameter. Most
+/// integral value fields are defined and used "as-is"
+/// @code
+/// // base class for all the fields, usually defined by the protocol definition library
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>
+///
+/// // definition of integral field
+/// using MyIntField = 
+///     comms::field::IntValue<
+///         MyFieldBase, // base class for all the fields, defined by the protocol definition library
+///         std::uint16_t
+///     >;
+///
+/// // usage of the field
+/// MyIntField field;
+/// field.value() = 5; // serialised as "00 05"
+/// @endcode
+/// Some field's definitions may use @ref comms::option::NumValueSerOffset
+/// option, which adds predefined offset to the field before serialising and
+/// subtracts it before deserialising. Classic example would be having a "year"
+/// information, but serialised as offset from year @b 2000 with a single byte.
+/// Such field may be defined as following:
+/// @code
+/// using YearField = 
+///     comms::field::IntValue<
+///         MyFieldBase, 
+///         std::int16_t, 
+///         comms::option::FixedLength<1>,
+///         comms::option::NumValueSerOffset<-2000>
+///     >;
+/// @endcode
+/// @b NOTE, that while serialisation takes only 1 byte, the client application
+/// will use full year number without worrying about added / removed offset
+/// @code
+/// YearField field;
+/// field.value() = 2018; // serialised as 0x12;
+/// @endcode
+/// Some protocols may exchange floating point values by serialising them as 
+/// integral ones. For example, multiply the floating point value by 1000 before
+/// the serialisation, and upon reception divide the received value by 1000 to 
+/// get the floating point one. Such fields will be defined using @ref
+/// comms::field::IntValue type with using @ref comms::option::ScalingRatio
+/// option
+/// @code
+/// using MyFpField = 
+///     comms::field::IntValue<
+///         MyFieldBase, // base class for all the fields, defined by the protocol definition library
+///         std::int32_t,
+///         comms::option::ScalingRatio<1, 1000>
+///     >;
+/// @endcode
+/// The inner value of such field is integral one. However, there are
+/// @ref comms::field::IntValue::getScaled() and @ref comms::field::IntValue::setScaled()
+/// member functions that allow get and set original floating point value without
+/// worrying what math operation needs to be performed.
+/// @code
+/// MyFpField field;
+/// field.setScaled(1.3f);
+/// assert(field.value() == 1300); 
+/// auto asDouble = field.getScaled<double>(); // equivalent to 1.3
+/// @endcode
+/// In addition to @b scaling, the @b COMMS library also provides an ability
+/// to specify @b units. For example, some protocol may define distance in
+/// @b 1/10 of the @b millimetres. The definition of such field may look like
+/// this
+/// @code
+/// using MyDistance = 
+///     comms::field::IntValue<
+///         MyFieldBase,
+///         std::int32_t,
+///         comms::option::ScalingRatio<1, 10>,
+///         comms::option::UnitsMillimeters         
+/// @endcode
+/// The @b COMMS library provides a set of units conversion functions in
+/// @ref comms::units namespace. When using the provided conversion function the application developer
+/// doesn't need to remember the original units and/or scaling factor. The @b COMMS library
+/// does all the math. It also prevents (at compile time) usage of wrong conversion
+/// functions, say calculating time (@b milliseconds), when specified units are 
+/// @b distance (@b millimetres).
+/// @code
+/// MyDistance field; 
+/// comms::units::setMeters(field, 1.2345);
+/// std::cout << "Distance in 1/10 of mm:" << field.value() << std::endl; // prints 12345
+/// std::cout << "Distance in mm" << comms::units::getMillimeters<double>(field); // prints 1234.5
+/// std::cout << "Distance in cm" << comms::units::getCentimeters<double>(field); // prints 123.45
+/// @endcode
+/// By default, When @ref comms::field::IntValue field is constructed, the inner
+/// value is constructed to be 0. However, the field definition may use
+/// @ref comms::option::DefaultNumValue option to specify some other value
+/// @code
+/// // definition of integral field
+/// using MyIntField = 
+///     comms::field::IntValue<
+///         MyFieldBase, // base class for all the fields, defined by the protocol definition library
+///         std::uint16_t,
+///         comms::option::DefaultNumValue<25>
+///     >;
+///
+/// MyIntField field;
+/// assert(field.value() == 25);
+/// @endcode
 ///
 /// @subsection page_use_prot_fields_enum_value Enum Value Fields
+/// The @b enum values are defined using @ref comms::field::EnumValue class. It
+/// is very similar to @ref page_use_prot_fields_int_value. The main difference,
+/// that second template parameter as well as inner @b ValueType type is @b enum.
+/// The @b enum can be scoped (enum class) or regular (just enum).
+/// @code
+/// enum class SomeEnumVal : std::uint8_t
+/// {
+///     Val1,
+///     Val2,
+///     Val3,
+///     NumOfValues
+/// };
+///
+/// using SomeEnumField = 
+///     comms::field::EnumValue<
+///         MyFieldBase,
+///         SomeEnumVal,
+///         comms::option::ValidNumValueRange<0, (int)SomeEnumVal::NumOfValues - 1>,
+///         comms::option::DefaultNumValue<(int)SomeEnumVal::Val3>
+///     >;
+///
+/// SomeEnumField field;
+/// assert(field.value() == SomeEnumVal::Val3); // initialised by default to Val3;
+/// field.value() = SomeEnumVal::Val2;
+/// @endcode 
 ///
 /// @subsection page_use_prot_fields_bitmask_value Bitmask Value Fields
+/// Bitmasks (or bitsets) are also numeric values where every bit has separate,
+/// independent meaning. Such fields are defined using @ref comms::field::BitmaskValue
+/// class. 
+/// @code
+/// struct MyBitmask : public 
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0x2, 0> // Second bit is reserved and must be 0
+///     >
+/// {
+///     ...
+/// };
+/// @endcode
+/// The field definition will use @ref comms::option::FixedLength option in
+/// order to specify its serialisation length. The inner @b ValueType type will
+/// be calculated automatically and defined as one of the unsigned types: 
+/// @b std::uint8_t, @b std::uint16_t, @b std::uint32_t, or @b std::uint64_t.
+/// The usage of @ref comms::option::BitmaskReservedBits option will mark 
+/// certain bits as "reserved". It influences only validity check functionality
+/// (see @ref comms::field::BitmaskValue::valid()). If any of the reserved bits
+/// doesn't have an expected value, the call to @b valid() member function will
+/// return @b false.
+///
+/// The bitmask field definition is also expected to use @ref COMMS_BITMASK_BITS()
+/// and @ref COMMS_BITMASK_BITS_ACCESS() macros to provide names for the bits
+/// and generate convenience access function. If bit names are sequential, i.e. start
+/// from bit @b 0, and go up without any holes in the middle, then single
+/// @ref COMMS_BITMASK_BITS_SEQ() macro can be used instead achieving the same 
+/// effect.
+/// @code
+/// struct MyBitmask : public
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0x2, 0> // Second bit is reserved and must be 0
+///     >
+/// {
+///     COMMS_BITMASK_BITS(first, third=2, fourth, fifth, sixth, seventh, eighth);
+///     COMMS_BITMASK_BITS_ACCESS(first, third, fourth, fifth, sixth, seventh, eighth);
+/// }
+/// @endcode
+/// is equivalent to defining:
+/// @code
+/// struct MyBitmask : public
+///     comms::field::BitmaskValue<
+///         MyFieldBase, 
+///         comms::option::FixedLength<1>,
+///         comms::option::BitmaskReservedBits<0x2, 0> 
+///     >
+/// {
+///     enum BitIdx 
+///     {
+///         BitIdx_first,
+///         BitIdx_third=2,
+///         BitIdx_fourth,
+///         BitIdx_fifth,
+///         BitIdx_sixth,
+///         BitIdx_seventh,
+///         BitIdx_eighth,
+///         BitIdx_numOfValues
+///     }
+///
+///     bool getBitValue_first() const { return getBitValue(BitIdx_first); }
+///     void setBitValue_first(bool val) { setBitValue(BitIdx_first, val); }
+///     bool getBitValue_third() const { ... }
+///     void setBitValue_third(bool val) { ... }
+///     bool getBitValue_fourth() const { ... }
+///     void setBitValue_fourth(bool val) { ... }
+///     ...
+/// }
+/// @endcode
+/// The generated convenience access functions use existing 
+/// @ref comms::field::BitmaskValue::getBitValue() and
+/// @ref comms::field::BitmaskValue::setBitValue() member functions.
+///
+/// It is also possible to set multiple bits at the same time by accessing 
+/// the stored value directly
+/// @code
+/// MyBitmask field;
+/// field.value() = 0x81; // Setting first and eighth bits
+/// @endcode
 ///
 /// @subsection page_use_prot_fields_bitfield Bitfield Fields
+/// Many communication protocols try to pack multiple independent values into
+/// a one or several bytes to save traffic on I/O link. For example RS-232 serial port
+/// configuration may be defined as following:
 ///
+/// 3 Bits to configure baud rate:
+/// |Baud Rate | Serialisation Value|
+/// |:--------:|:------------------:|
+/// | 9600     | 0                  |
+/// | 14400    | 1                  |
+/// | 19200    | 2                  |
+/// | 28800    | 3                  |
+/// | 38400    | 4                  |
+/// | 57600    | 5                  |
+/// | 115200   | 6                  |
+///
+/// 2 Bits to configure parity:
+/// |Parity    | Serialisation Value|
+/// |:--------:|:------------------:|
+/// | None     | 0                  |
+/// | Odd      | 1                  |
+/// | Even     | 2                  |
+///
+/// 2 Bits to configure stopBits:
+/// |Stop Bits     | Serialisation Value |
+/// |:------------:|:-------------------:|
+/// | One          | 0                   |
+/// | One and half | 1                   |
+/// | Two          | 2                   |
+///
+/// 2 Bits to configure flow control:
+/// |Flow Control  | Serialisation Value |
+/// |:------------:|:-------------------:|
+/// | None         | 0                   |
+/// | Hardware     | 1                   |
+/// | Software     | 2                   |
+///
+/// The field definition will use @ref comms::field::Bitfield and probably look similar to code below
+/// @code
+/// enum class Baud {...}
+/// enum class Parity {...}
+/// enum class StopBits {...}
+/// enum class FlowControl {...}
+///
+/// struct SerialConfigField : public 
+///     comms::field::Bitfield<
+///         MyFieldBase, 
+///         std::tuple<
+///             comms::field::EnumValue<MyFieldBase, Baud, comms::option::FixedBitLength<3> >,
+///             comms::field::EnumValue<MyFieldBase, Parity, comms::option::FixedBitLength<2> >,
+///             comms::field::EnumValue<MyFieldBase, StopBits, comms::option::FixedBitLength<2> >,
+///             comms::field::EnumValue<MyFieldBase, FlowControl, comms::option::FixedBitLength<2> >,
+///             comms::field::IntValue<MyFieldBase, std::uint8_t, comms::option::FixedBitLength<7> >
+///         >
+///     >
+/// {
+///     COMMS_FIELD_MEMBERS_ACCESS(baud, parity, stopBits, flowControl, reserved);
+/// }
+/// @endcode
+/// All the member fields of the @ref comms::field::Bitfield are stored internally 
+/// as @b std::tuple, as the result the inner @b ValueType of such field is
+/// @b std::tuple of all member fields and call to @ref comms::field::Bitfield::value()
+/// member function will give an access to it. 
+///
+/// The field definition is expected to use @ref COMMS_FIELD_MEMBERS_ACCESS() macro,
+/// which will generate @b FieldIdx enum as well as convenience access member 
+/// functions. The code becomes equivalent to:
+/// @code
+/// struct SerialConfigField : public 
+///     comms::field::Bitfield<
+///         MyFieldBase, 
+///         std::tuple<
+///             comms::field::EnumValue<MyFieldBase, Baud, comms::option::FixedBitLength<3> >,
+///             comms::field::EnumValue<MyFieldBase, Parity, comms::option::FixedBitLength<2> >,
+///             comms::field::EnumValue<MyFieldBase, StopBits, comms::option::FixedBitLength<2> >,
+///             comms::field::EnumValue<MyFieldBase, FlowControl, comms::option::FixedBitLength<2> >,
+///             comms::field::IntValue<MyFieldBase, std::uint8_t, comms::option::FixedBitLength<7> >
+///         >
+///     >
+/// {
+///     // Access indices for member fields
+///     enum FieldIdx {
+///         FieldIdx_baud,
+///         FieldIdx_parity,
+///         FieldIdx_stopBits,
+///         FieldIdx_flowControl,
+///         FieldIdx_reserved,
+///         FieldIdx_numOfValues
+///     };
+/// 
+///     // Accessor to "baud" field
+///     auto field_baud() -> decltype(std::get<FieldIdx_baud>(value()))
+///     {
+///         return std::get<FieldIdx_baud>(value());
+///     }
+///
+///     // Accessor to const "baud" field
+///     auto field_baud() const -> decltype(std::get<FieldIdx_baud>(value()))
+///     {
+///         return std::get<FieldIdx_baud>(value());
+///     }
+///
+///     // Accessor to "parity" field
+///     auto field_parity() -> decltype(std::get<FieldIdx_parity>(value()))
+///     {
+///         return std::get<FieldIdx_parity>(value());
+///     }
+///
+///     // Accessor to const "parity" field
+///     auto field_parity() const -> decltype(std::get<FieldIdx_parity>(value()))
+///     {
+///         return std::get<FieldIdx_parity>(value());
+///     }
+///
+///     ... // and so on for all other member fields
+/// }
+/// @endcode
+/// Accessing the member field value in such setup, such as "baud" may look
+/// like this:
+/// @code
+/// SerialConfigField configField;
+/// configField.field_baud().value() = Baud::Val_115200;
+/// @endcode
+/// 
 /// @subsection page_use_prot_fields_bundle Bundle Fields
+/// There are cases when multiple independent fields need to be bundled into
+/// a single field and expose the required interface of reading, writing,
+/// calculating length, checking field's contents validity, and bringing field's
+/// value into a consistent state. It may be required
+/// when a message contains sequence (see @ref page_use_prot_fields_array_list) 
+/// of such bundles/structs. The COMMS library provides @ref comms::field::Bundle
+/// field for this purpose. It is quite similar to @ref comms::field::Bitfield described
+/// earlier. The difference is that every member field
+/// doesn't specify any length in bits, just bytes. For example:
+/// @code
+/// enum SomeEnum : std::uint8_t
+/// {
+///     SomeEnum_Value1,
+///     SomeEnum_Value2,
+///     SomeEnum_Value3,
+///     ...
+/// }
+///
+/// struct MyBundle : public
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             comms::field::IntValue<MyFieldBase, std::int16_t> // 2 bytes int value
+///             comms::field::EnumValue<MyFieldBase, SomeEnum>, // 1 byte enum value
+///             comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> > // 1 byte bitmask
+///         >
+///     >
+/// {
+///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+/// };
+/// @endcode
+/// Just like with @ref page_use_prot_fields_bitfield, the inner @b ValueType type
+/// of such field is a @b std::tuple of member fields, and usage of 
+/// @ref COMMS_FIELD_MEMBERS_ACCESS() has exactly the same effect, i.e. generates
+/// inner @b FieldIdx enum and convenience access member functions:
+/// @code
+/// struct MyBundle : public
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             comms::field::IntValue<MyFieldBase, std::int16_t> // 2 bytes int value
+///             comms::field::EnumValue<MyFieldBase, SomeEnum>, // 1 byte enum value
+///             comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> > // 1 byte bitmask
+///         >
+///     >
+/// {
+///     enum FieldIdx
+///     {
+///         FieldIdx_member1,
+///         FieldIdx_member2,
+///         FieldIdx_member3,
+///         FieldIdx_numOfValues
+///     };
+///
+///     // Accessor to "member1" field
+///     auto field_member1() -> decltype(std::get<FieldIdx_member1>(value()))
+///     {
+///         return std::get<FieldIdx_member1>(value());
+///     }
+///
+///     // Accessor to const "baud" field
+///     auto field_member1() const -> decltype(std::get<FieldIdx_member1>(value()))
+///     {
+///         return std::get<FieldIdx_member1>(value());
+///     }
+///
+///     // Accessor to "parity" field
+///     auto field_member2() -> decltype(std::get<FieldIdx_member2>(value()))
+///     {
+///         return std::get<FieldIdx_member2>(value());
+///     }
+///
+///     ...
+/// };
+/// @endcode
 ///
 /// @subsection page_use_prot_fields_array_list Array List Fields
+/// Some communication protocols may define messages that transmit sequence
+/// of similar fields and/or raw data buffers. To make it easier to handle, the
+/// COMMS library provides comms::field::ArrayList field which provide a required
+/// interface to properly handle such sequences of data. It supports a
+/// sequence of raw bytes
+/// @code
+/// using MySimpleList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         std::uint8_t // raw byte type as second template parameter
+///     >;
+/// @endcode
+/// as well as using sequence of any fields defined in comms::field namespace
+/// @code
+/// using MyComplexList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         MyBundle // Complex bundle field, defined in previous section 
+///     >;
+/// @endcode
+/// The @b default storage type (inner @b ValueType type) of these fields is
+/// @b std::vector of specified type, i.e. it is @b std::vector<std::uint8_t>
+/// in case of @b MySimpleList and @b std::vector<MyBundle> in case of
+/// @b MyComplexList. Such default storage type may be unsuitable to certain
+/// applications, especially for bare-metal ones. The @b COMMS library allows
+/// changing it using extra options. The protocol definition is expected to
+/// provide a way to pass extra options to such fields. It is explained in
+/// @ref page_use_prot_fields_customisation section below in more details.
+///
+/// Please pay attention, that in case of non-raw data lists, the inner @b std::vector
+/// contains fields, not values. As the result access to the stored values 
+/// may require a bit of extra function calls:
+/// @code
+/// MyComplexList list;
+/// auto& storageVec = list.value(); // access to std::vector<MyBundle>
+/// storageVec.resize(1);
+/// auto& firstBundle = storageVec[0]; // access to first MyBundle element
+/// auto& firstMember1 = firstBundle.field_member1(); // access to "member1" member of first bundle
+/// auto mem1Value = firstMember1.value(); // get the actual value of "member1"
+/// @endcode
+/// Some protocols may define fixed size lists. In such case lists are defined
+/// with usage of @ref comms::option::SequenceFixedSize option. 
+/// @code
+/// using MyList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         comms::field::IntValue<MyFieldBase, std::uint16_t>,
+///         comms::option::SequenceFixedSize<4>
+///     >;
+/// @endcode
+/// Usage of this option just ensures right amount of elements "on the wire" after
+/// the field is serialised, but it doesn't automatically resize inner 
+/// storage vector.
+/// @code
+/// MyList field;
+/// assert(field.value().empty()); // vector is empty upon construction
+/// @endcode
 ///
 /// @subsection page_use_prot_fields_string String Fields
+/// Many protocols have to transfer strings. They are defined using
+/// @ref comms::field::String field.
+/// @code
+/// using MyString = comms::field::String<MyFieldBase>;
+/// @endcode
+/// It is very similar to comms::field::ArrayList
+/// it terms of value storage, read/write operations, and supported options.
+/// By default the value is stored as 
+/// <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>.
+/// @code
+/// MyString myStr;
+/// auto& myStrStorage = myStr.value(); // Reference to std::string.
+/// @endcode
+/// However, there are options that can modify this default behaviour. The
+/// protocol definition classes are expected to provide a way to pass extra
+/// application specific options to the string field definition. It is explained
+/// in more details in @ref page_use_prot_fields_customisation section below.
+///
+/// Also similar to @ref page_use_prot_fields_array_list, fixed length strings
+/// are defined using @ref comms::option::SequenceFixedSize option, and just
+/// like with lists it doesn't automatically resize inner string, just ensures
+/// right amount of characters "on the wire" when field is serialised.
+/// @code
+/// using MyFixedString = 
+///     comms::field::String<
+///         MyFieldBase,
+///         comms::option::SequenceFixedSize<32>
+///     >;
+///
+/// MyFixedString field;
+/// assert(field.value().empty());
+/// @endcode
 ///
 /// @subsection page_use_prot_fields_fp_value Floating Point Value Fields
+/// Floating point value fields are defined using @ref comms::field::FloatValue
+/// They are very similar to 
+/// @ref page_use_prot_fields_int_value, but use @b float or @b double as its 
+/// internal storage type. They abstract the IEEE 754 floating point 
+/// values, which are serialised "as is" with either big or little endian
+/// encoding. The floating point value fields also support 
+/// the same scaling and units conversion just like @ref page_use_prot_fields_int_value.
 ///
 /// @subsection page_use_prot_fields_optional Optional Fields
+/// Some protocols may define optional fields, which may exist or be missing
+/// based on information recorded in other fields. For example there is a
+/// "flags" bitmask field which specifies whether the following field exists or
+/// missing. The optional field may also be tentative, i.e. if there is enough
+/// data in the input buffer it exists, and missing otherwise. The COMMS
+/// library provides @ref comms::field::Optional which is a mere wrapper around
+/// other fields and provides an ability to set the optional state of the field.
+/// @code
+/// using OptField = 
+///     comms::field::Optional<
+///         comms::field::IntValue<MyFieldBase, std::int32_t>
+///     >;
+/// @endcode
+/// The default mode of such field is "tentative".
+/// @code
+/// OptField field;
+/// assert(field.isTentative());
+/// @endcode
+/// The default mode can be changed using @ref comms::option::ExistsByDefault
+/// or @ref comms::option::MissingByDefault options. For example
+/// @code
+/// using ExistingOptField = 
+///     comms::field::Optional<
+///         comms::field::IntValue<MyFieldBase, std::int32_t>,
+///         comms::option::ExistsByDefault
+///     >;
+///
+/// ExistingOptField field;
+/// assert(field.doesExist()); 
+/// @endcode
+/// @b NOTE, that inner @b ValueType of such field is wrapped actual field and
+/// both @ref comms::field::Optional::value() and @ref comms::field::Optional::field()
+/// member functions allow to access it. For example:
+/// @code
+/// OptField field;
+/// auto& innerField = field.field(); // or call field.value()
+/// innerField.value() = 1234;
+/// field.setExists();
+/// @endcode
 ///
 /// @subsection page_use_prot_fields_variant Variant Fields
+/// Some protocols may require usage of heterogeneous fields or lists of 
+/// heterogeneous fields, i.e. the ones that can be of multiple types. Good example
+/// would be a list of @b properties, where every property is a key/value pair. The
+/// key is a numeric ID of the property, while value can be a numeric field of
+/// any length or a string one. Such fields are defined using 
+/// @ref comms::field::Variant class. It is very similar to @ref 
+/// page_use_prot_fields_bundle, but serves as one big union of provided member
+/// fields, i.e. only one can be used at a time. These fields are quite rare
+/// and if your protocol defines one, please read @ref sec_field_tutorial_variant
+/// tutorial on how to define one, it will explain how to use it as well.
 ///
 /// @subsection page_use_prot_fields_customisation Application Specific Customisation of Fields
 ///
@@ -799,9 +1361,9 @@
 ///
 /// @section page_use_prot_extra_transport Extra Transport Values
 ///
-/// @subsection page_use_prot_msg_customisation Application Specific Customisation of Messages
+/// @section page_use_prot_msg_customisation Application Specific Customisation of Messages
 ///
-/// @subsection page_use_prot_msg_extension Message Interface Extension
+/// @section page_use_prot_msg_extension Message Interface Extension
 ///
 ///
 

@@ -1354,8 +1354,684 @@
 /// tutorial on how to define one, it will explain how to use it as well.
 ///
 /// @subsection page_use_prot_fields_customisation Application Specific Customisation of Fields
+/// The @b COMMS library provides multiple options to modify default behaviour
+/// of field classes. Many of them modify the way how the field is (de)serialised.
+/// Such options are expected to be used in actual protocol definition code. However,
+/// there are also options that modify used data structures or field's behaviour. Such
+/// options are application specific, and the protocol definition is expected
+/// to provide a way on delivering such options to fields definitions. The recommended
+/// way for the protocol definition is to have separate struct called @b DefaultOptions
+/// which defines all the relevant extension options as its inner types. For example,
+/// The message definition may look like this:
+/// @code
+/// #pragma once
+/// #include "comms/comms.h"
+///
+/// #include "MyFieldBase.h" // Defines MyFieldBase common base class for all the fields
+/// #include "DefaultOptions.h" // Defines DefaultOptions struct
+///
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TOpt = DefaultOptions>
+/// struct Message1Fields
+/// {
+///     using field1 = ...;
+///     using field2 = ...
+///     using field3 = 
+///         comms::field::String<
+///             MyFieldBase,
+///             typename TOpt::message::Message1Fields::field3 // Extra option(s) 
+///         >
+///
+///     // bunding type
+///     using All = 
+///         std::tuple<
+///             field1,
+///             field2,
+///             field3
+///         >;
+/// };
+///
+/// template <typename TBase, typename TOpt = DefaultOptions>
+/// class Message1 : public 
+///     comms::MessageBase<
+///         TBase, 
+///         comms::option::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::FieldsImpl<Message1Fields<TOpt>::All>, // using fields with extra options
+///         comms::option::MsgType<Message1<TBase, TOpt> > 
+///     >
+/// {
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+/// The inner structure of @b DefaultOptions struct is not important, but 
+/// the recommended practice is to resemble the scope of fields. It may look 
+/// like this
+/// @code
+/// namespace my_protocol
+/// {
+/// struct DefaultOptions
+/// {
+///     struct message
+///     {
+///         struct Message1Fields
+///         {
+///             using field1 = comms::option::EmptyOption; // no extra functionality by default
+///             using field2 = comms::option::EmptyOption; // no extra functionality by default
+///             using field3 = comms::option::EmptyOption; // no extra functionality by default
+///         };
+///     };
+/// };
+/// } // my_protocol
+/// @endcode
+/// The application is expected to provide its own options describing 
+/// struct / class if needed. The easiest way is to extend provided @b DefaultOptions
+/// and override selected types. For example
+/// @code
+/// struct MyOptions : public my_protocol::DefaultOptions
+/// {
+///     struct message : public my_protocol::DefaultOptions::message
+///     {
+///         struct Message1Fields : public my_protocol::DefaultOptions::message::Message1Fields
+///         {
+///             using field3 = comms::option::FixedSizeStorage<32>;
+///         };
+///     };
+/// };
+/// @endcode
+/// The Definition of the message(s) may look like this:
+/// @code
+/// using MyMessage1 = my_protocol::Message1<MyMessage, MyOptions>;
+/// @endcode
+/// If there is a need to pass more than one extra option to a field, these
+/// options can be bundled together is @b std::tuple.
+/// @code
+/// struct MyOptions : public my_protocol::DefaultOptions
+/// {
+///     struct message : public my_protocol::DefaultOptions::message
+///     {
+///         struct Message1Fields : public my_protocol::DefaultOptions::message::Message1Fields
+///         {
+///             using field3 = std::tuple<..., ...>;
+///         };
+///     };
+/// };
+/// @endcode
+///
+/// @subsubsection page_use_prot_fields_customisation_seq Customisation for Lists and Strings
+/// As was already mentioned earlier the default storage type (@b ValueType) of 
+/// @ref page_use_prot_fields_array_list is @b std::vector, while default
+/// storage type for @ref page_use_prot_fields_string is @b std::string. These
+/// types are suitable for most of C++ applications, but may be unsuitable for
+/// bare-metal embedded platforms. That why the protocol definition @b must allow
+/// additional customisation of such fields. 
+///
+/// The @b COMMS library provides 
+/// multiple options to change the default storage type. 
+/// There is @ref comms::option::FixedSizeStorage option. When passed to the
+/// @ref comms::field::ArrayList or @ref comms::field::String, it changes the
+/// default storage type to be @ref comms::util::StaticVector or
+/// @ref comms::util::StaticString respectively. These types expose the same
+/// public API as @b std::vector or @b std::string, but use pre-allocated 
+/// storage area (as their private member) to store the elements / characters.
+/// Note, that the @ref comms::option::FixedSizeStorage option has a template
+/// parameter, which specify number of elements (not necessarily bytes) to be
+/// stored. If the field definition already uses @ref comms::option::SequenceFixedSize
+/// option to specify that number of elements is fixed, there is 
+/// @ref comms::option::SequenceFixedSizeUseFixedSizeStorage
+/// option which has the same effect of forcing @ref comms::util::StaticVector
+/// or @ref comms::util::StaticString to be storage types, but does not
+/// require repeating specification of storage area size.
+/// For example, if message type is defined to use provided @b DefaultOptions, then
+/// the storage type of @b field3 will be @b std::string
+/// @code
+/// using MyMessage1 = my_protocol::Message1<MyMessage>;
+/// MyMessage1 msg;
+/// std::string& field3Str = msg.field_value3().value();
+/// @endcode
+/// However, if message type is defined to used described earlier @b MyOptions, then
+/// the storage type of @b field3 will be @ref comms::util::StaticString
+/// @code
+/// using MyMessage1 = my_protocol::Message1<MyMessage, MyOptions>;
+/// MyMessage1 msg;
+/// comms::util::StaticString<32>& field3Str = msg.field_value3().value();
+/// @endcode
+/// NOTE, that using default @b std::vector / @b std::string or provided
+/// @ref comms::util::StaticVector / @ref comms::util::StaticString will involve
+/// copying of the data to these storage areas during the @b read operation. If
+/// the input buffer is contiguous, i.e the pointer to the last element is @b always
+/// greater than pointer to the first one (not some kind of circular buffer), then
+/// to copying of the data may be avoided by using @ref comms::option::OrigDataView
+/// option. The option will change the default storage types to be 
+/// @ref comms::util::ArrayView or @ref comms::util::StringView. @b NOTE, that
+/// passing @ref comms::option::OrigDataView option to @ref comms::field::ArrayList
+/// is possible only if it is list of raw data (@b std::uint8_t is used as element type).
+/// @code
+/// struct MyOptions : public my_protocol::DefaultOptions
+/// {
+///     struct message : public my_protocol::DefaultOptions::message
+///     {
+///         struct Message1Fields : public my_protocol::DefaultOptions::message::Message1Fields
+///         {
+///             using field3 = comms::option::OrigDataView;
+///         };
+///     };
+/// };
+/// @endcode
+///
+/// If default standard @b std::vector / @b std::string or all the provided 
+/// by the @b COMMS library storage type are
+/// not good enough, it is possible to specify custom storage type
+/// using @ref comms::option::CustomStorageType option. For example:
+/// @code
+/// struct MyOptions : public my_protocol::DefaultOptions
+/// {
+///     struct message : public my_protocol::DefaultOptions::message
+///     {
+///         struct Message1Fields : public my_protocol::DefaultOptions::message::Message1Fields
+///         {
+///             using field3 = 
+///                 comms::option::CustomStorageType<
+///                     boost::container::pmr::string
+///                 >;
+///         };
+///     };
+/// };
+/// @endcode
+///
+/// @subsubsection page_use_prot_fields_customisation_other Customisation for Other Fields
+/// While allowing extra customisation for fields like @b list or @b string is
+/// a <b>"must have"</b> feature of the protocol definition, it may also allow
+/// additional customisation of other fields as well. For example, let's assume
+/// that @b field1 of previously mentioned @b Message1 is a numeric field, that
+/// defined the following way:
+/// @code
+/// #pragma once
+/// #include "comms/comms.h"
+///
+/// #include "MyFieldBase.h" // Defines MyFieldBase common base class for all the fields
+/// #include "DefaultOptions.h" // Defines DefaultOptions struct
+///
+/// namespace my_protocol
+/// {
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TOpt = DefaultOptions>
+/// struct Message1Fields
+/// {
+///     using field1 = 
+///         comms::field::IntValue<
+///             MyFieldBase,
+///             std::uint8_t,
+///             typename TOpt::message::Message1Fields::field1, // Extra options 
+///             comms::option::DefaultNumValue<10>,
+///             comms::option::ValidNumValueRange<10, 20>
+///         >;
+///     ...
+/// };
+///
+/// template <typename TBase, typename TOpt = DefaultOptions>
+/// class Message1 : public 
+///     comms::MessageBase<
+///         TBase, 
+///         comms::option::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::FieldsImpl<Message1Fields<TOpt>::All>, // using fields with extra options
+///         comms::option::MsgType<Message1<TBase, TOpt> > 
+///     >
+/// {
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+/// If not other options are passed as @b message::Message1Fields::field1 inner
+/// type of application specific options struct / class, then the inner value of 
+/// @b field1 will be initialised to @b 10 upon construction and the range of
+/// valid values will be <b>[10, 20]</b>. Such default settings may be modified
+/// using various options. For example, making the value to be initialised to @b 5 and
+/// adding it to valid values may look like this:
+/// @code
+/// struct MyOptions : public my_protocol::DefaultOptions
+/// {
+///     struct message : public my_protocol::DefaultOptions::message
+///     {
+///         struct Message1Fields : public my_protocol::DefaultOptions::message::Message1Fields
+///         {
+///             using field1 = 
+///                 std::tuple<
+///                     comms::option::DefaultNumValue<5>,
+///                     comms::option::ValidNumValue<5>
+///                 >;
+///         };
+///     };
+/// };
+/// @endcode
+/// After these extra options are passed to the field's definition it becomes
+/// equivalent to 
+/// @code
+///     using field1 = 
+///         comms::field::IntValue<
+///             MyFieldBase,
+///             std::uint8_t,
+///             comms::option::DefaultNumValue<5>, // overrides default value 10 defined below
+///             comms::option::ValidNumValue<5>, // added to previously defined range [10, 20]
+///             comms::option::DefaultNumValue<10>,
+///             comms::option::ValidNumValueRange<10, 20>
+///         >;
+/// @endcode
+/// @b NOTE that @b COMMS library processes all the options @b bottom-up, i.e.
+/// starts with @b comms::option::ValidNumValueRange<10, 20> (which records initial
+/// valid range [10, 20]), then processes @b comms::option::DefaultNumValue<10>
+/// (which records default value to be 10), then processes @b comms::option::ValidNumValue<5>
+/// (which @b adds value 5 to the existing valid ranges), then processes
+/// @b comms::option::DefaultNumValue<5> (which changes the default value to be 5).
+///
+/// In case the application needs to override originally defined valid range(s) of
+/// the field, it can use @ref comms::option::ValidNumValueRangeOverride or
+/// @ref comms::option::ValidNumValueOverride option, which will clear all 
+/// previously defined valid ranges and will start accumulating them anew. For
+/// example:
+/// @code
+/// struct MyOptions : public my_protocol::DefaultOptions
+/// {
+///     struct message : public my_protocol::DefaultOptions::message
+///     {
+///         struct Message1Fields : public my_protocol::DefaultOptions::message::Message1Fields
+///         {
+///             using field1 = 
+///                 std::tuple<
+///                     comms::option::DefaultNumValue<5>, // change the default value
+///                     comms::option::ValidNumValue<5>, // add 5 to valid ranges of [40, 50]
+///                     comms::option::ValidNumValueRangeOverride<40, 50>, // override the default ranges
+///                 >;
+///         };
+///     };
+/// };
+/// @endcode
+/// Additional option that may be quite useful is @ref comms::option::FailOnInvalid.
+/// It causes the @b read operation to fail with provided error status when
+/// read value is not valid (@b valid() member function returns @b false).
+///
+/// There may be other useful options, which are not covered by this tutorial,
+/// please open reference page of a required @b field class for the list of
+/// supported options and read their documentation for more details.
 ///
 /// @section page_use_prot_transport Transport Framing
+/// In addition to definition of the messages and their contents, every 
+/// communication protocol must ensure that the message is successfully delivered 
+/// over the I/O link to the other side. The serialised message payload must 
+/// be wrapped in some kind of transport information prior to being sent and 
+/// unwrapped on the other side when received. The @b COMMS protocol defines
+/// multiple so called @b layers (defined in @b comms::protocol namespace). 
+/// The transport framing will be defined using those @b layer classes and will
+/// probably be called @b ProtocolStack. Its definition is expected to
+/// looke something like this:
+/// @code
+/// namespace my_protocol
+/// {
+///
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for comms::protocol::MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// using ProtocolStack = MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> ;
+///
+/// } // namespace my_protocol
+/// @endcode
+/// The first template parameter (@b TMessage) is common message interface class desribed
+/// earlier in @ref page_use_prot_interface section.
+/// 
+/// The second template parameter (@b TInputMessages) is @b std::tuple of input
+/// messages that @b read operation is expected to recognise. The message classes
+/// must be sorted by the ascending order of message IDs. The protocol definition
+/// is also expected to define @b AllMessages tuple which lists all the protocol
+/// messages, which can be used as reference.
+///
+/// The third template parameter (@b TAllocationOptions) is extra option(s)
+/// (bundled in @b std::tuple if more than one) to be passed to 
+/// @ref comms::protocol::MsgIdLayer class which is responsible for message
+/// allocation. By default the message object is dynamically allocated, it is 
+/// possible to modify such behaviour by using @ref comms::option::InPlaceAllocation
+/// option. It will be explained in more details further below.
+///
+/// The fourth template parameter (@b TPayloadOptions) is irrelevant in
+/// most cases. It has a meaning only when transport wrapping values are cached
+/// for further analysis. It will also be explained in more details further below.
+///
+/// @b NOTE, that @b ProtocolStack definition is actually an alias to one
+/// of the classes from @ref comms::protocol namespace. To get a detailed
+/// information on available public API please reference to one of them, for
+/// example @ref comms::protocol::SyncPrefixLayer.
+///
+/// @subsection page_use_prot_transport_read Reading Transport Framing and Message Payload
+/// Below is an example of how to implement data processing loop, which parses
+/// the raw bytes in the provided input buffer, creates appropriate message 
+/// message object and dispatches it to the right handler.
+/// @code
+/// // Alias to my_protocol::ProtocolStack
+/// using ProtStack = my_protocol::ProtocolStack<MyMessage>
+///
+/// ProtStack protStack; // Protocol stack object
+/// MyHandler handler; // Handler object
+///
+/// // Receives input buffer and its size and returns number of consumed bytes
+/// std::size_t processInput(const std::uint8_t* buf, std::size_t len)
+/// {
+///     std::size_t consumed = 0U;
+///     // Processing loop
+///     while (consumed < len) {
+///         // Smart pointer to the message object.
+///         ProtStack::MsgPtr msgPtr; 
+///
+///         // Type of the message interface class
+///         using MsgType = ProtStack::MsgPtr::element_type; 
+///     
+///         // Get the iterator for reading
+///         auto begIter = comms::readIteratorFor<MsgType>(buf + consumed);
+///         auto iter = begIter;
+///
+///         // Do the read
+///         auto es = protStack.read(msgPtr, iter, len - consumed);
+///         if (es == comms::ErrorStatus::NotEnoughData) {
+///             break; // Not enough data in the buffer, stop processing
+///         } 
+///     
+///         if (es == comms::ErrorStatus::ProtocolError) {
+///             // Something is not right with the data, remove one character and try again
+///            ++consumed;
+///             continue;
+///         }
+///
+///         if (es == comms::ErrorStatus::Success) {
+///             assert(msgPtr); // If read is successful, msgPtr is expected to hold a valid pointer
+///             msgPtr->dispatch(handler); // Dispatch message for handling
+///         }
+///
+///         // The iterator for reading has been advanced, update the difference
+///         consumed += std::distance(begIter, iter);
+///     }
+///
+///     // Report how many bytes have been consumed from the buffer
+///     return consumed;
+/// }
+/// @endcode
+/// Please pay attention to the following details:
+/// @li The first template parameter passed to @b my_protocol::ProtocolStack is
+///     @b MyMessage interface class defined earlier in @ref page_use_prot_interface
+///     section.
+/// @li The protocol stack type defines type of the smart pointer that 
+///     holds message object that was allocation during @b read operation:
+///     @code
+///     ProtStack::MsgPtr msgPtr;
+///     @endcode
+/// @li The @b ProtStack::MsgPtr is a variant of 
+///     <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr">unique_ptr</a>.
+///     As the result the type of the interface can be retrieved using internal
+///     type @b element_type. It is expected to be the same as @b MyMessage
+///     common interface class.
+///     @code
+///     using MsgType = ProtStack::MsgPtr::element_type;
+///     @endcode
+/// @li During the read operation, when message object has been successfully allocated,
+///     the message payload will be read by invoking the @ref comms::Message::read()
+///     member function. It means that common message interface class must support
+///     polymorphic read (see @ref page_use_prot_interface_read).
+///     It means that the iterator used 
+///     for reading needs to be convertible to @ref comms::Message::ReadIterator. It
+///     can be achieved by using @ref comms::readIteratorFor() template function, 
+///     which will initialise and return appropriate iterator type. Another 
+///     possible way of allocating the iterator can be as following:
+///     @code
+///     MsgType::ReadIterator iter = buf + consumed;
+///     @endcode
+/// @li After the read operation is determined to be successful, the @b msgPtr
+///     holds dynamically allocated message object. The dispatching of the
+///     message for the handling is performed using polymorphic @b dispatch().
+///     It will require common message interface class to support 
+///     @ref page_use_prot_interface_handle. See also @ref page_use_prot_handling
+///     section below for more details on message handling.
+///
+/// There are protocols when number of input messages is very limited (one or two)
+/// such as various types of acknowledgement. To support such case
+/// @b read() member function of the @b ProtocolStack supports reception of
+/// reference to the real message object (instead of @b MsgPtr pointer).
+/// @code
+/// // Receives input buffer and its size and returns number of consumed bytes
+/// std::size_t processInput(const std::uint8_t* buf, std::size_t len)
+/// {
+///     std::size_t consumed = 0U;
+///     // Processing loop
+///     while (consumed < len) {
+///         // Get the iterator for reading
+///         auto begIter = buf + consumed;
+///         auto iter = begIter;
+///
+///         // Do the read
+///         using MyAckMsg = my_protocol::AckMsg<MyMessage>;
+///
+///         MyAckMsg msg; // actual message object
+///         auto es = protStack.read(msg, iter, len - consumed);
+///         if (es == comms::ErrorStatus::NotEnoughData) {
+///             break; // Not enough data in the buffer, stop processing
+///         } 
+///
+///         if (es == comms::ErrorStatus::InvalidMsgId) {
+///             // Unexpected message (not AckMsg) has been received, report or handle error
+///             ...
+///             consumed += std::distance(begIter, iter);
+///             continue;
+///         }
+///     
+///         if (es == comms::ErrorStatus::ProtocolError) {
+///             // Something is not right with the data, remove one character and try again
+///            ++consumed;
+///             continue;
+///         }
+///
+///         if (es == comms::ErrorStatus::Success) {
+///             handler.handle(msg); // Handle message without polymorphic dispatch
+///         }
+///
+///         // The iterator for reading has been advanced, update the difference
+///         consumed += std::distance(begIter, iter);
+///     }
+///
+///     // Report how many bytes have been consumed from the buffer
+///     return consumed;
+/// }
+/// @endcode
+/// @b NOTE, that in such case there is @b no need for either @ref page_use_prot_interface_read
+/// or @ref page_use_prot_interface_handle. In fact, no virtual function call
+/// is used in the code above.
+///
+/// @subsection page_use_prot_transport_msg_alloc Message Object Allocation
+/// By default, the message object is dynamically allocated. However, some 
+/// applications (especially bare-metal ones) may require something different.
+/// The @b COMMS library has @ref comms::option::InPlaceAllocation option, 
+/// which may be passed as third template parameter (@b TAllocationOptions)
+/// to @b ProtocolStack type definition. It statically allocates (in private data
+/// members) storage area, that is capable to store any message object from
+/// the @b std::tuple passed as second parameter to @b ProtocolStack type
+/// definition. The message allocation is performed using "placement new" operator,
+/// which means only one message object can be allocated at a time. The
+/// smart pointer holding the message (@b ProtocolStack::MsgPtr) is still
+/// @b std::unique_ptr, but with custom deleter.
+/// 
+/// @subsection page_use_prot_transport_generic_msg Using Generic Message
+/// In general, if message ID cannot be recognised, then appropriate message object cannot be
+/// created and processed, i.e. the reading loop will just discard such input.
+/// However, there are applications that serve as some kind of a @b bridge or
+/// a @b firewall, i.e. need to recognise and process only limited 
+/// number of input messages, all the rest need to be forwarded "as-is" or
+/// maybe wrapped in different transport frame before sending it over
+/// different I/O link. To help with such task @b COMMS library provides
+/// @ref comms::GenericMessage class. There is also @ref comms::option::SupportGenericMessage
+/// option that can be passed as third template parameter (@b TAllocationOptions)
+/// to the @b ProtocolStack type definition. It will force of creation
+/// @ref comms::GenericMessage object when appropriate message object is not found.
+/// @code
+/// // Define generic message type
+/// using MyGenericMessage = comms::GenericMessage<MyMessage>;
+///
+/// // Limited number of supported messages
+/// using MyInputMessages = 
+///     std::tuple<
+///         my_protocol::Message1<MyMessage>,
+///         my_protocol::Message2<MyMessage>
+///     >;
+///
+/// // Protocol stack definition
+/// using ProtStack = 
+///     my_protocol::ProtocolStack<
+///         MyMessage, 
+///         MyInputMessages,
+///         comms::option::SupportGenericMessage<MyGenericMessage>
+///     >;
+/// @endcode
+/// @b NOTE, that @ref comms::GenericMessage has only single field, which
+/// is a list of raw data (@ref comms::field::ArrayList). The @b read operation
+/// of such field will result in copying the data from input buffer to 
+/// internal storage of this field. The @ref comms::GenericMessage
+/// class has also other template parameters (except common message interface class).
+/// The second template parameter is option(s) that are going to be passed to this
+/// comms::field::ArrayList field. If allocated message is @b not going to 
+/// outlive input buffer, than it may make sense to pass @ref comms::option::OrigDataView
+/// as second template parameter to @ref comms::GenericMessage.
+/// @code
+/// using MyGenericMessage = comms::GenericMessage<MyMessage, comms::option::OrigDataView>;
+/// @endcode
+///
+/// Also @b note, that it is possible to combine usage of @ref comms::option::InPlaceAllocation
+/// and @ref comms::option::SupportGenericMessage as the third template parameter to
+/// @b ProtocolStack type definition using @b std::tuple bundling.
+/// @code
+/// using ProtStack = 
+///     my_protocol::ProtocolStack<
+///         MyMessage, 
+///         MyInputMessages,
+///         std::tuple<
+///             comms::option::InPlaceAllocation,
+///             comms::option::SupportGenericMessage<MyGenericMessage>
+///         >
+///     >;
+/// @endcode
+///
+/// @subsection page_use_prot_transport_write Writing Transport Framing and Message Payload
+/// The easiest way to implement write functionality is to use the ability of
+/// the message object to perform polymorphic write
+/// @code
+/// ProtStack protStack; // Protocol stack defined in one of previous sections
+/// void sendMessage(const MyMessage& msg, std::uint8_t* buf, std::size_t len)
+/// {
+///     auto writeIter = comms::writeIteratorFor<MyMessage>(&buf[0]);
+///     auto es = protStack.write(msg, writeIter, len);
+///     if (es == comms::ErrorStatus::Success) {
+///         ... // Send contents of dataToSend via I/O link
+///     }
+/// }
+/// @endcode
+/// In order to support such polymorphic write the common message interface class
+/// @b MyMessage has to have the following polymorphic functionality
+///
+/// @li @ref page_use_prot_interface_write to write the message payload.
+/// @li @ref page_use_prot_interface_id_retrieve to write the message ID information.
+///
+/// In case the transport framing reports size that follows, the support for
+/// @ref page_use_prot_interface_length is also recommended. It will be used
+/// to write the required value right away. However, if not provided the dummy
+/// value (@b 0) will be written at first, then after the write operation is complete,
+/// the number of written bytes will be calculated and the previously written 
+/// dummy value updated accordingly. @b NOTE, that such update is possible only
+/// if iterator used for writing is random-access one. Such update won't be
+/// possible. In this case @ref comms::ErrorStatus::UpdateRequired error status
+/// will be returned. It means that the write operation is incomplete, there
+/// is a need to perform @b update() call with random-access iterator.
+/// For example, let's assume the @ref page_use_prot_interface_length is
+/// not supported and <b>std::back_insert_iterator\<std::vector\<std::uint8\> \></b>
+/// is passed to @b MyMessage with @ref comms::option::WriteIterator option.
+/// the message object to perform polymorphic write
+/// @code
+/// ProtStack protStack; // Protocol stack defined in one of previous sections
+/// void sendMessage(const MyMessage& msg, std::vector<std::uint8_t>& outBuf)
+/// {
+///     assert(outBuf.empty()) // Make sure buffer is empty
+///     auto writeIter = std::back_inserter(outBuf);
+///     auto es = protStack.write(msg, writeIter, outBuf.max_size());
+///     if (es == comms::ErrorStatus::UpdateRequired) {
+///         auto updateIter = &outBuf[0];
+///         es = protStack.update(updateIter, outBuf.size());
+///     }
+///         
+///     if (es == comms::ErrorStatus::Success) {
+///         ... // Send contents of dataToSend via I/O link
+///     }
+/// }
+/// @endcode
+/// Similar scenario of a need to handle @ref comms::ErrorStatus::UpdateRequired 
+/// error status may occur when transport framing contains checksum value and
+/// output (not random-access) iterator is used. The checksum calculation requires
+/// going over the written data to calculate the value. However, it won't be 
+/// possible to do right away, the @b update() call must follow.
+///
+/// The @b ProtocolStack does not require usage of polymorphic
+/// write for message serialisation all the time. If number of messages being 
+/// sent is not very high, sometimes it makes sense to avoid adding an ability
+/// to support polymorphic write in the common interface. In this case the
+/// sending functionality can be implemented using a template function where
+/// actual message objects are passed as the parameter:
+/// @code
+/// template <typename TMsg>
+/// void sendMessage(const TMsg& msg)
+/// {
+///     ...
+///     auto es = protStack.write(msg, ...);
+///     ...
+/// }
+/// @endcode
+/// Such implementation does not require any polymorphic behaviour from the
+/// message object being sent, it takes all the required information from the
+/// direct calls to non-virtual @b doGetId() (see @ref comms::MessageBase::doGetId()) and 
+/// @b doLength() (see @ref comms::MessageBase::doLength()). The payload write is also performed using
+/// direct call to @b doWrite() (see @ref comms::MessageBase::doWrite()).
+///
+/// @section page_use_prot_transport_caching Access to Processed Stack Fields
+/// All the examples above do not store the read/written transport fields
+/// anywhere. In most cases it is not needed. However, if need arises they can
+/// be cached during the read/write operations and accessed later. The @b ProtocolStack
+/// also defines @b AllFields type which is @b std::tuple of all the fields used by all the 
+/// layer classes. @n
+/// Also, the @b ProtocolStack defines @b readFieldsCached() and @b writeFieldsCached()
+/// member functions which are substitutes to normal read() and write(). The first
+/// parameter to these functions is reference to the @b AllFields bundle
+/// object.
+/// @code
+/// ProtStack::AllFields fields;
+/// auto es = protStack.readFieldsCached<0>(fields, msgPtr, readIter, bufSize);
+/// @endcode
+/// The layer class that is responsible to read/write payload data 
+/// (see @ref comms::protocol::MsgDataLayer) uses @ref comms::field::ArrayList
+/// to define a field that will store the payload when "caching" operations are
+/// performed. That's where the fourth template parameter (@b TPayloadOptions)
+/// to @b ProtocolStack definition comes in play. 
+/// In case the the input / output buffer outlives the @b AllFields
+/// object, consider passing @ref comms::option::OrigDataView option as the
+/// fourth template parameter to @b ProtocolStack definition, which will pass it to
+/// to the field containing the message payload raw data.
 ///
 /// @section page_use_prot_handling Message Handling
 ///

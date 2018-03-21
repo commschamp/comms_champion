@@ -115,7 +115,7 @@
 /// @b read operation, bundled in std::tuple. 
 /// @code
 /// template <typename TMessage>
-/// using AllInputMessages =
+/// using AllMessages =
 ///     std::tuple<
 ///         Message1<TMessage>,
 ///         Message2<TMessage>,
@@ -131,7 +131,7 @@
 /// @code
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
 /// using MyMsgId = 
@@ -170,7 +170,7 @@
 /// @code
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
@@ -185,7 +185,7 @@
 /// @endcode 
 /// In this case, the comms::protocol::MsgIdLayer will statically allocate 
 /// internal buffer in its private data members, big enough to hold any message object
-/// of any type listed in @b AllInputMessages bundle. It means that only one message
+/// of any type listed in @b AllMessages bundle. It means that only one message
 /// object can be allocated and used at a time, i.e. the previous object must
 /// be deleted prior to new one being allocated. @n
 /// Also, the comms::protocol::MsgIdLayer::MsgPtr will still be a variant of
@@ -197,7 +197,7 @@
 /// error.
 ///
 /// By default, if the received data contains unknown message ID (the message
-/// type is not in @b AllInputMessages bundle), the @b read operation returns
+/// type is not in @b AllMessages bundle), the @b read operation returns
 /// @ref comms::ErrorStatus::InvalidMsgId and no message object is allocated.
 /// However, there are @b bridge / @b gateway / @b firewall type of applications
 /// which are interested to decode only limited number of messages, but still
@@ -209,7 +209,7 @@
 /// comms::protocol::MsgIdLayer may also receive @ref comms::option::SupportGenericMessage
 /// option specifying type of the GenericMessage. 
 /// In this case, if the appropriate message type hasn't been found in 
-/// @b AllInputMessages bundle, the appropriate @ref comms::GenericMessage object
+/// @b AllMessages bundle, the appropriate @ref comms::GenericMessage object
 /// will be created instead. However, just like with
 /// @ref comms::option::InPlaceAllocation, this option should be used by the application
 /// if needed.
@@ -271,7 +271,7 @@
 ///
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
@@ -310,7 +310,7 @@
 ///
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
@@ -349,7 +349,7 @@
 /// {
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
@@ -383,7 +383,7 @@
 ///
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
@@ -455,7 +455,7 @@
 /// // Id handling layer
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
@@ -471,7 +471,7 @@
 /// // Size handling layer
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
@@ -511,7 +511,7 @@
 /// @code
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TInputMessages = AllInputMessages<TMessage>, // Input messages that need to be recognised
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >

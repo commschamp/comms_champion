@@ -348,7 +348,7 @@ struct NumValueSerOffset {};
 ///     for their internal data storage. If this option is used, it will force
 ///     such fields to use @ref comms::util::StaticVector or @ref comms::util::StaticString
 ///     with the capacity provided by this option.
-/// @tparam TSize Size of the storage area, for strings it does @b NOT include
+/// @tparam TSize Size of the storage area in number of elements, for strings it does @b NOT include
 ///     the '\0' terminating character.
 /// @headerfile comms/options.h
 template <std::size_t TSize>

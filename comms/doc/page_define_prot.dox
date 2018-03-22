@@ -728,7 +728,7 @@
 /// sendMessage(msg);
 /// @endcode
 /// In order to support polymorphic refresh functionality when required (see
-/// @ref page_message_tutorial_interface_refresh), the actual message class
+/// @ref page_use_prot_interface_refresh), the actual message class
 /// implementation must also pass @ref comms::option::HasDoRefresh option to
 /// @ref comms::MessageBase class:
 /// @code

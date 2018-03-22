@@ -67,7 +67,7 @@ using GenericMessageFields =
 ///     to this one.
 /// @pre Requires the common message interface (@b TMessage) to define
 ///     inner @b MsgIdType and @b MsgIdParamType types (expected to use
-///     @ref comms::option::MsgIdType, see @ref page_message_tutorial_interface_id_type)
+///     @ref comms::option::MsgIdType, see @ref page_use_prot_transport_generic_msg)
 /// @headerfile comms/GenericMessage.h
 template <
     typename TMessage,

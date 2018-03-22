@@ -441,6 +441,36 @@
 /// the message interface class defines mentioned earlier
 /// functions.
 ///
+/// @subsection page_use_prot_interface_virt_destructor Virtual Destructor
+/// By default the @ref comms::Message class defines its 
+/// destructor as @b virtual if and only if it exhibits a polymorphic behaviour, 
+/// i.e. if there is at least one other virtual function defined. There are a couple of
+/// ways to change this default behaviour.
+/// @li If the definition of the common message interface class using 
+///     exhibits polymorphic 
+///     behaviour (i.e. has other virtual functions), but mustn't define its
+///     destructor as @b virtual, use @ref comms::option::NoVirtualDestructor 
+///     option in the interface class definition.
+///     @code
+///     using MyMessage = 
+///         my_protocol::Message<
+///             ...,
+///             comms::option::NoVirtualDestructor
+///         >;
+///     @endcode
+/// @li If the definition of the common interface class 
+///     doesn't have any virtual function, but still requires an ability to 
+///     be polymorphically deleted, i.e. must have virtual destructor, just 
+///     inherit from @b my_protocol::Message and define the destructor as virtual.
+///     @code
+///     class MyMessage : public 
+///         my_protocol::Message<>
+///     {
+///     public:
+///         virtual ~MyMessage() = default;
+///     };
+///     @endcode
+///
 /// @subsection page_use_prot_interface_summary Interface Options Summary
 /// All the options introduced above can be used in any order. They can also
 /// be repeated multiple times. However, the option that was defined first takes
@@ -2009,7 +2039,7 @@
 /// @b doLength() (see @ref comms::MessageBase::doLength()). The payload write is also performed using
 /// direct call to @b doWrite() (see @ref comms::MessageBase::doWrite()).
 ///
-/// @section page_use_prot_transport_caching Access to Processed Stack Fields
+/// @subsection page_use_prot_transport_caching Access to Processed Stack Fields
 /// All the examples above do not store the read/written transport fields
 /// anywhere. In most cases it is not needed. However, if need arises they can
 /// be cached during the read/write operations and accessed later. The @b ProtocolStack
@@ -2031,15 +2061,464 @@
 /// In case the the input / output buffer outlives the @b AllFields
 /// object, consider passing @ref comms::option::OrigDataView option as the
 /// fourth template parameter to @b ProtocolStack definition, which will pass it to
-/// to the field containing the message payload raw data.
+/// to the field containing the message payload raw data. Otherwise, the 
+/// payload part from the read / written buffer will also be copied to storage
+/// area of the cached payload field.
 ///
 /// @section page_use_prot_handling Message Handling
+/// When a message is received over I/O link and successfully deserialised, it 
+/// needs to be dispatched to appropriate handling function. Many
+/// developers write quite big (depends on number of messages it needs to handle) 
+/// switch statement that checks the ID of the message and calls appropriate 
+/// function in the relevant case area. Other developers try to minimise 
+/// performance impact by introducing hand written map from message ID to the 
+/// handling function. Such approaches are quite inefficient in terms of 
+/// execution performance as well as development effort required to introduce 
+/// a new message when protocol evolves.
+///
+/// The @b COMMS library has a built-in efficient (O(1)) dispatch mechanism, which
+/// uses "Double Dispatch" idiom. The @ref page_use_prot_interface_handle
+/// section above described using @b comms::option::Handler option, which
+/// adds polymorphic @b dispatch() member function to the common interface class
+/// (@b MyMessage). The provided handling class (@b MyHandler) is expected
+/// to define @b handle() member function for every message class it is expected to
+/// handle.
+/// @code
+/// class MyHandler
+/// {
+/// public:
+///     void handle(my_protocol::Message1<MyMessage>& msg) {...}
+///     void handle(my_protocol::Message5<MyMessage>& msg) {...}
+///     ...
+/// }
+/// @endcode
+/// and a single @b handle() member function that receives common message
+/// interface class for all the messages that need to be ignored or handled
+/// in some other common way. If this function is not added, the compilation
+/// may fail.
+/// @code
+/// class MyHandler
+/// {
+/// public:
+///     ...
+///     void handle(MyMessage& msg) {} // do nothing for all other messages
+/// }
+/// @endcode
+/// For example, let's assume that @b MyHandler defines message to properly
+/// handle @b Message1, but doesn't care about @b Message2. In this case
+/// @code
+/// std::unique_ptr<MyMessage> msg1(new my_protocol::Message1<MyMessage>);
+/// std::unique_ptr<MyMessage> msg2(new my_protocol::Message2<MyMessage>);
+/// MyHandler handler;
+///
+/// msg1->dispatch(handler); // invokes handle(my_protocol::Message1<MyMessage>&)
+/// msg2->dispatch(handler); // invokes handle(MyMessage&)
+/// @endcode
+///
+/// @b NOTE, that @b MyMessage class is only forward declared when 
+/// @ref page_use_prot_interface (@b MyMessage), but needs to be properly
+/// defined (included if in separate file) when defining @ref page_use_prot_transport.
+///
+/// @subsection page_use_prot_handling_multi Having Multiple Handlers
+/// There may be a need for being able to dispatch message for multiple independent handlers. 
+/// Good example would be having a state-machine, where every state processes
+/// the same message in different way. It is simple to implement by just
+/// defining the handling functions as @b virtual.
+/// @code
+/// class MyHandler
+/// {
+/// public:
+///     virtual void handle(my_protocol::Message1<MyMessage>& msg) = 0;
+///     virtual void handle(my_protocol::Message2<MyMessage>& msg) = 0;
+///     virtual void handle(my_protocol::Message3<MyMessage>& msg) = 0;
+///     ...
+/// };
+/// @endcode
+/// Defining the concrete handlers:
+/// @code
+/// class Handler1 : public MyHandler
+/// {
+/// public:
+///     virtual void handle(my_protocol::Message1<MyMessage>& msg) override {...};
+///     virtual void handle(my_protocol::Message2<MyMessage>& msg) override {...};
+///     virtual void handle(my_protocol::Message3<MyMessage>& msg) override {...};
+///     ...
+/// };
+///
+/// class Handler2 : public MyHandler
+/// {
+/// public:
+///     virtual void handle(my_protocol::Message1<MyMessage>& msg) override {...};
+///     virtual void handle(my_protocol::Message2<MyMessage>& msg) override {...};
+///     virtual void handle(my_protocol::Message3<MyMessage>& msg) override {...};
+///     ...
+/// };
+/// @endcode
+/// Now, any of the handlers may be used to handle the message:
+/// @code
+/// std::unique_ptr<MyMessage> msg(.../* some message object */);
+/// Handler1 handler1;
+/// Handler2 handler2;
+///
+/// msg->dispatch(handler1); // Handle with handler1
+/// msg->dispatch(handler2); // Handle with handler2
+/// @endcode
+///
+/// @subsection page_use_prot_handling_generic Generic Handler
+/// The COMMS library provides some help in defining custom message handlers.
+/// There is @ref comms::GenericHandler class that receives at least two template
+/// parameters. The first one is a common interface class for all the handled messages
+/// (@b MyMessage). The second template parameter is
+/// all the types of all the custom messages the handler is supposed to handle,
+/// bundled into std::tuple. Remember defining a bundle of messages (@b MyInputMessages) that need
+/// to be recognised during @ref page_use_prot_transport_read? It's probably
+/// a good place to reuse it or define a new tuple if there is a mismatch.
+/// @code
+/// using MyMessagesToHandle = MyInputMessages;
+/// @endcode
+/// As the result the comms::GenericHandler implements @b virtual @b handle()
+/// function for all the provided messages including the provided interface one.
+/// The code that automatically generated by @b comms::GenericMessage is equivalent
+/// to the one below.
+/// @code
+/// template<>
+/// class GenericHandler<MyMessage, MyMessagesToHandle>
+/// {
+/// public:
+///     virtual void handle(MyMessage& msg) {} // Do nothing
+///
+///     virtual void handle(my_protocol::Message1<MyMessage>& msg)
+///     {
+///         this->handle(static_cast<MyMessage&>(msg)); // invoke default handling
+///     }
+///
+///     virtual void handle(my_protocol::Message2<MyMessage>& msg)
+///     {
+///         this->handle(static_cast<MyMessage&>(msg)); // invoke default handling
+///     }
+///
+///     ...
+/// };
+/// @endcode
+/// Now, what remains is to inherit from comms::GenericHandler and override
+/// the functions that need to be overridden:
+/// @code
+/// class MyHandler : public comms::GenericHandler<MyMessage, AllMessages>
+/// {
+/// public:
+///     // Enable polymorphic delete
+///     virtual ~MyHandler() {}
+///
+///     // Overriding the default handling function
+///     virtual handle(MyMessage& msg) override
+///     {
+///         std::cout << "Ignoring message with ID: " << msg.getId() << std::endl;
+///     }
+///
+///     // Overriding handling of Message1
+///     virtual handle(my_protocol::Message1<MyMessage>& msg) override
+///     {
+///         ...; // Handle Message1
+///     }
+/// };
+/// @endcode
+/// Pay attention that @ref comms::GenericHandler doesn't declare its destructor as virtual.
+/// If the handler object requires support for polymorphic delete (destruction),
+/// make sure to declare its destructor as virtual.
+///
+/// @subsection page_use_prot_handling_result Returning Handling Result
+/// All the examples above used @b void as a return type from handling functions. It
+/// is possible, however, to return value of handling result. In order to achieve
+/// this the handler class needs to define inner @b RetType type and all the
+/// @b handle() functions must return it. For example:
+/// @code
+/// class MyHandler
+/// {
+/// public:
+///     // Return type of all the handle() functions
+///     typedef bool RetType;
+///
+///     bool handle(my_protocol::Message1<MyMessage>& msg) {...}
+///     bool handle(my_protocol::Message2<MyMessage>& msg) {...}
+///     bool handle(my_protocol::Message3<MyMessage>& msg) {...}
+///     ...
+/// };
+/// @endcode
+/// If inner @b RetType type is defined, it is propagated to be also the return type of
+/// the @ref comms::Message::dispatch() member function as well. As the result the developer may 
+/// use constructs like this:
+/// @code
+/// bool result = msg->dispatch(handler);
+/// @endcode
+///
+/// If @ref comms::GenericHandler class is used to define the handler class, its
+/// third template parameter (which defaults to @b void), can be used to
+/// specify the return type of handling functions.
 ///
 /// @section page_use_prot_extra_transport Extra Transport Values
+/// Some protocols may use extra values in their transport information, which 
+/// may influence the way how message payload is being read and/or message 
+/// object being handled. Good example would be having a protocol version, 
+/// which defines what message payload fields were serialised and which were 
+/// not (because they were introduced in later version of the protocol). 
+/// Such extra information is stored in the message object itself. If this is
+/// the case, the protocol definition is expected to use 
+/// @ref comms::option::ExtraTransportFields option in addition to specifying
+/// serialisation endian and message ID type (described in @ref
+/// page_use_prot_interface).
+/// (see @ref page_field_tutorial) and bundled in @b std::tuple:
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// // Field describing protocol version.
+/// using MyVersionField = 
+///     comms::field::IntValue<
+///         MyFieldBase, 
+///         std::uint16_t,
+///         comms::option::DefaultNumValue<5> // Implementing v5 of the protocol by default
+///     >;
+///
+/// // Relevant extra transport fields, bundled in std::tuple
+/// using MyExtraTransportFields =
+///     std::tuple<
+///         MyVersionField
+///     >;
+///
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<
+///         comms::option::BigEndian,
+///         comms::option::MsgIdType<MsgId>,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>,
+///         TOptions...
+///     >
+/// {
+/// public:
+///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version)
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
+/// Usage of @ref comms::option::ExtraTransportFields option as well as
+/// @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() macro in the message class definition
+/// is equivalent to having the following types and member functions defined
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<
+///         comms::option::BigEndian,
+///         comms::option::MsgIdType<MsgId>,
+///         TOptions...
+///     >
+/// {
+/// public:
+///     // Type of extra fields
+///     using TransportFields = MyExtraTransportFields;
+///
+///     // Accessors for defined transport fields
+///     TransportFields& transportFields() { return m_transportFields; }
+///     const TransportFields& transportFields() const { return m_transportFields; }
+///
+///     // Indices to access extra transport fields
+///     enum TransportFieldIdx
+///     {
+///         TransportFieldIdx_version,
+///         TransportFieldIdx_numOfValues
+///     };
+///
+///     // Access the "version" extra transport field
+///     auto transportField_version() -> decltype(std::get<TransportFieldIdx_version>(transportFields()))
+///     {
+///         return std::get<TransportFieldIdx_version>(transportFields());
+///     }
+///
+///     // Access the "version" extra transport field (const version)
+///     auto transportField_version() const -> decltype(std::get<TransportFieldIdx_version>(transportFields()))
+///     {
+///         return std::get<TransportFieldIdx_version>(transportFields());
+///     }
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
+/// For reference see also description of @ref comms::Message::transportFields()
+/// member function.
+///
+/// Access to the version information given a reference to message object may
+/// now be implemented as:
+/// @code
+/// void handle(my_protocol::Message<>& msg)
+/// {
+///     // Retrieve the version numeric value
+///     auto versionValue = msg.transportField_version().value();
+///
+///     ... // do something with version information
+/// }
+/// @endcode
+/// @b NOTE, that the defined "extra transport fields" are there to attach 
+/// some extra information, delivered as part of transport framing, to message 
+/// object itself. These fields are @b NOT getting serialised / deserialised when message
+/// object (payload) being read / written.
+///
+/// The @ref comms::Message interface class defines @ref comms::Message::hasTransportFields()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::ExtraTransportFields option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// types and functions.
 ///
 /// @section page_use_prot_msg_customisation Application Specific Customisation of Messages
+/// When most of the messages are uni-directional, i.e. are either only sent or
+/// only received, then it may make sense to split the common message interface
+/// class @b MyMessage (see @ref page_use_prot_interface) into two 
+/// interface classes: for @b input and for @b output. It will save the generation
+/// of unnecessary virtual functions which are not used, but occupy space.
+/// @code
+/// using MyInputMessage = 
+///     my_protocol::Message<
+///         comms::option::ReadIterator<const std::uint8_t*>, // polymorphic read
+///         comms::option::Handler<MyHandler> // polymorphic dispatch
+///     >;
+///
+///  using MyOutputMessage = 
+///     my_protocol::Message<
+///         comms::option::WriteIterator<std::uint8_t*>, // polymorphic write
+///         comms::option::IdInfoInterface, // polymorphic ID retrieve
+///         comms::option::LengthInfoInterface // polymorphic serialisation length retrieve
+///     >;
+///
+/// using MyInputMessage1 = my_protocol::Message1<MyInputMessage>;
+/// using MyInputMessage2 = my_protocol::Message2<MyInputMessage>;
+/// using MyInputMessage3 = my_protocol::Message3<MyInputMessage>;
+/// ...
+///
+/// using MyOutputMessage1 = my_protocol::Message1<MyOutputMessage>;
+/// using MyOutputMessage2 = my_protocol::Message2<MyOutputMessage>;
+/// using MyOutputMessage2 = my_protocol::Message3<MyOutputMessage>;
+/// ...
+///
+/// @endcode
+/// There may be also an opposite case, when most of the messages are bi-directional,
+/// while only few go one way. For most applications the single common
+/// message interface will do the job. However generating unnecessary virtual
+/// functions for bare-metal application may be a heavy price to pay, especially
+/// when ROM size is small. The @b COMMS library provides several
+/// options that inhibit generation of virtual functions. These extra options 
+/// need to be passed to @ref comms::MessageBase class when defining a message 
+/// class. Available options are:
+/// @li @ref comms::option::NoReadImpl
+/// @li @ref comms::option::NoWriteImpl
+/// @li @ref comms::option::NoValidImpl
+/// @li @ref comms::option::NoLengthImpl
+///
+/// In order to be able to pass these extra options to message definition classes,
+/// the support from the latter is required. If the protocol definition
+/// follows a recommended approach the message definition is expected to
+/// reuse extra protocol options structure (@b DefaultOptions) described earlier.
+/// @code
+
+/// @endcode
+/// Add passing these options to message definition classes:
+/// @code
+/// namespace my_protocol
+/// {
+///
+/// // Allow passing extra options to messages as well
+/// struct DefaultOptions
+/// {
+///     struct message
+///     {
+///         using Message1 = comms::option::EmptyOption;
+///         using Message2 = comms::option::EmptyOption;
+///         ...
+///     };
+/// };
+/// 
+/// namespace message
+/// {
+///
+/// template <typename TBase, typename TOpt = DefaultOptions>
+/// class Message1 : public 
+///     comms::MessageBase<
+///         TBase, 
+///         comms::option::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::FieldsImpl<Message1Fields<TOpt>::All>,
+///         comms::option::MsgType<Message1<TBase, TOpt> >,
+///         typename TOpt::message::Message1 // Extra options 
+///     >
+/// {
+///     ...
+/// };
+///
+/// } // namespace message
+///
+/// } // namespace my_protocol
+/// @endcode
+/// As an example let's assume, that @b Message1 is only sent by the
+/// application, but never received, and @b Message 2 is the opposite, only
+/// received by never sent. In this case defining the following options
+/// structure and passing them in to message definition classes will work
+/// @code
+/// struct MyOptions : public my_protocol::DefaultOptions
+/// {
+///     struct message : public my_protocol::DefaultOptions::message
+///     {
+///         using Message1 = comms::option::NoReadImpl;
+///         using Message2 = comms::option::NoWriteImpl;
+///     };
+/// };
+///
+/// using MyMessage1 = my_protocol::Message1<MyMessage, MyOptions>;
+/// using MyMessage2 = my_protocol::Message2<MyMessage, MyOptions>;
+/// @endcode
 ///
 /// @section page_use_prot_msg_extension Message Interface Extension
+/// Sometimes the public interface of the messages, generated by the
+/// @b COMMS library out of available options passed to @ref comms::Message,
+/// may be insufficient for some applications. For example, there is also a 
+/// need to report human readable name of the message. It is easy to achieve by
+/// just implementing required function in common message interface class
+/// @code
+/// class MyMessage : public my_protocol::Message<...>
+/// {
+/// public:
+///     const char* name() const
+///     {
+///         return nameImpl();
+///     }
 ///
+/// protected:
+///     virtual const char* nameImpl() const = 0;
+/// };
+/// @endcode
+/// All the protocol messages must also be extended in order to implement
+/// missing virtual function
+/// @code
+/// class MyMessage1 : public my_protocol::Message1<MyMessage>
+/// {
+/// protected:
+///     virtual const char* nameImpl() const override
+///     {
+///         return "Message 1";
+///     }
+/// };
+/// @endcode
+/// Don't forget to bundle newly defined messages in @b std::tuple and pass 
+/// them to @ref page_use_prot_transport definition or @ref page_use_prot_handling_generic
+/// when needed.
+/// @code
+/// using MyInputMessages = 
+///     std::tuple<
+///         MyMessage1, 
+///         MyMessage2,
+///         ...
+///     >;
 ///
-
+/// using MyProtocolStack = my_protocol::ProtocolStack<MyMessage, MyInputMessages>;
+/// using MyHandler = comms::GenericHandler<MyMessage, MyInputMessages>;
+/// ...
+/// @endcode
+///

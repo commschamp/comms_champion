@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-using BitfieldsFields = demo::message::BitfieldsFields;
+using BitfieldsFields = demo::message::BitfieldsFields<>;
 
 QVariantMap createField1BitmaskProperties()
 {

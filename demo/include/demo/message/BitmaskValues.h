@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
+#include "demo/DefaultOptions.h"
 
 namespace demo
 {
@@ -32,7 +33,9 @@ namespace message
 {
 
 /// @brief Accumulates details of all the BitmaskValues message fields.
+/// @tparam TOpt Extra options
 /// @see BitmaskValues
+template <typename TOpt = demo::DefaultOptions>
 struct BitmaskValuesFields
 {
     /// @brief Simple 1 byte bitmask value.
@@ -41,6 +44,7 @@ struct BitmaskValuesFields
     struct field1 : public
         comms::field::BitmaskValue<
             FieldBase,
+            typename TOpt::message::BitmaskValuesFields::field1,
             comms::option::FixedLength<1>,
             comms::option::BitmaskReservedBits<0xe0, 0>
         >
@@ -58,6 +62,7 @@ struct BitmaskValuesFields
     struct field2 : public
         comms::field::BitmaskValue<
             FieldBase,
+            typename TOpt::message::BitmaskValuesFields::field2,
             comms::option::FixedLength<2>,
             comms::option::BitmaskReservedBits<0xfcf6, 0>
         >
@@ -89,13 +94,15 @@ struct BitmaskValuesFields
 ///     various implementation options. @n
 ///     See @ref BitmaskValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase>
+/// @tparam TOpt Extra options
+template <typename TMsgBase, typename TOpt = demo::DefaultOptions>
 class BitmaskValues : public
     comms::MessageBase<
         TMsgBase,
+        typename TOpt::message::BitmaskValues,
         comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
-        comms::option::FieldsImpl<BitmaskValuesFields::All>,
-        comms::option::MsgType<BitmaskValues<TMsgBase> >
+        comms::option::FieldsImpl<typename BitmaskValuesFields<TOpt>::All>,
+        comms::option::MsgType<BitmaskValues<TMsgBase, TOpt> >
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -103,9 +110,10 @@ class BitmaskValues : public
     using Base =
         comms::MessageBase<
             TMsgBase,
+            typename TOpt::message::BitmaskValues,
             comms::option::StaticNumIdImpl<MsgId_BitmaskValues>,
-            comms::option::FieldsImpl<BitmaskValuesFields::All>,
-            comms::option::MsgType<BitmaskValues<TMsgBase> >
+            comms::option::FieldsImpl<typename BitmaskValuesFields<TOpt>::All>,
+            comms::option::MsgType<BitmaskValues<TMsgBase, TOpt> >
         >;
 public:
 

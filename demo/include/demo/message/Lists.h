@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
+#include "demo/DefaultOptions.h"
 
 #include <iostream>
 
@@ -34,7 +35,9 @@ namespace message
 {
 
 /// @brief Accumulates details of all the Lists message fields.
+/// @tparam TOpt Extra options
 /// @see Lists
+template <typename TOpt = demo::DefaultOptions>
 struct ListsFields
 {
     /// @brief Raw data list that uses 2 bytes size prefix
@@ -42,6 +45,7 @@ struct ListsFields
         comms::field::ArrayList<
             FieldBase,
             std::uint8_t,
+            typename TOpt::message::ListsFields::field1,
             comms::option::SequenceSizeFieldPrefix<
                 comms::field::IntValue<
                     FieldBase,
@@ -50,15 +54,29 @@ struct ListsFields
             >
         >;
 
+    /// @brief Element of @ref field2 list
+    using field2Element =
+        comms::field::IntValue<
+            FieldBase,
+            std::int16_t,
+            typename TOpt::message::ListsFields::field2Element
+        >;
+
     /// @brief List of 2 bytes integer value fields, with fixed size of 3 elements
     using field2 =
         comms::field::ArrayList<
             FieldBase,
-            comms::field::IntValue<
-                FieldBase,
-                std::int16_t
-            >,
+            field2Element,
+            typename TOpt::message::ListsFields::field2,
             comms::option::SequenceFixedSize<3>
+        >;
+
+    /// @brief Element of @ref field3 list
+    using field3Element =
+        comms::field::IntValue<
+            FieldBase,
+            std::uint16_t,
+            typename TOpt::message::ListsFields::field3Element
         >;
 
     /// @brief List of 2 bytes integer value fields, prefixed with
@@ -66,16 +84,61 @@ struct ListsFields
     using field3 =
         comms::field::ArrayList<
             FieldBase,
-            comms::field::IntValue<
-                FieldBase,
-                std::uint16_t
-            >,
+            field3Element,
+            typename TOpt::message::ListsFields::field3,
             comms::option::SequenceSerLengthFieldPrefix<
                 comms::field::IntValue<
                     FieldBase,
                     std::uint16_t
                 >
             >
+        >;
+
+    /// Scope for members of @ref field4Element
+    struct field4Members
+    {
+        /// @brief 2 byte unsigned integer field
+        using mem1 =
+            comms::field::IntValue<
+                FieldBase,
+                std::uint16_t,
+                typename TOpt::message::ListsFields::field4Members::mem1
+            >;
+
+        /// @brief 1 byte unsigned integer field
+        using mem2 =
+            comms::field::IntValue<
+                FieldBase,
+                std::int8_t,
+                typename TOpt::message::ListsFields::field4Members::mem2
+            >;
+
+        /// @brief string with serialisation length prefix. The prefix is of variable
+        ///         length, i.e. uses base-128 encoding.
+        using mem3 =
+            comms::field::String<
+                FieldBase,
+                typename TOpt::message::ListsFields::field4Members::mem3,
+                comms::option::SequenceSizeFieldPrefix<
+                    comms::field::IntValue<
+                        FieldBase,
+                        std::uint32_t,
+                        comms::option::VarLength<1, 4>
+                    >
+                >
+            >;
+    };
+
+    /// @brief Element of @ref field4 list
+    using field4Element =
+        comms::field::Bundle<
+            FieldBase,
+            std::tuple<
+                typename field4Members::mem1,
+                typename field4Members::mem2,
+                typename field4Members::mem3
+            >,
+            typename TOpt::message::ListsFields::field4Element
         >;
 
     /// @brief List of bundles
@@ -93,29 +156,8 @@ struct ListsFields
     using field4 =
         comms::field::ArrayList<
             FieldBase,
-            comms::field::Bundle<
-                FieldBase,
-                std::tuple<
-                    comms::field::IntValue<
-                        FieldBase,
-                        std::uint16_t
-                    >,
-                    comms::field::IntValue<
-                        FieldBase,
-                        std::int8_t
-                    >,
-                    comms::field::String<
-                        FieldBase,
-                        comms::option::SequenceSizeFieldPrefix<
-                            comms::field::IntValue<
-                                FieldBase,
-                                std::uint32_t,
-                                comms::option::VarLength<1, 4>
-                            >
-                        >
-                    >
-                >
-            >,
+            field4Element,
+            typename TOpt::message::ListsFields::field4,
             comms::option::SequenceSerLengthFieldPrefix<
                 comms::field::IntValue<
                     FieldBase,
@@ -148,13 +190,15 @@ struct ListsFields
 ///     various implementation options. @n
 ///     See @ref ListsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase>
+/// @tparam TOpt Extra options
+template <typename TMsgBase, typename TOpt = demo::DefaultOptions>
 class Lists : public
     comms::MessageBase<
         TMsgBase,
+        typename TOpt::message::Lists,
         comms::option::StaticNumIdImpl<MsgId_Lists>,
-        comms::option::FieldsImpl<ListsFields::All>,
-        comms::option::MsgType<Lists<TMsgBase> >
+        comms::option::FieldsImpl<typename ListsFields<TOpt>::All>,
+        comms::option::MsgType<Lists<TMsgBase, TOpt> >
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -162,9 +206,10 @@ class Lists : public
     using Base =
         comms::MessageBase<
             TMsgBase,
+            typename TOpt::message::Lists,
             comms::option::StaticNumIdImpl<MsgId_Lists>,
-            comms::option::FieldsImpl<ListsFields::All>,
-            comms::option::MsgType<Lists<TMsgBase> >
+            comms::option::FieldsImpl<typename ListsFields<TOpt>::All>,
+            comms::option::MsgType<Lists<TMsgBase, TOpt> >
         >;
 
 public:

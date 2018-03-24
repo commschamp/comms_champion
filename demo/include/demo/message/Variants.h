@@ -165,7 +165,7 @@ struct VariantsFields
             >
         >
     {
-#ifndef COMMS_MUST_DEFINE_BASE
+#ifdef COMMS_MUST_DEFINE_BASE
         // Required for compilation with gcc earlier than v5.0,
         // later versions don't require this type definition.
         using Base =

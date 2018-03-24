@@ -48,6 +48,7 @@ using MyVarLengthField =
         MyFieldBase, // big endian serialisation
         std::uint32_t, // store as 4 bytes value
         comms::option::VarLength<1, 4> // 1 to 4 bytes serialisation length.
+    >;
 ```
 
 Enum values are similar to integer ones:

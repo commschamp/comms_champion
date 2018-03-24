@@ -74,6 +74,7 @@ struct VariantsFields
             >
         >
     {
+#ifdef COMMS_MUST_DEFINE_BASE
         // Required for compilation with gcc earlier than v5.0,
         // later versions don't require this type definition.
         using Base =
@@ -88,6 +89,7 @@ struct VariantsFields
                     >
                 >
             >;
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -115,6 +117,7 @@ struct VariantsFields
             >
         >
     {
+#ifdef COMMS_MUST_DEFINE_BASE
         // Required for compilation with gcc earlier than v5.0,
         // later versions don't require this type definition.
         using Base =
@@ -129,6 +132,7 @@ struct VariantsFields
                     >
                 >
             >;
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -161,9 +165,7 @@ struct VariantsFields
             >
         >
     {
-#ifndef _MSC_VER
-        // For some reason VS2015 compiler doesn't like having this definition
-
+#ifndef COMMS_MUST_DEFINE_BASE
         // Required for compilation with gcc earlier than v5.0,
         // later versions don't require this type definition.
         using Base =
@@ -183,7 +185,7 @@ struct VariantsFields
                     >
                 >
             >;
-#endif // #ifndef _MSC_VER
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -211,6 +213,7 @@ struct VariantsFields
             typename TOpt::message::VariantsFields::field1
         >
     {
+#ifdef COMMS_MUST_DEFINE_BASE
         // Required for compilation with gcc earlier than v5.0,
         // later versions don't require this type definition.
         using Base =
@@ -223,6 +226,7 @@ struct VariantsFields
                 >,
                 typename TOpt::message::VariantsFields::field1
             >;
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
 
     public:
         /// @brief Allow access to internal fields.

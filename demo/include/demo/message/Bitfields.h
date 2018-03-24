@@ -109,7 +109,7 @@ struct BitfieldsFields
             >
         >
     {
-#ifndef _MSC_VER
+#ifdef COMMS_MUST_DEFINE_BASE
         // For some reason VS2015 compiler doesn't like having this definition
         using Base =
             comms::field::Bitfield<
@@ -121,7 +121,7 @@ struct BitfieldsFields
                     field1_int2
                 >
             >;
-#endif // #ifndef _MSC_VER
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro

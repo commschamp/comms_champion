@@ -72,7 +72,7 @@ public:
 
     ~InPlaceDeleter() noexcept
     {
-        GASSERT(allocated_ == nullptr);
+        COMMS_ASSERT(allocated_ == nullptr);
     }
 
     InPlaceDeleter& operator=(const InPlaceDeleter& other) = delete;
@@ -91,15 +91,15 @@ public:
             return *this;
         }
 
-        GASSERT(allocated_ == nullptr);
+        COMMS_ASSERT(allocated_ == nullptr);
         allocated_ = other.allocated_;
         other.allocated_ = nullptr;
         return *this;
     }
 
     void operator()(T* obj) {
-        GASSERT(allocated_ != nullptr);
-        GASSERT(*allocated_);
+        COMMS_ASSERT(allocated_ != nullptr);
+        COMMS_ASSERT(*allocated_);
         obj->~T();
         *allocated_ = false;
         allocated_ = nullptr;
@@ -231,8 +231,8 @@ public:
 
         static_assert(std::is_base_of<TInterface, TObj>::value,
             "TObj does not inherit from TInterface");
-        GASSERT(obj == reinterpret_cast<TInterface*>(&place_)); // Wrong object if fails
-        GASSERT(allocated_); // Error if not set
+        COMMS_ASSERT(obj == reinterpret_cast<TInterface*>(&place_)); // Wrong object if fails
+        COMMS_ASSERT(allocated_); // Error if not set
         return Ptr(
             reinterpret_cast<TInterface*>(&place_),
             details::InPlaceDeleter<TInterface>(&allocated_));

@@ -1,5 +1,5 @@
 //
-// Copyright 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-using VariantsFields = demo::message::VariantsFields;
+using VariantsFields = demo::message::VariantsFields<>;
 
 QVariantMap createProps_id()
 {

@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
+#include "demo/DefaultOptions.h"
 
 namespace demo
 {
@@ -32,21 +33,25 @@ namespace message
 {
 
 /// @brief Accumulates details of all the FloatValues message fields.
+/// @tparam TOpt Extra options
 /// @see FloatValues
+template <typename TOpt = demo::DefaultOptions>
 struct FloatValuesFields
 {
     /// @brief Simple 4 byte IEEE 754 floating point value.
     using field1 =
         comms::field::FloatValue<
             FieldBase,
-            float
+            float,
+            typename TOpt::message::FloatValuesFields::field1
     >;
 
     /// @brief Simple 8 byte IEEE 754 floating point value.
     using field2 =
         comms::field::FloatValue<
             FieldBase,
-            double
+            double,
+            typename TOpt::message::FloatValuesFields::field2
     >;
 
     /// @brief Floating point value serialised as integer with (1e-2) scaling ratio.
@@ -54,6 +59,7 @@ struct FloatValuesFields
         comms::field::IntValue<
             FieldBase,
             std::uint8_t,
+            typename TOpt::message::FloatValuesFields::field3,
             comms::option::ScalingRatio<1, 100>
         >;
 
@@ -72,13 +78,15 @@ struct FloatValuesFields
 ///     various implementation options. @n
 ///     See @ref FloatValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase>
+/// @tparam TOpt Extra options
+template <typename TMsgBase, typename TOpt = demo::DefaultOptions>
 class FloatValues : public
     comms::MessageBase<
         TMsgBase,
+        typename TOpt::message::FloatValues,
         comms::option::StaticNumIdImpl<MsgId_FloatValues>,
-        comms::option::FieldsImpl<FloatValuesFields::All>,
-        comms::option::MsgType<FloatValues<TMsgBase> >
+        comms::option::FieldsImpl<typename FloatValuesFields<TOpt>::All>,
+        comms::option::MsgType<FloatValues<TMsgBase, TOpt> >
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -86,9 +94,10 @@ class FloatValues : public
     using Base =
         comms::MessageBase<
             TMsgBase,
+            typename TOpt::message::FloatValues,
             comms::option::StaticNumIdImpl<MsgId_FloatValues>,
-            comms::option::FieldsImpl<FloatValuesFields::All>,
-            comms::option::MsgType<FloatValues<TMsgBase> >
+            comms::option::FieldsImpl<typename FloatValuesFields<TOpt>::All>,
+            comms::option::MsgType<FloatValues<TMsgBase, TOpt> >
         >;
 public:
 

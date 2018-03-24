@@ -37,26 +37,21 @@ namespace raw_data_protocol
 template <typename TField, typename... TOptions>
 using IdField = comms::field::NoValue<TField>;
 
-template <typename TField, typename... TOptions>
-using DataField =
-    comms::field::ArrayList<
-        TField,
-        std::uint8_t,
-        TOptions...
-    >;
+template <typename... TOptions>
+using DataField = typename comms::protocol::MsgDataLayer<TOptions...>::Field;
 
 template <
     typename TMsgBase,
     typename TDataMessage,
-    typename TMsgAllocOptions = std::tuple<>,
-    typename TDataFieldStorageOptions = std::tuple<> >
+    typename TMsgAllocOptions = comms::option::EmptyOption,
+    typename TDataFieldStorageOptions = comms::option::EmptyOption>
 using Stack =
         comms::protocol::MsgIdLayer<
             IdField<typename TMsgBase::Field>,
             TMsgBase,
             std::tuple<TDataMessage>,
             comms::protocol::MsgDataLayer<
-                DataField<typename TMsgBase::Field, TDataFieldStorageOptions>
+                TDataFieldStorageOptions
             >,
             TMsgAllocOptions
         >;

@@ -1,49 +1,19 @@
-/// @page page_field_tutorial Fields Tutorial
+/// @page page_field_tutorial Fields Definition Tutorial
 /// @tableofcontents
 /// Fields are abstractions around value storage primitives and/or objects, 
-/// such as integral values, floating point values, strings, arrays, vectors, etc..
-/// Every @b field class exposes predefined interface to read/write its
-/// value from/to provided buffer, calculate the serialisation length, check
-/// the validity, etc...
-///
-/// Every field class, COMMS library provides, is implemented in comms::field
-/// namespace. Most of the fields expect to receive their base class type
-/// as the first template parameter, which is expected to be a variant of
-/// comms::Field with the option specifying endian to be used for data
-/// serialisation. This base class provides protected member functions to read/
-/// write basic data types using the correct endian. The inheriting field classes
-/// use these functions to serialise/deserialise their internal data.
-///
-/// The default functionality of almost every @b field type may be modified
-/// using various options (defined in comms::option namespace). The class
-/// documentation of every field contains the list of options that can be used
-/// with the field.
-///
-/// In general, (almost) every field class provided by the @b COMMS library:
-/// @li Receives its base class as the first template parameter. It is expected
-///     to be a variant of comms::Field with option specifying the serialisation
-///     endian.
-/// @li Receives a list of possible behaviour modifying options as the last
-///     variadic template parameter.
-/// @li Defines inner @b ValueType type, which is used to store the value is
-///     wraps.
-/// @li Provides access to the storage value using @b value() member functions.
-/// @li Does @b NOT expose any polymorphic behaviour, i.e. does @b NOT have any
-///     virtual functions.
-/// @li Provides simple interface to read (@b read()), write (@b write()), 
-///     retrieve serialisation length (@b length()), check value validity
-///     (@b valid()), and bring field's value into a consistent state (@b refresh()).
-/// @li The @b read() and @b write() member function receive type of the 
-///     iterator for (de)serialisation as a template parameter.
-///
-/// It looks something like this:
+/// such as integral values, floating point values, strings, arrays, etc..
+/// Every @b field class is defined in @ref comms::field namespace and 
+/// exposes predefined interface in order to
+/// make template meta-programming as easy as possible. As an example let's
+/// take a look at @ref comms::field::IntValue class which is used to 
+/// define integral value field.
 /// @code
-/// template <typename TBase, typename... TOptions>
-/// class SomeField : public TBase
+/// template <typename TBase, typename T, typename... TOptions>
+/// class comms::field::IntValue : public TBase
 /// {
 /// public:
 ///     // Define inner storage type
-///     using ValueType = ...;
+///     using ValueType = T;
 ///     
 ///     // Get access to the stored value
 ///     ValueType& value() { return m_value; }
@@ -70,8 +40,40 @@
 ///     ValueType m_value;
 /// }
 /// @endcode
+/// The main things to note are that every field definition class:
+/// @li receives its base class as the first 
+///     template parameter. It is expected to be a variant of @ref
+///     comms::Field with @ref comms::option::BigEndian or @ref 
+///     comms::option::LittleEndian option to specify the serialisation endian.
+/// @li exhibits some default behaviour which can be modified by
+///     passing various options from @ref comms::option namespace as additional template
+///     parameters. All the available options are described below in this tutorial.
+/// @li defines @b ValueType inner value storage
+///     type and provides @b value() member functions to access the stored value.
+/// @li provides @b read() and @b write() member functions to read and write the 
+///     inner value given the iterator used for reading / writing and available
+///     length of the buffer.
+/// @li has @b length() member function to report how many bytes are required to
+///     serialise currently stored value.
+/// @li provides @b valid() member function to check whether the stored value is
+///     valid (within expected range of values).
+/// @li has @b refresh() member function to bring its contents to consistent / valid
+///     state when required.
 ///
-/// Let's review the fields COMMS library provided one by one.
+/// Also note that all the member function are NON-virtual, i.e. the field 
+/// abstractions do not have polymorphic behaviour.
+///
+/// The available fields abstractions are:
+/// @li @ref comms::field::IntValue - used to define @ref sec_field_tutorial_int_value
+/// @li @ref comms::field::EnumValue - used to define @ref sec_field_tutorial_enum_value
+/// @li @ref comms::field::BitmaskValue - used to define @ref sec_field_tutorial_bitmask_value
+/// @li @ref comms::field::Bitfield - used to define @ref sec_field_tutorial_bitfield
+/// @li @ref comms::field::Bundle - used to define @ref sec_field_tutorial_bundle
+/// @li @ref comms::field::ArrayList - used to define @ref sec_field_tutorial_array_list
+/// @li @ref comms::field::String - used to define @ref sec_field_tutorial_string
+/// @li @ref comms::field::FloatValue - used to define @ref sec_field_tutorial_fp_value
+/// @li @ref comms::field::Optional - used to define @ref sec_field_tutorial_optional
+/// @li @ref comms::field::Variant - used to define @ref sec_field_tutorial_variant
 ///
 /// @section sec_field_tutorial_int_value Integral Value Fields
 /// Integral values are abstracted by comms::field::IntValue class, which
@@ -93,7 +95,7 @@
 /// intField.value() = 5;
 /// std::cout << "Updated value: " << intField.value() << std::endl; // prints 5
 /// @endcode 
-/// When such field is serialised, 2 bytes (sizeof(std::int16_t)) are written
+/// When such field is serialised, 2 bytes (<b>sizeof(std::int16_t)</b>) are written
 /// to the output buffer, most significant first and less significant second
 /// (because @b MyFieldBase base class was defined using comms::option::BigEndian
 /// option).
@@ -556,12 +558,12 @@
 /// {
 ///     enum BitIdx {...}
 ///
-///     getBitValue_first() const { return getBitValue(BitIdx_first); }
-///     setBitValue_first(vool val) { setBitValue(BitIdx_first, val); }
-///     getBitValue_third() const { ... }
-///     setBitValue_third(vool val) { ... }
-///     getBitValue_fourth() const { ... }
-///     setBitValue_fourth(vool val) { ... }
+///     bool getBitValue_first() const { return getBitValue(BitIdx_first); }
+///     void setBitValue_first(bool val) { setBitValue(BitIdx_first, val); }
+///     bool getBitValue_third() const { ... }
+///     void setBitValue_third(bool val) { ... }
+///     bool getBitValue_fourth() const { ... }
+///     void setBitValue_fourth(bool val) { ... }
 ///     ...
 /// }
 /// @endcode
@@ -713,10 +715,10 @@
 ///
 /// It would be convenient to access the member fields by name, rather than
 /// by index with <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
-/// It can be achieved by inheriting from the field definition and using
-/// COMMS_FIELD_MEMBERS_ACCESS() macro inside.
+/// It can be achieved by using
+/// COMMS_FIELD_MEMBERS_ACCESS() macro inside field definition class.
 /// @code
-/// class AccessibleSerialConfigField : public SerialConfigField
+/// class SerialConfigField : public comms::field::Bitfield<...>
 /// {
 /// public:
 ///     COMMS_FIELD_MEMBERS_ACCESS(baud, parity, flags);
@@ -724,7 +726,7 @@
 /// @endcode
 /// It is equivalent to having the following enum, types and functions defined:
 /// @code
-/// class AccessibleSerialConfigField : public SerialConfigField
+/// class SerialConfigField : public comms::field::Bitfield<...>
 /// {
 /// public:
 ///     // Access indices for member fields
@@ -781,11 +783,11 @@
 /// As the result, the fields can be accessed using multiple ways:
 /// For example using @b FieldIdx enum
 /// @code
-/// AccessibleSerialConfigField field;
+/// SerialConfigField field;
 /// auto& members = field.value(); // get access to the std::tuple of member fields
-/// auto& baudField = std::get<AccessibleSerialConfigField::FieldIdx_baud>(members);
-/// auto& parityField = std::get<AccessibleSerialConfigField::FieldIdx_parity>(members);
-/// auto& flagsField = std::get<AccessibleSerialConfigField::FieldIdx_flags>(members);
+/// auto& baudField = std::get<SerialConfigField::FieldIdx_baud>(members);
+/// auto& parityField = std::get<SerialConfigField::FieldIdx_parity>(members);
+/// auto& flagsField = std::get<SerialConfigField::FieldIdx_flags>(members);
 ///
 /// auto baud = baudField.value();
 /// auto parity = parityField.value();
@@ -793,7 +795,7 @@
 /// @endcode
 /// or using accessor functions:
 /// @code
-/// AccessibleSerialConfigField field;
+/// SerialConfigField field;
 /// auto baud = field.field_baud().value();
 /// auto parity = field.field_parity().value();
 /// auto flags = field.flags.value();
@@ -806,7 +808,7 @@
 /// in the example above), then try to substitute the used macro with
 /// @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(). For example:
 /// @code
-/// class AccessibleSerialConfigField : public SerialConfigField
+/// class SerialConfigField : public comms::field::Bitfield<...>
 /// {
 /// public:
 ///     COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(baud, parity, flags);
@@ -888,10 +890,9 @@
 /// Please refer to the class documentation for the list of supported options.
 ///
 /// Just like with the @ref sec_field_tutorial_bitfield, the names to the
-/// member fields can be provided by inheriting from the comms::field::Bundle
-/// base class and using COMMS_FIELD_MEMBERS_ACCESS() macro.
+/// member fields can be provided by using COMMS_FIELD_MEMBERS_ACCESS() macro.
 /// @code
-/// class MyAccessibleBundle : public MyBundle
+/// class MyBundle : public comms::field::Bundle<...>
 /// {
 /// public:
 ///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
@@ -948,99 +949,13 @@
 /// using MyComplexList = 
 ///     comms::field::ArrayList<
 ///         MyFieldBase,
-///         MyBundle // Complex bundle field, defined in previous section 
+///         MyBundle<> // Complex bundle field, defined in previous section 
 ///     >;
 /// @endcode
 /// By default the read operation on comms::field::ArrayList continues as
 /// long as there is data left in input buffer, and write operation serialises
 /// all the data stored in internal vector. These default behaviours can be 
 /// changed using options described below.
-///
-/// @subsection sec_field_tutorial_array_list_storage Value Storage
-/// Also by default, the internal data is stored using 
-/// <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
-/// @code
-/// MySimpleList simpleList; // defined above
-/// auto& simpleListStorage = simpleList.value(); // reference to std::vector<std::uint8_t>;
-///
-/// MyComplexList complexList; // defined above
-/// auto& complexListStorage = complexList.value(); // reference to std::vector<MyBundle>;
-/// @endcode
-/// This behaviour can be modified using provided options. It is possible to
-/// provide custom storage type using comms::option::CustomStorageType option.
-/// For example:
-/// @code
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
-/// using MyCustomStorage = boost::static_vector<std::uint8_t, 128>;
-/// using MyCustomStorageList = comms::field::ArrayList<
-///     MyFieldBase,
-///     std::uint8_t,
-///     comms::option::CustomStorageType<MyCustomStorage> // Use MyCustomStorage for storage
-/// >;
-///
-/// MyCustomStorageList customStorageList;
-/// MyCustomStorage& value = customStorageList.value(); 
-/// @endcode
-/// The provide custom storage type is expected to expose the same public interface as
-/// <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
-///
-/// The @b COMMS library also provides @ref comms::util::StaticVector class which
-/// is similar to @b boost::static_vector and can be used with bare-metal platforms
-/// that don't use dynamic memory allocation and/or exceptions. The @b COMMS
-/// library also provides comms::option::FixedSizeStorage option to force usage
-/// of @ref comms::util::StaticVector instead of @b std::vector.
-/// @code
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
-/// using MyStaticSimpleList = 
-///     comms::field::ArrayList<
-///         MyFieldBase,
-///         std::uint8_t,
-///         comms::option::FixedSizeStorage<10> // Can store up to 10 elements
-///     >;
-///
-/// MyStaticSimpleList simpleStaticList;
-/// auto& simpleStaticListStorage = simpleStaticList.value(); // reference to comms::util::StaticVector<std::uint8_t, 10>;
-/// @endcode
-///
-/// The usage of @b std::vector or @ref comms::util::StaticVector as storage
-/// type may involve copying of the original data to the internal
-/// storage area of these types. However, there are cases when it may be redundant.
-/// For example the message object with its fields is created, processed, and
-/// discarded @b before the data inside the input buffer is deleted. In this case
-/// the copying may be unnecessary. The @b COMMS library provides 
-/// @ref comms::option::OrigDataView option, which works only on raw bytes data
-/// (@b std::uint8_t or @b char) and forces usage of @ref comms::util::ArrayView
-/// as storage type to avoid unnecessary copying of the data.
-/// @code
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
-/// using MyViewList = 
-///     comms::field::ArrayList<
-///         MyFieldBase,
-///         std::uint8_t,
-///         comms::option::OrigDataView
-///     >;
-///
-/// MyViewList viewList;
-/// auto& viewListStorage = viewList.value(); // reference to comms::util::ArrayView<std::uint8_t>;
-/// @endcode
-/// @b NOTE, that the comms::util::ArrayView requires contiguous storage of 
-/// the data, i.e. the data can NOT be stored in some data types, such as 
-/// "circular buffer".
-///
-/// @b RECOMMENDATION: Please avoid using comms::option::CustomStorageType, 
-/// comms::option::FixedSizeStorage, ot comms::option::OrigDataView option when
-/// defining fields and message for a specific protocol. It should be up to 
-/// the actual application to define its own storage type. Just provide an
-/// ability to provide extra options to the field's definition if needed.
-/// @code
-/// template <typename... TExtraOpts>
-/// using MyList = 
-///     comms::field::ArrayList<
-///         MyFieldBase,
-///         std::uint8_t,
-///         TExtraOpts...
-///     >;
-/// @endcode
 ///
 /// @subsection sec_field_tutorial_array_list_size_prefix Prefixing with Size Information
 /// Very often variable size sequences of raw bytes or other fields get
@@ -1093,8 +1008,64 @@
 /// 
 /// Some protocols prefix the sequence with <b>serialisation length</b> rather
 /// than <b>number of elements to follow</b>. In this case the 
-/// comms::option::SequenceSerLengthFieldPrefix option needs to be used
-/// instead of comms::option::SequenceSizeFieldPrefix.
+/// @ref comms::option::SequenceSerLengthFieldPrefix option needs to be used
+/// instead of @ref comms::option::SequenceSizeFieldPrefix.
+///
+/// @subsection sec_field_tutorial_array_list_elem_length_prefix Element Serialisation Length Prefix
+/// Also some protocols, for easier exchange of lists between nodes that use 
+/// different versions of the same protocol, may require prefixing <b>every
+/// element</b> of the list with its serialisation length. In this case
+/// @ref comms::option::SequenceElemSerLengthFieldPrefix option may be used.
+/// For example, the list of bundles prefixed with 2 bytes specifying number of
+/// elements to follow, and with every element prefixed with its serialisation length using
+/// variable length base-128 encoding may look like this:
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///
+/// using SizePrefixField = comms::field::IntValue<MyFieldBase, std::uint16_t>;
+/// using ElemLengthPrefixField = 
+///     comms::field::IntValue<
+///         MyFieldBase, 
+///         std::uint32_t,
+///         comms::option::VarLength<1, 4> // variable length encoding up to 4 bytes
+///     >;
+///
+/// using MyList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         MyBundle, // some bundle of fields
+///         comms::option::SequenceSizeFieldPrefix<SizePrefixField>,
+///         comms::option::SequenceElemSerLengthFieldPrefix<ElemLengthPrefixField>
+///     >;
+/// @endcode
+/// When every element of the list is of fixed size, i.e. has the same serialisation
+/// length, it becomes redundant to prefix @b every element with its length.
+/// Instead, only first element can be prefixed with one, and all others may 
+/// reuse the same information. To achieve such behaviour 
+/// @ref comms::option::SequenceElemFixedSerLengthFieldPrefix should be used instead.
+/// For example, the list of <b>fixed length</b> bundles prefixed with 1 byte specifying number of
+/// elements to follow, and with first element prefixed with 1 byte containing its serialisation length
+/// may look like this:
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///
+/// using SizePrefixField = comms::field::IntValue<MyFieldBase, std::uint8_t>;
+/// using ElemLengthPrefixField = comms::field::IntValue<MyFieldBase, std::uint8_t>;
+///
+/// using MyList = 
+///     comms::field::ArrayList<
+///         MyFieldBase,
+///         comms::field::Bundle<
+///             MyFieldBase,
+///             std::tuple<
+///                 comms::field::IntValue<MyFieldBase, std::uint16_t>,
+///                 comms::field::IntValue<MyFieldBase, std::uint8_t>
+///             >
+///         >,
+///         comms::option::SequenceSizeFieldPrefix<SizePrefixField>,
+///         comms::option::SequenceElemFixedSerLengthFieldPrefix<ElemLengthPrefixField>
+///     >;
+/// @endcode
 ///
 /// @subsection sec_field_tutorial_array_list_detached_size_prefix Detached Size Information
 /// There may be cases when size information is detached from the sequence itself, i.e.
@@ -1319,34 +1290,35 @@
 /// myList.push_back(0x5); // WON'T be serialised
 /// @endcode
 ///
-/// It is possible to combine fixed size sequences with fixed size storage for them
-/// (see @ref sec_field_tutorial_array_list_storage). It can be achieved by using
-/// @ref comms::option::SequenceFixedSizeUseFixedSizeStorage option.
+/// @subsection sec_field_tutorial_array_list_storage Value Storage
+/// By default, the internal data is stored using 
+/// <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>.
 /// @code
-/// using MyList = 
-///     comms::field::ArrayList<
-///         ...,
-///         comms::option::SequenceFixedSize<4>,
-///         comms::option::SequenceFixedSizeUseFixedSizeStorage
-///     >;
-/// @endcode
-/// It is equivalent to 
-/// @code
-/// using MyList = 
-///     comms::field::ArrayList<
-///         ...,
-///         comms::option::SequenceFixedSize<4>,
-///         comms::option::FixedSizeStorage<4>
-///     >;
-/// @endcode
-/// but without a need to specify the size of the storage (@b 4) the second time.
+/// MySimpleList simpleList; // defined above
+/// auto& simpleListStorage = simpleList.value(); // reference to std::vector<std::uint8_t>;
 ///
+/// MyComplexList complexList; // defined above
+/// auto& complexListStorage = complexList.value(); // reference to std::vector<MyBundle>;
+/// @endcode
+/// This behaviour can be modified using extra options such as @ref
+/// comms::option::CustomStorageType, @ref comms::option::FixedSizeStorage, 
+/// @ref comms::option::OrigDataView, or @ref comms::option::SequenceFixedSizeUseFixedSizeStorage.
+/// @b HOWEVER, these options do not influence the way how list fields are being
+/// serialised, they influence the way how list value has been stored. As the result,
+/// they should @b NOT be used in protocol definition. Instead, provide a way to
+/// to the actual application to modify the default storage by passing extra
+/// options. For example:
+/// @code
+/// template <typename... TExtraOptions>
+/// using MyList = comms::field::ArrayList<..., TExtraOptions...>;
+/// @endcode
+/// 
 /// All the @ref sec_field_tutorial_common_options are also applicable to
 /// comms::field::ArrayList field.
 ///
 /// @section sec_field_tutorial_string String Fields
-/// Many protocols have to transfer strings. They can be handled using
-/// comms::field::String field.
+/// Many protocols have to transfer strings. They are defined using
+/// @ref comms::field::String field.
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::BigEndian>;
 /// using MyString = comms::field::String<MyFieldBase>;
@@ -1359,44 +1331,15 @@
 /// MyString myStr;
 /// auto& myStrStorage = myStr.value(); // Reference to std::string.
 /// @endcode
-/// Just like desribed in @ref sec_field_tutorial_array_list_storage section
+/// Just like described in @ref sec_field_tutorial_array_list_storage section
 /// above the same options can be used to modify the storage type of the 
-/// comms::field::String field:
-/// @li The @ref comms::option::CustomStorageType option can be used to
-///     specify custom storage type, which is expected to expose the same interface
-///     as @b std::string.
-/// @li The comms::option::FixedSizeStorage option can be used to force usage
-///     of provided @ref comms::util::StaticString, which receives the number
-///     of characters it can contain as a template parameter and doesn't use dynamic memory allocation
-///     and/or exceptions.
-///     @code
-///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
-///     using MyStaticString = comms::field::String<MyFieldBase, comms::option::FixedSizeStorage<32> >;
-///
-///     MyStaticString myStaticStr;
-///     auto& myStaticStrStorage = myStaticStr.value(); // Reference to comms::util::StaticString<32>.
-///     @endcode
-/// @li The comms::option::OrigDataView option can be used to force usage
-///     of @ref comms::util::StringView as a storage type, which is 
-///     similar to <a href="http://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a>
-///     introduced in C++17.
-///     @code
-///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
-///     using MyViewString = comms::field::String<MyFieldBase, comms::option::OrigDataView>;
-///
-///     MyViewString myViewStr;
-///     auto& myViewStrStorage = myViewStr.value(); // Reference to comms::util::StringView.
-///     @endcode
-///
-/// Just like with @ref sec_field_tutorial_array_list it is @b RECOMMENDED
-/// to allow the application to modify the storage type and not hard-code it
-/// when defining the protocol fields and messages:
+/// comms::field::String field, but should @b NOT be used in protocol definition, but
+/// instead there should be an ability to provide extra options.
 /// @code
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
-/// template <typename... TExtraOpts>
-/// using MyString = comms::field::String<MyFieldBase, TExtraOpts...>;
+/// template <typename... TExtraOptions>
+/// using MyString = comms::field::String<MyFieldBase, TExtraOptions...>;
 /// @endcode
-/// 
+///
 /// Prefixing string with single byte of the size information will look like this:
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::BigEndian>;
@@ -1615,12 +1558,13 @@
 /// assert(optField2.getMode() == comms::field::OptionalMode::Missing); // Mode is changed
 /// @endcode
 /// It is easy to change the default mode of the comms::field::Optional field by
-/// providing comms::option::DefaultOptionalMode option with selected default mode.
+/// providing comms::option::DefaultOptionalMode option with selected default mode
+/// or @ref comms::option::MissingByDefault / @ref comms::option::ExistsByDefault aliases.
 /// @code
 /// using OptField = 
 ///     comms::field::Optional<
 ///         comms::field::IntValue<MyFieldBase, std::int32_t>,
-///         comms::option::DefaultOptionalMode<comms::field::OptionalMode::Missing> // Set default mode to be "missing"
+///         comms::option::MissingByDefault // Set default mode to be "missing"
 ///     >;
 /// @endcode
 ///
@@ -2357,6 +2301,37 @@
 /// auto es == field.write(writeIter, outBuf.max_size());
 /// assert(es == comms::ErrorStatus::Success); // No failure is expected
 /// assert(outBuf.empty()); // No data has been written
+/// @endcode
+///
+/// @section sec_field_tutorial_extension Allowing Further Use of Options
+/// As was mentioned earlier there are options that define how fields are
+/// (de)serialised. These options are expected to be used in protocol fields 
+/// definition. However, there are options that are application specific. They
+/// may change the data structures being used for storage, or modify default
+/// value and/or valid values. In order to allow such application specific modifications,
+/// the defined fields should allow further extension, for example with extra
+/// variadic template arguments.
+/// @code
+/// template <typename... TExtraOpts>
+/// using MyField = 
+///     comms::field::IntValue<
+///         comms::Field<comms::option::BigEndian>, // base class of the field
+///         std::uint16_t,
+///         TExtraOpts...,
+///         comms::option::DefaultNumValue<5>,
+///         comms::option::ValidNumValueRange<5, 1000>
+/// @endcode
+/// Please @b note, that current implementation gives preference to the options
+/// defined @b earlier. That's why @b TExtraOpts... should be listed before any
+/// other options. It will allow setting other default value needed by the application,
+/// and/or override the valid values ranges (using @ref comms::option::ValidNumValueRangeOverride). 
+/// For example:
+/// @code
+/// using MyUpdatedField = 
+///     MyField<
+///         comms::option::DefaultNumValue<10>,
+///         comms::option::ValidNumValueRangeOverride<10, 500>
+///     >
 /// @endcode
 ///
 /// @section sec_field_tutorial_custom_fields Custom Fields

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -348,7 +348,7 @@ struct NumValueSerOffset {};
 ///     for their internal data storage. If this option is used, it will force
 ///     such fields to use @ref comms::util::StaticVector or @ref comms::util::StaticString
 ///     with the capacity provided by this option.
-/// @tparam TSize Size of the storage area, for strings it does @b NOT include
+/// @tparam TSize Size of the storage area in number of elements, for strings it does @b NOT include
 ///     the '\0' terminating character.
 /// @headerfile comms/options.h
 template <std::size_t TSize>
@@ -453,10 +453,32 @@ struct SequenceSizeFieldPrefix {};
 ///         >;
 ///     @endcode
 /// @tparam TField Type of the field that represents serialisation length
-/// @tparam TReadErrorStatus Error status to return when read operation fails when should not
+/// @tparam TReadErrorStatus Error status to return in case read operation fails when should not
 /// @headerfile comms/options.h
 template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
 struct SequenceSerLengthFieldPrefix {};
+
+/// @brief Option that forces <b>every element</b> of @ref comms::field::ArrayList to
+///     be prefixed with its serialisation length.
+/// @details Similar to @ref SequenceSerLengthFieldPrefix but instead of the whole
+///     list, every element is prepended with its serialisation length.
+/// @tparam TField Type of the field that represents serialisation length
+/// @tparam TReadErrorStatus Error status to return in case read operation fails when should not
+/// @headerfile comms/options.h
+template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
+struct SequenceElemSerLengthFieldPrefix {};
+
+/// @brief Option that forces @b first element only of @ref comms::field::ArrayList to
+///     be prefixed with its serialisation length.
+/// @details Similar to @ref SequenceElemSerLengthFieldPrefix, but
+///     applicable only to the lists where elements are of the same
+///     fixed size, where there is no need to prefix @b every element
+///     with its size.
+/// @tparam TField Type of the field that represents serialisation length
+/// @tparam TReadErrorStatus Error status to return in case read operation fails when should not
+/// @headerfile comms/options.h
+template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
+struct SequenceElemFixedSerLengthFieldPrefix {};
 
 /// @brief Option that forces termination of the sequence when predefined value
 ///     is encountered.
@@ -1109,7 +1131,7 @@ struct ValidNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
-/// @brief Similar to \\ref ValidNumValueRange, but overrides (nullifies)
+/// @brief Similar to @ref ValidNumValueRange, but overrides (nullifies)
 ///     all previously set valid values ranges.
 /// @see @ref ValidNumValueOverride
 /// @see @ref ValidBigUnsignedNumValueRangeOverride
@@ -1148,7 +1170,7 @@ struct ValidBigUnsignedNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
-/// @brief Similar to \\ref ValidBigUnsignedNumValueRange, but overrides (nullifies)
+/// @brief Similar to @ref ValidBigUnsignedNumValueRange, but overrides (nullifies)
 ///     all previously set valid values ranges.
 /// @see @ref ValidNumValueOverride
 /// @see @ref ValidBigUnsignedNumValueOverride
@@ -1185,9 +1207,25 @@ using BitmaskReservedBits = ContentsValidator<details::BitmaskReservedBitsValida
 /// @brief Alias to DefaultValueInitialiser, it sets default mode
 ///     to field::Optional field.
 /// @tparam TVal Optional mode value is to be assigned to the field in default constructor.
+/// @see @ref MissingByDefault
+/// @see @ref ExistsByDefault
 /// @headerfile comms/options.h
 template<comms::field::OptionalMode TVal>
 using DefaultOptionalMode = DefaultValueInitialiser<details::DefaultOptModeInitialiser<TVal> >;
+
+/// @brief Alias to @ref DefaultOptionalMode.
+/// @details Equivalent to
+///     @code
+///     DefaultOptionalMode<comms::field::OptionalMode::Missing>
+///     @endcode
+using MissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing>;
+
+/// @brief Alias to @ref DefaultOptionalMode.
+/// @details Equivalent to
+///     @code
+///     DefaultOptionalMode<comms::field::OptionalMode::Exists>
+///     @endcode
+using ExistsByDefault = DefaultOptionalMode<comms::field::OptionalMode::Exists>;
 
 /// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Missing>
 using OptionalMissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing>;

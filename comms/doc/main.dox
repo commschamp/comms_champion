@@ -24,74 +24,12 @@
 /// minimises usage of dynamic memory allocation and provides an ability to exclude
 /// it altogether if required, which may be needed when developing @b bare-metal
 /// embedded systems. 
-/// 
-/// Below is a quick tutorial on how to use the library.
-/// 
-/// @section mainpage_comms_header Headers and Libraries
-/// COMMS is a headers only library without any object files to link against. 
-/// In order to include the whole functionality of the library please use
-/// single include statement:
-/// @code
-/// #include "comms/comms.h"
-/// @endcode
 ///
-/// If the protocol grows and the compilation takes a significant amount of time,
-/// more fine-grained include staments may be used:
-/// @code
-/// #include "comms/fields.h" // Provides all definitions from comms::field namespace
-/// #include "comms/protocols.h" // Provides all definitions from comms::protocol namespace
-/// #include "comms/units.h" // Provides all definitions from comms::units namespace
-/// #include "comms/Message.h" // Definition of comms::Message class to define interface
-/// #include "comms/MessageBase.h" // Definition of comms::MessageBase class to define message impl
-/// #include "comms/GenericHandler.h" // Definition of comms::GenericHandler class
-/// #include "comms/MsgFactory.h" // Definition of comms::MessageFactory class
-/// @endcode
+/// @ref page_use_prot is a tutorial on how to use already defined custom binary protocol.
+/// If you are about to develop one, it would be beneficial to read it as well
+/// in order to get an impresion on how the protocol definition code is going to be used.
 ///
-/// @section mainpage_error_handling Error Handling
-/// The COMMS library is intended to be used in embedded systems (including 
-/// bare metal), which means the library cannot use exceptions to report errors.
-/// The runtime errors are reported via comms::ErrorStatus return values. All
-/// pre- and post-conditions are checked using GASSERT() macro.
-/// It is, just like regular standard @b assert() macro, is compiled in if @b NDEBUG symbol
-/// is not defined. In case the provided condition doesn't hold true, the macro
-/// checks whether custom assertion failure behaviour was registered. If yes,
-/// the registered custom assertion failure report is invoked, otherwise the
-/// standard failure report used by standard @b assert() macro is used. If COMMS
-/// library is used in bare metal environment without standard library, the
-/// @b NOSTDLIB symbol should be defined. In this case infinite loop is a default
-/// assertion failure report behaviour.
+/// @ref page_define_prot is intended for developers that need to implement a library
+/// for custom binary protocol, which can be used in any application in the future,
+/// including bare-metal one with constrained environment.
 ///
-/// See @ref page_assert for details on how to define custom assertion failure
-/// behaviour.  
-///
-/// @section mainpage_messages Messages
-/// The communication protocols are all about exchanging messages. 
-/// Please refer to @ref page_message_tutorial for full information on how to
-/// create message classes and common polymorphic interfaces for them.
-///
-/// @section mainpage_transport_info Transport Info
-/// In addition to definition of the messages and their contents, every 
-/// communication protocol must ensure that the message is successfully 
-/// delivered over the I/O link to the other side. The serialised message 
-/// payload must be wrapped in some kind of transport information prior to 
-/// being sent and unwrapped on the other side when received.
-/// Please refer to @ref page_prot_stack_tutorial for full information on how
-/// to do so.
-///
-/// @section mainpage_send_recv Sending and Receiving Messages
-/// The @b COMMS library does not make any assumption on the system it is running
-/// on and does not enforce usage of any particular data structures to store the
-/// incoming and outgoing data. It also does not provide or use any 
-/// network/socket abstractions. There are no blocking calls. It becomes the 
-/// responsibility of the driving code
-/// to design and implement such services. The developer is free to choose any
-/// third party framework to drive the asynchronous communication process.
-///
-/// Once the data is received over the used I/O socket and stored in the
-/// appropriate buffer, the right iterator needs to be created and passed to the
-/// @b COMMS library for processing.
-///
-/// When new message needs to be sent, its data is serialised into provided 
-/// buffer, and it is the responsibility of the driving code to send the data 
-/// over I/O link. The @b COMMS library is not involved in this process.
-

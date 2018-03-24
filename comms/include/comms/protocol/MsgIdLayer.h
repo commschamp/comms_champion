@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -125,17 +125,23 @@ public:
 
     /// @brief Customized read functionality, invoked by @ref read().
     /// @details The function will read message ID from the data sequence first,
-    ///     generate appropriate message object based on the read ID and
+    ///     generate appropriate (or validate provided) message object based on the read ID and
     ///     forward the read() request to the next layer.
     ///     If the message object cannot be generated (the message type is not
     ///     provided inside @b TAllMessages template parameter), but
     ///     the @ref comms::option::SupportGenericMessage option has beed used,
-    ///     the @ref comms::GenericMessage may be generated instead.
+    ///     the @ref comms::GenericMessage may be generated instead.@n
+    ///     @b NOTE, that @b msg parameter can be either reference to a smart pointer,
+    ///     which will hold allocated object, or to previously allocated object itself.
+    ///     In case of the latter, the function will compare read and expected message
+    ///     ID value and will return @ref comms::ErrorStatus::InvalidMsgId in case of mismatch.
+    /// @tparam TMsg Type of the @b msg parameter
     /// @tparam TIter Type of iterator used for reading.
     /// @tparam TNextLayerReader next layer reader object type.
     /// @param[out] field Field object to read.
-    /// @param[in, out] msgPtr Reference to smart pointer that will hold
-    ///                 allocated message object
+    /// @param[in, out] msg Reference to smart pointer that will hold
+    ///                 allocated message object, or to the previously allocated
+    ///                 message object itself (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
@@ -144,27 +150,26 @@ public:
     ///             read attempt.
     /// @param[in] nextLayerReader Next layer reader object.
     /// @return Status of the operation.
-    /// @pre msgPtr doesn't point to any object:
-    ///      @code assert(!msgPtr); @endcode
+    /// @pre @b msg parameter, in case of being a smart pointer, doesn't point to any object:
+    ///      @code assert(!msg); @endcode
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       read. In case of an error, distance between original position and
     ///       advanced will pinpoint the location of the error.
-    /// @post Returns comms::ErrorStatus::Success if and only if msgPtr points
-    ///       to a valid object.
+    /// @post Returns comms::ErrorStatus::Success if and only if msg points
+    ///       to a valid object (in case of being a smart pointer).
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus doRead(
         Field& field,
-        MsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader)
     {
-        GASSERT(!msgPtr);
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, missingSize);
@@ -174,55 +179,14 @@ public:
             return es;
         }
 
-        auto id = field.value();
-        auto remLen = size - field.length();
+        using Tag =
+            typename std::conditional<
+                BaseImpl::template isMessageObjRef<typename std::decay<decltype(msg)>::type>(),
+                DirectOpTag,
+                PolymorphicOpTag
+            >::type;
 
-        unsigned idx = 0;
-        while (true) {
-            msgPtr = createMsg(id, idx);
-            if (!msgPtr) {
-                break;
-            }
-
-            using IterType = typename std::decay<decltype(iter)>::type;
-            static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
-                "Iterator used for reading is expected to be random access one");
-            IterType readStart = iter;
-            es = nextLayerReader.read(msgPtr, iter, remLen, missingSize);
-            if (es == comms::ErrorStatus::Success) {
-                return es;
-            }
-
-            msgPtr.reset();
-            iter = readStart;
-            ++idx;
-        }
-
-        if ((0U < idx) && Factory::hasUniqueIds()) {
-            return es;
-        }
-
-        GASSERT(!msgPtr);
-        auto idxLimit = factory_.msgCount(id);
-        if (idx < idxLimit) {
-            return comms::ErrorStatus::MsgAllocFailure;
-        }
-
-        msgPtr = factory_.createGenericMsg(id);
-        if (!msgPtr) {
-            if (idx == 0) {
-                return comms::ErrorStatus::InvalidMsgId;
-            }
-
-            return es;
-        }
-
-        es = nextLayerReader.read(msgPtr, iter, remLen, missingSize);
-        if (es != comms::ErrorStatus::Success) {
-            msgPtr.reset();
-        }
-
-        return es;
+        return doReadInternal(field, msg, iter, size - field.length(), missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -266,7 +230,7 @@ public:
             return es;
         }
 
-        GASSERT(field.length() <= size);
+        COMMS_ASSERT(field.length() <= size);
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
@@ -286,20 +250,20 @@ public:
 
 private:
 
-    struct PolymorphicIdTag {};
-    struct DirectIdTag {};
+    struct PolymorphicOpTag {};
+    struct DirectOpTag {};
 
     template <typename TMsg>
     using IdRetrieveTag =
         typename std::conditional<
-            details::ProtocolLayerHasDoGetId<TMsg>::Value,
-            DirectIdTag,
-            PolymorphicIdTag
+            details::protocolLayerHasDoGetId<TMsg>(),
+            DirectOpTag,
+            PolymorphicOpTag
         >::type;
 
 
     template <typename TMsg>
-    static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicIdTag)
+    static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicOpTag)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
@@ -312,9 +276,119 @@ private:
     }
 
     template <typename TMsg>
-    static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectIdTag)
+    static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectOpTag)
     {
         return msg.doGetId();
+    }
+
+    template <typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus doReadInternalPolymorphic(
+        Field& field,
+        MsgPtr& msgPtr,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader)
+    {
+        COMMS_ASSERT(!msgPtr);
+        auto& id = field.value();
+        auto remLen = size;
+
+        auto es = comms::ErrorStatus::Success;
+        unsigned idx = 0;
+        while (true) {
+            msgPtr = createMsg(id, idx);
+            if (!msgPtr) {
+                break;
+            }
+
+            using IterType = typename std::decay<decltype(iter)>::type;
+            static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
+                "Iterator used for reading is expected to be random access one");
+            IterType readStart = iter;
+            es = nextLayerReader.read(msgPtr, iter, remLen, missingSize);
+            if (es == comms::ErrorStatus::Success) {
+                return es;
+            }
+
+            msgPtr.reset();
+            iter = readStart;
+            ++idx;
+        }
+
+        if ((0U < idx) && Factory::hasUniqueIds()) {
+            return es;
+        }
+
+        COMMS_ASSERT(!msgPtr);
+        auto idxLimit = factory_.msgCount(id);
+        if (idx < idxLimit) {
+            return comms::ErrorStatus::MsgAllocFailure;
+        }
+
+        msgPtr = factory_.createGenericMsg(id);
+        if (!msgPtr) {
+            if (idx == 0) {
+                return comms::ErrorStatus::InvalidMsgId;
+            }
+
+            return es;
+        }
+
+        es = nextLayerReader.read(msgPtr, iter, remLen, missingSize);
+        if (es != comms::ErrorStatus::Success) {
+            msgPtr.reset();
+        }
+
+        return es;
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus doReadInternalDirect(
+        Field& field,
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader)
+    {
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(details::protocolLayerHasDoGetId<MsgType>(),
+                "Explicit message type is expected to expose compile type message ID by "
+                "using \"StaticNumIdImpl\" option");
+
+        auto& id = field.value();
+        if (id != MsgType::doGetId()) {
+            return ErrorStatus::InvalidMsgId;
+        }
+
+        return nextLayerReader.read(msg, iter, size, missingSize);
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus doReadInternal(
+        Field& field,
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader,
+        PolymorphicOpTag)
+    {
+        return doReadInternalPolymorphic(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus doReadInternal(
+        Field& field,
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader,
+        DirectOpTag)
+    {
+        return doReadInternalDirect(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
     }
 
 

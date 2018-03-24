@@ -52,7 +52,7 @@ protected:
 
     void assign(std::size_t count, TChar ch)
     {
-        GASSERT(count <= capacity());
+        COMMS_ASSERT(count <= capacity());
         auto countLimit = std::min(count, capacity());
         vec_.clear();
         std::fill_n(std::back_inserter(vec_), countLimit, ch);
@@ -66,7 +66,7 @@ protected:
 
     void assign(const StaticStringBase& other, std::size_t pos, std::size_t count)
     {
-        GASSERT(&other != this);
+        COMMS_ASSERT(&other != this);
         auto updatedCount = std::min(other.size() - pos, count);
         auto countLimit = std::min(updatedCount, capacity());
         vec_.clear();
@@ -99,13 +99,13 @@ protected:
 
     TChar& at(std::size_t pos)
     {
-        GASSERT(pos < size());
+        COMMS_ASSERT(pos < size());
         return operator[](pos);
     }
 
     const TChar& at(std::size_t pos) const
     {
-        GASSERT(pos < size());
+        COMMS_ASSERT(pos < size());
         return operator[](pos);
     }
 
@@ -121,31 +121,31 @@ protected:
 
     TChar& front()
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return vec_.front();
     }
 
     const TChar& front() const
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return vec_.front();
     }
 
     TChar& back()
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return vec_[size() - 1];
     }
 
     const TChar& back() const
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return vec_[size() - 1];
     }
 
     const TChar* data() const
     {
-        GASSERT(!vec_.empty());
+        COMMS_ASSERT(!vec_.empty());
         return vec_.data();
     }
 
@@ -176,7 +176,7 @@ protected:
 
     std::size_t size() const
     {
-        GASSERT(!vec_.empty());
+        COMMS_ASSERT(!vec_.empty());
         return vec_.size() - 1;
     }
 
@@ -193,33 +193,33 @@ protected:
 
     void insert(std::size_t idx, std::size_t count, TChar ch)
     {
-        GASSERT(idx <= size());
+        COMMS_ASSERT(idx <= size());
         vec_.insert(vec_.begin() + idx, count, ch);
     }
 
     void insert(std::size_t idx, const TChar* str)
     {
-        GASSERT(idx <= size());
+        COMMS_ASSERT(idx <= size());
         vec_.insert(vec_.begin() + idx, str, str + strlen(str));
     }
 
     void insert(std::size_t idx, const TChar* str, std::size_t count)
     {
-        GASSERT(idx <= size());
+        COMMS_ASSERT(idx <= size());
         auto endStr = str + count;
         vec_.insert(vec_.begin() + idx, str, endStr);
     }
 
     void insert(std::size_t idx, const StaticStringBase& other)
     {
-        GASSERT(idx <= size());
+        COMMS_ASSERT(idx <= size());
         vec_.insert(vec_.begin() + idx, other.cbegin(), other.cend());
     }
 
     void insert(std::size_t idx, const StaticStringBase& str, std::size_t str_idx, std::size_t count)
     {
-        GASSERT(idx <= size());
-        GASSERT(str_idx < str.size());
+        COMMS_ASSERT(idx <= size());
+        COMMS_ASSERT(str_idx < str.size());
         auto begIter = str.cbegin() + str_idx;
         auto endIter = begIter + std::min((str.size() - str_idx), count);
         vec_.insert(vec_.begin() + idx, begIter, endIter);
@@ -243,11 +243,11 @@ protected:
 
     void erase(std::size_t idx, std::size_t count)
     {
-        GASSERT(idx < size());
+        COMMS_ASSERT(idx < size());
         auto begIter = begin() + idx;
         auto endIter = begIter + std::min(count, size() - idx);
         vec_.erase(begIter, endIter);
-        GASSERT(!vec_.empty()); // Must contain '\0'
+        COMMS_ASSERT(!vec_.empty()); // Must contain '\0'
     }
 
     TChar* erase(const TChar* pos)
@@ -262,13 +262,13 @@ protected:
 
     void push_back(TChar ch)
     {
-        GASSERT((size() < capacity()) || (!"The string is full."));
+        COMMS_ASSERT((size() < capacity()) || (!"The string is full."));
         vec_.insert(end(), ch);
     }
 
     void pop_back()
     {
-        GASSERT((!empty()) || (!"The string is empty."));
+        COMMS_ASSERT((!empty()) || (!"The string is empty."));
         vec_.erase(end() - 1, end());
     }
 
@@ -279,8 +279,8 @@ protected:
         std::size_t pos2,
         std::size_t count2) const
     {
-        GASSERT(pos1 <= size());
-        GASSERT(pos2 <= other.size());
+        COMMS_ASSERT(pos1 <= size());
+        COMMS_ASSERT(pos2 <= other.size());
         count1 = std::min(count1, size() - pos1);
         count2 = std::min(count2, other.size() - pos2);
         auto minCount = std::min(count1, count2);
@@ -298,7 +298,7 @@ protected:
 
     int compare(std::size_t pos, std::size_t count, const TChar* str) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         count = std::min(count, size() - pos);
         for (auto idx = 0U; idx < count; ++idx) {
             auto ch = (*this)[pos + idx];
@@ -326,7 +326,7 @@ protected:
         const char* str,
         std::size_t count2) const
     {
-        GASSERT(pos1 <= size());
+        COMMS_ASSERT(pos1 <= size());
         count1 = std::min(count1, size() - pos1);
         auto minCount = std::min(count1, count2);
         for (auto idx = 0U; idx < minCount; ++idx) {
@@ -349,9 +349,9 @@ protected:
         TIter first2,
         TIter last2)
     {
-        GASSERT(first <= end());
-        GASSERT(last <= end());
-        GASSERT(first <= last);
+        COMMS_ASSERT(first <= end());
+        COMMS_ASSERT(last <= end());
+        COMMS_ASSERT(first <= last);
         auto begIter = begin() + std::distance(cbegin(), first);
         auto endIter = begin() + std::distance(cbegin(), last);
         for (auto iter = begIter; iter != endIter; ++iter) {
@@ -372,9 +372,9 @@ protected:
         const TChar* last,
         const TChar* str)
     {
-        GASSERT(first <= end());
-        GASSERT(last <= end());
-        GASSERT(first <= last);
+        COMMS_ASSERT(first <= end());
+        COMMS_ASSERT(last <= end());
+        COMMS_ASSERT(first <= last);
         auto begIter = begin() + std::distance(cbegin(), first);
         auto endIter = begin() + std::distance(cbegin(), last);
         for (auto iter = begIter; iter != endIter; ++iter) {
@@ -399,9 +399,9 @@ protected:
         std::size_t count2,
         TChar ch)
     {
-        GASSERT(first <= end());
-        GASSERT(last <= end());
-        GASSERT(first <= last);
+        COMMS_ASSERT(first <= end());
+        COMMS_ASSERT(last <= end());
+        COMMS_ASSERT(first <= last);
         auto dist = static_cast<std::size_t>(std::distance(first, last));
         auto fillDist = std::min(dist, count2);
         auto fillIter = begin() + std::distance(cbegin(), first);
@@ -416,7 +416,7 @@ protected:
 
     std::size_t copy(TChar* dest, std::size_t count, std::size_t pos) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         count = std::min(count, size() - pos);
         std::copy_n(cbegin() + pos, count, dest);
         return count;
@@ -431,8 +431,8 @@ protected:
     {
         if (count <= size()) {
             vec_.erase(cbegin() + count, cend());
-            GASSERT(vec_[size()] == Ends);
-            GASSERT(size() == count);
+            COMMS_ASSERT(vec_[size()] == Ends);
+            COMMS_ASSERT(size() == count);
             return;
         }
 
@@ -446,7 +446,7 @@ protected:
 
     std::size_t find(const TChar* str, std::size_t pos, std::size_t count) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto remCount = size() - pos;
         if (remCount < count) {
             return npos;
@@ -465,7 +465,7 @@ protected:
 
     std::size_t find(const TChar* str, std::size_t pos) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto maxStrCount = size() - pos;
         auto maxStrEnd = str + maxStrCount;
         auto iter = std::find(str, maxStrEnd, TChar(Ends));
@@ -479,7 +479,7 @@ protected:
 
     std::size_t find(TChar ch, std::size_t pos) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto begIter = cbegin() + pos;
         auto iter = std::find(begIter, cend(), ch);
         if (iter == cend()) {
@@ -521,7 +521,7 @@ protected:
         pos = std::min(pos, size() - 1);
         auto begIter = std::reverse_iterator<const TChar*>(cbegin() + pos + 1);
         auto endIter = std::reverse_iterator<const TChar*>(cbegin());
-        GASSERT(static_cast<std::size_t>(std::distance(begIter, endIter)) == (pos + 1));
+        COMMS_ASSERT(static_cast<std::size_t>(std::distance(begIter, endIter)) == (pos + 1));
         auto iter = std::find(begIter, endIter, ch);
         if (iter == endIter) {
             return npos;
@@ -1001,7 +1001,7 @@ public:
     }
 
     /// @brief Access specified character with bounds checking.
-    /// @details The bounds are check with assertion (using GASSERT()).
+    /// @details The bounds are check with assertion (using COMMS_ASSERT()).
     ///     When compiled with NDEBUG definition, equivalent to operator[]().
     /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/at">Reference</a>
     reference at(size_type pos)
@@ -1010,7 +1010,7 @@ public:
     }
 
     /// @brief Access specified character with bounds checking.
-    /// @details The bounds are check with assertion (using GASSERT()).
+    /// @details The bounds are check with assertion (using COMMS_ASSERT()).
     ///     When compiled with NDEBUG definition, equivalent to operator[]().
     /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/at">Reference</a>
     const_reference at(size_type pos) const
@@ -1479,7 +1479,7 @@ public:
         size_type count,
         const StaticString<TAnySize, TChar>& other)
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto begIter = begin() + pos;
         auto remCount = static_cast<std::size_t>(std::distance(begIter, end()));
         auto endIter = begIter + std::min(count, remCount);
@@ -1507,12 +1507,12 @@ public:
         size_type pos2,
         size_type count2 = npos)
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto begIter = begin() + pos;
         auto remCount = static_cast<std::size_t>(std::distance(begIter, end()));
         auto endIter = begIter + std::min(count, remCount);
 
-        GASSERT(pos2 <= other.size());
+        COMMS_ASSERT(pos2 <= other.size());
         auto begIter2 = other.begin() + pos2;
         auto remCount2 = static_cast<std::size_t>(std::distance(begIter2, other.end()));
         auto endIter2 = begIter2 + std::min(count2, remCount2);
@@ -1541,7 +1541,7 @@ public:
         const_pointer str,
         size_type count2)
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto begIter = cbegin() + pos;
         auto endIter = begIter + std::min(count, size() - pos);
         return replace(begIter, endIter, str, str + count2);
@@ -1565,7 +1565,7 @@ public:
         size_type count,
         const_pointer str)
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto begIter = cbegin() + pos;
         auto endIter = begIter + std::min(count, size() - pos);
         return replace(begIter, endIter, str);
@@ -1590,7 +1590,7 @@ public:
         size_type count2,
         value_type ch)
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto begIter = cbegin() + pos;
         auto endIter = begIter + std::min(count, size() - pos);
         return replace(begIter, endIter, count2, ch);
@@ -1622,7 +1622,7 @@ public:
     /// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/substr">Reference</a>
     StaticString substr(size_type pos = 0, size_type count = npos) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto begIter = cbegin() + pos;
         auto endIter = begIter + std::min(count, size() - pos);
         return StaticString(cbegin() + pos, endIter);
@@ -1662,7 +1662,7 @@ public:
     template <std::size_t TAnySize>
     size_type find(const StaticString<TAnySize, TChar>& str, size_type pos = 0) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         return find(str.cbegin(), pos, str.size());
     }
 
@@ -1721,7 +1721,7 @@ public:
     template <std::size_t TAnySize>
     size_type find_first_of(const StaticString<TAnySize, TChar>& str, size_type pos = 0) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         return find_first_of(str.cbegin(), pos, str.size());
     }
 
@@ -1751,7 +1751,7 @@ public:
     template <std::size_t TAnySize>
     size_type find_first_not_of(const StaticString<TAnySize, TChar>& str, size_type pos = 0) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         return find_first_not_of(str.cbegin(), pos, str.size());
     }
 

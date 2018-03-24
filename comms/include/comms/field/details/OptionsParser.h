@@ -50,6 +50,8 @@ public:
     static const bool HasSequenceFixedSizeUseFixedSizeStorage = false;
     static const bool HasSequenceSizeFieldPrefix = false;
     static const bool HasSequenceSerLengthFieldPrefix = false;
+    static const bool HasSequenceElemSerLengthFieldPrefix = false;
+    static const bool HasSequenceElemFixedSerLengthFieldPrefix = false;
     static const bool HasSequenceTrailingFieldSuffix = false;
     static const bool HasSequenceTerminationFieldSuffix = false;
     static const bool HasDefaultValueInitialiser = false;
@@ -173,6 +175,28 @@ public:
     static const bool HasSequenceSerLengthFieldPrefix = true;
     using SequenceSerLengthFieldPrefix = TField;
     static const comms::ErrorStatus SequenceSerLengthFieldReadErrorStatus = TReadErrorStatus;
+};
+
+template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceElemSerLengthFieldPrefix<TField, TReadErrorStatus>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasSequenceElemSerLengthFieldPrefix = true;
+    using SequenceElemSerLengthFieldPrefix = TField;
+    static const comms::ErrorStatus SequenceElemSerLengthFieldReadErrorStatus = TReadErrorStatus;
+};
+
+template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceElemFixedSerLengthFieldPrefix<TField, TReadErrorStatus>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasSequenceElemFixedSerLengthFieldPrefix = true;
+    using SequenceElemFixedSerLengthFieldPrefix = TField;
+    static const comms::ErrorStatus SequenceElemFixedSerLengthFieldReadErrorStatus = TReadErrorStatus;
 };
 
 template <typename TTrailField, typename... TOptions>

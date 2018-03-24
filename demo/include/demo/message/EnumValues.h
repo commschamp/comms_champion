@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
+#include "demo/DefaultOptions.h"
 
 namespace demo
 {
@@ -32,7 +33,9 @@ namespace message
 {
 
 /// @brief Accumulates details of all the EnumValues message fields.
+/// @tparam TOpt Extra options
 /// @see EnumValues
+template <typename TOpt = demo::DefaultOptions>
 struct EnumValuesFields
 {
     /// @brief Enumeration type for the @ref field1
@@ -50,6 +53,7 @@ struct EnumValuesFields
         comms::field::EnumValue<
             FieldBase,
             ValuesField1,
+            typename TOpt::message::EnumValuesFields::field1,
             comms::option::ValidNumValueRange<(int)0, (int)ValuesField1::NumOfValues - 1>
     >;
 
@@ -85,6 +89,7 @@ struct EnumValuesFields
         comms::field::EnumValue<
             FieldBase,
             ValuesField2,
+            typename TOpt::message::EnumValuesFields::field2,
             comms::option::ContentsValidator<ValuesField2Validator>,
             comms::option::DefaultNumValue<(int)ValuesField2::Value1>
     >;
@@ -123,6 +128,7 @@ struct EnumValuesFields
         comms::field::EnumValue<
             FieldBase,
             ValuesField3,
+            typename TOpt::message::EnumValuesFields::field3,
             comms::option::ContentsValidator<ValuesField3Validator>,
             comms::option::VarLength<1, 2>,
             comms::option::DefaultNumValue<(int)ValuesField3::Value1>
@@ -143,13 +149,15 @@ struct EnumValuesFields
 ///     various implementation options. @n
 ///     See @ref EnumValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase>
+/// @tparam TOpt Extra options
+template <typename TMsgBase, typename TOpt = demo::DefaultOptions>
 class EnumValues : public
     comms::MessageBase<
         TMsgBase,
+        typename TOpt::message::EnumValues,
         comms::option::StaticNumIdImpl<MsgId_EnumValues>,
-        comms::option::FieldsImpl<EnumValuesFields::All>,
-        comms::option::MsgType<EnumValues<TMsgBase> >
+        comms::option::FieldsImpl<typename EnumValuesFields<TOpt>::All>,
+        comms::option::MsgType<EnumValues<TMsgBase, TOpt> >
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -157,9 +165,10 @@ class EnumValues : public
     using Base =
         comms::MessageBase<
             TMsgBase,
+            typename TOpt::message::EnumValues,
             comms::option::StaticNumIdImpl<MsgId_EnumValues>,
-            comms::option::FieldsImpl<EnumValuesFields::All>,
-            comms::option::MsgType<EnumValues<TMsgBase> >
+            comms::option::FieldsImpl<typename EnumValuesFields<TOpt>::All>,
+            comms::option::MsgType<EnumValues<TMsgBase, TOpt> >
         >;
 
 public:

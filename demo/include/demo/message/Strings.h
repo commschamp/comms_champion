@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
+#include "demo/DefaultOptions.h"
 
 namespace demo
 {
@@ -33,13 +34,16 @@ namespace message
 {
 
 /// @brief Accumulates details of all the Strings message fields.
+/// @tparam TOpt Extra options
 /// @see Strings
+template <typename TOpt = demo::DefaultOptions>
 struct StringsFields
 {
     /// @brief String that uses 1 byte size prefix
     using field1 =
         comms::field::String<
             FieldBase,
+            typename TOpt::message::StringsFields::field1,
             comms::option::SequenceSizeFieldPrefix<
                 comms::field::IntValue<
                     FieldBase,
@@ -52,6 +56,7 @@ struct StringsFields
     using field2 =
         comms::field::String<
             FieldBase,
+            typename TOpt::message::StringsFields::field2,
             comms::option::SequenceTerminationFieldSuffix<
                 comms::field::IntValue<
                     FieldBase,
@@ -64,6 +69,7 @@ struct StringsFields
     using field3 =
         comms::field::String<
             FieldBase,
+            typename TOpt::message::StringsFields::field3,
             comms::option::SequenceFixedSize<6>
     >;
 
@@ -82,14 +88,15 @@ struct StringsFields
 ///     while providing @b TMsgBase as common interface class as well as
 ///     various implementation options. @n
 ///     See @ref StringsFields for definition of the fields this message contains.
-/// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase>
+/// @tparam TOpt Extra options
+template <typename TMsgBase, typename TOpt = demo::DefaultOptions>
 class Strings : public
     comms::MessageBase<
         TMsgBase,
+        typename TOpt::message::Strings,
         comms::option::StaticNumIdImpl<MsgId_Strings>,
-        comms::option::FieldsImpl<StringsFields::All>,
-        comms::option::MsgType<Strings<TMsgBase> >
+        comms::option::FieldsImpl<typename StringsFields<TOpt>::All>,
+        comms::option::MsgType<Strings<TMsgBase, TOpt> >
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -97,9 +104,10 @@ class Strings : public
     using Base =
         comms::MessageBase<
             TMsgBase,
+            typename TOpt::message::Strings,
             comms::option::StaticNumIdImpl<MsgId_Strings>,
-            comms::option::FieldsImpl<StringsFields::All>,
-            comms::option::MsgType<Strings<TMsgBase> >
+            comms::option::FieldsImpl<typename StringsFields<TOpt>::All>,
+            comms::option::MsgType<Strings<TMsgBase, TOpt> >
         >;
 public:
 

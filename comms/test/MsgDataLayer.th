@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -36,6 +36,7 @@ public:
     void test2();
     void test3();
     void test4();
+    void test5();
 
 private:
 
@@ -52,12 +53,26 @@ private:
         comms::ErrorStatus expectedErrStatus = comms::ErrorStatus::Success);
 
     template <typename TMessage>
+    TMessage internalReadWriteCachedTest(
+        const char* const buf,
+        std::size_t bufSize,
+        comms::ErrorStatus expectedErrStatus = comms::ErrorStatus::Success);
+
+    template <typename TMessage>
     void internalWriteReadTest(
         const TMessage& msg,
         char* const buf,
         std::size_t bufSize,
         const char* expectedBuf,
         comms::ErrorStatus expectedErrStatus = comms::ErrorStatus::Success);
+
+    template <typename TMessage>
+    void internalDirectReadWriteTest(
+        TMessage& msg,
+        const char* const buf,
+        std::size_t bufSize,
+        comms::ErrorStatus expectedErrStatus = comms::ErrorStatus::Success);
+
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
@@ -91,10 +106,16 @@ private:
         comms::option::LengthInfoInterface
     > BackInserterLittleEndianTraits;
 
+    typedef std::tuple<
+        comms::option::MsgIdType<MessageType>,
+        comms::option::BigEndian
+    > NonPolymorphicBigEndianTraits;
+
     typedef comms::Message<BigEndianTraits> BeMessageBase;
     typedef comms::Message<BackInserterBigEndianTraits> BackInsertBeMessageBase;
     typedef comms::Message<LittleEndianTraits> LeMessageBase;
     typedef comms::Message<BackInserterLittleEndianTraits> BackInsertLeMessageBase;
+    typedef comms::Message<NonPolymorphicBigEndianTraits> BeNonPolymorphicMessageBase;
 
     typedef Message1<BeMessageBase> BeMsg1;
     typedef Message1<BackInsertBeMessageBase> BackInsertBeMsg1;
@@ -106,6 +127,8 @@ private:
 
     typedef Message3<BeMessageBase> BeMsg3;
     typedef Message3<LeMessageBase> LeMsg3;
+
+    typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
 
     template <typename TMessage>
     using ProtocolStack = comms::protocol::MsgDataLayer<>;
@@ -123,6 +146,8 @@ void MsgDataLayerTestSuite::test1()
     TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
     auto msg2 = internalReadWriteToVectorTest<BackInsertBeMsg1>(Buf, BufSize);
     TS_ASSERT_EQUALS(std::get<0>(msg2.fields()).value(), 0x0102);
+    auto msg3 = internalReadWriteCachedTest<BeMsg1>(Buf, BufSize);
+    TS_ASSERT_EQUALS(std::get<0>(msg3.fields()).value(), 0x0102);
 }
 
 void MsgDataLayerTestSuite::test2()
@@ -162,6 +187,19 @@ void MsgDataLayerTestSuite::test4()
     internalWriteReadTest(msg, buf, bufSize, nullptr, comms::ErrorStatus::BufferOverflow);
 }
 
+void MsgDataLayerTestSuite::test5()
+{
+    static const char Buf[] = {
+        0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    NonPolymorphicBeMsg1 msg;
+    internalDirectReadWriteTest(msg, Buf, BufSize);
+    TS_ASSERT_EQUALS(msg.field_value1().value(), 0x0102);
+}
+
 template <typename TMessage>
 TMessage MsgDataLayerTestSuite::internalReadWriteTest(
     const char* const buf,
@@ -190,6 +228,45 @@ TMessage MsgDataLayerTestSuite::internalReadWriteTest(
         auto writeES = stack.write(*msg, writeIter, diff);
         TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
         TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
+    }
+
+    return *msg;
+}
+
+template <typename TMessage>
+TMessage MsgDataLayerTestSuite::internalReadWriteCachedTest(
+    const char* const buf,
+    std::size_t bufSize,
+    comms::ErrorStatus expectedErrStatus)
+{
+    using Interface = typename std::decay<decltype(comms::toMessage(std::declval<TMessage>()))>::type;
+    using ProtStack = ProtocolStack<Interface>;
+
+    ProtStack stack;
+    static_cast<void>(stack);
+    ProtStack::AllFields allFields;
+    auto readIter = buf;
+    std::unique_ptr<TMessage> msg(new TMessage);
+    auto es = stack.readFromDataFeildsCached<0>(allFields, msg, readIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedErrStatus);
+    auto& dataField = std::get<0>(allFields);
+    auto& dataFieldVec = dataField.value();
+
+
+    if (es == comms::ErrorStatus::Success) {
+        auto diff = static_cast<std::size_t>(std::distance(buf, readIter));
+        TS_ASSERT_EQUALS(dataFieldVec.size(), diff);
+        TS_ASSERT(std::equal(buf, buf + diff, dataFieldVec.begin()));
+
+        std::unique_ptr<char[]> outDataBuf(new char[diff]);
+        auto writeIter = &outDataBuf[0];
+        ProtStack::AllFields allOutFields;
+        auto writeES = stack.writeFieldsCached<0>(allOutFields, *msg, writeIter, diff);
+        TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
+        TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
+
+        auto& outDataField = std::get<0>(allOutFields);
+        TS_ASSERT_EQUALS(dataField, outDataField);
     }
 
     return *msg;
@@ -262,5 +339,30 @@ void MsgDataLayerTestSuite::internalWriteReadTest(
         auto readES = stack.read(readMsgPtr, readIter, diff);
         TS_ASSERT_EQUALS(readES, comms::ErrorStatus::Success);
         TS_ASSERT_EQUALS(msg, *readMsgPtr);
+    }
+}
+
+template <typename TMessage>
+void MsgDataLayerTestSuite::internalDirectReadWriteTest(
+    TMessage& msg,
+    const char* const buf,
+    std::size_t bufSize,
+    comms::ErrorStatus expectedErrStatus)
+{
+    using InterfaceType = typename std::decay<decltype(comms::toMessage(msg))>::type;
+    using ProtStack = ProtocolStack<InterfaceType>;
+    ProtStack stack;
+    static_cast<void>(stack);
+    auto readIter = buf;
+    auto es = stack.read(msg, readIter, bufSize);
+    TS_ASSERT_EQUALS(es, expectedErrStatus);
+
+    if (es == comms::ErrorStatus::Success) {
+        auto diff = static_cast<std::size_t>(std::distance(buf, readIter));
+        std::unique_ptr<char[]> outDataBuf(new char[diff]);
+        auto writeIter = &outDataBuf[0];
+        auto writeES = stack.write(msg, writeIter, diff);
+        TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
+        TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
     }
 }

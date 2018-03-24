@@ -141,13 +141,13 @@ protected:
 
     Reference front()
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return (*this)[0];
     }
 
     ConstReference front() const
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         return (*this)[0];
     }
 
@@ -159,7 +159,7 @@ protected:
 
     ConstReference back() const
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         if (empty()) {
             return (*this)[0]; // Back() on empty queue
         }
@@ -170,7 +170,7 @@ protected:
 
     void popFront()
     {
-        GASSERT(!empty()); // Queue musn't be empty
+        COMMS_ASSERT(!empty()); // Queue musn't be empty
         if (empty())
         {
             // Do nothing
@@ -190,7 +190,7 @@ protected:
 
     void popFront(std::size_t count)
     {
-        GASSERT(count <= size());
+        COMMS_ASSERT(count <= size());
         while ((!empty()) && (count > 0)) {
             popFront();
             --count;
@@ -199,7 +199,7 @@ protected:
 
     void popBack()
     {
-        GASSERT(!empty());
+        COMMS_ASSERT(!empty());
         if (empty())
         {
             // Do nothing
@@ -214,7 +214,7 @@ protected:
 
     void popBack(std::size_t count)
     {
-        GASSERT(count <= size());
+        COMMS_ASSERT(count <= size());
         while ((!empty()) && (count > 0)) {
             popBack();
             --count;
@@ -229,7 +229,7 @@ protected:
 
     ConstReference operator[](std::size_t index) const
     {
-        GASSERT(index < size());
+        COMMS_ASSERT(index < size());
         return elementAtIndex(index);
     }
 
@@ -397,11 +397,11 @@ protected:
 
         auto rangeOne = arrayOne();
         auto rangeOneSize = std::distance(rangeOne.first, rangeOne.second);
-        GASSERT(0 < rangeOneSize);
+        COMMS_ASSERT(0 < rangeOneSize);
         auto rangeTwo = arrayTwo();
         auto rangeTwoSize = std::distance(rangeTwo.first, rangeTwo.second);
-        GASSERT(0 < rangeTwoSize);
-        GASSERT((rangeOneSize + rangeTwoSize) == size());
+        COMMS_ASSERT(0 < rangeTwoSize);
+        COMMS_ASSERT((rangeOneSize + rangeTwoSize) == size());
         auto remSpaceSize = capacity() - size();
 
         if (rangeTwoSize <= remSpaceSize) {
@@ -474,7 +474,7 @@ protected:
 
     void resize(std::size_t newSize)
     {
-        GASSERT(newSize <= capacity());
+        COMMS_ASSERT(newSize <= capacity());
         if (capacity() < newSize) {
             return;
         }
@@ -493,8 +493,8 @@ protected:
 
     LinearisedIterator erase(LinearisedIterator pos)
     {
-        GASSERT(pos != invalidIter());
-        GASSERT(!empty());
+        COMMS_ASSERT(pos != invalidIter());
+        COMMS_ASSERT(!empty());
         auto rangeOne = arrayOne();
         auto rangeTwo = arrayTwo();
 
@@ -504,7 +504,7 @@ protected:
                 return ((range.first <= pos) && (pos < range.second));
             };
 
-        GASSERT(isInRangeFunc(pos, rangeOne) ||
+        COMMS_ASSERT(isInRangeFunc(pos, rangeOne) ||
                isInRangeFunc(pos, rangeTwo));
 
         if (isInRangeFunc(pos, rangeOne)) {
@@ -528,14 +528,14 @@ protected:
             return arrayOne().second;
         }
 
-        GASSERT(!"Invalid iterator is used");
+        COMMS_ASSERT(!"Invalid iterator is used");
         return invalidIter();
     }
 
     Iterator erase(Iterator pos)
     {
-        GASSERT(pos != end());
-        GASSERT(!empty());
+        COMMS_ASSERT(pos != end());
+        COMMS_ASSERT(!empty());
         Pointer elem = &(*pos);
         auto rangeOne = arrayOne();
         auto rangeTwo = arrayTwo();
@@ -546,7 +546,7 @@ protected:
                 return ((&(*range.first) <= elemPtr) && (elemPtr < &(*range.second)));
             };
 
-        GASSERT(isInRangeFunc(elem, rangeOne) ||
+        COMMS_ASSERT(isInRangeFunc(elem, rangeOne) ||
                 isInRangeFunc(elem, rangeTwo));
 
         if (isInRangeFunc(elem, rangeOne)) {
@@ -570,7 +570,7 @@ protected:
             return end();
         }
 
-        GASSERT(!"Invalid iterator is used");
+        COMMS_ASSERT(!"Invalid iterator is used");
         return end();
     }
 
@@ -626,8 +626,8 @@ protected:
             typename std::add_lvalue_reference<QueueValueType>::type
         >::type;
 
-        GASSERT(other.size() <= capacity());
-        GASSERT(empty());
+        COMMS_ASSERT(other.size() <= capacity());
+        COMMS_ASSERT(empty());
 
         auto rangeOne = other.arrayOne();
         for (auto iter = rangeOne.first; iter != rangeOne.second; ++iter) {
@@ -643,7 +643,7 @@ protected:
     template <typename U>
     void pushBack(U&& value)
     {
-        GASSERT(!full());
+        COMMS_ASSERT(!full());
         if (full()) {
             return;
         }
@@ -653,7 +653,7 @@ protected:
     template <typename... TArgs>
     void emplaceBack(TArgs&&... args)
     {
-        GASSERT(!full());
+        COMMS_ASSERT(!full());
         if (full()) {
             return;
         }
@@ -663,7 +663,7 @@ protected:
     template <typename U>
     void pushFront(U&& value)
     {
-        GASSERT(!full());
+        COMMS_ASSERT(!full());
         if (full()) {
             return;
         }
@@ -674,7 +674,7 @@ protected:
     template <typename U>
     LinearisedIterator insert(LinearisedIterator pos, U&& value)
     {
-        GASSERT(!full());
+        COMMS_ASSERT(!full());
         if (full()) {
             return invalidIter();
         }
@@ -725,7 +725,7 @@ protected:
             otherCurrIter = otherRangeOne.first;
         }
 
-        GASSERT(std::distance(currIter, rangeTwo.second) == std::distance(otherCurrIter, otherRangeTwo.second));
+        COMMS_ASSERT(std::distance(currIter, rangeTwo.second) == std::distance(otherCurrIter, otherRangeTwo.second));
         return std::equal(currIter, rangeTwo.second, otherCurrIter);
     }
 
@@ -739,7 +739,7 @@ private:
     template <typename U>
     void createValueAtIndex(U&& value, std::size_t index)
     {
-        GASSERT(index < capacity());
+        COMMS_ASSERT(index < capacity());
         Reference elementRef = elementAtIndex(index);
         auto elementPtr = new(&elementRef) ValueType(std::forward<U>(value));
         static_cast<void>(elementPtr);
@@ -748,7 +748,7 @@ private:
     template <typename U>
     void pushBackNotFull(U&& value)
     {
-        GASSERT(!full());
+        COMMS_ASSERT(!full());
         createValueAtIndex(std::forward<U>(value), size());
         ++count_;
     }
@@ -756,7 +756,7 @@ private:
     template <typename... TArgs>
     void emplaceBackNotFull(TArgs&&... args)
     {
-        GASSERT(!full());
+        COMMS_ASSERT(!full());
         Reference elementRef = elementAtIndex(size());
         auto elementPtr = new(&elementRef) ValueType(std::forward<TArgs>(args)...);
         static_cast<void>(elementPtr);
@@ -766,7 +766,7 @@ private:
     template <typename U>
     void pushFrontNotFull(U&& value)
     {
-        GASSERT(!full());
+        COMMS_ASSERT(!full());
         createValueAtIndex(std::forward<U>(value), capacity() - 1);
         if (startIdx_ == 0) {
             startIdx_ = capacity() - 1;
@@ -781,8 +781,8 @@ private:
     template <typename U>
     LinearisedIterator insertNotFull(LinearisedIterator pos, U&& value)
     {
-        GASSERT(!full());
-        GASSERT(pos != invalidIter());
+        COMMS_ASSERT(!full());
+        COMMS_ASSERT(pos != invalidIter());
         auto rangeOne = arrayOne();
         auto rangeTwo = arrayTwo();
 
@@ -801,7 +801,7 @@ private:
                 return ((range.first <= pos) && (pos < range.second));
             };
 
-        GASSERT(isInRangeFunc(pos, rangeOne) ||
+        COMMS_ASSERT(isInRangeFunc(pos, rangeOne) ||
                 isInRangeFunc(pos, rangeTwo));
 
         if (isInRangeFunc(pos, rangeOne)) {
@@ -848,8 +848,8 @@ private:
                 std::size_t(std::distance(firstRange.first, firstRange.second)),
                 capacity() - size());
         auto movConstructFirstEnd = firstRange.first + movConstructFirstSize;
-        GASSERT(movConstructFirstEnd <= firstRange.second);
-        GASSERT(movConstructFirstSize <= (firstRange.second - firstRange.first));
+        COMMS_ASSERT(movConstructFirstEnd <= firstRange.second);
+        COMMS_ASSERT(movConstructFirstSize <= (firstRange.second - firstRange.first));
 
         auto newPlacePtr = secondRange.second;
         for (auto iter = firstRange.first; iter != movConstructFirstEnd; ++iter) {
@@ -924,7 +924,7 @@ private:
             startIdx_ = capacity() - size();
         }
         pushFront(std::move(tmp));
-        GASSERT(linearised());
+        COMMS_ASSERT(linearised());
     }
 
     void lineariseByPopTwo()
@@ -942,13 +942,13 @@ private:
             startIdx_ = 0;
         }
         pushBack(std::move(tmp));
-        GASSERT(linearised());
+        COMMS_ASSERT(linearised());
     }
 
     template <typename TIter>
     void moveRange(TIter rangeBeg, TIter rangeEnd, TIter target)
     {
-        GASSERT(target < rangeBeg);
+        COMMS_ASSERT(target < rangeBeg);
         auto moveConstructSize =
             std::min(
                 std::distance(rangeBeg, rangeEnd),
@@ -961,7 +961,7 @@ private:
             ++target;
         }
 
-        GASSERT(target < moveConstructEnd);
+        COMMS_ASSERT(target < moveConstructEnd);
         std::move(moveConstructEnd, rangeEnd, target);
         target += std::distance(moveConstructEnd, rangeEnd);
 
@@ -1017,7 +1017,7 @@ protected:
 
     Derived& operator=(const IteratorBase& other)
     {
-        GASSERT(&queue_ == &other.queue_);
+        COMMS_ASSERT(&queue_ == &other.queue_);
         iterator_ = other.iterator_; // No need to check for self assignment
         return static_cast<Derived&>(*this);
     }
@@ -1120,7 +1120,7 @@ protected:
     {
         auto begCell = reinterpret_cast<ArrayIterator>(&queue_.data_[0]);
         auto idx = iterator_ - begCell;
-        GASSERT(0 <= idx);
+        COMMS_ASSERT(0 <= idx);
         return queue_[static_cast<std::size_t>(idx)];
     }
 

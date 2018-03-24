@@ -43,11 +43,11 @@
 /// @b fields() member function of the message class, the reference of such
 /// tuple is returned:
 /// @code
-/// IntValues msg;
-/// IntValuesFields::All& fields = msg.fields();
+/// IntValues<MyInterface> msg;
+/// IntValuesFields<>::All& fields = msg.fields();
 /// @endcode
 ///
-/// In order to properly understand what the fields are, and how to operate with
-/// them, it is recommended to thoroughly read the 
-/// <b>Fields Tutorial</b> page in the @b COMMS library documentation.
+/// In order to properly understand the code structure please read
+/// <b>How to Use Defined Custom Protocol </b> tutorial page from 
+/// COMMS library documentation.
 /// 

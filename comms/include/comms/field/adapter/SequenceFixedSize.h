@@ -22,6 +22,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/details/detect.h"
+#include "comms/field/basic/CommonFuncs.h"
 
 namespace comms
 {
@@ -196,8 +197,17 @@ private:
 
     std::size_t recalcLen(HasVarLengthElemsTag) const
     {
-        ValueType copy(BaseImpl::value().begin(), BaseImpl::value().begin() + fixedSize_);
-        return BaseImpl(std::move(copy)).length();
+        std::size_t result = 0U;
+        auto count = fixedSize_;
+        for (auto& elem : BaseImpl::value()) {
+            if (count == 0U) {
+                break;
+            }
+
+            result += BaseImpl::elementLength(elem);
+            --count;
+        }
+        return result;
     }
 
     bool doRefresh(HasResizeTag)
@@ -249,12 +259,12 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return BaseImpl::minElementLength() * TSize;
+        return BaseImpl::minLength() + BaseImpl::minElementLength() * TSize;
     }
 
     static constexpr std::size_t maxLength()
     {
-        return BaseImpl::maxElementLength() * TSize;
+        return BaseImpl::minLength() + BaseImpl::maxElementLength() * TSize;
     }
 };
 

@@ -24,6 +24,7 @@
 #include "fields.h"
 #include "protocols.h"
 #include "units.h"
+#include "version.h"
 
 #include "Message.h"
 #include "EmptyHandler.h"
@@ -31,4 +32,3 @@
 #include "MessageBase.h"
 #include "MsgFactory.h"
 #include "GenericMessage.h"
-

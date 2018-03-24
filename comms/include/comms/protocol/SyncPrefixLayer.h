@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -74,12 +74,13 @@ public:
     ///     @ref Field), then comms::ErrorStatus::ProtocolError is returned.
     ////    If the read "sync" value as expected, the read() member function of
     ///     the next layer is called.
-    /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
+    /// @tparam TMsg Type of the @b msg parameter.
     /// @tparam TIter Type of iterator used for reading.
     /// @tparam TNextLayerReader next layer reader object type.
     /// @param[out] field Field object to read.
-    /// @param[in, out] msgPtr Reference to smart pointer that already holds or
-    ///     will hold allocated message object
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
@@ -95,10 +96,10 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus doRead(
         Field& field,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
@@ -118,7 +119,7 @@ public:
             return comms::ErrorStatus::ProtocolError;
         }
 
-        return nextLayerReader.read(msgPtr, iter, size - field.length(), missingSize);
+        return nextLayerReader.read(msg, iter, size - field.length(), missingSize);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -151,7 +152,7 @@ public:
             return es;
         }
 
-        GASSERT(field.length() <= size);
+        COMMS_ASSERT(field.length() <= size);
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 };

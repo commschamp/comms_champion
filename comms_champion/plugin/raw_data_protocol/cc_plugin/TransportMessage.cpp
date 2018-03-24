@@ -40,7 +40,7 @@ namespace
 
 typedef TransportMessage::Field FieldBase;
 typedef raw_data_protocol::IdField<FieldBase> IdField;
-typedef raw_data_protocol::DataField<FieldBase> DataField;
+typedef raw_data_protocol::DataField<> DataField;
 
 QVariantList createFieldsProperties()
 {

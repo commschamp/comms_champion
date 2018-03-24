@@ -161,22 +161,24 @@ using ArrayListBase =
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::FixedSizeStorage
-///     @li comms::option::CustomStorageType
-///     @li comms::option::SequenceSizeFieldPrefix
-///     @li comms::option::SequenceSerLengthFieldPrefix
-///     @li comms::option::SequenceSizeForcingEnabled
-///     @li comms::option::SequenceFixedSize
-///     @li comms::option::SequenceTerminationFieldSuffix
-///     @li comms::option::SequenceTrailingFieldSuffix
-///     @li comms::option::DefaultValueInitialiser
-///     @li comms::option::ContentsValidator
-///     @li comms::option::ContentsRefresher
-///     @li comms::option::FailOnInvalid
-///     @li comms::option::IgnoreInvalid
-///     @li comms::option::OrigDataView (valid only if TElement is integral type
+///     @li @ref comms::option::FixedSizeStorage
+///     @li @ref comms::option::CustomStorageType
+///     @li @ref comms::option::SequenceSizeFieldPrefix
+///     @li @ref comms::option::SequenceSerLengthFieldPrefix
+///     @li @ref comms::option::SequenceElemSerLengthFieldPrefix
+///     @li @ref comms::option::SequenceElemFixedSerLengthFieldPrefix
+///     @li @ref comms::option::SequenceSizeForcingEnabled
+///     @li @ref comms::option::SequenceFixedSize
+///     @li @ref comms::option::SequenceTerminationFieldSuffix
+///     @li @ref comms::option::SequenceTrailingFieldSuffix
+///     @li @ref comms::option::DefaultValueInitialiser
+///     @li @ref comms::option::ContentsValidator
+///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::FailOnInvalid
+///     @li @ref comms::option::IgnoreInvalid
+///     @li @ref comms::option::OrigDataView (valid only if TElement is integral type
 ///         of 1 byte size.
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/ArrayList.h
 template <typename TFieldBase, typename TElement, typename... TOptions>

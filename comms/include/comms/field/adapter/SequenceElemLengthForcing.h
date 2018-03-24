@@ -1,5 +1,5 @@
 //
-// Copyright 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -19,11 +19,11 @@
 #pragma once
 
 #include <iterator>
+#include <limits>
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
-
-#include <limits>
+#include "comms/field/basic/CommonFuncs.h"
 
 namespace comms
 {
@@ -61,7 +61,7 @@ public:
 
     void forceElemLength(std::size_t val)
     {
-        GASSERT(val != Cleared);
+        COMMS_ASSERT(val != Cleared);
         forced_ = val;
     }
 
@@ -89,7 +89,7 @@ public:
 
     static constexpr std::size_t maxElementLength()
     {
-        return 0xffff;
+        return basic::CommonFuncs::maxSupportedLength();
     }
 
     template <typename TIter>
@@ -142,19 +142,7 @@ public:
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
-        BaseImpl::clear();
-        auto remLen = len;
-        while (0 < remLen) {
-            auto elem = ElementType();
-            auto es = readElement(elem, iter, remLen);
-            if (es != ErrorStatus::Success) {
-                return es;
-            }
-
-            BaseImpl::pushBack(std::move(elem));
-        }
-
-        return ErrorStatus::Success;
+        return basic::CommonFuncs::readSequence(*this, iter, len);
     }
 
     template <typename TIter>
@@ -163,29 +151,13 @@ public:
     template <typename TIter>
     ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
     {
-        BaseImpl::clear();
-        while (0 < count) {
-            auto elem = ElementType();
-            auto es = readElement(elem, iter, len);
-            if (es != comms::ErrorStatus::Success) {
-                return es;
-            }
-            BaseImpl::pushBack(std::move(elem));
-            --count;
-        }
-        return comms::ErrorStatus::Success;
+        return basic::CommonFuncs::readSequenceN(*this, count, iter, len);
     }
 
     template <typename TIter>
     void readNoStatusN(std::size_t count, TIter& iter)
     {
-        BaseImpl::clear();
-        while (0 < count) {
-            auto elem = ElementType();
-            readElementNoStatus(elem, iter);
-            BaseImpl::push_back(std::move(elem));
-            --count;
-        }
+        basic::CommonFuncs::readSequenceNoStatusN(*this, count, iter);
     }
 
     template <typename TIter>
@@ -214,21 +186,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        if (len < length()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        auto es = ErrorStatus::Success;
-        auto remainingLen = len;
-        auto& val = BaseImpl::value();
-        for (auto fieldIter = val.begin(); fieldIter != val.end(); ++fieldIter) {
-            es = writeElement(*fieldIter, iter, remainingLen);
-            if (es != ErrorStatus::Success) {
-                break;
-            }
-        }
-
-        return es;
+        return basic::CommonFuncs::writeSequence(*this, iter, len);
     }
 
     template <typename TIter>
@@ -237,26 +195,7 @@ public:
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
     {
-        auto& val = BaseImpl::value();
-        if ((val.size() <= count) && (len < length())) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        auto es = ErrorStatus::Success;
-        for (auto fieldIter = val.begin(); fieldIter != val.end(); ++fieldIter) {
-            if (count == 0) {
-                break;
-            }
-
-            es = writeElement(*fieldIter, iter, len);
-            if (es != ErrorStatus::Success) {
-                break;
-            }
-
-            --count;
-        }
-
-        return es;
+        return basic::CommonFuncs::writeSequenceN(*this, count, iter, len);
     }
 
     template <typename TIter>
@@ -267,13 +206,7 @@ private:
     template <typename TIter>
     static void advanceWriteIterator(TIter& iter, std::size_t len)
     {
-        using IterType = typename std::decay<decltype(iter)>::type;
-        using ByteType = typename std::iterator_traits<IterType>::value_type;
-        while (len > 0U) {
-            *iter = ByteType();
-            ++iter;
-            --len;
-        }
+        basic::CommonFuncs::advanceWriteIterator(iter, len);
     }
 
 

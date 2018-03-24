@@ -252,7 +252,7 @@ public:
     }
 
     /// @brief Similar to <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/at">std::string::at()</a>
-    /// @details Checks the range with @ref GASSERT() macro without throwing exception.
+    /// @details Checks the range with @ref COMMS_ASSERT() macro without throwing exception.
     const_reference at(size_type pos) const
     {
         return Base::at(pos);
@@ -297,7 +297,7 @@ public:
     /// @brief Same as <a href="http://en.cppreference.com/w/cpp/string/basic_string_view/substr">std::string_view::substr()</a>
     std::string substr(size_type pos = 0, size_type count = npos) const
     {
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         return std::string(begin() + pos, begin() + pos + std::min(size() - pos, count));
     }
 
@@ -351,8 +351,8 @@ public:
         size_type pos2,
         size_type count2) const
     {
-        GASSERT(pos1 <= size());
-        GASSERT(pos2 <= other.size());
+        COMMS_ASSERT(pos1 <= size());
+        COMMS_ASSERT(pos2 <= other.size());
         count1 = std::min(count1, size() - pos1);
         count2 = std::min(count2, other.size() - pos2);
         auto minCount = std::min(count1, count2);
@@ -393,7 +393,7 @@ public:
             return npos;
         }
 
-        GASSERT(pos <= size());
+        COMMS_ASSERT(pos <= size());
         auto remCount = size() - pos;
         if (remCount < str.size()) {
             return npos;

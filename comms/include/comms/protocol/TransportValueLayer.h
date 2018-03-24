@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -26,15 +26,22 @@ namespace comms
 namespace protocol
 {
 
-/// @brief Protocol layer that uses "sync" field as a prefix to all the
-///        subsequent data written by other (next) layers.
-/// @details The main purpose of this layer is to provide a constant synchronisation
-///     prefix to help identify the beginning of the serialised message.
+/// @brief Protocol layer that reads a value from transport wrapping and
+///     reassigns it to appropriate "extra transport" data member of the
+///     created message object.
+/// @details Some protocols may put some values, which influence the way
+///     of how message contents are read and/or how the message is handled.
+///     For example protocol version information. This layer will read
+///     the field's value and will re-assign it to specified message object's
+///     "extra transport" data member field. This layer requires extra support
+///     from the defined message interface object - there is a need to pass
+///     @ref comms::option::ExtraTransportFields option to the interface definition
+///     @ref comms::Message class.
 ///     This layer is a mid level layer, expects other mid level layer or
 ///     MsgDataLayer to be its next one.
-/// @tparam TField Type of the field that is used as sync prefix. The "sync"
-///     field type definition must use options (comms::option::DefaultNumValue)
-///     to specify its default value to be equal to the expected "sync" value.
+/// @tparam TField Type of the field that is used read / write extra transport value.
+/// @tparam TIdx Index of "extra transport" field that message object contains
+///     (accessed via @ref comms::Message::transportFields()).
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @headerfile comms/protocol/TransportValueLayer.h
 template <typename TField, std::size_t TIdx, typename TNextLayer>
@@ -71,17 +78,23 @@ public:
     ~TransportValueLayer() noexcept = default;
 
     /// @brief Customized read functionality, invoked by @ref read().
-    /// @details Reads the "sync" value from the input data. If the read value
-    ///     is NOT as expected (doesn't equal to the default constructed
-    ///     @ref Field), then comms::ErrorStatus::ProtocolError is returned.
-    ////    If the read "sync" value as expected, the read() member function of
-    ///     the next layer is called.
-    /// @tparam TMsgPtr Type of the smart pointer to the allocated message object.
+    /// @details Reads the value from the input data and assigns it to appropriate
+    ///     extra transport field inside the message object (accessed via
+    ///     comms::Message::transportFields()). @n
+    ///     Note, that this operation works fine even if message object is created
+    ///     after reading the transport value. There is "inner magic" that causes
+    ///     read operation to proceed until @b DATA layer
+    ///     (implemented by @ref comms::protocol::MsgDataLayer), assigns the
+    ///     read value to message object, then proceeds to reading the message
+    ///     contents, i.e. when @ref comms::Message::read() function is invoked
+    ///     the message object already has the value of the transport field updated.
+    /// @tparam TMsg Type of the @b msg parameter.
     /// @tparam TIter Type of iterator used for reading.
     /// @tparam TNextLayerReader next layer reader object type.
     /// @param[out] field Field object to read.
-    /// @param[in, out] msgPtr Reference to smart pointer that already holds or
-    ///     will hold allocated message object
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
@@ -97,10 +110,10 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus doRead(
         Field& field,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
@@ -115,17 +128,18 @@ public:
             return es;
         }
 
-        es = nextLayerReader.read(msgPtr, iter, size - field.length(), missingSize);
-        if (msgPtr) {
-            using MsgPtrType = typename std::decay<decltype(msgPtr)>::type;
-            using MessageInterfaceType = typename MsgPtrType::element_type;
-            static_assert(MessageInterfaceType::hasTransportFields(),
-                "Message interface class hasn't defined transport fields, "
-                "use comms::option::ExtraTransportFields option.");
-            static_assert(TIdx < std::tuple_size<typename MessageInterfaceType::TransportFields>::value,
-                "TIdx is too big, exceeds the amount of transport fields defined in interface class");
+        es = nextLayerReader.read(msg, iter, size - field.length(), missingSize);
 
-            auto& transportField = std::get<TIdx>(msgPtr->transportFields());
+        using Tag =
+            typename std::conditional<
+                BaseImpl::template isMessageObjRef<typename std::decay<decltype(msg)>::type>(),
+                MsgObjTag,
+                SmartPtrTag
+            >::type;
+
+        if (validMsg(msg, Tag())) {
+            auto& allTransportFields = transportFields(msg, Tag());
+            auto& transportField = std::get<TIdx>(allTransportFields);
 
             using FieldType = typename std::decay<decltype(transportField)>::type;
             using ValueType = typename FieldType::ValueType;
@@ -136,8 +150,8 @@ public:
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
-    /// @details The function will write proper "sync" value to the output
-    ///     buffer, then call the write() function of the next layer.
+    /// @details The function will write the appriprate extra transport value
+    ///     held by the message object being written.
     /// @tparam TMsg Type of message object.
     /// @tparam TIter Type of iterator used for writing.
     /// @tparam TNextLayerWriter next layer writer object type.
@@ -177,9 +191,53 @@ public:
             return es;
         }
 
-        GASSERT(field.length() <= size);
+        COMMS_ASSERT(field.length() <= size);
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
+
+private:
+    struct SmartPtrTag {};
+    struct MsgObjTag {};
+
+    template <typename TMsg>
+    static bool validMsg(TMsg& msgPtr, SmartPtrTag)
+    {
+        using MsgPtrType = typename std::decay<decltype(msgPtr)>::type;
+        using MessageInterfaceType = typename MsgPtrType::element_type;
+        static_assert(MessageInterfaceType::hasTransportFields(),
+            "Message interface class hasn't defined transport fields, "
+            "use comms::option::ExtraTransportFields option.");
+        static_assert(TIdx < std::tuple_size<typename MessageInterfaceType::TransportFields>::value,
+            "TIdx is too big, exceeds the amount of transport fields defined in interface class");
+
+        return static_cast<bool>(msgPtr);
+    }
+
+    template <typename TMsg>
+    static bool validMsg(TMsg& msg, MsgObjTag)
+    {
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(MsgType::hasTransportFields(),
+            "Message interface class hasn't defined transport fields, "
+            "use comms::option::ExtraTransportFields option.");
+        static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
+            "TIdx is too big, exceeds the amount of transport fields defined in interface class");
+
+        return true;
+    }
+
+    template <typename TMsg>
+    static auto transportFields(TMsg& msgPtr, SmartPtrTag) -> decltype(msgPtr->transportFields())
+    {
+        return msgPtr->transportFields();
+    }
+
+    template <typename TMsg>
+    static auto transportFields(TMsg& msg, MsgObjTag) -> decltype(msg.transportFields())
+    {
+        return msg.transportFields();
+    }
+
 };
 
 }  // namespace protocol

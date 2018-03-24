@@ -29,6 +29,7 @@
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/details/detect.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -45,7 +46,7 @@ namespace details
 template <typename TStorage>
 struct StringMaxLengthRetrieveHelper
 {
-    static const std::size_t Value = 0xffff;
+    static const std::size_t Value = CommonFuncs::maxSupportedLength();
 };
 
 template <std::size_t TSize>
@@ -158,6 +159,12 @@ public:
         static_assert(details::stringHasPushBack<ValueType>(),
                 "The string type must have push_back() member function");
         value_.push_back(static_cast<typename ValueType::value_type>(val));
+    }
+
+    ValueType& createBack()
+    {
+        value_.push_back(ValueType());
+        return value_.back();
     }
 
     void clear()

@@ -66,12 +66,7 @@ using MsgIdField =
 
 /// @brief Field representing full message payload.
 template <typename... TOptions>
-using DataField =
-    comms::field::ArrayList<
-        FieldBase,
-        std::uint8_t,
-        TOptions...
-    >;
+using DataField = typename comms::protocol::MsgDataLayer<TOptions...>::Field;
 
 /// @brief Definition of Demo binary protocol stack of layers.
 /// @details It is used to process incoming binary stream of data and create
@@ -88,28 +83,22 @@ using DataField =
 ///     identify during read and support creation of proper message object.
 ///     The types of the messages must be bundled in
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
-/// @tparam TMsgAllocOptions The contents of this template parameter are passed
-///     as options to
+/// @tparam TMsgAllocOptions Template parameter(s) passed as options to
 ///     @b comms::protocol::MsgIdLayer
 ///     protocol layer in @b COMMS library. They are used to specify whether
 ///     dynamic memory allocation is allowed or "in place" allocation for
 ///     message objects must be implemented. It is expected to be either
 ///     single @b COMMS library option or multiple options bundled in
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>.
-/// @tparam TDataFieldStorageOptions The contents of this template parameters
-///     are passed to the definition of storage field of
-///     @b comms::protocol::MsgDataLayer
-///     layer. The field is a variant of
-///     @b comms::field::ArrayList
-///     which uses <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a>
-///     as its internal storage by default. The option(s) specified in this
-///     template parameter is/are forwarded to the definition of the storage
-///     field (comms::field::ArrayList).
+/// @tparam TDataFieldStorageOptions Extra parameter(s) that are passed
+///     to @b comms::protocol::MsgDataLayer rotocol layer in @b COMMS library.
+///     It may be used to choose storage
+///     type of the payload field for "caching" read/write operations.
 template <
     typename TMsgBase,
     typename TMessages,
-    typename TMsgAllocOptions = std::tuple<>,
-    typename TDataFieldStorageOptions = std::tuple<> >
+    typename TMsgAllocOptions = comms::option::EmptyOption,
+    typename TDataFieldStorageOptions = comms::option::EmptyOption >
 using Stack =
     comms::protocol::SyncPrefixLayer<
         SyncField,
@@ -126,7 +115,7 @@ using Stack =
                         VersionField,
                         Message<>::TransportFieldIdx_version,
                         comms::protocol::MsgDataLayer<
-                            DataField<TDataFieldStorageOptions>
+                            TDataFieldStorageOptions
                         >
                     >,
                     TMsgAllocOptions

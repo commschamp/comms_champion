@@ -92,7 +92,7 @@ public:
 
     void setMode(Mode val)
     {
-        GASSERT(val < Mode::NumOfModes);
+        COMMS_ASSERT(val < Mode::NumOfModes);
         mode_ = val;
     }
 

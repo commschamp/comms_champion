@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
+#include "demo/DefaultOptions.h"
 
 namespace demo
 {
@@ -32,7 +33,9 @@ namespace message
 {
 
 /// @brief Accumulates details of all the IntValues message fields.
+/// @tparam TOpt Extra options
 /// @see IntValues
+template <typename TOpt = demo::DefaultOptions>
 struct IntValuesFields
 {
     /// @brief Simple 2 byte unsigned value.
@@ -41,6 +44,7 @@ struct IntValuesFields
         comms::field::IntValue<
             FieldBase,
             std::uint16_t,
+            typename TOpt::message::IntValuesFields::field1,
             comms::option::ValidNumValueRange<0, 10>
     >;
 
@@ -49,6 +53,7 @@ struct IntValuesFields
         comms::field::IntValue<
             FieldBase,
             std::int32_t,
+            typename TOpt::message::IntValuesFields::field2,
             comms::option::FixedLength<3>
     >;
 
@@ -57,6 +62,7 @@ struct IntValuesFields
         comms::field::IntValue<
             FieldBase,
             std::uint32_t,
+            typename TOpt::message::IntValuesFields::field3,
             comms::option::VarLength<1, 4>
         >;
 
@@ -67,6 +73,7 @@ struct IntValuesFields
         comms::field::IntValue<
             FieldBase,
             std::int16_t,
+            typename TOpt::message::IntValuesFields::field4,
             comms::option::FixedLength<1>,
             comms::option::NumValueSerOffset<-2000>,
             comms::option::DefaultNumValue<2016>,
@@ -78,6 +85,7 @@ struct IntValuesFields
         comms::field::IntValue<
             FieldBase,
             std::int64_t,
+            typename TOpt::message::IntValuesFields::field5,
             comms::option::FixedLength<6>,
             comms::option::ValidNumValueRange<(std::int64_t)0xffff800000000000, 0x7fffffffffff>
         >;
@@ -86,7 +94,8 @@ struct IntValuesFields
     using field6 =
         comms::field::IntValue<
             FieldBase,
-            std::uint64_t
+            std::uint64_t,
+            typename TOpt::message::IntValuesFields::field6
         >;
 
 
@@ -108,13 +117,15 @@ struct IntValuesFields
 ///     various implementation options. @n
 ///     See @ref IntValuesFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase>
+/// @tparam TOpt Extra options
+template <typename TMsgBase, typename TOpt = demo::DefaultOptions>
 class IntValues : public
     comms::MessageBase<
         TMsgBase,
+        typename TOpt::message::IntValues,
         comms::option::StaticNumIdImpl<MsgId_IntValues>,
-        comms::option::FieldsImpl<IntValuesFields::All>,
-        comms::option::MsgType<IntValues<TMsgBase> >
+        comms::option::FieldsImpl<typename IntValuesFields<TOpt>::All>,
+        comms::option::MsgType<IntValues<TMsgBase, TOpt> >
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -122,11 +133,11 @@ class IntValues : public
     using Base =
         comms::MessageBase<
             TMsgBase,
+            typename TOpt::message::IntValues,
             comms::option::StaticNumIdImpl<MsgId_IntValues>,
-            comms::option::FieldsImpl<IntValuesFields::All>,
-            comms::option::MsgType<IntValues<TMsgBase> >
+            comms::option::FieldsImpl<typename IntValuesFields<TOpt>::All>,
+            comms::option::MsgType<IntValues<TMsgBase, TOpt> >
         >;
-
 public:
 
     /// @brief Allow access to internal fields.

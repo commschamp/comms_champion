@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
+#include "demo/DefaultOptions.h"
 
 namespace demo
 {
@@ -32,13 +33,16 @@ namespace message
 {
 
 /// @brief Accumulates details of all the Optionals message fields.
+/// @tparam TOpt Extra options
 /// @see Optionals
+template <typename TOpt = demo::DefaultOptions>
 struct OptionalsFields
 {
     /// @brief Bitmask that is used to enable/disable other fields
     struct field1 : public
         comms::field::BitmaskValue<
             FieldBase,
+            typename TOpt::message::OptionalsFields::field1,
             comms::option::FixedLength<1>,
             comms::option::BitmaskReservedBits<0xfc, 0>
         >
@@ -56,7 +60,8 @@ struct OptionalsFields
         comms::field::Optional<
             comms::field::IntValue<
                 FieldBase,
-                std::uint16_t
+                std::uint16_t,
+                typename TOpt::message::OptionalsFields::field2
             >,
             comms::option::OptionalMissingByDefault
         >;
@@ -67,6 +72,7 @@ struct OptionalsFields
         comms::field::Optional<
             comms::field::String<
                 FieldBase,
+                typename TOpt::message::OptionalsFields::field3,
                 comms::option::SequenceSizeFieldPrefix<
                     comms::field::IntValue<
                         FieldBase,
@@ -107,13 +113,15 @@ struct OptionalsFields
 ///     various implementation options. @n
 ///     See @ref OptionalsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase>
+/// @tparam TOpt Extra options
+template <typename TMsgBase, typename TOpt = demo::DefaultOptions>
 class Optionals : public
     comms::MessageBase<
         TMsgBase,
+        typename TOpt::message::Optionals,
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
-        comms::option::FieldsImpl<OptionalsFields::All>,
-        comms::option::MsgType<Optionals<TMsgBase> >,
+        comms::option::FieldsImpl<typename OptionalsFields<TOpt>::All>,
+        comms::option::MsgType<Optionals<TMsgBase, TOpt> >,
         comms::option::HasDoRefresh
     >
 {
@@ -122,9 +130,10 @@ class Optionals : public
     using Base =
         comms::MessageBase<
             TMsgBase,
+            typename TOpt::message::Optionals,
             comms::option::StaticNumIdImpl<MsgId_Optionals>,
-            comms::option::FieldsImpl<OptionalsFields::All>,
-            comms::option::MsgType<Optionals<TMsgBase> >,
+            comms::option::FieldsImpl<typename OptionalsFields<TOpt>::All>,
+            comms::option::MsgType<Optionals<TMsgBase, TOpt> >,
             comms::option::HasDoRefresh
         >;
 

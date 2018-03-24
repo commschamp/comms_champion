@@ -28,6 +28,8 @@
 #include "comms/field/adapter/SequenceFixedSize.h"
 #include "comms/field/adapter/SequenceSizeFieldPrefix.h"
 #include "comms/field/adapter/SequenceSerLengthFieldPrefix.h"
+#include "comms/field/adapter/SequenceElemSerLengthFieldPrefix.h"
+#include "comms/field/adapter/SequenceElemFixedSerLengthFieldPrefix.h"
 #include "comms/field/adapter/SequenceTrailingFieldSuffix.h"
 #include "comms/field/adapter/SequenceTerminationFieldSuffix.h"
 #include "comms/field/adapter/DefaultValueInitialiser.h"

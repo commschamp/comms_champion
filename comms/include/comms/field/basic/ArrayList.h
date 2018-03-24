@@ -29,6 +29,7 @@
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/details/detect.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -70,7 +71,7 @@ struct ArrayListFieldHasVarLength
 template <typename TStorage>
 struct ArrayListMaxLengthRetrieveHelper
 {
-    static const std::size_t Value = 0xffff;
+    static const std::size_t Value = CommonFuncs::maxSupportedLength();
 };
 
 template <typename T, std::size_t TSize>
@@ -161,6 +162,12 @@ public:
     void pushBack(U&& val)
     {
         value_.push_back(std::forward<U>(val));
+    }
+
+    ElementType& createBack()
+    {
+        value_.emplace_back();
+        return value_.back();
     }
 
     void clear()
@@ -306,66 +313,26 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        if (len < length()) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        auto es = ErrorStatus::Success;
-        auto remainingLen = len;
-        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            es = writeElement(*fieldIter, iter, remainingLen);
-            if (es != ErrorStatus::Success) {
-                break;
-            }
-        }
-
-        return es;
+        return CommonFuncs::writeSequence(*this, iter, len);
     }
 
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            writeElementNoStatus(*fieldIter, iter);
-        }
+        CommonFuncs::writeSequenceNoStatus(*this, iter);
     }
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
     {
-        if ((value_.size() <= count) && (len < length())) {
-            return ErrorStatus::BufferOverflow;
-        }
-
-        auto es = ErrorStatus::Success;
-        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            if (count == 0) {
-                break;
-            }
-
-            es = writeElement(*fieldIter, iter, len);
-            if (es != ErrorStatus::Success) {
-                break;
-            }
-
-            --count;
-        }
-
-        return es;
+        return CommonFuncs::writeSequenceN(*this, count, iter, len);
     }
 
 
     template <typename TIter>
     void writeNoStatusN(std::size_t count, TIter& iter) const
     {
-        for (auto fieldIter = value_.begin(); fieldIter != value_.end(); ++fieldIter) {
-            if (count == 0) {
-                break;
-            }
-
-            writeElementNoStatus(*fieldIter, iter);
-            --count;
-        }
+        CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
     }
 
 private:
@@ -429,7 +396,7 @@ private:
     {
         auto es = elem.read(iter, len);
         if (es == ErrorStatus::Success) {
-            GASSERT(elem.length() <= len);
+            COMMS_ASSERT(elem.length() <= len);
             len -= elem.length();
         }
         return es;
@@ -610,13 +577,12 @@ private:
         value_.clear();
         auto remLen = len;
         while (0 < remLen) {
-            auto elem = ElementType();
+            ElementType& elem = createBack();
             auto es = readElement(elem, iter, remLen);
             if (es != ErrorStatus::Success) {
+                value_.pop_back();
                 return es;
             }
-
-            value_.push_back(std::move(elem));
         }
 
         return ErrorStatus::Success;
@@ -652,13 +618,13 @@ private:
     {
         clear();
         while (0 < count) {
-            auto elem = ElementType();
+            auto& elem = createBack();
             auto es = readElement(elem, iter, len);
             if (es != ErrorStatus::Success) {
+                value_.pop_back();
                 return es;
             }
 
-            value_.push_back(std::move(elem));
             --count;
         }
 
@@ -680,9 +646,8 @@ private:
     {
         clear();
         while (0 < count) {
-            auto elem = ElementType();
+            auto& elem = createBack();
             readElementNoStatus(elem, iter);
-            value_.push_back(std::move(elem));
             --count;
         }
     }

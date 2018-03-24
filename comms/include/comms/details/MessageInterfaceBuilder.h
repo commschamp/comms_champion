@@ -446,7 +446,7 @@ public:
 
     static std::size_t doLength()
     {
-        GASSERT(!"Not overridden");
+        COMMS_ASSERT(!"Not overridden");
         return 0;
     }
 

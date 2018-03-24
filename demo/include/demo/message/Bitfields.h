@@ -1,5 +1,5 @@
 //
-// Copyright 2016 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,16 +24,18 @@
 #include "comms/MessageBase.h"
 #include "demo/MsgId.h"
 #include "demo/FieldBase.h"
+#include "demo/DefaultOptions.h"
 
 namespace demo
 {
-
 
 namespace message
 {
 
 /// @brief Accumulates details of all the Bitfields message fields.
+/// @tparam TOpt Extra options
 /// @see Bitfields
+template <typename TOpt = demo::DefaultOptions>
 struct BitfieldsFields
 {
     /// @brief Simple 4 bits bitmask value, residing as a member in @ref field1 bitfield.
@@ -42,6 +44,7 @@ struct BitfieldsFields
     struct field1_bitmask : public
         comms::field::BitmaskValue<
             FieldBase,
+            typename TOpt::message::BitfieldsFields::field1_bitmask,
             comms::option::FixedLength<1>,
             comms::option::FixedBitLength<4>,
             comms::option::BitmaskReservedBits<0xf8, 0>
@@ -68,6 +71,7 @@ struct BitfieldsFields
         comms::field::EnumValue<
             FieldBase,
             Field1Enum,
+            typename TOpt::message::BitfieldsFields::field1_enum,
             comms::option::ValidNumValueRange<(int)0, (int)Field1Enum::NumOfValues - 1>,
             comms::option::FixedBitLength<2>
     >;
@@ -77,6 +81,7 @@ struct BitfieldsFields
         comms::field::IntValue<
             FieldBase,
             std::uint8_t,
+            typename TOpt::message::BitfieldsFields::field1_int1,
             comms::option::FixedBitLength<6>,
             comms::option::ValidNumValueRange<0, 0x3f>
         >;
@@ -86,13 +91,14 @@ struct BitfieldsFields
         comms::field::IntValue<
             FieldBase,
             std::uint8_t,
+            typename TOpt::message::BitfieldsFields::field1_int2,
             comms::option::FixedBitLength<4>,
             comms::option::ValidNumValueRange<0, 0xf>
         >;
 
     /// @brief Bitfield containing @ref field1_bitmask, @ref field1_enum,
     ///     @ref field1_int1, and @ref field1_int2 as its internal members
-    struct field1 : public
+    class field1 : public
         comms::field::Bitfield<
             FieldBase,
             std::tuple<
@@ -103,6 +109,20 @@ struct BitfieldsFields
             >
         >
     {
+#ifdef COMMS_MUST_DEFINE_BASE
+        // For some reason VS2015 compiler doesn't like having this definition
+        using Base =
+            comms::field::Bitfield<
+                FieldBase,
+                std::tuple<
+                    field1_bitmask,
+                    field1_enum,
+                    field1_int1,
+                    field1_int2
+                >
+            >;
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
+    public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
         ///     related to @b comms::field::Bitfield class from COMMS library
@@ -113,7 +133,7 @@ struct BitfieldsFields
         ///     @b member3 for @ref field1_int1
         ///     @b member4 for @ref field1_int2
         ///
-        COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(member1, member2, member3, member4);
+        COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3, member4);
     };
 
     /// @brief All the fields bundled in std::tuple.
@@ -129,13 +149,15 @@ struct BitfieldsFields
 ///     various implementation options. @n
 ///     See @ref BitfieldsFields for definition of the fields this message contains.
 /// @tparam TMsgBase Common interface class for all the messages.
-template <typename TMsgBase>
+/// @tparam TOpt Extra options
+template <typename TMsgBase, typename TOpt = demo::DefaultOptions>
 class Bitfields : public
     comms::MessageBase<
         TMsgBase,
+        typename TOpt::message::Bitfields,
         comms::option::StaticNumIdImpl<MsgId_Bitfields>,
-        comms::option::FieldsImpl<BitfieldsFields::All>,
-        comms::option::MsgType<Bitfields<TMsgBase> >
+        comms::option::FieldsImpl<typename BitfieldsFields<TOpt>::All>,
+        comms::option::MsgType<Bitfields<TMsgBase, TOpt> >
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -143,9 +165,10 @@ class Bitfields : public
     using Base =
         comms::MessageBase<
             TMsgBase,
+            typename TOpt::message::Bitfields,
             comms::option::StaticNumIdImpl<MsgId_Bitfields>,
-            comms::option::FieldsImpl<BitfieldsFields::All>,
-            comms::option::MsgType<Bitfields<TMsgBase> >
+            comms::option::FieldsImpl<typename BitfieldsFields<TOpt>::All>,
+            comms::option::MsgType<Bitfields<TMsgBase, TOpt> >
         >;
 public:
 

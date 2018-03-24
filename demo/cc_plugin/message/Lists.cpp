@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ namespace message
 namespace
 {
 
-using ListsFields = demo::message::ListsFields;
+using ListsFields = demo::message::ListsFields<>;
 
 QVariantMap createField2Properties()
 {
@@ -71,11 +71,14 @@ QVariantMap createField4Properties()
             .add(
                 cc::property::field::ForField<ListsFields::field4::ValueType::value_type>()
                     .name("element")
-                    .add(cc::property::field::IntValue().name("memeber1").asMap())
-                    .add(cc::property::field::IntValue().name("memeber2").asMap())
+                    .add(cc::property::field::IntValue().name("memeber1").serialisedHidden().asMap())
+                    .add(cc::property::field::IntValue().name("memeber2").serialisedHidden().asMap())
+                    .add(cc::property::field::String().name("memeber3").serialisedHidden().asMap())
                     .serialisedHidden()
                     .asMap())
-            .serialisedHidden()
+//            .serialisedHidden()
+//            .showPrefix()
+//            .prefixName("length")
             .asMap();
 }
 

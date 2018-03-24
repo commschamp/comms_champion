@@ -727,8 +727,8 @@ public:
         static_assert(TCount <= TupleSize, "Incorrect TCount");
         static_assert(0U < TCount, "Incorrect instantiation");
 
-        GASSERT(TFromIdx <= idx);
-        GASSERT(idx < TToIdx);
+        COMMS_ASSERT(TFromIdx <= idx);
+        COMMS_ASSERT(idx < TToIdx);
         if (idx == TFromIdx) {
             TupleSelectedTypeHelper<TFromIdx, TFromIdx + 1, 1U>::template exec<TTuple>(
                 idx, std::forward<TFunc>(func));
@@ -759,7 +759,7 @@ public:
     static void exec(std::size_t idx, TFunc&& func)
     {
         static_cast<void>(idx);
-        GASSERT(idx == TFromIdx);
+        COMMS_ASSERT(idx == TFromIdx);
         using ElemType = typename std::tuple_element<TFromIdx, TTuple>::type;
 #ifdef _MSC_VER
         // VS compiler

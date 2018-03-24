@@ -47,7 +47,7 @@ public:
             return MsgPtr();
         }
 
-        GASSERT(*iter != nullptr);
+        COMMS_ASSERT(*iter != nullptr);
         if((*iter)->getId() != id) {
             return MsgPtr();
         }
@@ -63,7 +63,7 @@ public:
             return 0U;
         }
 
-        GASSERT(*iter != nullptr);
+        COMMS_ASSERT(*iter != nullptr);
         if((*iter)->getId() != id) {
             return 0U;
         }

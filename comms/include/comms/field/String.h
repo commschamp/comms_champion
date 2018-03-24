@@ -132,6 +132,7 @@ using StringBase =
 ///     @li comms::option::FixedSizeStorage
 ///     @li comms::option::CustomStorageType
 ///     @li comms::option::SequenceSizeFieldPrefix
+///     @li comms::option::SequenceSerLenvthFieldPrefix
 ///     @li comms::option::SequenceSizeForcingEnabled
 ///     @li comms::option::SequenceFixedSize
 ///     @li comms::option::SequenceTerminationFieldSuffix
@@ -405,6 +406,10 @@ private:
             "comms::option::Units option is not applicable to String field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
             "comms::option::ValidNumValueRange (or similar) option is not applicable to String field");
+    static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
+            "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to String field");
+    static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
+            "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to String field");
 };
 
 /// @brief Equality comparison operator.

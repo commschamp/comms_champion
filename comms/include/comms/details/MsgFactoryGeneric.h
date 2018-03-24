@@ -52,7 +52,7 @@ public:
         }
 
         auto iter = range.first + idx;
-        GASSERT(*iter);
+        COMMS_ASSERT(*iter);
         return (*iter)->create(*this);
     }
 

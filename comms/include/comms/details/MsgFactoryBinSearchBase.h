@@ -223,12 +223,12 @@ private:
 
     void checkSorted(RunTimeSorted)
     {
-        GASSERT(
+        COMMS_ASSERT(
             std::is_sorted(registry_.begin(), registry_.end(),
                 [](const FactoryMethod* methodPtr1, const FactoryMethod* methodPtr2) -> bool
                 {
-                    GASSERT(methodPtr1 != nullptr);
-                    GASSERT(methodPtr2 != nullptr);
+                    COMMS_ASSERT(methodPtr1 != nullptr);
+                    COMMS_ASSERT(methodPtr2 != nullptr);
                     return methodPtr1->getId() < methodPtr2->getId();
                 }));
     }

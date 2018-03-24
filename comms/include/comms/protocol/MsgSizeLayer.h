@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -94,19 +94,20 @@ public:
     /// @brief Customized read functionality, invoked by @ref read().
     /// @details Reads size of the subsequent data from the input data sequence
     ///          and calls read() member function of the next layer with
-    ///          the size specified in the size field.The function will also
-    ///          compare the provided size of the data with size of the
-    ///          message read from the buffer. If the latter is greater than
+    ///          the size specified in the size field. The function will also
+    ///          compare the provided size of the data with value
+    ///          read from the buffer. If the latter is greater than
     ///          former, comms::ErrorStatus::NotEnoughData will be returned.
     ///          However, if buffer contains enough data, but the next layer
     ///          reports it's not enough (returns comms::ErrorStatus::NotEnoughData),
     ///          comms::ErrorStatus::ProtocolError will be returned.
-    /// @tparam TMsgPtr Type of smart pointer that holds message object.
+    /// @tparam TMsg Type of @b msg parameter.
     /// @tparam TIter Type of iterator used for reading.
     /// @tparam TNextLayerReader next layer reader object type.
     /// @param[out] field Field object to read.
-    /// @param[in, out] msgPtr Reference to smart pointer that already holds or
-    ///     will hold allocated message object
+    /// @param[in, out] msg Reference to smart pointer, that already holds or
+    ///     will hold allocated message object, or reference to actual message
+    ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
     /// @param[out] missingSize If not nullptr and return value is
@@ -122,10 +123,10 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsgPtr, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus doRead(
         Field& field,
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
@@ -158,8 +159,9 @@ public:
         }
 
         // not passing missingSize farther on purpose
-        es = nextLayerReader.read(msgPtr, iter, requiredRemainingSize, nullptr);
+        es = nextLayerReader.read(msg, iter, requiredRemainingSize, nullptr);
         if (es == ErrorStatus::NotEnoughData) {
+            BaseImpl::resetMsg(msg);
             return ErrorStatus::ProtocolError;
         }
 
@@ -270,7 +272,7 @@ private:
             return es;
         }
 
-        GASSERT(field.length() <= size);
+        COMMS_ASSERT(field.length() <= size);
         return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
@@ -299,7 +301,7 @@ private:
         }
 
         field.value() = static_cast<typename Field::ValueType>(std::distance(dataIter, iter));
-        GASSERT(field.length() == sizeLen);
+        COMMS_ASSERT(field.length() == sizeLen);
         return field.write(valueIter, sizeLen);
     }
 

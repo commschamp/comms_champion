@@ -7,18 +7,23 @@ is implemented using various communication protocols. The implementation of
 these protocols can be a tedious, time consuming and error-prone process.
 Therefore, there is a growing tendency among developers to use third party code 
 generators for data (de)serialisation. Usually such tools receive description
-of the protocol data layout in separate source file(s) with custom grammar, 
+of the protocol data structures in separate source file(s) with a custom grammar, 
 and generate appropriate (de)serialisation code and necessary abstractions to 
-access the data. 
+access the data. The main problem with all these tools is that their major purpose
+is data structures serialisation and/or facilitation of remote procedure calls (RPC).
+The binary data layout and how the transferred data is going to be used is of much
+lesser importance. The binary protocols, on the other hand, require different approach.
+Their specification puts major emphasis on binary data layout, what values are
+being transferred (units and/or scaling factor) and how the other end is expected 
+to behave on certain values (what values are considered to be valid and how to
+behave on reception of invalid values). It requires having some extra meta-information
+attached to described data structures. The existing tools either don't have means
+to specify such meta-information (other than in comments), or don't know what to
+do with it when provided. As the result the developer still has to write a 
+significant amount of boilerplate code in order to integrate the generated 
+serialisation focused code to be used in binary communication protocol handling.
 
-There are so many of them: 
-[ProtoBuf](https://developers.google.com/protocol-buffers/), 
-[Cap'n Proto](https://capnproto.org/), [MessagePack](http://msgpack.org/index.html),
-[Thrift](https://thrift.apache.org/), [Kaitai Struct](http://kaitai.io/),
-[Simple Binary Encoding](https://github.com/real-logic/simple-binary-encoding), you-name-it...
-All of these tools are capable of generating **C++** code. However,
-the generated code quite often is not good enough to be used in embedded systems, especially
-bare-metal ones. Either the produced **C++** code or the tool itself has 
+Also all of the schema based serialisation solutions have
 **at least** one of the following limitations:
 
 - Inability to specify binary data layout. Many of the tools use their own
@@ -53,14 +58,9 @@ dispatch table or map from message ID to some callback function or object.
 - Lack of ability to override or complement the generated serialisation code with the manually
 written one where extra logic is required.
 
-The generalisation is hard. Especially when the main focus of the tools'
-developers is on supporting as many target programming languages as possible, 
-rather than allowing multiple configuration variants of a single specific
-language. Currently there is no universal "fit all needs" code generation 
-solution that can handle all the existing and being used binary communication protocols. 
-As the result many embedded C++ developers still have to manually implement
-them rather than relying on the existing
-tools for code generation.
+The generalisation is hard. As the result many embedded C++ developers still have 
+to manually implement required communication protocol 
+rather than relying on the existing tools for code generation.
 
 This project comes to help in developing binary communication protocols, 
 but focusing on **embedded systems** with limited resources (including 
@@ -69,9 +69,10 @@ keeps the idea of having "single source of truth" (i.e. single implementation) f
 all the applications, but approaches the problem from a different angle. Instead,
 of having separate message definition file(s) with a custom grammar, the message
 contents are already defined using **C++** programming language, which is widely used in
-embedded systems development. 
+embedded systems development, while leaving an option for the client code to
+provide all the necessary application specific configuration.
 
-The main idea is to have a library (see [COMMS Library](#comms-library) below), that
+This project contains [COMMS Library](#comms-library), that
 provide all the necessary, highly configurable C++ classes. The messages 
 themselves and their fields are defined using simple declarative statements of types and 
 class definitions, which specify **WHAT** needs to be implemented. 

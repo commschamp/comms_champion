@@ -109,6 +109,7 @@ struct BitfieldsFields
             >
         >
     {
+#ifndef _MSC_VER
         using Base =
             comms::field::Bitfield<
                 FieldBase,
@@ -119,6 +120,7 @@ struct BitfieldsFields
                     field1_int2
                 >
             >;
+#endif
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro

@@ -161,6 +161,9 @@ struct VariantsFields
             >
         >
     {
+#ifndef _MSC_VER
+        // For some reason VS2015 compiler doesn't like having this definition
+
         // Required for compilation with gcc earlier than v5.0,
         // later versions don't require this type definition.
         using Base =
@@ -180,6 +183,7 @@ struct VariantsFields
                     >
                 >
             >;
+#endif // #ifndef _MSC_VER
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro

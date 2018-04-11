@@ -126,6 +126,8 @@ public:
     void test89();
     void test90();
     void test91();
+    void test92();
+    void test93();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4155,6 +4157,104 @@ void FieldsTestSuite::test91()
         0x5, 0x6, 0x7
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+void FieldsTestSuite::test92()
+{
+    typedef std::tuple<
+        comms::field::IntValue<
+            comms::Field<LittleEndianOpt>,
+            std::uint8_t
+        >,
+        comms::field::IntValue<
+                comms::Field<LittleEndianOpt>,
+                std::uint8_t
+        >,
+        comms::field::IntValue<
+            comms::Field<LittleEndianOpt>,
+            std::uint8_t
+        >
+    > BitfileMembers;
+
+    typedef comms::field::Bitfield<
+        comms::Field<LittleEndianOpt>,
+        BitfileMembers
+    > Field;
+
+    Field field;
+    static_cast<void>(field);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT_EQUALS(field.memberBitLength<0>(), 8U);
+    TS_ASSERT_EQUALS(field.memberBitLength<1>(), 8U);
+    TS_ASSERT_EQUALS(field.memberBitLength<2>(), 8U);
+
+    static const char Buf[] = {
+        (char)0x1, (char)0x2, (char)0x3
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    auto& members = field.value();
+    auto& mem1 = std::get<0>(members);
+    TS_ASSERT_EQUALS(mem1.value(), 0x1);
+
+    auto& mem2 = std::get<1>(members);
+    TS_ASSERT_EQUALS(mem2.value(), 0x2);
+
+    auto& mem3 = std::get<2>(members);
+    TS_ASSERT_EQUALS(mem3.value(), 0x3);
+}
+
+void FieldsTestSuite::test93()
+{
+    typedef std::tuple<
+        comms::field::IntValue<
+            comms::Field<LittleEndianOpt>,
+            std::uint8_t,
+            comms::option::FixedBitLength<4>,
+            comms::option::DefaultNumValue<0xf>
+        >,
+        comms::field::IntValue<
+            comms::Field<LittleEndianOpt>,
+            std::int16_t,
+            comms::option::DefaultNumValue<2016>,
+            comms::option::NumValueSerOffset<-2000>,
+            comms::option::FixedBitLength<8>
+        >,
+        comms::field::IntValue<
+            comms::Field<LittleEndianOpt>,
+            std::uint16_t,
+            comms::option::FixedBitLength<12>,
+            comms::option::DefaultNumValue<0x801>
+        >
+    > BitfileMembers;
+
+    typedef comms::field::Bitfield<
+        comms::Field<LittleEndianOpt>,
+        BitfileMembers
+    > Field;
+
+    Field field;
+    static_cast<void>(field);
+    TS_ASSERT_EQUALS(field.length(), 3U);
+    TS_ASSERT_EQUALS(field.memberBitLength<0>(), 4U);
+    TS_ASSERT_EQUALS(field.memberBitLength<1>(), 8U);
+    TS_ASSERT_EQUALS(field.memberBitLength<2>(), 12U);
+
+    auto& members = field.value();
+    auto& mem1 = std::get<0>(members);
+    TS_ASSERT_EQUALS(mem1.value(), 0xf);
+    auto& mem2 = std::get<1>(members);
+    TS_ASSERT_EQUALS(mem2.value(), 2016);
+    auto& mem3 = std::get<2>(members);
+    TS_ASSERT_EQUALS(mem3.value(), 0x801);
+
+    static const char ExpectedBuf[] = {
+        0x0f, 0x11, (char)0x80
+    };
+
+    const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
 }
 

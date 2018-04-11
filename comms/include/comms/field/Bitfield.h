@@ -144,13 +144,7 @@ public:
     template <std::size_t TIdx>
     static constexpr std::size_t memberBitLength()
     {
-        static_assert(
-            TIdx < std::tuple_size<ValueType>::value,
-            "Index exceeds number of fields");
-
-        using FieldType = typename std::tuple_element<TIdx, ValueType>::type;
-        using FieldOptions = typename FieldType::ParsedOptions;
-        return FieldOptions::FixedBitLength;
+        return BaseImpl::template memberBitLength<TIdx>();
     }
 
 

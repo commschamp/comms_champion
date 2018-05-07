@@ -165,8 +165,8 @@ using MessageImplNoIdBaseT =
             TOpt::HasNoIdImpl
         >::template Type<TBase>;
 
-template <typename TBase, typename TAllFields>
-class MessageImplFieldsBase : public TBase
+template <typename TAllFields>
+class MessageImplFieldsContainer
 {
 public:
     using AllFields = TAllFields;
@@ -292,7 +292,7 @@ public:
     }
 
 protected:
-    ~MessageImplFieldsBase() noexcept = default;
+    ~MessageImplFieldsContainer() noexcept = default;
 
     template <std::size_t TIdx, typename TIter>
     comms::ErrorStatus doReadFieldsUntil(
@@ -716,6 +716,58 @@ private:
 
     AllFields fields_;
 };
+
+template <typename TBase, typename TAllFields>
+class MessageImplFieldsBase : public TBase, public MessageImplFieldsContainer<TAllFields>
+{
+    using ContainerBase = MessageImplFieldsContainer<TAllFields>;
+public:
+    using ContainerBase::doRead;
+    using ContainerBase::doWrite;
+    using ContainerBase::doLength;
+    using ContainerBase::doValid;
+    using ContainerBase::doRefresh;
+    using ContainerBase::doLengthFrom;
+    using ContainerBase::doLengthUntil;
+    using ContainerBase::doLengthFromUntil;
+    using ContainerBase::doMinLength;
+    using ContainerBase::doMinLengthFrom;
+    using ContainerBase::doMinLengthUntil;
+    using ContainerBase::doMinLengthFromUntil;
+    using ContainerBase::doMaxLength;
+    using ContainerBase::doMaxLengthFrom;
+    using ContainerBase::doMaxLengthUntil;
+    using ContainerBase::doMaxLengthFromUntil;
+
+protected:
+    ~MessageImplFieldsBase() noexcept = default;
+
+    using ContainerBase::doReadFieldsUntil;
+    using ContainerBase::readFieldsUntil;
+    using ContainerBase::doReadFieldsNoStatusUntil;
+    using ContainerBase::readFieldsNoStatusUntil;
+    using ContainerBase::doReadFieldsFrom;
+    using ContainerBase::readFieldsFrom;
+    using ContainerBase::doReadFieldsNoStatusFrom;
+    using ContainerBase::readFieldsNoStatusFrom;
+    using ContainerBase::doReadFieldsFromUntil;
+    using ContainerBase::readFieldsFromUntil;
+    using ContainerBase::doReadFieldsNoStatusFromUntil;
+    using ContainerBase::readFieldsNoStatusFromUntil;
+    using ContainerBase::doWriteFieldsUntil;
+    using ContainerBase::writeFieldsUntil;
+    using ContainerBase::doWriteFieldsNoStatusUntil;
+    using ContainerBase::writeFieldsNoStatusUntil;
+    using ContainerBase::doWriteFieldsFrom;
+    using ContainerBase::writeFieldsFrom;
+    using ContainerBase::doWriteFieldsNoStatusFrom;
+    using ContainerBase::writeFieldsNoStatusFrom;
+    using ContainerBase::doWriteFieldsFromUntil;
+    using ContainerBase::writeFieldsFromUntil;
+    using ContainerBase::doWriteFieldsNoStatusFromUntil;
+    using ContainerBase::writeFieldsNoStatusFromUntil;
+};
+
 
 template <bool THasFieldsImpl>
 struct MessageImplProcessFieldsBase;

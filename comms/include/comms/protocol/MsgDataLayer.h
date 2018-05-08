@@ -176,7 +176,7 @@ public:
     ///     minimal number of bytes that need to be provided before message could
     ///     be successfully read.
     /// @return Status of the read operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter>
     static ErrorStatus readFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
@@ -188,7 +188,13 @@ public:
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be tuple.");
 
-        static_assert((TIdx + 1) == std::tuple_size<TAllFields>::value,
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+
+        static_assert((Idx + 1) == std::tuple_size<TAllFields>::value,
                     "All fields must be read when MsgDataLayer is reached");
 
         using IterType = typename std::decay<decltype(iter)>::type;
@@ -196,7 +202,7 @@ public:
         static_assert(std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
                 "Caching read from non random access iterators are not supported at this moment.");
 
-        auto& dataField = std::get<TIdx>(allFields);
+        auto& dataField = std::get<Idx>(allFields);
 
         using FieldType = typename std::decay<decltype(dataField)>::type;
         static_assert(
@@ -219,7 +225,7 @@ public:
     /// @brief Read transport fields with caching until data layer.
     /// @details Does nothing because it is data layer.
     /// @return @ref comms::ErrorStatus::Success;
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter>
     static ErrorStatus readUntilDataFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
@@ -239,7 +245,7 @@ public:
     /// @details Expected to be called by the privous layers to properly
     ///     finalise read operation after the call to @ref readUntilDataFieldsCached();
     /// @return @ref comms::ErrorStatus::Success;
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter>
     static ErrorStatus readFromDataFeildsCached(
         TAllFields& allFields,
         TMsg& msg,
@@ -247,7 +253,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        return readFieldsCached<TIdx>(allFields, msg, iter, size, missingSize);
+        return readFieldsCached(allFields, msg, iter, size, missingSize);
     }
 
 
@@ -294,8 +300,6 @@ public:
     ///     information fields.
     /// @details Very similar to write() member function, but adds "allFields"
     ///     parameter to store raw data of the message.
-    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
-    ///     element in the tuple.
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
@@ -307,7 +311,7 @@ public:
     /// @param[in, out] iter Iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter>
     static ErrorStatus writeFieldsCached(
         TAllFields& allFields,
         const TMsg& msg,
@@ -317,10 +321,16 @@ public:
         static_assert(comms::util::IsTuple<TAllFields>::Value,
                                         "Expected TAllFields to be tuple.");
 
-        static_assert((TIdx + 1) == std::tuple_size<TAllFields>::value,
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+
+        static_assert((Idx + 1) == std::tuple_size<TAllFields>::value,
                     "All fields must be written when MsgDataLayer is reached");
 
-        auto& dataField = std::get<TIdx>(allFields);
+        auto& dataField = std::get<Idx>(allFields);
         using FieldType = typename std::decay<decltype(dataField)>::type;
         static_assert(
             std::is_same<Field, FieldType>::value,

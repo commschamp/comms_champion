@@ -247,7 +247,7 @@ TMessage MsgDataLayerTestSuite::internalReadWriteCachedTest(
     ProtStack::AllFields allFields;
     auto readIter = buf;
     std::unique_ptr<TMessage> msg(new TMessage);
-    auto es = stack.readFromDataFeildsCached<0>(allFields, msg, readIter, bufSize);
+    auto es = stack.readFromDataFeildsCached(allFields, msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedErrStatus);
     auto& dataField = std::get<0>(allFields);
     auto& dataFieldVec = dataField.value();
@@ -261,7 +261,7 @@ TMessage MsgDataLayerTestSuite::internalReadWriteCachedTest(
         std::unique_ptr<char[]> outDataBuf(new char[diff]);
         auto writeIter = &outDataBuf[0];
         ProtStack::AllFields allOutFields;
-        auto writeES = stack.writeFieldsCached<0>(allOutFields, *msg, writeIter, diff);
+        auto writeES = stack.writeFieldsCached(allOutFields, *msg, writeIter, diff);
         TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
         TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2013 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2013 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -799,6 +799,52 @@ void tupleForSelectedType(std::size_t idx, TFunc&& func)
 }
 //----------------------------------------
 
+namespace details
+{
+
+template <typename TTuple>
+struct TupleStripFirst;
+
+template <typename TFirst, typename... TRest>
+struct TupleStripFirst<std::tuple<TFirst, TRest...> >
+{
+    using Type = std::tuple<TRest...>;
+};
+
+template <typename TTuple>
+using TupleStripFirstT = typename TupleStripFirst<TTuple>::Type;
+
+
+template <typename TTail, typename TTuple, std::size_t TStripRem>
+struct TupleTailCheckHelpler
+{
+    static_assert(0U < TStripRem, "Invalid instantiation");
+    static const bool Value =
+            TupleTailCheckHelpler<TTail, TupleStripFirstT<TTuple>, TStripRem - 1>::Value;
+};
+
+template <typename TTail, typename TTuple>
+struct TupleTailCheckHelpler<TTail, TTuple, 0>
+{
+    static const bool Value =  std::is_same<TTail, TTuple>::value;
+};
+
+
+} // namespace details
+
+/// @brief Compile time check of whether one tuple is a "tail" of another.
+/// @tparam TTail Tail tuple
+/// @tparam TTuple Containing tuple
+template <typename TTail, typename TTuple>
+constexpr bool tupleIsTailOf()
+{
+    static_assert(isTuple<TTail>(), "TTail param must be tuple");
+    static_assert(isTuple<TTuple>(), "TTuple param must be tuple");
+    return
+        std::tuple_size<TTail>::value <= std::tuple_size<TTuple>::value &&
+        details::TupleTailCheckHelpler<TTail, TTuple, std::tuple_size<TTuple>::value - std::tuple_size<TTail>::value>::Value;
+//    return true;
+}
 
 }  // namespace util
 

@@ -2045,13 +2045,15 @@
 /// be cached during the read/write operations and accessed later. The @b ProtocolStack
 /// also defines @b AllFields type which is @b std::tuple of all the fields used by all the 
 /// layer classes. @n
-/// Also, the @b ProtocolStack defines @b readFieldsCached() and @b writeFieldsCached()
+/// Also, the @b ProtocolStack defines @b readFieldsCached() (see
+/// @ref comms::protocol::ProtocolLayerBase::readFieldsCached()) and @b writeFieldsCached()
+/// (see @ref comms::protocol::ProtocolLayerBase::writeFieldsCached())
 /// member functions which are substitutes to normal read() and write(). The first
 /// parameter to these functions is reference to the @b AllFields bundle
 /// object.
 /// @code
 /// ProtStack::AllFields fields;
-/// auto es = protStack.readFieldsCached<0>(fields, msgPtr, readIter, bufSize);
+/// auto es = protStack.readFieldsCached(fields, msgPtr, readIter, bufSize);
 /// @endcode
 /// The layer class that is responsible to read/write payload data 
 /// (see @ref comms::protocol::MsgDataLayer) uses @ref comms::field::ArrayList

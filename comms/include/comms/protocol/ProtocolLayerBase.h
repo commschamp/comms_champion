@@ -734,6 +734,23 @@ public:
         return nextLayer().createMsg(std::forward<TId>(id), idx);
     }
 
+    /// @brief Access appropriate field from "cached" bundle of all the
+    ///     protocol stack fields.
+    /// @param allFields All fields of the protocol stack
+    /// @return Reference to requested field.
+    template <typename TAllFields>
+    static auto accessCachedField(TAllFields& allFields) ->
+        decltype(std::get<std::tuple_size<typename std::decay<TAllFields>::type>::value - std::tuple_size<AllFields>::value>(allFields))
+    {
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+
+        return std::get<Idx>(allFields);
+    }
+
 protected:
 
     /// @brief Detect whether type is actual message object

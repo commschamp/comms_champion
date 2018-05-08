@@ -429,6 +429,19 @@ public:
         return getMsgLength(msg, Tag());
     }
 
+    template <typename TAllFields>
+    static auto accessCachedField(TAllFields& allFields) ->
+        decltype(std::get<std::tuple_size<typename std::decay<TAllFields>::type>::value - std::tuple_size<AllFields>::value>(allFields))
+    {
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+
+        return std::get<Idx>(allFields);
+    }
+
 private:
 
     struct MsgHasLengthTag {};

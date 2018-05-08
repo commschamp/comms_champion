@@ -431,7 +431,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
 
     MsgPtr msg;
     auto readIter = buf;
-    auto es = stack.template readFieldsCached<0>(fields, msg, readIter, bufSize);
+    auto es = stack.template readFieldsCached(fields, msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedEs);
     if (es != comms::ErrorStatus::Success) {
         return std::move(msg);
@@ -444,7 +444,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     std::unique_ptr<char []> outCheckBuf(new char[actualBufSize]);
     auto writeIter = &outCheckBuf[0];
     typename TProtStack::AllFields writtenFields;
-    es = stack.template writeFieldsCached<0>(writtenFields, *msg, writeIter, actualBufSize);
+    es = stack.writeFieldsCached(writtenFields, *msg, writeIter, actualBufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
     TS_ASSERT_EQUALS(fields, writtenFields);
@@ -613,7 +613,7 @@ void commonReadWriteMsgDirectTest(
     comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
 {
     auto readIter = buf;
-    auto es = stack.template readFieldsCached<0>(fields, msg, readIter, bufSize);
+    auto es = stack.readFieldsCached(fields, msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedEs);
     if (es != comms::ErrorStatus::Success) {
         return;
@@ -624,7 +624,7 @@ void commonReadWriteMsgDirectTest(
     std::unique_ptr<char []> outCheckBuf(new char[actualBufSize]);
     typename TProtStack::AllFields writtenFields;
     auto writeIter = &outCheckBuf[0];
-    es = stack.template writeFieldsCached<0>(writtenFields, msg, writeIter, actualBufSize);
+    es = stack.writeFieldsCached(writtenFields, msg, writeIter, actualBufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(fields, writtenFields);
     TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));

@@ -401,7 +401,6 @@ public:
     ///     parameter to store read transport information fields.
     ///     The function will also invoke the same @b doRead() member function
     ///     provided by the derived class, as described with @ref read().
-    /// @tparam TIdx Index of the field in TAllFields tuple.
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
@@ -419,7 +418,7 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter>
     comms::ErrorStatus readFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
@@ -427,9 +426,14 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        auto& field = getField<TIdx>(allFields);
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+        auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsReader<TIdx>(allFields));
+        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsReader(allFields));
     }
 
     /// @brief Perform read of data fields until data layer (message payload) while caching
@@ -438,7 +442,6 @@ public:
     ///     parameter to store read transport information fields.
     ///     The function will also invoke the same @b doRead() member function
     ///     provided by the derived class, as described with @ref read().
-    /// @tparam TIdx Index of the field in TAllFields tuple.
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
@@ -464,9 +467,15 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        auto& field = getField<TIdx>(allFields);
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+
+        auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsUntilDataReader<TIdx>(allFields));
+        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsUntilDataReader(allFields));
     }
 
     /// @brief Finalise the read operation by reading the message payload while caching
@@ -491,7 +500,7 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter>
     comms::ErrorStatus readFromDataFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
@@ -499,7 +508,7 @@ public:
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        return nextLayer().template readFromDataFieldsCached<TIdx>(allFields, msg, iter, size, missingSize);
+        return nextLayer().readFromDataFieldsCached(allFields, msg, iter, size, missingSize);
     }
 
     /// @brief Serialise message into output data sequence.
@@ -558,8 +567,6 @@ public:
     ///     parameter to store raw data of the message.
     ///     The function will also invoke the same @b doWrite() member function
     ///     provided by the derived class, as described with @ref write().
-    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
-    ///     element in the tuple.
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
@@ -571,16 +578,22 @@ public:
     /// @param[in, out] iter Iterator used for writing.
     /// @param[in] size Max number of bytes that can be written.
     /// @return Status of the write operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter>
     comms::ErrorStatus writeFieldsCached(
         TAllFields& allFields,
         const TMsg& msg,
         TIter& iter,
         std::size_t size) const
     {
-        auto& field = getField<TIdx>(allFields);
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+
+        auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<const TDerived&>(*this);
-        return derivedObj.doWrite(field, msg, iter, size, createNextLayerCachedFieldsWriter<TIdx>(allFields));
+        return derivedObj.doWrite(field, msg, iter, size, createNextLayerCachedFieldsWriter(allFields));
     }
 
     /// @brief Get remaining length of wrapping transport information.
@@ -832,7 +845,7 @@ protected:
         NextLayer& nextLayer_;
     };
 
-    template <std::size_t TIdx, typename TAllFields>
+    template <typename TAllFields>
     class NextLayerCachedFieldsReader
     {
     public:
@@ -851,7 +864,7 @@ protected:
             std::size_t size,
             std::size_t* missingSize)
         {
-            return nextLayer_.template readFieldsCached<TIdx + 1>(allFields_, msg, iter, size, missingSize);
+            return nextLayer_.readFieldsCached(allFields_, msg, iter, size, missingSize);
         }
 
     private:
@@ -859,7 +872,7 @@ protected:
         TAllFields& allFields_;
     };
 
-    template <std::size_t TIdx, typename TAllFields>
+    template <typename TAllFields>
     class NextLayerCachedFieldsUntilDataReader
     {
     public:
@@ -878,7 +891,7 @@ protected:
             std::size_t size,
             std::size_t* missingSize)
         {
-            return nextLayer_.template readUntilDataFieldsCached<TIdx + 1>(allFields_, msg, iter, size, missingSize);
+            return nextLayer_.readUntilDataFieldsCache(allFields_, msg, iter, size, missingSize);
         }
 
     private:
@@ -905,7 +918,7 @@ protected:
         const NextLayer& nextLayer_;
     };
 
-    template <std::size_t TIdx, typename TAllFields>
+    template <typename TAllFields>
     class NextLayerCachedFieldsWriter
     {
     public:
@@ -920,7 +933,7 @@ protected:
         template <typename TMsg, typename TIter>
         ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
         {
-            return nextLayer_.template writeFieldsCached<TIdx + 1>(allFields_, msg, iter, size);
+            return nextLayer_.template writeFieldsCached(allFields_, msg, iter, size);
         }
 
     private:
@@ -980,18 +993,18 @@ protected:
         return NextLayerUntilDataReader(nextLayer_);
     }
 
-    template <std::size_t TIdx, typename TAllFields>
-    NextLayerCachedFieldsReader<TIdx, TAllFields>
+    template <typename TAllFields>
+    NextLayerCachedFieldsReader<TAllFields>
     createNextLayerCachedFieldsReader(TAllFields& fields)
     {
-        return NextLayerCachedFieldsReader<TIdx, TAllFields>(nextLayer_, fields);
+        return NextLayerCachedFieldsReader<TAllFields>(nextLayer_, fields);
     }
 
-    template <std::size_t TIdx, typename TAllFields>
-    NextLayerCachedFieldsUntilDataReader<TIdx, TAllFields>
+    template <typename TAllFields>
+    NextLayerCachedFieldsUntilDataReader<TAllFields>
     createNextLayerCachedFieldsUntilDataReader(TAllFields& fields)
     {
-        return NextLayerCachedFieldsUntilDataReader<TIdx, TAllFields>(nextLayer_, fields);
+        return NextLayerCachedFieldsUntilDataReader<TAllFields>(nextLayer_, fields);
     }
 
     NextLayerWriter createNextLayerWriter() const
@@ -999,11 +1012,11 @@ protected:
         return NextLayerWriter(nextLayer_);
     }
 
-    template <std::size_t TIdx, typename TAllFields>
-    NextLayerCachedFieldsWriter<TIdx, TAllFields>
+    template <typename TAllFields>
+    NextLayerCachedFieldsWriter<TAllFields>
     createNextLayerCachedFieldsWriter(TAllFields& fields) const
     {
-        return NextLayerCachedFieldsWriter<TIdx, TAllFields>(nextLayer_, fields);
+        return NextLayerCachedFieldsWriter<TAllFields>(nextLayer_, fields);
     }
 
     NextLayerUpdater createNextLayerUpdater() const

@@ -459,7 +459,7 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <std::size_t TIdx, typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter>
     comms::ErrorStatus readUntilDataFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
@@ -482,7 +482,6 @@ public:
     ///     the read transport information fields.
     /// @details Should be called to finalise the read operation started by
     ///     @ref readUntilDataFieldsCached().
-    /// @tparam TIdx Index of the field in TAllFields tuple.
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
@@ -681,15 +680,21 @@ public:
     /// @param[in, out] iter Random access iterator to the written data.
     /// @param[in] size Number of bytes that have been written using writeFieldsCached().
     /// @return Status of the update operation.
-    template <std::size_t TIdx, typename TAllFields, typename TIter>
+    template <typename TAllFields, typename TIter>
     ErrorStatus updateFieldsCached(
         TAllFields& allFields,
         TIter& iter,
         std::size_t size) const
     {
-        auto& field = getField<TIdx>(allFields);
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+
+        auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<const TDerived&>(*this);
-        return derivedObj.doUpdate(field, iter, size, createNextLayerCachedFieldsUpdater<TIdx>(allFields));
+        return derivedObj.doUpdate(field, iter, size, createNextLayerCachedFieldsUpdater(allFields));
     }
 
     /// @brief Default implementation of the "update" functaionality.
@@ -933,7 +938,7 @@ protected:
         template <typename TMsg, typename TIter>
         ErrorStatus write(const TMsg& msg, TIter& iter, std::size_t size) const
         {
-            return nextLayer_.template writeFieldsCached(allFields_, msg, iter, size);
+            return nextLayer_.writeFieldsCached(allFields_, msg, iter, size);
         }
 
     private:
@@ -960,7 +965,7 @@ protected:
         const NextLayer& nextLayer_;
     };
 
-    template <std::size_t TIdx, typename TAllFields>
+    template <typename TAllFields>
     class NextLayerCachedFieldsUpdater
     {
     public:
@@ -975,7 +980,7 @@ protected:
         template <typename TIter>
         ErrorStatus update(TIter& iter, std::size_t size) const
         {
-            return nextLayer_.template updateFieldsCached<TIdx + 1>(allFields_, iter, size);
+            return nextLayer_.updateFieldsCached(allFields_, iter, size);
         }
 
     private:
@@ -1024,11 +1029,11 @@ protected:
         return NextLayerUpdater(nextLayer_);
     }
 
-    template <std::size_t TIdx, typename TAllFields>
-    NextLayerCachedFieldsUpdater<TIdx, TAllFields>
+    template <typename TAllFields>
+    NextLayerCachedFieldsUpdater<TAllFields>
     createNextLayerCachedFieldsUpdater(TAllFields& fields) const
     {
-        return NextLayerCachedFieldsUpdater<TIdx, TAllFields>(nextLayer_, fields);
+        return NextLayerCachedFieldsUpdater<TAllFields>(nextLayer_, fields);
     }
 
     /// @endcond

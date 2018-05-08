@@ -431,7 +431,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
 
     MsgPtr msg;
     auto readIter = buf;
-    auto es = stack.template readFieldsCached(fields, msg, readIter, bufSize);
+    auto es = stack.readFieldsCached(fields, msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedEs);
     if (es != comms::ErrorStatus::Success) {
         return std::move(msg);

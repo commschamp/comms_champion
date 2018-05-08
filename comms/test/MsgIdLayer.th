@@ -277,6 +277,8 @@ void MsgIdLayerTestSuite::test7()
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
     auto& msg1 = dynamic_cast<LeMsg1&>(*msgPtr);
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0201);
+    TS_ASSERT_EQUALS(stack.accessCachedField(fields).value(), MessageType1);
+    TS_ASSERT_EQUALS(stack.nextLayer().accessCachedField(fields).value(), std::vector<std::uint8_t>({0x01, 0x02}));
 
     typedef InPlaceProtocolStack<LeField2, LeMsgBase> InPlaceProtStack;
     InPlaceProtStack::AllFields fields2;

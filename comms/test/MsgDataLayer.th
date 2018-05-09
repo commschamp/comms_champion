@@ -133,10 +133,9 @@ private:
     template <typename TMessage>
     class ProtocolStack : public comms::protocol::MsgDataLayer<>
     {
-#ifdef COMMS_MUST_DEFINE_BASE
         using Base = comms::protocol::MsgDataLayer<>;
-#endif
     public:
+        using AllFields = typename Base::AllFields;
         COMMS_PROTOCOL_LAYERS_ACCESS(payload);
     };
 };

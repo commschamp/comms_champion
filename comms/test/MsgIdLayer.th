@@ -130,6 +130,7 @@ private:
             comms::protocol::MsgDataLayer<>
         >
     {
+#ifdef COMMS_MUST_DEFINE_BASE
         using Base =
             comms::protocol::MsgIdLayer<
                 TField,
@@ -137,6 +138,7 @@ private:
                 AllMessages<TMessage>,
                 comms::protocol::MsgDataLayer<>
             >;
+#endif
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
     };
@@ -151,6 +153,7 @@ private:
             comms::option::InPlaceAllocation
         >
     {
+#ifdef COMMS_MUST_DEFINE_BASE
         using Base =
             comms::protocol::MsgIdLayer<
                 TField,
@@ -159,6 +162,7 @@ private:
                 comms::protocol::MsgDataLayer<>,
                 comms::option::InPlaceAllocation
             >;
+#endif
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS(payload, id);
     };

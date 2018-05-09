@@ -28,6 +28,7 @@
 #include "comms/options.h"
 
 #include "details/ProtocolLayerBaseOptionsParser.h"
+#include "comms/details/protocol_layers_access.h"
 
 namespace comms
 {
@@ -218,6 +219,9 @@ public:
     /// @details Same as NextLayer::MsgPtr or void if such doesn't exist.
     using MsgPtr = typename details::ProtocolLayerMsgPtr<NextLayer>::Type;
 
+    /// @brief Actual derived class
+    using ThisLayer = TDerived;
+
     /// @brief Static constant indicating amount of transport layers used.
     static const std::size_t NumOfLayers = 1 + NextLayer::NumOfLayers;
 
@@ -253,6 +257,18 @@ public:
     const NextLayer& nextLayer() const
     {
         return nextLayer_;
+    }
+
+    /// @brief Get access to this layer object.
+    ThisLayer& thisLayer()
+    {
+        return static_cast<ThisLayer&>(*this);
+    }
+
+    /// @brief Get "const" access to this layer object.
+    const ThisLayer& thisLayer() const
+    {
+        return static_cast<const ThisLayer&>(*this);
     }
 
     /// @brief Compile time check whether split read "until" and "from" data
@@ -1138,6 +1154,42 @@ private:
     NextLayer nextLayer_;
 };
 
+/// @brief Upcast protocol layer in order to have
+///     access to its internal types.
+template <
+    typename TField,
+    typename TNextLayer,
+    typename TDerived,
+    typename...  TOptions>
+protocol::ProtocolLayerBase<TField, TNextLayer, TDerived, TOptions...>&
+toProtocolLayerBase(protocol::ProtocolLayerBase<TField, TNextLayer, TDerived, TOptions...>& layer)
+{
+    return layer;
+}
+
+/// @brief Upcast protocol layer in order to have
+///     access to its internal types.
+template <
+    typename TField,
+    typename TNextLayer,
+    typename TDerived,
+    typename...  TOptions>
+constexpr
+const protocol::ProtocolLayerBase<TField, TNextLayer, TDerived, TOptions...>&
+toProtocolLayerBase(const protocol::ProtocolLayerBase<TField, TNextLayer, TDerived, TOptions...>& layer)
+{
+    return layer;
+}
+
 }  // namespace protocol
 
 }  // namespace comms
+
+#define COMMS_PROTOCOL_LAYERS_ACCESS(...) \
+    COMMS_DO_ACCESS_LAYER_ACC_FUNC(__VA_ARGS__)
+
+#define COMMS_PROTOCOL_LAYERS_ACCESS_INNER(...) \
+    COMMS_PROTOCOL_LAYERS_ACCESS(__VA_ARGS__)
+
+#define COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(...) \
+    COMMS_PROTOCOL_LAYERS_ACCESS(COMMS_REVERSE_MACRO_ARGS(__VA_ARGS__))

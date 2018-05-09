@@ -131,7 +131,14 @@ private:
     typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
 
     template <typename TMessage>
-    using ProtocolStack = comms::protocol::MsgDataLayer<>;
+    class ProtocolStack : public comms::protocol::MsgDataLayer<>
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base = comms::protocol::MsgDataLayer<>;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS(payload);
+    };
 };
 
 void MsgDataLayerTestSuite::test1()
@@ -215,7 +222,7 @@ TMessage MsgDataLayerTestSuite::internalReadWriteTest(
         >::type ProtStack;
 
     ProtStack stack;
-    static_cast<void>(stack);
+    static_cast<void>(stack.layer_payload());
     auto readIter = buf;
     std::unique_ptr<Message> msg(new Message);
     auto es = stack.read(msg, readIter, bufSize);
@@ -244,7 +251,7 @@ TMessage MsgDataLayerTestSuite::internalReadWriteCachedTest(
 
     ProtStack stack;
     static_cast<void>(stack);
-    ProtStack::AllFields allFields;
+    typename ProtStack::AllFields allFields;
     auto readIter = buf;
     std::unique_ptr<TMessage> msg(new TMessage);
     auto es = stack.readFromDataFeildsCached(allFields, msg, readIter, bufSize);
@@ -260,7 +267,7 @@ TMessage MsgDataLayerTestSuite::internalReadWriteCachedTest(
 
         std::unique_ptr<char[]> outDataBuf(new char[diff]);
         auto writeIter = &outDataBuf[0];
-        ProtStack::AllFields allOutFields;
+        typename ProtStack::AllFields allOutFields;
         auto writeES = stack.writeFieldsCached(allOutFields, *msg, writeIter, diff);
         TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
         TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));

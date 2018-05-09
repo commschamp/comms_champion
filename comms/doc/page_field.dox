@@ -628,6 +628,23 @@
 /// @endcode
 /// The same goes for COMMS_BITMASK_BITS_ACCESS() macro.
 ///
+/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
+/// case the base class definition is needed (going to be used). If the developed
+/// application is going to be multi-platform and compiled with various compilers
+/// (some of which may warn about unused private type) it is possible to use 
+/// the defined symbol to add / remove the definition of the @b Base member type.
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyBitmask : public comms::field::BitmaskValue<...>
+/// {
+/// #ifdef COMMS_MUST_DEFINE_BASE
+///     using Base = ...;
+/// #endif
+/// public:
+///     COMMS_BITMASK_BITS_SEQ(first, second, third, fourth);
+/// }
+/// @endcode
+///
 /// @section sec_field_tutorial_bitfield Bitfield Fields
 /// Many communication protocols try to pack multiple independent values into
 /// a one or several bytes to save traffic on I/O link. For example, to encode
@@ -837,6 +854,22 @@
 ///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
 /// }
 /// @endcode
+/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
+/// case the base class definition is needed (going to be used). If the developed
+/// application is going to be multi-platform and compiled with various compilers
+/// (some of which may warn about unused private type) it is possible to use 
+/// the defined symbol to add / remove the definition of the @b Base member type.
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyBitfieldField : public comms::field::Bitfield<...>
+/// {
+/// #ifdef COMMS_MUST_DEFINE_BASE
+///     using Base = ...;
+/// #endif
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+/// }
+/// @endcode
 ///     
 /// @section sec_field_tutorial_bundle Bundle Fields
 /// There are cases when multiple independent fields need to be bundled into
@@ -923,7 +956,23 @@
 ///             MyFieldBase,
 ///             std::tuple<SomeField1, SomeField2, SomeField3>,
 ///             TExtraOptions...
-///         >
+///         >;
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+/// };
+/// @endcode
+/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
+/// case the base class definition is needed (going to be used). If the developed
+/// application is going to be multi-platform and compiled with various compilers
+/// (some of which may warn about unused private type) it is possible to use 
+/// the defined symbol to add / remove the definition of the @b Base member type.
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyBundle : public comms::field::Bundle<...>
+/// {
+/// #ifdef COMMS_MUST_DEFINE_BASE
+///     using Base = ...;
+/// #endif
 /// public:
 ///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
 /// };
@@ -1854,6 +1903,22 @@
 ///             comms::option::DefaultVariantIndex<0>, // Initialise as Prop1
 ///             TExtraOptions...
 ///         >;
+/// public:
+///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
+/// };
+/// @endcode
+/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
+/// case the base class definition is needed (going to be used). If the developed
+/// application is going to be multi-platform and compiled with various compilers
+/// (some of which may warn about unused private type) it is possible to use 
+/// the defined symbol to add / remove the definition of the @b Base member type.
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyVariant : public comms::field::Variant<...>
+/// {
+/// #ifdef COMMS_MUST_DEFINE_BASE
+///     using Base = ...;
+/// #endif
 /// public:
 ///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
 /// };

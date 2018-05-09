@@ -99,7 +99,7 @@ template <
     typename TMessages,
     typename TMsgAllocOptions = comms::option::EmptyOption,
     typename TDataFieldStorageOptions = comms::option::EmptyOption >
-using Stack =
+struct Stack : public
     comms::protocol::SyncPrefixLayer<
         SyncField,
         comms::protocol::ChecksumLayer<
@@ -122,7 +122,10 @@ using Stack =
                 >
             >
         >
-    >;
+    >
+{
+    COMMS_PROTOCOL_LAYERS_ACCESS(payload, version, id, size, checksum, sync);
+};
 
 }  // namespace demo
 

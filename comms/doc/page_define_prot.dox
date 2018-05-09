@@ -568,6 +568,23 @@
 ///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
 /// };
 /// @endcode
+/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
+/// case the base class definition is needed (going to be used). If the developed
+/// application is going to be multi-platform and compiled with various compilers
+/// (some of which may warn about unused private type) it is possible to use 
+/// the defined symbol to add / remove the definition of the @b Base member type.
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public comms::MessageBase<...>
+/// {
+/// #ifdef COMMS_MUST_DEFINE_BASE
+///     using Base = comms::MessageBase<...>;
+/// #endif
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
+/// };
+/// @endcode
 ///
 /// @subsection page_define_prot_message_base_custom_read Custom Read Functionality
 /// The default read functionality implemented by @ref comms::MessageBase::doRead()

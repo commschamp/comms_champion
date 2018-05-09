@@ -44,7 +44,22 @@ template <typename... TExtraOpts>
 class MsgDataLayer
 {
 public:
+    /// @brief Type of this layer
     using ThisLayer = MsgDataLayer<TExtraOpts...>;
+
+    /// @brief Get access to this layer object.
+    ThisLayer& thisLayer()
+    {
+        return *this;
+    }
+
+    /// @brief Get "const" access to this layer object.
+    const ThisLayer& thisLayer() const
+    {
+        return *this;
+    }
+
+
 
     /// @brief Raw data field type.
     /// @details This field is used only in @ref AllFields field and @ref
@@ -719,6 +734,23 @@ constexpr bool isMsgDataLayer()
 {
     return details::MsgDataLayerCheckHelper<T>::Value;
 }
+
+template <typename... TExtraOpts>
+constexpr
+MsgDataLayer<TExtraOpts...>&
+toProtocolLayerBase(MsgDataLayer<TExtraOpts...>& layer)
+{
+    return layer;
+}
+
+template <typename... TExtraOpts>
+constexpr
+const MsgDataLayer<TExtraOpts...>&
+toProtocolLayerBase(const MsgDataLayer<TExtraOpts...>& layer)
+{
+    return layer;
+}
+
 
 }  // namespace protocol
 

@@ -240,6 +240,31 @@ private:
 
 };
 
+namespace details
+{
+template <typename T>
+struct TransportValueLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TField, std::size_t TIdx, typename TNextLayer>
+struct TransportValueLayerCheckHelper<TransportValueLayer<TField, TIdx, TNextLayer> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref TransportValueLayer
+/// @related TransportValueLayer
+template <typename T>
+constexpr bool isTransportValueLayer()
+{
+    return details::TransportValueLayerCheckHelper<T>::Value;
+}
+
 }  // namespace protocol
 
 }  // namespace comms

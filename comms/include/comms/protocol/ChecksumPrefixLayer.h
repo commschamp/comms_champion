@@ -409,6 +409,33 @@ private:
     }
 };
 
+
+namespace details
+{
+template <typename T>
+struct ChecksumPrefixLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TField, typename TCalc, typename TNextLayer, typename... TOptions>
+struct ChecksumPrefixLayerCheckHelper<ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref ChecksumPrefixLayer
+/// @related ChecksumLayer
+template <typename T>
+constexpr bool isChecksumPrefixLayer()
+{
+    return details::ChecksumPrefixLayerCheckHelper<T>::Value;
+}
+
+
 }  // namespace protocol
 
 }  // namespace comms

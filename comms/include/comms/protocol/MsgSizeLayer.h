@@ -405,6 +405,30 @@ private:
 
 };
 
+namespace details
+{
+template <typename T>
+struct MsgSizeLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TField, typename TNextLayer>
+struct MsgSizeLayerCheckHelper<MsgSizeLayer<TField, TNextLayer> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref MsgSizeLayer
+/// @related MsgSizeLayer
+template <typename T>
+constexpr bool isMsgSizeLayer()
+{
+    return details::MsgSizeLayerCheckHelper<T>::Value;
+}
 
 }  // namespace protocol
 

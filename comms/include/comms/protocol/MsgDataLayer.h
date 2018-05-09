@@ -20,6 +20,7 @@
 
 #include <tuple>
 #include <iterator>
+#include <type_traits>
 #include "comms/Assert.h"
 #include "comms/Field.h"
 #include "comms/util/Tuple.h"
@@ -43,6 +44,8 @@ template <typename... TExtraOpts>
 class MsgDataLayer
 {
 public:
+    using ThisLayer = MsgDataLayer<TExtraOpts...>;
+
     /// @brief Raw data field type.
     /// @details This field is used only in @ref AllFields field and @ref
     ///     readFieldsCached() member function.
@@ -429,6 +432,10 @@ public:
         return getMsgLength(msg, Tag());
     }
 
+    /// @brief Access appropriate field from "cached" bundle of all the
+    ///     protocol stack fields.
+    /// @param allFields All fields of the protocol stack
+    /// @return Reference to requested field.
     template <typename TAllFields>
     static auto accessCachedField(TAllFields& allFields) ->
         decltype(std::get<std::tuple_size<typename std::decay<TAllFields>::type>::value - std::tuple_size<AllFields>::value>(allFields))
@@ -687,6 +694,31 @@ private:
         return msg.doWrite(iter, size);
     }
 };
+
+namespace details
+{
+template <typename T>
+struct MsgDataLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename... TExtraOpts>
+struct MsgDataLayerCheckHelper<MsgDataLayer<TExtraOpts...> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref MsgDataLayer
+/// @related MsgDataLayer
+template <typename T>
+constexpr bool isMsgDataLayer()
+{
+    return details::MsgDataLayerCheckHelper<T>::Value;
+}
 
 }  // namespace protocol
 

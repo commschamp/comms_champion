@@ -397,6 +397,35 @@ private:
 };
 
 
+namespace details
+{
+template <typename T>
+struct MsgIdLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TField,
+          typename TMessage,
+          typename TAllMessages,
+          typename TNextLayer,
+          typename... TOptions>
+struct MsgIdLayerCheckHelper<MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref MsgIdLayer
+/// @related MsgDataLayer
+template <typename T>
+constexpr bool isMsgIdLayer()
+{
+    return details::MsgIdLayerCheckHelper<T>::Value;
+}
+
 }  // namespace protocol
 
 }  // namespace comms

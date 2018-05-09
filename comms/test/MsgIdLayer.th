@@ -122,23 +122,46 @@ private:
     typedef Field3<LeField> LeField3;
 
     template <typename TField, typename TMessage>
-    using ProtocolStack =
+    class ProtocolStack : public
         comms::protocol::MsgIdLayer<
             TField,
             TMessage,
             AllMessages<TMessage>,
             comms::protocol::MsgDataLayer<>
-        >;
+        >
+    {
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                AllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>
+            >;
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };
 
     template <typename TField, typename TMessage>
-    using InPlaceProtocolStack =
+    class InPlaceProtocolStack : public
         comms::protocol::MsgIdLayer<
             TField,
             TMessage,
             AllMessages<TMessage>,
             comms::protocol::MsgDataLayer<>,
             comms::option::InPlaceAllocation
-        >;
+        >
+    {
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                AllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::InPlaceAllocation
+            >;
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS(payload, id);
+    };
 };
 
 void MsgIdLayerTestSuite::test1()
@@ -150,6 +173,15 @@ void MsgIdLayerTestSuite::test1()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     ProtocolStack<BeField1, BeMsgBase> stack;
+    static_cast<void>(stack.layer_id());
+    auto& payloadLayer = stack.layer_payload();
+    using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+
+    auto& idLayer = static_cast<const ProtocolStack<BeField1, BeMsgBase>&>(stack).layer_id();
+    using IdLayerType = typename std::decay<decltype(idLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
@@ -157,6 +189,15 @@ void MsgIdLayerTestSuite::test1()
     TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
 
     InPlaceProtocolStack<BeField1, BeMsgBase> inPlaceStack;
+    auto& inPlacePayloadLayer = inPlaceStack.layer_payload();
+    using InPlacePayloadLayerType = typename std::decay<decltype(inPlacePayloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<InPlacePayloadLayerType>(), "Invalid layer");
+
+    auto& inPlaceIdLayer = static_cast<const InPlaceProtocolStack<BeField1, BeMsgBase>&>(inPlaceStack).layer_id();
+    using InPlaceIdLayerType = typename std::decay<decltype(inPlaceIdLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<InPlaceIdLayerType>(), "Invalid layer");
+
+
     auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr2);
     TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);

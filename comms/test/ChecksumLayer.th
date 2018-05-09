@@ -174,7 +174,7 @@ private:
     using BeBackInsertChecksumField1 = ChecksumField1<BeBackInsertField>;
 
     template <typename TSyncField, typename TChecksumField, typename TSizeField, typename TIdField, typename TMessage>
-    using ProtocolStack =
+    struct ProtocolStack : public
         comms::protocol::SyncPrefixLayer<
             TSyncField,
             comms::protocol::ChecksumLayer<
@@ -190,7 +190,30 @@ private:
                     >
                 >
             >
-        >;
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::SyncPrefixLayer<
+                TSyncField,
+                comms::protocol::ChecksumLayer<
+                    TChecksumField,
+                    comms::protocol::checksum::BasicSum<>,
+                    comms::protocol::MsgSizeLayer<
+                        TSizeField,
+                        comms::protocol::MsgIdLayer<
+                            TIdField,
+                            TMessage,
+                            AllMessages<TMessage>,
+                            comms::protocol::MsgDataLayer<>
+                        >
+                    >
+                >
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(sync, checksum, size, id, payload);
+    };
 
     template <typename TSyncField, typename TChecksumField, typename TSizeField, typename TIdField, typename TMessage>
     using ProtocolStackVerifyBefore =
@@ -213,7 +236,7 @@ private:
         >;
 
     template <typename TSyncField, typename TChecksumField, typename TSizeField, typename TIdField, typename TMessage>
-    using ProtocolPrefixStack =
+    class ProtocolPrefixStack : public
         comms::protocol::SyncPrefixLayer<
             TSyncField,
             comms::protocol::ChecksumPrefixLayer<
@@ -229,7 +252,30 @@ private:
                     >
                 >
             >
-        >;
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::SyncPrefixLayer<
+                TSyncField,
+                comms::protocol::ChecksumPrefixLayer<
+                    TChecksumField,
+                    comms::protocol::checksum::BasicSum<>,
+                    comms::protocol::MsgSizeLayer<
+                        TSizeField,
+                        comms::protocol::MsgIdLayer<
+                            TIdField,
+                            TMessage,
+                            AllMessages<TMessage>,
+                            comms::protocol::MsgDataLayer<>
+                        >
+                    >
+                >
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_INNER(payload, id, size, checksum, sync);
+    };
 
 };
 
@@ -251,6 +297,26 @@ void ChecksumLayerTestSuite::test1()
         > Stack;
 
     Stack stack;
+
+    auto& syncLayer = stack.layer_sync();
+    using SyncLayerType = typename std::decay<decltype(syncLayer)>::type;
+    static_assert(comms::protocol::isSyncPrefixLayer<SyncLayerType>(), "Invalid layer");
+
+    auto& checksumLayer = stack.layer_checksum();
+    using ChecksumLayerType = typename std::decay<decltype(checksumLayer)>::type;
+    static_assert(comms::protocol::isChecksumLayer<ChecksumLayerType>(), "Invalid layer");
+
+    auto& sizeLayer = stack.layer_size();
+    using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
+    static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+
+    auto& idLayer = stack.layer_id();
+    using IdLayerType = typename std::decay<decltype(idLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+
+    auto& payloadLayer = stack.layer_payload();
+    using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
@@ -452,6 +518,27 @@ void ChecksumLayerTestSuite::test9()
         > Stack;
 
     Stack stack;
+
+
+    auto& syncLayer = stack.layer_sync();
+    using SyncLayerType = typename std::decay<decltype(syncLayer)>::type;
+    static_assert(comms::protocol::isSyncPrefixLayer<SyncLayerType>(), "Invalid layer");
+
+    auto& checksumLayer = stack.layer_checksum();
+    using ChecksumLayerType = typename std::decay<decltype(checksumLayer)>::type;
+    static_assert(comms::protocol::isChecksumPrefixLayer<ChecksumLayerType>(), "Invalid layer");
+
+    auto& sizeLayer = stack.layer_size();
+    using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
+    static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+
+    auto& idLayer = stack.layer_id();
+    using IdLayerType = typename std::decay<decltype(idLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+
+    auto& payloadLayer = stack.layer_payload();
+    using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
 
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);

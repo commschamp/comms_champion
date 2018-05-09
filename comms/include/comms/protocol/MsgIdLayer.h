@@ -419,7 +419,7 @@ struct MsgIdLayerCheckHelper<MsgIdLayer<TField, TMessage, TAllMessages, TNextLay
 
 /// @brief Compile time check of whether the provided type is
 ///     a variant of @ref MsgIdLayer
-/// @related MsgDataLayer
+/// @related MsgIdLayer
 template <typename T>
 constexpr bool isMsgIdLayer()
 {

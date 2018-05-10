@@ -130,14 +130,20 @@ private:
 
     typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
 
+#ifndef CC_COMPILER_GCC47
     template <typename TMessage>
     class ProtocolStack : public comms::protocol::MsgDataLayer<>
     {
+#ifdef COMMS_MUST_DEFINE_BASE
         using Base = comms::protocol::MsgDataLayer<>;
+#endif
     public:
-        using AllFields = typename Base::AllFields;
         COMMS_PROTOCOL_LAYERS_ACCESS(payload);
     };
+#else
+    template <typename TMessage>
+    using ProtocolStack = comms::protocol::MsgDataLayer<>;
+#endif
 };
 
 void MsgDataLayerTestSuite::test1()
@@ -221,7 +227,10 @@ TMessage MsgDataLayerTestSuite::internalReadWriteTest(
         >::type ProtStack;
 
     ProtStack stack;
-    static_cast<void>(stack.layer_payload());
+#ifndef CC_COMPILER_GCC47
+    static_cast<void>(stack.layer_payload()); // check generation of access func
+#endif
+
     auto readIter = buf;
     std::unique_ptr<Message> msg(new Message);
     auto es = stack.read(msg, readIter, bufSize);

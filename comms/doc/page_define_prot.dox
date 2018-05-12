@@ -746,8 +746,13 @@
 /// @endcode
 /// In order to support polymorphic refresh functionality when required (see
 /// @ref page_use_prot_interface_refresh), the actual message class
-/// implementation must also pass @ref comms::option::HasDoRefresh option to
-/// @ref comms::MessageBase class:
+/// implementation must also pass @ref comms::option::HasCustomRefresh option to
+/// @ref comms::MessageBase class. Failure to do so @b may result in missing
+/// implementation of @ref comms::MessageBase::refreshImpl(). In this case,
+/// the default implementation of @ref comms::Message::refreshImpl() will be
+/// used instead, always
+/// returning @b false (reporting that message fields weren't updated) without proper execution
+/// of refresh functionality.
 /// @code
 /// template <typename TBase>
 /// class Message2 : public
@@ -756,7 +761,7 @@
 ///         comms::option::StaticNumIdImpl<MyMsgId_Message2>, 
 ///         comms::option::MsgType<Message2<TMessage> >, 
 ///         comms::option::FieldsImpl<Message2Fields> ,
-///         comms::option::HasDoRefresh // Support polymorphic refresh when needed
+///         comms::option::HasCustomRefresh // Support polymorphic refresh when needed
 ///     >
 /// {
 /// public:
@@ -774,10 +779,6 @@
 ///     }
 /// };
 /// @endcode
-/// @b NOTE, that lack of @ref comms::option::HasDoRefresh option will result in
-/// polymorphic call to @ref comms::Message::refresh() member function always
-/// returning @b false (reporting that message fields weren't updated) without proper execution
-/// of refresh functionality.
 ///
 /// @subsection page_define_prot_message_base_custom_write Custom Write Functionality
 /// Usually there is no need to provide custom write functionality for the messages

@@ -52,31 +52,33 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::DefaultValueInitialiser - All wrapped fields may
+///     @li @ref comms::option::DefaultValueInitialiser - All wrapped fields may
 ///         specify their independent default value initialisers. It is
 ///         also possible to provide initialiser for the Variant field which
 ///         will set appropriate values to the fields based on some
 ///         internal logic.
-///     @li comms::option::ContentsValidator - All wrapped fields may specify
+///     @li @ref comms::option::ContentsValidator - All wrapped fields may specify
 ///         their independent validators. The bundle field considered to
 ///         be valid if all the wrapped fields are valid. This option though,
 ///         provides an ability to add extra validation logic that can
 ///         observe value of more than one wrapped fields. For example,
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
-///     @li comms::option::ContentsRefresher - The default @b refresh()
+///     @li @ref comms::option::ContentsRefresher - The default @b refresh()
 ///         behavior is to call @b refresh() member function of the contained
 ///         field (if such exists). This option allows specifying the custom
 ///         refreshing behaviour.
-///     @li comms::option::CustomValueReader - It may be required to implement
+///     @li @ref comms::option::CustomValueReader - It may be required to implement
 ///         custom reading functionality instead of default behaviour of
 ///         invoking read() member function of every member field. It is possible
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
-///     @li comms::option::DefaultVariantIndex - By default the Variant field
+///     @li @ref comms::option::DefaultVariantIndex - By default the Variant field
 ///         doesn't have any valid contents. This option may be used to specify
 ///         the index of the default member field.
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
+///     @li @ref comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/Variant.h
 /// @see COMMS_VARIANT_MEMBERS_ACCESS()

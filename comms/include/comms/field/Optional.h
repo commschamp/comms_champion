@@ -39,10 +39,12 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::DefaultValueInitialiser, comms::option::DefaultOptionalMode,
-///         comms::option::OptionalMissingByDefault, or comms::option::OptionalExistsByDefault.
-///     @li comms::option::ContentsValidator.
-///     @li comms::option::ContentsRefresher
+///     @li @ref comms::option::DefaultValueInitialiser, @ref comms::option::DefaultOptionalMode,
+///         @ref comms::option::OptionalMissingByDefault, or @ref comms::option::OptionalExistsByDefault.
+///     @li @ref comms::option::ContentsValidator.
+///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
 /// @extends comms::Field
 /// @headerfile comms/field/Optional.h
 template <typename TField, typename... TOptions>

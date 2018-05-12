@@ -54,6 +54,8 @@ namespace field
 ///         @ref comms::option::ValidBigUnsignedNumValueRange, @ref comms::option::ValidBigUnsignedNumValue
 ///         @ref comms::option::ValidBigUnsignedNumValueRangeOverride, @ref comms::option::ValidBigUnsignedNumValueOverride
 ///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
 ///     @li @ref comms::option::FailOnInvalid
 ///     @li @ref comms::option::IgnoreInvalid
 ///     @li @b comms::option::Units* - all variants of value units, see

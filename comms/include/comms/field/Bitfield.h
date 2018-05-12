@@ -79,18 +79,20 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::ContentsValidator - All field members may specify
+///     @li @ref comms::option::ContentsValidator - All field members may specify
 ///         their independent validators. The bitfield field considered to
 ///         be valid if all the field members are valid. This option though,
 ///         provides an ability to add extra validation logic that can
 ///         observe value of more than one bitfield member. For example,
 ///         protocol specifies that if one specific member has value X, than
 ///         other member is NOT allowed to have value Y.
-///     @li comms::option::ContentsRefresher - The default refreshing
+///     @li @ref comms::option::ContentsRefresher - The default refreshing
 ///         behaviour is to call the @b refresh() member function of every
 ///         member field. This option provides an ability to set a custom
 ///         "refreshing" logic.
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
+///     @li @ref comms::option::EmptySerialization
 /// @pre TMember is a variant of std::tuple, that contains other fields.
 /// @pre Every field member specifies its length in bits using
 ///     comms::option::FixedBitLength option.

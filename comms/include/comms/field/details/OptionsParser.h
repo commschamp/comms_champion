@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@ class OptionsParser<>
 {
 public:
     static const bool HasCustomValueReader = false;
+    static const bool HasCustomRead = false;
     static const bool HasSerOffset = false;
     static const bool HasFixedLengthLimit = false;
     static const bool HasFixedBitLengthLimit = false;
@@ -56,7 +57,8 @@ public:
     static const bool HasSequenceTerminationFieldSuffix = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
-    static const bool HasCustomRefresher = false;
+    static const bool HasContentsRefresher = false;
+    static const bool HasCustomRefresh = false;
     static const bool HasFailOnInvalid = false;
     static const bool HasIgnoreInvalid = false;
     static const bool HasFixedSizeStorage = false;
@@ -76,6 +78,15 @@ class OptionsParser<
 public:
     static const bool HasCustomValueReader = true;
     using CustomValueReader = T;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::HasCustomRead,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasCustomRead = true;
 };
 
 template <std::intmax_t TOffset, typename... TOptions>
@@ -245,8 +256,17 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomRefresher = true;
+    static const bool HasContentsRefresher = true;
     using CustomRefresher = TRefresher;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::HasCustomRefresh,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasCustomRefresh = true;
 };
 
 template <comms::ErrorStatus TStatus, typename... TOptions>

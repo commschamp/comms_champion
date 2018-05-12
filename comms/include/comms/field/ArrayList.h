@@ -174,6 +174,8 @@ using ArrayListBase =
 ///     @li @ref comms::option::DefaultValueInitialiser
 ///     @li @ref comms::option::ContentsValidator
 ///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
 ///     @li @ref comms::option::FailOnInvalid
 ///     @li @ref comms::option::IgnoreInvalid
 ///     @li @ref comms::option::OrigDataView (valid only if TElement is integral type

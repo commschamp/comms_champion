@@ -3111,7 +3111,9 @@ struct Test71_Field : public
                 >,
                 comms::option::DefaultOptionalMode<comms::field::OptionalMode::Missing>
             >
-        >
+        >,
+        comms::option::HasCustomRead,
+        comms::option::HasCustomRefresh
     >
 {
     COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(mask, val);

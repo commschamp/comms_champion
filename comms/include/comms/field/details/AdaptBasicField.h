@@ -430,7 +430,7 @@ template <typename TField, typename TOpts>
 using AdaptFieldCustomValidatorT =
     typename AdaptFieldCustomValidator<TOpts::HasCustomValidator>::template Type<TField, TOpts>;
 
-template <bool THasCustomRefresher>
+template <bool THasContentsRefresher>
 struct AdaptFieldCustomRefresher;
 
 template <>
@@ -449,7 +449,7 @@ struct AdaptFieldCustomRefresher<false>
 
 template <typename TField, typename TOpts>
 using AdaptFieldCustomRefresherT =
-    typename AdaptFieldCustomRefresher<TOpts::HasCustomRefresher>::template Type<TField, TOpts>;
+    typename AdaptFieldCustomRefresher<TOpts::HasContentsRefresher>::template Type<TField, TOpts>;
 
 template <bool THasFailOnInvalid>
 struct AdaptFieldFailOnInvalid;

@@ -846,6 +846,56 @@ constexpr bool tupleIsTailOf()
 //    return true;
 }
 
+//----------------------------------------
+
+namespace details
+{
+
+template <std::size_t TRem>
+class TupleTypeIsAnyOfHelper
+{
+public:
+    template <typename TTuple, typename TFunc>
+    static constexpr bool check(TFunc&& func)
+    {
+        using Tuple = typename std::decay<TTuple>::type;
+        static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
+        static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
+        using ElemType = typename std::tuple_element<std::tuple_size<Tuple>::value - TRem, Tuple>::type;
+        return
+#ifdef _MSC_VER
+            // VS compiler
+            func.operator()<ElemType>() &&
+#else // #ifdef _MSC_VER
+            func.template operator()<ElemType>() &&
+#endif // #ifdef _MSC_VER
+        TupleTypeIsAnyOfHelper<TRem - 1>::template check<TTuple>(
+            std::forward<TFunc>(func));
+    }
+};
+
+template <>
+class TupleTypeIsAnyOfHelper<0>
+{
+
+public:
+    template <typename TTuple, typename TFunc>
+    static constexpr bool check(TFunc&&)
+    {
+        return true;
+    }
+};
+
+}
+
+template <typename TTuple, typename TFunc>
+constexpr bool tupleTypeIsAnyOf(TFunc&& func)
+{
+    static_assert(isTuple<TTuple>(), "Tuple as argument is expected");
+    return details::TupleTypeIsAnyOfHelper<std::tuple_size<TTuple>::value>::
+            template check<TTuple>(std::forward<TFunc>(func));
+}
+
 }  // namespace util
 
 }  // namespace comms

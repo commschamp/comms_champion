@@ -73,7 +73,9 @@ namespace comms
 ///     @li comms::option::NoLengthImpl - Inhibit the implementation of lengthImpl().
 ///     @li comms::option::NoValidImpl - Inhibit the implementation of validImpl().
 ///     @li comms::option::NoDispatchImpl - Inhibit the implementation of dispatchImpl().
-///     @li comms::option::HasDoRefresh - Enable implementation of refreshImpl().
+///     @li comms::option::HasCustomRefresh - Notify @ref comms::MessageBase that
+///             there is custom doRefresh() member function in the message definition
+///             class.
 ///     @li comms::option::HasDoGetId - Enable implementation of getIdImpl() even if
 ///         comms::option::StaticNumIdImpl option wasn't used. Must be paired with
 ///         comms::option::MsgType.
@@ -731,8 +733,9 @@ protected:
     /// @brief Implementation of polymorphic refresh functionality.
     /// @details This function exists if comms::option::RefreshInterface option
     ///         was provided to comms::Message class when specifying interface,
-    ///         and comms::option::HasDoRefresh option was used to
-    ///         to request implementation of polymorphic refresh functionality.
+    ///         and comms::option::HasCustomRefresh option was used (either on
+    ///         on of the fields or when defining a message class) to
+    ///         to notify about existence of custom refresh functionality.
     ///         If comms::option::MsgType option was used to specify the actual
     ///         message class, the @b this pointer will be downcasted to it to
     ///         invoke doRefresh() member function defined there. If such

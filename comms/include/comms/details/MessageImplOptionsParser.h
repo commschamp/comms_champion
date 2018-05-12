@@ -42,7 +42,7 @@ public:
     static const bool HasNoWriteImpl = false;
     static const bool HasNoLengthImpl = false;
     static const bool HasNoValidImpl = false;
-    static const bool HasDoRefresh = false;
+    static const bool HasCustomRefresh = false;
     static const bool HasDoGetId = false;
 };
 
@@ -140,11 +140,11 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::HasDoRefresh,
+    comms::option::HasCustomRefresh,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
-    static const bool HasDoRefresh = true;
+    static const bool HasCustomRefresh = true;
 };
 
 template <typename... TOptions>

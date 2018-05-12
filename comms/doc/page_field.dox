@@ -2026,7 +2026,8 @@
 ///         std::tuple<
 ///             comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >,
 ///             comms::field::Optional<MyFieldBase, std::uint16_t>
-///         >
+///         >,
+///         comms::option::HasCustomRead
 ///     >
 /// {
 ///     template <typename TIter>
@@ -2052,12 +2053,18 @@
 ///     }
 /// };
 /// @endcode
+/// @b NOTE the usage of @ref comms::option::HasCustomRead option. It notifies
+/// other classes about existence of custom @b read functionality 
+/// (instead of default one). Other classes may contain some inner logic to
+/// perform various optimisations if there is no custom @b read.
+/// Failure to specify this option may result in incorrect behaviour.
+///
 /// Another way is to use comms::option::CustomValueReader option. It
 /// receives one template parameter, which has to be a type of a custom
 /// reader class. Such class must implement @b operator() with the following
 /// signature:
 /// @code
-/// struct MyValidator
+/// struct MyReader
 /// {
 ///     template <typename TField, typename TIter>
 ///     comms::ErrorStatus operator()(TField& field, TIter& iter, std::size_t len) const
@@ -2208,7 +2215,7 @@
 /// @subsection sec_field_tutorial_common_options_refresh Custom Refresh Functionality
 /// Every field provides @b refresh() member function used to bring the field's 
 /// value into a consistent state. By default this function does nothing and
-/// returns @b false, meaning no field has been updated. For complex fields, such
+/// returns @b false, meaning the field has been updated. For complex fields, such
 /// as comms::field::Bitfield or comms::field::Bundle, the default behaviour is
 /// to invoke @b refresh() member function of each member field and return @b true
 /// if @b any of the calls returned true.
@@ -2231,9 +2238,13 @@
 ///         std::tuple<
 ///             comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >,
 ///             comms::field::Optional<MyFieldBase, std::uint16_t>
-///         >
+///         >,
+///         comms::option::HasCustomRead,
+///         comms::option::HasCustomRefresh
 ///     >
 /// {
+///     ... 
+///
 ///     bool refresh()
 ///     {
 ///         auto& members = value();
@@ -2253,6 +2264,11 @@
 ///     }
 /// };
 /// @endcode
+/// @b NOTE the usage of @ref comms::option::HasCustomRefresh option. It notifies
+/// other classes about existence of custom @b refresh functionality 
+/// (instead of default one). Other classes may contain some inner logic to
+/// perform various optimisations if there is no custom @b refresh.
+/// Failure to specify this option may result in incorrect behaviour.
 /// 
 /// Another way is to use comms::option::ContentsRefresher option. It
 /// receives one template parameter, which has to be a type of a custom

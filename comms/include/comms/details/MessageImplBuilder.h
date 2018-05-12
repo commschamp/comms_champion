@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -184,7 +184,24 @@ public:
     template <typename TIter>
     comms::ErrorStatus doRead(TIter& iter, std::size_t size)
     {
-        return doReadInternal(iter, size, StatusTag());
+#ifdef _MSC_VER
+// For some reason VS2015 32 bit compiler may generate "integral constant overflow"
+// warning on the code below
+#pragma warning( push )
+#pragma warning( disable : 4307)
+#endif
+
+        using Tag =
+            typename std::conditional<
+                comms::util::tupleTypeAccumulate<AllFields>(true, ReadNoStatusDetector()),
+                NoStatusTag,
+                UseStatusTag
+            >::type;
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
+        return doReadInternal(iter, size, Tag());
     }
 
     template <typename TIter>
@@ -481,9 +498,9 @@ private:
     struct NoStatusTag {};
     struct UseStatusTag {};
 
-    struct NoStatusDetector
+    struct ReadNoStatusDetector
     {
-        constexpr NoStatusDetector() = default;
+        constexpr ReadNoStatusDetector() = default;
 
         template <typename TField>
         constexpr bool operator()(bool soFar) const
@@ -491,6 +508,7 @@ private:
             return
                 (TField::minLength() == TField::maxLength()) &&
                 (!TField::ParsedOptions::HasCustomValueReader) &&
+                (!TField::ParsedOptions::HasCustomRead) &&
                 (!TField::ParsedOptions::HasFailOnInvalid) &&
                 (!TField::ParsedOptions::HasSequenceElemLengthForcing)  &&
                 (!TField::ParsedOptions::HasSequenceSizeForcing)  &&
@@ -504,24 +522,6 @@ private:
             ;
         }
     };
-
-#ifdef _MSC_VER
-// For some reason VS2015 32 bit compiler may generate "integral constant overflow"
-// warning on the code below
-#pragma warning( push )
-#pragma warning( disable : 4307)
-#endif
-
-    using StatusTag =
-        typename std::conditional<
-            comms::util::tupleTypeAccumulate<AllFields>(true, NoStatusDetector()),
-            NoStatusTag,
-            UseStatusTag
-        >::type;
-
-#ifdef _MSC_VER
-#pragma warning( pop )
-#endif
 
     template <typename TIter>
     comms::ErrorStatus doReadInternal(
@@ -768,7 +768,6 @@ protected:
     using ContainerBase::writeFieldsNoStatusFromUntil;
 };
 
-
 template <bool THasFieldsImpl>
 struct MessageImplProcessFieldsBase;
 
@@ -789,6 +788,40 @@ struct MessageImplProcessFieldsBase<false>
 template <typename TBase, typename TOpt>
 using MessageImplFieldsBaseT =
     typename MessageImplProcessFieldsBase<TOpt::HasFieldsImpl>::template Type<TBase, TOpt>;
+
+
+template <typename TBase, bool THasFields>
+class AnyFieldsHasCustomRefresh;
+
+template <typename TBase>
+class AnyFieldsHasCustomRefresh<TBase, true>
+{
+    struct RefreshChecker
+    {
+        template <typename TField>
+        constexpr bool operator()() const
+        {
+            return TField::ParsedOptions::HasCustomRefresh ||
+                   TField::ParsedOptions::HasContentsRefresher;
+        }
+    };
+public:
+    static const bool Value =
+            util::tupleTypeIsAnyOf<typename TBase::AllFields>(RefreshChecker());
+};
+
+template <typename TBase>
+class AnyFieldsHasCustomRefresh<TBase, false>
+{
+public:
+    static const bool Value = false;
+};
+
+template <typename TBase, typename TImplOpt>
+constexpr bool anyFieldHasCustomRefresh()
+{
+    return AnyFieldsHasCustomRefresh<TBase, TImplOpt::HasFieldsImpl>::Value;
+}
 
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsReadImplBase : public TBase
@@ -1093,7 +1126,7 @@ private:
     }
 };
 
-template <bool THasDoRefresh>
+template <bool THasCustomRefresh>
 struct MessageImplProcessRefreshBase;
 
 template <>
@@ -1113,7 +1146,8 @@ struct MessageImplProcessRefreshBase<false>
 template <typename TBase, typename TImplOpt>
 using MessageImplRefreshBaseT =
     typename MessageImplProcessRefreshBase<
-        TBase::InterfaceOptions::HasRefresh && TImplOpt::HasDoRefresh
+        TBase::InterfaceOptions::HasRefresh &&
+            (TImplOpt::HasCustomRefresh || anyFieldHasCustomRefresh<TBase, TImplOpt>())
     >::template Type<TBase, TImplOpt>;
 
 template <typename TBase, typename TActual>

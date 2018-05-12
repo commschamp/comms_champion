@@ -86,14 +86,16 @@ using BitmaskUndertlyingTypeT =
 ///         using MyField =comms::field::EnumValue<MyFieldBase, comms::option::FixedLength<2> >;
 ///     @endcode
 ///     Supported options are:
-///     @li comms::option::FixedLength
-///     @li comms::option::FixedBitLength
-///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
-///     @li comms::option::ContentsValidator or comms::option::BitmaskReservedBits.
-///     @li comms::option::ContentsRefresher
-///     @li comms::option::FailOnInvalid
-///     @li comms::option::IgnoreInvalid
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::FixedLength
+///     @li @ref comms::option::FixedBitLength
+///     @li @ref comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
+///     @li @ref comms::option::ContentsValidator or comms::option::BitmaskReservedBits.
+///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
+///     @li @ref comms::option::FailOnInvalid
+///     @li @ref comms::option::IgnoreInvalid
+///     @li @ref comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/BitmaskValue.h
 /// @see COMMS_BITMASK_BITS()

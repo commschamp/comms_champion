@@ -200,11 +200,6 @@ struct NoValidImpl {};
 struct NoLengthImpl {};
 
 /// @brief Option that notifies comms::MessageBase about existence of
-///     custom refresh functionality in derived class.
-/// @headerfile comms/options.h
-struct HasDoRefresh {};
-
-/// @brief Option that notifies comms::MessageBase about existence of
 ///     @b doGetId() member function in derived class.
 /// @headerfile comms/options.h
 struct HasDoGetId {};
@@ -1254,6 +1249,7 @@ struct ChecksumLayerVerifyBeforeRead {};
 ///     that uses the "view".
 /// @note Incompatible with other options that contol data storage type,
 ///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
+/// @headerfile comms/options.h
 struct OrigDataView {};
 
 /// @brief Force field not to be serialized during read/write operations
@@ -1263,10 +1259,12 @@ struct OrigDataView {};
 ///     serialised. Using this option will have such effect: read/write operaitons
 ///     will not change the value of iterators and will report immediate success.
 ///     The serialisation length is always reported as 0.
+/// @headerfile comms/options.h
 struct EmptySerialization {};
 
 /// @brief Same as @ref EmptySerialization.
 /// @details Just British English spelling.
+/// @headerfile comms/options.h
 using EmptySerialisation = EmptySerialization;
 
 /// @brief Option to force @ref comms::protocol::ProtocolLayerBase class to
@@ -1274,6 +1272,7 @@ using EmptySerialisation = EmptySerialization;
 /// @details Can be used by some layers which require its read operation to be
 ///     fully complete before read is forwared to data layer, i.e. until message
 ///     contents being read.
+/// @headerfile comms/options.h
 struct ProtocolLayerForceReadUntilDataSplit {};
 
 /// @brief Disallow usage of @ref ProtocolLayerForceReadUntilDataSplit option in
@@ -1282,7 +1281,26 @@ struct ProtocolLayerForceReadUntilDataSplit {};
 ///     split their "read" operation to "until" and "from" data layer. They can
 ///     use this option to prevent outer layers from using
 ///     @ref ProtocolLayerForceReadUntilDataSplit one.
+/// @headerfile comms/options.h
 struct ProtocolLayerDisallowReadUntilDataSplit {};
+
+/// @brief Mark this class class to have custom
+///     implementation of @b read() member function.
+/// @headerfile comms/options.h
+struct HasCustomRead {};
+
+/// @brief Mark this class class to have custom
+///     implementation of @b refresh() member function.
+/// @headerfile comms/options.h
+struct HasCustomRefresh {};
+
+/// @brief Option that notifies comms::MessageBase about existence of
+///     custom refresh functionality in derived class.
+/// @details Alias to @ref HasCustomRefresh for backward compatibility.
+/// @deprecated Use @ref HasCustomRefresh instead.
+/// @headerfile comms/options.h
+using HasDoRefresh = HasCustomRefresh;
+
 
 }  // namespace option
 

@@ -70,10 +70,12 @@ namespace field
 ///         @ref comms::option::ValidNumValueRangeOverride, @ref comms::option::ValidNumValueOverride
 ///         @ref comms::option::ValidBigUnsignedNumValueRange, @ref comms::option::ValidBigUnsignedNumValue
 ///         @ref comms::option::ValidBigUnsignedNumValueRangeOverride, @ref comms::option::ValidBigUnsignedNumValueOverride
-///     @li comms::option::ContentsRefresher
-///     @li comms::option::FailOnInvalid
-///     @li comms::option::IgnoreInvalid
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
+///     @li @ref comms::option::FailOnInvalid
+///     @li @ref comms::option::IgnoreInvalid
+///     @li @ref comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
 template <typename TFieldBase, typename TEnum, typename... TOptions>

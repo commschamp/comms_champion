@@ -34,6 +34,7 @@ enum MessageType {
     MessageType3,
     MessageType4,
     MessageType5,
+    MessageType6,
 };
 
 template <typename TTraits>
@@ -98,14 +99,6 @@ protected:
     }
 };
 
-template <typename... TArgs>
-bool operator==(
-    const Message1<TArgs...>& msg1,
-    const Message1<TArgs...>& msg2)
-{
-    return msg1.fields() == msg2.fields();
-}
-
 template <typename TMessage>
 class Message2 : public
     comms::MessageBase<
@@ -138,14 +131,6 @@ protected:
         return str;
     }
 };
-
-template <typename... TArgs>
-bool operator==(
-    const Message2<TArgs...>& msg1,
-    const Message2<TArgs...>& msg2)
-{
-    return msg1.fields() == msg2.fields();
-}
 
 template <typename TField>
 using Message3Fields =
@@ -215,14 +200,6 @@ protected:
         return str;
     }
 };
-
-template <typename... TArgs>
-bool operator==(
-    const Message3<TArgs...>& msg1,
-    const Message3<TArgs...>& msg2)
-{
-    return msg1.fields() == msg2.fields();
-}
 
 template <typename TField>
 using Message4Fields =
@@ -319,14 +296,6 @@ protected:
     }
 };
 
-template <typename... TArgs>
-bool operator==(
-    const Message4<TArgs...>& msg1,
-    const Message4<TArgs...>& msg2)
-{
-    return msg1.fields() == msg2.fields();
-}
-
 
 template <typename TField>
 using FieldsMessage5 =
@@ -373,13 +342,117 @@ protected:
     }
 };
 
-template <typename... TArgs>
-bool operator==(
-    const Message5<TArgs...>& msg1,
-    const Message5<TArgs...>& msg2)
+template <typename TField>
+struct Message6Fields
 {
-    return msg1.fields() == msg2.fields();
-}
+    class field : public
+        comms::field::Bundle<
+            TField,
+            std::tuple<
+                comms::field::BitmaskValue<TField, comms::option::FixedLength<1> >,
+                comms::field::Optional<
+                    comms::field::IntValue<TField, std::uint16_t>,
+                    comms::option::MissingByDefault
+                >
+            >,
+            comms::option::HasCustomRead,
+            comms::option::HasCustomRefresh
+        >
+    {
+        using Base =
+            comms::field::Bundle<
+                TField,
+                std::tuple<
+                    comms::field::BitmaskValue<TField, comms::option::FixedLength<1> >,
+                    comms::field::Optional<
+                        comms::field::IntValue<TField, std::uint16_t>,
+                        comms::option::MissingByDefault
+                    >
+                >,
+                comms::option::HasCustomRead,
+                comms::option::HasCustomRefresh
+            >;
+
+    public:
+        COMMS_FIELD_MEMBERS_ACCESS(mask, val);
+
+        template <typename TIter>
+        comms::ErrorStatus read(TIter& iter, std::size_t len)
+        {
+            auto es = field_mask().read(iter, len);
+            if (es != comms::ErrorStatus::Success) {
+                return es;
+            }
+
+            comms::field::OptionalMode mode = comms::field::OptionalMode::Missing;
+            if ((field_mask().value() & 0x1) != 0) {
+                mode = comms::field::OptionalMode::Exists;
+            }
+
+            field_val().setMode(mode);
+            return field_val().read(iter, len - field_mask().length());
+        }
+
+        bool refresh()
+        {
+            comms::field::OptionalMode mode = comms::field::OptionalMode::Missing;
+            if ((field_mask().value() & 0x1) != 0) {
+                mode = comms::field::OptionalMode::Exists;
+            }
+
+            if (mode == field_val().getMode()) {
+                return false;
+            }
+
+            field_val().setMode(mode);
+            return true;
+        }
+    };
+
+    using All = std::tuple<
+        field
+    >;
+
+};
+
+template <typename TMessage>
+class Message6 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType6>,
+            comms::option::FieldsImpl<typename Message6Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message6<TMessage> >
+        >
+{
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType6>,
+            comms::option::FieldsImpl<typename Message6Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message6<TMessage> >
+        >;
+public:
+
+    COMMS_MSG_FIELDS_ACCESS(value1);
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 1U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 3U, "Wrong serialisation length");
+
+    Message6() = default;
+
+    ~Message6() noexcept = default;
+
+protected:
+
+    virtual const std::string& getNameImpl() const
+    {
+        static const std::string str("Message6");
+        return str;
+    }
+};
+
 
 template <typename TMessage>
 using AllMessages =

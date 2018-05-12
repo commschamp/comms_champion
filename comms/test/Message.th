@@ -44,6 +44,7 @@ public:
     void test12();
     void test13();
     void test14();
+    void test15();
 
 private:
 
@@ -764,6 +765,33 @@ void MessageTestSuite::test14()
     TS_ASSERT_EQUALS(value1, 0x1234);
     TS_ASSERT_EQUALS(value2, -1);
     TS_ASSERT_EQUALS(msg.transportField_version().value(), 5U);
+}
+
+void MessageTestSuite::test15()
+{
+    static const std::uint8_t Buf[] = {
+        0x1, 0x02, 0x03
+    };
+    static const std::size_t BufSize =
+        std::extent<decltype(Buf)>::value;
+
+    using Msg6 = Message6<BeRefreshableMessageBase>;
+
+    auto msg = internalReadWriteTest<Msg6>(&Buf[0], BufSize);
+    TS_ASSERT_EQUALS(msg.doLength(), 3U);
+    TS_ASSERT_EQUALS(msg.field_value1().field_mask().value(), 1U);
+    TS_ASSERT_EQUALS(msg.field_value1().field_val().field().value(), 0x0203);
+
+    msg.field_value1().field_mask().value() = 0U;
+
+    BeRefreshableMessageBase& interface = msg;
+    TS_ASSERT(interface.refresh());
+    TS_ASSERT_EQUALS(msg.length(), 1U);
+    TS_ASSERT(!interface.refresh());
+
+    msg.field_value1().field_mask().value() = 1U;
+    TS_ASSERT(interface.refresh());
+    TS_ASSERT_EQUALS(msg.length(), 3U);
 }
 
 template <typename TMessage>

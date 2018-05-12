@@ -303,7 +303,7 @@ public:
                     0U, FieldMaxLengthRetriever());
     }
 
-    bool doRefresh() const
+    bool doRefresh()
     {
         return util::tupleAccumulate(fields(), false, FieldRefresher());
     }
@@ -682,7 +682,7 @@ private:
         template <typename TField>
         bool operator()(bool refreshed, TField& field) const
         {
-            return field.refreshed() || refreshed;
+            return field.refresh() || refreshed;
         }
     };
 

@@ -615,10 +615,13 @@ public:
     /// @details The message data always get wrapped with transport information
     ///     to be successfully delivered to and unpacked on the other side.
     ///     This function return remaining length of the transport information.
+    ///     It performs a call to @ref doFieldLength() member function to
+    ///     get info about current field length. To update the default behaviour
+    ///     just override the function in the derived class.
     /// @return length of the field + length reported by the next layer.
     constexpr std::size_t length() const
     {
-        return Field::minLength() + nextLayer_.length();
+        return static_cast<const ThisLayer&>(*this).doFieldLength() + nextLayer_.length();
     }
 
     /// @brief Get remaining length of wrapping transport information + length
@@ -627,13 +630,16 @@ public:
     ///     identify the size of the buffer required to write provided message
     ///     wrapped in the transport information. This function is very similar
     ///     to length(), but adds also length of the message.
+    ///     It performs a call to @ref doFieldLength() member function with message parameter to
+    ///     get info about current field length. To update the default behaviour
+    ///     just override the function in the derived class.
     /// @tparam TMsg Type of message object.
     /// @param[in] msg Message object
     /// @return length of the field + length reported by the next layer.
     template <typename TMsg>
     constexpr std::size_t length(const TMsg& msg) const
     {
-        return Field::minLength() + nextLayer_.length(msg);
+        return static_cast<const ThisLayer&>(*this).doFieldLength(msg) + nextLayer_.length(msg);
     }
 
     /// @brief Update recently written (using write()) message contents data.
@@ -733,6 +739,20 @@ public:
         TNextLayerUpdater&& nextLayerUpdater) const
     {
         return updateInternal(field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), LengthTag());
+    }
+
+    /// @brief Default implementation of field length retrieval.
+    static constexpr std::size_t doFieldLength()
+    {
+        return Field::minLength();
+    }
+
+    /// @brief Default implementation of field length retrieval when
+    ///     message is known.
+    template <typename TMsg>
+    static constexpr std::size_t doFieldLength(const TMsg&)
+    {
+        return doFieldLength();
     }
 
     /// @brief Create message object given the ID.

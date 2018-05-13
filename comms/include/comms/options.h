@@ -1126,15 +1126,20 @@ struct ValidNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
+/// @brief Clear accumulated ranges of valid values.
+struct ValidRangesClear {};
+
 /// @brief Similar to @ref ValidNumValueRange, but overrides (nullifies)
 ///     all previously set valid values ranges.
 /// @see @ref ValidNumValueOverride
 /// @see @ref ValidBigUnsignedNumValueRangeOverride
+/// @deprecated Use @ref ValidRangesClear instead.
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
-struct ValidNumValueRangeOverride
-{
-    static_assert(TMinValue <= TMaxValue, "Invalid range");
-};
+using ValidNumValueRangeOverride =
+    std::tuple<
+        ValidNumValueRange<TMinValue, TMaxValue>,
+        ValidRangesClear
+    >;
 
 /// @brief Alias to @ref ValidNumValueRange.
 /// @details Equivalent to @b ValidNumValueRange<TValue, TValue>
@@ -1143,6 +1148,7 @@ using ValidNumValue = ValidNumValueRange<TValue, TValue>;
 
 /// @brief Alias to @ref ValidNumValueRangeOverride.
 /// @details Equivalent to @b ValidNumValueRangeOverride<TValue, TValue>
+/// @deprecated Use @ref ValidRangesClear instead.
 template<std::intmax_t TValue>
 using ValidNumValueOverride = ValidNumValueRangeOverride<TValue, TValue>;
 
@@ -1169,11 +1175,13 @@ struct ValidBigUnsignedNumValueRange
 ///     all previously set valid values ranges.
 /// @see @ref ValidNumValueOverride
 /// @see @ref ValidBigUnsignedNumValueOverride
+/// @deprecated Use @ref ValidRangesClear instead.
 template<std::uintmax_t TMinValue, std::uintmax_t TMaxValue>
-struct ValidBigUnsignedNumValueRangeOverride
-{
-    static_assert(TMinValue <= TMaxValue, "Invalid range");
-};
+using ValidBigUnsignedNumValueRangeOverride =
+    std::tuple<
+        ValidBigUnsignedNumValueRange<TMinValue, TMaxValue>,
+        ValidRangesClear
+    >;
 
 /// @brief Alias to @ref ValidBigUnsignedNumValueRange.
 /// @details Equivalent to @b ValidBigUnsignedNumValueRange<TValue, TValue>
@@ -1182,6 +1190,7 @@ using ValidBigUnsignedNumValue = ValidBigUnsignedNumValueRange<TValue, TValue>;
 
 /// @brief Alias to @ref ValidBigUnsignedNumValueRangeOverride.
 /// @details Equivalent to @b ValidBigUnsignedNumValueRangeOverride<TValue, TValue>
+/// @deprecated Use @ref ValidRangesClear instead.
 template<std::uintmax_t TValue>
 using ValidBigUnsignedNumValueOverride = ValidBigUnsignedNumValueRangeOverride<TValue, TValue>;
 

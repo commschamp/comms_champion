@@ -55,9 +55,8 @@ namespace field
 ///     @li @ref comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
 ///     @li @ref comms::option::ContentsValidator
 ///     @li @ref comms::option::ValidNumValueRange, @ref comms::option::ValidNumValue,
-///         @ref comms::option::ValidNumValueRangeOverride, @ref comms::option::ValidNumValueOverride
 ///         @ref comms::option::ValidBigUnsignedNumValueRange, @ref comms::option::ValidBigUnsignedNumValue
-///         @ref comms::option::ValidBigUnsignedNumValueRangeOverride, @ref comms::option::ValidBigUnsignedNumValueOverride
+///     @li @ref comms::option::ValidRangesClear
 ///     @li @ref comms::option::ContentsRefresher
 ///     @li @ref comms::option::HasCustomRead
 ///     @li @ref comms::option::HasCustomRefresh

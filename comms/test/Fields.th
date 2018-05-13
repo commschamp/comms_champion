@@ -3761,7 +3761,6 @@ void FieldsTestSuite::test85()
 
 void FieldsTestSuite::test86()
 {
-#ifndef CC_COMPILER_GCC47
     typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::uint8_t,
@@ -3775,7 +3774,6 @@ void FieldsTestSuite::test86()
     TS_ASSERT(!field.valid());
     field.value() = 5U;
     TS_ASSERT(field.valid());
-#endif
 }
 
 void FieldsTestSuite::test87()

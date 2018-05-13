@@ -2405,13 +2405,14 @@
 /// Please @b note, that current implementation gives preference to the options
 /// defined @b earlier. That's why @b TExtraOpts... should be listed before any
 /// other options. It will allow setting other default value needed by the application,
-/// and/or override the valid values ranges (using @ref comms::option::ValidNumValueRangeOverride). 
+/// and/or override the valid values ranges (using @ref comms::option::ValidRangesClear).
 /// For example:
 /// @code
 /// using MyUpdatedField = 
 ///     MyField<
 ///         comms::option::DefaultNumValue<10>,
-///         comms::option::ValidNumValueRangeOverride<10, 500>
+///         comms::option::ValidNumValueRange<10, 500>,
+///         comms::option::ValidRangesClear
 ///     >
 /// @endcode
 ///

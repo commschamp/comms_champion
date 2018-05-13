@@ -1682,8 +1682,8 @@
 /// @b comms::option::DefaultNumValue<5> (which changes the default value to be 5).
 ///
 /// In case the application needs to override originally defined valid range(s) of
-/// the field, it can use @ref comms::option::ValidNumValueRangeOverride or
-/// @ref comms::option::ValidNumValueOverride option, which will clear all 
+/// the field, it can use @ref comms::option::ValidRangesClear
+/// option, which will clear all
 /// previously defined valid ranges and will start accumulating them anew. For
 /// example:
 /// @code
@@ -1697,7 +1697,8 @@
 ///                 std::tuple<
 ///                     comms::option::DefaultNumValue<5>, // change the default value
 ///                     comms::option::ValidNumValue<5>, // add 5 to valid ranges of [40, 50]
-///                     comms::option::ValidNumValueRangeOverride<40, 50>, // override the default ranges
+///                     comms::option::ValidNumValueRange<40, 50>, // new range
+///                     comms::option::ValidRangesClear // clear the default ranges
 ///                 >;
 ///         };
 ///     };

@@ -12,6 +12,18 @@
 /// the @b COMMS library. The client application will have to include only relevant
 /// headers from the protocol definition.
 ///
+/// @section page_use_prot_paths Paths and Namespaces
+/// All the classes provided by the @b COMMS library reside in @ref comms
+/// namespace and the inner include paths start with "comms/". There may be
+/// the case when this library being integrated into existing project that may already
+/// define and use its own module (namespace) named @b comms. In this case it
+/// should be possible to rename installation directory (@b comms to @b comms2) and 
+/// to run a script after library installation to replace
+/// the following strings with new name:
+/// @li <b>"namespace comms"</b> - replace with "namespace comms2"
+/// @li @b "comms::" - replace with "comms2::"
+/// @li @b "comms/" - replace with "comms2/"
+///
 /// @section page_use_prot_error_handling Error Handling
 /// The COMMS library is intended to be used in embedded systems (including 
 /// bare metal), which means the library does not use exceptions to report errors.
@@ -2463,6 +2475,59 @@
 /// the message interface class defines mentioned earlier
 /// types and functions.
 ///
+/// @section page_use_prot_pseudo_transport Pseudo Transport Values
+/// Some communication protocols have values (such as protocol version information),
+/// which are reported in the payload of one of the messages and may influence
+/// the way how other messages being deserialised and/or handled. Usually it is
+/// some kind of @b CONNECT message. Such scenario is implemented in the
+/// very similar way to @ref page_use_prot_extra_transport. The protocol stack
+/// is still defined using @ref comms::protocol::TransportValueLayer but with @ref
+/// comms::option::PseudoValue option. Such layer contains the "pseudo" field in
+/// its internal data members and pretends to read it during @b read operation.
+///
+/// Let's assume the protocol framing is defined to be
+/// @code
+/// SIZE | ID | PAYLOAD
+/// @endcode
+/// but there is some kind of @b CONNECT message that reports client protocol version.
+/// The transport framing will probably be defined as if it handles the following
+/// stack.
+/// @code
+/// SIZE | ID | VERSION (pseudo) | PAYLOAD
+/// @endcode
+/// The transport framing is expected to be defined as below providing an access
+/// to the VERSION handling layer:
+/// @code
+/// namespace my_protocol
+/// {
+///
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// struct ProtocolStack : public 
+///     MySizePrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+///     COMMS_PROTOCOL_LAYERS_ACCESS(payload, version, id, size);
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
+/// Then after reception and handling of the mentioned @b CONNECT message, the
+/// stored pseudo version field may be accessed using @b pseudoField() member
+/// function of @ref comms::protocol::TransportValueLayer layer (see @ref
+/// comms::protocol::TransportValueLayer::pseudoField()) and updated with
+/// reported value.
+/// @code
+/// ProtStack protStack; // Protocol stack object
+/// protStack.layer_version().pseudoField().value() = connectMsg.field_version().value();
+/// @endcode
+/// From now on every received message will have appropriate extra transport field
+/// updated accordingly right after receiving of the message and before its @b
+/// read operation being performed.
+///
 /// @section page_use_prot_msg_customisation Application Specific Customisation of Messages
 /// When most of the messages are uni-directional, i.e. are either only sent or
 /// only received, then it may make sense to split the common message interface
@@ -2488,9 +2553,9 @@
 /// using MyInputMessage3 = my_protocol::Message3<MyInputMessage>;
 /// ...
 ///
-/// using MyOutputMessage1 = my_protocol::Message1<MyOutputMessage>;
-/// using MyOutputMessage2 = my_protocol::Message2<MyOutputMessage>;
-/// using MyOutputMessage2 = my_protocol::Message3<MyOutputMessage>;
+/// using MyOutputMessage7 = my_protocol::Message7<MyOutputMessage>;
+/// using MyOutputMessage8 = my_protocol::Message8<MyOutputMessage>;
+/// using MyOutputMessage9 = my_protocol::Message9<MyOutputMessage>;
 /// ...
 ///
 /// @endcode
@@ -2511,10 +2576,6 @@
 /// the support from the latter is required. If the protocol definition
 /// follows a recommended approach the message definition is expected to
 /// reuse extra protocol options structure (@b DefaultOptions) described earlier.
-/// @code
-
-/// @endcode
-/// Add passing these options to message definition classes:
 /// @code
 /// namespace my_protocol
 /// {

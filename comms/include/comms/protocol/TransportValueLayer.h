@@ -49,6 +49,7 @@ namespace protocol
 ///     @li @ref comms::option::PseudoValue - Mark the handled value to be "pseudo"
 ///         one, i.e. the field is not getting serialised.
 /// @headerfile comms/protocol/TransportValueLayer.h
+/// @extends ProtocolLayerBase
 template <typename TField, std::size_t TIdx, typename TNextLayer, typename... TOptions>
 class TransportValueLayer : public
         details::TransportValueLayerAdapterT<
@@ -221,7 +222,17 @@ public:
         return doFieldLength();
     }
 
+#ifdef FOR_DOXYGEN_DOC_ONLY
+    /// @brief Access to pseudo field stored internally.
+    /// @details The function exists only if @ref comms::option::PseudoValue
+    ///     option has been used.
+    Field& pseudoField();
 
+    /// @brief Const access to pseudo field stored internally.
+    /// @details The function exists only if @ref comms::option::PseudoValue
+    ///     option has been used.
+    const Field& pseudoField() const;
+#endif
 private:
     struct SmartPtrTag {};
     struct MsgObjTag {};

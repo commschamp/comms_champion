@@ -500,6 +500,34 @@
 /// being complete as well. As the result these layers do not support being wrapped by 
 /// @ref comms::protocol::TransportValueLayer and will fail compilation with
 /// static assert if such wrapping is attempted.
+///
+/// @section page_prot_stack_tutorial_pseudo_transport_value Pseudo Transport Values
+/// Some protocols may report one of the values (such as protocol version) in
+/// one of the messages used to establish connection. After that, the reported
+/// value may have influence on how other message contents are being read. Handling
+/// such case is very similar to @ref page_prot_stack_tutorial_transport_value.
+/// The only difference is passing @ref comms::option::PseudoValue option to
+/// @ref comms::protocol::TransportValueLayer layer class. It will cause the 
+/// transport value not actually being (de)serialised during @b read / @b write
+/// operations. The pseudo field value is going to be stored as private member
+/// of @ref comms::protocol::TransportValueLayer and can be accessed (and updated) using
+/// @ref comms::protocol::TransportValueLayer::pseudoField() member function(s).
+/// During the @b read operation the comms::protocol::TransportValueLayer behaves
+/// as if the value stored in this field was actually read.
+/// @code
+/// // Version control layer
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// using MyVersion = 
+///     comms::protocol::TransportValueLayer<
+///         MyVersionField, 
+///         TMessage::TransportFieldIdx_version, 
+///         MyMsgData<TPayloadOptions>,
+///         comms::option::PseudoValue
+///     >;
+/// @endcode
 /// 
 /// @section page_prot_stack_tutorial_summary Layers Summary
 /// The earlier examples show that layer classes wrap one another, which creates

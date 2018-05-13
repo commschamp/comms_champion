@@ -1301,6 +1301,10 @@ struct HasCustomRefresh {};
 /// @headerfile comms/options.h
 using HasDoRefresh = HasCustomRefresh;
 
+/// @brief Option for @ref comms::protocol::TransportValueLayer to
+///     mark that the handled field is a "pseudo" one, i.e. is not serialised.
+struct PseudoValue {};
+
 
 }  // namespace option
 

@@ -109,12 +109,6 @@ Bitfields::~Bitfields() noexcept = default;
 Bitfields& Bitfields::operator=(const Bitfields&) = default;
 Bitfields& Bitfields::operator=(Bitfields&&) = default;
 
-const char* Bitfields::nameImpl() const
-{
-    static const char* Str = "Bitfields";
-    return Str;
-}
-
 const QVariantList& Bitfields::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

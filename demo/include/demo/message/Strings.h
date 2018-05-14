@@ -96,7 +96,8 @@ class Strings : public
         typename TOpt::message::Strings,
         comms::option::StaticNumIdImpl<MsgId_Strings>,
         comms::option::FieldsImpl<typename StringsFields<TOpt>::All>,
-        comms::option::MsgType<Strings<TMsgBase, TOpt> >
+        comms::option::MsgType<Strings<TMsgBase, TOpt> >,
+        comms::option::HasName
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -107,7 +108,8 @@ class Strings : public
             typename TOpt::message::Strings,
             comms::option::StaticNumIdImpl<MsgId_Strings>,
             comms::option::FieldsImpl<typename StringsFields<TOpt>::All>,
-            comms::option::MsgType<Strings<TMsgBase, TOpt> >
+            comms::option::MsgType<Strings<TMsgBase, TOpt> >,
+            comms::option::HasName
         >;
 public:
 
@@ -141,6 +143,12 @@ public:
 
     /// @brief Move assignment
     Strings& operator=(Strings&&) = default;
+
+    /// @brief Name of the message.
+    static const char* doName()
+    {
+        return "Strings";
+    }
 };
 
 }  // namespace message

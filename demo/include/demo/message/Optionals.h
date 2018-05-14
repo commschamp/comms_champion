@@ -122,7 +122,8 @@ class Optionals : public
         comms::option::StaticNumIdImpl<MsgId_Optionals>,
         comms::option::FieldsImpl<typename OptionalsFields<TOpt>::All>,
         comms::option::MsgType<Optionals<TMsgBase, TOpt> >,
-        comms::option::HasDoRefresh
+        comms::option::HasCustomRefresh,
+        comms::option::HasName
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -134,7 +135,8 @@ class Optionals : public
             comms::option::StaticNumIdImpl<MsgId_Optionals>,
             comms::option::FieldsImpl<typename OptionalsFields<TOpt>::All>,
             comms::option::MsgType<Optionals<TMsgBase, TOpt> >,
-            comms::option::HasDoRefresh
+            comms::option::HasCustomRefresh,
+            comms::option::HasName
         >;
 
 public:
@@ -245,6 +247,11 @@ public:
         return refreshed;
     }
 
+    /// @brief Name of the message.
+    static const char* doName()
+    {
+        return "Optionals";
+    }
 };
 
 }  // namespace message

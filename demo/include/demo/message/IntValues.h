@@ -125,7 +125,8 @@ class IntValues : public
         typename TOpt::message::IntValues,
         comms::option::StaticNumIdImpl<MsgId_IntValues>,
         comms::option::FieldsImpl<typename IntValuesFields<TOpt>::All>,
-        comms::option::MsgType<IntValues<TMsgBase, TOpt> >
+        comms::option::MsgType<IntValues<TMsgBase, TOpt> >,
+        comms::option::HasName
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -136,7 +137,8 @@ class IntValues : public
             typename TOpt::message::IntValues,
             comms::option::StaticNumIdImpl<MsgId_IntValues>,
             comms::option::FieldsImpl<typename IntValuesFields<TOpt>::All>,
-            comms::option::MsgType<IntValues<TMsgBase, TOpt> >
+            comms::option::MsgType<IntValues<TMsgBase, TOpt> >,
+            comms::option::HasName
         >;
 public:
 
@@ -172,6 +174,12 @@ public:
 
     /// @brief Move assignment
     IntValues& operator=(IntValues&&) = default;
+
+    /// @brief Name of the message.
+    static const char* doName()
+    {
+        return "IntValues";
+    }
 };
 
 }  // namespace message

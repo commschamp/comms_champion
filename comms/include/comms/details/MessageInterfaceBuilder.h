@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -517,6 +517,40 @@ template <typename TBase, typename TOpts>
 using MessageInterfaceRefreshBaseT =
     typename MessageInterfaceProcessRefreshBase<TOpts::HasRefresh>::template Type<TBase>;
 
+template <typename TBase>
+class MessageInterfaceNameBase : public TBase
+{
+public:
+    const char* name() const
+    {
+        return nameImpl();
+    }
+
+protected:
+    ~MessageInterfaceNameBase() noexcept = default;
+    virtual const char* nameImpl() const = 0;
+};
+
+template <bool THasName>
+struct MessageInterfaceProcessNameBase;
+
+template <>
+struct MessageInterfaceProcessNameBase<true>
+{
+    template <typename TBase>
+    using Type = MessageInterfaceNameBase<TBase>;
+};
+
+template <>
+struct MessageInterfaceProcessNameBase<false>
+{
+    template <typename TBase>
+    using Type = TBase;
+};
+
+template <typename TBase, typename TOpts>
+using MessageInterfaceNameBaseT =
+    typename MessageInterfaceProcessNameBase<TOpts::HasName>::template Type<TBase>;
 
 template <typename TOpts>
 constexpr bool messageInterfaceHasVirtualFunctions()
@@ -528,7 +562,8 @@ constexpr bool messageInterfaceHasVirtualFunctions()
         TOpts::HasHandler ||
         TOpts::HasValid ||
         TOpts::HasLength ||
-        TOpts::HasRefresh;
+        TOpts::HasRefresh ||
+        TOpts::HasName;
 }
 
 template <typename TBase>
@@ -579,7 +614,8 @@ class MessageInterfaceBuilder
     using LengthBase = MessageInterfaceLengthBaseT<ValidBase, ParsedOptions>;
     using HandlerBase = MessageInterfaceHandlerBaseT<LengthBase, ParsedOptions>;
     using RefreshBase = MessageInterfaceRefreshBaseT<HandlerBase, ParsedOptions>;
-    using VirtDestructorBase = MessageInterfaceVirtDestructorBaseT<RefreshBase, ParsedOptions>;
+    using NameBase = MessageInterfaceNameBaseT<RefreshBase, ParsedOptions>;
+    using VirtDestructorBase = MessageInterfaceVirtDestructorBaseT<NameBase, ParsedOptions>;
 
 public:
     using Options = ParsedOptions;

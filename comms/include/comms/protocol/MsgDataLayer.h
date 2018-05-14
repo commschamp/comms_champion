@@ -26,6 +26,8 @@
 #include "comms/util/Tuple.h"
 #include "comms/field/ArrayList.h"
 #include "comms/field/IntValue.h"
+#include "comms/Message.h"
+#include "comms/MessageBase.h"
 #include "ProtocolLayerBase.h"
 
 namespace comms
@@ -132,7 +134,7 @@ public:
         using MsgType = typename std::decay<decltype(msg)>::type;
         using Tag =
             typename std::conditional<
-                details::protocolLayerHasImplOptions<MsgType>(),
+                comms::details::hasImplOptions<MsgType>(),
                 DirectOpTag,
                 PolymorphicOpTag
             >::type;
@@ -301,7 +303,7 @@ public:
         using MsgType = typename std::decay<decltype(msg)>::type;
 
         static_assert(
-            details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
+            comms::isMessage<MsgType>(),
             "The provided message object must inherit from comms::Message");
 
         using Tag =
@@ -435,7 +437,7 @@ public:
         using MsgType = typename std::decay<decltype(msg)>::type;
 
         static_assert(
-            details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
+            comms::isMessage<MsgType>(),
             "The provided message object must inherit from comms::Message");
 
         using Tag = typename
@@ -574,7 +576,7 @@ private:
         using MsgType = typename MsgPtrType::element_type;
 
         static_assert(
-            details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
+            comms::isMessage<MsgType>(),
             "The provided message object must inherit from comms::Message");
 
         static_assert(MsgType::InterfaceOptions::HasReadIterator,
@@ -617,7 +619,7 @@ private:
         using MsgType = typename std::decay<decltype(msg)>::type;
 
         static_assert(
-            details::protocolLayerHasImplOptions<MsgType>(),
+            comms::isMessageBase<MsgType>(),
             "The provided message object must inherit from comms::MessageBase");
 
         static_assert(details::protocolLayerHasFieldsImpl<MsgType>(),

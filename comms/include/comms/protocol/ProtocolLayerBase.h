@@ -29,6 +29,7 @@
 
 #include "details/ProtocolLayerBaseOptionsParser.h"
 #include "comms/details/protocol_layers_access.h"
+#include "comms/details/detect.h"
 
 namespace comms
 {
@@ -57,42 +58,6 @@ struct ProtocolLayerAllMessagesHelper<T, typename ProtocolLayerEnableIfHasAllMes
 template <class T>
 using ProtocolLayerAllMessagesType = typename ProtocolLayerAllMessagesHelper<T>::Type;
 
-template <class T, class R = void>
-struct ProtocolLayerEnableIfHasInterfaceOptions { using Type = R; };
-
-template <class T, class Enable = void>
-struct ProtocolLayerHasInterfaceOptions
-{
-    static const bool Value = false;
-};
-
-template <class T>
-struct ProtocolLayerHasInterfaceOptions<T, typename ProtocolLayerEnableIfHasInterfaceOptions<typename T::InterfaceOptions>::Type>
-{
-    static const bool Value = true;
-};
-
-template <class T, class R = void>
-struct ProtocolLayerEnableIfHasImplOptions { using Type = R; };
-
-template <class T, class Enable = void>
-struct ProtocolLayerHasImplOptions
-{
-    static const bool Value = false;
-};
-
-template <class T>
-struct ProtocolLayerHasImplOptions<T, typename ProtocolLayerEnableIfHasImplOptions<typename T::ImplOptions>::Type>
-{
-    static const bool Value = true;
-};
-
-template <class T>
-constexpr bool protocolLayerHasImplOptions()
-{
-    return ProtocolLayerHasImplOptions<T>::Value;
-}
-
 template <typename T, bool THasImpl>
 struct ProtocolLayerHasFieldsImplHelper;
 
@@ -112,7 +77,7 @@ template <typename T>
 struct ProtocolLayerHasFieldsImpl
 {
     static const bool Value =
-        ProtocolLayerHasFieldsImplHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
+        ProtocolLayerHasFieldsImplHelper<T, comms::details::hasImplOptions<T>()>::Value;
 };
 
 template <class T>
@@ -140,7 +105,7 @@ template <typename T>
 struct ProtocolLayerHasDoGetId
 {
     static const bool Value =
-        ProtocolLayerHasDoGetIdHelper<T, ProtocolLayerHasImplOptions<T>::Value>::Value;
+        ProtocolLayerHasDoGetIdHelper<T, comms::details::hasImplOptions<T>()>::Value;
 };
 
 template <typename T>
@@ -796,7 +761,7 @@ protected:
     template <typename T>
     static constexpr bool isMessageObjRef()
     {
-        return details::protocolLayerHasImplOptions<T>();
+        return comms::details::hasImplOptions<T>();
     }
 
     /// @brief Reset msg in case it is a smart pointer (@ref MsgPtr).

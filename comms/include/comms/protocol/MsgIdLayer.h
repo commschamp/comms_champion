@@ -266,7 +266,7 @@ private:
     static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicOpTag)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
-        static_assert(details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
+        static_assert(comms::isMessage<MsgType>(),
             "The message class is expected to inherit from comms::Message");
         static_assert(MsgType::InterfaceOptions::HasMsgIdInfo,
             "The message interface class must expose polymorphic ID retrieval functionality, "

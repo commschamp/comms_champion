@@ -109,12 +109,6 @@ Optionals::~Optionals() noexcept = default;
 Optionals& Optionals::operator=(const Optionals&) = default;
 Optionals& Optionals::operator=(Optionals&&) = default;
 
-const char* Optionals::nameImpl() const
-{
-    static const char* Str = "Optionals";
-    return Str;
-}
-
 const QVariantList& Optionals::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

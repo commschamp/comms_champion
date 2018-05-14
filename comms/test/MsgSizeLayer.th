@@ -248,11 +248,9 @@ private:
         explicit GenericMsg(MsgIdParamType id) : Base(id) {}
         GenericMsg(const GenericMsg&) = default;
 
-    protected:
-        virtual const std::string& getNameImpl() const override
+        const char* doName() const
         {
-            static const std::string Str("Generic Message");
-            return Str;
+            return "Generic Message";
         }
     };
 

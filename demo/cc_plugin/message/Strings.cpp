@@ -54,12 +54,6 @@ Strings::~Strings() noexcept = default;
 Strings& Strings::operator=(const Strings&) = default;
 Strings& Strings::operator=(Strings&&) = default;
 
-const char* Strings::nameImpl() const
-{
-    static const char* Str = "Strings";
-    return Str;
-}
-
 const QVariantList& Strings::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

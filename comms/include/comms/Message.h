@@ -31,6 +31,7 @@
 
 #include "details/MessageInterfaceBuilder.h"
 #include "details/transport_fields_access.h"
+#include "details/detect.h"
 
 namespace comms
 {
@@ -502,6 +503,18 @@ typename TMessage::WriteIterator writeIteratorFor(
     return typename TMessage::WriteIterator(val);
 }
 
+/// @brief Compile time check of of whether the type
+///     is a message.
+/// @details Checks existence of @b InterfaceOptions inner
+///     type.
+template <typename T>
+constexpr bool isMessage()
+{
+    return details::hasInterfaceOptions<T>();
+}
+
+}  // namespace comms
+
 /// @brief Add convenience access enum and functions to extra transport fields.
 /// @details The comms::Message class provides access to its extra transport fields via
 ///     comms::MessageBase::transportFields() member function(s). The fields are bundled
@@ -629,6 +642,4 @@ typename TMessage::WriteIterator writeIteratorFor(
         return comms::toMessage(*this).transportFields(); \
     } \
     COMMS_EXPAND(COMMS_DO_TRANSPORT_FIELD_ACC_FUNC(TransportFields, transportFields(), __VA_ARGS__))
-
-}  // namespace comms
 

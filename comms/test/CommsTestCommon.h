@@ -38,21 +38,7 @@ enum MessageType {
 };
 
 template <typename TTraits>
-class TestMessageBase : public comms::Message<TTraits>
-{
-    using Base = comms::Message<TTraits>;
-public:
-
-    virtual ~TestMessageBase() noexcept = default;
-
-    const std::string& getName() const
-    {
-        return this->getNameImpl();
-    }
-
-private:
-    virtual const std::string& getNameImpl() const = 0;
-};
+using TestMessageBase = comms::Message<TTraits>;
 
 
 template <typename TField>
@@ -67,7 +53,8 @@ class Message1 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType1>,
             comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
-            comms::option::MsgType<Message1<TMessage> >
+            comms::option::MsgType<Message1<TMessage> >,
+            comms::option::HasName
         >
 {
     using Base =
@@ -75,7 +62,8 @@ class Message1 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType1>,
             comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
-            comms::option::MsgType<Message1<TMessage> >
+            comms::option::MsgType<Message1<TMessage> >,
+            comms::option::HasName
         >;
 public:
 
@@ -90,12 +78,9 @@ public:
 
     virtual ~Message1() noexcept = default;
 
-protected:
-
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message1");
-        return str;
+        return "Message1";
     }
 };
 
@@ -105,7 +90,8 @@ class Message2 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType2>,
         comms::option::ZeroFieldsImpl,
-        comms::option::MsgType<Message2<TMessage> >
+        comms::option::MsgType<Message2<TMessage> >,
+        comms::option::HasName
     >
 {
     using Base =
@@ -113,7 +99,8 @@ class Message2 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType2>,
             comms::option::ZeroFieldsImpl,
-            comms::option::MsgType<Message2<TMessage> >
+            comms::option::MsgType<Message2<TMessage> >,
+            comms::option::HasName
         >;
 
 public:
@@ -124,11 +111,9 @@ public:
     static_assert(MsgMinLen == 0U, "Wrong serialisation length");
     static_assert(MsgMaxLen == 0U, "Wrong serialisation length");
 
-protected:
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message2");
-        return str;
+        return "Message2";
     }
 };
 
@@ -152,7 +137,8 @@ class Message3 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType3>,
         comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
-        comms::option::MsgType<Message3<TMessage> >
+        comms::option::MsgType<Message3<TMessage> >,
+        comms::option::HasName
     >
 {
     using Base =
@@ -160,7 +146,8 @@ class Message3 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType3>,
             comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
-            comms::option::MsgType<Message3<TMessage> >
+            comms::option::MsgType<Message3<TMessage> >,
+            comms::option::HasName
         >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
@@ -192,12 +179,9 @@ public:
 
     virtual ~Message3() noexcept = default;
 
-protected:
-
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message3");
-        return str;
+        return "Message3";
     }
 };
 
@@ -222,7 +206,8 @@ class Message4 : public
         comms::option::StaticNumIdImpl<MessageType4>,
         comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
         comms::option::MsgType<Message4<TMessage> >,
-        comms::option::HasDoRefresh
+        comms::option::HasDoRefresh,
+        comms::option::HasName
     >
 {
     using Base =
@@ -231,7 +216,8 @@ class Message4 : public
             comms::option::StaticNumIdImpl<MessageType4>,
             comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
             comms::option::MsgType<Message4<TMessage> >,
-            comms::option::HasDoRefresh
+            comms::option::HasDoRefresh,
+            comms::option::HasName
         >;
 public:
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
@@ -288,11 +274,9 @@ public:
         return true;
     }
 
-protected:
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message4");
-        return str;
+        return "Message4";
     }
 };
 
@@ -310,7 +294,8 @@ class Message5 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType5>,
             comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
-            comms::option::MsgType<Message5<TMessage> >
+            comms::option::MsgType<Message5<TMessage> >,
+            comms::option::HasName
         >
 {
     using Base =
@@ -318,7 +303,8 @@ class Message5 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType5>,
             comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
-            comms::option::MsgType<Message5<TMessage> >
+            comms::option::MsgType<Message5<TMessage> >,
+            comms::option::HasName
         >;
 public:
 
@@ -333,12 +319,9 @@ public:
 
     virtual ~Message5() noexcept = default;
 
-protected:
-
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message5");
-        return str;
+        return "Message5";
     }
 };
 
@@ -421,7 +404,8 @@ class Message6 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType6>,
             comms::option::FieldsImpl<typename Message6Fields<typename TMessage::Field>::All>,
-            comms::option::MsgType<Message6<TMessage> >
+            comms::option::MsgType<Message6<TMessage> >,
+            comms::option::HasName
         >
 {
     using Base =
@@ -429,7 +413,8 @@ class Message6 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType6>,
             comms::option::FieldsImpl<typename Message6Fields<typename TMessage::Field>::All>,
-            comms::option::MsgType<Message6<TMessage> >
+            comms::option::MsgType<Message6<TMessage> >,
+            comms::option::HasName
         >;
 public:
 
@@ -444,12 +429,9 @@ public:
 
     ~Message6() noexcept = default;
 
-protected:
-
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message6");
-        return str;
+        return "Message6";
     }
 };
 

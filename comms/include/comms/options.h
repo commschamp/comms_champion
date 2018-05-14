@@ -115,6 +115,10 @@ struct LengthInfoInterface {};
 /// @headerfile comms/options.h
 struct RefreshInterface {};
 
+/// @brief Option used to add @b name() function into Message interface.
+/// @headerfile comms/options.h
+struct NameInterface {};
+
 /// @brief Option used to specify type of the message handler.
 /// @tparam T Type of the handler.
 /// @headerfile comms/options.h
@@ -1293,15 +1297,19 @@ struct ProtocolLayerForceReadUntilDataSplit {};
 /// @headerfile comms/options.h
 struct ProtocolLayerDisallowReadUntilDataSplit {};
 
-/// @brief Mark this class class to have custom
-///     implementation of @b read() member function.
+/// @brief Mark this class to have custom
+///     implementation of @b read functionality.
 /// @headerfile comms/options.h
 struct HasCustomRead {};
 
-/// @brief Mark this class class to have custom
-///     implementation of @b refresh() member function.
+/// @brief Mark this class to have custom
+///     implementation of @b refresh functionality.
 /// @headerfile comms/options.h
 struct HasCustomRefresh {};
+
+/// @brief Mark this class as providing its name information
+/// @headerfile comms/options.h
+struct HasName {};
 
 /// @brief Option that notifies comms::MessageBase about existence of
 ///     custom refresh functionality in derived class.

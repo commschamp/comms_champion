@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -46,6 +46,7 @@ public:
     static const bool HasValid = false;
     static const bool HasLength = false;
     static const bool HasRefresh = false;
+    static const bool HasName = false;
     static const bool HasNoVirtualDestructor = false;
     static const bool HasExtraTransportFields = false;
 };
@@ -134,6 +135,15 @@ class MessageInterfaceOptionsParser<
 {
 public:
     static const bool HasRefresh = true;
+};
+
+template <typename... TOptions>
+class MessageInterfaceOptionsParser<
+    comms::option::NameInterface,
+    TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
+{
+public:
+    static const bool HasName = true;
 };
 
 template <typename... TOptions>

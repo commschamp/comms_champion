@@ -80,6 +80,7 @@ class GenericMessage : public
         comms::option::FieldsImpl<GenericMessageFields<typename TMessage::Field, TFieldOpts> >,
         comms::option::MsgType<GenericMessage<TMessage, TFieldOpts, TExtraOpts> >,
         comms::option::HasDoGetId,
+        comms::option::HasName,
         TExtraOpts
     >
 {
@@ -89,6 +90,7 @@ class GenericMessage : public
             comms::option::FieldsImpl<GenericMessageFields<typename TMessage::Field, TFieldOpts> >,
             comms::option::MsgType<GenericMessage<TMessage, TFieldOpts, TExtraOpts> >,
             comms::option::HasDoGetId,
+            comms::option::HasName,
             TExtraOpts
         >;
 public:
@@ -134,6 +136,14 @@ public:
     MsgIdParamType doGetId() const
     {
         return m_id;
+    }
+
+    /// @brief Get message name information.
+    /// @details The comms::MessageBase::nameImpl() will invoke this
+    ///     function.
+    const char* doName() const
+    {
+        return "Generic Message";
     }
 
 private:

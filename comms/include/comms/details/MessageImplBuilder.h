@@ -1150,6 +1150,41 @@ using MessageImplRefreshBaseT =
             (TImplOpt::HasCustomRefresh || anyFieldHasCustomRefresh<TBase, TImplOpt>())
     >::template Type<TBase, TImplOpt>;
 
+template <typename TBase, typename TOpt>
+class MessageImplNameBase : public TBase
+{
+protected:
+    ~MessageImplNameBase() noexcept = default;
+    virtual const char* nameImpl() const override
+    {
+        using Actual = typename TOpt::MsgType;
+        return static_cast<const Actual*>(this)->doName();
+    }
+};
+
+template <bool THasName>
+struct MessageImplProcessNameBase;
+
+template <>
+struct MessageImplProcessNameBase<true>
+{
+    template <typename TBase, typename TOpt>
+    using Type = MessageImplNameBase<TBase, TOpt>;
+};
+
+template <>
+struct MessageImplProcessNameBase<false>
+{
+    template <typename TBase, typename TOpt>
+    using Type = TBase;
+};
+
+template <typename TBase, typename TImplOpt>
+using MessageImplNameBaseT =
+    typename MessageImplProcessNameBase<
+        TBase::InterfaceOptions::HasName && TImplOpt::HasName
+    >::template Type<TBase, TImplOpt>;
+
 template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
 {
@@ -1202,7 +1237,8 @@ class MessageImplBuilder
     using FieldsValidBase = MessageImplFieldsValidBaseT<FieldsWriteImplBase, ParsedOptions>;
     using FieldsLengthBase = MessageImplFieldsLengthBaseT<FieldsValidBase, ParsedOptions>;
     using RefreshBase = MessageImplRefreshBaseT<FieldsLengthBase, ParsedOptions>;
-    using DispatchBase = MessageImplDispatchBaseT<RefreshBase, ParsedOptions>;
+    using NameBase = MessageImplNameBaseT<RefreshBase, ParsedOptions>;
+    using DispatchBase = MessageImplDispatchBaseT<NameBase, ParsedOptions>;
 
 public:
     using Options = ParsedOptions;

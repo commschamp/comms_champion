@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include "details/MessageImplBuilder.h"
 #include "details/macro_common.h"
 #include "details/fields_access.h"
+#include "details/detect.h"
 
 namespace comms
 {
@@ -784,9 +785,21 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
     return msg;
 }
 
+/// @brief Compile time check of of whether the type
+///     is a message extending @ref comms::MessageBase.
+/// @details Checks existence of @b ImplOptions inner
+///     type.
+template <typename T>
+constexpr bool isMessageBase()
+{
+    return details::hasImplOptions<T>();
+}
+
+}  // namespace comms
+
 /// @brief Add convenience access enum and functions to message fields.
-/// @details The comms::MessageBase class provides access to its fields via
-///     comms::MessageBase::fields() member function(s). The fields are bundled
+/// @details The @ref comms::MessageBase class provides access to its fields via
+///     @ref comms::MessageBase::fields() member function(s). The fields are bundled
 ///     into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
 ///     and can be accessed using indices with
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
@@ -909,6 +922,3 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
         return val; \
     } \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(AllFields, fields(), __VA_ARGS__))
-}  // namespace comms
-
-

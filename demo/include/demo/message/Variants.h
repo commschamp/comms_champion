@@ -261,7 +261,8 @@ class Variants : public
         typename TOpt::message::Variants,
         comms::option::StaticNumIdImpl<MsgId_Variants>,
         comms::option::FieldsImpl<typename VariantsFields<TOpt>::All>,
-        comms::option::MsgType<Variants<TMsgBase, TOpt> >
+        comms::option::MsgType<Variants<TMsgBase, TOpt> >,
+        comms::option::HasName
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -272,7 +273,8 @@ class Variants : public
             typename TOpt::message::Variants,
             comms::option::StaticNumIdImpl<MsgId_Variants>,
             comms::option::FieldsImpl<typename VariantsFields<TOpt>::All>,
-            comms::option::MsgType<Variants<TMsgBase, TOpt> >
+            comms::option::MsgType<Variants<TMsgBase, TOpt> >,
+            comms::option::HasName
         >;
 public:
 
@@ -280,7 +282,6 @@ public:
     /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
-    ///
     COMMS_MSG_FIELDS_ACCESS(field1);
 
     // Check serialisation lengths
@@ -306,6 +307,12 @@ public:
 
     /// @brief Move assignment
     Variants& operator=(Variants&&) = default;
+
+    /// @brief Name of the message.
+    static const char* doName()
+    {
+        return "Variants";
+    }
 };
 
 }  // namespace message

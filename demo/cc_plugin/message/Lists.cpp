@@ -103,12 +103,6 @@ Lists::~Lists() noexcept = default;
 Lists& Lists::operator=(const Lists&) = default;
 Lists& Lists::operator=(Lists&&) = default;
 
-const char* Lists::nameImpl() const
-{
-    static const char* Str = "Lists";
-    return Str;
-}
-
 const QVariantList& Lists::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

@@ -68,7 +68,8 @@ private:
         comms::option::WriteIterator<std::uint8_t*>,
         comms::option::ValidCheckInterface,
         comms::option::LengthInfoInterface,
-        comms::option::Handler<comms::EmptyHandler>
+        comms::option::Handler<comms::EmptyHandler>,
+        comms::option::NameInterface
     > CommonOptions;
 
     typedef
@@ -367,11 +368,13 @@ void MessageTestSuite::test1()
     auto value = std::get<0>(beMsg.fields()).value();
     TS_ASSERT_EQUALS(value, 0x0102);
     TS_ASSERT(beMsg.valid());
+    TS_ASSERT_EQUALS(beMsg.name(), "Message1");
 
     auto leMsg = internalReadWriteTest<LeMsg1>(&Buf[0], BufSize);
     value = std::get<0>(leMsg.fields()).value();
     TS_ASSERT_EQUALS(value, 0x0201);
     TS_ASSERT(leMsg.valid());
+    TS_ASSERT_EQUALS(leMsg.name(), "Message1");
 }
 
 void MessageTestSuite::test2()
@@ -461,6 +464,8 @@ void MessageTestSuite::test5()
     TS_ASSERT_EQUALS(std::get<3>(beMsg.fields()).value(), 0xaaff);
     TS_ASSERT_EQUALS(beMsg.length(), 10);
     TS_ASSERT(beMsg.valid());
+    TS_ASSERT_EQUALS(beMsg.name(), "Message3");
+    TS_ASSERT_EQUALS(beMsg.doName(), "Message3");
 
     LeMsg3 leMsg;
     TS_ASSERT(!leMsg.valid());
@@ -472,6 +477,7 @@ void MessageTestSuite::test5()
     TS_ASSERT_EQUALS(std::get<3>(leMsg.fields()).value(), 0xffaa00);
     TS_ASSERT_EQUALS(leMsg.length(), 10);
     TS_ASSERT(leMsg.valid());
+    TS_ASSERT_EQUALS(leMsg.name(), "Message3");
 }
 
 void MessageTestSuite::test6()
@@ -521,6 +527,7 @@ void MessageTestSuite::test8()
     BeMsg4 msg;
     TS_ASSERT_EQUALS(msg.doGetId(), MessageType4);
     TS_ASSERT_EQUALS(msg.length(), 1U);
+    TS_ASSERT_EQUALS(msg.name(), "Message4");
 
     std::vector<std::uint8_t> outData;
     outData.resize(msg.length());
@@ -540,7 +547,6 @@ void MessageTestSuite::test8()
     writeIter = &outData[0];
     internalWriteReadTest(msg, writeIter, outData.size());
 }
-
 
 void MessageTestSuite::test9()
 {

@@ -69,7 +69,7 @@ protected:
         actObj = ActualMsg();
     }
 
-    /// @brief Overriding implementation to comms_champion::Message::assignImpl()
+    /// @brief Overriding implementation to @ref comms_champion::Message::assignImpl()
     virtual bool assignImpl(const comms_champion::Message& other) override
     {
         auto* castedOther = dynamic_cast<const ActualMsg*>(&other);
@@ -82,6 +82,35 @@ protected:
         actObj = *castedOther;
         return true;
     }
+
+    /// @brief Overriding implementation to @ref comms_champion::Message::nameImpl()
+    virtual const char* nameImpl() const override
+    {
+        static_assert(comms::isMessageBase<TMsgBase>(), "TMsgBase is expected to be proper message");
+
+        using Tag = typename std::conditional<
+                TMsgBase::ImplOptions::HasName,
+                HasNameTag,
+                NoNameTag
+            >::type;
+        return nameInternal(Tag());
+    }
+
+private:
+    struct HasNameTag {};
+    struct NoNameTag {};
+
+    const char* nameInternal(HasNameTag) const
+    {
+        return TMsgBase::doName();
+    }
+
+    const char* nameInternal(NoNameTag) const
+    {
+        assert(!"nameImpl() needs to be overriden with proper value");
+        return nullptr;
+    }
+
 };
 
 }  // namespace comms_champion

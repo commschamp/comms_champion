@@ -166,6 +166,13 @@ public:
         return InterfaceOptions::HasExtraTransportFields;
     }
 
+    /// @brief Compile type inquiry whether message interface class defines
+    ///     @ref name() and @ref nameImpl() member functions.
+    static constexpr bool hasName()
+    {
+        return InterfaceOptions::HasName;
+    }
+
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Type used for message ID.
     /// @details The type exists only if comms::option::MsgIdType option
@@ -315,6 +322,13 @@ public:
     /// @see @ref hasTransportFields()
     const TransportFields& transportFields() const;
 
+    /// @brief Get name of the message.
+    /// @details The function exists only if comms::option::NameInterface option
+    ///     was provided to comms::Message. The function invokes virtual
+    ///     @ref nameImpl() function.
+    /// @see @ref hasName()
+    const char* name() const;
+
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 protected:
@@ -386,6 +400,12 @@ protected:
     ///     provided to comms::Message to specify type of the handler.
     /// @param handler Handler object to dispatch message to.
     virtual DispatchRetType dispatchImpl(Handler& handler) = 0;
+
+    /// @brief Pure virtual function used to retrieve actual message name.
+    /// @details Called by @ref name(), must be implemented in the derived class.
+    ///     The function exists only if comms::option::NameInterface option was
+    ///     provided to @ref comms::Message.
+    virtual const char* nameImpl() const = 0;
 
     /// @brief Write data into the output area.
     /// @details Use this function to write data to the output area using

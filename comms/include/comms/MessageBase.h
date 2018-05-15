@@ -744,6 +744,17 @@ protected:
     ///         this class will be used.
     /// @return @b true in case fields were updated, @b false if nothing has changed.
     virtual bool refreshImpl() override;
+
+    /// @brief Implementation of polymorphic name retrieval functionality.
+    /// @details This function exists if @ref comms::option::NameInterface option
+    ///         was provided to @ref comms::Message class when specifying interface,
+    ///         and @ref comms::option::HasName as well as @ref comms::option::MsgType
+    ///         options ware used for this class.
+    ///         This function downcasts @b this pointer to actual message type and
+    ///         invokes @b doName() member function.
+    /// @return @b true in case fields were updated, @b false if nothing has changed.
+    virtual const char* nameImpl() const override;
+
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 

@@ -453,6 +453,40 @@
 /// the message interface class defines mentioned earlier
 /// functions.
 ///
+/// @subsection page_use_prot_interface_name Polymorphic Message Name Retrieval
+/// Some applications may require knowledge about and report the name of the received / sent
+/// message. The @b COMMS library provides @ref comms::option::NameInterface 
+/// option, that adds @b name() member function to the message interface
+/// (see @ref comms::Message::name()).
+/// @code
+/// using MyMessage = 
+///     comms::Message<
+///         ...
+///         comms::option::NameInterface,
+///         ...
+///     >;
+/// @endcode
+/// This option adds the following functions to the interface definition:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Retrieve name of the message 
+///     const char* name() const
+///     {
+///         return nameImpl();
+///     }
+///
+/// protected:
+///     virtual const char* nameImpl() const = 0;
+/// };
+/// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasName()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::NameInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
+///
 /// @subsection page_use_prot_interface_virt_destructor Virtual Destructor
 /// By default the @ref comms::Message class defines its 
 /// destructor as @b virtual if and only if it exhibits a polymorphic behaviour, 
@@ -502,7 +536,7 @@
 /// @endcode  
 /// The definition below gives a full interface of all
 /// the introduced functions: @b getId(), @b read(), @b write(), @b dispatch(),
-/// @b length(), @b valid(), and @b refresh().
+/// @b length(), @b valid(), @b refresh(), and @b name().
 /// @code
 /// using MyMessage = my_protocol::Message<
 ///     comms::option::IdInfoInterface, // Add an ability to retrieve message ID value
@@ -511,7 +545,8 @@
 ///     comms::option::Handler<MyHandler>, // My MyHandler class declared earlier as a handler for messages
 ///     comms::option::LengthInfoInterface, // Add an ability to retrieve serialisation length
 ///     comms::option::ValidCheckInterface, // Add an ability to check contents validity
-///     comms::option::RefreshInterface  // Add an ability to refresh message contents
+///     comms::option::RefreshInterface,  // Add an ability to refresh message contents
+///     comms::option::NameInterface // Add an ability to retrieve message name
 /// >;
 /// @endcode
 ///

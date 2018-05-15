@@ -328,7 +328,7 @@
 /// @endcode
 ///
 /// The message definition class has to extend @ref comms::MessageBase and receive
-/// at least one template parameter, that is past as first one to @ref comms::MessageBase.
+/// at least one template parameter, that is passed as first one to @ref comms::MessageBase.
 /// @code
 /// template <typename TBase>
 /// class Message1 : comms::MessageBase<TBase, ...> 
@@ -845,6 +845,44 @@
 ///     }
 /// };
 /// @endcode
+///
+/// @subsection page_define_prot_message_base_name Reporting Message Name
+/// Some application may require printing (or reporting by other means) human
+/// readable name of the message. The @ref comms::MessageBase cannot automatically
+/// generate appropriate function. As the result, the message definition class is
+/// expected to define @b doName() member function with the following signature.
+/// @code
+/// template <typename TBase>
+/// class SomeMessage : public comms::MessageBase<...>
+/// {
+/// public:
+///     static const char* doName()
+///     {
+///         return "Some Message";
+///     }
+/// };
+/// @endcode
+/// In order to support @ref page_use_prot_interface_name there is a need
+/// to pass @ref comms::option::HasName option to @ref comms::MessageBase to notify
+/// the latter about existence of @b doName() member function.
+/// @code
+/// template <typename TBase>
+/// class SomeMessage : public 
+///     comms::MessageBase<
+///         ...,
+///         comms::option::HasName
+///     >
+/// {
+/// public:
+///     static const char* doName()
+///     {
+///         return "Some Message";
+///     }
+/// };
+/// @endcode
+/// When @ref comms::option::HasName is used, the @b comms::MessageBase
+/// creates overriding @b nameImpl() (see @ref comms::MessageBase::nameImpl()), which
+/// invokes provided @b doName() member function.
 ///
 /// @section page_define_prot_lenth_verification Extra Compile Time Checks
 /// Quite often it is obvious from the protocol specification what minimal length

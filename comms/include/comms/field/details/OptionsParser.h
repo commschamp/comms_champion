@@ -68,6 +68,7 @@ public:
     static const bool HasOrigDataView = false;
     static const bool HasEmptySerialization = false;
     static const bool HasMultiRangeValidation = false;
+    static const bool HasCustomVersionUpdate = false;
 };
 
 template <typename T, typename... TOptions>
@@ -429,6 +430,15 @@ public:
 #endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::uintmax_t, TMinValue, TMaxValue>;
     static const bool HasMultiRangeValidation = true;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::HasCustomVersionUpdate,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasCustomVersionUpdate = true;
 };
 
 template <typename... TOptions>

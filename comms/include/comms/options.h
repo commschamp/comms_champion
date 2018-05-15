@@ -1322,6 +1322,17 @@ using HasDoRefresh = HasCustomRefresh;
 ///     mark that the handled field is a "pseudo" one, i.e. is not serialised.
 struct PseudoValue {};
 
+template <typename T>
+struct VersionType
+{
+    static_assert(std::is_integral<T>::value, "Only unsigned integral types are supported for versions");
+    static_assert(std::is_unsigned<T>::value, "Only unsigned integral types are supported for versions");
+};
+
+/// @brief Mark this class to have custom
+///     implementation of version update functionality.
+/// @headerfile comms/options.h
+struct HasCustomVersionUpdate {};
 
 }  // namespace option
 

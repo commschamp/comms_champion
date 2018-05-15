@@ -36,6 +36,9 @@ class FieldBase<>
 protected:
     // Use big endian by default
     using Endian = comms::traits::endian::Big;
+
+    // Use unsigned type by default for versioning
+    using VersionType = unsigned;
 };
 
 template <typename TEndian, typename... TOptions>
@@ -44,6 +47,24 @@ class FieldBase<comms::option::Endian<TEndian>, TOptions...> : public FieldBase<
 protected:
     using Endian = TEndian;
 };
+
+template <typename T, typename... TOptions>
+class FieldBase<comms::option::VersionType<T>, TOptions...> : public FieldBase<TOptions...>
+{
+protected:
+    using VersionType = T;
+};
+
+template <typename... TOptions>
+class FieldBase<comms::option::EmptyOption, TOptions...> : public FieldBase<TOptions...>
+{
+};
+
+template <typename... TTuple, typename... TOptions>
+class FieldBase<std::tuple<TTuple...>, TOptions...> : public FieldBase<TTuple..., TOptions...>
+{
+};
+
 
 }  // namespace details
 

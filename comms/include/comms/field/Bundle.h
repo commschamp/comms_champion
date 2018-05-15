@@ -87,6 +87,9 @@ public:
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
 
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
+
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
 
@@ -506,6 +509,19 @@ public:
     bool refresh()
     {
         return BaseImpl::refresh();
+    }
+
+    /// @brief Compile time check if this class is version dependent
+    static constexpr bool isVersionDependent()
+    {
+        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Default implementation of version update.
+    /// @return @b true in case the field contents have changed, @b false otherwise
+    bool setVersion(VersionType version)
+    {
+        return BaseImpl::setVersion(version);
     }
 
 protected:

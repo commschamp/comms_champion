@@ -181,6 +181,7 @@ void FieldsTestSuite::test1()
         comms::Field<BigEndianOpt>,
         std::uint32_t> Field;
 
+    static_assert(!Field::isVersionDependent(), "Invalid version dependency assumption");
     static const char Buf[] = {
         0x01, 0x02, 0x03, 0x04
     };
@@ -200,6 +201,8 @@ void FieldsTestSuite::test2()
         comms::option::FixedLength<3>
     > Field;
 
+    static_assert(!Field::isVersionDependent(), "Invalid version dependency assumption");
+
     static const char Buf[] = {
         0x01, 0x02, 0x03, 0x04
     };
@@ -217,6 +220,8 @@ void FieldsTestSuite::test3()
         comms::Field<BigEndianOpt>,
         std::int16_t
     > Field;
+
+    static_assert(!Field::isVersionDependent(), "Invalid version dependency assumption");
 
     static const char Buf[] = {
         0x01, 0x02
@@ -289,6 +294,8 @@ void FieldsTestSuite::test7()
         comms::option::NumValueSerOffset<-2000>
     > Field;
 
+    static_assert(!Field::isVersionDependent(), "Invalid version dependency assumption");
+
     static const char Buf[] = {
         13
     };
@@ -323,6 +330,7 @@ void FieldsTestSuite::test8()
         comms::option::ValidNumValueRange<0, 0x010200>
     > Field;
 
+    static_assert(!Field::isVersionDependent(), "Invalid version dependency assumption");
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(field.value(), 0U);
@@ -352,6 +360,8 @@ void FieldsTestSuite::test9()
 #endif
         comms::option::DefaultNumValue<100>
     > Field;
+
+    static_assert(!Field::isVersionDependent(), "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT_EQUALS(field.value(), 100);
@@ -383,6 +393,7 @@ void FieldsTestSuite::test10()
         comms::option::FixedLength<2>
     > Field;
 
+    static_assert(!Field::isVersionDependent(), "Invalid version dependency assumption");
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(field.value(), 0U);
@@ -434,6 +445,8 @@ void FieldsTestSuite::test11()
         comms::option::BitmaskReservedBits<0xff0000, 0>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
     Field field;
     TS_ASSERT(!field.valid());
     TS_ASSERT_EQUALS(field.value(), 0xffffff);
@@ -492,6 +505,9 @@ void FieldsTestSuite::test12()
         comms::option::DefaultNumValue<Enum1_NumOfValues>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
 
     TS_ASSERT(!field.valid());
@@ -526,6 +542,9 @@ void FieldsTestSuite::test13()
         comms::option::ValidNumValueRange<0, (int)(Enum2::NumOfValues) - 1>,
         comms::option::DefaultNumValue<(int)Enum2::NumOfValues>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(!field.valid());
@@ -562,6 +581,9 @@ void FieldsTestSuite::test14()
         >
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT(field.valid());
 
@@ -584,6 +606,9 @@ void FieldsTestSuite::test15()
         >,
         comms::option::FixedSizeStorage<32>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -620,11 +645,18 @@ void FieldsTestSuite::test16()
         comms::option::SequenceSizeFieldPrefix<SizeField>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceSizeFieldPrefix<SizeField>,
         comms::option::FixedSizeStorage<256>
     > StaticStorageField;
+
+    static_assert(!StaticStorageField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
 
     Field field;
     TS_ASSERT(field.valid());
@@ -664,10 +696,18 @@ void FieldsTestSuite::test17()
         comms::option::ValidNumValueRange<0, 4>
     > SizeField;
 
+    static_assert(!SizeField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceSizeFieldPrefix<SizeField>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
 
     TS_ASSERT_EQUALS(Field::minLength(), SizeField::maxLength());
     TS_ASSERT_EQUALS(Field::maxLength(), SizeField::maxLength() + std::numeric_limits<std::uint16_t>::max());
@@ -677,6 +717,10 @@ void FieldsTestSuite::test17()
         comms::option::SequenceSizeFieldPrefix<SizeField>,
         comms::option::FixedSizeStorage<256>
     > StaticStorageField;
+
+    static_assert(!StaticStorageField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
 
     TS_ASSERT_EQUALS(StaticStorageField::minLength(), SizeField::maxLength());
     TS_ASSERT_EQUALS(StaticStorageField::maxLength(), SizeField::maxLength() + 255);
@@ -722,11 +766,17 @@ void FieldsTestSuite::test18()
         std::uint16_t
     > SizeField;
 
+    static_assert(!SizeField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceSizeFieldPrefix<SizeField>,
         comms::option::DefaultValueInitialiser<HelloInitialiser>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
@@ -734,6 +784,9 @@ void FieldsTestSuite::test18()
         comms::option::DefaultValueInitialiser<HelloInitialiser>,
         comms::option::FixedSizeStorage<64>
     > StaticStorageField;
+
+    static_assert(!StaticStorageField::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -772,16 +825,25 @@ void FieldsTestSuite::test19()
         std::uint8_t
     > SizeField;
 
+    static_assert(!SizeField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceSizeFieldPrefix<SizeField>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceSizeFieldPrefix<SizeField>,
         comms::option::FixedSizeStorage<64>
     > StaticStorageField;
+
+    static_assert(!StaticStorageField::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     auto& fieldStr = field.value();
@@ -820,6 +882,9 @@ void FieldsTestSuite::test20()
         comms::option::VarLength<1, 2>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     static const char Buf[] = {
         (char)0x81, 0x01
     };
@@ -846,6 +911,9 @@ void FieldsTestSuite::test21()
         std::uint32_t,
         comms::option::VarLength<1, 3>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static const char Buf[] = {
         (char)0x83, 0x0f
@@ -893,6 +961,9 @@ void FieldsTestSuite::test22()
         comms::option::VarLength<1, 3>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     static const char Buf[] = {
         (char)0x83, (char)0x8f, (char)0x8c, (char)0x3f, (char)0xff
     };
@@ -908,6 +979,9 @@ void FieldsTestSuite::test23()
         std::int16_t,
         comms::option::VarLength<1, 2>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
 
@@ -940,6 +1014,9 @@ void FieldsTestSuite::test24()
         comms::option::FixedLength<2>,
         comms::option::NumValueSerOffset<2>,
         comms::option::ValidNumValueRange<0, 2> > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static const char Buf[] = {
         0x00, 0x02
@@ -980,6 +1057,9 @@ void FieldsTestSuite::test25()
         BitfileMembers
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     static_cast<void>(field);
     TS_ASSERT_EQUALS(field.length(), 1U);
@@ -1019,6 +1099,9 @@ void FieldsTestSuite::test26()
         comms::Field<BigEndianOpt>,
         BitfileMembers
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     static_cast<void>(field);
@@ -1081,6 +1164,9 @@ void FieldsTestSuite::test27()
 {
     using Field = Test27_Field<>;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT_EQUALS(field.length(), 2U);
     TS_ASSERT_EQUALS(field.memberBitLength<Field::FieldIdx_mem1>(), 4U);
@@ -1120,6 +1206,9 @@ void FieldsTestSuite::test28()
         >
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     TS_ASSERT_EQUALS(Field::minLength(), sizeof(std::uint16_t));
 
     Field field;
@@ -1154,6 +1243,9 @@ void FieldsTestSuite::test29()
         comms::option::DefaultNumValue<Enum1_Value2>,
         comms::option::FailOnInvalid<comms::ErrorStatus::ProtocolError>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -1194,6 +1286,9 @@ void FieldsTestSuite::test30()
         comms::option::IgnoreInvalid
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(field.value(), 0x2);
@@ -1231,6 +1326,9 @@ void FieldsTestSuite::test31()
             comms::option::ValidNumValueRange<0, 10>
         >
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     typedef Field::Mode Mode;
 
@@ -1282,6 +1380,9 @@ void FieldsTestSuite::test32()
             >
         >
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 3U, "Invalid minLength");
     static_assert(Field::minLengthFrom<1>() == 1U, "Invalid minLength");
@@ -1368,16 +1469,24 @@ void FieldsTestSuite::test33()
         std::uint8_t
     > SizeField;
 
+    static_assert(!SizeField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceSizeFieldPrefix<SizeField>
     > StringField;
 
+    static_assert(!StringField::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     typedef comms::field::ArrayList<
         comms::Field<BigEndianOpt>,
         StringField
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     TS_ASSERT_EQUALS(Field::minLength(), 0U);
     TS_ASSERT_EQUALS(Field::maxLength(), 0xffff * StringField::maxLength());
@@ -1410,6 +1519,9 @@ void FieldsTestSuite::test34()
         comms::option::SequenceSizeForcingEnabled
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT(field.value().empty());
@@ -1439,6 +1551,9 @@ void FieldsTestSuite::test35()
         float
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT(fpEquals(field.value(), 0.0f));
     field.value() = 1.23f;
@@ -1466,6 +1581,9 @@ void FieldsTestSuite::test36()
         std::uint8_t,
         comms::option::SequenceFixedSize<5>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 5U, "Invalid min length");
     static_assert(Field::maxLength() == 5U, "Invalid max length");
@@ -1496,6 +1614,9 @@ void FieldsTestSuite::test37()
         comms::option::SequenceFixedSize<3>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     static_assert(Field::minLength() == 6U, "Invalid min length");
     static_assert(Field::maxLength() == 6U, "Invalid max length");
 
@@ -1523,11 +1644,17 @@ void FieldsTestSuite::test38()
         comms::option::ValidNumValueRange<0, 0>
     > TrailField;
 
+    static_assert(!TrailField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceFixedSize<5>,
         comms::option::SequenceTrailingFieldSuffix<TrailField>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 6U, "Invalid min length");
     static_assert(Field::maxLength() == 6U, "Invalid max length");
@@ -1566,6 +1693,9 @@ void FieldsTestSuite::test39()
         comms::option::ValidNumValueRange<5, 10>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT(fpEquals(field.value(), 0.0f));
     TS_ASSERT(!field.valid());
@@ -1584,6 +1714,9 @@ void FieldsTestSuite::test40()
         std::uint8_t,
         comms::option::ScalingRatio<1, 100>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT_EQUALS(field.value(), 0U);
@@ -1611,10 +1744,16 @@ void FieldsTestSuite::test41()
         comms::option::ValidNumValueRange<0, 0>
     > TermField;
 
+    static_assert(!TermField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceTerminationFieldSuffix<TermField>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -1650,6 +1789,9 @@ void FieldsTestSuite::test42()
         std::uint32_t,
         comms::option::VarLength<1, 4>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT_EQUALS(field.value(), 0U);
@@ -1718,6 +1860,9 @@ void FieldsTestSuite::test43()
         comms::option::VarLength<1, 4>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT_EQUALS(field.value(), 0U);
     TS_ASSERT_EQUALS(field.length(), 1U);
@@ -1785,6 +1930,9 @@ void FieldsTestSuite::test44()
         comms::option::VarLength<2, 4>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT_EQUALS(field.value(), 0U);
     TS_ASSERT_EQUALS(field.length(), 2U);
@@ -1823,6 +1971,9 @@ void FieldsTestSuite::test45()
         comms::option::VarLength<2, 4>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT_EQUALS(field.value(), 0U);
     TS_ASSERT_EQUALS(field.length(), 2U);
@@ -1859,6 +2010,9 @@ void FieldsTestSuite::test46()
         comms::Field<BigEndianOpt>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
 
     static const char ExpectedBuf[] = {0};
@@ -1894,6 +2048,9 @@ void FieldsTestSuite::test47()
         comms::option::DefaultValueInitialiser<BundleInitialiserTest47>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     TS_ASSERT_EQUALS(Field::minLength(), 3U);
     TS_ASSERT_EQUALS(Field::maxLength(), 3U);
 
@@ -1916,6 +2073,9 @@ void FieldsTestSuite::test48()
         >,
         comms::option::DefaultOptionalMode<comms::field::OptionalMode::Exists>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     typedef Field::Mode Mode;
 
@@ -1979,6 +2139,9 @@ void FieldsTestSuite::test49()
         >,
         comms::option::CustomValueReader<BundleCustomReaderTest49>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 1U, "Invalid minLength");
     static_assert(Field::maxLength() == 3U, "Invalid maxLength");
@@ -2048,6 +2211,9 @@ void FieldsTestSuite::test50()
 {
     using Field = Test50_Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     field.value() = 0xaa;
     TS_ASSERT_EQUALS(field.getBitValue_first(), false);
@@ -2071,6 +2237,9 @@ void FieldsTestSuite::test50()
     using Field2 = Test50_Field2<>;
     Field2 field2;
     static_cast<void>(field2);
+
+    static_assert(!Field2::isVersionDependent(),
+        "Invalid version dependency assumption");
 }
 
 class Field_51 : public comms::field::Bitfield<
@@ -2096,6 +2265,9 @@ public:
 void FieldsTestSuite::test51()
 {
     typedef Field_51 Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT_EQUALS(field.length(), 1U);
@@ -2135,6 +2307,9 @@ void FieldsTestSuite::test52()
         BitfildMembers
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     static_cast<void>(field);
     TS_ASSERT_EQUALS(field.length(), 2U);
@@ -2164,6 +2339,9 @@ void FieldsTestSuite::test53()
         comms::option::ScalingRatio<180, 0x800000>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field(std::numeric_limits<std::int32_t>::max());
     static const double ExpVal1 =
         (static_cast<double>(std::numeric_limits<std::int32_t>::max()) * 180) / 0x800000;
@@ -2177,6 +2355,9 @@ void FieldsTestSuite::test54()
         std::int8_t,
         comms::option::ScalingRatio<100, 1>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field(1);
 
@@ -2201,6 +2382,9 @@ void FieldsTestSuite::test55()
         comms::option::ScalingRatio<1, 100>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
 
     field.setScaled(-0.1);
@@ -2218,12 +2402,18 @@ void FieldsTestSuite::test56()
         comms::option::ValidNumValueRange<0, 0>
     > TrailField;
 
+    static_assert(!TrailField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceFixedSize<5>,
         comms::option::FixedSizeStorage<5>,
         comms::option::SequenceTrailingFieldSuffix<TrailField>
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 6U, "Invalid min length");
     static_assert(Field::maxLength() == 6U, "Invalid max length");
@@ -2262,6 +2452,9 @@ void FieldsTestSuite::test57()
         comms::option::ScalingRatio<1, 10>,
         comms::option::UnitsMilliseconds
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static const std::uint32_t InitVal = 600000;
     Field field;
@@ -2334,6 +2527,9 @@ void FieldsTestSuite::test58()
         comms::option::UnitsNanoseconds
     > Field1;
 
+    static_assert(!Field1::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field1 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2348,6 +2544,9 @@ void FieldsTestSuite::test58()
         comms::option::UnitsMicroseconds
     > Field2;
 
+    static_assert(!Field2::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field2 field(5U);
         TS_ASSERT_EQUALS(field.value(), 5U);
@@ -2360,6 +2559,9 @@ void FieldsTestSuite::test58()
         std::uint8_t,
         comms::option::UnitsMilliseconds
     > Field3;
+
+    static_assert(!Field3::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     do {
         Field3 field(200U);
@@ -2375,6 +2577,9 @@ void FieldsTestSuite::test58()
         comms::option::UnitsSeconds
     > Field4;
 
+    static_assert(!Field4::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field4 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2388,6 +2593,9 @@ void FieldsTestSuite::test58()
         comms::option::ScalingRatio<1, 10>,
         comms::option::UnitsMinutes
     > Field5;
+
+    static_assert(!Field5::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     do {
         Field5 field(1U);
@@ -2403,6 +2611,9 @@ void FieldsTestSuite::test58()
         comms::option::UnitsHours
     > Field6;
 
+    static_assert(!Field6::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field6 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2417,6 +2628,9 @@ void FieldsTestSuite::test58()
         comms::option::UnitsDays
     > Field7;
 
+    static_assert(!Field7::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field7 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2429,6 +2643,9 @@ void FieldsTestSuite::test58()
         std::uint8_t,
         comms::option::UnitsWeeks
     > Field8;
+
+    static_assert(!Field8::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     do {
         Field8 field(1U);
@@ -2445,6 +2662,9 @@ void FieldsTestSuite::test59()
         std::uint32_t,
         comms::option::UnitsMillimeters
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     field.value() = 345U;
@@ -2486,6 +2706,9 @@ void FieldsTestSuite::test60()
         comms::option::UnitsNanometers
     > Field1;
 
+    static_assert(!Field1::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field1 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2500,6 +2723,9 @@ void FieldsTestSuite::test60()
         comms::option::UnitsMicrometers
     > Field2;
 
+    static_assert(!Field2::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field2 field(5U);
         TS_ASSERT_EQUALS(field.value(), 5U);
@@ -2512,6 +2738,9 @@ void FieldsTestSuite::test60()
         std::uint8_t,
         comms::option::UnitsMillimeters
     > Field3;
+
+    static_assert(!Field3::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     do {
         Field3 field(200U);
@@ -2527,6 +2756,9 @@ void FieldsTestSuite::test60()
         comms::option::UnitsMeters
     > Field4;
 
+    static_assert(!Field4::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field4 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2541,6 +2773,9 @@ void FieldsTestSuite::test60()
         comms::option::UnitsCentimeters
     > Field5;
 
+    static_assert(!Field5::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field5 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2554,6 +2789,9 @@ void FieldsTestSuite::test60()
         comms::option::ScalingRatio<1, 10>,
         comms::option::UnitsKilometers
     > Field6;
+
+    static_assert(!Field6::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     do {
         Field6 field(1U);
@@ -2570,6 +2808,9 @@ void FieldsTestSuite::test61()
         std::uint32_t,
         comms::option::UnitsCentimetersPerSecond
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     field.value() = 10U;
@@ -2615,6 +2856,9 @@ void FieldsTestSuite::test62()
         comms::option::UnitsNanometersPerSecond
     > Field1;
 
+    static_assert(!Field1::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field1 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2629,6 +2873,9 @@ void FieldsTestSuite::test62()
         comms::option::UnitsMicrometersPerSecond
     > Field2;
 
+    static_assert(!Field2::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field2 field(5U);
         TS_ASSERT_EQUALS(field.value(), 5U);
@@ -2641,6 +2888,9 @@ void FieldsTestSuite::test62()
         std::uint8_t,
         comms::option::UnitsMillimetersPerSecond
     > Field3;
+
+    static_assert(!Field3::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     do {
         Field3 field(200U);
@@ -2656,6 +2906,9 @@ void FieldsTestSuite::test62()
         comms::option::UnitsMetersPerSecond
     > Field4;
 
+    static_assert(!Field4::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field4 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2670,6 +2923,9 @@ void FieldsTestSuite::test62()
         comms::option::UnitsCentimetersPerSecond
     > Field5;
 
+    static_assert(!Field5::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field5 field(1U);
         TS_ASSERT_EQUALS(field.value(), 1U);
@@ -2683,6 +2939,9 @@ void FieldsTestSuite::test62()
         comms::option::UnitsKilometersPerHour
     > Field6;
 
+    static_assert(!Field6::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     do {
         Field6 field(36U);
         TS_ASSERT_EQUALS(field.value(), 36U);
@@ -2694,6 +2953,9 @@ void FieldsTestSuite::test62()
         std::uint8_t,
         comms::option::UnitsKilometersPerSecond
     > Field7;
+
+    static_assert(!Field7::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     do {
         Field7 field(1U);
@@ -2709,6 +2971,9 @@ void FieldsTestSuite::test63()
         std::uint32_t,
         comms::option::UnitsKilohertz
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     field.value() = 10U;
@@ -2739,6 +3004,9 @@ void FieldsTestSuite::test64()
         comms::option::UnitsDegrees
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     field.value() = 300U;
     TS_ASSERT_EQUALS(comms::units::getDegrees<unsigned>(field), 30U);
@@ -2764,6 +3032,9 @@ void FieldsTestSuite::test65()
         comms::option::UnitsRadians
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     field.value() = 100U;
     TS_ASSERT_EQUALS(comms::units::getRadians<unsigned>(field), 1U);
@@ -2787,6 +3058,9 @@ void FieldsTestSuite::test66()
         std::uint32_t,
         comms::option::UnitsMilliamps
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     field.value() = 345U;
@@ -2823,6 +3097,9 @@ void FieldsTestSuite::test67()
         comms::option::UnitsMillivolts
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     field.value() = 345U;
     TS_ASSERT_EQUALS(comms::units::getNanovolts<unsigned long long >(field), 345000000UL);
@@ -2858,6 +3135,9 @@ void FieldsTestSuite::test68()
         comms::option::UnitsSeconds
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     field.value() = 1.345f;
 
@@ -2886,6 +3166,9 @@ void FieldsTestSuite::test69()
         >
     {
     };
+
+    static_assert(!LenField::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     typedef comms::field::ArrayList<
         comms::Field<BigEndianOpt>,
@@ -3002,6 +3285,9 @@ private:
 void FieldsTestSuite::test70()
 {
     using Field = Test70_Field<>;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(!field.valid());
@@ -3158,6 +3444,9 @@ void FieldsTestSuite::test71()
 {
     using Field = Test71_Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT_EQUALS(field.length(), 1U);
     TS_ASSERT(field.field_val().isMissing());
@@ -3201,11 +3490,17 @@ void FieldsTestSuite::test72()
         std::uint8_t
     > SizeField;
 
+    static_assert(!SizeField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceSizeFieldPrefix<SizeField>,
         comms::option::OrigDataView
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -3242,11 +3537,17 @@ void FieldsTestSuite::test73()
         comms::option::ValidNumValueRange<0, 0>
     > TermField;
 
+    static_assert(!TermField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceTerminationFieldSuffix<TermField>,
         comms::option::OrigDataView
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -3286,12 +3587,18 @@ void FieldsTestSuite::test74()
         comms::option::ValidNumValueRange<0, 0>
     > TrailField;
 
+    static_assert(!TrailField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     typedef comms::field::String<
         comms::Field<BigEndianOpt>,
         comms::option::SequenceFixedSize<5>,
         comms::option::SequenceTrailingFieldSuffix<TrailField>,
         comms::option::OrigDataView
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 6U, "Invalid min length");
     static_assert(Field::maxLength() == 6U, "Invalid max length");
@@ -3336,6 +3643,9 @@ void FieldsTestSuite::test75()
         comms::option::OrigDataView
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     static_assert(std::is_same<Field::ValueType, comms::util::ArrayView<std::uint8_t> >::value,
         "Expected to be array view");
 
@@ -3371,6 +3681,9 @@ void FieldsTestSuite::test76()
         comms::option::OrigDataView
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     TS_ASSERT_EQUALS(Field::minLength(), sizeof(std::uint16_t));
 
     Field field;
@@ -3404,6 +3717,9 @@ void FieldsTestSuite::test77()
         comms::option::SequenceFixedSize<6>,
         comms::option::OrigDataView
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 6U, "Invalid min length");
     static_assert(Field::maxLength() == 6U, "Invalid max length");
@@ -3455,6 +3771,10 @@ public:
 void FieldsTestSuite::test78()
 {
     Test78_Field field;
+
+    static_assert(!Test78_Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     auto& mem1_1 = field.initField_mem1();
     static_cast<void>(mem1_1);
     auto& mem1_2 = field.accessField_mem1();
@@ -3485,6 +3805,9 @@ void FieldsTestSuite::test79()
             forceElemLength(2U);
         }
     };
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -3531,6 +3854,9 @@ void FieldsTestSuite::test80()
             >
         >
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 3U, "Invalid minLength");
     static_assert(Field::maxLength() == 3U, "Invalid maxLength");
@@ -3593,6 +3919,9 @@ void FieldsTestSuite::test81()
             comms::option::DefaultBigUnsignedNumValue<std::numeric_limits<std::uintmax_t>::max()>
         >;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT(!field.valid());
     TS_ASSERT_EQUALS(field.value(), std::numeric_limits<std::uintmax_t>::max());
@@ -3612,6 +3941,9 @@ void FieldsTestSuite::test82()
             >
         >
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 2U, "Invalid minLength");
     static_assert(Field::minLengthFrom<0>() == 2U, "Invalid minLength");
@@ -3666,6 +3998,9 @@ void FieldsTestSuite::test83()
         comms::option::SequenceFixedSize<5>,
         comms::option::SequenceFixedSizeUseFixedSizeStorage
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     static_assert(Field::minLength() == 5U, "Invalid min length");
     static_assert(Field::maxLength() == 5U, "Invalid max length");
@@ -3737,6 +4072,9 @@ void FieldsTestSuite::test85()
         comms::option::SequenceFixedSize<5>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     static_assert(Field::minLength() == 5U, "Invalid min length");
     static_assert(Field::maxLength() == 5U, "Invalid max length");
 
@@ -3769,6 +4107,9 @@ void FieldsTestSuite::test86()
         comms::option::DefaultNumValue<20>
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     TS_ASSERT_EQUALS(field.value(), 20);
     TS_ASSERT(!field.valid());
@@ -3798,6 +4139,9 @@ void FieldsTestSuite::test87()
             >
         >
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     TS_ASSERT_EQUALS(Field::minLength(), sizeof(std::uint16_t));
 
@@ -3875,6 +4219,9 @@ void FieldsTestSuite::test88()
             >
         >
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     TS_ASSERT_EQUALS(Field::minLength(), sizeof(std::uint8_t));
 
@@ -3969,6 +4316,9 @@ void FieldsTestSuite::test89()
             >
         >
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     TS_ASSERT_EQUALS(Field::minLength(), sizeof(std::uint8_t));
 
@@ -4065,6 +4415,9 @@ void FieldsTestSuite::test90()
         >
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     TS_ASSERT_EQUALS(Field::minLength(), 2U);
 
     Field field;
@@ -4126,6 +4479,9 @@ void FieldsTestSuite::test91()
         >
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     TS_ASSERT_EQUALS(Field::minLength(), 7U);
 
     Field field;
@@ -4182,6 +4538,9 @@ void FieldsTestSuite::test92()
         BitfileMembers
     > Field;
 
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
     Field field;
     static_cast<void>(field);
     TS_ASSERT_EQUALS(field.length(), 3U);
@@ -4234,6 +4593,9 @@ void FieldsTestSuite::test93()
         comms::Field<LittleEndianOpt>,
         BitfileMembers
     > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
 
     Field field;
     static_cast<void>(field);

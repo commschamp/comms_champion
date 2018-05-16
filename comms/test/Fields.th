@@ -129,6 +129,7 @@ public:
     void test92();
     void test93();
     void test94();
+    void test95();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4543,6 +4544,7 @@ void FieldsTestSuite::test92()
         "Invalid version dependency assumption");
 
     Field field;
+    TS_ASSERT(!field.setVersion(5U));
     static_cast<void>(field);
     TS_ASSERT_EQUALS(field.length(), 3U);
     TS_ASSERT_EQUALS(field.memberBitLength<0>(), 8U);
@@ -4654,6 +4656,42 @@ void FieldsTestSuite::test94()
         "Invalid version dependency assumption");
     Field field;
     TS_ASSERT(field.setVersion(5U));
+}
+
+void FieldsTestSuite::test95()
+{
+    using Mem1 =
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint16_t
+        >;
+
+    using Mem2 =
+        comms::field::Optional<
+            Mem1,
+            comms::option::ExistsSinceVersion<5>,
+            comms::option::ExistsByDefault
+        >;
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            Mem1,
+            Mem2
+        >
+    > Field;
+
+    static_assert(Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    Field field;
+    TS_ASSERT_EQUALS(field.length(), 4U);
+    TS_ASSERT(!field.setVersion(5U));
+    TS_ASSERT_EQUALS(field.length(), 4U);
+    TS_ASSERT(field.setVersion(4U));
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT(field.setVersion(15U));
+    TS_ASSERT_EQUALS(field.length(), 4U);
 }
 
 template <typename TField>

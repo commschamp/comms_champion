@@ -356,7 +356,8 @@ private:
             "comms::option::OrigDataView option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
             "comms::option::ValidNumValueRange (or similar) option is not applicable to BitmaskValue field");
-
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to BitmaskValue field");
 
     IntValueField intValue_;
 };

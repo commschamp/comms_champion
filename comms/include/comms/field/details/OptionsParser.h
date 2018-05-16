@@ -69,6 +69,7 @@ public:
     static const bool HasEmptySerialization = false;
     static const bool HasMultiRangeValidation = false;
     static const bool HasCustomVersionUpdate = false;
+    static const bool HasVersionsRange = false;
 };
 
 template <typename T, typename... TOptions>
@@ -439,6 +440,17 @@ class OptionsParser<
 {
 public:
     static const bool HasCustomVersionUpdate = true;
+};
+
+template <std::uintmax_t TFrom, std::uintmax_t TUntil, typename... TOptions>
+class OptionsParser<
+    comms::option::ExistsBetweenVersions<TFrom, TUntil>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasVersionsRange = true;
+    static const std::uintmax_t ExistsFromVersion = TFrom;
+    static const std::uintmax_t ExistsUntilVersion = TUntil;
 };
 
 template <typename... TOptions>

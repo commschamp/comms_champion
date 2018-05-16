@@ -387,6 +387,8 @@ private:
             "comms::option::CustomStorageType option is not applicable to IntValue field");
     static_assert(!ParsedOptions::HasOrigDataView,
             "comms::option::OrigDataView option is not applicable to IntValue field");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to IntValue field");
 };
 
 

@@ -256,6 +256,8 @@ private:
             "comms::option::Units option is not applicable to EnumValue field");
     static_assert(!ParsedOptions::HasOrigDataView,
             "comms::option::OrigDataView option is not applicable to EnumValue field");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to EnumValue field");
 };
 
 // Implementation

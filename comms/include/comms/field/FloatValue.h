@@ -230,6 +230,8 @@ private:
             "comms::option::CustomStorageType option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasOrigDataView,
             "comms::option::OrigDataView option is not applicable to FloatValue field");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to FloatValue field");
 };
 
 /// @brief Equality comparison operator.

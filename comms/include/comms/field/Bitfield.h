@@ -304,6 +304,8 @@ private:
             "comms::option::OrigDataView option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
             "comms::option::ValidNumValueRange (or similar) option is not applicable to Bitfield field");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to Bitfield field");
 };
 
 /// @brief Equality comparison operator.

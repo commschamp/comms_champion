@@ -418,9 +418,10 @@ private:
             "comms::option::Units option is not applicable to ArrayList field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
             "comms::option::ValidNumValueRange (or similar) option is not applicable to ArrayList field");
-
     static_assert((!ParsedOptions::HasOrigDataView) || (std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))),
         "Usage of comms::option::OrigDataView option is allowed only for raw binary data (std::uint8_t) types.");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to ArrayList field");
 };
 
 /// @brief Equivalence comparison operator.

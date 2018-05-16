@@ -1322,6 +1322,8 @@ using HasDoRefresh = HasCustomRefresh;
 ///     mark that the handled field is a "pseudo" one, i.e. is not serialised.
 struct PseudoValue {};
 
+/// @brief Provide type to be used for versioning
+/// @tparam T Type of the version value. Expected to be unsigned integral one.
 template <typename T>
 struct VersionType
 {
@@ -1333,6 +1335,18 @@ struct VersionType
 ///     implementation of version update functionality.
 /// @headerfile comms/options.h
 struct HasCustomVersionUpdate {};
+
+template <std::uintmax_t TFrom, std::uintmax_t TUntil>
+struct ExistsBetweenVersions
+{
+    static_assert(TFrom <= TUntil, "Invalid version parameters");
+};
+
+template <std::uintmax_t TVer>
+using ExistsSinceVersion = ExistsBetweenVersions<TVer, std::numeric_limits<std::uintmax_t>::max()>;
+
+template <std::uintmax_t TVer>
+using ExistsUntilVersion = ExistsBetweenVersions<0, TVer>;
 
 }  // namespace option
 

@@ -128,6 +128,7 @@ public:
     void test91();
     void test92();
     void test93();
+    void test94();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4620,6 +4621,40 @@ void FieldsTestSuite::test93()
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
 }
 
+void FieldsTestSuite::test94()
+{
+    using Mem1 =
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint16_t
+        >;
+
+    struct Mem2 : public
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint16_t,
+            comms::option::HasCustomVersionUpdate
+        >
+    {
+        bool setVersion(unsigned)
+        {
+            return true;
+        }
+    };
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            Mem1,
+            Mem2
+        >
+    > Field;
+
+    static_assert(Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+    Field field;
+    TS_ASSERT(field.setVersion(5U));
+}
 
 template <typename TField>
 void FieldsTestSuite::writeField(

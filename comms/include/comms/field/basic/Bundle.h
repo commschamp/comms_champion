@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -38,6 +39,7 @@ class Bundle : public TFieldBase
 {
 public:
     using ValueType = TMembers;
+    using VersionType = typename TFieldBase::VersionType;
 
     Bundle() = default;
     explicit Bundle(const ValueType& val)
@@ -286,6 +288,16 @@ public:
     void writeFromUntilNoStatus(TIter& iter) const
     {
         comms::util::template tupleForEachFromUntil<TFromIdx, TUntilIdx>(value(), makeWriteNoStatusHelper(iter));
+    }
+
+    static constexpr bool isVersionDependent()
+    {
+        return CommonFuncs::areMembersVersionDependent<ValueType>();
+    }
+
+    bool setVersion(VersionType version)
+    {
+        return CommonFuncs::setVersionForMembers(value(), version);
     }
 
 private:

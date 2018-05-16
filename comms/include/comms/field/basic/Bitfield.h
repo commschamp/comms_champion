@@ -28,6 +28,7 @@
 #include "comms/ErrorStatus.h"
 
 #include "comms/field/IntValue.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -160,6 +161,7 @@ class Bitfield : public TFieldBase
 
 public:
     using Endian = typename BaseImpl::Endian;
+    using VersionType = typename BaseImpl::VersionType;
     using ValueType = TMembers;
 
     Bitfield() = default;
@@ -262,6 +264,16 @@ public:
 
         using FieldType = typename std::tuple_element<TIdx, ValueType>::type;
         return details::BitfieldMemberLengthRetriever<FieldType>::Value;
+    }
+
+    static constexpr bool isVersionDependent()
+    {
+        return CommonFuncs::areMembersVersionDependent<ValueType>();
+    }
+
+    bool setVersion(VersionType version)
+    {
+        return CommonFuncs::setVersionForMembers(value(), version);
     }
 
 private:

@@ -130,6 +130,7 @@ public:
     void test93();
     void test94();
     void test95();
+    void test96();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4692,6 +4693,43 @@ void FieldsTestSuite::test95()
     TS_ASSERT_EQUALS(field.length(), 2U);
     TS_ASSERT(field.setVersion(15U));
     TS_ASSERT_EQUALS(field.length(), 4U);
+}
+
+void FieldsTestSuite::test96()
+{
+    using Mem1 =
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t,
+            comms::option::FixedBitLength<4>
+        >;
+
+    struct Mem2 : public
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t,
+            comms::option::HasCustomVersionUpdate,
+            comms::option::FixedBitLength<4>
+        >
+    {
+        bool setVersion(unsigned)
+        {
+            return true;
+        }
+    };
+
+    typedef comms::field::Bitfield<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            Mem1,
+            Mem2
+        >
+    > Field;
+
+    static_assert(Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+    Field field;
+    TS_ASSERT(field.setVersion(5U));
 }
 
 template <typename TField>

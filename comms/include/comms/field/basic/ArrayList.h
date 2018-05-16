@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -117,15 +117,62 @@ constexpr bool vectorHasAssign()
     return VectorHasAssign<T>::Value;
 }
 
+template <typename TVersionType, bool TVersionDependent>
+struct VersionStorage;
+
+template <typename TVersionType>
+struct VersionStorage<TVersionType, true>
+{
+protected:
+    TVersionType version_ = TVersionType();
+};
+
+template <typename TVersionType>
+struct VersionStorage<TVersionType, false>
+{
+};
+
+template <typename TElem, bool TIsIntegral>
+struct ArrayListElemVersionDependencyHelper;
+
+template <typename TElem>
+struct ArrayListElemVersionDependencyHelper<TElem, true>
+{
+    static const bool Value = false;
+};
+
+template <typename TElem>
+struct ArrayListElemVersionDependencyHelper<TElem, false>
+{
+    static const bool Value = TElem::isVersionDependent();
+};
+
+template <typename TElem>
+constexpr bool arrayListElementIsVersionDependent()
+{
+    return ArrayListElemVersionDependencyHelper<TElem, std::is_integral<TElem>::value>::Value;
+}
 
 }  // namespace details
 
 template <typename TFieldBase, typename TStorage>
-class ArrayList : public TFieldBase
+class ArrayList :
+        public TFieldBase,
+        public details::VersionStorage<
+            typename TFieldBase::VersionType,
+            details::arrayListElementIsVersionDependent<typename TStorage::value_type>()
+        >
 {
     using BaseImpl = TFieldBase;
+    using VersionBaseImpl =
+        details::VersionStorage<
+            typename TFieldBase::VersionType,
+            details::arrayListElementIsVersionDependent<typename TStorage::value_type>()
+        >;
+
 public:
     using Endian = typename BaseImpl::Endian;
+    using VersionType = typename BaseImpl::VersionType;
 
     using ElementType = typename TStorage::value_type;
     using ValueType = TStorage;
@@ -167,6 +214,7 @@ public:
     ElementType& createBack()
     {
         value_.emplace_back();
+        updateElemVersion(value_.back(), VersionTag());
         return value_.back();
     }
 
@@ -335,6 +383,16 @@ public:
         CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
     }
 
+    static constexpr bool isVersionDependent()
+    {
+        return details::arrayListElementIsVersionDependent<ElementType>();
+    }
+
+    bool setVersion(VersionType version)
+    {
+        return setVersionInternal(version, VersionTag());
+    }
+
 private:
     struct FieldElemTag{};
     struct IntegralElemTag{};
@@ -343,6 +401,8 @@ private:
     struct RawDataTag {};
     struct AssignExistsTag {};
     struct AssignMissingTag {};
+    struct VersionDependentTag {};
+    struct NoVersionDependencyTag {};
 
     using ElemTag = typename std::conditional<
         std::is_integral<ElementType>::value,
@@ -355,6 +415,13 @@ private:
         VarLengthTag,
         FixedLengthTag
     >::type;
+
+    using VersionTag =
+        typename std::conditional<
+            details::arrayListElementIsVersionDependent<ElementType>(),
+            VersionDependentTag,
+            NoVersionDependencyTag
+        >::type;
 
     constexpr std::size_t lengthInternal(FieldElemTag) const
     {
@@ -656,6 +723,33 @@ private:
     void readNoStatusInternalN(std::size_t count, TIter& iter, RawDataTag)
     {
         readInternal(iter, count, RawDataTag());
+    }
+
+    bool updateElemVersion(ElementType& elem, VersionDependentTag)
+    {
+        return elem.setVersion(VersionBaseImpl::version_);
+    }
+
+    static constexpr bool updateElemVersion(ElementType&, NoVersionDependencyTag)
+    {
+        return false;
+    }
+
+    bool setVersionInternal(VersionType version, VersionDependentTag)
+    {
+        VersionBaseImpl::version_ = version;
+        bool updated = false;
+        for (auto& elem : value()) {
+            updated = elem.setVersion(version) || updated;
+        }
+
+        return updated;
+    }
+
+
+    static constexpr bool setVersionInternal(VersionType, NoVersionDependencyTag)
+    {
+        return false;
     }
 
     ValueType value_;

@@ -24,6 +24,8 @@
 #include <type_traits>
 #include <limits>
 #include <ratio>
+#include <cstdint>
+#include <cstddef>
 
 #include "comms/traits.h"
 #include "comms/ErrorStatus.h"
@@ -154,15 +156,15 @@ struct NoDispatchImpl {};
 /// @tparam TFields The fields of the message bundled in std::tuple.
 /// @headerfile comms/options.h
 template <typename TFields>
-struct ExtraTransportFields;
+struct ExtraTransportFields {};
 
-/// @cond SKIP_DOC
-template <typename... TFields>
-struct ExtraTransportFields<std::tuple<TFields...> >
-{
-};
-/// @endcond
-
+/// @brief Option used to specify index of the version field inside
+///     extra transport fields tuple provided with @ref
+///     comms::option::ExtraTransportFields option.
+/// @tparam TIdx Index of the field inside the tuple.
+/// @headerfile comms/options.h
+template <std::size_t TIdx>
+struct VersionInExtraTransportFields {};
 
 /// @brief Option used to specify fields of the message and force implementation
 ///     of default read, write, validity check, and length retrieval information

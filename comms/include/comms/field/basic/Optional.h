@@ -33,13 +33,24 @@ namespace basic
 {
 
 template <typename TField>
-class Optional : public comms::Field<comms::option::Endian<typename TField::Endian> >
+class Optional : public
+        comms::Field<
+            comms::option::Endian<typename TField::Endian>,
+            comms::option::VersionType<typename TField::VersionType>
+        >
 {
+    using BaseImpl =
+        comms::Field<
+            comms::option::Endian<typename TField::Endian>,
+            comms::option::VersionType<typename TField::VersionType>
+        >;
+
 public:
 
     using Field = TField;
     using ValueType = TField;
     using Mode = field::OptionalMode;
+    using VersionType = typename BaseImpl::VersionType;
 
     Optional() = default;
 
@@ -185,6 +196,17 @@ public:
 
         field_.writeNoStatus(iter);
     }
+
+    static constexpr bool isVersionDependent()
+    {
+        return Field::isVersionDependent();
+    }
+
+    bool setVersion(VersionType version)
+    {
+        return field_.setVersion(static_cast<typename Field::VersionType>(version));
+    }
+
 
 private:
     Field field_;

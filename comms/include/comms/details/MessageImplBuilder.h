@@ -128,6 +128,8 @@ using MessageImplPolymorhpicStaticNumIdBaseT =
             (TOpt::HasStaticMsgId || (TOpt::HasMsgType && TOpt::HasDoGetId))
         >::template Type<TBase, TOpt>;
 
+//----------------------------------------------------
+
 template <typename TBase>
 class MessageImplNoIdBase : public TBase
 {
@@ -164,6 +166,8 @@ using MessageImplNoIdBaseT =
         TBase::InterfaceOptions::HasMsgIdType && TBase::InterfaceOptions::HasMsgIdInfo &&
             TOpt::HasNoIdImpl
         >::template Type<TBase>;
+
+//----------------------------------------------------
 
 template <typename TAllFields>
 class MessageImplFieldsContainer
@@ -717,6 +721,8 @@ private:
     AllFields fields_;
 };
 
+//----------------------------------------------------
+
 template <typename TBase, typename TAllFields>
 class MessageImplFieldsBase : public TBase, public MessageImplFieldsContainer<TAllFields>
 {
@@ -790,6 +796,63 @@ using MessageImplFieldsBaseT =
     typename MessageImplProcessFieldsBase<TOpt::HasFieldsImpl>::template Type<TBase, TOpt>;
 
 
+//----------------------------------------------------
+
+template <typename TBase>
+class MessageImplVersionBase : public TBase
+{
+public:
+    bool doRefresh()
+    {
+        bool updated = updateVersionForFields();
+        return TBase::doRefresh() || updated;
+    }
+
+protected:
+    ~MessageImplVersionBase() noexcept = default;
+
+private:
+    bool updateVersionForFields()
+    {
+        return util::tupleAccumulate(TBase::fields(), false, FieldVersionUpdater());
+    }
+
+    struct FieldVersionUpdater
+    {
+        template <typename TField>
+        bool operator()(bool updated, TField& field) const
+        {
+            using VersionType = typename std::decay<decltype(field)>::type::VersionType;
+            return field.setVersion(static_cast<VersionType>(TBase::version())) || updated;
+        }
+    };
+};
+
+template <bool THasVersion>
+struct MessageImplProcessVersionBase;
+
+template <>
+struct MessageImplProcessVersionBase<true>
+{
+    template <typename TBase>
+    using Type = MessageImplVersionBase<TBase>;
+};
+
+template <>
+struct MessageImplProcessVersionBase<false>
+{
+    template <typename TBase>
+    using Type = TBase;
+};
+
+template <typename TBase, typename TOpt>
+using MessageImplVersionBaseT =
+    typename MessageImplProcessVersionBase<
+            TOpt::HasFieldsImpl && TBase::InterfaceOptions::HasVersionInExtraTransportFields
+    >::template Type<TBase>;
+
+//----------------------------------------------------
+
 template <typename TBase, bool THasFields>
 class AnyFieldsHasCustomRefresh;
 
@@ -822,6 +885,8 @@ constexpr bool anyFieldHasCustomRefresh()
 {
     return AnyFieldsHasCustomRefresh<TBase, TImplOpt::HasFieldsImpl>::Value;
 }
+
+//----------------------------------------------------
 
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsReadImplBase : public TBase
@@ -893,6 +958,8 @@ using MessageImplFieldsReadImplBaseT =
         TBase::InterfaceOptions::HasReadIterator && (!TImplOpt::HasNoReadImpl),
         TImplOpt::HasMsgType
     >::template Type<TBase, TImplOpt>;
+
+//----------------------------------------------------
 
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsWriteImplBase : public TBase
@@ -966,6 +1033,8 @@ using MessageImplFieldsWriteImplBaseT =
         TImplOpt::HasMsgType
     >::template Type<TBase, TImplOpt>;
 
+//----------------------------------------------------
+
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsValidBase : public TBase
 {
@@ -1029,6 +1098,8 @@ using MessageImplFieldsValidBaseT =
         TBase::InterfaceOptions::HasValid && (!TImplOpt::HasNoValidImpl),
         TImplOpt::HasMsgType
     >::template Type<TBase, TImplOpt>;
+
+//----------------------------------------------------
 
 template <typename TBase, typename TActual = void>
 class MessageImplFieldsLengthBase : public TBase
@@ -1094,6 +1165,8 @@ using MessageImplFieldsLengthBaseT =
         TImplOpt::HasMsgType
     >::template Type<TBase, TImplOpt>;
 
+//----------------------------------------------------
+
 template <typename TBase, typename TOpt>
 class MessageImplRefreshBase : public TBase
 {
@@ -1150,6 +1223,8 @@ using MessageImplRefreshBaseT =
             (TImplOpt::HasCustomRefresh || anyFieldHasCustomRefresh<TBase, TImplOpt>())
     >::template Type<TBase, TImplOpt>;
 
+//----------------------------------------------------
+
 template <typename TBase, typename TOpt>
 class MessageImplNameBase : public TBase
 {
@@ -1184,6 +1259,8 @@ using MessageImplNameBaseT =
     typename MessageImplProcessNameBase<
         TBase::InterfaceOptions::HasName && TImplOpt::HasName
     >::template Type<TBase, TImplOpt>;
+
+//----------------------------------------------------
 
 template <typename TBase, typename TActual>
 class MessageImplDispatchBase : public TBase
@@ -1222,6 +1299,8 @@ using MessageImplDispatchBaseT =
         TBase::InterfaceOptions::HasHandler && TImplOpt::HasMsgType && (!TImplOpt::HasNoDispatchImpl)
     >::template Type<TBase, TImplOpt>;
 
+//----------------------------------------------------
+
 template <typename TMessage, typename... TOptions>
 class MessageImplBuilder
 {
@@ -1229,7 +1308,8 @@ class MessageImplBuilder
     using InterfaceOptions = typename TMessage::InterfaceOptions;
 
     using FieldsBase = MessageImplFieldsBaseT<TMessage, ParsedOptions>;
-    using StaticNumIdBase = MessageImplStaticNumIdBaseT<FieldsBase, ParsedOptions>;
+    using VersionBase = MessageImplVersionBaseT<FieldsBase, ParsedOptions>;
+    using StaticNumIdBase = MessageImplStaticNumIdBaseT<VersionBase, ParsedOptions>;
     using PolymorphicStaticNumIdBase = MessageImplPolymorhpicStaticNumIdBaseT<StaticNumIdBase, ParsedOptions>;
     using NoIdBase = MessageImplNoIdBaseT<PolymorphicStaticNumIdBase, ParsedOptions>;
     using FieldsReadImplBase = MessageImplFieldsReadImplBaseT<NoIdBase, ParsedOptions>;

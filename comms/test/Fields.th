@@ -131,6 +131,7 @@ public:
     void test94();
     void test95();
     void test96();
+    void test97();
 
     enum Enum1 {
         Enum1_Value1,
@@ -194,6 +195,7 @@ void FieldsTestSuite::test1()
     TS_ASSERT_EQUALS(field.length(), sizeof(std::uint32_t));
     TS_ASSERT_EQUALS(field.value(), 0x01020304);
     TS_ASSERT(field.valid());
+    TS_ASSERT(!field.setVersion(5));
 }
 
 void FieldsTestSuite::test2()
@@ -4731,6 +4733,88 @@ void FieldsTestSuite::test96()
     Field field;
     TS_ASSERT(field.setVersion(5U));
 }
+
+void FieldsTestSuite::test97()
+{
+    using Mem1 =
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint16_t
+        >;
+
+    using Mem2 =
+        comms::field::Optional<
+            Mem1,
+            comms::option::ExistsSinceVersion<5>,
+            comms::option::ExistsByDefault
+        >;
+
+    using ListElem = comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            Mem1,
+            Mem2
+        >
+    >;
+
+    static_assert(ListElem::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    using Field =
+        comms::field::ArrayList<
+            comms::Field<BigEndianOpt>,
+            ListElem
+        >;
+
+    static_assert(Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    Field field;
+    field.value().resize(1);
+    TS_ASSERT_EQUALS(field.length(), 4U);
+    TS_ASSERT(field.setVersion(1U));
+    TS_ASSERT_EQUALS(field.length(), 2U);
+
+    do {
+        static const char Buf1[] = {
+            (char)0x01, (char)0x02
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        auto readIter = &Buf1[0];
+        auto es = field.read(readIter, Buf1Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.value().size(), 1U);
+        auto& members = field.value()[0].value();
+        auto& mem1 = std::get<0>(members);
+        auto& mem2 = std::get<1>(members);
+        TS_ASSERT_EQUALS(mem1.value(), 0x102);
+        TS_ASSERT(mem2.isMissing());
+
+        TS_ASSERT(field.setVersion(15U));
+        TS_ASSERT(mem2.doesExist());
+        TS_ASSERT_EQUALS(field.length(), 4U);
+    } while (false);
+
+    do {
+        static const char Buf2[] = {
+            (char)0x03, (char)0x04, (char)0x05, (char)0x06
+        };
+        static const std::size_t Buf2Size = std::extent<decltype(Buf2)>::value;
+        auto readIter = &Buf2[0];
+        auto es = field.read(readIter, Buf2Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.value().size(), 1U);
+        auto& members = field.value()[0].value();
+        auto& mem1 = std::get<0>(members);
+        auto& mem2 = std::get<1>(members);
+        TS_ASSERT_EQUALS(field.length(), 4U);
+        TS_ASSERT(mem2.doesExist());
+        TS_ASSERT_EQUALS(mem1.value(), 0x304);
+        TS_ASSERT_EQUALS(mem2.field().value(), 0x506);
+    } while (false);
+}
+
 
 template <typename TField>
 void FieldsTestSuite::writeField(

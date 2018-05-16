@@ -167,7 +167,7 @@ private:
     struct VersionDependencyChecker
     {
         template <typename TField>
-        constexpr bool operator()(bool soFar)
+        constexpr bool operator()(bool soFar) const
         {
             return TField::isVersionDependent() || soFar;
         }
@@ -180,12 +180,12 @@ private:
         explicit VersionUpdater(TVerType val) : version_(val) {}
 
         template <typename TField>
-        constexpr bool operator()(bool soFar, TField& field)
+        bool operator()(bool soFar, TField& field) const
         {
             return field.setVersion(static_cast<typename TField::VersionType>(version_)) || soFar;
         }
     private:
-        TVerType version_ = TVerType();
+        TVerType version_;
     };
 
     template <typename TVerType>

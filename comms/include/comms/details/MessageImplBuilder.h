@@ -185,6 +185,11 @@ public:
         return fields_;
     }
 
+    static constexpr bool areFieldsVersionDependent()
+    {
+        return comms::util::tupleTypeIsAnyOf<AllFields>(VersionDepChecker());
+    }
+
     template <typename TIter>
     comms::ErrorStatus doRead(TIter& iter, std::size_t size)
     {
@@ -718,6 +723,15 @@ private:
         }
     };
 
+    struct VersionDepChecker
+    {
+        template <typename TField>
+        constexpr bool operator()() const
+        {
+            return TField::isVersionDependent();
+        }
+    };
+
     AllFields fields_;
 };
 
@@ -802,9 +816,23 @@ template <typename TBase>
 class MessageImplVersionBase : public TBase
 {
 public:
+    using VersionType = typename TBase::VersionType;
+
+    bool doFieldsVersionUpdate()
+    {
+        return util::tupleAccumulate(TBase::fields(), false, FieldVersionUpdater(TBase::version()));
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus doRead(TIter& iter, std::size_t len)
+    {
+        doFieldsVersionUpdate();
+        return TBase::doRead(iter, len);
+    }
+
     bool doRefresh()
     {
-        bool updated = updateVersionForFields();
+        bool updated = doFieldsVersionUpdate();
         return TBase::doRefresh() || updated;
     }
 
@@ -812,19 +840,20 @@ protected:
     ~MessageImplVersionBase() noexcept = default;
 
 private:
-    bool updateVersionForFields()
-    {
-        return util::tupleAccumulate(TBase::fields(), false, FieldVersionUpdater());
-    }
 
     struct FieldVersionUpdater
     {
+        FieldVersionUpdater(VersionType version) : version_(version) {}
+
         template <typename TField>
         bool operator()(bool updated, TField& field) const
         {
-            using VersionType = typename std::decay<decltype(field)>::type::VersionType;
-            return field.setVersion(static_cast<VersionType>(TBase::version())) || updated;
+            using FieldVersionType = typename std::decay<decltype(field)>::type::VersionType;
+            return field.setVersion(static_cast<FieldVersionType>(version_)) || updated;
         }
+
+    private:
+        const VersionType version_ = static_cast<VersionType>(0);
     };
 };
 
@@ -884,6 +913,29 @@ template <typename TBase, typename TImplOpt>
 constexpr bool anyFieldHasCustomRefresh()
 {
     return AnyFieldsHasCustomRefresh<TBase, TImplOpt::HasFieldsImpl>::Value;
+}
+
+//----------------------------------------------------
+
+template <typename TBase, bool THasFields>
+struct AnyFieldsIsVersionDependent;
+
+template <typename TBase>
+struct AnyFieldsIsVersionDependent<TBase, true>
+{
+    static const bool Value = TBase::areFieldsVersionDependent();
+};
+
+template <typename TBase>
+struct AnyFieldsIsVersionDependent<TBase, false>
+{
+    static const bool Value = false;
+};
+
+template <typename TBase, typename TImplOpt>
+constexpr bool anyFieldIsVersionDependent()
+{
+    return AnyFieldsIsVersionDependent<TBase, TImplOpt::HasFieldsImpl>::Value;
 }
 
 //----------------------------------------------------
@@ -1220,7 +1272,11 @@ template <typename TBase, typename TImplOpt>
 using MessageImplRefreshBaseT =
     typename MessageImplProcessRefreshBase<
         TBase::InterfaceOptions::HasRefresh &&
-            (TImplOpt::HasCustomRefresh || anyFieldHasCustomRefresh<TBase, TImplOpt>())
+            (
+                TImplOpt::HasCustomRefresh ||
+                anyFieldHasCustomRefresh<TBase, TImplOpt>() ||
+                (TBase::InterfaceOptions::HasVersionInExtraTransportFields && anyFieldIsVersionDependent<TBase, TImplOpt>())
+            )
     >::template Type<TBase, TImplOpt>;
 
 //----------------------------------------------------

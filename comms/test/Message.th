@@ -45,6 +45,7 @@ public:
     void test13();
     void test14();
     void test15();
+    void test16();
 
 private:
 
@@ -99,6 +100,7 @@ private:
     static_assert(!BeMessageBase::hasRefresh(), "Wrong interface");
     static_assert(BeMessageBase::hasDispatch(), "Wrong interface");
     static_assert(!BeMessageBase::hasTransportFields(), "Wrong interface");
+    static_assert(!BeMessageBase::hasVersionInTransportFields(), "Wrong interface");
 
 
     typedef std::tuple<
@@ -124,6 +126,7 @@ private:
     static_assert(!BeBasicMessageBase::hasRefresh(), "Wrong interface");
     static_assert(!BeBasicMessageBase::hasDispatch(), "Wrong interface");
     static_assert(!BeBasicMessageBase::hasTransportFields(), "Wrong interface");
+    static_assert(!BeBasicMessageBase::hasVersionInTransportFields(), "Wrong interface");
 
     typedef std::tuple<
         comms::option::MsgIdType<MessageType>,
@@ -161,6 +164,7 @@ private:
     static_assert(!BeWriteOnlyMessageBase::hasRefresh(), "Wrong interface");
     static_assert(!BeWriteOnlyMessageBase::hasDispatch(), "Wrong interface");
     static_assert(!BeWriteOnlyMessageBase::hasTransportFields(), "Wrong interface");
+    static_assert(!BeWriteOnlyMessageBase::hasVersionInTransportFields(), "Wrong interface");
 
     static_assert(std::has_virtual_destructor<BeWriteOnlyMessageBase>::value,
         "BeWriteOnlyMessageBase is expected to have virtual destructor");
@@ -187,6 +191,7 @@ private:
     static_assert(!BeLengthOnlyMessageBase::hasRefresh(), "Wrong interface");
     static_assert(!BeLengthOnlyMessageBase::hasDispatch(), "Wrong interface");
     static_assert(!BeLengthOnlyMessageBase::hasTransportFields(), "Wrong interface");
+    static_assert(!BeLengthOnlyMessageBase::hasVersionInTransportFields(), "Wrong interface");
 
     static_assert(std::has_virtual_destructor<BeLengthOnlyMessageBase>::value,
         "BeLengthOnlyMessageBase is expected to have virtual destructor");
@@ -219,6 +224,7 @@ private:
     static_assert(BeRefreshableMessageBase::hasRefresh(), "Wrong interface");
     static_assert(BeRefreshableMessageBase::hasDispatch(), "Wrong interface");
     static_assert(!BeRefreshableMessageBase::hasTransportFields(), "Wrong interface");
+    static_assert(!BeRefreshableMessageBase::hasVersionInTransportFields(), "Wrong interface");
 
     static_assert(std::has_virtual_destructor<BeRefreshableMessageBase>::value,
         "BeRefreshableMessageBase is expected to have virtual destructor");
@@ -243,6 +249,7 @@ private:
     static_assert(!NoIdMsgBase::hasRefresh(), "Wrong interface");
     static_assert(!NoIdMsgBase::hasDispatch(), "Wrong interface");
     static_assert(!NoIdMsgBase::hasTransportFields(), "Wrong interface");
+    static_assert(!NoIdMsgBase::hasVersionInTransportFields(), "Wrong interface");
 
     static_assert(std::has_virtual_destructor<NoIdMsgBase>::value,
         "NoIdMsgBase is expected to have virtual destructor");
@@ -265,6 +272,7 @@ private:
     static_assert(!NoEndianMsgBase::hasRefresh(), "Wrong interface");
     static_assert(!NoEndianMsgBase::hasDispatch(), "Wrong interface");
     static_assert(!NoEndianMsgBase::hasTransportFields(), "Wrong interface");
+    static_assert(!NoEndianMsgBase::hasVersionInTransportFields(), "Wrong interface");
 
     typedef Message5<NoIdMsgBase> NoEndianMsg5;
 
@@ -318,6 +326,7 @@ private:
     static_assert(!BoolHandlerMsgBase::hasRefresh(), "Wrong interface");
     static_assert(BoolHandlerMsgBase::hasDispatch(), "Wrong interface");
     static_assert(!BoolHandlerMsgBase::hasTransportFields(), "Wrong interface");
+    static_assert(!BoolHandlerMsgBase::hasVersionInTransportFields(), "Wrong interface");
 
     typedef std::tuple<
         comms::field::IntValue<
@@ -331,14 +340,18 @@ private:
         comms::Message<
             comms::option::BigEndian,
             CommonOptions,
-            comms::option::ExtraTransportFields<ExtraVersionTransport>
+            comms::option::ExtraTransportFields<ExtraVersionTransport>,
+            comms::option::VersionInExtraTransportFields<0>,
+            comms::option::RefreshInterface
         >
     {
         using Base =
             comms::Message<
                 comms::option::BigEndian,
                 CommonOptions,
-                comms::option::ExtraTransportFields<ExtraVersionTransport>
+                comms::option::ExtraTransportFields<ExtraVersionTransport>,
+                comms::option::VersionInExtraTransportFields<0>,
+                comms::option::RefreshInterface
             >;
     public:
         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version);
@@ -351,9 +364,10 @@ private:
     static_assert(ExtraTransportMessageBase::hasWrite(), "Wrong interface");
     static_assert(ExtraTransportMessageBase::hasValid(), "Wrong interface");
     static_assert(ExtraTransportMessageBase::hasLength(), "Wrong interface");
-    static_assert(!ExtraTransportMessageBase::hasRefresh(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasRefresh(), "Wrong interface");
     static_assert(ExtraTransportMessageBase::hasDispatch(), "Wrong interface");
     static_assert(ExtraTransportMessageBase::hasTransportFields(), "Wrong interface");
+    static_assert(ExtraTransportMessageBase::hasVersionInTransportFields(), "Wrong interface");
 };
 
 void MessageTestSuite::test1()
@@ -798,6 +812,45 @@ void MessageTestSuite::test15()
     msg.field_value1().field_mask().value() = 1U;
     TS_ASSERT(interface.refresh());
     TS_ASSERT_EQUALS(msg.length(), 3U);
+}
+
+void MessageTestSuite::test16()
+{
+    using Msg7 = Message7<ExtraTransportMessageBase>;
+    Msg7 msg;
+    TS_ASSERT_EQUALS(msg.version(), 5U);
+    TS_ASSERT_EQUALS(msg.length(), 4U);
+
+    static const std::uint8_t Buf[] = {
+        0x12, 0x34, 0x56, 0x78
+    };
+    static const std::size_t BufSize =
+        std::extent<decltype(Buf)>::value;
+
+    msg = internalReadWriteTest<Msg7>(&Buf[0], BufSize);
+    TS_ASSERT_EQUALS(msg.field_value1().value(), 0x1234);
+    TS_ASSERT(msg.field_value2().doesExist());
+    TS_ASSERT_EQUALS(msg.field_value2().field().value(), 0x5678);
+
+    msg.version() = 4U;
+    auto readIter = comms::readIteratorFor<Msg7>(&Buf[0]);
+    auto es = msg.read(readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(msg.length(), 2U);
+    TS_ASSERT(msg.field_value2().isMissing());
+
+    msg.version() = 10;
+    TS_ASSERT(msg.refresh());
+    TS_ASSERT_EQUALS(msg.length(), 4U);
+    TS_ASSERT(msg.field_value2().doesExist());
+
+    msg.version() = 11;
+    TS_ASSERT(msg.refresh());
+    TS_ASSERT_EQUALS(msg.length(), 2U);
+    TS_ASSERT(msg.field_value2().isMissing());
+
+//    TS_ASSERT_EQUALS(value2, -1);
+//    TS_ASSERT_EQUALS(msg.transportField_version().value(), 5U);
 }
 
 template <typename TMessage>

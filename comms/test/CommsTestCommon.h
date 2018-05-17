@@ -35,6 +35,7 @@ enum MessageType {
     MessageType4,
     MessageType5,
     MessageType6,
+    MessageType7,
 };
 
 template <typename TTraits>
@@ -66,6 +67,7 @@ class Message1 : public
             comms::option::HasName
         >;
 public:
+    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1);
 
@@ -150,6 +152,8 @@ class Message3 : public
             comms::option::HasName
         >;
 public:
+    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
+
     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
@@ -220,6 +224,8 @@ class Message4 : public
             comms::option::HasName
         >;
 public:
+    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
+
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
@@ -307,6 +313,8 @@ class Message5 : public
             comms::option::HasName
         >;
 public:
+
+    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
@@ -418,6 +426,8 @@ class Message6 : public
         >;
 public:
 
+    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
+
     COMMS_MSG_FIELDS_ACCESS(value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
@@ -435,6 +445,66 @@ public:
     }
 };
 
+template <typename TField>
+struct Message7Fields
+{
+    using field1 =
+            comms::field::IntValue<TField, std::uint16_t>;
+
+    using field2 =
+        comms::field::Optional<
+            comms::field::IntValue<TField, std::uint16_t>,
+            comms::option::ExistsByDefault,
+            comms::option::ExistsBetweenVersions<5, 10>
+        >;
+
+    static_assert(field2::isVersionDependent(), "field2 must be version dependent");
+
+    using All = std::tuple<
+        field1,
+        field2
+    >;
+
+};
+
+template <typename TMessage>
+class Message7 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType7>,
+            comms::option::FieldsImpl<typename Message7Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message7<TMessage> >,
+            comms::option::HasName
+        >
+{
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType7>,
+            comms::option::FieldsImpl<typename Message7Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message7<TMessage> >,
+            comms::option::HasName
+        >;
+public:
+
+    static_assert(Base::areFieldsVersionDependent(), "Fields must be version dependent");
+
+    COMMS_MSG_FIELDS_ACCESS(value1, value2);
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 2U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 4U, "Wrong serialisation length");
+
+    Message7() = default;
+
+    ~Message7() noexcept = default;
+
+    static const char* doName()
+    {
+        return "Message7";
+    }
+};
 
 template <typename TMessage>
 using AllMessages =

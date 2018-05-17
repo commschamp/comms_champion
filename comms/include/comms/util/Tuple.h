@@ -865,9 +865,9 @@ public:
         return
 #ifdef _MSC_VER
             // VS compiler
-            func.operator()<ElemType>() &&
+            func.operator()<ElemType>() ||
 #else // #ifdef _MSC_VER
-            func.template operator()<ElemType>() &&
+            func.template operator()<ElemType>() ||
 #endif // #ifdef _MSC_VER
         TupleTypeIsAnyOfHelper<TRem - 1>::template check<TTuple>(
             std::forward<TFunc>(func));
@@ -882,7 +882,7 @@ public:
     template <typename TTuple, typename TFunc>
     static constexpr bool check(TFunc&&)
     {
-        return true;
+        return false;
     }
 };
 

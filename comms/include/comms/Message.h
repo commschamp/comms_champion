@@ -166,6 +166,13 @@ public:
         return InterfaceOptions::HasExtraTransportFields;
     }
 
+    /// @brief Compile type inquiry whether there is version information
+    ///     inside transport fields.
+    static constexpr bool hasVersionInTransportFields()
+    {
+        return InterfaceOptions::HasVersionInExtraTransportFields;
+    }
+
     /// @brief Compile type inquiry whether message interface class defines
     ///     @ref name() and @ref nameImpl() member functions.
     static constexpr bool hasName()

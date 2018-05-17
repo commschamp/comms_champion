@@ -340,7 +340,7 @@ private:
     struct RefreshHelper
     {
         template <typename TField>
-        bool operator()(bool soFar, const TField& field) const
+        bool operator()(bool soFar, TField& field) const
         {
             return field.refresh() || soFar;
         }

@@ -595,7 +595,7 @@ private:
         return
             std::accumulate(
                 value_.begin(), value_.end(), false,
-                [](bool prev, typename ValueType::reference_type elem) -> bool
+                [](bool prev, typename ValueType::reference elem) -> bool
                 {
                     return elem.refresh() || prev;
                 });

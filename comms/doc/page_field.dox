@@ -14,6 +14,9 @@
 /// public:
 ///     // Define inner storage type
 ///     using ValueType = T;
+///
+///     // Type used for version update
+///     using VersionType = typename TBase::VersionType;
 ///     
 ///     // Get access to the stored value
 ///     ValueType& value() { return m_value; }
@@ -35,6 +38,13 @@
 ///
 ///     // Bring field's contents into a consistent state
 ///     bool refresh() {...}
+///
+///     // Update protocol version
+///     bool setVersion(VersionType value) {...}
+///
+///     // Compile time check whether the field's contents may change as the
+///     // result of protocol version update
+///     static constexpr bool isVersionDependent() {...};
 ///
 /// private:
 ///     ValueType m_value;
@@ -59,6 +69,8 @@
 ///     valid (within expected range of values).
 /// @li has @b refresh() member function to bring its contents to consistent / valid
 ///     state when required.
+/// @li has @b setVersion() member function to notify field object that the
+///     the protocol version has changed.
 ///
 /// Also note that all the member function are NON-virtual, i.e. the field 
 /// abstractions do not have polymorphic behaviour.
@@ -1616,6 +1628,28 @@
 ///         comms::option::MissingByDefault // Set default mode to be "missing"
 ///     >;
 /// @endcode
+/// Some protocols may include version information either in transport framing or
+/// in one of the messages. Such info may specify whether a specific field exists
+/// or not. Such fields need to be wrapped in @ref comms::field::Optional field, which
+/// receives @ref comms::option::ExistsBetweenVersions option to specify the
+/// numeric versions of the protocol between which the field exists.
+/// @code
+/// using OptField = 
+///     comms::field::Optional<
+///         comms::field::IntValue<MyFieldBase, std::int32_t>,
+///         comms::option::MissingByDefault, // Set default mode to be "missing"
+///         comms::option::ExistsBetweenVersions<1, 5>
+///     >;
+/// @endcode
+/// If the field has been introduced in one of the version, but hasn't been
+/// removed yet, it is possible to use @ref comms::option::ExistsSinceVersion alias
+/// to @ref comms::option::ExistsBetweenVersions. Or the opposite, if the field
+/// has been introduced in the first version, but deprecated and removed in the 
+/// later one, use @ref comms::option::ExistsUntilVersion alias.
+///
+/// Usage of such version control option will automatically mark the optional
+/// field as @b existing or @b missing based on the provided version info in
+/// the @b setVersion() member function.
 ///
 /// @section sec_field_tutorial_variant Variant Fields
 /// Some protocols may require usage of heterogeneous fields or lists of 
@@ -1924,7 +1958,7 @@
 /// };
 /// @endcode
 /// 
-/// @section sec_field_tutorial_common_options Common Options for the Fields
+/// @section sec_field_tutorial_common_options Common Options or Modifications for the Fields
 /// There are options that suitable only to numeric fields, such as 
 /// comms::field::IntValue, comms::field::EnumValue, comms::field::BitmaskValue. @n
 /// There are options that suitable only for collection fields, such as
@@ -2215,7 +2249,7 @@
 /// @subsection sec_field_tutorial_common_options_refresh Custom Refresh Functionality
 /// Every field provides @b refresh() member function used to bring the field's 
 /// value into a consistent state. By default this function does nothing and
-/// returns @b false, meaning the field has been updated. For complex fields, such
+/// returns @b false, meaning the field has @b NOT been updated. For complex fields, such
 /// as comms::field::Bitfield or comms::field::Bundle, the default behaviour is
 /// to invoke @b refresh() member function of each member field and return @b true
 /// if @b any of the calls returned true.
@@ -2288,6 +2322,83 @@
 /// parameter. This is required because the passed reference is to one of the
 /// defined field's base classes, which is implementation dependent. Just use
 /// the provided @b value() member function to access the value.
+///
+/// @subsection sec_field_tutorial_common_options_version Custom Version Update Functionality
+/// Some protocols may include version information either in the transport framing
+/// of every message or in one of the messages used to establish connection. Such
+/// info may influence whether some fields exist, as well as modify other
+/// aspects of the fields, such as validity ranges. 
+///
+/// Every field provides @b setVersion() member function used to notify it about
+/// the version change and @b isVersionDependent() one to inquire at compile time
+/// whether the field contents may change after such notification. 
+/// For most fields @b setVersion() function does nothing and
+/// returns @b false, meaning the field has @b NOT been updated (similar to
+/// @ref sec_field_tutorial_common_options_refresh). For complex fields, such
+/// as comms::field::Bitfield or comms::field::Bundle, the default behaviour is
+/// to invoke @b setVersion() member function of each member field and return @b true
+/// if @b any of the calls returned @b true. For @ref comms::field::ArrayList
+/// fields, the version information may be stored inside (only if the element's
+/// @b isVersionDependent() member function returns @b true) and used to notify
+/// every new field that is being read during @b read operation.
+///
+/// Usually, the default version handling provided by the @b COMMS library is
+/// good enough. However, there may be cases when custom operation needs to
+/// be performed during version update. For example, there is integral value
+/// field with valid values range [0, 5]. There is a need to report field as
+/// being invalid for any other numbers for all version up to @b 5. However, since
+/// version @b 6 the range is extended to [0, 10]. It can be defined as following:
+/// @code
+/// class MyInt : public
+///     comms::field::IntValue<
+///         MyFieldBase,
+///         std::uint8_t,
+///         comms::option::ValidNumValueRange<0, 5>,
+///         comms::option::HasCustomVersionUpdate
+/// {
+///     using Base = comms::field::IntValue<...>; // Repeat base class definition
+/// public:
+///     // Updated validity check
+///     bool valid() const
+///     {
+///         if (Base::valid()) {
+///             return true;
+///         }
+///         
+///         if (m_version < 6) {
+///             return false;
+///         }
+///
+///         return value() <= 10;
+///     }
+///
+///     // Updated version set
+///     // Store version internally for future references
+///     bool setVersion(VersionType version)
+///     {
+///         m_version = version;
+///         return Base::setVersion(version);
+///     }
+///
+/// private:
+///     VersionType m_version = 0;
+/// };
+/// @endcode
+/// @b NOTE, the usage of @ref comms::option::HasCustomVersionUpdate option. It
+/// marks the defined field as "version dependent" and as the result its @b
+/// isVersionDependent() member function will return @b true.
+///
+/// Also @b NOTE, that by default the @b VersionType inner type is defined to
+/// be @b unsigned. If there is a need to change that, the @ref
+/// comms::option::VersionType needs to be passed to the definition of the 
+/// common base class of all the fields:
+/// @code
+/// using MyFieldBase = 
+///     comms::Field<
+///         comms::option::BigEndian,
+///         comms::option::VersionType<unsigned long long>
+///     >;
+/// @endcode
 ///
 /// @subsection sec_field_tutorial_common_options_fail_invalid Fail on Invalid Value
 /// Sometimes the protocol specifications may impose a strict rules on disallowing

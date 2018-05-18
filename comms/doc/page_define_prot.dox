@@ -88,7 +88,8 @@
 /// may influence the way how message payload is being read and/or message 
 /// object being handled. Good example would be having a protocol version, which
 /// defines what message payload fields were serialised and which were not (because
-/// they were introduced in later version of the protocol).
+/// they were introduced in later version of the protocol). Another example is
+/// having some kind of flags relevant to all the messages.
 /// Such extra information needs to be stored in the message object itself.
 /// The most straightforward way of achieving this is to define appropriate API
 /// functions and member fields in common message interface class:
@@ -109,15 +110,18 @@
 /// public:
 ///     unsigned getVersion() const { return m_version; }
 ///     void setVersion(unsigned value) { m_version = value; }
+///     std::uint8_t getFlags() const { return m_flags; }
+///     void setFlags(std::uint8_t value) { m_flags = value; }
 /// private:
 ///     unsigned m_version = 0;
+///     std::uint8_t m_flags = 0;
 /// };
 ///
 /// } // namespace my_protocol
 /// @endcode
 /// @b HOWEVER, it will require implementation of a custom protocol transport layer
-/// (See @ref page_prot_stack_tutorial_new_layers) that reads the required value
-/// and re-assigns it to the message object using appropriate API function. The
+/// (See @ref page_prot_stack_tutorial_new_layers) that read the required values
+/// and re-assign them to the message object using appropriate API function. The
 /// COMMS library has a built-in way to automate such assignments (see 
 /// @ref page_prot_stack_tutorial_transport_value section in @ref page_prot_stack_tutorial). 
 /// In order to support usage
@@ -136,10 +140,14 @@
 /// // Field describing protocol version.
 /// using MyVersionField = comms::field::IntValue<MyFieldBase, std::uint16_t>;
 ///
+/// // Field describing protocol version.
+/// using MyFlagsField = comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >;
+///
 /// // Relevant extra transport fields, bundled in std::tuple
 /// using MyExtraTransportFields =
 ///     std::tuple<
-///         MyVersionField
+///         MyVersionField,
+///         MyFlagsField
 ///     >;
 ///
 /// } // namespace my_protocol
@@ -190,7 +198,7 @@
 ///
 /// } // namespace my_protocol
 /// @endcode
-/// An access to the version information, given a reference to the message object
+/// An access to the version and flags information, given a reference to the message object
 /// will look like this:
 /// @code
 /// void handle(my_protocol::Message<>& msg)
@@ -204,10 +212,13 @@
 ///     // Retrieve the version numeric value
 ///     auto versionValue = versionField.value();
 ///
-///     ... // do something with version information
+///     // Access the flags field
+///     auto& flagsField = std::get<1>(extraTransportFields);
+///
+///     ... // do something with version and flags information
 /// }
 /// @endcode
-/// The version information may be accessed in the same way when implementing
+/// The version and/or flags information may be accessed in the same way when implementing
 /// @ref page_define_prot_message_base_custom_read and acted accordingly.
 ///
 /// @b NOTE, that example above accesses the index of the field within the holding
@@ -225,7 +236,7 @@
 ///     >
 /// {
 /// public:
-///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version)
+///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, flags)
 /// };
 /// @endcode
 /// Using such macro is equivalent to manually defining the following public
@@ -244,6 +255,7 @@
 ///     enum TransportFieldIdx
 ///     {
 ///         TransportFieldIdx_version,
+///         TransportFieldIdx_flags,
 ///         TransportFieldIdx_numOfValues
 ///     };
 ///
@@ -256,23 +268,65 @@
 ///     {
 ///         return std::get<TransportFieldIdx_version>(transportFields());
 ///     }
-/// };
-/// @endcode
-/// Access to the version information given a reference to message object may
-/// now be implemented as:
-/// @code
-/// void handle(my_protocol::Message<>& msg)
-/// {
-///     // Retrieve the version numeric value
-///     auto versionValue = msg.transportField_version().value();
 ///
-///     ... // do something with version information
-/// }
+///     auto transportField_flags() -> decltype(std::get<TransportFieldIdx_flags>(transportFields()))
+///     {
+///         return std::get<TransportFieldIdx_flags>(transportFields());
+///     }
+///
+///     auto transportField_flags() const -> decltype(std::get<TransportFieldIdx_flags>(transportFields()))
+///     {
+///         return std::get<TransportFieldIdx_flags>(transportFields());
+///     }
+/// };
 /// @endcode
 /// @b NOTE, that the defined "extra transport fields" are there to attach 
 /// some extra information, delivered as part of transport framing, to message 
 /// object itself. These fields are @b NOT getting serialised / deserialised when message
 /// object being read / written.
+///
+/// @subsection page_define_prot_interface_version Version in Extra Transport Values
+/// As was described in previous section, the extra transport values may contain
+/// protocol version information. The COMMS library contains extra functionality
+/// to help with protocol versioning. If extra transport values contain version,
+/// then it is recommended to let the library know which field in the provided
+/// ones is the version. To do so @ref comms::option::VersionInExtraTransportFields,
+/// with index of the field as a template argument needs to be used.
+/// @code
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<
+///         comms::option::BigEndian,
+///         comms::option::MsgIdType<MsgId>,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>,
+///         comms::option::VersionInExtraTransportFields<0>,
+///         TOptions...
+///     >
+/// {
+/// public:
+///     ...
+/// };
+/// @endcode
+/// This option adds the following type and convenience access member functions.
+/// @code
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<...>
+/// {
+/// public:
+///     ...
+///     // Type used for version storage
+///     using VersionType = ...;
+/// 
+///     // Convenience access to the version value
+///     VersionType& version();
+///     const VersionType& version() const;
+/// };
+/// @endcode
+/// If message contents depend on the version of the protocol, this information
+/// will be used inside @ref page_define_prot_message_base (described below) to
+/// properly implement various functionalities. More details in @ref 
+/// page_define_prot_message_version section below. 
 ///
 /// @section page_define_prot_message_base Message Implementation Class
 /// The next stage is to define protocol messages with their fields.
@@ -883,6 +937,66 @@
 /// When @ref comms::option::HasName is used, the @b comms::MessageBase
 /// creates overriding @b nameImpl() (see @ref comms::MessageBase::nameImpl()), which
 /// invokes provided @b doName() member function.
+///
+/// @subsection page_define_prot_message_version Protocol Version Support
+/// As was described earlier in @ref page_define_prot_interface_version, some 
+/// protocols may include version information in either message transport framing
+/// or in one of the messages used to establish a connection. Every field
+/// defines @b setVersion() member function in its public interface. The 
+/// comms::MessageBase class will automatically call this function for every
+/// field before performing its @b read operation (inside @ref comms::MessageBase::doRead()).
+/// However, if @ref page_define_prot_message_base_custom_read is implemented,
+/// the latter is expected to call provided @ref comms::MessageBase::doFieldsVersionUpdate()
+/// member function explicitly before attempting actual read operations. 
+/// @b NOTE, that the @ref comms::MessageBase::doFieldsVersionUpdate() function
+/// exists only if @ref comms::option::VersionInExtraTransportFields has been
+/// provided to message interface.
+/// @code
+/// template <typename TBase>
+/// class Message2 : public
+///     comms::MessageBase<...>
+/// {
+/// public:
+///     ...
+///     
+///     template <typename TIter>
+///     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
+///     {
+///         // Get type of the base class
+///         using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
+///         
+///         // Update version of the fields
+///         Base::doFieldsVersionUpdate();
+///
+///         // Do the actual read
+///         ...
+///     }
+/// };
+/// @endcode
+/// Similarly, the fields' version needs to be updated in case 
+/// @ref page_define_prot_message_base_custom_refresh is implemented.
+/// @code
+/// template <typename TBase>
+/// class Message2 : public
+///     comms::MessageBase<...>
+/// {
+/// public:
+///     ...
+///     
+///     bool doRefresh()
+///     {
+///         // Get type of the base class
+///         using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
+///
+///         // Update version of the fields
+///         bool updated = Base::doFieldsVersionUpdate();
+///
+///         ... // Custom refresh functionality
+///
+///         return updated;
+///     }
+/// };
+/// @endcode
 ///
 /// @section page_define_prot_lenth_verification Extra Compile Time Checks
 /// Quite often it is obvious from the protocol specification what minimal length

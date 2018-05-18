@@ -330,6 +330,18 @@ public:
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     std::size_t doMaxLengthFromUntil() const;
 
+    /// @brief Update version information of all the fields.
+    /// @details This function exists only if comms::option::FieldsImpl or
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase and
+    ///     @ref comms::option::VersionInExtraTransportFields was provided to the
+    ///     message interface class (@ref comms::Message). @n
+    ///     This function will invoke such @b setVersion() member function for every
+    ///     field object listed with comms::option::FieldsImpl option and will
+    ///     return @b true if <b>at least</b> one of the invoked functions returned
+    ///     @b true (similar to @ref doRefresh()).
+    /// @return true when <b>at least</b> one of the fields has been updated.
+    bool doFieldsVersionUpdate();
+
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 protected:

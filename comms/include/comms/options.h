@@ -1238,10 +1238,10 @@ using MissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing
 using ExistsByDefault = DefaultOptionalMode<comms::field::OptionalMode::Exists>;
 
 /// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Missing>
-using OptionalMissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing>;
+using OptionalMissingByDefault = MissingByDefault;
 
 /// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Exists>
-using OptionalExistsByDefault = DefaultOptionalMode<comms::field::OptionalMode::Exists>;
+using OptionalExistsByDefault = ExistsByDefault;
 
 /// @brief Alias to DefaultValueInitialiser, it initalises comms::field::Variant field
 ///     to contain valid default value of the specified member.
@@ -1338,15 +1338,28 @@ struct VersionType
 /// @headerfile comms/options.h
 struct HasCustomVersionUpdate {};
 
+/// @brief Mark an @ref comms::field::Optional field as existing
+///     between specified versions.
+/// @tparam TFrom First version when field has been added
+/// @tparam TUntil Last version when field still hasn't been removed.
+/// @pre @b TFrom <= @b TUntil
 template <std::uintmax_t TFrom, std::uintmax_t TUntil>
 struct ExistsBetweenVersions
 {
     static_assert(TFrom <= TUntil, "Invalid version parameters");
 };
 
+/// @brief Mark an @ref comms::field::Optional field as existing
+///     starting from specified version.
+/// @details Alias to @ref ExistsBetweenVersions
+/// @tparam TVer First version when field has been added
 template <std::uintmax_t TVer>
 using ExistsSinceVersion = ExistsBetweenVersions<TVer, std::numeric_limits<std::uintmax_t>::max()>;
 
+/// @brief Mark an @ref comms::field::Optional field as existing
+///     only until specified version.
+/// @details Alias to @ref ExistsBetweenVersions
+/// @tparam TVer Last version when field still hasn't been removed.
 template <std::uintmax_t TVer>
 using ExistsUntilVersion = ExistsBetweenVersions<0, TVer>;
 

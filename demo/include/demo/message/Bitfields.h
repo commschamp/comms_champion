@@ -172,6 +172,8 @@ class Bitfields : public
             comms::option::MsgType<Bitfields<TMsgBase, TOpt> >,
             comms::option::HasName
         >;
+
+    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
 public:
 
     /// @brief Allow access to internal fields.

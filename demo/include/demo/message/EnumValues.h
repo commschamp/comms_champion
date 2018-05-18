@@ -173,6 +173,7 @@ class EnumValues : public
             comms::option::HasName
         >;
 
+    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
 public:
 
     /// @brief Allow access to internal fields.

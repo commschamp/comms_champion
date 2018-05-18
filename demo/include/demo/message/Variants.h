@@ -276,6 +276,8 @@ class Variants : public
             comms::option::MsgType<Variants<TMsgBase, TOpt> >,
             comms::option::HasName
         >;
+
+    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
 public:
 
     /// @brief Allow access to internal fields.

@@ -140,7 +140,8 @@ class Optionals : public
             comms::option::HasName
         >;
 
-    static_assert(Base::areFieldsVersionDependent(), "Fields must be version dependent");
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(AreFieldsVersionDependent, "Fields must be version dependent");
 public:
     /// @brief Allow access to internal fields.
     /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro

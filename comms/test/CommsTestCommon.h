@@ -153,7 +153,8 @@ class Message3 : public
             comms::option::HasName
         >;
 public:
-    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
 
@@ -225,7 +226,8 @@ class Message4 : public
             comms::option::HasName
         >;
 public:
-    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
@@ -314,8 +316,8 @@ class Message5 : public
             comms::option::HasName
         >;
 public:
-
-    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
@@ -426,8 +428,8 @@ class Message6 : public
             comms::option::HasName
         >;
 public:
-
-    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1);
 
@@ -488,7 +490,8 @@ class Message7 : public
         >;
 public:
 
-    static_assert(Base::areFieldsVersionDependent(), "Fields must be version dependent");
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(AreFieldsVersionDependent, "Fields must be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 

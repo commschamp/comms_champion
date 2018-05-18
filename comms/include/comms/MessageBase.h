@@ -110,6 +110,13 @@ public:
     /// @return Const reference to the fields of the message.
     const AllFields& fields() const;
 
+    /// @brief Compile time check of whether the message fields are
+    ///     version dependent.
+    /// @details The function doesn't exist if comms::option::FieldsImpl option
+    ///     wasn't provided to comms::MessageBase.
+    /// @return @b true if at least one of the fields is version dependent.
+    static constexpr bool areFieldsVersionDependent();
+
     /// @brief Default implementation of ID retrieval functionality.
     /// @details This function exists only if comms::option::StaticNumIdImpl option
     ///     was provided to comms::MessageBase. @n

@@ -758,6 +758,7 @@ public:
     using ContainerBase::doMaxLengthFrom;
     using ContainerBase::doMaxLengthUntil;
     using ContainerBase::doMaxLengthFromUntil;
+    using ContainerBase::areFieldsVersionDependent;
 
 protected:
     ~MessageImplFieldsBase() noexcept = default;

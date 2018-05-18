@@ -94,7 +94,8 @@ struct OptionalsFields
                 FieldBase,
                 std::int16_t
             >,
-            comms::option::OptionalExistsByDefault
+            comms::option::ExistsByDefault,
+            comms::option::ExistsSinceVersion<1>
         >;
 
     /// @brief All the fields bundled in std::tuple.
@@ -139,6 +140,7 @@ class Optionals : public
             comms::option::HasName
         >;
 
+    static_assert(Base::areFieldsVersionDependent(), "Fields must be version dependent");
 public:
     /// @brief Allow access to internal fields.
     /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
@@ -177,7 +179,8 @@ public:
     template <typename TIter>
     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
     {
-        using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
+        Base::doFieldsVersionUpdate();
+
         auto es = Base::template doReadFieldsUntil<FieldIdx_field2>(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
@@ -197,12 +200,6 @@ public:
         field_field2().setMode(field2Mode);
         field_field3().setMode(field3Mode);
 
-        auto field4Mode = comms::field::OptionalMode::Exists;
-        if (Base::transportField_version().value() == 0U) {
-            field4Mode = comms::field::OptionalMode::Missing;
-        }
-        field_field4().setMode(field4Mode);
-
         return Base::template doReadFieldsFrom<FieldIdx_field2>(iter, len);
     }
 
@@ -212,6 +209,7 @@ public:
     ///     @b false otherwise.
     bool doRefresh()
     {
+        bool refreshed = Base::doFieldsVersionUpdate();
         using Field1Type = typename std::decay<decltype(field_field1())>::type;
         auto field2ExpectedMode = comms::field::OptionalMode::Missing;
         if (field_field1().getBitValue(Field1Type::BitIdx_enableField2)) {
@@ -223,7 +221,6 @@ public:
             field3ExpectedMode = comms::field::OptionalMode::Exists;
         }
 
-        bool refreshed = false;
         if (field_field2().getMode() != field2ExpectedMode) {
             field_field2().setMode(field2ExpectedMode);
             refreshed = true;
@@ -231,16 +228,6 @@ public:
 
         if (field_field3().getMode() != field3ExpectedMode) {
             field_field3().setMode(field3ExpectedMode);
-            refreshed = true;
-        }
-
-        auto field4ExpectedMode = comms::field::OptionalMode::Exists;
-        if (Base::transportField_version().value() == 0U) {
-            field4ExpectedMode = comms::field::OptionalMode::Missing;
-        }
-
-        if (field_field4().getMode() != field4ExpectedMode) {
-            field_field4().setMode(field4ExpectedMode);
             refreshed = true;
         }
 

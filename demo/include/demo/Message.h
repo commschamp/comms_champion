@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -65,6 +65,7 @@ struct Message : public
         ProtocolEndian,
         comms::option::MsgIdType<MsgId>,
         comms::option::ExtraTransportFields<ExtraTransportFields>,
+        comms::option::VersionInExtraTransportFields<0>,
         TOptions...
     >
 {
@@ -73,6 +74,7 @@ struct Message : public
             ProtocolEndian,
             comms::option::MsgIdType<MsgId>,
             comms::option::ExtraTransportFields<ExtraTransportFields>,
+            comms::option::VersionInExtraTransportFields<0>,
             TOptions...
         >;
 public:

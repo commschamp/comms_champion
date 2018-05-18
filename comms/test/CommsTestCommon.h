@@ -67,7 +67,8 @@ class Message1 : public
             comms::option::HasName
         >;
 public:
-    static_assert(!Base::areFieldsVersionDependent(), "Fields mustn't be version dependent");
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1);
 

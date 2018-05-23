@@ -198,7 +198,8 @@ class Lists : public
         typename TOpt::message::Lists,
         comms::option::StaticNumIdImpl<MsgId_Lists>,
         comms::option::FieldsImpl<typename ListsFields<TOpt>::All>,
-        comms::option::MsgType<Lists<TMsgBase, TOpt> >
+        comms::option::MsgType<Lists<TMsgBase, TOpt> >,
+        comms::option::HasName
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -209,9 +210,12 @@ class Lists : public
             typename TOpt::message::Lists,
             comms::option::StaticNumIdImpl<MsgId_Lists>,
             comms::option::FieldsImpl<typename ListsFields<TOpt>::All>,
-            comms::option::MsgType<Lists<TMsgBase, TOpt> >
+            comms::option::MsgType<Lists<TMsgBase, TOpt> >,
+            comms::option::HasName
         >;
 
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 public:
 
     /// @brief Allow access to internal fields.
@@ -244,6 +248,12 @@ public:
 
     /// @brief Move assignment
     Lists& operator=(Lists&&) = default;
+
+    /// @brief Name of the message.
+    static const char* doName()
+    {
+        return "Lists";
+    }
 };
 
 }  // namespace message

@@ -34,24 +34,12 @@ enum MessageType {
     MessageType3,
     MessageType4,
     MessageType5,
+    MessageType6,
+    MessageType7,
 };
 
 template <typename TTraits>
-class TestMessageBase : public comms::Message<TTraits>
-{
-    using Base = comms::Message<TTraits>;
-public:
-
-    virtual ~TestMessageBase() noexcept = default;
-
-    const std::string& getName() const
-    {
-        return this->getNameImpl();
-    }
-
-private:
-    virtual const std::string& getNameImpl() const = 0;
-};
+using TestMessageBase = comms::Message<TTraits>;
 
 
 template <typename TField>
@@ -66,7 +54,8 @@ class Message1 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType1>,
             comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
-            comms::option::MsgType<Message1<TMessage> >
+            comms::option::MsgType<Message1<TMessage> >,
+            comms::option::HasName
         >
 {
     using Base =
@@ -74,9 +63,12 @@ class Message1 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType1>,
             comms::option::FieldsImpl<FieldsMessage1<typename TMessage::Field> >,
-            comms::option::MsgType<Message1<TMessage> >
+            comms::option::MsgType<Message1<TMessage> >,
+            comms::option::HasName
         >;
 public:
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1);
 
@@ -89,22 +81,11 @@ public:
 
     virtual ~Message1() noexcept = default;
 
-protected:
-
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message1");
-        return str;
+        return "Message1";
     }
 };
-
-template <typename... TArgs>
-bool operator==(
-    const Message1<TArgs...>& msg1,
-    const Message1<TArgs...>& msg2)
-{
-    return msg1.fields() == msg2.fields();
-}
 
 template <typename TMessage>
 class Message2 : public
@@ -112,7 +93,8 @@ class Message2 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType2>,
         comms::option::ZeroFieldsImpl,
-        comms::option::MsgType<Message2<TMessage> >
+        comms::option::MsgType<Message2<TMessage> >,
+        comms::option::HasName
     >
 {
     using Base =
@@ -120,7 +102,8 @@ class Message2 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType2>,
             comms::option::ZeroFieldsImpl,
-            comms::option::MsgType<Message2<TMessage> >
+            comms::option::MsgType<Message2<TMessage> >,
+            comms::option::HasName
         >;
 
 public:
@@ -131,21 +114,11 @@ public:
     static_assert(MsgMinLen == 0U, "Wrong serialisation length");
     static_assert(MsgMaxLen == 0U, "Wrong serialisation length");
 
-protected:
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message2");
-        return str;
+        return "Message2";
     }
 };
-
-template <typename... TArgs>
-bool operator==(
-    const Message2<TArgs...>& msg1,
-    const Message2<TArgs...>& msg2)
-{
-    return msg1.fields() == msg2.fields();
-}
 
 template <typename TField>
 using Message3Fields =
@@ -167,7 +140,8 @@ class Message3 : public
         TMessage,
         comms::option::StaticNumIdImpl<MessageType3>,
         comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
-        comms::option::MsgType<Message3<TMessage> >
+        comms::option::MsgType<Message3<TMessage> >,
+        comms::option::HasName
     >
 {
     using Base =
@@ -175,9 +149,13 @@ class Message3 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType3>,
             comms::option::FieldsImpl<Message3Fields<typename TMessage::Field> >,
-            comms::option::MsgType<Message3<TMessage> >
+            comms::option::MsgType<Message3<TMessage> >,
+            comms::option::HasName
         >;
 public:
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
+
     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
@@ -207,22 +185,11 @@ public:
 
     virtual ~Message3() noexcept = default;
 
-protected:
-
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message3");
-        return str;
+        return "Message3";
     }
 };
-
-template <typename... TArgs>
-bool operator==(
-    const Message3<TArgs...>& msg1,
-    const Message3<TArgs...>& msg2)
-{
-    return msg1.fields() == msg2.fields();
-}
 
 template <typename TField>
 using Message4Fields =
@@ -245,7 +212,8 @@ class Message4 : public
         comms::option::StaticNumIdImpl<MessageType4>,
         comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
         comms::option::MsgType<Message4<TMessage> >,
-        comms::option::HasDoRefresh
+        comms::option::HasDoRefresh,
+        comms::option::HasName
     >
 {
     using Base =
@@ -254,9 +222,13 @@ class Message4 : public
             comms::option::StaticNumIdImpl<MessageType4>,
             comms::option::FieldsImpl<Message4Fields<typename TMessage::Field> >,
             comms::option::MsgType<Message4<TMessage> >,
-            comms::option::HasDoRefresh
+            comms::option::HasDoRefresh,
+            comms::option::HasName
         >;
 public:
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
+
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
@@ -311,21 +283,11 @@ public:
         return true;
     }
 
-protected:
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message4");
-        return str;
+        return "Message4";
     }
 };
-
-template <typename... TArgs>
-bool operator==(
-    const Message4<TArgs...>& msg1,
-    const Message4<TArgs...>& msg2)
-{
-    return msg1.fields() == msg2.fields();
-}
 
 
 template <typename TField>
@@ -341,7 +303,8 @@ class Message5 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType5>,
             comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
-            comms::option::MsgType<Message5<TMessage> >
+            comms::option::MsgType<Message5<TMessage> >,
+            comms::option::HasName
         >
 {
     using Base =
@@ -349,9 +312,12 @@ class Message5 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType5>,
             comms::option::FieldsImpl<FieldsMessage5<comms::Field<comms::option::BigEndian> > >,
-            comms::option::MsgType<Message5<TMessage> >
+            comms::option::MsgType<Message5<TMessage> >,
+            comms::option::HasName
         >;
 public:
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1, value2);
 
@@ -364,22 +330,185 @@ public:
 
     virtual ~Message5() noexcept = default;
 
-protected:
-
-    virtual const std::string& getNameImpl() const
+    static const char* doName()
     {
-        static const std::string str("Message5");
-        return str;
+        return "Message5";
     }
 };
 
-template <typename... TArgs>
-bool operator==(
-    const Message5<TArgs...>& msg1,
-    const Message5<TArgs...>& msg2)
+template <typename TField>
+struct Message6Fields
 {
-    return msg1.fields() == msg2.fields();
-}
+    class field : public
+        comms::field::Bundle<
+            TField,
+            std::tuple<
+                comms::field::BitmaskValue<TField, comms::option::FixedLength<1> >,
+                comms::field::Optional<
+                    comms::field::IntValue<TField, std::uint16_t>,
+                    comms::option::MissingByDefault
+                >
+            >,
+            comms::option::HasCustomRead,
+            comms::option::HasCustomRefresh
+        >
+    {
+        using Base =
+            comms::field::Bundle<
+                TField,
+                std::tuple<
+                    comms::field::BitmaskValue<TField, comms::option::FixedLength<1> >,
+                    comms::field::Optional<
+                        comms::field::IntValue<TField, std::uint16_t>,
+                        comms::option::MissingByDefault
+                    >
+                >,
+                comms::option::HasCustomRead,
+                comms::option::HasCustomRefresh
+            >;
+
+    public:
+        COMMS_FIELD_MEMBERS_ACCESS(mask, val);
+
+        template <typename TIter>
+        comms::ErrorStatus read(TIter& iter, std::size_t len)
+        {
+            auto es = field_mask().read(iter, len);
+            if (es != comms::ErrorStatus::Success) {
+                return es;
+            }
+
+            comms::field::OptionalMode mode = comms::field::OptionalMode::Missing;
+            if ((field_mask().value() & 0x1) != 0) {
+                mode = comms::field::OptionalMode::Exists;
+            }
+
+            field_val().setMode(mode);
+            return field_val().read(iter, len - field_mask().length());
+        }
+
+        bool refresh()
+        {
+            comms::field::OptionalMode mode = comms::field::OptionalMode::Missing;
+            if ((field_mask().value() & 0x1) != 0) {
+                mode = comms::field::OptionalMode::Exists;
+            }
+
+            if (mode == field_val().getMode()) {
+                return false;
+            }
+
+            field_val().setMode(mode);
+            return true;
+        }
+    };
+
+    using All = std::tuple<
+        field
+    >;
+
+};
+
+template <typename TMessage>
+class Message6 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType6>,
+            comms::option::FieldsImpl<typename Message6Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message6<TMessage> >,
+            comms::option::HasName
+        >
+{
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType6>,
+            comms::option::FieldsImpl<typename Message6Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message6<TMessage> >,
+            comms::option::HasName
+        >;
+public:
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
+
+    COMMS_MSG_FIELDS_ACCESS(value1);
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 1U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 3U, "Wrong serialisation length");
+
+    Message6() = default;
+
+    ~Message6() noexcept = default;
+
+    static const char* doName()
+    {
+        return "Message6";
+    }
+};
+
+template <typename TField>
+struct Message7Fields
+{
+    using field1 =
+            comms::field::IntValue<TField, std::uint16_t>;
+
+    using field2 =
+        comms::field::Optional<
+            comms::field::IntValue<TField, std::uint16_t>,
+            comms::option::ExistsByDefault,
+            comms::option::ExistsBetweenVersions<5, 10>
+        >;
+
+    static_assert(field2::isVersionDependent(), "field2 must be version dependent");
+
+    using All = std::tuple<
+        field1,
+        field2
+    >;
+
+};
+
+template <typename TMessage>
+class Message7 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType7>,
+            comms::option::FieldsImpl<typename Message7Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message7<TMessage> >,
+            comms::option::HasName
+        >
+{
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType7>,
+            comms::option::FieldsImpl<typename Message7Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message7<TMessage> >,
+            comms::option::HasName
+        >;
+public:
+
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(AreFieldsVersionDependent, "Fields must be version dependent");
+
+    COMMS_MSG_FIELDS_ACCESS(value1, value2);
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 2U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 4U, "Wrong serialisation length");
+
+    Message7() = default;
+
+    ~Message7() noexcept = default;
+
+    static const char* doName()
+    {
+        return "Message7";
+    }
+};
 
 template <typename TMessage>
 using AllMessages =
@@ -431,7 +560,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
 
     MsgPtr msg;
     auto readIter = buf;
-    auto es = stack.template readFieldsCached<0>(fields, msg, readIter, bufSize);
+    auto es = stack.readFieldsCached(fields, msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedEs);
     if (es != comms::ErrorStatus::Success) {
         return std::move(msg);
@@ -444,7 +573,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     std::unique_ptr<char []> outCheckBuf(new char[actualBufSize]);
     auto writeIter = &outCheckBuf[0];
     typename TProtStack::AllFields writtenFields;
-    es = stack.template writeFieldsCached<0>(writtenFields, *msg, writeIter, actualBufSize);
+    es = stack.writeFieldsCached(writtenFields, *msg, writeIter, actualBufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
     TS_ASSERT_EQUALS(fields, writtenFields);
@@ -613,7 +742,7 @@ void commonReadWriteMsgDirectTest(
     comms::ErrorStatus expectedEs = comms::ErrorStatus::Success)
 {
     auto readIter = buf;
-    auto es = stack.template readFieldsCached<0>(fields, msg, readIter, bufSize);
+    auto es = stack.readFieldsCached(fields, msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedEs);
     if (es != comms::ErrorStatus::Success) {
         return;
@@ -624,7 +753,7 @@ void commonReadWriteMsgDirectTest(
     std::unique_ptr<char []> outCheckBuf(new char[actualBufSize]);
     typename TProtStack::AllFields writtenFields;
     auto writeIter = &outCheckBuf[0];
-    es = stack.template writeFieldsCached<0>(writtenFields, msg, writeIter, actualBufSize);
+    es = stack.writeFieldsCached(writtenFields, msg, writeIter, actualBufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(fields, writtenFields);
     TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));

@@ -28,6 +28,7 @@
 #include "comms/ErrorStatus.h"
 
 #include "comms/field/IntValue.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -94,9 +95,8 @@ struct BitfieldPosRetrieveHelper
 {
     static_assert(TIdx < std::tuple_size<TMembers>::value, "Invalid tuple element");
     using FieldType = typename std::tuple_element<TIdx - 1, TMembers>::type;
-    using FieldOptions = typename FieldType::ParsedOptions;
 
-    static const std::size_t PrevFieldSize = FieldOptions::FixedBitLength;
+    static const std::size_t PrevFieldSize = BitfieldMemberLengthRetriever<FieldType>::Value;
 
 public:
     static const std::size_t Value = BitfieldPosRetrieveHelper<TIdx - 1, TMembers>::Value + PrevFieldSize;
@@ -161,6 +161,7 @@ class Bitfield : public TFieldBase
 
 public:
     using Endian = typename BaseImpl::Endian;
+    using VersionType = typename BaseImpl::VersionType;
     using ValueType = TMembers;
 
     Bitfield() = default;
@@ -254,6 +255,27 @@ public:
         return comms::util::tupleAccumulate(members_, false, RefreshHelper());
     }
 
+    template <std::size_t TIdx>
+    static constexpr std::size_t memberBitLength()
+    {
+        static_assert(
+            TIdx < std::tuple_size<ValueType>::value,
+            "Index exceeds number of fields");
+
+        using FieldType = typename std::tuple_element<TIdx, ValueType>::type;
+        return details::BitfieldMemberLengthRetriever<FieldType>::Value;
+    }
+
+    static constexpr bool isVersionDependent()
+    {
+        return CommonFuncs::areMembersVersionDependent<ValueType>();
+    }
+
+    bool setVersion(VersionType version)
+    {
+        return CommonFuncs::setVersionForMembers(value(), version);
+    }
+
 private:
 
     class ReadHelper
@@ -271,10 +293,9 @@ private:
             }
 
             using FieldType = typename std::decay<decltype(field)>::type;
-            using FieldOptions = typename FieldType::ParsedOptions;
             static const auto Pos = details::getMemberShiftPos<TIdx, ValueType>();
             static const auto Mask =
-                (static_cast<SerialisedType>(1) << FieldOptions::FixedBitLength) - 1;
+                (static_cast<SerialisedType>(1) << details::BitfieldMemberLengthRetriever<FieldType>::Value) - 1;
 
             auto fieldSerValue =
                 static_cast<SerialisedType>((value_ >> Pos) & Mask);
@@ -363,10 +384,9 @@ private:
             const auto* readIter = &buf[0];
             auto fieldSerValue = comms::util::readData<SerialisedType, MaxLength>(readIter, FieldEndian());
 
-            using FieldOptions = typename FieldType::ParsedOptions;
             static const auto Pos = details::getMemberShiftPos<TIdx, ValueType>();
             static const auto Mask =
-                (static_cast<SerialisedType>(1) << FieldOptions::FixedBitLength) - 1;
+                (static_cast<SerialisedType>(1) << details::BitfieldMemberLengthRetriever<FieldType>::Value) - 1;
 
             static const auto ClearMask = ~(Mask << Pos);
 

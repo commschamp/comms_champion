@@ -79,18 +79,20 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::ContentsValidator - All field members may specify
+///     @li @ref comms::option::ContentsValidator - All field members may specify
 ///         their independent validators. The bitfield field considered to
 ///         be valid if all the field members are valid. This option though,
 ///         provides an ability to add extra validation logic that can
 ///         observe value of more than one bitfield member. For example,
 ///         protocol specifies that if one specific member has value X, than
 ///         other member is NOT allowed to have value Y.
-///     @li comms::option::ContentsRefresher - The default refreshing
+///     @li @ref comms::option::ContentsRefresher - The default refreshing
 ///         behaviour is to call the @b refresh() member function of every
 ///         member field. This option provides an ability to set a custom
 ///         "refreshing" logic.
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
+///     @li @ref comms::option::EmptySerialization
 /// @pre TMember is a variant of std::tuple, that contains other fields.
 /// @pre Every field member specifies its length in bits using
 ///     comms::option::FixedBitLength option.
@@ -107,6 +109,9 @@ class Bitfield : private
 public:
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
+
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -144,13 +149,7 @@ public:
     template <std::size_t TIdx>
     static constexpr std::size_t memberBitLength()
     {
-        static_assert(
-            TIdx < std::tuple_size<ValueType>::value,
-            "Index exceeds number of fields");
-
-        using FieldType = typename std::tuple_element<TIdx, ValueType>::type;
-        using FieldOptions = typename FieldType::ParsedOptions;
-        return FieldOptions::FixedBitLength;
+        return BaseImpl::template memberBitLength<TIdx>();
     }
 
 
@@ -247,6 +246,19 @@ public:
         return BaseImpl::refresh();
     }
 
+    /// @brief Compile time check if this class is version dependent
+    static constexpr bool isVersionDependent()
+    {
+        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Default implementation of version update.
+    /// @return @b true in case the field contents have changed, @b false otherwise
+    bool setVersion(VersionType version)
+    {
+        return BaseImpl::setVersion(version);
+    }
+
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;
@@ -292,6 +304,8 @@ private:
             "comms::option::OrigDataView option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
             "comms::option::ValidNumValueRange (or similar) option is not applicable to Bitfield field");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to Bitfield field");
 };
 
 /// @brief Equality comparison operator.

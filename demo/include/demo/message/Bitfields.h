@@ -157,7 +157,8 @@ class Bitfields : public
         typename TOpt::message::Bitfields,
         comms::option::StaticNumIdImpl<MsgId_Bitfields>,
         comms::option::FieldsImpl<typename BitfieldsFields<TOpt>::All>,
-        comms::option::MsgType<Bitfields<TMsgBase, TOpt> >
+        comms::option::MsgType<Bitfields<TMsgBase, TOpt> >,
+        comms::option::HasName
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -168,8 +169,12 @@ class Bitfields : public
             typename TOpt::message::Bitfields,
             comms::option::StaticNumIdImpl<MsgId_Bitfields>,
             comms::option::FieldsImpl<typename BitfieldsFields<TOpt>::All>,
-            comms::option::MsgType<Bitfields<TMsgBase, TOpt> >
+            comms::option::MsgType<Bitfields<TMsgBase, TOpt> >,
+            comms::option::HasName
         >;
+
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 public:
 
     /// @brief Allow access to internal fields.
@@ -204,6 +209,12 @@ public:
 
     /// @brief Move assignment
     Bitfields& operator=(Bitfields&&) = default;
+
+    /// @brief Name of the message.
+    static const char* doName()
+    {
+        return "Bitfields";
+    }
 };
 
 }  // namespace message

@@ -34,6 +34,7 @@ public:
     void test2();
     void test3();
     void test4();
+    void test5();
 
 private:
 
@@ -135,7 +136,7 @@ private:
             >
         >;
 
-    template <typename TMessage>
+    template <typename TMessage, typename... TOpt>
     using AfterIdProtocolStack =
         comms::protocol::MsgSizeLayer<
             SizeField,
@@ -146,7 +147,8 @@ private:
                 comms::protocol::TransportValueLayer<
                     VersionField,
                     ExtraTransportMessageBase<>::TransportFieldIdx_version,
-                    comms::protocol::MsgDataLayer<>
+                    comms::protocol::MsgDataLayer<>,
+                    TOpt...
                 >
             >
         >;
@@ -257,4 +259,30 @@ void TransportValueLayerTestSuite::test4()
     TS_ASSERT_EQUALS(std::get<1>(fields2).value(), 0x4);
     TS_ASSERT_EQUALS(std::get<2>(fields2).value(), MessageType1);
 
+}
+
+void TransportValueLayerTestSuite::test5()
+{
+    static const char Buf[] = {
+        0x0, 0x4, 0x0, MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using MsgBase = ExtraTransportMessageBase<BeOptions>;
+    using Stack = AfterIdProtocolStack<MsgBase, comms::option::PseudoValue>;
+
+    Stack stack;
+    TS_ASSERT_EQUALS(stack.length(), 4U);
+
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    TS_ASSERT_EQUALS(msgPtr->transportField_version().value(), 5U);
+
+    stack.nextLayer().nextLayer().pseudoField().value() = 8U;
+    auto msgPtr2 = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr2);
+    TS_ASSERT_EQUALS(msgPtr2->getId(), MessageType1);
+    TS_ASSERT_EQUALS(msgPtr2->transportField_version().value(), 8U);
 }

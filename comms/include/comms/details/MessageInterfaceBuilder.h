@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 
 #include "comms/Assert.h"
 #include "comms/util/access.h"
+#include "comms/util/Tuple.h"
 #include "comms/ErrorStatus.h"
 #include "MessageInterfaceOptionsParser.h"
 
@@ -53,6 +54,8 @@ using MessageInterfaceDispatchRetType = typename MessageInterfaceDispatchRetType
 
 
 class MessageInterfaceEmptyBase {};
+
+//----------------------------------------------------
 
 template <typename TEndian>
 class MessageInterfaceEndianBase
@@ -115,6 +118,8 @@ template <typename TOpt>
 using MessageInterfaceEndianBaseT =
     typename MessageInterfaceProcessEndianBase<TOpt::HasEndian>::template Type<TOpt>;
 
+//----------------------------------------------------
+
 template <typename TBase, typename TId>
 class MessageInterfaceIdTypeBase : public TBase
 {
@@ -151,11 +156,16 @@ template <typename TBase, typename TOpt>
 using MessageInterfaceIdTypeBaseT =
     typename MessageInterfaceProcessIdTypeBase<TOpt::HasMsgIdType>::template Type<TBase, TOpt>;
 
+//----------------------------------------------------
+
 template <typename TBase, typename TFields>
 class MessageInterfaceExtraTransportFieldsBase : public TBase
 {
 public:
     using TransportFields = TFields;
+
+    static_assert(comms::util::isTuple<TransportFields>(),
+                  "TransportFields is expected to be tuple");
 
     TransportFields& transportFields()
     {
@@ -194,6 +204,58 @@ template <typename TBase, typename TOpt>
 using MessageInterfaceExtraTransportFieldsBaseT =
     typename MessageInterfaceProcessExtraTransportFieldsBase<TOpt::HasExtraTransportFields>::template Type<TBase, TOpt>;
 
+//----------------------------------------------------
+
+template <typename TBase, std::size_t TIdx>
+class MessageInterfaceVersionInExtraTransportFieldsBase : public TBase
+{
+public:
+    using TransportFields = typename TBase::TransportFields;
+
+    static_assert(comms::util::isTuple<TransportFields>(),
+                  "TransportFields is expected to be tuple");
+
+    static_assert(TIdx < std::tuple_size<TransportFields>::value,
+                  "Index provided to comms::option::VersionInExtraTransportFields exceeds size of the tuple");
+
+    using VersionType = typename std::tuple_element<TIdx, TransportFields>::type::ValueType;
+
+    VersionType& version()
+    {
+        return std::get<TIdx>(TBase::transportFields()).value();
+    }
+
+    const VersionType& version() const
+    {
+        return std::get<TIdx>(TBase::transportFields()).value();
+    }
+
+protected:
+    ~MessageInterfaceVersionInExtraTransportFieldsBase() noexcept = default;
+};
+
+template <bool THasVersionInExtraTransportFields>
+struct MessageInterfaceProcessVersionInExtraTransportFieldsBase;
+
+template <>
+struct MessageInterfaceProcessVersionInExtraTransportFieldsBase<true>
+{
+    template<typename TBase, typename TOpt>
+    using Type = MessageInterfaceVersionInExtraTransportFieldsBase<TBase, TOpt::VersionInExtraTransportFields>;
+};
+
+template <>
+struct MessageInterfaceProcessVersionInExtraTransportFieldsBase<false>
+{
+    template<typename TBase, typename TOpt>
+    using Type = TBase;
+};
+
+template <typename TBase, typename TOpt>
+using MessageInterfaceVersionInExtraTransportFieldsBaseT =
+    typename MessageInterfaceProcessVersionInExtraTransportFieldsBase<TOpt::HasVersionInExtraTransportFields>::template Type<TBase, TOpt>;
+
+//----------------------------------------------------
 
 template <typename TBase>
 class MessageInterfaceIdInfoBase : public TBase
@@ -231,6 +293,8 @@ struct MessageInterfaceProcessIdInfoBase<false>
 template <typename TBase, typename TOpt>
 using MessageInterfaceIdInfoBaseT =
     typename MessageInterfaceProcessIdInfoBase<TOpt::HasMsgIdType && TOpt::HasMsgIdInfo>::template Type<TBase>;
+
+//----------------------------------------------------
 
 template <typename TBase, typename TReadIter>
 class MessageInterfaceReadOnlyBase : public TBase
@@ -352,6 +416,8 @@ template <typename TBase, typename TOpt>
 using MessageInterfaceReadWriteBaseT =
     typename MessageInterfaceProcessReadWriteBase<TOpt::HasReadIterator, TOpt::HasWriteIterator>::template Type<TBase, TOpt>;
 
+//----------------------------------------------------
+
 template <typename TBase, typename THandler>
 class MessageInterfaceHandlerBase : public TBase
 {
@@ -390,6 +456,7 @@ template <typename TBase, typename TOpt>
 using MessageInterfaceHandlerBaseT =
     typename MessageInterfaceProcessHandlerBase<TOpt::HasHandler>::template Type<TBase, TOpt>;
 
+//----------------------------------------------------
 
 template <typename TBase>
 class MessageInterfaceValidBase : public TBase
@@ -435,6 +502,8 @@ template <typename TBase, typename TOpts>
 using MessageInterfaceValidBaseT =
     typename MessageInterfaceProcessValidBase<TOpts::HasValid>::template Type<TBase>;
 
+//----------------------------------------------------
+
 template <typename TBase>
 class MessageInterfaceLengthBase : public TBase
 {
@@ -479,6 +548,8 @@ template <typename TBase, typename TOpts>
 using MessageInterfaceLengthBaseT =
     typename MessageInterfaceProcessLengthBase<TOpts::HasLength>::template Type<TBase>;
 
+//----------------------------------------------------
+
 template <typename TBase>
 class MessageInterfaceRefreshBase : public TBase
 {
@@ -517,6 +588,44 @@ template <typename TBase, typename TOpts>
 using MessageInterfaceRefreshBaseT =
     typename MessageInterfaceProcessRefreshBase<TOpts::HasRefresh>::template Type<TBase>;
 
+//----------------------------------------------------
+
+template <typename TBase>
+class MessageInterfaceNameBase : public TBase
+{
+public:
+    const char* name() const
+    {
+        return nameImpl();
+    }
+
+protected:
+    ~MessageInterfaceNameBase() noexcept = default;
+    virtual const char* nameImpl() const = 0;
+};
+
+template <bool THasName>
+struct MessageInterfaceProcessNameBase;
+
+template <>
+struct MessageInterfaceProcessNameBase<true>
+{
+    template <typename TBase>
+    using Type = MessageInterfaceNameBase<TBase>;
+};
+
+template <>
+struct MessageInterfaceProcessNameBase<false>
+{
+    template <typename TBase>
+    using Type = TBase;
+};
+
+template <typename TBase, typename TOpts>
+using MessageInterfaceNameBaseT =
+    typename MessageInterfaceProcessNameBase<TOpts::HasName>::template Type<TBase>;
+
+//----------------------------------------------------
 
 template <typename TOpts>
 constexpr bool messageInterfaceHasVirtualFunctions()
@@ -528,7 +637,8 @@ constexpr bool messageInterfaceHasVirtualFunctions()
         TOpts::HasHandler ||
         TOpts::HasValid ||
         TOpts::HasLength ||
-        TOpts::HasRefresh;
+        TOpts::HasRefresh ||
+        TOpts::HasName;
 }
 
 template <typename TBase>
@@ -561,25 +671,29 @@ using MessageInterfaceVirtDestructorBaseT =
         (!TOpts::HasNoVirtualDestructor) && messageInterfaceHasVirtualFunctions<TOpts>()
     >::template Type<TBase>;
 
+//----------------------------------------------------
 
 template <typename... TOptions>
 class MessageInterfaceBuilder
 {
     using ParsedOptions = MessageInterfaceOptionsParser<TOptions...>;
 
-//    static_assert(ParsedOptions::HasEndian,
-//        "The Message interface must specify Endian in its options");
+    static_assert((!ParsedOptions::HasVersionInExtraTransportFields) || ParsedOptions::HasExtraTransportFields,
+        "comms::option::VersionInExtraTransportFields option should not be used "
+        "without comms::option::ExtraTransportFields.");
 
     using EndianBase = MessageInterfaceEndianBaseT<ParsedOptions>;
     using IdTypeBase = MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions>;
     using TransportFieldsBase = MessageInterfaceExtraTransportFieldsBaseT<IdTypeBase, ParsedOptions>;
-    using IdInfoBase = MessageInterfaceIdInfoBaseT<TransportFieldsBase, ParsedOptions>;
+    using VersionInTransportFieldsBase = MessageInterfaceVersionInExtraTransportFieldsBaseT<TransportFieldsBase, ParsedOptions>;
+    using IdInfoBase = MessageInterfaceIdInfoBaseT<VersionInTransportFieldsBase, ParsedOptions>;
     using ReadWriteBase = MessageInterfaceReadWriteBaseT<IdInfoBase, ParsedOptions>;
     using ValidBase = MessageInterfaceValidBaseT<ReadWriteBase, ParsedOptions>;
     using LengthBase = MessageInterfaceLengthBaseT<ValidBase, ParsedOptions>;
     using HandlerBase = MessageInterfaceHandlerBaseT<LengthBase, ParsedOptions>;
     using RefreshBase = MessageInterfaceRefreshBaseT<HandlerBase, ParsedOptions>;
-    using VirtDestructorBase = MessageInterfaceVirtDestructorBaseT<RefreshBase, ParsedOptions>;
+    using NameBase = MessageInterfaceNameBaseT<RefreshBase, ParsedOptions>;
+    using VirtDestructorBase = MessageInterfaceVirtDestructorBaseT<NameBase, ParsedOptions>;
 
 public:
     using Options = ParsedOptions;

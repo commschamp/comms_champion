@@ -57,12 +57,6 @@ IntValues::~IntValues() noexcept = default;
 IntValues& IntValues::operator=(const IntValues&) = default;
 IntValues& IntValues::operator=(IntValues&&) = default;
 
-const char* IntValues::nameImpl() const
-{
-    static const char* Str = "IntValues";
-    return Str;
-}
-
 const QVariantList& IntValues::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

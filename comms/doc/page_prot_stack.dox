@@ -500,6 +500,34 @@
 /// being complete as well. As the result these layers do not support being wrapped by 
 /// @ref comms::protocol::TransportValueLayer and will fail compilation with
 /// static assert if such wrapping is attempted.
+///
+/// @section page_prot_stack_tutorial_pseudo_transport_value Pseudo Transport Values
+/// Some protocols may report one of the values (such as protocol version) in
+/// one of the messages used to establish connection. After that, the reported
+/// value may have influence on how other message contents are being read. Handling
+/// such case is very similar to @ref page_prot_stack_tutorial_transport_value.
+/// The only difference is passing @ref comms::option::PseudoValue option to
+/// @ref comms::protocol::TransportValueLayer layer class. It will cause the 
+/// transport value not actually being (de)serialised during @b read / @b write
+/// operations. The pseudo field value is going to be stored as private member
+/// of @ref comms::protocol::TransportValueLayer and can be accessed (and updated) using
+/// @ref comms::protocol::TransportValueLayer::pseudoField() member function(s).
+/// During the @b read operation the comms::protocol::TransportValueLayer behaves
+/// as if the value stored in this field was actually read.
+/// @code
+/// // Version control layer
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// using MyVersion = 
+///     comms::protocol::TransportValueLayer<
+///         MyVersionField, 
+///         TMessage::TransportFieldIdx_version, 
+///         MyMsgData<TPayloadOptions>,
+///         comms::option::PseudoValue
+///     >;
+/// @endcode
 /// 
 /// @section page_prot_stack_tutorial_summary Layers Summary
 /// The earlier examples show that layer classes wrap one another, which creates
@@ -507,7 +535,7 @@
 /// @diafile protocol_stack.dia
 ///
 /// The outermost (or bottom) layer defines a full <b>protocol stack</b>. It 
-/// should be typedef-ed to avoid any confusion:
+/// should be typedef-ed or extended to avoid any confusion:
 /// @code
 /// template <
 ///     typename TMessage, // common interface class defined by the application
@@ -516,6 +544,116 @@
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
 /// using ProtocolStack = MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> ;
+/// @endcode
+/// Every protocol layer provides an ability to access the next one using
+/// @b nextLayer() member function
+/// (see @ref comms::protocol::ProtocolLayerBase::nextLayer()). It is strongly
+/// recommended to generate convenience access functions using
+/// @ref COMMS_PROTOCOL_LAYERS_ACCESS() macro.
+/// @code
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// struct ProtocolStack : public 
+///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+///     COMMS_PROTOCOL_LAYERS_ACCESS(payload, id, size, checksum, sync);
+/// };
+/// @endcode
+/// It is equivalent to having the following member function being defined:
+/// @code
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// struct ProtocolStack : public 
+///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+///     // Access to PAYLOAD layer
+///     decltype(auto) layer_payload();
+///
+///     // Const access to PAYLOAD layer
+///     decltype(auto) layer_payload() const;
+///
+///     // Access to ID layer
+///     decltype(auto) layer_id();
+///
+///     // Const access to ID layer
+///     decltype(auto) layer_id() const;
+///
+///     // Access to SIZE layer
+///     decltype(auto) layer_size();
+///
+///     // Const access to SIZE layer
+///     decltype(auto) layer_size() const;
+///
+///     // Access to CHECKSUM layer
+///     decltype(auto) layer_checksum();
+///
+///     // Const access to CHECKSUM layer
+///     decltype(auto) layer_checksum() const;
+///
+///     // Access to SYNC layer
+///     decltype(auto) layer_sync();
+///
+///     // Const access to SYNC layer
+///     decltype(auto) layer_sync() const;
+/// };
+/// @endcode
+/// Please note the following:
+/// @li Every provided name is prefixed with @b layer_.
+/// @li The names inside the @ref COMMS_PROTOCOL_LAYERS_ACCESS() macro specify
+/// innermost layer first and outermost one last. There is a convenience 
+/// wrapper macro @ref COMMS_PROTOCOL_LAYERS_ACCESS_OUTER() which allows
+/// listing in the opposite order (outermost first and innermost last).
+///
+/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
+/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
+/// @ref COMMS_PROTOCOL_LAYERS_ACCESS() macro
+/// even though it contains valid C++11 code. If the compilation failure 
+/// happens there is a need to define inner @b Base type which specifies exact type
+/// of the protocol stack base class.
+/// @code
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// class ProtocolStack : public 
+///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+///     using Base = MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions>;
+/// public:
+///     COMMS_PROTOCOL_LAYERS_ACCESS(payload, id, size, checksum, sync);
+/// };
+/// @endcode
+/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
+/// case the base class definition is needed (going to be used). If the developed
+/// application is going to be multi-platform and compiled with various compilers
+/// (some of which may warn about unused private type) it is possible to use 
+/// the defined symbol to add / remove the definition of the @b Base member type.
+/// @code
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// class ProtocolStack : public 
+///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+/// #ifdef COMMS_MUST_DEFINE_BASE
+///     using Base = ...
+/// #endif
+/// public:
+///     COMMS_PROTOCOL_LAYERS_ACCESS(payload, id, size, checksum, sync);
+/// };
 /// @endcode
 ///
 /// @section page_prot_stack_tutorial_new_layers Implementing New Layers

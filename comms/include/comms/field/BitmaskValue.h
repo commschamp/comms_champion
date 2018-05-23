@@ -86,14 +86,16 @@ using BitmaskUndertlyingTypeT =
 ///         using MyField =comms::field::EnumValue<MyFieldBase, comms::option::FixedLength<2> >;
 ///     @endcode
 ///     Supported options are:
-///     @li comms::option::FixedLength
-///     @li comms::option::FixedBitLength
-///     @li comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
-///     @li comms::option::ContentsValidator or comms::option::BitmaskReservedBits.
-///     @li comms::option::ContentsRefresher
-///     @li comms::option::FailOnInvalid
-///     @li comms::option::IgnoreInvalid
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::FixedLength
+///     @li @ref comms::option::FixedBitLength
+///     @li @ref comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
+///     @li @ref comms::option::ContentsValidator or comms::option::BitmaskReservedBits.
+///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
+///     @li @ref comms::option::FailOnInvalid
+///     @li @ref comms::option::IgnoreInvalid
+///     @li @ref comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/BitmaskValue.h
 /// @see COMMS_BITMASK_BITS()
@@ -118,6 +120,12 @@ class BitmaskValue : public TFieldBase
         >;
 
 public:
+
+    /// @brief Endian used for serialisation.
+    using Endian = typename BaseImpl::Endian;
+
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = OptionsBundle;
@@ -293,6 +301,19 @@ public:
         }
     }
 
+    /// @brief Compile time check if this class is version dependent
+    static constexpr bool isVersionDependent()
+    {
+        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Default implementation of version update.
+    /// @return @b true in case the field contents have changed, @b false otherwise
+    bool setVersion(VersionType version)
+    {
+        return BaseImpl::setVersion(version);
+    }
+
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;
@@ -335,7 +356,8 @@ private:
             "comms::option::OrigDataView option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
             "comms::option::ValidNumValueRange (or similar) option is not applicable to BitmaskValue field");
-
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to BitmaskValue field");
 
     IntValueField intValue_;
 };

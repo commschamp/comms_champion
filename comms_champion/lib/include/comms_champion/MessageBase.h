@@ -56,6 +56,7 @@ class MessageBase :
             comms::option::ValidCheckInterface,
             comms::option::LengthInfoInterface,
             comms::option::RefreshInterface,
+            comms::option::NameInterface,
             TOptions...>
 {
     using CCBase = comms_champion::Message;
@@ -68,6 +69,7 @@ class MessageBase :
             comms::option::ValidCheckInterface,
             comms::option::LengthInfoInterface,
             comms::option::RefreshInterface,
+            comms::option::NameInterface,
             TOptions...>;
 public:
     /// @brief Handler class

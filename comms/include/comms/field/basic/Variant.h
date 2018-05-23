@@ -414,7 +414,7 @@ private:
 
     private:
         bool& result_;
-        const void* storage_;
+        void* storage_ = nullptr;
     };
 
 

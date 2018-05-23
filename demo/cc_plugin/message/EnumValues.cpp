@@ -79,12 +79,6 @@ EnumValues::~EnumValues() noexcept = default;
 EnumValues& EnumValues::operator=(const EnumValues&) = default;
 EnumValues& EnumValues::operator=(EnumValues&&) = default;
 
-const char* EnumValues::nameImpl() const
-{
-    static const char* Str = "EnumValues";
-    return Str;
-}
-
 const QVariantList& EnumValues::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

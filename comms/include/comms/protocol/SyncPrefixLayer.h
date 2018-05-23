@@ -157,6 +157,31 @@ public:
     }
 };
 
+namespace details
+{
+template <typename T>
+struct SyncPrefixLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TField, typename TNextLayer>
+struct SyncPrefixLayerCheckHelper<SyncPrefixLayer<TField, TNextLayer> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref SyncPrefixLayer
+/// @related SyncPrefixLayer
+template <typename T>
+constexpr bool isSyncPrefixLayer()
+{
+    return details::SyncPrefixLayerCheckHelper<T>::Value;
+}
+
 }  // namespace protocol
 
 }  // namespace comms

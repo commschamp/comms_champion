@@ -21,6 +21,7 @@
 #include <iterator>
 
 #include "comms/ErrorStatus.h"
+#include "comms/util/Tuple.h"
 
 namespace comms
 {
@@ -148,6 +149,49 @@ struct CommonFuncs
     static constexpr std::size_t maxSupportedLength()
     {
         return 0xffff;
+    }
+
+    template <typename TFields>
+    static constexpr bool areMembersVersionDependent()
+    {
+        return comms::util::tupleTypeAccumulate<TFields>(false, VersionDependencyChecker());
+    }
+
+    template <typename TFields, typename TVersionType>
+    static bool setVersionForMembers(TFields& fields, TVersionType version)
+    {
+        return comms::util::tupleAccumulate(fields, false, makeVersionUpdater(version));
+    }
+
+private:
+    struct VersionDependencyChecker
+    {
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::isVersionDependent() || soFar;
+        }
+    };
+
+    template <typename TVerType>
+    class VersionUpdater
+    {
+    public:
+        explicit VersionUpdater(TVerType val) : version_(val) {}
+
+        template <typename TField>
+        bool operator()(bool soFar, TField& field) const
+        {
+            return field.setVersion(static_cast<typename TField::VersionType>(version_)) || soFar;
+        }
+    private:
+        TVerType version_;
+    };
+
+    template <typename TVerType>
+    static VersionUpdater<TVerType> makeVersionUpdater(TVerType val)
+    {
+        return VersionUpdater<TVerType>(val);
     }
 
 };

@@ -86,7 +86,8 @@ class FloatValues : public
         typename TOpt::message::FloatValues,
         comms::option::StaticNumIdImpl<MsgId_FloatValues>,
         comms::option::FieldsImpl<typename FloatValuesFields<TOpt>::All>,
-        comms::option::MsgType<FloatValues<TMsgBase, TOpt> >
+        comms::option::MsgType<FloatValues<TMsgBase, TOpt> >,
+        comms::option::HasName
     >
 {
     // Required for compilation with gcc earlier than v5.0,
@@ -97,8 +98,12 @@ class FloatValues : public
             typename TOpt::message::FloatValues,
             comms::option::StaticNumIdImpl<MsgId_FloatValues>,
             comms::option::FieldsImpl<typename FloatValuesFields<TOpt>::All>,
-            comms::option::MsgType<FloatValues<TMsgBase, TOpt> >
+            comms::option::MsgType<FloatValues<TMsgBase, TOpt> >,
+            comms::option::HasName
         >;
+
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 public:
 
     /// @brief Allow access to internal fields.
@@ -133,6 +138,12 @@ public:
 
     /// @brief Move assignment
     FloatValues& operator=(FloatValues&&) = default;
+
+    /// @brief Name of the message.
+    static const char* doName()
+    {
+        return "FloatValues";
+    }
 };
 
 }  // namespace message

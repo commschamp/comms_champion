@@ -24,6 +24,8 @@
 #include <type_traits>
 #include <limits>
 #include <ratio>
+#include <cstdint>
+#include <cstddef>
 
 #include "comms/traits.h"
 #include "comms/ErrorStatus.h"
@@ -115,6 +117,10 @@ struct LengthInfoInterface {};
 /// @headerfile comms/options.h
 struct RefreshInterface {};
 
+/// @brief Option used to add @b name() function into Message interface.
+/// @headerfile comms/options.h
+struct NameInterface {};
+
 /// @brief Option used to specify type of the message handler.
 /// @tparam T Type of the handler.
 /// @headerfile comms/options.h
@@ -150,15 +156,15 @@ struct NoDispatchImpl {};
 /// @tparam TFields The fields of the message bundled in std::tuple.
 /// @headerfile comms/options.h
 template <typename TFields>
-struct ExtraTransportFields;
+struct ExtraTransportFields {};
 
-/// @cond SKIP_DOC
-template <typename... TFields>
-struct ExtraTransportFields<std::tuple<TFields...> >
-{
-};
-/// @endcond
-
+/// @brief Option used to specify index of the version field inside
+///     extra transport fields tuple provided with @ref
+///     comms::option::ExtraTransportFields option.
+/// @tparam TIdx Index of the field inside the tuple.
+/// @headerfile comms/options.h
+template <std::size_t TIdx>
+struct VersionInExtraTransportFields {};
 
 /// @brief Option used to specify fields of the message and force implementation
 ///     of default read, write, validity check, and length retrieval information
@@ -198,11 +204,6 @@ struct NoValidImpl {};
 ///     regardless of other availability conditions.
 /// @headerfile comms/options.h
 struct NoLengthImpl {};
-
-/// @brief Option that notifies comms::MessageBase about existence of
-///     custom refresh functionality in derived class.
-/// @headerfile comms/options.h
-struct HasDoRefresh {};
 
 /// @brief Option that notifies comms::MessageBase about existence of
 ///     @b doGetId() member function in derived class.
@@ -1131,15 +1132,20 @@ struct ValidNumValueRange
     static_assert(TMinValue <= TMaxValue, "Invalid range");
 };
 
+/// @brief Clear accumulated ranges of valid values.
+struct ValidRangesClear {};
+
 /// @brief Similar to @ref ValidNumValueRange, but overrides (nullifies)
 ///     all previously set valid values ranges.
 /// @see @ref ValidNumValueOverride
 /// @see @ref ValidBigUnsignedNumValueRangeOverride
+/// @deprecated Use @ref ValidRangesClear instead.
 template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
-struct ValidNumValueRangeOverride
-{
-    static_assert(TMinValue <= TMaxValue, "Invalid range");
-};
+using ValidNumValueRangeOverride =
+    std::tuple<
+        ValidNumValueRange<TMinValue, TMaxValue>,
+        ValidRangesClear
+    >;
 
 /// @brief Alias to @ref ValidNumValueRange.
 /// @details Equivalent to @b ValidNumValueRange<TValue, TValue>
@@ -1148,6 +1154,7 @@ using ValidNumValue = ValidNumValueRange<TValue, TValue>;
 
 /// @brief Alias to @ref ValidNumValueRangeOverride.
 /// @details Equivalent to @b ValidNumValueRangeOverride<TValue, TValue>
+/// @deprecated Use @ref ValidRangesClear instead.
 template<std::intmax_t TValue>
 using ValidNumValueOverride = ValidNumValueRangeOverride<TValue, TValue>;
 
@@ -1174,11 +1181,13 @@ struct ValidBigUnsignedNumValueRange
 ///     all previously set valid values ranges.
 /// @see @ref ValidNumValueOverride
 /// @see @ref ValidBigUnsignedNumValueOverride
+/// @deprecated Use @ref ValidRangesClear instead.
 template<std::uintmax_t TMinValue, std::uintmax_t TMaxValue>
-struct ValidBigUnsignedNumValueRangeOverride
-{
-    static_assert(TMinValue <= TMaxValue, "Invalid range");
-};
+using ValidBigUnsignedNumValueRangeOverride =
+    std::tuple<
+        ValidBigUnsignedNumValueRange<TMinValue, TMaxValue>,
+        ValidRangesClear
+    >;
 
 /// @brief Alias to @ref ValidBigUnsignedNumValueRange.
 /// @details Equivalent to @b ValidBigUnsignedNumValueRange<TValue, TValue>
@@ -1187,6 +1196,7 @@ using ValidBigUnsignedNumValue = ValidBigUnsignedNumValueRange<TValue, TValue>;
 
 /// @brief Alias to @ref ValidBigUnsignedNumValueRangeOverride.
 /// @details Equivalent to @b ValidBigUnsignedNumValueRangeOverride<TValue, TValue>
+/// @deprecated Use @ref ValidRangesClear instead.
 template<std::uintmax_t TValue>
 using ValidBigUnsignedNumValueOverride = ValidBigUnsignedNumValueRangeOverride<TValue, TValue>;
 
@@ -1228,10 +1238,10 @@ using MissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing
 using ExistsByDefault = DefaultOptionalMode<comms::field::OptionalMode::Exists>;
 
 /// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Missing>
-using OptionalMissingByDefault = DefaultOptionalMode<comms::field::OptionalMode::Missing>;
+using OptionalMissingByDefault = MissingByDefault;
 
 /// @brief Alias to DefaultOptionalMode<comms::field::OptinalMode::Exists>
-using OptionalExistsByDefault = DefaultOptionalMode<comms::field::OptionalMode::Exists>;
+using OptionalExistsByDefault = ExistsByDefault;
 
 /// @brief Alias to DefaultValueInitialiser, it initalises comms::field::Variant field
 ///     to contain valid default value of the specified member.
@@ -1254,6 +1264,7 @@ struct ChecksumLayerVerifyBeforeRead {};
 ///     that uses the "view".
 /// @note Incompatible with other options that contol data storage type,
 ///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
+/// @headerfile comms/options.h
 struct OrigDataView {};
 
 /// @brief Force field not to be serialized during read/write operations
@@ -1263,10 +1274,12 @@ struct OrigDataView {};
 ///     serialised. Using this option will have such effect: read/write operaitons
 ///     will not change the value of iterators and will report immediate success.
 ///     The serialisation length is always reported as 0.
+/// @headerfile comms/options.h
 struct EmptySerialization {};
 
 /// @brief Same as @ref EmptySerialization.
 /// @details Just British English spelling.
+/// @headerfile comms/options.h
 using EmptySerialisation = EmptySerialization;
 
 /// @brief Option to force @ref comms::protocol::ProtocolLayerBase class to
@@ -1274,6 +1287,7 @@ using EmptySerialisation = EmptySerialization;
 /// @details Can be used by some layers which require its read operation to be
 ///     fully complete before read is forwared to data layer, i.e. until message
 ///     contents being read.
+/// @headerfile comms/options.h
 struct ProtocolLayerForceReadUntilDataSplit {};
 
 /// @brief Disallow usage of @ref ProtocolLayerForceReadUntilDataSplit option in
@@ -1282,7 +1296,72 @@ struct ProtocolLayerForceReadUntilDataSplit {};
 ///     split their "read" operation to "until" and "from" data layer. They can
 ///     use this option to prevent outer layers from using
 ///     @ref ProtocolLayerForceReadUntilDataSplit one.
+/// @headerfile comms/options.h
 struct ProtocolLayerDisallowReadUntilDataSplit {};
+
+/// @brief Mark this class to have custom
+///     implementation of @b read functionality.
+/// @headerfile comms/options.h
+struct HasCustomRead {};
+
+/// @brief Mark this class to have custom
+///     implementation of @b refresh functionality.
+/// @headerfile comms/options.h
+struct HasCustomRefresh {};
+
+/// @brief Mark this class as providing its name information
+/// @headerfile comms/options.h
+struct HasName {};
+
+/// @brief Option that notifies comms::MessageBase about existence of
+///     custom refresh functionality in derived class.
+/// @details Alias to @ref HasCustomRefresh for backward compatibility.
+/// @deprecated Use @ref HasCustomRefresh instead.
+/// @headerfile comms/options.h
+using HasDoRefresh = HasCustomRefresh;
+
+/// @brief Option for @ref comms::protocol::TransportValueLayer to
+///     mark that the handled field is a "pseudo" one, i.e. is not serialised.
+struct PseudoValue {};
+
+/// @brief Provide type to be used for versioning
+/// @tparam T Type of the version value. Expected to be unsigned integral one.
+template <typename T>
+struct VersionType
+{
+    static_assert(std::is_integral<T>::value, "Only unsigned integral types are supported for versions");
+    static_assert(std::is_unsigned<T>::value, "Only unsigned integral types are supported for versions");
+};
+
+/// @brief Mark this class to have custom
+///     implementation of version update functionality.
+/// @headerfile comms/options.h
+struct HasCustomVersionUpdate {};
+
+/// @brief Mark an @ref comms::field::Optional field as existing
+///     between specified versions.
+/// @tparam TFrom First version when field has been added
+/// @tparam TUntil Last version when field still hasn't been removed.
+/// @pre @b TFrom <= @b TUntil
+template <std::uintmax_t TFrom, std::uintmax_t TUntil>
+struct ExistsBetweenVersions
+{
+    static_assert(TFrom <= TUntil, "Invalid version parameters");
+};
+
+/// @brief Mark an @ref comms::field::Optional field as existing
+///     starting from specified version.
+/// @details Alias to @ref ExistsBetweenVersions
+/// @tparam TVer First version when field has been added
+template <std::uintmax_t TVer>
+using ExistsSinceVersion = ExistsBetweenVersions<TVer, std::numeric_limits<std::uintmax_t>::max()>;
+
+/// @brief Mark an @ref comms::field::Optional field as existing
+///     only until specified version.
+/// @details Alias to @ref ExistsBetweenVersions
+/// @tparam TVer Last version when field still hasn't been removed.
+template <std::uintmax_t TVer>
+using ExistsUntilVersion = ExistsBetweenVersions<0, TVer>;
 
 }  // namespace option
 

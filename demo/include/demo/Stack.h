@@ -68,6 +68,39 @@ using MsgIdField =
 template <typename... TOptions>
 using DataField = typename comms::protocol::MsgDataLayer<TOptions...>::Field;
 
+/// @brief Assembled protocol stack layers.
+/// @details Extended by @ref Stack
+template <
+    typename TMsgBase,
+    typename TMessages,
+    typename TMsgAllocOptions = comms::option::EmptyOption,
+    typename TDataFieldStorageOptions = comms::option::EmptyOption >
+using StackBase =
+    comms::protocol::SyncPrefixLayer<
+        SyncField,
+        comms::protocol::ChecksumLayer<
+            ChecksumField,
+            comms::protocol::checksum::BasicSum<std::uint16_t>,
+            comms::protocol::MsgSizeLayer<
+                LengthField,
+                comms::protocol::MsgIdLayer<
+                    MsgIdField,
+                    TMsgBase,
+                    TMessages,
+                    comms::protocol::TransportValueLayer<
+                        VersionField,
+                        Message<>::TransportFieldIdx_version,
+                        comms::protocol::MsgDataLayer<
+                            TDataFieldStorageOptions
+                        >
+                    >,
+                    TMsgAllocOptions
+                >
+            >
+        >
+    >;
+
+
 /// @brief Definition of Demo binary protocol stack of layers.
 /// @details It is used to process incoming binary stream of data and create
 ///     allocate message objects for received messages. It also responsible to
@@ -99,30 +132,14 @@ template <
     typename TMessages,
     typename TMsgAllocOptions = comms::option::EmptyOption,
     typename TDataFieldStorageOptions = comms::option::EmptyOption >
-using Stack =
-    comms::protocol::SyncPrefixLayer<
-        SyncField,
-        comms::protocol::ChecksumLayer<
-            ChecksumField,
-            comms::protocol::checksum::BasicSum<std::uint16_t>,
-            comms::protocol::MsgSizeLayer<
-                LengthField,
-                comms::protocol::MsgIdLayer<
-                    MsgIdField,
-                    TMsgBase,
-                    TMessages,
-                    comms::protocol::TransportValueLayer<
-                        VersionField,
-                        Message<>::TransportFieldIdx_version,
-                        comms::protocol::MsgDataLayer<
-                            TDataFieldStorageOptions
-                        >
-                    >,
-                    TMsgAllocOptions
-                >
-            >
-        >
-    >;
+class Stack : public StackBase<TMsgBase, TMessages, TMsgAllocOptions, TDataFieldStorageOptions>
+{
+#ifdef COMMS_MUST_DEFINE_BASE
+    using Base = StackBase<TMsgBase, TMessages, TMsgAllocOptions, TDataFieldStorageOptions>;
+#endif
+public:
+    COMMS_PROTOCOL_LAYERS_ACCESS(payload, version, id, size, checksum, sync);
+};
 
 }  // namespace demo
 

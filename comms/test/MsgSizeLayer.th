@@ -169,7 +169,7 @@ private:
     using LeIdField2 = IdField2<LeField>;
 
     template <typename TSizeField, typename TIdField, typename TMessage>
-    using ProtocolStack =
+    class ProtocolStack : public
         comms::protocol::MsgSizeLayer<
             TSizeField,
             comms::protocol::MsgIdLayer<
@@ -178,10 +178,26 @@ private:
                 AllMessages<TMessage>,
                 comms::protocol::MsgDataLayer<>
             >
-        >;
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgSizeLayer<
+                TSizeField,
+                comms::protocol::MsgIdLayer<
+                    TIdField,
+                    TMessage,
+                    AllMessages<TMessage>,
+                    comms::protocol::MsgDataLayer<>
+                >
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_INNER(payload, id, size);
+    };
 
     template <typename TIdField, typename TSizeField, typename TMessage>
-    using RevProtocolStack =
+    class RevProtocolStack : public
         comms::protocol::MsgIdLayer<
             TIdField,
             TMessage,
@@ -190,7 +206,23 @@ private:
                 TSizeField,
                 comms::protocol::MsgDataLayer<>
             >
-        >;
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TIdField,
+                TMessage,
+                AllMessages<TMessage>,
+                comms::protocol::MsgSizeLayer<
+                    TSizeField,
+                    comms::protocol::MsgDataLayer<>
+                >
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, size, payload);
+    };
 
     template <typename TSizeField, typename TIdField, typename TMessage>
     using InPlaceProtocolStack =
@@ -216,11 +248,9 @@ private:
         explicit GenericMsg(MsgIdParamType id) : Base(id) {}
         GenericMsg(const GenericMsg&) = default;
 
-    protected:
-        virtual const std::string& getNameImpl() const override
+        const char* doName() const
         {
-            static const std::string Str("Generic Message");
-            return Str;
+            return "Generic Message";
         }
     };
 
@@ -248,6 +278,18 @@ void MsgSizeLayerTestSuite::test1()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     ProtocolStack<BeSizeField20, BeIdField1, BeMsgBase> stack;
+    auto& sizeLayer = stack.layer_size();
+    using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
+    static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+
+    auto& idLayer = stack.layer_id();
+    using IdLayerType = typename std::decay<decltype(idLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+
+    auto& payloadLayer = stack.layer_payload();
+    using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
@@ -353,6 +395,18 @@ void MsgSizeLayerTestSuite::test6()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     RevProtocolStack<BeIdField1, BeSizeField20, BeMsgBase> stack;
+    auto& sizeLayer = stack.layer_size();
+    using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
+    static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+
+    auto& idLayer = stack.layer_id();
+    using IdLayerType = typename std::decay<decltype(idLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+
+    auto& payloadLayer = stack.layer_payload();
+    using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
@@ -369,6 +423,18 @@ void MsgSizeLayerTestSuite::test7()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
     RevProtocolStack<BeIdField1, BeSizeField22, BeMsgBase> stack;
+    auto& sizeLayer = stack.layer_size();
+    using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
+    static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+
+    auto& idLayer = stack.layer_id();
+    using IdLayerType = typename std::decay<decltype(idLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+
+    auto& payloadLayer = stack.layer_payload();
+    using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr);
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);

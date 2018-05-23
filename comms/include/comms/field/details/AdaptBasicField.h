@@ -90,6 +90,27 @@ template <typename TField, typename TOpts>
 using AdaptFieldSerOffsetT =
     typename AdaptFieldSerOffset<TOpts::HasSerOffset>::template Type<TField, TOpts>;
 
+template <bool THasVersionsRange>
+struct AdaptFieldVersionsRange;
+
+template <>
+struct AdaptFieldVersionsRange<true>
+{
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::ExistsBetweenVersions<TOpts::ExistsFromVersion, TOpts::ExistsUntilVersion, TField>;
+};
+
+template <>
+struct AdaptFieldVersionsRange<false>
+{
+    template <typename TField, typename TOpts>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldVersionsRangeT =
+    typename AdaptFieldVersionsRange<TOpts::HasVersionsRange>::template Type<TField, TOpts>;
+
 
 template <bool THasFixedLength>
 struct AdaptFieldFixedLength;
@@ -430,7 +451,7 @@ template <typename TField, typename TOpts>
 using AdaptFieldCustomValidatorT =
     typename AdaptFieldCustomValidator<TOpts::HasCustomValidator>::template Type<TField, TOpts>;
 
-template <bool THasCustomRefresher>
+template <bool THasContentsRefresher>
 struct AdaptFieldCustomRefresher;
 
 template <>
@@ -449,7 +470,7 @@ struct AdaptFieldCustomRefresher<false>
 
 template <typename TField, typename TOpts>
 using AdaptFieldCustomRefresherT =
-    typename AdaptFieldCustomRefresher<TOpts::HasCustomRefresher>::template Type<TField, TOpts>;
+    typename AdaptFieldCustomRefresher<TOpts::HasContentsRefresher>::template Type<TField, TOpts>;
 
 template <bool THasFailOnInvalid>
 struct AdaptFieldFailOnInvalid;
@@ -609,8 +630,10 @@ class AdaptBasicField
         TBasic, ParsedOptions>;
     using SerOffsetAdapted = AdaptFieldSerOffsetT<
         CustomReaderAdapted, ParsedOptions>;
-    using FixedLengthAdapted = AdaptFieldFixedLengthT<
+    using VersionsRangeAdapted = AdaptFieldVersionsRangeT<
         SerOffsetAdapted, ParsedOptions>;
+    using FixedLengthAdapted = AdaptFieldFixedLengthT<
+        VersionsRangeAdapted, ParsedOptions>;
     using FixedBitLengthAdapted = AdaptFieldFixedBitLengthT<
         FixedLengthAdapted, ParsedOptions>;
     using VarLengthAdapted = AdaptFieldVarLengthT<

@@ -19,6 +19,8 @@
 #pragma once
 
 #include "ProtocolLayerBase.h"
+#include "details/TransportValueLayerAdapter.h"
+
 
 namespace comms
 {
@@ -43,27 +45,40 @@ namespace protocol
 /// @tparam TIdx Index of "extra transport" field that message object contains
 ///     (accessed via @ref comms::Message::transportFields()).
 /// @tparam TNextLayer Next transport layer in protocol stack.
+/// @tparam TOptions Extending functionality options. Supported options are:
+///     @li @ref comms::option::PseudoValue - Mark the handled value to be "pseudo"
+///         one, i.e. the field is not getting serialised.
 /// @headerfile comms/protocol/TransportValueLayer.h
-template <typename TField, std::size_t TIdx, typename TNextLayer>
+/// @extends ProtocolLayerBase
+template <typename TField, std::size_t TIdx, typename TNextLayer, typename... TOptions>
 class TransportValueLayer : public
-        ProtocolLayerBase<
-            TField,
-            TNextLayer,
-            TransportValueLayer<TField, TIdx, TNextLayer>,
-            comms::option::ProtocolLayerForceReadUntilDataSplit
+        details::TransportValueLayerAdapterT<
+            ProtocolLayerBase<
+                TField,
+                TNextLayer,
+                TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
+                comms::option::ProtocolLayerForceReadUntilDataSplit
+            >,
+            TOptions...
         >
 {
     using BaseImpl =
-        ProtocolLayerBase<
-            TField,
-            TNextLayer,
-            TransportValueLayer<TField, TIdx, TNextLayer>,
-            comms::option::ProtocolLayerForceReadUntilDataSplit
+        details::TransportValueLayerAdapterT<
+            ProtocolLayerBase<
+                TField,
+                TNextLayer,
+                TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
+                comms::option::ProtocolLayerForceReadUntilDataSplit
+            >,
+            TOptions...
         >;
 
 public:
     /// @brief Type of the field object used to read/write "sync" value.
     using Field = typename BaseImpl::Field;
+
+    /// @brief Parsed options
+    using TransportParsedOptions = details::TransportValueLayerOptionsParser<TOptions...>;
 
     /// @brief Default constructor
     TransportValueLayer() = default;
@@ -119,16 +134,12 @@ public:
         std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader)
     {
-        auto es = field.read(iter, size);
-        if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, missingSize);
-        }
-
+        auto es = readFieldInternal(field, iter, size, missingSize, ValueTag());
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        es = nextLayerReader.read(msg, iter, size - field.length(), missingSize);
+        es = nextLayerReader.read(msg, iter, size, missingSize);
 
         using Tag =
             typename std::conditional<
@@ -186,18 +197,55 @@ public:
         auto& transportField = std::get<TIdx>(msg.transportFields());
         field.value() = static_cast<ValueType>(transportField.value());
 
-        auto es = field.write(iter, size);
+        auto es = writeFieldInternal(field, iter, size, ValueTag());
         if (es != ErrorStatus::Success) {
             return es;
         }
 
-        COMMS_ASSERT(field.length() <= size);
-        return nextLayerWriter.write(msg, iter, size - field.length());
+        return nextLayerWriter.write(msg, iter, size);
     }
 
+    /// @brief Customising field length calculation
+    /// @details If the layer is marked as "pseudo" (using @ref comms::option::PseudoValue)
+    ///     option, then the report length is 0.
+    static constexpr std::size_t doFieldLength()
+    {
+         return doFieldLengthInternal(ValueTag());
+    }
+
+    /// @brief Customising field length calculation
+    /// @details If the layer is marked as "pseudo" (using @ref comms::option::PseudoValue)
+    ///     option, then the report length is 0.
+    template <typename TMsg>
+    static std::size_t doFieldLength(const TMsg&)
+    {
+        return doFieldLength();
+    }
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+    /// @brief Access to pseudo field stored internally.
+    /// @details The function exists only if @ref comms::option::PseudoValue
+    ///     option has been used.
+    Field& pseudoField();
+
+    /// @brief Const access to pseudo field stored internally.
+    /// @details The function exists only if @ref comms::option::PseudoValue
+    ///     option has been used.
+    const Field& pseudoField() const;
+#endif
 private:
     struct SmartPtrTag {};
     struct MsgObjTag {};
+
+    struct PseudoValueTag {};
+    struct NormalValueTag {};
+
+    using ValueTag =
+        typename std::conditional<
+            TransportParsedOptions::HasPseudoValue,
+            PseudoValueTag,
+            NormalValueTag
+        >::type;
 
     template <typename TMsg>
     static bool validMsg(TMsg& msgPtr, SmartPtrTag)
@@ -238,7 +286,102 @@ private:
         return msg.transportFields();
     }
 
+    static constexpr std::size_t doFieldLengthInternal(PseudoValueTag)
+    {
+        return 0U;
+    }
+
+    static constexpr std::size_t doFieldLengthInternal(NormalValueTag)
+    {
+        return BaseImpl::doFieldLength();
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus readFieldInternal(
+        Field& field,
+        TIter& iter,
+        std::size_t& len,
+        std::size_t* missingSize,
+        PseudoValueTag)
+    {
+        static_cast<void>(iter);
+        static_cast<void>(len);
+        static_cast<void>(missingSize);
+        field = BaseImpl::pseudoField();
+        return comms::ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus readFieldInternal(
+        Field& field,
+        TIter& iter,
+        std::size_t& len,
+        std::size_t* missingSize,
+        NormalValueTag)
+    {
+        auto es = field.read(iter, len);
+        if (es == comms::ErrorStatus::NotEnoughData) {
+            BaseImpl::updateMissingSize(field, len, missingSize);
+        }
+        else {
+            len -= field.length();
+        }
+        return es;
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus writeFieldInternal(
+        Field& field,
+        TIter& iter,
+        std::size_t& len,
+        PseudoValueTag) const
+    {
+        static_cast<void>(iter);
+        static_cast<void>(len);
+        field = BaseImpl::pseudoField();
+        return comms::ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus writeFieldInternal(
+        Field& field,
+        TIter& iter,
+        std::size_t& len,
+        NormalValueTag) const
+    {
+        auto es = field.write(iter, len);
+        if (es == comms::ErrorStatus::Success) {
+            COMMS_ASSERT(field.length() <= len);
+            len -= field.length();
+        }
+        return es;
+    }
 };
+
+namespace details
+{
+template <typename T>
+struct TransportValueLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TField, std::size_t TIdx, typename TNextLayer>
+struct TransportValueLayerCheckHelper<TransportValueLayer<TField, TIdx, TNextLayer> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref TransportValueLayer
+/// @related TransportValueLayer
+template <typename T>
+constexpr bool isTransportValueLayer()
+{
+    return details::TransportValueLayerCheckHelper<T>::Value;
+}
 
 }  // namespace protocol
 

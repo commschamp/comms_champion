@@ -130,8 +130,20 @@ private:
 
     typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
 
+#ifndef CC_COMPILER_GCC47
+    template <typename TMessage>
+    class ProtocolStack : public comms::protocol::MsgDataLayer<>
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base = comms::protocol::MsgDataLayer<>;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS(payload);
+    };
+#else
     template <typename TMessage>
     using ProtocolStack = comms::protocol::MsgDataLayer<>;
+#endif
 };
 
 void MsgDataLayerTestSuite::test1()
@@ -215,7 +227,10 @@ TMessage MsgDataLayerTestSuite::internalReadWriteTest(
         >::type ProtStack;
 
     ProtStack stack;
-    static_cast<void>(stack);
+#ifndef CC_COMPILER_GCC47
+    static_cast<void>(stack.layer_payload()); // check generation of access func
+#endif
+
     auto readIter = buf;
     std::unique_ptr<Message> msg(new Message);
     auto es = stack.read(msg, readIter, bufSize);
@@ -244,10 +259,10 @@ TMessage MsgDataLayerTestSuite::internalReadWriteCachedTest(
 
     ProtStack stack;
     static_cast<void>(stack);
-    ProtStack::AllFields allFields;
+    typename ProtStack::AllFields allFields;
     auto readIter = buf;
     std::unique_ptr<TMessage> msg(new TMessage);
-    auto es = stack.readFromDataFeildsCached<0>(allFields, msg, readIter, bufSize);
+    auto es = stack.readFromDataFeildsCached(allFields, msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedErrStatus);
     auto& dataField = std::get<0>(allFields);
     auto& dataFieldVec = dataField.value();
@@ -260,8 +275,8 @@ TMessage MsgDataLayerTestSuite::internalReadWriteCachedTest(
 
         std::unique_ptr<char[]> outDataBuf(new char[diff]);
         auto writeIter = &outDataBuf[0];
-        ProtStack::AllFields allOutFields;
-        auto writeES = stack.writeFieldsCached<0>(allOutFields, *msg, writeIter, diff);
+        typename ProtStack::AllFields allOutFields;
+        auto writeES = stack.writeFieldsCached(allOutFields, *msg, writeIter, diff);
         TS_ASSERT_EQUALS(writeES, comms::ErrorStatus::Success);
         TS_ASSERT(std::equal(buf, buf + diff, &outDataBuf[0]));
 

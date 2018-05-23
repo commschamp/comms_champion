@@ -129,21 +129,23 @@ using StringBase =
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::FixedSizeStorage
-///     @li comms::option::CustomStorageType
-///     @li comms::option::SequenceSizeFieldPrefix
-///     @li comms::option::SequenceSerLenvthFieldPrefix
-///     @li comms::option::SequenceSizeForcingEnabled
-///     @li comms::option::SequenceFixedSize
-///     @li comms::option::SequenceTerminationFieldSuffix
-///     @li comms::option::SequenceTrailingFieldSuffix
-///     @li comms::option::DefaultValueInitialiser
-///     @li comms::option::ContentsValidator
-///     @li comms::option::ContentsRefresher
-///     @li comms::option::FailOnInvalid
-///     @li comms::option::IgnoreInvalid
-///     @li comms::option::OrigDataView
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::FixedSizeStorage
+///     @li @ref comms::option::CustomStorageType
+///     @li @ref comms::option::SequenceSizeFieldPrefix
+///     @li @ref comms::option::SequenceSerLengthFieldPrefix
+///     @li @ref comms::option::SequenceSizeForcingEnabled
+///     @li @ref comms::option::SequenceFixedSize
+///     @li @ref comms::option::SequenceTerminationFieldSuffix
+///     @li @ref comms::option::SequenceTrailingFieldSuffix
+///     @li @ref comms::option::DefaultValueInitialiser
+///     @li @ref comms::option::ContentsValidator
+///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
+///     @li @ref comms::option::FailOnInvalid
+///     @li @ref comms::option::IgnoreInvalid
+///     @li @ref comms::option::OrigDataView
+///     @li @ref comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>
@@ -154,6 +156,9 @@ public:
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
+
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -336,6 +341,19 @@ public:
         BaseImpl::clearReadElemCount();
     }
 
+    /// @brief Compile time check if this class is version dependent
+    static constexpr bool isVersionDependent()
+    {
+        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Default implementation of version update.
+    /// @return @b true in case the field contents have changed, @b false otherwise
+    bool setVersion(VersionType version)
+    {
+        return BaseImpl::setVersion(version);
+    }
+
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;
@@ -410,6 +428,8 @@ private:
             "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to String field");
     static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
             "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to String field");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to String field");
 };
 
 /// @brief Equality comparison operator.

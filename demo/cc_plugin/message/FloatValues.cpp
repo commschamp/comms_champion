@@ -64,12 +64,6 @@ FloatValues::~FloatValues() noexcept = default;
 FloatValues& FloatValues::operator=(const FloatValues&) = default;
 FloatValues& FloatValues::operator=(FloatValues&&) = default;
 
-const char* FloatValues::nameImpl() const
-{
-    static const char* Str = "FloatValues";
-    return Str;
-}
-
 const QVariantList& FloatValues::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

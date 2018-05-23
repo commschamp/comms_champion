@@ -79,15 +79,16 @@ public:
     MsgSizeLayer& operator=(MsgSizeLayer&&) = default;
 
     /// @cond SKIP_DOC
-    constexpr std::size_t length() const
+
+    static constexpr std::size_t doFieldLength()
     {
-        return BaseImpl::length();
+        return BaseImpl::doFieldLength();
     }
 
     template <typename TMsg>
-    constexpr std::size_t length(const TMsg& msg) const
+    constexpr std::size_t doFieldLength(const TMsg& msg) const
     {
-        return lengthInternal(msg, LengthTag());
+        return fieldLengthInternal(msg, LengthTag());
     }
     /// @endcond
 
@@ -390,21 +391,45 @@ private:
     }
 
     template <typename TMsg>
-    constexpr std::size_t lengthInternal(const TMsg& msg, FixedLengthTag) const
+    constexpr std::size_t fieldLengthInternal(const TMsg& msg, FixedLengthTag) const
     {
-        return BaseImpl::length(msg);
+        return BaseImpl::doFieldLength(msg);
     }
 
     template <typename TMsg>
-    std::size_t lengthInternal(const TMsg& msg, VarLengthTag) const
+    std::size_t fieldLengthInternal(const TMsg& msg, VarLengthTag) const
     {
         using FieldValueType = typename Field::ValueType;
         auto remSize = BaseImpl::nextLayer().length(msg);
-        return Field(static_cast<FieldValueType>(remSize)).length() + remSize;
+        return Field(static_cast<FieldValueType>(remSize)).length();
     }
 
 };
 
+namespace details
+{
+template <typename T>
+struct MsgSizeLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TField, typename TNextLayer>
+struct MsgSizeLayerCheckHelper<MsgSizeLayer<TField, TNextLayer> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref MsgSizeLayer
+/// @related MsgSizeLayer
+template <typename T>
+constexpr bool isMsgSizeLayer()
+{
+    return details::MsgSizeLayerCheckHelper<T>::Value;
+}
 
 }  // namespace protocol
 

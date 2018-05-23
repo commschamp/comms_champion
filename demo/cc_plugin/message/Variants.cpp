@@ -115,12 +115,6 @@ Variants::~Variants() noexcept = default;
 Variants& Variants::operator=(const Variants&) = default;
 Variants& Variants::operator=(Variants&&) = default;
 
-const char* Variants::nameImpl() const
-{
-    static const char* Str = "Variants";
-    return Str;
-}
-
 const QVariantList& Variants::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

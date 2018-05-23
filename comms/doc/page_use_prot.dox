@@ -12,6 +12,18 @@
 /// the @b COMMS library. The client application will have to include only relevant
 /// headers from the protocol definition.
 ///
+/// @section page_use_prot_paths Paths and Namespaces
+/// All the classes provided by the @b COMMS library reside in @ref comms
+/// namespace and the inner include paths start with "comms/". There may be
+/// the case when this library being integrated into existing project that may already
+/// define and use its own module (namespace) named @b comms. In this case it
+/// should be possible to rename installation directory (@b comms to @b comms2) and 
+/// to run a script after library installation to replace
+/// the following strings with new name:
+/// @li <b>"namespace comms"</b> - replace with "namespace comms2"
+/// @li @b "comms::" - replace with "comms2::"
+/// @li @b "comms/" - replace with "comms2/"
+///
 /// @section page_use_prot_error_handling Error Handling
 /// The COMMS library is intended to be used in embedded systems (including 
 /// bare metal), which means the library does not use exceptions to report errors.
@@ -441,6 +453,40 @@
 /// the message interface class defines mentioned earlier
 /// functions.
 ///
+/// @subsection page_use_prot_interface_name Polymorphic Message Name Retrieval
+/// Some applications may require knowledge about and report the name of the received / sent
+/// message. The @b COMMS library provides @ref comms::option::NameInterface 
+/// option, that adds @b name() member function to the message interface
+/// (see @ref comms::Message::name()).
+/// @code
+/// using MyMessage = 
+///     comms::Message<
+///         ...
+///         comms::option::NameInterface,
+///         ...
+///     >;
+/// @endcode
+/// This option adds the following functions to the interface definition:
+/// @code
+/// class MyMessage
+/// {
+/// public:
+///     // Retrieve name of the message 
+///     const char* name() const
+///     {
+///         return nameImpl();
+///     }
+///
+/// protected:
+///     virtual const char* nameImpl() const = 0;
+/// };
+/// @endcode
+/// The @ref comms::Message interface class defines @ref comms::Message::hasName()
+/// static constexpr member function, which may be used at compile time to 
+/// determine whether the @ref comms::option::NameInterface option has been used, i.e. 
+/// the message interface class defines mentioned earlier
+/// functions.
+///
 /// @subsection page_use_prot_interface_virt_destructor Virtual Destructor
 /// By default the @ref comms::Message class defines its 
 /// destructor as @b virtual if and only if it exhibits a polymorphic behaviour, 
@@ -490,7 +536,7 @@
 /// @endcode  
 /// The definition below gives a full interface of all
 /// the introduced functions: @b getId(), @b read(), @b write(), @b dispatch(),
-/// @b length(), @b valid(), and @b refresh().
+/// @b length(), @b valid(), @b refresh(), and @b name().
 /// @code
 /// using MyMessage = my_protocol::Message<
 ///     comms::option::IdInfoInterface, // Add an ability to retrieve message ID value
@@ -499,7 +545,8 @@
 ///     comms::option::Handler<MyHandler>, // My MyHandler class declared earlier as a handler for messages
 ///     comms::option::LengthInfoInterface, // Add an ability to retrieve serialisation length
 ///     comms::option::ValidCheckInterface, // Add an ability to check contents validity
-///     comms::option::RefreshInterface  // Add an ability to refresh message contents
+///     comms::option::RefreshInterface,  // Add an ability to refresh message contents
+///     comms::option::NameInterface // Add an ability to retrieve message name
 /// >;
 /// @endcode
 ///
@@ -1670,8 +1717,8 @@
 /// @b comms::option::DefaultNumValue<5> (which changes the default value to be 5).
 ///
 /// In case the application needs to override originally defined valid range(s) of
-/// the field, it can use @ref comms::option::ValidNumValueRangeOverride or
-/// @ref comms::option::ValidNumValueOverride option, which will clear all 
+/// the field, it can use @ref comms::option::ValidRangesClear
+/// option, which will clear all
 /// previously defined valid ranges and will start accumulating them anew. For
 /// example:
 /// @code
@@ -1685,7 +1732,8 @@
 ///                 std::tuple<
 ///                     comms::option::DefaultNumValue<5>, // change the default value
 ///                     comms::option::ValidNumValue<5>, // add 5 to valid ranges of [40, 50]
-///                     comms::option::ValidNumValueRangeOverride<40, 50>, // override the default ranges
+///                     comms::option::ValidNumValueRange<40, 50>, // new range
+///                     comms::option::ValidRangesClear // clear the default ranges
 ///                 >;
 ///         };
 ///     };
@@ -1719,7 +1767,11 @@
 ///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for comms::protocol::MsgIdLayer
 ///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
 /// >
-/// using ProtocolStack = MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> ;
+/// struct ProtocolStack : public 
+///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+///     COMMS_PROTOCOL_LAYERS_ACCESS(...);
+/// };
 ///
 /// } // namespace my_protocol
 /// @endcode
@@ -2045,13 +2097,15 @@
 /// be cached during the read/write operations and accessed later. The @b ProtocolStack
 /// also defines @b AllFields type which is @b std::tuple of all the fields used by all the 
 /// layer classes. @n
-/// Also, the @b ProtocolStack defines @b readFieldsCached() and @b writeFieldsCached()
+/// Also, the @b ProtocolStack defines @b readFieldsCached() (see
+/// @ref comms::protocol::ProtocolLayerBase::readFieldsCached()) and @b writeFieldsCached()
+/// (see @ref comms::protocol::ProtocolLayerBase::writeFieldsCached())
 /// member functions which are substitutes to normal read() and write(). The first
 /// parameter to these functions is reference to the @b AllFields bundle
 /// object.
 /// @code
 /// ProtStack::AllFields fields;
-/// auto es = protStack.readFieldsCached<0>(fields, msgPtr, readIter, bufSize);
+/// auto es = protStack.readFieldsCached(fields, msgPtr, readIter, bufSize);
 /// @endcode
 /// The layer class that is responsible to read/write payload data 
 /// (see @ref comms::protocol::MsgDataLayer) uses @ref comms::field::ArrayList
@@ -2064,6 +2118,93 @@
 /// to the field containing the message payload raw data. Otherwise, the 
 /// payload part from the read / written buffer will also be copied to storage
 /// area of the cached payload field.
+///
+/// As was mentioned earlier, the protocol stack is defined using so called
+/// @b layer classes (defined in @ref comms::protocol namespace) by wrapping
+/// one another. Access to the appropriate layer may be obtained using a 
+/// sequence of calls to @b nextLayer() member functions (see 
+/// @ref comms::protocol::ProtocolLayerBase::nextLayer()). Alternatively, the protocol stack
+/// definition is also expected to use @ref COMMS_PROTOCOL_LAYERS_ACCESS()
+/// macro to generate a convenience access functions. For example
+/// @code
+/// namespace my_protocol
+/// {
+///
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// struct ProtocolStack : public 
+///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+///     COMMS_PROTOCOL_LAYERS_ACCESS(payload, id, size, checksum, sync);
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
+/// The provided names are used in generation of access member functions with
+/// @b layer_ prefix. The code above is equivalent to having the following 
+/// member functions defined.
+/// @code
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// struct ProtocolStack : public 
+///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+///     // Access to PAYLOAD layer
+///     decltype(auto) layer_payload();
+///
+///     // Const access to PAYLOAD layer
+///     decltype(auto) layer_payload() const;
+///
+///     // Access to ID layer
+///     decltype(auto) layer_id();
+///
+///     // Const access to ID layer
+///     decltype(auto) layer_id() const;
+///
+///     // Access to SIZE layer
+///     decltype(auto) layer_size();
+///
+///     // Const access to SIZE layer
+///     decltype(auto) layer_size() const;
+///
+///     // Access to CHECKSUM layer
+///     decltype(auto) layer_checksum();
+///
+///     // Const access to CHECKSUM layer
+///     decltype(auto) layer_checksum() const;
+///
+///     // Access to SYNC layer
+///     decltype(auto) layer_sync();
+///
+///     // Const access to SYNC layer
+///     decltype(auto) layer_sync() const;
+/// };
+/// @endcode
+/// Then the access to the appropriate layer as as simple as calling appropriate
+/// @b layer_*() member function. Once the access is obtained, it is possible to
+/// call @b accessCachedField() (see @ref comms::protocol::ProtocolLayerBase::accessCachedField())
+/// member function to get an access to appropriate field. For example:
+/// @code
+/// ProtStack protStack; // Protocol stack object
+/// ProtStack::AllFields fields; // Transport fields
+/// auto es = protStack.readFieldsCached(fields, msgPtr, readIter, bufSize);
+/// if (es != comms::ErrorStatus::Success) {
+///     ... // handle error
+///     return;
+/// }
+/// std::cout << "SYNC = " << protStack.layer_sync().accessCachedField(fields).value() << '\n';
+/// std::cout << "SIZE = " << protStack.layer_size().accessCachedField(fields).value() << '\n';
+/// std::cout << "ID = " << protStack.layer_id().accessCachedField(fields).value() << '\n';
+/// std::cout << "CHECKSUM = " << protStack.layer_checksum().accessCachedField(fields).value() << std::endl;
+/// @endcode
 ///
 /// @section page_use_prot_handling Message Handling
 /// When a message is received over I/O link and successfully deserialised, it 
@@ -2370,6 +2511,140 @@
 /// the message interface class defines mentioned earlier
 /// types and functions.
 ///
+/// @subsection page_use_prot_extra_transport_version Built-in Version Support
+/// The @b COMMS library contain a built-in protocol version support when
+/// version info is provided within @ref page_use_prot_extra_transport. To support
+/// this feature, the
+/// message interface definition class needs to use @ref comms::option::VersionInExtraTransportFields
+/// option, in addition to @ref comms::option::ExtraTransportFields option itself, to
+/// specify which field is @b version.
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// // Field describing protocol version.
+/// using MyVersionField = comms::field::IntValue<...>;
+///
+/// // Relevant extra transport fields, bundled in std::tuple
+/// using MyExtraTransportFields =
+///     std::tuple<
+///         MyVersionField
+///     >;
+///
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<
+///         comms::option::BigEndian,
+///         comms::option::MsgIdType<MsgId>,
+///         comms::option::ExtraTransportFields<MyExtraTransportFields>,
+///         comms::option::VersionInExtraTransportFields<0>
+///         TOptions...
+///     >
+/// {
+///     ...
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
+/// Usage of @ref comms::option::VersionInExtraTransportFields option generates
+/// inner @b VersionType type (see @ref comms::Message::VersionType) as well
+/// as @b version() access functions (see @ref comms::Message::version()) for direct
+/// access to it. It is equivalent to having the following functions defined:
+/// @code
+/// namespace my_protocol
+/// {
+/// 
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<...>
+/// {
+/// public:
+///     ...
+///     // Type of extra fields
+///     using VersionType = ...; // Equals to ValueType of the relevant field.
+///
+///     // Accessors for the version info
+///     VersionType version();
+///     const VersionType& version();
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
+/// @b NOTE, that updating the version information only modifies the value
+/// of the relevant transport fields itself. The message contents are not
+/// being updated. There is a need to invoke @b doFieldsVersionUpdate() member
+/// function (see @ref comms::MessageBase::doFieldsVersionUpdate()), 
+/// which will do the job of updating message 
+/// contents accordingly.
+/// @code
+/// using MyMessage1 = my_protocol::MyMessage<...>;
+/// MyMessage1 msg;
+/// msg.version() = 5U; // Update the version
+/// msg.doFieldsVersionUpdate(); // Update the message contents that depend on version
+/// @endcode 
+/// The @b refresh functionality (direct or polymorphic) also contains update
+/// of the fields' version, which can be used instead.
+/// @code
+/// void updateVersion(MyMessage& msg)
+/// {
+///     msg.version() = 5U;
+///     msg.refresh(); // Polymorphically update the message contents accordingly
+/// }
+/// @endcode
+///
+/// @section page_use_prot_pseudo_transport Pseudo Transport Values
+/// Some communication protocols have values (such as protocol version information),
+/// which are reported in the payload of one of the messages and may influence
+/// the way how other messages being deserialised and/or handled. Usually it is
+/// some kind of @b CONNECT message. Such scenario is implemented in the
+/// very similar way to @ref page_use_prot_extra_transport. The protocol stack
+/// is still defined using @ref comms::protocol::TransportValueLayer but with @ref
+/// comms::option::PseudoValue option. Such layer contains the "pseudo" field in
+/// its internal data members and pretends to read it during @b read operation.
+///
+/// Let's assume the protocol framing is defined to be
+/// @code
+/// SIZE | ID | PAYLOAD
+/// @endcode
+/// but there is some kind of @b CONNECT message that reports client protocol version.
+/// The transport framing will probably be defined as if it handles the following
+/// stack.
+/// @code
+/// SIZE | ID | VERSION (pseudo) | PAYLOAD
+/// @endcode
+/// The transport framing is expected to be defined as below providing an access
+/// to the VERSION handling layer:
+/// @code
+/// namespace my_protocol
+/// {
+///
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+/// >
+/// struct ProtocolStack : public 
+///     MySizePrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
+/// {
+///     COMMS_PROTOCOL_LAYERS_ACCESS(payload, version, id, size);
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
+/// Then after reception and handling of the mentioned @b CONNECT message, the
+/// stored pseudo version field may be accessed using @b pseudoField() member
+/// function of @ref comms::protocol::TransportValueLayer layer (see @ref
+/// comms::protocol::TransportValueLayer::pseudoField()) and updated with
+/// reported value.
+/// @code
+/// ProtStack protStack; // Protocol stack object
+/// protStack.layer_version().pseudoField().value() = connectMsg.field_version().value();
+/// @endcode
+/// From now on every received message will have appropriate extra transport field
+/// updated accordingly right after receiving of the message and before its @b
+/// read operation being performed.
+///
 /// @section page_use_prot_msg_customisation Application Specific Customisation of Messages
 /// When most of the messages are uni-directional, i.e. are either only sent or
 /// only received, then it may make sense to split the common message interface
@@ -2395,9 +2670,9 @@
 /// using MyInputMessage3 = my_protocol::Message3<MyInputMessage>;
 /// ...
 ///
-/// using MyOutputMessage1 = my_protocol::Message1<MyOutputMessage>;
-/// using MyOutputMessage2 = my_protocol::Message2<MyOutputMessage>;
-/// using MyOutputMessage2 = my_protocol::Message3<MyOutputMessage>;
+/// using MyOutputMessage7 = my_protocol::Message7<MyOutputMessage>;
+/// using MyOutputMessage8 = my_protocol::Message8<MyOutputMessage>;
+/// using MyOutputMessage9 = my_protocol::Message9<MyOutputMessage>;
 /// ...
 ///
 /// @endcode
@@ -2418,10 +2693,6 @@
 /// the support from the latter is required. If the protocol definition
 /// follows a recommended approach the message definition is expected to
 /// reuse extra protocol options structure (@b DefaultOptions) described earlier.
-/// @code
-
-/// @endcode
-/// Add passing these options to message definition classes:
 /// @code
 /// namespace my_protocol
 /// {
@@ -2478,20 +2749,20 @@
 /// @section page_use_prot_msg_extension Message Interface Extension
 /// Sometimes the public interface of the messages, generated by the
 /// @b COMMS library out of available options passed to @ref comms::Message,
-/// may be insufficient for some applications. For example, there is also a 
-/// need to report human readable name of the message. It is easy to achieve by
+/// may be insufficient for some applications and its interface needs to be extended
+/// with custom member functions. It is easy to achieve by
 /// just implementing required function in common message interface class
 /// @code
 /// class MyMessage : public my_protocol::Message<...>
 /// {
 /// public:
-///     const char* name() const
+///     void someFunc()
 ///     {
-///         return nameImpl();
+///         someFuncImpl();
 ///     }
 ///
 /// protected:
-///     virtual const char* nameImpl() const = 0;
+///     virtual void someFuncImpl() = 0;
 /// };
 /// @endcode
 /// All the protocol messages must also be extended in order to implement
@@ -2500,9 +2771,9 @@
 /// class MyMessage1 : public my_protocol::Message1<MyMessage>
 /// {
 /// protected:
-///     virtual const char* nameImpl() const override
+///     virtual void someFuncImpl() override
 ///     {
-///         return "Message 1";
+///         ...
 ///     }
 /// };
 /// @endcode

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include "details/MessageImplBuilder.h"
 #include "details/macro_common.h"
 #include "details/fields_access.h"
+#include "details/detect.h"
 
 namespace comms
 {
@@ -73,7 +74,9 @@ namespace comms
 ///     @li comms::option::NoLengthImpl - Inhibit the implementation of lengthImpl().
 ///     @li comms::option::NoValidImpl - Inhibit the implementation of validImpl().
 ///     @li comms::option::NoDispatchImpl - Inhibit the implementation of dispatchImpl().
-///     @li comms::option::HasDoRefresh - Enable implementation of refreshImpl().
+///     @li comms::option::HasCustomRefresh - Notify @ref comms::MessageBase that
+///             there is custom doRefresh() member function in the message definition
+///             class.
 ///     @li comms::option::HasDoGetId - Enable implementation of getIdImpl() even if
 ///         comms::option::StaticNumIdImpl option wasn't used. Must be paired with
 ///         comms::option::MsgType.
@@ -106,6 +109,13 @@ public:
     ///     wasn't provided to comms::MessageBase.
     /// @return Const reference to the fields of the message.
     const AllFields& fields() const;
+
+    /// @brief Compile time check of whether the message fields are
+    ///     version dependent.
+    /// @details The function doesn't exist if comms::option::FieldsImpl option
+    ///     wasn't provided to comms::MessageBase.
+    /// @return @b true if at least one of the fields is version dependent.
+    static constexpr bool areFieldsVersionDependent();
 
     /// @brief Default implementation of ID retrieval functionality.
     /// @details This function exists only if comms::option::StaticNumIdImpl option
@@ -326,6 +336,18 @@ public:
     /// @pre TFromIdx < TUntilIdx
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     std::size_t doMaxLengthFromUntil() const;
+
+    /// @brief Update version information of all the fields.
+    /// @details This function exists only if comms::option::FieldsImpl or
+    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase and
+    ///     @ref comms::option::VersionInExtraTransportFields was provided to the
+    ///     message interface class (@ref comms::Message). @n
+    ///     This function will invoke such @b setVersion() member function for every
+    ///     field object listed with comms::option::FieldsImpl option and will
+    ///     return @b true if <b>at least</b> one of the invoked functions returned
+    ///     @b true (similar to @ref doRefresh()).
+    /// @return true when <b>at least</b> one of the fields has been updated.
+    bool doFieldsVersionUpdate();
 
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
@@ -731,8 +753,9 @@ protected:
     /// @brief Implementation of polymorphic refresh functionality.
     /// @details This function exists if comms::option::RefreshInterface option
     ///         was provided to comms::Message class when specifying interface,
-    ///         and comms::option::HasDoRefresh option was used to
-    ///         to request implementation of polymorphic refresh functionality.
+    ///         and comms::option::HasCustomRefresh option was used (either on
+    ///         on of the fields or when defining a message class) to
+    ///         to notify about existence of custom refresh functionality.
     ///         If comms::option::MsgType option was used to specify the actual
     ///         message class, the @b this pointer will be downcasted to it to
     ///         invoke doRefresh() member function defined there. If such
@@ -740,6 +763,17 @@ protected:
     ///         this class will be used.
     /// @return @b true in case fields were updated, @b false if nothing has changed.
     virtual bool refreshImpl() override;
+
+    /// @brief Implementation of polymorphic name retrieval functionality.
+    /// @details This function exists if @ref comms::option::NameInterface option
+    ///         was provided to @ref comms::Message class when specifying interface,
+    ///         and @ref comms::option::HasName as well as @ref comms::option::MsgType
+    ///         options ware used for this class.
+    ///         This function downcasts @b this pointer to actual message type and
+    ///         invokes @b doName() member function.
+    /// @return @b true in case fields were updated, @b false if nothing has changed.
+    virtual const char* nameImpl() const override;
+
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 };
 
@@ -781,9 +815,21 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
     return msg;
 }
 
+/// @brief Compile time check of of whether the type
+///     is a message extending @ref comms::MessageBase.
+/// @details Checks existence of @b ImplOptions inner
+///     type.
+template <typename T>
+constexpr bool isMessageBase()
+{
+    return details::hasImplOptions<T>();
+}
+
+}  // namespace comms
+
 /// @brief Add convenience access enum and functions to message fields.
-/// @details The comms::MessageBase class provides access to its fields via
-///     comms::MessageBase::fields() member function(s). The fields are bundled
+/// @details The @ref comms::MessageBase class provides access to its fields via
+///     @ref comms::MessageBase::fields() member function(s). The fields are bundled
 ///     into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
 ///     and can be accessed using indices with
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
@@ -906,6 +952,3 @@ const MessageBase<TMessage, TOptions...>& toMessageBase(
         return val; \
     } \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(AllFields, fields(), __VA_ARGS__))
-}  // namespace comms
-
-

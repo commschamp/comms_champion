@@ -1,5 +1,5 @@
 //
-// Copyright 2013 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2013 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -799,6 +799,102 @@ void tupleForSelectedType(std::size_t idx, TFunc&& func)
 }
 //----------------------------------------
 
+namespace details
+{
+
+template <typename TTuple>
+struct TupleStripFirst;
+
+template <typename TFirst, typename... TRest>
+struct TupleStripFirst<std::tuple<TFirst, TRest...> >
+{
+    using Type = std::tuple<TRest...>;
+};
+
+template <typename TTuple>
+using TupleStripFirstT = typename TupleStripFirst<TTuple>::Type;
+
+
+template <typename TTail, typename TTuple, std::size_t TStripRem>
+struct TupleTailCheckHelpler
+{
+    static_assert(0U < TStripRem, "Invalid instantiation");
+    static const bool Value =
+            TupleTailCheckHelpler<TTail, TupleStripFirstT<TTuple>, TStripRem - 1>::Value;
+};
+
+template <typename TTail, typename TTuple>
+struct TupleTailCheckHelpler<TTail, TTuple, 0>
+{
+    static const bool Value =  std::is_same<TTail, TTuple>::value;
+};
+
+
+} // namespace details
+
+/// @brief Compile time check of whether one tuple is a "tail" of another.
+/// @tparam TTail Tail tuple
+/// @tparam TTuple Containing tuple
+template <typename TTail, typename TTuple>
+constexpr bool tupleIsTailOf()
+{
+    static_assert(isTuple<TTail>(), "TTail param must be tuple");
+    static_assert(isTuple<TTuple>(), "TTuple param must be tuple");
+    return
+        std::tuple_size<TTail>::value <= std::tuple_size<TTuple>::value &&
+        details::TupleTailCheckHelpler<TTail, TTuple, std::tuple_size<TTuple>::value - std::tuple_size<TTail>::value>::Value;
+//    return true;
+}
+
+//----------------------------------------
+
+namespace details
+{
+
+template <std::size_t TRem>
+class TupleTypeIsAnyOfHelper
+{
+public:
+    template <typename TTuple, typename TFunc>
+    static constexpr bool check(TFunc&& func)
+    {
+        using Tuple = typename std::decay<TTuple>::type;
+        static_assert(IsTuple<Tuple>::Value, "TTuple must be std::tuple");
+        static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
+        using ElemType = typename std::tuple_element<std::tuple_size<Tuple>::value - TRem, Tuple>::type;
+        return
+#ifdef _MSC_VER
+            // VS compiler
+            func.operator()<ElemType>() ||
+#else // #ifdef _MSC_VER
+            func.template operator()<ElemType>() ||
+#endif // #ifdef _MSC_VER
+        TupleTypeIsAnyOfHelper<TRem - 1>::template check<TTuple>(
+            std::forward<TFunc>(func));
+    }
+};
+
+template <>
+class TupleTypeIsAnyOfHelper<0>
+{
+
+public:
+    template <typename TTuple, typename TFunc>
+    static constexpr bool check(TFunc&&)
+    {
+        return false;
+    }
+};
+
+}
+
+template <typename TTuple, typename TFunc>
+constexpr bool tupleTypeIsAnyOf(TFunc&& func)
+{
+    static_assert(isTuple<TTuple>(), "Tuple as argument is expected");
+    return details::TupleTypeIsAnyOfHelper<std::tuple_size<TTuple>::value>::
+            template check<TTuple>(std::forward<TFunc>(func));
+}
 
 }  // namespace util
 

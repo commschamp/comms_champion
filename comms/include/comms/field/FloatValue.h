@@ -50,10 +50,11 @@ namespace field
 ///     @li @ref comms::option::DefaultValueInitialiser or @ref comms::option::DefaultNumValue.
 ///     @li @ref comms::option::ContentsValidator
 ///     @li @ref comms::option::ValidNumValueRange, @ref comms::option::ValidNumValue,
-///         @ref comms::option::ValidNumValueRangeOverride, @ref comms::option::ValidNumValueOverride
 ///         @ref comms::option::ValidBigUnsignedNumValueRange, @ref comms::option::ValidBigUnsignedNumValue
-///         @ref comms::option::ValidBigUnsignedNumValueRangeOverride, @ref comms::option::ValidBigUnsignedNumValueOverride
+///     @li @ref comms::option::ValidRangesClear
 ///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
 ///     @li @ref comms::option::FailOnInvalid
 ///     @li @ref comms::option::IgnoreInvalid
 ///     @li @b comms::option::Units* - all variants of value units, see
@@ -69,6 +70,9 @@ public:
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
+
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -180,6 +184,19 @@ public:
         BaseImpl::writeNoStatus(iter);
     }
 
+    /// @brief Compile time check if this class is version dependent
+    static constexpr bool isVersionDependent()
+    {
+        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Default implementation of version update.
+    /// @return @b true in case the field contents have changed, @b false otherwise
+    bool setVersion(VersionType version)
+    {
+        return BaseImpl::setVersion(version);
+    }
+
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;
@@ -213,6 +230,8 @@ private:
             "comms::option::CustomStorageType option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasOrigDataView,
             "comms::option::OrigDataView option is not applicable to FloatValue field");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to FloatValue field");
 };
 
 /// @brief Equality comparison operator.

@@ -78,12 +78,6 @@ BitmaskValues::~BitmaskValues() noexcept = default;
 BitmaskValues& BitmaskValues::operator=(const BitmaskValues&) = default;
 BitmaskValues& BitmaskValues::operator=(BitmaskValues&&) = default;
 
-const char* BitmaskValues::nameImpl() const
-{
-    static const char* Str = "BitmaskValues";
-    return Str;
-}
-
 const QVariantList& BitmaskValues::fieldsPropertiesImpl() const
 {
     static const auto Props = createFieldsProperties();

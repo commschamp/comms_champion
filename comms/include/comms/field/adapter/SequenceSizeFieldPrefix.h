@@ -36,6 +36,9 @@ class SequenceSizeFieldPrefix : public TBase
     using BaseImpl = TBase;
     using SizeField = TSizeField;
 
+    static_assert(!SizeField::isVersionDependent(),
+            "Prefix fields must not be version dependent");
+
 public:
     using ValueType = typename BaseImpl::ValueType;
     using ElementType = typename BaseImpl::ElementType;

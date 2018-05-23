@@ -31,6 +31,7 @@
 
 #include "details/MessageInterfaceBuilder.h"
 #include "details/transport_fields_access.h"
+#include "details/detect.h"
 
 namespace comms
 {
@@ -54,16 +55,18 @@ namespace comms
 ///         comms::option::MsgIdType, the
 ///         getId() member function is defined.
 ///     @li @ref comms::option::ReadIterator - an option used to specify type of iterator
-///         used for reading. If this option is not used, then read()
+///         used for reading. If this option is not used, then @ref read()
 ///         member function doesn't exist.
 ///     @li @ref comms::option::WriteIterator - an option used to specify type of iterator
-///         used for writing. If this option is not used, then write()
+///         used for writing. If this option is not used, then @ref write()
 ///         member function doesn't exist.
-///     @li @ref comms::option::ValidCheckInterface - an option used to add valid()
+///     @li @ref comms::option::ValidCheckInterface - an option used to add @ref valid()
 ///         member function to the default interface.
-///     @li @ref comms::option::LengthInfoInterface - an option used to add length()
+///     @li @ref comms::option::LengthInfoInterface - an option used to add @ref length()
 ///         member function to the default interface.
-///     @li @ref comms::option::RefreshInterface - an option used to add refresh()
+///     @li @ref comms::option::RefreshInterface - an option used to add @ref refresh()
+///         member function to the default interface.
+///     @li @ref comms::option::NameInterface - an option used to add @ref name()
 ///         member function to the default interface.
 ///     @li @ref comms::option::Handler - an option used to specify type of message handler
 ///         object used to handle the message when it received. If this option
@@ -74,6 +77,8 @@ namespace comms
 ///     @li @ref comms::option::ExtraTransportFields - Provide extra fields that
 ///         are read / written by transport layers, but may influence the way
 ///         the message being serialized / deserialized and/or handled.
+///     @li @ref comms::option::VersionInExtraTransportFields - Provide index of
+///         the version field in extra transport fields.
 ///     @headerfile comms/Message.h
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
@@ -163,6 +168,20 @@ public:
     static constexpr bool hasTransportFields()
     {
         return InterfaceOptions::HasExtraTransportFields;
+    }
+
+    /// @brief Compile type inquiry whether there is version information
+    ///     inside transport fields.
+    static constexpr bool hasVersionInTransportFields()
+    {
+        return InterfaceOptions::HasVersionInExtraTransportFields;
+    }
+
+    /// @brief Compile type inquiry whether message interface class defines
+    ///     @ref name() and @ref nameImpl() member functions.
+    static constexpr bool hasName()
+    {
+        return InterfaceOptions::HasName;
     }
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
@@ -271,6 +290,13 @@ public:
     ///     all the fields of the message remained unchanged.
     bool refresh();
 
+    /// @brief Get name of the message.
+    /// @details The function exists only if @ref comms::option::NameInterface option
+    ///     was provided to comms::Message. The function invokes virtual
+    ///     @ref nameImpl() function.
+    /// @see @ref hasName()
+    const char* name() const;
+
     /// @brief Type of the message handler object.
     /// @details The type exists only if comms::option::Handler option
     ///     was provided to comms::Message to specify one.
@@ -314,6 +340,20 @@ public:
     /// @see @ref hasTransportFields()
     const TransportFields& transportFields() const;
 
+    /// @brief Type used for version info
+    /// @details The type exists only if @ref comms::option::VersionInExtraTransportFields
+    ///     option has been provided.
+    using VersionType = typename BaseImpl::VersionType;
+
+    /// @brief Access to version information
+    /// @details The function exists only if @ref comms::option::VersionInExtraTransportFields
+    ///     option has been provided.
+    VersionType& version();
+
+    /// @brief Const access to version information
+    /// @details The function exists only if @ref comms::option::VersionInExtraTransportFields
+    ///     option has been provided.
+    const VersionType& version() const;
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
 protected:
@@ -385,6 +425,12 @@ protected:
     ///     provided to comms::Message to specify type of the handler.
     /// @param handler Handler object to dispatch message to.
     virtual DispatchRetType dispatchImpl(Handler& handler) = 0;
+
+    /// @brief Pure virtual function used to retrieve actual message name.
+    /// @details Called by @ref name(), must be implemented in the derived class.
+    ///     The function exists only if comms::option::NameInterface option was
+    ///     provided to @ref comms::Message.
+    virtual const char* nameImpl() const = 0;
 
     /// @brief Write data into the output area.
     /// @details Use this function to write data to the output area using
@@ -501,6 +547,18 @@ typename TMessage::WriteIterator writeIteratorFor(
 {
     return typename TMessage::WriteIterator(val);
 }
+
+/// @brief Compile time check of of whether the type
+///     is a message.
+/// @details Checks existence of @b InterfaceOptions inner
+///     type.
+template <typename T>
+constexpr bool isMessage()
+{
+    return details::hasInterfaceOptions<T>();
+}
+
+}  // namespace comms
 
 /// @brief Add convenience access enum and functions to extra transport fields.
 /// @details The comms::Message class provides access to its extra transport fields via
@@ -629,6 +687,4 @@ typename TMessage::WriteIterator writeIteratorFor(
         return comms::toMessage(*this).transportFields(); \
     } \
     COMMS_EXPAND(COMMS_DO_TRANSPORT_FIELD_ACC_FUNC(TransportFields, transportFields(), __VA_ARGS__))
-
-}  // namespace comms
 

@@ -156,6 +156,49 @@ constexpr bool hasRemoveSuffixFunc()
     return HasRemoveSuffixFunc<T>::Value;
 }
 
+template <class T, class R = void>
+struct EnableIfHasInterfaceOptions { using Type = R; };
+
+template <class T, class Enable = void>
+struct HasInterfaceOptions
+{
+    static const bool Value = false;
+};
+
+template <class T>
+struct HasInterfaceOptions<T, typename EnableIfHasInterfaceOptions<typename T::InterfaceOptions>::Type>
+{
+    static const bool Value = true;
+};
+
+template <class T>
+constexpr bool hasInterfaceOptions()
+{
+    return HasInterfaceOptions<T>::Value;
+}
+
+template <class T, class R = void>
+struct EnableIfHasImplOptions { using Type = R; };
+
+template <class T, class Enable = void>
+struct HasImplOptions
+{
+    static const bool Value = false;
+};
+
+template <class T>
+struct HasImplOptions<T, typename EnableIfHasImplOptions<typename T::ImplOptions>::Type>
+{
+    static const bool Value = true;
+};
+
+template <class T>
+constexpr bool hasImplOptions()
+{
+    return HasImplOptions<T>::Value;
+}
+
+
 } // namespace details
 
 } // namespace comms

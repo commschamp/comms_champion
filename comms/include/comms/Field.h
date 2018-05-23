@@ -43,13 +43,16 @@ class Field : public details::FieldBase<TOptions...>
     using BaseImpl = details::FieldBase<TOptions...>;
 public:
     /// @brief Endian type
-    /// @details Equal to either comms::traits::endian::Big or
-    ///     comms::traits::endian::Little
+    /// @details Equal to either @ref comms::traits::endian::Big or
+    ///     @ref comms::traits::endian::Little
     using Endian = typename BaseImpl::Endian;
+
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
 
     /// @brief Default validity check
     /// @details Always returns true, can be overriden by the derived class
-    /// @return Always tru
+    /// @return Always @b true
     static constexpr bool valid()
     {
         return true;
@@ -58,8 +61,24 @@ public:
     /// @brief Default refresh functionality
     /// @details Does nothing and returns false, can be overriden by the
     ///     derived class
-    /// @return Always false
+    /// @return Always @b false
     static constexpr bool refresh()
+    {
+        return false;
+    }
+
+    /// @brief Default check of whether the field is version dependent.
+    /// @return Always @b false.
+    static constexpr bool isVersionDependent()
+    {
+        return false;
+    }
+
+    /// @brief Default version update functionality
+    /// @details Does nothing and returns false, can be overriden by the
+    ///     derived class
+    /// @return Always @b false
+    static constexpr bool setVersion(VersionType)
     {
         return false;
     }

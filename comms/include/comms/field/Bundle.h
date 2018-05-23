@@ -44,28 +44,30 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::DefaultValueInitialiser - All wrapped fields may
+///     @li @ref comms::option::DefaultValueInitialiser - All wrapped fields may
 ///         specify their independent default value initialisers. It is
 ///         also possible to provide initialiser for the Bundle field which
 ///         will set appropriate values to the fields based on some
 ///         internal logic.
-///     @li comms::option::ContentsValidator - All wrapped fields may specify
+///     @li @ref comms::option::ContentsValidator - All wrapped fields may specify
 ///         their independent validators. The bundle field considered to
 ///         be valid if all the wrapped fields are valid. This option though,
 ///         provides an ability to add extra validation logic that can
 ///         observe value of more than one wrapped fields. For example,
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
-///     @li comms::option::ContentsRefresher - The default refreshing
+///     @li @ref comms::option::ContentsRefresher - The default refreshing
 ///         behaviour is to call the @b refresh() member function of every
 ///         member field. This option provides an ability to set a custom
 ///         "refreshing" logic.
-///     @li comms::option::CustomValueReader - It may be required to implement
+///     @li @ref comms::option::CustomValueReader - It may be required to implement
 ///         custom reading functionality instead of default behaviour of
 ///         invoking read() member function of every member field. It is possible
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
-///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
+///     @li @ref comms::option::EmptySerialization
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
@@ -84,6 +86,9 @@ class Bundle : private details::AdaptBasicFieldT<basic::Bundle<TFieldBase, TMemb
 public:
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
+
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -506,6 +511,19 @@ public:
         return BaseImpl::refresh();
     }
 
+    /// @brief Compile time check if this class is version dependent
+    static constexpr bool isVersionDependent()
+    {
+        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Default implementation of version update.
+    /// @return @b true in case the field contents have changed, @b false otherwise
+    bool setVersion(VersionType version)
+    {
+        return BaseImpl::setVersion(version);
+    }
+
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;
@@ -551,6 +569,8 @@ private:
             "comms::option::OrigDataView option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
             "comms::option::ValidNumValueRange (or similar) option is not applicable to Bundle field");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to Bundle field");
 };
 
 /// @brief Equality comparison operator.

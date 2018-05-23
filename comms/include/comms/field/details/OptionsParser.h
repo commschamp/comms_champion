@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@ class OptionsParser<>
 {
 public:
     static const bool HasCustomValueReader = false;
+    static const bool HasCustomRead = false;
     static const bool HasSerOffset = false;
     static const bool HasFixedLengthLimit = false;
     static const bool HasFixedBitLengthLimit = false;
@@ -56,7 +57,8 @@ public:
     static const bool HasSequenceTerminationFieldSuffix = false;
     static const bool HasDefaultValueInitialiser = false;
     static const bool HasCustomValidator = false;
-    static const bool HasCustomRefresher = false;
+    static const bool HasContentsRefresher = false;
+    static const bool HasCustomRefresh = false;
     static const bool HasFailOnInvalid = false;
     static const bool HasIgnoreInvalid = false;
     static const bool HasFixedSizeStorage = false;
@@ -66,6 +68,8 @@ public:
     static const bool HasOrigDataView = false;
     static const bool HasEmptySerialization = false;
     static const bool HasMultiRangeValidation = false;
+    static const bool HasCustomVersionUpdate = false;
+    static const bool HasVersionsRange = false;
 };
 
 template <typename T, typename... TOptions>
@@ -76,6 +80,15 @@ class OptionsParser<
 public:
     static const bool HasCustomValueReader = true;
     using CustomValueReader = T;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::HasCustomRead,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasCustomRead = true;
 };
 
 template <std::intmax_t TOffset, typename... TOptions>
@@ -245,8 +258,17 @@ class OptionsParser<
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
-    static const bool HasCustomRefresher = true;
+    static const bool HasContentsRefresher = true;
     using CustomRefresher = TRefresher;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::HasCustomRefresh,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasCustomRefresh = true;
 };
 
 template <comms::ErrorStatus TStatus, typename... TOptions>
@@ -382,21 +404,15 @@ public:
     static const bool HasMultiRangeValidation = true;
 };
 
-template <std::intmax_t TMinValue, std::intmax_t TMaxValue, typename... TOptions>
+template <typename... TOptions>
 class OptionsParser<
-    comms::option::ValidNumValueRangeOverride<TMinValue, TMaxValue>,
+    comms::option::ValidRangesClear,
     TOptions...> : public OptionsParser<TOptions...>
 {
     using BaseImpl = OptionsParser<TOptions...>;
 public:
-#ifdef CC_COMPILER_GCC47
-    static_assert(!BaseImpl::HasMultiRangeValidation,
-        "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
-        "of comms::option::ValidNumValueRange options. Either use it only once or"
-        "upgrade your compiler.");
-#endif
-    using MultiRangeValidationRanges = typename MultiRangeAssembler<false>::template Type<BaseImpl, std::intmax_t, TMinValue, TMaxValue>;
-    static const bool HasMultiRangeValidation = true;
+    using MultiRangeValidationRanges = void;
+    static const bool HasMultiRangeValidation = false;
 };
 
 
@@ -415,6 +431,26 @@ public:
 #endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::uintmax_t, TMinValue, TMaxValue>;
     static const bool HasMultiRangeValidation = true;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::HasCustomVersionUpdate,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasCustomVersionUpdate = true;
+};
+
+template <std::uintmax_t TFrom, std::uintmax_t TUntil, typename... TOptions>
+class OptionsParser<
+    comms::option::ExistsBetweenVersions<TFrom, TUntil>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasVersionsRange = true;
+    static const std::uintmax_t ExistsFromVersion = TFrom;
+    static const std::uintmax_t ExistsUntilVersion = TUntil;
 };
 
 template <typename... TOptions>

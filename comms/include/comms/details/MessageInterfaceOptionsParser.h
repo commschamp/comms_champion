@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 #include <tuple>
 
 #include "comms/options.h"
-
+#include "comms/util/Tuple.h"
 
 namespace comms
 {
@@ -46,8 +46,10 @@ public:
     static const bool HasValid = false;
     static const bool HasLength = false;
     static const bool HasRefresh = false;
+    static const bool HasName = false;
     static const bool HasNoVirtualDestructor = false;
     static const bool HasExtraTransportFields = false;
+    static const bool HasVersionInExtraTransportFields = false;
 };
 
 template <typename T, typename... TOptions>
@@ -138,6 +140,15 @@ public:
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<
+    comms::option::NameInterface,
+    TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
+{
+public:
+    static const bool HasName = true;
+};
+
+template <typename... TOptions>
+class MessageInterfaceOptionsParser<
     comms::option::NoVirtualDestructor,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
@@ -150,11 +161,23 @@ class MessageInterfaceOptionsParser<
     comms::option::ExtraTransportFields<TFields>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
+    static_assert(comms::util::isTuple<TFields>(),
+        "Template parameter to comms::option::ExtraTransportFields is expected to "
+        "be std::tuple.");
 public:
     static const bool HasExtraTransportFields = true;
     using ExtraTransportFields = TFields;
 };
 
+template <std::size_t TIdx, typename... TOptions>
+class MessageInterfaceOptionsParser<
+    comms::option::VersionInExtraTransportFields<TIdx>,
+    TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
+{
+public:
+    static const bool HasVersionInExtraTransportFields = true;
+    static const std::size_t VersionInExtraTransportFields = TIdx;
+};
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<

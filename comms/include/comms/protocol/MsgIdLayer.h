@@ -266,7 +266,7 @@ private:
     static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicOpTag)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
-        static_assert(details::ProtocolLayerHasInterfaceOptions<MsgType>::Value,
+        static_assert(comms::isMessage<MsgType>(),
             "The message class is expected to inherit from comms::Message");
         static_assert(MsgType::InterfaceOptions::HasMsgIdInfo,
             "The message interface class must expose polymorphic ID retrieval functionality, "
@@ -396,6 +396,35 @@ private:
 
 };
 
+
+namespace details
+{
+template <typename T>
+struct MsgIdLayerCheckHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TField,
+          typename TMessage,
+          typename TAllMessages,
+          typename TNextLayer,
+          typename... TOptions>
+struct MsgIdLayerCheckHelper<MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...> >
+{
+    static const bool Value = true;
+};
+
+} // namespace details
+
+/// @brief Compile time check of whether the provided type is
+///     a variant of @ref MsgIdLayer
+/// @related MsgIdLayer
+template <typename T>
+constexpr bool isMsgIdLayer()
+{
+    return details::MsgIdLayerCheckHelper<T>::Value;
+}
 
 }  // namespace protocol
 

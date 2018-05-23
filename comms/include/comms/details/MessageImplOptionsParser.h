@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -42,7 +42,8 @@ public:
     static const bool HasNoWriteImpl = false;
     static const bool HasNoLengthImpl = false;
     static const bool HasNoValidImpl = false;
-    static const bool HasDoRefresh = false;
+    static const bool HasCustomRefresh = false;
+    static const bool HasName = false;
     static const bool HasDoGetId = false;
 };
 
@@ -140,11 +141,20 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::HasDoRefresh,
+    comms::option::HasCustomRefresh,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
-    static const bool HasDoRefresh = true;
+    static const bool HasCustomRefresh = true;
+};
+
+template <typename... TOptions>
+class MessageImplOptionsParser<
+    comms::option::HasName,
+    TOptions...> : public MessageImplOptionsParser<TOptions...>
+{
+public:
+    static const bool HasName = true;
 };
 
 template <typename... TOptions>

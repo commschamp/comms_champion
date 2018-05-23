@@ -174,6 +174,8 @@ using ArrayListBase =
 ///     @li @ref comms::option::DefaultValueInitialiser
 ///     @li @ref comms::option::ContentsValidator
 ///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
 ///     @li @ref comms::option::FailOnInvalid
 ///     @li @ref comms::option::IgnoreInvalid
 ///     @li @ref comms::option::OrigDataView (valid only if TElement is integral type
@@ -189,6 +191,9 @@ public:
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
+
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -381,6 +386,18 @@ public:
         return BaseImpl::clearElemLengthForcing();
     }
 
+    /// @brief Compile time check if this class is version dependent
+    static constexpr bool isVersionDependent()
+    {
+        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Default implementation of version update.
+    /// @return @b true in case the field contents have changed, @b false otherwise
+    bool setVersion(VersionType version)
+    {
+        return BaseImpl::setVersion(version);
+    }
 
 protected:
     using BaseImpl::readData;
@@ -401,9 +418,10 @@ private:
             "comms::option::Units option is not applicable to ArrayList field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
             "comms::option::ValidNumValueRange (or similar) option is not applicable to ArrayList field");
-
     static_assert((!ParsedOptions::HasOrigDataView) || (std::is_integral<TElement>::value && (sizeof(TElement) == sizeof(std::uint8_t))),
         "Usage of comms::option::OrigDataView option is allowed only for raw binary data (std::uint8_t) types.");
+    static_assert(!ParsedOptions::HasVersionsRange,
+            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to ArrayList field");
 };
 
 /// @brief Equivalence comparison operator.

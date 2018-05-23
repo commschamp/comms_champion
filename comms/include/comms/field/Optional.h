@@ -39,10 +39,12 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li comms::option::DefaultValueInitialiser, comms::option::DefaultOptionalMode,
-///         comms::option::OptionalMissingByDefault, or comms::option::OptionalExistsByDefault.
-///     @li comms::option::ContentsValidator.
-///     @li comms::option::ContentsRefresher
+///     @li @ref comms::option::DefaultValueInitialiser, @ref comms::option::DefaultOptionalMode,
+///         @ref comms::option::OptionalMissingByDefault, or @ref comms::option::OptionalExistsByDefault.
+///     @li @ref comms::option::ContentsValidator.
+///     @li @ref comms::option::ContentsRefresher
+///     @li @ref comms::option::HasCustomRead
+///     @li @ref comms::option::HasCustomRefresh
 /// @extends comms::Field
 /// @headerfile comms/field/Optional.h
 template <typename TField, typename... TOptions>
@@ -53,6 +55,9 @@ public:
 
     /// @brief Endian used for serialisation.
     using Endian = typename BaseImpl::Endian;
+
+    /// @brief Version type
+    using VersionType = typename BaseImpl::VersionType;
 
     /// @brief All the options provided to this class bundled into struct.
     using ParsedOptions = details::OptionsParser<TOptions...>;
@@ -291,6 +296,19 @@ public:
     void writeNoStatus(TIter& iter) const
     {
         BaseImpl::writeNoStatus(iter);
+    }
+
+    /// @brief Compile time check if this class is version dependent
+    static constexpr bool isVersionDependent()
+    {
+        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Default implementation of version update.
+    /// @return @b true in case the field contents have changed, @b false otherwise
+    bool setVersion(VersionType version)
+    {
+        return BaseImpl::setVersion(version);
     }
 
 protected:

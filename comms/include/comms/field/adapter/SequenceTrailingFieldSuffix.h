@@ -36,6 +36,9 @@ class SequenceTrailingFieldSuffix : public TBase
     using BaseImpl = TBase;
     using TrailField = TTrailField;
 
+    static_assert(!TrailField::isVersionDependent(),
+            "Suffix fields must not be version dependent");
+
 public:
     using ValueType = typename BaseImpl::ValueType;
     using ElementType = typename BaseImpl::ElementType;

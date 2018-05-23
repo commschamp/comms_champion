@@ -24,7 +24,7 @@
 #define COMMS_MAJOR_VERSION 0U
 
 /// @brief Minor verion of the library
-#define COMMS_MINOR_VERSION 25U
+#define COMMS_MINOR_VERSION 26U
 
 /// @brief Patch level of the library
 #define COMMS_PATCH_VERSION 1U

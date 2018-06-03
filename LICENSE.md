@@ -24,7 +24,7 @@ Every license is **NOT** locked to the specific version of the [COMMS Library](#
 (pay only once for the right to use).
 
 At this moment, as part of my beta testing as well as promotional activity, I
-offer a free **Single application evaluation licence** licence. It allows usage of 
+offer a free **Single application evaluation licence**. It allows usage of 
 [COMMS Library](#comms-library) in a single binary application and limited to 
 having a single licence per company. 
 

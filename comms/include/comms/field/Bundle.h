@@ -68,6 +68,7 @@ namespace field
 ///     @li @ref comms::option::HasCustomRead
 ///     @li @ref comms::option::HasCustomRefresh
 ///     @li @ref comms::option::EmptySerialization
+///     @li @ref comms::option::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
@@ -515,6 +516,13 @@ public:
     static constexpr bool isVersionDependent()
     {
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Get version of the field.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    VersionType getVersion() const
+    {
+        return BaseImpl::getVersion();
     }
 
     /// @brief Default implementation of version update.

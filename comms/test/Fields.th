@@ -4822,11 +4822,15 @@ void FieldsTestSuite::test98()
         comms::field::IntValue<
             comms::Field<BigEndianOpt>,
             std::uint8_t,
-            comms::option::InvalidByDefault
+            comms::option::InvalidByDefault,
+            comms::option::VersionStorage
         >;
 
     Field field;
     TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.getVersion(), 0U);
+    TS_ASSERT(field.setVersion(5U));
+    TS_ASSERT_EQUALS(field.getVersion(), 5U);
 }
 
 template <typename TField>

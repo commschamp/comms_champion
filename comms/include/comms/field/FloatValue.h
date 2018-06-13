@@ -61,6 +61,7 @@ namespace field
 ///         @ref sec_field_tutorial_int_value_units for details.
 ///     @li @ref comms::option::EmptySerialization
 ///     @li @ref comms::option::InvalidByDefault
+///     @li @ref comms::option::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/FloatValue.h
 template <typename TFieldBase, typename T, typename... TOptions>
@@ -189,6 +190,13 @@ public:
     static constexpr bool isVersionDependent()
     {
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Get version of the field.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    VersionType getVersion() const
+    {
+        return BaseImpl::getVersion();
     }
 
     /// @brief Default implementation of version update.

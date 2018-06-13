@@ -71,6 +71,7 @@ public:
     static const bool HasMultiRangeValidation = false;
     static const bool HasCustomVersionUpdate = false;
     static const bool HasVersionsRange = false;
+    static const bool HasVersionStorage = false;
 };
 
 template <typename T, typename... TOptions>
@@ -461,6 +462,15 @@ public:
     static const bool HasVersionsRange = true;
     static const std::uintmax_t ExistsFromVersion = TFrom;
     static const std::uintmax_t ExistsUntilVersion = TUntil;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::VersionStorage,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasVersionStorage = true;
 };
 
 template <typename... TOptions>

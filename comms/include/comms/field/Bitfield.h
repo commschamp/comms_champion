@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -93,6 +93,7 @@ namespace field
 ///     @li @ref comms::option::HasCustomRead
 ///     @li @ref comms::option::HasCustomRefresh
 ///     @li @ref comms::option::EmptySerialization
+///     @li @ref comms::option::VersionStorage
 /// @pre TMember is a variant of std::tuple, that contains other fields.
 /// @pre Every field member specifies its length in bits using
 ///     comms::option::FixedBitLength option.
@@ -250,6 +251,13 @@ public:
     static constexpr bool isVersionDependent()
     {
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Get version of the field.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    VersionType getVersion() const
+    {
+        return BaseImpl::getVersion();
     }
 
     /// @brief Default implementation of version update.

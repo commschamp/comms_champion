@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -181,6 +181,7 @@ using ArrayListBase =
 ///     @li @ref comms::option::OrigDataView (valid only if TElement is integral type
 ///         of 1 byte size.
 ///     @li @ref comms::option::EmptySerialization
+///     @li @ref comms::option::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/ArrayList.h
 template <typename TFieldBase, typename TElement, typename... TOptions>
@@ -390,6 +391,13 @@ public:
     static constexpr bool isVersionDependent()
     {
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Get version of the field.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    VersionType getVersion() const
+    {
+        return BaseImpl::getVersion();
     }
 
     /// @brief Default implementation of version update.

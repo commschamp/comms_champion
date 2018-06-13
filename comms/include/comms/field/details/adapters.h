@@ -41,3 +41,4 @@
 #include "comms/field/adapter/EmptySerialization.h"
 #include "comms/field/adapter/ExistsBetweenVersions.h"
 #include "comms/field/adapter/InvalidByDefault.h"
+#include "comms/field/adapter/VersionStorage.h"

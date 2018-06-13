@@ -48,6 +48,27 @@ struct FieldsOptionsCompatibilityCalc
         static_cast<std::size_t>(T6);
 };
 
+template <bool THasVersionStorage>
+struct AdaptFieldVersionStorage;
+
+template <>
+struct AdaptFieldVersionStorage<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::VersionStorage<TField>;
+};
+
+template <>
+struct AdaptFieldVersionStorage<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldVersionStorageT =
+    typename AdaptFieldVersionStorage<TOpts::HasVersionStorage>::template Type<TField>;
+
 template <bool THasInvalidByDefault>
 struct AdaptFieldInvalidByDefault;
 
@@ -650,8 +671,10 @@ class AdaptBasicField
 
     using InvalidByDefaultAdapted = AdaptFieldInvalidByDefaultT<
         TBasic, ParsedOptions>;
-    using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
+    using VersionStorageAdapted = AdaptFieldVersionStorageT<
         InvalidByDefaultAdapted, ParsedOptions>;
+    using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
+        VersionStorageAdapted, ParsedOptions>;
     using SerOffsetAdapted = AdaptFieldSerOffsetT<
         CustomReaderAdapted, ParsedOptions>;
     using VersionsRangeAdapted = AdaptFieldVersionsRangeT<

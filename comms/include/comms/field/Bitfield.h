@@ -306,6 +306,9 @@ private:
             "comms::option::ValidNumValueRange (or similar) option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasVersionsRange,
             "comms::option::ExistsBetweenVersions (or similar) option is not applicable to Bitfield field");
+    static_assert(!ParsedOptions::HasInvalidByDefault,
+            "comms::option::InvalidByDefault option is not applicable to Bitfield field");
+
 };
 
 /// @brief Equality comparison operator.

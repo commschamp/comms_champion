@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -571,6 +571,8 @@ private:
             "comms::option::ValidNumValueRange (or similar) option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasVersionsRange,
             "comms::option::ExistsBetweenVersions (or similar) option is not applicable to Bundle field");
+    static_assert(!ParsedOptions::HasInvalidByDefault,
+            "comms::option::InvalidByDefault option is not applicable to Bundle field");
 };
 
 /// @brief Equality comparison operator.

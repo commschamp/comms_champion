@@ -132,6 +132,7 @@ public:
     void test95();
     void test96();
     void test97();
+    void test98();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4815,6 +4816,18 @@ void FieldsTestSuite::test97()
     } while (false);
 }
 
+void FieldsTestSuite::test98()
+{
+    using Field =
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t,
+            comms::option::InvalidByDefault
+        >;
+
+    Field field;
+    TS_ASSERT(!field.valid());
+}
 
 template <typename TField>
 void FieldsTestSuite::writeField(

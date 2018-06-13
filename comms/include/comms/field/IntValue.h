@@ -66,6 +66,7 @@ namespace field
 ///     @li @b comms::option::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
 ///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::InvalidByDefault
 /// @extends comms::Field
 /// @headerfile comms/field/IntValue.h
 template <typename TFieldBase, typename T, typename... TOptions>

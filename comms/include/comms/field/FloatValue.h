@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -60,6 +60,7 @@ namespace field
 ///     @li @b comms::option::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
 ///     @li @ref comms::option::EmptySerialization
+///     @li @ref comms::option::InvalidByDefault
 /// @extends comms::Field
 /// @headerfile comms/field/FloatValue.h
 template <typename TFieldBase, typename T, typename... TOptions>

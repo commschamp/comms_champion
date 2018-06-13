@@ -1363,6 +1363,9 @@ using ExistsSinceVersion = ExistsBetweenVersions<TVer, std::numeric_limits<std::
 template <std::uintmax_t TVer>
 using ExistsUntilVersion = ExistsBetweenVersions<0, TVer>;
 
+/// @brief Make the field's contents to be invalid by default.
+struct InvalidByDefault {};
+
 }  // namespace option
 
 }  // namespace comms

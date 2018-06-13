@@ -314,6 +314,10 @@ public:
 protected:
     using BaseImpl::readData;
     using BaseImpl::writeData;
+
+private:
+    static_assert(!ParsedOptions::HasInvalidByDefault,
+            "comms::option::InvalidByDefault option is not applicable to Optional field");
 };
 
 /// @brief Equality comparison operator.

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -75,6 +75,7 @@ namespace field
 ///     @li @ref comms::option::FailOnInvalid
 ///     @li @ref comms::option::IgnoreInvalid
 ///     @li @ref comms::option::EmptySerialization
+///     @li @ref comms::option::InvalidByDefault
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
 template <typename TFieldBase, typename TEnum, typename... TOptions>

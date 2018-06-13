@@ -61,6 +61,7 @@ public:
     static const bool HasCustomRefresh = false;
     static const bool HasFailOnInvalid = false;
     static const bool HasIgnoreInvalid = false;
+    static const bool HasInvalidByDefault = false;
     static const bool HasFixedSizeStorage = false;
     static const bool HasCustomStorageType = false;
     static const bool HasScalingRatio = false;
@@ -288,6 +289,15 @@ class OptionsParser<
 {
 public:
     static const bool HasIgnoreInvalid = true;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::InvalidByDefault,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasInvalidByDefault = true;
 };
 
 template <std::size_t TSize, typename... TOptions>

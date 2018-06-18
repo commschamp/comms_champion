@@ -4831,6 +4831,20 @@ void FieldsTestSuite::test98()
     TS_ASSERT_EQUALS(field.getVersion(), 0U);
     TS_ASSERT(field.setVersion(5U));
     TS_ASSERT_EQUALS(field.getVersion(), 5U);
+
+    using Field2 =
+        comms::field::BitmaskValue<
+            comms::Field<BigEndianOpt>,
+            comms::option::FixedLength<1U>,
+            comms::option::DefaultNumValue<0x6U>,
+            comms::option::VersionStorage,
+            comms::option::BitmaskReservedBits<0xc2U, 0x2U>
+        >;
+
+    Field2 field2;
+    TS_ASSERT_EQUALS(field2.getVersion(), 0U);
+    TS_ASSERT(field2.setVersion(5U));
+    TS_ASSERT_EQUALS(field2.getVersion(), 5U);
 }
 
 template <typename TField>

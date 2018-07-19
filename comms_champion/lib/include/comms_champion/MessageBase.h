@@ -203,7 +203,7 @@ private:
         try {
             do {
                 data.resize(CommsBase::length());
-                typename CommsBase::ReadIterator iter = &data[0];
+                typename CommsBase::WriteIterator iter = &data[0];
                 auto es = CommsBase::write(iter, data.size());
                 if (es != comms::ErrorStatus::Success) {
                     assert(!"Data serialisation failed");
@@ -211,7 +211,7 @@ private:
                     break;
                 }
 
-                typename CommsBase::ReadIterator begIter = &data[0];
+                typename CommsBase::WriteIterator begIter = &data[0];
                 data.resize(
                     static_cast<std::size_t>(std::distance(begIter, iter)));
             } while (false);

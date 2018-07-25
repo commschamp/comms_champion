@@ -261,6 +261,18 @@ private:
             PolymorphicOpTag
         >::type;
 
+    struct IdParamAsIsTag {};
+    struct IdParamCastTag {};
+
+    template <typename TId>
+    using IdParamTag =
+        typename std::conditional<
+            std::is_base_of<MsgIdType, TId>::value,
+            IdParamAsIsTag,
+            IdParamCastTag
+        >::type;
+
+
 
     template <typename TMsg>
     static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicOpTag)
@@ -297,7 +309,7 @@ private:
         auto es = comms::ErrorStatus::Success;
         unsigned idx = 0;
         while (true) {
-            msgPtr = createMsg(id, idx);
+            msgPtr = createMsgInternal(id, idx);
             if (!msgPtr) {
                 break;
             }
@@ -321,12 +333,12 @@ private:
         }
 
         COMMS_ASSERT(!msgPtr);
-        auto idxLimit = factory_.msgCount(id);
+        auto idxLimit = msgCountInternal(id);
         if (idx < idxLimit) {
             return comms::ErrorStatus::MsgAllocFailure;
         }
 
-        msgPtr = factory_.createGenericMsg(id);
+        msgPtr = createGenericMsgInternal(id);
         if (!msgPtr) {
             if (idx == 0) {
                 return comms::ErrorStatus::InvalidMsgId;
@@ -358,7 +370,7 @@ private:
                 "using \"StaticNumIdImpl\" option");
 
         auto& id = field.value();
-        if (id != MsgType::doGetId()) {
+        if (static_cast<MsgIdType>(id) != MsgType::doGetId()) {
             return ErrorStatus::InvalidMsgId;
         }
 
@@ -391,6 +403,63 @@ private:
         return doReadInternalDirect(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
     }
 
+    template <typename TId>
+    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, IdParamAsIsTag)
+    {
+        return createMsg(std::forward<TId>(id), idx);
+    }
+
+    template <typename TId>
+    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, IdParamCastTag)
+    {
+        return createMsg(static_cast<MsgIdType>(id), idx);
+    }
+
+    template <typename TId>
+    MsgPtr createMsgInternal(TId&& id, unsigned idx)
+    {
+        using IdType = typename std::decay<decltype(id)>::type;
+        return createMsgInternalTagged(std::forward<TId>(id), idx, IdParamTag<IdType>());
+    }
+
+    template <typename TId>
+    MsgPtr createGenericMsgInternalTagged(TId&& id, IdParamAsIsTag)
+    {
+        return factory_.createGenericMsg(std::forward<TId>(id));
+    }
+
+    template <typename TId>
+    MsgPtr createGenericMsgInternalTagged(TId&& id, IdParamCastTag)
+    {
+        return factory_.createGenericMsg(static_cast<MsgIdType>(id));
+    }
+
+    template <typename TId>
+    MsgPtr createGenericMsgInternal(TId&& id)
+    {
+        using IdType = typename std::decay<decltype(id)>::type;
+        return createGenericMsgInternalTagged(std::forward<TId>(id), IdParamTag<IdType>());
+    }
+
+    template <typename TId>
+    std::size_t msgCountInternalTagged(TId&& id, IdParamAsIsTag)
+    {
+        return factory_.msgCount(std::forward<TId>(id));
+    }
+
+    template <typename TId>
+    std::size_t msgCountInternalTagged(TId&& id, IdParamCastTag)
+    {
+        return factory_.msgCount(static_cast<MsgIdType>(id));
+    }
+
+
+    template <typename TId>
+    std::size_t msgCountInternal(TId&& id)
+    {
+        using IdType = typename std::decay<decltype(id)>::type;
+        return msgCountInternalTagged(std::forward<TId>(id), IdParamTag<IdType>());
+    }
 
     Factory factory_;
 

@@ -4455,6 +4455,12 @@ void FieldsTestSuite::test90()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    field.value().clear();
+    static const char EmptyExpectedBuf[] = {0x0};
+    static const std::size_t EmptyExpectedBufSize = std::extent<decltype(EmptyExpectedBuf)>::value;
+
+    writeReadField(field, EmptyExpectedBuf, EmptyExpectedBufSize);
 }
 
 void FieldsTestSuite::test91()

@@ -4462,6 +4462,7 @@ void FieldsTestSuite::test90()
     static const std::size_t EmptyExpectedBufSize = std::extent<decltype(EmptyExpectedBuf)>::value;
 
     writeReadField(field, EmptyExpectedBuf, EmptyExpectedBufSize);
+    TS_ASSERT_EQUALS(field.length(), 1U);
 }
 
 void FieldsTestSuite::test91()

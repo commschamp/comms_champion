@@ -123,11 +123,15 @@ public:
     template <typename TIter>
     ErrorStatus readN(std::size_t count, TIter& iter, std::size_t& len)
     {
-        auto es = readLen(iter, len);
-        if (es != comms::ErrorStatus::Success) {
-            return es;
+        if (0U < count) {
+            auto es = readLen(iter, len);
+            if (es != comms::ErrorStatus::Success) {
+                return es;
+            }
         }
-
+        else {
+            elemLen_ = 0U;
+        }
         return basic::CommonFuncs::readSequenceN(*this, count, iter, len);
     }
 
@@ -138,9 +142,11 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        auto es = writeLen(iter, len); // len is updated
-        if (es != comms::ErrorStatus::Success) {
-            return es;
+        if (!BaseImpl::value().empty()) {
+            auto es = writeLen(iter, len); // len is updated
+            if (es != comms::ErrorStatus::Success) {
+                return es;
+            }
         }
 
         return basic::CommonFuncs::writeSequence(*this, iter, len);
@@ -149,16 +155,20 @@ public:
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        writeLenNoStatus(iter);
+        if (!BaseImpl::value().empty()) {
+            writeLenNoStatus(iter);
+        }
         basic::CommonFuncs::writeSequenceNoStatus(*this, iter);
     }
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
     {
-        auto es = writeLen(iter, len); // len is updated
-        if (es != comms::ErrorStatus::Success) {
-            return es;
+        if (0U < count) {
+            auto es = writeLen(iter, len); // len is updated
+            if (es != comms::ErrorStatus::Success) {
+                return es;
+            }
         }
 
         return basic::CommonFuncs::writeSequenceN(*this, count, iter, len);
@@ -167,7 +177,9 @@ public:
     template <typename TIter>
     void writeNoStatusN(std::size_t count, TIter& iter) const
     {
-        writeLenNoStatus(iter);
+        if (0U < count) {
+            writeLenNoStatus(iter);
+        }
         basic::CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
     }
 

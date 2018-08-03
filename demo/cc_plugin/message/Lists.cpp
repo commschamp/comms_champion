@@ -35,14 +35,14 @@ namespace
 
 using ListsFields = demo::message::ListsFields<>;
 
-QVariantMap createField2Properties()
+QVariantMap createField3Properties()
 {
-    using Field2 = ListsFields::field2;
+    using Field3 = ListsFields::field3;
     static const auto ElemCount =
-        Field2::ParsedOptions::SequenceFixedSize;
+        Field3::ParsedOptions::SequenceFixedSize;
 
-    cc::property::field::ForField<Field2> props;
-    props.name("field2");
+    cc::property::field::ForField<Field3> props;
+    props.name("field3");
 
     for (auto idx = 0U; idx < ElemCount; ++idx) {
         props.add(
@@ -54,22 +54,22 @@ QVariantMap createField2Properties()
     return props.asMap();
 }
 
-QVariantMap createField3Properties()
-{
-    return
-        cc::property::field::ForField<ListsFields::field3>()
-            .name("field3")
-            .add(cc::property::field::IntValue().name("element").serialisedHidden().asMap())
-            .asMap();
-}
-
 QVariantMap createField4Properties()
 {
     return
         cc::property::field::ForField<ListsFields::field4>()
             .name("field4")
+            .add(cc::property::field::IntValue().name("element").serialisedHidden().asMap())
+            .asMap();
+}
+
+QVariantMap createField5Properties()
+{
+    return
+        cc::property::field::ForField<ListsFields::field5>()
+            .name("field5")
             .add(
-                cc::property::field::ForField<ListsFields::field4::ValueType::value_type>()
+                cc::property::field::ForField<ListsFields::field5::ValueType::value_type>()
                     .name("element")
                     .add(cc::property::field::IntValue().name("memeber1").serialisedHidden().asMap())
                     .add(cc::property::field::IntValue().name("memeber2").serialisedHidden().asMap())
@@ -87,9 +87,10 @@ QVariantList createFieldsProperties()
 {
     QVariantList props;
     props.append(cc::property::field::ForField<ListsFields::field1>().name("field1").asMap());
-    props.append(createField2Properties());
+    props.append(cc::property::field::ForField<ListsFields::field2>().name("field2").asMap());
     props.append(createField3Properties());
     props.append(createField4Properties());
+    props.append(createField5Properties());
 
     assert(props.size() == Lists::FieldIdx_numOfValues);
     return props;

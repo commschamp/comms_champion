@@ -197,14 +197,23 @@ private:
 
     std::size_t lengthInternal(FixedLengthLenFieldTag) const
     {
-        return (LenField::minLength() + BaseImpl::length());
+        std::size_t prefixLen = 0U;
+        if (!BaseImpl::value().empty()) {
+            prefixLen = LenField::minLength();
+        }
+        return (prefixLen + BaseImpl::length());
     }
 
     std::size_t lengthInternal(VarLengthLenFieldTag) const
     {
-        LenField lenField;
-        lenField.value() = BaseImpl::minElementLength();
-        return (lenField.length() + BaseImpl::minElementLength()) * BaseImpl::value().size();
+        std::size_t prefixLen = 0U;
+        if (!BaseImpl::value().empty()) {
+            LenField lenField;
+            lenField.value() = BaseImpl::minElementLength();
+            prefixLen = lenField.length();
+        }
+
+        return (prefixLen + BaseImpl::length());
     }
 
     template <typename TIter>

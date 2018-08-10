@@ -63,11 +63,11 @@ public:
         return m_version;
     }
 
-    bool setVersion(VersionType value)
+    bool setVersion(VersionType val)
     {
-        bool updated = BaseImpl::setVersion(value);
-        if (m_version != value) {
-            m_version = value;
+        bool updated = BaseImpl::setVersion(val);
+        if (m_version != val) {
+            m_version = val;
             return true;
         }
         return updated;

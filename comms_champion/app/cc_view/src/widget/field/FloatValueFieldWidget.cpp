@@ -38,6 +38,7 @@ enum ValueType
     ValueType_val,
     ValueType_nan,
     ValueType_inf,
+    ValueType_minusInf,
     ValueType_numOfValues
 };
 
@@ -122,7 +123,8 @@ void FloatValueFieldWidget::serialisedValueUpdated(const QString& value)
 
 void FloatValueFieldWidget::valueUpdated(double value)
 {
-    if (value == m_wrapper->getValue()) {
+    if ((std::isnan(value) && std::isnan(m_wrapper->getValue())) ||
+        (value == m_wrapper->getValue())) {
         return;
     }
 
@@ -153,6 +155,11 @@ void FloatValueFieldWidget::typeUpdated(int value)
 
         if (value == ValueType_inf) {
             m_wrapper->setInf();
+            break;
+        }
+
+        if (value == ValueType_minusInf) {
+            m_wrapper->setMinusInf();
             break;
         }
 
@@ -209,6 +216,10 @@ int FloatValueFieldWidget::getTypeIndex()
 
     if (m_wrapper->isInf()) {
         return ValueType_inf;
+    }
+
+    if (m_wrapper->isMinusInf()) {
+        return ValueType_minusInf;
     }
 
     return ValueType_val;

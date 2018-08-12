@@ -54,6 +54,16 @@ void FloatValueWrapper::setInf()
     setInfImpl();
 }
 
+bool FloatValueWrapper::isMinusInf() const
+{
+    return isMinusInfImpl();
+}
+
+void FloatValueWrapper::setMinusInf()
+{
+    setMinusInfImpl();
+}
+
 void FloatValueWrapper::dispatchImpl(FieldWrapperHandler& handler)
 {
     handler.handle(*this);

@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -146,11 +146,19 @@ protected:
         typedef typename std::iterator_traits<WriteIterator>::iterator_category Tag;
 
         static_assert(
-            std::is_base_of<std::random_access_iterator_tag, Tag>::value ||
             std::is_base_of<std::output_iterator_tag, Tag>::value,
-            "Only random access or output iterator is supported for data encoding.");
+            "Iterator is expected to be output iterator.");
 
-        return encodeDataIntenal(Tag());
+        static_assert(std::is_same<std::back_insert_iterator<DataSeq>, WriteIterator>::value,
+            "Write iterator is expected to back insert iterator");
+
+        DataSeq data;
+        data.reserve(CommsBase::length());
+        auto iter = std::back_inserter(data);
+        auto es = CommsBase::write(iter, data.max_size());
+        assert(es == comms::ErrorStatus::Success);
+        static_cast<void>(es);
+        return data;
     }
 
     /// @brief Overriding polymorphic deserialisation functionaly
@@ -164,114 +172,20 @@ protected:
             std::is_base_of<std::random_access_iterator_tag, Tag>::value,
             "Only random access iterator is supported for data decoding.");
 
-        return decodeDataRandomAccess(data);
+        static_assert(std::is_pointer<ReadIterator>::value, "Pointer as iterator is expected");
+
+        ReadIterator iter = nullptr;
+        if (!data.empty()) {
+            iter = &data[0];
+        }
+
+        auto es = CommsBase::read(iter, data.size());
+        return es == comms::ErrorStatus::Success;
     }
 
 private:
-    struct UseBackInserterTag {};
-    struct WriteThanCopyTag {};
-    struct UseDataSeqIterTag {};
-    struct UsePointerTag {};
-    struct OtherInputIterTag {};
     struct NumericIdTag {};
     struct NonNumericIdTag {};
-
-    DataSeq encodeDataIntenal(std::random_access_iterator_tag) const
-    {
-        return encodeDataRandomAccess();
-    }
-
-    DataSeq encodeDataIntenal(std::output_iterator_tag) const
-    {
-        typedef typename CommsBase::WriteIterator WriteIterator;
-        typedef typename
-            std::conditional<
-                std::is_same<std::back_insert_iterator<DataSeq>, WriteIterator>::value,
-                UseBackInserterTag,
-                WriteThanCopyTag
-            >::type Tag;
-
-        static_assert(
-            std::is_same<Tag, UseBackInserterTag>::value,
-            "Currently only back_insert_iterator is supported.");
-        return encodeDataWithOutputIter(Tag());
-    }
-
-    DataSeq encodeDataRandomAccess() const
-    {
-        DataSeq data;
-        try {
-            do {
-                data.resize(CommsBase::length());
-                typename CommsBase::WriteIterator iter = &data[0];
-                auto es = CommsBase::write(iter, data.size());
-                if (es != comms::ErrorStatus::Success) {
-                    assert(!"Data serialisation failed");
-                    data.clear();
-                    break;
-                }
-
-                typename CommsBase::WriteIterator begIter = &data[0];
-                data.resize(
-                    static_cast<std::size_t>(std::distance(begIter, iter)));
-            } while (false);
-        }
-        catch (...) {
-            data.clear();
-        }
-        return data;
-    }
-
-    DataSeq encodeDataWithOutputIter(UseBackInserterTag) const
-    {
-        DataSeq data;
-        auto iter = std::back_inserter(data);
-        auto es = CommsBase::write(iter, data.max_size());
-        assert(es == comms::ErrorStatus::Success);
-        static_cast<void>(es);
-        return data;
-    }
-
-    bool decodeDataRandomAccess(const DataSeq& data)
-    {
-        typedef typename CommsBase::ReadIterator ReadIterator;
-        typedef typename
-            std::conditional<
-                std::is_same<DataSeq::const_iterator, ReadIterator>::value,
-                UseDataSeqIterTag,
-                typename std::conditional<
-                    std::is_pointer<ReadIterator>::value,
-                    UsePointerTag,
-                    OtherInputIterTag
-                >::type
-            >::type Tag;
-
-        static_assert(
-            !std::is_same<Tag, OtherInputIterTag>::value,
-            "Unexpected read iterator");
-
-        return decodeDataRandomAccessInternal(data, Tag());
-    }
-
-    bool decodeDataRandomAccessInternal(const DataSeq& data, UseDataSeqIterTag)
-    {
-        auto iter = data.begin();
-        return decodeDataRandomAccessWithIter(iter, data.size());
-    }
-
-    bool decodeDataRandomAccessInternal(const DataSeq& data, UsePointerTag)
-    {
-        typedef typename CommsBase::ReadIterator ReadIterator;
-        ReadIterator iter = &data[0];
-        return decodeDataRandomAccessWithIter(iter, data.size());
-    }
-
-    template <typename TIter>
-    bool decodeDataRandomAccessWithIter(TIter& iter, std::size_t bufSize)
-    {
-        auto es = CommsBase::read(iter, bufSize);
-        return es == comms::ErrorStatus::Success;
-    }
 
     QString idAsStringImplInternal(NumericIdTag) const
     {

@@ -121,13 +121,13 @@ public:
     template <typename TRet>
     constexpr TRet getScaled() const
     {
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             ParsedOptions::HasScalingRatio,
             HasScalingRatioTag,
             NoScalingRatioTag
         >::type;
 
-        return scaleAsInternal<TRet>(Tag());
+        return scaleAsInternal<TRet>(TagTmp());
     }
 
     /// @brief Same as getScaled()
@@ -144,13 +144,13 @@ public:
     template <typename TScaled>
     void setScaled(TScaled val)
     {
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             ParsedOptions::HasScalingRatio,
             HasScalingRatioTag,
             NoScalingRatioTag
         >::type;
 
-        return setScaledInternal(val, Tag());
+        return setScaledInternal(val, TagTmp());
     }
 
     /// @brief Get access to integral value storage.
@@ -276,13 +276,13 @@ private:
     template <typename TRet>
     TRet scaleAsInternal(HasScalingRatioTag) const
     {
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             std::is_floating_point<TRet>::value,
             ScaleAsFpTag,
             ScaleAsIntTag
         >::type;
 
-        return scaleAsInternal<TRet>(Tag());
+        return scaleAsInternal<TRet>(TagTmp());
     }
 
     template <typename TRet>
@@ -319,13 +319,13 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, HasScalingRatioTag)
     {
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             std::is_floating_point<typename std::decay<decltype(val)>::type>::value,
             ScaleAsFpTag,
             ScaleAsIntTag
         >::type;
 
-        setScaledInternal(val, Tag());
+        setScaledInternal(val, TagTmp());
     }
 
     template <typename TScaled>

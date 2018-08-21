@@ -219,29 +219,205 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
           packages:
-            - g++-7    
-      env: _CC=gcc-7 _CXX=g++-7 _BUILD=-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_CXX_STANDARD=14
+            - clang-3.8  
+      env: _CC=clang-3.8 _CXX=clang++-3.8
     - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+          packages:
+            - clang-3.8  
+      env: _CC=clang-3.8 _CXX=clang++-3.8 _BUILD="-DCMAKE_BUILD_TYPE=Release"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+          packages:
+            - clang-3.8  
+      env: _CC=clang-3.8 _CXX=clang++-3.8 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+          packages:
+            - clang-3.8  
+      env: _CC=clang-3.8 _CXX=clang++-3.8 _BUILD="-DCMAKE_CXX_STANDARD=14"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+          packages:
+            - clang-3.8  
+      env: _CC=clang-3.8 _CXX=clang++-3.8 _BUILD="-DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=14"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+          packages:
+            - clang-3.8  
+      env: _CC=clang-3.8 _CXX=clang++-3.8 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_CXX_STANDARD=14"            
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-3.9
+          packages:
+            - clang-3.9   
       env: _CC=clang-3.9 _CXX=clang++-3.9 
     - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-3.9
+          packages:
+            - clang-3.9    
       env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=Release"
     - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-3.9
+          packages:
+            - clang-3.9    
       env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel"
     - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-3.9
+          packages:
+            - clang-3.9    
       env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD=-DCMAKE_CXX_STANDARD=14
     - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-3.9
+          packages:
+            - clang-3.9    
       env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=14"
     - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-3.9
+          packages:
+            - clang-3.9    
       env: _CC=clang-3.9 _CXX=clang++-3.9 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_CXX_STANDARD=14"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0   
+      env: _CC=clang-4.0 _CXX=clang++-4.0 
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0    
+      env: _CC=clang-4.0 _CXX=clang++-4.0 _BUILD="-DCMAKE_BUILD_TYPE=Release"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0    
+      env: _CC=clang-4.0 _CXX=clang++-4.0 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0    
+      env: _CC=clang-4.0 _CXX=clang++-4.0 _BUILD=-DCMAKE_CXX_STANDARD=14
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0    
+      env: _CC=clang-4.0 _CXX=clang++-4.0 _BUILD="-DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=14"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-4.0
+          packages:
+            - clang-4.0    
+      env: _CC=clang-4.0 _CXX=clang++-4.0 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_CXX_STANDARD=14"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0   
+      env: _CC=clang-5.0 _CXX=clang++-5.0 
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0    
+      env: _CC=clang-5.0 _CXX=clang++-5.0 _BUILD="-DCMAKE_BUILD_TYPE=Release"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0    
+      env: _CC=clang-5.0 _CXX=clang++-5.0 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0    
+      env: _CC=clang-5.0 _CXX=clang++-5.0 _BUILD=-DCMAKE_CXX_STANDARD=14
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0    
+      env: _CC=clang-5.0 _CXX=clang++-5.0 _BUILD="-DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=14"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0    
+      env: _CC=clang-5.0 _CXX=clang++-5.0 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_CXX_STANDARD=14"
       
 before_install:
   - sudo add-apt-repository ppa:beineri/opt-qt562-trusty -y
   - sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
-  - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-  - sudo apt-add-repository "deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main" -y
   - sudo apt-get update -q
-  - sudo apt-get install clang-3.9 cmake cmake-data qt56base qt56serialport -y      
+  - sudo apt-get install cmake cmake-data qt56base qt56serialport -y      
 
 before_script:
   - mkdir build

@@ -224,13 +224,13 @@ public:
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         auto es = BaseImpl::read(iter, len);
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             ParsedOptions::HasSequenceFixedSize,
             AdjustmentNeededTag,
             NoAdjustmentTag
         >::type;
 
-        adjustValue(Tag());
+        adjustValue(TagTmp());
         return es;
     }
 
@@ -243,13 +243,13 @@ public:
     void readNoStatus(TIter& iter)
     {
         BaseImpl::readNoStatus(iter);
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             ParsedOptions::HasSequenceFixedSize,
             AdjustmentNeededTag,
             NoAdjustmentTag
         >::type;
 
-        adjustValue(Tag());
+        adjustValue(TagTmp());
     }
 
     /// @brief Get access to the value storage.
@@ -392,7 +392,7 @@ private:
 
     void doResize(std::size_t count)
     {
-        using Tag =
+        using TagTmp =
             typename std::conditional<
                 comms::details::hasResizeFunc<ValueType>(),
                 HasResizeTag,
@@ -406,7 +406,7 @@ private:
         static_assert(!std::is_void<Tag>::value,
             "The string storage value type must have either resize() or remove_suffix() "
             "member functions");
-        doResize(count, Tag());
+        doResize(count, TagTmp());
     }
 
     void doResize(std::size_t count, HasResizeTag)

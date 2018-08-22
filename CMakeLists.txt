@@ -95,7 +95,7 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     endif ()
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        list (APPEND extra_flags_list "-Wno-dangling-field -Wno-unused-command-line-argument -stdlib=libc++")
+        list (APPEND extra_flags_list "-Wno-dangling-field -Wno-unused-command-line-argument")
     endif ()
     
     if (NOT CC_NO_WARN_AS_ERR)

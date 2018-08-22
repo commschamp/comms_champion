@@ -19,12 +19,12 @@ configuration:
     - Debug
     - Release
 
-environment:
-    matrix:
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-          TOOLCHAIN: msvc14
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-          TOOLCHAIN: msvc15
+#environment:
+#    matrix:
+#        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+#          TOOLCHAIN: msvc14
+#        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+#          TOOLCHAIN: msvc15
           
 
 install:

@@ -2,8 +2,11 @@ dist: trusty
 language: cpp
 sudo: true
 notifications:
-  email: false
-
+  email:
+    on_success: change
+    on_failure: always
+    
+    
 matrix:
   include:
     - os: linux
@@ -289,30 +292,6 @@ matrix:
           packages:
             - clang-4.0    
       env: _CC=clang-4.0 _CXX=clang++-4.0 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_CXX_STANDARD=14"
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-trusty-5.0
-          packages:
-            - clang-5.0   
-      env: _CC=clang-5.0 _CXX=clang++-5.0 
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-trusty-5.0
-          packages:
-            - clang-5.0    
-      env: _CC=clang-5.0 _CXX=clang++-5.0 _BUILD="-DCMAKE_BUILD_TYPE=Release"
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-trusty-5.0
-          packages:
-            - clang-5.0    
-      env: _CC=clang-5.0 _CXX=clang++-5.0 _BUILD="-DCMAKE_BUILD_TYPE=MinSizeRel"
     - os: linux
       addons:
         apt:

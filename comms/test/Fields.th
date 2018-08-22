@@ -29,6 +29,9 @@ CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
 CC_ENABLE_WARNINGS()
 
+static_assert(comms::details::hasResizeFunc<std::string>(), "Invalid function presence detection");
+static_assert(comms::details::hasResizeFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+
 class FieldsTestSuite : public CxxTest::TestSuite
 {
 public:
@@ -1664,6 +1667,9 @@ void FieldsTestSuite::test38()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+        
+    static_assert(std::is_same<Field::ValueType, std::string>::value,
+        "Invalid storage assumption assumption");        
 
     static_assert(Field::minLength() == 6U, "Invalid min length");
     static_assert(Field::maxLength() == 6U, "Invalid max length");

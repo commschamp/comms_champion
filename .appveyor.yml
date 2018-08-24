@@ -19,13 +19,10 @@ configuration:
     - Debug
     - Release
 
-#environment:
-#    matrix:
-#        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-#          TOOLCHAIN: msvc14
-#        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-#          TOOLCHAIN: msvc15
-          
+environment:
+    matrix:
+        - CPP_STD: 11
+        - CPP_STD: 14
 
 install:
     - call script\appveyor_install.bat
@@ -34,7 +31,7 @@ install:
 build_script:
     - mkdir build.%PLATFORM%.%CONFIGURATION%.%TOOLCHAIN%
     - cd build.%PLATFORM%.%CONFIGURATION%.%TOOLCHAIN%
-    - cmake .. -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "NMake Makefiles" -DCC_QT_DIR=%QTDIR%
+    - cmake .. -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "NMake Makefiles" -DCC_QT_DIR=%QTDIR% -DCMAKE_CXX_STANDARD=%CPP_STD%
     - nmake install
 
 test_script:

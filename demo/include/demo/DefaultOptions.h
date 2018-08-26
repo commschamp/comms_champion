@@ -111,9 +111,6 @@ struct DefaultOptions
             /// @brief Extra options for @ref demo::message::ListsFields::field1
             using field1 = comms::option::EmptyOption;
 
-            /// @brief Extra options for @ref demo::message::ListsFields::field2Element
-            using field2Element = comms::option::EmptyOption;
-
             /// @brief Extra options for @ref demo::message::ListsFields::field2
             using field2 = comms::option::EmptyOption;
 
@@ -123,24 +120,30 @@ struct DefaultOptions
             /// @brief Extra options for @ref demo::message::ListsFields::field3
             using field3 = comms::option::EmptyOption;
 
-            /// @brief Extra options for fields in @ref demo::message::ListsFields::field4Members struct
-            struct field4Members
-            {
-                /// @brief Extra options for @ref demo::message::ListsFields::field4Members::mem1
-                using mem1 = comms::option::EmptyOption;
-
-                /// @brief Extra options for @ref demo::message::ListsFields::field4Members::mem2
-                using mem2 = comms::option::EmptyOption;
-
-                /// @brief Extra options for @ref demo::message::ListsFields::field4Members::mem3
-                using mem3 = comms::option::EmptyOption;
-            };
-
             /// @brief Extra options for @ref demo::message::ListsFields::field4Element
             using field4Element = comms::option::EmptyOption;
 
             /// @brief Extra options for @ref demo::message::ListsFields::field4
             using field4 = comms::option::EmptyOption;
+
+            /// @brief Extra options for fields in @ref demo::message::ListsFields::field5Members struct
+            struct field5Members
+            {
+                /// @brief Extra options for @ref demo::message::ListsFields::field5Members::mem1
+                using mem1 = comms::option::EmptyOption;
+
+                /// @brief Extra options for @ref demo::message::ListsFields::field5Members::mem2
+                using mem2 = comms::option::EmptyOption;
+
+                /// @brief Extra options for @ref demo::message::ListsFields::field5Members::mem3
+                using mem3 = comms::option::EmptyOption;
+            };
+
+            /// @brief Extra options for @ref demo::message::ListsFields::field5Element
+            using field5Element = comms::option::EmptyOption;
+
+            /// @brief Extra options for @ref demo::message::ListsFields::field5
+            using field5 = comms::option::EmptyOption;
         };
 
         /// @brief Extra options for fields in @ref demo::message::OptionalsFields struct

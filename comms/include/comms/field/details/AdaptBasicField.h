@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -47,6 +47,49 @@ struct FieldsOptionsCompatibilityCalc
         static_cast<std::size_t>(T5) +
         static_cast<std::size_t>(T6);
 };
+
+template <bool THasVersionStorage>
+struct AdaptFieldVersionStorage;
+
+template <>
+struct AdaptFieldVersionStorage<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::VersionStorage<TField>;
+};
+
+template <>
+struct AdaptFieldVersionStorage<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldVersionStorageT =
+    typename AdaptFieldVersionStorage<TOpts::HasVersionStorage>::template Type<TField>;
+
+template <bool THasInvalidByDefault>
+struct AdaptFieldInvalidByDefault;
+
+template <>
+struct AdaptFieldInvalidByDefault<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::InvalidByDefault<TField>;
+};
+
+template <>
+struct AdaptFieldInvalidByDefault<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldInvalidByDefaultT =
+    typename AdaptFieldInvalidByDefault<TOpts::HasInvalidByDefault>::template Type<TField>;
+
 
 template <bool THasCustomValueReader>
 struct AdaptFieldCustomValueReader;
@@ -626,8 +669,12 @@ class AdaptBasicField
             "The following options are incompatible, cannot be used together: "
             "SequenceFixedSizeUseFixedSizeStorage, FixedSizeStorage");
 
-    using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
+    using InvalidByDefaultAdapted = AdaptFieldInvalidByDefaultT<
         TBasic, ParsedOptions>;
+    using VersionStorageAdapted = AdaptFieldVersionStorageT<
+        InvalidByDefaultAdapted, ParsedOptions>;
+    using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
+        VersionStorageAdapted, ParsedOptions>;
     using SerOffsetAdapted = AdaptFieldSerOffsetT<
         CustomReaderAdapted, ParsedOptions>;
     using VersionsRangeAdapted = AdaptFieldVersionsRangeT<

@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -93,6 +93,7 @@ namespace field
 ///     @li @ref comms::option::HasCustomRead
 ///     @li @ref comms::option::HasCustomRefresh
 ///     @li @ref comms::option::EmptySerialization
+///     @li @ref comms::option::VersionStorage
 /// @pre TMember is a variant of std::tuple, that contains other fields.
 /// @pre Every field member specifies its length in bits using
 ///     comms::option::FixedBitLength option.
@@ -252,6 +253,13 @@ public:
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
     }
 
+    /// @brief Get version of the field.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    VersionType getVersion() const
+    {
+        return BaseImpl::getVersion();
+    }
+
     /// @brief Default implementation of version update.
     /// @return @b true in case the field contents have changed, @b false otherwise
     bool setVersion(VersionType version)
@@ -306,6 +314,9 @@ private:
             "comms::option::ValidNumValueRange (or similar) option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasVersionsRange,
             "comms::option::ExistsBetweenVersions (or similar) option is not applicable to Bitfield field");
+    static_assert(!ParsedOptions::HasInvalidByDefault,
+            "comms::option::InvalidByDefault option is not applicable to Bitfield field");
+
 };
 
 /// @brief Equality comparison operator.

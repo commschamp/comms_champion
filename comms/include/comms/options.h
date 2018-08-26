@@ -1363,6 +1363,13 @@ using ExistsSinceVersion = ExistsBetweenVersions<TVer, std::numeric_limits<std::
 template <std::uintmax_t TVer>
 using ExistsUntilVersion = ExistsBetweenVersions<0, TVer>;
 
+/// @brief Make the field's contents to be invalid by default.
+struct InvalidByDefault {};
+
+/// @brief Add storage of version information inside private data members.
+/// @details The version information can be accessed using @b getVersion() member function.
+struct VersionStorage {};
+
 }  // namespace option
 
 }  // namespace comms

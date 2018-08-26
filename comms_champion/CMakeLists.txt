@@ -26,5 +26,10 @@ include_directories (
 )
 
 add_subdirectory (lib)
+
+if (CC_LIBS_ONLY)
+    return ()
+endif ()
+
 add_subdirectory (plugin)
 add_subdirectory (app)

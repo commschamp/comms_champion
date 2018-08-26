@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -66,6 +66,8 @@ namespace field
 ///     @li @b comms::option::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
 ///     @li comms::option::EmptySerialization
+///     @li @ref comms::option::InvalidByDefault
+///     @li @ref comms::option::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/IntValue.h
 template <typename TFieldBase, typename T, typename... TOptions>
@@ -119,13 +121,13 @@ public:
     template <typename TRet>
     constexpr TRet getScaled() const
     {
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             ParsedOptions::HasScalingRatio,
             HasScalingRatioTag,
             NoScalingRatioTag
         >::type;
 
-        return scaleAsInternal<TRet>(Tag());
+        return scaleAsInternal<TRet>(TagTmp());
     }
 
     /// @brief Same as getScaled()
@@ -142,13 +144,13 @@ public:
     template <typename TScaled>
     void setScaled(TScaled val)
     {
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             ParsedOptions::HasScalingRatio,
             HasScalingRatioTag,
             NoScalingRatioTag
         >::type;
 
-        return setScaledInternal(val, Tag());
+        return setScaledInternal(val, TagTmp());
     }
 
     /// @brief Get access to integral value storage.
@@ -247,6 +249,13 @@ public:
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
     }
 
+    /// @brief Get version of the field.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    VersionType getVersion() const
+    {
+        return BaseImpl::getVersion();
+    }
+
     /// @brief Default implementation of version update.
     /// @return @b true in case the field contents have changed, @b false otherwise
     bool setVersion(VersionType version)
@@ -267,13 +276,13 @@ private:
     template <typename TRet>
     TRet scaleAsInternal(HasScalingRatioTag) const
     {
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             std::is_floating_point<TRet>::value,
             ScaleAsFpTag,
             ScaleAsIntTag
         >::type;
 
-        return scaleAsInternal<TRet>(Tag());
+        return scaleAsInternal<TRet>(TagTmp());
     }
 
     template <typename TRet>
@@ -310,13 +319,13 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, HasScalingRatioTag)
     {
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             std::is_floating_point<typename std::decay<decltype(val)>::type>::value,
             ScaleAsFpTag,
             ScaleAsIntTag
         >::type;
 
-        setScaledInternal(val, Tag());
+        setScaledInternal(val, TagTmp());
     }
 
     template <typename TScaled>

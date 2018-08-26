@@ -32,7 +32,7 @@ EchoSocketPlugin::EchoSocketPlugin()
 {
     pluginProperties()
         .setSocketCreateFunc(
-            [this]()
+            []()
             {
                 return makeEchoSocket();
             });

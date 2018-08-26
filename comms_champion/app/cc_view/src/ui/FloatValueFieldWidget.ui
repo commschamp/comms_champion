@@ -68,6 +68,11 @@
           <string>inf</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>-inf</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>

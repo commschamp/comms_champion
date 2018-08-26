@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.1)
 project ("comms_champion")
 
 option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
+option (CC_LIBS_ONLY "Build and install COMMS and CommsChampion libraries, no other apps will be built." OFF)
 option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
 option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
@@ -157,7 +158,7 @@ set (PLUGIN_INSTALL_REL_DIR ${CMAKE_INSTALL_LIBDIR}/${INSTALL_NAME}/plugin)
 set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/${PLUGIN_INSTALL_REL_DIR})
 set (DATA_INSTALL_REL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/${INSTALL_NAME})
 set (DATA_INSTALL_DIR ${INSTALL_DIR}/${DATA_INSTALL_REL_DIR})
-set (DOC_INSTALL_DIR ${INSTALL_DIR}/doc)
+set (DOC_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_DATAROOTDIR}/doc)
 set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
 set (CONFIG_INSTALL_REL_DIR config)
 set (CONFIG_INSTALL_DIR ${INSTALL_DIR}/${CONFIG_INSTALL_REL_DIR})
@@ -176,6 +177,10 @@ if (CC_COMMS_LIB_ONLY)
 endif ()
 
 add_subdirectory (comms_champion)
+
+if (CC_LIBS_ONLY)
+    return ()
+endif ()
 
 include_directories (
     ${CMAKE_CURRENT_SOURCE_DIR}/comms_champion/lib/include

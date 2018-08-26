@@ -603,7 +603,7 @@ private:
 
     static constexpr bool refreshInternal(IntegralElemTag)
     {
-        return true;
+        return false;
     }
 
     static constexpr std::size_t minElemLengthInternal(IntegralElemTag)

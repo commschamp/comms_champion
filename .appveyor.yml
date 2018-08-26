@@ -1,4 +1,6 @@
-image: Visual Studio 2015   
+image:
+    - Visual Studio 2015
+#    - Visual Studio 2017
 
 init:
     - git config --global core.autocrlf input
@@ -19,16 +21,22 @@ configuration:
 
 environment:
     matrix:
-        - TOOLCHAIN: msvc14
+        - CPP_STD: 11
+          QT_VER: 5.6.3
+        - CPP_STD: 11
+          QT_VER: 5.11.1
+        - CPP_STD: 14
+          QT_VER: 5.6.3
+        
 
 install:
     - call script\appveyor_install.bat
     - set PATH=%PATH%;%QTDIR%\bin
 
 build_script:
-    - mkdir build.%PLATFORM%.%CONFIGURATION%
-    - cd build.%PLATFORM%.%CONFIGURATION%
-    - cmake .. -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "NMake Makefiles" -DCC_QT_DIR=%QTDIR%
+    - mkdir build.%PLATFORM%.%CONFIGURATION%.%TOOLCHAIN%
+    - cd build.%PLATFORM%.%CONFIGURATION%.%TOOLCHAIN%
+    - cmake .. -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "NMake Makefiles" -DCC_QT_DIR=%QTDIR% -DCMAKE_CXX_STANDARD=%CPP_STD%
     - nmake install
 
 test_script:

@@ -3,3 +3,4 @@ build*
 .cproject
 CMakeLists.txt.user
 *autosave
+.vscode

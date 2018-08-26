@@ -615,7 +615,7 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
         this, SLOT(pendingDisplayTimeout()));
 
     m_sendMgr.setSendMsgsCallbackFunc(
-        [this](MessagesList&& msgsToSend)
+        [](MessagesList&& msgsToSend)
         {
             MsgMgrG::instanceRef().sendMsgs(std::move(msgsToSend));
         });

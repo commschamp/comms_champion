@@ -838,7 +838,17 @@ public:
     }
 
 protected:
+    MessageImplVersionBase()
+    {
+        doFieldsVersionUpdate();
+    }
+
+    MessageImplVersionBase(const MessageImplVersionBase&) = default;
+    MessageImplVersionBase(MessageImplVersionBase&&) = default;
     ~MessageImplVersionBase() noexcept = default;
+
+    MessageImplVersionBase& operator=(const MessageImplVersionBase&) = default;
+    MessageImplVersionBase& operator=(MessageImplVersionBase&&) = default;
 
 private:
 

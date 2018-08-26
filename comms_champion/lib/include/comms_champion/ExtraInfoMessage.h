@@ -90,6 +90,13 @@ protected:
         return Str;
     }
 
+    /// @brief Overriding virtual comms_champion::Message::extraTransportFieldsPropertiesImpl()
+    virtual const QVariantList&  extraTransportFieldsPropertiesImpl() const override
+    {
+        static const QVariantList List;
+        return List;
+    }
+
     virtual const QVariantList& fieldsPropertiesImpl() const override
     {
         static const QVariantList Props = createFieldsProperties();

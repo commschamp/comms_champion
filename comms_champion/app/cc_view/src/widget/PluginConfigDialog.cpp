@@ -870,7 +870,6 @@ PluginConfigDialog::PluginInfoPtr PluginConfigDialog::getPluginInfo(
 
 PluginConfigDialog::ListOfPluginInfos PluginConfigDialog::getSelectedPlugins() const
 {
-    typedef PluginMgr::ListOfPluginInfos ListOfPluginInfos;
     ListOfPluginInfos infos;
 
     auto appendPluginInfoFunc =

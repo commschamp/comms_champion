@@ -61,6 +61,7 @@ public:
     static const bool HasCustomRefresh = false;
     static const bool HasFailOnInvalid = false;
     static const bool HasIgnoreInvalid = false;
+    static const bool HasInvalidByDefault = false;
     static const bool HasFixedSizeStorage = false;
     static const bool HasCustomStorageType = false;
     static const bool HasScalingRatio = false;
@@ -70,6 +71,7 @@ public:
     static const bool HasMultiRangeValidation = false;
     static const bool HasCustomVersionUpdate = false;
     static const bool HasVersionsRange = false;
+    static const bool HasVersionStorage = false;
 };
 
 template <typename T, typename... TOptions>
@@ -290,6 +292,15 @@ public:
     static const bool HasIgnoreInvalid = true;
 };
 
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::InvalidByDefault,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasInvalidByDefault = true;
+};
+
 template <std::size_t TSize, typename... TOptions>
 class OptionsParser<
     comms::option::FixedSizeStorage<TSize>,
@@ -451,6 +462,15 @@ public:
     static const bool HasVersionsRange = true;
     static const std::uintmax_t ExistsFromVersion = TFrom;
     static const std::uintmax_t ExistsUntilVersion = TUntil;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::VersionStorage,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasVersionStorage = true;
 };
 
 template <typename... TOptions>

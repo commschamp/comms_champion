@@ -29,6 +29,9 @@ CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
 CC_ENABLE_WARNINGS()
 
+static_assert(comms::details::hasResizeFunc<std::string>(), "Invalid function presence detection");
+static_assert(comms::details::hasResizeFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+
 class FieldsTestSuite : public CxxTest::TestSuite
 {
 public:
@@ -132,6 +135,7 @@ public:
     void test95();
     void test96();
     void test97();
+    void test98();
 
     enum Enum1 {
         Enum1_Value1,
@@ -599,6 +603,7 @@ void FieldsTestSuite::test14()
     field = readWriteField<Field>(Buf, BufSize);
     TS_ASSERT_EQUALS(field.length(), BufSize);
     TS_ASSERT(field.valid());
+    TS_ASSERT(!field.refresh());
 }
 
 void FieldsTestSuite::test15()
@@ -1606,6 +1611,8 @@ void FieldsTestSuite::test36()
     TS_ASSERT_EQUALS(field.length(), BufSize);
     TS_ASSERT(field.valid());
     TS_ASSERT_EQUALS(field.value().size(), BufSize);
+
+    TS_ASSERT(!field.refresh());
 }
 
 void FieldsTestSuite::test37()
@@ -1660,6 +1667,9 @@ void FieldsTestSuite::test38()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+        
+    static_assert(std::is_same<Field::ValueType, std::string>::value,
+        "Invalid storage assumption assumption");        
 
     static_assert(Field::minLength() == 6U, "Invalid min length");
     static_assert(Field::maxLength() == 6U, "Invalid max length");
@@ -3670,6 +3680,7 @@ void FieldsTestSuite::test75()
     auto& view = field.value();
     auto* viewStart = reinterpret_cast<const char*>(&(*view.begin()));
     TS_ASSERT_EQUALS(viewStart, &Buf[0]);
+    TS_ASSERT(!field.refresh());
 }
 
 void FieldsTestSuite::test76()
@@ -4455,6 +4466,13 @@ void FieldsTestSuite::test90()
     };
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    field.value().clear();
+    static const char EmptyExpectedBuf[] = {0x0};
+    static const std::size_t EmptyExpectedBufSize = std::extent<decltype(EmptyExpectedBuf)>::value;
+
+    writeReadField(field, EmptyExpectedBuf, EmptyExpectedBufSize);
+    TS_ASSERT_EQUALS(field.length(), 1U);
 }
 
 void FieldsTestSuite::test91()
@@ -4815,6 +4833,36 @@ void FieldsTestSuite::test97()
     } while (false);
 }
 
+void FieldsTestSuite::test98()
+{
+    using Field =
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t,
+            comms::option::InvalidByDefault,
+            comms::option::VersionStorage
+        >;
+
+    Field field;
+    TS_ASSERT(!field.valid());
+    TS_ASSERT_EQUALS(field.getVersion(), 0U);
+    TS_ASSERT(field.setVersion(5U));
+    TS_ASSERT_EQUALS(field.getVersion(), 5U);
+
+    using Field2 =
+        comms::field::BitmaskValue<
+            comms::Field<BigEndianOpt>,
+            comms::option::FixedLength<1U>,
+            comms::option::DefaultNumValue<0x6U>,
+            comms::option::VersionStorage,
+            comms::option::BitmaskReservedBits<0xc2U, 0x2U>
+        >;
+
+    Field2 field2;
+    TS_ASSERT_EQUALS(field2.getVersion(), 0U);
+    TS_ASSERT(field2.setVersion(5U));
+    TS_ASSERT_EQUALS(field2.getVersion(), 5U);
+}
 
 template <typename TField>
 void FieldsTestSuite::writeField(

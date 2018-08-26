@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -96,6 +96,7 @@ using BitmaskUndertlyingTypeT =
 ///     @li @ref comms::option::FailOnInvalid
 ///     @li @ref comms::option::IgnoreInvalid
 ///     @li @ref comms::option::EmptySerialization
+///     @li @ref comms::option::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/BitmaskValue.h
 /// @see COMMS_BITMASK_BITS()
@@ -304,14 +305,21 @@ public:
     /// @brief Compile time check if this class is version dependent
     static constexpr bool isVersionDependent()
     {
-        return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+        return IntValueField::isVersionDependent();
+    }
+
+    /// @brief Get version of the field.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    VersionType getVersion() const
+    {
+        return intValue_.getVersion();
     }
 
     /// @brief Default implementation of version update.
     /// @return @b true in case the field contents have changed, @b false otherwise
     bool setVersion(VersionType version)
     {
-        return BaseImpl::setVersion(version);
+        return intValue_.setVersion(version);
     }
 
 protected:
@@ -358,6 +366,9 @@ private:
             "comms::option::ValidNumValueRange (or similar) option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasVersionsRange,
             "comms::option::ExistsBetweenVersions (or similar) option is not applicable to BitmaskValue field");
+    static_assert(!ParsedOptions::HasInvalidByDefault,
+            "comms::option::InvalidByDefault option is not applicable to BitmaskValue field");
+
 
     IntValueField intValue_;
 };

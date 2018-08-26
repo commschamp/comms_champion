@@ -37,7 +37,7 @@ Plugin::Plugin()
 {
     pluginProperties()
         .setProtocolCreateFunc(
-            [this]()
+            []()
             {
                 return cc::ProtocolPtr(new Protocol());
             });

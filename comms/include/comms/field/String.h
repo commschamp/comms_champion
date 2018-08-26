@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -146,6 +146,8 @@ using StringBase =
 ///     @li @ref comms::option::IgnoreInvalid
 ///     @li @ref comms::option::OrigDataView
 ///     @li @ref comms::option::EmptySerialization
+///     @li @ref comms::option::InvalidByDefault
+///     @li @ref comms::option::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>
@@ -222,13 +224,13 @@ public:
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         auto es = BaseImpl::read(iter, len);
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             ParsedOptions::HasSequenceFixedSize,
             AdjustmentNeededTag,
             NoAdjustmentTag
         >::type;
 
-        adjustValue(Tag());
+        adjustValue(TagTmp());
         return es;
     }
 
@@ -241,13 +243,13 @@ public:
     void readNoStatus(TIter& iter)
     {
         BaseImpl::readNoStatus(iter);
-        using Tag = typename std::conditional<
+        using TagTmp = typename std::conditional<
             ParsedOptions::HasSequenceFixedSize,
             AdjustmentNeededTag,
             NoAdjustmentTag
         >::type;
 
-        adjustValue(Tag());
+        adjustValue(TagTmp());
     }
 
     /// @brief Get access to the value storage.
@@ -347,6 +349,13 @@ public:
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
     }
 
+    /// @brief Get version of the field.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    VersionType getVersion() const
+    {
+        return BaseImpl::getVersion();
+    }
+
     /// @brief Default implementation of version update.
     /// @return @b true in case the field contents have changed, @b false otherwise
     bool setVersion(VersionType version)
@@ -383,7 +392,7 @@ private:
 
     void doResize(std::size_t count)
     {
-        using Tag =
+        using TagTmp =
             typename std::conditional<
                 comms::details::hasResizeFunc<ValueType>(),
                 HasResizeTag,
@@ -397,7 +406,7 @@ private:
         static_assert(!std::is_void<Tag>::value,
             "The string storage value type must have either resize() or remove_suffix() "
             "member functions");
-        doResize(count, Tag());
+        doResize(count, TagTmp());
     }
 
     void doResize(std::size_t count, HasResizeTag)

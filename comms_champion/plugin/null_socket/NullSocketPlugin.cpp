@@ -32,7 +32,7 @@ NullSocketPlugin::NullSocketPlugin()
 {
     pluginProperties()
         .setSocketCreateFunc(
-            [this]()
+            []()
             {
                 return makeNullSocket();
             });

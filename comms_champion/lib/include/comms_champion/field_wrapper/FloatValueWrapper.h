@@ -49,6 +49,8 @@ public:
     void setNan();
     bool isInf() const;
     void setInf();
+    bool isMinusInf() const;
+    void setMinusInf();
 
 protected:
     virtual Ptr cloneImpl() = 0;
@@ -56,6 +58,8 @@ protected:
     virtual void setNanImpl() = 0;
     virtual bool isInfImpl() const = 0;
     virtual void setInfImpl() = 0;
+    virtual bool isMinusInfImpl() const = 0;
+    virtual void setMinusInfImpl() = 0;
 
     virtual void dispatchImpl(FieldWrapperHandler& handler) override;
 };
@@ -101,12 +105,22 @@ protected:
 
     virtual bool isInfImpl() const override
     {
-        return std::isinf(Base::field().value());
+        return std::isinf(Base::field().value()) && (0 < Base::field().value());
     }
 
     virtual void setInfImpl() override
     {
         Base::field().value() = std::numeric_limits<typename TField::ValueType>::infinity();
+    }
+
+    virtual bool isMinusInfImpl() const override
+    {
+        return std::isinf(Base::field().value()) && (Base::field().value() < 0);
+    }
+
+    virtual void setMinusInfImpl() override
+    {
+        Base::field().value() = -std::numeric_limits<typename TField::ValueType>::infinity();
     }
 };
 

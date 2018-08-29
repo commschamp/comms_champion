@@ -47,6 +47,7 @@ public:
     static const bool HasVarLengthLimits = false;
     static const bool HasSequenceElemLengthForcing = false;
     static const bool HasSequenceSizeForcing = false;
+    static const bool HasSequenceLengthForcing = false;
     static const bool HasSequenceFixedSize = false;
     static const bool HasSequenceFixedSizeUseFixedSizeStorage = false;
     static const bool HasSequenceSizeFieldPrefix = false;
@@ -141,6 +142,15 @@ class OptionsParser<
 {
 public:
     static const bool HasSequenceSizeForcing = true;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceLengthForcingEnabled,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasSequenceLengthForcing = true;
 };
 
 template <typename... TOptions>

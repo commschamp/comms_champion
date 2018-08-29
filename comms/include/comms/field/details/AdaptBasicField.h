@@ -261,6 +261,28 @@ template <typename TField, typename TOpts>
 using AdaptFieldSequenceSizeForcingT =
     typename AdaptFieldSequenceSizeForcing<TOpts::HasSequenceSizeForcing>::template Type<TField>;
 
+template <bool THasSequenceLengthForcing>
+struct AdaptFieldSequenceLengthForcing;
+
+template <>
+struct AdaptFieldSequenceLengthForcing<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::SequenceLengthForcing<TField>;
+};
+
+template <>
+struct AdaptFieldSequenceLengthForcing<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldSequenceLengthForcingT =
+    typename AdaptFieldSequenceLengthForcing<TOpts::HasSequenceLengthForcing>::template Type<TField>;
+
+
 template <bool THasSequenceFixedSize>
 struct AdaptFieldSequenceFixedSize;
 
@@ -590,6 +612,7 @@ class AdaptBasicField
             ParsedOptions::HasVarLengthLimits ||
             ParsedOptions::HasSequenceElemLengthForcing ||
             ParsedOptions::HasSequenceSizeForcing ||
+            ParsedOptions::HasSequenceLengthForcing ||
             ParsedOptions::HasSequenceFixedSize ||
             ParsedOptions::HasSequenceSizeFieldPrefix ||
             ParsedOptions::HasSequenceSerLengthFieldPrefix ||
@@ -604,7 +627,7 @@ class AdaptBasicField
             "CustomValueReader option is incompatible with following options: "
             "NumValueSerOffset, FixedLength, FixedBitLength, VarLength, "
             "HasSequenceElemLengthForcing, "
-            "SequenceSizeForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
+            "SequenceSizeForcingEnabled, SequenceLengthForcingEnabled, SequenceFixedSize, SequenceSizeFieldPrefix, "
             "SequenceSerLengthFieldPrefix, SequenceElemSerLengthFieldPrefix, "
             "SequenceElemFixedSerLengthFieldPrefix, SequenceTrailingFieldSuffix, "
             "SequenceTerminationFieldSuffix, EmptySerialization");
@@ -623,10 +646,11 @@ class AdaptBasicField
                 ParsedOptions::HasSequenceSerLengthFieldPrefix,
                 ParsedOptions::HasSequenceFixedSize,
                 ParsedOptions::HasSequenceSizeForcing,
+                ParsedOptions::HasSequenceLengthForcing,
                 ParsedOptions::HasSequenceTerminationFieldSuffix>::Value,
             "The following options are incompatible, cannot be used together: "
             "SequenceSizeFieldPrefix, SequenceSerLengthFieldPrefix, "
-            "SequenceFixedSize, SequenceSizeForcingEnabled, "
+            "SequenceFixedSize, SequenceSizeForcingEnabled, SequenceLengthForcingEnabled, "
             "SequenceTerminationFieldSuffix");
 
     static_assert(
@@ -693,8 +717,10 @@ class AdaptBasicField
         SequenceElemSerLengthFieldPrefixAdapted, ParsedOptions>;
     using SequenceSizeForcingAdapted = AdaptFieldSequenceSizeForcingT<
         SequenceElemFixedSerLengthFieldPrefixAdapted, ParsedOptions>;
-    using SequenceFixedSizeAdapted = AdaptFieldSequenceFixedSizeT<
+    using SequenceLengthForcingAdapted = AdaptFieldSequenceLengthForcingT<
         SequenceSizeForcingAdapted, ParsedOptions>;
+    using SequenceFixedSizeAdapted = AdaptFieldSequenceFixedSizeT<
+        SequenceLengthForcingAdapted, ParsedOptions>;
     using SequenceSizeFieldPrefixAdapted = AdaptFieldSequenceSizeFieldPrefixT<
         SequenceFixedSizeAdapted, ParsedOptions>;
     using SequenceSerLengthFieldPrefixAdapted = AdaptFieldSequenceSerLengthFieldPrefixT<

@@ -374,6 +374,8 @@ private:
             "comms::option::SequenceElemLengthForcingEnabled option is not applicable to IntValue field");
     static_assert(!ParsedOptions::HasSequenceSizeForcing,
             "comms::option::SequenceSizeForcingEnabled option is not applicable to IntValue field");
+    static_assert(!ParsedOptions::HasSequenceLengthForcing,
+            "comms::option::SequenceLengthForcingEnabled option is not applicable to IntValue field");
     static_assert(!ParsedOptions::HasSequenceFixedSize,
             "comms::option::SequenceFixedSize option is not applicable to IntValue field");
     static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,

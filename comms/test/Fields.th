@@ -136,6 +136,7 @@ public:
     void test96();
     void test97();
     void test98();
+    void test99();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4862,6 +4863,59 @@ void FieldsTestSuite::test98()
     TS_ASSERT_EQUALS(field2.getVersion(), 0U);
     TS_ASSERT(field2.setVersion(5U));
     TS_ASSERT_EQUALS(field2.getVersion(), 5U);
+}
+
+void FieldsTestSuite::test99()
+{
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::SequenceLengthForcingEnabled
+    > Field1;
+
+    static_assert(!Field1::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    Field1 field1;
+    TS_ASSERT(field1.valid());
+
+    field1.forceReadLength(4U);
+
+    static const char Buf[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto readIter = &Buf[0];
+    auto es = field1.read(readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field1.value().size(), 4U);
+    TS_ASSERT_EQUALS(field1.length(), 4U);
+    TS_ASSERT(field1.valid());
+    field1.clearReadLengthForcing();
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceLengthForcingEnabled
+    > Field2;
+
+    static_assert(!Field2::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    Field2 field2;
+    TS_ASSERT(field2.valid());
+
+    field2.forceReadLength(5U);
+
+    static const char Buf2[] = {
+        'h', 'e', 'l', 'l', 'o', 'a', 'b', 'c', 'd'
+    };
+    static const std::size_t Buf2Size = std::extent<decltype(Buf)>::value;
+    auto readIter2 = &Buf2[0];
+    es = field2.read(readIter2, Buf2Size);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field2.value(), "hello");
+    TS_ASSERT(field2.valid());
+    field2.clearReadLengthForcing();
 }
 
 template <typename TField>

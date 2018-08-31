@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@ namespace field
 namespace adapter
 {
 
-template <std::size_t TLen, typename TBase>
+template <std::size_t TLen, bool TSignExtend, typename TBase>
 class FixedLength : public TBase
 {
     using BaseImpl = TBase;
@@ -142,7 +142,7 @@ private:
 
 
     using HasSignTag = typename std::conditional<
-        std::is_signed<SerialisedType>::value,
+        std::is_signed<SerialisedType>::value && TSignExtend,
         SignedTag,
         UnsignedTag
     >::type;

@@ -162,7 +162,12 @@ template <>
 struct AdaptFieldFixedLength<true>
 {
     template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::FixedLength<TOpts::FixedLength, TField>;
+    using Type =
+        comms::field::adapter::FixedLength<
+            TOpts::FixedLength,
+            TOpts::FixedLengthSignExtend,
+            TField
+        >;
 };
 
 template <>

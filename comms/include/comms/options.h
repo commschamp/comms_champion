@@ -247,8 +247,9 @@ struct SupportGenericMessage {};
 ///         >;
 ///     @endcode
 /// @tparam TLen Length of the serialised value.
+/// @tparam TSignExtend Perform sign extension, relevant only to signed types.
 /// @headerfile comms/options.h
-template<std::size_t TLen>
+template<std::size_t TLen, bool TSignExtend = true>
 struct FixedLength {};
 
 /// @brief Option used to specify number of bits that is used for field serialisation

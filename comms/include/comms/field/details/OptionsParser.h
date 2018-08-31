@@ -104,14 +104,15 @@ public:
     static const auto SerOffset = TOffset;
 };
 
-template <std::size_t TLen, typename... TOptions>
+template <std::size_t TLen, bool TSignExtend, typename... TOptions>
 class OptionsParser<
-    comms::option::FixedLength<TLen>,
+    comms::option::FixedLength<TLen, TSignExtend>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
     static const bool HasFixedLengthLimit = true;
     static const std::size_t FixedLength = TLen;
+    static const bool FixedLengthSignExtend = TSignExtend;
 };
 
 template <std::size_t TLen, typename... TOptions>

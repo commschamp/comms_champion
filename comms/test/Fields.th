@@ -137,6 +137,7 @@ public:
     void test97();
     void test98();
     void test99();
+    void test100();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4916,6 +4917,28 @@ void FieldsTestSuite::test99()
     TS_ASSERT_EQUALS(field2.value(), "hello");
     TS_ASSERT(field2.valid());
     field2.clearReadLengthForcing();
+}
+
+void FieldsTestSuite::test100()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::int64_t,
+        comms::option::FixedLength<5U, false>,
+        comms::option::NumValueSerOffset<0x492559f64fLL>,
+        comms::option::ScalingRatio<1, 0x174878e800LL>
+    > Field;
+
+    Field field;
+
+    static const char Buf[] = {
+        (char)0x87, (char)0x54, (char)0xa2, (char)0x03, (char)0xb9
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+
+    TS_ASSERT_LESS_THAN(std::abs(field.getScaled<double>() - 2.67), 0.1);
 }
 
 template <typename TField>

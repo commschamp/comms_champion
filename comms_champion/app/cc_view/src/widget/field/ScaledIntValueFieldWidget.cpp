@@ -104,7 +104,14 @@ void ScaledIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void ScaledIntValueFieldWidget::serialisedValueUpdated(const QString& value)
 {
-    handleNumericSerialisedValueUpdate(value, *m_wrapper);
+    m_ui.m_valueSpinBox->blockSignals(true);
+    handleNumericSerialisedValueUpdate(
+        value,
+        *m_wrapper,
+        [this]()
+        {
+            m_ui.m_valueSpinBox->blockSignals(false);
+        });
 }
 
 void ScaledIntValueFieldWidget::valueUpdated(double value)

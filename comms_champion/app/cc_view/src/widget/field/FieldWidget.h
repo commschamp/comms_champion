@@ -20,6 +20,7 @@
 
 #include <cassert>
 #include <memory>
+#include <functional>
 
 #include "comms/CompileControl.h"
 

@@ -59,13 +59,13 @@ public:
     SequenceElemLengthForcing& operator=(const SequenceElemLengthForcing&) = default;
     SequenceElemLengthForcing& operator=(SequenceElemLengthForcing&&) = default;
 
-    void forceElemLength(std::size_t val)
+    void forceReadElemLength(std::size_t val)
     {
         COMMS_ASSERT(val != Cleared);
         forced_ = val;
     }
 
-    void clearElemLengthForcing()
+    void clearReadElemLengthForcing()
     {
         forced_ = Cleared;
     }
@@ -160,55 +160,7 @@ public:
         basic::CommonFuncs::readSequenceNoStatusN(*this, count, iter);
     }
 
-    template <typename TIter>
-    ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len) const
-    {
-        if (forced_ == Cleared) {
-            return BaseImpl::writeElement(elem, iter, len);
-        }
-
-        auto realLength = BaseImpl::elementLength(elem);
-        auto remLen = forced_;
-        len -= forced_;
-        auto es = BaseImpl::writeElement(elem, iter, remLen);
-        if (es != comms::ErrorStatus::Success) {
-            return es;
-        }
-
-        auto padLength = forced_ - realLength;
-        advanceWriteIterator(iter, padLength);
-        return es;
-    }
-
-    template <typename TIter>
-    static void writeElementNoStatus(const ElementType& elem, TIter& iter);
-
-    template <typename TIter>
-    ErrorStatus write(TIter& iter, std::size_t len) const
-    {
-        return basic::CommonFuncs::writeSequence(*this, iter, len);
-    }
-
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const = delete;
-
-    template <typename TIter>
-    ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
-    {
-        return basic::CommonFuncs::writeSequenceN(*this, count, iter, len);
-    }
-
-    template <typename TIter>
-    void writeNoStatusN(std::size_t count, TIter& iter) const = delete;
-
 private:
-
-    template <typename TIter>
-    static void advanceWriteIterator(TIter& iter, std::size_t len)
-    {
-        basic::CommonFuncs::advanceWriteIterator(iter, len);
-    }
-
 
     static const std::size_t Cleared = std::numeric_limits<std::size_t>::max();
     std::size_t forced_ = Cleared;

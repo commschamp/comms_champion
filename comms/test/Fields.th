@@ -3820,7 +3820,7 @@ void FieldsTestSuite::test79()
     public:
         Field()
         {
-            forceElemLength(2U);
+            forceReadElemLength(2U);
         }
     };
 
@@ -3836,7 +3836,9 @@ void FieldsTestSuite::test79()
         0x1, 0x0, 0x2, 0x0, 0x3, 0x0, 0x4, 0x0, 0x5, 0x0, 0x6, 0x0, 0x7, 0x0, 0x8, 0x0
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
-    field = readWriteField<Field>(Buf, BufSize);
+    auto readIter = &Buf[0];
+    auto es = field.read(readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(field.length(), 6U);
     TS_ASSERT_EQUALS(field.value().size(), 3U);
     TS_ASSERT(field.valid());

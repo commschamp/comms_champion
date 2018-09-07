@@ -394,17 +394,17 @@ public:
     ///     Exists only if @ref comms::option::SequenceElemLengthForcingEnabled option has been
     ///     used.
     /// @param[in] count Number of elements to read during following read operation.
-    void forceElemLength(std::size_t count)
+    void forceReadElemLength(std::size_t count)
     {
-        return BaseImpl::forceElemLength(count);
+        return BaseImpl::forceReadElemLength(count);
     }
 
     /// @brief Clear forcing the serialisation length of the single element.
     /// @details Exists only if comms::option::SequenceElemLengthForcingEnabled option has been
     ///     used.
-    void clearElemLengthForcing()
+    void clearReadElemLengthForcing()
     {
-        return BaseImpl::clearElemLengthForcing();
+        return BaseImpl::clearReadElemLengthForcing();
     }
 
     /// @brief Compile time check if this class is version dependent

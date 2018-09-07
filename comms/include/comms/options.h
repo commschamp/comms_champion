@@ -558,13 +558,10 @@ struct SequenceLengthForcingEnabled {};
 /// @details Some protocols may prefix the variable length lists with serialisation
 ///     length of a <b>single element</b> in addition to the number of elements
 ///     in the list. Usage of this option
-///     enables @b forceElemLength() and @b clearElemLengthForcing() functions in
+///     enables @b forceReadElemLength() and @b clearReadElemLengthForcing() functions in
 ///     the comms::field::ArrayList
 ///     which can be used to specify the element serialisation length after it was read
 ///     independently. @n
-///     When writing such comms::field::ArrayList field (defined with this option),
-///     the call to @b forceElemLength() may be used to add padding bytes at
-///     the end of each element. It may be used to force alignment of the next element.
 /// @headerfile comms/options.h
 struct SequenceElemLengthForcingEnabled {};
 

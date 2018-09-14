@@ -205,6 +205,11 @@ struct NoValidImpl {};
 /// @headerfile comms/options.h
 struct NoLengthImpl {};
 
+/// @brief Option that inhibits implementation of comms::MessageBase::refreshImpl()
+///     regardless of other availability conditions.
+/// @headerfile comms/options.h
+struct NoRefreshImpl {};
+
 /// @brief Option that notifies comms::MessageBase about existence of
 ///     @b doGetId() member function in derived class.
 /// @headerfile comms/options.h

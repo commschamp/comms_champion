@@ -1,5 +1,5 @@
 //
-// Copyright 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -106,23 +106,39 @@ constexpr bool hasReserveFunc()
     return HasReserveFunc<T>::Value;
 }
 
+// template <typename T>
+// class HasResizeFunc
+// {
+// protected:
+//   typedef char Yes;
+//   typedef unsigned No;
+
+//   template <typename U, U>
+//   struct ReallyHas;
+
+//   template <typename C>
+//   static Yes test(ReallyHas<void (C::*)(typename C::size_type), &C::resize>*);
+//   template <typename>
+//   static No test(...);
+
+// public:
+//     static const bool Value = (sizeof(test<T>(nullptr)) == sizeof(Yes));
+// };
+
 template <typename T>
 class HasResizeFunc
 {
+    struct No {};
+
 protected:
-  typedef char Yes;
-  typedef unsigned No;
+    template <typename C>
+    static auto test(std::nullptr_t) -> decltype(std::declval<C>().resize(0U));
 
-  template <typename U, U>
-  struct ReallyHas;
-
-  template <typename C>
-  static Yes test(ReallyHas<void (C::*)(typename C::size_type), &C::resize>*);
-  template <typename>
-  static No test(...);
+    template <typename>
+    static No test(...);
 
 public:
-    static const bool Value = (sizeof(test<T>(nullptr)) == sizeof(Yes));
+    static const bool Value = !std::is_same<No, decltype(test<T>(nullptr))>::value;
 };
 
 template <typename T>

@@ -31,6 +31,8 @@ CC_ENABLE_WARNINGS()
 
 static_assert(comms::details::hasResizeFunc<std::string>(), "Invalid function presence detection");
 static_assert(comms::details::hasResizeFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(!comms::details::hasResizeFunc<comms::util::StringView>(), "Invalid function presence detection");
+static_assert(!comms::details::hasResizeFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
 
 class FieldsTestSuite : public CxxTest::TestSuite
 {

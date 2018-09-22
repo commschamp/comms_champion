@@ -10,7 +10,7 @@ IF "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" (
     )
 ) ELSE IF "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" (
     set TOOLCHAIN=msvc15
-    set QT_SUBDIR=msvc2015
+    set QT_SUBDIR=msvc2017
     IF "%PLATFORM%"=="x86" (
         echo Performing x86 build in VS2017
         call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"

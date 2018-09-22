@@ -47,6 +47,7 @@ public:
     static const bool HasVarLengthLimits = false;
     static const bool HasSequenceElemLengthForcing = false;
     static const bool HasSequenceSizeForcing = false;
+    static const bool HasSequenceLengthForcing = false;
     static const bool HasSequenceFixedSize = false;
     static const bool HasSequenceFixedSizeUseFixedSizeStorage = false;
     static const bool HasSequenceSizeFieldPrefix = false;
@@ -103,14 +104,15 @@ public:
     static const auto SerOffset = TOffset;
 };
 
-template <std::size_t TLen, typename... TOptions>
+template <std::size_t TLen, bool TSignExtend, typename... TOptions>
 class OptionsParser<
-    comms::option::FixedLength<TLen>,
+    comms::option::FixedLength<TLen, TSignExtend>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
     static const bool HasFixedLengthLimit = true;
     static const std::size_t FixedLength = TLen;
+    static const bool FixedLengthSignExtend = TSignExtend;
 };
 
 template <std::size_t TLen, typename... TOptions>
@@ -141,6 +143,15 @@ class OptionsParser<
 {
 public:
     static const bool HasSequenceSizeForcing = true;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::SequenceLengthForcingEnabled,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasSequenceLengthForcing = true;
 };
 
 template <typename... TOptions>

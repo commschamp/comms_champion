@@ -20,6 +20,7 @@
 
 #include <cassert>
 #include <memory>
+#include <functional>
 
 #include "comms/CompileControl.h"
 
@@ -67,10 +68,12 @@ protected:
     static void updateValue(QLineEdit& line, const QString& value);
     static void updateSerValue(QPlainTextEdit& text, const field_wrapper::FieldWrapper& wrapper);
 
+    using PostRefreshFunc = std::function<void ()>;
     template <typename TWrapper>
     void handleNumericSerialisedValueUpdate(
         const QString& value,
-        TWrapper& wrapper)
+        TWrapper& wrapper,
+        PostRefreshFunc&& postRefreshFunc = PostRefreshFunc())
     {
         assert(isEditEnabled());
         do {
@@ -84,6 +87,9 @@ protected:
             wrapper.setSerialisedString(valueCpy);
         } while (false);
         refresh();
+        if (postRefreshFunc) {
+            postRefreshFunc();
+        }
         emitFieldUpdated();
     }
 

@@ -205,6 +205,11 @@ struct NoValidImpl {};
 /// @headerfile comms/options.h
 struct NoLengthImpl {};
 
+/// @brief Option that inhibits implementation of comms::MessageBase::refreshImpl()
+///     regardless of other availability conditions.
+/// @headerfile comms/options.h
+struct NoRefreshImpl {};
+
 /// @brief Option that notifies comms::MessageBase about existence of
 ///     @b doGetId() member function in derived class.
 /// @headerfile comms/options.h
@@ -247,8 +252,9 @@ struct SupportGenericMessage {};
 ///         >;
 ///     @endcode
 /// @tparam TLen Length of the serialised value.
+/// @tparam TSignExtend Perform sign extension, relevant only to signed types.
 /// @headerfile comms/options.h
-template<std::size_t TLen>
+template<std::size_t TLen, bool TSignExtend = true>
 struct FixedLength {};
 
 /// @brief Option used to specify number of bits that is used for field serialisation
@@ -525,11 +531,11 @@ struct SequenceTerminationFieldSuffix {};
 template <typename TField>
 struct SequenceTrailingFieldSuffix {};
 
-/// @brief Option to enable external forcing of the collection's field size.
+/// @brief Option to enable external forcing of the collection's elements count.
 /// @details Sometimes the size information is detached from the data sequence
 ///     itself, i.e. there may be one or more independent fields between the
 ///     size field and the first byte of the collection. In such case it becomes
-///     impossible to use SequenceSizeFieldPrefix option. Instead, the size
+///     impossible to use @ref SequenceSizeFieldPrefix option. Instead, the size
 ///     information must be provided by external calls. Usage of this option
 ///     enables @b forceReadElemCount() and @b clearReadElemCount() functions in
 ///     the collection fields, such as comms::field::ArrayList or comms::field::String
@@ -538,18 +544,29 @@ struct SequenceTrailingFieldSuffix {};
 /// @headerfile comms/options.h
 struct SequenceSizeForcingEnabled {};
 
+/// @brief Option to enable external forcing of the collection's serialisation length
+///     duting "read" operation.
+/// @details Sometimes the length information is detached from the data sequence
+///     itself, i.e. there may be one or more independent fields between the
+///     length field and the first byte of the collection. In such case it becomes
+///     impossible to use @ref SequenceSerLengthFieldPrefix option. Instead, the length
+///     information must be provided by external calls. Usage of this option
+///     enables @b forceReadLength() and @b clearReadLengthForcing() functions in
+///     the collection fields, such as comms::field::ArrayList or comms::field::String
+///     which can be used to specify the size information after it was read
+///     independently.
+/// @headerfile comms/options.h
+struct SequenceLengthForcingEnabled {};
+
 /// @brief Option to enable external forcing of the collection element
 ///     serialisation length.
 /// @details Some protocols may prefix the variable length lists with serialisation
 ///     length of a <b>single element</b> in addition to the number of elements
 ///     in the list. Usage of this option
-///     enables @b forceElemLength() and @b clearElemLengthForcing() functions in
+///     enables @b forceReadElemLength() and @b clearReadElemLengthForcing() functions in
 ///     the comms::field::ArrayList
 ///     which can be used to specify the element serialisation length after it was read
 ///     independently. @n
-///     When writing such comms::field::ArrayList field (defined with this option),
-///     the call to @b forceElemLength() may be used to add padding bytes at
-///     the end of each element. It may be used to force alignment of the next element.
 /// @headerfile comms/options.h
 struct SequenceElemLengthForcingEnabled {};
 

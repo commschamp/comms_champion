@@ -29,8 +29,26 @@ CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
 CC_ENABLE_WARNINGS()
 
+static_assert(comms::details::hasClearFunc<std::string>(), "Invalid function presence detection");
+static_assert(comms::details::hasClearFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::details::hasClearFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
+static_assert(comms::details::hasClearFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
+static_assert(!comms::details::hasClearFunc<comms::util::StringView>(), "Invalid function presence detection");
+static_assert(!comms::details::hasClearFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
+
 static_assert(comms::details::hasResizeFunc<std::string>(), "Invalid function presence detection");
 static_assert(comms::details::hasResizeFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::details::hasResizeFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
+static_assert(comms::details::hasResizeFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
+static_assert(!comms::details::hasResizeFunc<comms::util::StringView>(), "Invalid function presence detection");
+static_assert(!comms::details::hasResizeFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
+
+static_assert(comms::details::hasReserveFunc<std::string>(), "Invalid function presence detection");
+static_assert(comms::details::hasReserveFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::details::hasReserveFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
+static_assert(comms::details::hasReserveFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
+static_assert(!comms::details::hasReserveFunc<comms::util::StringView>(), "Invalid function presence detection");
+static_assert(!comms::details::hasReserveFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
 
 class FieldsTestSuite : public CxxTest::TestSuite
 {
@@ -136,6 +154,8 @@ public:
     void test96();
     void test97();
     void test98();
+    void test99();
+    void test100();
 
     enum Enum1 {
         Enum1_Value1,
@@ -3818,7 +3838,7 @@ void FieldsTestSuite::test79()
     public:
         Field()
         {
-            forceElemLength(2U);
+            forceReadElemLength(2U);
         }
     };
 
@@ -3834,7 +3854,9 @@ void FieldsTestSuite::test79()
         0x1, 0x0, 0x2, 0x0, 0x3, 0x0, 0x4, 0x0, 0x5, 0x0, 0x6, 0x0, 0x7, 0x0, 0x8, 0x0
     };
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
-    field = readWriteField<Field>(Buf, BufSize);
+    auto readIter = &Buf[0];
+    auto es = field.read(readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(field.length(), 6U);
     TS_ASSERT_EQUALS(field.value().size(), 3U);
     TS_ASSERT(field.valid());
@@ -4862,6 +4884,81 @@ void FieldsTestSuite::test98()
     TS_ASSERT_EQUALS(field2.getVersion(), 0U);
     TS_ASSERT(field2.setVersion(5U));
     TS_ASSERT_EQUALS(field2.getVersion(), 5U);
+}
+
+void FieldsTestSuite::test99()
+{
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::SequenceLengthForcingEnabled
+    > Field1;
+
+    static_assert(!Field1::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    Field1 field1;
+    TS_ASSERT(field1.valid());
+
+    field1.forceReadLength(4U);
+
+    static const char Buf[] = {
+        0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto readIter = &Buf[0];
+    auto es = field1.read(readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field1.value().size(), 4U);
+    TS_ASSERT_EQUALS(field1.length(), 4U);
+    TS_ASSERT(field1.valid());
+    field1.clearReadLengthForcing();
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceLengthForcingEnabled
+    > Field2;
+
+    static_assert(!Field2::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    Field2 field2;
+    TS_ASSERT(field2.valid());
+
+    field2.forceReadLength(5U);
+
+    static const char Buf2[] = {
+        'h', 'e', 'l', 'l', 'o', 'a', 'b', 'c', 'd'
+    };
+    static const std::size_t Buf2Size = std::extent<decltype(Buf)>::value;
+    auto readIter2 = &Buf2[0];
+    es = field2.read(readIter2, Buf2Size);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(field2.value(), "hello");
+    TS_ASSERT(field2.valid());
+    field2.clearReadLengthForcing();
+}
+
+void FieldsTestSuite::test100()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::int64_t,
+        comms::option::FixedLength<5U, false>,
+        comms::option::NumValueSerOffset<0x492559f64fLL>,
+        comms::option::ScalingRatio<1, 0x174878e800LL>
+    > Field;
+
+    Field field;
+
+    static const char Buf[] = {
+        (char)0x87, (char)0x54, (char)0xa2, (char)0x03, (char)0xb9
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+
+    TS_ASSERT_LESS_THAN(std::abs(field.getScaled<double>() - 2.67), 0.1);
 }
 
 template <typename TField>

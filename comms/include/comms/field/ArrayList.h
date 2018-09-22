@@ -168,6 +168,7 @@ using ArrayListBase =
 ///     @li @ref comms::option::SequenceElemSerLengthFieldPrefix
 ///     @li @ref comms::option::SequenceElemFixedSerLengthFieldPrefix
 ///     @li @ref comms::option::SequenceSizeForcingEnabled
+///     @li @ref comms::option::SequenceLengthForcingEnabled
 ///     @li @ref comms::option::SequenceFixedSize
 ///     @li @ref comms::option::SequenceTerminationFieldSuffix
 ///     @li @ref comms::option::SequenceTrailingFieldSuffix
@@ -268,7 +269,8 @@ public:
     /// @details By default, the read operation will try to consume all the
     ///     data available, unless size limiting option (such as
     ///     comms::option::SequenceSizeFieldPrefix, comms::option::SequenceFixedSize,
-    ///     comms::option::SequenceSizeForcingEnabled) is used.
+    ///     comms::option::SequenceSizeForcingEnabled,
+    ///     comms::option::SequenceLengthForcingEnabled) is used.
     /// @param[in, out] iter Iterator to read the data.
     /// @param[in] len Number of bytes available for reading.
     /// @return Status of read operation.
@@ -368,23 +370,41 @@ public:
         return BaseImpl::clearReadElemCount();
     }
 
+    /// @brief Force available length for the next read() invocation.
+    /// @details Exists only if @ref comms::option::SequenceLengthForcingEnabled option has been
+    ///     used.
+    /// @param[in] count Number of elements to read during following read operation.
+    void forceReadLength(std::size_t count)
+    {
+        return BaseImpl::forceReadLength(count);
+    }
+
+    /// @brief Clear forcing of the available length in the next read()
+    ///     invocation.
+    /// @details Exists only if @ref comms::option::SequenceLengthForcingEnabled option has been
+    ///     used.
+    void clearReadLengthForcing()
+    {
+        return BaseImpl::clearReadLengthForcing();
+    }
+
     /// @brief Force serialisation length of a single element.
     /// @details The function can be used to force a serialisation length of a
     ///     single element within the ArrayList.
     ///     Exists only if @ref comms::option::SequenceElemLengthForcingEnabled option has been
     ///     used.
     /// @param[in] count Number of elements to read during following read operation.
-    void forceElemLength(std::size_t count)
+    void forceReadElemLength(std::size_t count)
     {
-        return BaseImpl::forceElemLength(count);
+        return BaseImpl::forceReadElemLength(count);
     }
 
     /// @brief Clear forcing the serialisation length of the single element.
     /// @details Exists only if comms::option::SequenceElemLengthForcingEnabled option has been
     ///     used.
-    void clearElemLengthForcing()
+    void clearReadElemLengthForcing()
     {
-        return BaseImpl::clearElemLengthForcing();
+        return BaseImpl::clearReadElemLengthForcing();
     }
 
     /// @brief Compile time check if this class is version dependent

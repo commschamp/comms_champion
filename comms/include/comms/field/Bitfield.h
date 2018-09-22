@@ -284,6 +284,8 @@ private:
             "comms::option::SequenceElemLengthForcingEnabled option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceSizeForcing,
             "comms::option::SequenceSizeForcingEnabled option is not applicable to Bitfield field");
+    static_assert(!ParsedOptions::HasSequenceLengthForcing,
+            "comms::option::SequenceLengthorcingEnabled option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceFixedSize,
             "comms::option::SequenceFixedSize option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,

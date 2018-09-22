@@ -1283,6 +1283,7 @@ template <typename TBase, typename TImplOpt>
 using MessageImplRefreshBaseT =
     typename MessageImplProcessRefreshBase<
         TBase::InterfaceOptions::HasRefresh &&
+        (!TImplOpt::HasNoRefreshImpl) &&
             (
                 TImplOpt::HasCustomRefresh ||
                 anyFieldHasCustomRefresh<TBase, TImplOpt>() ||

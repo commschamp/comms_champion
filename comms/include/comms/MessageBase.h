@@ -471,20 +471,22 @@ protected:
     ///     read, while field with index "TIdx" still hasn't.
     /// @tparam TIter Type of the iterator used for reading.
     /// @param[in, out] iter Iterator used for reading the data.
-    /// @param[in] size Maximum number of bytes that can be read.
+    /// @param[in] len Maximum number of bytes that can be read.
     /// @return Status of the operation.
     /// @pre TIdx <= std::tuple_size<AllFields>::value
     template <std::size_t TIdx, typename TIter>
-    ErrorStatus doReadFieldsUntil(TIter& iter, std::size_t& size);
+    ErrorStatus doReadUntil(TIter& iter, std::size_t& len);
 
-    /// @brief Same as @ref doReadFieldsUntil().
+    /// @brief Same as @ref doReadUntil(), but updating length parameter.
+    /// @param[in, out] iter Iterator used for reading the data.
+    /// @param[in, out] len Maximum number of bytes that can be read.    
     template <std::size_t TIdx, typename TIter>
-    ErrorStatus readFieldsUntil(TIter& iter, std::size_t& size);
+    ErrorStatus doReadUntilAndUpdateLen(TIter& iter, std::size_t& len);
 
     /// @brief Helper function that allows to read only limited number of fields.
-    /// @details Similar to @ref doReadFieldsUntil(), but doesn't check for errors
+    /// @details Similar to @ref doReadUntil(), but doesn't check for errors
     ///     and doesn't report status. This function can be used instead of
-    ///     @ref doReadFieldsUntil() when correction of the read operation was
+    ///     @ref doReadUntil() when correction of the read operation was
     ///     ensured by other means prior to its invocation.
     /// @tparam TIdx Zero based index of the field to read until. The function
     ///     returns when field with index "TIdx - 1" (if such exists) has been
@@ -493,18 +495,14 @@ protected:
     /// @param[in, out] iter Iterator used for reading the data.
     /// @pre TIdx <= std::tuple_size<AllFields>::value
     template <std::size_t TIdx, typename TIter>
-    void doReadFieldsNoStatusUntil(TIter& iter);
-
-    /// @brief Same as @ref doReadFieldsNoStatusUntil().
-    template <std::size_t TIdx, typename TIter>
-    void readFieldsNoStatusUntil(TIter& iter);
+    void doReadNoStatusUntil(TIter& iter);
 
     /// @brief Helper function that allows to read only limited number of fields.
     /// @details Sometimes the default implementation of doRead() is incorrect.
     ///     For example, some bit in specific field specifies whether other field
     ///     exists or must be skipped. In this case the derived class must
     ///     implement different read functionality. To help in such task
-    ///     @ref doReadFieldsUntil() function allows to read fields up to a specified one,
+    ///     @ref doReadUntil() function allows to read fields up to a specified one,
     ///     while this function provides an ability to resume reading from some
     ///     other field in the middle. The overriding doRead() function in the
     ///     custom message definition class may use this function for such task.
@@ -517,20 +515,22 @@ protected:
     ///     the last one (also included).
     /// @tparam TIter Type of the iterator used for reading.
     /// @param[in, out] iter Iterator used for reading the data.
-    /// @param[in] size Maximum number of bytes that can be read.
+    /// @param[in] len Maximum number of bytes that can be read.
     /// @return Status of the operation.
     /// @pre TIdx < std::tuple_size<AllFields>::value
     template <std::size_t TIdx, typename TIter>
-    ErrorStatus doReadFieldsFrom(TIter& iter, std::size_t& size);
+    ErrorStatus doReadFrom(TIter& iter, std::size_t len);
 
-    /// @brief Same as @ref doReadFieldsFrom().
+    /// @brief Same as @ref doReadFrom(), but modifies length parameter.
+    /// @param[in, out] iter Iterator used for reading the data.
+    /// @param[in, out] len Maximum number of bytes that can be read.    
     template <std::size_t TIdx, typename TIter>
-    ErrorStatus readFieldsFrom(TIter& iter, std::size_t& size);
+    ErrorStatus doReadFromAndUpdateLen(TIter& iter, std::size_t& len);
 
     /// @brief Helper function that allows to read only limited number of fields.
-    /// @details Similar to @ref doReadFieldsFrom(), but doesn't check for errors
+    /// @details Similar to @ref doReadFrom(), but doesn't check for errors
     ///     and doesn't report status. This function can be used instead of
-    ///     @ref doReadFieldsFrom() when correction of the read operation was
+    ///     @ref doReadFrom() when correction of the read operation was
     ///     ensured by other means prior to its invocation.
     /// @tparam TIdx Zero based index of the field to read from. The function
     ///     reads all the fields between the one indexed TIdx (included) and
@@ -539,18 +539,14 @@ protected:
     /// @param[in, out] iter Iterator used for reading the data.
     /// @pre TIdx < std::tuple_size<AllFields>::value
     template <std::size_t TIdx, typename TIter>
-    void doReadFieldsNoStatusFrom(TIter& iter);
-
-    /// @brief Same as @ref doReadFieldsNoStatusFrom().
-    template <std::size_t TIdx, typename TIter>
-    void readFieldsNoStatusFrom(TIter& iter);
+    void doReadNoStatusFrom(TIter& iter);
 
     /// @brief Helper function that allows to read only limited number of fields.
     /// @details Sometimes the default implementation of doRead() is incorrect.
     ///     For example, some bit in specific field specifies whether other fields
     ///     exist or must be skipped. In this case the derived class must
     ///     implement different read functionality. In similar way to
-    ///     doReadFieldsFrom() and doReadFieldsUntil() this function provides an
+    ///     doReadFrom() and doReadUntil() this function provides an
     ///     ability to read any number of fields.
     ///     This function exists only if comms::option::FieldsImpl or
     ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
@@ -560,22 +556,24 @@ protected:
     /// @tparam TUntilIdx Zero based index of the field to read until (not included).
     /// @tparam TIter Type of the iterator used for reading.
     /// @param[in, out] iter Iterator used for reading the data.
-    /// @param[in] size Maximum number of bytes that can be read.
+    /// @param[in] len Maximum number of bytes that can be read.
     /// @return Status of the operation.
     /// @pre TFromIdx < std::tuple_size<AllFields>::value
     /// @pre TUntilIdx <= std::tuple_size<AllFields>::value
     /// @pre TFromIdx < TUntilIdx
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    ErrorStatus doReadFieldsFromUntil(TIter& iter, std::size_t& size);
+    ErrorStatus doReadFromUntil(TIter& iter, std::size_t len);
 
-    /// @brief Same as @ref doReadFieldsFromUntil().
+    /// @brief Same as @ref doReadFromUntil(), but modifies length parameter.
+    /// @param[in, out] iter Iterator used for reading the data.
+    /// @param[in, out] len Maximum number of bytes that can be read.    
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    ErrorStatus readFieldsFromUntil(TIter& iter, std::size_t& size);
+    ErrorStatus doReadFromUntilAndUpdateLen(TIter& iter, std::size_t& len);
 
     /// @brief Helper function that allows to read only limited number of fields.
-    /// @details Similar to @ref doReadFieldsFromUntil(), but doesn't check for errors
+    /// @details Similar to @ref doReadFromUntil(), but doesn't check for errors
     ///     and doesn't report status. This function can be used instead of
-    ///     @ref doReadFieldsFromUntil() when correction of the read operation was
+    ///     @ref doReadFromUntil() when correction of the read operation was
     ///     ensured by other means prior to its invocation.
     /// @tparam TFromIdx Zero based index of the field to read from.
     /// @tparam TUntilIdx Zero based index of the field to read until (not included).
@@ -585,11 +583,7 @@ protected:
     /// @pre TUntilIdx <= std::tuple_size<AllFields>::value
     /// @pre TFromIdx < TUntilIdx
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void doReadFieldsNoStatusFromUntil(TIter& iter);
-
-    /// @brief Same as @ref doReadFieldsNoStatusFromUntil().
-    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void readFieldsNoStatusFromUntil(TIter& iter);
+    void doReadNoStatusFromUntil(TIter& iter);
 
     /// @brief Implementation of polymorphic write functionality.
     /// @details This function exists if comms::option::WriteIterator option
@@ -607,7 +601,7 @@ protected:
     virtual ErrorStatus writeImpl(WriteIterator& iter, std::size_t size) const override;
 
     /// @brief Helper function that allows to write only limited number of fields.
-    /// @details In a similar way to doReadFieldsUntil(), this function allows
+    /// @details In a similar way to doReadUntil(), this function allows
     ///     writing limited number of fields starting from the first one.
     ///     This function exists only if comms::option::FieldsImpl or
     ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
@@ -618,20 +612,20 @@ protected:
     ///     written, while field with index "TIdx" still hasn't.
     /// @tparam TIter Type of iterator used for writing.
     /// @param[in, out] iter Iterator used for writing the data.
-    /// @param[in] size Maximum number of bytes that can be written.
+    /// @param[in] len Maximum number of bytes that can be written.
     /// @return Status of the operation.
     /// @pre TIdx <= std::tuple_size<AllFields>::value
     template <std::size_t TIdx, typename TIter>
-    ErrorStatus doWriteFieldsUntil(TIter& iter, std::size_t size) const;
+    ErrorStatus doWriteUntil(TIter& iter, std::size_t len) const;
 
-    /// @brief Same as @ref doWriteFieldsUntil().
+    /// @brief Same as @ref doWriteUntil(), but modifies length parameter.
     template <std::size_t TIdx, typename TIter>
-    ErrorStatus writeFieldsUntil(TIter& iter, std::size_t size) const;
+    ErrorStatus doWriteUntilAndUpdateLen(TIter& iter, std::size_t& len) const;
 
     /// @brief Helper function that allows to write only limited number of fields.
-    /// @details Similar to @ref doWriteFieldsUntil(), but doesn't check for errors
+    /// @details Similar to @ref doWriteUntil(), but doesn't check for errors
     ///     and doesn't report status. This function can be used instead of
-    ///     @ref doWriteFieldsUntil() when correction of the write operation was
+    ///     @ref doWriteUntil() when correction of the write operation was
     ///     ensured by other means prior to its invocation.
     /// @tparam TIdx Zero based index of the field to write until. The function
     ///     returns when field with index "TIdx - 1" (if such exists) has been
@@ -640,14 +634,10 @@ protected:
     /// @param[in, out] iter Iterator used for reading the data.
     /// @pre TIdx <= std::tuple_size<AllFields>::value
     template <std::size_t TIdx, typename TIter>
-    void doWriteFieldsNoStatusUntil(TIter& iter) const;
-
-    /// @brief Same as @ref doWriteFieldsNoStatusUntil().
-    template <std::size_t TIdx, typename TIter>
-    void writeFieldsNoStatusUntil(TIter& iter) const;
+    void doWriteNoStatusUntil(TIter& iter) const;
 
     /// @brief Helper function that allows to write only limited number of fields.
-    /// @details In a similar way to doReadFieldsFrom(), this function allows
+    /// @details In a similar way to doReadFrom(), this function allows
     ///     writing limited number of fields starting from the requested one until
     ///     the end.
     ///     This function exists only if comms::option::FieldsImpl or
@@ -657,34 +647,30 @@ protected:
     /// @tparam TIdx Zero based index of the field to write from.
     /// @tparam TIter Type of iterator used for writing.
     /// @param[in, out] iter Iterator used for writing the data.
-    /// @param[in] size Maximum number of bytes that can be written.
+    /// @param[in] len Maximum number of bytes that can be written.
     /// @return Status of the operation.
     /// @pre TIdx < std::tuple_size<AllFields>::value
     template <std::size_t TIdx, typename TIter>
-    ErrorStatus doWriteFieldsFrom(TIter& iter, std::size_t size) const;
+    ErrorStatus doWriteFrom(TIter& iter, std::size_t len) const;
 
-    /// @brief Same as @ref doWriteFieldsFrom().
+    /// @brief Same as @ref doWriteFrom(), but modifies length parameter.
     template <std::size_t TIdx, typename TIter>
-    ErrorStatus writeFieldsFrom(TIter& iter, std::size_t size) const;
+    ErrorStatus doWriteFromAndUpdateLen(TIter& iter, std::size_t& len) const;
 
     /// @brief Helper function that allows to write only limited number of fields.
-    /// @details Similar to @ref doWriteFieldsFrom(), but doesn't check for errors
+    /// @details Similar to @ref doWriteFrom(), but doesn't check for errors
     ///     and doesn't report status. This function can be used instead of
-    ///     @ref doWriteFieldsFrom() when correction of the write operation was
+    ///     @ref doWriteFrom() when correction of the write operation was
     ///     ensured by other means prior to its invocation.
     /// @tparam TIdx Zero based index of the field to write from.
     /// @tparam TIter Type of the iterator used for writing.
     /// @param[in, out] iter Iterator used for reading the data.
     /// @pre TIdx < std::tuple_size<AllFields>::value
     template <std::size_t TIdx, typename TIter>
-    void doWriteFieldsNoStatusFrom(TIter& iter) const;
-
-    /// @brief Same as @ref doWriteFieldsNoStatusFrom().
-    template <std::size_t TIdx, typename TIter>
-    void writeFieldsNoStatusFrom(TIter& iter) const;
+    void doWriteNoStatusFrom(TIter& iter) const;
 
     /// @brief Helper function that allows to write only limited number of fields.
-    /// @details In a similar way to doReadFieldsFromUntil(), this function allows
+    /// @details In a similar way to doReadFromUntil(), this function allows
     ///     writing limited number of fields between the requested indices.
     ///     This function exists only if comms::option::FieldsImpl or
     ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
@@ -694,22 +680,22 @@ protected:
     /// @tparam TUntilIdx Zero based index of the field to write until (not including).
     /// @tparam TIter Type of iterator used for writing.
     /// @param[in, out] iter Iterator used for writing the data.
-    /// @param[in] size Maximum number of bytes that can be written.
+    /// @param[in] len Maximum number of bytes that can be written.
     /// @return Status of the operation.
     /// @pre TFromIdx < std::tuple_size<AllFields>::value
     /// @pre TUntilIdx <= std::tuple_size<AllFields>::value
     /// @pre TFromIdx < TUntilIdx
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    ErrorStatus doWriteFieldsFromUntil(TIter& iter, std::size_t size) const;
+    ErrorStatus doWriteFromUntil(TIter& iter, std::size_t len) const;
 
-    /// @brief Same as @ref doWriteFieldsNoStatusFrom().
+    /// @brief Same as @ref doWriteNoStatusFrom(), but updates length information
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    ErrorStatus writeFieldsFromUntil(TIter& iter, std::size_t size) const;
+    ErrorStatus doWriteFromUntilAndUpdateLen(TIter& iter, std::size_t& len) const;
 
     /// @brief Helper function that allows to write only limited number of fields.
-    /// @details Similar to @ref doWriteFieldsFromUntil(), but doesn't check for errors
+    /// @details Similar to @ref doWriteFromUntil(), but doesn't check for errors
     ///     and doesn't report status. This function can be used instead of
-    ///     @ref doWriteFieldsFromUntil() when correction of the write operation was
+    ///     @ref doWriteFromUntil() when correction of the write operation was
     ///     ensured by other means prior to its invocation.
     /// @tparam TFromIdx Zero based index of the field to write from.
     /// @tparam TUntilIdx Zero based index of the field to write until (not including).
@@ -719,11 +705,7 @@ protected:
     /// @pre TUntilIdx <= std::tuple_size<AllFields>::value
     /// @pre TFromIdx < TUntilIdx
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void doWriteFieldsNoStatusFromUntil(TIter& iter) const;
-
-    /// @brief Same as @ref doWriteFieldsNoStatusFromUntil().
-    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void writeFieldsNoStatusFromUntil(TIter& iter) const;
+    void doWriteNoStatusFromUntil(TIter& iter) const;
 
     /// @brief Implementation of polymorphic validity check functionality.
     /// @details This function exists if comms::option::ValidCheckInterface option

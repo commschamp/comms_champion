@@ -92,10 +92,10 @@ comms::ErrorStatus TransportMessage::readImpl(ReadIterator& iter, std::size_t si
         sizeof(demo::ChecksumField::ValueType);
 
     size -= ChecksumLen;
-    auto es = doReadFieldsUntil<FieldIdx_Checksum>(iter, size);
+    auto es = doReadUntilAndUpdateLen<FieldIdx_Checksum>(iter, size);
     if (es == comms::ErrorStatus::Success) {
         size += ChecksumLen;
-        es = doReadFieldsFrom<FieldIdx_Checksum>(iter, size);
+        es = doReadFrom<FieldIdx_Checksum>(iter, size);
     }
 
     return es;

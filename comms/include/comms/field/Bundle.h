@@ -273,15 +273,32 @@ public:
     /// @tparam TFromIdx Index of the member field (included) from which the
     ///     "read" operation starts
     /// @param[in, out] iter Iterator to read the data.
-    /// @param[in] size Number of bytes available for reading.
+    /// @param[in] len Number of bytes available for reading.
     /// @return Status of read operation.
     /// @pre TFromIdx < std::tuple_size<ValueType>
     /// @post Iterator is advanced.
     template <std::size_t TFromIdx, typename TIter>
-    ErrorStatus readFrom(TIter& iter, std::size_t size)
+    ErrorStatus readFrom(TIter& iter, std::size_t len)
     {
-        return BaseImpl::template readFrom<TFromIdx>(iter, size);
+        return BaseImpl::template readFrom<TFromIdx>(iter, len);
     }
+
+    /// @brief Read selected number of member fields (from specified index) while
+    ///     updating remaining length information.
+    /// @details Similar to @ref readFrom(), but updates provided length information.
+    ///     Number of consumed bytes are subsctruced from provided length value.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "read" operation starts
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in, out] len Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @pre TFromIdx < std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, typename TIter>
+    ErrorStatus readFromAndUpdateLen(TIter& iter, std::size_t& len)
+    {
+        return BaseImpl::template readFromAndUpdateLen<TFromIdx>(iter, len);
+    }    
 
     /// @brief Read selected number of member fields (until specified index).
     /// @details Similar to @ref read(), but invokes @b read() member function
@@ -289,15 +306,32 @@ public:
     /// @tparam TUntilIdx Index of the member field (NOT included) until which the
     ///     "read" operation continues.
     /// @param[in, out] iter Iterator to read the data.
-    /// @param[in] size Number of bytes available for reading.
+    /// @param[in] len Number of bytes available for reading.
     /// @return Status of read operation.
     /// @pre TUntilIdx <= std::tuple_size<ValueType>
     /// @post Iterator is advanced.
     template <std::size_t TUntilIdx, typename TIter>
-    ErrorStatus readUntil(TIter& iter, std::size_t size)
+    ErrorStatus readUntil(TIter& iter, std::size_t len)
     {
-        return BaseImpl::template readUntil<TUntilIdx>(iter, size);
+        return BaseImpl::template readUntil<TUntilIdx>(iter, len);
     }
+
+    /// @brief Read selected number of member fields (until specified index) while
+    ///     updating remaining length information.
+    /// @details Similar to @ref readUntil(), but updates provided length information.
+    ///     Number of consumed bytes are subsctruced from provided length value.
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "read" operation continues.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in, out] len Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @post Iterator is advanced.
+    template <std::size_t TUntilIdx, typename TIter>
+    ErrorStatus readUntilAndUpdateLen(TIter& iter, std::size_t& len)
+    {
+        return BaseImpl::template readUntilAndUpdateLen<TUntilIdx>(iter, len);
+    }    
 
     /// @brief Read selected number of member fields (between specified indices).
     /// @details Similar to @ref read(), but invokes @b read() member function
@@ -307,16 +341,36 @@ public:
     /// @tparam TUntilIdx Index of the member field (NOT included) until which the
     ///     "read" operation continues.
     /// @param[in, out] iter Iterator to read the data.
-    /// @param[in] size Number of bytes available for reading.
+    /// @param[in] len Number of bytes available for reading.
     /// @return Status of read operation.
     /// @pre TUntilIdx <= std::tuple_size<ValueType>
     /// @pre TFromIdx < TUntilIdx
     /// @post Iterator is advanced.
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    ErrorStatus readFromUntil(TIter& iter, std::size_t size)
+    ErrorStatus readFromUntil(TIter& iter, std::size_t len)
     {
-        return BaseImpl::template readFromUntil<TFromIdx, TUntilIdx>(iter, size);
+        return BaseImpl::template readFromUntil<TFromIdx, TUntilIdx>(iter, len);
     }
+
+    /// @brief Read selected number of member fields (between specified indices) while
+    ///     updating remaining length information.
+    /// @details Similar to @ref readFromUntil(), but updates provided length information.
+    ///     Number of consumed bytes are subsctruced from provided length value.
+    /// @tparam TFromIdx Index of the member field (included) from which the
+    ///     "read" operation starts
+    /// @tparam TUntilIdx Index of the member field (NOT included) until which the
+    ///     "read" operation continues.
+    /// @param[in, out] iter Iterator to read the data.
+    /// @param[in, out] len Number of bytes available for reading.
+    /// @return Status of read operation.
+    /// @pre TUntilIdx <= std::tuple_size<ValueType>
+    /// @pre TFromIdx < TUntilIdx
+    /// @post Iterator is advanced.
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    ErrorStatus readFromUntilAndUpdateLen(TIter& iter, std::size_t& len)
+    {
+        return BaseImpl::template readFromUntilAndUpdateLen<TFromIdx, TUntilIdx>(iter, len);
+    }    
 
     /// @brief Read field value from input data sequence without error check and status report.
     /// @details Similar to @ref read(), but doesn't perform any correctness
@@ -672,7 +726,6 @@ constexpr bool isBundle()
 
 /// @brief Upcast type of the field definition to its parent comms::field::Bundle type
 ///     in order to have access to its internal types.
-/// @related comms::field::Bundle
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 Bundle<TFieldBase, TMembers, TOptions...>&
@@ -683,7 +736,6 @@ toFieldBase(Bundle<TFieldBase, TMembers, TOptions...>& field)
 
 /// @brief Upcast type of the field definition to its parent comms::field::Bundle type
 ///     in order to have access to its internal types.
-/// @related comms::field::Bundle
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 inline
 const Bundle<TFieldBase, TMembers, TOptions...>&

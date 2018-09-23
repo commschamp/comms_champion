@@ -707,7 +707,7 @@
 ///         using Base = typename std::decay<decltype(comms::toMessageBase(*this))>::type;
 ///
 ///         // Read only the flags value
-///         auto es = Base::template doReadFieldsUntil<FieldIdx_data>(iter, len);
+///         auto es = Base::template doReadUntilAndUpdateLen<FieldIdx_data>(iter, len);
 ///         if (es != comms::ErrorStatus::Success) {
 ///             return es;
 ///         }
@@ -720,7 +720,7 @@
 ///         }
 ///     
 ///         // Read the rest of the fields
-///         return Base::template doReadFieldsFrom<FieldIdx_data>(iter, len - field_flags().length());
+///         return Base::template doReadFrom<FieldIdx_data>(iter, len);
 ///     }
 /// };
 /// @endcode
@@ -732,13 +732,13 @@
 /// function to detect it.
 ///
 /// Also @b note, that comms::MessageBase provides the following member functions
-/// in order to allow read / write of the selected fields.
-/// @li @ref comms::MessageBase::doReadFieldsFrom()
-/// @li @ref comms::MessageBase::doReadFieldsUntil()
-/// @li @ref comms::MessageBase::doReadFieldsFromUntil()
-/// @li @ref comms::MessageBase::doWriteFieldsFrom()
-/// @li @ref comms::MessageBase::doWriteFieldsUntil()
-/// @li @ref comms::MessageBase::doWriteFieldsFromUntil()
+/// in order to allow read of the selected fields.
+/// @li @ref comms::MessageBase::doReadFrom()
+/// @li @ref comms::MessageBase::doReadUntil()
+/// @li @ref comms::MessageBase::doReadFromUntil()
+/// @li @ref comms::MessageBase::doReadFromAndUpdateLen()
+/// @li @ref comms::MessageBase::doReadUntilAndUpdateLen()
+/// @li @ref comms::MessageBase::doReadFromUntilAndUpdateLen()
 ///
 /// @subsection page_define_prot_message_base_custom_refresh Custom Refresh Functionality
 /// The default refresh functionality implemented by @ref comms::MessageBase::doRefresh()
@@ -855,6 +855,14 @@
 ///     }
 /// };
 /// @endcode
+/// @b Note, that comms::MessageBase provides the following member functions
+/// in order to allow write of the selected fields.
+/// @li @ref comms::MessageBase::doWriteFrom()
+/// @li @ref comms::MessageBase::doWriteUntil()
+/// @li @ref comms::MessageBase::doWriteFromUntil()
+/// @li @ref comms::MessageBase::doWriteFromAndUpdateLen()
+/// @li @ref comms::MessageBase::doWriteUntilAndUpdateLen()
+/// @li @ref comms::MessageBase::doWriteFromUntilAndUpdateLen()
 ///
 /// @subsection page_define_prot_message_base_custom_length Custom Length Calculation
 /// Just like with @ref page_define_prot_message_base_custom_write providing

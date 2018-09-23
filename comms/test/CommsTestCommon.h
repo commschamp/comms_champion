@@ -252,7 +252,7 @@ public:
     template <typename TIter>
     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
     {
-        auto es = Base::template doReadFieldsUntil<FieldIdx_value2>(iter, len);
+        auto es = Base::template doReadUntilAndUpdateLen<FieldIdx_value2>(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -263,7 +263,7 @@ public:
         }
 
         field_value2().setMode(expectedNextFieldMode);
-        return Base::template doReadFieldsFrom<FieldIdx_value2>(iter, len);
+        return Base::template doReadFrom<FieldIdx_value2>(iter, len);
     }
 
     bool doRefresh()

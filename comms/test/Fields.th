@@ -156,6 +156,7 @@ public:
     void test98();
     void test99();
     void test100();
+    void test101();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4959,6 +4960,57 @@ void FieldsTestSuite::test100()
     field = readWriteField<Field>(Buf, BufSize);
 
     TS_ASSERT_LESS_THAN(std::abs(field.getScaled<double>() - 2.67), 0.1);
+}
+
+void FieldsTestSuite::test101()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<comms::Field<BigEndianOpt>, std::uint16_t>,
+            comms::field::IntValue<comms::Field<BigEndianOpt>, std::uint32_t, comms::option::FixedLength<3> >,
+            comms::field::IntValue<comms::Field<BigEndianOpt>, std::uint8_t>
+        >
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 6U, "Invalid minLength");
+    static_assert(Field::minLengthFrom<2>() == 1U, "Invalid minLength");
+    static_assert(Field::minLengthUntil<1>() == 2U, "Invalid minLength");
+    static_assert(Field::minLengthFromUntil<1, 2>() == 3U, "Invalid minLength");
+    static_assert(Field::maxLength() == 6U, "Invalid maxLength");
+    static_assert(Field::maxLengthFrom<2>() == 1U, "Invalid maxLength");
+    static_assert(Field::maxLengthUntil<1>() == 2U, "Invalid maxLength");
+    static_assert(Field::maxLengthFromUntil<1, 2>() == 3U, "Invalid maxLength");
+
+    Field field;
+    static const char Buf[] = {
+        0x1, 0x2, 0x3, 0x4, 0x5, 0x6
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    auto iter = &Buf[0];
+    auto len = BufSize;
+
+    TS_ASSERT_EQUALS(len, 6U);
+
+    auto es = field.readUntilAndUpdateLen<1>(iter, len);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(std::get<0>(field.value()).value(), 0x102);
+    TS_ASSERT_EQUALS(len, 4U);
+
+    es = field.readFromUntilAndUpdateLen<1, 2>(iter, len);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(std::get<1>(field.value()).value(), 0x30405);
+    TS_ASSERT_EQUALS(len, 1U);    
+
+    es = field.readFromAndUpdateLen<2>(iter, len);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(std::get<2>(field.value()).value(), 0x6);
+    TS_ASSERT_EQUALS(len, 0U);    
 }
 
 template <typename TField>

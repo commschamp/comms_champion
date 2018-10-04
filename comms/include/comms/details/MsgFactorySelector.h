@@ -66,15 +66,31 @@ using MsgFactoryStaticNumIdSelectorT =
     typename MsgFactoryStaticNumIdSelector<msgFactoryAreAllStrongSorted<TAllMessages>()>::template
             Type<TMsgBase, TAllMessages, TOptions...>;
 
+template <bool TAllHaveStaticNumId>
+struct MsgFactorySelectorHelper;
+
+template <>
+struct MsgFactorySelectorHelper<true>
+{
+    template <typename TMsgBase, typename TAllMessages, typename... TOptions>
+    using Type = MsgFactoryStaticNumIdSelectorT<TMsgBase, TAllMessages, TOptions...>;
+};
+
+template <>
+struct MsgFactorySelectorHelper<false>
+{
+    template <typename TMsgBase, typename TAllMessages, typename... TOptions>
+    using Type = MsgFactoryGeneric<TMsgBase, TAllMessages, TOptions...>;
+};
+
+
+
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 struct MsgFactorySelector
 {
     using Type =
-        typename std::conditional<
-            msgFactoryAllHaveStaticNumId<TAllMessages>(),
-            MsgFactoryStaticNumIdSelectorT<TMsgBase, TAllMessages, TOptions...>,
-            MsgFactoryGeneric<TMsgBase, TAllMessages, TOptions...>
-        >::type;
+        typename MsgFactorySelectorHelper<msgFactoryAllHaveStaticNumId<TAllMessages>()>::
+            template Type<TMsgBase, TAllMessages, TOptions...>;
 };
 
 } // namespace details

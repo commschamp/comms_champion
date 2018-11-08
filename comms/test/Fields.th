@@ -4306,7 +4306,7 @@ void FieldsTestSuite::test88()
 
     std::vector<char> expBuf;
     expBuf.push_back(0x1); // count
-    expBuf.push_back(0x81); // high byte of length
+    expBuf.push_back((char)0x81); // high byte of length
     expBuf.push_back(0x02); // low byte of length
     expBuf.push_back(0x4); // value of first integral byte
     expBuf.push_back((char)128); // length of string

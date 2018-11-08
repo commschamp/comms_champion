@@ -82,7 +82,7 @@ public:
     bool valid() const
     {
         LenField lenField;
-        lenField.value() = BaseImpl::length();
+        lenField.value() = static_cast<typename LenField::ValueType>(BaseImpl::length());
         return lenField.valid() && BaseImpl::valid();
     }
 

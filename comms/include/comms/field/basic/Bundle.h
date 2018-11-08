@@ -106,7 +106,7 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MinLengthCalcHelper());
+        return comms::util::tupleTypeAccumulate<ValueType>(static_cast<std::size_t>(0U), MinLengthCalcHelper());
     }
 
     template <std::size_t TFromIdx>
@@ -114,7 +114,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MinLengthCalcHelper());
     }
 
@@ -123,7 +123,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MinLengthCalcHelper());
     }
 
@@ -132,7 +132,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MinLengthCalcHelper());
     }
 
@@ -146,7 +146,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MaxLengthCalcHelper());
     }
 
@@ -155,7 +155,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MaxLengthCalcHelper());
     }
 
@@ -164,7 +164,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MaxLengthCalcHelper());
     }
 

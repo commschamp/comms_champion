@@ -233,7 +233,7 @@ public:
 
     std::size_t doLength() const
     {
-        return util::tupleAccumulate(fields(), 0U, FieldLengthRetriever());
+        return util::tupleAccumulate(fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
     }
 
     template <std::size_t TFromIdx>
@@ -241,7 +241,7 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value>(
-                fields(), 0U, FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
     }
 
     template <std::size_t TUntilIdx>
@@ -249,7 +249,7 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<0, TUntilIdx>(
-                fields(), 0U, FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
@@ -257,7 +257,7 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<TFromIdx, TUntilIdx>(
-                fields(), 0U, FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
     }
 
     static constexpr std::size_t doMinLength()

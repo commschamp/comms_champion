@@ -262,54 +262,54 @@ public:
 
     static constexpr std::size_t doMinLength()
     {
-        return util::tupleTypeAccumulate<AllFields>(0U, FieldMinLengthRetriever());
+        return util::tupleTypeAccumulate<AllFields>(static_cast<std::size_t>(0U), FieldMinLengthRetriever());
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t doMinLengthFrom()
     {
         return util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
-                    0U, FieldMinLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t doMinLengthUntil()
     {
         return util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
-                    0U, FieldMinLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t doMinLengthFromUntil()
     {
         return util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
-                    0U, FieldMinLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
     }
 
     static constexpr std::size_t doMaxLength()
     {
-        return util::tupleTypeAccumulate<AllFields>(0U, FieldMaxLengthRetriever());
+        return util::tupleTypeAccumulate<AllFields>(static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t doMaxLengthFrom()
     {
         return util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
-                    0U, FieldMaxLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t doMaxLengthUntil()
     {
         return util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
-                    0U, FieldMaxLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t doMaxLengthFromUntil()
     {
         return util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
-                    0U, FieldMaxLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
     }
 
     bool doRefresh()

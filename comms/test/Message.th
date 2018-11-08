@@ -46,6 +46,7 @@ public:
     void test14();
     void test15();
     void test16();
+    void test17();
 
 private:
 
@@ -852,6 +853,14 @@ void MessageTestSuite::test16()
 //    TS_ASSERT_EQUALS(value2, -1);
 //    TS_ASSERT_EQUALS(msg.transportField_version().value(), 5U);
 }
+
+void MessageTestSuite::test17()
+{
+    using Msg8 = Message8<BeMessageBase>;
+    Msg8 msg;
+    TS_ASSERT_EQUALS(msg.length(), 1U);
+}
+
 
 template <typename TMessage>
 TMessage MessageTestSuite::internalReadWriteTest(

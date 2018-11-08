@@ -157,6 +157,7 @@ public:
     void test99();
     void test100();
     void test101();
+    void test102();
 
     enum Enum1 {
         Enum1_Value1,
@@ -5011,6 +5012,42 @@ void FieldsTestSuite::test101()
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(std::get<2>(field.value()).value(), 0x6);
     TS_ASSERT_EQUALS(len, 0U);    
+}
+
+void FieldsTestSuite::test102()
+{
+    enum class EnumVal : std::uint32_t
+    {
+        V1 = 0,
+        V2 = 128
+    };
+
+    typedef comms::field::EnumValue<
+        comms::Field<LittleEndianOpt>,
+        EnumVal,
+        comms::option::VarLength<1, 2>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static const char Buf[] = {
+        (char)0x80, 0x01
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT_EQUALS(field.value(), EnumVal::V2);
+    TS_ASSERT(field.valid());
+
+    field.value() = EnumVal::V1;
+    TS_ASSERT_EQUALS(field.length(), 1U);
+    static const char ExpectedBuf[] = {
+        (char)0x0
+    };
+
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
 }
 
 template <typename TField>

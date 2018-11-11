@@ -4458,7 +4458,7 @@ void FieldsTestSuite::test90()
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
-    TS_ASSERT_EQUALS(Field::minLength(), 2U);
+    static_assert(Field::minLength() == 1U, "Invalid min length");
 
     Field field;
     TS_ASSERT(field.valid());

@@ -70,7 +70,7 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return LenField::minLength() + BaseImpl::minLength();
+        return LenField::minLength();
     }
 
     static constexpr std::size_t maxLength()

@@ -22,11 +22,11 @@ configuration:
 environment:
     matrix:
         - CPP_STD: 11
-          QT_VER: 5.6.3
+          QT_VER: 5.6
         - CPP_STD: 11
-          QT_VER: 5.11.1
+          QT_VER: 5.11
         - CPP_STD: 14
-          QT_VER: 5.6.3
+          QT_VER: 5.6
         
 
 install:

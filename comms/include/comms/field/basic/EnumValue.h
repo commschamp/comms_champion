@@ -138,7 +138,7 @@ public:
     }
 
 private:
-    ValueType value_;
+    ValueType value_ = static_cast<ValueType>(0);
 };
 
 }  // namespace basic

@@ -548,7 +548,7 @@ class Message8 : public
             TMessage,
             comms::option::StaticNumIdImpl<MessageType8>,
             comms::option::FieldsImpl<typename Message8Fields<typename TMessage::Field>::All>,
-            comms::option::MsgType<Message7<TMessage> >,
+            comms::option::MsgType<Message8<TMessage> >,
             comms::option::HasName
         >;
 public:

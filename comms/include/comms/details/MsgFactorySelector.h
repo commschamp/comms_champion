@@ -32,12 +32,25 @@ template <typename TAllMessages>
 using MsgFactoryLastMessageType =
     typename std::tuple_element<std::tuple_size<TAllMessages>::value - 1, TAllMessages>::type;
 
+template <std::size_t TSize, typename TAllMessages>
+struct MsgFactoryCanDirectAccessHelper
+{
+    static const bool Value = 
+        static_cast<std::size_t>(MsgFactoryLastMessageType<TAllMessages>::ImplOptions::MsgId) < (std::tuple_size<TAllMessages>::value + 10);
+};
+
+template <typename TAllMessages>
+struct MsgFactoryCanDirectAccessHelper<0U, TAllMessages>
+{
+    static const bool Value = true;
+};
+
+
 template <typename TAllMessages>
 constexpr bool msgFactoryCanDirectAccess()
 {
-    return static_cast<std::size_t>(MsgFactoryLastMessageType<TAllMessages>::ImplOptions::MsgId) < (std::tuple_size<TAllMessages>::value + 10);
+    return MsgFactoryCanDirectAccessHelper<std::tuple_size<TAllMessages>::value, TAllMessages>::Value;
 }
-
 
 template <bool TStrongSorted>
 struct MsgFactoryStaticNumIdSelector;

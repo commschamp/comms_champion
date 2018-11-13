@@ -158,6 +158,7 @@ public:
     void test100();
     void test101();
     void test102();
+    void test103();
 
     enum Enum1 {
         Enum1_Value1,
@@ -5049,6 +5050,40 @@ void FieldsTestSuite::test102()
     static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
     writeReadField(field, ExpectedBuf, ExpectedBufSize);
 }
+
+template <typename... TExtraOpts>
+class Test103_Field : public
+    comms::field::BitmaskValue<
+        comms::Field<comms::option::BigEndian>,
+        comms::option::FixedLength<1>,
+        TExtraOpts...
+    >
+{
+    using Base =
+        comms::field::BitmaskValue<
+            comms::Field<comms::option::BigEndian>,
+            comms::option::FixedLength<1>,
+            TExtraOpts...
+        >;
+public:
+    COMMS_BITMASK_BITS_SEQ(B0, B1, B2);
+};
+
+
+void FieldsTestSuite::test103()
+{
+    using Field = Test103_Field<>;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    Field field;
+    field.setBitValue_B1(true);
+    TS_ASSERT_EQUALS(field.value(), 0x2);
+    field.setBitValue_B0(true);
+    TS_ASSERT_EQUALS(field.value(), 0x3);
+}
+
 
 template <typename TField>
 void FieldsTestSuite::writeField(

@@ -38,6 +38,7 @@ public:
     void test6();
     void test7();
     void test8();
+    void test9();
 
 private:
 
@@ -165,6 +166,28 @@ private:
 #endif
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS(payload, id);
+    };
+
+    template <typename TField, typename TMessage>
+    class NoMessagesProtocolStack : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            std::tuple<>,
+            comms::protocol::MsgDataLayer<>
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                std::tuple<>,
+                comms::protocol::MsgDataLayer<>
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
     };
 };
 
@@ -365,4 +388,18 @@ void MsgIdLayerTestSuite::test8()
     std::get<0>(fields2).value() = MessageType5; // just to make sure it is updated.
     commonReadWriteMsgDirectTest(stack, fields2, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
     TS_ASSERT_EQUALS(std::get<0>(fields2).value(), MessageType1);
+}
+
+void MsgIdLayerTestSuite::test9()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = NoMessagesProtocolStack<BeField1, BeMsgBase>;
+    ProtStack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+    TS_ASSERT(!msgPtr);
 }

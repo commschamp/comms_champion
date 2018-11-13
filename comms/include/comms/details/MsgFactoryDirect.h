@@ -25,6 +25,33 @@ namespace comms
 namespace details
 {
 
+template <typename TAllMessages>
+using MsgFactoryLastMessageType =
+    typename std::tuple_element<std::tuple_size<TAllMessages>::value - 1, TAllMessages>::type;
+
+template <std::size_t TSize, typename TAllMessages>
+struct MsgFactoryDirectNumOfRegElements
+{
+    using LastMessage =
+        typename std::tuple_element<TSize - 1, TAllMessages>::type;
+
+    static const std::size_t Value =
+            static_cast<std::size_t>(LastMessage::ImplOptions::MsgId) + 1U;
+};
+
+template <typename TAllMessages>
+struct MsgFactoryDirectNumOfRegElements<0U, TAllMessages>
+{
+    static const size_t Value = 0U;
+};
+
+template <typename TAllMessages>
+constexpr std::size_t msgFactoryDirectNumOfRegElements()
+{
+    return MsgFactoryDirectNumOfRegElements<std::tuple_size<TAllMessages>::value, TAllMessages>::Value;
+}
+
+
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryDirect : public MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
@@ -74,14 +101,8 @@ private:
     static_assert(comms::util::IsTuple<AllMessages>::Value,
         "TAllMessages is expected to be a tuple.");
 
-    static_assert(0U < std::tuple_size<AllMessages>::value,
-        "TAllMessages is expected to be a non-empty tuple.");
-
-    using LastMessage =
-        typename std::tuple_element<std::tuple_size<AllMessages>::value - 1, AllMessages>::type;
-
     static const std::size_t NumOfMessages =
-            static_cast<std::size_t>(LastMessage::ImplOptions::MsgId) + 1U;
+            msgFactoryDirectNumOfRegElements<TAllMessages>();
 
     template <typename TMessage>
     using NumIdFactoryMethod = typename BaseImpl::template NumIdFactoryMethod<TMessage>;

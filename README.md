@@ -1,6 +1,11 @@
 ![Image: CommsChampion Icon](comms_champion/app/cc_view/src/image/app_icon.png)
 
 # What It's All About?
+This project is about proper implementation of binary communication protocols
+using C++11 programming language, with main focus on embedded systems 
+(including bare-metal ones). Interested? Then buckle up and keep reading.
+
+# Motivation
 Almost every electronic device/component nowadays has to be able to communicate
 to other devices, components, or outside world over some I/O link. Such communication
 is implemented using various communication protocols. The implementation of
@@ -12,7 +17,8 @@ and generate appropriate (de)serialisation code and necessary abstractions to
 access the data. The main problem with all these tools is that their major purpose
 is data structures serialisation and/or facilitation of remote procedure calls (RPC).
 The binary data layout and how the transferred data is going to be used is of much
-lesser importance. The binary protocols, on the other hand, require different approach.
+lesser importance. The binary communication protocols, which may server as
+an API to the device, on the other hand, require different approach.
 Their specification puts major emphasis on binary data layout, what values are
 being transferred (units and/or scaling factor) and how the other end is expected 
 to behave on certain values (what values are considered to be valid and how to

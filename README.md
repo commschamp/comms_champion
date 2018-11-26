@@ -188,8 +188,8 @@ The full tutorial as well as API documentation can be downloaded as
 from [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # Demos and Examples
-Manual implementation of binary communication protocols using 
-[COMMS Library](#comms-library) is not recommended. Please use
+Manual implementation of binary communication protocols **from scratch** using 
+[COMMS Library](#comms-library) is not recommended and should be avoided. Please use
 **commsdsl2comms** code generator from 
 [commsdsl](https://github.com/arobenko/commsdsl) project, which also
 lists multiple available protocols (with usage examples) that can be used

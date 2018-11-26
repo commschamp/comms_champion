@@ -17,7 +17,7 @@ and generate appropriate (de)serialisation code and necessary abstractions to
 access the data. The main problem with all these tools is that their major purpose
 is data structures serialisation and/or facilitation of remote procedure calls (RPC).
 The binary data layout and how the transferred data is going to be used is of much
-lesser importance. The binary communication protocols, which may server as
+lesser importance. The binary communication protocols, which may serve as
 an API to the device, on the other hand, require different approach.
 Their specification puts major emphasis on binary data layout, what values are
 being transferred (units and/or scaling factor) and how the other end is expected 
@@ -29,7 +29,7 @@ do with it when provided. As the result the developer still has to write a
 significant amount of boilerplate code in order to integrate the generated 
 serialisation focused code to be used in binary communication protocol handling.
 
-Also all of the schema based serialisation solutions have
+Also all of the available schema based serialisation solutions have
 **at least** one of the following limitations:
 
 - Inability to specify binary data layout. Many of the tools use their own
@@ -69,7 +69,7 @@ The generalisation is hard. As the result many embedded C++ developers still hav
 to manually implement required communication protocol 
 rather than relying on the existing tools for code generation.
 
-This project is a core of **CommsChampion ecosystem", which comes to help in 
+This project is a core of **CommsChampion ecosystem**, which comes to help in 
 developing binary communication protocols, with main focus on
 **embedded systems** with limited resources (including 
 bare-metal ones) and choosing **C++(11)** programming language to do so. 
@@ -182,39 +182,18 @@ remote a client and a server.
 type with one field of unlimited length data. It can be used to review the
 raw data being received from I/O socket.
 
-# Demo Protocol
-**Demo** is a simple binary protocol which is implemented using 
-the [COMMS Library](#comms-library). The protocol definition classes are
-also extended to implement the protocol plugin for
-the [CommsChampion](#commschampion-tools) application. The plugin is used for testing
-and demonstration purposes.
-
-The demo protocol as well as [Other Available Protocols](#other-available-protocols) 
-may serve as reference on how to implement any other custom binary protocol.
-
-The [doxygen](www.doxygen.org) generated documentation, which includes the protocol
-definition inside, can be
-downloaded as **doc_demo.zip** archive
-from [release artefacts](https://github.com/arobenko/comms_champion/releases).
-
-# Other Available Protocols
-The [COMMS Library](#comms-library) just provides an infrastructure for
-implementation of various communication protocols and 
-the [CommsChampion](#commschampion-tools) tools just provide consistent 
-environment to be able to analyse and debug communication protocols, that were
-developed using the [COMMS Library](#comms-library).
-
-There is [comms_all_protocols](https://github.com/arobenko/comms_all_protocols)
-project that serves as a bundle to compile all the communication protocols, that
-where developed using the [COMMS Library](#comms-library), and relevant plugins
-for [CommsChampion](#commschampion-tools) tools, all at once. The README file
-of this project contains the updated list of all the protocols that have been
-implemented and can be used as reference.
-
-# Developing Custom Socket/Filter/Protocol Plugin
+### Developing Custom Socket/Filter/Protocol Plugin
 The full tutorial as well as API documentation can be downloaded as
 **doc_commschampion.zip** archive from
 from [release artefacts](https://github.com/arobenko/comms_champion/releases).
+
+# Demos and Examples
+Manual implementation of binary communication protocols using 
+[COMMS Library](#comms-library) is not recommended. Please use
+**commsdsl2comms** code generator from 
+[commsdsl](https://github.com/arobenko/commsdsl) project, which also
+lists multiple available protocols (with usage examples) that can be used
+as reference.
 
 # Licence
 The [COMMS Library](#comms-library) is licensed under
@@ -273,6 +252,7 @@ checking it out.
 
 # Contact Information
 For bug reports, feature requests, or any other question you may open an issue
-here in **github** or e-mail me directly to: **arobenko@gmail.com**
+here in **github** or e-mail me directly to: **arobenko@gmail.com**. I usually
+respond within 24 hours.
 
 

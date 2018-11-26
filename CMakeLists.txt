@@ -6,6 +6,7 @@ option (CC_LIBS_ONLY "Build and install COMMS and CommsChampion libraries, no ot
 option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
 option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
+option (CC_ENABLE_DEMO_PROTOCOL "Enable demo protocol" OFF)
 
 if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")

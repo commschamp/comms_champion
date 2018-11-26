@@ -2041,34 +2041,45 @@
 ///         comms::option::HasCustomRead
 ///     >
 /// {
+///     // Provide convenience access functions    
+///     COMMS_FIELD_MEMBERS_ACCESS(mask, value);
+///    
 ///     template <typename TIter>
 ///     comms::ErrorStatus read(TIter& iter, std::size_t len)
 ///     {
-///         auto& members = value();
-///         auto& bitmask = std::get<0>(members);
-///         auto& optInt = std::get<1>(members);
+///         using Base = typename std::decay<decltype(comms::field::toFieldBase(*this))>::type;
 ///         
-///         auto es = bitmask.read(iter, len);
+///         auto es = Base::template readUntilAndUpdateLen<FieldIdx_value>(iter, len);
 ///         if (es != comms::ErrorStatus::Success) {
 ///             return es;
 ///         }
 ///
-///         if (bitmask.getBitValue(0)) {
-///             optInt.setExists();
+///         if (field_mask().getBitValue(0)) {
+///             field_value().setExists();
 ///         }
 ///         else {
-///             optInt.setMissing();
+///             field_value().optInt.setMissing();
 ///         }
 ///
-///         return optInt.read(iter, len - bitmask.length());
+///         return Base::template readFrom<FieldIdx_value>(iter, len)
 ///     }
 /// };
 /// @endcode
-/// @b NOTE the usage of @ref comms::option::HasCustomRead option. It notifies
+/// Please @b NOTE the following:
+/// @li Usage of @ref comms::option::HasCustomRead option. It notifies
 /// other classes about existence of custom @b read functionality 
 /// (instead of default one). Other classes may contain some inner logic to
 /// perform various optimisations if there is no custom @b read.
 /// Failure to specify this option may result in incorrect behaviour.
+/// @li If @b Base type is not specified manually, then it can be obtained using 
+/// @ref comms::field::toFieldBase(). function.
+/// @li The @ref comms::field::Bundle class has set of member functions for partial 
+/// reads. Thise operations can be either non-modifying input length parameter 
+/// (@ref comms::field::Bundle::readFrom(), @ref comms::field::Bundle::readUntil(), 
+/// and @ref comms::field::Bundle::readFromUntil()) or modifying 
+/// (@ref comms::field::Bundle::readFromAndUpdateLen(), @ref comms::field::Bundle::readUntilAndUpdateLen(), 
+/// and @ref comms::field::Bundle::readFromUntilAndUpdateLen()). The latter
+/// can be used to automatically reduce remaining length value.
 ///
 /// Another way is to use comms::option::CustomValueReader option. It
 /// receives one template parameter, which has to be a type of a custom
@@ -2258,19 +2269,16 @@
 ///
 ///     bool refresh()
 ///     {
-///         auto& members = value();
-///         auto& bitmask = std::get<0>(members);
-///         auto& optInt = std::get<1>(members);
 ///         auto expectedMode = comms::field::OptionalMode::Missing;
-///         if (bitmask.getBitValue(0)) {
+///         if (field_mask().getBitValue(0)) {
 ///             expectedMode = comms::field::OptionalMode::Exists;
 ///         }
 ///
-///         if (optInt.getMode() == expectedMode) {
+///         if (field_value().getMode() == expectedMode) {
 ///             return false; // Nothing has been changed
 ///         }
 ///     
-///         optInt.setMode(expectedMode);
+///         field_value().setMode(expectedMode);
 ///         return true; // Field has been updated
 ///     }
 /// };

@@ -106,7 +106,7 @@ public:
 
     static constexpr std::size_t minLength()
     {
-        return comms::util::tupleTypeAccumulate<ValueType>(std::size_t(0), MinLengthCalcHelper());
+        return comms::util::tupleTypeAccumulate<ValueType>(static_cast<std::size_t>(0U), MinLengthCalcHelper());
     }
 
     template <std::size_t TFromIdx>
@@ -114,7 +114,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MinLengthCalcHelper());
     }
 
@@ -123,7 +123,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MinLengthCalcHelper());
     }
 
@@ -132,7 +132,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MinLengthCalcHelper());
     }
 
@@ -146,7 +146,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<ValueType>::value, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MaxLengthCalcHelper());
     }
 
@@ -155,7 +155,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<0, TUntilIdx, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MaxLengthCalcHelper());
     }
 
@@ -164,7 +164,7 @@ public:
     {
         return
             comms::util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, ValueType>(
-               std::size_t(0),
+                static_cast<std::size_t>(0U),
                 MaxLengthCalcHelper());
     }
 
@@ -189,26 +189,44 @@ public:
     template <std::size_t TFromIdx, typename TIter>
     ErrorStatus readFrom(TIter& iter, std::size_t len)
     {
+        return readFromAndUpdateLen<TFromIdx>(iter, len);
+    }
+
+    template <std::size_t TFromIdx, typename TIter>
+    ErrorStatus readFromAndUpdateLen(TIter& iter, std::size_t& len)
+    {
         auto es = ErrorStatus::Success;
         comms::util::template tupleForEachFrom<TFromIdx>(value(), makeReadHelper(es, iter, len));
         return es;
-    }
+    }    
 
     template <std::size_t TUntilIdx, typename TIter>
     ErrorStatus readUntil(TIter& iter, std::size_t len)
     {
+        return readUntilAndUpdateLen<TUntilIdx>(iter, len);
+    }
+
+    template <std::size_t TUntilIdx, typename TIter>
+    ErrorStatus readUntilAndUpdateLen(TIter& iter, std::size_t& len)
+    {
         auto es = ErrorStatus::Success;
         comms::util::template tupleForEachUntil<TUntilIdx>(value(), makeReadHelper(es, iter, len));
         return es;
-    }
+    }    
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
     ErrorStatus readFromUntil(TIter& iter, std::size_t len)
     {
+        return readFromUntilAndUpdateLen<TFromIdx, TUntilIdx>(iter, len);
+    }
+
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    ErrorStatus readFromUntilAndUpdateLen(TIter& iter, std::size_t& len)
+    {
         auto es = ErrorStatus::Success;
         comms::util::template tupleForEachFromUntil<TFromIdx, TUntilIdx>(value(), makeReadHelper(es, iter, len));
         return es;
-    }
+    }    
 
     template <typename TIter>
     void readNoStatus(TIter& iter)
@@ -350,7 +368,7 @@ private:
     class ReadHelper
     {
     public:
-        ReadHelper(ErrorStatus& es, TIter& iter, std::size_t len)
+        ReadHelper(ErrorStatus& es, TIter& iter, std::size_t& len)
           : es_(es),
             iter_(iter),
             len_(len)
@@ -373,11 +391,11 @@ private:
     private:
         ErrorStatus& es_;
         TIter& iter_;
-        std::size_t len_;
+        std::size_t& len_;
     };
 
     template <typename TIter>
-    static ReadHelper<TIter> makeReadHelper(comms::ErrorStatus& es, TIter& iter, std::size_t len)
+    static ReadHelper<TIter> makeReadHelper(comms::ErrorStatus& es, TIter& iter, std::size_t& len)
     {
         return ReadHelper<TIter>(es, iter, len);
     }

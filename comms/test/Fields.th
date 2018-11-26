@@ -156,6 +156,9 @@ public:
     void test98();
     void test99();
     void test100();
+    void test101();
+    void test102();
+    void test103();
 
     enum Enum1 {
         Enum1_Value1,
@@ -4305,7 +4308,7 @@ void FieldsTestSuite::test88()
 
     std::vector<char> expBuf;
     expBuf.push_back(0x1); // count
-    expBuf.push_back(0x81); // high byte of length
+    expBuf.push_back((char)0x81); // high byte of length
     expBuf.push_back(0x02); // low byte of length
     expBuf.push_back(0x4); // value of first integral byte
     expBuf.push_back((char)128); // length of string
@@ -4456,7 +4459,7 @@ void FieldsTestSuite::test90()
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
-    TS_ASSERT_EQUALS(Field::minLength(), 2U);
+    static_assert(Field::minLength() == 1U, "Invalid min length");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -4527,7 +4530,7 @@ void FieldsTestSuite::test91()
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
-    TS_ASSERT_EQUALS(Field::minLength(), 7U);
+    static_assert(Field::minLength() == 7U, "Invalid min length");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -4960,6 +4963,127 @@ void FieldsTestSuite::test100()
 
     TS_ASSERT_LESS_THAN(std::abs(field.getScaled<double>() - 2.67), 0.1);
 }
+
+void FieldsTestSuite::test101()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<comms::Field<BigEndianOpt>, std::uint16_t>,
+            comms::field::IntValue<comms::Field<BigEndianOpt>, std::uint32_t, comms::option::FixedLength<3> >,
+            comms::field::IntValue<comms::Field<BigEndianOpt>, std::uint8_t>
+        >
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 6U, "Invalid minLength");
+    static_assert(Field::minLengthFrom<2>() == 1U, "Invalid minLength");
+    static_assert(Field::minLengthUntil<1>() == 2U, "Invalid minLength");
+    static_assert(Field::minLengthFromUntil<1, 2>() == 3U, "Invalid minLength");
+    static_assert(Field::maxLength() == 6U, "Invalid maxLength");
+    static_assert(Field::maxLengthFrom<2>() == 1U, "Invalid maxLength");
+    static_assert(Field::maxLengthUntil<1>() == 2U, "Invalid maxLength");
+    static_assert(Field::maxLengthFromUntil<1, 2>() == 3U, "Invalid maxLength");
+
+    Field field;
+    static const char Buf[] = {
+        0x1, 0x2, 0x3, 0x4, 0x5, 0x6
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    auto iter = &Buf[0];
+    auto len = BufSize;
+
+    TS_ASSERT_EQUALS(len, 6U);
+
+    auto es = field.readUntilAndUpdateLen<1>(iter, len);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(std::get<0>(field.value()).value(), 0x102);
+    TS_ASSERT_EQUALS(len, 4U);
+
+    es = field.readFromUntilAndUpdateLen<1, 2>(iter, len);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(std::get<1>(field.value()).value(), 0x30405);
+    TS_ASSERT_EQUALS(len, 1U);    
+
+    es = field.readFromAndUpdateLen<2>(iter, len);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(std::get<2>(field.value()).value(), 0x6);
+    TS_ASSERT_EQUALS(len, 0U);    
+}
+
+void FieldsTestSuite::test102()
+{
+    enum class EnumVal : std::uint32_t
+    {
+        V1 = 0,
+        V2 = 128
+    };
+
+    typedef comms::field::EnumValue<
+        comms::Field<LittleEndianOpt>,
+        EnumVal,
+        comms::option::VarLength<1, 2>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static const char Buf[] = {
+        (char)0x80, 0x01
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 2U);
+    TS_ASSERT_EQUALS(field.value(), EnumVal::V2);
+    TS_ASSERT(field.valid());
+
+    field.value() = EnumVal::V1;
+    TS_ASSERT_EQUALS(field.length(), 1U);
+    static const char ExpectedBuf[] = {
+        (char)0x0
+    };
+
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+}
+
+template <typename... TExtraOpts>
+class Test103_Field : public
+    comms::field::BitmaskValue<
+        comms::Field<comms::option::BigEndian>,
+        comms::option::FixedLength<1>,
+        TExtraOpts...
+    >
+{
+    using Base =
+        comms::field::BitmaskValue<
+            comms::Field<comms::option::BigEndian>,
+            comms::option::FixedLength<1>,
+            TExtraOpts...
+        >;
+public:
+    COMMS_BITMASK_BITS_SEQ(B0, B1, B2);
+};
+
+
+void FieldsTestSuite::test103()
+{
+    using Field = Test103_Field<>;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    Field field;
+    field.setBitValue_B1(true);
+    TS_ASSERT_EQUALS(field.value(), 0x2);
+    field.setBitValue_B0(true);
+    TS_ASSERT_EQUALS(field.value(), 0x3);
+}
+
 
 template <typename TField>
 void FieldsTestSuite::writeField(

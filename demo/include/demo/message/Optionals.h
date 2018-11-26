@@ -182,7 +182,7 @@ public:
     {
         Base::doFieldsVersionUpdate();
 
-        auto es = Base::template doReadFieldsUntil<FieldIdx_field2>(iter, len);
+        auto es = Base::template doReadUntilAndUpdateLen<FieldIdx_field2>(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -201,7 +201,7 @@ public:
         field_field2().setMode(field2Mode);
         field_field3().setMode(field3Mode);
 
-        return Base::template doReadFieldsFrom<FieldIdx_field2>(iter, len);
+        return Base::template doReadFrom<FieldIdx_field2>(iter, len);
     }
 
     /// @brief Implement custom refresh functionality.

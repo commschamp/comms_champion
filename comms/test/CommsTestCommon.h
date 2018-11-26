@@ -36,6 +36,7 @@ enum MessageType {
     MessageType5,
     MessageType6,
     MessageType7,
+    MessageType8,
 };
 
 template <typename TTraits>
@@ -252,7 +253,7 @@ public:
     template <typename TIter>
     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
     {
-        auto es = Base::template doReadFieldsUntil<FieldIdx_value2>(iter, len);
+        auto es = Base::template doReadUntilAndUpdateLen<FieldIdx_value2>(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
@@ -263,7 +264,7 @@ public:
         }
 
         field_value2().setMode(expectedNextFieldMode);
-        return Base::template doReadFieldsFrom<FieldIdx_value2>(iter, len);
+        return Base::template doReadFrom<FieldIdx_value2>(iter, len);
     }
 
     bool doRefresh()
@@ -507,6 +508,68 @@ public:
     static const char* doName()
     {
         return "Message7";
+    }
+};
+
+template <typename TField>
+struct Message8Fields
+{
+    enum class Field1Val : std::uint16_t
+    {
+        V1 = 0,
+        V2 = 128
+    };
+
+    using field1 =
+            comms::field::EnumValue<
+                TField, 
+                Field1Val,
+                comms::option::VarLength<1, 2>
+            >;
+
+    using All = std::tuple<
+        field1
+    >;
+
+};
+
+template <typename TMessage>
+class Message8 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType8>,
+            comms::option::FieldsImpl<typename Message8Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message8<TMessage> >,
+            comms::option::HasName
+        >
+{
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType8>,
+            comms::option::FieldsImpl<typename Message8Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message8<TMessage> >,
+            comms::option::HasName
+        >;
+public:
+
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
+
+    COMMS_MSG_FIELDS_ACCESS(value1);
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 1U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 2U, "Wrong serialisation length");
+
+    Message8() = default;
+
+    ~Message8() noexcept = default;
+
+    static const char* doName()
+    {
+        return "Message8";
     }
 };
 

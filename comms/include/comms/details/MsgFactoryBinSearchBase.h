@@ -179,7 +179,7 @@ private:
         void operator()()
         {
             using Tag = typename std::conditional<
-                TMessage::ImplOptions::HasStaticMsgId,
+                details::msgFactoryMessageHasStaticNumId<TMessage>(),
                 StaticNumericIdTag,
                 OtherIdTag
             >::type;

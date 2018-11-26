@@ -295,8 +295,8 @@ public:
             >::type;
 
             auto val = static_cast<std::uint8_t>(static_cast<ByteType>(*iter));
-            val = reflect(val) ^ (rem >> (Width - 8));
-            rem = initTable[val] ^ (rem << 8);
+            val = reflect(val) ^ static_cast<decltype(val)>(rem >> (Width - 8));
+            rem = initTable[val] ^ static_cast<decltype(rem)>(rem << 8);
             ++iter;
         }
 
@@ -351,10 +351,10 @@ private:
         {
             if (value & 0x01)
             {
-                reflection |= (1 << ((bitsCount - 1) - bit));
+                reflection |= static_cast<decltype(reflection)>(1 << ((bitsCount - 1) - bit));
             }
 
-            value = (value >> 1);
+            value = static_cast<decltype(value)>(value >> 1);
         }
 
         return (reflection);

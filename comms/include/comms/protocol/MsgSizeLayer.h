@@ -228,9 +228,10 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        field.value() = size - Field::maxLength();
+        using FieldValueType = typename Field::ValueType;
+        field.value() = static_cast<FieldValueType>(size - Field::maxLength());
         if (field.length() != Field::maxLength()) {
-            field.value() = size - field.length();
+            field.value() = static_cast<FieldValueType>(size - field.length());
         }
 
         auto es = field.write(iter, size);
@@ -287,7 +288,7 @@ private:
     {
         auto valueIter = iter;
 
-        field.value() = 0;
+        field.value() = static_cast<typename Field::ValueType>(0);
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
@@ -314,7 +315,7 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        field.value() = 0;
+        field.value() = static_cast<typename Field::ValueType>(0);
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;

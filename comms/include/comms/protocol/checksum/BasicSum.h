@@ -50,9 +50,9 @@ public:
             typename std::decay<decltype(*iter)>::type
         >::type;
 
-        auto checksum = TResult(0);
+        TResult checksum = 0;
         for (auto idx = 0U; idx < len; ++idx) {
-            checksum += static_cast<TResult>(static_cast<ByteType>(*iter));
+            checksum = static_cast<TResult>(checksum + static_cast<ByteType>(*iter));
             ++iter;
         }
         return checksum;

@@ -222,7 +222,7 @@ public:
             return comms::ErrorStatus::BufferOverflow;
         }
 
-        doWriteFieldsNoStatusFrom<0>(iter);
+        doWriteNoStatusFrom<0>(iter);
         return comms::ErrorStatus::Success;
     }
 
@@ -233,7 +233,7 @@ public:
 
     std::size_t doLength() const
     {
-        return util::tupleAccumulate(fields(), 0U, FieldLengthRetriever());
+        return util::tupleAccumulate(fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
     }
 
     template <std::size_t TFromIdx>
@@ -241,7 +241,7 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value>(
-                fields(), 0U, FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
     }
 
     template <std::size_t TUntilIdx>
@@ -249,7 +249,7 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<0, TUntilIdx>(
-                fields(), 0U, FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
@@ -257,59 +257,59 @@ public:
     {
         return
             util::tupleAccumulateFromUntil<TFromIdx, TUntilIdx>(
-                fields(), 0U, FieldLengthRetriever());
+                fields(), static_cast<std::size_t>(0U), FieldLengthRetriever());
     }
 
     static constexpr std::size_t doMinLength()
     {
-        return util::tupleTypeAccumulate<AllFields>(0U, FieldMinLengthRetriever());
+        return util::tupleTypeAccumulate<AllFields>(static_cast<std::size_t>(0U), FieldMinLengthRetriever());
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t doMinLengthFrom()
     {
         return util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
-                    0U, FieldMinLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t doMinLengthUntil()
     {
         return util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
-                    0U, FieldMinLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t doMinLengthFromUntil()
     {
         return util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
-                    0U, FieldMinLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMinLengthRetriever());
     }
 
     static constexpr std::size_t doMaxLength()
     {
-        return util::tupleTypeAccumulate<AllFields>(0U, FieldMaxLengthRetriever());
+        return util::tupleTypeAccumulate<AllFields>(static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
     }
 
     template <std::size_t TFromIdx>
     static constexpr std::size_t doMaxLengthFrom()
     {
         return util::tupleTypeAccumulateFromUntil<TFromIdx, std::tuple_size<AllFields>::value, AllFields>(
-                    0U, FieldMaxLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
     }
 
     template <std::size_t TUntilIdx>
     static constexpr std::size_t doMaxLengthUntil()
     {
         return util::tupleTypeAccumulateFromUntil<0, TUntilIdx, AllFields>(
-                    0U, FieldMaxLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx>
     static constexpr std::size_t doMaxLengthFromUntil()
     {
         return util::tupleTypeAccumulateFromUntil<TFromIdx, TUntilIdx, AllFields>(
-                    0U, FieldMaxLengthRetriever());
+                    static_cast<std::size_t>(0U), FieldMaxLengthRetriever());
     }
 
     bool doRefresh()
@@ -321,186 +321,147 @@ protected:
     ~MessageImplFieldsContainer() noexcept = default;
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus doReadFieldsUntil(
+    comms::ErrorStatus doReadUntil(
         TIter& iter,
-        std::size_t& size)
+        std::size_t len)
+    {
+        return doReadUntilAndUpdateLen<TIdx>(iter, len);
+    }    
+
+    template <std::size_t TIdx, typename TIter>
+    comms::ErrorStatus doReadUntilAndUpdateLen(
+        TIter& iter,
+        std::size_t& len)
     {
         auto status = comms::ErrorStatus::Success;
-        util::tupleForEachUntil<TIdx>(fields(), makeFieldReader(iter, status, size));
+        util::tupleForEachUntil<TIdx>(fields(), makeFieldReader(iter, status, len));
         return status;
     }
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus readFieldsUntil(
-        TIter& iter,
-        std::size_t& size)
-    {
-        return doReadFieldsUntil<TIdx, TIter>(iter, size);
-    }
-
-    template <std::size_t TIdx, typename TIter>
-    void doReadFieldsNoStatusUntil(TIter& iter)
+    void doReadNoStatusUntil(TIter& iter)
     {
         util::tupleForEachUntil<TIdx>(fields(), makeFieldNoStatusReader(iter));
     }
 
     template <std::size_t TIdx, typename TIter>
-    void readFieldsNoStatusUntil(TIter& iter)
+    comms::ErrorStatus doReadFrom(
+        TIter& iter,
+        std::size_t len)
     {
-        doReadFieldsNoStatusUntil<TIdx, TIter>(iter);
-    }
+        return doReadFromAndUpdateLen<TIdx>(iter, len);
+    }    
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus doReadFieldsFrom(
+    comms::ErrorStatus doReadFromAndUpdateLen(
         TIter& iter,
-        std::size_t& size)
+        std::size_t& len)
     {
         auto status = comms::ErrorStatus::Success;
-        util::tupleForEachFrom<TIdx>(fields(), makeFieldReader(iter, status, size));
+        util::tupleForEachFrom<TIdx>(fields(), makeFieldReader(iter, status, len));
         return status;
     }
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus readFieldsFrom(
-        TIter& iter,
-        std::size_t& size)
-    {
-        return doReadFieldsFrom<TIdx, TIter>(iter, size);
-    }
-
-    template <std::size_t TIdx, typename TIter>
-    void doReadFieldsNoStatusFrom(TIter& iter)
+    void doReadNoStatusFrom(TIter& iter)
     {
         util::tupleForEachFrom<TIdx>(fields(), makeFieldNoStatusReader(iter));
     }
 
-    template <std::size_t TIdx, typename TIter>
-    void readFieldsNoStatusFrom(TIter& iter)
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    comms::ErrorStatus doReadFromUntil(
+        TIter& iter,
+        std::size_t len)
     {
-        doReadFieldsNoStatusFrom<TIdx, TIter>(iter);
-    }
+        return doReadFromUntilAndUpdateLen<TFromIdx, TUntilIdx>(iter, len);
+    }    
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    comms::ErrorStatus doReadFieldsFromUntil(
+    comms::ErrorStatus doReadFromUntilAndUpdateLen(
         TIter& iter,
-        std::size_t& size)
+        std::size_t& len)
     {
         auto status = comms::ErrorStatus::Success;
-        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldReader(iter, status, size));
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldReader(iter, status, len));
         return status;
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    comms::ErrorStatus readFieldsFromUntil(
-        TIter& iter,
-        std::size_t& size)
-    {
-        return doReadFieldsFromUntil<TFromIdx, TUntilIdx, TIter>(iter, size);
-    }
-
-    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void doReadFieldsNoStatusFromUntil(TIter& iter)
+    void doReadNoStatusFromUntil(TIter& iter)
     {
         util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldNoStatusReader(iter));
     }
 
-    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void readFieldsNoStatusFromUntil(TIter& iter)
+    template <std::size_t TIdx, typename TIter>
+    comms::ErrorStatus doWriteUntil(
+        TIter& iter,
+        std::size_t len) const
     {
-        doReadFieldsNoStatusFromUntil<TFromIdx, TUntilIdx, TIter>(iter);
+        return doWriteUntilAndUpdateLen<TIdx>(iter, len);
     }
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus doWriteFieldsUntil(
+    comms::ErrorStatus doWriteUntilAndUpdateLen(
         TIter& iter,
-        std::size_t size) const
+        std::size_t& len) const
     {
         auto status = comms::ErrorStatus::Success;
-        std::size_t remainingSize = size;
-        util::tupleForEachUntil<TIdx>(fields(), makeFieldWriter(iter, status, remainingSize));
+        util::tupleForEachUntil<TIdx>(fields(), makeFieldWriter(iter, status, len));
         return status;
-    }
+    }    
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus writeFieldsUntil(
-        TIter& iter,
-        std::size_t size) const
-    {
-        return doWriteFieldsUntil<TIdx, TIter>(iter, size);
-    }
-
-    template <std::size_t TIdx, typename TIter>
-    void doWriteFieldsNoStatusUntil(TIter& iter) const
+    void doWriteNoStatusUntil(TIter& iter) const
     {
         util::tupleForEachUntil<TIdx>(fields(), makeFieldNoStatusWriter(iter));
     }
 
     template <std::size_t TIdx, typename TIter>
-    void writeFieldsNoStatusUntil(TIter& iter) const
+    comms::ErrorStatus doWriteFrom(
+        TIter& iter,
+        std::size_t len) const
     {
-        doWriteFieldsNoStatusUntil<TIdx, TIter>(iter);
+        return doWriteFromAndUpdateLen<TIdx>(iter, len);
     }
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus doWriteFieldsFrom(
+    comms::ErrorStatus doWriteFromAndUpdateLen(
         TIter& iter,
-        std::size_t size) const
+        std::size_t& len) const
     {
         auto status = comms::ErrorStatus::Success;
-        std::size_t remainingSize = size;
-        util::tupleForEachFrom<TIdx>(fields(), makeFieldWriter(iter, status, remainingSize));
+        util::tupleForEachFrom<TIdx>(fields(), makeFieldWriter(iter, status, len));
         return status;
-    }
+    }    
 
     template <std::size_t TIdx, typename TIter>
-    comms::ErrorStatus writeFieldsFrom(
-        TIter& iter,
-        std::size_t size) const
-    {
-        return doWriteFieldsFrom<TIdx, TIter>(iter, size);
-    }
-
-    template <std::size_t TIdx, typename TIter>
-    void doWriteFieldsNoStatusFrom(TIter& iter) const
+    void doWriteNoStatusFrom(TIter& iter) const
     {
         util::tupleForEachFrom<TIdx>(fields(), makeFieldNoStatusWriter(iter));
     }
 
-    template <std::size_t TIdx, typename TIter>
-    void writeFieldsNoStatusFrom(TIter& iter) const
+    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
+    comms::ErrorStatus doWriteFromUntil(
+        TIter& iter,
+        std::size_t len) const
     {
-        doWriteFieldsNoStatusFrom<TIdx, TIter>(iter);
+        return doWriteFromUntilAndUpdateLen<TFromIdx, TUntilIdx>(iter, len);
     }
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    comms::ErrorStatus doWriteFieldsFromUntil(
+    comms::ErrorStatus doWriteFromUntilAndUpdateLen(
         TIter& iter,
-        std::size_t size) const
+        std::size_t& len) const
     {
         auto status = comms::ErrorStatus::Success;
-        std::size_t remainingSize = size;
-        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldWriter(iter, status, remainingSize));
+        util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldWriter(iter, status, len));
         return status;
-    }
+    }    
 
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    comms::ErrorStatus writeFieldsFromUntil(
-        TIter& iter,
-        std::size_t size) const
-    {
-        return doWriteFieldsFromUntil<TFromIdx, TUntilIdx, TIter>(iter, size);
-    }
-
-    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void doWriteFieldsNoStatusFromUntil(TIter& iter) const
+    void doWriteNoStatusFromUntil(TIter& iter) const
     {
         util::tupleForEachFromUntil<TFromIdx, TUntilIdx>(fields(), makeFieldNoStatusWriter(iter));
-    }
-
-    template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
-    void writeFieldsNoStatusFromUntil(TIter& iter) const
-    {
-        doWriteFieldsNoStatusFromUntil<TFromIdx, TUntilIdx, TIter>(iter);
     }
 
 private:
@@ -538,7 +499,7 @@ private:
         std::size_t size,
         UseStatusTag)
     {
-        return doReadFieldsFrom<0>(iter, size);
+        return doReadFromAndUpdateLen<0>(iter, size);
     }
 
     template <typename TIter>
@@ -551,7 +512,7 @@ private:
             return comms::ErrorStatus::NotEnoughData;
         }
 
-        doReadFieldsNoStatusFrom<0>(iter);
+        doReadNoStatusFrom<0>(iter);
         return comms::ErrorStatus::Success;
     }
 
@@ -763,30 +724,24 @@ public:
 protected:
     ~MessageImplFieldsBase() noexcept = default;
 
-    using ContainerBase::doReadFieldsUntil;
-    using ContainerBase::readFieldsUntil;
-    using ContainerBase::doReadFieldsNoStatusUntil;
-    using ContainerBase::readFieldsNoStatusUntil;
-    using ContainerBase::doReadFieldsFrom;
-    using ContainerBase::readFieldsFrom;
-    using ContainerBase::doReadFieldsNoStatusFrom;
-    using ContainerBase::readFieldsNoStatusFrom;
-    using ContainerBase::doReadFieldsFromUntil;
-    using ContainerBase::readFieldsFromUntil;
-    using ContainerBase::doReadFieldsNoStatusFromUntil;
-    using ContainerBase::readFieldsNoStatusFromUntil;
-    using ContainerBase::doWriteFieldsUntil;
-    using ContainerBase::writeFieldsUntil;
-    using ContainerBase::doWriteFieldsNoStatusUntil;
-    using ContainerBase::writeFieldsNoStatusUntil;
-    using ContainerBase::doWriteFieldsFrom;
-    using ContainerBase::writeFieldsFrom;
-    using ContainerBase::doWriteFieldsNoStatusFrom;
-    using ContainerBase::writeFieldsNoStatusFrom;
-    using ContainerBase::doWriteFieldsFromUntil;
-    using ContainerBase::writeFieldsFromUntil;
-    using ContainerBase::doWriteFieldsNoStatusFromUntil;
-    using ContainerBase::writeFieldsNoStatusFromUntil;
+    using ContainerBase::doReadUntil;
+    using ContainerBase::doReadUntilAndUpdateLen;
+    using ContainerBase::doReadNoStatusUntil;
+    using ContainerBase::doReadFrom;
+    using ContainerBase::doReadFromAndUpdateLen;
+    using ContainerBase::doReadNoStatusFrom;
+    using ContainerBase::doReadFromUntil;
+    using ContainerBase::doReadFromUntilAndUpdateLen;
+    using ContainerBase::doReadNoStatusFromUntil;
+    using ContainerBase::doWriteUntil;
+    using ContainerBase::doWriteUntilAndUpdateLen;
+    using ContainerBase::doWriteNoStatusUntil;
+    using ContainerBase::doWriteFrom;
+    using ContainerBase::doWriteFromAndUpdateLen;
+    using ContainerBase::doWriteNoStatusFrom;
+    using ContainerBase::doWriteFromUntil;
+    using ContainerBase::doWriteFromUntilAndUpdateLen;
+    using ContainerBase::doWriteNoStatusFromUntil;
 };
 
 template <bool THasFieldsImpl>

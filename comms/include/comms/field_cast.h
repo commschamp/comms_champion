@@ -79,9 +79,11 @@ struct FieldCastHelper;
 template <typename TFieldTo, typename TFieldFrom>
 struct FieldCastHelper<TFieldTo, TFieldFrom, true>
 {
-    static constexpr TFieldTo cast(const TFieldFrom& field)
+    static TFieldTo cast(const TFieldFrom& field)
     {
-        return TFieldTo(field.value());
+        TFieldTo result;
+        result.value() = static_cast<typename TFieldTo::ValueType>(field.value()); 
+        return result;
     }
 };
 
@@ -90,7 +92,8 @@ struct FieldCastHelper<TFieldTo, TFieldFrom, false>
 {
     static TFieldTo cast(const TFieldFrom& field)
     {
-        return FieldCastNonEqualHelper<TFieldTo, TFieldFrom, TFieldFrom::minLength() == TFieldTo::maxLength()>::cast(field);
+        static const bool SameValue = TFieldFrom::minLength() == TFieldTo::maxLength();
+        return FieldCastNonEqualHelper<TFieldTo, TFieldFrom, SameValue>::cast(field);
     }
 };
 

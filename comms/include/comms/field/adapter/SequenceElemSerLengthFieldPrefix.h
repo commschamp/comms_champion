@@ -73,6 +73,16 @@ public:
         return elementLengthInternal(elem, LenFieldLengthTag());
     }
 
+    static constexpr std::size_t minLength()
+    {
+        return LenField::minLength();
+    }    
+
+    static constexpr std::size_t maxLength()
+    {
+        return basic::CommonFuncs::maxSupportedLength();
+    }
+
     static constexpr std::size_t minElementLength()
     {
         return LenField::minLength() + BaseImpl::minElementLength();

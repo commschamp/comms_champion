@@ -1,3 +1,7 @@
+if (NOT CC_ENABLE_DEMO_PROTOCOL)
+    return ()
+endif ()
+
 find_package (Doxygen)
 if (DOXYGEN_FOUND)
     set (doc_output_dir "${DOC_INSTALL_DIR}/demo")

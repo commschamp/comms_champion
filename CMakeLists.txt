@@ -189,3 +189,10 @@ include_directories (
 
 add_subdirectory (demo)
 
+if (WIN32 AND CC_QT_DIR)
+    add_custom_target ("deploy_qt"
+        COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${CC_QT_DIR}
+            -DCC_BIN_DIR=${BIN_INSTALL_DIR} -DCC_PLUGIN_DIR=${PLUGIN_INSTALL_DIR}
+            -P ${CMAKE_SOURCE_DIR}/cmake/DeployQt5.cmake
+    )
+endif ()

@@ -53,19 +53,35 @@ function (lib_comms_champion)
     )
     
     add_library(${name} SHARED ${src} ${moc})
+    add_library (cc::${COMMS_CHAMPION_LIB_NAME} ALIAS ${name})
+
     qt5_use_modules(${name} Widgets Core)
-    target_link_libraries(${name} ${CC_PLATFORM_SPECIFIC})
+    target_link_libraries(${name} cc::comms ${CC_PLATFORM_SPECIFIC})
+
+    target_include_directories(${name} 
+        PRIVATE
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+        INTERFACE
+            $<INSTALL_INTERFACE:include>
+    )
+
+    target_compile_definitions(${name} PRIVATE -DCC_LIB_EXPORT)    
     
     set_target_properties(${name} PROPERTIES OUTPUT_NAME "${COMMS_CHAMPION_LIB_NAME}")
-    
+
     install (
-        TARGETS ${name}
+        TARGETS ${name} EXPORT ${COMMS_CHAMPION_LIB_NAME}Export
         LIBRARY DESTINATION ${LIB_INSTALL_DIR}
         RUNTIME DESTINATION ${BIN_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
     )
-        
-        
+
+    install(EXPORT ${COMMS_CHAMPION_LIB_NAME}Export NAMESPACE cc::
+        DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake
+    )
+
 endfunction ()
 
 ###########################################################
@@ -74,11 +90,9 @@ find_package(Qt5Core)
 find_package(Qt5Widgets)
 
 include_directories (
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    
 )
 
-add_definitions (-DCC_LIB_EXPORT)
-    
 if (WIN32)
     find_library(QT5PLATFORMSUPPORT_REL Qt5PlatformSupport HINTS "${CC_QT_DIR}/lib")
     find_library(QT5PLATFORMSUPPORT_DEB Qt5PlatformSupportd HINTS "${CC_QT_DIR}/lib")

@@ -10,6 +10,18 @@
 #  CC_PLUGIN_LIBRARY_DIRS - Where to find the libraries required to build plugin.
 #  CC_PLUGIN_DIR - Directory where to install newly built plugin
 #  CC_CMAKE_DIR - Directory containing installed cmake scripts
+#
+# Additional output targets
+# cc::comms - Link target for COMMS library
+# cc::comms_champion - Link target for "comms_champion" libarary. Use it in plugin development.
+
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/commsExport.cmake)
+    include (${CMAKE_CURRENT_LIST_DIR}/commsExport.cmake)
+endif ()
+
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)
+    include (${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)
+endif ()
 
 get_filename_component (CC_INSTALL_LIB_PROJ_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 get_filename_component (CC_INSTALL_LIB_DIR ${CC_INSTALL_LIB_PROJ_DIR} DIRECTORY)

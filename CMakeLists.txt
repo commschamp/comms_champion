@@ -111,7 +111,7 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     endif ()
 elseif (MSVC)
 
-    add_definitions( "/wd4503" "/wd4309" "/wd4267" "-D_SCL_SECURE_NO_WARNINGS")
+    #add_definitions( "/wd4503" "/wd4309" "/wd4267" "-D_SCL_SECURE_NO_WARNINGS")
 
     if (NOT CC_NO_WARN_AS_ERR)
         add_definitions("/WX")
@@ -166,11 +166,6 @@ set (CONFIG_INSTALL_DIR ${INSTALL_DIR}/${CONFIG_INSTALL_REL_DIR})
 
 install (DIRECTORY cmake DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME})
 
-include_directories (
-    BEFORE
-    ${CMAKE_CURRENT_SOURCE_DIR}/comms/include
-)
-
 add_subdirectory (comms)
 
 if (CC_COMMS_LIB_ONLY)
@@ -182,10 +177,6 @@ add_subdirectory (comms_champion)
 if (CC_LIBS_ONLY)
     return ()
 endif ()
-
-include_directories (
-    ${CMAKE_CURRENT_SOURCE_DIR}/comms_champion/lib/include
-)
 
 add_subdirectory (demo)
 

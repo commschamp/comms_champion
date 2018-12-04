@@ -89,10 +89,6 @@ endfunction ()
 find_package(Qt5Core)
 find_package(Qt5Widgets)
 
-include_directories (
-    
-)
-
 if (WIN32)
     find_library(QT5PLATFORMSUPPORT_REL Qt5PlatformSupport HINTS "${CC_QT_DIR}/lib")
     find_library(QT5PLATFORMSUPPORT_DEB Qt5PlatformSupportd HINTS "${CC_QT_DIR}/lib")

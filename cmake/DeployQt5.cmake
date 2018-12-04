@@ -32,6 +32,6 @@ file (GLOB plugins "${CC_BIN_DIR}/*.exe")
 
 foreach (f ${binaries} ${plugins})
     execute_process (
-        COMMAND ${deploy_exe} --dir ${CC_BIN_DIR} ${f}"
+        COMMAND ${deploy_exe} --dir ${CC_BIN_DIR} ${f}
     )
 endforeach ()

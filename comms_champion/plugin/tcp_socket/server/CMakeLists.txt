@@ -51,8 +51,7 @@ function (plugin_tcp_server_socket)
     
     
     add_library (${name} MODULE ${src} ${moc} ${ui})
-    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME})
-    qt5_use_modules(${name} Network Widgets Core)
+    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME} Qt5::Network Qt5::Widgets Qt5::Core)
     
     install (
         TARGETS ${name}

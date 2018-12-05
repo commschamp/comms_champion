@@ -125,8 +125,7 @@ function (bin_cc_view)
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)
 
     add_executable(${name} ${src} ${moc} ${ui} ${resources})
-    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME})
-    qt5_use_modules(${name} Widgets Core)
+    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME} Qt5::Widgets Qt5::Core)
     
     install (
         TARGETS ${name}

@@ -55,8 +55,7 @@ function (lib_comms_champion)
     add_library(${name} SHARED ${src} ${moc})
     add_library (cc::${COMMS_CHAMPION_LIB_NAME} ALIAS ${name})
 
-    qt5_use_modules(${name} Widgets Core)
-    target_link_libraries(${name} cc::comms ${CC_PLATFORM_SPECIFIC})
+    target_link_libraries(${name} cc::comms Qt5::Widgets Qt5::Core ${CC_PLATFORM_SPECIFIC})
 
     target_include_directories(${name} 
         PRIVATE

@@ -1,12 +1,17 @@
 cmake_minimum_required (VERSION 3.1)
 project ("comms_champion")
 
+# Available options
 option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
 option (CC_LIBS_ONLY "Build and install COMMS and CommsChampion libraries, no other apps will be built." OFF)
 option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
 option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
 option (CC_ENABLE_DEMO_PROTOCOL "Enable demo protocol" OFF)
+
+# Extra variables
+# CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
+#   differs from system default installation path.
 
 if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
@@ -111,8 +116,6 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     endif ()
 elseif (MSVC)
 
-    #add_definitions( "/wd4503" "/wd4309" "/wd4267" "-D_SCL_SECURE_NO_WARNINGS")
-
     if (NOT CC_NO_WARN_AS_ERR)
         add_definitions("/WX")
     endif ()
@@ -145,10 +148,7 @@ if (NOT "${CC_QT_DIR}" STREQUAL "")
     link_directories ("${CC_QT_DIR}/plugins/platforms")
 endif ()
 
-set (INSTALL_DIR ${CMAKE_BINARY_DIR}/install)
-if (NOT "${CC_INSTALL_DIR}" STREQUAL "")
-    set (INSTALL_DIR "${CC_INSTALL_DIR}")
-endif ()
+set (INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 
 include(GNUInstallDirs)
 set (INSTALL_NAME "CommsChampion")

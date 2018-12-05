@@ -36,7 +36,7 @@ install:
 build_script:
     - mkdir build.%PLATFORM%.%CONFIGURATION%.%TOOLCHAIN%
     - cd build.%PLATFORM%.%CONFIGURATION%.%TOOLCHAIN%
-    - cmake .. -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "NMake Makefiles" -DCC_QT_DIR=%QTDIR% -DCMAKE_CXX_STANDARD=%CPP_STD%
+    - cmake .. -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "NMake Makefiles" -DCC_QT_DIR=%QTDIR% -DCMAKE_CXX_STANDARD=%CPP_STD% -DCMAKE_INSTALL_PREFIX=%cd%\install
     - nmake install
     - IF "%CONFIGURATION%"=="Release" ( nmake deploy_qt )
 test_script:

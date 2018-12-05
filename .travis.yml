@@ -138,21 +138,21 @@ script:
   - echo "------------------ Debug build ------------------"
   - mkdir build.debug
   - cd build.debug
-  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD}
+  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_INSTALL_PREFIX=./install
   - VERBOSE=1 make install
   - ctest
   - cd ..
   - echo "------------------ Release build ------------------"  
   - mkdir build.release
   - cd build.release
-  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_BUILD_TYPE=Release
+  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install
   - VERBOSE=1 make install
   - ctest
   - cd ..  
   - echo "------------------ MinSize Release build ------------------"  
   - mkdir build.min_size
   - cd build.min_size
-  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_BUILD_TYPE=MinSizeRel 
+  - CC=${_CC} CXX=${_CXX} cmake .. ${_BUILD} -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_INSTALL_PREFIX=./install
   - VERBOSE=1 make install
   - ctest
   - cd ..    

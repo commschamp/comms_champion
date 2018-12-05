@@ -32,8 +32,7 @@ function (plugin_echo_socket)
     )
     
     add_library (${name} MODULE ${src} ${moc})
-    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME})
-    qt5_use_modules(${name} Core)
+    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME} Qt5::Core)
     
     install (
         TARGETS ${name}

@@ -43,16 +43,6 @@ endif ()
 find_package(Qt5Core)
 find_package(Qt5Widgets)
 
-set (cc_qt5_widgets)
-if (Qt5Widgets_FOUND)
-    set (cc_qt5_widgets Qt5::Widgets)
-endif ()
-
-set (cc_qt5_core)
-if (Qt5Core_FOUND)
-    set (cc_qt5_core Qt5::Core)
-endif ()
-
 if (WIN32)
     find_library(qt5platformsupport_rel qt5platformsupport HINTS "${EXT_QT_DIR}/lib")
     find_library(qt5platformsupport_deb qt5platformsupportd HINTS "${EXT_QT_DIR}/lib")
@@ -78,10 +68,24 @@ endif ()
 
 add_library(cc::comms_champion UNKNOWN IMPORTED)
 file (MAKE_DIRECTORY ${CC_INCLUDE_DIRS})
-target_link_libraries(cc::comms_champion INTERFACE cc::comms ${cc_qt5_widgets} ${cc_qt5_core} ${cc_platform_specific})
+
+set (interface_link_libs cc::comms)
+if (Qt5Widgets_FOUND)
+    list (APPEND interface_link_libs Qt5::Widgets)
+endif ()
+
+if (Qt5Core_FOUND)
+    list (APPEND interface_link_libs Qt5::Core)
+endif ()
+
+if (cc_platform_specific)
+    list (APPEND interface_link_libs cc_platform_specific)
+endif ()
+
 set_target_properties(cc::comms_champion PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CC_INCLUDE_DIRS}
     IMPORTED_LOCATION ${CC_PLUGIN_LIBRARY_DIRS}/${cc_lib_name}
+    INTERFACE_LINK_LIBRARIES "${interface_link_libs}"
 )
 
 

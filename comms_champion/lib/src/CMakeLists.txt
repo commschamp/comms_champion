@@ -1,5 +1,5 @@
 function (lib_comms_champion)
-    set (name "${COMMS_CHAMPION_LIB_TGT}")
+    set (name "${COMMS_CHAMPION_LIB_NAME}")
     
     if (NOT Qt5Core_FOUND)
         message(WARNING "Can NOT build ${name} due to missing Qt5Core library")
@@ -68,8 +68,6 @@ function (lib_comms_champion)
 
     target_compile_definitions(${name} PRIVATE -DCC_LIB_EXPORT)    
     
-    set_target_properties(${name} PROPERTIES OUTPUT_NAME "${COMMS_CHAMPION_LIB_NAME}")
-
     install (
         TARGETS ${name} EXPORT ${COMMS_CHAMPION_LIB_NAME}Export
         LIBRARY DESTINATION ${LIB_INSTALL_DIR}

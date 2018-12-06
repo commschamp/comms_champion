@@ -78,10 +78,10 @@ endif ()
 
 add_library(cc::comms_champion UNKNOWN IMPORTED)
 file (MAKE_DIRECTORY ${CC_INCLUDE_DIRS})
+target_link_libraries(cc::comms_champion INTERFACE cc::comms ${cc_qt5_widgets} ${cc_qt5_core} ${cc_platform_specific})
 set_target_properties(cc::comms_champion PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CC_INCLUDE_DIRS}
     IMPORTED_LOCATION ${CC_PLUGIN_LIBRARY_DIRS}/${cc_lib_name}
-    INTERFACE_LINK_LIBRARIES cc::comms ${cc_qt5_widgets} ${cc_qt5_core} ${cc_platform_specific}
 )
 
 

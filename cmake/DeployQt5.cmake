@@ -28,7 +28,7 @@ if (NOT deploy_exe)
 endif ()
 
 file (GLOB binaries "${CC_BIN_DIR}/*.exe")
-file (GLOB plugins "${CC_BIN_DIR}/*.exe")
+file (GLOB plugins "${CC_PLUGIN_DIR}/*.dll")
 
 foreach (f ${binaries} ${plugins})
     execute_process (

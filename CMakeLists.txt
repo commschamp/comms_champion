@@ -140,7 +140,6 @@ if ((UNIX) AND (NOT CC_NO_CCACHE))
 endif ()    
 
 set (COMMS_CHAMPION_LIB_NAME "comms_champion")
-set (COMMS_CHAMPION_LIB_TGT "${COMMS_CHAMPION_LIB_NAME}.lib")
 
 if (NOT "${CC_QT_DIR}" STREQUAL "")
     list (APPEND CMAKE_PREFIX_PATH ${CC_QT_DIR})

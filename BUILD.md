@@ -72,6 +72,14 @@ $> cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/some/install/dir \
 $> nmake install 
 ```
 
+On Windows platform, there is also **deploy_qt** build target. When built, it
+invokes **windeployqt.exe** utility, provided by Qt5 installation, to deploy
+all relevant Qt libraries to the installation directory. 
+
+```
+$> nmake deploy_qt 
+```
+
 ### Using Clang Compiler
 Please use c++14 standard with clang compiler.
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -61,6 +61,12 @@ QString getLastLoadSaveFile()
     auto filename = PluginMgrG::instanceRef().getLastFile();
     if (!filename.isEmpty()) {
         return filename;
+    }
+
+    QDir appDataDir(getAppDataDir());
+    auto dataCfgs = appDataDir.entryList(QStringList() << "*.cfg");
+    if (!dataCfgs.isEmpty()) {
+        return appDataDir.path();
     }
 
     auto configDirPath = getConfigDir();

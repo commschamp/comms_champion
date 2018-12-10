@@ -22,6 +22,7 @@
 CC_DISABLE_WARNINGS()
 #include <QtWidgets/QApplication>
 #include <QtCore/QDir>
+#include <QtCore/QStandardPaths>
 CC_ENABLE_WARNINGS()
 
 namespace comms_champion {
@@ -72,5 +73,9 @@ QString getConfigDir()
     return dir.path();
 }
 
+QString getAppDataDir()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+}
 
 } // namespace comms_champion

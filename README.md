@@ -3,7 +3,7 @@
 # What It's All About?
 This project is about proper implementation of binary communication protocols
 using C++11 programming language, with main focus on embedded systems 
-(including bare-metal ones). Interested? Then buckle up and keep reading.
+(including bare-metal ones). Interested? Then buckle up and read on.
 
 # Motivation
 Almost every electronic device/component nowadays has to be able to communicate
@@ -137,7 +137,7 @@ downloaded as **doc_comms.zip** archive from
 For quick usage examples please refer to [EXAMPLES.md](EXAMPLES.md).
 
 # CommsChampion Tools
-**CommsChampion** is a name for set of tool applications (in addition to the 
+This project also contains a set of tool applications (in addition to the 
 [COMMS Library](#comms-library)), which can be used to 
 develop, monitor and debug custom binary communication protocols, that where
 developed using the [COMMS Library](#comms-library). 
@@ -222,16 +222,16 @@ wiki page.
 # How to Run CommsChampion Tools applications
 On Windows platforms try to run the *.exe binary (**cc_view.exe**
 or **cc_dump.exe**), which resides in 
-**install/bin** subdirectory. If the execution fails due to missing **Qt5** dlls,
+**${CMAKE_ISNTALL_PREFIX}/bin** directory. If the execution fails due to missing **Qt5** dlls,
 either set your **%PATH%** variable accordingly or try to execute generated **.bat**
-files (**cc_view.bat** or **cc_dump.bat**) residing in the same directory.
+files (**cc_view.bat** or **cc_dump.bat**) residing in the same directory. Another
+option is to build **deploy_qt** target to deploy Qt5 libraries into installation directory, whill will allow execution of any **.exe** file without and extra manupulations.
 
 On Linux platforms use the appropriate shell script 
 (**cc_view.sh** or **cc_dump.sh**), which also resides in
-**install/bin** subdirectory.
+**${CMAKE_ISNTALL_PREFIX}/bin** directory.
  
-Please note that available plugins must reside in the **../lib/CommsChampion/plugin** subdirectory relative
-to the location of the binaries.
+Please note that available plugins must reside in the **${CMAKE_ISNTALL_PREFIX}/lib/CommsChampion/plugin** directory.
 
 The tools support multiple command line options, please use "-h" or "--help" for
 the full list.

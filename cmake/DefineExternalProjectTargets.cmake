@@ -79,7 +79,7 @@ if (Qt5Core_FOUND)
 endif ()
 
 if (cc_platform_specific)
-    list (APPEND interface_link_libs cc_platform_specific)
+    list (APPEND interface_link_libs ${cc_platform_specific})
 endif ()
 
 set_target_properties(cc::comms_champion PROPERTIES

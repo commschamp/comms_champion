@@ -49,7 +49,7 @@ if (WIN32)
 
     set (cc_platform_specific)
     if (qt5platformsupport_rel AND qt5platformsupport_deb)
-        add_library(qt5platformsupport_lib UKNOWN IMPORTED)
+        add_library(qt5platformsupport_lib UNKNOWN IMPORTED)
         set_target_properties(qt5platformsupport_lib PROPERTIES IMPORTED_LOCATION_DEBUG ${qt5platformsupport_rel})
         set_target_properties(qt5platformsupport_lib PROPERTIES IMPORTED_LOCATION_RELEASE ${qt5platformsupport_deb})
         list (APPEND cc_platform_specific qt5platformsupport_lib)

@@ -46,13 +46,18 @@ find_package(Qt5Widgets)
 if (WIN32)
     find_library(qt5platformsupport_rel qt5platformsupport HINTS "${EXT_QT_DIR}/lib")
     find_library(qt5platformsupport_deb qt5platformsupportd HINTS "${EXT_QT_DIR}/lib")
-    set(qt5platformsupport optimized ${qt5platformsupport_rel} debug ${qt5platformsupport_deb})
 
-    if (NOT qt5platformsupport)
-        set (qt5platformsupport)
+    set (cc_platform_specific)
+    if (qt5platformsupport_rel AND qt5platformsupport_deb)
+        add_library(qt5platformsupport_lib UKNOWN IMPORTED)
+        set_target_properties(qt5platformsupport PROPERTIES IMPORTED_LOCATION_DEBUG ${qt5platformsupport_rel})
+        set_target_properties(qt5platformsupport PROPERTIES IMPORTED_LOCATION_RELEASE ${qt5platformsupport_deb})
+        list (APPEND cc_platform_specific qt5platformsupport_lib)
+    else ()
+        message(WARING "Platform support is missing!")
     endif ()
-    
-    set (cc_platform_specific ${qt5platformsupport} Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
+
+    list (APPEND cc_platform_specific Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
 endif ()   
 
 set (CC_COMMS_CHAMPION_FOUND TRUE)

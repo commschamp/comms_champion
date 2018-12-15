@@ -31,9 +31,9 @@
 
 /// @brief Macro to create numeric version as single unsigned number
 #define COMMS_MAKE_VERSION(major_, minor_, patch_) \
-    ((major_) << 24) | \
-    ((minor_) << 8) | \
-    (patch_)
+    (((major_) << 24) | \
+     ((minor_) << 8) | \
+     (patch_))
 
 /// @brief Version of the COMMS library as single numeric value
 #define COMMS_VERSION COMMS_MAKE_VERSION(COMMS_MAJOR_VERSION, COMMS_MINOR_VERSION, COMMS_PATCH_VERSION)

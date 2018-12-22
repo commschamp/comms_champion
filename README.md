@@ -99,7 +99,7 @@ raw data being received from I/O socket.
 
 ### Developing Custom Socket/Filter/Protocol Plugin
 The full tutorial as well as API documentation can be downloaded as
-**doc_commschampion.zip** archive from
+**doc_commschampion_vX.zip** archive from
 from [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # Demos and Examples

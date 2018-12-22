@@ -1,103 +1,18 @@
 ![Image: CommsChampion Icon](comms_champion/app/cc_view/src/image/app_icon.png)
 
-# What It's All About?
-This project is about proper implementation of binary communication protocols
-using C++11 programming language, with main focus on embedded systems 
-(including bare-metal ones). Interested? Then buckle up and read on.
-
-# Motivation
-Almost every electronic device/component nowadays has to be able to communicate
-to other devices, components, or outside world over some I/O link. Such communication
-is implemented using various communication protocols. The implementation of
-these protocols can be a tedious, time consuming and error-prone process.
-Therefore, there is a growing tendency among developers to use third party code 
-generators for data (de)serialisation. Usually such tools receive description
-of the protocol data structures in separate source file(s) with a custom grammar, 
-and generate appropriate (de)serialisation code and necessary abstractions to 
-access the data. The main problem with all these tools is that their major purpose
-is data structures serialisation and/or facilitation of remote procedure calls (RPC).
-The binary data layout and how the transferred data is going to be used is of much
-lesser importance. The binary communication protocols, which may serve as
-an API to the device, on the other hand, require different approach.
-Their specification puts major emphasis on binary data layout, what values are
-being transferred (units and/or scaling factor) and how the other end is expected 
-to behave on certain values (what values are considered to be valid and how to
-behave on reception of invalid values). It requires having some extra meta-information
-attached to described data structures. The existing tools either don't have means
-to specify such meta-information (other than in comments), or don't know what to
-do with it when provided. As the result the developer still has to write a 
-significant amount of boilerplate code in order to integrate the generated 
-serialisation focused code to be used in binary communication protocol handling.
-
-Also all of the available schema based serialisation solutions have
-**at least** one of the following limitations:
-
-- Inability to specify binary data layout. Many of the tools use their own
-serialisation format without an ability to provide custom one. It makes them
-impossible to use to implement already defined and used binary communication
-protocol.
-- Inability to customise underlying types. Most (or all) of the available code 
-generating tools, which do allow customisation of binary data layout, don't allow
-usage of custom data structures. They usually
-choose to use **std::string** for string fields and/or 
-**std::vector** for lists, as well as (de)serialisation code is generated to use 
-standard streams (**std::istream** and **std::ostream**). Even if such ability
-is provided, it is usually "global" one and do not allow substitution of types only for
-specific messages / fields.
-- Small number of supported data fields or limited number of their serialisation options.
-For example, strings can be serialised by being prefixed with their size
-(which in turn can have different lengths), or being terminated with '\0', or
-having fixed size with '\0' padding if the string is too short. There are 
-protocols that use all three variants of strings.
-- Poor or weak description grammar without an ability to support conditional
-(de)serialisation. For example, having a value
-(such as single bit in some bitmask field) which determines whether some other
-optional field exists or not. 
-- Lack of polymorphic interface to allow implementation of the common code for all the 
-defined messages.
-- When polymorphic interface with virtual functions is provided, there is no
-way to exclude generation of unnecessary virtual functions for a particular embedded application.
-All the provided virtual functions will probably remain in the final image even
-if they are not used.
-- Lack of efficient built-in way of dispatching the deserialised message object into 
-its appropriate handling function. There is a need to provide a separate 
-dispatch table or map from message ID to some callback function or object.
-- Lack of ability to override or complement the generated serialisation code with the manually
-written one where extra logic is required.
-
-The generalisation is hard. As the result many embedded C++ developers still have 
-to manually implement required communication protocol 
-rather than relying on the existing tools for code generation.
-
-This project is a core of **CommsChampion ecosystem**, which comes to help in 
+This project is a core (and a member) of 
+[CommsChampion Ecosystem](https://arobenko.github.io/cc),
+which comes to help in 
 developing binary communication protocols, with main focus on
 **embedded systems** with limited resources (including 
 bare-metal ones) and choosing **C++(11)** programming language to do so. 
+
 This project has two major parts: [COMMS Library](#comms-library) and 
 [CommsChampion Tools](#commschampion-tools). The library's components
 can be used to define protocol messages as well as its transport
 framing information using mostly declarative statements of classes and types 
 definitions. The tools can be used to visualise, analyse, and debug binary 
 communication protocols, which were developed using [COMMS Library](#comms-library).
-
-<span style="color:red">**IMPORTANT**</span>: Over the years the 
-[COMMS Library](#comms-library) grew with features and accumulated
-multiple nuances to be remembered when defining a new protocol. In order to
-simplify protocol definition work, a separate toolset, called 
-[commsdsl](https://github.com/arobenko/commsdsl) (hosted as separate repository), 
-has been developed. It allows much easier and simpler definition of the protocol, 
-using schema files written in XML based domain specific language, called 
-[CommsDSL](https://github.com/arobenko/CommsDSL-Specification). The toolset
-will generate a C++11 code that defines the protocol using appropriate
-[COMMS Library](#comms-library) classes and functions, as well as generate extra code
-required to implement a protocol definition plugin for 
-[CommsChampion Tools](#commschampion-tools). Many binary protocols 
-may have nuances that are difficult to express in existing schema language. 
-In order to still allow usage of the schema files for the protocol definition, the
-toolset allows injection of extra custom code to modify or extend the generated
-one. The generated code itself is also highly compile time customisable. It
-allows selection of custom data structures for data storage as well as polymorphic
-interfaces relevant to the application being developed.
 
 # COMMS Library
 **COMMS** is the **C++(11)** headers only, platform independent library, 
@@ -131,7 +46,7 @@ However, at this stage the library internals are much more advanced and sophisti
 examples in the e-book, please don't treat the latter as a guide to library's internals.
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
-downloaded as **doc_comms.zip** archive from 
+downloaded as **doc_comms_vX.zip** archive from 
 [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 For quick usage examples please refer to [EXAMPLES.md](EXAMPLES.md).
@@ -188,7 +103,27 @@ The full tutorial as well as API documentation can be downloaded as
 from [release artefacts](https://github.com/arobenko/comms_champion/releases).
 
 # Demos and Examples
-Manual implementation of binary communication protocols **from scratch** using 
+Over the years the 
+[COMMS Library](#comms-library) grew with features and accumulated
+multiple nuances to be remembered when defining a new protocol. In order to
+simplify protocol definition work, a separate toolset, called 
+[commsdsl](https://github.com/arobenko/commsdsl) (hosted as separate repository), 
+has been developed. It allows much easier and simpler definition of the protocol, 
+using schema files written in XML based domain specific language, called 
+[CommsDSL](https://github.com/arobenko/CommsDSL-Specification). The toolset
+will generate a C++11 code that defines the protocol using appropriate
+[COMMS Library](#comms-library) classes and functions, as well as generate extra code
+required to implement a protocol definition plugin for 
+[CommsChampion Tools](#commschampion-tools). Many binary protocols 
+may have nuances that are difficult to express in existing schema language. 
+In order to still allow usage of the schema files for the protocol definition, the
+toolset allows injection of extra custom code to modify or extend the generated
+one. The generated code itself is also highly compile time customisable. It
+allows selection of custom data structures for data storage as well as polymorphic
+interfaces relevant to the application being developed.
+
+As the result, manual implementation of binary communication protocols **from 
+scratch** using 
 [COMMS Library](#comms-library) is not recommended and should be avoided. Please use
 **commsdsl2comms** code generator from 
 [commsdsl](https://github.com/arobenko/commsdsl) project, which also
@@ -198,7 +133,7 @@ as reference.
 # Licence
 The [COMMS Library](#comms-library) is licensed under
 the classic **GPLv3 / Commercial** dual licensing scheme. Please refer to 
-[LICENSE.md](LICENSE.md) for details.
+[LICENSES](https://arobenko.github.io/cc) page for details.
 
 # How to Build
 Detailed instructions on how to build and install all the components can be

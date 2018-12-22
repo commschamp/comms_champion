@@ -133,7 +133,7 @@ as reference.
 # Licence
 The [COMMS Library](#comms-library) is licensed under
 the classic **GPLv3 / Commercial** dual licensing scheme. Please refer to 
-[LICENSES](https://arobenko.github.io/cc) page for details.
+[LICENSES](https://arobenko.github.io/cc/licenses) page for details.
 
 # How to Build
 Detailed instructions on how to build and install all the components can be

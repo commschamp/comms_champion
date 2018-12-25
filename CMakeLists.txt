@@ -1,12 +1,17 @@
 cmake_minimum_required (VERSION 3.1)
 project ("comms_champion")
 
+# Available options
 option (CC_COMMS_LIB_ONLY "Install only COMMS library, no other apps will be built." OFF)
 option (CC_LIBS_ONLY "Build and install COMMS and CommsChampion libraries, no other apps will be built." OFF)
 option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
 option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
 option (CC_ENABLE_DEMO_PROTOCOL "Enable demo protocol" OFF)
+
+# Extra variables
+# CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
+#   differs from system default installation path.
 
 if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
@@ -111,8 +116,6 @@ if ((CMAKE_COMPILER_IS_GNUCC) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     endif ()
 elseif (MSVC)
 
-    add_definitions( "/wd4503" "/wd4309" "/wd4267" "-D_SCL_SECURE_NO_WARNINGS")
-
     if (NOT CC_NO_WARN_AS_ERR)
         add_definitions("/WX")
     endif ()
@@ -137,7 +140,6 @@ if ((UNIX) AND (NOT CC_NO_CCACHE))
 endif ()    
 
 set (COMMS_CHAMPION_LIB_NAME "comms_champion")
-set (COMMS_CHAMPION_LIB_TGT "${COMMS_CHAMPION_LIB_NAME}.lib")
 
 if (NOT "${CC_QT_DIR}" STREQUAL "")
     list (APPEND CMAKE_PREFIX_PATH ${CC_QT_DIR})
@@ -145,10 +147,7 @@ if (NOT "${CC_QT_DIR}" STREQUAL "")
     link_directories ("${CC_QT_DIR}/plugins/platforms")
 endif ()
 
-set (INSTALL_DIR ${CMAKE_BINARY_DIR}/install)
-if (NOT "${CC_INSTALL_DIR}" STREQUAL "")
-    set (INSTALL_DIR "${CC_INSTALL_DIR}")
-endif ()
+set (INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 
 include(GNUInstallDirs)
 set (INSTALL_NAME "CommsChampion")
@@ -161,15 +160,10 @@ set (DATA_INSTALL_REL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/${INSTALL_NAME})
 set (DATA_INSTALL_DIR ${INSTALL_DIR}/${DATA_INSTALL_REL_DIR})
 set (DOC_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_DATAROOTDIR}/doc)
 set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
-set (CONFIG_INSTALL_REL_DIR config)
+set (CONFIG_INSTALL_REL_DIR ${CMAKE_INSTALL_SYSCONFDIR}/${INSTALL_NAME})
 set (CONFIG_INSTALL_DIR ${INSTALL_DIR}/${CONFIG_INSTALL_REL_DIR})
 
 install (DIRECTORY cmake DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME})
-
-include_directories (
-    BEFORE
-    ${CMAKE_CURRENT_SOURCE_DIR}/comms/include
-)
 
 add_subdirectory (comms)
 
@@ -183,9 +177,12 @@ if (CC_LIBS_ONLY)
     return ()
 endif ()
 
-include_directories (
-    ${CMAKE_CURRENT_SOURCE_DIR}/comms_champion/lib/include
-)
-
 add_subdirectory (demo)
 
+if (WIN32 AND CC_QT_DIR)
+    add_custom_target ("deploy_qt"
+        COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${CC_QT_DIR}
+            -DCC_BIN_DIR=${BIN_INSTALL_DIR} -DCC_PLUGIN_DIR=${PLUGIN_INSTALL_DIR}
+            -P ${CMAKE_SOURCE_DIR}/cmake/DeployQt5.cmake
+    )
+endif ()

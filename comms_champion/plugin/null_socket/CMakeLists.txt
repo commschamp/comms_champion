@@ -30,8 +30,7 @@ function (plugin_null_socket)
     )
     
     add_library (${name} MODULE ${src} ${moc})
-    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
-    qt5_use_modules(${name} Core)
+    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME} Qt5::Core)
     
     install (
         TARGETS ${name}

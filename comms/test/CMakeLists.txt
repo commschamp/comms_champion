@@ -17,6 +17,7 @@ function (test_func test_suite_name)
     set (runner "${test_suite_name}TestRunner.cpp")
     
     CXXTEST_ADD_TEST (${name} ${runner} ${tests} ${extra_sources})
+    target_link_libraries(${name} cc::comms)
     
     if (VALGRIND_EXECUTABLE)
         add_test(NAME "${name}_valgrind"

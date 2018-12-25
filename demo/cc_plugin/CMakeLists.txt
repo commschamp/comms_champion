@@ -38,8 +38,8 @@ function (cc_plugin_demo)
         ${hdr}
     )
     
-    add_library (${name} SHARED ${src} ${moc})
-    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
+    add_library (${name} MODULE ${src} ${moc})
+    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME})
     
     install (
         TARGETS ${name}

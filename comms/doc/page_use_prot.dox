@@ -356,7 +356,9 @@
 /// The actual type of this message object needs to be recognised and message
 /// properly handled. Using simple
 /// switch statement on message ID (returned by @b getId() interface function)
-/// can be very @b INEFFICIENT. The COMMS library provides much more efficient way
+/// can result in significant amount of boilerplate code, which grows and must
+/// be updated every time new message is added to the protocol. 
+/// The @b COMMS library provides much better way
 /// to dispatch messages to appropriate handler. 
 ///
 /// The handler class needs to be forward declared and passed
@@ -586,7 +588,7 @@
 /// the detailed documentation on available member types and functions
 /// can be viewed on @ref comms::MessageBase reference page.
 ///
-/// All the protocol message classes implement non-virtual functions that may be
+/// All the protocol message classes implement @b non-virtual functions that may be
 /// used to implement polymorphic behavior. These function has the same name as
 /// described earlier interface, but start with @b do* prefix.
 ///
@@ -833,7 +835,7 @@
 /// @li has @b refresh() member function to bring its contents to consistent / valid
 ///     state when required.
 ///
-/// Also note that all the member function are NON-virtual, i.e. the field 
+/// Also note that all the member function are @b NON-virtual, i.e. the field 
 /// abstractions do not have polymorphic behaviour.
 ///
 /// The most important member function to a client application is @b value().
@@ -989,6 +991,7 @@
 /// assert(field.value() == SomeEnumVal::Val3); // initialised by default to Val3;
 /// field.value() = SomeEnumVal::Val2;
 /// @endcode 
+/// Note, that underlying type of the enum dictates default serialisation length.
 ///
 /// @subsection page_use_prot_fields_bitmask_value Bitmask Value Fields
 /// Bitmasks (or bitsets) are also numeric values where every bit has separate,
@@ -1259,13 +1262,13 @@
 ///         return std::get<FieldIdx_member1>(value());
 ///     }
 ///
-///     // Accessor to const "baud" field
+///     // Accessor to const "member1" field
 ///     auto field_member1() const -> decltype(std::get<FieldIdx_member1>(value()))
 ///     {
 ///         return std::get<FieldIdx_member1>(value());
 ///     }
 ///
-///     // Accessor to "parity" field
+///     // Accessor to "member2" field
 ///     auto field_member2() -> decltype(std::get<FieldIdx_member2>(value()))
 ///     {
 ///         return std::get<FieldIdx_member2>(value());
@@ -1587,7 +1590,7 @@
 /// copying of the data to these storage areas during the @b read operation. If
 /// the input buffer is contiguous, i.e the pointer to the last element is @b always
 /// greater than pointer to the first one (not some kind of circular buffer), then
-/// to copying of the data may be avoided by using @ref comms::option::OrigDataView
+/// copying of the data may be avoided by using @ref comms::option::OrigDataView
 /// option. The option will change the default storage types to be 
 /// @ref comms::util::ArrayView or @ref comms::util::StringView. @b NOTE, that
 /// passing @ref comms::option::OrigDataView option to @ref comms::field::ArrayList
@@ -1754,9 +1757,9 @@
 /// be wrapped in some kind of transport information prior to being sent and 
 /// unwrapped on the other side when received. The @b COMMS protocol defines
 /// multiple so called @b layers (defined in @b comms::protocol namespace). 
-/// The transport framing will be defined using those @b layer classes and will
-/// probably be called @b ProtocolStack. Its definition is expected to
-/// looke something like this:
+/// The transport framing will be defined using those @b layer classes and may
+/// be called @b ProtocolStack or @b Frame. Its definition is expected to
+/// look something like this:
 /// @code
 /// namespace my_protocol
 /// {
@@ -1775,7 +1778,7 @@
 ///
 /// } // namespace my_protocol
 /// @endcode
-/// The first template parameter (@b TMessage) is common message interface class desribed
+/// The first template parameter (@b TMessage) is common message interface class described
 /// earlier in @ref page_use_prot_interface section.
 /// 
 /// The second template parameter (@b TInputMessages) is @b std::tuple of input
@@ -1799,6 +1802,48 @@
 /// of the classes from @ref comms::protocol namespace. To get a detailed
 /// information on available public API please reference to one of them, for
 /// example @ref comms::protocol::SyncPrefixLayer.
+///
+/// It may also happen, that the extra options (@b TAllocationOptions and @b TPayloadOptions)
+/// are defined inside the recommended @b DefaultOptions structure and be
+/// passed to the layers definitions themselves. Such approach is undertaken by
+/// the **commsdsl2comms** code generator application from the 
+/// <a href="https://github.com/arobenko/commsdsl">commsdsl</a> project.
+/// @code
+/// namespace my_protocol
+/// {
+///
+/// struct DefaultOptions
+/// {
+///     ...
+///     struct frame
+///     {
+///         // Extra options for Layers.
+///         struct FrameLayers
+///         {
+///             // Extra options for Data layer.
+///             using Data = comms::option::EmptyOption;
+///             
+///             // Extra options for Id layer.
+///             using Id = comms::option::EmptyOption;
+///             
+///         }; // struct FrameLayers
+///         
+///     }; // struct frame
+/// }/ // struct DefaultOptions
+///
+/// template <
+///     typename TMessage, // common interface class defined by the application
+///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
+///     typename TOpt = DefaultOptions // Options of the protocol definitions
+/// >
+/// struct ProtocolStack : public 
+///     MySyncPrefix<TMessage, TInputMessages, TOpt> 
+/// {
+///     COMMS_PROTOCOL_LAYERS_ACCESS(...);
+/// };
+///
+/// } // namespace my_protocol
+/// @endcode
 ///
 /// @subsection page_use_prot_transport_read Reading Transport Framing and Message Payload
 /// Below is an example of how to implement data processing loop, which parses
@@ -2039,7 +2084,7 @@
 /// value (@b 0) will be written at first, then after the write operation is complete,
 /// the number of written bytes will be calculated and the previously written 
 /// dummy value updated accordingly. @b NOTE, that such update is possible only
-/// if iterator used for writing is random-access one. Such update won't be
+/// if iterator used for writing is random-access one. Otherwise, such update won't be
 /// possible. In this case @ref comms::ErrorStatus::UpdateRequired error status
 /// will be returned. It means that the write operation is incomplete, there
 /// is a need to perform @b update() call with random-access iterator.
@@ -2212,8 +2257,8 @@
 /// developers write quite big (depends on number of messages it needs to handle) 
 /// switch statement that checks the ID of the message and calls appropriate 
 /// function in the relevant case area. Other developers try to minimise 
-/// performance impact by introducing hand written map from message ID to the 
-/// handling function. Such approaches are quite inefficient in terms of 
+/// amount of boilerplate code by introducing hand written map from message ID to the 
+/// handling function. Such approaches may be quite inefficient in terms of 
 /// execution performance as well as development effort required to introduce 
 /// a new message when protocol evolves.
 ///
@@ -2482,6 +2527,8 @@
 ///     {
 ///         return std::get<TransportFieldIdx_version>(transportFields());
 ///     }
+/// private:
+///     TransportFields m_transportFields;
 /// };
 ///
 /// } // namespace my_protocol

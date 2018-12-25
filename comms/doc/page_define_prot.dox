@@ -879,6 +879,17 @@
 ///     }
 /// };
 /// @endcode
+/// @b Note, that comms::MessageBase provides the following member functions
+/// in order to allow length calculation of the selected fields.
+/// @li @ref comms::MessageBase::doLengthFrom()
+/// @li @ref comms::MessageBase::doLengthUntil()
+/// @li @ref comms::MessageBase::doLengthFromUntil()
+/// @li @ref comms::MessageBase::doMinLengthFrom()
+/// @li @ref comms::MessageBase::doMinLengthUntil()
+/// @li @ref comms::MessageBase::doMinLengthFromUntil()
+/// @li @ref comms::MessageBase::doMaxLengthFrom()
+/// @li @ref comms::MessageBase::doMaxLengthUntil()
+/// @li @ref comms::MessageBase::doMaxLengthFromUntil()
 ///
 /// @subsection page_define_prot_message_base_custom_valid Custom Validity Check
 /// The default implementation of @ref comms::MessageBase::doValid() calls 

@@ -21,19 +21,19 @@
 #pragma once
 
 /// @brief Major verion of the library
-#define COMMS_MAJOR_VERSION 0U
+#define COMMS_MAJOR_VERSION 1U
 
 /// @brief Minor verion of the library
-#define COMMS_MINOR_VERSION 28U
+#define COMMS_MINOR_VERSION 0U
 
 /// @brief Patch level of the library
 #define COMMS_PATCH_VERSION 0U
 
 /// @brief Macro to create numeric version as single unsigned number
 #define COMMS_MAKE_VERSION(major_, minor_, patch_) \
-    ((major_) << 24) | \
-    ((minor_) << 8) | \
-    (patch_)
+    ((static_cast<unsigned>(major_) << 24) | \
+     (static_cast<unsigned>(minor_) << 8) | \
+     (static_cast<unsigned>(patch_)))
 
 /// @brief Version of the COMMS library as single numeric value
 #define COMMS_VERSION COMMS_MAKE_VERSION(COMMS_MAJOR_VERSION, COMMS_MINOR_VERSION, COMMS_PATCH_VERSION)

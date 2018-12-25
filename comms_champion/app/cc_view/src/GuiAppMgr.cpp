@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@ CC_DISABLE_WARNINGS()
 #include <QtCore/QTimer>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
+#include <QtCore/QFile>
 CC_ENABLE_WARNINGS()
 
 #include "comms_champion/property/message.h"
@@ -47,12 +48,24 @@ const QString AppDataStorageFileName("startup_config.json");
 
 QString getConfigPath(const QString& configName)
 {
-    QDir dir(getConfigDir());
-    if (configName.isEmpty()) {
-        return dir.absoluteFilePath("default.cfg");
+    QFileInfo fileInfo(configName);
+    auto getPathFunc = 
+        [&configName](const QDir& inDir)
+        {
+            if (configName.isEmpty()) {
+                return inDir.absoluteFilePath("default.cfg");
+            }
+
+            return inDir.absoluteFilePath(configName + ".cfg");
+        };
+
+    //std::cout << "Config dir: " << getAppDataDir().toStdString() << std::endl;
+    QFileInfo config1(getPathFunc(QDir(getAppDataDir())));
+    if (config1.exists()) {
+        return config1.absoluteFilePath();
     }
 
-    return dir.absoluteFilePath(configName + ".cfg");
+    return QFileInfo(getPathFunc(QDir(getConfigDir()))).absoluteFilePath();
 }
 
 }  // namespace

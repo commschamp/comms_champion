@@ -1,6 +1,7 @@
 # COMMS Library Quick Examples
 Below are quick examples on how to define fields as well as messages using
-COMMS library. For proper and full tutorial please refer to proper documentation
+[COMMS Library](https://github.com/arobenko/comms_champion#comms-library). 
+For proper and full tutorial please refer to proper documentation
 (Download **doc_comms.zip** archive from 
 [release artefacts](https://github.com/arobenko/comms_champion/releases)).
 
@@ -74,8 +75,8 @@ using MyEnumField =
 struct MyBitmaskField : public 
     comms::field::BitmaskValue<
         MyFieldBase, // big endian serialisation
-        comms::field::FixedLength<2> // serialise using 2 bytes
-        BitmaskReservedBits<0xfff0> // Specify reserved bits 
+        comms::option::FixedLength<2> // serialise using 2 bytes
+        comms::option::BitmaskReservedBits<0xfff0> // Specify reserved bits 
     >
 {
     COMMS_BITMASK_BITS_SEQ(name1, name2, name3, name4); // provide names for bits for convenient access
@@ -254,8 +255,8 @@ using MsgIdField = comms::field::EnumValue<MyFieldBase, MsgId>
 // Define field used to (de)serialise remaining length of the message:
 using MsgSizeField = comms::field::IntValue<MyFieldBase, std::uint16_t>
 
-// Define transport stack by wrapping "layers"
-using Stack = 
+// Define transport frame by wrapping "layers"
+using Frame = 
     comms::protocol::MsgSizeLayer< // The SIZE 
         MsgSizeField,
         comms::option::MsgIdLayer< // The ID 
@@ -291,8 +292,8 @@ using SyncField =
         comms::option::ValidNumValueRange<0xabcd, 0xabcd>
     >;
 
-// Define transport stack by wrapping "layers"
-using Stack = 
+// Define transport frame by wrapping "layers"
+using Frame = 
     comms::protocol::SyncPrefixLayer< // The SYNC
         SyncField,
         comms::protocol::ChecksumLayer // The CHECKSUM

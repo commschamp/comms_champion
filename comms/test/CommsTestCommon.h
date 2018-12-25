@@ -25,6 +25,9 @@
 
 #include "comms/comms.h"
 
+static_assert(0U < comms::version(), "Invalid version definition");
+static_assert(0U < COMMS_MAKE_VERSION(0, 29, 0), "Invalid version definition");
+
 enum MessageType {
     MessageType1,
     UnusedValue1,

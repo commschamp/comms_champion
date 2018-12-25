@@ -19,12 +19,29 @@ if (DOXYGEN_FOUND)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif ()
 
-add_subdirectory (test)
+add_library(comms INTERFACE)
+add_library (cc::comms ALIAS comms)
+
+target_include_directories(comms INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+target_compile_options(comms INTERFACE
+  $<$<CXX_COMPILER_ID:MSVC>:/wd4503 /wd4309 /wd4267 -D_SCL_SECURE_NO_WARNINGS>
+)
+
+install(TARGETS comms EXPORT commsExport)
+install(EXPORT commsExport NAMESPACE cc::
+  DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake
+)
 
 install (
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/comms
     DESTINATION ${INC_INSTALL_DIR}
 )
+
+add_subdirectory (test)
 
 FILE(GLOB_RECURSE headers "*.h")
 add_custom_target(comms.headers SOURCES ${headers})

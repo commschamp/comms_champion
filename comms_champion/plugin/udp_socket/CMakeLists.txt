@@ -51,8 +51,7 @@ function (plugin_udp_client_socket)
     )
     
     add_library (${name} MODULE ${src} ${moc} ${ui})
-    target_link_libraries(${name} ${COMMS_CHAMPION_LIB_TGT})
-    qt5_use_modules(${name} Network Widgets Core)
+    target_link_libraries(${name} cc::${COMMS_CHAMPION_LIB_NAME} Qt5::Network Qt5::Widgets Qt5::Core)
     
     install (
         TARGETS ${name}

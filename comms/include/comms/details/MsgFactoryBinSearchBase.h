@@ -25,90 +25,16 @@ namespace comms
 namespace details
 {
 
-template <bool TStrong, typename... TMessages>
-struct MsgFactoryBinSearchSortedCheckHelper;
-
-template <
-    bool TStrong,
-    typename TMessage1,
-    typename TMessage2,
-    typename TMessage3,
-    typename... TRest>
-struct MsgFactoryBinSearchSortedCheckHelper<TStrong, TMessage1, TMessage2, TMessage3, TRest...>
-{
-    static const bool Value =
-        MsgFactoryBinSearchSortedCheckHelper<TStrong, TMessage1, TMessage2>::Value &&
-        MsgFactoryBinSearchSortedCheckHelper<TStrong, TMessage2, TMessage3, TRest...>::Value;
-};
-
-template <bool TStrong, typename TMessage1, typename TMessage2>
-struct MsgFactoryBinSearchSortedCheckHelper<TStrong, TMessage1, TMessage2>
-{
-private:
-    struct StrongTag {};
-    struct WeakTag {};
-    using Tag =
-        typename std::conditional<
-            TStrong,
-            StrongTag,
-            WeakTag
-        >::type;
-
-    template <typename T1, typename T2>
-    static constexpr bool isLess(StrongTag)
-    {
-        return T1::ImplOptions::MsgId < T2::ImplOptions::MsgId;
-    }
-
-    template <typename T1, typename T2>
-    static constexpr bool isLess(WeakTag)
-    {
-        return T1::ImplOptions::MsgId <= T2::ImplOptions::MsgId;
-    }
-
-    template <typename T1, typename T2>
-    static constexpr bool isLess()
-    {
-        return isLess<T1, T2>(Tag());
-    }
-
-    static_assert(TMessage1::ImplOptions::HasStaticMsgId, "Message is expected to provide status numeric ID");
-    static_assert(TMessage2::ImplOptions::HasStaticMsgId, "Message is expected to provide status numeric ID");
-
-public:
-    ~MsgFactoryBinSearchSortedCheckHelper() noexcept = default;
-    static const bool Value = isLess<TMessage1, TMessage2>();
-};
-
-template <bool TStrong, typename TMessage1>
-struct MsgFactoryBinSearchSortedCheckHelper<TStrong, TMessage1>
-{
-    static_assert(!comms::util::isTuple<TMessage1>(), "TMessage1 mustn't be tuple");
-    static const bool Value = true;
-};
-
-template <bool TStrong>
-struct MsgFactoryBinSearchSortedCheckHelper<TStrong>
-{
-    static const bool Value = true;
-};
-
-template <bool TStrong, typename... TMessages>
-struct MsgFactoryBinSearchSortedCheckHelper<TStrong, std::tuple<TMessages...> >
-{
-    static const bool Value = MsgFactoryBinSearchSortedCheckHelper<TStrong, TMessages...>::Value;
-};
-
 template <typename TAllMessages>
 constexpr bool msgFactoryAreAllStrongSorted()
 {
-    return MsgFactoryBinSearchSortedCheckHelper<true, TAllMessages>::Value;
+    return allMessagesAreStrongSorted<TAllMessages>();
 }
 
 template <typename TAllMessages>
 constexpr bool msgFactoryAreAllWeakSorted()
 {
-    return MsgFactoryBinSearchSortedCheckHelper<false, TAllMessages>::Value;
+    return allMessagesAreWeakSorted<TAllMessages>();
 }
 
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>

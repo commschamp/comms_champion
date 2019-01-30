@@ -47,6 +47,8 @@ public:
     void test15();
     void test16();
     void test17();
+    void test18();
+    void test19();
 
 private:
 
@@ -201,6 +203,9 @@ private:
     typedef Message1<BeMessageBase> BeMsg1;
     typedef Message1<LeMessageBase> LeMsg1;
     typedef Message1<BeBasicMessageBase> BeBasicMsg1;
+    typedef Message2<BeBasicMessageBase> BeBasicMsg2;
+    typedef Message3<BeBasicMessageBase> BeBasicMsg3;
+
     typedef Message1<BeReadOnlyMessageBase> BeReadOnlyMsg1;
     typedef Message1<BeWriteOnlyMessageBase> BeWriteOnlyMsg1;
     typedef Message1<BeLengthOnlyMessageBase> BeLengthOnlyMsg1;
@@ -369,6 +374,43 @@ private:
     static_assert(ExtraTransportMessageBase::hasDispatch(), "Wrong interface");
     static_assert(ExtraTransportMessageBase::hasTransportFields(), "Wrong interface");
     static_assert(ExtraTransportMessageBase::hasVersionInTransportFields(), "Wrong interface");
+
+    template <typename TMsgBase>
+    class CountHandler
+    {
+    public:
+
+        template <typename TMsg>
+        void handle(TMsg&)
+        {
+            ++m_custom;
+        }
+
+        void handle(TMsgBase&)
+        {
+            ++m_base;
+        }
+
+        void clear()
+        {
+            m_custom = 0U;
+            m_base = 0U;
+        }
+
+        unsigned getCustomCount() const
+        {
+            return m_custom;
+        }
+
+        unsigned getBaseCount() const
+        {
+            return m_base;
+        }
+
+    private:
+        unsigned m_custom = 0U;
+        unsigned m_base = 0U;        
+    };
 };
 
 void MessageTestSuite::test1()
@@ -861,6 +903,49 @@ void MessageTestSuite::test17()
     TS_ASSERT_EQUALS(msg.length(), 1U);
 }
 
+void MessageTestSuite::test18()
+{
+    BoolHandlerMsg1 msg1;
+    BoolHandlerMsg2 msg2;
+    BoolHandlerMsg3 msg3;
+
+    BoolHandler handler;
+    TS_ASSERT(comms::dispatchMsgPolymorphic<BoolHandlerAllMessages>(msg1, handler));
+    TS_ASSERT_EQUALS(handler.getLastId(), msg1.getId());
+    TS_ASSERT(comms::dispatchMsgPolymorphic<BoolHandlerAllMessages>(msg2, handler));
+    TS_ASSERT_EQUALS(handler.getLastId(), msg2.getId());
+    TS_ASSERT(comms::dispatchMsgPolymorphic<BoolHandlerAllMessages>(msg3, handler));
+    TS_ASSERT_EQUALS(handler.getLastId(), msg3.getId());
+}
+
+void MessageTestSuite::test19()
+{
+    BeBasicMsg1 msg1;
+    BeBasicMsg2 msg2;
+    BeBasicMsg3 msg3;
+
+    using AllMessages = 
+        std::tuple<
+            BeBasicMsg1,
+            BeBasicMsg2
+        >;
+
+    CountHandler<BeBasicMessageBase> handler;
+    auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
+    comms::dispatchMsgStaticBinSearch<AllMessages>(msg1.doGetId(), *interface, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    interface = static_cast<BeBasicMessageBase*>(&msg2);
+    comms::dispatchMsgStaticBinSearch<AllMessages>(msg2.doGetId(), *interface, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    interface = static_cast<BeBasicMessageBase*>(&msg3);
+    comms::dispatchMsgStaticBinSearch<AllMessages>(msg3.doGetId(), *interface, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 1U);    
+}
 
 template <typename TMessage>
 TMessage MessageTestSuite::internalReadWriteTest(

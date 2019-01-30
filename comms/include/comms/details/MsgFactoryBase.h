@@ -25,6 +25,7 @@
 #include "comms/util/Tuple.h"
 #include "comms/util/alloc.h"
 #include "comms/MessageBase.h"
+#include "comms/details/message_check.h"
 
 namespace comms
 {
@@ -32,40 +33,16 @@ namespace comms
 namespace details
 {
 
-template <typename TMessage, bool TIsMessageBase>
-struct MsgFactoryMessageHasStaticNumId;
-
-template <typename TMessage>
-struct MsgFactoryMessageHasStaticNumId<TMessage, true>
-{
-    static const bool Value = TMessage::ImplOptions::HasStaticMsgId;
-};
-
-template <typename TMessage>
-struct MsgFactoryMessageHasStaticNumId<TMessage, false>
-{
-    static const bool Value = false;
-};
-
-struct MsgFactoryStaticNumIdCheckHelper
-{
-    template <typename TMessage>
-    constexpr bool operator()(bool value) const
-    {
-        return value && MsgFactoryMessageHasStaticNumId<TMessage, comms::isMessageBase<TMessage>()>::Value;
-    }
-};
-
 template <typename TAllMessages>
 constexpr bool msgFactoryAllHaveStaticNumId()
 {
-    return comms::util::tupleTypeAccumulate<TAllMessages>(true, MsgFactoryStaticNumIdCheckHelper());
+    return allMessagesHaveStaticNumId<TAllMessages>();
 }
 
 template <typename TMessage>
 constexpr bool msgFactoryMessageHasStaticNumId()
 {
-    return MsgFactoryMessageHasStaticNumId<TMessage, comms::isMessageBase<TMessage>()>::Value;
+    return messageHasStaticNumId<TMessage>();
 }
 
 template<bool TMustCat>

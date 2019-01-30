@@ -25,6 +25,8 @@
 #include "protocols.h"
 #include "units.h"
 #include "version.h"
+#include "dispatch.h"
+#include "field_cast.h"
 
 #include "Message.h"
 #include "EmptyHandler.h"

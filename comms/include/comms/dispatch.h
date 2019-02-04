@@ -38,14 +38,44 @@ auto dispatchMsgPolymorphic(TMsg&& msg, THandler& handler) ->
 {
     using MsgType = typename std::decay<decltype(msg)>::type;
     static_assert(comms::isMessage<MsgType>(), "msg param must be a valid message");
-    
-    static_assert(MsgType::hasDispatch(), 
-        "Message interface class must support polymorphic dispatch");
     using HandlerType = typename std::decay<decltype(handler)>::type;
-    static_assert(std::is_base_of<typename MsgType::Handler, HandlerType>::value, 
-        "Message cannot be dispatched to provided handler");
-    using RetType = details::MessageInterfaceDispatchRetType<HandlerType>;
-    return static_cast<RetType>(msg.dispatch(handler));
+    return 
+        details::DispatchMsgPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
+            dispatch(msg, handler);
+}
+
+template <
+    typename TAllMessages,
+    typename TId,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsgPolymorphic(TId&& id, TMsg&& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    using MsgType = typename std::decay<decltype(msg)>::type;
+    static_assert(comms::isMessage<MsgType>(), "msg param must be a valid message");
+    using HandlerType = typename std::decay<decltype(handler)>::type;
+    return 
+        details::DispatchMsgPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
+            dispatch(std::forward<TId>(id), msg, handler);
+}
+
+template <
+    typename TAllMessages,
+    typename TId,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsgPolymorphic(TId&& id, std::size_t offset, TMsg&& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    using MsgType = typename std::decay<decltype(msg)>::type;
+    static_assert(comms::isMessage<MsgType>(), "msg param must be a valid message");
+    using HandlerType = typename std::decay<decltype(handler)>::type;
+    return 
+        details::DispatchMsgPolymorphicHelper<TAllMessages, MsgType, HandlerType>::
+            dispatch(std::forward<TId>(id), offset, msg, handler);
 }
 
 template <

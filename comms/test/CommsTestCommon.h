@@ -40,6 +40,8 @@ enum MessageType {
     MessageType6,
     MessageType7,
     MessageType8,
+
+    MessageType90 = 90
 };
 
 template <typename TTraits>
@@ -575,6 +577,127 @@ public:
         return "Message8";
     }
 };
+
+template <typename TField>
+struct Message90_1Fields
+{
+    using typeField =
+            comms::field::IntValue<
+                TField, 
+                std::uint8_t,
+                comms::option::ValidNumValue<0>,
+                comms::option::FailOnInvalid<>
+            >;
+
+    using field1 = comms::field::IntValue<TField, std::uint32_t>;
+
+    using All = std::tuple<
+        typeField,
+        field1
+    >;
+
+};
+
+template <typename TMessage>
+class Message90_1 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType90>,
+            comms::option::FieldsImpl<typename Message90_1Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message90_1<TMessage> >,
+            comms::option::HasName
+        >
+{
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType90>,
+            comms::option::FieldsImpl<typename Message90_1Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message90_1<TMessage> >,
+            comms::option::HasName
+        >;
+public:
+
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
+
+    COMMS_MSG_FIELDS_ACCESS(value1);
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 5U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 5U, "Wrong serialisation length");
+
+    Message90_1() = default;
+
+    ~Message90_1() noexcept = default;
+
+    static const char* doName()
+    {
+        return "Message90 (1)";
+    }
+};
+
+template <typename TField>
+struct Message90_2Fields
+{
+    using typeField =
+            comms::field::IntValue<
+                TField, 
+                std::uint8_t,
+                comms::option::ValidNumValue<0>,
+                comms::option::FailOnInvalid<>
+            >;
+
+    using field1 = comms::field::IntValue<TField, std::uint8_t>;
+
+    using All = std::tuple<
+        typeField,
+        field1
+    >;
+
+};
+
+template <typename TMessage>
+class Message90_2 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType90>,
+            comms::option::FieldsImpl<typename Message90_2Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message90_2<TMessage> >,
+            comms::option::HasName
+        >
+{
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType90>,
+            comms::option::FieldsImpl<typename Message90_2Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message90_2<TMessage> >,
+            comms::option::HasName
+        >;
+public:
+
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
+
+    COMMS_MSG_FIELDS_ACCESS(value1);
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static const std::size_t MsgMaxLen = Base::doMaxLength();
+    static_assert(MsgMinLen == 2U, "Wrong serialisation length");
+    static_assert(MsgMaxLen == 2U, "Wrong serialisation length");
+
+    Message90_2() = default;
+
+    ~Message90_2() noexcept = default;
+
+    static const char* doName()
+    {
+        return "Message90 (2)";
+    }
+};
+
 
 template <typename TMessage>
 using AllMessages =

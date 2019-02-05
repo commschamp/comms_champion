@@ -83,22 +83,20 @@ template <
     typename TId,
     typename TMsg,
     typename THandler>
-auto dispatchMsgStaticBinSearch(TId&& id, std::size_t idx, TMsg& msg, THandler& handler) ->
+auto dispatchMsgStaticBinSearch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
     details::MessageInterfaceDispatchRetType<
         typename std::decay<decltype(handler)>::type>
 {
     static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
         "All messages in the provided tuple must statically define their numeric ID");
 
-    using HandlerType = typename std::decay<decltype(handler)>::type;
-    using RetType = details::MessageInterfaceDispatchRetType<HandlerType>;
 
-    return static_cast<RetType>(
-        details::DispatchMsgStaticBinSearchHelper<TAllMessages, 0U, std::tuple_size<TAllMessages>::value>::dispatch(
+    return 
+        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::dispatch(
             std::forward<TId>(id),
-            idx,
+            offset,
             msg,
-            handler));
+            handler);
 }
 
 template <
@@ -112,27 +110,12 @@ auto dispatchMsgStaticBinSearch(TId&& id, TMsg& msg, THandler& handler) ->
 {
     static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
         "All messages in the provided tuple must statically define their numeric ID");
-    static_assert(details::allMessagesAreStrongSorted<TAllMessages>(),
-        "All messages in the provided tuple must be sorted with unique IDs");
-    return dispatchMsgStaticBinSearch<TAllMessages>(std::forward<TId>(id), 0U, msg, handler);
-}
 
-template <
-    typename TAllMessages,
-    typename TId,
-    typename TMsg,
-    typename THandler>
-auto dispatchMsgStaticBinSearch(TMsg& msg, THandler& handler) ->
-    details::MessageInterfaceDispatchRetType<
-        typename std::decay<decltype(handler)>::type>
-{
-    using MsgType = typename std::decay<decltype(msg)>::type;
-    static_assert(comms::isMessage<MsgType>(), "msg param must be a valid message");
-
-    static_assert(MsgType::hasGetId(), 
-        "To be able to use this function, message object must have polymorphic ID retrieval member function.");
-
-    return dispatchMsgStaticBinSearch<TAllMessages>(msg.getId(), msg, handler);
+    return 
+        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::dispatch(
+            std::forward<TId>(id),
+            msg,
+            handler);
 }
 
 } // namespace comms

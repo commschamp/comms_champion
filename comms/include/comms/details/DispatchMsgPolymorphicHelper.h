@@ -162,7 +162,7 @@ public:
     {
         static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
         static_assert(messageHasStaticNumId<TMessage>(), "Message must define static ID");
-        static const PolymorphicDirectDispatchMethodImpl<TMsgBase, THandler, TMessage> Method;
+        static const PolymorphicDirectDispatchMethodImpl<TMsgBase, THandler, TMessage> Method{};
         m_registry[TMessage::doGetId()] = &Method;
     }
 private:
@@ -205,7 +205,7 @@ public:
     {
         static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
         static_assert(messageHasStaticNumId<TMessage>(), "Message must define static ID");
-        static const PolymorphicBinSearchDispatchMethodImpl<TMsgBase, THandler, TMessage> Method;
+        static const PolymorphicBinSearchDispatchMethodImpl<TMsgBase, THandler, TMessage> Method{};
         m_registry[m_idx] = &Method;
         ++m_idx;
     }
@@ -240,7 +240,7 @@ class PolymorphicDirectDispatchRegSizeDetect
     using MsgType = typename std::tuple_element<TMaxSize - 1, TAllMessages>::type;
     static_assert(comms::isMessageBase<MsgType>(), "Must be actual message");
     static_assert(messageHasStaticNumId<MsgType>(), "Message must define static numeric ID");
-    static const auto MsgId = MsgType::doGetId();
+    static const typename MsgType::MsgIdParamType MsgId = MsgType::doGetId();
 public:
     static const std::size_t Value = static_cast<std::size_t>(MsgId) + 1U;
 };
@@ -560,6 +560,7 @@ private:
         details::MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
+        static_cast<void>(id);
         static_assert(std::is_base_of<typename TMsgBase::Handler, THandler>::value,
             "Incompatible handlers");
 

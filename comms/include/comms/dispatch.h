@@ -118,4 +118,87 @@ auto dispatchMsgStaticBinSearch(TId&& id, TMsg& msg, THandler& handler) ->
             handler);
 }
 
+template <
+    typename TAllMessages,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsgStaticBinSearch(TMsg& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
+        "All messages in the provided tuple must statically define their numeric ID");
+    using MsgType = typename std::decay<decltype(msg)>::type;
+    static_assert(MsgType::hasGetId(), 
+        "The used message object must provide polymorphic ID retrieval function");
+
+    return 
+        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::dispatch(
+            msg,
+            handler);
+}
+
+// --
+
+template <
+    typename TAllMessages,
+    typename TId,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsgLinearSwitch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
+        "All messages in the provided tuple must statically define their numeric ID");
+
+
+    return 
+        details::DispatchMsgLinearSwitchHelper<TAllMessages>::dispatch(
+            std::forward<TId>(id),
+            offset,
+            msg,
+            handler);
+}
+
+template <
+    typename TAllMessages,
+    typename TId,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsgLinearSwitch(TId&& id, TMsg& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
+        "All messages in the provided tuple must statically define their numeric ID");
+
+    return 
+        details::DispatchMsgLinearSwitchHelper<TAllMessages>::dispatch(
+            std::forward<TId>(id),
+            msg,
+            handler);
+}
+
+template <
+    typename TAllMessages,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsgLinearSwitch(TMsg& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
+        "All messages in the provided tuple must statically define their numeric ID");
+    using MsgType = typename std::decay<decltype(msg)>::type;
+    static_assert(MsgType::hasGetId(), 
+        "The used message object must provide polymorphic ID retrieval function");
+
+    return 
+        details::DispatchMsgLinearSwitchHelper<TAllMessages>::dispatch(
+            msg,
+            handler);
+}
+
+
 } // namespace comms

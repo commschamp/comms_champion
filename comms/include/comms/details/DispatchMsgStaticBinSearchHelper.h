@@ -41,27 +41,25 @@ class DispatchMsgStrongStaticBinSearchHelper
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         using RetType = 
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
-        using IdType = typename std::decay<decltype(id)>::type;
 
-        auto midId = static_cast<IdType>(MidElem::doGetId());
+        typename TMsg::MsgIdParamType midId = MidElem::doGetId();
         if (id < midId) {
             return DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, Mid - TFrom>::dispatch(
-                    std::forward<TId>(id), msg, handler);
+                    id, msg, handler);
         }
 
         if (midId < id) {
             return DispatchMsgStrongStaticBinSearchHelper<TAllMessages, Mid, TCount - (Mid - TFrom)>::dispatch(
-                    std::forward<TId>(id), msg, handler);
+                    id, msg, handler);
         }
 
         auto& castedMsg = static_cast<MidElem&>(msg);
@@ -80,19 +78,17 @@ class DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, 1>
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         using RetType = 
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
-        using IdType = typename std::decay<decltype(id)>::type;
 
-        auto elemId = static_cast<IdType>(Elem::doGetId());
+        typename TMsg::MsgIdParamType elemId = Elem::doGetId();
         if (id != elemId) {
             return static_cast<RetType>(handler.handle(msg));
         }
@@ -107,10 +103,9 @@ class DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, 0>
 {
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -198,28 +193,28 @@ class DispatchMsgWeakStaticBinSearchHelper
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         using RetType = 
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
-        using IdType = typename std::decay<decltype(id)>::type;
 
-        auto midId = static_cast<IdType>(MidElem::doGetId());
+        typename TMsg::MsgIdParamType midId = MidElem::doGetId();
         if (id < midId) {
-            return DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, MidRangeStartIdx - TFrom>::dispatch(
-                    std::forward<TId>(id), offset, msg, handler);
+            return 
+                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, MidRangeStartIdx - TFrom>::
+                    dispatch(id, offset, msg, handler);
         }
 
         if (midId < id) {
             static const std::size_t NewStart = MidRangeStartIdx + MidRangeCount; 
-            return DispatchMsgWeakStaticBinSearchHelper<TAllMessages, NewStart, TCount - (NewStart - TFrom)>::dispatch(
-                    std::forward<TId>(id), offset, msg, handler);
+            return 
+                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, NewStart, TCount - (NewStart - TFrom)>::
+                    dispatch(id, offset, msg, handler);
         }
 
         if (MidRangeCount <= offset) {
@@ -275,10 +270,9 @@ class DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, 1>
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -290,9 +284,7 @@ public:
             return static_cast<RetType>(handler.handle(msg));
         }
 
-        using IdType = typename std::decay<decltype(id)>::type;
-
-        auto elemId = static_cast<IdType>(Elem::doGetId());
+        typename TMsg::MsgIdParamType elemId = Elem::doGetId();
         if (id != elemId) {
             return static_cast<RetType>(handler.handle(msg));
         }
@@ -326,10 +318,9 @@ class DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, 0>
 {
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -373,7 +364,6 @@ class DispatchMsgStaticBinSearchHelper
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
     static auto dispatch(TMsg& msg, THandler& handler) ->
@@ -394,7 +384,9 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(std::forward<TId>(id), msg, handler, BinSearchTag());
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using MsgIdParamType = typename MsgType::MsgIdParamType;
+        return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, BinSearchTag());
     }
 
     template <
@@ -405,28 +397,28 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(std::forward<TId>(id), offset, msg, handler, BinSearchTag());
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using MsgIdParamType = typename MsgType::MsgIdParamType;
+        return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, BinSearchTag());
     }
 
 private:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatchInternal(TId&& id, TMsg& msg, THandler& handler, StrongTag) ->
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler, StrongTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         return 
             DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
-                dispatch(std::forward<TId>(id), msg, handler);
+                dispatch(id, msg, handler);
     }
 
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatchInternal(TId&& id, std::size_t offset, TMsg& msg, THandler& handler, StrongTag) ->
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler, StrongTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -439,32 +431,30 @@ private:
         }
         return 
             DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
-                dispatch(std::forward<TId>(id), msg, handler);
+                dispatch(id, msg, handler);
 
     }
 
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatchInternal(TId&& id, TMsg& msg, THandler& handler, WeakTag) ->
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler, WeakTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(std::forward<TId>(id), 0U, msg, handler, WeakTag());
+        return dispatchInternal(id, 0U, msg, handler, WeakTag());
     }
 
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatchInternal(TId&& id, std::size_t offset, TMsg& msg, THandler& handler, WeakTag) ->
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler, WeakTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         return 
             DispatchMsgWeakStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
-                dispatch(std::forward<TId>(id), offset, msg, handler);
+                dispatch(id, offset, msg, handler);
 
     }
 };

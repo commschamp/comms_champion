@@ -41,19 +41,17 @@ class DispatchMsgStrongLinearSwitchHelper
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         using RetType = 
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
-        using IdType = typename std::decay<decltype(id)>::type;
 
-        static constexpr IdType fromId = static_cast<IdType>(FromElem::doGetId());
+        static constexpr typename TMsg::MsgIdParamType fromId = FromElem::doGetId();
         switch(id) {
             case fromId: {
                 auto& castedMsg = static_cast<FromElem&>(msg);
@@ -62,8 +60,8 @@ public:
             }
             default:
                 return 
-                    DispatchMsgStrongLinearSwitchHelper<TAllMessages, TCount - 1>::dispatch(
-                        std::forward<TId>(id), msg, handler);
+                    DispatchMsgStrongLinearSwitchHelper<TAllMessages, TCount - 1>::
+                        dispatch(id, msg, handler);
                 
         };
         // dead code (just in case), should not reach here
@@ -83,19 +81,17 @@ class DispatchMsgStrongLinearSwitchHelper<TAllMessages, 1>
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         using RetType = 
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
-        using IdType = typename std::decay<decltype(id)>::type;
 
-        auto elemId = static_cast<IdType>(Elem::doGetId());
+        typename TMsg::MsgIdParamType elemId = Elem::doGetId();
         if (id != elemId) {
             return static_cast<RetType>(handler.handle(msg));
         }
@@ -110,10 +106,9 @@ class DispatchMsgStrongLinearSwitchHelper<TAllMessages, 0>
 {
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -166,19 +161,17 @@ class DispatchMsgWeakLinearSwitchHelper
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         using RetType = 
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
-        using IdType = typename std::decay<decltype(id)>::type;
 
-        static constexpr IdType fromId = static_cast<IdType>(FromElem::doGetId());
+        static constexpr typename TMsg::MsgIdParamType fromId = FromElem::doGetId();
         switch(id) {
             case fromId:
                 return 
@@ -188,10 +181,9 @@ public:
             default:
                 return 
                     DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom + SameIdsCount, TCount - SameIdsCount>::
-                        dispatch(std::forward<TId>(id), offset, msg, handler);
+                        dispatch(id, offset, msg, handler);
         };
         // dead code (just in case), should not reach here
-        COMMS_ASSERT(0);
         return static_cast<RetType>(handler.handle(msg));
     }
 
@@ -234,10 +226,9 @@ class DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom, 1>
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -249,9 +240,7 @@ public:
             return static_cast<RetType>(handler.handle(msg));
         }
 
-        using IdType = typename std::decay<decltype(id)>::type;
-
-        auto elemId = static_cast<IdType>(Elem::doGetId());
+        typename TMsg::MsgIdParamType elemId = Elem::doGetId();
         if (id != elemId) {
             return static_cast<RetType>(handler.handle(msg));
         }
@@ -285,10 +274,9 @@ class DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom, 0>
 {
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+    static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -332,7 +320,6 @@ class DispatchMsgLinearSwitchHelper
 
 public:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
     static auto dispatch(TMsg& msg, THandler& handler) ->
@@ -353,7 +340,9 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(std::forward<TId>(id), msg, handler, BinSearchTag());
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using MsgIdParamType = typename MsgType::MsgIdParamType;
+        return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, BinSearchTag());
     }
 
     template <
@@ -364,28 +353,28 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(std::forward<TId>(id), offset, msg, handler, BinSearchTag());
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using MsgIdParamType = typename MsgType::MsgIdParamType;
+        return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, BinSearchTag());
     }
 
 private:
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatchInternal(TId&& id, TMsg& msg, THandler& handler, StrongTag) ->
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler, StrongTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         return 
             DispatchMsgStrongLinearSwitchHelper<TAllMessages, std::tuple_size<TAllMessages>::value>::
-                dispatch(std::forward<TId>(id), msg, handler);
+                dispatch(id, msg, handler);
     }
 
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatchInternal(TId&& id, std::size_t offset, TMsg& msg, THandler& handler, StrongTag) ->
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler, StrongTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -398,32 +387,30 @@ private:
         }
         return 
             DispatchMsgStrongLinearSwitchHelper<TAllMessages, std::tuple_size<TAllMessages>::value>::
-                dispatch(std::forward<TId>(id), msg, handler);
+                dispatch(id, msg, handler);
 
     }
 
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatchInternal(TId&& id, TMsg& msg, THandler& handler, WeakTag) ->
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler, WeakTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(std::forward<TId>(id), 0U, msg, handler, WeakTag());
+        return dispatchInternal(id, 0U, msg, handler, WeakTag());
     }
 
     template <
-        typename TId,
         typename TMsg,
         typename THandler>
-    static auto dispatchInternal(TId&& id, std::size_t offset, TMsg& msg, THandler& handler, WeakTag) ->
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler, WeakTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
         return 
             DispatchMsgWeakLinearSwitchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
-                dispatch(std::forward<TId>(id), offset, msg, handler);
+                dispatch(id, offset, msg, handler);
 
     }
 };

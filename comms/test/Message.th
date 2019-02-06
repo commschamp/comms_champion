@@ -975,12 +975,12 @@ void MessageTestSuite::test20()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgPolymorphic<AllMessages>(msg1.doGetId(), *interface, handler);
+    comms::dispatchMsgPolymorphic<AllMessages>((int)msg1.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
     interface = static_cast<BeBasicMessageBase*>(&msg2);
-    comms::dispatchMsgPolymorphic<AllMessages>(msg2.doGetId(), *interface, handler);
+    comms::dispatchMsgPolymorphic<AllMessages>((unsigned)msg2.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
@@ -1008,12 +1008,12 @@ void MessageTestSuite::test21()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgPolymorphic<AllMessages>(msg1.doGetId(), *interface, handler);
+    comms::dispatchMsgPolymorphic<AllMessages>((int)msg1.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
     interface = static_cast<BeBasicMessageBase*>(&msg2);
-    comms::dispatchMsgPolymorphic<AllMessages>(msg2.doGetId(), *interface, handler);
+    comms::dispatchMsgPolymorphic<AllMessages>((unsigned)msg2.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
@@ -1050,11 +1050,11 @@ void MessageTestSuite::test22()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgPolymorphic<AllMessages>(msg1.doGetId(), 0U, *interface, handler);
+    comms::dispatchMsgPolymorphic<AllMessages>((int)msg1.doGetId(), 0U, *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
-    comms::dispatchMsgPolymorphic<AllMessages>(msg1.doGetId(), 1U, *interface, handler);
+    comms::dispatchMsgPolymorphic<AllMessages>((unsigned)msg1.doGetId(), 1U, *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 1U);
 
@@ -1102,12 +1102,12 @@ void MessageTestSuite::test23()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgStaticBinSearch<AllMessages>(msg1.doGetId(), *interface, handler);
+    comms::dispatchMsgStaticBinSearch<AllMessages>((int)msg1.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
     interface = static_cast<BeBasicMessageBase*>(&msg2);
-    comms::dispatchMsgStaticBinSearch<AllMessages>(msg2.doGetId(), *interface, handler);
+    comms::dispatchMsgStaticBinSearch<AllMessages>((unsigned)msg2.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
@@ -1135,12 +1135,12 @@ void MessageTestSuite::test24()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgStaticBinSearch<AllMessages>(msg1.doGetId(), *interface, handler);
+    comms::dispatchMsgStaticBinSearch<AllMessages>((int)msg1.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
     interface = static_cast<BeBasicMessageBase*>(&msg2);
-    comms::dispatchMsgStaticBinSearch<AllMessages>(msg2.doGetId(), *interface, handler);
+    comms::dispatchMsgStaticBinSearch<AllMessages>((unsigned)msg2.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
@@ -1177,11 +1177,11 @@ void MessageTestSuite::test25()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgStaticBinSearch<AllMessages>(msg1.doGetId(), 0U, *interface, handler);
+    comms::dispatchMsgStaticBinSearch<AllMessages>((int)msg1.doGetId(), 0U, *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
-    comms::dispatchMsgStaticBinSearch<AllMessages>(msg1.doGetId(), 1U, *interface, handler);
+    comms::dispatchMsgStaticBinSearch<AllMessages>((unsigned)msg1.doGetId(), 1U, *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 1U);
 
@@ -1229,12 +1229,12 @@ void MessageTestSuite::test26()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgLinearSwitch<AllMessages>(msg1.doGetId(), *interface, handler);
+    comms::dispatchMsgLinearSwitch<AllMessages>((int)msg1.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
     interface = static_cast<BeBasicMessageBase*>(&msg2);
-    comms::dispatchMsgLinearSwitch<AllMessages>(msg2.doGetId(), *interface, handler);
+    comms::dispatchMsgLinearSwitch<AllMessages>((unsigned)msg2.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
@@ -1261,12 +1261,12 @@ void MessageTestSuite::test27()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgLinearSwitch<AllMessages>(msg1.doGetId(), *interface, handler);
+    comms::dispatchMsgLinearSwitch<AllMessages>((int)msg1.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
     interface = static_cast<BeBasicMessageBase*>(&msg2);
-    comms::dispatchMsgLinearSwitch<AllMessages>(msg2.doGetId(), *interface, handler);
+    comms::dispatchMsgLinearSwitch<AllMessages>((unsigned)msg2.doGetId(), *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
@@ -1303,11 +1303,11 @@ void MessageTestSuite::test28()
 
     CountHandler<BeBasicMessageBase> handler;
     auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
-    comms::dispatchMsgLinearSwitch<AllMessages>(msg1.doGetId(), 0U, *interface, handler);
+    comms::dispatchMsgLinearSwitch<AllMessages>((int)msg1.doGetId(), 0U, *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
-    comms::dispatchMsgLinearSwitch<AllMessages>(msg1.doGetId(), 1U, *interface, handler);
+    comms::dispatchMsgLinearSwitch<AllMessages>((unsigned)msg1.doGetId(), 1U, *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 1U);
 

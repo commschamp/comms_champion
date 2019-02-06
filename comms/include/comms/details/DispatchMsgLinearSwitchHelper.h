@@ -28,16 +28,16 @@ namespace comms
 namespace details
 {
 
-template <typename TAllMessages, std::size_t TFrom, std::size_t TCount>
-class DispatchMsgStrongStaticBinSearchHelper    
+template <typename TAllMessages, std::size_t TCount>
+class DispatchMsgStrongLinearSwitchHelper    
 {
-    static_assert(TFrom + TCount <= std::tuple_size<TAllMessages>::value, 
+    static_assert(TCount <= std::tuple_size<TAllMessages>::value, 
         "Invalid template params");
-
     static_assert(2 <= TCount, "Invalid invocation");
-    static const std::size_t Mid = TFrom + (TCount / 2);        
-    using MidElem = typename std::tuple_element<Mid, TAllMessages>::type;
-    static_assert(messageHasStaticNumId<MidElem>(), "Message must define static ID");
+
+    static const std::size_t From = std::tuple_size<TAllMessages>::value - TCount;
+    using FromElem = typename std::tuple_element<From, TAllMessages>::type;
+    static_assert(messageHasStaticNumId<FromElem>(), "Message must define static ID");
 
 public:
     template <
@@ -53,29 +53,32 @@ public:
                 typename std::decay<decltype(handler)>::type>;
         using IdType = typename std::decay<decltype(id)>::type;
 
-        auto midId = static_cast<IdType>(MidElem::doGetId());
-        if (id < midId) {
-            return DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, Mid - TFrom>::dispatch(
-                    std::forward<TId>(id), msg, handler);
-        }
-
-        if (midId < id) {
-            return DispatchMsgStrongStaticBinSearchHelper<TAllMessages, Mid, TCount - (Mid - TFrom)>::dispatch(
-                    std::forward<TId>(id), msg, handler);
-        }
-
-        auto& castedMsg = static_cast<MidElem&>(msg);
-        return static_cast<RetType>(handler.handle(castedMsg));
+        static constexpr IdType fromId = static_cast<IdType>(FromElem::doGetId());
+        switch(id) {
+            case fromId: {
+                auto& castedMsg = static_cast<FromElem&>(msg);
+                return static_cast<RetType>(handler.handle(castedMsg));
+                break;
+            }
+            default:
+                return 
+                    DispatchMsgStrongLinearSwitchHelper<TAllMessages, TCount - 1>::dispatch(
+                        std::forward<TId>(id), msg, handler);
+                
+        };
+        // dead code (just in case), should not reach here
+        return static_cast<RetType>(handler.handle(msg));
     }
 };
 
-template <typename TAllMessages, std::size_t TFrom>
-class DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, 1>
+template <typename TAllMessages>
+class DispatchMsgStrongLinearSwitchHelper<TAllMessages, 1>
 {
-    static_assert(TFrom + 1 <= std::tuple_size<TAllMessages>::value, 
+    static_assert(1 <= std::tuple_size<TAllMessages>::value, 
         "Invalid template params");
 
-    using Elem = typename std::tuple_element<TFrom, TAllMessages>::type;
+    static const std::size_t From = std::tuple_size<TAllMessages>::value - 1U;
+    using Elem = typename std::tuple_element<From, TAllMessages>::type;
     static_assert(messageHasStaticNumId<Elem>(), "Message must define static ID");
 
 public:
@@ -102,8 +105,8 @@ public:
     }
 };
 
-template <typename TAllMessages, std::size_t TFrom>
-class DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, 0>
+template <typename TAllMessages>
+class DispatchMsgStrongLinearSwitchHelper<TAllMessages, 0>
 {
 public:
     template <
@@ -123,78 +126,43 @@ public:
     }
 };
 
-template <typename TAllMessages, std::size_t TIdx>
-class DispatchMsgWeakStartIdxFinder
-{
-    using CurrMsgType = typename std::tuple_element<TIdx, TAllMessages>::type;
-    using PrevMsgType = typename std::tuple_element<TIdx - 1, TAllMessages>::type;
-    static const bool IdsMatch = CurrMsgType::doGetId() == PrevMsgType::doGetId();
-public:
-    static const std::size_t Value = IdsMatch ? DispatchMsgWeakStartIdxFinder<TAllMessages, TIdx - 1>::Value : TIdx;
-};
-
-template <typename TAllMessages>
-class DispatchMsgWeakStartIdxFinder<TAllMessages, 0U>
-{
-public:
-    static const std::size_t Value = 0U;
-};
-
 template <typename TAllMessages, std::size_t TOrigIdx, std::size_t TRem>
-class DispatchMsgWeakCountFinder
+class DispatchMsgLinearSwitchWeakCountFinder
 {
     using OrigMsgType = typename std::tuple_element<TOrigIdx, TAllMessages>::type;
     static const std::size_t Idx = std::tuple_size<TAllMessages>::value - TRem;
     using CurrMsgType = typename std::tuple_element<Idx, TAllMessages>::type;
     static const bool IdsMatch = OrigMsgType::doGetId() == CurrMsgType::doGetId();
 public:
-    static const std::size_t Value = IdsMatch ? DispatchMsgWeakCountFinder<TAllMessages, TOrigIdx, TRem - 1>::Value + 1 : 0U;
+    static const std::size_t Value = IdsMatch ? DispatchMsgLinearSwitchWeakCountFinder<TAllMessages, TOrigIdx, TRem - 1>::Value + 1 : 0U;
 };
 
 template <typename TAllMessages, std::size_t TOrigIdx>
-class DispatchMsgWeakCountFinder<TAllMessages, TOrigIdx, 0U>
+class DispatchMsgLinearSwitchWeakCountFinder<TAllMessages, TOrigIdx, 0U>
 {
 public:
     static const std::size_t Value = 0U;
 };
 
 template <typename TAllMessages, std::size_t TFrom, std::size_t TCount>
-class DispatchMsgWeakStaticBinSearchHelper    
+class DispatchMsgWeakLinearSwitchHelper    
 {
-    static_assert(TFrom < std::tuple_size<TAllMessages>::value, 
-        "Invalid template params");
-
     static_assert(TFrom + TCount <= std::tuple_size<TAllMessages>::value, 
         "Invalid template params");
-
     static_assert(2 <= TCount, "Invalid invocation");
-    static const std::size_t Mid = TFrom + (TCount / 2);        
-    static_assert(Mid < std::tuple_size<TAllMessages>::value, 
-        "Invalid template params");
 
-    using MidElem = typename std::tuple_element<Mid, TAllMessages>::type;
-    static_assert(messageHasStaticNumId<MidElem>(), "Message must define static ID");
-    
-    static const std::size_t MidRangeStartIdxTmp = DispatchMsgWeakStartIdxFinder<TAllMessages, Mid>::Value;
-    static_assert(MidRangeStartIdxTmp <= Mid, "Invalid calculation");
-    static const std::size_t MidRangeStartIdx = 
-        MidRangeStartIdxTmp < TFrom ? TFrom : MidRangeStartIdxTmp;
+    using FromElem = typename std::tuple_element<TFrom, TAllMessages>::type;
+    static_assert(messageHasStaticNumId<FromElem>(), "Message must define static ID");
 
-    static const std::size_t MidRangeCountTmp = 
-        DispatchMsgWeakCountFinder<
+    static const std::size_t SameIdsCount = 
+        DispatchMsgLinearSwitchWeakCountFinder<
             TAllMessages, 
-            MidRangeStartIdx, 
-            std::tuple_size<TAllMessages>::value - MidRangeStartIdx
+            TFrom, 
+            TCount
         >::Value;
-    static const std::size_t MidRangeCount = 
-        ((TCount - MidRangeStartIdx) < MidRangeCountTmp) ? (TCount - MidRangeStartIdx) : MidRangeCountTmp;
     
-    static_assert(MidRangeStartIdx <= Mid, "Invalid calculation");
-    static_assert(MidRangeStartIdx < std::tuple_size<TAllMessages>::value, 
-        "Invalid template params");
-
-    static_assert(MidRangeStartIdx + MidRangeCount <= std::tuple_size<TAllMessages>::value, 
-        "Invalid template params");
+    static_assert(SameIdsCount <= TCount, "Invalid template params");
+    static_assert(0U < SameIdsCount, "Invalid template params");
 
 public:
     template <
@@ -210,28 +178,21 @@ public:
                 typename std::decay<decltype(handler)>::type>;
         using IdType = typename std::decay<decltype(id)>::type;
 
-        auto midId = static_cast<IdType>(MidElem::doGetId());
-        if (id < midId) {
-            return DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, MidRangeStartIdx - TFrom>::dispatch(
-                    std::forward<TId>(id), offset, msg, handler);
-        }
+        static constexpr IdType fromId = static_cast<IdType>(FromElem::doGetId());
+        switch(id) {
+            case fromId:
+                return 
+                    DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom, SameIdsCount>::
+                        dispatchOffset(offset, msg, handler);
 
-        if (midId < id) {
-            static const std::size_t NewStart = MidRangeStartIdx + MidRangeCount; 
-            return DispatchMsgWeakStaticBinSearchHelper<TAllMessages, NewStart, TCount - (NewStart - TFrom)>::dispatch(
-                    std::forward<TId>(id), offset, msg, handler);
-        }
-
-        if (MidRangeCount <= offset) {
-            return static_cast<RetType>(handler.handle(msg));
-        }
-
-        return 
-            DispatchMsgWeakStaticBinSearchHelper<TAllMessages, MidRangeStartIdx, MidRangeCount>::
-                dispatchOffset(offset, msg, handler);
-
-        auto& castedMsg = static_cast<MidElem&>(msg);
-        return static_cast<RetType>(handler.handle(castedMsg));
+            default:
+                return 
+                    DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom + SameIdsCount, TCount - SameIdsCount>::
+                        dispatch(std::forward<TId>(id), offset, msg, handler);
+        };
+        // dead code (just in case), should not reach here
+        COMMS_ASSERT(0);
+        return static_cast<RetType>(handler.handle(msg));
     }
 
     template <
@@ -245,27 +206,25 @@ public:
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
 
-        static const std::size_t MidOffset = TCount / 2;
+        switch(offset) {
+            case 0:
+            {
+                auto& castedMsg = static_cast<FromElem&>(msg);
+                return static_cast<RetType>(handler.handle(castedMsg));
+            }
+            default:
+                return 
+                    DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom + 1, TCount -1>::
+                        dispatchOffset(offset - 1, msg, handler);
+        };
 
-        if (offset < MidOffset) {
-            return 
-                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, MidOffset>::
-                    dispatchOffset(offset, msg, handler);
-        }
-
-        if (MidOffset < offset) {
-            return 
-                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, MidOffset, TCount - (MidOffset - TFrom) >::
-                    dispatchOffset(offset - MidOffset, msg, handler);
-        }
-
-        auto& castedMsg = static_cast<MidElem&>(msg);
-        return static_cast<RetType>(handler.handle(castedMsg));
+        // dead code (just in case), should not reach here
+        return static_cast<RetType>(handler.handle(msg));
     }
 };
 
 template <typename TAllMessages, std::size_t TFrom>
-class DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, 1>
+class DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom, 1>
 {
     static_assert(TFrom + 1 <= std::tuple_size<TAllMessages>::value, 
         "Invalid template params");
@@ -322,7 +281,7 @@ public:
 };
 
 template <typename TAllMessages, std::size_t TFrom>
-class DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, 0>
+class DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom, 0>
 {
 public:
     template <
@@ -359,7 +318,7 @@ public:
 };
 
 template <typename TAllMessages>
-class DispatchMsgStaticBinSearchHelper    
+class DispatchMsgLinearSwitchHelper    
 {
     struct StrongTag {};
     struct WeakTag {};
@@ -418,7 +377,7 @@ private:
             typename std::decay<decltype(handler)>::type>
     {
         return 
-            DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
+            DispatchMsgStrongLinearSwitchHelper<TAllMessages, std::tuple_size<TAllMessages>::value>::
                 dispatch(std::forward<TId>(id), msg, handler);
     }
 
@@ -438,7 +397,7 @@ private:
 
         }
         return 
-            DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
+            DispatchMsgStrongLinearSwitchHelper<TAllMessages, std::tuple_size<TAllMessages>::value>::
                 dispatch(std::forward<TId>(id), msg, handler);
 
     }
@@ -463,7 +422,7 @@ private:
             typename std::decay<decltype(handler)>::type>
     {
         return 
-            DispatchMsgWeakStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
+            DispatchMsgWeakLinearSwitchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
                 dispatch(std::forward<TId>(id), offset, msg, handler);
 
     }

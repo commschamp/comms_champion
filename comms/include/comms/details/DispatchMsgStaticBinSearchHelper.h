@@ -373,6 +373,8 @@ public:
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::hasGetId(), 
             "The used message object must provide polymorphic ID retrieval function");
+        static_assert(MsgType::hasMsgIdType(), 
+            "Message interface class must define its id type");            
         return dispatch(msg.getId(), msg, handler, BinSearchTag());
     }
 
@@ -385,6 +387,9 @@ public:
             typename std::decay<decltype(handler)>::type>
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(MsgType::hasMsgIdType(), 
+            "Message interface class must define its id type");            
+
         using MsgIdParamType = typename MsgType::MsgIdParamType;
         return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, BinSearchTag());
     }
@@ -398,6 +403,9 @@ public:
             typename std::decay<decltype(handler)>::type>
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(MsgType::hasMsgIdType(), 
+            "Message interface class must define its id type");            
+
         using MsgIdParamType = typename MsgType::MsgIdParamType;
         return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, BinSearchTag());
     }

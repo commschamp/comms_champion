@@ -80,6 +80,7 @@ public:
     PolymorphicBinSearchDispatchMethod(const PolymorphicBinSearchDispatchMethod&) = delete;
     PolymorphicBinSearchDispatchMethod& operator=(const PolymorphicBinSearchDispatchMethod&) = delete;
 
+    static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename TMsgBase::MsgIdParamType;
     virtual MsgIdParamType getId() const
     {
@@ -107,6 +108,7 @@ class PolymorphicBinSearchDispatchMethodImpl : public
 {
     using Base = PolymorphicBinSearchDispatchMethod<TMsgBase, THandler>;
 public:
+    static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename Base::MsgIdParamType;
 
     PolymorphicBinSearchDispatchMethodImpl() = default;
@@ -240,6 +242,7 @@ class PolymorphicDirectDispatchRegSizeDetect
     using MsgType = typename std::tuple_element<TMaxSize - 1, TAllMessages>::type;
     static_assert(comms::isMessageBase<MsgType>(), "Must be actual message");
     static_assert(messageHasStaticNumId<MsgType>(), "Message must define static numeric ID");
+    static_assert(MsgType::hasMsgIdType(), "Message interface class must define its id type");
     static const typename MsgType::MsgIdParamType MsgId = MsgType::doGetId();
 public:
     static const std::size_t Value = static_cast<std::size_t>(MsgId) + 1U;
@@ -256,6 +259,7 @@ template <typename TAllMessages, typename TMsgBase, typename THandler>
 class DispatchMsgDirectPolymorphicHelper    
 {
 public:
+    static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename TMsgBase::MsgIdParamType;
     static auto dispatch(MsgIdParamType id, TMsgBase& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
@@ -322,6 +326,7 @@ class DispatchMsgBinSearchStrongPolymorphicHelper : public
     using Base = DispatchMsgBinSearchPolymorphicHelperBase<TAllMessages, TMsgBase, THandler>;
     using Registry = typename Base::Registry;
 public:
+    static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename TMsgBase::MsgIdParamType;
     static auto dispatch(MsgIdParamType id, TMsgBase& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
@@ -455,6 +460,7 @@ class DispatchMsgPolymorphicHelper
     static_assert(comms::isMessage<TMsgBase>(), 
         "TMsgBase is expected to be message interface class");
 
+    static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename TMsgBase::MsgIdParamType;
 
     using Tag = 

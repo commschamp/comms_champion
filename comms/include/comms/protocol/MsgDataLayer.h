@@ -28,6 +28,7 @@
 #include "comms/field/IntValue.h"
 #include "comms/Message.h"
 #include "comms/MessageBase.h"
+#include "comms/details/detect.h"
 #include "ProtocolLayerBase.h"
 
 namespace comms

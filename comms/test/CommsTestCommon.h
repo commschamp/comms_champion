@@ -707,6 +707,43 @@ using AllMessages =
         Message3<TMessage>
     >;
 
+namespace details
+{
+
+struct HasLengthTag {};
+struct NoLengthTag {};
+
+template <typename TFrame, typename TMsg>
+void verifyFrameLengthIfPossible(TFrame& frame, const TMsg& msg, std::size_t expLength, HasLengthTag)
+{
+    TS_ASSERT_EQUALS(expLength, frame.length(msg));
+}
+
+template <typename TFrame, typename TMsg>
+void verifyFrameLengthIfPossible(TFrame& frame, const TMsg& msg, std::size_t expLength, NoLengthTag)
+{
+    static_cast<void>(frame);
+    static_cast<void>(msg);
+    static_cast<void>(expLength);
+    // nothing to do
+}
+
+}
+
+template <typename TFrame, typename TMsg>
+void verifyFrameLengthIfPossible(TFrame& frame, const TMsg& msg, std::size_t expLength)
+{
+    using MsgType = typename std::decay<decltype(msg)>::type;
+    using Tag = 
+        typename std::conditional<
+            MsgType::hasLength(),
+            details::HasLengthTag,
+            details::NoLengthTag
+        >::type;
+
+
+    return details::verifyFrameLengthIfPossible(frame, msg, expLength, Tag());
+}
 
 template <typename TProtStack>
 typename TProtStack::MsgPtr commonReadWriteMsgTest(
@@ -728,7 +765,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     TS_ASSERT(msg);
 
     auto actualBufSize = static_cast<std::size_t>(std::distance(buf, readIter));
-    TS_ASSERT_EQUALS(actualBufSize, stack.length(*msg));
+    verifyFrameLengthIfPossible(stack, *msg, actualBufSize);
     std::unique_ptr<char []> outCheckBuf(new char[actualBufSize]);
     auto writeIter = &outCheckBuf[0];
     es = stack.write(*msg, writeIter, actualBufSize);

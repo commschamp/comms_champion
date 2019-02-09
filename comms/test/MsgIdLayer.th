@@ -448,24 +448,16 @@ void MsgIdLayerTestSuite::test10()
     auto readIter = &Buf[0];
     auto es = stack.read(msg, readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    //NonPolymorphicBeMsg1 msg;
-    // TS_ASSERT_EQUALS(msg.doGetId(), MessageType1);
-    // auto msg = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
-    // auto* castedMsg = static_cast<NonPolymorphicBeMsg1*>(msg.get());
-    // TS_ASSERT_EQUALS(std::get<0>(castedMsg->fields()).value(), 0x0102);
+    auto* castedMsg = dynamic_cast<NonPolymorphicBeMsg1*>(msg.get());
+    TS_ASSERT_DIFFERS(castedMsg, nullptr);
+    TS_ASSERT_EQUALS(std::get<0>(castedMsg->fields()).value(), 0x0102);
 
-    // ProtStack::AllFields fields;
-    // commonReadWriteMsgDirectTest(stack, fields, msg, &Buf[0], BufSize);
-    // TS_ASSERT_EQUALS(std::get<0>(fields).value(), MessageType1);
-
-    // NonPolymorphicBeMsg2 msg2;
-    // TS_ASSERT_EQUALS(msg2.doGetId(), MessageType2);
-    // commonReadWriteMsgDirectTest(stack, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
-
-    // ProtStack::AllFields fields2;
-    // std::get<0>(fields2).value() = MessageType5; // just to make sure it is updated.
-    // commonReadWriteMsgDirectTest(stack, fields2, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
-    // TS_ASSERT_EQUALS(std::get<0>(fields2).value(), MessageType1);
+    std::vector<std::uint8_t> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    es = stack.write(*castedMsg, writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(outBuf.size(), BufSize);
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), &Buf[0]));
 }
 
 void MsgIdLayerTestSuite::test11()

@@ -241,7 +241,6 @@ public:
             >::type;
 
         return writeInternal(field, msg, iter, size - field.length(), std::forward<TNextLayerWriter>(nextLayerWriter), Tag());
-        //return nextLayerWriter.write(msg, iter, size - field.length());
     }
 
     /// @copybrief ProtocolLayerBase::createMsg
@@ -508,10 +507,6 @@ private:
             return comms::ErrorStatus::MsgAllocFailure;
         }        
         
-        // if ((0U < idx) && Factory::hasUniqueIds()) {
-        //     return es;
-        // }
-
         using GenericMsgTag = 
             typename std::conditional<
                 Factory::ParsedOptions::HasSupportGenericMessage,
@@ -529,21 +524,6 @@ private:
             es,
             GenericMsgTag());
 
-        // msg = createGenericMsgInternal(id);
-        // if (!msg) {
-        //     if (idx == 0) {
-        //         return comms::ErrorStatus::InvalidMsgId;
-        //     }
-
-        //     return es;
-        // }
-
-        // es = doReadInternal(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
-        // if (es != comms::ErrorStatus::Success) {
-        //     msg.reset();
-        // }
-
-        // return es;
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader>

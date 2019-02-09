@@ -40,6 +40,8 @@ public:
     void test8();
     void test9();
     void test10();
+    void test11();
+    void test12();
 
 private:
 
@@ -193,6 +195,30 @@ private:
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
     };
+
+    template <typename TField, typename TMessage>
+    class GenericMessageProtocolStack : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            AllMessages<TMessage>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                AllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };    
 };
 
 void MsgIdLayerTestSuite::test1()
@@ -440,4 +466,33 @@ void MsgIdLayerTestSuite::test10()
     // std::get<0>(fields2).value() = MessageType5; // just to make sure it is updated.
     // commonReadWriteMsgDirectTest(stack, fields2, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
     // TS_ASSERT_EQUALS(std::get<0>(fields2).value(), MessageType1);
+}
+
+void MsgIdLayerTestSuite::test11()
+{
+    static const char Buf[] = {
+        MessageType5, 0x01, 0x02, 0x03,
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeMsgBase>;
+    ProtStack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+    TS_ASSERT(!msgPtr);
+}
+
+void MsgIdLayerTestSuite::test12()
+{
+    static const char Buf[] = {
+        MessageType5, 0x01, 0x02, 0x03,
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = GenericMessageProtocolStack<BeField1, BeMsgBase>;
+    ProtStack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType5);
 }

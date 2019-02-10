@@ -449,7 +449,7 @@ void MsgIdLayerTestSuite::test10()
     auto es = stack.read(msg, readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     auto* castedMsg = dynamic_cast<NonPolymorphicBeMsg1*>(msg.get());
-    TS_ASSERT_DIFFERS(castedMsg, nullptr);
+    TS_ASSERT(castedMsg != nullptr);
     TS_ASSERT_EQUALS(std::get<0>(castedMsg->fields()).value(), 0x0102);
 
     std::vector<std::uint8_t> outBuf;

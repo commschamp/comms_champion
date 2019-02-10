@@ -65,6 +65,26 @@ public:
         auto& castedMsg = static_cast<MidElem&>(msg);
         return static_cast<RetType>(handler.handle(castedMsg));
     }
+
+    template <typename THandler>
+    static bool dispatchType(typename MidElem::MsgIdParamType id, THandler& handler)
+    {
+        typename MidElem::MsgIdParamType midId = MidElem::doGetId();
+        if (id < midId) {
+            return 
+                DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, Mid - TFrom>::
+                    dispatchType(id, handler);
+        }
+
+        if (midId < id) {
+            return 
+                DispatchMsgStrongStaticBinSearchHelper<TAllMessages, Mid, TCount - (Mid - TFrom)>::
+                    dispatchType(id, handler);
+        }
+
+        handler.template handle<MidElem>();
+        return true;
+    }    
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -96,6 +116,18 @@ public:
         auto& castedMsg = static_cast<Elem&>(msg);
         return static_cast<RetType>(handler.handle(castedMsg));
     }
+
+    template <typename THandler>
+    static bool dispatchType(typename Elem::MsgIdParamType id, THandler& handler)
+    {
+        typename Elem::MsgIdParamType elemId = Elem::doGetId();
+        if (id != elemId) {
+            return false;
+        }
+
+        handler.template handle<Elem>();
+        return true;
+    }      
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -116,6 +148,14 @@ public:
                 typename std::decay<decltype(handler)>::type>;
         return static_cast<RetType>(handler.handle(msg));
     }
+
+    template <typename TId, typename THandler>
+    static bool dispatchType(TId&& id, THandler& handler)
+    {
+        static_cast<void>(id);
+        static_cast<void>(handler);
+        return false;
+    }     
 };
 
 template <typename TAllMessages, std::size_t TIdx>
@@ -225,8 +265,6 @@ public:
             DispatchMsgWeakStaticBinSearchHelper<TAllMessages, MidRangeStartIdx, MidRangeCount>::
                 dispatchOffset(offset, msg, handler);
 
-        auto& castedMsg = static_cast<MidElem&>(msg);
-        return static_cast<RetType>(handler.handle(castedMsg));
     }
 
     template <
@@ -257,6 +295,53 @@ public:
         auto& castedMsg = static_cast<MidElem&>(msg);
         return static_cast<RetType>(handler.handle(castedMsg));
     }
+
+    template <typename THandler>
+    static bool dispatchType(typename MidElem::MsgIdParamType id, std::size_t offset, THandler& handler) 
+    {
+        typename MidElem::MsgIdParamType midId = MidElem::doGetId();
+        if (id < midId) {
+            return 
+                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, MidRangeStartIdx - TFrom>::
+                    dispatchType(id, offset, handler);
+        }
+
+        if (midId < id) {
+            static const std::size_t NewStart = MidRangeStartIdx + MidRangeCount; 
+            return 
+                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, NewStart, TCount - (NewStart - TFrom)>::
+                    dispatchType(id, offset, handler);
+        }
+
+        if (MidRangeCount <= offset) {
+            return false;
+        }
+
+        return 
+            DispatchMsgWeakStaticBinSearchHelper<TAllMessages, MidRangeStartIdx, MidRangeCount>::
+                dispatchTypeOffset(offset, handler);
+    }    
+
+    template <typename THandler>
+    static bool dispatchTypeOffset(std::size_t offset, THandler& handler)
+    {
+        static const std::size_t MidOffset = TCount / 2;
+
+        if (offset < MidOffset) {
+            return 
+                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, MidOffset>::
+                    dispatchTypeOffset(offset, handler);
+        }
+
+        if (MidOffset < offset) {
+            return 
+                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, MidOffset, TCount - (MidOffset - TFrom) >::
+                    dispatchTypeOffset(offset - MidOffset, handler);
+        }
+
+        handler.template handle<MidElem>();
+        return true;
+    }    
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -311,6 +396,33 @@ public:
         auto& castedMsg = static_cast<Elem&>(msg);
         return static_cast<RetType>(handler.handle(castedMsg));
     }
+
+    template <typename THandler>
+    static bool dispatchType(typename Elem::MsgIdParamType id, std::size_t offset, THandler& handler) 
+    {
+        if (offset != 0U) {
+            return false;
+        }
+
+        typename Elem::MsgIdParamType elemId = Elem::doGetId();
+        if (id != elemId) {
+            return false;
+        }
+
+        handler.template handle<Elem>();
+        return true;
+    }
+
+    template <typename THandler>
+    static bool dispatchTypeOffset(std::size_t offset, THandler& handler) 
+    {
+        if (offset != 0U) {
+            return false;
+        }
+
+        handler.template handle<Elem>();
+        return true;
+    }    
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -347,19 +459,41 @@ public:
                 typename std::decay<decltype(handler)>::type>;
         return static_cast<RetType>(handler.handle(msg));
     }
+
+    template <typename TId, typename THandler>
+    static bool dispatchType(TId&& id, std::size_t offset, THandler& handler)
+    {
+        static_cast<void>(id);
+        static_cast<void>(offset);
+        static_cast<void>(handler);
+        return false;
+    }      
+
+    template <typename THandler>
+    static bool dispatchTypeOffset(std::size_t offset, THandler& handler) 
+    {
+        static_cast<void>(offset);
+        static_cast<void>(handler);
+        return false;
+    }        
 };
 
 template <typename TAllMessages>
 class DispatchMsgStaticBinSearchHelper    
 {
+    struct EmptyTag {};
     struct StrongTag {};
     struct WeakTag {};
 
     using BinSearchTag = 
         typename std::conditional<
-            allMessagesAreStrongSorted<TAllMessages>(),
-            StrongTag,
-            WeakTag
+            std::tuple_size<TAllMessages>::value == 0U,
+            EmptyTag,
+            typename std::conditional<
+                allMessagesAreStrongSorted<TAllMessages>(),
+                StrongTag,
+                WeakTag
+            >::type
         >::type;
 
 public:
@@ -410,7 +544,44 @@ public:
         return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, BinSearchTag());
     }
 
+    template <typename TId, typename THandler>
+    static bool dispatchType(TId&& id, THandler& handler)
+    {
+        return dispatchTypeInternal(std::forward<TId>(id), handler, BinSearchTag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchType(TId&& id, std::size_t offset, THandler& handler)
+    {
+        return dispatchTypeInternal(std::forward<TId>(id), offset, handler, BinSearchTag());
+    }        
+
 private:
+    template <
+        typename TMsg,
+        typename THandler>
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler, EmptyTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return dispatchInternal(id, 0U, msg, handler, EmptyTag());
+    }
+
+    template <
+        typename TMsg,
+        typename THandler>
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler, EmptyTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        static_cast<void>(id);
+        static_cast<void>(offset);
+        using RetType = 
+            MessageInterfaceDispatchRetType<
+                typename std::decay<decltype(handler)>::type>;
+        return static_cast<RetType>(handler.handle(msg));
+    }    
+
     template <
         typename TMsg,
         typename THandler>
@@ -465,6 +636,64 @@ private:
                 dispatch(id, offset, msg, handler);
 
     }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, THandler& handler, EmptyTag) 
+    {
+        return dispatchTypeInternal(id, 0U, handler, EmptyTag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, std::size_t offset, THandler& handler, EmptyTag) 
+    {
+        static_cast<void>(id);
+        static_cast<void>(offset);
+        static_cast<void>(handler);
+        return false;
+    }    
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, THandler& handler, StrongTag)
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+        return 
+            DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
+                dispatchType(static_cast<MsgIdParamType>(id), handler);
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, std::size_t offset, THandler& handler, StrongTag)
+    {
+        if (offset != 0U) {
+            return false;
+
+        }
+        return dispatchTypeInternal(std::forward<TId>(id), offset, handler, StrongTag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, THandler& handler, WeakTag) 
+    {
+        return dispatchTypeInternal(std::forward<TId>(id), 0U, handler, WeakTag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, std::size_t offset, THandler& handler, WeakTag) 
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;        
+        return 
+            DispatchMsgWeakStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
+                dispatchType(static_cast<MsgIdParamType>(id), offset, handler);
+
+    }    
 };
 
 } // namespace details

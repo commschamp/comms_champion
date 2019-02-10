@@ -61,6 +61,9 @@ public:
     void test29();
     void test30();
     void test31();
+    void test32();
+    void test33();
+    void test34();
 
 private:
 
@@ -1502,6 +1505,141 @@ void MessageTestSuite::test31()
         TS_ASSERT(!result);
     }    
 }
+
+void MessageTestSuite::test32()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg3
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType3, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg3*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType5, handler);
+        TS_ASSERT(!result);
+    }    
+}
+
+void MessageTestSuite::test33()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg90_1
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType90, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType90, 1U, handler);
+        TS_ASSERT(!result);
+    }
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType3, handler);
+        TS_ASSERT(!result);
+    }    
+}
+
+void MessageTestSuite::test34()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg90_1,
+            BeMsg90_2
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType90, 0U, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType90, 1U, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }    
+
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType90, 2U, handler);
+        TS_ASSERT(!result);
+    }        
+
+    {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType3, handler);
+        TS_ASSERT(!result);
+    }    
+}
+
 
 template <typename TMessage>
 TMessage MessageTestSuite::internalReadWriteTest(

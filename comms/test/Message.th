@@ -58,6 +58,9 @@ public:
     void test26();
     void test27();
     void test28();
+    void test29();
+    void test30();
+    void test31();
 
 private:
 
@@ -211,6 +214,9 @@ private:
 
     typedef Message1<BeMessageBase> BeMsg1;
     typedef Message1<LeMessageBase> LeMsg1;
+
+    typedef Message2<BeMessageBase> BeMsg2;
+
     typedef Message1<BeBasicMessageBase> BeBasicMsg1;
     typedef Message2<BeBasicMessageBase> BeBasicMsg2;
     typedef Message3<BeBasicMessageBase> BeBasicMsg3;
@@ -223,6 +229,8 @@ private:
 
     typedef Message3<BeMessageBase> BeMsg3;
     typedef Message3<LeMessageBase> LeMsg3;
+    typedef Message90_1<BeMessageBase> BeMsg90_1;
+    typedef Message90_2<BeMessageBase> BeMsg90_2;    
 
     typedef
         comms::Message<
@@ -424,6 +432,26 @@ private:
         unsigned m_custom = 0U;
         unsigned m_base = 0U;        
     };
+
+    template <typename TMsgPtr>
+    class MsgCreationHandler
+    {
+    public:
+
+        TMsgPtr getMsg()
+        {
+            return std::move(m_ptr);
+        }
+
+        template <typename TMsg>
+        void handle()
+        {
+            m_ptr.reset(new TMsg);
+        }
+
+    private:
+        TMsgPtr m_ptr;        
+    };    
 };
 
 void MessageTestSuite::test1()
@@ -1243,6 +1271,7 @@ void MessageTestSuite::test26()
     TS_ASSERT_EQUALS(handler.getCustomCount(), 3U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);    
 }
+
 void MessageTestSuite::test27()
 {
     BeBasicMsg1 msg1;
@@ -1338,6 +1367,140 @@ void MessageTestSuite::test28()
     comms::dispatchMsgLinearSwitch<AllMessages>(msg90_2.doGetId(), 2U, *interface, handler);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 4U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 4U);    
+}
+
+void MessageTestSuite::test29()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg3
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType3, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg3*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType5, handler);
+        TS_ASSERT(!result);
+    }    
+}
+
+void MessageTestSuite::test30()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg90_1
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType90, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType90, 1U, handler);
+        TS_ASSERT(!result);
+    }
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType3, handler);
+        TS_ASSERT(!result);
+    }    
+}
+
+void MessageTestSuite::test31()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg90_1,
+            BeMsg90_2
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType90, 0U, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType90, 1U, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }    
+
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType90, 2U, handler);
+        TS_ASSERT(!result);
+    }        
+
+    {
+        bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType3, handler);
+        TS_ASSERT(!result);
+    }    
 }
 
 template <typename TMessage>

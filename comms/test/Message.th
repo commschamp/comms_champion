@@ -64,6 +64,9 @@ public:
     void test32();
     void test33();
     void test34();
+    void test35();
+    void test36();
+    void test37();
 
 private:
 
@@ -1640,6 +1643,139 @@ void MessageTestSuite::test34()
     }    
 }
 
+void MessageTestSuite::test35()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg3
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType3, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg3*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType5, handler);
+        TS_ASSERT(!result);
+    }    
+}
+
+void MessageTestSuite::test36()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg90_1
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType90, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType90, 1U, handler);
+        TS_ASSERT(!result);
+    }
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType3, handler);
+        TS_ASSERT(!result);
+    }    
+}
+
+void MessageTestSuite::test37()
+{
+    using AllMessages = 
+        std::tuple<
+            BeMsg1,
+            BeMsg2,
+            BeMsg90_1,
+            BeMsg90_2
+        >;
+
+    using MsgPtr = std::unique_ptr<BeMessageBase>;
+    MsgCreationHandler<MsgPtr> handler;
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType2, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg2*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType90, 0U, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType90, 1U, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }    
+
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType90, 2U, handler);
+        TS_ASSERT(!result);
+    }        
+
+    {
+        bool result = comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType3, handler);
+        TS_ASSERT(!result);
+    }    
+}
 
 template <typename TMessage>
 TMessage MessageTestSuite::internalReadWriteTest(

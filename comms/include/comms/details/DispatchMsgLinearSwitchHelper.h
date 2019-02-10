@@ -67,6 +67,27 @@ public:
         // dead code (just in case), should not reach here
         return static_cast<RetType>(handler.handle(msg));
     }
+
+    template <typename THandler>
+    static bool dispatchType(typename FromElem::MsgIdParamType id, THandler& handler) 
+    {
+        static constexpr typename FromElem::MsgIdParamType fromId = FromElem::doGetId();
+        switch(id) {
+            case fromId: {
+                handler.template handle<FromElem>();
+                return true;
+                break;
+            }
+            default:
+                return 
+                    DispatchMsgStrongLinearSwitchHelper<TAllMessages, TCount - 1>::
+                        dispatchType(id, handler);
+                
+        };
+        // dead code (just in case), should not reach here
+        return false;
+    }
+  
 };
 
 template <typename TAllMessages>
@@ -99,6 +120,18 @@ public:
         auto& castedMsg = static_cast<Elem&>(msg);
         return static_cast<RetType>(handler.handle(castedMsg));
     }
+
+    template <typename THandler>
+    static bool dispatchType(typename Elem::MsgIdParamType id, THandler& handler) 
+    {
+        typename Elem::MsgIdParamType elemId = Elem::doGetId();
+        if (id != elemId) {
+            return false;
+        }
+
+        handler.template handle<Elem>();
+        return true;
+    }
 };
 
 template <typename TAllMessages>
@@ -118,6 +151,14 @@ public:
             MessageInterfaceDispatchRetType<
                 typename std::decay<decltype(handler)>::type>;
         return static_cast<RetType>(handler.handle(msg));
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchType(TId&& id, THandler& handler) 
+    {
+        static_cast<void>(id);
+        static_cast<void>(handler);
+        return false;
     }
 };
 
@@ -160,9 +201,7 @@ class DispatchMsgWeakLinearSwitchHelper
     static_assert(0U < SameIdsCount, "Invalid template params");
 
 public:
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -187,9 +226,7 @@ public:
         return static_cast<RetType>(handler.handle(msg));
     }
 
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatchOffset(std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -213,6 +250,42 @@ public:
         // dead code (just in case), should not reach here
         return static_cast<RetType>(handler.handle(msg));
     }
+
+    template <typename THandler>
+    static bool dispatchType(typename FromElem::MsgIdParamType id, std::size_t offset, THandler& handler) 
+    {
+        static constexpr typename FromElem::MsgIdParamType fromId = FromElem::doGetId();
+        switch(id) {
+            case fromId:
+                return 
+                    DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom, SameIdsCount>::
+                        dispatchTypeOffset(offset, handler);
+
+            default:
+                return 
+                    DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom + SameIdsCount, TCount - SameIdsCount>::
+                        dispatchType(id, offset, handler);
+        };
+        // dead code (just in case), should not reach here
+        return false;
+    }
+
+    template <typename THandler>
+    static bool dispatchTypeOffset(std::size_t offset, THandler& handler)
+    {
+        switch(offset) {
+            case 0:
+                handler.template handle<FromElem>();
+                return true;
+            default:
+                return 
+                    DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom + 1, TCount -1>::
+                        dispatchTypeOffset(offset - 1, handler);
+        };
+
+        // dead code (just in case), should not reach here
+        return false;
+    }
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -225,9 +298,7 @@ class DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom, 1>
     static_assert(messageHasStaticNumId<Elem>(), "Message must define static ID");
 
 public:
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -249,9 +320,7 @@ public:
         return static_cast<RetType>(handler.handle(castedMsg));
     }
 
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatchOffset(std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -267,15 +336,40 @@ public:
         auto& castedMsg = static_cast<Elem&>(msg);
         return static_cast<RetType>(handler.handle(castedMsg));
     }
+
+    template <typename THandler>
+    static bool dispatchType(typename Elem::MsgIdParamType id, std::size_t offset, THandler& handler) 
+    {
+        if (offset != 0U) {
+            return false;
+        }
+
+        typename Elem::MsgIdParamType elemId = Elem::doGetId();
+        if (id != elemId) {
+            return false;
+        }
+
+        handler.template handle<Elem>();
+        return true;
+    }
+
+    template <typename THandler>
+    static bool dispatchTypeOffset(std::size_t offset, THandler& handler)
+    {
+        if (offset != 0U) {
+            return false;
+        }
+
+        handler.template handle<Elem>();
+        return true;
+    }
 };
 
 template <typename TAllMessages, std::size_t TFrom>
 class DispatchMsgWeakLinearSwitchHelper<TAllMessages, TFrom, 0>
 {
 public:
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatch(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -289,9 +383,7 @@ public:
         return static_cast<RetType>(handler.handle(msg));
     }
 
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatchOffset(std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -303,25 +395,44 @@ public:
                 typename std::decay<decltype(handler)>::type>;
         return static_cast<RetType>(handler.handle(msg));
     }
+
+    template <typename TId, typename THandler>
+    static bool dispatchType(TId&& id, std::size_t offset, THandler& handler)
+    {
+        static_cast<void>(id);
+        static_cast<void>(offset);
+        static_cast<void>(handler);
+        return false;
+    }
+
+    template <typename THandler>
+    static bool dispatchTypeOffset(std::size_t offset, THandler& handler)
+    {
+        static_cast<void>(offset);
+        static_cast<void>(handler);
+        return false;
+    }
 };
 
 template <typename TAllMessages>
 class DispatchMsgLinearSwitchHelper    
 {
+    struct EmptyTag {};
     struct StrongTag {};
     struct WeakTag {};
 
     using BinSearchTag = 
         typename std::conditional<
-            allMessagesAreStrongSorted<TAllMessages>(),
-            StrongTag,
-            WeakTag
+            std::tuple_size<TAllMessages>::value == 0U,
+            EmptyTag,
+            typename std::conditional<
+                allMessagesAreStrongSorted<TAllMessages>(),
+                StrongTag,
+                WeakTag
+            >::type
         >::type;
-
 public:
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatch(TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -334,10 +445,7 @@ public:
         return dispatch(msg.getId(), msg, handler, BinSearchTag());
     }
 
-    template <
-        typename TId,
-        typename TMsg,
-        typename THandler>
+    template <typename TId, typename TMsg, typename THandler>
     static auto dispatch(TId&& id, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -349,10 +457,7 @@ public:
         return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, BinSearchTag());
     }
 
-    template <
-        typename TId,
-        typename TMsg,
-        typename THandler>
+    template <typename TId, typename TMsg, typename THandler>
     static auto dispatch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -364,10 +469,36 @@ public:
         return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, BinSearchTag());
     }
 
+    template <typename TId, typename THandler>
+    static bool dispatchType(TId&& id, THandler& handler)
+    {
+        return dispatchTypeInternal(std::forward<TId>(id), handler, BinSearchTag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchType(TId&& id, std::size_t offset, THandler& handler)
+    {
+        return dispatchTypeInternal(std::forward<TId>(id), offset, handler, BinSearchTag());
+    }
+
 private:
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler, EmptyTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return dispatchInternal(id, msg, handler, StrongTag());
+    }
+
+    template <typename TMsg, typename THandler>
+    static auto dispatchInternal(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler, EmptyTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return dispatchInternal(id, offset, msg, handler, StrongTag());
+    }
+
+    template <typename TMsg, typename THandler>
     static auto dispatchInternal(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler, StrongTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -377,9 +508,7 @@ private:
                 dispatch(id, msg, handler);
     }
 
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatchInternal(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler, StrongTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -397,9 +526,7 @@ private:
 
     }
 
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatchInternal(typename TMsg::MsgIdParamType id, TMsg& msg, THandler& handler, WeakTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -407,9 +534,7 @@ private:
         return dispatchInternal(id, 0U, msg, handler, WeakTag());
     }
 
-    template <
-        typename TMsg,
-        typename THandler>
+    template <typename TMsg, typename THandler>
     static auto dispatchInternal(typename TMsg::MsgIdParamType id, std::size_t offset, TMsg& msg, THandler& handler, WeakTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -419,6 +544,68 @@ private:
                 dispatch(id, offset, msg, handler);
 
     }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, THandler& handler, EmptyTag) 
+    {
+        static_cast<void>(id); 
+        static_cast<void>(handler);
+        return false;
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, std::size_t offset, THandler& handler, EmptyTag) 
+    {
+        static_cast<void>(id); 
+        static_cast<void>(offset);
+        static_cast<void>(handler);
+        return false;
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, THandler& handler, StrongTag) 
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;        
+
+        return 
+            DispatchMsgStrongLinearSwitchHelper<TAllMessages, std::tuple_size<TAllMessages>::value>::
+                dispatchType(static_cast<MsgIdParamType>(id), handler);
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, std::size_t offset, THandler& handler, StrongTag) 
+    {
+        if (offset != 0U) {
+            return false;
+        }
+
+        return dispatchTypeInternal(std::forward<TId>(id), handler, StrongTag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, THandler& handler, WeakTag) 
+    {
+        return dispatchTypeInternal(std::forward<TId>(id), 0U, handler, WeakTag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchTypeInternal(TId&& id, std::size_t offset, THandler& handler, WeakTag) 
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;        
+
+        return 
+            DispatchMsgWeakLinearSwitchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
+                dispatchType(static_cast<MsgIdParamType>(id), offset, handler);
+    }
+
 };
 
 } // namespace details

@@ -26,6 +26,7 @@
 #include "comms/MessageBase.h"
 #include "comms/util/Tuple.h"
 #include "comms/details/message_check.h"
+#include "comms/CompileControl.h"
 
 namespace comms
 {
@@ -65,7 +66,10 @@ public:
 
 protected:
     virtual auto dispatchImpl(TMsgBase& msg, THandler& handler) const ->
-        MessageInterfaceDispatchRetType<THandler>
+        MessageInterfaceDispatchRetType<THandler> 
+#ifndef CC_COMPILER_GCC47        
+            override final 
+#endif        
     {
         static_assert(std::is_base_of<TMsgBase, TMessage>::value, "TMessage must extend TMsgBase");
         auto& castedMsg = static_cast<TMessage&>(msg);
@@ -126,13 +130,19 @@ public:
 
 protected:
     
-    virtual MsgIdParamType getIdImpl() const
+    virtual MsgIdParamType getIdImpl() const 
+#ifndef CC_COMPILER_GCC47        
+        override final 
+#endif  
     {
         return doGetId();
     }
 
     virtual auto dispatchImpl(TMsgBase& msg, THandler& handler) const ->
-        MessageInterfaceDispatchRetType<THandler>
+        MessageInterfaceDispatchRetType<THandler> 
+#ifndef CC_COMPILER_GCC47        
+            override final 
+#endif  
     {
         static_assert(std::is_base_of<TMsgBase, TMessage>::value, "TMessage must extend TMsgBase");
         auto& castedMsg = static_cast<TMessage&>(msg);
@@ -611,6 +621,471 @@ private:
         return DispatchMsgBinSearchWeakPolymorphicHelper<TAllMessages, TMsgBase, THandler>::
             dispatch(id, offset, msg, handler);
     }
+};
+
+// ------------------------------------------------
+
+template <typename THandler>
+class PolymorphicTypeDirectDispatchMethod
+{
+public:
+    PolymorphicTypeDirectDispatchMethod(const PolymorphicTypeDirectDispatchMethod&) = delete;
+    PolymorphicTypeDirectDispatchMethod& operator=(const PolymorphicTypeDirectDispatchMethod&) = delete;
+
+    virtual void dispatch(THandler& handler) const
+    {
+        dispatchImpl(handler);
+    }
+
+protected:
+    PolymorphicTypeDirectDispatchMethod() = default;
+    ~PolymorphicTypeDirectDispatchMethod() = default;
+
+    virtual void dispatchImpl(THandler& handler) const = 0;
+};
+
+template <typename THandler, typename TMessage>
+class PolymorphicTypeDirectDispatchMethodImpl : public 
+                PolymorphicTypeDirectDispatchMethod<THandler>
+{
+public:
+    PolymorphicTypeDirectDispatchMethodImpl() = default;
+    PolymorphicTypeDirectDispatchMethodImpl(const PolymorphicTypeDirectDispatchMethodImpl&) = delete;
+    PolymorphicTypeDirectDispatchMethodImpl& operator=(const PolymorphicTypeDirectDispatchMethodImpl&) = delete;
+
+protected:
+    virtual void dispatchImpl(THandler& handler) const 
+#ifndef CC_COMPILER_GCC47        
+        override final 
+#endif  
+    {
+        return handler.template handle<TMessage>();
+    }
+};
+
+template <typename TMsgIdType, typename THandler>
+class PolymorphicTypeBinSearchDispatchMethod
+{
+public:
+    PolymorphicTypeBinSearchDispatchMethod(const PolymorphicTypeBinSearchDispatchMethod&) = delete;
+    PolymorphicTypeBinSearchDispatchMethod& operator=(const PolymorphicTypeBinSearchDispatchMethod&) = delete;
+
+    virtual TMsgIdType getId() const
+    {
+        return getIdImpl();
+    }
+
+    virtual void dispatch(THandler& handler) const
+    {
+        return dispatchImpl(handler);
+    }
+
+protected:
+    PolymorphicTypeBinSearchDispatchMethod() = default;
+    ~PolymorphicTypeBinSearchDispatchMethod() = default;
+
+    virtual TMsgIdType getIdImpl() const = 0;
+    virtual void dispatchImpl(THandler& handler) const = 0;
+};
+
+template <typename TMsgIdType, typename THandler, typename TMessage>
+class PolymorphicTypeBinSearchDispatchMethodImpl : public 
+                PolymorphicTypeBinSearchDispatchMethod<TMsgIdType, THandler>
+{
+    using Base = PolymorphicTypeBinSearchDispatchMethod<TMsgIdType, THandler>;
+public:
+    PolymorphicTypeBinSearchDispatchMethodImpl() = default;
+    PolymorphicTypeBinSearchDispatchMethodImpl(const PolymorphicTypeBinSearchDispatchMethodImpl&) = delete;
+    PolymorphicTypeBinSearchDispatchMethodImpl& operator=(const PolymorphicTypeBinSearchDispatchMethodImpl&) = delete;
+
+    static TMsgIdType doGetId()
+    {
+        static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
+        static_assert(messageHasStaticNumId<TMessage>(), "Message must define static numeric ID");
+
+        return static_cast<TMsgIdType>(TMessage::doGetId());
+    }
+
+protected:
+    virtual TMsgIdType getIdImpl() const
+#ifndef CC_COMPILER_GCC47        
+        override final 
+#endif      
+    {
+        return doGetId();
+    }
+
+    virtual void dispatchImpl(THandler& handler) const 
+#ifndef CC_COMPILER_GCC47        
+        override final 
+#endif  
+    {
+        return handler.template handle<TMessage>();
+    }
+};
+
+template <typename THandler, std::size_t TSize>
+using PolymorphicTypeDirectDispatchMsgRegistry = 
+    std::array<const PolymorphicTypeDirectDispatchMethod<THandler>*, TSize>;
+
+template <typename TMsgIdType, typename THandler, std::size_t TSize>
+using PolymorphicTypeBinSearchDispatchMsgRegistry = 
+    std::array<const PolymorphicTypeBinSearchDispatchMethod<TMsgIdType, THandler>*, TSize>;
+
+template <typename THandler>
+class PolymorphicTypeDirectDispatchRegistryFiller
+{
+public:
+    using DispatchMethod = PolymorphicTypeDirectDispatchMethod<THandler>;
+    PolymorphicTypeDirectDispatchRegistryFiller(const DispatchMethod** registry)
+      : m_registry(registry)
+    {
+    }
+
+    template <typename TMessage>
+    void operator()()
+    {
+        static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
+        static_assert(messageHasStaticNumId<TMessage>(), "Message must define static ID");
+        static const PolymorphicTypeDirectDispatchMethodImpl<THandler, TMessage> Method{};
+        m_registry[static_cast<std::size_t>(TMessage::doGetId())] = &Method;
+    }
+private:
+    const DispatchMethod** m_registry;
+};
+
+template <typename THandler, std::size_t TSize>
+PolymorphicTypeDirectDispatchRegistryFiller<THandler>
+polymorphicTypeDirectDispatchMakeRegistryFiller(
+    PolymorphicTypeDirectDispatchMsgRegistry<THandler, TSize>& registry)
+{
+    return PolymorphicTypeDirectDispatchRegistryFiller<THandler>(&registry[0]);
+}
+
+template <typename TRegistry, typename TAllMessages>
+class PolymorphicTypeDirectDispatchRegistryInitializer
+{
+public:
+    PolymorphicTypeDirectDispatchRegistryInitializer() = delete;
+    PolymorphicTypeDirectDispatchRegistryInitializer(const PolymorphicTypeDirectDispatchRegistryInitializer&) = delete;
+    explicit PolymorphicTypeDirectDispatchRegistryInitializer(TRegistry& registry)
+    {
+        std::fill(registry.begin(), registry.end(), nullptr);
+        comms::util::tupleForEachType<TAllMessages>(polymorphicTypeDirectDispatchMakeRegistryFiller(registry));
+    }
+};
+
+template <typename TMsgIdType, typename THandler>
+class PolymorphicTypeBinSearchDispatchRegistryFiller
+{
+public:
+    using DispatchMethod = PolymorphicTypeBinSearchDispatchMethod<TMsgIdType, THandler>;
+    PolymorphicTypeBinSearchDispatchRegistryFiller(const DispatchMethod** registry)
+      : m_registry(registry)
+    {
+    }
+
+    template <typename TMessage>
+    void operator()()
+    {
+        static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
+        static_assert(messageHasStaticNumId<TMessage>(), "Message must define static ID");
+        static const PolymorphicTypeBinSearchDispatchMethodImpl<TMsgIdType, THandler, TMessage> Method{};
+        m_registry[m_idx] = &Method;
+        ++m_idx;
+    }
+    
+private:
+    const DispatchMethod** m_registry;
+    std::size_t m_idx = 0U;
+};
+
+template <typename TMsgIdType, typename THandler, std::size_t TSize>
+PolymorphicTypeBinSearchDispatchRegistryFiller<TMsgIdType, THandler>
+polymorphicTypeBinSearchDispatchMakeRegistryFiller(
+    PolymorphicTypeBinSearchDispatchMsgRegistry<TMsgIdType, THandler, TSize>& registry)
+{
+    return PolymorphicTypeBinSearchDispatchRegistryFiller<TMsgIdType, THandler>(&registry[0]);
+}
+
+template <typename TRegistry, typename TAllMessages>
+class PolymorphicTypeBinSearchDispatchRegistryInitializer
+{
+public:
+    explicit PolymorphicTypeBinSearchDispatchRegistryInitializer(TRegistry& registry)
+    {
+        std::fill(registry.begin(), registry.end(), nullptr);
+        comms::util::tupleForEachType<TAllMessages>(polymorphicTypeBinSearchDispatchMakeRegistryFiller(registry));
+    }
+};
+
+template <typename TAllMessages, typename THandler>
+class DispatchMsgTypeDirectPolymorphicHelper    
+{
+public:
+    using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+    static_assert(FirstMsgType::hasMsgIdType(), "Message interface class must define its id type");
+    using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+    static bool dispatch(MsgIdParamType id, THandler& handler)
+    {
+        // Access initializer object to ensure it hasn't been erased by the optimizer
+        static_cast<void>(s_initializer);
+
+        auto regIdx = static_cast<std::size_t>(id);
+        if ((s_registry.size() <= regIdx) ||
+            (s_registry[regIdx] == nullptr)) {
+            return false;
+        }
+
+        s_registry[regIdx]->dispatch(handler);
+        return true;
+    }
+
+private:
+    static const std::size_t RegistrySize = 
+        PolymorphicDirectDispatchRegSizeDetect<TAllMessages, std::tuple_size<TAllMessages>::value>::Value;
+    using Registry = PolymorphicTypeDirectDispatchMsgRegistry<THandler, RegistrySize>;
+    using Initializer = PolymorphicTypeDirectDispatchRegistryInitializer<Registry, TAllMessages>;
+
+    static Registry s_registry;
+    static const Initializer s_initializer;
+};
+
+template <typename TAllMessages, typename THandler>
+typename DispatchMsgTypeDirectPolymorphicHelper<TAllMessages, THandler>::Registry 
+DispatchMsgTypeDirectPolymorphicHelper<TAllMessages, THandler>::s_registry;
+
+template <typename TAllMessages, typename THandler>
+const typename DispatchMsgTypeDirectPolymorphicHelper<TAllMessages, THandler>::Initializer 
+DispatchMsgTypeDirectPolymorphicHelper<TAllMessages, THandler>::s_initializer(s_registry);
+
+template <typename TAllMessages, typename THandler>
+class DispatchMsgTypeBinSearchPolymorphicHelperBase
+{
+protected:
+    using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+    static_assert(FirstMsgType::hasMsgIdType(), "Message interface class must define its id type");
+    using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+
+    static const std::size_t RegistrySize = std::tuple_size<TAllMessages>::value;
+    using Registry = PolymorphicTypeBinSearchDispatchMsgRegistry<MsgIdParamType, THandler, RegistrySize>;
+    using Initializer = PolymorphicTypeBinSearchDispatchRegistryInitializer<Registry, TAllMessages>;
+
+    static Registry s_registry;
+    static Initializer s_initializer;
+};
+
+template <typename TAllMessages, typename THandler>
+typename DispatchMsgTypeBinSearchPolymorphicHelperBase<TAllMessages, THandler>::Registry 
+DispatchMsgTypeBinSearchPolymorphicHelperBase<TAllMessages, THandler>::s_registry;
+
+template <typename TAllMessages, typename THandler>
+typename DispatchMsgTypeBinSearchPolymorphicHelperBase<TAllMessages, THandler>::Initializer 
+DispatchMsgTypeBinSearchPolymorphicHelperBase<TAllMessages, THandler>::s_initializer(s_registry);
+
+template <typename TAllMessages, typename THandler>
+class DispatchMsgTypeBinSearchStrongPolymorphicHelper : public
+    DispatchMsgTypeBinSearchPolymorphicHelperBase<TAllMessages, THandler>
+{
+    using Base = DispatchMsgTypeBinSearchPolymorphicHelperBase<TAllMessages, THandler>;
+    using Registry = typename Base::Registry;
+public:
+    using MsgIdParamType = typename Base::MsgIdParamType;
+    static bool dispatch(MsgIdParamType id, THandler& handler)
+    {
+        // Access initializer object to ensure it hasn't been erased by the optimizer
+        static_cast<void>(Base::s_initializer);
+
+        auto iter = 
+            std::lower_bound(
+                Base::s_registry.begin(), Base::s_registry.end(), id, 
+                [](typename Registry::value_type method, MsgIdParamType idParam) -> bool
+                {
+                    COMMS_ASSERT(method != nullptr);
+                    return method->getId() < idParam;
+                });
+
+        if ((iter == Base::s_registry.end()) || ((*iter)->getId() != id)) {
+            return false;    
+        }
+
+        (*iter)->dispatch(handler);
+        return true;
+    }
+};
+
+template <typename TAllMessages, typename THandler>
+class DispatchMsgTypeBinSearchWeakPolymorphicHelper : public
+    DispatchMsgTypeBinSearchPolymorphicHelperBase<TAllMessages, THandler>
+{
+    using Base = DispatchMsgTypeBinSearchPolymorphicHelperBase<TAllMessages, THandler>;
+    using Registry = typename Base::Registry;
+
+public:
+    using MsgIdParamType = typename Base::MsgIdParamType;
+    static bool dispatch(MsgIdParamType id, std::size_t offset, THandler& handler)
+    {
+        // Access initializer object to ensure it hasn't been erased by the optimizer
+        static_cast<void>(Base::s_initializer);
+
+        using IdType = typename std::decay<decltype(id)>::type;
+        auto lowerIter = 
+            std::lower_bound(
+                Base::s_registry.begin(), Base::s_registry.end(), id, 
+                [](typename Registry::value_type method, IdType idParam) -> bool
+                {
+                    COMMS_ASSERT(method != nullptr);
+                    return static_cast<IdType>(method->getId()) < idParam;
+                });
+
+        if ((lowerIter == Base::s_registry.end()) || 
+            (static_cast<IdType>((*lowerIter)->getId()) != id)) {
+            return false;    
+        }
+
+        auto upperIter = 
+            std::upper_bound(
+                lowerIter, Base::s_registry.end(), id,
+                [](IdType idParam, typename Registry::value_type method)
+                {
+                    return idParam < static_cast<IdType>(method->getId());
+                }
+            );
+
+        COMMS_ASSERT(lowerIter < upperIter);
+
+        auto dist = static_cast<std::size_t>(upperIter - lowerIter);
+        if (dist <= offset) {
+            return false;
+        }
+
+        auto actualIter = lowerIter + offset;
+        (*actualIter)->dispatch(handler);
+        return true;
+    }
+};
+
+template <typename TAllMessages, typename THandler>
+class DispatchMsgTypePolymorphicHelper
+{
+    struct EmptyTag {};
+    struct DirectTag {};
+    struct StrongBinSearchTag {};
+    struct WeakBinSearchTag {};
+
+    static const std::size_t NumOfMessages = 
+        std::tuple_size<TAllMessages>::value;
+
+    static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+        "Message types must be sorted by their ID");
+
+    using Tag = 
+        typename std::conditional<
+            NumOfMessages == 0U,
+            EmptyTag,
+            typename std::conditional<
+                allMessagesAreStrongSorted<TAllMessages>(),
+                typename std::conditional<
+                    DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, NumOfMessages>::Value,
+                    DirectTag,
+                    StrongBinSearchTag
+                >::type,
+                WeakBinSearchTag
+            >::type
+        >::type;
+public:
+    template <typename TId>
+    static bool dispatch(TId&& id, THandler& handler) 
+    {
+        return dispatchInternal(std::forward<TId>(id), handler, Tag());
+    }
+
+    template <typename TId>
+    static bool dispatch(TId&& id, std::size_t offset, THandler& handler) 
+    {
+        return dispatchInternal(std::forward<TId>(id), offset, handler, Tag());
+    }
+
+private:
+
+    template <typename TId>
+    static bool dispatchInternal(TId&& id, THandler& handler, EmptyTag) 
+    {
+        static_cast<void>(id);
+        static_cast<void>(handler);
+        return false;
+    }
+
+    template <typename TId>
+    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, EmptyTag) 
+    {
+        static_cast<void>(id);
+        static_cast<void>(handler);
+        static_cast<void>(offset);
+        return false;
+    }
+
+    template <typename TId>
+    static bool dispatchInternal(TId&& id, THandler& handler, DirectTag) 
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+        return DispatchMsgTypeDirectPolymorphicHelper<TAllMessages, THandler>::
+            dispatch(static_cast<MsgIdParamType>(id), handler);
+    }
+
+    template <typename TId>
+    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, DirectTag) 
+    {
+        if (offset != 0U) {
+            return false;
+        }
+
+        return dispatchInternal(std::forward<TId>(id), handler, DirectTag());
+    }    
+
+    template <typename TId>
+    static bool dispatchInternal(TId&& id, THandler& handler, StrongBinSearchTag) 
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+        return DispatchMsgTypeBinSearchStrongPolymorphicHelper<TAllMessages, THandler>::
+            dispatch(static_cast<MsgIdParamType>(id), handler);
+    }   
+
+    template <typename TId>
+    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, StrongBinSearchTag) 
+    {
+        if (offset != 0U) {
+            return false;
+        }
+
+        return dispatchInternal(std::forward<TId>(id), handler, StrongBinSearchTag());
+    }         
+
+    template <typename TId>
+    static bool dispatchInternal(TId&& id, THandler& handler, WeakBinSearchTag)
+    {
+        return dispatchInternal(std::forward<TId>(id), 0U, handler, WeakBinSearchTag());
+    }
+
+    template <typename TId>
+    static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, WeakBinSearchTag) 
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+        return DispatchMsgTypeBinSearchWeakPolymorphicHelper<TAllMessages, THandler>::
+            dispatch(static_cast<MsgIdParamType>(id), offset, handler);
+    }       
 };
 
 } // namespace details

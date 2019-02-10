@@ -81,6 +81,30 @@ auto dispatchMsgPolymorphic(TId&& id, std::size_t offset, TMsg&& msg, THandler& 
 template <
     typename TAllMessages,
     typename TId,
+    typename THandler>
+bool dispatchMsgTypePolymorphic(TId&& id, THandler& handler) 
+{
+    using HandlerType = typename std::decay<decltype(handler)>::type;
+    return 
+        details::DispatchMsgTypePolymorphicHelper<TAllMessages, HandlerType>::
+            dispatch(std::forward<TId>(id), handler);
+}
+
+template <
+    typename TAllMessages,
+    typename TId,
+    typename THandler>
+bool dispatchMsgTypePolymorphic(TId&& id, std::size_t offset, THandler& handler) 
+{
+    using HandlerType = typename std::decay<decltype(handler)>::type;
+    return 
+        details::DispatchMsgTypePolymorphicHelper<TAllMessages, HandlerType>::
+            dispatch(std::forward<TId>(id), offset, handler);
+}
+
+template <
+    typename TAllMessages,
+    typename TId,
     typename TMsg,
     typename THandler>
 auto dispatchMsgStaticBinSearch(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->

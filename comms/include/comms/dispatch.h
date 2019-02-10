@@ -250,5 +250,33 @@ auto dispatchMsgLinearSwitch(TMsg& msg, THandler& handler) ->
             handler);
 }
 
+template <
+    typename TAllMessages,
+    typename TId,
+    typename THandler>
+bool dispatchMsgTypeLinearSwitch(TId&& id, std::size_t offset, THandler& handler) 
+{
+    static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
+        "All messages in the provided tuple must statically define their numeric ID");
+
+    return 
+        details::DispatchMsgLinearSwitchHelper<TAllMessages>::
+            dispatchType(std::forward<TId>(id), offset, handler);
+}
+
+template <
+    typename TAllMessages,
+    typename TId,
+    typename THandler>
+bool dispatchMsgTypeLinearSwitch(TId&& id, THandler& handler) 
+{
+    static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
+        "All messages in the provided tuple must statically define their numeric ID");
+
+    return 
+        details::DispatchMsgLinearSwitchHelper<TAllMessages>::
+            dispatchType(std::forward<TId>(id), handler);
+}
+
 
 } // namespace comms

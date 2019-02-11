@@ -153,7 +153,6 @@ constexpr bool allMessagesAreWeakSorted()
     return AllMessagesSortedCheckHelper<false, TAllMessages>::Value;
 }
 
-
 } // namespace details
 
 } // namespace comms

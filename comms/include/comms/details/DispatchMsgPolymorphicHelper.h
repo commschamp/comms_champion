@@ -450,6 +450,12 @@ class DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, 0U>
     static const bool Value = true;
 };
 
+template <typename TAllMessages>
+static constexpr bool dispatchMsgPolymorphicIsDirectSuitable()
+{
+    return DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, std::tuple_size<TAllMessages>::value>::Value;
+}
+
 template <typename TAllMessages, typename TMsgBase, typename THandler>
 class DispatchMsgPolymorphicHelper
 {
@@ -480,7 +486,7 @@ class DispatchMsgPolymorphicHelper
             typename std::conditional<
                 allMessagesAreStrongSorted<TAllMessages>(),
                 typename std::conditional<
-                    DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, NumOfMessages>::Value,
+                    dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>(),
                     DirectTag,
                     StrongBinSearchTag
                 >::type,
@@ -986,7 +992,7 @@ class DispatchMsgTypePolymorphicHelper
             typename std::conditional<
                 allMessagesAreStrongSorted<TAllMessages>(),
                 typename std::conditional<
-                    DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, NumOfMessages>::Value,
+                    dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>(),
                     DirectTag,
                     StrongBinSearchTag
                 >::type,

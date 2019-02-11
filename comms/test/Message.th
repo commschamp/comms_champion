@@ -1394,6 +1394,24 @@ void MessageTestSuite::test29()
         TS_ASSERT(castedMsg != nullptr);
     }
     {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType1, 0U, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType1, 1U, handler);
+        TS_ASSERT(!result);
+    }
+    {
         bool result = comms::dispatchMsgTypePolymorphic<AllMessages>(MessageType2, handler);
         TS_ASSERT(result);
         auto msg = handler.getMsg();
@@ -1567,6 +1585,24 @@ void MessageTestSuite::test33()
         TS_ASSERT(castedMsg != nullptr);
     }
     {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType1, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType1, 0U, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+    {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType1, 1U, handler);
+        TS_ASSERT(!result);
+    }    
+    {
         bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType2, handler);
         TS_ASSERT(result);
         auto msg = handler.getMsg();
@@ -1586,6 +1622,11 @@ void MessageTestSuite::test33()
     }
     {
         bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType3, handler);
+        TS_ASSERT(!result);
+    }    
+
+    {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType5, handler);
         TS_ASSERT(!result);
     }    
 }
@@ -1625,6 +1666,14 @@ void MessageTestSuite::test34()
     }
 
     {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType90, handler);
+        TS_ASSERT(result);
+        auto msg = handler.getMsg();
+        auto* castedMsg = reinterpret_cast<BeMsg90_1*>(msg.get());
+        TS_ASSERT(castedMsg != nullptr);
+    }
+
+    {
         bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType90, 1U, handler);
         TS_ASSERT(result);
         auto msg = handler.getMsg();
@@ -1638,7 +1687,17 @@ void MessageTestSuite::test34()
     }        
 
     {
+        bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType90, 3U, handler);
+        TS_ASSERT(!result);
+    }        
+
+    {
         bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType3, handler);
+        TS_ASSERT(!result);
+    }    
+
+    {
+        bool result = comms::dispatchMsgType<AllMessages>(MessageType5, handler);
         TS_ASSERT(!result);
     }    
 }

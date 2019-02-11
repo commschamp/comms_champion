@@ -20,3 +20,4 @@
 #include "comms/details/DispatchMsgPolymorphicHelper.h"
 #include "comms/details/DispatchMsgStaticBinSearchHelper.h"
 #include "comms/details/DispatchMsgLinearSwitchHelper.h"
+

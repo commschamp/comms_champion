@@ -672,7 +672,7 @@ private:
             return false;
 
         }
-        return dispatchTypeInternal(std::forward<TId>(id), offset, handler, StrongTag());
+        return dispatchTypeInternal(std::forward<TId>(id), handler, StrongTag());
     }
 
     template <typename TId, typename THandler>

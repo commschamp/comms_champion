@@ -32,7 +32,7 @@ template <
     typename TAllMessages,
     typename TMsg,
     typename THandler>
-auto dispatchMsgPolymorphic(TMsg&& msg, THandler& handler) ->
+auto dispatchMsgPolymorphic(TMsg& msg, THandler& handler) ->
     details::MessageInterfaceDispatchRetType<
         typename std::decay<decltype(handler)>::type>
 {
@@ -49,7 +49,7 @@ template <
     typename TId,
     typename TMsg,
     typename THandler>
-auto dispatchMsgPolymorphic(TId&& id, TMsg&& msg, THandler& handler) ->
+auto dispatchMsgPolymorphic(TId&& id, TMsg& msg, THandler& handler) ->
     details::MessageInterfaceDispatchRetType<
         typename std::decay<decltype(handler)>::type>
 {
@@ -66,7 +66,7 @@ template <
     typename TId,
     typename TMsg,
     typename THandler>
-auto dispatchMsgPolymorphic(TId&& id, std::size_t offset, TMsg&& msg, THandler& handler) ->
+auto dispatchMsgPolymorphic(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
     details::MessageInterfaceDispatchRetType<
         typename std::decay<decltype(handler)>::type>
 {
@@ -278,5 +278,179 @@ bool dispatchMsgTypeLinearSwitch(TId&& id, THandler& handler)
             dispatchType(std::forward<TId>(id), handler);
 }
 
+namespace details
+{
+template <typename TAllMessages>
+class DispatchMsgHelper
+{
+public:
+    template <typename TMsg, typename THandler>
+    static auto dispatchMsg(TMsg& msg, THandler& handler) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return dispatchMsgInternal(msg, handler, Tag());
+    }
+
+    template <typename TId, typename TMsg, typename THandler>
+    static auto dispatchMsg(TId&& id, TMsg& msg, THandler& handler) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return dispatchMsgInternal(std::forward<TId>(id), msg, handler, Tag());
+    }
+
+    template <typename TId, typename TMsg, typename THandler>
+    static auto dispatchMsg(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return dispatchMsgInternal(std::forward<TId>(id), offset, msg, handler, Tag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchMsgType(TId&& id, THandler& handler) 
+    {
+        return dispatchMsgTypeInternal(std::forward<TId>(id), handler, Tag());
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchMsgType(TId&& id, std::size_t offset, THandler& handler) 
+    {
+        return dispatchMsgTypeInternal(std::forward<TId>(id), offset, handler, Tag());
+    }
+
+private:
+    struct DirectPolymorphicTag {};
+    struct StaticBinSearchTag {};
+
+    using Tag = 
+        typename std::conditional<
+            dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>(),
+            DirectPolymorphicTag,
+            StaticBinSearchTag
+        >::type;
+
+    template <typename TMsg, typename THandler>
+    static auto dispatchMsgInternal(TMsg& msg, THandler& handler, DirectPolymorphicTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return comms::dispatchMsgPolymorphic<TAllMessages>(msg, handler);
+    }
+
+    template <typename TMsg, typename THandler>
+    static auto dispatchMsgInternal(TMsg& msg, THandler& handler, StaticBinSearchTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return comms::dispatchMsgStaticBinSearch<TAllMessages>(msg, handler);
+    }
+
+    template <typename TId, typename TMsg, typename THandler>
+    static auto dispatchMsgInternal(TId&& id, TMsg& msg, THandler& handler, DirectPolymorphicTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return comms::dispatchMsgPolymorphic<TAllMessages>(std::forward<TId>(id), msg, handler);
+    }
+
+    template <typename TId, typename TMsg, typename THandler>
+    static auto dispatchMsgInternal(TId&& id, TMsg& msg, THandler& handler, StaticBinSearchTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return comms::dispatchMsgStaticBinSearch<TAllMessages>(std::forward<TId>(id), msg, handler);
+    }
+
+    template <typename TId, typename TMsg, typename THandler>
+    static auto dispatchMsgInternal(TId&& id, std::size_t offset, TMsg& msg, THandler& handler, DirectPolymorphicTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return comms::dispatchMsgPolymorphic<TAllMessages>(std::forward<TId>(id), offset, msg, handler);
+    }
+
+    template <typename TId, typename TMsg, typename THandler>
+    static auto dispatchMsgInternal(TId&& id, std::size_t offset, TMsg& msg, THandler& handler, StaticBinSearchTag) ->
+        MessageInterfaceDispatchRetType<
+            typename std::decay<decltype(handler)>::type>
+    {
+        return comms::dispatchMsgStaticBinSearch<TAllMessages>(std::forward<TId>(id), offset, msg, handler);
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchMsgTypeInternal(TId&& id, THandler& handler, DirectPolymorphicTag) 
+    {
+        return comms::dispatchMsgTypePolymorphic<TAllMessages>(std::forward<TId>(id), handler);
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchMsgTypeInternal(TId&& id, THandler& handler, StaticBinSearchTag) 
+    {
+        return comms::dispatchMsgTypeStaticBinSearch<TAllMessages>(std::forward<TId>(id), handler);
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchMsgTypeInternal(TId&& id, std::size_t offset, THandler& handler, DirectPolymorphicTag) 
+    {
+        return comms::dispatchMsgTypePolymorphic<TAllMessages>(std::forward<TId>(id), offset, handler);
+    }
+
+    template <typename TId, typename THandler>
+    static bool dispatchMsgTypeInternal(TId&& id, std::size_t offset, THandler& handler, StaticBinSearchTag) 
+    {
+        return comms::dispatchMsgTypeStaticBinSearch<TAllMessages>(std::forward<TId>(id), offset, handler);
+    }
+};
+
+} // namespace details
+
+template <
+    typename TAllMessages,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsg(TMsg& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    return details::DispatchMsgHelper<TAllMessages>::dispatchMsg(msg, handler); 
+}
+
+template <
+    typename TAllMessages,
+    typename TId,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsg(TId&& id, TMsg& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    return details::DispatchMsgHelper<TAllMessages>::dispatchMsg(std::forward<TId>(id), msg, handler); 
+}
+
+template <
+    typename TAllMessages,
+    typename TId,
+    typename TMsg,
+    typename THandler>
+auto dispatchMsg(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
+    details::MessageInterfaceDispatchRetType<
+        typename std::decay<decltype(handler)>::type>
+{
+    return details::DispatchMsgHelper<TAllMessages>::dispatchMsg(std::forward<TId>(id), offset, msg, handler); 
+}
+
+template <typename TAllMessages, typename TId, typename THandler>
+bool dispatchMsgType(TId&& id, THandler& handler)
+{
+    return details::DispatchMsgHelper<TAllMessages>::dispatchMsgType(std::forward<TId>(id), handler); 
+}
+
+template <typename TAllMessages, typename TId, typename THandler>
+bool dispatchMsgType(TId&& id, std::size_t offset, THandler& handler)
+{
+    return details::DispatchMsgHelper<TAllMessages>::dispatchMsgType(std::forward<TId>(id), offset, handler); 
+}
 
 } // namespace comms

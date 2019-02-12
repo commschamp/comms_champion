@@ -139,6 +139,11 @@ public:
         return factory_.createGenericMsg(id);
     }
 
+    /// @brief Inquiry whether allocation is possible
+    bool canAllocate() const
+    {
+        return factory_.canAllocate();
+    }
     /// @brief Get number of message types from @ref AllMessages, that have the specified ID.
     /// @param id ID of the message.
     /// @return Number of message classes that report same ID.

@@ -1583,6 +1583,10 @@ void MessageTestSuite::test32()
 
     using MsgPtr = std::unique_ptr<BeMessageBase>;
     MsgCreationHandler<MsgPtr> handler;
+    TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType1), 1U);
+    TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType2), 1U);
+    TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType5), 0U);
+
     {
         bool result = comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType1, handler);
         TS_ASSERT(result);
@@ -1619,6 +1623,10 @@ void MessageTestSuite::test33()
             BeMsg2,
             BeMsg90_1
         >;
+    TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType1), 1U);
+    TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType2), 1U);
+    TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType3), 0U);
+    TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType90), 1U);
 
     using MsgPtr = std::unique_ptr<BeMessageBase>;
     MsgCreationHandler<MsgPtr> handler;
@@ -1685,6 +1693,11 @@ void MessageTestSuite::test34()
             BeMsg90_1,
             BeMsg90_2
         >;
+
+    // TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType1), 1U);
+    // TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType2), 1U);
+    // TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType3), 0U);
+    TS_ASSERT_EQUALS(comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(MessageType90), 2U);
 
     using MsgPtr = std::unique_ptr<BeMessageBase>;
     MsgCreationHandler<MsgPtr> handler;

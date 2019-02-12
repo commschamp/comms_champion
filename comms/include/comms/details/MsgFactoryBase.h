@@ -110,6 +110,10 @@ public:
         return createGenericMsgInternal(id, Tag());
     }
 
+    bool canAllocate() const
+    {
+        return alloc_.canAllocate();
+    }
 
 protected:
     MsgFactoryBase() = default;

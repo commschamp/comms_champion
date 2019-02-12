@@ -102,6 +102,18 @@ bool dispatchMsgTypePolymorphic(TId&& id, std::size_t offset, THandler& handler)
             dispatch(std::forward<TId>(id), offset, handler);
 }
 
+// template <
+//     typename TAllMessages,
+//     typename TId,
+//     typename THandler>
+// std::size_t dispatchMsgTypeCountPolymorphic(TId&& id, THandler& handler) 
+// {
+//     using HandlerType = typename std::decay<decltype(handler)>::type;
+//     return 
+//         details::DispatchMsgTypePolymorphicHelper<TAllMessages, HandlerType>::
+//             count(std::forward<TId>(id), handler);
+// }
+
 template <
     typename TAllMessages,
     typename TId,
@@ -188,6 +200,17 @@ bool dispatchMsgTypeStaticBinSearch(TId&& id, THandler& handler)
     return 
         details::DispatchMsgStaticBinSearchHelper<TAllMessages>::
             dispatchType(std::forward<TId>(id), handler);
+}
+
+template <typename TAllMessages, typename TId>
+std::size_t dispatchMsgTypeCountStaticBinSearch(TId&& id) 
+{
+    static_assert(details::allMessagesHaveStaticNumId<TAllMessages>(), 
+        "All messages in the provided tuple must statically define their numeric ID");
+
+    return 
+        details::DispatchMsgStaticBinSearchHelper<TAllMessages>::
+            dispatchTypeCount(std::forward<TId>(id));
 }
 
 template <

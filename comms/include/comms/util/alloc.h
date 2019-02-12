@@ -149,6 +149,13 @@ public:
             "TObj does not inherit from TInterface");
         return Ptr(obj);
     }
+
+    /// @brief Inquiry whether allocation is possible
+    /// @return Always @b true.
+    static constexpr bool canAllocate()
+    {
+        return true;
+    }
 };
 
 /// @brief In-place single object allocator.
@@ -236,6 +243,12 @@ public:
         return Ptr(
             reinterpret_cast<TInterface*>(&place_),
             details::InPlaceDeleter<TInterface>(&allocated_));
+    }
+
+    /// @brief Inquiry whether allocation is possible.
+    bool canAllocate() const
+    {
+        return !allocated_;
     }
 
 private:

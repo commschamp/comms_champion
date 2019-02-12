@@ -85,6 +85,25 @@ public:
         handler.template handle<MidElem>();
         return true;
     }    
+
+    static std::size_t dispatchTypeCount(typename MidElem::MsgIdParamType id)
+    {
+        typename MidElem::MsgIdParamType midId = MidElem::doGetId();
+        if (id < midId) {
+            return 
+                DispatchMsgStrongStaticBinSearchHelper<TAllMessages, TFrom, Mid - TFrom>::
+                    dispatchTypeCount(id);
+        }
+
+        if (midId < id) {
+            return 
+                DispatchMsgStrongStaticBinSearchHelper<TAllMessages, Mid, TCount - (Mid - TFrom)>::
+                    dispatchTypeCount(id);
+        }
+
+        return 1U;
+    }    
+
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -128,6 +147,16 @@ public:
         handler.template handle<Elem>();
         return true;
     }      
+
+    static std::size_t dispatchTypeCount(typename Elem::MsgIdParamType id)
+    {
+        typename Elem::MsgIdParamType elemId = Elem::doGetId();
+        if (id != elemId) {
+            return 0U;
+        }
+
+        return 1U;
+    }      
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -156,6 +185,13 @@ public:
         static_cast<void>(handler);
         return false;
     }     
+
+    template <typename TId>
+    static std::size_t dispatchTypeCount(TId&& id)
+    {
+        static_cast<void>(id);
+        return 0U;
+    }      
 };
 
 template <typename TAllMessages, std::size_t TIdx>
@@ -342,6 +378,25 @@ public:
         handler.template handle<MidElem>();
         return true;
     }    
+
+    static std::size_t dispatchTypeCount(typename MidElem::MsgIdParamType id) 
+    {
+        typename MidElem::MsgIdParamType midId = MidElem::doGetId();
+        if (id < midId) {
+            return 
+                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, TFrom, MidRangeStartIdx - TFrom>::
+                    dispatchTypeCount(id);
+        }
+
+        if (midId < id) {
+            static const std::size_t NewStart = MidRangeStartIdx + MidRangeCount; 
+            return 
+                DispatchMsgWeakStaticBinSearchHelper<TAllMessages, NewStart, TCount - (NewStart - TFrom)>::
+                    dispatchTypeCount(id);
+        }
+
+        return MidRangeCount;
+    }    
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -423,6 +478,16 @@ public:
         handler.template handle<Elem>();
         return true;
     }    
+
+    static std::size_t dispatchTypeCount(typename Elem::MsgIdParamType id)
+    {
+        typename Elem::MsgIdParamType elemId = Elem::doGetId();
+        if (id != elemId) {
+            return 0U;
+        }
+
+        return 1U;
+    }
 };
 
 template <typename TAllMessages, std::size_t TFrom>
@@ -476,6 +541,14 @@ public:
         static_cast<void>(handler);
         return false;
     }        
+
+    template <typename TId>
+    static std::size_t dispatchTypeCount(TId&& id)
+    {
+        static_cast<void>(id);
+        return 0U;
+    }
+
 };
 
 template <typename TAllMessages>
@@ -555,6 +628,12 @@ public:
     {
         return dispatchTypeInternal(std::forward<TId>(id), offset, handler, BinSearchTag());
     }        
+
+    template <typename TId>
+    static std::size_t dispatchTypeCount(TId&& id)
+    {
+        return dispatchTypeCountInternal(std::forward<TId>(id), BinSearchTag());
+    }
 
 private:
     template <
@@ -692,6 +771,40 @@ private:
         return 
             DispatchMsgWeakStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
                 dispatchType(static_cast<MsgIdParamType>(id), offset, handler);
+
+    }    
+
+    template <typename TId>
+    static std::size_t dispatchTypeCountInternal(TId&& id, EmptyTag) 
+    {
+        static_cast<void>(id);
+        return 0U;
+    }
+
+    template <typename TId>
+    static std::size_t dispatchTypeCountInternal(TId&& id, StrongTag)
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
+        return 
+            DispatchMsgStrongStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
+                dispatchTypeCount(static_cast<MsgIdParamType>(id));
+    }
+
+    template <typename TId>
+    static std::size_t dispatchTypeCountInternal(TId&& id, WeakTag) 
+    {
+        using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+        static_assert(comms::isMessageBase<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
+        static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
+        using MsgIdParamType = typename FirstMsgType::MsgIdParamType;        
+        return 
+            DispatchMsgWeakStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
+                dispatchTypeCount(static_cast<MsgIdParamType>(id));
 
     }    
 };

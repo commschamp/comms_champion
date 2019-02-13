@@ -1387,6 +1387,23 @@ struct InvalidByDefault {};
 /// @details The version information can be accessed using @b getVersion() member function.
 struct VersionStorage {};
 
+/// @brief Force a particular way to dispatch message object and/or type.
+/// @tparam T Expected to be one of the tags from @ref comms::traits::dispatch namespace.
+template <typename T>
+struct ForceDispatch {};
+
+/// @brief Force generation of v-tables and polymorphic dispatch logic for
+///     message object and/or message object type
+using ForceDispatchPolymorphic = ForceDispatch<comms::traits::dispatch::Polymorphic>;
+
+/// @brief Force generation of static binary search dispatch logic for
+///     message object and/or message object type
+using ForceDispatchStaticBinSearch = ForceDispatch<comms::traits::dispatch::StaticBinSearch>;
+
+/// @brief Force generation of linear switch statmenets for dispatch logic of
+///     message object and/or message object type
+using ForceDispatchLinearSwitch = ForceDispatch<comms::traits::dispatch::LinearSwitch>;;
+
 }  // namespace option
 
 }  // namespace comms

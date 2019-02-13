@@ -34,6 +34,7 @@ class MsgFactoryOptionsParser<>
 public:
     static const bool HasInPlaceAllocation = false;
     static const bool HasSupportGenericMessage = false;
+    static const bool HasForcedDispatch = false;
 };
 
 template <typename... TOptions>
@@ -52,6 +53,16 @@ public:
     static const bool HasSupportGenericMessage = true;
     using GenericMessage = TMsg;
 };
+
+template <typename T, typename... TOptions>
+class MsgFactoryOptionsParser<comms::option::ForceDispatch<T>, TOptions...> :
+        public MsgFactoryOptionsParser<TOptions...>
+{
+public:
+    static const bool HasForcedDispatch = true;
+    using ForcedDispatch = T;
+};
+
 
 template <typename... TOptions>
 class MsgFactoryOptionsParser<

@@ -102,6 +102,9 @@ public:
     /// @brief Type of the field object used to read/write message ID value.
     using Field = typename BaseImpl::Field;
 
+    /// @brief Reason for message creation failure
+    using CreateFailureReason = typename Factory::CreateFailureReason;
+
     static_assert(
         comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
         "Field must be of IntValue or EnumValue types");
@@ -250,11 +253,12 @@ public:
     ///     data member of this class.
     /// @param[in] id ID of the message
     /// @param[in] idx Relative index of the message with the same ID.
+    /// @param[out] reason Failure reason in case creation has failed. May be nullptr.
     /// @return Smart pointer to the created message object.
     /// @see comms::MsgFactory::createMsg()
-    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0, CreateFailureReason* reason = nullptr)
     {
-        return factory_.createMsg(id, idx);
+        return factory_.createMsg(id, idx, reason);
     }
 
 private:
@@ -479,9 +483,10 @@ private:
 
         auto es = comms::ErrorStatus::InvalidMsgId;
         unsigned idx = 0;
+        CreateFailureReason failureReason = CreateFailureReason::None;
         while (true) {
             COMMS_ASSERT(!msg);
-            msg = createMsgInternal(id, idx);
+            msg = createMsgInternal(id, idx, &failureReason);
             if (!msg) {
                 break;
             }
@@ -502,11 +507,11 @@ private:
         }
 
         COMMS_ASSERT(!msg);
-        auto idxLimit = msgCountInternal(id);
-        if (idx < idxLimit) {
+        if (failureReason == CreateFailureReason::AllocFailure) {
             return comms::ErrorStatus::MsgAllocFailure;
         }        
         
+        COMMS_ASSERT(failureReason == CreateFailureReason::InvalidId);
         using GenericMsgTag = 
             typename std::conditional<
                 Factory::ParsedOptions::HasSupportGenericMessage,
@@ -541,22 +546,22 @@ private:
     }
 
     template <typename TId>
-    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, IdParamAsIsTag)
+    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, CreateFailureReason* reason, IdParamAsIsTag)
     {
-        return createMsg(std::forward<TId>(id), idx);
+        return createMsg(std::forward<TId>(id), idx, reason);
     }
 
     template <typename TId>
-    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, IdParamCastTag)
+    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, CreateFailureReason* reason, IdParamCastTag)
     {
-        return createMsg(static_cast<MsgIdType>(id), idx);
+        return createMsg(static_cast<MsgIdType>(id), idx, reason);
     }
 
     template <typename TId>
-    MsgPtr createMsgInternal(TId&& id, unsigned idx)
+    MsgPtr createMsgInternal(TId&& id, unsigned idx, CreateFailureReason* reason)
     {
         using IdType = typename std::decay<decltype(id)>::type;
-        return createMsgInternalTagged(std::forward<TId>(id), idx, IdParamTag<IdType>());
+        return createMsgInternalTagged(std::forward<TId>(id), idx, reason, IdParamTag<IdType>());
     }
 
     template <typename TId>

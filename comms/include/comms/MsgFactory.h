@@ -27,7 +27,7 @@
 #include "comms/util/Tuple.h"
 #include "comms/util/alloc.h"
 #include "details/MsgFactoryOptionsParser.h"
-#include "details/MsgFactorySelector.h"
+#include "details/MsgFactoryBase.h"
 
 namespace comms
 {
@@ -79,35 +79,46 @@ namespace comms
 ///     message has been destructed.
 /// @headerfile comms/MsgFactory.h
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
-class MsgFactory
+class MsgFactory : private details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
+    using Base = details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
         "Usage of MsgFactory requires Message interface to provide ID type. "
         "Use comms::option::MsgIdType option in message interface type definition.");
 
-    using Factory = typename
-        details::MsgFactorySelector<TMsgBase, TAllMessages, TOptions...>::Type;
-
 public:
     /// @brief Parsed options
-    using ParsedOptions = typename Factory::ParsedOptions;
+    using ParsedOptions = typename Base::ParsedOptions;
 
     /// @brief Type of the common base class of all the messages.
-    using Message = TMsgBase;
+    using Message = typename Base::Message;
 
     /// @brief Type of the message ID when passed as a parameter.
-    using MsgIdParamType = typename Message::MsgIdParamType;
+    using MsgIdParamType = typename Base::MsgIdParamType;
 
     /// @brief Type of the message ID.
-    using MsgIdType = typename Message::MsgIdType;
+    using MsgIdType = typename Base::MsgIdType;
 
     /// @brief Smart pointer to @ref Message which holds allocated message object.
     /// @details It is a variant of std::unique_ptr, based on whether
     ///     comms::option::InPlaceAllocation option was used.
-    using MsgPtr = typename Factory::MsgPtr;
+    using MsgPtr = typename Base::MsgPtr;
 
     /// @brief All messages provided as template parameter to this class.
-    using AllMessages = TAllMessages;
+    using AllMessages = typename Base::AllMessages;
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+    // @brief Reason for message creation failure
+    enum class CreateFailureReason
+    {
+        None, ///< No reason
+        InvalidId, ///< Invalid message id
+        AllocFailure, ///< Allocation of the object has failied
+        NumOfValues ///< Number of available values, must be last
+    };
+#else // #ifdef FOR_DOXYGEN_DOC_ONLY
+    using CreateFailureReason = typename Base::CreateFailureReason;
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
     /// @brief Create message object given the ID of the message.
     /// @param id ID of the message.
@@ -118,14 +129,15 @@ public:
     ///     the same ID. This parameter provides such an ability. However,
     ///     most protocols will implement single message class for single ID.
     ///     For such implementations, use default value of this parameter.
+    /// @param[out] reason Failure reason in case creation has failed. May be nullptr.
     /// @return Smart pointer (variant of std::unique_ptr) to @ref Message type,
     ///     which is a common base class of all the messages (provided as
     ///     first template parameter to this class). If comms::option::InPlaceAllocation
     ///     option was used and previously allocated message wasn't de-allocated
     ///     yet, the empty (null) pointer will be returned.
-    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0, CreateFailureReason* reason = nullptr) const
     {
-        return factory_.createMsg(id, idx);
+        return Base::createMsg(id, idx, reason);
     }
 
     /// @brief Allocate and initialise @ref comms::GenericMessage object.
@@ -136,31 +148,28 @@ public:
     ///     constructor of the @ref comms::GenericMessage class
     MsgPtr createGenericMsg(MsgIdParamType id) const
     {
-        return factory_.createGenericMsg(id);
+        return Base::createGenericMsg(id);
     }
 
     /// @brief Inquiry whether allocation is possible
     bool canAllocate() const
     {
-        return factory_.canAllocate();
+        return Base::canAllocate();
     }
     /// @brief Get number of message types from @ref AllMessages, that have the specified ID.
     /// @param id ID of the message.
     /// @return Number of message classes that report same ID.
     std::size_t msgCount(MsgIdParamType id) const
     {
-        return factory_.msgCount(id);
+        return Base::msgCount(id);
     }
 
     /// @brief Compile time knowldege inquiry whether all the message classes in the
     ///     @b TAllMessages bundle have unique IDs.
     static constexpr bool hasUniqueIds()
     {
-        return Factory::hasUniqueIds();
+        return Base::hasUniqueIds();
     }
-
-private:
-    Factory factory_;
 };
 
 

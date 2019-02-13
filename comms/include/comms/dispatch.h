@@ -102,18 +102,6 @@ bool dispatchMsgTypePolymorphic(TId&& id, std::size_t offset, THandler& handler)
             dispatch(std::forward<TId>(id), offset, handler);
 }
 
-// template <
-//     typename TAllMessages,
-//     typename TId,
-//     typename THandler>
-// std::size_t dispatchMsgTypeCountPolymorphic(TId&& id, THandler& handler) 
-// {
-//     using HandlerType = typename std::decay<decltype(handler)>::type;
-//     return 
-//         details::DispatchMsgTypePolymorphicHelper<TAllMessages, HandlerType>::
-//             count(std::forward<TId>(id), handler);
-// }
-
 template <
     typename TAllMessages,
     typename TId,

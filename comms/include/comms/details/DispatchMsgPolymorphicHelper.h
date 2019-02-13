@@ -447,6 +447,7 @@ public:
 template <typename TAllMessages>
 class DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, 0U>
 {
+public:
     static const bool Value = true;
 };
 

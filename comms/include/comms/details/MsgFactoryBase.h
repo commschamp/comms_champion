@@ -113,13 +113,7 @@ public:
         CreateFailureReason reasonTmp = CreateFailureReason::None;
         MsgPtr msg;
         CreateHandler handler(alloc_);
-        using Tag = 
-            typename std::conditional<
-                ParsedOptions::HasForcedDispatch,
-                ForcedTag,
-                StandardTag
-            >::type;
-        bool result = dispatchMsgTypeInternal(id, idx, handler, Tag());
+        bool result = dispatchMsgTypeInternal(id, idx, handler, DispatchTag());
         do {
             if (!result) {
                 reasonTmp = CreateFailureReason::InvalidId;
@@ -168,6 +162,21 @@ public:
         return comms::details::allMessagesAreStrongSorted<AllMessages>();
     }
 
+    static constexpr bool isDispatchPolymorphic()
+    {
+        return isDispatchPolymorphicInternal(DispatchTag());
+    }
+
+    static constexpr bool isDispatchStaticBinSearch()
+    {
+        return isDispatchStaticBinSearchInternal(DispatchTag());
+    }
+
+    static constexpr bool isDispatchLinearSwitch()
+    {
+        return isDispatchLinearSwitchInternal(DispatchTag());
+    }
+
 protected:
     MsgFactoryBase() = default;
     MsgFactoryBase(const MsgFactoryBase&) = default;
@@ -195,6 +204,14 @@ private:
 
     struct ForcedTag {};
     struct StandardTag {};
+
+    using DispatchTag = 
+        typename std::conditional<
+            ParsedOptions::HasForcedDispatch,
+            ForcedTag,
+            StandardTag
+        >::type;
+
 
     class CreateHandler
     {
@@ -239,7 +256,7 @@ private:
     static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, ForcedTag)
     {
         using Tag = typename ParsedOptions::ForcedDispatch;
-        return createMsgInternal(id, idx, handler, Tag());
+        return dispatchMsgTypeInternal(id, idx, handler, Tag());
     }
 
     template <typename THandler>
@@ -258,6 +275,36 @@ private:
     static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, comms::traits::dispatch::LinearSwitch)
     {
         return comms::dispatchMsgTypeStaticBinSearch<AllMessages>(id, idx, handler);    
+    }
+
+    static constexpr bool isDispatchPolymorphicInternal(ForcedTag)
+    {
+        return std::is_same<comms::traits::dispatch::Polymorphic, typename ParsedOptions::ForcedDispatch>::value; 
+    }
+
+    static constexpr bool isDispatchPolymorphicInternal(StandardTag)
+    {
+        return dispatchMsgTypeIsPolymorphic<AllMessages>(); 
+    }
+
+    static constexpr bool isDispatchStaticBinSearchInternal(ForcedTag)
+    {
+        return std::is_same<comms::traits::dispatch::StaticBinSearch, typename ParsedOptions::ForcedDispatch>::value; 
+    }
+
+    static constexpr bool isDispatchStaticBinSearchInternal(StandardTag)
+    {
+        return dispatchMsgTypeIsStaticBinSearch<AllMessages>(); 
+    }
+
+    static constexpr bool isDispatchLinearSwitchInternal(ForcedTag)
+    {
+        return std::is_same<comms::traits::dispatch::LinearSwitch, typename ParsedOptions::ForcedDispatch>::value; 
+    }
+
+    static constexpr bool isDispatchLinearSwitchInternal(StandardTag)
+    {
+        return false;
     }
 
     mutable Alloc alloc_;

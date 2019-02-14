@@ -621,7 +621,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1);
+    COMMS_MSG_FIELDS_ACCESS(type, value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -645,7 +645,7 @@ struct Message90_2Fields
             comms::field::IntValue<
                 TField, 
                 std::uint8_t,
-                comms::option::ValidNumValue<0>,
+                comms::option::ValidNumValue<1>,
                 comms::option::FailOnInvalid<>
             >;
 
@@ -681,7 +681,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1);
+    COMMS_MSG_FIELDS_ACCESS(type, value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();

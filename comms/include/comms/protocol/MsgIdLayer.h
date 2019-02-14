@@ -82,6 +82,9 @@ class MsgIdLayer : public
 
 public:
 
+    /// @brief Parsed options
+    using ParsedOptions = typename Factory::ParsedOptions;
+
     /// @brief All supported message types bundled in std::tuple.
     /// @see comms::MsgFactory::AllMessages.
     using AllMessages = typename Factory::AllMessages;
@@ -259,6 +262,27 @@ public:
     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0, CreateFailureReason* reason = nullptr)
     {
         return factory_.createMsg(id, idx, reason);
+    }
+
+    /// @brief Compile time knowledge whether polymorphic dispatch tables are 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchPolymorphic()
+    {
+        return Factory::isDispatchPolymorphic();
+    }
+
+    /// @brief Compile time knowledge whether static binary search dispatch is 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchStaticBinSearch()
+    {
+        return Factory::isDispatchStaticBinSearch();
+    }
+
+    /// @brief Compile time knowledge whether linear switch dispatch is 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchLinearSwitch()
+    {
+        return Factory::isDispatchLinearSwitch();
     }
 
 private:

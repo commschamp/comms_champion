@@ -28,6 +28,11 @@
 namespace comms
 {
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using polymorphic behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TMsg,
@@ -44,6 +49,12 @@ auto dispatchMsgPolymorphic(TMsg& msg, THandler& handler) ->
             dispatch(msg, handler);
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using polymorphic behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -61,6 +72,13 @@ auto dispatchMsgPolymorphic(TId&& id, TMsg& msg, THandler& handler) ->
             dispatch(std::forward<TId>(id), msg, handler);
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using polymorphic behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] offset Offset (or index) of the message type among those having the same ID.
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -78,6 +96,11 @@ auto dispatchMsgPolymorphic(TId&& id, std::size_t offset, TMsg& msg, THandler& h
             dispatch(std::forward<TId>(id), offset, msg, handler);
 }
 
+/// @brief Dispatch message id into appropriate @b handle() function in the
+///     provided handler using polymorphic behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -90,6 +113,12 @@ bool dispatchMsgTypePolymorphic(TId&& id, THandler& handler)
             dispatch(std::forward<TId>(id), handler);
 }
 
+/// @brief Dispatch message id into appropriate @b handle() function in the
+///     provided handler using polymorphic behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] offset Offset (or index) of the message type among those having the same ID.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -102,6 +131,13 @@ bool dispatchMsgTypePolymorphic(TId&& id, std::size_t offset, THandler& handler)
             dispatch(std::forward<TId>(id), offset, handler);
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using static binary search behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] offset Offset (or index) of the message type among those having the same ID.
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -123,6 +159,12 @@ auto dispatchMsgStaticBinSearch(TId&& id, std::size_t offset, TMsg& msg, THandle
             handler);
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using static binary search behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -142,6 +184,11 @@ auto dispatchMsgStaticBinSearch(TId&& id, TMsg& msg, THandler& handler) ->
             handler);
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using static binary search behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TMsg,
@@ -162,6 +209,12 @@ auto dispatchMsgStaticBinSearch(TMsg& msg, THandler& handler) ->
             handler);
 }
 
+/// @brief Dispatch message id into appropriate @b handle() function in the
+///     provided handler using static binary search behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] offset Offset (or index) of the message type among those having the same ID.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -176,6 +229,11 @@ bool dispatchMsgTypeStaticBinSearch(TId&& id, std::size_t offset, THandler& hand
             dispatchType(std::forward<TId>(id), offset, handler);
 }
 
+/// @brief Dispatch message id into appropriate @b handle() function in the
+///     provided handler using static binary search behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -190,6 +248,10 @@ bool dispatchMsgTypeStaticBinSearch(TId&& id, THandler& handler)
             dispatchType(std::forward<TId>(id), handler);
 }
 
+/// @brief Count number of message types in the provided tuple that
+///     have the requested numeric ID.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
 template <typename TAllMessages, typename TId>
 std::size_t dispatchMsgTypeCountStaticBinSearch(TId&& id) 
 {
@@ -201,6 +263,13 @@ std::size_t dispatchMsgTypeCountStaticBinSearch(TId&& id)
             dispatchTypeCount(std::forward<TId>(id));
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using linear switch behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] offset Offset (or index) of the message type among those having the same ID.
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -222,6 +291,12 @@ auto dispatchMsgLinearSwitch(TId&& id, std::size_t offset, TMsg& msg, THandler& 
             handler);
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using linear switch behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -241,6 +316,11 @@ auto dispatchMsgLinearSwitch(TId&& id, TMsg& msg, THandler& handler) ->
             handler);
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using linear switch behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TMsg,
@@ -261,6 +341,12 @@ auto dispatchMsgLinearSwitch(TMsg& msg, THandler& handler) ->
             handler);
 }
 
+/// @brief Dispatch message id into appropriate @b handle() function in the
+///     provided handler using linear switch behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] offset Offset (or index) of the message type among those having the same ID.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -275,6 +361,11 @@ bool dispatchMsgTypeLinearSwitch(TId&& id, std::size_t offset, THandler& handler
             dispatchType(std::forward<TId>(id), offset, handler);
 }
 
+/// @brief Dispatch message id into appropriate @b handle() function in the
+///     provided handler using linear switch behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -329,6 +420,16 @@ public:
     static bool dispatchMsgType(TId&& id, std::size_t offset, THandler& handler) 
     {
         return dispatchMsgTypeInternal(std::forward<TId>(id), offset, handler, Tag());
+    }
+
+    static constexpr bool isPolymorphic()
+    {
+        return std::is_same<Tag, DirectPolymorphicTag>::value;
+    }
+
+    static constexpr bool isStaticBinSearch()
+    {
+        return std::is_same<Tag, StaticBinSearchTag>::value;
     }
 
 private:
@@ -417,6 +518,11 @@ private:
 
 } // namespace details
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TMsg,
@@ -428,6 +534,12 @@ auto dispatchMsg(TMsg& msg, THandler& handler) ->
     return details::DispatchMsgHelper<TAllMessages>::dispatchMsg(msg, handler); 
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -440,6 +552,13 @@ auto dispatchMsg(TId&& id, TMsg& msg, THandler& handler) ->
     return details::DispatchMsgHelper<TAllMessages>::dispatchMsg(std::forward<TId>(id), msg, handler); 
 }
 
+/// @brief Dispatch message object into appropriate @b handle() function in the
+///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] offset Offset (or index) of the message type among those having the same ID.
+/// @param[in] msg Message object held by reference to its interface class.
+/// @param[in] handler Handler object
 template <
     typename TAllMessages,
     typename TId,
@@ -452,16 +571,45 @@ auto dispatchMsg(TId&& id, std::size_t offset, TMsg& msg, THandler& handler) ->
     return details::DispatchMsgHelper<TAllMessages>::dispatchMsg(std::forward<TId>(id), offset, msg, handler); 
 }
 
+/// @brief Dispatch message id into appropriate @b handle() function in the
+///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] handler Handler object
 template <typename TAllMessages, typename TId, typename THandler>
 bool dispatchMsgType(TId&& id, THandler& handler)
 {
     return details::DispatchMsgHelper<TAllMessages>::dispatchMsgType(std::forward<TId>(id), handler); 
 }
 
+/// @brief Dispatch message id into appropriate @b handle() function in the
+///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @tparam TAllMessages @b std::tuple of supported message classes
+/// @param[in] id ID of the message known at runtime.
+/// @param[in] offset Offset (or index) of the message type among those having the same ID.
+/// @param[in] handler Handler object
 template <typename TAllMessages, typename TId, typename THandler>
 bool dispatchMsgType(TId&& id, std::size_t offset, THandler& handler)
 {
     return details::DispatchMsgHelper<TAllMessages>::dispatchMsgType(std::forward<TId>(id), offset, handler); 
+}
+
+/// @brief Compile time check whether the @ref dispatchMsgType() or 
+///     @ref dispatchMsgType() will use "polymorphic" dispatch for provided
+///     tuple of messages.
+template <typename TAllMessages>
+constexpr bool dispatchMsgTypeIsPolymorphic()
+{
+    return details::DispatchMsgHelper<TAllMessages>::isPolymorphic(); 
+}
+
+/// @brief Compile time check whether the @ref dispatchMsgType() or 
+///     @ref dispatchMsgType() will use "static binary search" dispatch for provided
+///     tuple of messages.
+template <typename TAllMessages>
+constexpr bool dispatchMsgTypeIsStaticBinSearch()
+{
+    return details::DispatchMsgHelper<TAllMessages>::isStaticBinSearch(); 
 }
 
 } // namespace comms

@@ -170,6 +170,28 @@ public:
     {
         return Base::hasUniqueIds();
     }
+
+    /// @brief Compile time knowledge whether polymorphic dispatch tables are 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchPolymorphic()
+    {
+        return Base::isDispatchPolymorphic();
+    }
+
+    /// @brief Compile time knowledge whether static binary search dispatch is 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchStaticBinSearch()
+    {
+        return Base::isDispatchStaticBinSearch();
+    }
+
+    /// @brief Compile time knowledge whether linear switch dispatch is 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchLinearSwitch()
+    {
+        return Base::isDispatchLinearSwitch();
+    }
+
 };
 
 

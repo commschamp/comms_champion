@@ -50,8 +50,8 @@ namespace protocol
 /// @tparam TAllMessages Types of all @b input messages, bundled in std::tuple,
 ///     that this protocol stack must be able to read() as well as create (using createMsg()).
 /// @tparam TNextLayer Next transport layer type.
-/// @tparam TOptions All the options that will be forwarded to definition of
-///     message factory type (comms::MsgFactory).
+/// @tparam TOptions All the options that will be forwarded to the definition of
+///     message factory type (@ref comms::MsgFactory).
 /// @headerfile comms/protocol/MsgIdLayer.h
 template <typename TField,
           typename TMessage,
@@ -264,21 +264,21 @@ public:
         return factory_.createMsg(id, idx, reason);
     }
 
-    /// @brief Compile time knowledge whether polymorphic dispatch tables are 
+    /// @brief Compile time inquiry whether polymorphic dispatch tables are 
     ///     generated internally to map message ID to actual type.
     static constexpr bool isDispatchPolymorphic()
     {
         return Factory::isDispatchPolymorphic();
     }
 
-    /// @brief Compile time knowledge whether static binary search dispatch is 
+    /// @brief Compile time inquiry whether static binary search dispatch is 
     ///     generated internally to map message ID to actual type.
     static constexpr bool isDispatchStaticBinSearch()
     {
         return Factory::isDispatchStaticBinSearch();
     }
 
-    /// @brief Compile time knowledge whether linear switch dispatch is 
+    /// @brief Compile time inquiry whether linear switch dispatch is 
     ///     generated internally to map message ID to actual type.
     static constexpr bool isDispatchLinearSwitch()
     {

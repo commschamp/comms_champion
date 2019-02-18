@@ -39,8 +39,7 @@ namespace comms
 ///     embedded environment.@n
 ///     The types of all messages provided in @b TAllMessages are analysed at
 ///     compile time and best "id to message object" mapping strategy is chosen,
-///     whether it is direct access array (with O(1) time complexity) or
-///     sorted array with binary search (with O(log(n)) time complexity).
+///     unless the "dispatch" type forcing options are used (see description below).
 /// @tparam TMsgBase Common base class for all the messages, smart pointer to
 ///     this type is returned when allocation of specify message is requested.
 /// @tparam TAllMessages All custom message types, that this factory is capable
@@ -72,6 +71,20 @@ namespace comms
 ///         the base class of @ref comms::GenericMessage type (first template
 ///         parameter) must be equal to @b TMsgBase (first template parameter)
 ///         of @b this class.
+///     @li @ref comms::option::ForceDispatchPolymorphic, 
+///         @ref comms::option::ForceDispatchStaticBinSearch, or
+///         @ref comms::option::ForceDispatchLinearSwitch - Force a particular
+///         dispatch way when creating message object given the numeric ID
+///         (see @ref comms::MsgFactory::createMsg()). The dispatch methods
+///         are properly described in @ref page_dispatch tutorial page.
+///         If none of these options are provided, then the MsgFactory
+///         used a default way, which is equivalent to calling 
+///         @ref comms::dispatchMsgType() (see also @ref page_dispatch_message_type_default).
+///         To inquire what actual dispatch type is used, please use one
+///         of the following constexpr member functions: 
+///         @ref comms::MsgFactory::isDispatchPolymorphic(),
+///         @ref comms::MsgFactory::isDispatchStaticBinSearch(), and
+///         @ref comms::MsgFactory::isDispatchLinearSwitch()
 /// @pre TMsgBase is a base class for all the messages in TAllMessages.
 /// @pre Message type is TAllMessages must be sorted based on their IDs.
 /// @pre If comms::option::InPlaceAllocation option is provided, only one custom
@@ -121,8 +134,10 @@ public:
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
     /// @brief Create message object given the ID of the message.
+    /// @details The id to mapping is performed using the chosen (or default) 
+    ///     @b dispatch policy described in the class options.
     /// @param id ID of the message.
-    /// @param idx Relative index of the message with the same ID. In case
+    /// @param idx Relative index (or offset) of the message with the same ID. In case
     ///     protocol implementation contains multiple distinct message types
     ///     that report same ID value, it must be possible to choose the
     ///     relative index of such message from the first message type reporting
@@ -164,29 +179,38 @@ public:
         return Base::msgCount(id);
     }
 
-    /// @brief Compile time knowldege inquiry whether all the message classes in the
+    /// @brief Compile time inquiry whether all the message classes in the
     ///     @b TAllMessages bundle have unique IDs.
     static constexpr bool hasUniqueIds()
     {
         return Base::hasUniqueIds();
     }
 
-    /// @brief Compile time knowledge whether polymorphic dispatch tables are 
+    /// @brief Compile time inquiry whether polymorphic dispatch tables are 
     ///     generated internally to map message ID to actual type.
+    /// @see @ref page_dispatch
+    /// @see @ref comms::MsgFactory::isDispatchStaticBinSearch()
+    /// @see @ref comms::MsgFactory::isDispatchLinearSwitch()
     static constexpr bool isDispatchPolymorphic()
     {
         return Base::isDispatchPolymorphic();
     }
 
-    /// @brief Compile time knowledge whether static binary search dispatch is 
+    /// @brief Compile time inquiry whether static binary search dispatch is 
     ///     generated internally to map message ID to actual type.
+    /// @see @ref page_dispatch
+    /// @see @ref comms::MsgFactory::isDispatchPolymorphic()
+    /// @see @ref comms::MsgFactory::isDispatchLinearSwitch()
     static constexpr bool isDispatchStaticBinSearch()
     {
         return Base::isDispatchStaticBinSearch();
     }
 
-    /// @brief Compile time knowledge whether linear switch dispatch is 
+    /// @brief Compile time inquiry whether linear switch dispatch is 
     ///     generated internally to map message ID to actual type.
+    /// @see @ref page_dispatch
+    /// @see @ref comms::MsgFactory::isDispatchStaticBinSearch()
+    /// @see @ref comms::MsgFactory::isDispatchLinearSwitch()
     static constexpr bool isDispatchLinearSwitch()
     {
         return Base::isDispatchLinearSwitch();

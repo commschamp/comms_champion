@@ -2441,6 +2441,10 @@
 /// third template parameter (which defaults to @b void), can be used to
 /// specify the return type of handling functions.
 ///
+/// @b NOTE, since version @b v1.1 the @b COMMS library supports other
+/// ways to dispatch a message object to its handling function in addition
+/// to one described above. Please read @ref page_dispatch page for more details.
+///
 /// @section page_use_prot_extra_transport Extra Transport Values
 /// Some protocols may use extra values in their transport information, which 
 /// may influence the way how message payload is being read and/or message 

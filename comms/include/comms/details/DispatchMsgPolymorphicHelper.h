@@ -20,6 +20,7 @@
 #include <type_traits>
 #include <array>
 #include <algorithm>
+#include <limits>
 
 #include "comms/Assert.h"
 #include "comms/Message.h"
@@ -27,6 +28,7 @@
 #include "comms/util/Tuple.h"
 #include "comms/details/message_check.h"
 #include "comms/CompileControl.h"
+#include "comms/details/DispatchMsgIdRetrieveHelper.h"
 
 namespace comms
 {
@@ -86,6 +88,8 @@ public:
 
     static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename TMsgBase::MsgIdParamType;
+    using MsgIdType = typename TMsgBase::MsgIdType;
+
     virtual MsgIdParamType getId() const
     {
         return getIdImpl();
@@ -114,6 +118,7 @@ class PolymorphicBinSearchDispatchMethodImpl : public
 public:
     static_assert(TMsgBase::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename Base::MsgIdParamType;
+    using MsgIdType = typename Base::MsgIdType;
 
     PolymorphicBinSearchDispatchMethodImpl() = default;
     PolymorphicBinSearchDispatchMethodImpl(const PolymorphicBinSearchDispatchMethodImpl&) = delete;
@@ -122,10 +127,7 @@ public:
 
     static MsgIdParamType doGetId()
     {
-        static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
-        static_assert(messageHasStaticNumId<TMessage>(), "Message must define static numeric ID");
-
-        return TMessage::doGetId();
+        return dispatchMsgGetMsgId<TMessage>();
     }
 
 protected:
@@ -422,6 +424,23 @@ public:
     }
 };
 
+template <typename TElem, bool TIsMessage>
+struct DispatchMsgPolymorphicLastIdRetriever;
+
+template <typename TElem>
+struct DispatchMsgPolymorphicLastIdRetriever<TElem, true>
+{
+    static_assert(messageHasStaticNumId<TElem>(), "TElem must define static numeric id");
+    static const std::size_t Value = 
+        static_cast<std::size_t>(TElem::doGetId());
+};
+
+template <typename TElem>
+struct DispatchMsgPolymorphicLastIdRetriever<TElem, false>
+{
+    static const std::size_t Value = std::numeric_limits<std::size_t>::max();
+};
+
 template <typename TAllMessages, std::size_t TCount>
 class DispatchMsgPolymorphicIsDirectSuitable
 {
@@ -431,11 +450,9 @@ class DispatchMsgPolymorphicIsDirectSuitable
             TAllMessages
         >::type;
 
-    static_assert(comms::isMessageBase<LastMsg>(), "LastMsg must be message type");
-    static_assert(messageHasStaticNumId<LastMsg>(), "LastMsg must define static numeric id");
 
     static const std::size_t MaxId = 
-        static_cast<std::size_t>(LastMsg::doGetId());
+        DispatchMsgPolymorphicLastIdRetriever<LastMsg, comms::isMessageBase<LastMsg>()>::Value;
 
     static const std::size_t MaxAllowedId = (TCount * 11) / 10;
 
@@ -454,7 +471,9 @@ public:
 template <typename TAllMessages>
 static constexpr bool dispatchMsgPolymorphicIsDirectSuitable()
 {
-    return DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, std::tuple_size<TAllMessages>::value>::Value;
+    return 
+        allMessagesHaveStaticNumId<TAllMessages>() && 
+        DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, std::tuple_size<TAllMessages>::value>::Value;
 }
 
 template <typename TAllMessages, typename TMsgBase, typename THandler>

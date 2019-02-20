@@ -1002,7 +1002,7 @@ class DispatchMsgTypePolymorphicHelper
     static const std::size_t NumOfMessages = 
         std::tuple_size<TAllMessages>::value;
 
-    static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+    static_assert((!allMessagesHaveStaticNumId<TAllMessages>()) || allMessagesAreWeakSorted<TAllMessages>(),
         "Message types must be sorted by their ID");
 
     using Tag = 

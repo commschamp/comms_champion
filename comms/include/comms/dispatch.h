@@ -491,7 +491,7 @@ public:
 
     static constexpr bool isPolymorphic()
     {
-        return std::is_same<Tag, DirectPolymorphicTag>::value;
+        return std::is_same<Tag, PolymorphicTag>::value;
     }
 
     static constexpr bool isStaticBinSearch()
@@ -500,18 +500,18 @@ public:
     }
 
 private:
-    struct DirectPolymorphicTag {};
+    struct PolymorphicTag {};
     struct StaticBinSearchTag {};
 
     using Tag = 
         typename std::conditional<
-            dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>(),
-            DirectPolymorphicTag,
+            dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
+            PolymorphicTag,
             StaticBinSearchTag
         >::type;
 
     template <typename TMsg, typename THandler>
-    static auto dispatchMsgInternal(TMsg& msg, THandler& handler, DirectPolymorphicTag) ->
+    static auto dispatchMsgInternal(TMsg& msg, THandler& handler, PolymorphicTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -527,7 +527,7 @@ private:
     }
 
     template <typename TId, typename TMsg, typename THandler>
-    static auto dispatchMsgInternal(TId&& id, TMsg& msg, THandler& handler, DirectPolymorphicTag) ->
+    static auto dispatchMsgInternal(TId&& id, TMsg& msg, THandler& handler, PolymorphicTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -543,7 +543,7 @@ private:
     }
 
     template <typename TId, typename TMsg, typename THandler>
-    static auto dispatchMsgInternal(TId&& id, std::size_t offset, TMsg& msg, THandler& handler, DirectPolymorphicTag) ->
+    static auto dispatchMsgInternal(TId&& id, std::size_t offset, TMsg& msg, THandler& handler, PolymorphicTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
@@ -559,7 +559,7 @@ private:
     }
 
     template <typename TId, typename THandler>
-    static bool dispatchMsgTypeInternal(TId&& id, THandler& handler, DirectPolymorphicTag) 
+    static bool dispatchMsgTypeInternal(TId&& id, THandler& handler, PolymorphicTag) 
     {
         return comms::dispatchMsgTypePolymorphic<TAllMessages>(std::forward<TId>(id), handler);
     }
@@ -571,7 +571,7 @@ private:
     }
 
     template <typename TId, typename THandler>
-    static bool dispatchMsgTypeInternal(TId&& id, std::size_t offset, THandler& handler, DirectPolymorphicTag) 
+    static bool dispatchMsgTypeInternal(TId&& id, std::size_t offset, THandler& handler, PolymorphicTag) 
     {
         return comms::dispatchMsgTypePolymorphic<TAllMessages>(std::forward<TId>(id), offset, handler);
     }

@@ -144,13 +144,17 @@ struct AllMessagesSortedCheckHelper<TStrong, std::tuple<TMessages...> >
 template <typename TAllMessages>
 constexpr bool allMessagesAreStrongSorted()
 {
-    return AllMessagesSortedCheckHelper<true, TAllMessages>::Value;
+    return 
+        allMessagesHaveStaticNumId<TAllMessages>() && 
+        AllMessagesSortedCheckHelper<true, TAllMessages>::Value;
 }
 
 template <typename TAllMessages>
 constexpr bool allMessagesAreWeakSorted()
 {
-    return AllMessagesSortedCheckHelper<false, TAllMessages>::Value;
+    return 
+        allMessagesHaveStaticNumId<TAllMessages>() && 
+        AllMessagesSortedCheckHelper<false, TAllMessages>::Value;
 }
 
 } // namespace details

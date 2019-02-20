@@ -446,7 +446,7 @@
 /// tuple.
 ///
 /// @subsection page_dispatch_message_type_polymorphic Polymorphic
-/// Similar to @ref page_dispatch_message_object_polymorphic dispatch of the
+/// Just like with @ref page_dispatch_message_object_polymorphic dispatch of the
 /// message object, @b polymorphic dispatch of the message type generates 
 /// similar dispatch tables with virtual functions for O(1) or O(log(n)) runtime complexity
 /// depending on how sparse the IDs in the provided tuple are.

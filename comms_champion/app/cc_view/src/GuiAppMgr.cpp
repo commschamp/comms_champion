@@ -59,7 +59,7 @@ QString getConfigPath(const QString& configName)
             return inDir.absoluteFilePath(configName + ".cfg");
         };
 
-    std::cout << "Config dir: " << getAppDataDir().toStdString() << std::endl;
+    //std::cout << "Config dir: " << getAppDataDir().toStdString() << std::endl;
     QFileInfo config1(getPathFunc(QDir(getAppDataDir())));
     if (config1.exists()) {
         return config1.absoluteFilePath();

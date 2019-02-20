@@ -726,10 +726,7 @@ public:
 
     static TMsgIdType doGetId()
     {
-        static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
-        static_assert(messageHasStaticNumId<TMessage>(), "Message must define static numeric ID");
-
-        return static_cast<TMsgIdType>(TMessage::doGetId());
+        return dispatchMsgGetMsgId<TMessage>();
     }
 
 protected:
@@ -814,8 +811,8 @@ public:
     template <typename TMessage>
     void operator()()
     {
-        static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
-        static_assert(messageHasStaticNumId<TMessage>(), "Message must define static ID");
+        // static_assert(comms::isMessageBase<TMessage>(), "Must be actual message");
+        // static_assert(messageHasStaticNumId<TMessage>(), "Message must define static ID");
         static const PolymorphicTypeBinSearchDispatchMethodImpl<TMsgIdType, THandler, TMessage> Method{};
         m_registry[m_idx] = &Method;
         ++m_idx;
@@ -890,6 +887,8 @@ class DispatchMsgTypeBinSearchPolymorphicHelperBase
 {
 protected:
     using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
+    static_assert(comms::isMessage<FirstMsgType>(), 
+            "The type in the tuple are expected to be proper messages");
     static_assert(FirstMsgType::hasMsgIdType(), "Message interface class must define its id type");
     using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
 
@@ -1055,7 +1054,7 @@ private:
     static bool dispatchInternal(TId&& id, THandler& handler, DirectTag) 
     {
         using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
-        static_assert(comms::isMessageBase<FirstMsgType>(), 
+        static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
         using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
@@ -1077,7 +1076,7 @@ private:
     static bool dispatchInternal(TId&& id, THandler& handler, StrongBinSearchTag) 
     {
         using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
-        static_assert(comms::isMessageBase<FirstMsgType>(), 
+        static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
         using MsgIdParamType = typename FirstMsgType::MsgIdParamType;
@@ -1105,7 +1104,7 @@ private:
     static bool dispatchInternal(TId&& id, std::size_t offset, THandler& handler, WeakBinSearchTag) 
     {
         using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
-        static_assert(comms::isMessageBase<FirstMsgType>(), 
+        static_assert(comms::isMessage<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
         static_assert(FirstMsgType::hasMsgIdType(), "The messages must define their ID type");
         using MsgIdParamType = typename FirstMsgType::MsgIdParamType;

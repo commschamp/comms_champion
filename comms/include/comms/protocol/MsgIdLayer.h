@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -32,6 +32,7 @@
 #include "ProtocolLayerBase.h"
 #include "comms/fields.h"
 #include "comms/MsgFactory.h"
+#include "comms/dispatch.h"
 
 namespace comms
 {
@@ -49,8 +50,8 @@ namespace protocol
 /// @tparam TAllMessages Types of all @b input messages, bundled in std::tuple,
 ///     that this protocol stack must be able to read() as well as create (using createMsg()).
 /// @tparam TNextLayer Next transport layer type.
-/// @tparam TOptions All the options that will be forwarded to definition of
-///     message factory type (comms::MsgFactory).
+/// @tparam TOptions All the options that will be forwarded to the definition of
+///     message factory type (@ref comms::MsgFactory).
 /// @headerfile comms/protocol/MsgIdLayer.h
 template <typename TField,
           typename TMessage,
@@ -81,6 +82,9 @@ class MsgIdLayer : public
 
 public:
 
+    /// @brief Parsed options
+    using ParsedOptions = typename Factory::ParsedOptions;
+
     /// @brief All supported message types bundled in std::tuple.
     /// @see comms::MsgFactory::AllMessages.
     using AllMessages = typename Factory::AllMessages;
@@ -100,6 +104,9 @@ public:
 
     /// @brief Type of the field object used to read/write message ID value.
     using Field = typename BaseImpl::Field;
+
+    /// @brief Reason for message creation failure
+    using CreateFailureReason = typename Factory::CreateFailureReason;
 
     static_assert(
         comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
@@ -181,9 +188,9 @@ public:
 
         using Tag =
             typename std::conditional<
-                BaseImpl::template isMessageObjRef<typename std::decay<decltype(msg)>::type>(),
+                comms::isMessageBase<typename std::decay<decltype(msg)>::type>(),
                 DirectOpTag,
-                PolymorphicOpTag
+                PointerOpTag
             >::type;
 
         return doReadInternal(field, msg, iter, size - field.length(), missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
@@ -231,7 +238,15 @@ public:
         }
 
         COMMS_ASSERT(field.length() <= size);
-        return nextLayerWriter.write(msg, iter, size - field.length());
+
+        using Tag =
+            typename std::conditional<
+                comms::isMessageBase<MsgType>() || MsgType::hasWrite(),
+                DirectOpTag,
+                StaticBinSearchOpTag
+            >::type;
+
+        return writeInternal(field, msg, iter, size - field.length(), std::forward<TNextLayerWriter>(nextLayerWriter), Tag());
     }
 
     /// @copybrief ProtocolLayerBase::createMsg
@@ -241,17 +256,41 @@ public:
     ///     data member of this class.
     /// @param[in] id ID of the message
     /// @param[in] idx Relative index of the message with the same ID.
+    /// @param[out] reason Failure reason in case creation has failed. May be nullptr.
     /// @return Smart pointer to the created message object.
     /// @see comms::MsgFactory::createMsg()
-    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0, CreateFailureReason* reason = nullptr)
     {
-        return factory_.createMsg(id, idx);
+        return factory_.createMsg(id, idx, reason);
+    }
+
+    /// @brief Compile time inquiry whether polymorphic dispatch tables are 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchPolymorphic()
+    {
+        return Factory::isDispatchPolymorphic();
+    }
+
+    /// @brief Compile time inquiry whether static binary search dispatch is 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchStaticBinSearch()
+    {
+        return Factory::isDispatchStaticBinSearch();
+    }
+
+    /// @brief Compile time inquiry whether linear switch dispatch is 
+    ///     generated internally to map message ID to actual type.
+    static constexpr bool isDispatchLinearSwitch()
+    {
+        return Factory::isDispatchLinearSwitch();
     }
 
 private:
 
     struct PolymorphicOpTag {};
     struct DirectOpTag {};
+    struct PointerOpTag {};
+    struct StaticBinSearchOpTag {};
 
     template <typename TMsg>
     using IdRetrieveTag =
@@ -272,7 +311,102 @@ private:
             IdParamCastTag
         >::type;
 
+    struct HasGenericMsgTag {};
+    struct NoGenericMsgTag {};
 
+    template <typename TIter, typename TNextLayerReader>
+    class ReadRedirectionHandler
+    {
+    public:
+        using RetType = comms::ErrorStatus;
+
+        ReadRedirectionHandler(
+            TIter& iter,
+            std::size_t size,
+            std::size_t* missingSize,
+            TNextLayerReader&& nextLayerReader)
+          : m_iter(iter),
+            m_size(size),
+            m_missingSize(missingSize),
+            m_nextLayerReader(std::move(nextLayerReader))
+        {
+        }
+
+        template <typename TMsg>
+        RetType handle(TMsg& msg)
+        {
+            static_assert(comms::isMessageBase<TMsg>(), "Expected to be a valid message object");
+            return m_nextLayerReader.read(msg, m_iter, m_size, m_missingSize);
+        }
+
+        RetType handle(TMessage& msg)
+        {
+            static_cast<void>(msg);
+            COMMS_ASSERT(!"Should not happen");
+            return comms::ErrorStatus::InvalidMsgId;
+        }        
+
+    private:
+        TIter& m_iter;
+        std::size_t m_size = 0U;
+        std::size_t* m_missingSize = nullptr;
+        TNextLayerReader&& m_nextLayerReader;
+    };
+
+    template <typename TIter, typename TNextLayerReader>
+    ReadRedirectionHandler<TIter, TNextLayerReader> makeReadRedirectionHandler(
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader)
+    {
+        return ReadRedirectionHandler<TIter, TNextLayerReader>(iter, size, missingSize, std::move(nextLayerReader));
+    }
+
+    template <typename TIter, typename TNextLayerWriter>
+    class WriteRedirectionHandler
+    {
+    public:
+        using RetType = comms::ErrorStatus;
+
+        WriteRedirectionHandler(
+            TIter& iter,
+            std::size_t size,
+            TNextLayerWriter&& nextLayerWriter)
+          : m_iter(iter),
+            m_size(size),
+            m_nextLayerWriter(std::move(nextLayerWriter))
+        {
+        }
+
+        template <typename TMsg>
+        RetType handle(const TMsg& msg)
+        {
+            static_assert(comms::isMessageBase<TMsg>(), "Expected to be a valid message object");
+            return m_nextLayerWriter.write(msg, m_iter, m_size);
+        }
+        
+        RetType handle(const TMessage& msg)
+        {
+            static_cast<void>(msg);
+            COMMS_ASSERT(!"Should not happen");
+            return comms::ErrorStatus::InvalidMsgId;
+        }   
+
+    private:
+        TIter& m_iter;
+        std::size_t m_size = 0U;
+        TNextLayerWriter&& m_nextLayerWriter;
+    };
+
+    template <typename TIter, typename TNextLayerWriter>
+    WriteRedirectionHandler<TIter, TNextLayerWriter> makeWriteRedirectionHandler(
+        TIter& iter,
+        std::size_t size,
+        TNextLayerWriter&& nextLayerWriter)
+    {
+        return WriteRedirectionHandler<TIter, TNextLayerWriter>(iter, size, std::move(nextLayerWriter));
+    }
 
     template <typename TMsg>
     static MsgIdParamType getMsgId(const TMsg& msg, PolymorphicOpTag)
@@ -291,68 +425,6 @@ private:
     static constexpr MsgIdParamType getMsgId(const TMsg& msg, DirectOpTag)
     {
         return msg.doGetId();
-    }
-
-    template <typename TIter, typename TNextLayerReader>
-    comms::ErrorStatus doReadInternalPolymorphic(
-        Field& field,
-        MsgPtr& msgPtr,
-        TIter& iter,
-        std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
-    {
-        COMMS_ASSERT(!msgPtr);
-        auto& id = field.value();
-        auto remLen = size;
-
-        auto es = comms::ErrorStatus::Success;
-        unsigned idx = 0;
-        while (true) {
-            msgPtr = createMsgInternal(id, idx);
-            if (!msgPtr) {
-                break;
-            }
-
-            using IterType = typename std::decay<decltype(iter)>::type;
-            static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
-                "Iterator used for reading is expected to be random access one");
-            IterType readStart = iter;
-            es = nextLayerReader.read(msgPtr, iter, remLen, missingSize);
-            if (es == comms::ErrorStatus::Success) {
-                return es;
-            }
-
-            msgPtr.reset();
-            iter = readStart;
-            ++idx;
-        }
-
-        if ((0U < idx) && Factory::hasUniqueIds()) {
-            return es;
-        }
-
-        COMMS_ASSERT(!msgPtr);
-        auto idxLimit = msgCountInternal(id);
-        if (idx < idxLimit) {
-            return comms::ErrorStatus::MsgAllocFailure;
-        }
-
-        msgPtr = createGenericMsgInternal(id);
-        if (!msgPtr) {
-            if (idx == 0) {
-                return comms::ErrorStatus::InvalidMsgId;
-            }
-
-            return es;
-        }
-
-        es = nextLayerReader.read(msgPtr, iter, remLen, missingSize);
-        if (es != comms::ErrorStatus::Success) {
-            msgPtr.reset();
-        }
-
-        return es;
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader>
@@ -387,7 +459,8 @@ private:
         TNextLayerReader&& nextLayerReader,
         PolymorphicOpTag)
     {
-        return doReadInternalPolymorphic(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
+        static_cast<void>(field);
+        return nextLayerReader.read(msg, iter, size, missingSize);
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader>
@@ -403,23 +476,116 @@ private:
         return doReadInternalDirect(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
     }
 
-    template <typename TId>
-    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, IdParamAsIsTag)
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus doReadInternal(
+        Field& field,
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader,
+        PointerOpTag)
     {
-        return createMsg(std::forward<TId>(id), idx);
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(comms::details::hasElementType<MsgType>(),
+            "Unsupported type of message object, expected to be either message itself or smart pointer");
+
+        using MsgElementType = typename MsgType::element_type;
+
+        static_assert(std::has_virtual_destructor<MsgElementType>::value,
+            "Message object is (dynamically) allocated and held by the pointer to the base class. "
+            "However, there is no virtual desctructor to perform proper destruction.");
+
+        using Tag = 
+            typename std::conditional<
+                MsgElementType::hasRead(),
+                PolymorphicOpTag,
+                StaticBinSearchOpTag
+            >::type;
+
+        const auto& id = field.value();
+
+        auto es = comms::ErrorStatus::InvalidMsgId;
+        unsigned idx = 0;
+        CreateFailureReason failureReason = CreateFailureReason::None;
+        while (true) {
+            COMMS_ASSERT(!msg);
+            msg = createMsgInternal(id, idx, &failureReason);
+            if (!msg) {
+                break;
+            }
+
+            using IterType = typename std::decay<decltype(iter)>::type;
+            static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
+                "Iterator used for reading is expected to be random access one");
+            IterType readStart = iter;                
+
+            es = doReadInternal(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
+            if (es == comms::ErrorStatus::Success) {
+                return es;
+            }
+
+            msg.reset();
+            iter = readStart;
+            ++idx;
+        }
+
+        COMMS_ASSERT(!msg);
+        if (failureReason == CreateFailureReason::AllocFailure) {
+            return comms::ErrorStatus::MsgAllocFailure;
+        }        
+        
+        COMMS_ASSERT(failureReason == CreateFailureReason::InvalidId);
+        using GenericMsgTag = 
+            typename std::conditional<
+                Factory::ParsedOptions::HasSupportGenericMessage,
+                HasGenericMsgTag,
+                NoGenericMsgTag
+            >::type;
+
+        return createAndReadGenericMsgInternal(
+            id, 
+            msg, 
+            iter, 
+            size, 
+            missingSize, 
+            std::forward<TNextLayerReader>(nextLayerReader), 
+            es,
+            GenericMsgTag());
+
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus doReadInternal(
+        Field& field,
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader,
+        StaticBinSearchOpTag)
+    {
+        auto handler = makeReadRedirectionHandler(iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
+        return comms::dispatchMsgStaticBinSearch<AllMessages>(field.value(), *msg, handler);
     }
 
     template <typename TId>
-    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, IdParamCastTag)
+    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, CreateFailureReason* reason, IdParamAsIsTag)
     {
-        return createMsg(static_cast<MsgIdType>(id), idx);
+        return createMsg(std::forward<TId>(id), idx, reason);
     }
 
     template <typename TId>
-    MsgPtr createMsgInternal(TId&& id, unsigned idx)
+    MsgPtr createMsgInternalTagged(TId&& id, unsigned idx, CreateFailureReason* reason, IdParamCastTag)
+    {
+        return createMsg(static_cast<MsgIdType>(id), idx, reason);
+    }
+
+    template <typename TId>
+    MsgPtr createMsgInternal(TId&& id, unsigned idx, CreateFailureReason* reason)
     {
         using IdType = typename std::decay<decltype(id)>::type;
-        return createMsgInternalTagged(std::forward<TId>(id), idx, IdParamTag<IdType>());
+        return createMsgInternalTagged(std::forward<TId>(id), idx, reason, IdParamTag<IdType>());
     }
 
     template <typename TId>
@@ -441,6 +607,80 @@ private:
         return createGenericMsgInternalTagged(std::forward<TId>(id), IdParamTag<IdType>());
     }
 
+    template <typename TId, typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus createAndReadGenericMsgInternal(
+        TId&& id,
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader,
+        comms::ErrorStatus es,
+        NoGenericMsgTag)
+    {
+        static_cast<void>(id);
+        static_cast<void>(msg);
+        static_cast<void>(iter);
+        static_cast<void>(size);
+        static_cast<void>(missingSize);
+        static_cast<void>(nextLayerReader);
+        return es;
+    }   
+
+    template <typename TId, typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus createAndReadGenericMsgInternal(
+        TId&& id,
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader,
+        comms::ErrorStatus es,
+        HasGenericMsgTag)
+    {
+        using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
+
+        msg = createGenericMsgInternal(std::forward<TId>(id));
+        if (!msg) {
+            return es;
+        }
+
+        using Tag = 
+            typename std::conditional<
+                GenericMsgType::hasRead(),
+                PolymorphicOpTag,
+                DirectOpTag
+            >::type;
+
+        return readGenericMsg(msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
+    }  
+
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus readGenericMsg(
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader,
+        PolymorphicOpTag)
+    {
+        return nextLayerReader.read(msg, iter, size, missingSize);
+    }  
+
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    comms::ErrorStatus readGenericMsg(
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        TNextLayerReader&& nextLayerReader,
+        DirectOpTag)
+    {
+        using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
+        auto& castedMsgRef = static_cast<GenericMsgType&>(*msg);
+        return nextLayerReader.read(castedMsgRef, iter, size, missingSize);
+    }               
+
     template <typename TId>
     std::size_t msgCountInternalTagged(TId&& id, IdParamAsIsTag)
     {
@@ -459,6 +699,33 @@ private:
     {
         using IdType = typename std::decay<decltype(id)>::type;
         return msgCountInternalTagged(std::forward<TId>(id), IdParamTag<IdType>());
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerWriter>
+    ErrorStatus writeInternal(
+        Field& field,
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerWriter&& nextLayerWriter,
+        DirectOpTag) const
+    {
+        static_cast<void>(field);
+        return nextLayerWriter.write(msg, iter, size);
+    }
+
+
+    template <typename TMsg, typename TIter, typename TNextLayerWriter>
+    ErrorStatus writeInternal(
+        Field& field,
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerWriter&& nextLayerWriter,
+        StaticBinSearchOpTag) const
+    {
+        auto handler = makeWriteRedirectionHandler(iter, size, std::forward<TNextLayerWriter>(nextLayerWriter));
+        return comms::dispatchMsgStaticBinSearch(field.value(), msg, handler);
     }
 
     Factory factory_;

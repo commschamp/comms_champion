@@ -189,6 +189,26 @@ constexpr bool hasImplOptions()
     return HasImplOptions<T>::Value;
 }
 
+template <class T, class R = void>
+struct EnableIfHasElementType { using Type = R; };
+
+template <class T, class Enable = void>
+struct HasElementType
+{
+    static const bool Value = false;
+};
+
+template <class T>
+struct HasElementType<T, typename EnableIfHasElementType<typename T::element_type>::Type>
+{
+    static const bool Value = true;
+};
+
+template <class T>
+constexpr bool hasElementType()
+{
+    return HasElementType<T>::Value;
+}
 
 } // namespace details
 

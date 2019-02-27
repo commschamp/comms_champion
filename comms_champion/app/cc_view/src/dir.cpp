@@ -75,7 +75,14 @@ QString getConfigDir()
 
 QString getAppDataDir()
 {
-    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    return 
+        QDir(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation))
+            .absoluteFilePath("CommsChampion");
+}
+
+QString getGlobalDataDir()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
 }
 
 } // namespace comms_champion

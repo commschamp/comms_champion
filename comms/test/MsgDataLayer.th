@@ -37,6 +37,7 @@ public:
     void test3();
     void test4();
     void test5();
+    // void test6();
 
 private:
 
@@ -211,6 +212,29 @@ void MsgDataLayerTestSuite::test5()
     internalDirectReadWriteTest(msg, Buf, BufSize);
     TS_ASSERT_EQUALS(msg.field_value1().value(), 0x0102);
 }
+
+// void MsgDataLayerTestSuite::test6()
+// {
+//     static const char Buf[] = {
+//         0x01, 0x02
+//     };
+
+//     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+//     using ProtStack = ProtocolStack<BeMessageBase>;
+//     ProtStack stack;
+// #ifndef CC_COMPILER_GCC47
+//     static_cast<void>(stack.layer_payload()); // check generation of access func
+// #endif
+
+//     std::unique_ptr<BeNonPolymorphicMessageBase> msg(new NonPolymorphicBeMsg1);
+//     auto readIter = &Buf[0];
+//     auto es = stack.read(msg, readIter, BufSize);
+//     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+//     auto* castedMsg = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+//     TS_ASSERT_EQUALS(castedMsg->field_value1().value(), 0x0102);
+// }
+
 
 template <typename TMessage>
 TMessage MsgDataLayerTestSuite::internalReadWriteTest(

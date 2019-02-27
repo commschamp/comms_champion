@@ -27,7 +27,7 @@
 #include "comms/util/Tuple.h"
 #include "comms/util/alloc.h"
 #include "details/MsgFactoryOptionsParser.h"
-#include "details/MsgFactorySelector.h"
+#include "details/MsgFactoryBase.h"
 
 namespace comms
 {
@@ -39,8 +39,7 @@ namespace comms
 ///     embedded environment.@n
 ///     The types of all messages provided in @b TAllMessages are analysed at
 ///     compile time and best "id to message object" mapping strategy is chosen,
-///     whether it is direct access array (with O(1) time complexity) or
-///     sorted array with binary search (with O(log(n)) time complexity).
+///     unless the "dispatch" type forcing options are used (see description below).
 /// @tparam TMsgBase Common base class for all the messages, smart pointer to
 ///     this type is returned when allocation of specify message is requested.
 /// @tparam TAllMessages All custom message types, that this factory is capable
@@ -72,6 +71,20 @@ namespace comms
 ///         the base class of @ref comms::GenericMessage type (first template
 ///         parameter) must be equal to @b TMsgBase (first template parameter)
 ///         of @b this class.
+///     @li @ref comms::option::ForceDispatchPolymorphic, 
+///         @ref comms::option::ForceDispatchStaticBinSearch, or
+///         @ref comms::option::ForceDispatchLinearSwitch - Force a particular
+///         dispatch way when creating message object given the numeric ID
+///         (see @ref comms::MsgFactory::createMsg()). The dispatch methods
+///         are properly described in @ref page_dispatch tutorial page.
+///         If none of these options are provided, then the MsgFactory
+///         used a default way, which is equivalent to calling 
+///         @ref comms::dispatchMsgType() (see also @ref page_dispatch_message_type_default).
+///         To inquire what actual dispatch type is used, please use one
+///         of the following constexpr member functions: 
+///         @ref comms::MsgFactory::isDispatchPolymorphic(),
+///         @ref comms::MsgFactory::isDispatchStaticBinSearch(), and
+///         @ref comms::MsgFactory::isDispatchLinearSwitch()
 /// @pre TMsgBase is a base class for all the messages in TAllMessages.
 /// @pre Message type is TAllMessages must be sorted based on their IDs.
 /// @pre If comms::option::InPlaceAllocation option is provided, only one custom
@@ -79,53 +92,67 @@ namespace comms
 ///     message has been destructed.
 /// @headerfile comms/MsgFactory.h
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
-class MsgFactory
+class MsgFactory : private details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>
 {
+    using Base = details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
         "Usage of MsgFactory requires Message interface to provide ID type. "
         "Use comms::option::MsgIdType option in message interface type definition.");
 
-    using Factory = typename
-        details::MsgFactorySelector<TMsgBase, TAllMessages, TOptions...>::Type;
-
 public:
     /// @brief Parsed options
-    using ParsedOptions = typename Factory::ParsedOptions;
+    using ParsedOptions = typename Base::ParsedOptions;
 
     /// @brief Type of the common base class of all the messages.
-    using Message = TMsgBase;
+    using Message = typename Base::Message;
 
     /// @brief Type of the message ID when passed as a parameter.
-    using MsgIdParamType = typename Message::MsgIdParamType;
+    using MsgIdParamType = typename Base::MsgIdParamType;
 
     /// @brief Type of the message ID.
-    using MsgIdType = typename Message::MsgIdType;
+    using MsgIdType = typename Base::MsgIdType;
 
     /// @brief Smart pointer to @ref Message which holds allocated message object.
     /// @details It is a variant of std::unique_ptr, based on whether
     ///     comms::option::InPlaceAllocation option was used.
-    using MsgPtr = typename Factory::MsgPtr;
+    using MsgPtr = typename Base::MsgPtr;
 
     /// @brief All messages provided as template parameter to this class.
-    using AllMessages = TAllMessages;
+    using AllMessages = typename Base::AllMessages;
+
+#ifdef FOR_DOXYGEN_DOC_ONLY
+    // @brief Reason for message creation failure
+    enum class CreateFailureReason
+    {
+        None, ///< No reason
+        InvalidId, ///< Invalid message id
+        AllocFailure, ///< Allocation of the object has failied
+        NumOfValues ///< Number of available values, must be last
+    };
+#else // #ifdef FOR_DOXYGEN_DOC_ONLY
+    using CreateFailureReason = typename Base::CreateFailureReason;
+#endif // #ifdef FOR_DOXYGEN_DOC_ONLY
 
     /// @brief Create message object given the ID of the message.
+    /// @details The id to mapping is performed using the chosen (or default) 
+    ///     @b dispatch policy described in the class options.
     /// @param id ID of the message.
-    /// @param idx Relative index of the message with the same ID. In case
+    /// @param idx Relative index (or offset) of the message with the same ID. In case
     ///     protocol implementation contains multiple distinct message types
     ///     that report same ID value, it must be possible to choose the
     ///     relative index of such message from the first message type reporting
     ///     the same ID. This parameter provides such an ability. However,
     ///     most protocols will implement single message class for single ID.
     ///     For such implementations, use default value of this parameter.
+    /// @param[out] reason Failure reason in case creation has failed. May be nullptr.
     /// @return Smart pointer (variant of std::unique_ptr) to @ref Message type,
     ///     which is a common base class of all the messages (provided as
     ///     first template parameter to this class). If comms::option::InPlaceAllocation
     ///     option was used and previously allocated message wasn't de-allocated
     ///     yet, the empty (null) pointer will be returned.
-    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0) const
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0, CreateFailureReason* reason = nullptr) const
     {
-        return factory_.createMsg(id, idx);
+        return Base::createMsg(id, idx, reason);
     }
 
     /// @brief Allocate and initialise @ref comms::GenericMessage object.
@@ -136,26 +163,59 @@ public:
     ///     constructor of the @ref comms::GenericMessage class
     MsgPtr createGenericMsg(MsgIdParamType id) const
     {
-        return factory_.createGenericMsg(id);
+        return Base::createGenericMsg(id);
     }
 
+    /// @brief Inquiry whether allocation is possible
+    bool canAllocate() const
+    {
+        return Base::canAllocate();
+    }
     /// @brief Get number of message types from @ref AllMessages, that have the specified ID.
     /// @param id ID of the message.
     /// @return Number of message classes that report same ID.
     std::size_t msgCount(MsgIdParamType id) const
     {
-        return factory_.msgCount(id);
+        return Base::msgCount(id);
     }
 
-    /// @brief Compile time knowldege inquiry whether all the message classes in the
+    /// @brief Compile time inquiry whether all the message classes in the
     ///     @b TAllMessages bundle have unique IDs.
     static constexpr bool hasUniqueIds()
     {
-        return Factory::hasUniqueIds();
+        return Base::hasUniqueIds();
     }
 
-private:
-    Factory factory_;
+    /// @brief Compile time inquiry whether polymorphic dispatch tables are 
+    ///     generated internally to map message ID to actual type.
+    /// @see @ref page_dispatch
+    /// @see @ref comms::MsgFactory::isDispatchStaticBinSearch()
+    /// @see @ref comms::MsgFactory::isDispatchLinearSwitch()
+    static constexpr bool isDispatchPolymorphic()
+    {
+        return Base::isDispatchPolymorphic();
+    }
+
+    /// @brief Compile time inquiry whether static binary search dispatch is 
+    ///     generated internally to map message ID to actual type.
+    /// @see @ref page_dispatch
+    /// @see @ref comms::MsgFactory::isDispatchPolymorphic()
+    /// @see @ref comms::MsgFactory::isDispatchLinearSwitch()
+    static constexpr bool isDispatchStaticBinSearch()
+    {
+        return Base::isDispatchStaticBinSearch();
+    }
+
+    /// @brief Compile time inquiry whether linear switch dispatch is 
+    ///     generated internally to map message ID to actual type.
+    /// @see @ref page_dispatch
+    /// @see @ref comms::MsgFactory::isDispatchStaticBinSearch()
+    /// @see @ref comms::MsgFactory::isDispatchLinearSwitch()
+    static constexpr bool isDispatchLinearSwitch()
+    {
+        return Base::isDispatchLinearSwitch();
+    }
+
 };
 
 

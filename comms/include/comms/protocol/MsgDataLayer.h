@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 #include "comms/field/IntValue.h"
 #include "comms/Message.h"
 #include "comms/MessageBase.h"
+#include "comms/details/detect.h"
 #include "ProtocolLayerBase.h"
 
 namespace comms
@@ -134,9 +135,17 @@ public:
         using MsgType = typename std::decay<decltype(msg)>::type;
         using Tag =
             typename std::conditional<
-                comms::details::hasImplOptions<MsgType>(),
+                comms::isMessageBase<MsgType>(),
                 DirectOpTag,
-                PolymorphicOpTag
+                typename std::conditional<
+                    comms::isMessage<MsgType>(),
+                    InterfaceOpTag,
+                    typename std::conditional<
+                        std::is_pointer<MsgType>::value,
+                        PointerOpTag,
+                        OtherOpTag
+                    >::type
+                >::type
             >::type;
 
         return readInternal(msg, iter, size, missingSize, Tag());
@@ -308,9 +317,17 @@ public:
 
         using Tag =
             typename std::conditional<
-                details::ProtocolLayerHasFieldsImpl<MsgType>::Value,
+                comms::isMessageBase<MsgType>(),
                 DirectOpTag,
-                PolymorphicOpTag
+                typename std::conditional<
+                    comms::isMessage<MsgType>(),
+                    InterfaceOpTag,
+                    typename std::conditional<
+                        std::is_pointer<MsgType>::value,
+                        PointerOpTag,
+                        OtherOpTag
+                    >::type
+                >::type
             >::type;
 
         return writeInternal(msg, iter, size, Tag());
@@ -472,8 +489,11 @@ private:
     struct MsgNoLengthTag {};
     struct MsgDirectLengthTag {};
 
-    struct PolymorphicOpTag {};
     struct DirectOpTag {};
+    struct InterfaceOpTag {};
+    struct PointerOpTag {};
+    struct OtherOpTag {};
+
 
     template <typename TMsg, typename TIter>
     static ErrorStatus writeWithFieldCachedInternal(
@@ -565,21 +585,20 @@ private:
         return 0U;
     }
 
-    template <typename TMsgPtr, typename TIter>
+    template <typename TMsg, typename TIter>
     static ErrorStatus readInternalPolymorphic(
-        TMsgPtr& msgPtr,
+        TMsg& msg,
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize = nullptr)
     {
-        using MsgPtrType = typename std::decay<decltype(msgPtr)>::type;
-        using MsgType = typename MsgPtrType::element_type;
+        using MsgType = typename std::decay<decltype(msg)>::type;
 
         static_assert(
             comms::isMessage<MsgType>(),
             "The provided message object must inherit from comms::Message");
 
-        static_assert(MsgType::InterfaceOptions::HasReadIterator,
+        static_assert(MsgType::hasRead(),
             "Message interface must support polymorphic read operation");
 
         using IterType = typename std::decay<decltype(iter)>::type;
@@ -589,8 +608,7 @@ private:
 
         using ReadIter = typename std::add_lvalue_reference<typename MsgType::ReadIterator>::type;
 
-        COMMS_ASSERT(msgPtr);
-        auto result = msgPtr->read(static_cast<ReadIter>(iter), size);
+        auto result = msg.read(static_cast<ReadIter>(iter), size);
         if ((result == ErrorStatus::NotEnoughData) &&
             (missingSize != nullptr)) {
             using Tag = typename std::conditional<
@@ -598,7 +616,7 @@ private:
                 MsgHasLengthTag,
                 MsgNoLengthTag>::type;
 
-            auto msgLen = getMsgLength(*msgPtr, Tag());
+            auto msgLen = getMsgLength(msg, Tag());
             if (size < msgLen) {
                 *missingSize = msgLen - size;
             }
@@ -645,8 +663,23 @@ private:
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
-        PolymorphicOpTag)
+        DirectOpTag)
     {
+        return readInternalDirect(msg, iter, size, missingSize);
+    }
+
+    template <typename TMsg, typename TIter>
+    static ErrorStatus readInternal(
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        InterfaceOpTag)
+    {
+        static_assert(comms::isMessage<TMsg>(), "Must be interface class");
+        static_assert(TMsg::hasRead(),
+            "Message interface must support polymorphic read operation");
+
         return readInternalPolymorphic(msg, iter, size, missingSize);
     }
 
@@ -656,9 +689,23 @@ private:
         TIter& iter,
         std::size_t size,
         std::size_t* missingSize,
-        DirectOpTag)
+        PointerOpTag)
     {
-        return readInternalDirect(msg, iter, size, missingSize);
+        return read(*msg, iter, size, missingSize);
+    }
+
+    template <typename TMsg, typename TIter>
+    static ErrorStatus readInternal(
+        TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        std::size_t* missingSize,
+        OtherOpTag)
+    {
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(comms::details::hasElementType<MsgType>(),
+            "Unsupported type of message object, expected to be either message itself, raw pointer or smart pointer");
+        return read(*msg, iter, size, missingSize);
     }
 
     template <typename TMsg, typename TIter>
@@ -666,9 +713,9 @@ private:
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
-        PolymorphicOpTag)
+        DirectOpTag)
     {
-        return writeInternalPolymorhpic(msg, iter, size);
+        return msg.doWrite(iter, size);
     }
 
     template <typename TMsg, typename TIter>
@@ -676,20 +723,11 @@ private:
         const TMsg& msg,
         TIter& iter,
         std::size_t size,
-        DirectOpTag)
-    {
-        return writeInternalDirect(msg, iter, size);
-    }
-
-    template <typename TMsg, typename TIter>
-    static ErrorStatus writeInternalPolymorhpic(
-        const TMsg& msg,
-        TIter& iter,
-        std::size_t size)
+        InterfaceOpTag)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
 
-        static_assert(MsgType::InterfaceOptions::HasWriteIterator,
+        static_assert(MsgType::hasWrite(),
             "Message interface must support polymorphic write operation");
 
         using IterType = typename std::decay<decltype(iter)>::type;
@@ -703,12 +741,27 @@ private:
     }
 
     template <typename TMsg, typename TIter>
-    static ErrorStatus writeInternalDirect(
+    static ErrorStatus writeInternal(
         const TMsg& msg,
         TIter& iter,
-        std::size_t size)
+        std::size_t size,
+        PointerOpTag)
     {
-        return msg.doWrite(iter, size);
+        return write(*msg, iter, size);
+    }
+
+    template <typename TMsg, typename TIter>
+    static ErrorStatus writeInternal(
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size,
+        OtherOpTag)
+    {
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        static_assert(comms::details::hasElementType<MsgType>(),
+            "Unsupported type of message object, expected to be either message itself, raw pointer or smart pointer");
+
+        return write(*msg, iter, size);
     }
 };
 
@@ -752,7 +805,6 @@ toProtocolLayerBase(const MsgDataLayer<TExtraOpts...>& layer)
 {
     return layer;
 }
-
 
 }  // namespace protocol
 

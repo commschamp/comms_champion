@@ -35,5 +35,7 @@ QString getConfigDir();
 
 QString getAppDataDir();
 
+QString getGlobalDataDir();
+
 
 } // namespace comms_champion

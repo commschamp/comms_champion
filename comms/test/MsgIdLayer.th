@@ -39,6 +39,19 @@ public:
     void test7();
     void test8();
     void test9();
+    void test10();
+    void test11();
+    void test12();
+    void test13();
+    void test14();
+    void test15();
+    void test16();
+    void test17();
+    void test18();
+    void test19();
+    void test20();
+    void test21();
+    void test22();
 
 private:
 
@@ -76,7 +89,10 @@ private:
 
     typedef TestMessageBase<BeTraits> BeMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;
-    typedef comms::Message<NonPolymorphicBigEndianTraits> BeNonPolymorphicMessageBase;
+    struct BeNonPolymorphicMessageBase : public comms::Message<NonPolymorphicBigEndianTraits>
+    {
+        virtual ~BeNonPolymorphicMessageBase() = default;
+    };
 
     typedef BeMsgBase::Field BeField;
     typedef LeMsgBase::Field LeField;
@@ -87,6 +103,9 @@ private:
     typedef Message2<LeMsgBase> LeMsg2;
     typedef Message3<BeMsgBase> BeMsg3;
     typedef Message3<LeMsgBase> LeMsg3;
+    typedef Message90_1<BeMsgBase> BeMsg90_1;
+    typedef Message90_2<BeMsgBase> BeMsg90_2;
+
     typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
     typedef Message2<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg2;
 
@@ -122,12 +141,12 @@ private:
     typedef Field3<BeField> BeField3;
     typedef Field3<LeField> LeField3;
 
-    template <typename TField, typename TMessage>
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
     class ProtocolStack : public
         comms::protocol::MsgIdLayer<
             TField,
             TMessage,
-            AllMessages<TMessage>,
+            TAllMessages<TMessage>,
             comms::protocol::MsgDataLayer<>
         >
     {
@@ -136,7 +155,7 @@ private:
             comms::protocol::MsgIdLayer<
                 TField,
                 TMessage,
-                AllMessages<TMessage>,
+                TAllMessages<TMessage>,
                 comms::protocol::MsgDataLayer<>
             >;
 #endif
@@ -144,12 +163,12 @@ private:
         COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
     };
 
-    template <typename TField, typename TMessage>
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
     class InPlaceProtocolStack : public
         comms::protocol::MsgIdLayer<
             TField,
             TMessage,
-            AllMessages<TMessage>,
+            TAllMessages<TMessage>,
             comms::protocol::MsgDataLayer<>,
             comms::option::InPlaceAllocation
         >
@@ -159,7 +178,7 @@ private:
             comms::protocol::MsgIdLayer<
                 TField,
                 TMessage,
-                AllMessages<TMessage>,
+                TAllMessages<TMessage>,
                 comms::protocol::MsgDataLayer<>,
                 comms::option::InPlaceAllocation
             >;
@@ -189,6 +208,102 @@ private:
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
     };
+
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
+    class GenericMessageProtocolStack : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            TAllMessages<TMessage>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                TAllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };    
+
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
+    class ProtocolStackPolymorphic : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            TAllMessages<TMessage>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::ForceDispatchPolymorphic
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                TAllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::ForceDispatchPolymorphic
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };
+
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
+    class ProtocolStackStaticBinSearch : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            TAllMessages<TMessage>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::ForceDispatchStaticBinSearch
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                TAllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::ForceDispatchStaticBinSearch
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };
+
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
+    class ProtocolStackLinearSwitch : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            TAllMessages<TMessage>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::ForceDispatchLinearSwitch
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                TAllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::ForceDispatchLinearSwitch
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };
 };
 
 void MsgIdLayerTestSuite::test1()
@@ -199,7 +314,10 @@ void MsgIdLayerTestSuite::test1()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    ProtocolStack<BeField1, BeMsgBase> stack;
+    using Stack = ProtocolStack<BeField1, BeMsgBase>;
+    static_assert(!Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+
+    Stack stack;
     static_cast<void>(stack.layer_id());
     auto& payloadLayer = stack.layer_payload();
     using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
@@ -223,7 +341,6 @@ void MsgIdLayerTestSuite::test1()
     auto& inPlaceIdLayer = static_cast<const InPlaceProtocolStack<BeField1, BeMsgBase>&>(inPlaceStack).layer_id();
     using InPlaceIdLayerType = typename std::decay<decltype(inPlaceIdLayer)>::type;
     static_assert(comms::protocol::isMsgIdLayer<InPlaceIdLayerType>(), "Invalid layer");
-
 
     auto msgPtr2 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize);
     TS_ASSERT(msgPtr2);
@@ -282,7 +399,6 @@ void MsgIdLayerTestSuite::test3()
     auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
 }
-
 
 void MsgIdLayerTestSuite::test4()
 {
@@ -402,4 +518,367 @@ void MsgIdLayerTestSuite::test9()
     ProtStack stack;
     auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
     TS_ASSERT(!msgPtr);
+}
+
+void MsgIdLayerTestSuite::test10()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+    auto readIter = &Buf[0];
+    auto es = stack.read(msg, readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    auto* castedMsg = dynamic_cast<NonPolymorphicBeMsg1*>(msg.get());
+    TS_ASSERT(castedMsg != nullptr);
+    TS_ASSERT_EQUALS(std::get<0>(castedMsg->fields()).value(), 0x0102);
+
+    std::vector<std::uint8_t> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    es = stack.write(*castedMsg, writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(outBuf.size(), BufSize);
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), &Buf[0]));
+}
+
+void MsgIdLayerTestSuite::test11()
+{
+    static const char Buf[] = {
+        MessageType5, 0x01, 0x02, 0x03,
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStack<BeField1, BeMsgBase>;
+    static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
+    TS_ASSERT(!msgPtr);
+}
+
+void MsgIdLayerTestSuite::test12()
+{
+    static const char Buf[] = {
+        MessageType5, 0x01, 0x02, 0x03,
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = GenericMessageProtocolStack<BeField1, BeMsgBase>;
+    static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType5);
+}
+
+template <typename TMsgBase>
+using Test13Messages = 
+    std::tuple<
+        Message1<TMsgBase>,
+        Message2<TMsgBase>,
+        Message90_1<TMsgBase>
+    >;
+
+
+void MsgIdLayerTestSuite::test13()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStack<BeField1, BeMsgBase, Test13Messages>;
+    static_assert(!Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    static_cast<void>(stack.layer_id());
+    auto& payloadLayer = stack.layer_payload();
+    using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+
+    auto& idLayer = stack.layer_id();
+    using IdLayerType = typename std::decay<decltype(idLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
+}
+
+void MsgIdLayerTestSuite::test14()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackPolymorphic<BeField1, BeMsgBase>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::Polymorphic>::value, 
+        "Invalid options");
+    static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+    
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(std::get<0>(msg1.fields()).value(), 0x0102);
+}
+
+template <typename TMsgBase>
+using Test15Messages = 
+    std::tuple<
+        Message1<TMsgBase>,
+        Message5<TMsgBase>,
+        Message90_1<TMsgBase>
+    >;
+void MsgIdLayerTestSuite::test15()
+{
+    static const char Buf[] = {
+        MessageType90, 0x0, 0x01, 0x02, 0x03, 0x04
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackPolymorphic<BeField1, BeMsgBase, Test15Messages>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::Polymorphic>::value, 
+        "Invalid options");
+    static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType90);
+    auto& msg90 = dynamic_cast<BeMsg90_1&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg90.field_value1().value(), 0x01020304);
+}
+
+template <typename TMsgBase>
+using Test16Messages = 
+    std::tuple<
+        Message1<TMsgBase>,
+        Message5<TMsgBase>,
+        Message90_1<TMsgBase>,
+        Message90_2<TMsgBase>
+    >;
+void MsgIdLayerTestSuite::test16()
+{
+    static const char Buf[] = {
+        MessageType90, 0x1, 0x01, 0x02, 0x03, 0x04
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackPolymorphic<BeField1, BeMsgBase, Test16Messages>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::Polymorphic>::value, 
+        "Invalid options");
+    static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType90);
+    auto& msg90 = dynamic_cast<BeMsg90_2&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg90.field_value1().value(), 0x01);
+}
+
+void MsgIdLayerTestSuite::test17()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackStaticBinSearch<BeField1, BeMsgBase>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::StaticBinSearch>::value, 
+        "Invalid options");
+    static_assert(!Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg1.field_value1().value(), 0x0102);
+}
+
+template <typename TMsgBase>
+using Test18Messages = 
+    std::tuple<
+        Message1<TMsgBase>,
+        Message5<TMsgBase>,
+        Message90_1<TMsgBase>
+    >;
+void MsgIdLayerTestSuite::test18()
+{
+    static const char Buf[] = {
+        MessageType90, 0x0, 0x01, 0x02, 0x03, 0x04
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackStaticBinSearch<BeField1, BeMsgBase, Test18Messages>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::StaticBinSearch>::value, 
+        "Invalid options");
+    static_assert(!Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType90);
+    auto& msg90 = dynamic_cast<BeMsg90_1&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg90.field_value1().value(), 0x01020304);
+}
+
+template <typename TMsgBase>
+using Test19Messages = 
+    std::tuple<
+        Message1<TMsgBase>,
+        Message5<TMsgBase>,
+        Message90_1<TMsgBase>,
+        Message90_2<TMsgBase>
+    >;
+void MsgIdLayerTestSuite::test19()
+{
+    static const char Buf[] = {
+        MessageType90, 0x1, 0x01, 0x02, 0x03, 0x04
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackStaticBinSearch<BeField1, BeMsgBase, Test19Messages>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::StaticBinSearch>::value, 
+        "Invalid options");
+    static_assert(!Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType90);
+    auto& msg90 = dynamic_cast<BeMsg90_2&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg90.field_value1().value(), 0x01);
+}
+
+void MsgIdLayerTestSuite::test20()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackLinearSwitch<BeField1, BeMsgBase>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::LinearSwitch>::value, 
+        "Invalid options");
+    static_assert(!Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    auto& msg1 = dynamic_cast<BeMsg1&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg1.field_value1().value(), 0x0102);
+}
+
+template <typename TMsgBase>
+using Test21Messages = 
+    std::tuple<
+        Message1<TMsgBase>,
+        Message5<TMsgBase>,
+        Message90_1<TMsgBase>
+    >;
+void MsgIdLayerTestSuite::test21()
+{
+    static const char Buf[] = {
+        MessageType90, 0x0, 0x01, 0x02, 0x03, 0x04
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackLinearSwitch<BeField1, BeMsgBase, Test21Messages>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::LinearSwitch>::value, 
+        "Invalid options");
+    static_assert(!Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(Stack::isDispatchLinearSwitch(), "Wrong dispatch");        
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType90);
+    auto& msg90 = dynamic_cast<BeMsg90_1&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg90.field_value1().value(), 0x01020304);
+}
+
+template <typename TMsgBase>
+using Test22Messages = 
+    std::tuple<
+        Message1<TMsgBase>,
+        Message5<TMsgBase>,
+        Message90_1<TMsgBase>,
+        Message90_2<TMsgBase>
+    >;
+void MsgIdLayerTestSuite::test22()
+{
+    static const char Buf[] = {
+        MessageType90, 0x1, 0x01, 0x02, 0x03, 0x04
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = ProtocolStackLinearSwitch<BeField1, BeMsgBase, Test22Messages>;
+    static_assert(Stack::ParsedOptions::HasForcedDispatch, "Invalid options");
+    static_assert(std::is_same<Stack::ParsedOptions::ForcedDispatch, comms::traits::dispatch::LinearSwitch>::value, 
+        "Invalid options");
+    static_assert(!Stack::isDispatchPolymorphic(), "Wrong dispatch");
+    static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
+    static_assert(Stack::isDispatchLinearSwitch(), "Wrong dispatch");
+
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType90);
+    auto& msg90 = dynamic_cast<BeMsg90_2&>(*msgPtr);
+    TS_ASSERT_EQUALS(msg90.field_value1().value(), 0x01);
 }

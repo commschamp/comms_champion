@@ -25,6 +25,10 @@
 #include "comms/util/Tuple.h"
 #include "comms/util/alloc.h"
 #include "comms/MessageBase.h"
+#include "comms/details/message_check.h"
+#include "comms/traits.h"
+#include "comms/dispatch.h"
+#include "comms/details/message_check.h"
 
 namespace comms
 {
@@ -32,40 +36,16 @@ namespace comms
 namespace details
 {
 
-template <typename TMessage, bool TIsMessageBase>
-struct MsgFactoryMessageHasStaticNumId;
-
-template <typename TMessage>
-struct MsgFactoryMessageHasStaticNumId<TMessage, true>
-{
-    static const bool Value = TMessage::ImplOptions::HasStaticMsgId;
-};
-
-template <typename TMessage>
-struct MsgFactoryMessageHasStaticNumId<TMessage, false>
-{
-    static const bool Value = false;
-};
-
-struct MsgFactoryStaticNumIdCheckHelper
-{
-    template <typename TMessage>
-    constexpr bool operator()(bool value) const
-    {
-        return value && MsgFactoryMessageHasStaticNumId<TMessage, comms::isMessageBase<TMessage>()>::Value;
-    }
-};
-
 template <typename TAllMessages>
 constexpr bool msgFactoryAllHaveStaticNumId()
 {
-    return comms::util::tupleTypeAccumulate<TAllMessages>(true, MsgFactoryStaticNumIdCheckHelper());
+    return allMessagesHaveStaticNumId<TAllMessages>();
 }
 
 template <typename TMessage>
 constexpr bool msgFactoryMessageHasStaticNumId()
 {
-    return MsgFactoryMessageHasStaticNumId<TMessage, comms::isMessageBase<TMessage>()>::Value;
+    return messageHasStaticNumId<TMessage>();
 }
 
 template<bool TMustCat>
@@ -120,6 +100,40 @@ public:
     using MsgPtr = typename Alloc::Ptr;
     using AllMessages = TAllMessages;
 
+    enum class CreateFailureReason
+    {
+        None,
+        InvalidId,
+        AllocFailure,
+        NumOfValues
+    };
+
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx, CreateFailureReason* reason) const
+    {
+        CreateFailureReason reasonTmp = CreateFailureReason::None;
+        MsgPtr msg;
+        CreateHandler handler(alloc_);
+        bool result = dispatchMsgTypeInternal(id, idx, handler, DispatchTag());
+        do {
+            if (!result) {
+                reasonTmp = CreateFailureReason::InvalidId;
+                break;
+            }
+
+            msg = handler.getMsg();
+            if (!msg) {
+                reasonTmp = CreateFailureReason::AllocFailure;
+                break;
+            }
+        } while (false);
+        
+        if (reason != nullptr) {
+            *reason = reasonTmp;
+        }        
+
+        return msg;
+    }
+
     MsgPtr createGenericMsg(MsgIdParamType id) const
     {
         static_cast<void>(this);
@@ -133,6 +147,35 @@ public:
         return createGenericMsgInternal(id, Tag());
     }
 
+    bool canAllocate() const
+    {
+        return alloc_.canAllocate();
+    }
+
+    std::size_t msgCount(MsgIdParamType id) const
+    {
+        return comms::dispatchMsgTypeCountStaticBinSearch<AllMessages>(id);
+    }
+
+    static constexpr bool hasUniqueIds()
+    {
+        return comms::details::allMessagesAreStrongSorted<AllMessages>();
+    }
+
+    static constexpr bool isDispatchPolymorphic()
+    {
+        return isDispatchPolymorphicInternal(DispatchTag());
+    }
+
+    static constexpr bool isDispatchStaticBinSearch()
+    {
+        return isDispatchStaticBinSearchInternal(DispatchTag());
+    }
+
+    static constexpr bool isDispatchLinearSwitch()
+    {
+        return isDispatchLinearSwitchInternal(DispatchTag());
+    }
 
 protected:
     MsgFactoryBase() = default;
@@ -140,76 +183,6 @@ protected:
     MsgFactoryBase(MsgFactoryBase&&) = default;
     MsgFactoryBase& operator=(const MsgFactoryBase&) = default;
     MsgFactoryBase& operator=(MsgFactoryBase&&) = default;
-
-    class FactoryMethod
-    {
-    public:
-        MsgIdParamType getId() const
-        {
-            return getIdImpl();
-        }
-
-        MsgPtr create(const MsgFactoryBase& factory) const
-        {
-            return createImpl(factory);
-        }
-
-    protected:
-        FactoryMethod() = default;
-
-        virtual MsgIdParamType getIdImpl() const = 0;
-        virtual MsgPtr createImpl(const MsgFactoryBase& factory) const = 0;
-    };
-
-    template <typename TMessage>
-    class NumIdFactoryMethod : public FactoryMethod
-    {
-    public:
-        using Message = TMessage;
-        static const decltype(Message::MsgId) MsgId = Message::MsgId;
-        NumIdFactoryMethod() {}
-
-    protected:
-        virtual MsgIdParamType getIdImpl() const
-        {
-            return static_cast<MsgIdParamType>(MsgId);
-        }
-
-        virtual MsgPtr createImpl(const MsgFactoryBase& factory) const
-        {
-            return factory.template allocMsg<Message>();
-        }
-    };
-
-    template <typename TMessage>
-    friend class NumIdFactoryMethod;
-
-    template <typename TMessage>
-    class GenericFactoryMethod : public FactoryMethod
-    {
-    public:
-        using Message = TMessage;
-
-        GenericFactoryMethod() : id_(Message().getId()) {}
-
-    protected:
-
-        virtual MsgIdParamType getIdImpl() const
-        {
-            return id_;
-        }
-
-        virtual MsgPtr createImpl(const MsgFactoryBase& factory) const
-        {
-            return factory.template allocMsg<Message>();
-        }
-
-    private:
-        typename Message::MsgIdType id_;
-    };
-
-    template <typename TMessage>
-    friend class GenericFactoryMethod;
 
     template <typename TObj, typename... TArgs>
     MsgPtr allocMsg(TArgs&&... args) const
@@ -229,6 +202,38 @@ private:
     struct AllocGenericTag {};
     struct NoAllocTag {};
 
+    struct ForcedTag {};
+    struct StandardTag {};
+
+    using DispatchTag = 
+        typename std::conditional<
+            ParsedOptions::HasForcedDispatch,
+            ForcedTag,
+            StandardTag
+        >::type;
+
+
+    class CreateHandler
+    {
+    public:
+        explicit CreateHandler(Alloc& a) : a_(a) {}
+
+        MsgPtr getMsg()
+        {
+            return std::move(msg_);
+        }
+
+        template <typename T>
+        void handle()
+        {
+            msg_ = a_.template alloc<T>();
+        }
+
+    private:
+        Alloc& a_;
+        MsgPtr msg_;
+    };
+
     MsgPtr createGenericMsgInternal(MsgIdParamType id, AllocGenericTag) const
     {
         static_assert(std::is_base_of<Message, typename ParsedOptions::GenericMessage>::value,
@@ -239,6 +244,67 @@ private:
     static MsgPtr createGenericMsgInternal(MsgIdParamType, NoAllocTag)
     {
         return MsgPtr();
+    }
+
+    template <typename THandler>
+    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, StandardTag)
+    {
+        return comms::dispatchMsgType<AllMessages>(id, idx, handler);
+    }
+
+    template <typename THandler>
+    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, ForcedTag)
+    {
+        using Tag = typename ParsedOptions::ForcedDispatch;
+        return dispatchMsgTypeInternal(id, idx, handler, Tag());
+    }
+
+    template <typename THandler>
+    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, comms::traits::dispatch::Polymorphic)
+    {
+        return comms::dispatchMsgTypePolymorphic<AllMessages>(id, idx, handler);    
+    }
+
+    template <typename THandler>
+    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, comms::traits::dispatch::StaticBinSearch)
+    {
+        return comms::dispatchMsgTypeStaticBinSearch<AllMessages>(id, idx, handler);    
+    }
+
+    template <typename THandler>
+    static bool dispatchMsgTypeInternal(MsgIdParamType id, unsigned idx, THandler& handler, comms::traits::dispatch::LinearSwitch)
+    {
+        return comms::dispatchMsgTypeStaticBinSearch<AllMessages>(id, idx, handler);    
+    }
+
+    static constexpr bool isDispatchPolymorphicInternal(ForcedTag)
+    {
+        return std::is_same<comms::traits::dispatch::Polymorphic, typename ParsedOptions::ForcedDispatch>::value; 
+    }
+
+    static constexpr bool isDispatchPolymorphicInternal(StandardTag)
+    {
+        return dispatchMsgTypeIsPolymorphic<AllMessages>(); 
+    }
+
+    static constexpr bool isDispatchStaticBinSearchInternal(ForcedTag)
+    {
+        return std::is_same<comms::traits::dispatch::StaticBinSearch, typename ParsedOptions::ForcedDispatch>::value; 
+    }
+
+    static constexpr bool isDispatchStaticBinSearchInternal(StandardTag)
+    {
+        return dispatchMsgTypeIsStaticBinSearch<AllMessages>(); 
+    }
+
+    static constexpr bool isDispatchLinearSwitchInternal(ForcedTag)
+    {
+        return std::is_same<comms::traits::dispatch::LinearSwitch, typename ParsedOptions::ForcedDispatch>::value; 
+    }
+
+    static constexpr bool isDispatchLinearSwitchInternal(StandardTag)
+    {
+        return false;
     }
 
     mutable Alloc alloc_;

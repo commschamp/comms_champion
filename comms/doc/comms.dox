@@ -28,6 +28,9 @@
 /// @namespace comms::traits::units
 /// @brief Namespace for various traits tag classes used in units conversion operations.
 
+/// @namespace comms::traits::dispatch
+/// @brief Namespace for various traits tag classes used in dispatch operations.
+
 /// @namespace comms::units
 /// @brief Namespace containing units conversion operations
 

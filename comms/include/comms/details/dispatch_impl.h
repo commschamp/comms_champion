@@ -1,8 +1,8 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2019 (C). Alex Robenko. All rights reserved.
 //
 
-// This file is free software: you can redistribute it and/or modify
+// This library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
@@ -15,22 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file
-/// Aggregates all the includes of the @b COMMS library interface
-
 #pragma once
 
-#include "CompileControl.h"
-#include "fields.h"
-#include "protocols.h"
-#include "units.h"
-#include "version.h"
-#include "dispatch.h"
-#include "field_cast.h"
+#include "comms/details/DispatchMsgPolymorphicHelper.h"
+#include "comms/details/DispatchMsgStaticBinSearchHelper.h"
+#include "comms/details/DispatchMsgLinearSwitchHelper.h"
 
-#include "Message.h"
-#include "EmptyHandler.h"
-#include "GenericHandler.h"
-#include "MessageBase.h"
-#include "MsgFactory.h"
-#include "GenericMessage.h"

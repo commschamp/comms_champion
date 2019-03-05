@@ -55,6 +55,12 @@ endfunction ()
 
 #################################################################
 
+function (test_custom_msg_id_layer)
+    test_func ("CustomMsgIdLayer")
+endfunction ()
+
+#################################################################
+
 function (test_msg_size_layer)
     test_func ("MsgSizeLayer")
 endfunction ()
@@ -108,6 +114,7 @@ test_fields()
 test_message()
 test_msg_data_layer()
 test_msg_id_layer()
+test_custom_msg_id_layer()
 test_msg_size_layer()
 test_sync_prefix_layer()
 test_checksum_layer()

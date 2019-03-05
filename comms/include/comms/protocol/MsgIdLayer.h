@@ -153,10 +153,6 @@ public:
     /// @brief Reason for message creation failure
     using CreateFailureReason = typename Factory::CreateFailureReason;
 
-    static_assert(
-        comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
-        "Field must be of IntValue or EnumValue types");
-
     /// @brief Default constructor.
     explicit MsgIdLayer() = default;
 
@@ -341,6 +337,10 @@ protected:
     /// @param[in] field Field for this layer.
     static MsgIdType getMsgIdFromField(const Field& field)
     {
+        static_assert(
+            comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
+            "Field must be of IntValue or EnumValue types");
+
         return static_cast<MsgIdType>(field.value());
     }
 
@@ -369,6 +369,10 @@ protected:
     template <typename TMsg>
     static void prepareFieldForWrite(MsgIdParamType id, const TMsg& msg, Field& field)
     {
+        static_assert(
+            comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
+            "Field must be of IntValue or EnumValue types");
+
         static_cast<void>(msg);
         field.value() = static_cast<typename Field::ValueType>(id);
     }
@@ -633,7 +637,7 @@ private:
             >::type;
 
         return createAndReadGenericMsgInternal(
-            id, 
+            field, 
             msg, 
             iter, 
             size, 
@@ -696,9 +700,9 @@ private:
         return createGenericMsgInternalTagged(std::forward<TId>(id), IdParamTag<IdType>());
     }
 
-    template <typename TId, typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus createAndReadGenericMsgInternal(
-        TId&& id,
+        const Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -707,7 +711,7 @@ private:
         comms::ErrorStatus es,
         NoGenericMsgTag)
     {
-        static_cast<void>(id);
+        static_cast<void>(field);
         static_cast<void>(msg);
         static_cast<void>(iter);
         static_cast<void>(size);
@@ -716,9 +720,9 @@ private:
         return es;
     }   
 
-    template <typename TId, typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus createAndReadGenericMsgInternal(
-        TId&& id,
+        const Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -729,10 +733,13 @@ private:
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
 
-        msg = createGenericMsgInternal(std::forward<TId>(id));
+        auto id = ExtendingClass::getMsgIdFromField(field);
+        msg = createGenericMsgInternal(id);
         if (!msg) {
             return es;
         }
+
+        ExtendingClass::beforeRead(field, *msg);
 
         using Tag = 
             typename std::conditional<

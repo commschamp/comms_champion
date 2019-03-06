@@ -79,8 +79,12 @@ using MsgIdLayerExtendingClassT =
 /// @tparam TAllMessages Types of all @b input messages, bundled in std::tuple,
 ///     that this protocol stack must be able to read() as well as create (using createMsg()).
 /// @tparam TNextLayer Next transport layer type.
-/// @tparam TOptions All the options that will be forwarded to the definition of
-///     message factory type (@ref comms::MsgFactory).
+/// @tparam TOptions Default functionality extension options. Supported options are:
+///     @li @ref comms::option::ExtendingClass - Use this option to provide a class
+///         name of the extending class, which can be used to extend existing functionality.
+///     @li All the options supported by the @ref comms::MsgFactory. All the options
+///         except ones listed above will be forwarded to the definition of the
+///         inner instance of @ref comms::MsgFactory.
 /// @headerfile comms/protocol/MsgIdLayer.h
 template <typename TField,
           typename TMessage,

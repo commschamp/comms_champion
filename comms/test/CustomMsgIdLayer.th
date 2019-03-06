@@ -66,7 +66,7 @@ private:
             comms::field::IntValue<BigEndianField, std::uint8_t>
         >;
 
-    using InterfaceOptions = 
+    using IfOptions = 
         std::tuple<
             comms::option::MsgIdType<MessageType>,
             comms::option::BigEndian,
@@ -78,10 +78,11 @@ private:
         >;
 
     struct Interface : public 
-        comms::Message<InterfaceOptions>
+        comms::Message<IfOptions>
     {
-        using Base = comms::Message<InterfaceOptions>;
-
+#ifdef COMMS_MUST_DEFINE_BASE        
+        using Base = comms::Message<IfOptions>;
+#endif
     public:
         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
     };
@@ -96,8 +97,9 @@ private:
     struct NonPolymorphicInterface : public 
         comms::Message<BasicInterfaceOptions>
     {
-        using Base = comms::Message<InterfaceOptions>;
-
+#ifdef COMMS_MUST_DEFINE_BASE        
+        using Base = comms::Message<BasicInterfaceOptions>;
+#endif
     public:
         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
 
@@ -172,6 +174,7 @@ private:
 #ifdef COMMS_MUST_DEFINE_BASE
         using Base =
             CustomMsgIdLayer<
+                TInterface,
                 AllMessages1<TInterface>,
                 comms::protocol::MsgDataLayer<>
             >;
@@ -193,7 +196,7 @@ private:
         using Base =
             CustomMsgIdLayer<
                 TInterface,
-                AllMessages1<TMessage>,
+                AllMessages1<TInterface>,
                 comms::protocol::MsgDataLayer<>,
                 comms::option::SupportGenericMessage<comms::GenericMessage<TInterface> >
             >;
@@ -216,7 +219,7 @@ private:
         using Base =
             CustomMsgIdLayer<
                 TInterface,
-                AllMessages1<TMessage>,
+                AllMessages1<TInterface>,
                 comms::protocol::MsgDataLayer<>,
                 comms::option::SupportGenericMessage<comms::GenericMessage<TInterface> >,
                 comms::option::InPlaceAllocation

@@ -82,6 +82,7 @@ using MsgIdLayerExtendingClassT =
 /// @tparam TOptions Default functionality extension options. Supported options are:
 ///     @li @ref comms::option::ExtendingClass - Use this option to provide a class
 ///         name of the extending class, which can be used to extend existing functionality.
+///         See also @ref page_custom_id_layer tutorial page.
 ///     @li All the options supported by the @ref comms::MsgFactory. All the options
 ///         except ones listed above will be forwarded to the definition of the
 ///         inner instance of @ref comms::MsgFactory.
@@ -276,7 +277,7 @@ public:
         TNextLayerWriter&& nextLayerWriter) const
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
-        ExtendingClass::prepareFieldForWrite(
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(
             getMsgId(msg, IdRetrieveTag<MsgType>()), 
             msg, 
             field);
@@ -537,12 +538,12 @@ private:
                 "Explicit message type is expected to expose compile type message ID by "
                 "using \"StaticNumIdImpl\" option");
 
-        auto id = ExtendingClass::getMsgIdFromField(field);
+        auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
         if (id != MsgType::doGetId()) {
             return ErrorStatus::InvalidMsgId;
         }
 
-        ExtendingClass::beforeRead(field, msg);
+        static_cast<ExtendingClass*>(this)->beforeRead(field, msg);
         return nextLayerReader.read(msg, iter, size, missingSize);
     }
 
@@ -600,7 +601,7 @@ private:
                 StaticBinSearchOpTag
             >::type;
 
-        const auto id = ExtendingClass::getMsgIdFromField(field);
+        const auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
         auto es = comms::ErrorStatus::InvalidMsgId;
         unsigned idx = 0;
         CreateFailureReason failureReason = CreateFailureReason::None;
@@ -616,7 +617,7 @@ private:
                 "Iterator used for reading is expected to be random access one");
             IterType readStart = iter;                
 
-            ExtendingClass::beforeRead(field, *msg);
+            static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
             es = doReadInternal(id, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
             if (es == comms::ErrorStatus::Success) {
                 return es;
@@ -737,13 +738,13 @@ private:
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
 
-        auto id = ExtendingClass::getMsgIdFromField(field);
+        auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
         msg = createGenericMsgInternal(id);
         if (!msg) {
             return es;
         }
 
-        ExtendingClass::beforeRead(field, *msg);
+        static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
 
         using Tag = 
             typename std::conditional<
@@ -825,7 +826,7 @@ private:
         StaticBinSearchOpTag) const
     {
         auto handler = makeWriteRedirectionHandler(iter, size, std::forward<TNextLayerWriter>(nextLayerWriter));
-        auto id = ExtendingClass::getMsgIdFromField(field);
+        auto id = static_cast<const ExtendingClass*>(this)->getMsgIdFromField(field);
         return comms::dispatchMsgStaticBinSearch(id, msg, handler);
     }
 

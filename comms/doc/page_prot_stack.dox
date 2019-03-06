@@ -661,7 +661,16 @@
 /// provide all the necessary layer classes required to implement custom logic
 /// of the protocol. The COMMS library allows implementation and usage of 
 /// custom layers as long as it defines the required types and implements required
-/// functions. It is strongly recommended to inherit from comms::protocol::ProtocolLayerBase
+/// functions. 
+///
+/// Some of the available layers support extension of their default functionality.
+/// Pleases check the following tutorial pages. In most cases it will be sufficient.
+/// @li @ref page_custom_id_layer
+///
+/// In case absolutely new and independent protocol stack layer needs to be
+/// implemented, please follow the instructions below.
+///
+/// It is strongly recommended to inherit from comms::protocol::ProtocolLayerBase
 /// and implement missing functionality
 /// @code
 /// // Must receive the next layer type as template parameter
@@ -868,7 +877,7 @@
 ///     ...
 ///     MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0)
 ///     {
-///         return someInternalFactor.createMsg(id, idx);
+///         return someInternalMsgFactory.createMsg(id, idx);
 ///     }
 /// };
 /// @endcode

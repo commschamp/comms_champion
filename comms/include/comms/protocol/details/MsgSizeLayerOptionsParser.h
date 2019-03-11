@@ -31,19 +31,18 @@ namespace details
 
 
 template <typename... TOptions>
-class MsgIdLayerOptionsParser;
+class MsgSizeLayerOptionsParser;
 
 template <>
-class MsgIdLayerOptionsParser<>
+class MsgSizeLayerOptionsParser<>
 {
 public:
     static const bool HasExtendingClass = false;
-    using FactoryOptions = std::tuple<>;
 };
 
 template <typename T, typename... TOptions>
-class MsgIdLayerOptionsParser<comms::option::ExtendingClass<T>, TOptions...> :
-        public MsgIdLayerOptionsParser<TOptions...>
+class MsgSizeLayerOptionsParser<comms::option::ExtendingClass<T>, TOptions...> :
+        public MsgSizeLayerOptionsParser<TOptions...>
 {
 public:
     static const bool HasExtendingClass = true;
@@ -51,33 +50,17 @@ public:
 };
 
 template <typename... TOptions>
-class MsgIdLayerOptionsParser<
+class MsgSizeLayerOptionsParser<
     comms::option::EmptyOption,
-    TOptions...> : public MsgIdLayerOptionsParser<TOptions...>
+    TOptions...> : public MsgSizeLayerOptionsParser<TOptions...>
 {
 };
 
 template <typename... TBundledOptions, typename... TOptions>
-class MsgIdLayerOptionsParser<
+class MsgSizeLayerOptionsParser<
     std::tuple<TBundledOptions...>,
-    TOptions...> : public MsgIdLayerOptionsParser<TBundledOptions..., TOptions...>
+    TOptions...> : public MsgSizeLayerOptionsParser<TBundledOptions..., TOptions...>
 {
-};
-
-template <typename T, typename... TOptions>
-class MsgIdLayerOptionsParser<T, TOptions...> : public MsgIdLayerOptionsParser<TOptions...>
-{
-    using BaseImpl = MsgIdLayerOptionsParser<TOptions...>;
-public:    
-    using FactoryOptions = 
-        typename std::decay<
-            decltype(
-                std::tuple_cat(
-                    std::declval<std::tuple<T> >(),
-                    std::declval<typename BaseImpl::FactoryOptions>()
-                )
-            )
-        >::type;
 };
 
 } // namespace details

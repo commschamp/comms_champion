@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -20,7 +20,9 @@
 #include <iterator>
 #include <type_traits>
 #include "comms/field/IntValue.h"
-#include "ProtocolLayerBase.h"
+#include "comms/protocol/ProtocolLayerBase.h"
+#include "comms/protocol/details/MsgSizeLayerOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 
 namespace comms
 {
@@ -35,30 +37,39 @@ namespace protocol
 ///     layer, expects other mid level layer or MsgDataLayer to be its next one.
 /// @tparam TField Type of the field that describes the "size" field.
 /// @tparam TNextLayer Next transport layer in protocol stack.
+/// @tparam TOptions Default functionality extension options. Supported options are:
+///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
+///         name of the extending class, which can be used to extend existing functionality.
 /// @headerfile comms/protocol/MsgSizeLayer.h
-template <typename TField, typename TNextLayer>
+template <typename TField, typename TNextLayer, typename... TOptions>
 class MsgSizeLayer : public
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            MsgSizeLayer<TField, TNextLayer>,
+            details::ProtocolLayerExtendingClassT<
+                MsgSizeLayer<TField, TNextLayer, TOptions...>, 
+                details::MsgSizeLayerOptionsParser<TOptions...>
+            >,
             comms::option::ProtocolLayerDisallowReadUntilDataSplit
         >
 {
+    using ExtendingClass = 
+            details::ProtocolLayerExtendingClassT<
+                MsgSizeLayer<TField, TNextLayer, TOptions...>, 
+                details::MsgSizeLayerOptionsParser<TOptions...>
+            >;
+
     using BaseImpl =
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            MsgSizeLayer<TField, TNextLayer>,
+            ExtendingClass,
             comms::option::ProtocolLayerDisallowReadUntilDataSplit
         >;
 
 public:
     /// @brief Type of the field object used to read/write remaining size value.
     using Field = typename BaseImpl::Field;
-
-    static_assert(comms::field::isIntValue<Field>(),
-        "Field must be of IntValue type");
 
     /// @brief Default constructor
     explicit MsgSizeLayer() = default;
@@ -149,8 +160,9 @@ public:
         }
 
         auto fromIter = iter;
-        auto actualRemainingSize = (size - field.length());
-        auto requiredRemainingSize = static_cast<std::size_t>(field.value());
+        std::size_t actualRemainingSize = (size - field.length());
+        std::size_t requiredRemainingSize = 
+            static_cast<ExtendingClass*>(this)->getRemainingSizeFromField(field);
 
         if (actualRemainingSize < requiredRemainingSize) {
             if (missingSize != nullptr) {
@@ -159,7 +171,10 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        using MsgPtrTag = MsgTypeTag<MsgType>;
         // not passing missingSize farther on purpose
+        static_cast<ExtendingClass*>(this)->beforeRead(field, getPtrToMsgInternal(msg, MsgPtrTag()));
         es = nextLayerReader.read(msg, iter, requiredRemainingSize, nullptr);
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::resetMsg(msg);
@@ -242,6 +257,49 @@ public:
         return nextLayerUpdater.update(iter, size - field.length());
     }
 
+protected:
+    /// @brief Retrieve remaining size (length) from the field.
+    /// @details May be overridden by the extending class
+    /// @param[in] field Field for this layer.
+    static std::size_t getRemainingSizeFromField(const Field& field)
+    {
+        static_assert(comms::field::isIntValue<Field>(),
+            "Field must be of IntValue type");
+
+        return static_cast<std::size_t>(field.value());
+    }
+
+    /// @brief Extra operation before read is forwarded to the next layer.
+    /// @details Default implementation does nothing, may be overriden in the
+    ///     derived class.
+    /// @param[in] field Field of the layer that was successfully read.
+    /// @param[in, out] msg Pointer to message object, either interface
+    ///     class or message object itself (depending on how doRead() was invoked).
+    ///     Can be @b nullptr in case message object hasn't been created yet
+    template <typename TMsg>
+    static void beforeRead(const Field& field, TMsg* msg)
+    {
+        static_cast<void>(field);
+        static_cast<void>(msg);
+    }
+
+    /// @brief Prepare field for writing
+    /// @details Must assign provided size (length) value. 
+    ///     May be overridden by the extending class if some complex functionality is required.
+    /// @param[in] size Size value to assign
+    /// @param[in] msg Reference to message object being written
+    /// @param[out] field Field, value of which needs to be populated
+    template <typename TMsg>
+    static void prepareFieldForWrite(std::size_t size, const TMsg& msg, Field& field)
+    {
+        static_assert(
+            comms::field::isIntValue<Field>(),
+            "Field must be of IntValue or EnumValue types");
+
+        static_cast<void>(msg);
+        field.value() = static_cast<typename Field::ValueType>(size);
+    }
+
 private:
 
     using FixedLengthTag = typename BaseImpl::FixedLengthTag;
@@ -258,6 +316,18 @@ private:
             MsgNoLengthTag
         >::type;
 
+    struct PtrToMsgTag {};
+    struct DirectMsgTag {};
+
+    template <typename TMsg>
+    using MsgTypeTag =
+        typename std::conditional<
+            comms::isMessage<TMsg>(),
+            DirectMsgTag,
+            PtrToMsgTag
+        >::type;
+
+
     template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalHasLength(
         Field& field,
@@ -266,9 +336,8 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        using FieldValueType = typename Field::ValueType;
-        field.value() =
-            static_cast<FieldValueType>(BaseImpl::nextLayer().length(msg));
+        std::size_t lenValue = BaseImpl::nextLayer().length(msg);
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, msg, field);
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
@@ -405,6 +474,17 @@ private:
         return Field(static_cast<FieldValueType>(remSize)).length();
     }
 
+    template <typename TMsg>
+    auto getPtrToMsgInternal(TMsg& msg, PtrToMsgTag) -> decltype (msg.get())
+    {
+        return msg.get();
+    }
+
+    template <typename TMsg>
+    auto getPtrToMsgInternal(TMsg& msg, DirectMsgTag) -> decltype (&msg)
+    {
+        return &msg;
+    }
 };
 
 namespace details

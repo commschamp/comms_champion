@@ -34,40 +34,13 @@
 #include "comms/MsgFactory.h"
 #include "comms/dispatch.h"
 #include "comms/protocol/details/MsgIdLayerOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 
 namespace comms
 {
 
 namespace protocol
 {
-
-namespace details    
-{
-
-template <bool THasExtendingClass>
-struct MsgIdLayerExtendingClassHelper;
-
-template <>
-struct MsgIdLayerExtendingClassHelper<false>
-{
-    template <typename TLayer, typename TParsedOptions>
-    using Type = TLayer;
-};
-
-template <>
-struct MsgIdLayerExtendingClassHelper<true>
-{
-    template <typename TLayer, typename TParsedOptions>
-    using Type = typename TParsedOptions::ExtendingClass;
-};
-
-template <typename TLayer, typename TParsedOptions>
-using MsgIdLayerExtendingClassT = 
-    typename MsgIdLayerExtendingClassHelper<TParsedOptions::HasExtendingClass>::
-        template Type<TLayer, TParsedOptions>;
-
-} // namespace details
-
 
 /// @brief Protocol layer that uses uses message ID field as a prefix to all the
 ///        subsequent data written by other (next) layers.
@@ -96,7 +69,7 @@ class MsgIdLayer : public
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            details::MsgIdLayerExtendingClassT<
+            details::ProtocolLayerExtendingClassT<
                 MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>, 
                 details::MsgIdLayerOptionsParser<TOptions...>
             >
@@ -106,7 +79,7 @@ class MsgIdLayer : public
         "TAllMessages must be of std::tuple type");
 
     using ExtendingClass = 
-            details::MsgIdLayerExtendingClassT<
+            details::ProtocolLayerExtendingClassT<
                 MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>, 
                 details::MsgIdLayerOptionsParser<TOptions...>
             >;

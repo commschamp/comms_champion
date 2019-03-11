@@ -168,6 +168,7 @@ private:
         template <typename TMsg>
         void beforeRead(const Field& field, TMsg* msg)
         {
+            static_cast<void>(msg);
             assert(msg == nullptr);
             Base::nextLayer().nextLayer().pseudoField().value() = field.field_flags().value();
         }

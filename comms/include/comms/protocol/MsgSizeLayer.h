@@ -40,6 +40,7 @@ namespace protocol
 /// @tparam TOptions Default functionality extension options. Supported options are:
 ///     @li  @ref comms::option::ExtendingClass - Use this option to provide a class
 ///         name of the extending class, which can be used to extend existing functionality.
+///         See also @ref page_custom_size_layer tutorial page.
 /// @headerfile comms/protocol/MsgSizeLayer.h
 template <typename TField, typename TNextLayer, typename... TOptions>
 class MsgSizeLayer : public
@@ -243,10 +244,13 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        using FieldValueType = typename Field::ValueType;
-        field.value() = static_cast<FieldValueType>(size - Field::maxLength());
+        std::size_t lenValue = size - Field::maxLength();
+        auto nullMsgPtr = static_cast<const void*>(nullptr);
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, nullMsgPtr, field);
+
         if (field.length() != Field::maxLength()) {
-            field.value() = static_cast<FieldValueType>(size - field.length());
+            lenValue = size - field.length();
+            static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, nullMsgPtr, field);
         }
 
         auto es = field.write(iter, size);
@@ -287,10 +291,11 @@ protected:
     /// @details Must assign provided size (length) value. 
     ///     May be overridden by the extending class if some complex functionality is required.
     /// @param[in] size Size value to assign
-    /// @param[in] msg Reference to message object being written
+    /// @param[in] msg Pointer to message object being written, maybe nullptr (in case invoked
+    ///     from @ref comms::protocol::MsgSizeLayer::doUpdate "doUpdate()")
     /// @param[out] field Field, value of which needs to be populated
     template <typename TMsg>
-    static void prepareFieldForWrite(std::size_t size, const TMsg& msg, Field& field)
+    static void prepareFieldForWrite(std::size_t size, const TMsg* msg, Field& field)
     {
         static_assert(
             comms::field::isIntValue<Field>(),
@@ -337,7 +342,7 @@ private:
         TWriter&& nextLayerWriter) const
     {
         std::size_t lenValue = BaseImpl::nextLayer().length(msg);
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, msg, field);
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, &msg, field);
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;

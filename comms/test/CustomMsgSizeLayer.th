@@ -128,9 +128,11 @@ private:
         }
 
         template <typename TMsg>
-        static void prepareFieldForWrite(std::size_t size, const TMsg& msg, Field& field)
+        static void prepareFieldForWrite(std::size_t size, const TMsg* msg, Field& field)
         {
-            field.field_flags().value() = msg.transportField_flags().value();
+            if (msg != nullptr) {
+                field.field_flags().value() = msg->transportField_flags().value();
+            }
             auto& sizeField = field.field_size();
             using SizeFieldType = typename std::decay<decltype(sizeField)>::type;
             field.field_size().value() = static_cast<typename SizeFieldType::ValueType>(size);
@@ -174,9 +176,11 @@ private:
         }
 
         template <typename TMsg>
-        static void prepareFieldForWrite(std::size_t size, const TMsg& msg, Field& field)
+        static void prepareFieldForWrite(std::size_t size, const TMsg* msg, Field& field)
         {
-            field.field_flags().value() = msg.transportField_flags().value();
+            if (msg != nullptr) {
+                field.field_flags().value() = msg->transportField_flags().value();
+            }
             auto& sizeField = field.field_size();
             using SizeFieldType = typename std::decay<decltype(sizeField)>::type;
             field.field_size().value() = static_cast<typename SizeFieldType::ValueType>(size);

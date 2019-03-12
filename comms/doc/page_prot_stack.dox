@@ -283,10 +283,11 @@
 /// 
 /// } // namespace my_protocol
 /// @endcode
-/// The @ref comms::protocol::MsgSizeLayer receives two template parameters. The first
+/// The @ref comms::protocol::MsgSizeLayer receives <b>at least</b> two template parameters. The first
 /// one is the definition of the @b field (see @ref page_field_tutorial for details)
 /// that is responsible to read/write the remaining length information. The
-/// second template parameter is an upper layer that is being wrapped. @n
+/// second template parameter is an upper layer that is being wrapped. The third
+/// template parameter is optional default behaviour modification options.@n
 /// Please note the usage of @b comms::option::NumValueSerOffset option when
 /// defining the @b field type. If it is NOT used, the serialised length value
 /// will cover only @b ID and @b PAYLOAD (layers it wraps). However, according to the protocol
@@ -666,6 +667,7 @@
 /// Some of the available layers support extension of their default functionality.
 /// Pleases check the following tutorial pages. In most cases it will be sufficient.
 /// @li @ref page_custom_id_layer
+/// @li @ref page_custom_size_layer
 ///
 /// In case absolutely new and independent protocol stack layer needs to be
 /// implemented, please follow the instructions below.

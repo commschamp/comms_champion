@@ -30,6 +30,27 @@ namespace comms
 namespace protocol
 {
 
+namespace details
+{
+template <bool TValidPtr>
+struct MsgSizeLayerConstNullPtrCastHelper;
+
+template <>
+struct MsgSizeLayerConstNullPtrCastHelper<true>
+{
+    template <typename TPtr>
+    using Type = const typename TPtr::element_type*;
+};
+
+template <>
+struct MsgSizeLayerConstNullPtrCastHelper<false>
+{
+    template <typename TPtr>
+    using Type = const void*;
+};
+
+} // namespace details    
+
 /// @brief Protocol layer that uses size field as a prefix to all the
 ///        subsequent data written by other (next) layers.
 /// @details The main purpose of this layer is to provide information about
@@ -244,21 +265,33 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        std::size_t lenValue = size - Field::maxLength();
-        auto nullMsgPtr = static_cast<const void*>(nullptr);
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, nullMsgPtr, field);
+        using MsgPtr = typename BaseImpl::MsgPtr;
+        using ConstNullptrType = 
+            typename details::MsgSizeLayerConstNullPtrCastHelper<
+                std::is_void<MsgPtr>::value
+            >::template Type<MsgPtr>;
+        auto noMsgPtr = static_cast<ConstNullptrType>(nullptr);
+        return doUpdateInternal(noMsgPtr, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));
+    }
 
-        if (field.length() != Field::maxLength()) {
-            lenValue = size - field.length();
-            static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, nullMsgPtr, field);
-        }
-
-        auto es = field.write(iter, size);
-        if (es != ErrorStatus::Success) {
-            return es;
-        }
-
-        return nextLayerUpdater.update(iter, size - field.length());
+    /// @brief Customized update functionality, invoked by @ref update().
+    /// @details Similar to other @ref comms::protocol::MsgSizeLayer::doUpdate() "doUpdate()",
+    ///     but receiving reference to valid message object.
+    /// @param[in] msg Reference to valid message object.
+    /// @param[out] field Field object to update.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using write().
+    /// @param[in] nextLayerUpdater Next layer updater object.
+    /// @return Status of the update operation.
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdate(
+        const TMsg& msg,
+        Field& field,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater) const
+    {
+        return doUpdateInternal(&msg, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));
     }
 
 protected:
@@ -332,7 +365,6 @@ private:
             PtrToMsgTag
         >::type;
 
-
     template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalHasLength(
         Field& field,
@@ -361,8 +393,7 @@ private:
         TWriter&& nextLayerWriter) const
     {
         auto valueIter = iter;
-
-        field.value() = static_cast<typename Field::ValueType>(0);
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(0U, &msg, field);
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
@@ -376,7 +407,9 @@ private:
             return es;
         }
 
-        field.value() = static_cast<typename Field::ValueType>(std::distance(dataIter, iter));
+        auto dist = 
+            static_cast<std::size_t>(std::distance(dataIter, iter));
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(dist, &msg, field);
         COMMS_ASSERT(field.length() == sizeLen);
         return field.write(valueIter, sizeLen);
     }
@@ -389,7 +422,7 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
-        field.value() = static_cast<typename Field::ValueType>(0);
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(0U, &msg, field);
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
@@ -489,6 +522,30 @@ private:
     auto getPtrToMsgInternal(TMsg& msg, DirectMsgTag) -> decltype (&msg)
     {
         return &msg;
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdateInternal(
+        const TMsg* msg,
+        Field& field,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater) const
+    {
+        std::size_t lenValue = size - Field::maxLength();
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, msg, field);
+
+        if (field.length() != Field::maxLength()) {
+            lenValue = size - field.length();
+            static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(lenValue, msg, field);
+        }
+
+        auto es = field.write(iter, size);
+        if (es != ErrorStatus::Success) {
+            return es;
+        }
+
+        return nextLayerUpdater.update(iter, size - field.length());
     }
 };
 

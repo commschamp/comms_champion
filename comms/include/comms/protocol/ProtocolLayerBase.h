@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -651,6 +651,22 @@ public:
         return derivedObj.doUpdate(field, iter, size, createNextLayerUpdater());
     }
 
+    /// @brief Update recently written (using write()) message contents data.
+    /// @details Similar to other @ref comms::protocol::ProtocolLayerBase::update() "update()"
+    ///     but also receiving recently written message object.
+    /// @param[in] msg Reference to message object.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using write().
+    /// @return Status of the update operation.
+    template <typename TMsg, typename TIter>
+    comms::ErrorStatus update(const TMsg& msg, TIter& iter, std::size_t size) const
+    {
+        Field field;
+        auto& derivedObj = static_cast<const TDerived&>(*this);
+        return derivedObj.doUpdate(msg, field, iter, size, createNextLayerUpdater());
+    }
+
+
     /// @brief Update recently written (using writeFieldsCached()) message data as
     ///     well as cached transport information fields.
     /// @details Very similar to @ref update() member function, but adds "allFields"
@@ -705,6 +721,31 @@ public:
     {
         return updateInternal(field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), LengthTag());
     }
+
+    /// @brief Default implementation of the "update" functaionality.
+    /// @details Similar to other @ref comms::protocol::ProtocolLayerBase::doUpdate() "doUpdate()"
+    ///     but also receiving recently written message object.
+    /// @tparam TMsg Type of message object.
+    /// @tparam TIter Type of iterator used for updating.
+    /// @tparam TNextLayerWriter next layer updater object type.
+    /// @param[in] msg Reference to message object.
+    /// @param[out] field Field that needs to be updated.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using @ref write().
+    /// @param[in] nextLayerUpdater Next layer updater object.
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdate(
+        TMsg& msg,
+        Field& field,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater) const
+    {
+        static_cast<void>(msg);
+        auto& derivedObj = static_cast<const TDerived&>(*this);
+        return derivedObj.doUpdate(field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));
+    }
+
 
     /// @brief Default implementation of field length retrieval.
     static constexpr std::size_t doFieldLength()

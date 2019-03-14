@@ -2115,6 +2115,19 @@
 /// going over the written data to calculate the value. However, it won't be 
 /// possible to do right away, the @b update() call must follow.
 ///
+/// There may be cases when @b update() operation also requires knowledge about
+/// message object being written. For example when remaining size information
+/// shares the same bytes with some extra flags, which can be retrieved from the message object being written.
+/// To support such cases there is also overloaded 
+/// @ref comms::protocol::ProtocolLayerBase::update() "update()" member
+/// function which also receives reference to message object/
+/// @code
+/// if (es == comms::ErrorStatus::UpdateRequired) {
+///     auto updateIter = &outBuf[0];
+///     es = protStack.update(msg, updateIter, outBuf.size());
+/// }
+/// @endcode
+///
 /// The @b ProtocolStack does not require usage of polymorphic
 /// write for message serialisation all the time. If number of messages being 
 /// sent is not very high, sometimes it makes sense to avoid adding an ability

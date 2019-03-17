@@ -1,5 +1,5 @@
 //
-// Copyright 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2018 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 #define COMMS_MAJOR_VERSION 1U
 
 /// @brief Minor verion of the library
-#define COMMS_MINOR_VERSION 1U
+#define COMMS_MINOR_VERSION 2U
 
 /// @brief Patch level of the library
 #define COMMS_PATCH_VERSION 0U

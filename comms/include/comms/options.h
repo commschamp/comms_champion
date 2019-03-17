@@ -1404,6 +1404,11 @@ using ForceDispatchStaticBinSearch = ForceDispatch<comms::traits::dispatch::Stat
 ///     message object and/or message object type
 using ForceDispatchLinearSwitch = ForceDispatch<comms::traits::dispatch::LinearSwitch>;;
 
+/// @brief Option to specify real extending class.
+/// @details Used for some layer classes in @ref comms::protocol namespace.
+template <typename T>
+struct ExtendingClass {};
+
 }  // namespace option
 
 }  // namespace comms

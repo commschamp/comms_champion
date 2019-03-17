@@ -91,6 +91,18 @@ endfunction ()
 
 #################################################################
 
+function (test_custom_msg_id_layer)
+    test_func ("CustomMsgIdLayer")
+endfunction ()
+
+#################################################################
+
+function (test_custom_msg_size_layer)
+    test_func ("CustomMsgSizeLayer")
+endfunction ()
+
+#################################################################
+
 include_directories ("${CXXTEST_INCLUDE_DIR}")
 
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -114,3 +126,5 @@ test_checksum_layer()
 test_checksum_prefix_layer()
 test_transport_value_layer()
 test_util()
+test_custom_msg_id_layer()
+test_custom_msg_size_layer()

@@ -1,7 +1,7 @@
 /// @page page_custom_size_layer Defining Custom Message Size Protocol Stack Layer
 /// @tableofcontents
 /// The @b COMMS library provides default @ref comms::protocol::MsgSizeLayer protocol 
-/// stack layer to remaining length information in the protocol framing. 
+/// stack layer to handle remaining length information in the protocol framing. 
 /// However, it may be insufficient (or incorrect) for some particular use cases, such as
 /// using @b bitfield field to store both remaining size (length) and some extra flags. 
 /// The @ref page_prot_stack_tutorial_new_layers section of the 
@@ -74,7 +74,7 @@
 /// functions to get / set values of the bits (where X is one of the defined
 /// names: @b bit0, @b bit1, @b bit2, and @b bit3).
 ///
-/// Now, let's define the @b bitfield field, that splits one byte to
+/// Now, let's define the @b bitfield field, that splits two bytes to
 /// store remaining length (in lower 12 bits) as well as extra flags (in upper 4 bits)
 /// @code
 /// namespace my_prot
@@ -108,11 +108,11 @@
 /// {
 /// 
 /// template <typename TNextLayer>
-/// class MsgIdAndFlagsLayer : public
+/// class MsgSizeAndFlagsLayer : public
 ///     comms::protocol::MsgSizeLayer<
 ///         SizeAndFlagsField,   // Used field that contains remaining length
 ///         TNextLayer,          // Next layer in the protocol stack
-///         comms::option::ExtendingClass<MsgIdAndFlagsLayer<TNextLayer> >
+///         comms::option::ExtendingClass<MsgSizeAndFlagsLayer<TNextLayer> >
 ///                              // Make the comms::protocol::MsgSizeLayer aware of it being extended
 ///     >
 /// {
@@ -130,7 +130,7 @@
 ///     }
 /// 
 ///     // Set flags value for the message object before proceeding to the next layer read
-///     // The message object is passed by pointer (which may be @b nullptr for some cases)
+///     // The message object is passed by pointer (which may be nullptr for some cases)
 ///     template <typename TMsg>
 ///     static void beforeRead(const Field& field, TMsg* msg)
 ///     {
@@ -195,7 +195,7 @@
 ///         comms::feild::EnumValue<FieldBase, MsgId>,
 ///         TMessage,
 ///         TAllMessages,
-///         MsgIdAndFlagsLayer<                          // SIZE + FLAGS
+///         MsgSizeAndFlagsLayer<                          // SIZE + FLAGS
 ///             comms::protocol::MsgDataLayer<>          // PAYLOAD
 ///         >
 ///     >
@@ -221,13 +221,14 @@
 /// reaches @ref comms::protocol::MsgDataLayer).
 ///
 /// In order to resolve such case there is a need to do a bit of cheating by
-/// introducing @b pseudo layer to manage @ref page_prot_stack_tutorial_transport_value.
+/// introducing @b pseudo layer to manage @ref page_prot_stack_tutorial_transport_value
+/// after the @b ID layer and before the @b PAYLOAD.
 /// @code
 /// SIZE | ID | FLAGS (pseudo) | PAYLOAD
 /// @endcode
-/// The @b SIZE layer will access and assign the flags value to pseudo
+/// The @b SIZE layer will access and assign the flags value to 
 /// <b>FLAGS (pseudo)</b> layer, which will reassign it to the message object created later
-/// by @b ID one. @b NOTE, that @b pseudo @ref page_prot_stack_tutorial_transport_value "transport value"
+/// by the @b ID one. @b NOTE, that @b pseudo @ref page_prot_stack_tutorial_transport_value "transport value"
 /// layer does @b NOT serialize its field and as the result preserves binary
 /// compatibility of the protocol framing.
 /// 
@@ -237,11 +238,11 @@
 /// {
 /// 
 /// template <typename TNextLayer>
-/// class MsgIdAndFlagsLayer : public
+/// class MsgSizeAndFlagsLayer : public
 ///     comms::protocol::MsgSizeLayer<
 ///         SizeAndFlagsField,   // Used field that contains remaining length
 ///         TNextLayer,          // Next layer in the protocol stack
-///         comms::option::ExtendingClass<MsgIdAndFlagsLayer<TNextLayer> >
+///         comms::option::ExtendingClass<MsgSizeAndFlagsLayer<TNextLayer> >
 ///                              // Make the comms::protocol::MsgSizeLayer aware of it being extended
 ///     >
 /// {
@@ -291,7 +292,7 @@
 /// 
 /// template <typename TMessage, typename TAllMessages>
 /// struct Frame2 : public 
-///     MsgIdAndFlagsLayer<                                          // SIZE + FLAGS 
+///     MsgSizeAndFlagsLayer<                                          // SIZE + FLAGS 
 ///         comms::protocol::MsgIdLayer<                             // ID
 ///             comms::feild::EnumValue<FieldBase, MsgId>
 ///             TMessage,

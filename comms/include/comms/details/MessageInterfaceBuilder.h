@@ -26,7 +26,7 @@
 #include "comms/util/access.h"
 #include "comms/util/Tuple.h"
 #include "comms/ErrorStatus.h"
-#include "MessageInterfaceOptionsParser.h"
+#include "comms/details/MessageInterfaceOptionsParser.h"
 
 namespace comms
 {

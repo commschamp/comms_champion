@@ -33,6 +33,8 @@
 #include "comms/fields.h"
 #include "comms/MsgFactory.h"
 #include "comms/dispatch.h"
+#include "comms/protocol/details/MsgIdLayerOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 
 namespace comms
 {
@@ -50,8 +52,13 @@ namespace protocol
 /// @tparam TAllMessages Types of all @b input messages, bundled in std::tuple,
 ///     that this protocol stack must be able to read() as well as create (using createMsg()).
 /// @tparam TNextLayer Next transport layer type.
-/// @tparam TOptions All the options that will be forwarded to the definition of
-///     message factory type (@ref comms::MsgFactory).
+/// @tparam TOptions Default functionality extension options. Supported options are:
+///     @li @ref comms::option::ExtendingClass - Use this option to provide a class
+///         name of the extending class, which can be used to extend existing functionality.
+///         See also @ref page_custom_id_layer tutorial page.
+///     @li All the options supported by the @ref comms::MsgFactory. All the options
+///         except ones listed above will be forwarded to the definition of the
+///         inner instance of @ref comms::MsgFactory.
 /// @headerfile comms/protocol/MsgIdLayer.h
 template <typename TField,
           typename TMessage,
@@ -62,19 +69,32 @@ class MsgIdLayer : public
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>
+            details::ProtocolLayerExtendingClassT<
+                MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>, 
+                details::MsgIdLayerOptionsParser<TOptions...>
+            >
         >
 {
     static_assert(util::IsTuple<TAllMessages>::Value,
         "TAllMessages must be of std::tuple type");
+
+    using ExtendingClass = 
+            details::ProtocolLayerExtendingClassT<
+                MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>, 
+                details::MsgIdLayerOptionsParser<TOptions...>
+            >;
+
     using BaseImpl =
         ProtocolLayerBase<
             TField,
             TNextLayer,
-            MsgIdLayer<TField, TMessage, TAllMessages, TNextLayer, TOptions...>
+            ExtendingClass
         >;
 
-    using Factory = comms::MsgFactory<TMessage, TAllMessages, TOptions...>;
+    /// @brief Parsed options
+    using ParsedOptionsInternal = details::MsgIdLayerOptionsParser<TOptions...>;
+    using FactoryOptions = typename ParsedOptionsInternal::FactoryOptions;
+    using Factory = comms::MsgFactory<TMessage, TAllMessages, FactoryOptions>;
 
     static_assert(TMessage::InterfaceOptions::HasMsgIdType,
         "Usage of MsgIdLayer requires support for ID type. "
@@ -83,7 +103,10 @@ class MsgIdLayer : public
 public:
 
     /// @brief Parsed options
-    using ParsedOptions = typename Factory::ParsedOptions;
+    using ParsedOptions = ParsedOptionsInternal;
+
+    /// @brief Parsed options of the message Factory
+    using FactoryParsedOptions = typename Factory::ParsedOptions;
 
     /// @brief All supported message types bundled in std::tuple.
     /// @see comms::MsgFactory::AllMessages.
@@ -107,10 +130,6 @@ public:
 
     /// @brief Reason for message creation failure
     using CreateFailureReason = typename Factory::CreateFailureReason;
-
-    static_assert(
-        comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
-        "Field must be of IntValue or EnumValue types");
 
     /// @brief Default constructor.
     explicit MsgIdLayer() = default;
@@ -231,7 +250,11 @@ public:
         TNextLayerWriter&& nextLayerWriter) const
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
-        field.value() = getMsgId(msg, IdRetrieveTag<MsgType>());
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(
+            getMsgId(msg, IdRetrieveTag<MsgType>()), 
+            msg, 
+            field);
+
         auto es = field.write(iter, size);
         if (es != ErrorStatus::Success) {
             return es;
@@ -283,6 +306,53 @@ public:
     static constexpr bool isDispatchLinearSwitch()
     {
         return Factory::isDispatchLinearSwitch();
+    }
+
+protected:
+
+    /// @brief Retrieve message id from the field.
+    /// @details May be overridden by the extending class
+    /// @param[in] field Field for this layer.
+    static MsgIdType getMsgIdFromField(const Field& field)
+    {
+        static_assert(
+            comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
+            "Field must be of IntValue or EnumValue types");
+
+        return static_cast<MsgIdType>(field.value());
+    }
+
+    /// @brief Extra operation before read.
+    /// @details Function called after appropriate message object
+    ///     has been created and before read operation is 
+    ///     forwared to inner layer. @n
+    ///     Default implementation does nothing, may be overriden in the
+    ///     derived class.
+    /// @param[in] field Field of the layer that was successfully read.
+    /// @param[in, out] msg Reference to message object, either interface
+    ///     class or message object itself (depending on how doRead() was invoked).
+    template <typename TMsg>
+    static void beforeRead(const Field& field, TMsg& msg)
+    {
+        static_cast<void>(field);
+        static_cast<void>(msg);
+    }
+
+    /// @brief Prepare field for writing
+    /// @details Must assign provided id value. 
+    ///     May be overridden by the extending class if some complex functionality is required.
+    /// @param[in] id ID of the message
+    /// @param[in] msg Reference to message object being written
+    /// @param[out] field Field, value of which needs to be populated
+    template <typename TMsg>
+    static void prepareFieldForWrite(MsgIdParamType id, const TMsg& msg, Field& field)
+    {
+        static_assert(
+            comms::field::isIntValue<Field>() || comms::field::isEnumValue<Field>() || comms::field::isNoValue<Field>(),
+            "Field must be of IntValue or EnumValue types");
+
+        static_cast<void>(msg);
+        field.value() = static_cast<typename Field::ValueType>(id);
     }
 
 private:
@@ -441,17 +511,18 @@ private:
                 "Explicit message type is expected to expose compile type message ID by "
                 "using \"StaticNumIdImpl\" option");
 
-        auto& id = field.value();
-        if (static_cast<MsgIdType>(id) != MsgType::doGetId()) {
+        auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        if (id != MsgType::doGetId()) {
             return ErrorStatus::InvalidMsgId;
         }
 
+        static_cast<ExtendingClass*>(this)->beforeRead(field, msg);
         return nextLayerReader.read(msg, iter, size, missingSize);
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus doReadInternal(
-        Field& field,
+        MsgIdParamType id,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -459,7 +530,7 @@ private:
         TNextLayerReader&& nextLayerReader,
         PolymorphicOpTag)
     {
-        static_cast<void>(field);
+        static_cast<void>(id);
         return nextLayerReader.read(msg, iter, size, missingSize);
     }
 
@@ -503,8 +574,7 @@ private:
                 StaticBinSearchOpTag
             >::type;
 
-        const auto& id = field.value();
-
+        const auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
         auto es = comms::ErrorStatus::InvalidMsgId;
         unsigned idx = 0;
         CreateFailureReason failureReason = CreateFailureReason::None;
@@ -520,7 +590,8 @@ private:
                 "Iterator used for reading is expected to be random access one");
             IterType readStart = iter;                
 
-            es = doReadInternal(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
+            static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
+            es = doReadInternal(id, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
             if (es == comms::ErrorStatus::Success) {
                 return es;
             }
@@ -544,7 +615,7 @@ private:
             >::type;
 
         return createAndReadGenericMsgInternal(
-            id, 
+            field, 
             msg, 
             iter, 
             size, 
@@ -557,7 +628,7 @@ private:
 
     template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus doReadInternal(
-        Field& field,
+        MsgIdParamType id,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -566,7 +637,7 @@ private:
         StaticBinSearchOpTag)
     {
         auto handler = makeReadRedirectionHandler(iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
-        return comms::dispatchMsgStaticBinSearch<AllMessages>(field.value(), *msg, handler);
+        return comms::dispatchMsgStaticBinSearch<AllMessages>(id, *msg, handler);
     }
 
     template <typename TId>
@@ -607,9 +678,9 @@ private:
         return createGenericMsgInternalTagged(std::forward<TId>(id), IdParamTag<IdType>());
     }
 
-    template <typename TId, typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus createAndReadGenericMsgInternal(
-        TId&& id,
+        const Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -618,7 +689,7 @@ private:
         comms::ErrorStatus es,
         NoGenericMsgTag)
     {
-        static_cast<void>(id);
+        static_cast<void>(field);
         static_cast<void>(msg);
         static_cast<void>(iter);
         static_cast<void>(size);
@@ -627,9 +698,9 @@ private:
         return es;
     }   
 
-    template <typename TId, typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus createAndReadGenericMsgInternal(
-        TId&& id,
+        const Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -640,10 +711,13 @@ private:
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
 
-        msg = createGenericMsgInternal(std::forward<TId>(id));
+        auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        msg = createGenericMsgInternal(id);
         if (!msg) {
             return es;
         }
+
+        static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
 
         using Tag = 
             typename std::conditional<
@@ -725,7 +799,8 @@ private:
         StaticBinSearchOpTag) const
     {
         auto handler = makeWriteRedirectionHandler(iter, size, std::forward<TNextLayerWriter>(nextLayerWriter));
-        return comms::dispatchMsgStaticBinSearch(field.value(), msg, handler);
+        auto id = static_cast<const ExtendingClass*>(this)->getMsgIdFromField(field);
+        return comms::dispatchMsgStaticBinSearch(id, msg, handler);
     }
 
     Factory factory_;

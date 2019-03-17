@@ -1,0 +1,327 @@
+//
+// Copyright 2019 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#include <cstdint>
+#include <cstddef>
+#include <algorithm>
+#include <iterator>
+
+#include "comms/comms.h"
+#include "CommsTestCommon.h"
+
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
+
+class CustomMsgIdLayerTestSuite : public CxxTest::TestSuite
+{
+public:
+    void test1();
+    void test2();
+    void test3();
+    void test4();
+    void test5();
+
+private:
+
+    using BigEndianField = comms::Field<comms::option::BigEndian>;
+
+    class IdWithFlagsField : public
+         comms::field::Bitfield<
+            BigEndianField,
+            std::tuple<
+                comms::field::IntValue<BigEndianField, std::uint8_t, comms::option::FixedBitLength<4> >,
+                comms::field::EnumValue<BigEndianField, MessageType, comms::option::FixedBitLength<4> >
+            >        
+        >
+    {
+        using Base = 
+            comms::field::Bitfield<
+                BigEndianField,
+                std::tuple<
+                    comms::field::IntValue<BigEndianField, std::uint8_t, comms::option::FixedBitLength<4> >,
+                    comms::field::EnumValue<BigEndianField, MessageType, comms::option::FixedBitLength<4> >
+                >        
+            >;   
+    public:
+        COMMS_FIELD_MEMBERS_ACCESS(flags, id);
+    };
+
+    using ExtraTransportFields =
+        std::tuple<
+            comms::field::IntValue<BigEndianField, std::uint8_t>
+        >;
+
+    using IfOptions = 
+        std::tuple<
+            comms::option::MsgIdType<MessageType>,
+            comms::option::BigEndian,
+            comms::option::IdInfoInterface,
+            comms::option::ReadIterator<const char*>,
+            comms::option::WriteIterator<char*>,
+            comms::option::LengthInfoInterface,
+            comms::option::ExtraTransportFields<ExtraTransportFields>
+        >;
+
+    struct Interface : public 
+        comms::Message<IfOptions>
+    {
+#ifdef COMMS_MUST_DEFINE_BASE        
+        using Base = comms::Message<IfOptions>;
+#endif
+    public:
+        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+    };
+
+    using BasicInterfaceOptions = 
+        std::tuple<
+            comms::option::MsgIdType<MessageType>,
+            comms::option::BigEndian,
+            comms::option::ExtraTransportFields<ExtraTransportFields>
+        >;
+
+    struct NonPolymorphicInterface : public 
+        comms::Message<BasicInterfaceOptions>
+    {
+#ifdef COMMS_MUST_DEFINE_BASE        
+        using Base = comms::Message<BasicInterfaceOptions>;
+#endif
+    public:
+        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+
+        virtual ~NonPolymorphicInterface() = default;
+    };
+
+
+    template <
+          typename TInterface,
+          typename TAllMessages,
+          typename TNextLayer,
+          typename... TOptions>
+    class CustomMsgIdLayer : public
+        comms::protocol::MsgIdLayer<
+            IdWithFlagsField,
+            TInterface,
+            TAllMessages,
+            TNextLayer,
+            comms::option::ExtendingClass<CustomMsgIdLayer<TInterface, TAllMessages, TNextLayer, TOptions...> >,
+            TOptions...
+        >
+    {
+        using Base = 
+            comms::protocol::MsgIdLayer<
+                IdWithFlagsField,
+                TInterface,
+                TAllMessages,
+                TNextLayer,
+                comms::option::ExtendingClass<CustomMsgIdLayer<TInterface, TAllMessages, TNextLayer, TOptions...> >,
+                TOptions...
+            >;        
+    public:
+        using Field = typename Base::Field;
+        using MsgIdType = typename Base::MsgIdType;
+        using MsgIdParamType = typename Base::MsgIdParamType;
+
+        static MsgIdType getMsgIdFromField(const Field& field)
+        {
+            return field.field_id().value();
+        }
+
+        template <typename TMsg>
+        static void beforeRead(const Field& field, TMsg& msg)
+        {
+            msg.transportField_flags().value() = field.field_flags().value();
+        }
+
+        template <typename TMsg>
+        static void prepareFieldForWrite(MsgIdParamType id, const TMsg& msg, Field& field)
+        {
+            field.field_flags().value() = msg.transportField_flags().value();
+            field.field_id().value() = id;
+        }
+    };
+
+    template <typename TInterface>
+    using AllMessages1 = 
+        std::tuple<
+            Message1<TInterface>,
+            Message2<TInterface>,
+            Message3<TInterface>
+        >;
+
+    template <typename TInterface = Interface>
+    class SimpleFrame : public
+        CustomMsgIdLayer<
+            TInterface, 
+            AllMessages1<TInterface>,
+            comms::protocol::MsgDataLayer<>
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            CustomMsgIdLayer<
+                TInterface,
+                AllMessages1<TInterface>,
+                comms::protocol::MsgDataLayer<>
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };
+
+    template <typename TInterface = Interface>
+    class FrameWithGenericMsg : public
+        CustomMsgIdLayer<
+            TInterface,
+            AllMessages1<TInterface>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::SupportGenericMessage<comms::GenericMessage<TInterface> >
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            CustomMsgIdLayer<
+                TInterface,
+                AllMessages1<TInterface>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::SupportGenericMessage<comms::GenericMessage<TInterface> >
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };    
+
+    template <typename TInterface = Interface>
+    class InPlaceFrameWithGenericMsg : public
+        CustomMsgIdLayer<
+            TInterface,
+            AllMessages1<TInterface>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::SupportGenericMessage<comms::GenericMessage<TInterface> >,
+            comms::option::InPlaceAllocation
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            CustomMsgIdLayer<
+                TInterface,
+                AllMessages1<TInterface>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::SupportGenericMessage<comms::GenericMessage<TInterface> >,
+                comms::option::InPlaceAllocation
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };    
+};
+
+void CustomMsgIdLayerTestSuite::test1()
+{
+    static const char Buf[] = {
+        0x02, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = SimpleFrame<>;
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    TS_ASSERT_EQUALS(msgPtr->transportField_flags().value(), 0x2U);
+
+    using Msg1 = Message1<Interface>;
+    auto* msg1 = dynamic_cast<Msg1*>(msgPtr.get());
+    TS_ASSERT(msg1 != nullptr);
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+}
+
+void CustomMsgIdLayerTestSuite::test2()
+{
+    static const char Buf[] = {
+        0x7f, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = FrameWithGenericMsg<>;
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType5);
+    TS_ASSERT_EQUALS(msgPtr->transportField_flags().value(), 0xfU);
+}
+
+void CustomMsgIdLayerTestSuite::test3()
+{
+    static const char Buf[] = {
+        0x02, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = InPlaceFrameWithGenericMsg<>;
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    TS_ASSERT_EQUALS(msgPtr->transportField_flags().value(), 0x2U);
+
+    using Msg1 = Message1<Interface>;
+    auto* msg1 = dynamic_cast<Msg1*>(msgPtr.get());
+    TS_ASSERT(msg1 != nullptr);
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+}
+
+void CustomMsgIdLayerTestSuite::test4()
+{
+    static const char Buf[] = {
+        0x7f, 0x01, 0x02, 0x03, 0x04, 0x05
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = InPlaceFrameWithGenericMsg<>;
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType5);
+    TS_ASSERT_EQUALS(msgPtr->transportField_flags().value(), 0xfU);
+}
+
+void CustomMsgIdLayerTestSuite::test5()
+{
+    static const char Buf[] = {
+        0x7f, 0x01, 0x02, 0x03, 0x04, 0x05
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = InPlaceFrameWithGenericMsg<NonPolymorphicInterface>;
+    Stack stack;
+    Stack::MsgPtr msgPtr;
+    auto readIter = &Buf[0];
+    auto es = stack.read(msgPtr, readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->transportField_flags().value(), 0xfU);
+
+    auto* msg = dynamic_cast<comms::GenericMessage<NonPolymorphicInterface>*>(msgPtr.get());
+    TS_ASSERT(msg != nullptr);
+    TS_ASSERT_EQUALS(msg->doGetId(), MessageType5);
+}

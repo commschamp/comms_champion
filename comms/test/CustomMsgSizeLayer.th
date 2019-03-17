@@ -1,0 +1,313 @@
+//
+// Copyright 2019 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#include <cstdint>
+#include <cstddef>
+#include <algorithm>
+#include <iterator>
+
+#include "comms/comms.h"
+#include "CommsTestCommon.h"
+
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
+
+class CustomPostIdMsgSizeLayerTestSuite : public CxxTest::TestSuite
+{
+public:
+    void test1();
+    void test2();
+    void test3();
+
+private:
+
+    using BigEndianField = comms::Field<comms::option::BigEndian>;
+    using BigEndianMsgId = 
+        comms::field::EnumValue<
+            BigEndianField,
+            MessageType,
+            comms::option::FixedLength<1>
+        >;
+
+
+    class SizeWithFlagsField : public
+         comms::field::Bitfield<
+            BigEndianField,
+            std::tuple<
+                comms::field::IntValue<BigEndianField, std::uint16_t, comms::option::FixedBitLength<12> >,
+                comms::field::IntValue<BigEndianField, std::uint8_t, comms::option::FixedBitLength<4> >
+            >        
+        >
+    {
+        using Base = 
+            comms::field::Bitfield<
+                BigEndianField,
+                std::tuple<
+                    comms::field::IntValue<BigEndianField, std::uint16_t, comms::option::FixedBitLength<12> >,
+                    comms::field::IntValue<BigEndianField, std::uint8_t, comms::option::FixedBitLength<4> >
+                >        
+            >;   
+    public:
+        COMMS_FIELD_MEMBERS_ACCESS(size, flags);
+    };
+
+    using ExtraTransportFields =
+        std::tuple<
+            comms::field::IntValue<BigEndianField, std::uint8_t>
+        >;
+
+    using IfOptions = 
+        std::tuple<
+            comms::option::MsgIdType<MessageType>,
+            comms::option::BigEndian,
+            comms::option::IdInfoInterface,
+            comms::option::ReadIterator<const char*>,
+            comms::option::WriteIterator<char*>,
+            comms::option::LengthInfoInterface,
+            comms::option::ExtraTransportFields<ExtraTransportFields>
+        >;
+
+    struct Interface : public 
+        comms::Message<IfOptions>
+    {
+#ifdef COMMS_MUST_DEFINE_BASE        
+        using Base = comms::Message<IfOptions>;
+#endif
+    public:
+        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+    };
+
+    using IfOptions2 = 
+        std::tuple<
+            comms::option::MsgIdType<MessageType>,
+            comms::option::BigEndian,
+            comms::option::IdInfoInterface,
+            comms::option::ReadIterator<const char*>,
+            comms::option::WriteIterator<std::back_insert_iterator<std::vector<char> > >,
+            comms::option::ExtraTransportFields<ExtraTransportFields>
+        >;
+
+    struct Interface2 : public 
+        comms::Message<IfOptions2>
+    {
+#ifdef COMMS_MUST_DEFINE_BASE        
+        using Base = comms::Message<IfOptions2>;
+#endif
+    public:
+        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+    };
+
+
+    template <
+          typename TNextLayer,
+          typename... TOptions>
+    class CustomPostIdMsgSizeLayer : public
+        comms::protocol::MsgSizeLayer<
+            SizeWithFlagsField,
+            TNextLayer,
+            comms::option::ExtendingClass<CustomPostIdMsgSizeLayer<TNextLayer, TOptions...> >,
+            TOptions...
+        >
+    {
+        using Base = 
+            comms::protocol::MsgSizeLayer<
+                SizeWithFlagsField,
+                TNextLayer,
+                comms::option::ExtendingClass<CustomPostIdMsgSizeLayer<TNextLayer, TOptions...> >,
+                TOptions...
+            >;
+
+    public:
+
+        using Field = typename Base::Field;
+
+        static std::size_t getRemainingSizeFromField(const Field& field)
+        {
+            return static_cast<std::size_t>(field.field_size().value());
+        }
+
+        template <typename TMsg>
+        static void beforeRead(const Field& field, TMsg* msg)
+        {
+            assert(msg != nullptr);
+            msg->transportField_flags().value() = field.field_flags().value();
+        }
+
+        template <typename TMsg>
+        static void prepareFieldForWrite(std::size_t size, const TMsg* msg, Field& field)
+        {
+            if (msg != nullptr) {
+                field.field_flags().value() = msg->transportField_flags().value();
+            }
+            auto& sizeField = field.field_size();
+            using SizeFieldType = typename std::decay<decltype(sizeField)>::type;
+            field.field_size().value() = static_cast<typename SizeFieldType::ValueType>(size);
+        }
+    };
+
+    template <
+          typename TNextLayer,
+          typename... TOptions>
+    class CustomPreIdMsgSizeLayer : public
+        comms::protocol::MsgSizeLayer<
+            SizeWithFlagsField,
+            TNextLayer,
+            comms::option::ExtendingClass<CustomPreIdMsgSizeLayer<TNextLayer, TOptions...> >,
+            TOptions...
+        >
+    {
+        using Base = 
+            comms::protocol::MsgSizeLayer<
+                SizeWithFlagsField,
+                TNextLayer,
+                comms::option::ExtendingClass<CustomPreIdMsgSizeLayer<TNextLayer, TOptions...> >,
+                TOptions...
+            >;
+
+    public:
+
+        using Field = typename Base::Field;
+
+        static std::size_t getRemainingSizeFromField(const Field& field)
+        {
+            return static_cast<std::size_t>(field.field_size().value());
+        }
+
+        template <typename TMsg>
+        void beforeRead(const Field& field, TMsg* msg)
+        {
+            static_cast<void>(msg);
+            assert(msg == nullptr);
+            Base::nextLayer().nextLayer().pseudoField().value() = field.field_flags().value();
+        }
+
+        template <typename TMsg>
+        static void prepareFieldForWrite(std::size_t size, const TMsg* msg, Field& field)
+        {
+            if (msg != nullptr) {
+                field.field_flags().value() = msg->transportField_flags().value();
+            }
+            auto& sizeField = field.field_size();
+            using SizeFieldType = typename std::decay<decltype(sizeField)>::type;
+            field.field_size().value() = static_cast<typename SizeFieldType::ValueType>(size);
+        }
+    };
+
+    template <typename TInterface>
+    using AllMessages1 = 
+        std::tuple<
+            Message1<TInterface>,
+            Message2<TInterface>,
+            Message3<TInterface>
+        >;
+
+    template <typename TInterface = Interface>
+    using Frame1 =
+        comms::protocol::MsgIdLayer<
+            BigEndianMsgId,
+            TInterface,
+            AllMessages1<TInterface>,
+            CustomPostIdMsgSizeLayer<
+                comms::protocol::MsgDataLayer<>
+            >
+        >;
+
+    template <typename TInterface = Interface>
+    using Frame2 =
+        CustomPreIdMsgSizeLayer<
+            comms::protocol::MsgIdLayer<
+                BigEndianMsgId,
+                TInterface,
+                AllMessages1<TInterface>,
+                comms::protocol::TransportValueLayer<
+                    comms::field::IntValue<BigEndianField, std::uint8_t>,
+                    0,
+                    comms::protocol::MsgDataLayer<>,
+                    comms::option::PseudoValue
+                >
+            >
+        >;
+};
+
+void CustomPostIdMsgSizeLayerTestSuite::test1()
+{
+    static const char Buf[] = {
+        MessageType1, (char)0xf0, 0x02, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = Frame1<>;
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    TS_ASSERT_EQUALS(msgPtr->transportField_flags().value(), 0xfU);
+
+    using Msg1 = Message1<Interface>;
+    auto* msg1 = dynamic_cast<Msg1*>(msgPtr.get());
+    TS_ASSERT(msg1 != nullptr);
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+}
+
+void CustomPostIdMsgSizeLayerTestSuite::test2()
+{
+    static const char Buf[] = {
+        (char)0xf0, 0x03, MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = Frame2<>;
+    Stack stack;
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize);
+    TS_ASSERT(msgPtr);
+    TS_ASSERT_EQUALS(msgPtr->getId(), MessageType1);
+    TS_ASSERT_EQUALS(msgPtr->transportField_flags().value(), 0xfU);
+
+    using Msg1 = Message1<Interface>;
+    auto* msg1 = dynamic_cast<Msg1*>(msgPtr.get());
+    TS_ASSERT(msg1 != nullptr);
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+}
+
+void CustomPostIdMsgSizeLayerTestSuite::test3()
+{
+    using Msg1 = Message1<Interface2>;
+    Msg1 msg1;
+    msg1.transportField_flags().value() = 0xfU;
+    msg1.field_value1().value() = 0x0102;
+
+    using Stack = Frame2<Interface2>;
+    Stack stack;
+    std::vector<char> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    auto es = stack.write(static_cast<const Interface2&>(msg1), writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::UpdateRequired);
+    auto updateIter = &outBuf[0];
+    es = stack.update(msg1, updateIter, outBuf.size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+
+    static const char Buf[] = {
+        (char)0xf0, 0x03, MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    TS_ASSERT_EQUALS(BufSize, outBuf.size());
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), &Buf[0]));
+}

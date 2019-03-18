@@ -268,7 +268,7 @@ public:
         using MsgPtr = typename BaseImpl::MsgPtr;
         using ConstNullptrType = 
             typename details::MsgSizeLayerConstNullPtrCastHelper<
-                std::is_void<MsgPtr>::value
+                !std::is_void<MsgPtr>::value
             >::template Type<MsgPtr>;
         auto noMsgPtr = static_cast<ConstNullptrType>(nullptr);
         return doUpdateInternal(noMsgPtr, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));

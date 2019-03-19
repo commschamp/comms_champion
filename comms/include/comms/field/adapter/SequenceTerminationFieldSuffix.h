@@ -154,7 +154,7 @@ private:
         std::size_t consumed = 0;
         while (consumed < len) {
             auto iterCpy = iter + consumed;
-            auto es = termField.read(iterCpy, len);
+            auto es = termField.read(iterCpy, len - consumed);
             if ((es == comms::ErrorStatus::Success) &&
                 (termField == TermField())){
                 break;
@@ -167,12 +167,15 @@ private:
             return comms::ErrorStatus::NotEnoughData;
         }
 
-        auto es = BaseImpl::read(iter, consumed);
+        auto iterCpy = iter;
+        auto es = BaseImpl::read(iterCpy, consumed);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        std::advance(iter, termField.length());
+        auto fullConsumeLen = consumed + termField.length();
+        GASSERT(fullConsumeLen <= len);
+        std::advance(iter, fullConsumeLen);
         return comms::ErrorStatus::Success;
     }
 

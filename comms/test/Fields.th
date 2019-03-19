@@ -1,5 +1,5 @@
 //
-// Copyright 2013 - 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2013 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -159,6 +159,7 @@ public:
     void test101();
     void test102();
     void test103();
+    void test104();
 
     enum Enum1 {
         Enum1_Value1,
@@ -5084,6 +5085,32 @@ void FieldsTestSuite::test103()
     TS_ASSERT_EQUALS(field.value(), 0x3);
 }
 
+void FieldsTestSuite::test104()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ValidNumValueRange<0, 0>
+    > TermField;
+
+    static_assert(!TermField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceTerminationFieldSuffix<TermField>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static const char Buf[] = {
+        'h', 'e', 'l', 'l', 'o'
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    readWriteField<Field>(&Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
+}
 
 template <typename TField>
 void FieldsTestSuite::writeField(

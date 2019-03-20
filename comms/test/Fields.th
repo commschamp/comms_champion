@@ -160,6 +160,7 @@ public:
     void test102();
     void test103();
     void test104();
+    void test105();
 
     enum Enum1 {
         Enum1_Value1,
@@ -5110,6 +5111,32 @@ void FieldsTestSuite::test104()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     readWriteField<Field>(&Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
+}
+
+void FieldsTestSuite::test105()
+{
+    struct LenField : public
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t
+        >
+    {
+    };
+
+    static_assert(!LenField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        comms::field::IntValue<comms::Field<BigEndianOpt>, std::uint16_t>,
+        comms::option::SequenceSerLengthFieldPrefix<LenField>
+    > Field;
+
+    static const char Buf[] = {
+        0x8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    readWriteField<Field>(&Buf[0], BufSize, comms::ErrorStatus::InvalidMsgData);
 }
 
 template <typename TField>

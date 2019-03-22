@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify
@@ -500,6 +500,23 @@ struct Writer
         THelper<TEndian, IsRandomAccess>::write(
                             static_cast<OptimisedValueType>(value), TSize, iter);
     }
+
+
+    template <typename TEndian, typename T, typename TIter>
+    static void write(T value, std::size_t size, TIter& iter)
+    {
+        using ValueType = typename std::decay<T>::type;
+        using OptimisedValueType = details::OptimisedValueType<ValueType>;
+
+        //GASSERT(size <= sizeof(ValueType));
+        static const bool IsRandomAccess =
+            std::is_same<
+                typename std::iterator_traits<TIter>::iterator_category,
+                std::random_access_iterator_tag
+            >::value;
+        THelper<TEndian, IsRandomAccess>::write(
+                            static_cast<OptimisedValueType>(value), size, iter);
+    }
 };
 
 template <template <typename, bool> class THelper>
@@ -544,6 +561,21 @@ template <std::size_t TSize, typename T, typename TIter>
 void writeBig(T value, TIter& iter)
 {
     details::Writer<details::WriteHelper>::template write<traits::endian::Big, TSize>(value, iter);
+}
+
+/// @brief Write part of integral value into the output area using big
+///     endian notation.
+/// @param[in] value Integral type value to be written.
+/// @param[in] size Number of bytes to write.
+/// @param[in, out] iter Output iterator.
+/// @pre TSize <= sizeof(T).
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least TSize times.
+/// @post The iterator is advanced.
+template <typename T, typename TIter>
+void writeBig(T value, std::size_t size, TIter& iter)
+{
+    details::Writer<details::WriteHelper>::template write<traits::endian::Big>(value, size, iter);
 }
 
 /// @brief Write integral value into the output area using big
@@ -604,6 +636,21 @@ template <std::size_t TSize, typename T, typename TIter>
 void writeLittle(T value, TIter& iter)
 {
     details::Writer<details::WriteHelper>::template write<traits::endian::Little, TSize>(value, iter);
+}
+
+/// @brief Write part of integral value into the output area using little
+///     endian notation.
+/// @param[in] value Integral type value to be written.
+/// @param[in] size Number of bytes to write.
+/// @param[in, out] iter Output iterator.
+/// @pre TSize <= sizeof(T).
+/// @pre The iterator must be valid and can be successfully dereferenced
+///      and incremented at least TSize times.
+/// @post The iterator is advanced.
+template <typename T, typename TIter>
+void writeLittle(T value, std::size_t size, TIter& iter)
+{
+    details::Writer<details::WriteHelper>::template write<traits::endian::Little>(value, size, iter);
 }
 
 /// @brief Write integral value into the output area using big
@@ -673,6 +720,18 @@ void writeData(
     writeBig<TSize>(value, iter);
 }
 
+/// @brief Same as writeBig<T, TIter>()
+template <typename T, typename TIter>
+void writeData(
+    T value,
+    std::size_t size,
+    TIter& iter,
+    const traits::endian::Big& endian)
+{
+    static_cast<void>(endian);
+    writeBig(value, size, iter);
+}
+
 /// @brief Same as writeLittle<T, TIter>()
 template <typename T, typename TIter>
 void writeData(
@@ -693,6 +752,18 @@ void writeData(
 {
     static_cast<void>(endian);
     return writeLittle<TSize>(value, iter);
+}
+
+/// @brief Same as writeLittle<T, TIter>()
+template <typename T, typename TIter>
+void writeData(
+    T value,
+    std::size_t size, 
+    TIter& iter,
+    const traits::endian::Little& endian)
+{
+    static_cast<void>(endian);
+    writeLittle(value, size, iter);
 }
 
 /// @brief Same as readBig<T, TIter>()

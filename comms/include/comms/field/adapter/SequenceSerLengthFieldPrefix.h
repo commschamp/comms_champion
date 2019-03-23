@@ -95,7 +95,13 @@ public:
             return es;
         }
 
-        es = BaseImpl::read(iter, static_cast<std::size_t>(lenField.value()));
+        len -= lenField.length();
+        auto remLen = static_cast<std::size_t>(lenField.value());
+        if (len < remLen) {
+            return TStatus;
+        }
+
+        es = BaseImpl::read(iter, remLen);
         if (es == comms::ErrorStatus::NotEnoughData) {
             return TStatus;
         }

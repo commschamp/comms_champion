@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -46,14 +46,12 @@ public:
 
     using ValueType = typename BaseImpl::ValueType;
 
-    static_assert(TMaxLen <= sizeof(BaseSerialisedType),
-        "The provided max length limit is too big");
+    static_assert(1U <= TMinLen, "Minimal length must be at least 1");
+    static_assert(TMinLen < TMaxLen, "Maximal length must be greater than minimal");
+    static_assert(TMaxLen <= sizeof(std::uint64_t), "Currently variable length greater than 8 bytes is not supported");
 
-    using SerialisedType = typename std::conditional<
-        (TMaxLen < sizeof(BaseSerialisedType)),
-        typename comms::util::SizeToType<TMaxLen, std::is_signed<BaseSerialisedType>::value>::Type,
-        BaseSerialisedType
-    >::type;
+    using SerialisedType = 
+        typename comms::util::SizeToType<TMaxLen, std::is_signed<BaseSerialisedType>::value>::Type;
 
     using Endian = typename BaseImpl::Endian;
 
@@ -77,16 +75,7 @@ public:
 
     std::size_t length() const
     {
-        auto serValue =
-            adjustToUnsignedSerialisedVarLength(toSerialised(BaseImpl::value()));
-        std::size_t len = 0U;
-        while (0 < serValue) {
-            serValue >>= VarLengthShift;
-            ++len;
-        }
-
-        COMMS_ASSERT(len <= maxLength());
-        return std::max(std::size_t(MinLength), len);
+        return lengthInternal(HasSignTag());
     }
 
     static constexpr std::size_t minLength()
@@ -101,52 +90,48 @@ public:
 
     static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return signExtUnsignedSerialised(
-            adjustToUnsignedSerialisedVarLength(BaseImpl::toSerialised(val)),
-            HasSignTag());
+        return static_cast<SerialisedType>(BaseImpl::toSerialised(val));
     }
 
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return BaseImpl::fromSerialised(
-            static_cast<BaseSerialisedType>(
-                signExtUnsignedSerialised(
-                    adjustToUnsignedSerialisedVarLength(val),
-                    HasSignTag())));
+        return BaseImpl::fromSerialised(static_cast<BaseSerialisedType>(val));
     }
 
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t size)
     {
         UnsignedSerialisedType val = 0;
-        std::size_t byteCount = 0;
+        std::size_t bytesCount = 0;
         while (true) {
             if (size == 0) {
                 return comms::ErrorStatus::NotEnoughData;
             }
 
+            GASSERT(bytesCount < MaxLength);
             auto byte = comms::util::readData<std::uint8_t>(iter, Endian());
             auto byteValue = byte & VarLengthValueBitsMask;
             addByteToSerialisedValue(
-                byteValue, byteCount, val, typename BaseImpl::Endian());
+                byteValue, bytesCount, val, typename BaseImpl::Endian());
 
-            ++byteCount;
+            ++bytesCount;
 
             if ((byte & VarLengthContinueBit) == 0) {
                 break;
             }
 
-            if (MaxLength <= byteCount) {
+            if (MaxLength <= bytesCount) {
                 return ErrorStatus::ProtocolError;
             }
+
             --size;
         }
 
-        if (byteCount < minLength()) {
+        if (bytesCount < minLength()) {
             return ErrorStatus::ProtocolError;
         }
 
-        auto adjustedValue = signExtUnsignedSerialised(val, byteCount, HasSignTag());
+        auto adjustedValue = signExtUnsignedSerialised(val, bytesCount, HasSignTag());
         BaseImpl::value() = BaseImpl::fromSerialised(adjustedValue);
         return comms::ErrorStatus::Success;
     }
@@ -157,47 +142,18 @@ public:
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t size) const
     {
-        auto val = adjustToUnsignedSerialisedVarLength(BaseImpl::toSerialised(BaseImpl::value()));
-        std::size_t byteCount = 0;
-        bool lastByte = false;
-        auto minLen = std::max(length(), minLength());
-        while ((!lastByte) && (byteCount < maxLength())) {
-            if (size == 0) {
-                return ErrorStatus::BufferOverflow;
-            }
-            auto byte = removeByteFromSerialisedValue(val, byteCount, minLen, lastByte, Endian());
-            if (!lastByte) {
-                COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
-                byte |= VarLengthContinueBit;
-            }
-
-            comms::util::writeData(byte, iter, Endian());
-            ++byteCount;
-            COMMS_ASSERT(byteCount <= maxLength());
-            --size;
+        if (size < length()) {
+            return ErrorStatus::BufferOverflow;
         }
 
+        writeNoStatus(iter);
         return ErrorStatus::Success;
     }
 
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
-        auto val = adjustToUnsignedSerialisedVarLength(BaseImpl::toSerialised(BaseImpl::value()));
-        std::size_t byteCount = 0;
-        bool lastByte = false;
-        auto minLen = std::max(length(), minLength());
-        while ((!lastByte) && (byteCount < maxLength())) {
-            auto byte = removeByteFromSerialisedValue(val, byteCount, minLen, lastByte, Endian());
-            if (!lastByte) {
-                COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
-                byte |= VarLengthContinueBit;
-            }
-
-            comms::util::writeData(byte, iter, Endian());
-            ++byteCount;
-            COMMS_ASSERT(byteCount <= maxLength());
-        }
+        return writeNoStatusInternal(toSerialised(BaseImpl::value()), iter, HasSignTag(), Endian());
     }
 
 private:
@@ -213,131 +169,350 @@ private:
 
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
-    static UnsignedSerialisedType adjustToUnsignedSerialisedVarLength(SerialisedType val)
+    std::size_t lengthInternal(UnsignedTag) const
     {
-        static_assert(MaxLength <= sizeof(UnsignedSerialisedType),
-            "MaxLength is expected to be shorter than size of serialised type.");
+        auto serValue = 
+            static_cast<UnsignedSerialisedType>(toSerialised(BaseImpl::value()));
+        std::size_t len = 0U;
+        while (0 < serValue) {
+            serValue >>= VarLengthShift;
+            ++len;
+        }
 
-        static const auto ZeroBitsCount =
-            ((sizeof(UnsignedSerialisedType) - MaxLength) * std::numeric_limits<std::uint8_t>::digits) + MaxLength;
-
-        static const auto TotalBits =
-            sizeof(UnsignedSerialisedType) * std::numeric_limits<std::uint8_t>::digits;
-
-        static const UnsignedSerialisedType Mask =
-            (static_cast<UnsignedSerialisedType>(1U) << (TotalBits - ZeroBitsCount)) - 1;
-
-        return static_cast<UnsignedSerialisedType>(val) & Mask;
+        COMMS_ASSERT(len <= maxLength());
+        return std::max(std::size_t(minLength()), std::min(len, maxLength()));
     }
 
-    static void addByteToSerialisedValueBigEndian(
-        std::uint8_t byte,
-        UnsignedSerialisedType& val)
+    std::size_t lengthInternal(SignedTag) const
     {
-        COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
-        val <<= VarLengthShift;
-        val |= byte;
+        auto serValue = toSerialised(BaseImpl::value());
+        if (0 <= serValue) {
+            // positive
+            return lengthSignedPositiveInternal();
+        }
+
+        return lengthSignedNegativeInternal();
     }
 
-    static void addByteToSerialisedValueLittleEndian(
-        std::uint8_t byte,
-        std::size_t byteCount,
-        UnsignedSerialisedType& val)
+    std::size_t lengthSignedNegativeInternal() const
     {
-        COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
-        auto shift =
-            byteCount * VarLengthShift;
-        val = (static_cast<SerialisedType>(byte) << shift) | val;
+        auto serValue = toSerialised(BaseImpl::value());
+        std::size_t len = 0U;
+        std::uint8_t lastByte = 0U;
+        while (serValue != static_cast<decltype(serValue)>(-1)) {
+            auto unsignedSerValue = static_cast<UnsignedSerialisedType>(serValue);
+            lastByte = static_cast<decltype(lastByte)>(unsignedSerValue & VarLengthValueBitsMask);
+            unsignedSerValue >>= VarLengthShift;
+            ++len;
+
+            unsignedSerValue |= SignExtMask;
+            serValue = static_cast<decltype(serValue)>(unsignedSerValue);
+        }
+
+        if ((lastByte & 0x40) == 0U) {
+            // Sign hasn't been captured, add one more byte
+            ++len;
+        }
+
+        COMMS_ASSERT(len <= maxLength());
+        return std::max(std::size_t(minLength()), std::min(len, maxLength()));
     }
 
-    static void addByteToSerialisedValue(
-        std::uint8_t byte,
-        std::size_t byteCount,
-        UnsignedSerialisedType& val,
-        comms::traits::endian::Big)
+    std::size_t lengthSignedPositiveInternal() const
     {
-        static_cast<void>(byteCount);
-        addByteToSerialisedValueBigEndian(byte, val);
+        auto serValue = toSerialised(BaseImpl::value());
+        std::size_t len = 0U;
+        std::uint8_t lastByte = 0U;
+        while (serValue != static_cast<decltype(serValue)>(0)) {
+            auto unsignedSerValue = static_cast<UnsignedSerialisedType>(serValue);
+            lastByte = static_cast<decltype(lastByte)>(unsignedSerValue & VarLengthValueBitsMask);
+            unsignedSerValue >>= VarLengthShift;
+            ++len;
+
+            serValue = static_cast<decltype(serValue)>(unsignedSerValue);
+        }
+
+        if ((lastByte & 0x40) != 0U) {
+            // Last data byte is 1, not be mistaken sign
+            ++len;
+        }
+
+        COMMS_ASSERT(len <= maxLength());
+        return std::max(std::size_t(minLength()), std::min(len, maxLength()));
     }
 
-    static void addByteToSerialisedValue(
-        std::uint8_t byte,
-        std::size_t byteCount,
-        UnsignedSerialisedType& val,
-        comms::traits::endian::Little)
-    {
-        addByteToSerialisedValueLittleEndian(byte, byteCount, val);
-    }
 
-    static std::uint8_t removeByteFromSerialisedValueBigEndian(
-        UnsignedSerialisedType& val,
-        std::size_t byteCount,
-        std::size_t minLength,
-        bool& lastByte)
+    template <typename TIter>
+    static void writeNoStatusInternal(
+        SerialisedType val, 
+        TIter& iter, 
+        UnsignedTag, 
+        traits::endian::Little) 
     {
-        static const UnsignedSerialisedType Mask = ~(static_cast<UnsignedSerialisedType>(VarLengthValueBitsMask));
+        auto unsignedVal = 
+            static_cast<UnsignedSerialisedType>(val);
+        UnsignedSerialisedType unsignedValToWrite = 0U;
+        std::size_t bytesCount = 0;  
 
-        if ((byteCount + 1) < minLength) {
-            auto remLen = minLength - (byteCount + 1);
-            auto minValue =
-                (static_cast<UnsignedSerialisedType>(1U) << (VarLengthShift * remLen));
-            if (val < minValue) {
-                lastByte = false;
-                return std::uint8_t(0);
+        auto isLastByte = 
+            [&unsignedVal, &bytesCount]() -> bool
+            {
+                return 
+                    ((unsignedVal == 0) && (MinLength <= bytesCount)) || 
+                     (MaxLength <= bytesCount);
+            };       
+
+        while (!isLastByte()) {
+            auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
+            unsignedVal >>= VarLengthShift;
+            ++bytesCount;
+
+            if (!isLastByte()) {
+                byte |= VarLengthContinueBit;
             }
+
+            unsignedValToWrite |= 
+                (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte));
+        }           
+
+        auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
+        comms::util::writeData(unsignedValToWrite, len, iter, Endian());
+    }
+
+    template <typename TIter>
+    static void writeNoStatusInternal(
+        SerialisedType val, 
+        TIter& iter, 
+        UnsignedTag, 
+        traits::endian::Big) 
+    {
+        auto unsignedVal = 
+            static_cast<UnsignedSerialisedType>(val);
+        UnsignedSerialisedType unsignedValToWrite = 0U;
+        std::size_t bytesCount = 0;  
+
+        auto isLastByte = 
+            [&unsignedVal, &bytesCount]() -> bool
+            {
+                return 
+                    ((unsignedVal == 0) && (MinLength <= bytesCount)) || 
+                     (MaxLength <= bytesCount);
+            };       
+
+        while (!isLastByte()) {
+            auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
+            unsignedVal >>= VarLengthShift;
+            
+            if (0 < bytesCount) {
+                byte |= VarLengthContinueBit;
+            }
+
+            unsignedValToWrite |= 
+                (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte));
+
+            ++bytesCount;
+        }           
+
+        auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
+        comms::util::writeData(unsignedValToWrite, len, iter, Endian());
+    }    
+
+    template <typename TIter, typename TEndian>
+    static void writeNoStatusInternal(
+        SerialisedType val, 
+        TIter& iter, 
+        SignedTag, 
+        TEndian endian) 
+    {
+        if (static_cast<SerialisedType>(0) <= val) {
+            return writePositiveNoStatusInternal(val, iter, endian);
         }
 
-        auto valueTmp = val;
-        std::size_t shift = 0;
-        std::size_t count = 0;
-        while ((valueTmp & Mask) != 0) {
-            valueTmp >>= VarLengthShift;
-            shift += VarLengthShift;
-            ++count;
-        }
-
-        auto clearMask = ~(static_cast<UnsignedSerialisedType>(VarLengthValueBitsMask) << shift);
-        val &= clearMask;
-        lastByte = (0U == count);
-        return static_cast<std::uint8_t>(valueTmp);
+        return writeNegativeNoStatusInternal(val, iter, endian);
     }
 
-    static std::uint8_t removeByteFromSerialisedValueLittleEndian(
-        UnsignedSerialisedType& val,
-        std::size_t byteCount,
-        std::size_t minLength,
-        bool& lastByte)
+    template <typename TIter>
+    static void writeNegativeNoStatusInternal(
+        SerialisedType val, 
+        TIter& iter, 
+        traits::endian::Little) 
     {
-        auto byte = static_cast<std::uint8_t>(val & VarLengthValueBitsMask);
-        val >>= VarLengthShift;
-        lastByte = ((val == 0) && (minLength <= byteCount + 1));
-        return byte;
+        UnsignedSerialisedType unsignedValToWrite = 0U;
+        std::size_t bytesCount = 0;  
+
+        auto isLastByte = 
+            [&val, &bytesCount]() -> bool
+            {
+                return 
+                    ((val == static_cast<SerialisedType>(-1)) && (MinLength <= bytesCount)) || 
+                    (MaxLength <= bytesCount);
+            };       
+
+        while (!isLastByte()) {
+            auto unsignedVal = static_cast<UnsignedSerialisedType>(val);
+            auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
+            unsignedVal >>= VarLengthShift;
+            ++bytesCount;
+            unsignedVal |= SignExtMask;
+            val = static_cast<decltype(val)>(unsignedVal);
+
+            if (!isLastByte()) {
+                byte |= VarLengthContinueBit;
+            }
+            else if (((byte & 0x40) == 0U) && (bytesCount < MaxLength)) {
+                // Sign is not captured
+                byte |= VarLengthContinueBit;
+                unsignedValToWrite |= 
+                    (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte));
+
+                ++bytesCount;
+                byte = VarLengthValueBitsMask;
+            }
+
+            unsignedValToWrite |= 
+                (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte));
+        }           
+
+        auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
+        comms::util::writeData(unsignedValToWrite, len, iter, Endian());
     }
 
-    static std::uint8_t removeByteFromSerialisedValue(
-        UnsignedSerialisedType& val,
-        std::size_t byteCount,
-        std::size_t minLength,
-        bool& lastByte,
-        comms::traits::endian::Big)
+    template <typename TIter>
+    static void writePositiveNoStatusInternal(
+        SerialisedType val, 
+        TIter& iter, 
+        traits::endian::Little) 
     {
-        return removeByteFromSerialisedValueBigEndian(val, byteCount, minLength, lastByte);
-    }
+        UnsignedSerialisedType unsignedValToWrite = 0U;
+        std::size_t bytesCount = 0;  
 
-    static std::uint8_t removeByteFromSerialisedValue(
-        UnsignedSerialisedType& val,
-        std::size_t byteCount,
-        std::size_t minLength,
-        bool& lastByte,
-        comms::traits::endian::Little)
-    {
-        return removeByteFromSerialisedValueLittleEndian(val, byteCount, minLength, lastByte);
-    }
+        auto isLastByte = 
+            [&val, &bytesCount]() -> bool
+            {
+                return 
+                    ((val == static_cast<SerialisedType>(0)) && (MinLength <= bytesCount)) || 
+                    (MaxLength <= bytesCount);
+            };       
 
-    static constexpr SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val, UnsignedTag)
+        while (!isLastByte()) {
+            auto unsignedVal = static_cast<UnsignedSerialisedType>(val);
+            auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
+            unsignedVal >>= VarLengthShift;
+            ++bytesCount;
+            val = static_cast<decltype(val)>(unsignedVal);
+
+            if (!isLastByte()) {
+                byte |= VarLengthContinueBit;
+            }
+            else if (((byte & 0x40) != 0U) && (bytesCount < MaxLength)) {
+                // data MSB is 1, may be confused with sign
+                byte |= VarLengthContinueBit;
+                unsignedValToWrite |= 
+                    (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte));
+
+                ++bytesCount;
+                byte = 0U;
+            }
+
+            unsignedValToWrite |= 
+                (static_cast<UnsignedSerialisedType>(byte) << ((bytesCount - 1) * BitsInByte));
+        }           
+
+        auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
+        comms::util::writeData(unsignedValToWrite, len, iter, Endian());
+    }    
+
+    template <typename TIter>
+    static void writeNegativeNoStatusInternal(
+        SerialisedType val, 
+        TIter& iter, 
+        traits::endian::Big)
     {
-        return static_cast<SerialisedType>(val);
-    }
+        UnsignedSerialisedType unsignedValToWrite = 0U;
+        std::size_t bytesCount = 0;  
+
+        auto isLastByte = 
+            [&val, &bytesCount]() -> bool
+            {
+                return 
+                    ((val == static_cast<SerialisedType>(-1)) && (MinLength <= bytesCount)) || 
+                    (MaxLength <= bytesCount);
+            };       
+
+        while (!isLastByte()) {
+            auto unsignedVal = static_cast<UnsignedSerialisedType>(val);
+            auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
+            unsignedVal >>= VarLengthShift;
+            unsignedVal |= SignExtMask;
+            val = static_cast<decltype(val)>(unsignedVal);
+
+            if (0U < bytesCount) {
+                byte |= VarLengthContinueBit;
+            }
+
+            unsignedValToWrite |= 
+                (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte));
+            ++bytesCount;
+            
+
+            if (isLastByte() && ((byte & 0x40) == 0U) && (bytesCount < MaxLength)) {
+                // Sign is not captured
+                byte = 0xff;
+                unsignedValToWrite |= 
+                    (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte));
+                ++bytesCount;
+            }
+        }           
+
+        auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
+        comms::util::writeData(unsignedValToWrite, len, iter, Endian());
+    }    
+
+    template <typename TIter>
+    static void writePositiveNoStatusInternal(
+        SerialisedType val, 
+        TIter& iter, 
+        traits::endian::Big)
+    {
+        UnsignedSerialisedType unsignedValToWrite = 0U;
+        std::size_t bytesCount = 0;  
+
+        auto isLastByte = 
+            [&val, &bytesCount]() -> bool
+            {
+                return 
+                    ((val == static_cast<SerialisedType>(0)) && (MinLength <= bytesCount)) || 
+                    (MaxLength <= bytesCount);
+            };       
+
+        while (!isLastByte()) {
+            auto unsignedVal = static_cast<UnsignedSerialisedType>(val);
+            auto byte = static_cast<std::uint8_t>(unsignedVal & VarLengthValueBitsMask);
+            unsignedVal >>= VarLengthShift;
+            val = static_cast<decltype(val)>(unsignedVal);
+
+            if (0U < bytesCount) {
+                byte |= VarLengthContinueBit;
+            }
+            unsignedValToWrite |= 
+                (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte));
+            ++bytesCount;
+
+            if (isLastByte() && ((byte & 0x40) != 0U) && (bytesCount < MaxLength)) {
+                // MSB data bit may be confusted with sign, add one more byte
+                byte = VarLengthContinueBit;
+
+                unsignedValToWrite |= 
+                    (static_cast<UnsignedSerialisedType>(byte) << (bytesCount * BitsInByte));
+                ++bytesCount;
+                break;
+            }
+        }           
+
+        auto len = std::max(minLength(), std::min(bytesCount, maxLength()));
+        comms::util::writeData(unsignedValToWrite, len, iter, Endian());
+    }    
+
 
     static constexpr SerialisedType signExtUnsignedSerialised(
         UnsignedSerialisedType val,
@@ -347,60 +522,65 @@ private:
         return static_cast<SerialisedType>(val);
     }
 
-    static SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val, SignedTag)
-    {
-        static const auto ZeroBitsCount =
-            ((sizeof(UnsignedSerialisedType) - MaxLength) * std::numeric_limits<std::uint8_t>::digits) + MaxLength;
-
-        static const auto TotalBits =
-            sizeof(UnsignedSerialisedType) * std::numeric_limits<std::uint8_t>::digits;
-
-        static const auto Mask =
-            (static_cast<UnsignedSerialisedType>(1U) << (TotalBits - ZeroBitsCount)) - 1;
-
-        static const UnsignedSerialisedType SignExtMask = ~Mask;
-
-        static const auto SignMask = (Mask + 1) >> 1;
-
-        if ((val & SignMask) != 0) {
-            val |= SignExtMask;
-        }
-        return static_cast<SerialisedType>(val);
-    }
-
     static SerialisedType signExtUnsignedSerialised(
         UnsignedSerialisedType val,
-        std::size_t byteCount,
+        std::size_t bytesCount,
         SignedTag)
     {
-        auto zeroBitsCount =
-         ((sizeof(UnsignedSerialisedType) - byteCount) * std::numeric_limits<std::uint8_t>::digits) + MaxLength;
+        UnsignedSerialisedType signBitMask = 
+            static_cast<UnsignedSerialisedType>(1U) << ((bytesCount * BitsInByte) - (bytesCount + 1));
 
-        static const auto TotalBits =
-         sizeof(UnsignedSerialisedType) * std::numeric_limits<std::uint8_t>::digits;
-
-        auto mask =
-         (static_cast<UnsignedSerialisedType>(1U) << (TotalBits - zeroBitsCount)) - 1;
-
-        UnsignedSerialisedType signExtMask = ~mask;
-
-        auto signMask = (mask + 1) >> 1;
-
-        if ((val & signMask) != 0) {
-            val |= signExtMask;
+        if ((val & signBitMask) == 0U) {
+            return static_cast<SerialisedType>(val);
         }
+
+        UnsignedSerialisedType signExtMask = 
+            static_cast<UnsignedSerialisedType>(~(signBitMask - 1));
+
+        val |= signExtMask;
         return static_cast<SerialisedType>(val);
     }
+
+
+    static void addByteToSerialisedValue(
+        std::uint8_t byte,
+        std::size_t byteCount,
+        UnsignedSerialisedType& val,
+        comms::traits::endian::Big)
+    {
+        static_cast<void>(byteCount);
+        COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
+        val <<= VarLengthShift;
+        val |= static_cast<UnsignedSerialisedType>(byte);
+    }
+
+    static void addByteToSerialisedValue(
+        std::uint8_t byte,
+        std::size_t byteCount,
+        UnsignedSerialisedType& val,
+        comms::traits::endian::Little)
+    {
+        COMMS_ASSERT((byte & VarLengthContinueBit) == 0);
+        auto shift =
+            byteCount * VarLengthShift;
+        val = (static_cast<UnsignedSerialisedType>(byte) << shift) | val;
+    }
+
 
     static const std::size_t MinLength = TMinLen;
     static const std::size_t MaxLength = TMaxLen;
-    static const std::size_t MaxBitLength =
-        MaxLength * std::numeric_limits<std::uint8_t>::digits;
     static const std::size_t VarLengthShift = 7;
     static const std::uint8_t VarLengthValueBitsMask =
         (static_cast<std::uint8_t>(1U) << VarLengthShift) - 1;
     static const std::uint8_t VarLengthContinueBit =
         static_cast<std::uint8_t>(~(VarLengthValueBitsMask));
+    static const std::size_t BitsInByte = 
+        std::numeric_limits<std::uint8_t>::digits; 
+    static const std::size_t SerLengthInBits = 
+        BitsInByte * sizeof(SerialisedType);    
+    static const UnsignedSerialisedType SignExtMask = 
+        static_cast<UnsignedSerialisedType>(
+            static_cast<UnsignedSerialisedType>(~0) << (SerLengthInBits - VarLengthShift));
 
     static_assert(0 < MinLength, "MinLength is expected to be greater than 0");
     static_assert(MinLength <= MaxLength,

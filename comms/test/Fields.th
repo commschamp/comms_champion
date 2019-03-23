@@ -3296,6 +3296,12 @@ void FieldsTestSuite::test69()
     TS_ASSERT_EQUALS(field.length(), (field.value().size() * 2) + 1U);
     TS_ASSERT_EQUALS(field.value()[0].value(), 0x0a0b);
     TS_ASSERT_EQUALS(field.value()[1].value(), 0x0c0d);
+
+    static const char Buf4[] = {
+        0x3, 0xa, 0xb, 0xc
+    };
+    static const std::size_t Buf4Size = std::extent<decltype(Buf)>::value; 
+    field = readWriteField<Field>(Buf4, Buf4Size, comms::ErrorStatus::InvalidMsgData);
 }
 
 using Test70_FieldBase = comms::Field<comms::option::BigEndian>;
@@ -4333,6 +4339,7 @@ void FieldsTestSuite::test88()
     TS_ASSERT_EQUALS(std::get<1>(bundle0.value()).value(), "hello");
     TS_ASSERT_EQUALS(std::get<0>(bundle1.value()).value(), 2U);
     TS_ASSERT_EQUALS(std::get<1>(bundle1.value()).value(), "bla");
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
 
     static const char ExpectedBuf[] = {
         0x2,

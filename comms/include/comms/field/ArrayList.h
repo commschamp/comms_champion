@@ -504,7 +504,9 @@ bool operator==(
 template <typename T>
 constexpr bool isArrayList()
 {
-    return std::is_same<typename T::Tag, tag::ArrayList>::value;
+    return 
+        std::is_same<typename T::Tag, tag::ArrayList>::value || 
+        std::is_same<typename T::Tag, tag::RawArrayList>::value;
 }
 
 /// @brief Upcast type of the field definition to its parent comms::field::ArrayList type

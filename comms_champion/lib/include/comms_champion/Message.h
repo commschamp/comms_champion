@@ -56,24 +56,9 @@ public:
         NumOfValues ///< Number of available values
     };
 
-    /// @brief Constructor
-    Message() = default;
-
-    /// @brief Copy constructor
-    Message(const Message&) = default;
-
-    /// @brief Move constructor
-    Message(Message&&) = default;
-
     /// @brief Destructor
     /// @details virtual to allow polymorphic destruction
     virtual ~Message() noexcept;
-
-    /// @brief Copy assignment
-    Message& operator=(const Message&) = default;
-
-    /// @brief Move assignment
-    Message& operator=(Message&&) = default;
 
     /// @brief Get message name
     /// @details Invokes virtual nameImpl().

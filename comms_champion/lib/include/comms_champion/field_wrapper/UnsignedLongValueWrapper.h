@@ -124,14 +124,12 @@ protected:
 
     virtual bool isSignedImpl() const override
     {
-        typedef typename Field::ValueType ValueType;
-        return std::is_signed<ValueType>::value;
+        return std::is_signed<typename Field::ValueType>::value;
     }
 
     virtual std::size_t valueTypeSizeImpl() const override
     {
-        typedef typename Field::ValueType ValueType;
-        return sizeof(ValueType);
+        return sizeof(typename Field::ValueType);
     }
 
     virtual Ptr cloneImpl() override

@@ -916,18 +916,17 @@ protected:
         typename BaseImpl::ReadIterator& iter,
         std::size_t size) override
     {
+        using Tag = typename std::conditional<
+            std::is_same<TActual, void>::value,
+            NoActual,
+            HasActual
+        >::type;        
         return readImplInternal(iter, size, Tag());
     }
 
 private:
     struct HasActual {};
     struct NoActual {};
-
-    using Tag = typename std::conditional<
-        std::is_same<TActual, void>::value,
-        NoActual,
-        HasActual
-    >::type;
 
     comms::ErrorStatus readImplInternal(
         typename BaseImpl::ReadIterator& iter,
@@ -990,18 +989,17 @@ protected:
         typename BaseImpl::WriteIterator& iter,
         std::size_t size) const override
     {
+        using Tag = typename std::conditional<
+            std::is_same<TActual, void>::value,
+            NoActual,
+            HasActual
+        >::type;        
         return writeImplInternal(iter, size, Tag());
     }
 
 private:
     struct HasActual {};
     struct NoActual {};
-
-    using Tag = typename std::conditional<
-        std::is_same<TActual, void>::value,
-        NoActual,
-        HasActual
-    >::type;
 
     comms::ErrorStatus writeImplInternal(
         typename BaseImpl::WriteIterator& iter,
@@ -1062,18 +1060,17 @@ protected:
     ~MessageImplFieldsValidBase() noexcept = default;
     virtual bool validImpl() const override
     {
+        using Tag = typename std::conditional<
+            std::is_same<TActual, void>::value,
+            NoActual,
+            HasActual
+        >::type;
         return validImplInternal(Tag());
     }
 
 private:
     struct HasActual {};
     struct NoActual {};
-
-    using Tag = typename std::conditional<
-        std::is_same<TActual, void>::value,
-        NoActual,
-        HasActual
-    >::type;
 
     bool validImplInternal(NoActual) const
     {
@@ -1128,18 +1125,17 @@ protected:
     ~MessageImplFieldsLengthBase() noexcept = default;
     virtual std::size_t lengthImpl() const override
     {
+        using Tag = typename std::conditional<
+            std::is_same<TActual, void>::value,
+            NoActual,
+            HasActual
+        >::type;        
         return lengthImplInternal(Tag());
     }
 
 private:
     struct HasActual {};
     struct NoActual {};
-
-    using Tag = typename std::conditional<
-        std::is_same<TActual, void>::value,
-        NoActual,
-        HasActual
-    >::type;
 
     std::size_t lengthImplInternal(NoActual) const
     {

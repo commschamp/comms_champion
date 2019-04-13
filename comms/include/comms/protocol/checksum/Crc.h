@@ -1,5 +1,5 @@
 //
-// Copyright 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -90,7 +90,7 @@ struct CrcInitTable<std::uint16_t, 0x1021>
     using Table = CrcInitTableType<std::uint16_t>;
     static const Table& get()
     {
-        static const Table Table = {{
+        static const Table table = {{
             0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
             0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
             0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
@@ -124,7 +124,7 @@ struct CrcInitTable<std::uint16_t, 0x1021>
             0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
             0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
         }};
-        return Table;
+        return table;
     }
 };
 
@@ -134,7 +134,7 @@ struct CrcInitTable<std::uint16_t, 0x8005>
     using Table = CrcInitTableType<std::uint16_t>;
     static const Table& get()
     {
-        static const Table Table = {{
+        static const Table table = {{
             0x0000, 0x8005, 0x800f, 0x000a, 0x801b, 0x001e, 0x0014, 0x8011,
             0x8033, 0x0036, 0x003c, 0x8039, 0x0028, 0x802d, 0x8027, 0x0022,
             0x8063, 0x0066, 0x006c, 0x8069, 0x0078, 0x807d, 0x8077, 0x0072,
@@ -168,7 +168,7 @@ struct CrcInitTable<std::uint16_t, 0x8005>
             0x0220, 0x8225, 0x822f, 0x022a, 0x823b, 0x023e, 0x0234, 0x8231,
             0x8213, 0x0216, 0x021c, 0x8219, 0x0208, 0x820d, 0x8207, 0x0202
         }};
-        return Table;
+        return table;
     }
 };
 
@@ -178,7 +178,7 @@ struct CrcInitTable<std::uint32_t, 0x04c11db7>
     using Table = CrcInitTableType<std::uint32_t>;
     static const Table& get()
     {
-        static const Table Table = {{
+        static const Table table = {{
             0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9,
             0x130476dc, 0x17c56b6b, 0x1a864db2, 0x1e475005,
             0x2608edb8, 0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61,
@@ -244,7 +244,7 @@ struct CrcInitTable<std::uint32_t, 0x04c11db7>
             0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668,
             0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
         }};
-        return Table;
+        return table;
     }
 };
 

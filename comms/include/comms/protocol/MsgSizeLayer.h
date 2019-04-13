@@ -265,11 +265,11 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        using MsgPtr = typename BaseImpl::MsgPtr;
+        using LocalMsgPtr = typename BaseImpl::MsgPtr;
         using ConstNullptrType = 
             typename details::MsgSizeLayerConstNullPtrCastHelper<
-                !std::is_void<MsgPtr>::value
-            >::template Type<MsgPtr>;
+                !std::is_void<LocalMsgPtr>::value
+            >::template Type<LocalMsgPtr>;
         auto noMsgPtr = static_cast<ConstNullptrType>(nullptr);
         return doUpdateInternal(noMsgPtr, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));
     }

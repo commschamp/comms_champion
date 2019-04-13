@@ -24,8 +24,7 @@
 #define COMMS_MUST_DEFINE_BASE
 #endif
 
-
-#if !defined(COMMS_MUST_DEFINE_BASE) && defined(__GNUC__)
+#if !defined(COMMS_MUST_DEFINE_BASE) && defined(__GNUC__) && !defined(__clang__)
 #if __GNUC__ < 5
 #define COMMS_MUST_DEFINE_BASE
 #endif // #if __GNUC__ < 5

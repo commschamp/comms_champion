@@ -61,14 +61,6 @@ public:
         FieldIdx_NumOfValues
     };
 
-    TransportMessage() = default;
-    TransportMessage(const TransportMessage&) = default;
-    TransportMessage(TransportMessage&&) = default;
-    virtual ~TransportMessage() noexcept = default;
-
-    TransportMessage& operator=(const TransportMessage&) = default;
-    TransportMessage& operator=(TransportMessage&&) = default;
-
 protected:
     virtual const QVariantList& fieldsPropertiesImpl() const override;
 

@@ -509,7 +509,9 @@ private:
     {
         using FieldValueType = typename Field::ValueType;
         auto remSize = BaseImpl::nextLayer().length(msg);
-        return Field(static_cast<FieldValueType>(remSize)).length();
+        Field fieldTmp;
+        fieldTmp.value() = static_cast<FieldValueType>(remSize);
+        return fieldTmp.length();
     }
 
     template <typename TMsg>

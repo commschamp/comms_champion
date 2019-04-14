@@ -507,10 +507,9 @@ private:
     template <typename TMsg>
     std::size_t fieldLengthInternal(const TMsg& msg, VarLengthTag) const
     {
-        using FieldValueType = typename Field::ValueType;
         auto remSize = BaseImpl::nextLayer().length(msg);
         Field fieldTmp;
-        fieldTmp.value() = static_cast<FieldValueType>(remSize);
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(remSize, msg, fieldTmp);
         return fieldTmp.length();
     }
 

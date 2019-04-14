@@ -509,7 +509,7 @@ private:
     {
         auto remSize = BaseImpl::nextLayer().length(msg);
         Field fieldTmp;
-        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(remSize, msg, fieldTmp);
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(remSize, &msg, fieldTmp);
         return fieldTmp.length();
     }
 

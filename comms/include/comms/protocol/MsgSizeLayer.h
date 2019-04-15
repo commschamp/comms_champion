@@ -172,6 +172,7 @@ public:
             std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
             "Current implementation of MsgSizeLayer requires iterator used for reading to be random-access one.");
 
+        auto begIter = iter;
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, missingSize);
@@ -182,7 +183,8 @@ public:
         }
 
         auto fromIter = iter;
-        std::size_t actualRemainingSize = (size - field.length());
+        auto readFieldLength = static_cast<std::size_t>(std::distance(begIter, iter));
+        std::size_t actualRemainingSize = (size - readFieldLength);
         std::size_t requiredRemainingSize = 
             static_cast<ExtendingClass*>(this)->getRemainingSizeFromField(field);
 

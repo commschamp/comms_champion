@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -45,6 +45,8 @@ public:
     void test13();
     void test14();
     void test15();
+    void test16();
+    void test17();
 
 private:
 
@@ -133,6 +135,15 @@ private:
             comms::option::NumValueSerOffset<TOffset>
         >;
 
+    template <typename TField, std::size_t TMin = 1, std::size_t TMax = 4>
+    using VarLenSizeField =
+        comms::field::IntValue<
+            TField,
+            unsigned,
+            comms::option::VarLength<TMin, TMax>
+        >;
+
+
     template <typename TField>
     using SizeField20 = SizeField<TField, 2, 0>;
     using BeSizeField20 = SizeField20<BeField>;
@@ -148,6 +159,11 @@ private:
     using SizeField22 = SizeField<TField, 2, 2>;
     using BeSizeField22 = SizeField22<BeField>;
     using LeSizeField22 = SizeField22<LeField>;
+
+    template <typename TField>
+    using VarLenSizeFieldDef = VarLenSizeField<TField>;
+    using BeVarLenSizeField = VarLenSizeFieldDef<BeField>;
+    using LeVarLenSizeField = VarLenSizeFieldDef<LeField>;
 
     template <typename TField, std::size_t TLen>
     using IdField =
@@ -609,3 +625,49 @@ void MsgSizeLayerTestSuite::test15()
     TS_ASSERT_EQUALS(std::get<0>(fields2).value(), 3U);
     TS_ASSERT_EQUALS(std::get<1>(fields2).value(), MessageType1);
 }
+
+void MsgSizeLayerTestSuite::test16()
+{
+    static const char Buf[] = {
+        (char)0x84, 0x0, MessageType1, 0x01, 0x02,
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    ProtocolStack<LeVarLenSizeField, LeIdField1, LeMsgBase> stack;
+    auto& sizeLayer = stack.layer_size();
+    using SizeLayerType = typename std::decay<decltype(sizeLayer)>::type;
+    static_assert(comms::protocol::isMsgSizeLayer<SizeLayerType>(), "Invalid layer");
+
+    auto& idLayer = stack.layer_id();
+    using IdLayerType = typename std::decay<decltype(idLayer)>::type;
+    static_assert(comms::protocol::isMsgIdLayer<IdLayerType>(), "Invalid layer");
+
+    auto& payloadLayer = stack.layer_payload();
+    using PayloadLayerType = typename std::decay<decltype(payloadLayer)>::type;
+    static_assert(comms::protocol::isMsgDataLayer<PayloadLayerType>(), "Invalid layer");
+
+    auto msgPtr = commonReadWriteMsgTest(stack, &Buf[0], BufSize, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT(!msgPtr)
+}
+
+void MsgSizeLayerTestSuite::test17()
+{
+    static const char Buf[] = {
+        (char)0x81, 0x0, MessageType2
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Frame = ProtocolStack<LeVarLenSizeField, LeIdField1, LeMsgBase>;
+    Frame frame;
+
+    Frame::MsgPtr msg;
+    auto readIter = &Buf[0];
+    auto es = frame.read(msg, readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT(msg);
+    TS_ASSERT_EQUALS(msg->getId(), MessageType2);
+    TS_ASSERT_EQUALS(frame.length(*msg), BufSize - 1);
+}
+

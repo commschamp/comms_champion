@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -142,14 +142,14 @@ protected:
     ///     class.
     virtual DataSeq encodeDataImpl() const override
     {
-        typedef typename CommsBase::WriteIterator WriteIterator;
-        typedef typename std::iterator_traits<WriteIterator>::iterator_category Tag;
+        typedef typename CommsBase::WriteIterator Iter;
+        typedef typename std::iterator_traits<Iter>::iterator_category Tag;
 
         static_assert(
             std::is_base_of<std::output_iterator_tag, Tag>::value,
             "Iterator is expected to be output iterator.");
 
-        static_assert(std::is_same<std::back_insert_iterator<DataSeq>, WriteIterator>::value,
+        static_assert(std::is_same<std::back_insert_iterator<DataSeq>, Iter>::value,
             "Write iterator is expected to back insert iterator");
 
         DataSeq data;
@@ -166,15 +166,15 @@ protected:
     ///     class.
     virtual bool decodeDataImpl(const DataSeq& data) override
     {
-        typedef typename CommsBase::ReadIterator ReadIterator;
-        typedef typename std::iterator_traits<ReadIterator>::iterator_category Tag;
+        typedef typename CommsBase::ReadIterator Iter;
+        typedef typename std::iterator_traits<Iter>::iterator_category Tag;
         static_assert(
             std::is_base_of<std::random_access_iterator_tag, Tag>::value,
             "Only random access iterator is supported for data decoding.");
 
-        static_assert(std::is_pointer<ReadIterator>::value, "Pointer as iterator is expected");
+        static_assert(std::is_pointer<Iter>::value, "Pointer as iterator is expected");
 
-        ReadIterator iter = nullptr;
+        Iter iter = nullptr;
         if (!data.empty()) {
             iter = &data[0];
         }

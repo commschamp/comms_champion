@@ -172,6 +172,7 @@ public:
             std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
             "Current implementation of MsgSizeLayer requires iterator used for reading to be random-access one.");
 
+        auto begIter = iter;
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, missingSize);
@@ -182,7 +183,8 @@ public:
         }
 
         auto fromIter = iter;
-        std::size_t actualRemainingSize = (size - field.length());
+        auto readFieldLength = static_cast<std::size_t>(std::distance(begIter, iter));
+        std::size_t actualRemainingSize = (size - readFieldLength);
         std::size_t requiredRemainingSize = 
             static_cast<ExtendingClass*>(this)->getRemainingSizeFromField(field);
 
@@ -265,11 +267,11 @@ public:
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        using MsgPtr = typename BaseImpl::MsgPtr;
+        using LocalMsgPtr = typename BaseImpl::MsgPtr;
         using ConstNullptrType = 
             typename details::MsgSizeLayerConstNullPtrCastHelper<
-                !std::is_void<MsgPtr>::value
-            >::template Type<MsgPtr>;
+                !std::is_void<LocalMsgPtr>::value
+            >::template Type<LocalMsgPtr>;
         auto noMsgPtr = static_cast<ConstNullptrType>(nullptr);
         return doUpdateInternal(noMsgPtr, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));
     }
@@ -507,9 +509,10 @@ private:
     template <typename TMsg>
     std::size_t fieldLengthInternal(const TMsg& msg, VarLengthTag) const
     {
-        using FieldValueType = typename Field::ValueType;
         auto remSize = BaseImpl::nextLayer().length(msg);
-        return Field(static_cast<FieldValueType>(remSize)).length();
+        Field fieldTmp;
+        static_cast<const ExtendingClass*>(this)->prepareFieldForWrite(remSize, &msg, fieldTmp);
+        return fieldTmp.length();
     }
 
     template <typename TMsg>

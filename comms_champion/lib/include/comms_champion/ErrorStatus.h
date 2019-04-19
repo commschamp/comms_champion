@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This library is free software: you can redistribute it and/or modify

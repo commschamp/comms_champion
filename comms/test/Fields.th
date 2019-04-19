@@ -162,6 +162,7 @@ public:
     void test104();
     void test105();
     void test106();    
+    void test107();
 
     enum Enum1 {
         Enum1_Value1,
@@ -618,6 +619,7 @@ void FieldsTestSuite::test14()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -645,6 +647,7 @@ void FieldsTestSuite::test15()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
 
     Field field;
     TS_ASSERT(field.valid());
@@ -1284,6 +1287,7 @@ void FieldsTestSuite::test28()
         >
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -1563,6 +1567,7 @@ void FieldsTestSuite::test33()
         StringField
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -1597,6 +1602,7 @@ void FieldsTestSuite::test34()
         comms::option::SequenceSizeForcingEnabled
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -1660,6 +1666,7 @@ void FieldsTestSuite::test36()
         comms::option::SequenceFixedSize<5>
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -1694,6 +1701,7 @@ void FieldsTestSuite::test37()
         comms::option::SequenceFixedSize<3>
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -3259,6 +3267,7 @@ void FieldsTestSuite::test69()
         comms::option::SequenceSerLengthFieldPrefix<LenField>
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     Field field;
     TS_ASSERT(field.valid());
     TS_ASSERT(field.value().empty());
@@ -3732,6 +3741,7 @@ void FieldsTestSuite::test75()
         comms::option::OrigDataView
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -3771,6 +3781,7 @@ void FieldsTestSuite::test76()
         comms::option::OrigDataView
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -3808,6 +3819,7 @@ void FieldsTestSuite::test77()
         comms::option::OrigDataView
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -3899,6 +3911,7 @@ void FieldsTestSuite::test79()
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     Field field;
     TS_ASSERT(field.valid());
     static_assert(Field::minLength() == 3U, "Min length is incorrect");
@@ -4091,6 +4104,7 @@ void FieldsTestSuite::test83()
         comms::option::SequenceFixedSizeUseFixedSizeStorage
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -4232,6 +4246,7 @@ void FieldsTestSuite::test87()
         >
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -4312,6 +4327,7 @@ void FieldsTestSuite::test88()
         >
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -4410,6 +4426,7 @@ void FieldsTestSuite::test89()
         >
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -4508,6 +4525,7 @@ void FieldsTestSuite::test90()
         >
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -4579,6 +4597,7 @@ void FieldsTestSuite::test91()
         >
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -4861,6 +4880,7 @@ void FieldsTestSuite::test97()
             ListElem
         >;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
     static_assert(Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -4949,6 +4969,7 @@ void FieldsTestSuite::test99()
         comms::option::SequenceLengthForcingEnabled
     > Field1;
 
+    static_assert(comms::field::isArrayList<Field1>(), "Bad field type detection");
     static_assert(!Field1::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -5182,6 +5203,8 @@ void FieldsTestSuite::test105()
         comms::option::SequenceSerLengthFieldPrefix<LenField>
     > Field;
 
+    static_assert(comms::field::isArrayList<Field>(), "Bad field type detection");
+    
     static const char Buf[] = {
         0x8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7
     };
@@ -5232,6 +5255,35 @@ void FieldsTestSuite::test106()
         static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
         writeReadField(field, &ExpectedBuf[0], ExpectedBufSize);
     } while(false);
+}
+
+void FieldsTestSuite::test107()
+{
+    struct LenField : public
+        comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint8_t
+        >
+    {
+    };
+
+    static_assert(!LenField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceSerLengthFieldPrefix<LenField>,
+        comms::option::FixedSizeStorage<32>
+    > Field;
+
+    static_assert(comms::field::isString<Field>(), "Bad field type detection");
+    
+    static const char Buf[] = {
+        0x5, 'h', 'e', 'l', 'l', 'o'
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    Field field = readWriteField<Field>(&Buf[0], BufSize);
+    TS_ASSERT_EQUALS(field.value(), "hello");
 }
 
 template <typename TField>

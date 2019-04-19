@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -56,24 +56,9 @@ public:
         NumOfValues ///< Number of available values
     };
 
-    /// @brief Constructor
-    Message() = default;
-
-    /// @brief Copy constructor
-    Message(const Message&) = default;
-
-    /// @brief Move constructor
-    Message(Message&&) = default;
-
     /// @brief Destructor
     /// @details virtual to allow polymorphic destruction
     virtual ~Message() noexcept;
-
-    /// @brief Copy assignment
-    Message& operator=(const Message&) = default;
-
-    /// @brief Move assignment
-    Message& operator=(Message&&) = default;
 
     /// @brief Get message name
     /// @details Invokes virtual nameImpl().

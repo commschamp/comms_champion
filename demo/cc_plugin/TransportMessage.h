@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -60,18 +60,9 @@ public:
     static_assert(FieldIdx_NumOfValues == std::tuple_size<TransportMessageFields>::value,
             "Wrong indices");
 
-    TransportMessage() = default;
-    TransportMessage(const TransportMessage&) = default;
-    TransportMessage(TransportMessage&&) = default;
-    virtual ~TransportMessage() noexcept = default;
-
-    TransportMessage& operator=(const TransportMessage&) = default;
-    TransportMessage& operator=(TransportMessage&&) = default;
-
 protected:
     virtual const QVariantList& fieldsPropertiesImpl() const override;
     virtual comms::ErrorStatus readImpl(ReadIterator& iter, std::size_t size) override;
-
 };
 
 }  // namespace cc_plugin

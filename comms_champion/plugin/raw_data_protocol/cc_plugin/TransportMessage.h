@@ -1,5 +1,5 @@
 //
-// Copyright 2016 (C). Alex Robenko. All rights reserved.
+// Copyright 2016 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -60,14 +60,6 @@ public:
         FieldIdx_Payload,
         FieldIdx_NumOfValues
     };
-
-    TransportMessage() = default;
-    TransportMessage(const TransportMessage&) = default;
-    TransportMessage(TransportMessage&&) = default;
-    virtual ~TransportMessage() noexcept = default;
-
-    TransportMessage& operator=(const TransportMessage&) = default;
-    TransportMessage& operator=(TransportMessage&&) = default;
 
 protected:
     virtual const QVariantList& fieldsPropertiesImpl() const override;

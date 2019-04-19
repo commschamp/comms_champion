@@ -1,5 +1,5 @@
 //
-// Copyright 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2017 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -250,10 +250,10 @@ public:
         static_assert(isIdxValid(TIdx), "Only valid field index can be used");
         checkDestruct();
 
-        using Field = typename std::tuple_element<TIdx, Members>::type;
-        new (&storage_) Field(std::forward<TArgs>(args)...);
+        using FieldType = typename std::tuple_element<TIdx, Members>::type;
+        new (&storage_) FieldType(std::forward<TArgs>(args)...);
         memIdx_ = TIdx;
-        return reinterpret_cast<Field&>(storage_);
+        return reinterpret_cast<FieldType&>(storage_);
     }
 
     template <std::size_t TIdx>
@@ -262,8 +262,8 @@ public:
         static_assert(isIdxValid(TIdx), "Only valid field index can be used");
         COMMS_ASSERT(TIdx == memIdx_); // Accessing non initialised field
 
-        using Field = typename std::tuple_element<TIdx, Members>::type;
-        return reinterpret_cast<Field&>(storage_);
+        using FieldType = typename std::tuple_element<TIdx, Members>::type;
+        return reinterpret_cast<FieldType&>(storage_);
     }
 
     template <std::size_t TIdx>
@@ -272,8 +272,8 @@ public:
         static_assert(isIdxValid(TIdx), "Something is wrong");
         COMMS_ASSERT(TIdx == memIdx_); // Accessing non initialised field
 
-        using Field = typename std::tuple_element<TIdx, Members>::type;
-        return reinterpret_cast<const Field&>(storage_);
+        using FieldType = typename std::tuple_element<TIdx, Members>::type;
+        return reinterpret_cast<const FieldType&>(storage_);
     }
 
     bool currentFieldValid() const

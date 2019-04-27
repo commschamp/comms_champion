@@ -65,6 +65,8 @@ namespace field
 ///         invoking read() member function of every member field. It is possible
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
+///     @li @ref comms::option::RemLengthMemberField - Specify index of member field 
+///         that contains remaining length information for all the subsequent fields.
 ///     @li @ref comms::option::HasCustomRead
 ///     @li @ref comms::option::HasCustomRefresh
 ///     @li @ref comms::option::EmptySerialization

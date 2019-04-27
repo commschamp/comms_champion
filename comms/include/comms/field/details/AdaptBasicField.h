@@ -455,7 +455,30 @@ struct AdaptFieldSequenceTerminationFieldSuffix<false>
 
 template <typename TField, typename TOpts>
 using AdaptFieldSequenceTerminationFieldSuffixT =
-    typename AdaptFieldSequenceTerminationFieldSuffix<TOpts::HasSequenceTerminationFieldSuffix>::template Type<TField, TOpts>;
+    typename AdaptFieldSequenceTerminationFieldSuffix<TOpts::HasSequenceTerminationFieldSuffix>::
+        template Type<TField, TOpts>;
+
+template <bool THasRemLengthMemberField>
+struct AdaptFieldRemLengthMemberField;
+
+template <>
+struct AdaptFieldRemLengthMemberField<true>
+{
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::RemLengthMemberField<TOpts::RemLengthMemberFieldIdx, TField>;
+};
+
+template <>
+struct AdaptFieldRemLengthMemberField<false>
+{
+    template <typename TField, typename TOpts>
+    using Type = TField;
+};        
+
+template <typename TField, typename TOpts>
+using AdaptFieldRemLengthMemberFieldT = 
+    typename AdaptFieldRemLengthMemberField<TOpts::HasRemLengthMemberField>::
+        template Type<TField, TOpts>;
 
 template <bool THasDefaultValueInitialiser>
 struct AdaptFieldDefaultValueInitialiser;
@@ -734,8 +757,10 @@ class AdaptBasicField
         SequenceSerLengthFieldPrefixAdapted, ParsedOptions>;
     using SequenceTerminationFieldSuffixAdapted = AdaptFieldSequenceTerminationFieldSuffixT<
         SequenceTrailingFieldSuffixAdapted, ParsedOptions>;
-    using DefaultValueInitialiserAdapted = AdaptFieldDefaultValueInitialiserT<
+     using RemLengthMemberFieldAdapted = AdaptFieldRemLengthMemberFieldT<
         SequenceTerminationFieldSuffixAdapted, ParsedOptions>;
+    using DefaultValueInitialiserAdapted = AdaptFieldDefaultValueInitialiserT<
+        RemLengthMemberFieldAdapted, ParsedOptions>;
     using NumValueMultiRangeValidatorAdapted = AdaptFieldNumValueMultiRangeValidatorT<
         DefaultValueInitialiserAdapted, ParsedOptions>;
     using CustomValidatorAdapted = AdaptFieldCustomValidatorT<

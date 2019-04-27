@@ -96,13 +96,16 @@ public:
     template <typename TIter>
     ErrorStatus readElement(ElementType& elem, TIter& iter, std::size_t& len) const
     {
+        auto fromIter = iter;
         LenField lenField;
         auto es = lenField.read(iter, len);
         if (es != ErrorStatus::Success) {
             return es;
         }
 
-        len -= lenField.length();
+        auto diff = static_cast<std::size_t>(std::distance(fromIter, iter));
+        COMMS_ASSERT(diff <= len);
+        len -= diff;
         if (len < lenField.value()) {
             return comms::ErrorStatus::NotEnoughData;
         }

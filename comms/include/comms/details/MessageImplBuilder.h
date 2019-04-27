@@ -530,10 +530,12 @@ private:
         template <typename TField>
         void operator()(TField& field) {
             if (status_ == comms::ErrorStatus::Success) {
+                auto fromIter = iter_;
                 status_ = field.read(iter_, size_);
                 if (status_ == comms::ErrorStatus::Success) {
-                    COMMS_ASSERT(field.length() <= size_);
-                    size_ -= field.length();
+                    auto diff = static_cast<std::size_t>(std::distance(fromIter, iter_));
+                    COMMS_ASSERT(diff <= size_);
+                    size_ -= diff;
                 }
             }
         }

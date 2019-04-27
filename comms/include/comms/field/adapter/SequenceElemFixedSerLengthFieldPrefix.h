@@ -225,13 +225,16 @@ private:
     template <typename TIter>
     ErrorStatus readLen(TIter& iter, std::size_t& len)
     {
+        auto fromIter = iter;
         LenField lenField;
         auto es = lenField.read(iter, len);
         if (es != ErrorStatus::Success) {
             return es;
         }
 
-        len -= lenField.length();
+        auto diff = static_cast<std::size_t>(std::distance(fromIter, iter));
+        COMMS_ASSERT(diff <= len);
+        len -= diff;
 
         elemLen_ = static_cast<std::size_t>(lenField.value());
         if (elemLen_ == MaxLengthLimit) {

@@ -196,6 +196,7 @@ public:
         std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader)
     {
+        auto beforeReadIter = iter;
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, missingSize);
@@ -205,6 +206,8 @@ public:
             return es;
         }
 
+        auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));
+
         using Tag =
             typename std::conditional<
                 comms::isMessageBase<typename std::decay<decltype(msg)>::type>(),
@@ -212,7 +215,7 @@ public:
                 PointerOpTag
             >::type;
 
-        return doReadInternal(field, msg, iter, size - field.length(), missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
+        return doReadInternal(field, msg, iter, size - fieldLen, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
     }
 
     /// @brief Customized write functionality, invoked by @ref write().

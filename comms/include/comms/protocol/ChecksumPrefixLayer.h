@@ -144,6 +144,7 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
+        auto beforeFieldReadIter = iter;
         auto checksumEs = field.read(iter, Field::minLength());
         if (checksumEs == ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, missingSize);
@@ -153,7 +154,8 @@ public:
             return checksumEs;
         }
 
-        return readInternal(field, msg, iter, size - field.length(), missingSize, std::forward<TNextLayerReader>(nextLayerReader), VerifyTag());
+        std::size_t fieldLen = static_cast<std::size_t>(std::distance(beforeFieldReadIter, iter));
+        return readInternal(field, msg, iter, size - fieldLen, missingSize, std::forward<TNextLayerReader>(nextLayerReader), VerifyTag());
     }
 
     /// @brief Customized write functionality, invoked by @ref write().

@@ -164,6 +164,8 @@ public:
     void test106();    
     void test107();
     void test108();
+    void test109();
+    void test110();
 
     enum Enum1 {
         Enum1_Value1,
@@ -5307,30 +5309,173 @@ void FieldsTestSuite::test108()
 
     static_assert(Field::minLength() == 1U, "Invalid minLength");
 
-    Field field;
-    TS_ASSERT_EQUALS(field.length(), 1U);
+    do {
+        Field field;
+        TS_ASSERT_EQUALS(field.length(), 1U);
 
-    auto& strMem = std::get<1>(field.value());
-    strMem.value() = "aaa";
-    TS_ASSERT_EQUALS(strMem.length(), 3U);
-    TS_ASSERT(field.refresh());
+        auto& strMem = std::get<1>(field.value());
+        strMem.value() = "aaa";
+        TS_ASSERT_EQUALS(strMem.length(), 3U);
+        TS_ASSERT(field.refresh());
 
-    static const char ExpectedBuf[] = {
-        0x3, 'a', 'a', 'a'
-    };
-    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
-    writeReadField(field, ExpectedBuf, ExpectedBufSize);    
+        static const char ExpectedBuf[] = {
+            0x3, 'a', 'a', 'a'
+        };
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeReadField(field, ExpectedBuf, ExpectedBufSize);   
+    } while (false); 
 
-    static const char Buf[] = {
-        0x05, 'h', 'e', 'l', 'l', 'o', '0', '1'
-    };
+    do {
+        static const char Buf[] = {
+            0x05, 'h', 'e', 'l', 'l', 'o', '0', '1'
+        };
 
-    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    field = readWriteField<Field>(Buf, BufSize);
-    TS_ASSERT_EQUALS(field.length(), 6U);
-    TS_ASSERT_EQUALS(strMem.value(), "hello");
-    TS_ASSERT(field.valid());
+        auto field = readWriteField<Field>(Buf, BufSize);
+        auto& strMem = std::get<1>(field.value());
+        TS_ASSERT_EQUALS(field.length(), 6U);
+        TS_ASSERT_EQUALS(strMem.value(), "hello");
+        TS_ASSERT(field.valid());
+    } while (false);
+
+    do {
+        static const char Buf[] = {
+            0x05, 'h', 'e', 'l', 'l'
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        readWriteField<Field>(Buf, BufSize, comms::ErrorStatus::NotEnoughData);
+    } while (false);    
+}
+
+void FieldsTestSuite::test109()
+{
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t,
+                comms::option::DefaultNumValue<9>
+            >,
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >,
+            comms::field::String<comms::Field<BigEndianOpt> >
+        >,
+        comms::option::RemLengthMemberField<1>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 2U, "Invalid minLength");
+
+    do {
+        Field field;
+        TS_ASSERT_EQUALS(field.length(), 2U);
+        TS_ASSERT(!field.refresh());
+
+        auto& strMem = std::get<2>(field.value());
+        strMem.value() = "abc";
+        TS_ASSERT_EQUALS(strMem.length(), 3U);
+        TS_ASSERT(field.refresh());
+
+        static const char ExpectedBuf[] = {
+            0x9, 0x3, 'a', 'b', 'c'
+        };
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeReadField(field, ExpectedBuf, ExpectedBufSize);   
+    } while (false); 
+
+    do {
+        static const char Buf[] = {
+            0x01, 0x05, 'h', 'e', 'l', 'l', 'o', '0', '1'
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        auto field = readWriteField<Field>(Buf, BufSize);
+        auto& strMem = std::get<2>(field.value());
+        TS_ASSERT_EQUALS(field.length(), 7U);
+        TS_ASSERT_EQUALS(strMem.value(), "hello");
+        TS_ASSERT(field.valid());
+    } while (false);
+
+    do {
+        static const char Buf[] = {
+            0x02, 0x05, 'h', 'e', 'l', 'l'
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        readWriteField<Field>(Buf, BufSize, comms::ErrorStatus::NotEnoughData);
+    } while (false);    
+}
+
+void FieldsTestSuite::test110()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t,
+                comms::option::DefaultNumValue<9>
+            >,
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >
+        >,
+        comms::option::RemLengthMemberField<1>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 2U, "Invalid minLength");
+
+    do {
+        Field field;
+        TS_ASSERT_EQUALS(field.length(), 2U);
+        TS_ASSERT(!field.refresh());
+
+        static const char ExpectedBuf[] = {
+            0x9, 0x0
+        };
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeReadField(field, ExpectedBuf, ExpectedBufSize);   
+    } while (false); 
+
+    do {
+        static const char Buf[] = {
+            0x01, 0x03, 'h', 'e', 'l', 'l', 'o', '0', '1'
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        Field field;
+        auto iter = &Buf[0];
+        auto status = field.read(iter, BufSize);
+        TS_ASSERT_EQUALS(status, comms::ErrorStatus::Success);
+        auto diff = static_cast<std::size_t>(std::distance(&Buf[0], iter));
+        TS_ASSERT_EQUALS(diff, 5U);
+    } while (false);
+
+    do {
+        static const char Buf[] = {
+            0x02, 0x05, 'h', 'e', 'l', 'l'
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        readWriteField<Field>(Buf, BufSize, comms::ErrorStatus::NotEnoughData);
+    } while (false);    
 }
 
 template <typename TField>

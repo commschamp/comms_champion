@@ -319,12 +319,14 @@ private:
         std::size_t* missingSize,
         NormalValueTag)
     {
+        auto beforeReadIter = iter;
         auto es = field.read(iter, len);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, len, missingSize);
         }
         else {
-            len -= field.length();
+            auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));
+            len -= fieldLen;
         }
         return es;
     }

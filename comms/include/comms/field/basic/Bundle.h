@@ -382,9 +382,10 @@ private:
                 return;
             }
 
+            auto fromIter = iter_;
             es_ = field.read(iter_, len_);
             if (es_ == comms::ErrorStatus::Success) {
-                len_ -= field.length();
+                len_ -= static_cast<std::size_t>(std::distance(fromIter, iter_));
             }
         }
 

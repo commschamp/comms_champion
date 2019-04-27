@@ -73,6 +73,7 @@ public:
     static const bool HasCustomVersionUpdate = false;
     static const bool HasVersionsRange = false;
     static const bool HasVersionStorage = false;
+    static const bool HasRemLengthMemberField = false;
 };
 
 template <typename T, typename... TOptions>
@@ -482,6 +483,19 @@ class OptionsParser<
 {
 public:
     static const bool HasVersionStorage = true;
+};
+
+template <std::size_t TIdx, typename... TOptions>
+class OptionsParser<
+    comms::option::RemLengthMemberField<TIdx>,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+    using BaseImpl = OptionsParser<TOptions...>;
+    static_assert(!BaseImpl::HasRemLengthMemberField, 
+        "Option comms::option::RemLengthMemberField used multiple times");
+public:
+    static const bool HasRemLengthMemberField = true;
+    static const std::size_t RemLengthMemberFieldIdx = TIdx;
 };
 
 template <typename... TOptions>

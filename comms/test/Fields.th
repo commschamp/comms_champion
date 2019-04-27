@@ -163,6 +163,7 @@ public:
     void test105();
     void test106();    
     void test107();
+    void test108();
 
     enum Enum1 {
         Enum1_Value1,
@@ -5284,6 +5285,52 @@ void FieldsTestSuite::test107()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     Field field = readWriteField<Field>(&Buf[0], BufSize);
     TS_ASSERT_EQUALS(field.value(), "hello");
+}
+
+void FieldsTestSuite::test108()
+{
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >,
+            comms::field::String<comms::Field<BigEndianOpt> >
+        >,
+        comms::option::RemLengthMemberField<0>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 1U, "Invalid minLength");
+
+    Field field;
+    TS_ASSERT_EQUALS(field.length(), 1U);
+
+    auto& strMem = std::get<1>(field.value());
+    strMem.value() = "aaa";
+    TS_ASSERT_EQUALS(strMem.length(), 3U);
+    TS_ASSERT(field.refresh());
+
+    static const char ExpectedBuf[] = {
+        0x3, 'a', 'a', 'a'
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);    
+
+    static const char Buf[] = {
+        0x05, 'h', 'e', 'l', 'l', 'o', '0', '1'
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    field = readWriteField<Field>(Buf, BufSize);
+    TS_ASSERT_EQUALS(field.length(), 6U);
+    TS_ASSERT_EQUALS(strMem.value(), "hello");
+    TS_ASSERT(field.valid());
 }
 
 template <typename TField>

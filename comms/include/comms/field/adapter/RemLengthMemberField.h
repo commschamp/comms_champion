@@ -24,7 +24,6 @@
 #include <iterator>
 
 #include "comms/ErrorStatus.h"
-#include "comms/field/IntValue.h"
 #include "comms/field/tag.h"
 
 namespace comms

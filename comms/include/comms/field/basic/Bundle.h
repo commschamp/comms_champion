@@ -313,6 +313,11 @@ public:
         return CommonFuncs::areMembersVersionDependent<ValueType>();
     }
 
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return CommonFuncs::doMembersMembersHaveNonDefaultRefresh<ValueType>();
+    }
+
     bool setVersion(VersionType version)
     {
         return CommonFuncs::setVersionForMembers(value(), version);

@@ -40,6 +40,7 @@ enum MessageType {
     MessageType6,
     MessageType7,
     MessageType8,
+    MessageType9,
 
     MessageType90 = 90
 };
@@ -577,6 +578,80 @@ public:
         return "Message8";
     }
 };
+
+template <typename TField>
+struct Message9Fields
+{
+    class field1 : public
+        comms::field::Bundle<
+            TField,
+            std::tuple<
+                comms::field::IntValue<TField, std::uint8_t>,
+                comms::field::String<TField>
+            >,
+            comms::option::RemLengthMemberField<0>
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::field::Bundle<
+                TField,
+                std::tuple<
+                    comms::field::IntValue<TField, std::uint8_t>,
+                    comms::field::String<TField>
+                >,
+                comms::option::RemLengthMemberField<0>
+            >;
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
+    public:
+        COMMS_FIELD_MEMBERS_ACCESS(len, str);
+    };
+
+    using All = std::tuple<
+        field1
+    >;
+
+};
+
+template <typename TMessage>
+class Message9 : public
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType9>,
+            comms::option::FieldsImpl<typename Message9Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message9<TMessage> >,
+            comms::option::HasName
+        >
+{
+    using Base =
+        comms::MessageBase<
+            TMessage,
+            comms::option::StaticNumIdImpl<MessageType9>,
+            comms::option::FieldsImpl<typename Message9Fields<typename TMessage::Field>::All>,
+            comms::option::MsgType<Message9<TMessage> >,
+            comms::option::HasName
+        >;
+public:
+
+    static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
+    static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
+
+    COMMS_MSG_FIELDS_ACCESS(f1);
+
+    static const std::size_t MsgMinLen = Base::doMinLength();
+    static_assert(MsgMinLen == 1U, "Wrong serialisation length");
+
+    Message9() = default;
+
+    ~Message9() noexcept = default;
+
+    static const char* doName()
+    {
+        return "Message9";
+    }
+};
+
+
 
 template <typename TField>
 struct Message90_1Fields

@@ -157,6 +157,12 @@ struct CommonFuncs
         return comms::util::tupleTypeAccumulate<TFields>(false, VersionDependencyChecker());
     }
 
+    template <typename TFields>
+    static constexpr bool doMembersMembersHaveNonDefaultRefresh()
+    {
+        return comms::util::tupleTypeAccumulate<TFields>(false, NonDefaultRefreshChecker());
+    }
+
     template <typename TFields, typename TVersionType>
     static bool setVersionForMembers(TFields& fields, TVersionType version)
     {
@@ -170,6 +176,15 @@ private:
         constexpr bool operator()(bool soFar) const
         {
             return TField::isVersionDependent() || soFar;
+        }
+    };
+
+    struct NonDefaultRefreshChecker
+    {
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::hasNonDefaultRefresh() || soFar;
         }
     };
 

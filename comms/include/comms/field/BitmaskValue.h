@@ -308,6 +308,12 @@ public:
         return IntValueField::isVersionDependent();
     }
 
+    /// @brief Compile time check if this class has non-default refresh functionality
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return BaseImpl::hasNonDefaultRefresh();
+    }
+
     /// @brief Get version of the field.
     /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
     VersionType getVersion() const

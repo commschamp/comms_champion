@@ -177,6 +177,11 @@ public:
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
     void readFromUntilNoStatus(TIter& iter) = delete;
 
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return true;
+    }
+
 private:
     struct BaseRedirectTag {};
     struct LocalTag {};

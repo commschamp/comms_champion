@@ -199,14 +199,18 @@ public:
 
     static constexpr bool isVersionDependent()
     {
-        return Field::isVersionDependent();
+        return BaseImpl::isVersionDependent() || Field::isVersionDependent();
+    }
+
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return BaseImpl::hasNonDefaultRefresh() || Field::hasNonDefaultRefresh();
     }
 
     bool setVersion(VersionType version)
     {
         return field_.setVersion(static_cast<typename Field::VersionType>(version));
     }
-
 
 private:
     Field field_;

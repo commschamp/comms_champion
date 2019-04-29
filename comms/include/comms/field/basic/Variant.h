@@ -23,6 +23,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -151,6 +152,11 @@ public:
         bool val = false;
         comms::util::tupleForSelectedType<Members>(memIdx_, ValidCheckHelper(val, &storage_));
         return val;
+    }
+
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return CommonFuncs::doMembersMembersHaveNonDefaultRefresh<ValueType>();
     }
 
     bool refresh()

@@ -851,18 +851,17 @@ using MessageImplVersionBaseT =
 //----------------------------------------------------
 
 template <typename TBase, bool THasFields>
-class AnyFieldsHasCustomRefresh;
+class AnyFieldHasNonDefaultRefresh;
 
 template <typename TBase>
-class AnyFieldsHasCustomRefresh<TBase, true>
+class AnyFieldHasNonDefaultRefresh<TBase, true>
 {
     struct RefreshChecker
     {
         template <typename TField>
         constexpr bool operator()() const
         {
-            return TField::ParsedOptions::HasCustomRefresh ||
-                   TField::ParsedOptions::HasContentsRefresher;
+            return TField::hasNonDefaultRefresh();
         }
     };
 public:
@@ -871,16 +870,16 @@ public:
 };
 
 template <typename TBase>
-class AnyFieldsHasCustomRefresh<TBase, false>
+class AnyFieldHasNonDefaultRefresh<TBase, false>
 {
 public:
     static const bool Value = false;
 };
 
 template <typename TBase, typename TImplOpt>
-constexpr bool anyFieldHasCustomRefresh()
+constexpr bool anyFieldHasNonDefaultRefresh()
 {
-    return AnyFieldsHasCustomRefresh<TBase, TImplOpt::HasFieldsImpl>::Value;
+    return AnyFieldHasNonDefaultRefresh<TBase, TImplOpt::HasFieldsImpl>::Value;
 }
 
 //----------------------------------------------------
@@ -1239,7 +1238,7 @@ using MessageImplRefreshBaseT =
         (!TImplOpt::HasNoRefreshImpl) &&
             (
                 TImplOpt::HasCustomRefresh ||
-                anyFieldHasCustomRefresh<TBase, TImplOpt>() ||
+                anyFieldHasNonDefaultRefresh<TBase, TImplOpt>() ||
                 (TBase::InterfaceOptions::HasVersionInExtraTransportFields && anyFieldIsVersionDependent<TBase, TImplOpt>())
             )
     >::template Type<TBase, TImplOpt>;

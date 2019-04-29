@@ -153,6 +153,28 @@ constexpr bool arrayListElementIsVersionDependent()
     return ArrayListElemVersionDependencyHelper<TElem, std::is_integral<TElem>::value>::Value;
 }
 
+template <typename TElem, bool TIsIntegral>
+struct ArrayListElemHasNonDefaultRefreshHelper;
+
+template <typename TElem>
+struct ArrayListElemHasNonDefaultRefreshHelper<TElem, true>
+{
+    static const bool Value = false;
+};
+
+template <typename TElem>
+struct ArrayListElemHasNonDefaultRefreshHelper<TElem, false>
+{
+    static const bool Value = TElem::hasNonDefaultRefresh();
+};
+
+template <typename TElem>
+constexpr bool arrayListElementHasNonDefaultRefresh()
+{
+    return ArrayListElemHasNonDefaultRefreshHelper<TElem, std::is_integral<TElem>::value>::Value;
+}
+
+
 }  // namespace details
 
 template <typename TFieldBase, typename TStorage>
@@ -386,6 +408,11 @@ public:
     static constexpr bool isVersionDependent()
     {
         return details::arrayListElementIsVersionDependent<ElementType>();
+    }
+
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return details::arrayListElementHasNonDefaultRefresh<ElementType>();
     }
 
     bool setVersion(VersionType version)

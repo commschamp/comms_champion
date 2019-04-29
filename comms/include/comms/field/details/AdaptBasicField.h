@@ -544,6 +544,27 @@ template <typename TField, typename TOpts>
 using AdaptFieldCustomValidatorT =
     typename AdaptFieldCustomValidator<TOpts::HasCustomValidator>::template Type<TField, TOpts>;
 
+template <bool THasCustomRefresh>
+struct AdaptFieldCustomRefreshWrap;
+
+template <>
+struct AdaptFieldCustomRefreshWrap<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::CustomRefreshWrap<TField>;
+};
+
+template <>
+struct AdaptFieldCustomRefreshWrap<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldCustomRefreshWrapT =
+    typename AdaptFieldCustomRefreshWrap<TOpts::HasCustomRefresh>::template Type<TField>;
+
 template <bool THasContentsRefresher>
 struct AdaptFieldCustomRefresher;
 
@@ -765,8 +786,10 @@ class AdaptBasicField
         DefaultValueInitialiserAdapted, ParsedOptions>;
     using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
         NumValueMultiRangeValidatorAdapted, ParsedOptions>;
-    using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
+    using CustomRefreshWrapAdapted = AdaptFieldCustomRefreshWrapT<
         CustomValidatorAdapted, ParsedOptions>;
+    using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
+        CustomRefreshWrapAdapted, ParsedOptions>;
     using FailOnInvalidAdapted = AdaptFieldFailOnInvalidT<
         CustomRefresherAdapted, ParsedOptions>;
     using IgnoreInvalidAdapted = AdaptFieldIgnoreInvalidT<

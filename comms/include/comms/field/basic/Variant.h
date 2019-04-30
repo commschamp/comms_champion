@@ -156,7 +156,7 @@ public:
 
     static constexpr bool hasNonDefaultRefresh()
     {
-        return CommonFuncs::doMembersMembersHaveNonDefaultRefresh<ValueType>();
+        return CommonFuncs::doMembersMembersHaveNonDefaultRefresh<Members>();
     }
 
     bool refresh()

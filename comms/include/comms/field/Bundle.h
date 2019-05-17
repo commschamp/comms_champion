@@ -67,10 +67,12 @@ namespace field
 ///         option.
 ///     @li @ref comms::option::RemLengthMemberField - Specify index of member field 
 ///         that contains remaining length information for all the subsequent fields.
-///     @li @ref comms::option::HasCustomRead
-///     @li @ref comms::option::HasCustomRefresh
-///     @li @ref comms::option::EmptySerialization
-///     @li @ref comms::option::VersionStorage
+///     @li @ref comms::option::HasCustomRead - Mark field to have custom read
+///         functionality
+///     @li @ref comms::option::HasCustomRefresh - Mark field to have custom
+///         refresh functionality.
+///     @li @ref comms::option::EmptySerialization - Force empty serialization.
+///     @li @ref comms::option::VersionStorage - Add version storage.
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()

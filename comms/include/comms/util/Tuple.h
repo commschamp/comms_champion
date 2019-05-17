@@ -888,6 +888,18 @@ public:
 
 }
 
+/// @brief Compile time check of whether @b any type within a tuple has a certain condition.
+/// @details The functor object class must define operator() with following signature:
+///     @code
+///     struct MyFunc
+///     {
+///         // TTupleElem - type inside the tuple
+///         template <typename TTupleElem>
+///         constexpr bool operator()() const {...}
+///     };
+///     @endcode
+/// @tparam TTuple Tuple
+/// @tparam TFunc Functor object type
 template <typename TTuple, typename TFunc>
 constexpr bool tupleTypeIsAnyOf(TFunc&& func)
 {

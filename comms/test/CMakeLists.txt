@@ -37,6 +37,12 @@ endfunction ()
 
 #################################################################
 
+function (test_fields2)
+    test_func ("Fields2")
+endfunction ()
+
+#################################################################
+
 function (test_message)
     test_func ("Message")
 endfunction ()
@@ -120,6 +126,7 @@ if (NOT CC_NO_VALGRIND)
 endif ()
 
 test_fields()
+test_fields2()
 test_message()
 test_msg_data_layer()
 test_msg_id_layer()

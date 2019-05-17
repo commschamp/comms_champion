@@ -76,10 +76,12 @@ namespace field
 ///     @li @ref comms::option::DefaultVariantIndex - By default the Variant field
 ///         doesn't have any valid contents. This option may be used to specify
 ///         the index of the default member field.
-///     @li @ref comms::option::HasCustomRead
-///     @li @ref comms::option::HasCustomRefresh
-///     @li @ref comms::option::EmptySerialization
-///     @li @ref comms::option::VersionStorage
+///     @li @ref comms::option::HasCustomRead - Mark field to have custom read
+///         functionality
+///     @li @ref comms::option::HasCustomRefresh - Mark field to have custom
+///         refresh functionality.
+///     @li @ref comms::option::EmptySerialization - Force empty serialization.
+///     @li @ref comms::option::VersionStorage - Add version storage.
 /// @extends comms::Field
 /// @headerfile comms/field/Variant.h
 /// @see COMMS_VARIANT_MEMBERS_ACCESS()

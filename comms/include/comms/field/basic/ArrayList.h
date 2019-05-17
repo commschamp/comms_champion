@@ -29,6 +29,7 @@
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/details/detect.h"
+#include "comms/field/details/VersionStorage.h"
 #include "CommonFuncs.h"
 
 namespace comms
@@ -117,21 +118,6 @@ constexpr bool vectorHasAssign()
     return VectorHasAssign<T>::Value;
 }
 
-template <typename TVersionType, bool TVersionDependent>
-struct VersionStorage;
-
-template <typename TVersionType>
-struct VersionStorage<TVersionType, true>
-{
-protected:
-    TVersionType version_ = TVersionType();
-};
-
-template <typename TVersionType>
-struct VersionStorage<TVersionType, false>
-{
-};
-
 template <typename TElem, bool TIsIntegral>
 struct ArrayListElemVersionDependencyHelper;
 
@@ -180,14 +166,14 @@ constexpr bool arrayListElementHasNonDefaultRefresh()
 template <typename TFieldBase, typename TStorage>
 class ArrayList :
         public TFieldBase,
-        public details::VersionStorage<
+        public comms::field::details::VersionStorage<
             typename TFieldBase::VersionType,
             details::arrayListElementIsVersionDependent<typename TStorage::value_type>()
         >
 {
     using BaseImpl = TFieldBase;
     using VersionBaseImpl =
-        details::VersionStorage<
+        comms::field::details::VersionStorage<
             typename TFieldBase::VersionType,
             details::arrayListElementIsVersionDependent<typename TStorage::value_type>()
         >;
@@ -445,7 +431,7 @@ private:
 
     using VersionTag =
         typename std::conditional<
-            details::arrayListElementIsVersionDependent<ElementType>(),
+            isVersionDependent(),
             VersionDependentTag,
             NoVersionDependencyTag
         >::type;

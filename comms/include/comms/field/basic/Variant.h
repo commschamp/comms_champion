@@ -342,7 +342,7 @@ private:
 
     using VersionTag =
         typename std::conditional<
-            isVersionDependent(),
+            details::variantIsAnyMemberVersionDependent<Members>(),
             VersionDependentTag,
             NoVersionDependencyTag
         >::type;

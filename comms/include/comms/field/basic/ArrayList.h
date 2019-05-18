@@ -431,7 +431,7 @@ private:
 
     using VersionTag =
         typename std::conditional<
-            isVersionDependent(),
+            details::arrayListElementIsVersionDependent<ElementType>(),
             VersionDependentTag,
             NoVersionDependencyTag
         >::type;

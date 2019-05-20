@@ -521,6 +521,23 @@ void setNanoseconds(TField& field, TVal&& val)
     details::setTime<comms::traits::units::NanosecondsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds nanoseconds.
+template <typename TField>
+constexpr bool isNanoseconds()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::NanosecondsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds nanoseconds.
+template <typename TField>
+constexpr bool isNanoseconds(const TField& field)
+{
+    return isNanoseconds<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as microseconds.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to microseconds and return the result in specified return

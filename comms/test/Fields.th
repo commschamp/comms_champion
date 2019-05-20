@@ -2623,9 +2623,11 @@ void FieldsTestSuite::test58()
 
     static_assert(!Field1::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isNanoseconds<Field1>(), "Invalid units");
 
     do {
         Field1 field(1U);
+        static_assert(comms::units::isNanoseconds(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_EQUALS(comms::units::getNanoseconds<unsigned>(field), 100U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMicroseconds<double>(field) - 0.1), std::numeric_limits<double>::epsilon());

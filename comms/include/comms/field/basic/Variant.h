@@ -336,6 +336,11 @@ public:
         return setVersionInternal(version, VersionTag());
     }
 
+    VersionType getVersion() const
+    {
+        return getVersionInternal(VersionTag());
+    }
+
 private:
     struct VersionDependentTag {};
     struct NoVersionDependencyTag {};
@@ -736,6 +741,12 @@ private:
         }
         return updated;
     }
+
+    VersionType getVersionInternal(VersionDependentTag) const
+    {
+        return VersionBaseImpl::version_;;
+    }
+
 
     ValueType storage_;
     std::size_t memIdx_ = MembersCount;

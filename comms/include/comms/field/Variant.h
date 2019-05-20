@@ -382,7 +382,8 @@ public:
     }
 
     /// @brief Get version of the field.
-    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    /// @details Exists only if @ref comms::option::VersionStorage option has been provided
+    ///     and/or any of the member fields is version dependent.
     VersionType getVersion() const
     {
         return BaseImpl::getVersion();

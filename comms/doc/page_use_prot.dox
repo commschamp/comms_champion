@@ -936,7 +936,7 @@
 ///         comms::option::ScalingRatio<1, 10>,
 ///         comms::option::UnitsMillimeters         
 /// @endcode
-/// The @b COMMS library provides a set of units conversion functions in
+/// The @b COMMS library provides a @b limited set of units conversion functions in
 /// @ref comms::units namespace. When using the provided conversion function the application developer
 /// doesn't need to remember the original units and/or scaling factor. The @b COMMS library
 /// does all the math. It also prevents (at compile time) usage of wrong conversion
@@ -949,6 +949,18 @@
 /// std::cout << "Distance in mm" << comms::units::getMillimeters<double>(field); // prints 1234.5
 /// std::cout << "Distance in cm" << comms::units::getCentimeters<double>(field); // prints 123.45
 /// @endcode
+/// @b NOTE, that @b COMMS library is about the communication protocols and not
+/// about unit conversions. The unit conversion functionality is quite basic and
+/// limited. If there is a need to use third party unit conversion library, it
+/// could be wise to @b static_assert on assumption for origin units.
+/// @code
+/// static_assert(comms::units::isMillimeters<MyDistance>(), "Invalid units assumption");
+/// @endcode
+/// or
+/// @code
+/// static_assert(comms::units::isMillimeters(field), "Invalid units assumption");
+/// @endcode
+///
 /// By default, When @ref comms::field::IntValue field is constructed, the inner
 /// value is constructed to be 0. However, the field definition may use
 /// @ref comms::option::DefaultNumValue option to specify some other value

@@ -2642,9 +2642,11 @@ void FieldsTestSuite::test58()
 
     static_assert(!Field2::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMicroseconds<Field2>(), "Invalid units");
 
     do {
         Field2 field(5U);
+        static_assert(comms::units::isMicroseconds(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 5U);
         TS_ASSERT_EQUALS(comms::units::getMicroseconds<unsigned>(field), 500U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMilliseconds<double>(field) - 0.5), std::numeric_limits<double>::epsilon());
@@ -2658,9 +2660,11 @@ void FieldsTestSuite::test58()
 
     static_assert(!Field3::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMilliseconds<Field3>(), "Invalid units");
 
     do {
         Field3 field(200U);
+        static_assert(comms::units::isMilliseconds(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 200U);
         TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 200U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<double>(field) - 0.2), std::numeric_limits<double>::epsilon());
@@ -2675,9 +2679,11 @@ void FieldsTestSuite::test58()
 
     static_assert(!Field4::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isSeconds<Field4>(), "Invalid units");
 
     do {
         Field4 field(1U);
+        static_assert(comms::units::isSeconds(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getSeconds<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getMilliseconds<unsigned>(field), 100U);
@@ -2692,9 +2698,11 @@ void FieldsTestSuite::test58()
 
     static_assert(!Field5::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMinutes<Field5>(), "Invalid units");
 
     do {
         Field5 field(1U);
+        static_assert(comms::units::isMinutes(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMinutes<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getSeconds<unsigned>(field), 6U);
@@ -2709,9 +2717,11 @@ void FieldsTestSuite::test58()
 
     static_assert(!Field6::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isHours<Field6>(), "Invalid units");
 
     do {
         Field6 field(1U);
+        static_assert(comms::units::isHours(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getHours<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getSeconds<unsigned>(field), 6U * 60U);
@@ -2726,9 +2736,11 @@ void FieldsTestSuite::test58()
 
     static_assert(!Field7::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isDays<Field7>(), "Invalid units");
 
     do {
         Field7 field(1U);
+        static_assert(comms::units::isDays(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getDays<double>(field) - (double)1/12), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getHours<unsigned>(field), 2U);
@@ -2742,9 +2754,11 @@ void FieldsTestSuite::test58()
 
     static_assert(!Field8::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isWeeks<Field8>(), "Invalid units");
 
     do {
         Field8 field(1U);
+        static_assert(comms::units::isWeeks(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_EQUALS(comms::units::getWeeks<unsigned>(field), 1U);
         TS_ASSERT_EQUALS(comms::units::getHours<unsigned>(field), 24U * 7U);
@@ -2804,9 +2818,11 @@ void FieldsTestSuite::test60()
 
     static_assert(!Field1::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isNanometers<Field1>(), "Invalid units");
 
     do {
         Field1 field(1U);
+        static_assert(comms::units::isNanometers(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_EQUALS(comms::units::getNanometers<unsigned>(field), 100U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMicrometers<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
@@ -2821,9 +2837,11 @@ void FieldsTestSuite::test60()
 
     static_assert(!Field2::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMicrometers<Field2>(), "Invalid units");
 
     do {
         Field2 field(5U);
+        static_assert(comms::units::isMicrometers(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 5U);
         TS_ASSERT_EQUALS(comms::units::getMicrometers<unsigned>(field), 500U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMillimeters<double>(field) - 0.5), std::numeric_limits<double>::epsilon());
@@ -2837,9 +2855,11 @@ void FieldsTestSuite::test60()
 
     static_assert(!Field3::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMillimeters<Field3>(), "Invalid units");
 
     do {
         Field3 field(200U);
+        static_assert(comms::units::isMillimeters(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 200U);
         TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 200U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMeters<double>(field) - 0.2), std::numeric_limits<double>::epsilon());
@@ -2854,9 +2874,11 @@ void FieldsTestSuite::test60()
 
     static_assert(!Field4::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMeters<Field4>(), "Invalid units");
 
     do {
         Field4 field(1U);
+        static_assert(comms::units::isMeters(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMeters<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 100U);
@@ -2871,9 +2893,11 @@ void FieldsTestSuite::test60()
 
     static_assert(!Field5::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isCentimeters<Field5>(), "Invalid units");
 
     do {
         Field5 field(1U);
+        static_assert(comms::units::isCentimeters(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getCentimeters<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getMillimeters<unsigned>(field), 1U);
@@ -2888,9 +2912,11 @@ void FieldsTestSuite::test60()
 
     static_assert(!Field6::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isKilometers<Field6>(), "Invalid units");
 
     do {
         Field6 field(1U);
+        static_assert(comms::units::isKilometers(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getKilometers<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getMeters<unsigned>(field), 100U);
@@ -2954,9 +2980,11 @@ void FieldsTestSuite::test62()
 
     static_assert(!Field1::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isNanometersPerSecond<Field1>(), "Invalid units");
 
     do {
         Field1 field(1U);
+        static_assert(comms::units::isNanometersPerSecond(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_EQUALS(comms::units::getNanometersPerSecond<unsigned>(field), 100U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMicrometersPerSecond<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
@@ -2971,9 +2999,11 @@ void FieldsTestSuite::test62()
 
     static_assert(!Field2::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMicrometersPerSecond<Field2>(), "Invalid units");
 
     do {
         Field2 field(5U);
+        static_assert(comms::units::isMicrometersPerSecond(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 5U);
         TS_ASSERT_EQUALS(comms::units::getMicrometersPerSecond<unsigned>(field), 500U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMillimetersPerSecond<double>(field) - 0.5), std::numeric_limits<double>::epsilon());
@@ -2987,9 +3017,11 @@ void FieldsTestSuite::test62()
 
     static_assert(!Field3::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMillimetersPerSecond<Field3>(), "Invalid units");
 
     do {
         Field3 field(200U);
+        static_assert(comms::units::isMillimetersPerSecond(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 200U);
         TS_ASSERT_EQUALS(comms::units::getMillimetersPerSecond<unsigned>(field), 200U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMetersPerSecond<double>(field) - 0.2), std::numeric_limits<double>::epsilon());
@@ -3004,9 +3036,11 @@ void FieldsTestSuite::test62()
 
     static_assert(!Field4::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMetersPerSecond<Field4>(), "Invalid units");
 
     do {
         Field4 field(1U);
+        static_assert(comms::units::isMetersPerSecond(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getMetersPerSecond<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getMillimetersPerSecond<unsigned>(field), 100U);
@@ -3021,9 +3055,11 @@ void FieldsTestSuite::test62()
 
     static_assert(!Field5::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isCentimetersPerSecond<Field5>(), "Invalid units");
 
     do {
         Field5 field(1U);
+        static_assert(comms::units::isCentimetersPerSecond(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getCentimetersPerSecond<double>(field) - 0.1), std::numeric_limits<double>::epsilon());
         TS_ASSERT_EQUALS(comms::units::getMillimetersPerSecond<unsigned>(field), 1U);
@@ -3037,9 +3073,11 @@ void FieldsTestSuite::test62()
 
     static_assert(!Field6::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isKilometersPerHour<Field6>(), "Invalid units");
 
     do {
         Field6 field(36U);
+        static_assert(comms::units::isKilometersPerHour(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 36U);
         TS_ASSERT_EQUALS(comms::units::getMetersPerSecond<unsigned>(field), 10U);
     } while (false);
@@ -3052,9 +3090,11 @@ void FieldsTestSuite::test62()
 
     static_assert(!Field7::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isKilometersPerSecond<Field7>(), "Invalid units");
 
     do {
         Field7 field(1U);
+        static_assert(comms::units::isKilometersPerSecond(field), "Invalid units");
         TS_ASSERT_EQUALS(field.value(), 1U);
         TS_ASSERT_EQUALS(comms::units::getMetersPerSecond<unsigned>(field), 1000U);
     } while (false);
@@ -3070,8 +3110,10 @@ void FieldsTestSuite::test63()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isKilohertz<Field>(), "Invalid units");
 
     Field field;
+    static_assert(comms::units::isKilohertz(field), "Invalid units");
     field.value() = 10U;
     TS_ASSERT_EQUALS(comms::units::getHertz<unsigned long>(field), 10000UL);
     TS_ASSERT_EQUALS(comms::units::getKilohertz<unsigned>(field), 10U);
@@ -3102,8 +3144,10 @@ void FieldsTestSuite::test64()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isDegrees<Field>(), "Invalid units");
 
     Field field;
+    static_assert(comms::units::isDegrees(field), "Invalid units");
     field.value() = 300U;
     TS_ASSERT_EQUALS(comms::units::getDegrees<unsigned>(field), 30U);
     TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getRadians<double>(field) - 0.523599), 0.000001);
@@ -3130,8 +3174,10 @@ void FieldsTestSuite::test65()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isRadians<Field>(), "Invalid units");
 
     Field field;
+    static_assert(comms::units::isRadians(field), "Invalid units");
     field.value() = 100U;
     TS_ASSERT_EQUALS(comms::units::getRadians<unsigned>(field), 1U);
     TS_ASSERT_LESS_THAN_EQUALS(std::abs(comms::units::getDegrees<double>(field) - 57.2958), 0.0001);
@@ -3157,8 +3203,10 @@ void FieldsTestSuite::test66()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMilliamps<Field>(), "Invalid units");
 
     Field field;
+    static_assert(comms::units::isMilliamps(field), "Invalid units");
     field.value() = 345U;
     TS_ASSERT_EQUALS(comms::units::getNanoamps<unsigned long long >(field), 345000000UL);
     TS_ASSERT_EQUALS(comms::units::getMicroamps<unsigned>(field), 345000U);
@@ -3195,8 +3243,10 @@ void FieldsTestSuite::test67()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isMillivolts<Field>(), "Invalid units");
 
     Field field;
+    static_assert(comms::units::isMillivolts(field), "Invalid units");
     field.value() = 345U;
     TS_ASSERT_EQUALS(comms::units::getNanovolts<unsigned long long >(field), 345000000UL);
     TS_ASSERT_EQUALS(comms::units::getMicrovolts<unsigned>(field), 345000U);
@@ -3233,8 +3283,10 @@ void FieldsTestSuite::test68()
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
+    static_assert(comms::units::isSeconds<Field>(), "Invalid units");
 
     Field field;
+    static_assert(comms::units::isSeconds(field), "Invalid units");
     field.value() = 1.345f;
 
     TS_ASSERT_LESS_THAN_EQUALS(std::abs(field.value() - 1.345f), std::numeric_limits<float>::epsilon());

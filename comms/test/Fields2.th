@@ -36,6 +36,7 @@ public:
     typedef comms::option::LittleEndian LittleEndianOpt;
 
     void test1();
+    void test2();
 
 private:
 
@@ -175,6 +176,137 @@ void FieldsTestSuite2::test1()
         TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), std::begin(Buf1)));
     } while (false);
 }
+
+using Test2_FieldBase = comms::Field<comms::option::BigEndian>;
+
+template <std::uint8_t TVal>
+using Test2_IntKeyField = Test1_IntKeyField<TVal>;
+
+template <std::uint8_t TKey, typename TValue>
+class Test2_PropField : public
+    comms::field::Bundle<
+        Test2_FieldBase,
+        std::tuple<
+            Test2_IntKeyField<TKey>,
+            comms::field::IntValue<Test2_FieldBase, std::uint8_t>,
+            TValue
+        >,
+        comms::option::RemLengthMemberField<1>
+    >
+{
+#ifdef COMMS_MUST_DEFINE_BASE
+    using Base =
+        comms::field::Bundle<
+            Test2_FieldBase,
+            std::tuple<
+                Test2_IntKeyField<TKey>,
+                comms::field::IntValue<Test2_FieldBase, std::uint8_t>,
+                TValue
+            >,
+            comms::option::RemLengthMemberField<1>
+        >;
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
+public:
+    COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+};
+
+void FieldsTestSuite2::test2()
+{
+    using Prop1 = Test2_PropField<1, comms::field::IntValue<Test1_FieldBase, std::uint16_t> >;
+    using Prop2 =
+        Test2_PropField<
+            2,
+            comms::field::Bundle<
+                Test2_FieldBase,
+                std::tuple<
+                    comms::field::IntValue<Test1_FieldBase, std::uint32_t>,
+                    comms::field::Optional<
+                        comms::field::IntValue<Test1_FieldBase, std::uint8_t>,
+                        comms::option::ExistsSinceVersion<5>,
+                        comms::option::ExistsByDefault
+                    >
+                >
+            >
+        >;
+
+    using Field =
+        comms::field::Variant<
+            Test2_FieldBase,
+            std::tuple<
+                Prop1,
+                Prop2
+            >
+        >;
+
+    static_assert(Field::isVersionDependent(), "Must be version dependent");
+    Field field;
+    TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
+
+    do {
+        field.setVersion(5);
+        static const char Buf1[] = {
+            0x2, 0x5, 0x1, 0x2, 0x3, 0x4, 0x5
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        auto readIter = &Buf1[0];
+        auto es = field.read(readIter, Buf1Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        auto& m = field.accessField<1>();
+        TS_ASSERT_EQUALS(m.field_key().value(), 2U);
+        TS_ASSERT_EQUALS(std::get<0>(m.field_value().value()).value(), 0x01020304);
+        TS_ASSERT(std::get<1>(m.field_value().value()).doesExist());
+        TS_ASSERT_EQUALS(std::get<1>(m.field_value().value()).field().value(), 0x05);
+        TS_ASSERT_EQUALS(field.length(), Buf1Size);
+    } while (false);
+
+    do {
+        TS_ASSERT(field.setVersion(4));
+        static const char Buf1[] = {
+            0x2, 0x5, 0x1, 0x2, 0x3, 0x4, 0x5
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        auto readIter = &Buf1[0];
+        auto es = field.read(readIter, Buf1Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        auto& m = field.accessField<1>();
+        TS_ASSERT_EQUALS(m.field_key().value(), 2U);
+        TS_ASSERT_EQUALS(std::get<0>(m.field_value().value()).value(), 0x01020304);
+        TS_ASSERT(std::get<1>(m.field_value().value()).isMissing());
+        TS_ASSERT_EQUALS(field.length(), Buf1Size - 1U);
+    } while (false);
+
+    do {
+        field.reset();
+        TS_ASSERT(!field.currentFieldValid());
+        field.setVersion(4);
+        auto& m = field.initField<1>();
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        TS_ASSERT(std::get<1>(m.field_value().value()).isMissing());
+        TS_ASSERT_EQUALS(m.field_length().value(), 4U);
+        field.setVersion(5);
+        TS_ASSERT_EQUALS(m.field_length().value(), 5U);
+        TS_ASSERT(std::get<1>(m.field_value().value()).doesExist());
+        std::get<0>(m.field_value().value()).value() = 0x04030201;
+        std::get<1>(m.field_value().value()).field().value() = 0xab;
+
+        static const char Buf1[] = {
+            0x2, 0x5, 0x4, 0x3, 0x2, 0x1, (char)0xab
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        std::vector<char> outBuf;
+        auto writeIter = std::back_inserter(outBuf);
+        auto es = field.write(writeIter, outBuf.max_size());
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(outBuf.size(), Buf1Size);
+        TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), std::begin(Buf1)));
+    } while (false);
+}
+
 
 template <typename TField>
 void FieldsTestSuite2::writeField(

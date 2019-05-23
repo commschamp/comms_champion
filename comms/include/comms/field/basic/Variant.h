@@ -292,6 +292,7 @@ public:
         using FieldType = typename std::tuple_element<TIdx, Members>::type;
         new (&storage_) FieldType(std::forward<TArgs>(args)...);
         memIdx_ = TIdx;
+        updateVersionInternal(VersionTag());
         return reinterpret_cast<FieldType&>(storage_);
     }
 
@@ -747,6 +748,14 @@ private:
         return VersionBaseImpl::version_;;
     }
 
+    void updateVersionInternal(NoVersionDependencyTag)
+    {
+    }
+
+    void updateVersionInternal(VersionDependentTag)
+    {
+        setVersion(VersionBaseImpl::version_);
+    }
 
     ValueType storage_;
     std::size_t memIdx_ = MembersCount;

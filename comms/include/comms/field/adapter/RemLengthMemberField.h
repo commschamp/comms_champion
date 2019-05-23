@@ -44,6 +44,12 @@ public:
 
     static_assert(TLenFieldIdx < std::tuple_size<ValueType>::value, "Bad index");
     using LengthFieldType = typename std::tuple_element<TLenFieldIdx, ValueType>::type;
+    using VersionType = typename BaseImpl::VersionType;
+
+    RemLengthMemberField()
+    {
+        refreshLengthInternal();
+    }
 
     static constexpr std::size_t maxLength()
     {
@@ -91,18 +97,7 @@ public:
     bool refresh()
     {
         bool updated = BaseImpl::refresh();
-        auto& mems = BaseImpl::value();
-        auto& lenField = std::get<TLenFieldIdx>(mems);
-        std::size_t expLen = BaseImpl::template lengthFrom<TLenFieldIdx + 1>();
-        std::size_t actLen = static_cast<std::size_t>(lenField.value());
-        if (expLen == actLen) {
-            return updated;
-        }
-
-        using LenFieldType = typename std::decay<decltype(lenField)>::type;
-        using LenFieldValueType = typename LenFieldType::ValueType;
-        lenField.value() = static_cast<LenFieldValueType>(expLen);
-        return true;
+        return refreshLengthInternal() || updated;
     }
 
     template <typename TIter>
@@ -180,6 +175,12 @@ public:
     static constexpr bool hasNonDefaultRefresh()
     {
         return true;
+    }
+
+    bool setVersion(VersionType version)
+    {
+        bool updated = BaseImpl::setVersion(version);
+        return refreshLengthInternal() || updated;
     }
 
 private:
@@ -265,6 +266,23 @@ private:
         }
         return es;
     }        
+
+    bool refreshLengthInternal()
+    {
+        auto& mems = BaseImpl::value();
+        auto& lenField = std::get<TLenFieldIdx>(mems);
+        std::size_t expLen = BaseImpl::template lengthFrom<TLenFieldIdx + 1>();
+        std::size_t actLen = static_cast<std::size_t>(lenField.value());
+        if (expLen == actLen) {
+            return false;
+        }
+
+        using LenFieldType = typename std::decay<decltype(lenField)>::type;
+        using LenFieldValueType = typename LenFieldType::ValueType;
+        lenField.value() = static_cast<LenFieldValueType>(expLen);
+        return true;
+    }
+
 
     static const std::size_t MaxPossibleLen = 0xffff;
 

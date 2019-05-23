@@ -5366,6 +5366,7 @@ void FieldsTestSuite::test108()
     do {
         Field field;
         TS_ASSERT_EQUALS(field.length(), 1U);
+        TS_ASSERT_EQUALS(std::get<0>(field.value()).value(), 0U);
 
         auto& strMem = std::get<1>(field.value());
         strMem.value() = "aaa";
@@ -5432,6 +5433,7 @@ void FieldsTestSuite::test109()
     do {
         Field field;
         TS_ASSERT_EQUALS(field.length(), 2U);
+        TS_ASSERT_EQUALS(std::get<1>(field.value()).value(), 0U);
         TS_ASSERT(!field.refresh());
 
         auto& strMem = std::get<2>(field.value());
@@ -5499,6 +5501,7 @@ void FieldsTestSuite::test110()
     do {
         Field field;
         TS_ASSERT_EQUALS(field.length(), 2U);
+        TS_ASSERT_EQUALS(std::get<1>(field.value()).value(), 0U);
         TS_ASSERT(!field.refresh());
 
         static const char ExpectedBuf[] = {

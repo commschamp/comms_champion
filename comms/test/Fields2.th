@@ -37,6 +37,7 @@ public:
 
     void test1();
     void test2();
+    void test3();
 
 private:
 
@@ -307,6 +308,52 @@ void FieldsTestSuite2::test2()
     } while (false);
 }
 
+void FieldsTestSuite2::test3()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t,
+                comms::option::VarLength<1, 2>
+            >,
+            comms::field::String<comms::Field<BigEndianOpt> >
+        >,
+        comms::option::RemLengthMemberField<0>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 1U, "Invalid minLength");
+
+    do {
+        Field field;
+        TS_ASSERT_EQUALS(field.length(), 1U);
+        TS_ASSERT_EQUALS(std::get<0>(field.value()).value(), 0U);
+
+        auto& strMem = std::get<1>(field.value());
+        strMem.value() = "aaa";
+        TS_ASSERT_EQUALS(strMem.length(), 3U);
+        TS_ASSERT(field.refresh());
+        TS_ASSERT_EQUALS(field.length(), 4U);
+
+        static const char ExpectedBuf[] = {
+            0x3, 'a', 'a', 'a'
+        };
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeReadField(field, ExpectedBuf, ExpectedBufSize);
+    } while (false);
+
+    do {
+        Field field;
+        std::string str(128, 'a');
+        std::get<1>(field.value()).value() = str;
+        TS_ASSERT(field.refresh());
+        TS_ASSERT_EQUALS(field.length(), 130U);
+    } while (false);
+}
 
 template <typename TField>
 void FieldsTestSuite2::writeField(

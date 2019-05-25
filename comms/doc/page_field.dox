@@ -989,6 +989,31 @@
 ///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
 /// };
 /// @endcode
+/// Some @b bundle fields in some protocols may contain a field, which 
+/// holds a <b>remaining serialization length</b> of the following member fields
+/// in the bundle. The @b COMMS library has a built-in support for such cases,
+/// it requires usage of @ref comms::option::RemLengthMemberField option to
+/// specify index of such field. For example:
+/// @code
+/// template <typename... TExtraOptions>
+/// class MyBundle : public
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             comms::field::IntValue<FieldBase, std::uint8_t>, // remaing length info
+///             SomeField1, 
+///             SomeField2, 
+///             SomeField3
+///         >,
+///         comms::option::RemLengthMemberField<0>, // Index of the remaining length field is 0
+///         TExtraOptions...
+///     >
+/// {
+///     using Base = ...;
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(length, f1, f2, f3);
+/// };
+/// @endcode
 ///
 /// @section sec_field_tutorial_array_list Array List Fields
 /// Some communication protocols may define messages that transmit sequence
@@ -1631,9 +1656,11 @@
 /// @section sec_field_tutorial_variant Variant Fields
 /// Some protocols may require usage of heterogeneous fields or lists of 
 /// heterogeneous fields, i.e. the ones that can be of multiple types. Good example
-/// would be a list of @b properties, where every property is a key/value pair. The
-/// key is a numeric ID of the property, while value can be a numeric field of
-/// any length or a string one. As an example let's define three value types:
+/// would be a list of @b properties, where every property is a key/value pair or 
+/// a TLV (type/length/value) triplet. The
+/// key (or type) is usually a numeric ID of the property, while value can be any
+/// field of any length. 
+/// As an example for the key/value pairs let's define three value types:
 /// @li Unsigned integer with length of only 1 byte (@b Value1)
 /// @li Unsigned integer with length of 4 bytes (@b Value2)
 /// @li String field with 1 byte size prefix (@b Value3)
@@ -1683,74 +1710,52 @@
 /// using Key2 = KeyField<KeyId::Key2>;
 /// using Key3 = KeyField<KeyId::Key3>;
 /// @endcode
+/// Please pay attention to usage of @ref comms::option::FailOnInvalid option
+/// and having only single valid value in order to force failure 
+/// of the @b read operation when the key doesn't match.
+///
 /// Then the @b KeyX and its corresponding @b ValueX need to be bundled together
 /// as a single @b PropertyX field.
 /// @code
-/// using Property1 = comms::field::Bundle<MyFieldBase, std::tuple<Key1, Value1> >;
-/// using Property2 = comms::field::Bundle<MyFieldBase, std::tuple<Key2, Value2> >;
-/// using Property3 = comms::field::Bundle<MyFieldBase, std::tuple<Key3, Value3> >;
+/// template <typename TKey, typename TValue>
+/// class Property : public 
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             TKey,
+///             TValue
+///         >
+///     >
+/// {
+///     using Base = ...; // repeat base definition if needed
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(key, value);
+/// };
+///
+/// using Property1 = Property<Key1, Value1>;
+/// using Property2 = Property<Key2, Value2>;
+/// using Property3 = Property<Key3, Value3>;
 /// @endcode
 /// Now we need a single @b field abstraction, which can be any of the specified
 /// above forms. The comms::field::Variant field class provides such an ability.
 /// As its second parameter it receives a tuple of supported types.
 /// @code
-/// using MyVariant = 
+/// struct MyVariant : public 
 ///     comms::field::Variant<
 ///         MyFieldBase,
-///         std::tuple<Property1, Property1, Property3>
-///     >;
-/// @endcode 
-/// Now it is easy to put such field type into the list:
-/// @code
-/// using PropertiesList = comms::field::ArrayList<MyFieldBase, MyVariant>;
-/// @endcode
-/// In this scenario, read operation on the list will invoke read operation of
-/// every @b MyVariant field, which in turn will try to perform read operation
-/// on @b Property1, @b Property2, and @b Property3 in the order of their 
-/// definition inside the provided tuple. The read operation of the
-/// comms::field::Variant field type will stop when read operation of any
-/// of the contained types reports comms::ErrorStatus::Success as its status. 
-///
-/// Accessing the currently held field can be tricky though. There is a need
-/// to differentiate between @b compile-time and @b run-time knowledge of the
-/// contents. 
-///
-/// When preparing a variant field to be sent out, usually the inner 
-/// field type and its value are known at compile time. The initialisation of the
-/// field can be performed using comms::field::Variant::initField() member
-/// function:
-/// @code
-/// MyVariant var; // Created in "invalid" state
-/// auto& prop1 = var.initField<0>(); // Initialise as Propery1 due to 0 as provided index (constructor is called)
-/// auto& prop1Value = std::get<1>(prop1.value()); // Access the "value" field of the bundle
-/// prop1Value = 0xff; // Update the property value
-/// @endcode
-/// If the variant field has been initialised before, but there is a need to
-/// to access the real type (also known at compile time), use
-/// comms::field::Variant::accessField() member function
-/// @code
-/// void updateProp1(MyVariant& var)
-/// {
-///     auto& prop1 = var.accessField<0>(); // Access as Property1 field (simple cast, no call to the constructor)
-///     auto& prop1Value = std::get<1>(prop1.value()); // Access the "value" field of the bundle
-///     prop1Value = 0xff; // Update the property value
-/// }
-/// @endcode
-/// Just like with @ref sec_field_tutorial_bitfield and @ref sec_field_tutorial_bundle
-/// it would be convenient to operate with internal type names, rather than hard coded
-/// indices. In order to provide names for the available inner types, please
-/// inherit from proper comms::field::Variant field definition and 
-/// use COMMS_VARIANT_MEMBERS_ACCESS() macro inside.
-/// @code
-/// struct MyVariant : public comms::field::Variant<...>
+///         std::tuple<Property1, Property2, Property3>
+///     >
 /// {
 ///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
 /// };
-/// @endcode
-/// It would be equivalent to having the following types and functions defined
+/// @endcode 
+/// Similar to @ref COMMS_FIELD_MEMBERS_ACCESS() macro for 
+/// @ref sec_field_tutorial_bundle, the @ref COMMS_VARIANT_MEMBERS_ACCESS()
+/// macro generates the following convenience member enum and functions
 /// @code
 /// struct MyVariant : public comms::field::Variant<...>
 /// {
+///     // Enumerator to access fields 
 ///     enum FieldIdx {
 ///         FieldIdx_prop1,
 ///         FieldIdx_prop2,
@@ -1758,49 +1763,58 @@
 ///         FieldIdx_numOfValues
 ///     }
 ///
+///     // Initialize internal storage as "prop1"
 ///     template <typename... TArgs>
 ///     auto initField_prop1(TArgs&&... args) -> decltype(initField<FieldIdx_prop1>(std::forward<TArgs>(args)...))
 ///     {
 ///         return initField<FieldIdx_prop1>(std::forward<TArgs>(args)...)
 ///     }
 ///
+///     // Access internal storage already initialized as "prop1"
 ///     auto accessField_prop1() -> decltype(accessField<FieldIdx_prop1>())
 ///     {
 ///         return accessField<FieldIdx_prop1>();
 ///     }
 ///
+///     // Access internal storage already initialized as "prop1" (const variant)
 ///     auto accessField_prop1() const -> decltype(accessField<FieldIdx_prop1>())
 ///     {
 ///         return accessField<FieldIdx_prop1>();
 ///     }
 ///
+///     // Initialize internal storage as "prop2"
 ///     template <typename... TArgs>
 ///     auto initField_prop2(TArgs&&... args) -> decltype(initField<FieldIdx_prop2>(std::forward<TArgs>(args)...))
 ///     {
 ///         return initField<FieldIdx_prop2>(std::forward<TArgs>(args)...)
 ///     }
 ///
+///     // Access internal storage already initialized as "prop2"
 ///     auto accessField_prop2() -> decltype(accessField<FieldIdx_prop2>())
 ///     {
 ///         return accessField<FieldIdx_prop2>();
 ///     }
 ///
+///     // Access internal storage already initialized as "prop2" (const variant)
 ///     auto accessField_prop2() const -> decltype(accessField<FieldIdx_prop2>())
 ///     {
 ///         return accessField<FieldIdx_prop2>();
 ///     }
 ///
+///     // Initialize internal storage as "prop3"
 ///     template <typename... TArgs>
 ///     auto initField_prop3(TArgs&&... args) -> decltype(initField<FieldIdx_prop3>(std::forward<TArgs>(args)...))
 ///     {
 ///         return initField<FieldIdx_prop3>(std::forward<TArgs>(args)...)
 ///     }
 ///
+///     // Access internal storage already initialized as "prop3"
 ///     auto accessField_prop3() -> decltype(accessField<FieldIdx_prop3>())
 ///     {
 ///         return accessField<FieldIdx_prop3>();
 ///     }
 ///
+///     // Access internal storage already initialized as "prop3" (const variant)
 ///     auto accessField_prop3() const -> decltype(accessField<FieldIdx_prop3>())
 ///     {
 ///         return accessField<FieldIdx_prop3>();
@@ -1810,71 +1824,19 @@
 /// @b NOTE, that the provided names have propagated into definition of @b FieldIdx
 /// enum as well as all @b initField_* and @b accessField_* functions.
 ///
-/// There are cases (such as after "read" operation), when actual type of the
-/// @b Variant field is known at run-time. The most straightforward way of
-/// inquiring the actual type index using comms::field::Variant::currentField()
-/// function and then using a `switch` statement and handle every case accordingly
-/// may work but is not very efficient. There is a way to perform more efficient
-/// way of dispatching the actual field to its appropriate handling function by
-/// using comms::field::Variant::currentFieldExec() member function. It expects
-/// to receive a handling object which can handle all of the available inner types:
+/// Now it is easy to put such @b Variant field type into the list:
 /// @code
-/// struct MyVariantHandler
-/// {
-///     template <std::size_t TIdx>
-///     void operator()(Property1& prop) {...}
-///
-///     template <std::size_t TIdx>
-///     void operator()(Property2& prop) {...}
-///
-///     template <std::size_t TIdx>
-///     void operator()(Property3& prop) {...}
-/// }
-///
-/// void handleVariant(MyVariant& var)
-/// {
-///     var.currentFieldExec(MyVariantHandler());
-/// }
+/// using PropertiesList = comms::field::ArrayList<MyFieldBase, MyVariant>;
 /// @endcode
-/// @b NOTE, that every @b operator() function receives a compile time index
-/// of the handed field within a containing tuple. If it's not needed when
-/// handling the member field, just ignore it or static_assert on its value if
-/// the index's value is known.
+/// In this scenario, read operation on the list will invoke read operation of
+/// every @b MyVariant field, which in turn will try to perform read operation
+/// on @b Property1, @b Property2, and @b Property3 in the order of their 
+/// definition inside the provided tuple. The read operation of the
+/// comms::field::Variant field type will stop when read operation of any
+/// of the contained types reports comms::ErrorStatus::Success as its status.
+/// That's why every @b key field needs to fail its @b read operation on
+/// invalid value.
 ///
-/// The class of the handling object may also receive the handled member type
-/// as a template parameter
-/// @code
-/// struct MyVariantHandler
-/// {
-///     template <std::size_t TIdx, typename TField>
-///     void operator()(TField& prop) {...}
-/// }
-/// @endcode
-/// The default constructed comms::field::Variant object from the examples above 
-/// has an "invalid" state, i.e. hasn't been initialised and doesn't contain any
-/// valid field. It can be changed by providing comms::option::DefaultVariantIndex
-/// option.
-/// @code
-/// struct MyVariant : public 
-///     comms::field::Variant<
-///         MyFieldBase,
-///         std::tuple<Property1, Property1, Property3>,
-///         comms::option::DefaultVariantIndex<0> // Initialise as Prop1
-///     >
-/// {
-///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
-/// };
-/// @endcode 
-/// When instantiating such @b MyVariant object, there is no need to perform
-/// initialisation (construction) of the contained object
-/// @code
-/// MyVariant var;
-/// assert(var.currentFieldValid());
-/// assert(var.currentField() == 0U); // Make sure the current index is 0
-/// auto& prop1 = var.accessField_prop1(); // Get access to Property1 interface
-/// auto& value1 = std::get<1>(prop1.value()); // Get access to the "value" field in the bundle
-/// value1.value() = 0xff; // Assign the value
-/// @endcode
 /// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
 /// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
 /// @ref COMMS_VARIANT_MEMBERS_ACCESS() macro
@@ -1886,7 +1848,7 @@
 /// struct MyVariant : public 
 ///     comms::field::Variant<
 ///         MyFieldBase,
-///         std::tuple<Property1, Property1, Property3>,
+///         std::tuple<Property1, Property2, Property3>,
 ///         comms::option::DefaultVariantIndex<0> // Initialise as Prop1
 ///     >
 /// {
@@ -1901,8 +1863,7 @@
 /// class MyVariant : public 
 ///     comms::field::Variant<
 ///         MyFieldBase,
-///         std::tuple<Property1, Property1, Property3>,
-///         comms::option::DefaultVariantIndex<0>, // Initialise as Prop1
+///         std::tuple<Property1, Property2, Property3>,
 ///         TExtraOptions...
 ///     >
 /// {
@@ -1910,8 +1871,7 @@
 ///     using Base =
 ///         comms::field::Variant<
 ///             MyFieldBase,
-///             std::tuple<Property1, Property1, Property3>,
-///             comms::option::DefaultVariantIndex<0>, // Initialise as Prop1
+///             std::tuple<Property1, Property2, Property3>,
 ///             TExtraOptions...
 ///         >;
 /// public:
@@ -1933,6 +1893,123 @@
 /// public:
 ///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
 /// };
+/// @endcode
+///
+/// The extension of the key/value pairs example above to 
+/// TLV triplets is quite easy.
+/// @code
+/// // No need for length prefix for strings any more
+/// using Value3 = comms::field::String<MyFieldBase>;
+/// ...
+/// template <typename TKey, typename TValue>
+/// class Property : public 
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             TKey,
+///             comms::field::IntValue<MyFieldBase, std::uint16_t>, // 2 byte value of remaining length
+///             TValue
+///         >,
+///         comms::option::RemLengthMemberField<1> // Index of remaining length field is 1
+///     >
+/// {
+///     using Base = ...; // repeat base definition if needed
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+/// };
+/// @endcode
+/// @b NOTE usage of @ref comms::option::RemLengthMemberField option described
+/// earlier in @ref sec_field_tutorial_bundle section. It informs the @b COMMS
+/// library about presence of the @b length value in the bundle, which will result
+/// in proper read length limitation for the value(s) to follow. Also in case
+/// the read of the following value(s) does not consume all the reported length, 
+/// @b COMMS library will advance the read iterator to consume the remaining
+/// bytes resulting in read of the next field to be at correct location.
+///
+/// The @b length field in example above contains @b remaining length 
+/// not including the field itself. Some protocols may include the length of
+/// the @b length field itself. If this is the case, just use 
+/// @ref comms::option::NumValueSerOffset option 
+/// (described in @ref sec_field_tutorial_int_value_ser_offset) 
+/// to add extra numeric offset to 
+/// be added when the field's value is written.
+/// @code
+/// template <typename TKey, typename TValue>
+/// class Property : public 
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             TKey,
+///             comms::field::IntValue<
+///                 MyFieldBase, 
+///                 std::uint16_t, 
+///                 comms::option::NumValueSerOffset<sizeof(std::uint16_t)> 
+///             >, // 2 byte value of remaining length
+///             TValue
+///         >,
+///         comms::option::RemLengthMemberField<1> // Index of remaining length field is 1
+///     >
+/// {
+///     using Base = ...; // repeat base definition if needed
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+/// };
+/// @endcode
+///
+/// @b RECOMMENDATION: In case of @b TLV property triplets it is recommended
+/// to create a dummy field with non-failing read to allow usage of unknown
+/// properties which can be introduced in later versions of the protocol.
+/// @code
+/// class UnknownProperty : public 
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<
+///             comms::field::IntValue<MyFieldBase, std::uint8_t>, // storage of unknown key
+///             comms::field::IntValue<MyFieldBase, std::uint16_t>, // 2 byte value of remaining length
+///             comms::field::ArrayList<MyFieldBase, std::uint8_t>, // storage or raw data
+///         >,
+///         comms::option::RemLengthMemberField<1> // Index of remaining length field is 1
+///     >
+/// {
+///     using Base = ...; // repeat base definition if needed
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+/// };
+/// @endcode
+/// And put such property at the end of the supported types tuple for the variant field definition.
+/// @code
+/// struct MyVariant : public 
+///     comms::field::Variant<
+///         MyFieldBase,
+///         std::tuple<Property1, Property2, Property3, UnknownProperty>
+///     >
+/// {
+///     ...
+/// };
+/// @endcode 
+/// The default constructed comms::field::Variant object from the examples above 
+/// has an "invalid" state, i.e. hasn't been initialized and doesn't contain any
+/// valid field. It can be changed by providing comms::option::DefaultVariantIndex
+/// option.
+/// @code
+/// struct MyVariant : public 
+///     comms::field::Variant<
+///         MyFieldBase,
+///         std::tuple<Property1, Property2, Property3>,
+///         comms::option::DefaultVariantIndex<0> // Initialise as Prop1
+///     >
+/// {
+///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
+/// };
+/// @endcode 
+/// When instantiating such @b MyVariant object, there is no need to perform
+/// initialization (construction) of the contained object.
+/// @code
+/// MyVariant var;
+/// assert(var.currentFieldValid());
+/// assert(var.currentField() == 0U); // Make sure the current index is 0
+/// auto& prop1 = var.accessField_prop1(); // Get access to Property1 interface
+/// ...
 /// @endcode
 /// 
 /// @section sec_field_tutorial_common_options Common Options or Modifications for the Fields

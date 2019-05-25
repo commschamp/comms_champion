@@ -471,6 +471,11 @@ private:
         std::size_t size,
         TWriter&& nextLayerWriter) const
     {
+        static_assert(
+            (Field::minLength() == Field::maxLength()) ||
+            (comms::isMessageBase<typename std::decay<decltype(msg)>::type>()),
+                "Unable to perform write with size field having variable length and "
+                "no polymorphic length calculation available.");
         using IterType = typename std::decay<decltype(iter)>::type;
         using Tag = typename std::iterator_traits<IterType>::iterator_category;
         return writeInternalNoLengthTagged(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter), Tag());

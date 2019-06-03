@@ -474,10 +474,12 @@ private:
     template <typename TIter>
     static ErrorStatus readFieldElement(ElementType& elem, TIter& iter, std::size_t& len)
     {
+        auto fromIter = iter;
         auto es = elem.read(iter, len);
         if (es == ErrorStatus::Success) {
-            COMMS_ASSERT(elem.length() <= len);
-            len -= elem.length();
+            auto diff = static_cast<std::size_t>(std::distance(fromIter, iter));
+            COMMS_ASSERT(diff <= len);
+            len -= diff;
         }
         return es;
     }

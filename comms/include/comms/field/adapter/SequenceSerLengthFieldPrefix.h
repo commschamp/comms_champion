@@ -89,13 +89,16 @@ public:
     template <typename TIter>
     comms::ErrorStatus read(TIter& iter, std::size_t len)
     {
+        auto fromIter = iter;
         LenField lenField;
         auto es = lenField.read(iter, len);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        len -= lenField.length();
+        auto diff = static_cast<std::size_t>(std::distance(fromIter, iter));
+        COMMS_ASSERT(diff <= len);
+        len -= diff;
         auto remLen = static_cast<std::size_t>(lenField.value());
         if (len < remLen) {
             return TStatus;

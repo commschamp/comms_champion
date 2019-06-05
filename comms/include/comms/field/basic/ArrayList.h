@@ -29,6 +29,7 @@
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/details/detect.h"
+#include "comms/field/details/VersionStorage.h"
 #include "CommonFuncs.h"
 
 namespace comms
@@ -117,21 +118,6 @@ constexpr bool vectorHasAssign()
     return VectorHasAssign<T>::Value;
 }
 
-template <typename TVersionType, bool TVersionDependent>
-struct VersionStorage;
-
-template <typename TVersionType>
-struct VersionStorage<TVersionType, true>
-{
-protected:
-    TVersionType version_ = TVersionType();
-};
-
-template <typename TVersionType>
-struct VersionStorage<TVersionType, false>
-{
-};
-
 template <typename TElem, bool TIsIntegral>
 struct ArrayListElemVersionDependencyHelper;
 
@@ -153,19 +139,41 @@ constexpr bool arrayListElementIsVersionDependent()
     return ArrayListElemVersionDependencyHelper<TElem, std::is_integral<TElem>::value>::Value;
 }
 
+template <typename TElem, bool TIsIntegral>
+struct ArrayListElemHasNonDefaultRefreshHelper;
+
+template <typename TElem>
+struct ArrayListElemHasNonDefaultRefreshHelper<TElem, true>
+{
+    static const bool Value = false;
+};
+
+template <typename TElem>
+struct ArrayListElemHasNonDefaultRefreshHelper<TElem, false>
+{
+    static const bool Value = TElem::hasNonDefaultRefresh();
+};
+
+template <typename TElem>
+constexpr bool arrayListElementHasNonDefaultRefresh()
+{
+    return ArrayListElemHasNonDefaultRefreshHelper<TElem, std::is_integral<TElem>::value>::Value;
+}
+
+
 }  // namespace details
 
 template <typename TFieldBase, typename TStorage>
 class ArrayList :
         public TFieldBase,
-        public details::VersionStorage<
+        public comms::field::details::VersionStorage<
             typename TFieldBase::VersionType,
             details::arrayListElementIsVersionDependent<typename TStorage::value_type>()
         >
 {
     using BaseImpl = TFieldBase;
     using VersionBaseImpl =
-        details::VersionStorage<
+        comms::field::details::VersionStorage<
             typename TFieldBase::VersionType,
             details::arrayListElementIsVersionDependent<typename TStorage::value_type>()
         >;
@@ -388,6 +396,11 @@ public:
         return details::arrayListElementIsVersionDependent<ElementType>();
     }
 
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return details::arrayListElementHasNonDefaultRefresh<ElementType>();
+    }
+
     bool setVersion(VersionType version)
     {
         return setVersionInternal(version, VersionTag());
@@ -461,10 +474,12 @@ private:
     template <typename TIter>
     static ErrorStatus readFieldElement(ElementType& elem, TIter& iter, std::size_t& len)
     {
+        auto fromIter = iter;
         auto es = elem.read(iter, len);
         if (es == ErrorStatus::Success) {
-            COMMS_ASSERT(elem.length() <= len);
-            len -= elem.length();
+            auto diff = static_cast<std::size_t>(std::distance(fromIter, iter));
+            COMMS_ASSERT(diff <= len);
+            len -= diff;
         }
         return es;
     }

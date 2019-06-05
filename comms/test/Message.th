@@ -67,6 +67,7 @@ public:
     void test35();
     void test36();
     void test37();
+    void test38();
 
 private:
 
@@ -235,6 +236,7 @@ private:
 
     typedef Message3<BeMessageBase> BeMsg3;
     typedef Message3<LeMessageBase> LeMsg3;
+
     typedef Message90_1<BeMessageBase> BeMsg90_1;
     typedef Message90_2<BeMessageBase> BeMsg90_2;    
 
@@ -261,7 +263,8 @@ private:
         "BeRefreshableMessageBase is expected to have virtual destructor");
 
 
-    typedef Message4<BeRefreshableMessageBase> BeMsg4;
+    typedef Message4<BeRefreshableMessageBase> BeRefreshableMsg4;
+    typedef Message9<BeRefreshableMessageBase> BeRefreshableMsg9;
 
     typedef
         comms::Message<
@@ -628,14 +631,14 @@ void MessageTestSuite::test7()
 
 void MessageTestSuite::test8()
 {
-    BeMsg4 msg;
+    BeRefreshableMsg4 msg;
     TS_ASSERT_EQUALS(msg.doGetId(), MessageType4);
     TS_ASSERT_EQUALS(msg.length(), 1U);
     TS_ASSERT_EQUALS(msg.name(), "Message4");
 
     std::vector<std::uint8_t> outData;
     outData.resize(msg.length());
-    BeMsg4::WriteIterator writeIter = &outData[0];
+    BeRefreshableMsg4::WriteIterator writeIter = &outData[0];
 
     internalWriteReadTest(msg, writeIter, outData.size());
 
@@ -1893,6 +1896,32 @@ void MessageTestSuite::test37()
         TS_ASSERT(!result);
     }    
 }
+
+void MessageTestSuite::test38()
+{
+    BeRefreshableMsg9 msg;
+    TS_ASSERT_EQUALS(msg.doGetId(), MessageType9);
+    TS_ASSERT_EQUALS(msg.length(), 1U);
+    TS_ASSERT_EQUALS(msg.name(), "Message9");
+
+    msg.field_f1().field_str().value() = "hello";
+    TS_ASSERT(msg.refresh());
+    TS_ASSERT_EQUALS(msg.length(), 6U);
+
+    std::vector<std::uint8_t> outData;
+    outData.resize(msg.length());
+    BeRefreshableMsg4::WriteIterator writeIter = &outData[0];
+
+    internalWriteReadTest(msg, writeIter, outData.size());
+
+    static const std::uint8_t ExpBuf[] =  {
+        5, 'h', 'e', 'l', 'l', 'o'
+    };
+    static const std::size_t ExpBufSize = std::extent<decltype(ExpBuf)>::value;
+    TS_ASSERT_EQUALS(outData.size(), ExpBufSize);
+    TS_ASSERT(std::equal(outData.begin(), outData.end(), std::begin(ExpBuf)));
+}
+
 
 template <typename TMessage>
 TMessage MessageTestSuite::internalReadWriteTest(

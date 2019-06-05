@@ -521,6 +521,27 @@ void setNanoseconds(TField& field, TVal&& val)
     details::setTime<comms::traits::units::NanosecondsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds nanoseconds.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isNanoseconds()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::NanosecondsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds nanoseconds.
+/// @details Similar to other @ref isNanoseconds(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isNanoseconds(const TField& field)
+{
+    return isNanoseconds<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as microseconds.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to microseconds and return the result in specified return
@@ -551,6 +572,27 @@ template <typename TField, typename TVal>
 void setMicroseconds(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::MicrosecondsRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds microseconds.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMicroseconds()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MicrosecondsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds microseconds.
+/// @details Similar to other @ref isMicroseconds(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMicroseconds(const TField& field)
+{
+    return isMicroseconds<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as milliseconds.
@@ -585,6 +627,27 @@ void setMilliseconds(TField& field, TVal&& val)
     details::setTime<comms::traits::units::MillisecondsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds milliseconds.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMilliseconds()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MillisecondsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds milliseconds.
+/// @details Similar to other @ref isMilliseconds(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMilliseconds(const TField& field)
+{
+    return isMilliseconds<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as seconds.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to seconds and return the result in specified return
@@ -615,6 +678,27 @@ template <typename TField, typename TVal>
 void setSeconds(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::SecondsRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds seconds.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isSeconds()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::SecondsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds seconds.
+/// @details Similar to other @ref isSeconds(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isSeconds(const TField& field)
+{
+    return isSeconds<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as minutes.
@@ -649,6 +733,27 @@ void setMinutes(TField& field, TVal&& val)
     details::setTime<comms::traits::units::MinutesRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds minutes.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMinutes()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MinutesRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds minutes.
+/// @details Similar to other @ref isMinutes(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMinutes(const TField& field)
+{
+    return isMinutes<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as hours.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to hours and return the result in specified return
@@ -679,6 +784,27 @@ template <typename TField, typename TVal>
 void setHours(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::HoursRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds hours.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isHours()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::HoursRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds hours.
+/// @details Similar to other @ref isHours(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isHours(const TField& field)
+{
+    return isHours<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as days.
@@ -713,6 +839,27 @@ void setDays(TField& field, TVal&& val)
     details::setTime<comms::traits::units::DaysRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds days.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isDays()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::DaysRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds days.
+/// @details Similar to other @ref isDays(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isDays(const TField& field)
+{
+    return isDays<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as weeks.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to weeks and return the result in specified return
@@ -743,6 +890,27 @@ template <typename TField, typename TVal>
 void setWeeks(TField& field, TVal&& val)
 {
     details::setTime<comms::traits::units::WeeksRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds weeks.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isWeeks()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Time>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::WeeksRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds weeks.
+/// @details Similar to other @ref isWeeks(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isWeeks(const TField& field)
+{
+    return isWeeks<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as nanometers.
@@ -777,6 +945,27 @@ void setNanometers(TField& field, TVal&& val)
     details::setDistance<comms::traits::units::NanometersRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds nanometers.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isNanometers()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Distance>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::NanometersRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds nanometers.
+/// @details Similar to other @ref isNanometers(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isNanometers(const TField& field)
+{
+    return isNanometers<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as micrometers.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to micrometers and return the result in specified return
@@ -807,6 +996,27 @@ template <typename TField, typename TVal>
 void setMicrometers(TField& field, TVal&& val)
 {
     details::setDistance<comms::traits::units::MicrometersRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds micrometers.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMicrometers()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Distance>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MicrometersRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds micrometers.
+/// @details Similar to other @ref isMicrometers(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMicrometers(const TField& field)
+{
+    return isMicrometers<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as millimeters.
@@ -841,6 +1051,27 @@ void setMillimeters(TField& field, TVal&& val)
     details::setDistance<comms::traits::units::MillimetersRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds millimeters.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMillimeters()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Distance>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MillimetersRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds millimeters.
+/// @details Similar to other @ref isMillimeters(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMillimeters(const TField& field)
+{
+    return isMillimeters<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as centimeters.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to centimeters and return the result in specified return
@@ -871,6 +1102,27 @@ template <typename TField, typename TVal>
 void setCentimeters(TField& field, TVal&& val)
 {
     details::setDistance<comms::traits::units::CentimetersRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds centimeters.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isCentimeters()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Distance>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::CentimetersRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds centimeters.
+/// @details Similar to other @ref isCentimeters(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isCentimeters(const TField& field)
+{
+    return isCentimeters<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as meters.
@@ -905,6 +1157,27 @@ void setMeters(TField& field, TVal&& val)
     details::setDistance<comms::traits::units::MetersRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds meters.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMeters()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Distance>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MetersRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds meters.
+/// @details Similar to other @ref isMeters(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMeters(const TField& field)
+{
+    return isMeters<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as kilometers.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to kilometers and return the result in specified return
@@ -935,6 +1208,27 @@ template <typename TField, typename TVal>
 void setKilometers(TField& field, TVal&& val)
 {
     details::setDistance<comms::traits::units::KilometersRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds kilometers.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isKilometers()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Distance>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::KilometersRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds kilometers.
+/// @details Similar to other @ref isKilometers(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isKilometers(const TField& field)
+{
+    return isKilometers<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as nanometers per second.
@@ -969,6 +1263,27 @@ void setNanometersPerSecond(TField& field, TVal&& val)
     details::setSpeed<comms::traits::units::NanometersPerSecondRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds nanometers per second.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isNanometersPerSecond()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Speed>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::NanometersPerSecondRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds nanometers per second.
+/// @details Similar to other @ref isNanometersPerSecond(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isNanometersPerSecond(const TField& field)
+{
+    return isNanometersPerSecond<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as micrometers per second.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to um/s and return the result in specified return
@@ -999,6 +1314,27 @@ template <typename TField, typename TVal>
 void setMicrometersPerSecond(TField& field, TVal&& val)
 {
     details::setSpeed<comms::traits::units::MicrometersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds micrometers per second.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMicrometersPerSecond()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Speed>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MicrometersPerSecondRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds micrometers per second.
+/// @details Similar to other @ref isMicrometersPerSecond(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMicrometersPerSecond(const TField& field)
+{
+    return isMicrometersPerSecond<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as millimeters per second.
@@ -1033,6 +1369,27 @@ void setMillimetersPerSecond(TField& field, TVal&& val)
     details::setSpeed<comms::traits::units::MillimetersPerSecondRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds millimeters per second.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMillimetersPerSecond()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Speed>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MillimetersPerSecondRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds millimeters per second.
+/// @details Similar to other @ref isMillimetersPerSecond(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMillimetersPerSecond(const TField& field)
+{
+    return isMillimetersPerSecond<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as centimeters per second.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to cm/s and return the result in specified return
@@ -1063,6 +1420,27 @@ template <typename TField, typename TVal>
 void setCentimetersPerSecond(TField& field, TVal&& val)
 {
     details::setSpeed<comms::traits::units::CentimetersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds centimeters per second.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isCentimetersPerSecond()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Speed>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::CentimetersPerSecondRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds centimeters per second.
+/// @details Similar to other @ref isCentimetersPerSecond(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isCentimetersPerSecond(const TField& field)
+{
+    return isCentimetersPerSecond<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as meters per second.
@@ -1097,6 +1475,27 @@ void setMetersPerSecond(TField& field, TVal&& val)
     details::setSpeed<comms::traits::units::MetersPerSecondRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds meters per second.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMetersPerSecond()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Speed>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MetersPerSecondRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds meters per second.
+/// @details Similar to other @ref isMetersPerSecond(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMetersPerSecond(const TField& field)
+{
+    return isMetersPerSecond<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as kilometers per second.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to km/s and return the result in specified return
@@ -1127,6 +1526,27 @@ template <typename TField, typename TVal>
 void setKilometersPerSecond(TField& field, TVal&& val)
 {
     details::setSpeed<comms::traits::units::KilometersPerSecondRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds kilometers per second.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isKilometersPerSecond()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Speed>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::KilometersPerSecondRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds kilometers per second.
+/// @details Similar to other @ref isKilometersPerSecond(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isKilometersPerSecond(const TField& field)
+{
+    return isKilometersPerSecond<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as kilometers per hour.
@@ -1161,6 +1581,27 @@ void setKilometersPerHour(TField& field, TVal&& val)
     details::setSpeed<comms::traits::units::KilometersPerHourRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds kilometers per hour.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isKilometersPerHour()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Speed>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::KilometersPerHourRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds kilometers per hour.
+/// @details Similar to other @ref isKilometersPerHour(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isKilometersPerHour(const TField& field)
+{
+    return isKilometersPerHour<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as hertz.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to hertz and return the result in specified return
@@ -1191,6 +1632,27 @@ template <typename TField, typename TVal>
 void setHertz(TField& field, TVal&& val)
 {
     details::setFrequency<comms::traits::units::HzRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds hertz.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isHertz()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Frequency>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::HzRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds hertz.
+/// @details Similar to other @ref isHertz(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isHertz(const TField& field)
+{
+    return isHertz<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as kilohertz.
@@ -1225,6 +1687,27 @@ void setKilohertz(TField& field, TVal&& val)
     details::setFrequency<comms::traits::units::KiloHzRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds kilohertz.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isKilohertz()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Frequency>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::KiloHzRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds kilohertz.
+/// @details Similar to other @ref isKilohertz(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isKilohertz(const TField& field)
+{
+    return isKilohertz<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as megahertz.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to megahertz and return the result in specified return
@@ -1255,6 +1738,27 @@ template <typename TField, typename TVal>
 void setMegahertz(TField& field, TVal&& val)
 {
     details::setFrequency<comms::traits::units::MegaHzRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds megahertz.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMegahertz()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Frequency>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MegaHzRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds megahertz.
+/// @details Similar to other @ref isMegahertz(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMegahertz(const TField& field)
+{
+    return isMegahertz<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as gigahertz.
@@ -1289,6 +1793,27 @@ void setGigahertz(TField& field, TVal&& val)
     details::setFrequency<comms::traits::units::GigaHzRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds gigahertz.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isGigahertz()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Frequency>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::GigaHzRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds gigahertz.
+/// @details Similar to other @ref isGigahertz(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isGigahertz(const TField& field)
+{
+    return isGigahertz<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as degrees.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to degrees and return the result in specified return
@@ -1319,6 +1844,27 @@ template <typename TField, typename TVal>
 void setDegrees(TField& field, TVal&& val)
 {
     details::setAngle<comms::traits::units::DegreesRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds degrees.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isDegrees()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Angle>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::DegreesRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds degrees.
+/// @details Similar to other @ref isDegrees(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isDegrees(const TField& field)
+{
+    return isDegrees<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as radians.
@@ -1353,6 +1899,27 @@ void setRadians(TField& field, TVal&& val)
     details::setAngle<comms::traits::units::RadiansRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds radians.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isRadians()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Angle>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::RadiansRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds radia s.
+/// @details Similar to other @ref isRadians(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isRadians(const TField& field)
+{
+    return isRadians<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as nanoamps.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to nanoamps and return the result in specified return
@@ -1383,6 +1950,27 @@ template <typename TField, typename TVal>
 void setNanoamps(TField& field, TVal&& val)
 {
     details::setCurrent<comms::traits::units::NanoampsRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds nanoamps.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isNanoamps()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Current>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::NanoampsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds nanoamps.
+/// @details Similar to other @ref isNanoamps(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isNanoamps(const TField& field)
+{
+    return isNanoamps<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as microamps.
@@ -1417,6 +2005,28 @@ void setMicroamps(TField& field, TVal&& val)
     details::setCurrent<comms::traits::units::MicroampsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds microamps.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMicroamps()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Current>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MicroampsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds microamps.
+/// @details Similar to other @ref isMicroamps(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMicroamps(const TField& field)
+{
+    return isMicroamps<typename std::decay<decltype(field)>::type>();
+}
+
+
 /// @brief Retrieve field's value as milliamps.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to milliamps and return the result in specified return
@@ -1447,6 +2057,27 @@ template <typename TField, typename TVal>
 void setMilliamps(TField& field, TVal&& val)
 {
     details::setCurrent<comms::traits::units::MilliampsRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds milliamps.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMilliamps()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Current>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MilliampsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds milliamps.
+/// @details Similar to other @ref isMilliamps(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMilliamps(const TField& field)
+{
+    return isMilliamps<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as amps.
@@ -1481,6 +2112,27 @@ void setAmps(TField& field, TVal&& val)
     details::setCurrent<comms::traits::units::AmpsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds amps.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isAmps()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Current>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::AmpsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds amps.
+/// @details Similar to other @ref isAmps(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isAmps(const TField& field)
+{
+    return isAmps<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as kiloamps.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to kiloamps and return the result in specified return
@@ -1511,6 +2163,27 @@ template <typename TField, typename TVal>
 void setKiloamps(TField& field, TVal&& val)
 {
     details::setCurrent<comms::traits::units::KiloampsRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds kiloamps.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isKiloamps()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Current>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::KiloampsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds kiloamps.
+/// @details Similar to other @ref isKiloamps(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isKiloamps(const TField& field)
+{
+    return isKiloamps<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as nanovolts.
@@ -1545,6 +2218,27 @@ void setNanovolts(TField& field, TVal&& val)
     details::setVoltage<comms::traits::units::NanovoltsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds nanovolts.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isNanovolts()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Voltage>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::NanovoltsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds nanovolts.
+/// @details Similar to other @ref isNanovolts(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isNanovolts(const TField& field)
+{
+    return isNanovolts<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as microvolts.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to microvolts and return the result in specified return
@@ -1575,6 +2269,27 @@ template <typename TField, typename TVal>
 void setMicrovolts(TField& field, TVal&& val)
 {
     details::setVoltage<comms::traits::units::MicrovoltsRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds microvolts.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMicrovolts()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Voltage>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MicrovoltsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds microvolts.
+/// @details Similar to other @ref isMicrovolts(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMicrovolts(const TField& field)
+{
+    return isMicrovolts<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as millivolts.
@@ -1609,6 +2324,27 @@ void setMillivolts(TField& field, TVal&& val)
     details::setVoltage<comms::traits::units::MillivoltsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds millivolts.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMillivolts()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Voltage>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MillivoltsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds millivolts.
+/// @details Similar to other @ref isMillivolts(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMillivolts(const TField& field)
+{
+    return isMillivolts<typename std::decay<decltype(field)>::type>();
+}
+
 /// @brief Retrieve field's value as volts.
 /// @details The function will do all the necessary math operations to convert
 ///     stored value to volts and return the result in specified return
@@ -1639,6 +2375,27 @@ template <typename TField, typename TVal>
 void setVolts(TField& field, TVal&& val)
 {
     details::setVoltage<comms::traits::units::VoltsRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds volts.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isVolts()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Voltage>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::VoltsRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds volts.
+/// @details Similar to other @ref isVolts(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isVolts(const TField& field)
+{
+    return isVolts<typename std::decay<decltype(field)>::type>();
 }
 
 /// @brief Retrieve field's value as kilovolts.
@@ -1673,7 +2430,26 @@ void setKilovolts(TField& field, TVal&& val)
     details::setVoltage<comms::traits::units::KilovoltsRatio>(field, std::forward<TVal>(val));
 }
 
+/// @brief Compile time check whether the field type holds kilovolts.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isKilovolts()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Voltage>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::KilovoltsRatio>::value;
+}
 
+/// @brief Compile time check whether the field type holds kilovolts.
+/// @details Similar to other @ref isKilovolts(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isKilovolts(const TField& field)
+{
+    return isKilovolts<typename std::decay<decltype(field)>::type>();
+}
 
 } // namespace units
 

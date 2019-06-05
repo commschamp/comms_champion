@@ -1623,7 +1623,7 @@
 /// function described above:
 /// @code
 /// MyVariant var; // Created in "invalid" state
-/// auto& prop1 = var.initField_prop1(); // Initialise as Propery1 (constructor of prop1 is called)
+/// auto& prop1 = var.initField_prop1(); // Initialise as Property1 (constructor of prop1 is called)
 /// auto& prop1ValField = prop1.field_val(); // Access the "value" field of the bundle
 /// prop1ValField.value() = 0xff; // Update the property value
 /// @endcode
@@ -1636,7 +1636,7 @@
 /// definition will be properly destructed.
 /// @code
 /// MyVariant var; // Created in "invalid" state
-/// auto& prop1 = var.initField_prop1(); // Initialize as Propery1 (constructor of prop1 is called)
+/// auto& prop1 = var.initField_prop1(); // Initialize as Property1 (constructor of prop1 is called)
 /// auto& prop2 = var.initField_prop2(); // Destruct Property1 and initialize as Property2
 /// @endcode
 /// If the variant field has been initialized before, but there is a need to
@@ -1655,7 +1655,7 @@
 /// @code
 /// auto& prop1 = var.accessField<MyVariant::FieldIdx_prop1>();
 /// @endcode
-/// There are cases (such as after "read" operation), when actual type of the
+/// There are cases (such as handling field after "read" operation), when actual type of the
 /// @b Variant field is known at run-time. The most straightforward way is to
 /// inquire the actual type index using comms::field::Variant::currentField()
 /// function and then use a `switch` statement and handle every case accordingly.
@@ -1757,9 +1757,9 @@
 /// to a correct value.
 /// @code
 /// MyVariant var;
-/// auto& prop1 = var.initField_prop1(); // Initialize as Propery1 (1 byte integral value)
+/// auto& prop1 = var.initField_prop1(); // Initialize as Property1 (1 byte integral value)
 /// assert(prop1.field_length().value() == 1U);
-/// auto& prop3 = var.initField_prop3(); // Re-initialize as Propery3 (empty string)
+/// auto& prop3 = var.initField_prop3(); // Re-initialize as Property3 (empty string)
 /// assert(prop3.field_length().value() == 0U); // Remaining length of empty string
 /// @endcode
 /// In case the @b val field of the @b prop3 gets updated, the value of @b length

@@ -105,6 +105,7 @@ public:
         std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader)
     {
+        auto beforeReadIter = iter;
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
             BaseImpl::updateMissingSize(field, size, missingSize);
@@ -119,7 +120,8 @@ public:
             return comms::ErrorStatus::ProtocolError;
         }
 
-        return nextLayerReader.read(msg, iter, size - field.length(), missingSize);
+        auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));
+        return nextLayerReader.read(msg, iter, size - fieldLen, missingSize);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().

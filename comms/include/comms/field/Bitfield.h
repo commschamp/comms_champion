@@ -90,10 +90,12 @@ namespace field
 ///         behaviour is to call the @b refresh() member function of every
 ///         member field. This option provides an ability to set a custom
 ///         "refreshing" logic.
-///     @li @ref comms::option::HasCustomRead
-///     @li @ref comms::option::HasCustomRefresh
-///     @li @ref comms::option::EmptySerialization
-///     @li @ref comms::option::VersionStorage
+///     @li @ref comms::option::HasCustomRead - Mark field to have custom read
+///         functionality
+///     @li @ref comms::option::HasCustomRefresh - Mark field to have custom
+///         refresh functionality.
+///     @li @ref comms::option::EmptySerialization - Force empty serialization.
+///     @li @ref comms::option::VersionStorage - Add version storage.
 /// @pre TMember is a variant of std::tuple, that contains other fields.
 /// @pre Every field member specifies its length in bits using
 ///     comms::option::FixedBitLength option.
@@ -251,6 +253,12 @@ public:
     static constexpr bool isVersionDependent()
     {
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Compile time check if this class has non-default refresh functionality
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return BaseImpl::hasNonDefaultRefresh();
     }
 
     /// @brief Get version of the field.

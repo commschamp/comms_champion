@@ -1,0 +1,450 @@
+//
+// Copyright 2019 (C). Alex Robenko. All rights reserved.
+//
+
+// This file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+#include <cstdint>
+#include <algorithm>
+#include <limits>
+#include <memory>
+#include <iterator>
+#include <type_traits>
+
+#include "comms/comms.h"
+
+CC_DISABLE_WARNINGS()
+#include "cxxtest/TestSuite.h"
+CC_ENABLE_WARNINGS()
+
+class FieldsTestSuite2 : public CxxTest::TestSuite
+{
+public:
+    typedef comms::option::BigEndian BigEndianOpt;
+    typedef comms::option::LittleEndian LittleEndianOpt;
+
+    void test1();
+    void test2();
+    void test3();
+
+private:
+
+    template <typename TField>
+    static TField readWriteField(
+        const char* buf,
+        std::size_t size,
+        comms::ErrorStatus expectedStatus = comms::ErrorStatus::Success);
+
+    template <typename TField>
+    void writeField(
+        const TField& field,
+        const char* expectedBuf,
+        std::size_t size,
+        comms::ErrorStatus expectedStatus = comms::ErrorStatus::Success);
+
+    template <typename TField>
+    void writeReadField(
+        const TField& field,
+        const char* expectedBuf,
+        std::size_t size,
+        comms::ErrorStatus expectedStatus = comms::ErrorStatus::Success);
+
+    template <typename TFP>
+    bool fpEquals(TFP value1, TFP value2)
+    {
+        return (std::abs(value1 - value2) < std::numeric_limits<TFP>::epsilon());
+    }
+};
+
+using Test1_FieldBase = comms::Field<comms::option::BigEndian>;
+
+template <std::uint8_t TVal>
+using Test1_IntKeyField =
+    comms::field::IntValue<
+        Test1_FieldBase,
+        std::uint8_t,
+        comms::option::DefaultNumValue<TVal>,
+        comms::option::ValidNumValueRange<TVal, TVal>,
+        comms::option::FailOnInvalid<>
+>;
+
+void FieldsTestSuite2::test1()
+{
+    using Mem1 =
+        comms::field::Bundle<
+            Test1_FieldBase,
+            std::tuple<
+                Test1_IntKeyField<1>,
+                comms::field::IntValue<Test1_FieldBase, std::uint16_t>
+            >
+        >;
+
+    using Mem2 =
+        comms::field::Bundle<
+            Test1_FieldBase,
+            std::tuple<
+                Test1_IntKeyField<2>,
+                comms::field::IntValue<Test1_FieldBase, std::uint32_t>,
+                comms::field::Optional<
+                    comms::field::IntValue<Test1_FieldBase, std::uint8_t>,
+                    comms::option::ExistsSinceVersion<5>,
+                    comms::option::ExistsByDefault
+                >
+            >
+        >;
+
+    using Field =
+        comms::field::Variant<
+            Test1_FieldBase,
+            std::tuple<
+                Mem1,
+                Mem2
+            >
+        >;
+
+    static_assert(Field::isVersionDependent(), "Must be version dependent");
+    Field field;
+    TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
+
+    do {
+        field.setVersion(5);
+        static const char Buf1[] = {
+            0x2, 0x1, 0x2, 0x3, 0x4, 0x5
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        auto readIter = &Buf1[0];
+        auto es = field.read(readIter, Buf1Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        auto& m = field.accessField<1>();
+        TS_ASSERT_EQUALS(std::get<0>(m.value()).value(), 2U);
+        TS_ASSERT_EQUALS(std::get<1>(m.value()).value(), 0x01020304);
+        TS_ASSERT(std::get<2>(m.value()).doesExist());
+        TS_ASSERT_EQUALS(std::get<2>(m.value()).field().value(), 0x05);
+        TS_ASSERT_EQUALS(field.length(), Buf1Size);
+    } while (false);
+
+    do {
+        TS_ASSERT(field.setVersion(4));
+        static const char Buf1[] = {
+            0x2, 0x1, 0x2, 0x3, 0x4, 0x5
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        auto readIter = &Buf1[0];
+        auto es = field.read(readIter, Buf1Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        auto& m = field.accessField<1>();
+        TS_ASSERT_EQUALS(std::get<0>(m.value()).value(), 2U);
+        TS_ASSERT_EQUALS(std::get<1>(m.value()).value(), 0x01020304);
+        TS_ASSERT(std::get<2>(m.value()).isMissing());
+        TS_ASSERT_EQUALS(field.length(), Buf1Size - 1U);
+    } while (false);
+
+    do {
+        field.reset();
+        auto& m = field.initField<1>();
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        field.setVersion(5);
+        TS_ASSERT(std::get<2>(m.value()).doesExist());
+        std::get<1>(m.value()).value() = 0x04030201;
+        std::get<2>(m.value()).field().value() = 0xab;
+
+        static const char Buf1[] = {
+            0x2, 0x4, 0x3, 0x2, 0x1, (char)0xab
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        std::vector<char> outBuf;
+        auto writeIter = std::back_inserter(outBuf);
+        auto es = field.write(writeIter, outBuf.max_size());
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(outBuf.size(), Buf1Size);
+        TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), std::begin(Buf1)));
+    } while (false);
+}
+
+using Test2_FieldBase = comms::Field<comms::option::BigEndian>;
+
+template <std::uint8_t TVal>
+using Test2_IntKeyField = Test1_IntKeyField<TVal>;
+
+template <std::uint8_t TKey, typename TValue>
+class Test2_PropField : public
+    comms::field::Bundle<
+        Test2_FieldBase,
+        std::tuple<
+            Test2_IntKeyField<TKey>,
+            comms::field::IntValue<Test2_FieldBase, std::uint8_t>,
+            TValue
+        >,
+        comms::option::RemLengthMemberField<1>
+    >
+{
+#ifdef COMMS_MUST_DEFINE_BASE
+    using Base =
+        comms::field::Bundle<
+            Test2_FieldBase,
+            std::tuple<
+                Test2_IntKeyField<TKey>,
+                comms::field::IntValue<Test2_FieldBase, std::uint8_t>,
+                TValue
+            >,
+            comms::option::RemLengthMemberField<1>
+        >;
+#endif // #ifdef COMMS_MUST_DEFINE_BASE
+public:
+    COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+};
+
+void FieldsTestSuite2::test2()
+{
+    using Prop1 = Test2_PropField<1, comms::field::IntValue<Test1_FieldBase, std::uint16_t> >;
+    using Prop2 =
+        Test2_PropField<
+            2,
+            comms::field::Bundle<
+                Test2_FieldBase,
+                std::tuple<
+                    comms::field::IntValue<Test1_FieldBase, std::uint32_t>,
+                    comms::field::Optional<
+                        comms::field::IntValue<Test1_FieldBase, std::uint8_t>,
+                        comms::option::ExistsSinceVersion<5>,
+                        comms::option::ExistsByDefault
+                    >
+                >
+            >
+        >;
+
+    using Field =
+        comms::field::Variant<
+            Test2_FieldBase,
+            std::tuple<
+                Prop1,
+                Prop2
+            >
+        >;
+
+    static_assert(Field::isVersionDependent(), "Must be version dependent");
+    Field field;
+    TS_ASSERT_EQUALS(field.currentField(), std::tuple_size<Field::Members>::value);
+
+    do {
+        field.setVersion(5);
+        static const char Buf1[] = {
+            0x2, 0x5, 0x1, 0x2, 0x3, 0x4, 0x5
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        auto readIter = &Buf1[0];
+        auto es = field.read(readIter, Buf1Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        auto& m = field.accessField<1>();
+        TS_ASSERT_EQUALS(m.field_key().value(), 2U);
+        TS_ASSERT_EQUALS(std::get<0>(m.field_value().value()).value(), 0x01020304);
+        TS_ASSERT(std::get<1>(m.field_value().value()).doesExist());
+        TS_ASSERT_EQUALS(std::get<1>(m.field_value().value()).field().value(), 0x05);
+        TS_ASSERT_EQUALS(field.length(), Buf1Size);
+    } while (false);
+
+    do {
+        TS_ASSERT(field.setVersion(4));
+        static const char Buf1[] = {
+            0x2, 0x5, 0x1, 0x2, 0x3, 0x4, 0x5
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        auto readIter = &Buf1[0];
+        auto es = field.read(readIter, Buf1Size);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        auto& m = field.accessField<1>();
+        TS_ASSERT_EQUALS(m.field_key().value(), 2U);
+        TS_ASSERT_EQUALS(std::get<0>(m.field_value().value()).value(), 0x01020304);
+        TS_ASSERT(std::get<1>(m.field_value().value()).isMissing());
+        TS_ASSERT_EQUALS(field.length(), Buf1Size - 1U);
+    } while (false);
+
+    do {
+        field.reset();
+        TS_ASSERT(!field.currentFieldValid());
+        field.setVersion(4);
+        auto& m = field.initField<1>();
+        TS_ASSERT_EQUALS(field.currentField(), 1U);
+        TS_ASSERT(std::get<1>(m.field_value().value()).isMissing());
+        TS_ASSERT_EQUALS(m.field_length().value(), 4U);
+        field.setVersion(5);
+        TS_ASSERT_EQUALS(m.field_length().value(), 5U);
+        TS_ASSERT(std::get<1>(m.field_value().value()).doesExist());
+        std::get<0>(m.field_value().value()).value() = 0x04030201;
+        std::get<1>(m.field_value().value()).field().value() = 0xab;
+
+        static const char Buf1[] = {
+            0x2, 0x5, 0x4, 0x3, 0x2, 0x1, (char)0xab
+        };
+        static const std::size_t Buf1Size = std::extent<decltype(Buf1)>::value;
+
+        std::vector<char> outBuf;
+        auto writeIter = std::back_inserter(outBuf);
+        auto es = field.write(writeIter, outBuf.max_size());
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(outBuf.size(), Buf1Size);
+        TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), std::begin(Buf1)));
+    } while (false);
+}
+
+void FieldsTestSuite2::test3()
+{
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint16_t,
+                comms::option::VarLength<1, 2>
+            >,
+            comms::field::String<comms::Field<BigEndianOpt> >
+        >,
+        comms::option::RemLengthMemberField<0>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 1U, "Invalid minLength");
+
+    do {
+        Field field;
+        TS_ASSERT_EQUALS(field.length(), 1U);
+        TS_ASSERT_EQUALS(std::get<0>(field.value()).value(), 0U);
+
+        auto& strMem = std::get<1>(field.value());
+        strMem.value() = "aaa";
+        TS_ASSERT_EQUALS(strMem.length(), 3U);
+        TS_ASSERT(field.refresh());
+        TS_ASSERT_EQUALS(field.length(), 4U);
+
+        static const char ExpectedBuf[] = {
+            0x3, 'a', 'a', 'a'
+        };
+        static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+        writeReadField(field, ExpectedBuf, ExpectedBufSize);
+    } while (false);
+
+    do {
+        Field field;
+        std::string str(128, 'a');
+        std::get<1>(field.value()).value() = str;
+        TS_ASSERT(field.refresh());
+        TS_ASSERT_EQUALS(field.length(), 130U);
+    } while (false);
+}
+
+template <typename TField>
+void FieldsTestSuite2::writeField(
+    const TField& field,
+    const char* expectedBuf,
+    std::size_t size,
+    comms::ErrorStatus expectedStatus)
+{
+    std::unique_ptr<char[]> outDataBuf(new char[size]);
+    auto writeIter = &outDataBuf[0];
+    auto es = field.write(writeIter, size);
+    TS_ASSERT_EQUALS(es, expectedStatus);
+    bool bufAsExpected = std::equal(expectedBuf, expectedBuf + size, static_cast<const char*>(&outDataBuf[0]));
+    if (!bufAsExpected) {
+        std::cout << "Expected buffer: " << std::hex;
+        std::copy_n(expectedBuf, size, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << "\nActual buffer: ";
+        std::copy_n(&outDataBuf[0], size, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << std::dec << std::endl;
+    }
+    TS_ASSERT(bufAsExpected);
+}
+
+template <typename TField>
+TField FieldsTestSuite2::readWriteField(
+    const char* buf,
+    std::size_t size,
+    comms::ErrorStatus expectedStatus)
+{
+    typedef TField Field;
+    Field field;
+
+    auto iter = buf;
+    auto status = field.read(iter, size);
+    TS_ASSERT_EQUALS(status, expectedStatus);
+
+    if (status != comms::ErrorStatus::Success) {
+        return field;
+    }
+
+    auto diff = static_cast<std::size_t>(std::distance(buf, iter));
+    TS_ASSERT_EQUALS(field.length(), diff);
+
+    std::unique_ptr<char[]> outDataBuf(new char[diff]);
+    auto writeIter = &outDataBuf[0];
+
+    status = field.write(writeIter, diff);
+    TS_ASSERT_EQUALS(status, comms::ErrorStatus::Success);
+    bool bufAsExpected = std::equal(buf, buf + diff, static_cast<const char*>(&outDataBuf[0]));
+    if (!bufAsExpected) {
+        std::cout << "Expected buffer: " << std::hex;
+        std::copy_n(buf, diff, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << "\nActual buffer: ";
+        std::copy_n(&outDataBuf[0], diff, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << std::dec << std::endl;
+    }
+    TS_ASSERT(bufAsExpected);
+
+    auto writeDiff = static_cast<std::size_t>(std::distance(&outDataBuf[0], writeIter));
+    TS_ASSERT_EQUALS(field.length(), writeDiff);
+    TS_ASSERT_EQUALS(diff, writeDiff);
+    return field;
+}
+
+template <typename TField>
+void FieldsTestSuite2::writeReadField(
+    const TField& field,
+    const char* expectedBuf,
+    std::size_t size,
+    comms::ErrorStatus expectedStatus)
+{
+    std::unique_ptr<char[]> outDataBuf(new char[size]);
+    auto writeIter = &outDataBuf[0];
+    auto es = field.write(writeIter, size);
+    TS_ASSERT_EQUALS(es, expectedStatus);
+    bool bufAsExpected = std::equal(expectedBuf, expectedBuf + size, static_cast<const char*>(&outDataBuf[0]));
+    if (!bufAsExpected) {
+        std::cout << "Expected buffer: " << std::hex;
+        std::copy_n(expectedBuf, size, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << "\nActual buffer: ";
+        std::copy_n(&outDataBuf[0], size, std::ostream_iterator<unsigned>(std::cout, " "));
+        std::cout << std::dec << std::endl;
+    }
+    TS_ASSERT(bufAsExpected);
+
+    if (es == comms::ErrorStatus::Success) {
+        auto readIter = &outDataBuf[0];
+        typename std::decay<decltype(field)>::type newField;
+        auto readEs = newField.read(readIter, size);
+        TS_ASSERT_EQUALS(readEs, comms::ErrorStatus::Success);
+        TS_ASSERT_EQUALS(field, newField);
+        TS_ASSERT_EQUALS(field.value(), newField.value());
+    }
+}

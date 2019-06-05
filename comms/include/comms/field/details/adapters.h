@@ -36,6 +36,7 @@
 #include "comms/field/adapter/DefaultValueInitialiser.h"
 #include "comms/field/adapter/NumValueMultiRangeValidator.h"
 #include "comms/field/adapter/CustomValidator.h"
+#include "comms/field/adapter/CustomRefreshWrap.h"
 #include "comms/field/adapter/CustomRefresher.h"
 #include "comms/field/adapter/FailOnInvalid.h"
 #include "comms/field/adapter/IgnoreInvalid.h"
@@ -43,3 +44,4 @@
 #include "comms/field/adapter/ExistsBetweenVersions.h"
 #include "comms/field/adapter/InvalidByDefault.h"
 #include "comms/field/adapter/VersionStorage.h"
+#include "comms/field/adapter/RemLengthMemberField.h"

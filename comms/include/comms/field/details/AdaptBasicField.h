@@ -455,7 +455,30 @@ struct AdaptFieldSequenceTerminationFieldSuffix<false>
 
 template <typename TField, typename TOpts>
 using AdaptFieldSequenceTerminationFieldSuffixT =
-    typename AdaptFieldSequenceTerminationFieldSuffix<TOpts::HasSequenceTerminationFieldSuffix>::template Type<TField, TOpts>;
+    typename AdaptFieldSequenceTerminationFieldSuffix<TOpts::HasSequenceTerminationFieldSuffix>::
+        template Type<TField, TOpts>;
+
+template <bool THasRemLengthMemberField>
+struct AdaptFieldRemLengthMemberField;
+
+template <>
+struct AdaptFieldRemLengthMemberField<true>
+{
+    template <typename TField, typename TOpts>
+    using Type = comms::field::adapter::RemLengthMemberField<TOpts::RemLengthMemberFieldIdx, TField>;
+};
+
+template <>
+struct AdaptFieldRemLengthMemberField<false>
+{
+    template <typename TField, typename TOpts>
+    using Type = TField;
+};        
+
+template <typename TField, typename TOpts>
+using AdaptFieldRemLengthMemberFieldT = 
+    typename AdaptFieldRemLengthMemberField<TOpts::HasRemLengthMemberField>::
+        template Type<TField, TOpts>;
 
 template <bool THasDefaultValueInitialiser>
 struct AdaptFieldDefaultValueInitialiser;
@@ -520,6 +543,27 @@ struct AdaptFieldCustomValidator<false>
 template <typename TField, typename TOpts>
 using AdaptFieldCustomValidatorT =
     typename AdaptFieldCustomValidator<TOpts::HasCustomValidator>::template Type<TField, TOpts>;
+
+template <bool THasCustomRefresh>
+struct AdaptFieldCustomRefreshWrap;
+
+template <>
+struct AdaptFieldCustomRefreshWrap<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::CustomRefreshWrap<TField>;
+};
+
+template <>
+struct AdaptFieldCustomRefreshWrap<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldCustomRefreshWrapT =
+    typename AdaptFieldCustomRefreshWrap<TOpts::HasCustomRefresh>::template Type<TField>;
 
 template <bool THasContentsRefresher>
 struct AdaptFieldCustomRefresher;
@@ -734,14 +778,18 @@ class AdaptBasicField
         SequenceSerLengthFieldPrefixAdapted, ParsedOptions>;
     using SequenceTerminationFieldSuffixAdapted = AdaptFieldSequenceTerminationFieldSuffixT<
         SequenceTrailingFieldSuffixAdapted, ParsedOptions>;
-    using DefaultValueInitialiserAdapted = AdaptFieldDefaultValueInitialiserT<
+     using RemLengthMemberFieldAdapted = AdaptFieldRemLengthMemberFieldT<
         SequenceTerminationFieldSuffixAdapted, ParsedOptions>;
+    using DefaultValueInitialiserAdapted = AdaptFieldDefaultValueInitialiserT<
+        RemLengthMemberFieldAdapted, ParsedOptions>;
     using NumValueMultiRangeValidatorAdapted = AdaptFieldNumValueMultiRangeValidatorT<
         DefaultValueInitialiserAdapted, ParsedOptions>;
     using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
         NumValueMultiRangeValidatorAdapted, ParsedOptions>;
-    using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
+    using CustomRefreshWrapAdapted = AdaptFieldCustomRefreshWrapT<
         CustomValidatorAdapted, ParsedOptions>;
+    using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
+        CustomRefreshWrapAdapted, ParsedOptions>;
     using FailOnInvalidAdapted = AdaptFieldFailOnInvalidT<
         CustomRefresherAdapted, ParsedOptions>;
     using IgnoreInvalidAdapted = AdaptFieldIgnoreInvalidT<

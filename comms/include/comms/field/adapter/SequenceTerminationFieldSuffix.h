@@ -132,7 +132,7 @@ private:
             auto es = termField.read(iterCpy, len);
             if ((es == comms::ErrorStatus::Success) &&
                 (termField == TermField())){
-                std::advance(iter, termField.length());
+                std::advance(iter, std::distance(iter, iterCpy));
                 return es;
             }
 
@@ -151,12 +151,14 @@ private:
     comms::ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag)
     {
         TermField termField;
-        std::size_t consumed = 0;
+        std::size_t consumed = 0U;
+        std::size_t termFieldLen = 0U;
         while (consumed < len) {
             auto iterCpy = iter + consumed;
             auto es = termField.read(iterCpy, len - consumed);
             if ((es == comms::ErrorStatus::Success) &&
                 (termField == TermField())){
+                termFieldLen = static_cast<std::size_t>(std::distance(iter + consumed, iterCpy));
                 break;
             }
 
@@ -173,7 +175,7 @@ private:
             return es;
         }
 
-        auto fullConsumeLen = consumed + termField.length();
+        auto fullConsumeLen = consumed + termFieldLen;
         GASSERT(fullConsumeLen <= len);
         std::advance(iter, fullConsumeLen);
         return comms::ErrorStatus::Success;

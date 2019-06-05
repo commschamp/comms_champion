@@ -65,10 +65,14 @@ namespace field
 ///         invoking read() member function of every member field. It is possible
 ///         to provide cusom reader functionality using comms::option::CustomValueReader
 ///         option.
-///     @li @ref comms::option::HasCustomRead
-///     @li @ref comms::option::HasCustomRefresh
-///     @li @ref comms::option::EmptySerialization
-///     @li @ref comms::option::VersionStorage
+///     @li @ref comms::option::RemLengthMemberField - Specify index of member field 
+///         that contains remaining length information for all the subsequent fields.
+///     @li @ref comms::option::HasCustomRead - Mark field to have custom read
+///         functionality
+///     @li @ref comms::option::HasCustomRefresh - Mark field to have custom
+///         refresh functionality.
+///     @li @ref comms::option::EmptySerialization - Force empty serialization.
+///     @li @ref comms::option::VersionStorage - Add version storage.
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
@@ -570,6 +574,12 @@ public:
     static constexpr bool isVersionDependent()
     {
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
+    }
+
+    /// @brief Compile time check if this class has non-default refresh functionality
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return BaseImpl::hasNonDefaultRefresh();
     }
 
     /// @brief Get version of the field.

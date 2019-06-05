@@ -23,6 +23,8 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "comms/field/details/VersionStorage.h"
+#include "CommonFuncs.h"
 
 namespace comms
 {
@@ -33,12 +35,44 @@ namespace field
 namespace basic
 {
 
-template <typename TFieldBase, typename TMembers>
-class Variant : public TFieldBase
+namespace details
 {
+
+struct VariantElemVersionDependHelper
+{
+    template <typename TElem>
+    constexpr bool operator()() const
+    {
+        return TElem::isVersionDependent();
+    }
+};
+
+template <typename TMembers>
+constexpr bool variantIsAnyMemberVersionDependent()
+{
+    return comms::util::tupleTypeIsAnyOf<TMembers>(VariantElemVersionDependHelper());
+}
+
+} // namespace details
+
+template <typename TFieldBase, typename TMembers>
+class Variant :
+        public TFieldBase,
+        public comms::field::details::VersionStorage<
+            typename TFieldBase::VersionType,
+            details::variantIsAnyMemberVersionDependent<TMembers>()
+        >
+{
+    using BaseImpl = TFieldBase;
+    using VersionBaseImpl =
+        comms::field::details::VersionStorage<
+            typename TFieldBase::VersionType,
+            details::variantIsAnyMemberVersionDependent<TMembers>()
+        >;
 public:
     using Members = TMembers;
     using ValueType = comms::util::TupleAsAlignedUnionT<Members>;
+    using VersionType = typename BaseImpl::VersionType;
 
     Variant() = default;
     Variant(const ValueType& val)  : storage_(val) {}
@@ -153,6 +187,11 @@ public:
         return val;
     }
 
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return CommonFuncs::doMembersMembersHaveNonDefaultRefresh<Members>();
+    }
+
     bool refresh()
     {
         if (!currentFieldValid()) {
@@ -169,7 +208,7 @@ public:
     {
         checkDestruct();
         auto es = comms::ErrorStatus::NumOfErrorStatuses;
-        comms::util::tupleForEachType<Members>(makeReadHelper(es, iter, len, &storage_));
+        comms::util::tupleForEachType<Members>(makeReadHelper(es, iter, len, &storage_, static_cast<VersionBaseImpl&>(*this)));
         COMMS_ASSERT((es == comms::ErrorStatus::Success) || (MembersCount <= memIdx_));
         COMMS_ASSERT((es != comms::ErrorStatus::Success) || (memIdx_ < MembersCount));
 
@@ -253,6 +292,7 @@ public:
         using FieldType = typename std::tuple_element<TIdx, Members>::type;
         new (&storage_) FieldType(std::forward<TArgs>(args)...);
         memIdx_ = TIdx;
+        updateVersionInternal(VersionTag());
         return reinterpret_cast<FieldType&>(storage_);
     }
 
@@ -287,7 +327,33 @@ public:
         COMMS_ASSERT(!currentFieldValid());
     }
 
+    static constexpr bool isVersionDependent()
+    {
+        return details::variantIsAnyMemberVersionDependent<Members>();
+    }
+
+    bool setVersion(VersionType version)
+    {
+        return setVersionInternal(version, VersionTag());
+    }
+
+    VersionType getVersion() const
+    {
+        return getVersionInternal(VersionTag());
+    }
+
 private:
+    struct VersionDependentTag {};
+    struct NoVersionDependencyTag {};
+
+    using VersionTag =
+        typename std::conditional<
+            details::variantIsAnyMemberVersionDependent<Members>(),
+            VersionDependentTag,
+            NoVersionDependencyTag
+        >::type;
+
+
     class ConstructHelper
     {
     public:
@@ -480,7 +546,7 @@ private:
         return ConstExecHelper<FuncType>(&storage_, std::forward<TFunc>(func));
     }
 
-    template <typename TIter>
+    template <typename TIter, typename TVerBase>
     class ReadHelper
     {
     public:
@@ -489,12 +555,14 @@ private:
             comms::ErrorStatus& es,
             TIter& iter,
             std::size_t len,
-            void* storage)
+            void* storage,
+            TVerBase& verBase)
           : idx_(idx),
             es_(es),
             iter_(iter),
             len_(len),
-            storage_(storage)
+            storage_(storage),
+            verBase_(verBase)
         {
             using IterType = typename std::decay<decltype(iter)>::type;
             using IterCategory = typename std::iterator_traits<IterType>::iterator_category;
@@ -512,6 +580,7 @@ private:
             }
 
             auto* field = new (storage_) TField;
+            updateVersion(*field, VersionTag());
 
             auto iterTmp = iter_;
             auto es = field->read(iterTmp, len_);
@@ -533,19 +602,37 @@ private:
         }
 
     private:
+        template <typename TField>
+        void updateVersion(TField& field, NoVersionDependencyTag)
+        {
+            static_cast<void>(field);
+        }
+
+        template <typename TField>
+        void updateVersion(TField& field, VersionDependentTag)
+        {
+            field.setVersion(verBase_.getVersion());
+        }
+
         std::size_t& idx_;
         comms::ErrorStatus& es_;
         TIter& iter_;
         std::size_t len_ = 0;
         void* storage_ = nullptr;
+        TVerBase& verBase_;
         bool readComplete_ = false;
     };
 
-    template <typename TIter>
-    ReadHelper<TIter> makeReadHelper(comms::ErrorStatus& es, TIter& iter, std::size_t len, void* storage)
+    template <typename TIter, typename TVerBase>
+    ReadHelper<TIter, TVerBase> makeReadHelper(
+        comms::ErrorStatus& es,
+        TIter& iter,
+        std::size_t len,
+        void* storage,
+        TVerBase& verBase)
     {
         memIdx_ = 0;
-        return ReadHelper<TIter>(memIdx_, es, iter, len, storage);
+        return ReadHelper<TIter, TVerBase>(memIdx_, es, iter, len, storage, verBase);
     }
 
     template <typename TIter>
@@ -606,6 +693,27 @@ private:
         return WriteNoStatusHelper<TIter>(iter, storage);
     }
 
+    class SetVersionHelper
+    {
+    public:
+        SetVersionHelper(VersionType version, bool& updated, void* storage)
+          :version_(version), updated_(updated), storage_(storage)
+        {
+        }
+
+        template <std::size_t TIdx, typename TField>
+        void operator()()
+        {
+            updated_ = reinterpret_cast<TField*>(storage_)->setVersion(version_) || updated_;
+        }
+
+    private:
+        VersionType version_ = VersionType();
+        bool& updated_;
+        void* storage_ = nullptr;
+    };
+
+
     void checkDestruct()
     {
         if (currentFieldValid()) {
@@ -619,6 +727,35 @@ private:
         return idx < MembersCount;
     }
 
+    bool setVersionInternal(VersionType version, NoVersionDependencyTag)
+    {
+        static_cast<void>(version);
+        return false;
+    }
+
+    bool setVersionInternal(VersionType version, VersionDependentTag)
+    {
+        VersionBaseImpl::version_ = version;
+        bool updated = false;
+        if (currentFieldValid()) {
+            comms::util::tupleForSelectedType<Members>(memIdx_, SetVersionHelper(version, updated, &storage_));
+        }
+        return updated;
+    }
+
+    VersionType getVersionInternal(VersionDependentTag) const
+    {
+        return VersionBaseImpl::version_;;
+    }
+
+    void updateVersionInternal(NoVersionDependencyTag)
+    {
+    }
+
+    void updateVersionInternal(VersionDependentTag)
+    {
+        setVersion(VersionBaseImpl::version_);
+    }
 
     ValueType storage_;
     std::size_t memIdx_ = MembersCount;
@@ -633,5 +770,3 @@ private:
 }  // namespace field
 
 }  // namespace comms
-
-

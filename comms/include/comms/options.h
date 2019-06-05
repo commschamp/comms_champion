@@ -1409,6 +1409,11 @@ using ForceDispatchLinearSwitch = ForceDispatch<comms::traits::dispatch::LinearS
 template <typename T>
 struct ExtendingClass {};
 
+/// @brief Option to specify index of member field containing remaining length in bytes
+/// @details Applicable only to @ref comms::field::Bundle fields.
+template <std::size_t TIdx>
+struct RemLengthMemberField {};
+
 }  // namespace option
 
 }  // namespace comms

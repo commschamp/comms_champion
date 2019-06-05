@@ -172,6 +172,12 @@ public:
         return ParsedOptions::HasCustomVersionUpdate || BaseImpl::isVersionDependent();
     }
 
+    /// @brief Compile time check if this class has non-default refresh functionality
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return BaseImpl::hasNonDefaultRefresh();
+    }
+
     /// @brief Default implementation of version update.
     /// @return @b true in case the field contents have changed, @b false otherwise
     bool setVersion(VersionType version)

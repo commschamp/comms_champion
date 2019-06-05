@@ -74,6 +74,13 @@ public:
         return false;
     }
 
+    /// @brief Default check of whether the field has defines refresh functionality
+    /// @return Always @b false.
+    static constexpr bool hasNonDefaultRefresh()
+    {
+        return false;
+    }
+
     /// @brief Default version update functionality
     /// @details Does nothing and returns false, can be overriden by the
     ///     derived class

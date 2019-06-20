@@ -85,12 +85,19 @@ class MsgFactoryBase
         "Use comms::option::MsgIdType option in message interface type definition.");
     using ParsedOptionsInternal = details::MsgFactoryOptionsParser<TOptions...>;
 
+    static const bool InterfaceHasVirtualDestructor =
+        std::has_virtual_destructor<TMsgBase>::value;
+
     using AllMessagesInternal = AllMessagesBundle<TAllMessages, ParsedOptionsInternal>;
     using Alloc =
         typename std::conditional<
             ParsedOptionsInternal::HasInPlaceAllocation,
             util::alloc::InPlaceSingle<TMsgBase, AllMessagesInternal>,
-            util::alloc::DynMemory<TMsgBase>
+            typename std::conditional<
+                InterfaceHasVirtualDestructor,
+                util::alloc::DynMemory<TMsgBase>,
+                util::alloc::DynMemoryNoVirtualDestructor<TMsgBase, TAllMessages, typename TMsgBase::MsgIdType>
+            >::type
         >::type;
 public:
     using ParsedOptions = ParsedOptionsInternal;
@@ -111,20 +118,20 @@ public:
     MsgPtr createMsg(MsgIdParamType id, unsigned idx, CreateFailureReason* reason) const
     {
         CreateFailureReason reasonTmp = CreateFailureReason::None;
-        MsgPtr msg;
-        CreateHandler handler(alloc_);
-        bool result = dispatchMsgTypeInternal(id, idx, handler, DispatchTag());
+        bool result = false;
+        MsgPtr msg = createMsgInternal(id, idx, result, DestructorTag());
         do {
+            if (msg) {
+                COMMS_ASSERT(result);
+                break;
+            }
+
             if (!result) {
                 reasonTmp = CreateFailureReason::InvalidId;
                 break;
             }
 
-            msg = handler.getMsg();
-            if (!msg) {
-                reasonTmp = CreateFailureReason::AllocFailure;
-                break;
-            }
+            reasonTmp = CreateFailureReason::AllocFailure;
         } while (false);
         
         if (reason != nullptr) {
@@ -190,12 +197,31 @@ protected:
         static_assert(std::is_base_of<Message, TObj>::value,
             "TObj is not a proper message type");
 
+        static_assert(std::has_virtual_destructor<TObj>::value,
+            "This function is expected to be called for message objects with virtual destructor");
         static_assert(
             (!ParsedOptionsInternal::HasInPlaceAllocation) ||
                     comms::util::IsInTuple<TObj, AllMessagesInternal>::Value,
             "TObj must be in provided tuple of supported messages");
 
         return alloc_.template alloc<TObj>(std::forward<TArgs>(args)...);
+    }
+
+    template <typename TObj, typename... TArgs>
+    MsgPtr allocMsg(MsgIdParamType id, unsigned idx, TArgs&&... args) const
+    {
+        static_assert(std::is_base_of<Message, TObj>::value,
+            "TObj is not a proper message type");
+
+        static_assert(!std::has_virtual_destructor<TObj>::value,
+            "This function is expected to be called for message objects without virtual destructor");
+
+        static_assert(
+            (!ParsedOptionsInternal::HasInPlaceAllocation) ||
+                    comms::util::IsInTuple<TObj, AllMessagesInternal>::Value,
+            "TObj must be in provided tuple of supported messages");
+
+        return alloc_.template alloc<TObj>(id, idx, std::forward<TArgs>(args)...);
     }
 
 private:
@@ -205,6 +231,9 @@ private:
     struct ForcedTag {};
     struct StandardTag {};
 
+    struct VirtualDestructorTag {};
+    struct NonVirtualDestructorTag {};
+
     using DispatchTag = 
         typename std::conditional<
             ParsedOptions::HasForcedDispatch,
@@ -212,6 +241,12 @@ private:
             StandardTag
         >::type;
 
+    using DestructorTag =
+        typename std::conditional<
+            InterfaceHasVirtualDestructor,
+            VirtualDestructorTag,
+            NonVirtualDestructorTag
+        >::type;
 
     class CreateHandler
     {
@@ -230,6 +265,34 @@ private:
         }
 
     private:
+        Alloc& a_;
+        MsgPtr msg_;
+    };
+
+    class NonVirtualDestructorCreateHandler
+    {
+    public:
+        explicit NonVirtualDestructorCreateHandler(MsgIdParamType id, unsigned idx, Alloc& a) :
+            id_(id),
+            idx_(idx),
+            a_(a)
+        {
+        }
+
+        MsgPtr getMsg()
+        {
+            return std::move(msg_);
+        }
+
+        template <typename T>
+        void handle()
+        {
+            msg_ = a_.template alloc<T>(id_, idx_);
+        }
+
+    private:
+        MsgIdType id_;
+        unsigned idx_ = 0U;
         Alloc& a_;
         MsgPtr msg_;
     };
@@ -306,6 +369,21 @@ private:
     {
         return false;
     }
+
+    MsgPtr createMsgInternal(MsgIdParamType id, unsigned idx, bool& success, VirtualDestructorTag) const
+    {
+        CreateHandler handler(alloc_);
+        success = dispatchMsgTypeInternal(id, idx, handler, DispatchTag());
+        return handler.getMsg();
+    }
+
+    MsgPtr createMsgInternal(MsgIdParamType id, unsigned idx, bool& success, NonVirtualDestructorTag) const
+    {
+        NonVirtualDestructorCreateHandler handler(id, idx, alloc_);
+        success = dispatchMsgTypeInternal(id, idx, handler, DispatchTag());
+        return handler.getMsg();
+    }
+
 
     mutable Alloc alloc_;
 };

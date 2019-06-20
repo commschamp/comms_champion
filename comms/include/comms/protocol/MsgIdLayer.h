@@ -566,9 +566,9 @@ private:
 
         using MsgElementType = typename MsgType::element_type;
 
-        static_assert(std::has_virtual_destructor<MsgElementType>::value,
-            "Message object is (dynamically) allocated and held by the pointer to the base class. "
-            "However, there is no virtual desctructor to perform proper destruction.");
+//        static_assert(std::has_virtual_destructor<MsgElementType>::value,
+//            "Message object is (dynamically) allocated and held by the pointer to the base class. "
+//            "However, there is no virtual desctructor to perform proper destruction.");
 
         using Tag = 
             typename std::conditional<

@@ -26,8 +26,10 @@
 #include <type_traits>
 #include <array>
 #include <algorithm>
+#include <limits>
 
 #include "comms/Assert.h"
+#include "comms/dispatch.h"
 #include "Tuple.h"
 
 namespace comms
@@ -41,6 +43,50 @@ namespace alloc
 
 namespace details
 {
+
+struct DynMemoryDeleteHandler
+{
+    template <typename TObj>
+    void handle(TObj& obj) const
+    {
+        delete (&obj);
+    }
+};
+
+struct InPlaceDeleteHandler
+{
+    template <typename TObj>
+    void operator()(TObj& obj) const
+    {
+        obj.~TObj();
+    }
+};
+
+template <typename TInterface, typename TAllMessages, typename TDeleteHandler, typename TId>
+class NoVirtualDestructorDeleter
+{
+    static const unsigned InvalidIdx = std::numeric_limits<unsigned>::max();
+public:
+    NoVirtualDestructorDeleter() : id_(TId()), idx_(InvalidIdx) {}
+    NoVirtualDestructorDeleter(TId id, unsigned idx) : id_(id), idx_(idx) {}
+
+    void operator()(TInterface* obj)
+    {
+        COMMS_ASSERT(obj != nullptr);
+        COMMS_ASSERT(idx_ != InvalidIdx);
+        comms::dispatchMsgStaticBinSearch<TAllMessages>(id_, idx_, *obj, handler_);
+    }
+private:
+    TId id_;
+    unsigned idx_ = 0;
+    TDeleteHandler handler_;
+};
+
+template <typename TIterface, typename TAllMessages, typename TDeleteHandler, typename TId>
+inline void createNoVirtualDestructorDeleter(TId id, unsigned idx)
+{
+    return NoVirtualDestructorDeleter<TIterface, TAllMessages, TDeleteHandler, TId>(id, idx);
+}
 
 template <typename T>
 class InPlaceDeleter
@@ -148,6 +194,50 @@ public:
         static_assert(std::is_base_of<TInterface, TObj>::value,
             "TObj does not inherit from TInterface");
         return Ptr(obj);
+    }
+
+    /// @brief Inquiry whether allocation is possible
+    /// @return Always @b true.
+    static constexpr bool canAllocate()
+    {
+        return true;
+    }
+};
+
+/// @brief Dynamic memory allocator for message types without virtual destructor
+/// @details Uses standard operator "new" to allocate and initialise requested
+///     object while using custom deleter.
+/// @tparam TInterface Common interface class for all objects being allocated
+///     with this allocator.
+/// @tparam TAllMessages Tuple of all messages types, object of which could be allocated.
+/// @tparam TId Type of message ID
+template <typename TInterface, typename TAllMessages, typename TId>
+class DynMemoryNoVirtualDestructor
+{
+    using Deleter =
+        details::NoVirtualDestructorDeleter<
+            TInterface,
+            TAllMessages,
+            details::DynMemoryDeleteHandler,
+            TId>;
+public:
+    /// @brief Smart pointer (std::unique_ptr) to the allocated object
+    using Ptr = std::unique_ptr<TInterface, Deleter>;
+
+    /// @brief Allocation function
+    /// @tparam TObj Type of the object being allocated, expected to be the
+    ///     same as or derived from TInterface.
+    /// @tparam TArgs types of arguments to be passed to the constructor.
+    /// @param[in] id Numeric ID of the message
+    /// @param[in] idx Index of the message type among types with same ID
+    ///     provided in @b TAllMessages tuple.
+    /// @return Smart pointer to the allocated object.
+    template <typename TObj, typename... TArgs>
+    static Ptr alloc(TId id, unsigned idx, TArgs&&... args)
+    {
+        static_assert(std::is_base_of<TInterface, TObj>::value,
+            "TObj does not inherit from TInterface");
+        return Ptr(new TObj(std::forward<TArgs>(args)...), Deleter(id, idx));
     }
 
     /// @brief Inquiry whether allocation is possible

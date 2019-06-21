@@ -150,7 +150,7 @@ public:
     ///     first template parameter to this class). If comms::option::InPlaceAllocation
     ///     option was used and previously allocated message wasn't de-allocated
     ///     yet, the empty (null) pointer will be returned.
-    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0, CreateFailureReason* reason = nullptr) const
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0U, CreateFailureReason* reason = nullptr) const
     {
         return Base::createMsg(id, idx, reason);
     }
@@ -161,9 +161,15 @@ public:
     ///     the relevant allocator will be used to allocate @ref comms::GenericMessage.
     /// @param[in] id ID of the message, will be passed as a parameter to the
     ///     constructor of the @ref comms::GenericMessage class
-    MsgPtr createGenericMsg(MsgIdParamType id) const
+    /// @param idx Relative index (or offset) of the message with the same ID. In case
+    ///     protocol implementation contains multiple distinct message types
+    ///     that report same ID value, it must be possible to choose the
+    ///     relative index of such message from the first message type reporting
+    ///     the same ID. This parameter provides such an ability. However,
+    ///     most protocols will implement single message class for single ID.
+    MsgPtr createGenericMsg(MsgIdParamType id, unsigned idx = 0U) const
     {
-        return Base::createGenericMsg(id);
+        return Base::createGenericMsg(id, idx);
     }
 
     /// @brief Inquiry whether allocation is possible

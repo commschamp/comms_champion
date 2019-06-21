@@ -56,7 +56,7 @@ struct DynMemoryDeleteHandler
 struct InPlaceDeleteHandler
 {
     template <typename TObj>
-    void operator()(TObj& obj) const
+    void handle(TObj& obj) const
     {
         obj.~TObj();
     }
@@ -74,13 +74,62 @@ public:
     {
         COMMS_ASSERT(obj != nullptr);
         COMMS_ASSERT(idx_ != InvalidIdx);
-        comms::dispatchMsgStaticBinSearch<TAllMessages>(id_, idx_, *obj, handler_);
+        TDeleteHandler handler;
+        comms::dispatchMsgStaticBinSearch<TAllMessages>(id_, idx_, *obj, handler);
     }
 private:
     TId id_;
     unsigned idx_ = 0;
-    TDeleteHandler handler_;
 };
+
+template <typename TInterface, typename TAllMessages, typename TDeleteHandler, typename TId>
+class NoVirtualDestructorInPlaceDeleter : public
+        NoVirtualDestructorDeleter<TInterface, TAllMessages, TDeleteHandler, TId>
+{
+    using Base = NoVirtualDestructorDeleter<TInterface, TAllMessages, TDeleteHandler, TId>;
+    static const unsigned InvalidIdx = std::numeric_limits<unsigned>::max();
+public:
+    NoVirtualDestructorInPlaceDeleter() = default;
+    NoVirtualDestructorInPlaceDeleter(TId id, unsigned idx, bool& allocated) : Base(id, idx), allocated_(&allocated) {}
+
+    NoVirtualDestructorInPlaceDeleter(const NoVirtualDestructorInPlaceDeleter&) = delete;
+    NoVirtualDestructorInPlaceDeleter(NoVirtualDestructorInPlaceDeleter&& other) :
+        Base(std::move(other)),
+        allocated_(other.allocated_)
+    {
+        other.allocated_ = nullptr;
+    }
+
+    ~NoVirtualDestructorInPlaceDeleter()
+    {
+        COMMS_ASSERT(allocated_ == nullptr);
+    }
+
+    NoVirtualDestructorInPlaceDeleter& operator=(const NoVirtualDestructorInPlaceDeleter&) = delete;
+    NoVirtualDestructorInPlaceDeleter& operator=(NoVirtualDestructorInPlaceDeleter&& other)
+    {
+        if (reinterpret_cast<void*>(this) == reinterpret_cast<const void*>(&other)) {
+            return *this;
+        }
+
+        Base::operator=(std::move(other));
+        allocated_ = other.allocated_;
+        other.allocated_ = nullptr;
+        return *this;
+    }
+
+    void operator()(TInterface* obj)
+    {
+        COMMS_ASSERT(allocated_ != nullptr);
+        COMMS_ASSERT(*allocated_);
+        Base::operator()(obj);
+        *allocated_ = false;
+        allocated_ = nullptr;
+    }
+private:
+    bool* allocated_ = nullptr;
+};
+
 
 template <typename TIterface, typename TAllMessages, typename TDeleteHandler, typename TId>
 inline void createNoVirtualDestructorDeleter(TId id, unsigned idx)
@@ -343,6 +392,89 @@ public:
 
 private:
     using AlignedStorage = typename TupleAsAlignedUnion<TAllTypes>::Type;
+
+    AlignedStorage place_;
+    bool allocated_ = false;
+
+};
+
+/// @brief In-place single object allocator for message objects
+///     without virtual destructor.
+/// @details May allocate only single object at a time. In order to be able
+///     to allocate new object, previous one must be destructed first. The
+///     allocator contains uninitialised storage area in its private data,
+///     which is used to contain allocated object.
+/// @tparam TInterface Common interface class for all objects being allocated
+///     with this allocator.
+/// @tparam TAllMessages All the possible message types that can be allocated with this
+///     allocator bundled in @b std::tuple. They are used to identify the
+///     size required to allocate any of the provided objects.
+template <typename TInterface, typename TAllMessages, typename TId>
+class InPlaceSingleNoVirtualDestructor
+{
+    using Deleter =
+        details::NoVirtualDestructorInPlaceDeleter<
+            TInterface,
+            TAllMessages,
+            details::InPlaceDeleteHandler,
+            TId>;
+
+public:
+    /// @brief Smart pointer (std::unique_ptr) to the allocated object.
+    /// @details The custom deleter makes sure the destructor of the
+    ///     allocated object is called.
+    using Ptr = std::unique_ptr<TInterface, Deleter>;
+
+    /// @brief Allocation function
+    /// @tparam TObj Type of the object being allocated, expected to be the
+    ///     same as or derived from @b TInterface.
+    /// @tparam TArgs types of arguments to be passed to the constructor.
+    /// @return Smart pointer to the allocated object.
+    /// @pre If @b TObj is NOT the same as @b TInterface, i.e. @b TInterface is a base
+    ///     class of @b TObj, then @b TInterface must have virtual destructor.
+    template <typename TObj, typename... TArgs>
+    Ptr alloc(TId id, unsigned idx, TArgs&&... args)
+    {
+        if (allocated_) {
+            return Ptr();
+        }
+
+        static_assert(std::is_base_of<TInterface, TObj>::value,
+            "TObj does not inherit from TInterface");
+
+        static_assert(comms::util::IsInTuple<TObj, TAllMessages>::Value, ""
+            "TObj must be in provided tuple of supported types");
+
+        static_assert(sizeof(TObj) <= sizeof(place_), "Object is too big");
+
+        new (&place_) TObj(std::forward<TArgs>(args)...);
+        Ptr obj(
+            reinterpret_cast<TInterface*>(&place_),
+            Deleter(id, idx, allocated_));
+        allocated_ = true;
+        return std::move(obj);
+    }
+
+    /// @brief Inquire whether the object is already allocated.
+    bool allocated() const
+    {
+        return allocated_;
+    }
+
+    /// @brief Get address of the objects being allocated using this allocator
+    const void* allocAddr() const
+    {
+        return &place_;
+    }
+
+    /// @brief Inquiry whether allocation is possible.
+    bool canAllocate() const
+    {
+        return !allocated_;
+    }
+
+private:
+    using AlignedStorage = typename TupleAsAlignedUnion<TAllMessages>::Type;
 
     AlignedStorage place_;
     bool allocated_ = false;

@@ -53,6 +53,7 @@ public:
     void test21();
     void test22();
     void test23();
+    void test24();
 
 private:
 
@@ -905,6 +906,30 @@ void MsgIdLayerTestSuite::test23()
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
     TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+
+    bool msg1Destructed = false;
+    msg1->setDestructorFlag(msg1Destructed);
+    msg.reset();
+    TS_ASSERT(msg1Destructed);
+}
+
+void MsgIdLayerTestSuite::test24()
+{
+    static const char Buf[] = {
+        MessageType1, (char)0xab, (char)0xcd
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = InPlaceProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+
+    auto readIter = &Buf[0];
+    auto es = stack.read(msg, readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0xabcd);
 
     bool msg1Destructed = false;
     msg1->setDestructorFlag(msg1Destructed);

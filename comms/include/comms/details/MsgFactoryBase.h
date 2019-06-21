@@ -92,11 +92,15 @@ class MsgFactoryBase
     using Alloc =
         typename std::conditional<
             ParsedOptionsInternal::HasInPlaceAllocation,
-            util::alloc::InPlaceSingle<TMsgBase, AllMessagesInternal>,
+            typename std::conditional<
+                InterfaceHasVirtualDestructor,
+                util::alloc::InPlaceSingle<TMsgBase, AllMessagesInternal>,
+                util::alloc::InPlaceSingleNoVirtualDestructor<TMsgBase, AllMessagesInternal, typename TMsgBase::MsgIdType>
+            >::type,
             typename std::conditional<
                 InterfaceHasVirtualDestructor,
                 util::alloc::DynMemory<TMsgBase>,
-                util::alloc::DynMemoryNoVirtualDestructor<TMsgBase, TAllMessages, typename TMsgBase::MsgIdType>
+                util::alloc::DynMemoryNoVirtualDestructor<TMsgBase, AllMessagesInternal, typename TMsgBase::MsgIdType>
             >::type
         >::type;
 public:

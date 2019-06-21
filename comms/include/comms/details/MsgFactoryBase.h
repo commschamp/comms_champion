@@ -49,10 +49,10 @@ constexpr bool msgFactoryMessageHasStaticNumId()
 }
 
 template<bool TMustCat>
-struct AllMessagesRetrieveHelper;
+struct MsgFactoryAllMessagesRetrieveHelper;
 
 template<>
-struct AllMessagesRetrieveHelper<true>
+struct MsgFactoryAllMessagesRetrieveHelper<true>
 {
     template <typename TAll, typename TOpt>
     using Type =
@@ -67,7 +67,7 @@ struct AllMessagesRetrieveHelper<true>
 };
 
 template<>
-struct AllMessagesRetrieveHelper<false>
+struct MsgFactoryAllMessagesRetrieveHelper<false>
 {
     template <typename TAll, typename TOpt>
     using Type = TAll;
@@ -75,7 +75,29 @@ struct AllMessagesRetrieveHelper<false>
 
 template <typename TAll, typename TOpt>
 using AllMessagesBundle =
-    typename AllMessagesRetrieveHelper<TOpt::HasInPlaceAllocation && TOpt::HasSupportGenericMessage>::template Type<TAll, TOpt>;
+    typename MsgFactoryAllMessagesRetrieveHelper<TOpt::HasInPlaceAllocation && TOpt::HasSupportGenericMessage>::template Type<TAll, TOpt>;
+
+template <bool THasGenericMessage>
+struct MsgFactorGenericMsgRetrieveHelper;
+
+template <>
+struct MsgFactorGenericMsgRetrieveHelper<true>
+{
+    template <typename TOpt>
+    using Type = typename TOpt::GenericMessage;
+};
+
+template <>
+struct MsgFactorGenericMsgRetrieveHelper<false>
+{
+    template <typename TOpt>
+    using Type = void;
+};
+
+template <typename TOpt>
+using MsgFactoryGenericMsgType =
+    typename MsgFactorGenericMsgRetrieveHelper<TOpt::HasSupportGenericMessage>::
+        template Type<TOpt>;
 
 template <typename TMsgBase, typename TAllMessages, typename... TOptions>
 class MsgFactoryBase
@@ -89,6 +111,8 @@ class MsgFactoryBase
         std::has_virtual_destructor<TMsgBase>::value;
 
     using AllMessagesInternal = AllMessagesBundle<TAllMessages, ParsedOptionsInternal>;
+    using GenericMessageInternal = MsgFactoryGenericMsgType<ParsedOptionsInternal>;
+
     using Alloc =
         typename std::conditional<
             ParsedOptionsInternal::HasInPlaceAllocation,
@@ -100,7 +124,7 @@ class MsgFactoryBase
             typename std::conditional<
                 InterfaceHasVirtualDestructor,
                 util::alloc::DynMemory<TMsgBase>,
-                util::alloc::DynMemoryNoVirtualDestructor<TMsgBase, AllMessagesInternal, typename TMsgBase::MsgIdType>
+                util::alloc::DynMemoryNoVirtualDestructor<TMsgBase, TAllMessages, typename TMsgBase::MsgIdType, GenericMessageInternal>
             >::type
         >::type;
 public:
@@ -145,7 +169,7 @@ public:
         return msg;
     }
 
-    MsgPtr createGenericMsg(MsgIdParamType id) const
+    MsgPtr createGenericMsg(MsgIdParamType id, unsigned idx) const
     {
         static_cast<void>(this);
         using Tag =
@@ -155,7 +179,7 @@ public:
                 NoAllocTag
             >::type;
 
-        return createGenericMsgInternal(id, Tag());
+        return createGenericMsgInternal(id, idx, Tag(), DestructorTag());
     }
 
     bool canAllocate() const
@@ -301,14 +325,23 @@ private:
         MsgPtr msg_;
     };
 
-    MsgPtr createGenericMsgInternal(MsgIdParamType id, AllocGenericTag) const
+    MsgPtr createGenericMsgInternal(MsgIdParamType id, unsigned idx, AllocGenericTag, VirtualDestructorTag) const
     {
+        static_cast<void>(idx);
         static_assert(std::is_base_of<Message, typename ParsedOptions::GenericMessage>::value,
             "The requested GenericMessage class must have the same interface class as all other messages");
         return allocMsg<typename ParsedOptions::GenericMessage>(id);
     }
 
-    static MsgPtr createGenericMsgInternal(MsgIdParamType, NoAllocTag)
+    MsgPtr createGenericMsgInternal(MsgIdParamType id, unsigned idx, AllocGenericTag, NonVirtualDestructorTag) const
+    {
+        static_assert(std::is_base_of<Message, typename ParsedOptions::GenericMessage>::value,
+            "The requested GenericMessage class must have the same interface class as all other messages");
+        return allocMsg<typename ParsedOptions::GenericMessage>(id, idx, id);
+    }
+
+    template <typename TDestructorTag>
+    static MsgPtr createGenericMsgInternal(MsgIdParamType, NoAllocTag, TDestructorTag)
     {
         return MsgPtr();
     }

@@ -619,6 +619,7 @@ private:
 
         return createAndReadGenericMsgInternal(
             field, 
+            idx,
             msg, 
             iter, 
             size, 
@@ -663,27 +664,28 @@ private:
     }
 
     template <typename TId>
-    MsgPtr createGenericMsgInternalTagged(TId&& id, IdParamAsIsTag)
+    MsgPtr createGenericMsgInternalTagged(TId&& id, unsigned idx, IdParamAsIsTag)
     {
-        return factory_.createGenericMsg(std::forward<TId>(id));
+        return factory_.createGenericMsg(std::forward<TId>(id), idx);
     }
 
     template <typename TId>
-    MsgPtr createGenericMsgInternalTagged(TId&& id, IdParamCastTag)
+    MsgPtr createGenericMsgInternalTagged(TId&& id, unsigned idx, IdParamCastTag)
     {
-        return factory_.createGenericMsg(static_cast<MsgIdType>(id));
+        return factory_.createGenericMsg(static_cast<MsgIdType>(id), idx);
     }
 
     template <typename TId>
-    MsgPtr createGenericMsgInternal(TId&& id)
+    MsgPtr createGenericMsgInternal(TId&& id, unsigned idx)
     {
         using IdType = typename std::decay<decltype(id)>::type;
-        return createGenericMsgInternalTagged(std::forward<TId>(id), IdParamTag<IdType>());
+        return createGenericMsgInternalTagged(std::forward<TId>(id), idx, IdParamTag<IdType>());
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus createAndReadGenericMsgInternal(
         const Field& field,
+        unsigned msgIdx,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -693,6 +695,7 @@ private:
         NoGenericMsgTag)
     {
         static_cast<void>(field);
+        static_cast<void>(msgIdx);
         static_cast<void>(msg);
         static_cast<void>(iter);
         static_cast<void>(size);
@@ -704,6 +707,7 @@ private:
     template <typename TMsg, typename TIter, typename TNextLayerReader>
     comms::ErrorStatus createAndReadGenericMsgInternal(
         const Field& field,
+        unsigned msgIdx,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -715,7 +719,7 @@ private:
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
 
         auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
-        msg = createGenericMsgInternal(id);
+        msg = createGenericMsgInternal(id, msgIdx);
         if (!msg) {
             return es;
         }

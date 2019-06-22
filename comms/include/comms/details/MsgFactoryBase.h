@@ -119,12 +119,24 @@ class MsgFactoryBase
             typename std::conditional<
                 InterfaceHasVirtualDestructor,
                 util::alloc::InPlaceSingle<TMsgBase, AllMessagesInternal>,
-                util::alloc::InPlaceSingleNoVirtualDestructor<TMsgBase, AllMessagesInternal, typename TMsgBase::MsgIdType>
+                util::alloc::InPlaceSingleNoVirtualDestructor<
+                    TMsgBase,
+                    AllMessagesInternal,
+                    TAllMessages,
+                    typename
+                    TMsgBase::MsgIdType,
+                    GenericMessageInternal
+                >
             >::type,
             typename std::conditional<
                 InterfaceHasVirtualDestructor,
                 util::alloc::DynMemory<TMsgBase>,
-                util::alloc::DynMemoryNoVirtualDestructor<TMsgBase, TAllMessages, typename TMsgBase::MsgIdType, GenericMessageInternal>
+                util::alloc::DynMemoryNoVirtualDestructor<
+                    TMsgBase,
+                    TAllMessages,
+                    typename TMsgBase::MsgIdType,
+                    GenericMessageInternal
+                >
             >::type
         >::type;
 public:

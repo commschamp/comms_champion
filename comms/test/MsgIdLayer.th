@@ -55,6 +55,7 @@ public:
     void test23();
     void test24();
     void test25();
+    void test26();
 
 private:
 
@@ -239,7 +240,33 @@ private:
 #endif
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
-    };    
+    };
+
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
+    class GenericMessageInPlaceAllocProtocolStack : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            TAllMessages<TMessage>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >,
+            comms::option::InPlaceAllocation
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                TAllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >,
+                comms::option::InPlaceAllocation
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };
 
     template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
     class ProtocolStackPolymorphic : public
@@ -909,10 +936,13 @@ void MsgIdLayerTestSuite::test23()
     auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
     TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
 
-    bool msg1Destructed = false;
-    msg1->setDestructorFlag(msg1Destructed);
+    unsigned msg1Destructed = 0U;
+    msg1->setDestructorCounter(msg1Destructed);
+    auto msgMoved = std::move(msg);
     msg.reset();
-    TS_ASSERT(msg1Destructed);
+    TS_ASSERT_EQUALS(msg1Destructed, 0U);
+    msgMoved.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 1U);
 }
 
 void MsgIdLayerTestSuite::test24()
@@ -933,10 +963,13 @@ void MsgIdLayerTestSuite::test24()
     auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
     TS_ASSERT_EQUALS(msg1->field_value1().value(), 0xabcd);
 
-    bool msg1Destructed = false;
-    msg1->setDestructorFlag(msg1Destructed);
+    unsigned msg1Destructed = 0U;
+    msg1->setDestructorCounter(msg1Destructed);
+    auto msgMoved = std::move(msg);
     msg.reset();
-    TS_ASSERT(msg1Destructed);
+    TS_ASSERT_EQUALS(msg1Destructed, 0U);
+    msgMoved.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 1U);
 }
 
 void MsgIdLayerTestSuite::test25()
@@ -957,10 +990,13 @@ void MsgIdLayerTestSuite::test25()
         auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
         TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
 
-        bool msg1Destructed = false;
-        msg1->setDestructorFlag(msg1Destructed);
+        unsigned msg1Destructed = 0U;
+        msg1->setDestructorCounter(msg1Destructed);
+        auto msgMoved = std::move(msg);
         msg.reset();
-        TS_ASSERT(msg1Destructed);
+        TS_ASSERT_EQUALS(msg1Destructed, 0U);
+        msgMoved.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 1U);
     } while (false);
 
     do {
@@ -979,7 +1015,56 @@ void MsgIdLayerTestSuite::test25()
         auto& data = genMsg->field_data().value();
         TS_ASSERT_EQUALS(data.size(), BufSize - 1);
         TS_ASSERT(std::equal(data.begin(), data.end(), &Buf[1]));
+        auto msgMoved = std::move(msg);
+        msg.reset();
     } while (false);
-
 }
 
+void MsgIdLayerTestSuite::test26()
+{
+    using ProtStack = GenericMessageInPlaceAllocProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    do {
+        static const char Buf[] = {
+            MessageType1, 0x01, 0x02
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+        TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+
+        unsigned msg1Destructed = 0U;
+        msg1->setDestructorCounter(msg1Destructed);
+        auto msgMoved = std::move(msg);
+        msg.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 0U);
+        msgMoved.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 1U);
+    } while (false);
+
+    do {
+        static const char Buf[] = {
+            0x40, 0x01, 0x02, 0x03, 0x04
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* genMsg = static_cast<NonPolymorphicBeGenericMsg*>(msg.get());
+        auto& data = genMsg->field_data().value();
+        TS_ASSERT_EQUALS(data.size(), BufSize - 1);
+        TS_ASSERT(std::equal(data.begin(), data.end(), &Buf[1]));
+
+        auto msgMoved = std::move(msg);
+        msg.reset();
+    } while (false);
+}

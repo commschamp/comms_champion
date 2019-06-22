@@ -92,12 +92,50 @@ private:
 
 };
 
+template <typename TInterfaceType, typename TDefaultType>
 struct InPlaceDeleteHandler
 {
     template <typename TObj>
     void handle(TObj& obj) const
     {
+        handleInternal(obj, HandleTag());
+    }
+
+private:
+    struct NoDefaultCastTag {};
+    struct DefaultCastCheckTag {};
+    struct ForcedDefaultCastTag {};
+
+    using HandleTag =
+        typename std::conditional<
+            std::is_void<TDefaultType>::value,
+            NoDefaultCastTag,
+            DefaultCastCheckTag
+        >::type;
+
+    template <typename TObj>
+    void handleInternal(TObj& obj, NoDefaultCastTag) const
+    {
         obj.~TObj();
+    }
+
+    template <typename TObj>
+    void handleInternal(TObj& obj, ForcedDefaultCastTag) const
+    {
+        static_cast<TDefaultType&>(obj).~TDefaultType();
+    }
+
+    template <typename TObj>
+    void handleInternal(TObj& obj, DefaultCastCheckTag) const
+    {
+        using ObjType = typename std::decay<decltype(obj)>::type;
+        using Tag =
+            typename std::conditional<
+                std::is_same<ObjType, TInterfaceType>::value,
+                ForcedDefaultCastTag,
+                NoDefaultCastTag
+            >::type;
+        handleInternal(obj, Tag());
     }
 };
 
@@ -105,8 +143,7 @@ template <
     typename TInterface,
     typename TAllMessages,
     typename TDeleteHandler,
-    typename TId,
-    typename TDefaultType>
+    typename TId>
 class NoVirtualDestructorDeleter
 {
     static const unsigned InvalidIdx = std::numeric_limits<unsigned>::max();
@@ -130,12 +167,11 @@ template <
     typename TInterface,
     typename TAllMessages,
     typename TDeleteHandler,
-    typename TId,
-    typename TDefaultType = void> // TODO: remove void
+    typename TId>
 class NoVirtualDestructorInPlaceDeleter : public
-        NoVirtualDestructorDeleter<TInterface, TAllMessages, TDeleteHandler, TId, TDefaultType>
+        NoVirtualDestructorDeleter<TInterface, TAllMessages, TDeleteHandler, TId>
 {
-    using Base = NoVirtualDestructorDeleter<TInterface, TAllMessages, TDeleteHandler, TId, TDefaultType>;
+    using Base = NoVirtualDestructorDeleter<TInterface, TAllMessages, TDeleteHandler, TId>;
     static const unsigned InvalidIdx = std::numeric_limits<unsigned>::max();
 public:
     NoVirtualDestructorInPlaceDeleter() = default;
@@ -302,6 +338,8 @@ public:
 ///     with this allocator.
 /// @tparam TAllMessages Tuple of all messages types, object of which could be allocated.
 /// @tparam TId Type of message ID
+/// @tparam TDefaultType Message type to cast to when correct type cannot be recognised.
+///     @b void means does not exist.
 template <typename TInterface, typename TAllMessages, typename TId, typename TDefaultType = void>
 class DynMemoryNoVirtualDestructor
 {
@@ -310,8 +348,7 @@ class DynMemoryNoVirtualDestructor
             TInterface,
             TAllMessages,
             details::DynMemoryDeleteHandler<TInterface, TDefaultType>,
-            TId,
-            TDefaultType>;
+            TId>;
 public:
     /// @brief Smart pointer (std::unique_ptr) to the allocated object
     using Ptr = std::unique_ptr<TInterface, Deleter>;
@@ -449,17 +486,26 @@ private:
 ///     which is used to contain allocated object.
 /// @tparam TInterface Common interface class for all objects being allocated
 ///     with this allocator.
-/// @tparam TAllMessages All the possible message types that can be allocated with this
+/// @tparam TAllocMessages All the possible message types that can be allocated with this
 ///     allocator bundled in @b std::tuple. They are used to identify the
 ///     size required to allocate any of the provided objects.
-template <typename TInterface, typename TAllMessages, typename TId>
+/// @tparam TOrigMessages All the original message types (without @ref comms::GenericMessage added)
+///     ids of which are known at compile time.
+/// @tparam TDefaultType Message type to cast to when correct type cannot be recognised.
+///     @b void means does not exist.
+template <
+    typename TInterface,
+    typename TAllocMessages,
+    typename TOrigMessages,
+    typename TId,
+    typename TDefaultType = void>
 class InPlaceSingleNoVirtualDestructor
 {
     using Deleter =
         details::NoVirtualDestructorInPlaceDeleter<
             TInterface,
-            TAllMessages,
-            details::InPlaceDeleteHandler,
+            TOrigMessages,
+            details::InPlaceDeleteHandler<TInterface, TDefaultType>,
             TId>;
 
 public:
@@ -485,7 +531,7 @@ public:
         static_assert(std::is_base_of<TInterface, TObj>::value,
             "TObj does not inherit from TInterface");
 
-        static_assert(comms::util::IsInTuple<TObj, TAllMessages>::Value, ""
+        static_assert(comms::util::IsInTuple<TObj, TAllocMessages>::Value, ""
             "TObj must be in provided tuple of supported types");
 
         static_assert(sizeof(TObj) <= sizeof(place_), "Object is too big");
@@ -517,7 +563,7 @@ public:
     }
 
 private:
-    using AlignedStorage = typename TupleAsAlignedUnion<TAllMessages>::Type;
+    using AlignedStorage = typename TupleAsAlignedUnion<TAllocMessages>::Type;
 
     AlignedStorage place_;
     bool allocated_ = false;

@@ -88,8 +88,8 @@ public:
 
     ~Message1() noexcept
     {
-        if (m_destructorFlag != nullptr) {
-            *m_destructorFlag = true;
+        if (m_destructorCounter != nullptr) {
+            ++(*m_destructorCounter);
         }
     }
 
@@ -98,13 +98,13 @@ public:
         return "Message1";
     }
 
-    void setDestructorFlag(bool& flag)
+    void setDestructorCounter(unsigned& val)
     {
-        m_destructorFlag = &flag;
+        m_destructorCounter = &val;
     }
 
 private:
-    bool* m_destructorFlag = nullptr;
+    unsigned* m_destructorCounter = nullptr;
 };
 
 template <typename TMessage>

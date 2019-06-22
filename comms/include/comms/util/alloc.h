@@ -50,7 +50,7 @@ struct DynMemoryDeleteHandler
     template <typename TObj>
     void handle(TObj& obj) const
     {
-        delete (&obj);
+        handleInternal(obj, HandleTag());
     }
 
 private:

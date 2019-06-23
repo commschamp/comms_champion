@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2018 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -86,12 +86,25 @@ public:
 
     Message1() = default;
 
-    virtual ~Message1() noexcept = default;
+    ~Message1() noexcept
+    {
+        if (m_destructorCounter != nullptr) {
+            ++(*m_destructorCounter);
+        }
+    }
 
     static const char* doName()
     {
         return "Message1";
     }
+
+    void setDestructorCounter(unsigned& val)
+    {
+        m_destructorCounter = &val;
+    }
+
+private:
+    unsigned* m_destructorCounter = nullptr;
 };
 
 template <typename TMessage>

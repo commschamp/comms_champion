@@ -52,6 +52,10 @@ public:
     void test20();
     void test21();
     void test22();
+    void test23();
+    void test24();
+    void test25();
+    void test26();
 
 private:
 
@@ -89,10 +93,12 @@ private:
 
     typedef TestMessageBase<BeTraits> BeMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;
-    struct BeNonPolymorphicMessageBase : public comms::Message<NonPolymorphicBigEndianTraits>
+    struct BeOnlyDestructorPolymorphicMessageBase : public comms::Message<NonPolymorphicBigEndianTraits>
     {
-        virtual ~BeNonPolymorphicMessageBase() = default;
+        virtual ~BeOnlyDestructorPolymorphicMessageBase() = default;
     };
+
+    using BeNonPolymorphicMessageBase = comms::Message<NonPolymorphicBigEndianTraits>;
 
     typedef BeMsgBase::Field BeField;
     typedef LeMsgBase::Field LeField;
@@ -106,9 +112,12 @@ private:
     typedef Message90_1<BeMsgBase> BeMsg90_1;
     typedef Message90_2<BeMsgBase> BeMsg90_2;
 
+    typedef Message1<BeOnlyDestructorPolymorphicMessageBase> OnlyDestructorVirtualBeMsg1;
+    typedef Message2<BeOnlyDestructorPolymorphicMessageBase> OnlyDestructorVirtualBeMsg2;
+
     typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
     typedef Message2<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg2;
-
+    typedef comms::GenericMessage<BeNonPolymorphicMessageBase> NonPolymorphicBeGenericMsg;
 
     template <typename TField>
     using Field1 =
@@ -231,7 +240,33 @@ private:
 #endif
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
-    };    
+    };
+
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
+    class GenericMessageInPlaceAllocProtocolStack : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            TAllMessages<TMessage>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >,
+            comms::option::InPlaceAllocation
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                TAllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >,
+                comms::option::InPlaceAllocation
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };
 
     template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
     class ProtocolStackPolymorphic : public
@@ -485,9 +520,9 @@ void MsgIdLayerTestSuite::test8()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    using ProtStack = ProtocolStack<BeField1, BeOnlyDestructorPolymorphicMessageBase>;
     ProtStack stack;
-    NonPolymorphicBeMsg1 msg;
+    OnlyDestructorVirtualBeMsg1 msg;
     TS_ASSERT_EQUALS(msg.doGetId(), MessageType1);
     commonReadWriteMsgDirectTest(stack, msg, &Buf[0], BufSize);
     TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
@@ -496,7 +531,7 @@ void MsgIdLayerTestSuite::test8()
     commonReadWriteMsgDirectTest(stack, fields, msg, &Buf[0], BufSize);
     TS_ASSERT_EQUALS(std::get<0>(fields).value(), MessageType1);
 
-    NonPolymorphicBeMsg2 msg2;
+    OnlyDestructorVirtualBeMsg2 msg2;
     TS_ASSERT_EQUALS(msg2.doGetId(), MessageType2);
     commonReadWriteMsgDirectTest(stack, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
 
@@ -528,13 +563,13 @@ void MsgIdLayerTestSuite::test10()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    using ProtStack = ProtocolStack<BeField1, BeOnlyDestructorPolymorphicMessageBase>;
     ProtStack stack;
     ProtStack::MsgPtr msg;
     auto readIter = &Buf[0];
     auto es = stack.read(msg, readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    auto* castedMsg = dynamic_cast<NonPolymorphicBeMsg1*>(msg.get());
+    auto* castedMsg = dynamic_cast<OnlyDestructorVirtualBeMsg1*>(msg.get());
     TS_ASSERT(castedMsg != nullptr);
     TS_ASSERT_EQUALS(std::get<0>(castedMsg->fields()).value(), 0x0102);
 
@@ -881,4 +916,155 @@ void MsgIdLayerTestSuite::test22()
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType90);
     auto& msg90 = dynamic_cast<BeMsg90_2&>(*msgPtr);
     TS_ASSERT_EQUALS(msg90.field_value1().value(), 0x01);
+}
+
+void MsgIdLayerTestSuite::test23()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+
+    auto readIter = &Buf[0];
+    auto es = stack.read(msg, readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+
+    unsigned msg1Destructed = 0U;
+    msg1->setDestructorCounter(msg1Destructed);
+    auto msgMoved = std::move(msg);
+    msg.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 0U);
+    msgMoved.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 1U);
+}
+
+void MsgIdLayerTestSuite::test24()
+{
+    static const char Buf[] = {
+        MessageType1, (char)0xab, (char)0xcd
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = InPlaceProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+
+    auto readIter = &Buf[0];
+    auto es = stack.read(msg, readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0xabcd);
+
+    unsigned msg1Destructed = 0U;
+    msg1->setDestructorCounter(msg1Destructed);
+    auto msgMoved = std::move(msg);
+    msg.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 0U);
+    msgMoved.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 1U);
+}
+
+void MsgIdLayerTestSuite::test25()
+{
+    using ProtStack = GenericMessageProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    do {
+        static const char Buf[] = {
+            MessageType1, 0x01, 0x02
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+        TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+
+        unsigned msg1Destructed = 0U;
+        msg1->setDestructorCounter(msg1Destructed);
+        auto msgMoved = std::move(msg);
+        msg.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 0U);
+        msgMoved.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 1U);
+    } while (false);
+
+    do {
+        static const char Buf[] = {
+            0x40, 0x01, 0x02, 0x03, 0x04
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* genMsg = static_cast<NonPolymorphicBeGenericMsg*>(msg.get());
+        auto& data = genMsg->field_data().value();
+        TS_ASSERT_EQUALS(data.size(), BufSize - 1);
+        TS_ASSERT(std::equal(data.begin(), data.end(), &Buf[1]));
+        auto msgMoved = std::move(msg);
+        msg.reset();
+    } while (false);
+}
+
+void MsgIdLayerTestSuite::test26()
+{
+    using ProtStack = GenericMessageInPlaceAllocProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    do {
+        static const char Buf[] = {
+            MessageType1, 0x01, 0x02
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+        TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+
+        unsigned msg1Destructed = 0U;
+        msg1->setDestructorCounter(msg1Destructed);
+        auto msgMoved = std::move(msg);
+        msg.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 0U);
+        msgMoved.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 1U);
+    } while (false);
+
+    do {
+        static const char Buf[] = {
+            0x40, 0x01, 0x02, 0x03, 0x04
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* genMsg = static_cast<NonPolymorphicBeGenericMsg*>(msg.get());
+        auto& data = genMsg->field_data().value();
+        TS_ASSERT_EQUALS(data.size(), BufSize - 1);
+        TS_ASSERT(std::equal(data.begin(), data.end(), &Buf[1]));
+
+        auto msgMoved = std::move(msg);
+        msg.reset();
+    } while (false);
 }

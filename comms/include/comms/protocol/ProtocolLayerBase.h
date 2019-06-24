@@ -27,7 +27,8 @@
 #include "comms/Assert.h"
 #include "comms/options.h"
 
-#include "details/ProtocolLayerBaseOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerBaseOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerDetails.h"
 #include "comms/details/protocol_layers_access.h"
 #include "comms/details/detect.h"
 
@@ -36,101 +37,6 @@ namespace comms
 
 namespace protocol
 {
-
-namespace details
-{
-
-template <class T, class R = void>
-struct ProtocolLayerEnableIfHasAllMessages { using Type = R; };
-
-template <class T, class Enable = void>
-struct ProtocolLayerAllMessagesHelper
-{
-    using Type = void;
-};
-
-template <class T>
-struct ProtocolLayerAllMessagesHelper<T, typename ProtocolLayerEnableIfHasAllMessages<typename T::AllMessages>::Type>
-{
-    using Type = typename T::AllMessages;
-};
-
-template <class T>
-using ProtocolLayerAllMessagesType = typename ProtocolLayerAllMessagesHelper<T>::Type;
-
-template <typename T, bool THasImpl>
-struct ProtocolLayerHasFieldsImplHelper;
-
-template <typename T>
-struct ProtocolLayerHasFieldsImplHelper<T, true>
-{
-    static const bool Value = T::ImplOptions::HasFieldsImpl;
-};
-
-template <typename T>
-struct ProtocolLayerHasFieldsImplHelper<T, false>
-{
-    static const bool Value = false;
-};
-
-template <typename T>
-struct ProtocolLayerHasFieldsImpl
-{
-    static const bool Value =
-        ProtocolLayerHasFieldsImplHelper<T, comms::details::hasImplOptions<T>()>::Value;
-};
-
-template <class T>
-constexpr bool protocolLayerHasFieldsImpl()
-{
-    return ProtocolLayerHasFieldsImpl<T>::Value;
-}
-
-template <typename T, bool THasImpl>
-struct ProtocolLayerHasDoGetIdHelper;
-
-template <typename T>
-struct ProtocolLayerHasDoGetIdHelper<T, true>
-{
-    static const bool Value = T::ImplOptions::HasStaticMsgId;
-};
-
-template <typename T>
-struct ProtocolLayerHasDoGetIdHelper<T, false>
-{
-    static const bool Value = false;
-};
-
-template <typename T>
-struct ProtocolLayerHasDoGetId
-{
-    static const bool Value =
-        ProtocolLayerHasDoGetIdHelper<T, comms::details::hasImplOptions<T>()>::Value;
-};
-
-template <typename T>
-constexpr bool protocolLayerHasDoGetId()
-{
-    return ProtocolLayerHasDoGetId<T>::Value;
-}
-
-template <class T, class R = void>
-struct ProtocolLayerEnableIfHasMsgPtr { using Type = R; };
-
-template <class T, class Enable = void>
-struct ProtocolLayerMsgPtr
-{
-    using Type = void;
-};
-
-template <class T>
-struct ProtocolLayerMsgPtr<T, typename ProtocolLayerEnableIfHasMsgPtr<typename T::MsgPtr>::Type>
-{
-    using Type = typename T::MsgPtr;
-};
-
-
-}  // namespace details
 
 /// @brief Base class for all the middle (non @ref MsgDataLayer) protocol transport layers.
 /// @details Provides all the default and/or common functionality for the
@@ -290,12 +196,12 @@ public:
     ///       to a valid object.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus read(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues&&... extraValues)
     {
         using Tag =
             typename std::conditional<
@@ -306,7 +212,7 @@ public:
 
         static_assert(std::is_same<Tag, NormalReadTag>::value || canSplitRead(),
             "Read split is disallowed by at least one of the inner layers");
-        return readInternal(msg, iter, size, missingSize, Tag());
+        return readInternal(msg, iter, size, Tag(), std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Perform read of data fields until data layer (message payload).
@@ -331,17 +237,24 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readUntilData(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues&&... extraValues)
     {
 
         Field field;
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerUntilDataReader());
+        return
+            derivedObj.doRead(
+                field,
+                msg,
+                iter,
+                size,
+                createNextLayerUntilDataReader(),
+                std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Finalise the read operation by reading the message payload.
@@ -366,14 +279,14 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFromData(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues&&... extraValues)
     {
-        return nextLayer().readFromData(msg, iter, size, missingSize);
+        return nextLayer().readFromData(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Deserialise message from the input data sequence while caching
@@ -399,13 +312,13 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues&&... extraValues)
     {
         using AllFieldsDecayed = typename std::decay<TAllFields>::type;
         static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
@@ -414,7 +327,14 @@ public:
                                 std::tuple_size<AllFields>::value;
         auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsReader(allFields));
+        return
+            derivedObj.doRead(
+                field,
+                msg,
+                iter,
+                size,
+                createNextLayerCachedFieldsReader(allFields),
+                std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Perform read of data fields until data layer (message payload) while caching
@@ -440,13 +360,13 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readUntilDataFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues&&... extraValues)
     {
         using AllFieldsDecayed = typename std::decay<TAllFields>::type;
         static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
@@ -456,7 +376,14 @@ public:
 
         auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsUntilDataReader(allFields));
+        return
+            derivedObj.doRead(
+                field,
+                msg,
+                iter,
+                size,
+                createNextLayerCachedFieldsUntilDataReader(allFields),
+                std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Finalise the read operation by reading the message payload while caching
@@ -480,15 +407,15 @@ public:
     ///             minimal missing data length required for the successful
     ///             read attempt.
     /// @return Status of the operation.
-    template <typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFromDataFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues&&... extraValues)
     {
-        return nextLayer().readFromDataFieldsCached(allFields, msg, iter, size, missingSize);
+        return nextLayer().readFromDataFieldsCached(allFields, msg, iter, size, std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Serialise message into output data sequence.
@@ -820,24 +747,19 @@ protected:
         resetMsgInternal(msg, Tag());
     }
 
-    void updateMissingSize(std::size_t size, std::size_t* missingSize) const
+    template <typename... TExtraValues>
+    void updateMissingSize(std::size_t size, TExtraValues&&... extraValues) const
     {
-        if (missingSize != nullptr) {
-            COMMS_ASSERT(size <= length());
-            *missingSize = std::max(std::size_t(1U), length() - size);
-        }
+        return updateMissingSizeInternal(size, std::forward<TExtraValues>(extraValues)...);
     }
 
+    template <typename... TExtraValues>
     void updateMissingSize(
         const Field& field,
         std::size_t size,
-        std::size_t* missingSize) const
+        TExtraValues&&... extraValues) const
     {
-        if (missingSize != nullptr) {
-            auto totalLen = field.length() + nextLayer_.length();
-            COMMS_ASSERT(size <= totalLen);
-            *missingSize = std::max(std::size_t(1U), totalLen - size);
-        }
+        return updateMissingSizeInternal(field, size, std::forward<TExtraValues>(extraValues)...);
     }
 
     template <std::size_t TIdx, typename TAllFields>
@@ -875,14 +797,14 @@ protected:
         {
         }
 
-        template <typename TMsgPtr, typename TIter>
+        template <typename TMsgPtr, typename TIter, typename... TExtraValues>
         ErrorStatus read(
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize)
+            TExtraValues&&... extraValues)
         {
-            return nextLayer_.read(msg, iter, size, missingSize);
+            return nextLayer_.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
         }
     private:
         NextLayer& nextLayer_;
@@ -896,14 +818,14 @@ protected:
         {
         }
 
-        template <typename TMsgPtr, typename TIter>
+        template <typename TMsgPtr, typename TIter, typename... TExtraValues>
         ErrorStatus read(
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize)
+            TExtraValues&&... extraValues)
         {
-            return nextLayer_.readUntilData(msg, iter, size, missingSize);
+            return nextLayer_.readUntilData(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
         }
     private:
         NextLayer& nextLayer_;
@@ -921,14 +843,14 @@ protected:
         {
         }
 
-        template<typename TMsgPtr, typename TIter>
+        template<typename TMsgPtr, typename TIter, typename... TExtraValues>
         ErrorStatus read(
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize)
+            TExtraValues&&... extraValues)
         {
-            return nextLayer_.readFieldsCached(allFields_, msg, iter, size, missingSize);
+            return nextLayer_.readFieldsCached(allFields_, msg, iter, size, std::forward<TExtraValues>(extraValues)...);
         }
 
     private:
@@ -948,14 +870,14 @@ protected:
         {
         }
 
-        template<typename TMsgPtr, typename TIter>
+        template<typename TMsgPtr, typename TIter, typename... TExtraValues>
         ErrorStatus read(
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize)
+            TExtraValues&&... extraValues)
         {
-            return nextLayer_.readUntilDataFieldsCache(allFields_, msg, iter, size, missingSize);
+            return nextLayer_.readUntilDataFieldsCache(allFields_, msg, iter, size, std::forward<TExtraValues>(extraValues)...);
         }
 
     private:
@@ -1103,36 +1025,36 @@ private:
     struct MessageObjTag {};
     struct SmartPtrTag {};
 
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readInternal(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        NormalReadTag)
+        NormalReadTag,
+        TExtraValues&&... extraValues)
     {
         Field field;
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerReader());
+        return derivedObj.doRead(field, msg, iter, size, createNextLayerReader(), std::forward<TExtraValues>(extraValues)...);
     }
 
-    template <typename TMsgPtr, typename TIter>
+    template <typename TMsgPtr, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readInternal(
         TMsgPtr& msgPtr,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        SplitReadTag)
+        SplitReadTag,
+        TExtraValues&&... extraValues)
     {
         auto fromIter = iter;
-        auto es = readUntilData(msgPtr, iter, size, missingSize);
+        auto es = readUntilData(msgPtr, iter, size, std::forward<TExtraValues>(extraValues)...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
         auto consumed = static_cast<std::size_t>(std::distance(fromIter, iter));
         COMMS_ASSERT(consumed <= size);
-        return readFromData(msgPtr, iter, size - consumed, missingSize);
+        return readFromData(msgPtr, iter, size - consumed, std::forward<TExtraValues>(extraValues)...);
     }
 
     template <typename TIter, typename TNextLayerUpdater>
@@ -1176,6 +1098,39 @@ private:
         msg.reset();
     }
 
+    static void updateMissingSizeInternal(std::size_t size)
+    {
+        static_cast<void>(size);
+    }
+
+    static void updateMissingSizeInternal(const Field& field, std::size_t size)
+    {
+        static_cast<void>(field);
+        static_cast<void>(size);
+    }
+
+    template <typename... TExtraValues>
+    static void updateMissingSizeInternal(
+        std::size_t size,
+        details::MissingSizeRetriever retriever,
+        TExtraValues&&...)
+    {
+        COMMS_ASSERT(size <= length());
+        retriever.setValue(std::max(std::size_t(1U), length() - size));
+    }
+
+    template <typename... TExtraValues>
+    void updateMissingSizeInternal(
+        const Field& field,
+        std::size_t size,
+        details::MissingSizeRetriever retriever,
+        TExtraValues&&...) const
+    {
+        auto totalLen = field.length() + nextLayer_.length();
+        COMMS_ASSERT(size <= totalLen);
+        retriever.setValue(std::max(std::size_t(1U), totalLen - size));
+    }
+
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");
     NextLayer nextLayer_;
 };
@@ -1205,6 +1160,11 @@ const ProtocolLayerBase<TField, TNextLayer, TDerived, TOptions...>&
 toProtocolLayerBase(const ProtocolLayerBase<TField, TNextLayer, TDerived, TOptions...>& layer)
 {
     return layer;
+}
+
+details::MissingSizeRetriever missingSize(std::size_t& val)
+{
+    return details::MissingSizeRetriever(val);
 }
 
 }  // namespace protocol

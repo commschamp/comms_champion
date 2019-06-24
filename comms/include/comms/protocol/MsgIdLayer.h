@@ -187,19 +187,19 @@ public:
     ///       to a valid object (in case of being a smart pointer).
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
         auto beforeReadIter = iter;
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, missingSize);
+            BaseImpl::updateMissingSize(field, size, std::forward<TExtraValues>(extraValues)...);
         }
 
         if (es != ErrorStatus::Success) {
@@ -215,7 +215,15 @@ public:
                 PointerOpTag
             >::type;
 
-        return doReadInternal(field, msg, iter, size - fieldLen, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
+        return
+            doReadInternal(
+                field,
+                msg,
+                iter,
+                size - fieldLen,
+                std::forward<TNextLayerReader>(nextLayerReader),
+                Tag(),
+                std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -387,7 +395,7 @@ private:
     struct HasGenericMsgTag {};
     struct NoGenericMsgTag {};
 
-    template <typename TIter, typename TNextLayerReader>
+    template <typename TIter, typename TNextLayerReader, typename... TExtraValues>
     class ReadRedirectionHandler
     {
     public:
@@ -396,12 +404,12 @@ private:
         ReadRedirectionHandler(
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize,
-            TNextLayerReader&& nextLayerReader)
+            TNextLayerReader&& nextLayerReader,
+            TExtraValues&&... extraValues)
           : m_iter(iter),
             m_size(size),
-            m_missingSize(missingSize),
-            m_nextLayerReader(std::move(nextLayerReader))
+            m_nextLayerReader(std::move(nextLayerReader)),
+            m_extraValues(std::forward<TExtraValues>(extraValues)...)
         {
         }
 
@@ -409,7 +417,7 @@ private:
         RetType handle(TMsg& msg)
         {
             static_assert(comms::isMessageBase<TMsg>(), "Expected to be a valid message object");
-            return m_nextLayerReader.read(msg, m_iter, m_size, m_missingSize);
+            return handleInternal(msg, m_extraValues);
         }
 
         RetType handle(TMessage& msg)
@@ -420,20 +428,51 @@ private:
         }        
 
     private:
+        template <typename TMsg>
+        RetType handleInternal(TMsg& msg, std::tuple<>&)
+        {
+            return m_nextLayerReader.read(msg, m_iter, m_size);
+        }
+
+        template <typename TMsg, typename TFirst>
+        RetType handleInternal(TMsg& msg, std::tuple<TFirst>& extraValues)
+        {
+            return m_nextLayerReader.read(msg, m_iter, m_size, std::get<0>(extraValues));
+        }
+
+        template <typename TMsg, typename TFirst, typename TSecond>
+        RetType handleInternal(TMsg& msg, std::tuple<TFirst, TSecond>& extraValues)
+        {
+            return m_nextLayerReader.read(msg, m_iter, m_size, std::get<0>(extraValues), std::get<1>(extraValues));
+        }
+
+        template <typename TMsg, typename TFirst, typename TSecond, typename TThird>
+        RetType handleInternal(TMsg& msg, std::tuple<TFirst, TSecond>& extraValues)
+        {
+            return
+               m_nextLayerReader.read(
+                    msg,
+                    m_iter,
+                    m_size,
+                    std::get<0>(extraValues),
+                    std::get<1>(extraValues),
+                    std::get<2>(extraValues));
+        }
+
         TIter& m_iter;
         std::size_t m_size = 0U;
-        std::size_t* m_missingSize = nullptr;
         TNextLayerReader&& m_nextLayerReader;
+        std::tuple<TExtraValues...> m_extraValues;
     };
 
-    template <typename TIter, typename TNextLayerReader>
-    ReadRedirectionHandler<TIter, TNextLayerReader> makeReadRedirectionHandler(
+    template <typename TIter, typename TNextLayerReader, typename... TExtraValues>
+    ReadRedirectionHandler<TIter, TNextLayerReader, TExtraValues...> makeReadRedirectionHandler(
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
-        return ReadRedirectionHandler<TIter, TNextLayerReader>(iter, size, missingSize, std::move(nextLayerReader));
+        return ReadRedirectionHandler<TIter, TNextLayerReader, TExtraValues...>(iter, size, std::move(nextLayerReader), std::forward<TExtraValues>(extraValues)...);
     }
 
     template <typename TIter, typename TNextLayerWriter>
@@ -500,14 +539,14 @@ private:
         return msg.doGetId();
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternalDirect(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(details::protocolLayerHasDoGetId<MsgType>(),
@@ -520,45 +559,52 @@ private:
         }
 
         static_cast<ExtendingClass*>(this)->beforeRead(field, msg);
-        return nextLayerReader.read(msg, iter, size, missingSize);
+        return nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternal(
         MsgIdParamType id,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader,
-        PolymorphicOpTag)
+        PolymorphicOpTag,
+        TExtraValues&&... extraValues)
     {
         static_cast<void>(id);
-        return nextLayerReader.read(msg, iter, size, missingSize);
+        return nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternal(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader,
-        DirectOpTag)
+        DirectOpTag,
+        TExtraValues&&... extraValues)
     {
-        return doReadInternalDirect(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
+        return
+            doReadInternalDirect(
+                field,
+                msg,
+                iter,
+                size,
+                std::forward<TNextLayerReader>(nextLayerReader),
+                std::forward<TExtraValues>(extraValues)...);
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternal(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader,
-        PointerOpTag)
+        PointerOpTag,
+        TExtraValues&&... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(comms::details::hasElementType<MsgType>(),
@@ -594,7 +640,7 @@ private:
             IterType readStart = iter;                
 
             static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
-            es = doReadInternal(id, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
+            es = doReadInternal(id, msg, iter, size, std::forward<TNextLayerReader>(nextLayerReader), Tag(), std::forward<TExtraValues>(extraValues)...);
             if (es == comms::ErrorStatus::Success) {
                 return es;
             }
@@ -623,24 +669,28 @@ private:
             msg, 
             iter, 
             size, 
-            missingSize, 
             std::forward<TNextLayerReader>(nextLayerReader), 
             es,
-            GenericMsgTag());
-
+            GenericMsgTag(),
+            std::forward<TExtraValues>(extraValues)...);
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternal(
         MsgIdParamType id,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader,
-        StaticBinSearchOpTag)
+        StaticBinSearchOpTag,
+        TExtraValues&&... extraValues)
     {
-        auto handler = makeReadRedirectionHandler(iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader));
+        auto handler =
+            makeReadRedirectionHandler(
+                iter,
+                size,
+                std::forward<TNextLayerReader>(nextLayerReader),
+                std::forward<TExtraValues>(extraValues)...);
         return comms::dispatchMsgStaticBinSearch<AllMessages>(id, *msg, handler);
     }
 
@@ -682,39 +732,38 @@ private:
         return createGenericMsgInternalTagged(std::forward<TId>(id), idx, IdParamTag<IdType>());
     }
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus createAndReadGenericMsgInternal(
         const Field& field,
         unsigned msgIdx,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader,
         comms::ErrorStatus es,
-        NoGenericMsgTag)
+        NoGenericMsgTag,
+        TExtraValues&&...)
     {
         static_cast<void>(field);
         static_cast<void>(msgIdx);
         static_cast<void>(msg);
         static_cast<void>(iter);
         static_cast<void>(size);
-        static_cast<void>(missingSize);
         static_cast<void>(nextLayerReader);
         return es;
     }   
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus createAndReadGenericMsgInternal(
         const Field& field,
         unsigned msgIdx,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader,
         comms::ErrorStatus es,
-        HasGenericMsgTag)
+        HasGenericMsgTag,
+        TExtraValues&&... extraValues)
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
 
@@ -733,33 +782,40 @@ private:
                 DirectOpTag
             >::type;
 
-        return readGenericMsg(msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), Tag());
+        return
+            readGenericMsg(
+                msg,
+                iter,
+                size,
+                std::forward<TNextLayerReader>(nextLayerReader),
+                Tag(),
+                std::forward<TExtraValues>(extraValues)...);
     }  
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus readGenericMsg(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader,
-        PolymorphicOpTag)
+        PolymorphicOpTag,
+        TExtraValues&&... extraValues)
     {
-        return nextLayerReader.read(msg, iter, size, missingSize);
+        return nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
     }  
 
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus readGenericMsg(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TNextLayerReader&& nextLayerReader,
-        DirectOpTag)
+        DirectOpTag,
+        TExtraValues&&... extraValues)
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
         auto& castedMsgRef = static_cast<GenericMsgType&>(*msg);
-        return nextLayerReader.read(castedMsgRef, iter, size, missingSize);
+        return nextLayerReader.read(castedMsgRef, iter, size, std::forward<TExtraValues>(extraValues)...);
     }               
 
     template <typename TId>

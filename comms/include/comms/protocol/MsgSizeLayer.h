@@ -157,14 +157,14 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
         using IterTag = typename std::iterator_traits<IterType>::iterator_category;
@@ -175,7 +175,7 @@ public:
         auto begIter = iter;
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, missingSize);
+            BaseImpl::updateMissingSize(field, size, std::forward<TExtraValues>(extraValues)...);
         }
 
         if (es != ErrorStatus::Success) {
@@ -189,17 +189,14 @@ public:
             static_cast<ExtendingClass*>(this)->getRemainingSizeFromField(field);
 
         if (actualRemainingSize < requiredRemainingSize) {
-            if (missingSize != nullptr) {
-                *missingSize = requiredRemainingSize - actualRemainingSize;
-            }
+            BaseImpl::setMissingSize(requiredRemainingSize - actualRemainingSize, std::forward<TExtraValues>(extraValues)...);
             return ErrorStatus::NotEnoughData;
         }
 
         using MsgType = typename std::decay<decltype(msg)>::type;
         using MsgPtrTag = MsgTypeTag<MsgType>;
-        // not passing missingSize farther on purpose
         static_cast<ExtendingClass*>(this)->beforeRead(field, getPtrToMsgInternal(msg, MsgPtrTag()));
-        es = nextLayerReader.read(msg, iter, requiredRemainingSize, nullptr);
+        es = nextLayerReader.read(msg, iter, requiredRemainingSize, std::forward<TExtraValues>(extraValues)...);
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::resetMsg(msg);
             return ErrorStatus::ProtocolError;

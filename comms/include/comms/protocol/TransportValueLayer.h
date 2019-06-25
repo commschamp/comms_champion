@@ -125,21 +125,21 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
-        auto es = readFieldInternal(field, iter, size, missingSize, ValueTag());
+        auto es = readFieldInternal(field, iter, size, ValueTag(), std::forward<TExtraValues>(extraValues)...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        es = nextLayerReader.read(msg, iter, size, missingSize);
+        es = nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
 
         using Tag =
             typename std::conditional<
@@ -296,33 +296,32 @@ private:
         return BaseImpl::doFieldLength();
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldInternal(
         Field& field,
         TIter& iter,
         std::size_t& len,
-        std::size_t* missingSize,
-        PseudoValueTag)
+        PseudoValueTag,
+        TExtraValues&&...)
     {
         static_cast<void>(iter);
         static_cast<void>(len);
-        static_cast<void>(missingSize);
         field = BaseImpl::pseudoField();
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldInternal(
         Field& field,
         TIter& iter,
         std::size_t& len,
-        std::size_t* missingSize,
-        NormalValueTag)
+        NormalValueTag,
+        TExtraValues&&... extraValues)
     {
         auto beforeReadIter = iter;
         auto es = field.read(iter, len);
         if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, len, missingSize);
+            BaseImpl::updateMissingSize(field, len, std::forward<TExtraValues>(extraValues)...);
         }
         else {
             auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));

@@ -35,6 +35,7 @@ public:
     void test3();
     void test4();
     void test5();
+    void test6();
 
 private:
 
@@ -324,4 +325,22 @@ void CustomMsgIdLayerTestSuite::test5()
     auto* msg = dynamic_cast<comms::GenericMessage<NonPolymorphicInterface>*>(msgPtr.get());
     TS_ASSERT(msg != nullptr);
     TS_ASSERT_EQUALS(msg->doGetId(), MessageType5);
+}
+
+void CustomMsgIdLayerTestSuite::test6()
+{
+    static const char Buf[] = {
+        0x3, 0x01,
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = SimpleFrame<NonPolymorphicInterface>;
+    Stack stack;
+    Stack::MsgPtr msgPtr;
+    auto readIter = &Buf[0];
+    std::size_t missingSize = 0U;
+    auto es = stack.read(msgPtr, readIter, BufSize, comms::protocol::missingSize(missingSize));
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT_EQUALS(missingSize, 1U);
 }

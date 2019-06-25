@@ -762,6 +762,14 @@ protected:
         return updateMissingSizeInternal(field, size, std::forward<TExtraValues>(extraValues)...);
     }
 
+    template <typename... TExtraValues>
+    void setMissingSize(
+        std::size_t val,
+        TExtraValues&&... extraValues) const
+    {
+        return setMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
     template <std::size_t TIdx, typename TAllFields>
     static Field& getField(TAllFields& allFields)
     {
@@ -1110,10 +1118,10 @@ private:
     }
 
     template <typename... TExtraValues>
-    static void updateMissingSizeInternal(
+    void updateMissingSizeInternal(
         std::size_t size,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&...)
+        TExtraValues&&...) const
     {
         COMMS_ASSERT(size <= length());
         retriever.setValue(std::max(std::size_t(1U), length() - size));
@@ -1129,6 +1137,20 @@ private:
         auto totalLen = field.length() + nextLayer_.length();
         COMMS_ASSERT(size <= totalLen);
         retriever.setValue(std::max(std::size_t(1U), totalLen - size));
+    }
+
+    static void setMissingSizeInternal(std::size_t val)
+    {
+        static_cast<void>(val);
+    }
+
+    template <typename... TExtraValues>
+    void setMissingSizeInternal(
+        std::size_t val,
+        details::MissingSizeRetriever retriever,
+        TExtraValues&&...) const
+    {
+        retriever.setValue(val);
     }
 
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");

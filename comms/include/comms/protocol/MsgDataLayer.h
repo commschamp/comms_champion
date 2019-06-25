@@ -764,7 +764,7 @@ private:
     }
 
     template <typename... TExtraValues>
-    static constexpr bool missingSizeRequiredInternal(details::MissingSizeRetriever, TExtraValues&&...)
+    static bool missingSizeRequiredInternal(details::MissingSizeRetriever, TExtraValues&&...)
     {
         return true;
     }

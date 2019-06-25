@@ -96,19 +96,19 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
         auto beforeReadIter = iter;
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, missingSize);
+            BaseImpl::updateMissingSize(field, size, std::forward<TExtraValues>(extraValues)...);
         }
 
         if (es != comms::ErrorStatus::Success) {
@@ -121,7 +121,7 @@ public:
         }
 
         auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));
-        return nextLayerReader.read(msg, iter, size - fieldLen, missingSize);
+        return nextLayerReader.read(msg, iter, size - fieldLen, std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().

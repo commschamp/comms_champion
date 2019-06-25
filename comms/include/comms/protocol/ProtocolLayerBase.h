@@ -1184,6 +1184,7 @@ toProtocolLayerBase(const ProtocolLayerBase<TField, TNextLayer, TDerived, TOptio
     return layer;
 }
 
+inline
 details::MissingSizeRetriever missingSize(std::size_t& val)
 {
     return details::MissingSizeRetriever(val);

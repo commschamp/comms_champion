@@ -124,14 +124,14 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     ErrorStatus doRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
         static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
@@ -141,7 +141,15 @@ public:
             return ErrorStatus::NotEnoughData;
         }
 
-        return readInternal(field, msg, iter, size, missingSize, std::forward<TNextLayerReader>(nextLayerReader), VerifyTag());
+        return
+            readInternal(
+                field,
+                msg,
+                iter,
+                size,
+                std::forward<TNextLayerReader>(nextLayerReader),
+                VerifyTag(),
+                std::forward<TExtraValues>(extraValues)...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -233,14 +241,14 @@ private:
         >::type;
 
 
-    template <typename TMsg, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus verifyRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TReader&& nextLayerReader)
+        TReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
         auto fromIter = iter;
         auto toIter = fromIter + (size - Field::minLength());
@@ -259,7 +267,7 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
-        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), missingSize);
+        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), std::forward<TExtraValues>(extraValues)...);
         if (es == ErrorStatus::Success) {
             iter = toIter;
         }
@@ -267,18 +275,18 @@ private:
         return es;
     }
 
-    template <typename TMsg, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus readVerify(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TReader&& nextLayerReader)
+        TReader&& nextLayerReader,
+        TExtraValues&&... extraValues)
     {
         auto fromIter = iter;
 
-        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), missingSize);
+        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), std::forward<TExtraValues>(extraValues)...);
         if ((es == ErrorStatus::NotEnoughData) ||
             (es == ErrorStatus::ProtocolError)) {
             return es;
@@ -289,7 +297,7 @@ private:
         auto remSize = size - len;
         auto checksumEs = field.read(iter, remSize);
         if (checksumEs == ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, remSize, missingSize);
+            BaseImpl::updateMissingSize(field, remSize, std::forward<TExtraValues>(extraValues)...);
         }
 
         if (checksumEs != ErrorStatus::Success) {
@@ -308,30 +316,44 @@ private:
         return es;
     }
 
-    template <typename TMsg, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus readInternal(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TReader&& nextLayerReader,
-        VerifyBeforeReadTag)
+        VerifyBeforeReadTag,
+        TExtraValues&&... extraValues)
     {
-        return verifyRead(field, msg, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
+        return
+            verifyRead(
+                field,
+                msg,
+                iter,
+                size,
+                std::forward<TReader>(nextLayerReader),
+                std::forward<TExtraValues>(extraValues)...);
     }
 
-    template <typename TMsg, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus readInternal(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TReader&& nextLayerReader,
-        VerifyAfterReadTag)
+        VerifyAfterReadTag,
+        TExtraValues&&... extraValues)
     {
-        return readVerify(field, msg, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
+        return
+            readVerify(
+                field,
+                msg,
+                iter,
+                size,
+                std::forward<TReader>(nextLayerReader),
+                std::forward<TExtraValues>(extraValues)...);
     }
 
     template <typename TMsg, typename TIter, typename TWriter>

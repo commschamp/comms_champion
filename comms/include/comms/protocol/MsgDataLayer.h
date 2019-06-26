@@ -769,15 +769,38 @@ private:
         return true;
     }
 
+    template <typename T, typename... TExtraValues>
+    static bool missingSizeRequiredInternal(T, TExtraValues&&... extraValues)
+    {
+        static_assert(
+            !details::isMissingSizeRetriever<T>(),
+            "Mustn't be missing size retriever");
+        return missingSizeRequiredInternal(std::forward<TExtraValues>(extraValues)...);
+    }
+
     static void updateMissingSizeInternal(std::size_t val)
     {
         static_cast<void>(val);
     }
 
     template <typename... TExtraValues>
-    static void updateMissingSizeInternal(std::size_t val, details::MissingSizeRetriever retriever, TExtraValues&&...)
+    static void updateMissingSizeInternal(
+        std::size_t val,
+        details::MissingSizeRetriever retriever,
+        TExtraValues&&... extraValues)
     {
         retriever.setValue(val);
+        updateMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename T, typename... TExtraValues>
+    static void updateMissingSizeInternal(std::size_t val, T retriever, TExtraValues&&... extraValues)
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        updateMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
     }
 
 };

@@ -57,6 +57,7 @@ public:
     void test25();
     void test26();
     void test27();
+    void test28();
 
 private:
 
@@ -590,7 +591,7 @@ void MsgIdLayerTestSuite::test11()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    using Stack = ProtocolStack<BeField1, BeMsgBase>;
+    using Stack = ProtocolStack<BeField1, BeMsgBase, Messages_1to3>;
     static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
     static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
     static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
@@ -608,7 +609,7 @@ void MsgIdLayerTestSuite::test12()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    using Stack = GenericMessageProtocolStack<BeField1, BeMsgBase>;
+    using Stack = GenericMessageProtocolStack<BeField1, BeMsgBase, Messages_1to3>;
     static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
     static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
     static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
@@ -1083,7 +1084,52 @@ void MsgIdLayerTestSuite::test27()
     ProtStack::MsgPtr msg;
     auto readIter = &Buf[0];
     std::size_t missingSize = 0U;
-    auto es = stack.read(msg, readIter, BufSize, comms::protocol::missingSize(missingSize));
+    std::size_t missingSize2 = 0U;
+    std::size_t msgIndex = 0U;
+    MessageType msgId = MessageType();
+    auto es =
+        stack.read(
+            msg,
+            readIter,
+            BufSize,
+            comms::protocol::missingSize(missingSize),
+            comms::protocol::msgId(msgId),
+            comms::protocol::msgIndex(msgIndex),
+            comms::protocol::missingSize(missingSize2));
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
     TS_ASSERT_EQUALS(missingSize, 2U);
+    TS_ASSERT_EQUALS(missingSize, missingSize2);
+}
+
+void MsgIdLayerTestSuite::test28()
+{
+    static const char Buf[] = {
+        MessageType5, 0x01, 0x02, 0x03
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeOnlyDestructorPolymorphicMessageBase, Messages_1to5>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+    auto readIter = &Buf[0];
+    MessageType msgId = MessageType();
+    std::size_t msgIndex = 100U;
+    MessageType msgId2 = MessageType();
+    std::size_t msgIndex2 = 100U;
+
+    auto es =
+        stack.read(
+            msg,
+            readIter,
+            BufSize,
+            comms::protocol::msgId(msgId),
+            comms::protocol::msgIndex(msgIndex),
+            comms::protocol::msgId(msgId2),
+            comms::protocol::msgIndex(msgIndex2));
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(msgId, MessageType5);
+    TS_ASSERT_EQUALS(msgId, msgId2);
+    TS_ASSERT_EQUALS(msgIndex, 0U);
+    TS_ASSERT_EQUALS(msgIndex, msgIndex2);
 }

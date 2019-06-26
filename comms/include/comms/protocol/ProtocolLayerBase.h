@@ -770,6 +770,23 @@ protected:
         return setMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
     }
 
+    template <typename TId, typename... TExtraValues>
+    void setMsgId(
+        TId val,
+        TExtraValues&&... extraValues) const
+    {
+        return setMsgIdInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename... TExtraValues>
+    void setMsgIndex(
+        std::size_t val,
+        TExtraValues&&... extraValues) const
+    {
+        return setMsgIndexInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
+
     template <std::size_t TIdx, typename TAllFields>
     static Field& getField(TAllFields& allFields)
     {
@@ -1121,10 +1138,11 @@ private:
     void updateMissingSizeInternal(
         std::size_t size,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&...) const
+        TExtraValues&&... extraValues) const
     {
         COMMS_ASSERT(size <= length());
         retriever.setValue(std::max(std::size_t(1U), length() - size));
+        updateMissingSizeInternal(size, std::forward<TExtraValues>(extraValues)...);
     }
 
     template <typename... TExtraValues>
@@ -1132,12 +1150,43 @@ private:
         const Field& field,
         std::size_t size,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&...) const
+        TExtraValues&&... extraValues) const
     {
+        static_assert(
+            details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Must be missing size retriever");
         auto totalLen = field.length() + nextLayer_.length();
         COMMS_ASSERT(size <= totalLen);
         retriever.setValue(std::max(std::size_t(1U), totalLen - size));
+        updateMissingSizeInternal(size, std::forward<TExtraValues>(extraValues)...);
     }
+
+    template <typename T, typename... TExtraValues>
+    void updateMissingSizeInternal(
+        std::size_t size,
+        T retriever,
+        TExtraValues&&... extraValues) const
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        updateMissingSizeInternal(size, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename T, typename... TExtraValues>
+    void updateMissingSizeInternal(
+        const Field& field,
+        std::size_t size,
+        T retriever,
+        TExtraValues&&... extraValues) const
+    {
+        static_assert(
+            !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        updateMissingSizeInternal(field, size, std::forward<TExtraValues>(extraValues)...);
+    }
+
 
     static void setMissingSizeInternal(std::size_t val)
     {
@@ -1148,9 +1197,80 @@ private:
     void setMissingSizeInternal(
         std::size_t val,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&...) const
+        TExtraValues&&... extraValues) const
     {
         retriever.setValue(val);
+        setMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename T, typename... TExtraValues>
+    void setMissingSizeInternal(
+        std::size_t val,
+        T retriever,
+        TExtraValues&&... extraValues) const
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        setMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename TId>
+    static void setMsgIdInternal(TId val)
+    {
+        static_cast<void>(val);
+    }
+
+    template <typename TId, typename U, typename... TExtraValues>
+    void setMsgIdInternal(
+        TId val,
+        details::MsgIdRetriever<U> retriever,
+        TExtraValues&&... extraValues) const
+    {
+        retriever.setValue(val);
+        setMsgIdInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename TId, typename T, typename... TExtraValues>
+    void setMsgIdInternal(
+        TId val,
+        T retriever,
+        TExtraValues&&... extraValues) const
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMsgIdRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be message id retriever");
+        setMsgIdInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    static void setMsgIndexInternal(std::size_t val)
+    {
+        static_cast<void>(val);
+    }
+
+    template <typename... TExtraValues>
+    void setMsgIndexInternal(
+        std::size_t val,
+        details::MsgIndexRetriever retriever,
+        TExtraValues&&... extraValues) const
+    {
+        retriever.setValue(val);
+        setMsgIndexInternal(val, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename T, typename... TExtraValues>
+    void setMsgIndexInternal(
+        std::size_t val,
+        T retriever,
+        TExtraValues&&... extraValues) const
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMsgIndexRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        setMsgIndexInternal(val, std::forward<TExtraValues>(extraValues)...);
     }
 
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");
@@ -1189,6 +1309,19 @@ details::MissingSizeRetriever missingSize(std::size_t& val)
 {
     return details::MissingSizeRetriever(val);
 }
+
+template <typename TId>
+details::MsgIdRetriever<TId> msgId(TId& val)
+{
+    return details::MsgIdRetriever<TId>(val);
+}
+
+inline
+details::MsgIndexRetriever msgIndex(std::size_t& val)
+{
+    return details::MsgIndexRetriever(val);
+}
+
 
 }  // namespace protocol
 

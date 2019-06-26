@@ -230,9 +230,19 @@ void MsgDataLayerTestSuite::test5()
      NonPolymorphicBeMsg1 msg1;
      auto readIter = &Buf[0];
      std::size_t missingSize = 0U;
-     auto es = stack.read(msg1, readIter, BufSize, comms::protocol::missingSize(missingSize));
+     std::size_t missingSize2 = 0U;
+     unsigned id = 0U;
+     auto es =
+        stack.read(
+            msg1,
+            readIter,
+            BufSize,
+            comms::protocol::missingSize(missingSize),
+            comms::protocol::msgId(id),
+            comms::protocol::missingSize(missingSize2));
      TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
      TS_ASSERT_EQUALS(missingSize, 1U);
+     TS_ASSERT_EQUALS(missingSize, missingSize2);
 }
 
 template <typename TMessage>

@@ -434,20 +434,20 @@ private:
             return m_nextLayerReader.read(msg, m_iter, m_size);
         }
 
-        template <typename TMsg, typename TFirst>
-        RetType handleInternal(TMsg& msg, std::tuple<TFirst>& extraValues)
+        template <typename TMsg, typename T0>
+        RetType handleInternal(TMsg& msg, std::tuple<T0>& extraValues)
         {
             return m_nextLayerReader.read(msg, m_iter, m_size, std::get<0>(extraValues));
         }
 
-        template <typename TMsg, typename TFirst, typename TSecond>
-        RetType handleInternal(TMsg& msg, std::tuple<TFirst, TSecond>& extraValues)
+        template <typename TMsg, typename T0, typename T1>
+        RetType handleInternal(TMsg& msg, std::tuple<T0, T1>& extraValues)
         {
             return m_nextLayerReader.read(msg, m_iter, m_size, std::get<0>(extraValues), std::get<1>(extraValues));
         }
 
-        template <typename TMsg, typename TFirst, typename TSecond, typename TThird>
-        RetType handleInternal(TMsg& msg, std::tuple<TFirst, TSecond>& extraValues)
+        template <typename TMsg, typename T0, typename T1, typename T2>
+        RetType handleInternal(TMsg& msg, std::tuple<T0, T1, T2>& extraValues)
         {
             return
                m_nextLayerReader.read(
@@ -457,6 +457,51 @@ private:
                     std::get<0>(extraValues),
                     std::get<1>(extraValues),
                     std::get<2>(extraValues));
+        }
+
+        template <typename TMsg, typename T0, typename T1, typename T2, typename T3>
+        RetType handleInternal(TMsg& msg, std::tuple<T0, T1, T2, T3>& extraValues)
+        {
+            return
+               m_nextLayerReader.read(
+                    msg,
+                    m_iter,
+                    m_size,
+                    std::get<0>(extraValues),
+                    std::get<1>(extraValues),
+                    std::get<2>(extraValues),
+                    std::get<3>(extraValues));
+        }
+
+        template <typename TMsg, typename T0, typename T1, typename T2, typename T3, typename T4>
+        RetType handleInternal(TMsg& msg, std::tuple<T0, T1, T2, T3, T4>& extraValues)
+        {
+            return
+               m_nextLayerReader.read(
+                    msg,
+                    m_iter,
+                    m_size,
+                    std::get<0>(extraValues),
+                    std::get<1>(extraValues),
+                    std::get<2>(extraValues),
+                    std::get<3>(extraValues),
+                    std::get<4>(extraValues));
+        }
+
+        template <typename TMsg, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+        RetType handleInternal(TMsg& msg, std::tuple<T0, T1, T2, T3, T4, T5>& extraValues)
+        {
+            return
+               m_nextLayerReader.read(
+                    msg,
+                    m_iter,
+                    m_size,
+                    std::get<0>(extraValues),
+                    std::get<1>(extraValues),
+                    std::get<2>(extraValues),
+                    std::get<3>(extraValues),
+                    std::get<4>(extraValues),
+                    std::get<5>(extraValues));
         }
 
         TIter& m_iter;
@@ -554,6 +599,7 @@ private:
                 "using \"StaticNumIdImpl\" option");
 
         auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        BaseImpl::setMsgId(id, std::forward<TExtraValues>(extraValues)...);
         if (id != MsgType::doGetId()) {
             return ErrorStatus::InvalidMsgId;
         }
@@ -624,6 +670,8 @@ private:
             >::type;
 
         const auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
+        BaseImpl::setMsgId(id, std::forward<TExtraValues>(extraValues)...);
+
         auto es = comms::ErrorStatus::InvalidMsgId;
         unsigned idx = 0;
         CreateFailureReason failureReason = CreateFailureReason::None;
@@ -642,6 +690,7 @@ private:
             static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
             es = doReadInternal(id, msg, iter, size, std::forward<TNextLayerReader>(nextLayerReader), Tag(), std::forward<TExtraValues>(extraValues)...);
             if (es == comms::ErrorStatus::Success) {
+                BaseImpl::setMsgIndex(idx, std::forward<TExtraValues>(extraValues)...);
                 return es;
             }
 
@@ -650,6 +699,7 @@ private:
             ++idx;
         }
 
+        BaseImpl::setMsgIndex(idx, std::forward<TExtraValues>(extraValues)...);
         COMMS_ASSERT(!msg);
         if (failureReason == CreateFailureReason::AllocFailure) {
             return comms::ErrorStatus::MsgAllocFailure;

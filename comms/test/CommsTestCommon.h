@@ -744,7 +744,6 @@ struct Message90_2Fields
         typeField,
         field1
     >;
-
 };
 
 template <typename TMessage>

@@ -611,6 +611,7 @@ private:
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternal(
         MsgIdParamType id,
+        unsigned idx,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -619,6 +620,7 @@ private:
         TExtraValues&&... extraValues)
     {
         static_cast<void>(id);
+        static_cast<void>(idx);
         return nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
     }
 
@@ -688,7 +690,7 @@ private:
             IterType readStart = iter;                
 
             static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
-            es = doReadInternal(id, msg, iter, size, std::forward<TNextLayerReader>(nextLayerReader), Tag(), std::forward<TExtraValues>(extraValues)...);
+            es = doReadInternal(id, idx, msg, iter, size, std::forward<TNextLayerReader>(nextLayerReader), Tag(), std::forward<TExtraValues>(extraValues)...);
             if (es == comms::ErrorStatus::Success) {
                 BaseImpl::setMsgIndex(idx, std::forward<TExtraValues>(extraValues)...);
                 return es;
@@ -728,6 +730,7 @@ private:
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doReadInternal(
         MsgIdParamType id,
+        unsigned idx,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
@@ -741,7 +744,7 @@ private:
                 size,
                 std::forward<TNextLayerReader>(nextLayerReader),
                 std::forward<TExtraValues>(extraValues)...);
-        return comms::dispatchMsgStaticBinSearch<AllMessages>(id, *msg, handler);
+        return comms::dispatchMsgStaticBinSearch<AllMessages>(id, idx, *msg, handler);
     }
 
     template <typename TId>

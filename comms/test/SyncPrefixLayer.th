@@ -37,6 +37,7 @@ public:
     void test5();
     void test6();
     void test7();
+    void test8();
 
 private:
 
@@ -342,4 +343,36 @@ void SyncPrefixLayerTestSuite::test7()
     TS_ASSERT_EQUALS(std::get<0>(fields2).value(), 0xabcd);
     TS_ASSERT_EQUALS(std::get<1>(fields2).value(), 3U);
     TS_ASSERT_EQUALS(std::get<2>(fields2).value(), MessageType1);
+}
+
+void SyncPrefixLayerTestSuite::test8()
+{
+    static const char Buf[] = {
+        (char)0xab, (char)0xcd, 0x0, 0x3, MessageType90, 0x01, 0x01
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    typedef
+        ProtocolStack<
+            BeSyncField2,
+            BeSizeField20,
+            BeIdField1,
+            BeNonPolymorphicMessageBase
+        > Stack;
+
+    Stack stack;
+    Stack::MsgPtr msg;
+    MessageType msgId = MessageType();
+    std::size_t msgIndex = 0U;
+    auto readIter = &Buf[0];
+    auto es =
+        stack.read(
+            msg, readIter, BufSize,
+            comms::protocol::msgId(msgId),
+            comms::protocol::msgIndex(msgIndex));
+
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(msgId, MessageType90);
+    TS_ASSERT_EQUALS(msgIndex, 1U);
 }

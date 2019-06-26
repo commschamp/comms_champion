@@ -733,6 +733,7 @@ struct Message90_2Fields
             comms::field::IntValue<
                 TField, 
                 std::uint8_t,
+                comms::option::DefaultNumValue<1>,
                 comms::option::ValidNumValue<1>,
                 comms::option::FailOnInvalid<>
             >;
@@ -792,7 +793,35 @@ using AllMessages =
     std::tuple<
         Message1<TMessage>,
         Message2<TMessage>,
-        Message3<TMessage>
+        Message3<TMessage>,
+        Message4<TMessage>,
+        Message5<TMessage>,
+        Message6<TMessage>,
+        Message7<TMessage>,
+        Message8<TMessage>,
+        Message9<TMessage>,
+        Message90_1<TMessage>,
+        Message90_2<TMessage>
+    >;
+
+template <typename TMessage>
+using Messages_1to3 =
+    std::tuple<
+        Message1<TMessage>,
+        Message2<TMessage>,
+        Message3<TMessage>,
+        Message4<TMessage>
+    >;
+
+
+template <typename TMessage>
+using Messages_1to5 =
+    std::tuple<
+        Message1<TMessage>,
+        Message2<TMessage>,
+        Message3<TMessage>,
+        Message4<TMessage>,
+        Message5<TMessage>
     >;
 
 namespace details

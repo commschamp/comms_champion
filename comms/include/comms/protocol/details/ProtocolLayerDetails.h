@@ -129,6 +129,90 @@ private:
     std::size_t& value_;
 };
 
+template <typename T>
+struct IsMissingSizeRetrieverHelper
+{
+    static const bool Value = false;
+};
+
+template <>
+struct IsMissingSizeRetrieverHelper<MissingSizeRetriever>
+{
+    static const bool Value = true;
+};
+
+template <typename T>
+constexpr bool isMissingSizeRetriever()
+{
+    return IsMissingSizeRetrieverHelper<T>::Value;
+}
+
+template <typename TId>
+class MsgIdRetriever
+{
+public:
+    MsgIdRetriever(TId& val) : value_(val) {}
+
+    template <typename U>
+    void setValue(U&& val)
+    {
+        value_ = static_cast<TId>(val);
+    }
+
+private:
+    TId& value_;
+};
+
+template <typename T>
+struct IsMsgIdRetrieverHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TId>
+struct IsMsgIdRetrieverHelper<MsgIdRetriever<TId> >
+{
+    static const bool Value = true;
+};
+
+template <typename T>
+constexpr bool isMsgIdRetriever()
+{
+    return IsMsgIdRetrieverHelper<T>::Value;
+}
+
+class MsgIndexRetriever
+{
+public:
+    MsgIndexRetriever(std::size_t& val) : value_(val) {}
+
+    void setValue(std::size_t val)
+    {
+        value_ = val;
+    }
+
+private:
+    std::size_t& value_;
+};
+
+template <typename T>
+struct IsMsgIndexRetrieverHelper
+{
+    static const bool Value = false;
+};
+
+template <>
+struct IsMsgIndexRetrieverHelper<MsgIndexRetriever>
+{
+    static const bool Value = true;
+};
+
+template <typename T>
+constexpr bool isMsgIndexRetriever()
+{
+    return IsMsgIndexRetrieverHelper<T>::Value;
+}
+
 } // namespace details
 
 } // namespace protocol

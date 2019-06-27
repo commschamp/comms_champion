@@ -132,14 +132,14 @@ public:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        auto es = readFieldInternal(field, iter, size, ValueTag(), std::forward<TExtraValues>(extraValues)...);
+        auto es = readFieldInternal(field, iter, size, ValueTag(), extraValues...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        es = nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        es = nextLayerReader.read(msg, iter, size, extraValues...);
 
         using Tag =
             typename std::conditional<
@@ -302,7 +302,7 @@ private:
         TIter& iter,
         std::size_t& len,
         PseudoValueTag,
-        TExtraValues&&...)
+        TExtraValues...)
     {
         static_cast<void>(iter);
         static_cast<void>(len);
@@ -316,12 +316,12 @@ private:
         TIter& iter,
         std::size_t& len,
         NormalValueTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto beforeReadIter = iter;
         auto es = field.read(iter, len);
         if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, len, std::forward<TExtraValues>(extraValues)...);
+            BaseImpl::updateMissingSize(field, len, extraValues...);
         }
         else {
             auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));

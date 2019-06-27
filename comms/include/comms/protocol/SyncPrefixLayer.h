@@ -103,12 +103,12 @@ public:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto beforeReadIter = iter;
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, std::forward<TExtraValues>(extraValues)...);
+            BaseImpl::updateMissingSize(field, size, extraValues...);
         }
 
         if (es != comms::ErrorStatus::Success) {
@@ -121,7 +121,7 @@ public:
         }
 
         auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));
-        return nextLayerReader.read(msg, iter, size - fieldLen, std::forward<TExtraValues>(extraValues)...);
+        return nextLayerReader.read(msg, iter, size - fieldLen, extraValues...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().

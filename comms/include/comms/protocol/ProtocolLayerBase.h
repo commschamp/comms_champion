@@ -201,7 +201,7 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using Tag =
             typename std::conditional<
@@ -212,7 +212,7 @@ public:
 
         static_assert(std::is_same<Tag, NormalReadTag>::value || canSplitRead(),
             "Read split is disallowed by at least one of the inner layers");
-        return readInternal(msg, iter, size, Tag(), std::forward<TExtraValues>(extraValues)...);
+        return readInternal(msg, iter, size, Tag(), extraValues...);
     }
 
     /// @brief Perform read of data fields until data layer (message payload).
@@ -242,7 +242,7 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
 
         Field field;
@@ -254,7 +254,7 @@ public:
                 iter,
                 size,
                 createNextLayerUntilDataReader(),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     /// @brief Finalise the read operation by reading the message payload.
@@ -284,9 +284,9 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        return nextLayer().readFromData(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return nextLayer().readFromData(msg, iter, size, extraValues...);
     }
 
     /// @brief Deserialise message from the input data sequence while caching
@@ -318,7 +318,7 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using AllFieldsDecayed = typename std::decay<TAllFields>::type;
         static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
@@ -334,7 +334,7 @@ public:
                 iter,
                 size,
                 createNextLayerCachedFieldsReader(allFields),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     /// @brief Perform read of data fields until data layer (message payload) while caching
@@ -366,7 +366,7 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using AllFieldsDecayed = typename std::decay<TAllFields>::type;
         static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
@@ -383,7 +383,7 @@ public:
                 iter,
                 size,
                 createNextLayerCachedFieldsUntilDataReader(allFields),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     /// @brief Finalise the read operation by reading the message payload while caching
@@ -413,9 +413,9 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        return nextLayer().readFromDataFieldsCached(allFields, msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return nextLayer().readFromDataFieldsCached(allFields, msg, iter, size, extraValues...);
     }
 
     /// @brief Serialise message into output data sequence.
@@ -748,42 +748,42 @@ protected:
     }
 
     template <typename... TExtraValues>
-    void updateMissingSize(std::size_t size, TExtraValues&&... extraValues) const
+    void updateMissingSize(std::size_t size, TExtraValues... extraValues) const
     {
-        return updateMissingSizeInternal(size, std::forward<TExtraValues>(extraValues)...);
+        return updateMissingSizeInternal(size, extraValues...);
     }
 
     template <typename... TExtraValues>
     void updateMissingSize(
         const Field& field,
         std::size_t size,
-        TExtraValues&&... extraValues) const
+        TExtraValues... extraValues) const
     {
-        return updateMissingSizeInternal(field, size, std::forward<TExtraValues>(extraValues)...);
+        return updateMissingSizeInternal(field, size, extraValues...);
     }
 
     template <typename... TExtraValues>
     void setMissingSize(
         std::size_t val,
-        TExtraValues&&... extraValues) const
+        TExtraValues... extraValues) const
     {
-        return setMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+        return setMissingSizeInternal(val, extraValues...);
     }
 
     template <typename TId, typename... TExtraValues>
     void setMsgId(
         TId val,
-        TExtraValues&&... extraValues) const
+        TExtraValues... extraValues) const
     {
-        return setMsgIdInternal(val, std::forward<TExtraValues>(extraValues)...);
+        return setMsgIdInternal(val, extraValues...);
     }
 
     template <typename... TExtraValues>
     void setMsgIndex(
         std::size_t val,
-        TExtraValues&&... extraValues) const
+        TExtraValues... extraValues) const
     {
-        return setMsgIndexInternal(val, std::forward<TExtraValues>(extraValues)...);
+        return setMsgIndexInternal(val, extraValues...);
     }
 
 
@@ -827,9 +827,9 @@ protected:
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            TExtraValues&&... extraValues)
+            TExtraValues... extraValues)
         {
-            return nextLayer_.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+            return nextLayer_.read(msg, iter, size, extraValues...);
         }
     private:
         NextLayer& nextLayer_;
@@ -848,9 +848,9 @@ protected:
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            TExtraValues&&... extraValues)
+            TExtraValues... extraValues)
         {
-            return nextLayer_.readUntilData(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+            return nextLayer_.readUntilData(msg, iter, size, extraValues...);
         }
     private:
         NextLayer& nextLayer_;
@@ -873,9 +873,9 @@ protected:
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            TExtraValues&&... extraValues)
+            TExtraValues... extraValues)
         {
-            return nextLayer_.readFieldsCached(allFields_, msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+            return nextLayer_.readFieldsCached(allFields_, msg, iter, size, extraValues...);
         }
 
     private:
@@ -900,9 +900,9 @@ protected:
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            TExtraValues&&... extraValues)
+            TExtraValues... extraValues)
         {
-            return nextLayer_.readUntilDataFieldsCache(allFields_, msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+            return nextLayer_.readUntilDataFieldsCache(allFields_, msg, iter, size, extraValues...);
         }
 
     private:
@@ -1056,11 +1056,11 @@ private:
         TIter& iter,
         std::size_t size,
         NormalReadTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         Field field;
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, createNextLayerReader(), std::forward<TExtraValues>(extraValues)...);
+        return derivedObj.doRead(field, msg, iter, size, createNextLayerReader(), extraValues...);
     }
 
     template <typename TMsgPtr, typename TIter, typename... TExtraValues>
@@ -1069,17 +1069,17 @@ private:
         TIter& iter,
         std::size_t size,
         SplitReadTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto fromIter = iter;
-        auto es = readUntilData(msgPtr, iter, size, std::forward<TExtraValues>(extraValues)...);
+        auto es = readUntilData(msgPtr, iter, size, extraValues...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
         auto consumed = static_cast<std::size_t>(std::distance(fromIter, iter));
         COMMS_ASSERT(consumed <= size);
-        return readFromData(msgPtr, iter, size - consumed, std::forward<TExtraValues>(extraValues)...);
+        return readFromData(msgPtr, iter, size - consumed, extraValues...);
     }
 
     template <typename TIter, typename TNextLayerUpdater>
@@ -1138,11 +1138,11 @@ private:
     void updateMissingSizeInternal(
         std::size_t size,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues... extraValues) const
     {
         COMMS_ASSERT(size <= length());
         retriever.setValue(std::max(std::size_t(1U), length() - size));
-        updateMissingSizeInternal(size, std::forward<TExtraValues>(extraValues)...);
+        updateMissingSizeInternal(size, extraValues...);
     }
 
     template <typename... TExtraValues>
@@ -1150,7 +1150,7 @@ private:
         const Field& field,
         std::size_t size,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues... extraValues) const
     {
         static_assert(
             details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
@@ -1158,20 +1158,20 @@ private:
         auto totalLen = field.length() + nextLayer_.length();
         COMMS_ASSERT(size <= totalLen);
         retriever.setValue(std::max(std::size_t(1U), totalLen - size));
-        updateMissingSizeInternal(size, std::forward<TExtraValues>(extraValues)...);
+        updateMissingSizeInternal(size, extraValues...);
     }
 
     template <typename T, typename... TExtraValues>
     void updateMissingSizeInternal(
         std::size_t size,
         T retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues... extraValues) const
     {
         static_cast<void>(retriever);
         static_assert(
             !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
             "Mustn't be missing size retriever");
-        updateMissingSizeInternal(size, std::forward<TExtraValues>(extraValues)...);
+        updateMissingSizeInternal(size, extraValues...);
     }
 
     template <typename T, typename... TExtraValues>
@@ -1179,12 +1179,12 @@ private:
         const Field& field,
         std::size_t size,
         T retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues... extraValues) const
     {
         static_assert(
             !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
             "Mustn't be missing size retriever");
-        updateMissingSizeInternal(field, size, std::forward<TExtraValues>(extraValues)...);
+        updateMissingSizeInternal(field, size, extraValues...);
     }
 
 
@@ -1197,23 +1197,23 @@ private:
     static void setMissingSizeInternal(
         std::size_t val,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         retriever.setValue(val);
-        setMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+        setMissingSizeInternal(val, extraValues...);
     }
 
     template <typename T, typename... TExtraValues>
     static void setMissingSizeInternal(
         std::size_t val,
         T retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         static_cast<void>(retriever);
         static_assert(
             !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
             "Mustn't be missing size retriever");
-        setMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+        setMissingSizeInternal(val, extraValues...);
     }
 
     template <typename TId>
@@ -1226,23 +1226,23 @@ private:
     static void setMsgIdInternal(
         TId val,
         details::MsgIdRetriever<U> retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         retriever.setValue(val);
-        setMsgIdInternal(val, std::forward<TExtraValues>(extraValues)...);
+        setMsgIdInternal(val, extraValues...);
     }
 
     template <typename TId, typename T, typename... TExtraValues>
     static void setMsgIdInternal(
         TId val,
         T retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         static_cast<void>(retriever);
         static_assert(
             !details::isMsgIdRetriever<typename std::decay<decltype(retriever)>::type>(),
             "Mustn't be message id retriever");
-        setMsgIdInternal(val, std::forward<TExtraValues>(extraValues)...);
+        setMsgIdInternal(val, extraValues...);
     }
 
     static void setMsgIndexInternal(std::size_t val)
@@ -1254,23 +1254,23 @@ private:
     static void setMsgIndexInternal(
         std::size_t val,
         details::MsgIndexRetriever retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         retriever.setValue(val);
-        setMsgIndexInternal(val, std::forward<TExtraValues>(extraValues)...);
+        setMsgIndexInternal(val, extraValues...);
     }
 
     template <typename T, typename... TExtraValues>
     static void setMsgIndexInternal(
         std::size_t val,
         T retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         static_cast<void>(retriever);
         static_assert(
             !details::isMsgIndexRetriever<typename std::decay<decltype(retriever)>::type>(),
             "Mustn't be missing size retriever");
-        setMsgIndexInternal(val, std::forward<TExtraValues>(extraValues)...);
+        setMsgIndexInternal(val, extraValues...);
     }
 
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");

@@ -164,7 +164,7 @@ public:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
         using IterTag = typename std::iterator_traits<IterType>::iterator_category;
@@ -175,7 +175,7 @@ public:
         auto begIter = iter;
         auto es = field.read(iter, size);
         if (es == ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, std::forward<TExtraValues>(extraValues)...);
+            BaseImpl::updateMissingSize(field, size, extraValues...);
         }
 
         if (es != ErrorStatus::Success) {
@@ -189,14 +189,14 @@ public:
             static_cast<ExtendingClass*>(this)->getRemainingSizeFromField(field);
 
         if (actualRemainingSize < requiredRemainingSize) {
-            BaseImpl::setMissingSize(requiredRemainingSize - actualRemainingSize, std::forward<TExtraValues>(extraValues)...);
+            BaseImpl::setMissingSize(requiredRemainingSize - actualRemainingSize, extraValues...);
             return ErrorStatus::NotEnoughData;
         }
 
         using MsgType = typename std::decay<decltype(msg)>::type;
         using MsgPtrTag = MsgTypeTag<MsgType>;
         static_cast<ExtendingClass*>(this)->beforeRead(field, getPtrToMsgInternal(msg, MsgPtrTag()));
-        es = nextLayerReader.read(msg, iter, requiredRemainingSize, std::forward<TExtraValues>(extraValues)...);
+        es = nextLayerReader.read(msg, iter, requiredRemainingSize, extraValues...);
         if (es == ErrorStatus::NotEnoughData) {
             BaseImpl::resetMsg(msg);
             return ErrorStatus::ProtocolError;

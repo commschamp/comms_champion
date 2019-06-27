@@ -129,7 +129,7 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         using Tag =
@@ -147,14 +147,14 @@ public:
                 >::type
             >::type;
 
-        if (setPayloadRequiredInternal(std::forward<TExtraValues>(extraValues)...)) {
+        if (setPayloadRequiredInternal(extraValues...)) {
             auto fromIter = iter;
-            auto es = readInternal(msg, iter, size, Tag(), std::forward<TExtraValues>(extraValues)...);
-            setMsgPayloadInternal(fromIter, static_cast<std::size_t>(std::distance(fromIter, iter)), std::forward<TExtraValues>(extraValues)...);
+            auto es = readInternal(msg, iter, size, Tag(), extraValues...);
+            setMsgPayloadInternal(fromIter, static_cast<std::size_t>(std::distance(fromIter, iter)), extraValues...);
             return es;
         }
 
-        return readInternal(msg, iter, size, Tag(), std::forward<TExtraValues>(extraValues)...);
+        return readInternal(msg, iter, size, Tag(), extraValues...);
     }
 
     /// @brief Read transport fields until data layer.
@@ -165,7 +165,7 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&...)
+        TExtraValues...)
     {
         static_cast<void>(msg);
         static_cast<void>(iter);
@@ -182,9 +182,9 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        return read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return read(msg, iter, size, extraValues...);
     }
 
     /// @brief Read the message contents while caching the read transport
@@ -216,7 +216,7 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
 
         static_assert(comms::util::IsTuple<TAllFields>::Value,
@@ -244,13 +244,13 @@ public:
             "Field has wrong type");
 
         auto dataIter = iter;
-        auto es = read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        auto es = read(msg, iter, size, extraValues...);
         if (es != ErrorStatus::Success) {
             return es;
         }
 
         auto dataSize = static_cast<std::size_t>(std::distance(dataIter, iter));
-        setMsgPayloadInternal(dataIter, dataSize, std::forward<TExtraValues>(extraValues)...);
+        setMsgPayloadInternal(dataIter, dataSize, extraValues...);
 
         auto dataEs = dataField.read(dataIter, dataSize);
         static_cast<void>(dataEs);
@@ -267,7 +267,7 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&...)
+        TExtraValues...)
     {
         static_cast<void>(allFields);
         static_cast<void>(msg);
@@ -286,9 +286,9 @@ public:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        return readFieldsCached(allFields, msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return readFieldsCached(allFields, msg, iter, size, extraValues...);
     }
 
     /// @brief Write the message contents.
@@ -595,7 +595,7 @@ private:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
 
@@ -615,7 +615,7 @@ private:
 
         auto result = msg.read(static_cast<ReadIter>(iter), size);
         if ((result == ErrorStatus::NotEnoughData) &&
-            missingSizeRequiredInternal(std::forward<TExtraValues>(extraValues)...)) {
+            missingSizeRequiredInternal(extraValues...)) {
             using Tag = typename std::conditional<
                 MsgType::InterfaceOptions::HasLength,
                 MsgHasLengthTag,
@@ -626,7 +626,7 @@ private:
             if (size < msgLen) {
                 missingSize = msgLen - size;
             }
-            updateMissingSizeInternal(missingSize, std::forward<TExtraValues>(extraValues)...);
+            updateMissingSizeInternal(missingSize, extraValues...);
         }
         return result;
     }
@@ -636,7 +636,7 @@ private:
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
 
@@ -649,13 +649,13 @@ private:
 
         auto result = msg.doRead(iter, size);
         if ((result == ErrorStatus::NotEnoughData) &&
-            (missingSizeRequiredInternal(std::forward<TExtraValues>(extraValues)...))) {
+            (missingSizeRequiredInternal(extraValues...))) {
             std::size_t missingSize = 1U;
             auto msgLen = getMsgLength(msg, MsgDirectLengthTag());
             if (size < msgLen) {
                 missingSize = msgLen - size;
             }
-            updateMissingSizeInternal(missingSize, std::forward<TExtraValues>(extraValues)...);
+            updateMissingSizeInternal(missingSize, extraValues...);
         }
         return result;
     }
@@ -666,9 +666,9 @@ private:
         TIter& iter,
         std::size_t size,
         DirectOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        return readInternalDirect(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return readInternalDirect(msg, iter, size, extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename... TExtraValues>
@@ -677,13 +677,13 @@ private:
         TIter& iter,
         std::size_t size,
         InterfaceOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         static_assert(comms::isMessage<TMsg>(), "Must be interface class");
         static_assert(TMsg::hasRead(),
             "Message interface must support polymorphic read operation");
 
-        return readInternalPolymorphic(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return readInternalPolymorphic(msg, iter, size, extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename... TExtraValues>
@@ -692,9 +692,9 @@ private:
         TIter& iter,
         std::size_t size,
         PointerOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        return read(*msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return read(*msg, iter, size, extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename... TExtraValues>
@@ -703,12 +703,12 @@ private:
         TIter& iter,
         std::size_t size,
         OtherOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(comms::details::hasElementType<MsgType>(),
             "Unsupported type of message object, expected to be either message itself, raw pointer or smart pointer");
-        return read(*msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return read(*msg, iter, size, extraValues...);
     }
 
     template <typename TMsg, typename TIter>
@@ -773,18 +773,18 @@ private:
     }
 
     template <typename... TExtraValues>
-    static bool missingSizeRequiredInternal(details::MissingSizeRetriever, TExtraValues&&...)
+    static bool missingSizeRequiredInternal(details::MissingSizeRetriever, TExtraValues...)
     {
         return true;
     }
 
     template <typename T, typename... TExtraValues>
-    static bool missingSizeRequiredInternal(T, TExtraValues&&... extraValues)
+    static bool missingSizeRequiredInternal(T, TExtraValues... extraValues)
     {
         static_assert(
             !details::isMissingSizeRetriever<T>(),
             "Mustn't be missing size retriever");
-        return missingSizeRequiredInternal(std::forward<TExtraValues>(extraValues)...);
+        return missingSizeRequiredInternal(extraValues...);
     }
 
     static void updateMissingSizeInternal(std::size_t val)
@@ -796,20 +796,20 @@ private:
     static void updateMissingSizeInternal(
         std::size_t val,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         retriever.setValue(val);
-        updateMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+        updateMissingSizeInternal(val, extraValues...);
     }
 
     template <typename T, typename... TExtraValues>
-    static void updateMissingSizeInternal(std::size_t val, T retriever, TExtraValues&&... extraValues)
+    static void updateMissingSizeInternal(std::size_t val, T retriever, TExtraValues... extraValues)
     {
         static_cast<void>(retriever);
         static_assert(
             !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
             "Mustn't be missing size retriever");
-        updateMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
+        updateMissingSizeInternal(val, extraValues...);
     }
 
     static constexpr bool setPayloadRequiredInternal()
@@ -818,18 +818,18 @@ private:
     }
 
     template <typename TIter, typename... TExtraValues>
-    static bool setPayloadRequiredInternal(details::MsgPayloadRetriever<TIter>, TExtraValues&&...)
+    static bool setPayloadRequiredInternal(details::MsgPayloadRetriever<TIter>, TExtraValues...)
     {
         return true;
     }
 
     template <typename T, typename... TExtraValues>
-    static bool setPayloadRequiredInternal(T, TExtraValues&&... extraValues)
+    static bool setPayloadRequiredInternal(T, TExtraValues... extraValues)
     {
         static_assert(
             !details::isMsgPayloadRetriever<T>(),
             "Mustn't be message payload retriever");
-        return setPayloadRequiredInternal(std::forward<TExtraValues>(extraValues)...);
+        return setPayloadRequiredInternal(extraValues...);
     }
 
     template <typename TIter>
@@ -844,10 +844,10 @@ private:
         TIter iter,
         std::size_t len,
         details::MsgPayloadRetriever<TOtherIter> retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         retriever.setValue(iter, len);
-        setMsgPayloadInternal(iter, len, std::forward<TExtraValues>(extraValues)...);
+        setMsgPayloadInternal(iter, len, extraValues...);
     }
 
     template <typename TIter, typename T, typename... TExtraValues>
@@ -855,13 +855,13 @@ private:
         TIter iter,
         std::size_t len,
         T retriever,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         static_cast<void>(retriever);
         static_assert(
             !details::isMsgPayloadRetriever<typename std::decay<decltype(retriever)>::type>(),
             "Mustn't be message payload retriever");
-        setMsgPayloadInternal(iter, len, std::forward<TExtraValues>(extraValues)...);
+        setMsgPayloadInternal(iter, len, extraValues...);
     }
 };
 

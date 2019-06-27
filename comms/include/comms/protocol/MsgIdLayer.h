@@ -194,12 +194,12 @@ public:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto beforeReadIter = iter;
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, std::forward<TExtraValues>(extraValues)...);
+            BaseImpl::updateMissingSize(field, size, extraValues...);
         }
 
         if (es != ErrorStatus::Success) {
@@ -223,7 +223,7 @@ public:
                 size - fieldLen,
                 std::forward<TNextLayerReader>(nextLayerReader),
                 Tag(),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -405,11 +405,11 @@ private:
             TIter& iter,
             std::size_t size,
             TNextLayerReader&& nextLayerReader,
-            TExtraValues&&... extraValues)
+            TExtraValues... extraValues)
           : m_iter(iter),
             m_size(size),
             m_nextLayerReader(std::move(nextLayerReader)),
-            m_extraValues(std::forward<TExtraValues>(extraValues)...)
+            m_extraValues(extraValues...)
         {
         }
 
@@ -515,9 +515,9 @@ private:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        return ReadRedirectionHandler<TIter, TNextLayerReader, TExtraValues...>(iter, size, std::move(nextLayerReader), std::forward<TExtraValues>(extraValues)...);
+        return ReadRedirectionHandler<TIter, TNextLayerReader, TExtraValues...>(iter, size, std::move(nextLayerReader), extraValues...);
     }
 
     template <typename TIter, typename TNextLayerWriter>
@@ -591,7 +591,7 @@ private:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(details::protocolLayerHasDoGetId<MsgType>(),
@@ -599,13 +599,13 @@ private:
                 "using \"StaticNumIdImpl\" option");
 
         auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
-        BaseImpl::setMsgId(id, std::forward<TExtraValues>(extraValues)...);
+        BaseImpl::setMsgId(id, extraValues...);
         if (id != MsgType::doGetId()) {
             return ErrorStatus::InvalidMsgId;
         }
 
         static_cast<ExtendingClass*>(this)->beforeRead(field, msg);
-        return nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return nextLayerReader.read(msg, iter, size, extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
@@ -617,11 +617,11 @@ private:
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
         PolymorphicOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         static_cast<void>(id);
         static_cast<void>(idx);
-        return nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return nextLayerReader.read(msg, iter, size, extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
@@ -632,7 +632,7 @@ private:
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
         DirectOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         return
             doReadInternalDirect(
@@ -641,7 +641,7 @@ private:
                 iter,
                 size,
                 std::forward<TNextLayerReader>(nextLayerReader),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
@@ -652,7 +652,7 @@ private:
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
         PointerOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(comms::details::hasElementType<MsgType>(),
@@ -672,7 +672,7 @@ private:
             >::type;
 
         const auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
-        BaseImpl::setMsgId(id, std::forward<TExtraValues>(extraValues)...);
+        BaseImpl::setMsgId(id, extraValues...);
 
         auto es = comms::ErrorStatus::InvalidMsgId;
         unsigned idx = 0;
@@ -690,9 +690,9 @@ private:
             IterType readStart = iter;                
 
             static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
-            es = doReadInternal(id, idx, msg, iter, size, std::forward<TNextLayerReader>(nextLayerReader), Tag(), std::forward<TExtraValues>(extraValues)...);
+            es = doReadInternal(id, idx, msg, iter, size, std::forward<TNextLayerReader>(nextLayerReader), Tag(), extraValues...);
             if (es == comms::ErrorStatus::Success) {
-                BaseImpl::setMsgIndex(idx, std::forward<TExtraValues>(extraValues)...);
+                BaseImpl::setMsgIndex(idx, extraValues...);
                 return es;
             }
 
@@ -701,7 +701,7 @@ private:
             ++idx;
         }
 
-        BaseImpl::setMsgIndex(idx, std::forward<TExtraValues>(extraValues)...);
+        BaseImpl::setMsgIndex(idx, extraValues...);
         COMMS_ASSERT(!msg);
         if (failureReason == CreateFailureReason::AllocFailure) {
             return comms::ErrorStatus::MsgAllocFailure;
@@ -724,7 +724,7 @@ private:
             std::forward<TNextLayerReader>(nextLayerReader), 
             es,
             GenericMsgTag(),
-            std::forward<TExtraValues>(extraValues)...);
+            extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
@@ -736,14 +736,14 @@ private:
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
         StaticBinSearchOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto handler =
             makeReadRedirectionHandler(
                 iter,
                 size,
                 std::forward<TNextLayerReader>(nextLayerReader),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
         return comms::dispatchMsgStaticBinSearch<AllMessages>(id, idx, *msg, handler);
     }
 
@@ -795,7 +795,7 @@ private:
         TNextLayerReader&& nextLayerReader,
         comms::ErrorStatus es,
         NoGenericMsgTag,
-        TExtraValues&&...)
+        TExtraValues...)
     {
         static_cast<void>(field);
         static_cast<void>(msgIdx);
@@ -816,7 +816,7 @@ private:
         TNextLayerReader&& nextLayerReader,
         comms::ErrorStatus es,
         HasGenericMsgTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
 
@@ -842,7 +842,7 @@ private:
                 size,
                 std::forward<TNextLayerReader>(nextLayerReader),
                 Tag(),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }  
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
@@ -852,9 +852,9 @@ private:
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
         PolymorphicOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
-        return nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return nextLayerReader.read(msg, iter, size, extraValues...);
     }  
 
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
@@ -864,11 +864,11 @@ private:
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
         DirectOpTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using GenericMsgType = typename Factory::ParsedOptions::GenericMessage;
         auto& castedMsgRef = static_cast<GenericMsgType&>(*msg);
-        return nextLayerReader.read(castedMsgRef, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return nextLayerReader.read(castedMsgRef, iter, size, extraValues...);
     }               
 
     template <typename TId>

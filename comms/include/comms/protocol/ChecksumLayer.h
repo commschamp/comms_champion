@@ -131,7 +131,7 @@ public:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
         static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
@@ -149,7 +149,7 @@ public:
                 size,
                 std::forward<TNextLayerReader>(nextLayerReader),
                 VerifyTag(),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -248,7 +248,7 @@ private:
         TIter& iter,
         std::size_t size,
         TReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto fromIter = iter;
         auto toIter = fromIter + (size - Field::minLength());
@@ -267,7 +267,7 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
-        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), std::forward<TExtraValues>(extraValues)...);
+        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), extraValues...);
         if (es == ErrorStatus::Success) {
             iter = toIter;
         }
@@ -282,11 +282,11 @@ private:
         TIter& iter,
         std::size_t size,
         TReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto fromIter = iter;
 
-        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), std::forward<TExtraValues>(extraValues)...);
+        auto es = nextLayerReader.read(msg, iter, size - Field::minLength(), extraValues...);
         if ((es == ErrorStatus::NotEnoughData) ||
             (es == ErrorStatus::ProtocolError)) {
             return es;
@@ -297,7 +297,7 @@ private:
         auto remSize = size - len;
         auto checksumEs = field.read(iter, remSize);
         if (checksumEs == ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, remSize, std::forward<TExtraValues>(extraValues)...);
+            BaseImpl::updateMissingSize(field, remSize, extraValues...);
         }
 
         if (checksumEs != ErrorStatus::Success) {
@@ -324,7 +324,7 @@ private:
         std::size_t size,
         TReader&& nextLayerReader,
         VerifyBeforeReadTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         return
             verifyRead(
@@ -333,7 +333,7 @@ private:
                 iter,
                 size,
                 std::forward<TReader>(nextLayerReader),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
@@ -344,7 +344,7 @@ private:
         std::size_t size,
         TReader&& nextLayerReader,
         VerifyAfterReadTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         return
             readVerify(
@@ -353,7 +353,7 @@ private:
                 iter,
                 size,
                 std::forward<TReader>(nextLayerReader),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TWriter>

@@ -134,7 +134,7 @@ public:
         TIter& iter,
         std::size_t size,
         TNextLayerReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
         static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
@@ -147,7 +147,7 @@ public:
         auto beforeFieldReadIter = iter;
         auto checksumEs = field.read(iter, Field::minLength());
         if (checksumEs == ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, std::forward<TExtraValues>(extraValues)...);
+            BaseImpl::updateMissingSize(field, size, extraValues...);
         }
 
         if (checksumEs != ErrorStatus::Success) {
@@ -163,7 +163,7 @@ public:
                 size - fieldLen,
                 std::forward<TNextLayerReader>(nextLayerReader),
                 VerifyTag(),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -267,7 +267,7 @@ private:
         TIter& iter,
         std::size_t size,
         TReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto fromIter = iter;
 
@@ -279,7 +279,7 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
-        return nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        return nextLayerReader.read(msg, iter, size, extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
@@ -289,11 +289,11 @@ private:
         TIter& iter,
         std::size_t size,
         TReader&& nextLayerReader,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         auto fromIter = iter;
 
-        auto es = nextLayerReader.read(msg, iter, size, std::forward<TExtraValues>(extraValues)...);
+        auto es = nextLayerReader.read(msg, iter, size, extraValues...);
         if ((es == ErrorStatus::NotEnoughData) ||
             (es == ErrorStatus::ProtocolError)) {
             return es;
@@ -319,7 +319,7 @@ private:
         std::size_t size,
         TReader&& nextLayerReader,
         VerifyBeforeReadTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         return
             verifyRead(
@@ -328,7 +328,7 @@ private:
                 iter,
                 size,
                 std::forward<TReader>(nextLayerReader),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
@@ -339,7 +339,7 @@ private:
         std::size_t size,
         TReader&& nextLayerReader,
         VerifyAfterReadTag,
-        TExtraValues&&... extraValues)
+        TExtraValues... extraValues)
     {
         return
             readVerify(
@@ -348,7 +348,7 @@ private:
                 iter,
                 size,
                 std::forward<TReader>(nextLayerReader),
-                std::forward<TExtraValues>(extraValues)...);
+                extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TWriter>

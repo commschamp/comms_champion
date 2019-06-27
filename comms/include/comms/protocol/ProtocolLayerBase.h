@@ -1194,20 +1194,20 @@ private:
     }
 
     template <typename... TExtraValues>
-    void setMissingSizeInternal(
+    static void setMissingSizeInternal(
         std::size_t val,
         details::MissingSizeRetriever retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues&&... extraValues)
     {
         retriever.setValue(val);
         setMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
     }
 
     template <typename T, typename... TExtraValues>
-    void setMissingSizeInternal(
+    static void setMissingSizeInternal(
         std::size_t val,
         T retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues&&... extraValues)
     {
         static_cast<void>(retriever);
         static_assert(
@@ -1223,20 +1223,20 @@ private:
     }
 
     template <typename TId, typename U, typename... TExtraValues>
-    void setMsgIdInternal(
+    static void setMsgIdInternal(
         TId val,
         details::MsgIdRetriever<U> retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues&&... extraValues)
     {
         retriever.setValue(val);
         setMsgIdInternal(val, std::forward<TExtraValues>(extraValues)...);
     }
 
     template <typename TId, typename T, typename... TExtraValues>
-    void setMsgIdInternal(
+    static void setMsgIdInternal(
         TId val,
         T retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues&&... extraValues)
     {
         static_cast<void>(retriever);
         static_assert(
@@ -1251,20 +1251,20 @@ private:
     }
 
     template <typename... TExtraValues>
-    void setMsgIndexInternal(
+    static void setMsgIndexInternal(
         std::size_t val,
         details::MsgIndexRetriever retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues&&... extraValues)
     {
         retriever.setValue(val);
         setMsgIndexInternal(val, std::forward<TExtraValues>(extraValues)...);
     }
 
     template <typename T, typename... TExtraValues>
-    void setMsgIndexInternal(
+    static void setMsgIndexInternal(
         std::size_t val,
         T retriever,
-        TExtraValues&&... extraValues) const
+        TExtraValues&&... extraValues)
     {
         static_cast<void>(retriever);
         static_assert(
@@ -1322,6 +1322,11 @@ details::MsgIndexRetriever msgIndex(std::size_t& val)
     return details::MsgIndexRetriever(val);
 }
 
+template <typename TIter>
+details::MsgPayloadRetriever<TIter> msgPayload(TIter& iter, std::size_t& len)
+{
+    return details::MsgPayloadRetriever<TIter>(iter, len);
+}
 
 }  // namespace protocol
 

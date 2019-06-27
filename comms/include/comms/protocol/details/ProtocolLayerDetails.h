@@ -213,6 +213,42 @@ constexpr bool isMsgIndexRetriever()
     return IsMsgIndexRetrieverHelper<T>::Value;
 }
 
+template <typename TIter>
+class MsgPayloadRetriever
+{
+public:
+    MsgPayloadRetriever(TIter& iter, std::size_t& len) : iter_(iter), len_(len) {}
+
+    template <typename TOtherIter>
+    void setValue(TOtherIter iter, std::size_t len)
+    {
+        iter_ = static_cast<TIter>(iter);
+        len_ = len;
+    }
+
+private:
+    TIter& iter_;
+    std::size_t& len_;
+};
+
+template <typename TITer>
+struct IsMsgPayloadRetrieverHelper
+{
+    static const bool Value = false;
+};
+
+template <typename TIter>
+struct IsMsgPayloadRetrieverHelper<MsgPayloadRetriever<TIter> >
+{
+    static const bool Value = true;
+};
+
+template <typename T>
+constexpr bool isMsgPayloadRetriever()
+{
+    return IsMsgPayloadRetrieverHelper<T>::Value;
+}
+
 } // namespace details
 
 } // namespace protocol

@@ -366,13 +366,18 @@ void SyncPrefixLayerTestSuite::test8()
     MessageType msgId = MessageType();
     std::size_t msgIndex = 0U;
     auto readIter = &Buf[0];
+    decltype(readIter) payloadIter = nullptr;
+    std::size_t payloadSize = 0U;
     auto es =
         stack.read(
             msg, readIter, BufSize,
             comms::protocol::msgId(msgId),
-            comms::protocol::msgIndex(msgIndex));
+            comms::protocol::msgIndex(msgIndex),
+            comms::protocol::msgPayload(payloadIter, payloadSize));
 
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(msgId, MessageType90);
     TS_ASSERT_EQUALS(msgIndex, 1U);
+    TS_ASSERT_EQUALS(payloadIter, &Buf[5]);
+    TS_ASSERT_EQUALS(payloadSize, 2U);
 }

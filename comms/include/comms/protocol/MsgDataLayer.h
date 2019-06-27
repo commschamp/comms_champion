@@ -147,6 +147,13 @@ public:
                 >::type
             >::type;
 
+        if (setPayloadRequiredInternal(std::forward<TExtraValues>(extraValues)...)) {
+            auto fromIter = iter;
+            auto es = readInternal(msg, iter, size, Tag(), std::forward<TExtraValues>(extraValues)...);
+            setMsgPayloadInternal(fromIter, static_cast<std::size_t>(std::distance(fromIter, iter)), std::forward<TExtraValues>(extraValues)...);
+            return es;
+        }
+
         return readInternal(msg, iter, size, Tag(), std::forward<TExtraValues>(extraValues)...);
     }
 
@@ -243,6 +250,8 @@ public:
         }
 
         auto dataSize = static_cast<std::size_t>(std::distance(dataIter, iter));
+        setMsgPayloadInternal(dataIter, dataSize, std::forward<TExtraValues>(extraValues)...);
+
         auto dataEs = dataField.read(dataIter, dataSize);
         static_cast<void>(dataEs);
         COMMS_ASSERT(dataEs == comms::ErrorStatus::Success);
@@ -803,6 +812,57 @@ private:
         updateMissingSizeInternal(val, std::forward<TExtraValues>(extraValues)...);
     }
 
+    static constexpr bool setPayloadRequiredInternal()
+    {
+        return false;
+    }
+
+    template <typename TIter, typename... TExtraValues>
+    static bool setPayloadRequiredInternal(details::MsgPayloadRetriever<TIter>, TExtraValues&&...)
+    {
+        return true;
+    }
+
+    template <typename T, typename... TExtraValues>
+    static bool setPayloadRequiredInternal(T, TExtraValues&&... extraValues)
+    {
+        static_assert(
+            !details::isMsgPayloadRetriever<T>(),
+            "Mustn't be message payload retriever");
+        return setPayloadRequiredInternal(std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename TIter>
+    static void setMsgPayloadInternal(TIter iter, std::size_t len)
+    {
+        static_cast<void>(iter);
+        static_cast<void>(len);
+    }
+
+    template <typename TIter, typename TOtherIter, typename... TExtraValues>
+    static void setMsgPayloadInternal(
+        TIter iter,
+        std::size_t len,
+        details::MsgPayloadRetriever<TOtherIter> retriever,
+        TExtraValues&&... extraValues)
+    {
+        retriever.setValue(iter, len);
+        setMsgPayloadInternal(iter, len, std::forward<TExtraValues>(extraValues)...);
+    }
+
+    template <typename TIter, typename T, typename... TExtraValues>
+    static void setMsgPayloadInternal(
+        TIter iter,
+        std::size_t len,
+        T retriever,
+        TExtraValues&&... extraValues)
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMsgPayloadRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be message payload retriever");
+        setMsgPayloadInternal(iter, len, std::forward<TExtraValues>(extraValues)...);
+    }
 };
 
 namespace details

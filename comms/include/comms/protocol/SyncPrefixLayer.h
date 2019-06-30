@@ -83,19 +83,19 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
-    /// @param[out] missingSize If not nullptr and return value is
-    ///     comms::ErrorStatus::NotEnoughData it will contain
-    ///     minimal missing data length required for the successful
-    ///     read attempt.
-    /// @param[in] nextLayerReader Next layer reader object.
+    /// @param[in] nextLayerReader Reader object, needs to be invoked to
+    ///     forward read operation to the next layer.
+    /// @param[out] extraValues Variadic extra output parameters passed to the
+    ///     "read" operatation of the protocol stack (see
+    ///     @ref comms::protocol::ProtocolLayerBase::read() "read()" and
+    ///     @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()").
+    ///     Need to passed on as variadic arguments to the @b nextLayerReader.
     /// @return Status of the read operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       read. In case of an error, distance between original position and
     ///       advanced will pinpoint the location of the error.
-    /// @post missingSize output value is updated if and only if function
-    ///       returns comms::ErrorStatus::NotEnoughData.
     template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doRead(
         Field& field,

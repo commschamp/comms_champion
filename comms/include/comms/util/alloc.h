@@ -301,6 +301,7 @@ public:
     /// @tparam TObj Type of the object being allocated, expected to be the
     ///     same as or derived from TInterface.
     /// @tparam TArgs types of arguments to be passed to the constructor.
+    /// @param[in] args Extra arguments to be passed to allocated object's constructor.
     /// @return Smart pointer to the allocated object.
     template <typename TObj, typename... TArgs>
     static Ptr alloc(TArgs&&... args)
@@ -360,6 +361,7 @@ public:
     /// @param[in] id Numeric ID of the message
     /// @param[in] idx Index of the message type among types with same ID
     ///     provided in @b TAllMessages tuple.
+    /// @param[in] args Extra arguments to be passed to allocated object's constructor.
     /// @return Smart pointer to the allocated object.
     template <typename TObj, typename... TArgs>
     static Ptr alloc(TId id, unsigned idx, TArgs&&... args)
@@ -400,6 +402,7 @@ public:
     /// @tparam TObj Type of the object being allocated, expected to be the
     ///     same as or derived from @b TInterface.
     /// @tparam TArgs types of arguments to be passed to the constructor.
+    /// @param[in] args Extra arguments to be passed to allocated object's constructor.
     /// @return Smart pointer to the allocated object.
     /// @pre If @b TObj is NOT the same as @b TInterface, i.e. @b TInterface is a base
     ///     class of @b TObj, then @b TInterface must have virtual destructor.
@@ -518,9 +521,11 @@ public:
     /// @tparam TObj Type of the object being allocated, expected to be the
     ///     same as or derived from @b TInterface.
     /// @tparam TArgs types of arguments to be passed to the constructor.
+    /// @param[in] id Numeric ID of the message
+    /// @param[in] idx Index of the message type among types with same ID
+    ///     provided in @b TOrigMessages tuple.
+    /// @param[in] args Extra arguments to be passed to allocated object's constructor.
     /// @return Smart pointer to the allocated object.
-    /// @pre If @b TObj is NOT the same as @b TInterface, i.e. @b TInterface is a base
-    ///     class of @b TObj, then @b TInterface must have virtual destructor.
     template <typename TObj, typename... TArgs>
     Ptr alloc(TId id, unsigned idx, TArgs&&... args)
     {

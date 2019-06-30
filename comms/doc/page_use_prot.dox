@@ -2620,6 +2620,25 @@
 /// std::cout << "ID = " << protStack.layer_id().accessCachedField(fields).value() << '\n';
 /// std::cout << "CHECKSUM = " << protStack.layer_checksum().accessCachedField(fields).value() << std::endl;
 /// @endcode
+/// Version @b v2.0 the @b COMMS library has introduced additional way to retrieve 
+/// values from stripped message framing. There are several functions listed
+/// below that can be used to pass extra variadic arguments to the "read" functions
+/// of the protocol stack (see @ref comms::protocol::ProtocolLayerBase::read() "read()"
+/// and @ref comms::protocol::ProtocolLayerBase::readFieldsCached "readFieldsCached()").
+/// @li @ref comms::protocol::missingSize() - Use to retrieve minimal missing
+/// size required to be read in order the following "read()" operation to have
+/// a chance of being completed successfully.
+/// @li @ref comms::protocol::msgId() - Use to retrieve numeric message ID.
+/// @li @ref comms::protocol::msgIndex() - Use to retrieve index of the message
+/// among difference message types that have the same numeric ID.
+/// @li @ref comms::protocol::msgPayload() - Use to retrieve the location 
+/// of message payload in the input buffer.
+/// 
+/// For example there can be a case when @ref page_use_prot_interface
+/// does not support @ref page_use_prot_interface_handle. In this case 
+/// it might be required to retrieve the information about message ID and
+/// its relevant index in order to dispatch message object to its
+/// appropriate handling function (see @ref page_dispatch).
 ///
 /// @section page_use_prot_handling Message Handling
 /// When a message is received over I/O link and successfully deserialised, it 

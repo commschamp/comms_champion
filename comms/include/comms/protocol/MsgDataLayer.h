@@ -114,11 +114,12 @@ public:
     ///     to the message object itself.
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
-    /// @param[out] missingSize In case there are not enough bytes in the buffer
-    ///     (the function returns comms::ErrorStatus::NotEnoughData), and this
-    ///     pointer is not nullptr, then it is used to provide information of
-    ///     minimal number of bytes that need to be provided before message could
-    ///     be successfully read.
+    /// @param[out] extraValues Extra output parameters provided using one
+    ///     of the following functions
+    ///     @li @ref comms::protocol::missingSize()
+    ///     @li @ref comms::protocol::msgId()
+    ///     @li @ref comms::protocol::msgIndex()
+    ///     @li @ref comms::protocol::msgPayload()
     /// @return Status of the read operation.
     /// @pre If @b msg is a smart pointer to message object, it must point to
     ///     a real object.
@@ -204,11 +205,12 @@ public:
     ///     to the message object itself.
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
-    /// @param[out] missingSize In case there are not enough bytes in the buffer
-    ///     (the function returns comms::ErrorStatus::NotEnoughData), and this
-    ///     pointer is not nullptr, then it is used to provide information of
-    ///     minimal number of bytes that need to be provided before message could
-    ///     be successfully read.
+    /// @param[out] extraValues Extra output parameters provided using one
+    ///     of the following functions
+    ///     @li @ref comms::protocol::missingSize()
+    ///     @li @ref comms::protocol::msgId()
+    ///     @li @ref comms::protocol::msgIndex()
+    ///     @li @ref comms::protocol::msgPayload()
     /// @return Status of the read operation.
     template <typename TAllFields, typename TMsg, typename TIter, typename... TExtraValues>
     static ErrorStatus readFieldsCached(

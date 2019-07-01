@@ -67,7 +67,7 @@
 ///
 /// } // namespace my_protocol
 /// @endcode
-/// Such interface class is NOT polymorphic, it defines the following inner types
+/// Such interface class is @b NOT polymorphic, it defines the following inner types
 /// @code
 /// namespace my_protocol
 /// {
@@ -2639,6 +2639,30 @@
 /// it might be required to retrieve the information about message ID and
 /// its relevant index in order to dispatch message object to its
 /// appropriate handling function (see @ref page_dispatch).
+/// @code
+/// // Alias to my_protocol::ProtocolStack
+/// using ProtStack = my_protocol::ProtocolStack<MyMessage>
+///
+/// ProtStack protStack; // Protocol stack object
+/// MyHandler handler; // Handler object
+/// ProtStack::MsgPtr msg; Pointer to message to be updated
+/// my_protocol::MsgId msgId = my_protocol::MsgId(); // Message ID to be updated 
+/// std::size_t msgIndex = 0U; // Message index to be updated
+///
+/// auto es = 
+///     protStack.read(
+///         msg, 
+///         readIter, 
+///         bufLen, 
+///         comms::protocol::msgId(msgId), // msgId will be updated here
+///         comms::protocol::msgIndex(msgIndex)); // msgIndex will be updated here
+/// if (es == comms::ErrorStatus::Success) {
+///     assert(msg); // Message object is expected to be valid
+///
+///     // Dispatch message knowing its id and index.
+///     comms::dispatchMsg<MyInputMessages>(msgId, msgIndex, *msg, handler);
+/// }
+/// @endcode 
 ///
 /// @section page_use_prot_handling Message Handling
 /// When a message is received over I/O link and successfully deserialised, it 

@@ -163,7 +163,7 @@
 ///     >;
 /// @endcode
 /// To support such case, the @ref comms::dispatchMsgPolymorphic() function
-/// is overloaded with new @b offset parameter (which is offset from the
+/// is overloaded with new @b index parameter (which is index (or offset) starting from the
 /// first type in the tuple with the requested ID) to allow 
 /// selection to what type to downcast
 /// @code
@@ -239,7 +239,7 @@
 /// extra v-tables and virtual functions involved.
 ///
 /// In case there are distinct message types with the same numeric ID (multiple 
-/// forms of the same message), the overloaded function with extra @b offset
+/// forms of the same message), the overloaded function with extra @b index
 /// parameter is provided (similar to described earlier @ref comms::dispatchMsgPolymorphic()).
 /// @code
 /// comms::dispatchMsgStaticBinSearch<AllMessages>(90, msg, handler); // Invokes handle(Message90_1<MyMessage>&)
@@ -298,7 +298,7 @@
 /// comparison statements with O(n) runtime complexity.
 ///
 /// In case there are distinct message types with the same numeric ID (multiple 
-/// forms of the same message), the overloaded function with extra @b offset
+/// forms of the same message), the overloaded function with extra @b index
 /// parameter is provided (similar to described earlier @ref comms::dispatchMsgPolymorphic(),
 /// and @ref comms::dispatchMsgStaticBinSearch()).
 /// @code
@@ -344,7 +344,7 @@
 /// <b>static binary search</b> one will be used.
 ///
 /// In case there are distinct message types with the same numeric ID (multiple 
-/// forms of the same message), the overloaded function with extra @b offset
+/// forms of the same message), the overloaded function with extra @b index
 /// parameter is provided similar to other dispatch methods described above.
 /// @code
 /// using AllMessages1 = 
@@ -457,7 +457,7 @@
 /// Please see @ref comms::dispatchMsgTypePolymorphic() for reference.
 ///
 /// Please note, that in case there are distinct message types with the same numeric ID (multiple 
-/// forms of the same message), the overloaded function with extra @b offset
+/// forms of the same message), the overloaded function with extra @b index
 /// parameter is also provided.
 /// @code
 /// using AllMessages = 
@@ -489,7 +489,7 @@
 /// Please see @ref comms::dispatchMsgTypeStaticBinSearch() for reference.
 ///
 /// Please note, that in case there are distinct message types with the same numeric ID (multiple 
-/// forms of the same message), the overloaded function with extra @b offset
+/// forms of the same message), the overloaded function with extra @b index
 /// parameter is also provided.
 /// @code
 /// using AllMessages = 
@@ -522,7 +522,7 @@
 /// Please see @ref comms::dispatchMsgTypeLinearSwitch() for reference.
 ///
 /// Please note, that in case there are distinct message types with the same numeric ID (multiple 
-/// forms of the same message), the overloaded function with extra @b offset
+/// forms of the same message), the overloaded function with extra @b index
 /// parameter is also provided.
 /// @code
 /// using AllMessages = 
@@ -561,7 +561,7 @@
 /// <b>static binary search</b> one will be used.
 ///
 /// In case there are distinct message types with the same numeric ID (multiple 
-/// forms of the same message), the overloaded function with extra @b offset
+/// forms of the same message), the overloaded function with extra @b index
 /// parameter is provided similar to other dispatch methods described above.
 /// @code
 /// using AllMessages1 = 

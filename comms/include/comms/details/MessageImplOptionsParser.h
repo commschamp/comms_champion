@@ -51,15 +51,15 @@ public:
 template <std::intmax_t TId,
           typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::StaticNumIdImpl<TId>,
+    comms::option::def::StaticNumIdImpl<TId>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
     using BaseImpl = MessageImplOptionsParser<TOptions...>;
 
     static_assert(!BaseImpl::HasStaticMsgId,
-        "comms::option::StaticNumIdImpl option is used more than once");
+        "comms::option::def::StaticNumIdImpl option is used more than once");
     static_assert(!BaseImpl::HasNoIdImpl,
-        "comms::option::NoIdImpl and comms::option::StaticNumIdImpl options cannot be used together");
+        "comms::option::app::NoIdImpl and comms::option::def::StaticNumIdImpl options cannot be used together");
 public:
     static const bool HasStaticMsgId = true;
     static const auto MsgId = TId;
@@ -67,7 +67,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoDispatchImpl,
+    comms::option::app::NoDispatchImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -77,13 +77,13 @@ public:
 template <typename TFields,
           typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::FieldsImpl<TFields>,
+    comms::option::def::FieldsImpl<TFields>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
     using BaseImpl = MessageImplOptionsParser<TOptions...>;
 
     static_assert(!BaseImpl::HasFieldsImpl,
-        "comms::option::FieldsImpl option is used more than once");
+        "comms::option::def::FieldsImpl option is used more than once");
 public:
     static const bool HasFieldsImpl = true;
     using Fields = TFields;
@@ -91,22 +91,22 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoIdImpl,
+    comms::option::def::NoIdImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
     using BaseImpl = MessageImplOptionsParser<TOptions...>;
 
     static_assert(!BaseImpl::HasNoIdImpl,
-        "comms::option::NoIdImpl option is used more than once");
+        "comms::option::def::NoIdImpl option is used more than once");
     static_assert(!BaseImpl::HasStaticMsgId,
-        "comms::option::NoIdImpl and comms::option::StaticNumIdImpl options cannot be used together");
+        "comms::option::def::NoIdImpl and comms::option::def::StaticNumIdImpl options cannot be used together");
 public:
     static const bool HasNoIdImpl = true;
 };
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoReadImpl,
+    comms::option::app::NoReadImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -115,7 +115,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoWriteImpl,
+    comms::option::app::NoWriteImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -124,7 +124,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoLengthImpl,
+    comms::option::app::NoLengthImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -133,7 +133,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoValidImpl,
+    comms::option::app::NoValidImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -142,7 +142,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::NoRefreshImpl,
+    comms::option::app::NoRefreshImpl,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -151,7 +151,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::HasCustomRefresh,
+    comms::option::def::HasCustomRefresh,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -160,7 +160,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::HasName,
+    comms::option::def::HasName,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -169,7 +169,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::HasDoGetId,
+    comms::option::def::HasDoGetId,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 public:
@@ -179,13 +179,13 @@ public:
 template <typename TMsgType,
           typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::MsgType<TMsgType>,
+    comms::option::def::MsgType<TMsgType>,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
     using BaseImpl = MessageImplOptionsParser<TOptions...>;
 
     static_assert(!BaseImpl::HasMsgType,
-        "comms::option::MsgType option is used more than once");
+        "comms::option::def::MsgType option is used more than once");
 public:
     static const bool HasMsgType = true;
     using MsgType = TMsgType;
@@ -193,7 +193,7 @@ public:
 
 template <typename... TOptions>
 class MessageImplOptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public MessageImplOptionsParser<TOptions...>
 {
 };

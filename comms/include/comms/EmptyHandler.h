@@ -24,7 +24,7 @@ namespace comms
 {
 
 /// @brief Empty message handler, does nothing.
-/// @details May be used in comms::option::Handler option to force
+/// @details May be used in @ref comms::option::app::Handler option to force
 ///     existence of "comms::Message::dispatch()" member function.
 class EmptyHandler
 {

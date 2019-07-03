@@ -41,45 +41,45 @@ namespace comms
 /// @tparam TOptions Variadic template parameter that can include zero or more
 ///     options that specify behaviour. The options may be comma separated as well as
 ///     bundled into std::tuple. Supported options are:
-///     @li comms::option::StaticNumIdImpl - In case message have numeric IDs
+///     @li @ref comms::option::def::StaticNumIdImpl - In case message have numeric IDs
 ///         (comms::Message::MsgIdType is of integral or enum type), usage of
 ///         this option will cause this class to implement getIdImpl() virtual
 ///         function that returns provided numeric value.
-///     @li comms::option::NoIdImpl - Some message may not have valid IDs and
+///     @li @ref comms::option::def::NoIdImpl - Some message may not have valid IDs and
 ///         their getId() function is never going to be called. Usage of this
 ///         option will create dummy implementation of getIdImpl() virtual
 ///         function that contains always failing assertion. In DEBUG mode
 ///         compilation the application will crash while in release mode the
 ///         default constructed value of comms::Message::MsgIdType will be returned.
-///     @li comms::option::MsgType - Provide type of actual message that
+///     @li @ref comms::option::def::MsgType - Provide type of actual message that
 ///         inherits from this comms::MessageBase class.
-///     @li comms::option::FieldsImpl - Usually implementation of read, write,
+///     @li @ref comms::option::def::FieldsImpl - Usually implementation of read, write,
 ///         validity check, and length calculation is pretty straight forward. For
 ///         example the message is considered valid if all the field values
 ///         are considered to be valid, or read operation is to perform read for
-///         all the fields in the message. If the comms::option::FieldsImpl
+///         all the fields in the message. If the @ref comms::option::def::FieldsImpl
 ///         option with all the message field classes bundled into
 ///         the std::tuple is provided, then @ref MessageBase class can implement
 ///         readImpl(), writeImpl(), validImpl(), lengthImpl() virtual functions
 ///         declared as pure in comms::Message interface. The option also
 ///         provides an accessor functions to the all the field objects: fields().
-///     @li comms::option::ZeroFieldsImpl - This option is an alias to
-///         comms::option::FieldsImpl<std::tuple<> >, which provides implementation
+///     @li @ref comms::option::def::ZeroFieldsImpl - This option is an alias to
+///         @ref comms::option::def::FieldsImpl<std::tuple<> >, which provides implementation
 ///         readImpl(), writeImpl(), validImpl(), lengthImpl() virtual functions
 ///         when message contains no fields, i.e. readImpl() and writeImple() will
 ///         always report success doing nothing, validImpl() will always return
 ///         true, and lengthImpl() will always return 0.
-///     @li comms::option::NoReadImpl - Inhibit the implementation of readImpl().
-///     @li comms::option::NoWriteImpl - Inhibit the implementation of writeImpl().
-///     @li comms::option::NoLengthImpl - Inhibit the implementation of lengthImpl().
-///     @li comms::option::NoValidImpl - Inhibit the implementation of validImpl().
-///     @li comms::option::NoDispatchImpl - Inhibit the implementation of dispatchImpl().
-///     @li comms::option::HasCustomRefresh - Notify @ref comms::MessageBase that
+///     @li @ref comms::option::def::HasCustomRefresh - Notify @ref comms::MessageBase that
 ///             there is custom doRefresh() member function in the message definition
 ///             class.
-///     @li comms::option::HasDoGetId - Enable implementation of getIdImpl() even if
-///         comms::option::StaticNumIdImpl option wasn't used. Must be paired with
-///         comms::option::MsgType.
+///     @li @ref comms::option::def::HasDoGetId - Enable implementation of getIdImpl() even if
+///         @ref comms::option::def::StaticNumIdImpl option wasn't used. Must be paired with
+///         @ref comms::option::def::MsgType.
+///     @li @ref comms::option::app::NoReadImpl - Inhibit the implementation of readImpl().
+///     @li @ref comms::option::app::NoWriteImpl - Inhibit the implementation of writeImpl().
+///     @li @ref comms::option::app::NoLengthImpl - Inhibit the implementation of lengthImpl().
+///     @li @ref comms::option::app::NoValidImpl - Inhibit the implementation of validImpl().
+///     @li @ref comms::option::app::NoDispatchImpl - Inhibit the implementation of dispatchImpl().
 /// @extends Message
 /// @headerfile comms/MessageBase.h
 /// @see @ref toMessageBase()
@@ -93,38 +93,38 @@ public:
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
 
-    /// @brief All field classes provided with comms::option::FieldsImpl option.
-    /// @details The type is not defined if comms::option::FieldsImpl option
+    /// @brief All field classes provided with @ref comms::option::def::FieldsImpl option.
+    /// @details The type is not defined if @ref comms::option::def::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
     using AllFields = FieldsProvidedWithOption;
 
     /// @brief Get an access to the fields of the message.
-    /// @details The function doesn't exist if comms::option::FieldsImpl option
+    /// @details The function doesn't exist if @ref comms::option::def::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
     /// @return Reference to the fields of the message.
     AllFields& fields();
 
     /// @brief Get an access to the fields of the message.
-    /// @details The function doesn't exist if comms::option::FieldsImpl option
+    /// @details The function doesn't exist if @ref comms::option::def::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
     /// @return Const reference to the fields of the message.
     const AllFields& fields() const;
 
     /// @brief Compile time check of whether the message fields are
     ///     version dependent.
-    /// @details The function doesn't exist if comms::option::FieldsImpl option
+    /// @details The function doesn't exist if @ref comms::option::def::FieldsImpl option
     ///     wasn't provided to comms::MessageBase.
     /// @return @b true if at least one of the fields is version dependent.
     static constexpr bool areFieldsVersionDependent();
 
     /// @brief Default implementation of ID retrieval functionality.
-    /// @details This function exists only if comms::option::StaticNumIdImpl option
+    /// @details This function exists only if @ref comms::option::def::StaticNumIdImpl option
     ///     was provided to comms::MessageBase. @n
     /// @return Numeric ID of the message.
     static constexpr MsgIdParamType doGetId();
 
     /// @brief Default implementation of read functionality.
-    /// @details This function exists only if comms::option::FieldsImpl option
+    /// @details This function exists only if @ref comms::option::def::FieldsImpl option
     ///     was provided to comms::MessageBase. @n
     ///     To make this function works, every field class must provide "read"
     ///     function with following signature:
@@ -133,7 +133,7 @@ public:
     ///     ErrorStatus read(TIter& iter, std::size_t size);
     ///     @endcode
     ///     This function will invoke such "read()" member function for every
-    ///     field object listed with comms::option::FieldsImpl option. If
+    ///     field object listed with @ref comms::option::def::FieldsImpl option. If
     ///     any field doesn't report ErrorStatus::Success, then read operation
     ///     stops, i.e. the provided iterator is not advanced any more.
     /// @tparam TIter Type of the iterator used for reading.
@@ -144,9 +144,9 @@ public:
     ErrorStatus doRead(TIter& iter, std::size_t size);
 
     /// @brief Default implementation of write functionality.
-    /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided
-    ///     to comms::MessageBase. @n
+    /// @details This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided
+    ///     to @ref comms::MessageBase. @n
     ///     To make this function works, every field class must provide "write"
     ///     function with following signature:
     ///     @code
@@ -154,7 +154,7 @@ public:
     ///     ErrorStatus write(TIter& iter, std::size_t size) const;
     ///     @endcode
     ///     This function will invoke such "write()" member function for every
-    ///     field object listed with comms::option::FieldsImpl option. If
+    ///     field object listed with @ref comms::option::def::FieldsImpl option. If
     ///     any field doesn't report ErrorStatus::Success, then write operation
     ///     stops, i.e. the provided iterator is not advanced any more.
     /// @tparam TIter Type of the iterator used for writing.
@@ -165,43 +165,43 @@ public:
     ErrorStatus doWrite(TIter& iter, std::size_t size) const;
 
     /// @brief Default implementation of validity check functionality.
-    /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    /// @details This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     To make this function works, every field class must provide "valid()"
     ///     function with following signature:
     ///     @code
     ///     bool valid() const;
     ///     @endcode
     ///     This function will invoke such "valid()" member function for every
-    ///     field object listed with comms::option::FieldsImpl option.
+    ///     field object listed with @ref comms::option::def::FieldsImpl option.
     /// @return true when @b all fields are valid.
     bool doValid() const;
 
     /// @brief Default implementation of refreshing functionality.
-    /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    /// @details This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     To make this function works, every field class must provide "refresh()"
     ///     function with following signature:
     ///     @code
     ///     bool refresh() const;
     ///     @endcode
     ///     This function will invoke such "refresh()" member function for every
-    ///     field object listed with comms::option::FieldsImpl option and will
+    ///     field object listed with @ref comms::option::def::FieldsImpl option and will
     ///     return @b true if <b>at least</b> one of the invoked functions returned
     ///     @b true.
     /// @return true when <b>at least</b> one of the fields has been updated.
     bool doRefresh() const;
 
     /// @brief Default implementation of length calculation functionality.
-    /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    /// @details This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     To make this function works, every field class must provide "length()"
     ///     function with following signature:
     ///     @code
     ///     std::size_t length() const;
     ///     @endcode
     ///     This function will invoke such "length()" member function for every
-    ///     field object listed with comms::option::FieldsImpl option. The
+    ///     field object listed with @ref comms::option::def::FieldsImpl option. The
     ///     final result is a summary of the "length" values of all the
     ///     fields.
     /// @return Serialisation length of the message.
@@ -244,8 +244,8 @@ public:
     std::size_t doLengthFromUntil() const;
 
     /// @brief Compile time constant of minimal serialisation length.
-    /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    /// @details This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     To make this function works, every field class must provide "minLength()"
     ///     function with following signature:
     ///     @code
@@ -291,8 +291,8 @@ public:
     std::size_t doMinLengthFromUntil() const;
 
     /// @brief Compile time constant of maximal serialisation length.
-    /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    /// @details This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     To make this function works, every field class must provide "maxLength()"
     ///     function with following signature:
     ///     @code
@@ -338,12 +338,12 @@ public:
     std::size_t doMaxLengthFromUntil() const;
 
     /// @brief Update version information of all the fields.
-    /// @details This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase and
-    ///     @ref comms::option::VersionInExtraTransportFields was provided to the
+    /// @details This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to @ref comms::MessageBase and
+    ///     @ref comms::option::def::VersionInExtraTransportFields was provided to the
     ///     message interface class (@ref comms::Message). @n
     ///     This function will invoke such @b setVersion() member function for every
-    ///     field object listed with comms::option::FieldsImpl option and will
+    ///     field object listed with @ref comms::option::def::FieldsImpl option and will
     ///     return @b true if <b>at least</b> one of the invoked functions returned
     ///     @b true (similar to @ref doRefresh()).
     /// @return true when <b>at least</b> one of the fields has been updated.
@@ -358,31 +358,31 @@ protected:
     /// @brief Implementation of ID retrieval functionality.
     /// @details This function may exist only if ID retrieval is possible, i.e.
     ///     the ID type has been privded to comms::Message using
-    ///     comms::option::MsgIdType option and the polymorphic ID retrieval
-    ///     functionality was requested (using comms::option::IdInfoInterface).
+    ///     @ref comms::option::def::MsgIdType option and the polymorphic ID retrieval
+    ///     functionality was requested (using @ref comms::option::app::IdInfoInterface).
     ///     In addition to the conditions listed earlier this function is
     ///     provided if local doGetId() function was generated. If not,
     ///     it may still be provided if
-    ///     the derived class is known (comms::option::MsgType option
-    ///     was used) and the comms::option::HasDoGetId option is used
+    ///     the derived class is known (@ref comms::option::def::MsgType option
+    ///     was used) and the @ref comms::option::def::HasDoGetId option is used
     ///     to declare the derived type having doGetId() member function
     ///     defined.
-    /// @return ID value passed as template parameter to comms::option::StaticNumIdImpl
+    /// @return ID value passed as template parameter to @ref comms::option::def::StaticNumIdImpl
     ///     option.
     virtual MsgIdParamType getIdImpl() const override;
 
     /// @brief Implementation of dispatch functionality.
     /// @details This function exists only if the following conditions are @b true:
-    ///     @li comms::option::Handler option
+    ///     @li @ref comms::option::app::Handler option
     ///     option was provided to comms::Message.
-    ///     @li comms::option::MsgType option was used to specify actual type
+    ///     @li @ref comms::option::def::MsgType option was used to specify actual type
     ///     of the inheriting message class.
-    ///     @li comms::option::NoDispatchImpl option was @b NOT used.
+    ///     @li @ref comms::option::app::NoDispatchImpl option was @b NOT used.
     ///
     ///     In order to properly implement the dispatch functionality
     ///     this class imposes several requirements. First of all, the custom
     ///     message class must provide its own type as an argument to
-    ///     comms::option::MsgType option:
+    ///     @ref comms::option::def::MsgType option:
     ///     @code
     ///     class MyMessageBase :  public comms::Message<...> { ...};
     ///
@@ -390,7 +390,7 @@ protected:
     ///         public comms::MessageBase<
     ///             MyMessageBase,
     ///             ...
-    ///             comms::option::MsgType<Message1>
+    ///             comms::option::def::MsgType<Message1>
     ///             ...
     ///         >
     ///     {
@@ -440,15 +440,15 @@ protected:
     virtual DispatchRetType dispatchImpl(Handler& handler) override;
 
     /// @brief Implementation of polymorphic read functionality.
-    /// @details This function exists if comms::option::ReadIterator option
+    /// @details This function exists if @ref comms::option::app::ReadIterator option
     ///         was provided to comms::Message class when specifying interface, and
-    ///         comms::option::NoReadImpl option was @b NOT used to inhibit
+    ///         @ref comms::option::app::NoReadImpl option was @b NOT used to inhibit
     ///         the implementation. @n
-    ///         If comms::option::MsgType option was used to specify the actual
+    ///         If @ref comms::option::def::MsgType option was used to specify the actual
     ///         type of the message, and if it contains custom doRead()
     ///         function, it will be invoked. Otherwise, the invocation of
     ///         comms::MessageBase::doRead() will be chosen in case fields were
-    ///         specified using comms::option::FieldsImpl option.
+    ///         specified using @ref comms::option::def::FieldsImpl option.
     /// @param[in, out] iter Iterator used for reading the data.
     /// @param[in] size Maximum number of bytes that can be read.
     /// @return Status of the operation.
@@ -462,8 +462,8 @@ protected:
     ///     function provides an ability to read all the fields up to (not including) requested
     ///     field. The overriding doRead() function in the custom message
     ///     definition class may use this function for such task.
-    ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doRead() documentation.
     /// @tparam TIdx Zero based index of the field to read until. The function
@@ -506,8 +506,8 @@ protected:
     ///     while this function provides an ability to resume reading from some
     ///     other field in the middle. The overriding doRead() function in the
     ///     custom message definition class may use this function for such task.
-    ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doRead() documentation.
     /// @tparam TIdx Zero based index of the field to read from. The function
@@ -548,8 +548,8 @@ protected:
     ///     implement different read functionality. In similar way to
     ///     doReadFrom() and doReadUntil() this function provides an
     ///     ability to read any number of fields.
-    ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doRead() documentation.
     /// @tparam TFromIdx Zero based index of the field to read from.
@@ -586,15 +586,15 @@ protected:
     void doReadNoStatusFromUntil(TIter& iter);
 
     /// @brief Implementation of polymorphic write functionality.
-    /// @details This function exists if comms::option::WriteIterator option
+    /// @details This function exists if @ref comms::option::app::WriteIterator option
     ///         was provided to comms::Message class when specifying interface, and
-    ///         comms::option::NoWriteImpl option was @b NOT used to inhibit
+    ///         @ref comms::option::app::NoWriteImpl option was @b NOT used to inhibit
     ///         the implementation. @n
-    ///         If comms::option::MsgType option was used to specify the actual
+    ///         If @ref comms::option::def::MsgType option was used to specify the actual
     ///         type of the message, and if it contains custom doWrite()
     ///         function, it will be invoked. Otherwise, the invocation of
     ///         comms::MessageBase::doWrite() will be chosen in case fields were
-    ///         specified using comms::option::FieldsImpl option.
+    ///         specified using @ref comms::option::def::FieldsImpl option.
     /// @param[in, out] iter Iterator used for writing the data.
     /// @param[in] size Maximum number of bytes that can be written.
     /// @return Status of the operation.
@@ -603,8 +603,8 @@ protected:
     /// @brief Helper function that allows to write only limited number of fields.
     /// @details In a similar way to doReadUntil(), this function allows
     ///     writing limited number of fields starting from the first one.
-    ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doWrite() documentation.
     /// @tparam TIdx Zero based index of the field to write until. The function
@@ -640,8 +640,8 @@ protected:
     /// @details In a similar way to doReadFrom(), this function allows
     ///     writing limited number of fields starting from the requested one until
     ///     the end.
-    ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doWrite() documentation.
     /// @tparam TIdx Zero based index of the field to write from.
@@ -672,8 +672,8 @@ protected:
     /// @brief Helper function that allows to write only limited number of fields.
     /// @details In a similar way to doReadFromUntil(), this function allows
     ///     writing limited number of fields between the requested indices.
-    ///     This function exists only if comms::option::FieldsImpl or
-    ///     comms::option::ZeroFieldsImpl option was provided to comms::MessageBase.
+    ///     This function exists only if @ref comms::option::def::FieldsImpl or
+    ///     @ref comms::option::def::ZeroFieldsImpl option was provided to comms::MessageBase.
     ///     The requirements from field classes is the same as explained in
     ///     doWrite() documentation.
     /// @tparam TFromIdx Zero based index of the field to write from.
@@ -708,37 +708,37 @@ protected:
     void doWriteNoStatusFromUntil(TIter& iter) const;
 
     /// @brief Implementation of polymorphic validity check functionality.
-    /// @details This function exists if comms::option::ValidCheckInterface option
+    /// @details This function exists if @ref comms::option::app::ValidCheckInterface option
     ///         was provided to comms::Message class when specifying interface, and
-    ///         comms::option::NoValidImpl option was @b NOT used to inhibit
+    ///         @ref comms::option::app::NoValidImpl option was @b NOT used to inhibit
     ///         the implementation. @n
-    ///         If comms::option::MsgType option was used to specify the actual
+    ///         If @ref comms::option::def::MsgType option was used to specify the actual
     ///         type of the message, and if it contains custom doValid()
     ///         function, it will be invoked. Otherwise, the invocation of
     ///         comms::MessageBase::doValid() will be chosen in case fields were
-    ///         specified using comms::option::FieldsImpl option.
+    ///         specified using @ref comms::option::def::FieldsImpl option.
     virtual bool validImpl() const override;
 
     /// @brief Implementation of polymorphic length calculation functionality.
-    /// @details This function exists if comms::option::LengthInfoInterface option
+    /// @details This function exists if @ref comms::option::app::LengthInfoInterface option
     ///         was provided to comms::Message class when specifying interface, and
-    ///         comms::option::NoLengthImpl option was @b NOT used to inhibit
+    ///         @ref comms::option::app::NoLengthImpl option was @b NOT used to inhibit
     ///         the implementation. @n
-    ///         If comms::option::MsgType option was used to specify the actual
+    ///         If @ref comms::option::def::MsgType option was used to specify the actual
     ///         type of the message, and if it contains custom doLength()
     ///         function, it will be invoked. Otherwise, the invocation of
     ///         comms::MessageBase::doLength() will be chosen in case fields were
-    ///         specified using comms::option::FieldsImpl option.
+    ///         specified using @ref comms::option::def::FieldsImpl option.
     /// @return Serialisation length of the message.
     virtual std::size_t lengthImpl() const override;
 
     /// @brief Implementation of polymorphic refresh functionality.
-    /// @details This function exists if comms::option::RefreshInterface option
+    /// @details This function exists if @ref comms::option::app::RefreshInterface option
     ///         was provided to comms::Message class when specifying interface,
-    ///         and comms::option::HasCustomRefresh option was used (either on
+    ///         and @ref comms::option::def::HasCustomRefresh option was used (either on
     ///         on of the fields or when defining a message class) to
     ///         to notify about existence of custom refresh functionality.
-    ///         If comms::option::MsgType option was used to specify the actual
+    ///         If @ref comms::option::def::MsgType option was used to specify the actual
     ///         message class, the @b this pointer will be downcasted to it to
     ///         invoke doRefresh() member function defined there. If such
     ///         is not defined the default doRefresh() member function from
@@ -747,9 +747,9 @@ protected:
     virtual bool refreshImpl() override;
 
     /// @brief Implementation of polymorphic name retrieval functionality.
-    /// @details This function exists if @ref comms::option::NameInterface option
+    /// @details This function exists if @ref comms::option::app::NameInterface option
     ///         was provided to @ref comms::Message class when specifying interface,
-    ///         and @ref comms::option::HasName as well as @ref comms::option::MsgType
+    ///         and @ref comms::option::def::HasName as well as @ref comms::option::def::MsgType
     ///         options ware used for this class.
     ///         This function downcasts @b this pointer to actual message type and
     ///         invokes @b doName() member function.
@@ -826,7 +826,7 @@ constexpr bool isMessageBase()
 ///
 ///     typedef std::tuple<Field1, Field2, Field3> MyMessageFields
 ///
-///     class Message1 : public comms::MessageBase<MyInterface, comms::option::FieldsImpl<MyMessageFields> >
+///     class Message1 : public comms::MessageBase<MyInterface, comms::option::def::FieldsImpl<MyMessageFields> >
 ///     {
 ///     public:
 ///         COMMS_MSG_FIELDS_ACCESS(name1, name2, name3);

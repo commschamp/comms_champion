@@ -33,7 +33,7 @@ namespace comms
 /// @brief Base class to all the field classes.
 /// @details Every custom "field" class should inherit from this one.
 /// @tparam TOptions Zero or more options. The supported options are:
-///     @li comms::option::BigEndian or comms::option::LittleEndian - Option to
+///     @li comms::option::def::BigEndian or comms::option::def::LittleEndian - Option to
 ///         specify serialisation endian. If none is provided "Big" endian is
 ///         assumed.
 /// @headerfile comms/Field.h
@@ -184,7 +184,7 @@ protected:
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>
 ///     later on:
 ///     @code
-///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
 ///     using ... Field1;
 ///     using ... Field2;
 ///     using ... Field3;
@@ -345,7 +345,7 @@ protected:
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>
 ///     later on:
 ///     @code
-///     using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///     using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
 ///     using ... Field1;
 ///     using ... Field2;
 ///     using ... Field3;

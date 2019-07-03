@@ -54,7 +54,7 @@ public:
 
 template <typename T, typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::MsgIdType<T>,
+    comms::option::def::MsgIdType<T>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -64,7 +64,7 @@ public:
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::IdInfoInterface,
+    comms::option::app::IdInfoInterface,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -73,7 +73,7 @@ public:
 
 template <typename TEndian, typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::Endian<TEndian>,
+    comms::option::def::Endian<TEndian>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -83,7 +83,7 @@ public:
 
 template <typename TIter, typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::ReadIterator<TIter>,
+    comms::option::app::ReadIterator<TIter>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -93,7 +93,7 @@ public:
 
 template <typename TIter, typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::WriteIterator<TIter>,
+    comms::option::app::WriteIterator<TIter>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -103,7 +103,7 @@ public:
 
 template <typename T, typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::Handler<T>,
+    comms::option::app::Handler<T>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -113,7 +113,7 @@ public:
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::ValidCheckInterface,
+    comms::option::app::ValidCheckInterface,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -122,7 +122,7 @@ public:
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::LengthInfoInterface,
+    comms::option::app::LengthInfoInterface,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -131,7 +131,7 @@ public:
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::RefreshInterface,
+    comms::option::app::RefreshInterface,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -140,7 +140,7 @@ public:
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::NameInterface,
+    comms::option::app::NameInterface,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -149,7 +149,7 @@ public:
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::NoVirtualDestructor,
+    comms::option::app::NoVirtualDestructor,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -158,11 +158,11 @@ public:
 
 template <typename TFields, typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::ExtraTransportFields<TFields>,
+    comms::option::def::ExtraTransportFields<TFields>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
     static_assert(comms::util::isTuple<TFields>(),
-        "Template parameter to comms::option::ExtraTransportFields is expected to "
+        "Template parameter to comms::option::def::ExtraTransportFields is expected to "
         "be std::tuple.");
 public:
     static const bool HasExtraTransportFields = true;
@@ -171,7 +171,7 @@ public:
 
 template <std::size_t TIdx, typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::VersionInExtraTransportFields<TIdx>,
+    comms::option::def::VersionInExtraTransportFields<TIdx>,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 public:
@@ -181,7 +181,7 @@ public:
 
 template <typename... TOptions>
 class MessageInterfaceOptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public MessageInterfaceOptionsParser<TOptions...>
 {
 };

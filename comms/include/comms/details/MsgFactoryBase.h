@@ -104,7 +104,7 @@ class MsgFactoryBase
 {
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
         "Usage of MsgFactoryBase requires Message interface to provide ID type. "
-        "Use comms::option::MsgIdType option in message interface type definition.");
+        "Use comms::option::def::MsgIdType option in message interface type definition.");
     using ParsedOptionsInternal = details::MsgFactoryOptionsParser<TOptions...>;
 
     static const bool InterfaceHasVirtualDestructor =

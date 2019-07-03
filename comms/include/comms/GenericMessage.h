@@ -37,7 +37,7 @@ namespace comms
 ///     variant of @ref comms::Field
 /// @tparam Extra option(s) (bundled as @b std::tuple if multiple) to be
 ///     passed to @ref comms::field::ArrayList field definition.
-template <typename TFieldBase, typename TExtraOpts = comms::option::EmptyOption>
+template <typename TFieldBase, typename TExtraOpts = comms::option::app::EmptyOption>
 using GenericMessageFields =
     std::tuple<
         comms::field::ArrayList<
@@ -56,7 +56,7 @@ using GenericMessageFields =
 ///     ID and doesn't care much about message contents. The
 ///     @ref comms::protocol::MsgIdLayer support creation of the
 ///     GenericMessage in case the received message ID is not known (supported
-///     by using @ref comms::option::SupportGenericMessage option).
+///     by using @ref comms::option::app::SupportGenericMessage option).
 /// @tparam TMessage Common message interface class, becomes one of the
 ///     base classes.
 /// @tparam TFieldOpts Extra option(s) (multiple options need to be bundled in
@@ -67,30 +67,30 @@ using GenericMessageFields =
 ///     to this one.
 /// @pre Requires the common message interface (@b TMessage) to define
 ///     inner @b MsgIdType and @b MsgIdParamType types (expected to use
-///     @ref comms::option::MsgIdType, see @ref page_use_prot_transport_generic_msg)
+///     @ref comms::option::def::MsgIdType, see @ref page_use_prot_transport_generic_msg)
 /// @headerfile comms/GenericMessage.h
 template <
     typename TMessage,
-    typename TFieldOpts = comms::option::EmptyOption,
-    typename TExtraOpts = comms::option::EmptyOption
+    typename TFieldOpts = comms::option::app::EmptyOption,
+    typename TExtraOpts = comms::option::app::EmptyOption
 >
 class GenericMessage : public
     comms::MessageBase<
         TMessage,
-        comms::option::FieldsImpl<GenericMessageFields<typename TMessage::Field, TFieldOpts> >,
-        comms::option::MsgType<GenericMessage<TMessage, TFieldOpts, TExtraOpts> >,
-        comms::option::HasDoGetId,
-        comms::option::HasName,
+        comms::option::def::FieldsImpl<GenericMessageFields<typename TMessage::Field, TFieldOpts> >,
+        comms::option::def::MsgType<GenericMessage<TMessage, TFieldOpts, TExtraOpts> >,
+        comms::option::def::HasDoGetId,
+        comms::option::def::HasName,
         TExtraOpts
     >
 {
     using Base =
         comms::MessageBase<
             TMessage,
-            comms::option::FieldsImpl<GenericMessageFields<typename TMessage::Field, TFieldOpts> >,
-            comms::option::MsgType<GenericMessage<TMessage, TFieldOpts, TExtraOpts> >,
-            comms::option::HasDoGetId,
-            comms::option::HasName,
+            comms::option::def::FieldsImpl<GenericMessageFields<typename TMessage::Field, TFieldOpts> >,
+            comms::option::def::MsgType<GenericMessage<TMessage, TFieldOpts, TExtraOpts> >,
+            comms::option::def::HasDoGetId,
+            comms::option::def::HasName,
             TExtraOpts
         >;
 public:

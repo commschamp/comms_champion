@@ -38,7 +38,7 @@ public:
 };
 
 template <typename... TOptions>
-class MsgFactoryOptionsParser<comms::option::InPlaceAllocation, TOptions...> :
+class MsgFactoryOptionsParser<comms::option::app::InPlaceAllocation, TOptions...> :
         public MsgFactoryOptionsParser<TOptions...>
 {
 public:
@@ -46,7 +46,7 @@ public:
 };
 
 template <typename TMsg, typename... TOptions>
-class MsgFactoryOptionsParser<comms::option::SupportGenericMessage<TMsg>, TOptions...> :
+class MsgFactoryOptionsParser<comms::option::app::SupportGenericMessage<TMsg>, TOptions...> :
         public MsgFactoryOptionsParser<TOptions...>
 {
 public:
@@ -55,7 +55,7 @@ public:
 };
 
 template <typename T, typename... TOptions>
-class MsgFactoryOptionsParser<comms::option::ForceDispatch<T>, TOptions...> :
+class MsgFactoryOptionsParser<comms::option::app::ForceDispatch<T>, TOptions...> :
         public MsgFactoryOptionsParser<TOptions...>
 {
 public:
@@ -66,7 +66,7 @@ public:
 
 template <typename... TOptions>
 class MsgFactoryOptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public MsgFactoryOptionsParser<TOptions...>
 {
 };

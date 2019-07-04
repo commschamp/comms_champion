@@ -53,7 +53,7 @@ namespace protocol
 ///     that this protocol stack must be able to read() as well as create (using createMsg()).
 /// @tparam TNextLayer Next transport layer type.
 /// @tparam TOptions Default functionality extension options. Supported options are:
-///     @li @ref comms::option::ExtendingClass - Use this option to provide a class
+///     @li @ref comms::option::def::ExtendingClass - Use this option to provide a class
 ///         name of the extending class, which can be used to extend existing functionality.
 ///         See also @ref page_custom_id_layer tutorial page.
 ///     @li All the options supported by the @ref comms::MsgFactory. All the options
@@ -98,7 +98,7 @@ class MsgIdLayer : public
 
     static_assert(TMessage::InterfaceOptions::HasMsgIdType,
         "Usage of MsgIdLayer requires support for ID type. "
-        "Use comms::option::MsgIdType option in message interface type definition.");
+        "Use comms::option::def::MsgIdType option in message interface type definition.");
 
 public:
 
@@ -155,7 +155,7 @@ public:
     ///     forward the read() request to the next layer.
     ///     If the message object cannot be generated (the message type is not
     ///     provided inside @b TAllMessages template parameter), but
-    ///     the @ref comms::option::SupportGenericMessage option has beed used,
+    ///     the @ref comms::option::app::SupportGenericMessage option has beed used,
     ///     the @ref comms::GenericMessage may be generated instead.@n
     ///     @b NOTE, that @b msg parameter can be either reference to a smart pointer,
     ///     which will hold allocated object, or to previously allocated object itself.
@@ -231,11 +231,11 @@ public:
     ///     sequence, then call write() member function of the next
     ///     protocol layer. If @b TMsg type is recognised to be actual message
     ///     type (inherited from comms::MessageBase while using
-    ///     comms::option::StaticNumIdImpl option to specify its numeric ID),
+    ///     @ref comms::option::def::StaticNumIdImpl option to specify its numeric ID),
     ///     its defined @b doGetId() member function (see comms::MessageBase::doGetId())
     ///     non virtual function is called. Otherwise polymorphic @b getId()
     ///     member function is used to retrieve the message ID information, which
-    ///     means the message interface class must use comms::option::IdInfoInterface
+    ///     means the message interface class must use @ref comms::option::app::IdInfoInterface
     ///     option to define appropriate interface.
     /// @tparam TMsg Type of the message being written.
     /// @tparam TIter Type of iterator used for writing.
@@ -573,7 +573,7 @@ private:
             "The message class is expected to inherit from comms::Message");
         static_assert(MsgType::InterfaceOptions::HasMsgIdInfo,
             "The message interface class must expose polymorphic ID retrieval functionality, "
-            "use comms::option::IdInfoInterface option to define it.");
+            "use comms::option::app::IdInfoInterface option to define it.");
 
         return msg.getId();
     }

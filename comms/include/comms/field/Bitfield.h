@@ -47,7 +47,7 @@ namespace field
 ///             Value4
 ///         };
 ///
-///         using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///         using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
 ///         using MyField =
 ///             comms::field::Bitfield<
 ///                 MyFieldBase,
@@ -55,18 +55,18 @@ namespace field
 ///                     comms::field::EnumValue<
 ///                         MyFieldBase,
 ///                         MyEnumType,
-///                         comms::option::FixedBitLength<2>
+///                         comms::option::def::FixedBitLength<2>
 ///                     >,
 ///                     comms::field::IntValue<
 ///                         MyFieldBase,
 ///                         std::uint8_t,
-///                         comms::option::FixedBitLength<6>
+///                         comms::option::def::FixedBitLength<6>
 ///                     >
 ///                 >
 ///             >;
 ///     @endcode
 ///     Note, that bitfield members fields specify their length in bits using
-///     comms::option::FixedBitLength option.
+///     @ref comms::option::def::FixedBitLength option.
 ///     Also note, that all bitfield member's lengths in bits combined create
 ///     a round number of bytes, i.e all the bits must sum up to 8, 16, 24, 32, ...
 ///     bits.
@@ -79,26 +79,26 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li @ref comms::option::ContentsValidator - All field members may specify
+///     @li @ref comms::option::def::ContentsValidator - All field members may specify
 ///         their independent validators. The bitfield field considered to
 ///         be valid if all the field members are valid. This option though,
 ///         provides an ability to add extra validation logic that can
 ///         observe value of more than one bitfield member. For example,
 ///         protocol specifies that if one specific member has value X, than
 ///         other member is NOT allowed to have value Y.
-///     @li @ref comms::option::ContentsRefresher - The default refreshing
+///     @li @ref comms::option::def::ContentsRefresher - The default refreshing
 ///         behaviour is to call the @b refresh() member function of every
 ///         member field. This option provides an ability to set a custom
 ///         "refreshing" logic.
-///     @li @ref comms::option::HasCustomRead - Mark field to have custom read
+///     @li @ref comms::option::def::HasCustomRead - Mark field to have custom read
 ///         functionality
-///     @li @ref comms::option::HasCustomRefresh - Mark field to have custom
+///     @li @ref comms::option::def::HasCustomRefresh - Mark field to have custom
 ///         refresh functionality.
-///     @li @ref comms::option::EmptySerialization - Force empty serialization.
-///     @li @ref comms::option::VersionStorage - Add version storage.
+///     @li @ref comms::option::def::EmptySerialization - Force empty serialization.
+///     @li @ref comms::option::def::VersionStorage - Add version storage.
 /// @pre TMember is a variant of std::tuple, that contains other fields.
 /// @pre Every field member specifies its length in bits using
-///     comms::option::FixedBitLength option.
+///     @ref comms::option::def::FixedBitLength option.
 /// @extends comms::Field
 /// @headerfile comms/field/Bitfield.h
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
@@ -147,7 +147,7 @@ public:
 
     /// @brief Retrieve number of bits specified member field consumes.
     /// @tparam TIdx Index of the member field.
-    /// @return Number of bits, specified with comms::option::FixedBitLength option
+    /// @return Number of bits, specified with @ref comms::option::def::FixedBitLength option
     ///     used with the requested member.
     template <std::size_t TIdx>
     static constexpr std::size_t memberBitLength()
@@ -262,7 +262,7 @@ public:
     }
 
     /// @brief Get version of the field.
-    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    /// @details Exists only if @ref comms::option::def::VersionStorage option has been provided.
     VersionType getVersion() const
     {
         return BaseImpl::getVersion();
@@ -281,51 +281,51 @@ protected:
 
 private:
     static_assert(!ParsedOptions::HasSerOffset,
-            "comms::option::NumValueSerOffset option is not applicable to Bitfield field");
+        "comms::option::def::NumValueSerOffset option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasFixedLengthLimit,
-            "comms::option::FixedLength option is not applicable to Bitfield field");
+        "comms::option::def::FixedLength option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasFixedBitLengthLimit,
-            "comms::option::FixedBitLength option is not applicable to Bitfield field");
+        "comms::option::def::FixedBitLength option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasVarLengthLimits,
-            "comms::option::VarLength option is not applicable to Bitfield field");
+        "comms::option::def::VarLength option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceElemLengthForcing,
-            "comms::option::SequenceElemLengthForcingEnabled option is not applicable to Bitfield field");
+        "comms::option::def::SequenceElemLengthForcingEnabled option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceSizeForcing,
-            "comms::option::SequenceSizeForcingEnabled option is not applicable to Bitfield field");
+        "comms::option::def::SequenceSizeForcingEnabled option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceLengthForcing,
-            "comms::option::SequenceLengthorcingEnabled option is not applicable to Bitfield field");
+        "comms::option::def::SequenceLengthorcingEnabled option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceFixedSize,
-            "comms::option::SequenceFixedSize option is not applicable to Bitfield field");
+        "comms::option::def::SequenceFixedSize option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,
-            "comms::option::SequenceFixedSizeUseFixedSizeStorage option is not applicable to Bitfield field");
+        "comms::option::app::SequenceFixedSizeUseFixedSizeStorage option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceSizeFieldPrefix,
-            "comms::option::SequenceSizeFieldPrefix option is not applicable to Bitfield field");
+        "comms::option::def::SequenceSizeFieldPrefix option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceSerLengthFieldPrefix,
-            "comms::option::SequenceSerLengthFieldPrefix option is not applicable to Bitfield field");
+        "comms::option::def::SequenceSerLengthFieldPrefix option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to Bitfield field");
+        "comms::option::def::SequenceElemSerLengthFieldPrefix option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to Bitfield field");
+        "comms::option::def::SequenceElemSerLengthFixedFieldPrefix option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
-            "comms::option::SequenceTrailingFieldSuffix option is not applicable to Bitfield field");
+        "comms::option::def::SequenceTrailingFieldSuffix option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,
-            "comms::option::SequenceTerminationFieldSuffix option is not applicable to Bitfield field");
+        "comms::option::def::SequenceTerminationFieldSuffix option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasFixedSizeStorage,
-            "comms::option::FixedSizeStorage option is not applicable to Bitfield field");
+        "comms::option::app::FixedSizeStorage option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasCustomStorageType,
-            "comms::option::CustomStorageType option is not applicable to Bitfield field");
+        "comms::option::app::CustomStorageType option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasScalingRatio,
-            "comms::option::ScalingRatio option is not applicable to Bitfield field");
+        "comms::option::def::ScalingRatio option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasUnits,
-            "comms::option::Units option is not applicable to Bitfield field");
+        "comms::option::def::Units option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasOrigDataView,
-            "comms::option::OrigDataView option is not applicable to Bitfield field");
+        "comms::option::app::OrigDataView option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
-            "comms::option::ValidNumValueRange (or similar) option is not applicable to Bitfield field");
+        "comms::option::def::ValidNumValueRange (or similar) option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasVersionsRange,
-            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to Bitfield field");
+        "comms::option::def::ExistsBetweenVersions (or similar) option is not applicable to Bitfield field");
     static_assert(!ParsedOptions::HasInvalidByDefault,
-            "comms::option::InvalidByDefault option is not applicable to Bitfield field");
+        "comms::option::def::InvalidByDefault option is not applicable to Bitfield field");
 
 };
 

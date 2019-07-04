@@ -37,7 +37,7 @@ namespace protocol
 ///     the field's value and will re-assign it to specified message object's
 ///     "extra transport" data member field. This layer requires extra support
 ///     from the defined message interface object - there is a need to pass
-///     @ref comms::option::ExtraTransportFields option to the interface definition
+///     @ref comms::option::def::ExtraTransportFields option to the interface definition
 ///     @ref comms::Message class.
 ///     This layer is a mid level layer, expects other mid level layer or
 ///     MsgDataLayer to be its next one.
@@ -46,7 +46,7 @@ namespace protocol
 ///     (accessed via @ref comms::Message::transportFields()).
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @tparam TOptions Extending functionality options. Supported options are:
-///     @li @ref comms::option::PseudoValue - Mark the handled value to be "pseudo"
+///     @li @ref comms::option::def::PseudoValue - Mark the handled value to be "pseudo"
 ///         one, i.e. the field is not getting serialised.
 /// @headerfile comms/protocol/TransportValueLayer.h
 /// @extends ProtocolLayerBase
@@ -57,7 +57,7 @@ class TransportValueLayer : public
                 TField,
                 TNextLayer,
                 TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
-                comms::option::ProtocolLayerForceReadUntilDataSplit
+                comms::option::def::ProtocolLayerForceReadUntilDataSplit
             >,
             TOptions...
         >
@@ -68,7 +68,7 @@ class TransportValueLayer : public
                 TField,
                 TNextLayer,
                 TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
-                comms::option::ProtocolLayerForceReadUntilDataSplit
+                comms::option::def::ProtocolLayerForceReadUntilDataSplit
             >,
             TOptions...
         >;
@@ -188,7 +188,7 @@ public:
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "
-            "use comms::option::ExtraTransportFields option.");
+            "use comms::option::def::ExtraTransportFields option.");
         static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
             "TIdx is too big, exceeds the amount of transport fields defined in interface class");
 
@@ -206,7 +206,7 @@ public:
     }
 
     /// @brief Customising field length calculation
-    /// @details If the layer is marked as "pseudo" (using @ref comms::option::PseudoValue)
+    /// @details If the layer is marked as "pseudo" (using @ref comms::option::def::PseudoValue)
     ///     option, then the report length is 0.
     static constexpr std::size_t doFieldLength()
     {
@@ -214,7 +214,7 @@ public:
     }
 
     /// @brief Customising field length calculation
-    /// @details If the layer is marked as "pseudo" (using @ref comms::option::PseudoValue)
+    /// @details If the layer is marked as "pseudo" (using @ref comms::option::def::PseudoValue)
     ///     option, then the report length is 0.
     template <typename TMsg>
     static std::size_t doFieldLength(const TMsg&)
@@ -224,12 +224,12 @@ public:
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Access to pseudo field stored internally.
-    /// @details The function exists only if @ref comms::option::PseudoValue
+    /// @details The function exists only if @ref comms::option::def::PseudoValue
     ///     option has been used.
     Field& pseudoField();
 
     /// @brief Const access to pseudo field stored internally.
-    /// @details The function exists only if @ref comms::option::PseudoValue
+    /// @details The function exists only if @ref comms::option::def::PseudoValue
     ///     option has been used.
     const Field& pseudoField() const;
 #endif
@@ -254,7 +254,7 @@ private:
         using MessageInterfaceType = typename MsgPtrType::element_type;
         static_assert(MessageInterfaceType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "
-            "use comms::option::ExtraTransportFields option.");
+            "use comms::option::def::ExtraTransportFields option.");
         static_assert(TIdx < std::tuple_size<typename MessageInterfaceType::TransportFields>::value,
             "TIdx is too big, exceeds the amount of transport fields defined in interface class");
 
@@ -267,7 +267,7 @@ private:
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "
-            "use comms::option::ExtraTransportFields option.");
+            "use comms::option::def::ExtraTransportFields option.");
         static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
             "TIdx is too big, exceeds the amount of transport fields defined in interface class");
 

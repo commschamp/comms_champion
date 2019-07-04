@@ -497,8 +497,8 @@ void setVoltage(TField& field, TVal&& val)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 TRet getNanoseconds(const TField& field)
 {
@@ -513,8 +513,8 @@ TRet getNanoseconds(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setNanoseconds(TField& field, TVal&& val)
 {
@@ -550,8 +550,8 @@ constexpr bool isNanoseconds(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 TRet getMicroseconds(const TField& field)
 {
@@ -566,8 +566,8 @@ TRet getMicroseconds(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setMicroseconds(TField& field, TVal&& val)
 {
@@ -603,8 +603,8 @@ constexpr bool isMicroseconds(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 TRet getMilliseconds(const TField& field)
 {
@@ -619,8 +619,8 @@ TRet getMilliseconds(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setMilliseconds(TField& field, TVal&& val)
 {
@@ -656,8 +656,8 @@ constexpr bool isMilliseconds(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 TRet getSeconds(const TField& field)
 {
@@ -672,8 +672,8 @@ TRet getSeconds(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setSeconds(TField& field, TVal&& val)
 {
@@ -709,8 +709,8 @@ constexpr bool isSeconds(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 TRet getMinutes(const TField& field)
 {
@@ -725,8 +725,8 @@ TRet getMinutes(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setMinutes(TField& field, TVal&& val)
 {
@@ -762,8 +762,8 @@ constexpr bool isMinutes(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 TRet getHours(const TField& field)
 {
@@ -778,8 +778,8 @@ TRet getHours(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setHours(TField& field, TVal&& val)
 {
@@ -815,8 +815,8 @@ constexpr bool isHours(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 TRet getDays(const TField& field)
 {
@@ -831,8 +831,8 @@ TRet getDays(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setDays(TField& field, TVal&& val)
 {
@@ -868,8 +868,8 @@ constexpr bool isDays(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TRet, typename TField>
 TRet getWeeks(const TField& field)
 {
@@ -884,8 +884,8 @@ TRet getWeeks(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
-///     any of the relevant options: comms::option::UnitsMilliseconds,
-///     comms::option::UnitsSeconds, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
+///     @ref comms::option::def::UnitsSeconds, etc...
 template <typename TField, typename TVal>
 void setWeeks(TField& field, TVal&& val)
 {
@@ -921,8 +921,8 @@ constexpr bool isWeeks(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TRet, typename TField>
 TRet getNanometers(const TField& field)
 {
@@ -937,8 +937,8 @@ TRet getNanometers(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TField, typename TVal>
 void setNanometers(TField& field, TVal&& val)
 {
@@ -974,8 +974,8 @@ constexpr bool isNanometers(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TRet, typename TField>
 TRet getMicrometers(const TField& field)
 {
@@ -990,8 +990,8 @@ TRet getMicrometers(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TField, typename TVal>
 void setMicrometers(TField& field, TVal&& val)
 {
@@ -1027,8 +1027,8 @@ constexpr bool isMicrometers(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TRet, typename TField>
 TRet getMillimeters(const TField& field)
 {
@@ -1043,8 +1043,8 @@ TRet getMillimeters(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TField, typename TVal>
 void setMillimeters(TField& field, TVal&& val)
 {
@@ -1080,8 +1080,8 @@ constexpr bool isMillimeters(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TRet, typename TField>
 TRet getCentimeters(const TField& field)
 {
@@ -1096,8 +1096,8 @@ TRet getCentimeters(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TField, typename TVal>
 void setCentimeters(TField& field, TVal&& val)
 {
@@ -1133,8 +1133,8 @@ constexpr bool isCentimeters(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TRet, typename TField>
 TRet getMeters(const TField& field)
 {
@@ -1149,8 +1149,8 @@ TRet getMeters(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TField, typename TVal>
 void setMeters(TField& field, TVal&& val)
 {
@@ -1186,8 +1186,8 @@ constexpr bool isMeters(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TRet, typename TField>
 TRet getKilometers(const TField& field)
 {
@@ -1202,8 +1202,8 @@ TRet getKilometers(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
-///     any of the relevant options: comms::option::UnitsMillimeters,
-///     comms::option::UnitsMeters, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
+///     @ref comms::option::def::UnitsMeters, etc...
 template <typename TField, typename TVal>
 void setKilometers(TField& field, TVal&& val)
 {
@@ -1239,8 +1239,8 @@ constexpr bool isKilometers(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TRet, typename TField>
 TRet getNanometersPerSecond(const TField& field)
 {
@@ -1255,8 +1255,8 @@ TRet getNanometersPerSecond(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TField, typename TVal>
 void setNanometersPerSecond(TField& field, TVal&& val)
 {
@@ -1292,8 +1292,8 @@ constexpr bool isNanometersPerSecond(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TRet, typename TField>
 TRet getMicrometersPerSecond(const TField& field)
 {
@@ -1308,8 +1308,8 @@ TRet getMicrometersPerSecond(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TField, typename TVal>
 void setMicrometersPerSecond(TField& field, TVal&& val)
 {
@@ -1345,8 +1345,8 @@ constexpr bool isMicrometersPerSecond(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TRet, typename TField>
 TRet getMillimetersPerSecond(const TField& field)
 {
@@ -1361,8 +1361,8 @@ TRet getMillimetersPerSecond(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TField, typename TVal>
 void setMillimetersPerSecond(TField& field, TVal&& val)
 {
@@ -1398,8 +1398,8 @@ constexpr bool isMillimetersPerSecond(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TRet, typename TField>
 TRet getCentimetersPerSecond(const TField& field)
 {
@@ -1414,8 +1414,8 @@ TRet getCentimetersPerSecond(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TField, typename TVal>
 void setCentimetersPerSecond(TField& field, TVal&& val)
 {
@@ -1451,8 +1451,8 @@ constexpr bool isCentimetersPerSecond(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TRet, typename TField>
 TRet getMetersPerSecond(const TField& field)
 {
@@ -1467,8 +1467,8 @@ TRet getMetersPerSecond(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TField, typename TVal>
 void setMetersPerSecond(TField& field, TVal&& val)
 {
@@ -1504,8 +1504,8 @@ constexpr bool isMetersPerSecond(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TRet, typename TField>
 TRet getKilometersPerSecond(const TField& field)
 {
@@ -1520,8 +1520,8 @@ TRet getKilometersPerSecond(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TField, typename TVal>
 void setKilometersPerSecond(TField& field, TVal&& val)
 {
@@ -1557,8 +1557,8 @@ constexpr bool isKilometersPerSecond(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TRet, typename TField>
 TRet getKilometersPerHour(const TField& field)
 {
@@ -1573,8 +1573,8 @@ TRet getKilometersPerHour(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
-///     any of the relevant options: comms::option::UnitsMillimetersPerSecond,
-///     comms::option::UnitsMetersPerSecond, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
+///     @ref comms::option::def::UnitsMetersPerSecond, etc...
 template <typename TField, typename TVal>
 void setKilometersPerHour(TField& field, TVal&& val)
 {
@@ -1610,8 +1610,8 @@ constexpr bool isKilometersPerHour(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any frequency value, using
-///     any of the relevant options: comms::option::UnitsHertz,
-///     comms::option::UnitsKilohertz, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsHertz,
+///     @ref comms::option::def::UnitsKilohertz, etc...
 template <typename TRet, typename TField>
 TRet getHertz(const TField& field)
 {
@@ -1626,8 +1626,8 @@ TRet getHertz(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any frequency value, using
-///     any of the relevant options: comms::option::UnitsHertz,
-///     comms::option::UnitsKilohertz, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsHertz,
+///     @ref comms::option::def::UnitsKilohertz, etc...
 template <typename TField, typename TVal>
 void setHertz(TField& field, TVal&& val)
 {
@@ -1663,8 +1663,8 @@ constexpr bool isHertz(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any frequency value, using
-///     any of the relevant options: comms::option::UnitsHertz,
-///     comms::option::UnitsKilohertz, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsHertz,
+///     @ref comms::option::def::UnitsKilohertz, etc...
 template <typename TRet, typename TField>
 TRet getKilohertz(const TField& field)
 {
@@ -1679,8 +1679,8 @@ TRet getKilohertz(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any frequency value, using
-///     any of the relevant options: comms::option::UnitsHertz,
-///     comms::option::UnitsKilohertz, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsHertz,
+///     @ref comms::option::def::UnitsKilohertz, etc...
 template <typename TField, typename TVal>
 void setKilohertz(TField& field, TVal&& val)
 {
@@ -1716,8 +1716,8 @@ constexpr bool isKilohertz(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any frequency value, using
-///     any of the relevant options: comms::option::UnitsHertz,
-///     comms::option::UnitsKilohertz, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsHertz,
+///     @ref comms::option::def::UnitsKilohertz, etc...
 template <typename TRet, typename TField>
 TRet getMegahertz(const TField& field)
 {
@@ -1732,8 +1732,8 @@ TRet getMegahertz(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any frequency value, using
-///     any of the relevant options: comms::option::UnitsHertz,
-///     comms::option::UnitsKilohertz, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsHertz,
+///     @ref comms::option::def::UnitsKilohertz, etc...
 template <typename TField, typename TVal>
 void setMegahertz(TField& field, TVal&& val)
 {
@@ -1769,8 +1769,8 @@ constexpr bool isMegahertz(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any frequency value, using
-///     any of the relevant options: comms::option::UnitsHertz,
-///     comms::option::UnitsKilohertz, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsHertz,
+///     @ref comms::option::def::UnitsKilohertz, etc...
 template <typename TRet, typename TField>
 TRet getGigahertz(const TField& field)
 {
@@ -1785,8 +1785,8 @@ TRet getGigahertz(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any frequency value, using
-///     any of the relevant options: comms::option::UnitsHertz,
-///     comms::option::UnitsKilohertz, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsHertz,
+///     @ref comms::option::def::UnitsKilohertz, etc...
 template <typename TField, typename TVal>
 void setGigahertz(TField& field, TVal&& val)
 {
@@ -1822,8 +1822,8 @@ constexpr bool isGigahertz(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any angle measurement value, using
-///     any of the relevant options: comms::option::UnitsDegrees or
-///     comms::option::UnitsRadians
+///     any of the relevant options: @ref comms::option::def::UnitsDegrees or
+///     @ref comms::option::def::UnitsRadians
 template <typename TRet, typename TField>
 TRet getDegrees(const TField& field)
 {
@@ -1838,8 +1838,8 @@ TRet getDegrees(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any angle measurement value, using
-///     any of the relevant options: comms::option::UnitsDegrees or
-///     comms::option::UnitsRadians
+///     any of the relevant options: @ref comms::option::def::UnitsDegrees or
+///     @ref comms::option::def::UnitsRadians
 template <typename TField, typename TVal>
 void setDegrees(TField& field, TVal&& val)
 {
@@ -1875,8 +1875,8 @@ constexpr bool isDegrees(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any angle measurement value, using
-///     any of the relevant options: comms::option::UnitsDegrees or
-///     comms::option::UnitsRadians
+///     any of the relevant options: @ref comms::option::def::UnitsDegrees or
+///     @ref comms::option::def::UnitsRadians
 template <typename TRet, typename TField>
 TRet getRadians(const TField& field)
 {
@@ -1891,8 +1891,8 @@ TRet getRadians(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any angle measurement value, using
-///     any of the relevant options: comms::option::UnitsDegrees or
-///     comms::option::UnitsRadians
+///     any of the relevant options: @ref comms::option::def::UnitsDegrees or
+///     @ref comms::option::def::UnitsRadians
 template <typename TField, typename TVal>
 void setRadians(TField& field, TVal&& val)
 {
@@ -1928,8 +1928,8 @@ constexpr bool isRadians(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TRet, typename TField>
 TRet getNanoamps(const TField& field)
 {
@@ -1944,8 +1944,8 @@ TRet getNanoamps(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TField, typename TVal>
 void setNanoamps(TField& field, TVal&& val)
 {
@@ -1981,8 +1981,8 @@ constexpr bool isNanoamps(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TRet, typename TField>
 TRet getMicroamps(const TField& field)
 {
@@ -1997,8 +1997,8 @@ TRet getMicroamps(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TField, typename TVal>
 void setMicroamps(TField& field, TVal&& val)
 {
@@ -2035,8 +2035,8 @@ constexpr bool isMicroamps(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TRet, typename TField>
 TRet getMilliamps(const TField& field)
 {
@@ -2051,8 +2051,8 @@ TRet getMilliamps(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TField, typename TVal>
 void setMilliamps(TField& field, TVal&& val)
 {
@@ -2088,8 +2088,8 @@ constexpr bool isMilliamps(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TRet, typename TField>
 TRet getAmps(const TField& field)
 {
@@ -2104,8 +2104,8 @@ TRet getAmps(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TField, typename TVal>
 void setAmps(TField& field, TVal&& val)
 {
@@ -2141,8 +2141,8 @@ constexpr bool isAmps(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TRet, typename TField>
 TRet getKiloamps(const TField& field)
 {
@@ -2157,8 +2157,8 @@ TRet getKiloamps(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMilliamps,
-///     comms::option::UnitsAmps, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
+///     @ref comms::option::def::UnitsAmps, etc...
 template <typename TField, typename TVal>
 void setKiloamps(TField& field, TVal&& val)
 {
@@ -2194,8 +2194,8 @@ constexpr bool isKiloamps(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TRet, typename TField>
 TRet getNanovolts(const TField& field)
 {
@@ -2210,8 +2210,8 @@ TRet getNanovolts(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TField, typename TVal>
 void setNanovolts(TField& field, TVal&& val)
 {
@@ -2247,8 +2247,8 @@ constexpr bool isNanovolts(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TRet, typename TField>
 TRet getMicrovolts(const TField& field)
 {
@@ -2263,8 +2263,8 @@ TRet getMicrovolts(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TField, typename TVal>
 void setMicrovolts(TField& field, TVal&& val)
 {
@@ -2300,8 +2300,8 @@ constexpr bool isMicrovolts(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TRet, typename TField>
 TRet getMillivolts(const TField& field)
 {
@@ -2316,8 +2316,8 @@ TRet getMillivolts(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TField, typename TVal>
 void setMillivolts(TField& field, TVal&& val)
 {
@@ -2353,8 +2353,8 @@ constexpr bool isMillivolts(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TRet, typename TField>
 TRet getVolts(const TField& field)
 {
@@ -2369,8 +2369,8 @@ TRet getVolts(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TField, typename TVal>
 void setVolts(TField& field, TVal&& val)
 {
@@ -2406,8 +2406,8 @@ constexpr bool isVolts(const TField& field)
 /// @tparam TField Type of the field, expected to be a field with integral
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TRet, typename TField>
 TRet getKilovolts(const TField& field)
 {
@@ -2422,8 +2422,8 @@ TRet getKilovolts(const TField& field)
 ///     internal value, such as a variant of comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
-///     any of the relevant options: comms::option::UnitsMillivolts,
-///     comms::option::UnitsVolts, etc...
+///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
+///     @ref comms::option::def::UnitsVolts, etc...
 template <typename TField, typename TVal>
 void setKilovolts(TField& field, TVal&& val)
 {

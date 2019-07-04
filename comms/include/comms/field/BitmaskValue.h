@@ -71,10 +71,10 @@ using BitmaskUndertlyingTypeT =
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field. If no option is provided, the underlying type is assumed
 ///     to be "unsigned", which is usually 4 bytes long. To redefined the length
-///     of the bitmask field, use comms::option::FixedLength option.
+///     of the bitmask field, use @ref comms::option::def::FixedLength option.
 ///     For example:
 ///     @code
-///         using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///         using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
 ///         using MyField =comms::field::EnumValue<MyFieldBase>;
 ///     @endcode
 ///     The serialised value of the field in the example above will consume
@@ -82,21 +82,21 @@ using BitmaskUndertlyingTypeT =
 ///     by default. Example below specifies simple bitmask value field with
 ///     2 bytes serialisation length:
 ///     @code
-///         using MyFieldBase = comms::Field<comms::option::BigEndian>;
-///         using MyField =comms::field::EnumValue<MyFieldBase, comms::option::FixedLength<2> >;
+///         using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
+///         using MyField =comms::field::EnumValue<MyFieldBase, comms::option::def::FixedLength<2> >;
 ///     @endcode
 ///     Supported options are:
-///     @li @ref comms::option::FixedLength
-///     @li @ref comms::option::FixedBitLength
-///     @li @ref comms::option::DefaultValueInitialiser or comms::option::DefaultNumValue.
-///     @li @ref comms::option::ContentsValidator or comms::option::BitmaskReservedBits.
-///     @li @ref comms::option::ContentsRefresher
-///     @li @ref comms::option::HasCustomRead
-///     @li @ref comms::option::HasCustomRefresh
-///     @li @ref comms::option::FailOnInvalid
-///     @li @ref comms::option::IgnoreInvalid
-///     @li @ref comms::option::EmptySerialization
-///     @li @ref comms::option::VersionStorage
+///     @li @ref comms::option::def::FixedLength
+///     @li @ref comms::option::def::FixedBitLength
+///     @li @ref comms::option::def::DefaultValueInitialiser or comms::option::def::DefaultNumValue.
+///     @li @ref comms::option::def::ContentsValidator or comms::option::def::BitmaskReservedBits.
+///     @li @ref comms::option::def::ContentsRefresher
+///     @li @ref comms::option::def::HasCustomRead
+///     @li @ref comms::option::def::HasCustomRefresh
+///     @li @ref comms::option::def::FailOnInvalid
+///     @li @ref comms::option::def::IgnoreInvalid
+///     @li @ref comms::option::def::EmptySerialization
+///     @li @ref comms::option::def::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/BitmaskValue.h
 /// @see COMMS_BITMASK_BITS()
@@ -136,7 +136,7 @@ public:
 
     /// @brief Type of underlying integral value.
     /// @details Unsigned integral type, which depends on the length of the
-    ///     mask determined by the comms::option::FixedLength option.
+    ///     mask determined by the @ref comms::option::def::FixedLength option.
     using ValueType = typename IntValueField::ValueType;
 
     /// @brief Default constructor.
@@ -315,7 +315,7 @@ public:
     }
 
     /// @brief Get version of the field.
-    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    /// @details Exists only if @ref comms::option::def::VersionStorage option has been provided.
     VersionType getVersion() const
     {
         return intValue_.getVersion();
@@ -335,48 +335,47 @@ protected:
 private:
 
     static_assert(!ParsedOptions::HasSerOffset,
-            "comms::option::NumValueSerOffset option is not applicable to BitmaskValue field");
+        "comms::option::def::NumValueSerOffset option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasVarLengthLimits,
-            "comms::option::VarLength option is not applicable to BitmaskValue field");
+        "comms::option::def::VarLength option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceElemLengthForcing,
-            "comms::option::SequenceElemLengthForcingEnabled option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceElemLengthForcingEnabled option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceSizeForcing,
-            "comms::option::SequenceSizeForcingEnabled option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceSizeForcingEnabled option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceLengthForcing,
-            "comms::option::SequenceLengthForcingEnabled option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceLengthForcingEnabled option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceFixedSize,
-            "comms::option::SequenceFixedSize option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceFixedSize option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,
-            "comms::option::SequenceFixedSizeUseFixedSizeStorage option is not applicable to BitmaskValue field");
+        "comms::option::app::SequenceFixedSizeUseFixedSizeStorage option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceSizeFieldPrefix,
-            "comms::option::SequenceSizeFieldPrefix option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceSizeFieldPrefix option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceSerLengthFieldPrefix,
-            "comms::option::SequenceSerLengthFieldPrefix option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceSerLengthFieldPrefix option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceElemSerLengthFieldPrefix option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceElemSerLengthFixedFieldPrefix option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
-            "comms::option::SequenceTrailingFieldSuffix option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceTrailingFieldSuffix option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,
-            "comms::option::SequenceTerminationFieldSuffix option is not applicable to BitmaskValue field");
+        "comms::option::def::SequenceTerminationFieldSuffix option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasFixedSizeStorage,
-            "comms::option::FixedSizeStorage option is not applicable to BitmaskValue field");
+        "comms::option::app::FixedSizeStorage option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasCustomStorageType,
-            "comms::option::CustomStorageType option is not applicable to BitmaskValue field");
+        "comms::option::app::CustomStorageType option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasScalingRatio,
-            "comms::option::ScalingRatio option is not applicable to BitmaskValue field");
+        "comms::option::def::ScalingRatio option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasUnits,
-            "comms::option::Units option is not applicable to BitmaskValue field");
+        "comms::option::def::Units option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasOrigDataView,
-            "comms::option::OrigDataView option is not applicable to BitmaskValue field");
+        "comms::option::app::OrigDataView option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
-            "comms::option::ValidNumValueRange (or similar) option is not applicable to BitmaskValue field");
+        "comms::option::def::ValidNumValueRange (or similar) option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasVersionsRange,
-            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to BitmaskValue field");
+        "comms::option::def::ExistsBetweenVersions (or similar) option is not applicable to BitmaskValue field");
     static_assert(!ParsedOptions::HasInvalidByDefault,
-            "comms::option::InvalidByDefault option is not applicable to BitmaskValue field");
-
+        "comms::option::def::InvalidByDefault option is not applicable to BitmaskValue field");
 
     IntValueField intValue_;
 };

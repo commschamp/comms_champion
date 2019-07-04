@@ -40,7 +40,7 @@ public:
 };
 
 template <typename... TOptions>
-class ChecksumLayerOptionsParser<comms::option::ChecksumLayerVerifyBeforeRead, TOptions...> :
+class ChecksumLayerOptionsParser<comms::option::def::ChecksumLayerVerifyBeforeRead, TOptions...> :
         public ChecksumLayerOptionsParser<TOptions...>
 {
 public:
@@ -49,7 +49,7 @@ public:
 
 template <typename... TOptions>
 class ChecksumLayerOptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public ChecksumLayerOptionsParser<TOptions...>
 {
 };

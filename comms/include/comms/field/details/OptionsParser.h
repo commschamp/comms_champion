@@ -420,7 +420,7 @@ public:
 #ifdef CC_COMPILER_GCC47
     static_assert(!BaseImpl::HasMultiRangeValidation,
         "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
-        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "of comms::option::def::ValidNumValueRange options. Either use it only once or"
         "upgrade your compiler.");
 #endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::intmax_t, TMinValue, TMaxValue>;
@@ -449,7 +449,7 @@ public:
 #ifdef CC_COMPILER_GCC47
     static_assert(!BaseImpl::HasMultiRangeValidation,
         "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
-        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "of comms::option::def::ValidNumValueRange options. Either use it only once or"
         "upgrade your compiler.");
 #endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::uintmax_t, TMinValue, TMaxValue>;
@@ -492,7 +492,7 @@ class OptionsParser<
 {
     using BaseImpl = OptionsParser<TOptions...>;
     static_assert(!BaseImpl::HasRemLengthMemberField, 
-        "Option comms::option::RemLengthMemberField used multiple times");
+        "Option comms::def::option::RemLengthMemberField used multiple times");
 public:
     static const bool HasRemLengthMemberField = true;
     static const std::size_t RemLengthMemberFieldIdx = TIdx;

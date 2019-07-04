@@ -46,10 +46,10 @@ namespace protocol
 ///     assigning it as a value of the check field being read and/or written.
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @tparam TOptions Extending functionality options. Supported options are:
-///     @li comms::option::ChecksumLayerVerifyBeforeRead - By default, the
+///     @li @ref comms::option::def::ChecksumLayerVerifyBeforeRead - By default, the
 ///         @b ChecksumLayer will invoke @b read operation of inner (wrapped) layers
 ///         and only if it is successful, it will calculate and verify the
-///         checksum value. Usage of comms::option::ChecksumLayerVerifyBeforeRead
+///         checksum value. Usage of @ref comms::option::def::ChecksumLayerVerifyBeforeRead
 ///         modifies the default behaviour by forcing the checksum verification
 ///         prior to invocation of @b read operation in the wrapped layer(s).
 /// @headerfile comms/protocol/ChecksumLayer.h
@@ -59,7 +59,7 @@ class ChecksumLayer : public
             TField,
             TNextLayer,
             ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>,
-            comms::option::ProtocolLayerDisallowReadUntilDataSplit
+            comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
         >
 {
     using BaseImpl =
@@ -67,7 +67,7 @@ class ChecksumLayer : public
             TField,
             TNextLayer,
             ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>,
-            comms::option::ProtocolLayerDisallowReadUntilDataSplit
+            comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
         >;
 public:
     /// @brief Parsed options

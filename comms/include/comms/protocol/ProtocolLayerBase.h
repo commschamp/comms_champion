@@ -50,8 +50,8 @@ namespace protocol
 /// @tparam TNextLayer Next layer this one wraps and forwards the calls to.
 /// @tparam TDerived Actual protocol layer class that extends this one.
 /// @tparam TOptions Extra options. Supported ones are:
-///     @li @ref comms::option::ProtocolLayerForceReadUntilDataSplit
-///     @li @ref comms::option::ProtocolLayerDisallowReadUntilDataSplit
+///     @li @ref comms::option::def::ProtocolLayerForceReadUntilDataSplit
+///     @li @ref comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
 /// @headerfile comms/protocol/ProtocolLayerBase.h
 template <
     typename TField,

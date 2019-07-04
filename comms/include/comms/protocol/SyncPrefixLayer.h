@@ -33,7 +33,7 @@ namespace protocol
 ///     This layer is a mid level layer, expects other mid level layer or
 ///     MsgDataLayer to be its next one.
 /// @tparam TField Type of the field that is used as sync prefix. The "sync"
-///     field type definition must use options (comms::option::DefaultNumValue)
+///     field type definition must use options (@ref comms::option::def::DefaultNumValue)
 ///     to specify its default value to be equal to the expected "sync" value.
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @headerfile comms/protocol/SyncPrefixLayer.h

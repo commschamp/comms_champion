@@ -40,7 +40,7 @@ public:
 };
 
 template <typename... TOptions>
-class TransportValueLayerOptionsParser<comms::option::PseudoValue, TOptions...> :
+class TransportValueLayerOptionsParser<comms::option::def::PseudoValue, TOptions...> :
         public TransportValueLayerOptionsParser<TOptions...>
 {
 public:
@@ -49,7 +49,7 @@ public:
 
 template <typename... TOptions>
 class TransportValueLayerOptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public TransportValueLayerOptionsParser<TOptions...>
 {
 };

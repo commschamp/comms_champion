@@ -69,7 +69,7 @@ public:
     ///     readFieldsCached() member function.
     using Field =
         comms::field::ArrayList<
-            comms::Field<comms::option::BigEndian>,
+            comms::Field<comms::option::def::BigEndian>,
             std::uint8_t,
             TExtraOpts...
         >;
@@ -297,7 +297,7 @@ public:
     /// @details The way the message contents are written is determined by the
     ///     type of the message. If TMsg type is recognised to be actual message
     ///     inheriting from comms::MessageBase with its fields provided using
-    ///     comms::option::FieldsImpl option, the function calls @b doWrite
+    ///     @ref comms::option::def::FieldsImpl option, the function calls @b doWrite
     ///     non-virtual function defined by comms::MessageBase
     ///     (see comms::MessageBase::doWrite) or redefined by the actual
     ///     message itself. Otherwise, TMsg type is expected to be the used

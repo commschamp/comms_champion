@@ -41,7 +41,7 @@ public:
 };
 
 template <typename T, typename... TOptions>
-class MsgSizeLayerOptionsParser<comms::option::ExtendingClass<T>, TOptions...> :
+class MsgSizeLayerOptionsParser<comms::option::def::ExtendingClass<T>, TOptions...> :
         public MsgSizeLayerOptionsParser<TOptions...>
 {
 public:
@@ -51,7 +51,7 @@ public:
 
 template <typename... TOptions>
 class MsgSizeLayerOptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public MsgSizeLayerOptionsParser<TOptions...>
 {
 };

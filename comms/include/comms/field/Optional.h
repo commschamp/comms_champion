@@ -39,13 +39,13 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li @ref comms::option::DefaultValueInitialiser, @ref comms::option::DefaultOptionalMode,
-///         @ref comms::option::OptionalMissingByDefault, or @ref comms::option::OptionalExistsByDefault.
-///     @li @ref comms::option::ContentsValidator.
-///     @li @ref comms::option::ContentsRefresher
-///     @li @ref comms::option::HasCustomRead
-///     @li @ref comms::option::HasCustomRefresh
-///     @li @ref comms::option::VersionStorage
+///     @li @ref comms::option::def::DefaultValueInitialiser, @ref comms::option::def::DefaultOptionalMode,
+///         @ref comms::option::def::OptionalMissingByDefault, or @ref comms::option::def::OptionalExistsByDefault.
+///     @li @ref comms::option::def::ContentsValidator.
+///     @li @ref comms::option::def::ContentsRefresher
+///     @li @ref comms::option::def::HasCustomRead
+///     @li @ref comms::option::def::HasCustomRefresh
+///     @li @ref comms::option::def::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/Optional.h
 template <typename TField, typename... TOptions>
@@ -312,7 +312,7 @@ public:
     }
 
     /// @brief Get version of the field.
-    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    /// @details Exists only if @ref comms::option::def::VersionStorage option has been provided.
     VersionType getVersion() const
     {
         return BaseImpl::getVersion();
@@ -331,7 +331,7 @@ protected:
 
 private:
     static_assert(!ParsedOptions::HasInvalidByDefault,
-            "comms::option::InvalidByDefault option is not applicable to Optional field");
+        "comms::option::def::InvalidByDefault option is not applicable to Optional field");
 };
 
 /// @brief Equality comparison operator.

@@ -36,13 +36,13 @@
 /// };
 ///
 /// // Base class for all the fields defining serialization endian
-/// using FieldBase = comms::field::Field<comms::option::BigEndian>;
+/// using FieldBase = comms::field::Field<comms::option::def::BigEndian>;
 ///
 /// // Definition of the message flags
 /// class MessageFlags : public
 ///     comms::field::BitmaskValue<
 ///         FieldBase,
-///         comms::option::BitmaskReservedBits<0xf0>
+///         comms::option::def::BitmaskReservedBits<0xf0>
 ///     >
 /// {
 /// public:
@@ -55,9 +55,9 @@
 /// class Message : public
 ///     comms::Message<
 ///         TOptions...,
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
-///         comms::option::ExtraTransportFields<std::tuple<MessageFlags> >
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<std::tuple<MessageFlags> >
 ///     >
 /// {
 /// public:
@@ -85,8 +85,8 @@
 ///     comms::field::Bitfield<
 ///         FieldBase,
 ///         std::tuple<
-///             comms::field::EnumValue<FieldBase, MsgId, comms::option::FixedBitLength<4> >,
-///             comms::field::IntValue<FieldBase, std::uint8_t, comms::option::FixedBitLength<4> >
+///             comms::field::EnumValue<FieldBase, MsgId, comms::option::def::FixedBitLength<4> >,
+///             comms::field::IntValue<FieldBase, std::uint8_t, comms::option::def::FixedBitLength<4> >
 ///         >
 ///     >
 /// {
@@ -116,7 +116,7 @@
 ///         TAllMessages,      // std::tuple of all the supported input messages
 ///         TNextLayer,        // Next layer in the protocol stack
 ///         TOptions...,       // Application specific extension options
-///         comms::option::ExtendingClass<MsgIdAndFlagsLayer<TMessage, TAllMessages, TNextLayer, TOptions...> >
+///         comms::option::def::ExtendingClass<MsgIdAndFlagsLayer<TMessage, TAllMessages, TNextLayer, TOptions...> >
 ///                            // Make the comms::protocol::MsgIdLayer aware of it being extended
 ///     >
 /// {
@@ -159,7 +159,7 @@
 /// as the result not able to provide any polymorphic behavior. In order to be
 /// able to extend its default functionality there is a need to use 
 /// <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously Recurring Template Pattern</a>.
-/// It is done by passing @ref comms::option::ExtendingClass extension option with
+/// It is done by passing @ref comms::option::def::ExtendingClass extension option with
 /// the type of the layer class being defined to the @ref comms::protocol::MsgIdLayer.
 ///
 /// The extending class is expected to define the listed below functions. They do not

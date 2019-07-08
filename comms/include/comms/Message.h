@@ -526,28 +526,6 @@ const Message<TOptions...>& toMessage(const Message<TOptions...>& msg)
     return msg;
 }
 
-/// @brief Create and initialise iterator for polymorphic read
-/// @tparam TMessage Type of message interface class.
-/// @param[in] val Value to initialise the iterator with.
-/// @return Initialised iterator for polymorphic read.
-template <typename TMessage, typename TVal>
-typename TMessage::ReadIterator readIteratorFor(
-    const TVal& val)
-{
-    return typename TMessage::ReadIterator(val);
-}
-
-/// @brief Create and initialise iterator for polymorphic write
-/// @tparam TMessage Type of message interface class.
-/// @param[in] val Value to initialise the iterator with.
-/// @return Initialised iterator for polymorphic write.
-template <typename TMessage, typename TVal>
-typename TMessage::WriteIterator writeIteratorFor(
-    const TVal& val)
-{
-    return typename TMessage::WriteIterator(val);
-}
-
 /// @brief Compile time check of of whether the type
 ///     is a message.
 /// @details Checks existence of @b InterfaceOptions inner

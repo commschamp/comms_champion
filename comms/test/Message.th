@@ -824,7 +824,7 @@ void MessageTestSuite::test12()
     static const std::size_t BufSize =
         std::extent<decltype(Buf)>::value;
 
-    auto readIter = comms::readIteratorFor<BeMessageBase>(Buf);
+    auto readIter = comms::readIteratorFor(interface, Buf);
     auto es = interface.read(readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(interface.length(), BufSize);
@@ -926,7 +926,7 @@ void MessageTestSuite::test16()
     TS_ASSERT_EQUALS(msg.field_value2().field().value(), 0x5678);
 
     msg.version() = 4U;
-    auto readIter = comms::readIteratorFor<Msg7>(&Buf[0]);
+    auto readIter = comms::readIteratorFor(msg, &Buf[0]);
     auto es = msg.read(readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(msg.length(), 2U);

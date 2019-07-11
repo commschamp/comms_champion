@@ -823,6 +823,45 @@ using Messages_1to5 =
         Message5<TMessage>
     >;
 
+template <typename TMsgBase>
+class CountHandler
+{
+public:
+
+    template <typename TMsg>
+    void handle(TMsg&)
+    {
+        //std::cout << "Dispatching actual type!!!" << std::endl;
+        ++m_custom;
+    }
+
+    void handle(TMsgBase&)
+    {
+        //std::cout << "Dispatching base!!!" << std::endl;
+        ++m_base;
+    }
+
+    void clear()
+    {
+        m_custom = 0U;
+        m_base = 0U;
+    }
+
+    unsigned getCustomCount() const
+    {
+        return m_custom;
+    }
+
+    unsigned getBaseCount() const
+    {
+        return m_base;
+    }
+
+private:
+    unsigned m_custom = 0U;
+    unsigned m_base = 0U;
+};
+
 namespace details
 {
 

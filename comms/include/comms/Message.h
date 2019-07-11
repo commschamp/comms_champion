@@ -25,13 +25,14 @@
 #include <memory>
 #include <type_traits>
 
-#include "ErrorStatus.h"
-#include "Assert.h"
-#include "Field.h"
+#include "comms/ErrorStatus.h"
+#include "comms/Assert.h"
+#include "comms/Field.h"
 
-#include "details/MessageInterfaceBuilder.h"
-#include "details/transport_fields_access.h"
-#include "details/detect.h"
+#include "comms/details/MessageInterfaceBuilder.h"
+#include "comms/details/transport_fields_access.h"
+#include "comms/details/detect.h"
+#include "comms/details/MessageIdTypeRetriever.h"
 
 namespace comms
 {
@@ -535,6 +536,19 @@ constexpr bool isMessage()
 {
     return details::hasInterfaceOptions<T>();
 }
+
+/// @brief Get type of message ID used by interface class
+/// @details In case common interface class defines its message
+///     ID type (using @ref comms::option::MsgIdType option) the
+///     latter is returned, otherwise the default type (@b TDefaultType)
+///     is reported.
+/// @tparam TMsg Message interface class (extended or typedef-ed @ref comms::Message)
+/// @tparam TDefaultType Default type to return in case message
+///     interface class doesn't define its ID type
+template <typename TMsg, typename TDefaultType = std::intmax_t>
+using MessageIdType =
+    typename details::MessageIdTypeRetriever<TMsg::hasMsgIdType()>::
+        template Type<typename TMsg::InterfaceOptions, TDefaultType>;
 
 }  // namespace comms
 

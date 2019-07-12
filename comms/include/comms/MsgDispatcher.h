@@ -84,6 +84,16 @@ struct MsgDispatcherTagHelper<true>
 
 } // namespace details
 
+/// @brief An auxiliary class to force a particular way of dispatching message to its handler
+/// @details If not options are provided, the dispatching is performed by invocation of
+///     @ref comms::dispatchMsg() function.
+/// @tparam TOptions Options to force a particular dispatch way. Supported ones are:
+///     @li @ref comms::option::ForceDispatchPolymorphic - Force dispatch using
+///         @ref comms::dispatchMsgPolymorphic()
+///     @li @ref comms::option::ForceDispatchStaticBinSearch - Force dispatch using
+///         @ref comms::dispatchMsgStaticBinSearch()
+///     @li @ref comms::option::ForceDispatchLinearSwitch - Force dispatch using
+///         @ref comms::dispatchMsgLinearSwitch()
 template <typename... TOptions>
 class MsgDispatcher
 {
@@ -243,17 +253,38 @@ class MsgDispatcher
     }
 
 public:
+    /// @brief Parsed Options
     using ParsedOptions = ParsedOptionsInternal;
+
+    /// @brief Class detection tag
     using MsgDispatcherTag = void;
 
+    /// @brief Dispatch message to its handler.
+    /// @details Uses @ref comms::dispatchMsg(), @ref comms::dispatchMsgPolymorphic(),
+    ///     @ref comms::dispatchMsgStaticBinSearch(), or @ref comms::dispatchMsgLinearSwitch()
+    ///     based on class definition option(s).
+    /// @tparam TAllMessages Bundle (std::tuple) of all supported message classes
+    /// @param[in] id ID of the message.
+    /// @param[in] idx Index (or offset) of the message among those having the same numeric ID in the @b TAllMessages.
+    /// @param[in] msg Reference to message object.
+    /// @param[in] handler Reference to handler object
+    /// @return What the @b handle() member function(s) of the @b hander return.
     template <typename TAllMessages, typename TMsgId, typename TMsg, typename THandler>
-    static auto dispatch(TMsgId&& id, std::size_t idx, TMsg&& msg, THandler&& handler) ->
+    static auto dispatch(TMsgId&& id, std::size_t idx, TMsg& msg, THandler& handler) ->
         decltype(dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), idx, msg, handler, PrimaryDispatchTag()))
     {
 
         return dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), idx, msg, handler, PrimaryDispatchTag());
     }
 
+    /// @brief Dispatch message to its handler.
+    /// @details Similar to other @ref dispatch(), but suitable for cases when messages tuple
+    ///     does @b NOT contain message classes with the same ID value.
+    /// @tparam TAllMessages Bundle (std::tuple) of all supported message classes
+    /// @param[in] id ID of the message.
+    /// @param[in] msg Reference to message object.
+    /// @param[in] handler Reference to handler object
+    /// @return What the @b handle() member function(s) of the @b hander return.
     template <typename TAllMessages, typename TMsgId, typename TMsg, typename THandler>
     static auto dispatch(TMsgId&& id, TMsg&& msg, THandler&& handler) ->
         decltype(dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), msg, handler, PrimaryDispatchTag()))
@@ -261,6 +292,17 @@ public:
         return dispatchInternal<TAllMessages>(std::forward<TMsgId>(id), msg, handler, PrimaryDispatchTag());
     }
 
+    /// @brief Dispatch message to its handler.
+    /// @details Similar to other @ref dispatch(), but suitable for cases when message
+    ///     interface class provides a way to polymorphically dispatch message object
+    ///     to its handler (see @ref page_use_prot_interface_handle) and/or ability
+    ///     to polymorphically retrieve message ID information (see
+    ///     @ref page_use_prot_interface_id_retrieve) as well as requiring messages tuple
+    ///     does @b NOT contain message classes with the same ID value.
+    /// @tparam TAllMessages Bundle (std::tuple) of all supported message classes
+    /// @param[in] msg Reference to message object.
+    /// @param[in] handler Reference to handler object
+    /// @return What the @b handle() member function(s) of the @b hander return.
     template <typename TAllMessages, typename TMsg, typename THandler>
     static auto dispatch(TMsg&& msg, THandler&& handler) ->
         decltype(dispatchInternal<TAllMessages>(msg, handler, PrimaryDispatchTag()))
@@ -302,6 +344,8 @@ public:
     }
 };
 
+/// @brief Compile time check whether the provided class is a variant of @ref comms::MsgDispatcher.
+/// @related MsgDispatcher
 template <typename T>
 constexpr bool isMsgDispatcher()
 {

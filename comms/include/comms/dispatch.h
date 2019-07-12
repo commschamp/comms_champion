@@ -587,6 +587,9 @@ private:
 
 /// @brief Dispatch message object into appropriate @b handle() function in the
 ///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @details The function performs compile time evaluation of the provided @b TAllMessages
+///     tuple and uses logic described in @ref page_dispatch_message_object_default
+///     to choose the way to dispatch.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
 /// @param[in] id ID of the message known at runtime.
@@ -609,6 +612,9 @@ auto dispatchMsg(TId&& id, TMsg& msg, THandler& handler) ->
 
 /// @brief Dispatch message object into appropriate @b handle() function in the
 ///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @details The function performs compile time evaluation of the provided @b TAllMessages
+///     tuple and uses logic described in @ref page_dispatch_message_object_default
+///     to choose the way to dispatch.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
 /// @param[in] id ID of the message known at runtime.
@@ -632,6 +638,9 @@ auto dispatchMsg(TId&& id, std::size_t index, TMsg& msg, THandler& handler) ->
 
 /// @brief Dispatch message object into appropriate @b handle() function in the
 ///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @details The function performs compile time evaluation of the provided @b TAllMessages
+///     tuple and uses logic described in @ref page_dispatch_message_object_default
+///     to choose the way to dispatch.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
 /// @param[in] msg Message object held by reference to its interface class.
@@ -652,6 +661,9 @@ auto dispatchMsg(TMsg& msg, THandler& handler) ->
 
 /// @brief Dispatch message id into appropriate @b handle() function in the
 ///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @details The function performs compile time evaluation of the provided @b TAllMessages
+///     tuple and uses logic described in @ref page_dispatch_message_object_default
+///     to choose the way to dispatch.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
 /// @param[in] id ID of the message known at runtime.
@@ -668,6 +680,9 @@ bool dispatchMsgType(TId&& id, THandler& handler)
 
 /// @brief Dispatch message id into appropriate @b handle() function in the
 ///     provided handler using either "polymorphic" or "static binary search" behavior.
+/// @details The function performs compile time evaluation of the provided @b TAllMessages
+///     tuple and uses logic described in @ref page_dispatch_message_object_default
+///     to choose the way to dispatch.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
 /// @param[in] id ID of the message known at runtime.

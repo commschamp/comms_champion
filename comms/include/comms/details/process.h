@@ -87,12 +87,19 @@ struct ProcessMsgCastToMsgObjHelper<false, true>
     }
 };
 
+template <typename T>
+struct ProcessMsgCastParamPrepareHelper
+{
+    using DecayedType = ProcessMsgDecayType<T>;
+    static const bool IsMessage = comms::isMessage<DecayedType>();
+    static const bool IsMsgPtr = hasElementType<DecayedType>();
+};
 
 template <typename T>
 auto processMsgCastToMsgObj(T& msg) ->
-    decltype(ProcessMsgCastToMsgObjHelper<comms::isMessage<ProcessMsgDecayType<decltype(msg)> >(), hasElementType<ProcessMsgDecayType<decltype(msg)> >()>::cast(msg))
+    decltype(ProcessMsgCastToMsgObjHelper<ProcessMsgCastParamPrepareHelper<decltype(msg)>::IsMessage, ProcessMsgCastParamPrepareHelper<decltype(msg)>::IsMsgPtr>::cast(msg))
 {
-    return ProcessMsgCastToMsgObjHelper<comms::isMessage<ProcessMsgDecayType<decltype(msg)> >(), hasElementType<ProcessMsgDecayType<decltype(msg)> >()>::cast(msg);
+    return ProcessMsgCastToMsgObjHelper<ProcessMsgCastParamPrepareHelper<decltype(msg)>::IsMessage, ProcessMsgCastParamPrepareHelper<decltype(msg)>::IsMsgPtr>::cast(msg);
 }
 
 } // namespace details

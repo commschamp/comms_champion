@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "comms/CompileControl.h"
 #include "comms/Message.h"
 #include "comms/details/detect.h"
 
@@ -45,6 +46,11 @@ class ReadIteratorMsgObjHelper
             HasReadIterTag,
             NoReadIterTag
         >::type;
+
+#ifdef CC_COMPILER_GCC47
+    // g++-4.7 complains about accessing private getInternal
+public:
+#endif
 
     template <typename TMsgTmp, typename TIter>
     static auto getInternal(TIter&& iter, HasReadIterTag) ->

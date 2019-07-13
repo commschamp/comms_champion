@@ -46,6 +46,11 @@ class WriteIteratorMsgObjHelper
             NoWriteIterTag
         >::type;
 
+#ifdef CC_COMPILER_GCC47
+    // g++-4.7 complains about accessing private getInternal
+public:
+#endif
+
     template <typename TMsgTmp, typename TIter>
     static auto getInternal(TIter&& iter, HasWriteIterTag) ->
         decltype(typename TMsgTmp::WriteIterator(std::forward<TIter>(iter)))

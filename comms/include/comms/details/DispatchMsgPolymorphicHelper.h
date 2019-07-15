@@ -479,6 +479,7 @@ static constexpr bool dispatchMsgPolymorphicIsDirectSuitable()
 template <typename TAllMessages, typename TMsgBase, typename THandler>
 class DispatchMsgPolymorphicHelper
 {
+    struct EmptyTag {};
     struct DispatchInterfaceTag {};
     struct DirectTag {};
     struct StrongBinSearchTag {};
@@ -513,19 +514,33 @@ class DispatchMsgPolymorphicHelper
                 WeakBinSearchTag
             >::type
         >::type;
+
+    template <typename TMsg>
+    using AdjustedTag =
+        typename std::conditional<
+            comms::isMessageBase<TMsg>(),
+            EmptyTag,
+            Tag
+        >::type;
+
 public:
     static auto dispatch(TMsgBase& msg, THandler& handler) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
+        using MsgType = typename std::decay<decltype(msg)>::type;
         using IdRetrieveTag = 
             typename std::conditional<
-                TMsgBase::hasDispatch(),
-                NoIdInterfaceTag,
+                comms::isMessageBase<MsgType>(),
+                EmptyTag,
                 typename std::conditional<
-                    TMsgBase::hasGetId(),
-                    IdInterfaceTag,
-                    NoIdInterfaceTag
+                    TMsgBase::hasDispatch(),
+                    NoIdInterfaceTag,
+                    typename std::conditional<
+                        TMsgBase::hasGetId(),
+                        IdInterfaceTag,
+                        NoIdInterfaceTag
+                    >::type
                 >::type
             >::type;
 
@@ -537,7 +552,8 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, Tag());
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, AdjustedTag<MsgType>());
     }
 
     template <typename TId>
@@ -545,10 +561,17 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, Tag());
+        using MsgType = typename std::decay<decltype(msg)>::type;
+        return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, AdjustedTag<MsgType>());
     }
 
 private:
+    static auto dispatchInternal(TMsgBase& msg, THandler& handler, EmptyTag) ->
+        decltype(handler.handle(msg))
+    {
+        return handler.handle(msg);
+    }
+
     static auto dispatchInternal(TMsgBase& msg, THandler& handler, IdInterfaceTag) ->
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
@@ -567,6 +590,13 @@ private:
 
         using RetType = MessageInterfaceDispatchRetType<THandler>;
         return static_cast<RetType>(msg.dispatch(handler));
+    }
+
+    static auto dispatchInternal(MsgIdParamType id, TMsgBase& msg, THandler& handler, EmptyTag) ->
+        decltype(handler.handle(msg))
+    {
+        static_cast<void>(id);
+        return handler.handle(msg);
     }
 
     static auto dispatchInternal(MsgIdParamType id, TMsgBase& msg, THandler& handler, DispatchInterfaceTag) ->
@@ -614,6 +644,14 @@ private:
         }
 
         return static_cast<RetType>(msg.dispatch(handler));
+    }
+
+    static auto dispatchInternal(MsgIdParamType id, std::size_t offset, TMsgBase& msg, THandler& handler, EmptyTag) ->
+        decltype(handler.handle(msg))
+    {
+        static_cast<void>(id);
+        static_cast<void>(offset);
+        return handler.handle(msg);
     }
 
     static auto dispatchInternal(MsgIdParamType id, std::size_t offset, TMsgBase& msg, THandler& handler, DirectTag) ->
@@ -1018,6 +1056,7 @@ class DispatchMsgTypePolymorphicHelper
                 WeakBinSearchTag
             >::type
         >::type;
+
 public:
     template <typename TId>
     static bool dispatch(TId&& id, THandler& handler) 

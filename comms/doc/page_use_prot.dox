@@ -608,6 +608,7 @@
 /// @li @b doLength() - implements message serialisation length calculation (see @ref comms::MessageBase::doLength())
 /// @li @b doValid() - implements message contents validity check (see @ref comms::MessageBase::doValid())
 /// @li @b doRefresh() - implements bringing message to a consistent state (see @ref comms::MessageBase::doRefresh())
+/// @li @b doName() - implements retrieval of the message name.
 ///
 /// Based on the requested polymorphic functionality, the @b comms::MessageBase
 /// class automatically implements virtual @b *Impl() member functions (but only when needed).
@@ -665,6 +666,7 @@
 /// @code
 /// void writeMessage(const MyMessage& msg)
 /// {
+///     static_assert(MyMessage::hasWrite(), "MyMessage must support polymorphic write");
 ///     auto es = msg.write(...);
 ///     ...
 /// }
@@ -829,7 +831,8 @@
 ///     It may be inner @b Field type of @b MyMessage interface class defined
 ///     earlier (@b MyMessage::Field - documented as @ref comms::Message::Field)
 /// @li exhibits some default behaviour which can be modified by
-///     passing various options from @ref comms::option namespace as additional template
+///     passing various options from @ref comms::option::app and/or comms::option::def
+///     namespaces as additional template
 ///     parameters. The options that define how field is serialised are expected
 ///     to be used as part of protocol definition. The protocol definition is
 ///     also expected to allow passing extra options that are relevant to application
@@ -1340,7 +1343,7 @@
 /// storageVec.resize(1);
 /// auto& firstBundle = storageVec[0]; // access to first MyBundle element
 /// auto& firstMember1 = firstBundle.field_member1(); // access to "member1" member of first bundle
-/// auto mem1Value = firstMember1.value(); // get the actual value of "member1"
+/// firstMember1.value() = ...; // assign the value of "member1"
 /// @endcode
 /// Some protocols may define fixed size lists. In such case lists are defined
 /// with usage of @ref comms::option::def::SequenceFixedSize option. 
@@ -2214,140 +2217,56 @@
 /// @endcode
 ///
 /// @subsection page_use_prot_transport_read Reading Transport Framing and Message Payload
-/// Below is an example of how to implement data processing loop, which parses
-/// the raw bytes in the provided input buffer, creates appropriate message 
-/// message object and dispatches it to the right handler.
+/// The @b COMMS library provides some convenience input processing and 
+/// message dispatching functionality suitable for most cases. There is
+/// @ref comms::processAllWithDispatch() function which is responsible to
+/// process provided data in input buffer, detect and allocate message objects,
+/// and dispatch them to provided handler. For example:
 /// @code
 /// // Alias to my_protocol::ProtocolStack
 /// using ProtStack = my_protocol::ProtocolStack<MyMessage>
 ///
 /// ProtStack protStack; // Protocol stack object
 /// MyHandler handler; // Handler object
-///
-/// // Receives input buffer and its size and returns number of consumed bytes
-/// std::size_t processInput(const std::uint8_t* buf, std::size_t len)
-/// {
-///     std::size_t consumed = 0U;
-///     // Processing loop
-///     while (consumed < len) {
-///         // Smart pointer to the message object.
-///         ProtStack::MsgPtr msgPtr; 
-///
-///         // Type of the message interface class
-///         using MsgType = ProtStack::MsgPtr::element_type; 
-///     
-///         // Get the iterator for reading
-///         auto begIter = comms::readIteratorFor<MsgType>(buf + consumed);
-///         auto iter = begIter;
-///
-///         // Do the read
-///         auto es = protStack.read(msgPtr, iter, len - consumed);
-///         if (es == comms::ErrorStatus::NotEnoughData) {
-///             break; // Not enough data in the buffer, stop processing
-///         } 
-///     
-///         if (es == comms::ErrorStatus::ProtocolError) {
-///             // Something is not right with the data, remove one character and try again
-///            ++consumed;
-///             continue;
-///         }
-///
-///         if (es == comms::ErrorStatus::Success) {
-///             assert(msgPtr); // If read is successful, msgPtr is expected to hold a valid pointer
-///             msgPtr->dispatch(handler); // Dispatch message for handling
-///         }
-///
-///         // The iterator for reading has been advanced, update the difference
-///         consumed += std::distance(begIter, iter);
-///     }
-///
-///     // Report how many bytes have been consumed from the buffer
-///     return consumed;
-/// }
+/// std::size_t consumed = comms::processAllWithDispatch(buf, bufLen, protStack, handler);
+/// ... // Removed consumed bytes from input buffer
 /// @endcode
-/// Please pay attention to the following details:
-/// @li The first template parameter passed to @b my_protocol::ProtocolStack is
-///     @b MyMessage interface class defined earlier in @ref page_use_prot_interface
-///     section.
-/// @li The protocol stack type defines type of the smart pointer that 
-///     holds message object that was allocation during @b read operation:
-///     @code
-///     ProtStack::MsgPtr msgPtr;
-///     @endcode
-/// @li The @b ProtStack::MsgPtr is a variant of 
-///     <a href="http://en.cppreference.com/w/cpp/memory/unique_ptr">unique_ptr</a>.
-///     As the result the type of the interface can be retrieved using internal
-///     type @b element_type. It is expected to be the same as @b MyMessage
-///     common interface class.
-///     @code
-///     using MsgType = ProtStack::MsgPtr::element_type;
-///     @endcode
-/// @li During the read operation, when message object has been successfully allocated,
-///     the message payload will be read by invoking the @ref comms::Message::read()
-///     member function. It means that common message interface class must support
-///     polymorphic read (see @ref page_use_prot_interface_read).
-///     It means that the iterator used 
-///     for reading needs to be convertible to @ref comms::Message::ReadIterator. It
-///     can be achieved by using @ref comms::readIteratorFor() template function, 
-///     which will initialise and return appropriate iterator type. Another 
-///     possible way of allocating the iterator can be as following:
-///     @code
-///     MsgType::ReadIterator iter = buf + consumed;
-///     @endcode
-/// @li After the read operation is determined to be successful, the @b msgPtr
-///     holds dynamically allocated message object. The dispatching of the
-///     message for the handling is performed using polymorphic @b dispatch().
-///     It will require common message interface class to support 
-///     @ref page_use_prot_interface_handle. See also @ref page_use_prot_handling
-///     section below for more details on message handling.
+/// The code above will dispatch allocated message objects to the provided
+/// handler using @ref comms::dispatchMsg() function, which in turn performs 
+/// compile time analysis of supported message types and can
+/// result in either using polymorphic (see @ref comms::dispatchMsgPolymorphic()) or
+/// static binary search (see @ref comms::dispatchMsgStaticBinSearch()) way
+/// of dispatching. If such default behavior of the @b COMMS library is not
+/// good enough for a particular application, it is recommended to use
+/// @ref comms::processAllWithDispatchViaDispatcher() function instead, which
+/// uses @ref comms::MsgDispatcher to force a particular way of dispatching.
+/// @code
+/// using MyDispatcher = comms::MsgDispatcher<comms::option::ForceDispatchStaticBinSearch>
+/// std::size_t consumed = 
+///     comms::processAllWithDispatchViaDispatcher<MyDispatcher>(buf, bufLen, protStack, handler);
+/// @endcode
+/// If the described above processing functions (@ref comms::processAllWithDispatch() 
+/// and @ref comms::processAllWithDispatchViaDispatcher()) are not good enough
+/// for a particular application, there are several auxiliary functions that can
+/// be used to implement application specific input data processing loop.
+/// Please refer to the documentation of:
+/// @li @ref comms::processSingleWithDispatch()
+/// @li @ref comms::processSingleWithDispatchViaDispatcher()
+/// @li @ref comms::processSingle()
 ///
 /// There are protocols when number of input messages is very limited (one or two)
-/// such as various types of acknowledgement. To support such case
-/// @b read() member function of the @b ProtocolStack supports reception of
-/// reference to the real message object (instead of @b MsgPtr pointer).
+/// such as various types of acknowledgment. To support such case
+/// @ref comms::protocol::ProtocolLayerBase::read() "read()" member function of the
+/// @b ProtocolStack as well as processing function(s) described above support reception of
+/// reference to the real message object (instead of 
+/// @ref comms::protocol::ProtocolLayerBase::MsgPtr "MsgPtr" pointer).
 /// @code
-/// // Receives input buffer and its size and returns number of consumed bytes
-/// std::size_t processInput(const std::uint8_t* buf, std::size_t len)
-/// {
-///     std::size_t consumed = 0U;
-///     // Processing loop
-///     while (consumed < len) {
-///         // Get the iterator for reading
-///         auto begIter = buf + consumed;
-///         auto iter = begIter;
-///
-///         // Do the read
-///         using MyAckMsg = my_protocol::AckMsg<MyMessage>;
-///
-///         MyAckMsg msg; // actual message object
-///         auto es = protStack.read(msg, iter, len - consumed);
-///         if (es == comms::ErrorStatus::NotEnoughData) {
-///             break; // Not enough data in the buffer, stop processing
-///         } 
-///
-///         if (es == comms::ErrorStatus::InvalidMsgId) {
-///             // Unexpected message (not AckMsg) has been received, report or handle error
-///             ...
-///             consumed += std::distance(begIter, iter);
-///             continue;
-///         }
-///     
-///         if (es == comms::ErrorStatus::ProtocolError) {
-///             // Something is not right with the data, remove one character and try again
-///            ++consumed;
-///             continue;
-///         }
-///
-///         if (es == comms::ErrorStatus::Success) {
-///             handler.handle(msg); // Handle message without polymorphic dispatch
-///         }
-///
-///         // The iterator for reading has been advanced, update the difference
-///         consumed += std::distance(begIter, iter);
-///     }
-///
-///     // Report how many bytes have been consumed from the buffer
-///     return consumed;
+/// using MyAckMsg = my_protocol::AckMsg<MyMessage>;
+/// MyAckMsg msg;
+/// auto es = comms::processSingleWithDispatch(buf, bufLen, protStack, msg);
+/// if (es == comms::ErrorStatus::InvalidMsgId) {
+///     // Unexpected message (not AckMsg) has been received, report or handle error
+///     ...
 /// }
 /// @endcode
 /// @b NOTE, that in such case there is @b no need for either @ref page_use_prot_interface_read
@@ -2364,9 +2283,20 @@
 /// the @b std::tuple passed as second parameter to @b ProtocolStack type
 /// definition. The message allocation is performed using "placement new" operator,
 /// which means only one message object can be allocated at a time. The
-/// smart pointer holding the message (@b ProtocolStack::MsgPtr) is still
+/// smart pointer holding the message (@ref comms::protocol::ProtocolLayerBase::MsgPtr "MsgPtr") is still
 /// @b std::unique_ptr, but with custom deleter.
-/// 
+///
+/// In case the @ref page_use_prot_interface "Message Interface" class does
+/// not define any virtual function (which results in lack of virtual
+/// destructor), the @b COMMS library also creates a custom deleter for
+/// the defined smart pointer to the allocated message 
+/// (see @ref comms::protocol::ProtocolLayerBase::MsgPtr "MsgPtr") 
+/// to allow proper downcast of the held pointer to the appropriate
+/// class and invoke the correct destructor.
+///
+/// In such cases (that require usage of custom deleters) please refrain
+/// from releasing the held object and/or changing the smart pointer type.
+///
 /// @subsection page_use_prot_transport_generic_msg Using Generic Message
 /// In general, if message ID cannot be recognised, then appropriate message object cannot be
 /// created and processed, i.e. the reading loop will just discard such input.
@@ -2428,7 +2358,7 @@
 ///
 /// @subsection page_use_prot_transport_write Writing Transport Framing and Message Payload
 /// The easiest way to implement write functionality is to use the ability of
-/// the message object to perform polymorphic write
+/// the message object to perform polymorphic write.
 /// @code
 /// ProtStack protStack; // Protocol stack defined in one of previous sections
 /// void sendMessage(const MyMessage& msg, std::uint8_t* buf, std::size_t len)
@@ -2523,11 +2453,14 @@
 /// be cached during the read/write operations and accessed later. The @b ProtocolStack
 /// also defines @b AllFields type which is @b std::tuple of all the fields used by all the 
 /// layer classes. @n
-/// Also, the @b ProtocolStack defines @b readFieldsCached() (see
-/// @ref comms::protocol::ProtocolLayerBase::readFieldsCached()) and @b writeFieldsCached()
-/// (see @ref comms::protocol::ProtocolLayerBase::writeFieldsCached())
-/// member functions which are substitutes to normal read() and write(). The first
-/// parameter to these functions is reference to the @b AllFields bundle
+/// Also, the @b ProtocolStack defines 
+/// @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()" 
+/// and @ref comms::protocol::ProtocolLayerBase::writeFieldsCached() "writeFieldsCached()"
+/// member functions which are substitutes to normal 
+/// @ref comms::protocol::ProtocolLayerBase::read() "read()" and 
+/// @ref comms::protocol::ProtocolLayerBase::write() "write()". The first
+/// parameter to these functions is reference to the 
+/// @ref comms::protocol::ProtocolLayerBase::AllFields "AllFields" bundle
 /// object.
 /// @code
 /// ProtStack::AllFields fields;

@@ -58,6 +58,9 @@ public:
     void test26();
     void test27();
     void test28();
+    void test29();
+    void test30();
+    void test31();
 
 private:
 
@@ -1132,4 +1135,85 @@ void MsgIdLayerTestSuite::test28()
     TS_ASSERT_EQUALS(msgId, msgId2);
     TS_ASSERT_EQUALS(msgIndex, 0U);
     TS_ASSERT_EQUALS(msgIndex, msgIndex2);
+}
+
+void MsgIdLayerTestSuite::test29()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+
+    ProtStack stack;
+    CountHandler<BeNonPolymorphicMessageBase> handler;
+
+    comms::processAllWithDispatch(&Buf[0], BufSize, stack, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher = comms::MsgDispatcher<comms::option::ForceDispatchStaticBinSearch>;
+    comms::processAllWithDispatchViaDispatcher<Dispatcher>(&Buf[0], BufSize, stack, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+}
+
+void MsgIdLayerTestSuite::test30()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase, Messages_1to3>;
+
+    ProtStack stack;
+    CountHandler<BeNonPolymorphicMessageBase> handler;
+
+    NonPolymorphicBeMsg1 msg1;
+    auto readIter = &Buf[0];
+    auto es = comms::processSingleWithDispatch(readIter, BufSize, stack, msg1, handler);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher = comms::MsgDispatcher<comms::option::ForceDispatchLinearSwitch>;
+    readIter = &Buf[0];
+    comms::processSingleWithDispatchViaDispatcher<Dispatcher>(readIter, BufSize, stack, msg1, handler);
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+}
+
+void MsgIdLayerTestSuite::test31()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+
+    ProtStack stack;
+    CountHandler<BeNonPolymorphicMessageBase> handler;
+
+    NonPolymorphicBeMsg1 msg1;
+    auto readIter = &Buf[0];
+    auto es = comms::processSingleWithDispatch(readIter, BufSize, stack, msg1, handler);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher = comms::MsgDispatcher<comms::option::ForceDispatchLinearSwitch>;
+    readIter = &Buf[0];
+    comms::processSingleWithDispatchViaDispatcher<Dispatcher>(readIter, BufSize, stack, msg1, handler);
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 }

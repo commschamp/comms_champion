@@ -32,6 +32,7 @@
 #include "comms/details/detect.h"
 #include "comms/details/process.h"
 #include "comms/util/ScopeGuard.h"
+#include "comms/protocol/ProtocolLayerBase.h"
 
 namespace  comms
 {

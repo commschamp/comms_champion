@@ -70,8 +70,6 @@ macro (cc_define_external_project_targets inst_dir)
             endif ()   
         endif ()
         
-        list (APPEND cc_platform_specific Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
-        
         set (CC_COMMS_CHAMPION_FOUND TRUE)
         set (CC_PLUGIN_LIBRARIES "comms_champion")
         set (CC_PLUGIN_LIBRARY_DIRS ${inst_dir}/lib)
@@ -79,6 +77,7 @@ macro (cc_define_external_project_targets inst_dir)
 
         if (WIN32)
             set (cc_lib_name ${CC_PLUGIN_LIBRARIES}.lib)
+            list (APPEND cc_platform_specific Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
         else ()
             set (cc_lib_name lib${CC_PLUGIN_LIBRARIES}.so)
         endif ()

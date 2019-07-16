@@ -412,6 +412,7 @@ void MsgIdLayerTestSuite::test2()
 
     InPlaceProtocolStack<BeField2, BeMsgBase> inPlaceStack;
     commonWriteReadMsgTest(inPlaceStack, msg, buf, BufSize, &ExpectedBuf[0]);
+    
 }
 
 void MsgIdLayerTestSuite::test3()
@@ -438,6 +439,11 @@ void MsgIdLayerTestSuite::test3()
 
     auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
+    
+    CountHandler<LeMsgBase> handler; 
+    comms::processAllWithDispatch(&Buf[0], BufSize, stack, handler);  
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 }
 
 void MsgIdLayerTestSuite::test4()

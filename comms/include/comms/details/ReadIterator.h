@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <type_traits>
 #include "comms/CompileControl.h"
 #include "comms/Message.h"
 #include "comms/details/detect.h"
@@ -53,9 +54,10 @@ public:
 #endif
 
     template <typename TMsgTmp, typename TIter>
-    static auto getInternal(TIter&& iter, HasReadIterTag) ->
-        decltype(typename TMsgTmp::ReadIterator(std::forward<TIter>(iter)))
+    static auto getInternal(TIter&& iter, HasReadIterTag) -> typename TMsgTmp::ReadIterator
     {
+        static_assert(std::is_convertible<typename std::decay<decltype(iter)>::type, typename TMsgTmp::ReadIterator>::value,
+            "Provided iterator is not convertible to read iterator type used by message interface");
         return typename TMsgTmp::ReadIterator(std::forward<TIter>(iter));
     }
 

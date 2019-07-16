@@ -52,9 +52,10 @@ public:
 #endif
 
     template <typename TMsgTmp, typename TIter>
-    static auto getInternal(TIter&& iter, HasWriteIterTag) ->
-        decltype(typename TMsgTmp::WriteIterator(std::forward<TIter>(iter)))
+    static auto getInternal(TIter&& iter, HasWriteIterTag) -> typename TMsgTmp::WriteIterator
     {
+        static_assert(std::is_convertible<typename std::decay<decltype(iter)>::type, typename TMsgTmp::WriteIterator>::value,
+            "Provided iterator is not convertible to write iterator type used by message interface");
         return typename TMsgTmp::WriteIterator(std::forward<TIter>(iter));
     }
 

@@ -431,6 +431,15 @@ class DispatchMsgLinearSwitchHelper
                 WeakTag
             >::type
         >::type;
+
+    template <typename TMsg>
+    using AdjustedTag =
+        typename std::conditional<
+            comms::isMessageBase<TMsg>(),
+            EmptyTag,
+            BinSearchTag
+        >::type;
+    \
 public:
     template <typename TMsg, typename THandler>
     static auto dispatch(TMsg& msg, THandler& handler) ->
@@ -442,7 +451,7 @@ public:
             "The used message object must provide polymorphic ID retrieval function");
         static_assert(MsgType::hasMsgIdType(), 
             "Message interface class must define its id type");            
-        return dispatch(msg.getId(), msg, handler, BinSearchTag());
+        return dispatch(msg.getId(), msg, handler, AdjustedTag<MsgType>());
     }
 
     template <typename TId, typename TMsg, typename THandler>
@@ -454,7 +463,7 @@ public:
         static_assert(MsgType::hasMsgIdType(), 
             "Message interface class must define its id type");            
         using MsgIdParamType = typename MsgType::MsgIdParamType;
-        return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, BinSearchTag());
+        return dispatchInternal(static_cast<MsgIdParamType>(id), msg, handler, AdjustedTag<MsgType>());
     }
 
     template <typename TId, typename TMsg, typename THandler>
@@ -466,7 +475,7 @@ public:
         static_assert(MsgType::hasMsgIdType(), 
             "Message interface class must define its id type");            
         using MsgIdParamType = typename MsgType::MsgIdParamType;
-        return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, BinSearchTag());
+        return dispatchInternal(static_cast<MsgIdParamType>(id), offset, msg, handler, AdjustedTag<MsgType>());
     }
 
     template <typename TId, typename THandler>
@@ -487,7 +496,8 @@ private:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(id, msg, handler, StrongTag());
+        static_cast<void>(id);
+        return handler.handle(msg);
     }
 
     template <typename TMsg, typename THandler>
@@ -495,7 +505,9 @@ private:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchInternal(id, offset, msg, handler, StrongTag());
+        static_cast<void>(id);
+        static_cast<void>(offset);
+        return handler.handle(msg);
     }
 
     template <typename TMsg, typename THandler>

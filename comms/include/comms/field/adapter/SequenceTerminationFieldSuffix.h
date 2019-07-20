@@ -81,7 +81,7 @@ public:
         using IterType = typename std::decay<decltype(iter)>::type;
         using IterTag = typename std::iterator_traits<IterType>::iterator_category;
         static_assert(std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
-            "Only random access iterator for reading is supported with comms::option::SequenceTerminationFieldSuffix option");
+            "Only random access iterator for reading is supported with comms::option::def::SequenceTerminationFieldSuffix option");
 
         using ElemTag =
             typename std::conditional<

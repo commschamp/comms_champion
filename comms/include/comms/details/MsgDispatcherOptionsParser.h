@@ -1,5 +1,5 @@
 //
-// Copyright 2017 - 2019 (C). Alex Robenko. All rights reserved.
+// Copyright 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -26,37 +26,18 @@ namespace details
 {
 
 template <typename... TOptions>
-class MsgFactoryOptionsParser;
+class MsgDispatcherOptionsParser;
 
 template <>
-class MsgFactoryOptionsParser<>
+class MsgDispatcherOptionsParser<>
 {
 public:
-    static const bool HasInPlaceAllocation = false;
-    static const bool HasSupportGenericMessage = false;
     static const bool HasForcedDispatch = false;
 };
 
-template <typename... TOptions>
-class MsgFactoryOptionsParser<comms::option::app::InPlaceAllocation, TOptions...> :
-        public MsgFactoryOptionsParser<TOptions...>
-{
-public:
-    static const bool HasInPlaceAllocation = true;
-};
-
-template <typename TMsg, typename... TOptions>
-class MsgFactoryOptionsParser<comms::option::app::SupportGenericMessage<TMsg>, TOptions...> :
-        public MsgFactoryOptionsParser<TOptions...>
-{
-public:
-    static const bool HasSupportGenericMessage = true;
-    using GenericMessage = TMsg;
-};
-
 template <typename T, typename... TOptions>
-class MsgFactoryOptionsParser<comms::option::app::ForceDispatch<T>, TOptions...> :
-        public MsgFactoryOptionsParser<TOptions...>
+class MsgDispatcherOptionsParser<comms::option::app::ForceDispatch<T>, TOptions...> :
+        public MsgDispatcherOptionsParser<TOptions...>
 {
 public:
     static const bool HasForcedDispatch = true;
@@ -65,16 +46,16 @@ public:
 
 
 template <typename... TOptions>
-class MsgFactoryOptionsParser<
+class MsgDispatcherOptionsParser<
     comms::option::app::EmptyOption,
-    TOptions...> : public MsgFactoryOptionsParser<TOptions...>
+    TOptions...> : public MsgDispatcherOptionsParser<TOptions...>
 {
 };
 
 template <typename... TBundledOptions, typename... TOptions>
-class MsgFactoryOptionsParser<
+class MsgDispatcherOptionsParser<
     std::tuple<TBundledOptions...>,
-    TOptions...> : public MsgFactoryOptionsParser<TBundledOptions..., TOptions...>
+    TOptions...> : public MsgDispatcherOptionsParser<TBundledOptions..., TOptions...>
 {
 };
 

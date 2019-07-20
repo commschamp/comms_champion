@@ -122,33 +122,33 @@ using StringBase =
 /// @brief Field that represents a string.
 /// @details By default uses
 ///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>,
-///     for internal storage, unless comms::option::FixedSizeStorage option is used,
+///     for internal storage, unless @ref comms::option::app::FixedSizeStorage option is used,
 ///     which forces usage of comms::util::StaticString instead.
 /// @tparam TFieldBase Base class for this field, expected to be a variant of
 ///     comms::Field.
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li @ref comms::option::FixedSizeStorage
-///     @li @ref comms::option::CustomStorageType
-///     @li @ref comms::option::SequenceSizeFieldPrefix
-///     @li @ref comms::option::SequenceSerLengthFieldPrefix
-///     @li @ref comms::option::SequenceSizeForcingEnabled
-///     @li @ref comms::option::SequenceLengthForcingEnabled
-///     @li @ref comms::option::SequenceFixedSize
-///     @li @ref comms::option::SequenceTerminationFieldSuffix
-///     @li @ref comms::option::SequenceTrailingFieldSuffix
-///     @li @ref comms::option::DefaultValueInitialiser
-///     @li @ref comms::option::ContentsValidator
-///     @li @ref comms::option::ContentsRefresher
-///     @li @ref comms::option::HasCustomRead
-///     @li @ref comms::option::HasCustomRefresh
-///     @li @ref comms::option::FailOnInvalid
-///     @li @ref comms::option::IgnoreInvalid
-///     @li @ref comms::option::OrigDataView
-///     @li @ref comms::option::EmptySerialization
-///     @li @ref comms::option::InvalidByDefault
-///     @li @ref comms::option::VersionStorage
+///     @li @ref comms::option::app::FixedSizeStorage
+///     @li @ref comms::option::app::CustomStorageType
+///     @li @ref comms::option::app::OrigDataView
+///     @li @ref comms::option::def::SequenceSizeFieldPrefix
+///     @li @ref comms::option::def::SequenceSerLengthFieldPrefix
+///     @li @ref comms::option::def::SequenceSizeForcingEnabled
+///     @li @ref comms::option::def::SequenceLengthForcingEnabled
+///     @li @ref comms::option::def::SequenceFixedSize
+///     @li @ref comms::option::def::SequenceTerminationFieldSuffix
+///     @li @ref comms::option::def::SequenceTrailingFieldSuffix
+///     @li @ref comms::option::def::DefaultValueInitialiser
+///     @li @ref comms::option::def::ContentsValidator
+///     @li @ref comms::option::def::ContentsRefresher
+///     @li @ref comms::option::def::HasCustomRead
+///     @li @ref comms::option::def::HasCustomRefresh
+///     @li @ref comms::option::def::FailOnInvalid
+///     @li @ref comms::option::def::IgnoreInvalid
+///     @li @ref comms::option::def::EmptySerialization
+///     @li @ref comms::option::def::InvalidByDefault
+///     @li @ref comms::option::def::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/String.h
 template <typename TFieldBase, typename... TOptions>
@@ -170,10 +170,10 @@ public:
     using Tag = tag::String;
 
     /// @brief Type of underlying value.
-    /// @details If comms::option::FixedSizeStorage option is NOT used, the
+    /// @details If @ref comms::option::app::FixedSizeStorage option is NOT used, the
     ///     ValueType is std::string, otherwise it becomes
     ///     comms::util::StaticString<TSize>, where TSize is a size
-    ///     provided to comms::option::FixedSizeStorage option.
+    ///     provided to @ref comms::option::app::FixedSizeStorage option.
     using ValueType = typename BaseImpl::ValueType;
 
     /// @brief Default constructor
@@ -215,9 +215,9 @@ public:
     /// @brief Read field value from input data sequence
     /// @details By default, the read operation will try to consume all the
     ///     data available, unless size limiting option (such as
-    ///     comms::option::SequenceSizeFieldPrefix, comms::option::SequenceFixedSize,
-    ///     comms::option::SequenceSizeForcingEnabled,
-    ///     comms::option::SequenceLengthForcingEnabled) is used.
+    ///     @ref comms::option::def::SequenceSizeFieldPrefix, @ref comms::option::def::SequenceFixedSize,
+    ///     @ref comms::option::def::SequenceSizeForcingEnabled,
+    ///     @ref comms::option::def::SequenceLengthForcingEnabled) is used.
     /// @param[in, out] iter Iterator to read the data.
     /// @param[in] len Number of bytes available for reading.
     /// @return Status of read operation.
@@ -287,7 +287,7 @@ public:
 
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the
-    ///     characters the field contains. If comms::option::SequenceFixedSize option
+    ///     characters the field contains. If @ref comms::option::def::SequenceFixedSize option
     ///     is used, the number of characters, that is going to be written, is
     ///     exactly as the option specifies. If underlying string storage
     ///     doesn't contain enough data, the '\0' characters will
@@ -328,7 +328,7 @@ public:
 
     /// @brief Force number of characters that must be read in the next read()
     ///     invocation.
-    /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
+    /// @details Exists only if @ref comms::option::def::SequenceSizeForcingEnabled option has been
     ///     used.
     /// @param[in] count Number of elements to read during following read operation.
     void forceReadElemCount(std::size_t count)
@@ -338,7 +338,7 @@ public:
 
     /// @brief Clear forcing of the number of characters that must be read in
     ///     the next read() invocation.
-    /// @details Exists only if comms::option::SequenceSizeForcingEnabled option has been
+    /// @details Exists only if @ref comms::option::def::SequenceSizeForcingEnabled option has been
     ///     used.
     void clearReadElemCount()
     {
@@ -346,7 +346,7 @@ public:
     }
 
     /// @brief Force available length for the next read() invocation.
-    /// @details Exists only if @ref comms::option::SequenceLengthForcingEnabled option has been
+    /// @details Exists only if @ref comms::option::def::SequenceLengthForcingEnabled option has been
     ///     used.
     /// @param[in] count Number of elements to read during following read operation.
     void forceReadLength(std::size_t count)
@@ -356,7 +356,7 @@ public:
 
     /// @brief Clear forcing of the available length in the next read()
     ///     invocation.
-    /// @details Exists only if @ref comms::option::SequenceLengthForcingEnabled option has been
+    /// @details Exists only if @ref comms::option::def::SequenceLengthForcingEnabled option has been
     ///     used.
     void clearReadLengthForcing()
     {
@@ -376,7 +376,7 @@ public:
     }
 
     /// @brief Get version of the field.
-    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    /// @details Exists only if @ref comms::option::def::VersionStorage option has been provided.
     VersionType getVersion() const
     {
         return BaseImpl::getVersion();
@@ -446,25 +446,25 @@ private:
     }
 
     static_assert(!ParsedOptions::HasSerOffset,
-            "comms::option::NumValueSerOffset option is not applicable to String field");
+        "comms::option::def::NumValueSerOffset option is not applicable to String field");
     static_assert(!ParsedOptions::HasFixedLengthLimit,
-            "comms::option::FixedLength option is not applicable to String field");
+        "comms::option::def::FixedLength option is not applicable to String field");
     static_assert(!ParsedOptions::HasFixedBitLengthLimit,
-            "comms::option::FixedBitLength option is not applicable to String field");
+        "comms::option::def::FixedBitLength option is not applicable to String field");
     static_assert(!ParsedOptions::HasVarLengthLimits,
-            "comms::option::VarLength option is not applicable to String field");
+        "comms::option::def::VarLength option is not applicable to String field");
     static_assert(!ParsedOptions::HasScalingRatio,
-            "comms::option::ScalingRatio option is not applicable to String field");
+        "comms::option::def::ScalingRatio option is not applicable to String field");
     static_assert(!ParsedOptions::HasUnits,
-            "comms::option::Units option is not applicable to String field");
+        "comms::option::def::Units option is not applicable to String field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
-            "comms::option::ValidNumValueRange (or similar) option is not applicable to String field");
+        "comms::option::def::ValidNumValueRange (or similar) option is not applicable to String field");
     static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to String field");
+        "comms::option::def::SequenceElemSerLengthFieldPrefix option is not applicable to String field");
     static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to String field");
+        "comms::option::def::SequenceElemSerLengthFixedFieldPrefix option is not applicable to String field");
     static_assert(!ParsedOptions::HasVersionsRange,
-            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to String field");
+        "comms::option::def::ExistsBetweenVersions (or similar) option is not applicable to String field");
 };
 
 /// @brief Equality comparison operator.

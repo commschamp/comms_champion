@@ -33,7 +33,7 @@ namespace protocol
 ///     This layer is a mid level layer, expects other mid level layer or
 ///     MsgDataLayer to be its next one.
 /// @tparam TField Type of the field that is used as sync prefix. The "sync"
-///     field type definition must use options (comms::option::DefaultNumValue)
+///     field type definition must use options (@ref comms::option::def::DefaultNumValue)
 ///     to specify its default value to be equal to the expected "sync" value.
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @headerfile comms/protocol/SyncPrefixLayer.h
@@ -83,32 +83,32 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
-    /// @param[out] missingSize If not nullptr and return value is
-    ///     comms::ErrorStatus::NotEnoughData it will contain
-    ///     minimal missing data length required for the successful
-    ///     read attempt.
-    /// @param[in] nextLayerReader Next layer reader object.
+    /// @param[in] nextLayerReader Reader object, needs to be invoked to
+    ///     forward read operation to the next layer.
+    /// @param[out] extraValues Variadic extra output parameters passed to the
+    ///     "read" operatation of the protocol stack (see
+    ///     @ref comms::protocol::ProtocolLayerBase::read() "read()" and
+    ///     @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()").
+    ///     Need to passed on as variadic arguments to the @b nextLayerReader.
     /// @return Status of the read operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       read. In case of an error, distance between original position and
     ///       advanced will pinpoint the location of the error.
-    /// @post missingSize output value is updated if and only if function
-    ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues... extraValues)
     {
         auto beforeReadIter = iter;
         auto es = field.read(iter, size);
         if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, missingSize);
+            BaseImpl::updateMissingSize(field, size, extraValues...);
         }
 
         if (es != comms::ErrorStatus::Success) {
@@ -121,7 +121,7 @@ public:
         }
 
         auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));
-        return nextLayerReader.read(msg, iter, size - fieldLen, missingSize);
+        return nextLayerReader.read(msg, iter, size - fieldLen, extraValues...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().

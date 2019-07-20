@@ -135,6 +135,13 @@ The [COMMS Library](#comms-library) is licensed under
 the classic **GPLv3 / Commercial** dual licensing scheme. Please refer to 
 [LICENSES](https://arobenko.github.io/cc/licenses) page for details.
 
+# Supported Compilers
+The [COMMS Library](#comms-library) requires proper C++11 support which
+is provided by the following compilers:
+- **GCC**: >=4.8
+- **Clang**: >=3.9
+- **MSVC**: >= 2015
+
 # How to Build
 Detailed instructions on how to build and install all the components can be
 found in [BUILD.md](BUILD.md) file.

@@ -27,7 +27,8 @@
 #include "comms/Assert.h"
 #include "comms/options.h"
 
-#include "details/ProtocolLayerBaseOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerBaseOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerDetails.h"
 #include "comms/details/protocol_layers_access.h"
 #include "comms/details/detect.h"
 
@@ -36,101 +37,6 @@ namespace comms
 
 namespace protocol
 {
-
-namespace details
-{
-
-template <class T, class R = void>
-struct ProtocolLayerEnableIfHasAllMessages { using Type = R; };
-
-template <class T, class Enable = void>
-struct ProtocolLayerAllMessagesHelper
-{
-    using Type = void;
-};
-
-template <class T>
-struct ProtocolLayerAllMessagesHelper<T, typename ProtocolLayerEnableIfHasAllMessages<typename T::AllMessages>::Type>
-{
-    using Type = typename T::AllMessages;
-};
-
-template <class T>
-using ProtocolLayerAllMessagesType = typename ProtocolLayerAllMessagesHelper<T>::Type;
-
-template <typename T, bool THasImpl>
-struct ProtocolLayerHasFieldsImplHelper;
-
-template <typename T>
-struct ProtocolLayerHasFieldsImplHelper<T, true>
-{
-    static const bool Value = T::ImplOptions::HasFieldsImpl;
-};
-
-template <typename T>
-struct ProtocolLayerHasFieldsImplHelper<T, false>
-{
-    static const bool Value = false;
-};
-
-template <typename T>
-struct ProtocolLayerHasFieldsImpl
-{
-    static const bool Value =
-        ProtocolLayerHasFieldsImplHelper<T, comms::details::hasImplOptions<T>()>::Value;
-};
-
-template <class T>
-constexpr bool protocolLayerHasFieldsImpl()
-{
-    return ProtocolLayerHasFieldsImpl<T>::Value;
-}
-
-template <typename T, bool THasImpl>
-struct ProtocolLayerHasDoGetIdHelper;
-
-template <typename T>
-struct ProtocolLayerHasDoGetIdHelper<T, true>
-{
-    static const bool Value = T::ImplOptions::HasStaticMsgId;
-};
-
-template <typename T>
-struct ProtocolLayerHasDoGetIdHelper<T, false>
-{
-    static const bool Value = false;
-};
-
-template <typename T>
-struct ProtocolLayerHasDoGetId
-{
-    static const bool Value =
-        ProtocolLayerHasDoGetIdHelper<T, comms::details::hasImplOptions<T>()>::Value;
-};
-
-template <typename T>
-constexpr bool protocolLayerHasDoGetId()
-{
-    return ProtocolLayerHasDoGetId<T>::Value;
-}
-
-template <class T, class R = void>
-struct ProtocolLayerEnableIfHasMsgPtr { using Type = R; };
-
-template <class T, class Enable = void>
-struct ProtocolLayerMsgPtr
-{
-    using Type = void;
-};
-
-template <class T>
-struct ProtocolLayerMsgPtr<T, typename ProtocolLayerEnableIfHasMsgPtr<typename T::MsgPtr>::Type>
-{
-    using Type = typename T::MsgPtr;
-};
-
-
-}  // namespace details
 
 /// @brief Base class for all the middle (non @ref MsgDataLayer) protocol transport layers.
 /// @details Provides all the default and/or common functionality for the
@@ -144,8 +50,8 @@ struct ProtocolLayerMsgPtr<T, typename ProtocolLayerEnableIfHasMsgPtr<typename T
 /// @tparam TNextLayer Next layer this one wraps and forwards the calls to.
 /// @tparam TDerived Actual protocol layer class that extends this one.
 /// @tparam TOptions Extra options. Supported ones are:
-///     @li @ref comms::option::ProtocolLayerForceReadUntilDataSplit
-///     @li @ref comms::option::ProtocolLayerDisallowReadUntilDataSplit
+///     @li @ref comms::option::def::ProtocolLayerForceReadUntilDataSplit
+///     @li @ref comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
 /// @headerfile comms/protocol/ProtocolLayerBase.h
 template <
     typename TField,
@@ -248,27 +154,37 @@ public:
     ///     provided by the derived class, which must have the following signature
     ///     and logic:
     ///     @code
-    ///         template<typename TMsg, typename TIter, typename TNextLayerReader>
+    ///         template<typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     ///         comms::ErrorStatus doRead(
     ///             Field& field, // field object used to read required data
     ///             TMsg& msg, // Ref to smart pointer to message object, or message object itself
     ///             TIter& iter, // iterator used for reading
     ///             std::size_t size, // size of the remaining data
-    ///             std::size_t* missingSize, // output of missing bytest count
-    ///             TNextLayerReader&& nextLayerReader // next layer reader object
-    ///             )
+    ///             TNextLayerReader&& nextLayerReader, // next layer reader object
+    ///             TExtraValues... extraValues)
     ///         {
     ///             // internal logic prior next layer read, such as reading the field value
     ///             auto es = field.read(iter, size);
     ///             ...
     ///             // request next layer to perform read operation
-    ///             es = nextLayerReader.read(msg, iter, size - field.length(), missingSize);
+    ///             es = nextLayerReader.read(msg, iter, size - field.length(), extraValues...);
     ///             ... // internal logic after next layer read if applicable
     ///             return es;
     ///         };
     ///     @endcode
     ///     The signature of the @b nextLayerReader.read() function is
     ///     the same as the signature of this @b read() member function.
+    ///     The implemented @b doRead() member function also may use the following
+    ///     inherited protected member to set values of variadic parameters in
+    ///     case they are provided.
+    ///     @li @ref comms::protocol::ProtocolLayerBase::updateMissingSize() "updateMissingSize()" -
+    ///     to calculate update missing size if such is requested.
+    ///     @li @ref comms::protocol::ProtocolLayerBase::setMissingSize() "setMissingSize()" -
+    ///     to set specific value as missing size if suce information is requested.
+    ///     @li @ref comms::protocol::ProtocolLayerBase::setMsgId() "setMsgId()" -
+    ///     to set the value of message id
+    ///     @li @ref comms::protocol::ProtocolLayerBase::setMsgIndex() "setMsgIndex()" -
+    ///     to set the value of message index.
     /// @tparam TMsg Type of @b msg parameter
     /// @tparam TIter Type of iterator used for reading.
     /// @param[in, out] msg Reference to smart pointer, that already holds or
@@ -276,10 +192,10 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
-    /// @param[out] missingSize If not nullptr and return value is
-    ///             comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
+    /// @param[out] extraValues Extra output parameters provided using one
+    ///     of the following functions: @ref comms::protocol::missingSize(),
+    ///     @ref comms::protocol::msgId(), @ref comms::protocol::msgIndex(),
+    ///     @ref comms::protocol::msgPayload().
     /// @return Status of the operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
@@ -288,14 +204,12 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post Returns comms::ErrorStatus::Success if and only if msg points
     ///       to a valid object.
-    /// @post missingSize output value is updated if and only if function
-    ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus read(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues... extraValues)
     {
         using Tag =
             typename std::conditional<
@@ -306,7 +220,7 @@ public:
 
         static_assert(std::is_same<Tag, NormalReadTag>::value || canSplitRead(),
             "Read split is disallowed by at least one of the inner layers");
-        return readInternal(msg, iter, size, missingSize, Tag());
+        return readInternal(msg, iter, size, Tag(), extraValues...);
     }
 
     /// @brief Perform read of data fields until data layer (message payload).
@@ -319,10 +233,12 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
-    /// @param[out] missingSize If not nullptr and return value is
-    ///             comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
+    /// @param[out] extraValues Extra output parameters provided using one
+    ///     of the following functions
+    ///     @li @ref comms::protocol::missingSize()
+    ///     @li @ref comms::protocol::msgId()
+    ///     @li @ref comms::protocol::msgIndex()
+    ///     @li @ref comms::protocol::msgPayload()
     /// @return Status of the operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
@@ -331,17 +247,24 @@ public:
     ///       advanced will pinpoint the location of the error.
     /// @post missingSize output value is updated if and only if function
     ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readUntilData(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues... extraValues)
     {
 
         Field field;
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerUntilDataReader());
+        return
+            derivedObj.doRead(
+                field,
+                msg,
+                iter,
+                size,
+                createNextLayerUntilDataReader(),
+                extraValues...);
     }
 
     /// @brief Finalise the read operation by reading the message payload.
@@ -354,26 +277,26 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
-    /// @param[out] missingSize If not nullptr and return value is
-    ///             comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
+    /// @param[out] extraValues Extra output parameters provided using one
+    ///     of the following functions
+    ///     @li @ref comms::protocol::missingSize()
+    ///     @li @ref comms::protocol::msgId()
+    ///     @li @ref comms::protocol::msgIndex()
+    ///     @li @ref comms::protocol::msgPayload()
     /// @return Status of the operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       read. In case of an error, distance between original position and
     ///       advanced will pinpoint the location of the error.
-    /// @post missingSize output value is updated if and only if function
-    ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFromData(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues... extraValues)
     {
-        return nextLayer().readFromData(msg, iter, size, missingSize);
+        return nextLayer().readFromData(msg, iter, size, extraValues...);
     }
 
     /// @brief Deserialise message from the input data sequence while caching
@@ -394,18 +317,20 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
-    /// @param[out] missingSize If not nullptr and return value is
-    ///             comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
+    /// @param[out] extraValues Extra output parameters provided using one
+    ///     of the following functions
+    ///     @li @ref comms::protocol::missingSize()
+    ///     @li @ref comms::protocol::msgId()
+    ///     @li @ref comms::protocol::msgIndex()
+    ///     @li @ref comms::protocol::msgPayload()
     /// @return Status of the operation.
-    template <typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues... extraValues)
     {
         using AllFieldsDecayed = typename std::decay<TAllFields>::type;
         static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
@@ -414,7 +339,14 @@ public:
                                 std::tuple_size<AllFields>::value;
         auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsReader(allFields));
+        return
+            derivedObj.doRead(
+                field,
+                msg,
+                iter,
+                size,
+                createNextLayerCachedFieldsReader(allFields),
+                extraValues...);
     }
 
     /// @brief Perform read of data fields until data layer (message payload) while caching
@@ -435,18 +367,20 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
-    /// @param[out] missingSize If not nullptr and return value is
-    ///             comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
+    /// @param[out] extraValues Extra output parameters provided using one
+    ///     of the following functions
+    ///     @li @ref comms::protocol::missingSize()
+    ///     @li @ref comms::protocol::msgId()
+    ///     @li @ref comms::protocol::msgIndex()
+    ///     @li @ref comms::protocol::msgPayload()
     /// @return Status of the operation.
-    template <typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readUntilDataFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues... extraValues)
     {
         using AllFieldsDecayed = typename std::decay<TAllFields>::type;
         static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
@@ -456,7 +390,14 @@ public:
 
         auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerCachedFieldsUntilDataReader(allFields));
+        return
+            derivedObj.doRead(
+                field,
+                msg,
+                iter,
+                size,
+                createNextLayerCachedFieldsUntilDataReader(allFields),
+                extraValues...);
     }
 
     /// @brief Finalise the read operation by reading the message payload while caching
@@ -475,20 +416,22 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Iterator used for reading.
     /// @param[in] size Number of bytes available for reading.
-    /// @param[out] missingSize If not nullptr and return value is
-    ///             comms::ErrorStatus::NotEnoughData it will contain
-    ///             minimal missing data length required for the successful
-    ///             read attempt.
+    /// @param[out] extraValues Extra output parameters provided using one
+    ///     of the following functions
+    ///     @li @ref comms::protocol::missingSize()
+    ///     @li @ref comms::protocol::msgId()
+    ///     @li @ref comms::protocol::msgIndex()
+    ///     @li @ref comms::protocol::msgPayload()
     /// @return Status of the operation.
-    template <typename TAllFields, typename TMsg, typename TIter>
+    template <typename TAllFields, typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFromDataFieldsCached(
         TAllFields& allFields,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize = nullptr)
+        TExtraValues... extraValues)
     {
-        return nextLayer().readFromDataFieldsCached(allFields, msg, iter, size, missingSize);
+        return nextLayer().readFromDataFieldsCached(allFields, msg, iter, size, extraValues...);
     }
 
     /// @brief Serialise message into output data sequence.
@@ -794,7 +737,6 @@ public:
     }
 
 protected:
-
     /// @brief Detect whether type is actual message object
     /// @tparam T Type of the object
     /// @return @b true if @b T type is extending @b comms::MessageBase,
@@ -820,26 +762,86 @@ protected:
         resetMsgInternal(msg, Tag());
     }
 
-    void updateMissingSize(std::size_t size, std::size_t* missingSize) const
+    /// @brief Update the missing size information if such is requested.
+    /// @details Calculates the minimal required length to be yet read.
+    ///     Updates the value reference to which was passed to the
+    ///     "read" operation using @ref comms::protocol::missingSize().
+    /// @param[in] size Remaining number of bytes in the input buffer.
+    /// @param[out] extraValues Variadic parameters passed to the
+    ///     "read" function such as @ref comms::protocol::ProtocolLayerBase::read() "read()"
+    ///     or @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()"
+    template <typename... TExtraValues>
+    void updateMissingSize(std::size_t size, TExtraValues... extraValues) const
     {
-        if (missingSize != nullptr) {
-            COMMS_ASSERT(size <= length());
-            *missingSize = std::max(std::size_t(1U), length() - size);
-        }
+        return updateMissingSizeInternal(size, extraValues...);
     }
 
+    /// @brief Update the missing size information if such is requested.
+    /// @details Calculates the minimal required length to be yet read.
+    ///     Updates the value reference to which was passed to the
+    ///     "read" operation using @ref comms::protocol::missingSize().
+    /// @param[in] field Field read operation of which has failed.
+    /// @param[in] size Remaining number of bytes in the input buffer.
+    /// @param[out] extraValues Variadic parameters passed to the
+    ///     "read" function such as @ref comms::protocol::ProtocolLayerBase::read() "read()"
+    ///     or @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()"
+    template <typename... TExtraValues>
     void updateMissingSize(
         const Field& field,
         std::size_t size,
-        std::size_t* missingSize) const
+        TExtraValues... extraValues) const
     {
-        if (missingSize != nullptr) {
-            auto totalLen = field.length() + nextLayer_.length();
-            COMMS_ASSERT(size <= totalLen);
-            *missingSize = std::max(std::size_t(1U), totalLen - size);
-        }
+        return updateMissingSizeInternal(field, size, extraValues...);
     }
 
+    /// @brief Set the missing size information if such is requested.
+    /// @details Updates the value reference to which was passed to the
+    ///     "read" operation using @ref comms::protocol::missingSize().
+    /// @param[in] val Value to assign.
+    /// @param[out] extraValues Variadic parameters passed to the
+    ///     "read" function such as @ref comms::protocol::ProtocolLayerBase::read() "read()"
+    ///     or @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()"
+    template <typename... TExtraValues>
+    void setMissingSize(
+        std::size_t val,
+        TExtraValues... extraValues) const
+    {
+        return setMissingSizeInternal(val, extraValues...);
+    }
+
+    /// @brief Set the message ID information if such is requested.
+    /// @details Updates the value reference to which was passed to the
+    ///     "read" operation using @ref comms::protocol::msgId().
+    /// @param[in] val Value to assign.
+    /// @param[out] extraValues Variadic parameters passed to the
+    ///     "read" function such as @ref comms::protocol::ProtocolLayerBase::read() "read()"
+    ///     or @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()"
+    template <typename TId, typename... TExtraValues>
+    void setMsgId(
+        TId val,
+        TExtraValues... extraValues) const
+    {
+        return setMsgIdInternal(val, extraValues...);
+    }
+
+    /// @brief Set the message index information if such is requested.
+    /// @details Updates the value reference to which was passed to the
+    ///     "read" operation using @ref comms::protocol::msgIndex().
+    /// @param[in] val Value to assign.
+    /// @param[out] extraValues Variadic parameters passed to the
+    ///     "read" function such as @ref comms::protocol::ProtocolLayerBase::read() "read()"
+    ///     or @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()"
+    template <typename... TExtraValues>
+    void setMsgIndex(
+        std::size_t val,
+        TExtraValues... extraValues) const
+    {
+        return setMsgIndexInternal(val, extraValues...);
+    }
+
+    /// @brief Retrieve reference to a layer specific field out of
+    ///     all fields.
+    /// @tparam TIdx Index of the field in tuple
     template <std::size_t TIdx, typename TAllFields>
     static Field& getField(TAllFields& allFields)
     {
@@ -875,14 +877,14 @@ protected:
         {
         }
 
-        template <typename TMsgPtr, typename TIter>
+        template <typename TMsgPtr, typename TIter, typename... TExtraValues>
         ErrorStatus read(
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize)
+            TExtraValues... extraValues)
         {
-            return nextLayer_.read(msg, iter, size, missingSize);
+            return nextLayer_.read(msg, iter, size, extraValues...);
         }
     private:
         NextLayer& nextLayer_;
@@ -896,14 +898,14 @@ protected:
         {
         }
 
-        template <typename TMsgPtr, typename TIter>
+        template <typename TMsgPtr, typename TIter, typename... TExtraValues>
         ErrorStatus read(
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize)
+            TExtraValues... extraValues)
         {
-            return nextLayer_.readUntilData(msg, iter, size, missingSize);
+            return nextLayer_.readUntilData(msg, iter, size, extraValues...);
         }
     private:
         NextLayer& nextLayer_;
@@ -921,14 +923,14 @@ protected:
         {
         }
 
-        template<typename TMsgPtr, typename TIter>
+        template<typename TMsgPtr, typename TIter, typename... TExtraValues>
         ErrorStatus read(
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize)
+            TExtraValues... extraValues)
         {
-            return nextLayer_.readFieldsCached(allFields_, msg, iter, size, missingSize);
+            return nextLayer_.readFieldsCached(allFields_, msg, iter, size, extraValues...);
         }
 
     private:
@@ -948,14 +950,14 @@ protected:
         {
         }
 
-        template<typename TMsgPtr, typename TIter>
+        template<typename TMsgPtr, typename TIter, typename... TExtraValues>
         ErrorStatus read(
             TMsgPtr& msg,
             TIter& iter,
             std::size_t size,
-            std::size_t* missingSize)
+            TExtraValues... extraValues)
         {
-            return nextLayer_.readUntilDataFieldsCache(allFields_, msg, iter, size, missingSize);
+            return nextLayer_.readUntilDataFieldsCache(allFields_, msg, iter, size, extraValues...);
         }
 
     private:
@@ -1103,36 +1105,36 @@ private:
     struct MessageObjTag {};
     struct SmartPtrTag {};
 
-    template <typename TMsg, typename TIter>
+    template <typename TMsg, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readInternal(
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        NormalReadTag)
+        NormalReadTag,
+        TExtraValues... extraValues)
     {
         Field field;
         auto& derivedObj = static_cast<TDerived&>(*this);
-        return derivedObj.doRead(field, msg, iter, size, missingSize, createNextLayerReader());
+        return derivedObj.doRead(field, msg, iter, size, createNextLayerReader(), extraValues...);
     }
 
-    template <typename TMsgPtr, typename TIter>
+    template <typename TMsgPtr, typename TIter, typename... TExtraValues>
     comms::ErrorStatus readInternal(
         TMsgPtr& msgPtr,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        SplitReadTag)
+        SplitReadTag,
+        TExtraValues... extraValues)
     {
         auto fromIter = iter;
-        auto es = readUntilData(msgPtr, iter, size, missingSize);
+        auto es = readUntilData(msgPtr, iter, size, extraValues...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
         auto consumed = static_cast<std::size_t>(std::distance(fromIter, iter));
         COMMS_ASSERT(consumed <= size);
-        return readFromData(msgPtr, iter, size - consumed, missingSize);
+        return readFromData(msgPtr, iter, size - consumed, extraValues...);
     }
 
     template <typename TIter, typename TNextLayerUpdater>
@@ -1176,6 +1178,156 @@ private:
         msg.reset();
     }
 
+    static void updateMissingSizeInternal(std::size_t size)
+    {
+        static_cast<void>(size);
+    }
+
+    static void updateMissingSizeInternal(const Field& field, std::size_t size)
+    {
+        static_cast<void>(field);
+        static_cast<void>(size);
+    }
+
+    template <typename... TExtraValues>
+    void updateMissingSizeInternal(
+        std::size_t size,
+        details::MissingSizeRetriever retriever,
+        TExtraValues... extraValues) const
+    {
+        COMMS_ASSERT(size <= length());
+        retriever.setValue(std::max(std::size_t(1U), length() - size));
+        updateMissingSizeInternal(size, extraValues...);
+    }
+
+    template <typename... TExtraValues>
+    void updateMissingSizeInternal(
+        const Field& field,
+        std::size_t size,
+        details::MissingSizeRetriever retriever,
+        TExtraValues... extraValues) const
+    {
+        static_assert(
+            details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Must be missing size retriever");
+        auto totalLen = field.length() + nextLayer_.length();
+        COMMS_ASSERT(size <= totalLen);
+        retriever.setValue(std::max(std::size_t(1U), totalLen - size));
+        updateMissingSizeInternal(size, extraValues...);
+    }
+
+    template <typename T, typename... TExtraValues>
+    void updateMissingSizeInternal(
+        std::size_t size,
+        T retriever,
+        TExtraValues... extraValues) const
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        updateMissingSizeInternal(size, extraValues...);
+    }
+
+    template <typename T, typename... TExtraValues>
+    void updateMissingSizeInternal(
+        const Field& field,
+        std::size_t size,
+        T retriever,
+        TExtraValues... extraValues) const
+    {
+        static_assert(
+            !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        updateMissingSizeInternal(field, size, extraValues...);
+    }
+
+
+    static void setMissingSizeInternal(std::size_t val)
+    {
+        static_cast<void>(val);
+    }
+
+    template <typename... TExtraValues>
+    static void setMissingSizeInternal(
+        std::size_t val,
+        details::MissingSizeRetriever retriever,
+        TExtraValues... extraValues)
+    {
+        retriever.setValue(val);
+        setMissingSizeInternal(val, extraValues...);
+    }
+
+    template <typename T, typename... TExtraValues>
+    static void setMissingSizeInternal(
+        std::size_t val,
+        T retriever,
+        TExtraValues... extraValues)
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMissingSizeRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        setMissingSizeInternal(val, extraValues...);
+    }
+
+    template <typename TId>
+    static void setMsgIdInternal(TId val)
+    {
+        static_cast<void>(val);
+    }
+
+    template <typename TId, typename U, typename... TExtraValues>
+    static void setMsgIdInternal(
+        TId val,
+        details::MsgIdRetriever<U> retriever,
+        TExtraValues... extraValues)
+    {
+        retriever.setValue(val);
+        setMsgIdInternal(val, extraValues...);
+    }
+
+    template <typename TId, typename T, typename... TExtraValues>
+    static void setMsgIdInternal(
+        TId val,
+        T retriever,
+        TExtraValues... extraValues)
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMsgIdRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be message id retriever");
+        setMsgIdInternal(val, extraValues...);
+    }
+
+    static void setMsgIndexInternal(std::size_t val)
+    {
+        static_cast<void>(val);
+    }
+
+    template <typename... TExtraValues>
+    static void setMsgIndexInternal(
+        std::size_t val,
+        details::MsgIndexRetriever retriever,
+        TExtraValues... extraValues)
+    {
+        retriever.setValue(val);
+        setMsgIndexInternal(val, extraValues...);
+    }
+
+    template <typename T, typename... TExtraValues>
+    static void setMsgIndexInternal(
+        std::size_t val,
+        T retriever,
+        TExtraValues... extraValues)
+    {
+        static_cast<void>(retriever);
+        static_assert(
+            !details::isMsgIndexRetriever<typename std::decay<decltype(retriever)>::type>(),
+            "Mustn't be missing size retriever");
+        setMsgIndexInternal(val, extraValues...);
+    }
+
     static_assert (comms::util::IsTuple<AllFields>::Value, "Must be tuple");
     NextLayer nextLayer_;
 };
@@ -1205,6 +1357,126 @@ const ProtocolLayerBase<TField, TNextLayer, TDerived, TOptions...>&
 toProtocolLayerBase(const ProtocolLayerBase<TField, TNextLayer, TDerived, TOptions...>& layer)
 {
     return layer;
+}
+
+/// @brief Add "missing size" output parameter to protocol stack's (frame's)
+///     "read" operation.
+/// @details Can be passed as variadic parameters to "read" functions
+///     of protocol stack (see @ref comms::protocol::ProtocolLayerBase::read()
+///     and @ref  comms::protocol::ProtocolLayerBase::readFieldsCached()).
+///     It can be used to retrieve missing length information in
+///     case "read" of protocol stack operation returns @ref comms::ErrorStatus::NotEnoughData.
+///     @code
+///     using ProtocolStack = ...
+///     ProtocolStack stack;
+///     ProtocolStack::MsgPtr msg;
+///     std::size_t missingSize = 0U;
+///     auto es = stack.read(msg, readIter, size, comms::protocol::missingSize(missingSize));
+///     if (es == comms::ErrorStatus::NotEnoughData) {
+///         ... // missingSize will hold a minimal number of bytes that are required to be yet read
+///     }
+///     @endcode
+/// @param[out] val Missing size value to be returned.
+/// @return Implementation dependent object accepted by "read" functions.
+/// @see @ref comms::protocol::ProtocolLayerBase::read()
+/// @see @ref comms::protocol::ProtocolLayerBase::readFieldsCached()
+inline
+details::MissingSizeRetriever missingSize(std::size_t& val)
+{
+    return details::MissingSizeRetriever(val);
+}
+
+/// @brief Add "message ID" output parameter to protocol stack's (frame's)
+///     "read" operation.
+/// @details Can be passed as variadic parameters to "read" functions
+///     of protocol stack (see @ref comms::protocol::ProtocolLayerBase::read()
+///     and @ref  comms::protocol::ProtocolLayerBase::readFieldsCached()).
+///     It can be used to retrieve numeric message ID value.
+///     @code
+///     using ProtocolStack = ...
+///     ProtocolStack stack;
+///     ProtocolStack::MsgPtr msg;
+///     my_prot::MsgId msgId = my_prot::MsgId();
+///     auto es = stack.read(msg, readIter, size, comms::protocol::msgId(msgId));
+///     if (es == comms::ErrorStatus::Success) {
+///         assert(msg); // Message object must be created
+///         ... // use msgId value
+///     }
+///     @endcode
+/// @param[out] val Numeric message ID value to be returned.
+/// @return Implementation dependent object accepted by "read" functions.
+/// @see @ref comms::protocol::ProtocolLayerBase::read()
+/// @see @ref comms::protocol::ProtocolLayerBase::readFieldsCached()
+template <typename TId>
+details::MsgIdRetriever<TId> msgId(TId& val)
+{
+    return details::MsgIdRetriever<TId>(val);
+}
+
+/// @brief Add "message index" output parameter to protocol stack's (frame's)
+///     "read" operation.
+/// @details In case the expected input message types tuple contains multiple
+///     @b different message classes but having the
+///     @b same numeric ID, it may be beneficial to know the reletive index
+///     (starting from the first message type having the same ID) of the
+///     detected message. This function can be used to retrieve such
+///     information. Can be passed as variadic parameters to "read" functions
+///     of protocol stack (see @ref comms::protocol::ProtocolLayerBase::read()
+///     and @ref  comms::protocol::ProtocolLayerBase::readFieldsCached()).
+///     @code
+///     using ProtocolStack = ...
+///     ProtocolStack stack;
+///     ProtocolStack::MsgPtr msg;
+///     my_prot::MsgId msgId = my_prot::MsgId();
+///     std::size_t msgIndex = 0U;
+///     auto es =
+///        stack.read(
+///            msg,
+///            readIter,
+///            size,
+///            comms::protocol::msgId(msgId),
+///            comms::protocol::msgIndex(msgIndex));
+///     if (es == comms::ErrorStatus::Success) {
+///         assert(msg); // Message object must be created
+///         ... // use msgId and msgIndex values
+///     }
+///     @endcode
+/// @param[out] val Message index value to be returned.
+/// @return Implementation dependent object accepted by "read" functions.
+/// @see @ref comms::protocol::ProtocolLayerBase::read()
+/// @see @ref comms::protocol::ProtocolLayerBase::readFieldsCached()
+inline
+details::MsgIndexRetriever msgIndex(std::size_t& val)
+{
+    return details::MsgIndexRetriever(val);
+}
+
+/// @brief Add "payload start" and "payload size" output parameters to
+///     protocol stack's (frame's) "read" operation.
+/// @details Can be passed as variadic parameters to "read" functions
+///     of protocol stack (see @ref comms::protocol::ProtocolLayerBase::read()
+///     and @ref  comms::protocol::ProtocolLayerBase::readFieldsCached()).
+///     It can be used to retrieve information on payload start location
+///     as well as its size.
+///     @code
+///     using ProtocolStack = ...
+///     ProtocolStack stack;
+///     ProtocolStack::MsgPtr msg;
+///     decltype(readIter) payloadIter;
+///     std::size_t payloadSize = 0U;
+///     auto es = stack.read(msg, readIter, size, comms::protocol::msgPayload(payloadIter, payloadSize));
+///     ... // use payload location and size information
+///     @endcode
+/// @param[out] iter Iterator pointing to the begining of the message payload in the
+///     input buffer.
+/// @param[out] len Number of bytes in the detected payload.
+/// @return Implementation dependent object accepted by "read" functions.
+/// @see @ref comms::protocol::ProtocolLayerBase::read()
+/// @see @ref comms::protocol::ProtocolLayerBase::readFieldsCached()
+template <typename TIter>
+details::MsgPayloadRetriever<TIter> msgPayload(TIter& iter, std::size_t& len)
+{
+    return details::MsgPayloadRetriever<TIter>(iter, len);
 }
 
 }  // namespace protocol

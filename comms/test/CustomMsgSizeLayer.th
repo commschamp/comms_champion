@@ -33,6 +33,7 @@ public:
     void test1();
     void test2();
     void test3();
+    void test4();
 
 private:
 
@@ -310,4 +311,22 @@ void CustomPostIdMsgSizeLayerTestSuite::test3()
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
     TS_ASSERT_EQUALS(BufSize, outBuf.size());
     TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), &Buf[0]));
+}
+
+void CustomPostIdMsgSizeLayerTestSuite::test4()
+{
+    static const char Buf[] = {
+        (char)0xf0, 0x03, MessageType1
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using Stack = Frame2<>;
+    Stack stack;
+    Stack::MsgPtr msg;
+    std::size_t missingSize = 0U;
+    auto readIter = &Buf[0];
+    auto es = stack.read(msg, readIter, BufSize, comms::protocol::missingSize(missingSize));
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT_EQUALS(missingSize, 2U);
 }

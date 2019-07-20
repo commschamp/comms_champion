@@ -52,6 +52,15 @@ public:
     void test20();
     void test21();
     void test22();
+    void test23();
+    void test24();
+    void test25();
+    void test26();
+    void test27();
+    void test28();
+    void test29();
+    void test30();
+    void test31();
 
 private:
 
@@ -89,10 +98,12 @@ private:
 
     typedef TestMessageBase<BeTraits> BeMsgBase;
     typedef TestMessageBase<LeTraits> LeMsgBase;
-    struct BeNonPolymorphicMessageBase : public comms::Message<NonPolymorphicBigEndianTraits>
+    struct BeOnlyDestructorPolymorphicMessageBase : public comms::Message<NonPolymorphicBigEndianTraits>
     {
-        virtual ~BeNonPolymorphicMessageBase() = default;
+        virtual ~BeOnlyDestructorPolymorphicMessageBase() = default;
     };
+
+    using BeNonPolymorphicMessageBase = comms::Message<NonPolymorphicBigEndianTraits>;
 
     typedef BeMsgBase::Field BeField;
     typedef LeMsgBase::Field LeField;
@@ -106,9 +117,12 @@ private:
     typedef Message90_1<BeMsgBase> BeMsg90_1;
     typedef Message90_2<BeMsgBase> BeMsg90_2;
 
+    typedef Message1<BeOnlyDestructorPolymorphicMessageBase> OnlyDestructorVirtualBeMsg1;
+    typedef Message2<BeOnlyDestructorPolymorphicMessageBase> OnlyDestructorVirtualBeMsg2;
+
     typedef Message1<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg1;
     typedef Message2<BeNonPolymorphicMessageBase> NonPolymorphicBeMsg2;
-
+    typedef comms::GenericMessage<BeNonPolymorphicMessageBase> NonPolymorphicBeGenericMsg;
 
     template <typename TField>
     using Field1 =
@@ -231,7 +245,33 @@ private:
 #endif
     public:
         COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
-    };    
+    };
+
+    template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
+    class GenericMessageInPlaceAllocProtocolStack : public
+        comms::protocol::MsgIdLayer<
+            TField,
+            TMessage,
+            TAllMessages<TMessage>,
+            comms::protocol::MsgDataLayer<>,
+            comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >,
+            comms::option::InPlaceAllocation
+        >
+    {
+#ifdef COMMS_MUST_DEFINE_BASE
+        using Base =
+            comms::protocol::MsgIdLayer<
+                TField,
+                TMessage,
+                TAllMessages<TMessage>,
+                comms::protocol::MsgDataLayer<>,
+                comms::option::SupportGenericMessage<comms::GenericMessage<TMessage> >,
+                comms::option::InPlaceAllocation
+            >;
+#endif
+    public:
+        COMMS_PROTOCOL_LAYERS_ACCESS_OUTER(id, payload);
+    };
 
     template <typename TField, typename TMessage, template<class> class TAllMessages = AllMessages>
     class ProtocolStackPolymorphic : public
@@ -372,6 +412,7 @@ void MsgIdLayerTestSuite::test2()
 
     InPlaceProtocolStack<BeField2, BeMsgBase> inPlaceStack;
     commonWriteReadMsgTest(inPlaceStack, msg, buf, BufSize, &ExpectedBuf[0]);
+    
 }
 
 void MsgIdLayerTestSuite::test3()
@@ -398,6 +439,11 @@ void MsgIdLayerTestSuite::test3()
 
     auto msgPtr3 = commonReadWriteMsgTest(inPlaceStack, &Buf[0], BufSize, comms::ErrorStatus::MsgAllocFailure);
     TS_ASSERT(!msgPtr3);
+    
+    CountHandler<LeMsgBase> handler; 
+    comms::processAllWithDispatch(&Buf[0], BufSize, stack, handler);  
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 }
 
 void MsgIdLayerTestSuite::test4()
@@ -485,9 +531,9 @@ void MsgIdLayerTestSuite::test8()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    using ProtStack = ProtocolStack<BeField1, BeOnlyDestructorPolymorphicMessageBase>;
     ProtStack stack;
-    NonPolymorphicBeMsg1 msg;
+    OnlyDestructorVirtualBeMsg1 msg;
     TS_ASSERT_EQUALS(msg.doGetId(), MessageType1);
     commonReadWriteMsgDirectTest(stack, msg, &Buf[0], BufSize);
     TS_ASSERT_EQUALS(std::get<0>(msg.fields()).value(), 0x0102);
@@ -496,7 +542,7 @@ void MsgIdLayerTestSuite::test8()
     commonReadWriteMsgDirectTest(stack, fields, msg, &Buf[0], BufSize);
     TS_ASSERT_EQUALS(std::get<0>(fields).value(), MessageType1);
 
-    NonPolymorphicBeMsg2 msg2;
+    OnlyDestructorVirtualBeMsg2 msg2;
     TS_ASSERT_EQUALS(msg2.doGetId(), MessageType2);
     commonReadWriteMsgDirectTest(stack, msg2, &Buf[0], BufSize, comms::ErrorStatus::InvalidMsgId);
 
@@ -528,13 +574,13 @@ void MsgIdLayerTestSuite::test10()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    using ProtStack = ProtocolStack<BeField1, BeOnlyDestructorPolymorphicMessageBase>;
     ProtStack stack;
     ProtStack::MsgPtr msg;
     auto readIter = &Buf[0];
     auto es = stack.read(msg, readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    auto* castedMsg = dynamic_cast<NonPolymorphicBeMsg1*>(msg.get());
+    auto* castedMsg = dynamic_cast<OnlyDestructorVirtualBeMsg1*>(msg.get());
     TS_ASSERT(castedMsg != nullptr);
     TS_ASSERT_EQUALS(std::get<0>(castedMsg->fields()).value(), 0x0102);
 
@@ -554,7 +600,7 @@ void MsgIdLayerTestSuite::test11()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    using Stack = ProtocolStack<BeField1, BeMsgBase>;
+    using Stack = ProtocolStack<BeField1, BeMsgBase, Messages_1to3>;
     static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
     static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
     static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
@@ -572,7 +618,7 @@ void MsgIdLayerTestSuite::test12()
 
     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-    using Stack = GenericMessageProtocolStack<BeField1, BeMsgBase>;
+    using Stack = GenericMessageProtocolStack<BeField1, BeMsgBase, Messages_1to3>;
     static_assert(Stack::isDispatchPolymorphic(), "Wrong dispatch");
     static_assert(!Stack::isDispatchStaticBinSearch(), "Wrong dispatch");
     static_assert(!Stack::isDispatchLinearSwitch(), "Wrong dispatch");
@@ -881,4 +927,299 @@ void MsgIdLayerTestSuite::test22()
     TS_ASSERT_EQUALS(msgPtr->getId(), MessageType90);
     auto& msg90 = dynamic_cast<BeMsg90_2&>(*msgPtr);
     TS_ASSERT_EQUALS(msg90.field_value1().value(), 0x01);
+}
+
+void MsgIdLayerTestSuite::test23()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+
+    auto readIter = &Buf[0];
+    auto es = stack.read(msg, readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+
+    unsigned msg1Destructed = 0U;
+    msg1->setDestructorCounter(msg1Destructed);
+    auto msgMoved = std::move(msg);
+    msg.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 0U);
+    msgMoved.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 1U);
+}
+
+void MsgIdLayerTestSuite::test24()
+{
+    static const char Buf[] = {
+        MessageType1, (char)0xab, (char)0xcd
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = InPlaceProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+
+    auto readIter = &Buf[0];
+    auto es = stack.read(msg, readIter, BufSize);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+    TS_ASSERT_EQUALS(msg1->field_value1().value(), 0xabcd);
+
+    unsigned msg1Destructed = 0U;
+    msg1->setDestructorCounter(msg1Destructed);
+    auto msgMoved = std::move(msg);
+    msg.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 0U);
+    msgMoved.reset();
+    TS_ASSERT_EQUALS(msg1Destructed, 1U);
+}
+
+void MsgIdLayerTestSuite::test25()
+{
+    using ProtStack = GenericMessageProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    do {
+        static const char Buf[] = {
+            MessageType1, 0x01, 0x02
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+        TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+
+        unsigned msg1Destructed = 0U;
+        msg1->setDestructorCounter(msg1Destructed);
+        auto msgMoved = std::move(msg);
+        msg.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 0U);
+        msgMoved.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 1U);
+    } while (false);
+
+    do {
+        static const char Buf[] = {
+            0x40, 0x01, 0x02, 0x03, 0x04
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* genMsg = static_cast<NonPolymorphicBeGenericMsg*>(msg.get());
+        auto& data = genMsg->field_data().value();
+        TS_ASSERT_EQUALS(data.size(), BufSize - 1);
+        TS_ASSERT(std::equal(data.begin(), data.end(), &Buf[1]));
+        auto msgMoved = std::move(msg);
+        msg.reset();
+    } while (false);
+}
+
+void MsgIdLayerTestSuite::test26()
+{
+    using ProtStack = GenericMessageInPlaceAllocProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+    do {
+        static const char Buf[] = {
+            MessageType1, 0x01, 0x02
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* msg1 = static_cast<NonPolymorphicBeMsg1*>(msg.get());
+        TS_ASSERT_EQUALS(msg1->field_value1().value(), 0x0102);
+
+        unsigned msg1Destructed = 0U;
+        msg1->setDestructorCounter(msg1Destructed);
+        auto msgMoved = std::move(msg);
+        msg.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 0U);
+        msgMoved.reset();
+        TS_ASSERT_EQUALS(msg1Destructed, 1U);
+    } while (false);
+
+    do {
+        static const char Buf[] = {
+            0x40, 0x01, 0x02, 0x03, 0x04
+        };
+
+        static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+        ProtStack stack;
+        ProtStack::MsgPtr msg;
+        auto readIter = &Buf[0];
+        auto es = stack.read(msg, readIter, BufSize);
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+        auto* genMsg = static_cast<NonPolymorphicBeGenericMsg*>(msg.get());
+        auto& data = genMsg->field_data().value();
+        TS_ASSERT_EQUALS(data.size(), BufSize - 1);
+        TS_ASSERT(std::equal(data.begin(), data.end(), &Buf[1]));
+
+        auto msgMoved = std::move(msg);
+        msg.reset();
+    } while (false);
+}
+
+void MsgIdLayerTestSuite::test27()
+{
+    static const char Buf[] = {
+        MessageType1,
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeOnlyDestructorPolymorphicMessageBase>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+    auto readIter = &Buf[0];
+    std::size_t missingSize = 0U;
+    std::size_t missingSize2 = 0U;
+    std::size_t msgIndex = 0U;
+    MessageType msgId = MessageType();
+    auto es =
+        stack.read(
+            msg,
+            readIter,
+            BufSize,
+            comms::protocol::missingSize(missingSize),
+            comms::protocol::msgId(msgId),
+            comms::protocol::msgIndex(msgIndex),
+            comms::protocol::missingSize(missingSize2));
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT_EQUALS(missingSize, 2U);
+    TS_ASSERT_EQUALS(missingSize, missingSize2);
+}
+
+void MsgIdLayerTestSuite::test28()
+{
+    static const char Buf[] = {
+        MessageType5, 0x01, 0x02, 0x03
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeOnlyDestructorPolymorphicMessageBase, Messages_1to5>;
+    ProtStack stack;
+    ProtStack::MsgPtr msg;
+    auto readIter = &Buf[0];
+    MessageType msgId = MessageType();
+    std::size_t msgIndex = 100U;
+    MessageType msgId2 = MessageType();
+    std::size_t msgIndex2 = 100U;
+
+    auto es =
+        stack.read(
+            msg,
+            readIter,
+            BufSize,
+            comms::protocol::msgId(msgId),
+            comms::protocol::msgIndex(msgIndex),
+            comms::protocol::msgId(msgId2),
+            comms::protocol::msgIndex(msgIndex2));
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(msgId, MessageType5);
+    TS_ASSERT_EQUALS(msgId, msgId2);
+    TS_ASSERT_EQUALS(msgIndex, 0U);
+    TS_ASSERT_EQUALS(msgIndex, msgIndex2);
+}
+
+void MsgIdLayerTestSuite::test29()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+
+    ProtStack stack;
+    CountHandler<BeNonPolymorphicMessageBase> handler;
+
+    comms::processAllWithDispatch(&Buf[0], BufSize, stack, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher = comms::MsgDispatcher<comms::option::ForceDispatchStaticBinSearch>;
+    comms::processAllWithDispatchViaDispatcher<Dispatcher>(&Buf[0], BufSize, stack, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+}
+
+void MsgIdLayerTestSuite::test30()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase, Messages_1to3>;
+
+    ProtStack stack;
+    CountHandler<BeNonPolymorphicMessageBase> handler;
+
+    NonPolymorphicBeMsg1 msg1;
+    auto readIter = &Buf[0];
+    auto es = comms::processSingleWithDispatch(readIter, BufSize, stack, msg1, handler);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher = comms::MsgDispatcher<comms::option::ForceDispatchLinearSwitch>;
+    readIter = &Buf[0];
+    comms::processSingleWithDispatchViaDispatcher<Dispatcher>(readIter, BufSize, stack, msg1, handler);
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+}
+
+void MsgIdLayerTestSuite::test31()
+{
+    static const char Buf[] = {
+        MessageType1, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeField1, BeNonPolymorphicMessageBase>;
+
+    ProtStack stack;
+    CountHandler<BeNonPolymorphicMessageBase> handler;
+
+    NonPolymorphicBeMsg1 msg1;
+    auto readIter = &Buf[0];
+    auto es = comms::processSingleWithDispatch(readIter, BufSize, stack, msg1, handler);
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher = comms::MsgDispatcher<comms::option::ForceDispatchLinearSwitch>;
+    readIter = &Buf[0];
+    comms::processSingleWithDispatchViaDispatcher<Dispatcher>(readIter, BufSize, stack, msg1, handler);
+    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 }

@@ -37,7 +37,7 @@ public:
     void test3();
     void test4();
     void test5();
-    // void test6();
+    void test6();
 
 private:
 
@@ -213,28 +213,37 @@ void MsgDataLayerTestSuite::test5()
     TS_ASSERT_EQUALS(msg.field_value1().value(), 0x0102);
 }
 
-// void MsgDataLayerTestSuite::test6()
-// {
-//     static const char Buf[] = {
-//         0x01, 0x02
-//     };
+ void MsgDataLayerTestSuite::test6()
+ {
+     static const char Buf[] = {
+         0x01,
+     };
 
-//     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+     static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
 
-//     using ProtStack = ProtocolStack<BeMessageBase>;
-//     ProtStack stack;
-// #ifndef CC_COMPILER_GCC47
-//     static_cast<void>(stack.layer_payload()); // check generation of access func
-// #endif
+     using ProtStack = ProtocolStack<BeMessageBase>;
+     ProtStack stack;
+ #ifndef CC_COMPILER_GCC47
+     static_cast<void>(stack.layer_payload()); // check generation of access func
+ #endif
 
-//     std::unique_ptr<BeNonPolymorphicMessageBase> msg(new NonPolymorphicBeMsg1);
-//     auto readIter = &Buf[0];
-//     auto es = stack.read(msg, readIter, BufSize);
-//     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-//     auto* castedMsg = static_cast<NonPolymorphicBeMsg1*>(msg.get());
-//     TS_ASSERT_EQUALS(castedMsg->field_value1().value(), 0x0102);
-// }
-
+     NonPolymorphicBeMsg1 msg1;
+     auto readIter = &Buf[0];
+     std::size_t missingSize = 0U;
+     std::size_t missingSize2 = 0U;
+     unsigned id = 0U;
+     auto es =
+        stack.read(
+            msg1,
+            readIter,
+            BufSize,
+            comms::protocol::missingSize(missingSize),
+            comms::protocol::msgId(id),
+            comms::protocol::missingSize(missingSize2));
+     TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
+     TS_ASSERT_EQUALS(missingSize, 1U);
+     TS_ASSERT_EQUALS(missingSize, missingSize2);
+}
 
 template <typename TMessage>
 TMessage MsgDataLayerTestSuite::internalReadWriteTest(

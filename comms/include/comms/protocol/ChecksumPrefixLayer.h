@@ -49,10 +49,10 @@ namespace protocol
 ///     assigning it as a value of the check field being read and/or written.
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @tparam TOptions Extending functionality options. Supported options are:
-///     @li @ref comms::option::ChecksumLayerVerifyBeforeRead - By default, the
+///     @li @ref comms::option::def::ChecksumLayerVerifyBeforeRead - By default, the
 ///         @b ChecksumPrefixLayer will invoke @b read operation of inner (wrapped) layers
 ///         and only if it is successful, it will calculate and verify the
-///         checksum value. Usage of @ref comms::option::ChecksumLayerVerifyBeforeRead
+///         checksum value. Usage of @ref comms::option::def::ChecksumLayerVerifyBeforeRead
 ///         modifies the default behaviour by forcing the checksum verification
 ///         prior to invocation of @b read operation in the wrapped layer(s).
 /// @headerfile comms/protocol/ChecksumPrefixLayer.h
@@ -62,7 +62,7 @@ class ChecksumPrefixLayer : public
             TField,
             TNextLayer,
             ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
-            comms::option::ProtocolLayerDisallowReadUntilDataSplit
+            comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
         >
 {
     using BaseImpl =
@@ -70,7 +70,7 @@ class ChecksumPrefixLayer : public
             TField,
             TNextLayer,
             ChecksumPrefixLayer<TField, TCalc, TNextLayer, TOptions...>,
-            comms::option::ProtocolLayerDisallowReadUntilDataSplit
+            comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
         >;
 public:
     /// @brief Parsed options
@@ -113,11 +113,13 @@ public:
     ///     will hold allocated message object
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
-    /// @param[out] missingSize If not nullptr and return value is
-    ///     comms::ErrorStatus::NotEnoughData it will contain
-    ///     minimal missing data length required for the successful
-    ///     read attempt.
-    /// @param[in] nextLayerReader Next layer reader object.
+    /// @param[in] nextLayerReader Reader object, needs to be invoked to
+    ///     forward read operation to the next layer.
+    /// @param[out] extraValues Variadic extra output parameters passed to the
+    ///     "read" operatation of the protocol stack (see
+    ///     @ref comms::protocol::ProtocolLayerBase::read() "read()" and
+    ///     @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()").
+    ///     Need to passed on as variadic arguments to the @b nextLayerReader.
     /// @return Status of the read operation.
     /// @pre Iterator must be "random access" one.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
@@ -125,16 +127,14 @@ public:
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       read. In case of an error, distance between original position and
     ///       advanced will pinpoint the location of the error.
-    /// @post missingSize output value is updated if and only if function
-    ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues... extraValues)
     {
         using IterType = typename std::decay<decltype(iter)>::type;
         static_assert(std::is_same<typename std::iterator_traits<IterType>::iterator_category, std::random_access_iterator_tag>::value,
@@ -147,7 +147,7 @@ public:
         auto beforeFieldReadIter = iter;
         auto checksumEs = field.read(iter, Field::minLength());
         if (checksumEs == ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, size, missingSize);
+            BaseImpl::updateMissingSize(field, size, extraValues...);
         }
 
         if (checksumEs != ErrorStatus::Success) {
@@ -155,7 +155,15 @@ public:
         }
 
         std::size_t fieldLen = static_cast<std::size_t>(std::distance(beforeFieldReadIter, iter));
-        return readInternal(field, msg, iter, size - fieldLen, missingSize, std::forward<TNextLayerReader>(nextLayerReader), VerifyTag());
+        return
+            readInternal(
+                field,
+                msg,
+                iter,
+                size - fieldLen,
+                std::forward<TNextLayerReader>(nextLayerReader),
+                VerifyTag(),
+                extraValues...);
     }
 
     /// @brief Customized write functionality, invoked by @ref write().
@@ -252,14 +260,14 @@ private:
         >::type;
 
 
-    template <typename TMsg, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus verifyRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TReader&& nextLayerReader)
+        TReader&& nextLayerReader,
+        TExtraValues... extraValues)
     {
         auto fromIter = iter;
 
@@ -271,21 +279,21 @@ private:
             return ErrorStatus::ProtocolError;
         }
 
-        return nextLayerReader.read(msg, iter, size, missingSize);
+        return nextLayerReader.read(msg, iter, size, extraValues...);
     }
 
-    template <typename TMsg, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus readVerify(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TReader&& nextLayerReader)
+        TReader&& nextLayerReader,
+        TExtraValues... extraValues)
     {
         auto fromIter = iter;
 
-        auto es = nextLayerReader.read(msg, iter, size, missingSize);
+        auto es = nextLayerReader.read(msg, iter, size, extraValues...);
         if ((es == ErrorStatus::NotEnoughData) ||
             (es == ErrorStatus::ProtocolError)) {
             return es;
@@ -303,30 +311,44 @@ private:
         return es;
     }
 
-    template <typename TMsg, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus readInternal(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TReader&& nextLayerReader,
-        VerifyBeforeReadTag)
+        VerifyBeforeReadTag,
+        TExtraValues... extraValues)
     {
-        return verifyRead(field, msg, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
+        return
+            verifyRead(
+                field,
+                msg,
+                iter,
+                size,
+                std::forward<TReader>(nextLayerReader),
+                extraValues...);
     }
 
-    template <typename TMsg, typename TIter, typename TReader>
+    template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus readInternal(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
         TReader&& nextLayerReader,
-        VerifyAfterReadTag)
+        VerifyAfterReadTag,
+        TExtraValues... extraValues)
     {
-        return readVerify(field, msg, iter, size, missingSize, std::forward<TReader>(nextLayerReader));
+        return
+            readVerify(
+                field,
+                msg,
+                iter,
+                size,
+                std::forward<TReader>(nextLayerReader),
+                extraValues...);
     }
 
     template <typename TMsg, typename TIter, typename TWriter>

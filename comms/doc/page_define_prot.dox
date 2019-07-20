@@ -32,6 +32,14 @@
 /// It gives and ability to the application being developed
 /// in the future to choose and use its own means to report assertion failures.
 ///
+/// @section page_define_prot_options Configuration Options
+/// Many classes provided by the @b COMMS library allow change and/or extention
+/// of their default functionality using various options. The option classes and/or
+/// types that can (and should) be used to define a protocol reside in 
+/// @ref comms::option::def namespace. All option classes / types that intended to be used by
+/// the end application for its own customization reside in @ref comms::option::app
+/// namespace and should @b NOT be used in protocol definition.
+///
 /// @section page_define_prot_interface Common Interface Class
 /// Protocol definition needs to be started by defining all the available 
 /// numeric IDs of the messages as separate enum. For example in file @b MsgId.h
@@ -59,9 +67,9 @@
 /// After the numeric IDs are specified, there is a need to define common
 /// message interface class by extending @ref comms::Message. 
 /// The defined class / type needs to pin the type used for message IDs 
-/// with @ref comms::option::MsgIdType and defined
+/// with @ref comms::option::def::MsgIdType and defined
 /// earlier enum. It also should specify the serialisation endian with either
-/// @ref comms::option::BigEndian or @ref comms::option::LittleEndian options.
+/// @ref comms::option::def::BigEndian or @ref comms::option::def::LittleEndian options.
 /// However it must also
 /// allow extension with other options by the application. 
 /// @code
@@ -73,8 +81,8 @@
 /// template <typename... TOptions>
 /// using Message = 
 ///     comms::Message<
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
 ///         TOptions...
 ///     >;
 ///
@@ -102,8 +110,8 @@
 /// template <typename... TOptions>
 /// class MyMessage : public 
 ///     comms::Message<
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
 ///         TOptions...
 ///     >
 /// {
@@ -135,13 +143,13 @@
 /// {
 /// 
 /// // Base class of all the fields
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+/// using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
 ///
 /// // Field describing protocol version.
 /// using MyVersionField = comms::field::IntValue<MyFieldBase, std::uint16_t>;
 ///
 /// // Field describing protocol version.
-/// using MyFlagsField = comms::field::BitmaskValue<MyFieldBase, comms::option::FixedLength<1> >;
+/// using MyFlagsField = comms::field::BitmaskValue<MyFieldBase, comms::option::def::FixedLength<1> >;
 ///
 /// // Relevant extra transport fields, bundled in std::tuple
 /// using MyExtraTransportFields =
@@ -153,7 +161,7 @@
 /// } // namespace my_protocol
 /// @endcode
 /// Second, provide the defined tuple to message interface class using 
-/// @ref comms::option::ExtraTransportFields option.
+/// @ref comms::option::def::ExtraTransportFields option.
 /// @code
 /// namespace my_protocol
 /// {
@@ -161,9 +169,9 @@
 /// template <typename... TOptions>
 /// class Message : public
 ///     comms::Message<
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
-///         comms::option::ExtraTransportFields<MyExtraTransportFields>,
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<MyExtraTransportFields>,
 ///         TOptions...
 ///     >
 /// {
@@ -179,8 +187,8 @@
 /// template <typename... TOptions>
 /// class MyMessage : public 
 ///     comms::Message<
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
 ///         TOptions...
 ///     >
 /// {
@@ -229,9 +237,9 @@
 /// template <typename... TOptions>
 /// class Message : public
 ///     comms::Message<
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
-///         comms::option::ExtraTransportFields<MyExtraTransportFields>,
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<MyExtraTransportFields>,
 ///         TOptions...
 ///     >
 /// {
@@ -245,9 +253,9 @@
 /// template <typename... TOptions>
 /// class Message : public
 ///     comms::Message<
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
-///         comms::option::ExtraTransportFields<MyExtraTransportFields>,
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<MyExtraTransportFields>,
 ///         TOptions...
 ///     >
 /// {
@@ -290,16 +298,16 @@
 /// protocol version information. The COMMS library contains extra functionality
 /// to help with protocol versioning. If extra transport values contain version,
 /// then it is recommended to let the library know which field in the provided
-/// ones is the version. To do so @ref comms::option::VersionInExtraTransportFields,
+/// ones is the version. To do so @ref comms::option::def::VersionInExtraTransportFields,
 /// with index of the field as a template argument needs to be used.
 /// @code
 /// template <typename... TOptions>
 /// class Message : public
 ///     comms::Message<
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
-///         comms::option::ExtraTransportFields<MyExtraTransportFields>,
-///         comms::option::VersionInExtraTransportFields<0>,
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<MyExtraTransportFields>,
+///         comms::option::def::VersionInExtraTransportFields<0>,
 ///         TOptions...
 ///     >
 /// {
@@ -401,10 +409,10 @@
 ///
 /// There are <b>at least</b> 3 additional options that should be passed to
 /// @ref comms::MessageBase.
-/// @li @ref comms::option::StaticNumIdImpl with numeric ID of the message.
-/// @li @ref comms::option::FieldsImpl with @b std::tuple of message fields (
+/// @li @ref comms::option::def::StaticNumIdImpl with numeric ID of the message.
+/// @li @ref comms::option::def::FieldsImpl with @b std::tuple of message fields (
 ///     defined earlier @b my_protocol::Message1Fields::All)
-/// @li @ref comms::option::MsgType with actual message type (@b Message1).
+/// @li @ref comms::option::def::MsgType with actual message type (@b Message1).
 ///
 /// For example
 /// @code
@@ -414,9 +422,9 @@
 /// class Message1 : public 
 ///     comms::MessageBase<
 ///         TBase, 
-///         comms::option::StaticNumIdImpl<MsgId_Message1>,
-///         comms::option::FieldsImpl<Message1Fields::All>,
-///         comms::option::MsgType<Message1<TBase> > // type of the message being defined
+///         comms::option::def::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::def::FieldsImpl<Message1Fields::All>,
+///         comms::option::def::MsgType<Message1<TBase> > // type of the message being defined
 /// {
 ///     ...
 /// };
@@ -671,14 +679,14 @@
 ///     using field1 =     
 ///         comms::field::BitmaskValue<
 ///             MyFieldBase, 
-///             comms::option::FixedLength<1>,
-///             comms::option::BitmaskReservedBits<0xfe, 0> 
+///             comms::option::def::FixedLength<1>,
+///             comms::option::def::BitmaskReservedBits<0xfe, 0> 
 ///         >;
 ///
 ///     using field2 = 
 ///         comms::field::Optional<
 ///             comms::field::IntValue<MyFieldBase, std::uint16_t>,
-///             comms::option::MissingByDefault
+///             comms::option::def::MissingByDefault
 ///         >;
 ///
 ///     // bundle all the fields
@@ -692,9 +700,9 @@
 /// class Message2 : public
 ///     comms::MessageBase<
 ///         TBase, 
-///         comms::option::StaticNumIdImpl<MsgId_Message2>, 
-///         comms::option::FieldsImpl<Message2Fields::All>,
-///         comms::option::MsgType<Message2<TBase> >
+///         comms::option::def::StaticNumIdImpl<MsgId_Message2>, 
+///         comms::option::def::FieldsImpl<Message2Fields::All>,
+///         comms::option::def::MsgType<Message2<TBase> >
 ///     >
 /// {
 /// public:
@@ -800,7 +808,7 @@
 /// @endcode
 /// In order to support polymorphic refresh functionality when required (see
 /// @ref page_use_prot_interface_refresh), the actual message class
-/// implementation must also pass @ref comms::option::HasCustomRefresh option to
+/// implementation must also pass @ref comms::option::def::HasCustomRefresh option to
 /// @ref comms::MessageBase class. Failure to do so @b may result in missing
 /// implementation of @ref comms::MessageBase::refreshImpl(). In this case,
 /// the default implementation of @ref comms::Message::refreshImpl() will be
@@ -812,10 +820,10 @@
 /// class Message2 : public
 ///     comms::MessageBase<
 ///         TBase, 
-///         comms::option::StaticNumIdImpl<MyMsgId_Message2>, 
-///         comms::option::MsgType<Message2<TMessage> >, 
-///         comms::option::FieldsImpl<Message2Fields> ,
-///         comms::option::HasCustomRefresh // Support polymorphic refresh when needed
+///         comms::option::def::StaticNumIdImpl<MyMsgId_Message2>, 
+///         comms::option::def::MsgType<Message2<TMessage> >, 
+///         comms::option::def::FieldsImpl<Message2Fields> ,
+///         comms::option::def::HasCustomRefresh // Support polymorphic refresh when needed
 ///     >
 /// {
 /// public:
@@ -936,14 +944,14 @@
 /// };
 /// @endcode
 /// In order to support @ref page_use_prot_interface_name there is a need
-/// to pass @ref comms::option::HasName option to @ref comms::MessageBase to notify
+/// to pass @ref comms::option::def::HasName option to @ref comms::MessageBase to notify
 /// the latter about existence of @b doName() member function.
 /// @code
 /// template <typename TBase>
 /// class SomeMessage : public 
 ///     comms::MessageBase<
 ///         ...,
-///         comms::option::HasName
+///         comms::option::def::HasName
 ///     >
 /// {
 /// public:
@@ -953,7 +961,7 @@
 ///     }
 /// };
 /// @endcode
-/// When @ref comms::option::HasName is used, the @b comms::MessageBase
+/// When @ref comms::option::def::HasName is used, the @b comms::MessageBase
 /// creates overriding @b nameImpl() (see @ref comms::MessageBase::nameImpl()), which
 /// invokes provided @b doName() member function.
 ///
@@ -968,7 +976,7 @@
 /// the latter is expected to call provided @ref comms::MessageBase::doFieldsVersionUpdate()
 /// member function explicitly before attempting actual read operations. 
 /// @b NOTE, that the @ref comms::MessageBase::doFieldsVersionUpdate() function
-/// exists only if @ref comms::option::VersionInExtraTransportFields has been
+/// exists only if @ref comms::option::def::VersionInExtraTransportFields has been
 /// provided to message interface.
 /// @code
 /// template <typename TBase>
@@ -1069,7 +1077,7 @@
 /// <b>Recommended Practice</b>
 /// 
 /// It is recommended to have a separate class / struct called @b DefaultOptions
-/// wich defines relevant inner types to be @ref comms::option::EmptyOption (option that
+/// wich defines relevant inner types to be @ref comms::option::app::EmptyOption (option that
 /// does nothing). For example, let's assume that third field in @b Message1
 /// message is a string. Then the @b DefaultOptions struct may be defined as
 /// @code
@@ -1079,7 +1087,7 @@
 ///     {
 ///         struct Message1Fields
 ///         {
-///             using field3 = comms::option::EmptyOption; // no extra functionality by default
+///             using field3 = comms::option::app::EmptyOption; // no extra functionality by default
 ///         };
 ///     };
 /// };
@@ -1126,9 +1134,9 @@
 /// class Message1 : public 
 ///     comms::MessageBase<
 ///         TBase, 
-///         comms::option::StaticNumIdImpl<MsgId_Message1>,
-///         comms::option::FieldsImpl<Message1Fields<TOpt>::All>,
-///         comms::option::MsgType<Message1<TBase, TOpt> > 
+///         comms::option::def::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::def::FieldsImpl<Message1Fields<TOpt>::All>,
+///         comms::option::def::MsgType<Message1<TBase, TOpt> > 
 ///     >
 /// {
 ///     ...
@@ -1160,8 +1168,8 @@
 ///         MyFieldBase,
 ///         std::uint16_t,
 ///         TExtraOpts..., // extra options
-///         comms::option::DefaultNumValue<10>, // default value
-///         comms::option::ValidNumValueRange<10, 20> // default range of valid values
+///         comms::option::def::DefaultNumValue<10>, // default value
+///         comms::option::def::ValidNumValueRange<10, 20> // default range of valid values
 ///     >;
 /// @endcode
 /// This is because earlier used options take priority over ones used later.
@@ -1178,10 +1186,10 @@
 /// of ROM space. The @b COMMS library provides options that may suppress automatic
 /// generation of some virtual functions by the @b comms::MessageBase. The available
 /// options are:
-/// @li @ref comms::option::NoReadImpl
-/// @li @ref comms::option::NoWriteImpl
-/// @li @ref comms::option::NoValidImpl
-/// @li @ref comms::option::NoLengthImpl
+/// @li @ref comms::option::app::NoReadImpl
+/// @li @ref comms::option::app::NoWriteImpl
+/// @li @ref comms::option::app::NoValidImpl
+/// @li @ref comms::option::app::NoLengthImpl
 ///
 /// These options should not be used in the definition of protocol messages, but
 /// it would be wise to allow the client application use them when necessary. It
@@ -1191,8 +1199,8 @@
 /// {
 ///     struct message
 ///     {
-///         using Message1 = comms::option::EmptyOption;
-///         using Message2 = comms::option::EmptyOption;
+///         using Message1 = comms::option::app::EmptyOption;
+///         using Message2 = comms::option::app::EmptyOption;
 ///         ...
 ///     };
 /// };
@@ -1209,9 +1217,9 @@
 /// class Message1 : public 
 ///     comms::MessageBase<
 ///         TBase, 
-///         comms::option::StaticNumIdImpl<MsgId_Message1>,
-///         comms::option::FieldsImpl<Message1Fields<TOpt>::All>,
-///         comms::option::MsgType<Message1<TBase, TOpt> >,
+///         comms::option::def::StaticNumIdImpl<MsgId_Message1>,
+///         comms::option::def::FieldsImpl<Message1Fields<TOpt>::All>,
+///         comms::option::def::MsgType<Message1<TBase, TOpt> >,
 ///         typename TOpt::message::Message1 // Extra options 
 ///     >
 /// {

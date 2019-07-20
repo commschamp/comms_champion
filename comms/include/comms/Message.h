@@ -25,13 +25,14 @@
 #include <memory>
 #include <type_traits>
 
-#include "ErrorStatus.h"
-#include "Assert.h"
-#include "Field.h"
+#include "comms/ErrorStatus.h"
+#include "comms/Assert.h"
+#include "comms/Field.h"
 
-#include "details/MessageInterfaceBuilder.h"
-#include "details/transport_fields_access.h"
-#include "details/detect.h"
+#include "comms/details/MessageInterfaceBuilder.h"
+#include "comms/details/transport_fields_access.h"
+#include "comms/details/detect.h"
+#include "comms/details/MessageIdTypeRetriever.h"
 
 namespace comms
 {
@@ -42,43 +43,43 @@ namespace comms
 ///     options to define functionality/behaviour of the message.
 ///     The options may be comma separated as well as bundled
 ///     into std::tuple. Supported options are:
-///     @li @ref comms::option::BigEndian or @ref comms::option::LittleEndian - options
+///     @li @ref comms::option::def::BigEndian or @ref comms::option::def::LittleEndian - options
 ///         used to specify endianness of the serialisation. If this option is
 ///         @ref Field internal types get defined.
 ///         used, readData() functions as well as @ref Endian and
-///     @li @ref comms::option::MsgIdType - an option used to specify type of the ID
+///     @li @ref comms::option::def::MsgIdType - an option used to specify type of the ID
 ///         value used to identify the message. If this option is used,
 ///         the @ref MsgIdType and
 ///         @ref MsgIdParamType types get defined.
-///     @li @ref comms::option::IdInfoInterface - an option used to provide polymorphic
+///     @li @ref comms::option::def::ExtraTransportFields - Provide extra fields that
+///         are read / written by transport layers, but may influence the way
+///         the message being serialized / deserialized and/or handled.
+///     @li @ref comms::option::def::VersionInExtraTransportFields - Provide index of
+///         the version field in extra transport fields.
+///     @li @ref comms::option::app::IdInfoInterface - an option used to provide polymorphic
 ///         id retrieval functionality. If this option is used in conjunction with
 ///         comms::option::MsgIdType, the
 ///         getId() member function is defined.
-///     @li @ref comms::option::ReadIterator - an option used to specify type of iterator
+///     @li @ref comms::option::app::ReadIterator - an option used to specify type of iterator
 ///         used for reading. If this option is not used, then @ref read()
 ///         member function doesn't exist.
-///     @li @ref comms::option::WriteIterator - an option used to specify type of iterator
+///     @li @ref comms::option::app::WriteIterator - an option used to specify type of iterator
 ///         used for writing. If this option is not used, then @ref write()
 ///         member function doesn't exist.
-///     @li @ref comms::option::ValidCheckInterface - an option used to add @ref valid()
+///     @li @ref comms::option::app::ValidCheckInterface - an option used to add @ref valid()
 ///         member function to the default interface.
-///     @li @ref comms::option::LengthInfoInterface - an option used to add @ref length()
+///     @li @ref comms::option::app::LengthInfoInterface - an option used to add @ref length()
 ///         member function to the default interface.
-///     @li @ref comms::option::RefreshInterface - an option used to add @ref refresh()
+///     @li @ref comms::option::app::RefreshInterface - an option used to add @ref refresh()
 ///         member function to the default interface.
-///     @li @ref comms::option::NameInterface - an option used to add @ref name()
+///     @li @ref comms::option::app::NameInterface - an option used to add @ref name()
 ///         member function to the default interface.
-///     @li @ref comms::option::Handler - an option used to specify type of message handler
+///     @li @ref comms::option::app::Handler - an option used to specify type of message handler
 ///         object used to handle the message when it received. If this option
 ///         is not used, then dispatch() member function doesn't exist. See
 ///         dispatch() documentation for details.
-///     @li @ref comms::option::NoVirtualDestructor - Force the destructor to be
+///     @li @ref comms::option::app::NoVirtualDestructor - Force the destructor to be
 ///         non-virtual, even if there are virtual functions in use.
-///     @li @ref comms::option::ExtraTransportFields - Provide extra fields that
-///         are read / written by transport layers, but may influence the way
-///         the message being serialized / deserialized and/or handled.
-///     @li @ref comms::option::VersionInExtraTransportFields - Provide index of
-///         the version field in extra transport fields.
 ///     @headerfile comms/Message.h
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
@@ -93,7 +94,7 @@ public:
     /// @details Becomes @b virtual if the message interface is defined to expose
     ///     any polymorphic behavior, i.e. if there is at least one virtual function.
     ///     It is possible to explicitly suppress @b virtual declaration by
-    ///     using comms::option::NoVirtualDestructor option.
+    ///     using comms::option::app::NoVirtualDestructor option.
     ~Message() noexcept = default;
 
     /// @brief Compile type inquiry whether message interface class defines @ref MsgIdType
@@ -186,7 +187,7 @@ public:
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Type used for message ID.
-    /// @details The type exists only if comms::option::MsgIdType option
+    /// @details The type exists only if @ref comms::option::def::MsgIdType option
     ///     was provided to comms::Message to specify it.
     /// @see hasMsgIdType()
     using MsgIdType = typename BaseImpl::MsgIdType;
@@ -195,38 +196,38 @@ public:
     /// @details It is equal to @ref MsgIdType for numeric types and becomes
     ///     "const-reference-to" @ref MsgIdType for more complex types.
     ///      The type exists only if @ref MsgIdType exists, i.e.
-    ///      the comms::option::MsgIdType option was used.
+    ///      the @ref comms::option::def::MsgIdType option was used.
     using MsgIdParamType = typename BaseImpl::MsgIdParamType;
 
     /// @brief Serialisation endian type.
-    /// @details The type exists only if comms::option::BigEndian or
-    ///     comms::option::LittleEndian options were used to specify it.
+    /// @details The type exists only if @ref comms::option::def::BigEndian or
+    ///     @ref comms::option::def::LittleEndian options were used to specify it.
     /// @see @ref hasEndian()
     using Endian = typename BaseImpl::Endian;
 
     /// @brief Type of default base class for all the fields.
     /// @details Requires definition of the @ref Endian type, i.e. the type
-    ///     exist only if comms::option::BigEndian or
-    ///     comms::option::LittleEndian options were used.
+    ///     exist only if @ref comms::option::def::BigEndian or
+    ///     @ref comms::option::def::LittleEndian options were used.
     using Field = BaseImpl::Field;
 
     /// @brief Retrieve ID of the message.
     /// @details Invokes pure virtual @ref getIdImpl(). This function exists
-    ///     only if comms::option::MsgIdType option was used to specify type
-    ///     of the ID value and comms::option::IdInfoInterface option are used.
+    ///     only if @ref comms::option::def::MsgIdType option was used to specify type
+    ///     of the ID value and @ref comms::option::app::IdInfoInterface option are used.
     /// @return ID of the message.
     /// @see @ref hasGetId();
     MsgIdParamType getId() const;
 
     /// @brief Type of the iterator used for reading message contents from
     ///     sequence of bytes stored somewhere.
-    /// @details The type exists only if comms::option::ReadIterator option
+    /// @details The type exists only if @ref comms::option::app::ReadIterator option
     ///     was provided to comms::Message to specify one.
     /// @see @ref hasRead()
     using ReadIterator = TypeProvidedWithOption;
 
     /// @brief Read message contents using provided iterator.
-    /// @details The function exists only if comms::option::ReadIterator option
+    /// @details The function exists only if @ref comms::option::app::ReadIterator option
     ///     was provided to comms::Message to specify type of the @ref ReadIterator.
     ///     The contents of the message are updated with bytes being read.
     ///     The buffer is external and maintained by the caller.
@@ -240,13 +241,13 @@ public:
 
     /// @brief Type of the iterator used for writing message contents into
     ///     sequence of bytes stored somewhere.
-    /// @details The type exists only if comms::option::WriteIterator option
+    /// @details The type exists only if @ref comms::option::app::WriteIterator option
     ///     was provided to comms::Message to specify one.
     /// @see @ref hasWrite()
     using WriteIterator = TypeProvidedWithOption;
 
     /// @brief Write message contents using provided iterator.
-    /// @details The function exists only if comms::option::WriteIterator option
+    /// @details The function exists only if @ref comms::option::app::WriteIterator option
     ///     was provided to comms::Message to specify type of the @ref WriteIterator.
     ///     The contents of the message are serialised into buffer. The buffer
     ///     is external and is maintained by the caller.
@@ -259,14 +260,14 @@ public:
     ErrorStatus write(WriteIterator& iter, std::size_t size) const;
 
     /// @brief Check validity of message contents.
-    /// @details The function exists only if comms::option::ValidCheckInterface option
+    /// @details The function exists only if @ref comms::option::app::ValidCheckInterface option
     ///     was provided to comms::Message. The function invokes virtual validImpl() function.
     /// @return true for valid contents, false otherwise.
     /// @see @ref hasValid()
     bool valid() const;
 
     /// @brief Get number of bytes required to serialise this message.
-    /// @details The function exists only if comms::option::LengthInfoInterface option
+    /// @details The function exists only if @ref comms::option::app::LengthInfoInterface option
     ///     was provided to comms::Message. The function invokes virtual lengthImpl() function.
     /// @return Number of bytes required to serialise this message.
     /// @see @ref hasLength()
@@ -283,7 +284,7 @@ public:
     ///     Having refresh() member function allows the developer to bring
     ///     the message into a consistent state prior to sending it over
     ///     I/O link . @n
-    ///     The function exists only if comms::option::RefreshInterface option
+    ///     The function exists only if @ref comms::option::app::RefreshInterface option
     ///     was provided to comms::Message. The function invokes virtual
     ///     refreshImpl() function.
     /// @return true in case the contents of the message were modified, false if
@@ -291,14 +292,14 @@ public:
     bool refresh();
 
     /// @brief Get name of the message.
-    /// @details The function exists only if @ref comms::option::NameInterface option
+    /// @details The function exists only if @ref comms::option::app::NameInterface option
     ///     was provided to comms::Message. The function invokes virtual
     ///     @ref nameImpl() function.
     /// @see @ref hasName()
     const char* name() const;
 
     /// @brief Type of the message handler object.
-    /// @details The type exists only if comms::option::Handler option
+    /// @details The type exists only if @ref comms::option::app::Handler option
     ///     was provided to comms::Message to specify one.
     using Handler = TypeProvidedWithOption;
 
@@ -307,7 +308,7 @@ public:
     using DispatchRetType = typename Handler::RetType;
 
     /// @brief Dispatch message to the handler for processing.
-    /// @details The function exists only if comms::option::Handler option
+    /// @details The function exists only if @ref comms::option::app::Handler option
     ///     was provided to comms::Message to specify type of the handler.
     ///     The function invokes virtual dispatchImpl() function.
     /// @param handler Handler object to dispatch message to.
@@ -315,13 +316,13 @@ public:
 
     /// @brief @b std::tuple of extra fields from transport layers that
     ///     may affect the way the message fields get serialized / deserialized.
-    /// @details The type exists only if @ref comms::option::ExtraTransportFields
+    /// @details The type exists only if @ref comms::option::def::ExtraTransportFields
     ///     option has been provided to @ref comms::Message class to specify them.
     /// @see @ref hasTransportFields()
     using TransportFields = FieldsProvidedWithOption;
 
     /// @brief Get access to extra transport fields.
-    /// @details The function exists only if @ref comms::option::ExtraTransportFields
+    /// @details The function exists only if @ref comms::option::def::ExtraTransportFields
     ///     option has been provided to @ref comms::Message class to specify them.
     ////    Some protocols may use additional values in transport information, such
     ///     as message version for example. Such values may influence the way
@@ -335,23 +336,23 @@ public:
     TransportFields& transportFields();
 
     /// @brief Const version of @ref transportFields
-    /// @details The function exists only if @ref comms::option::ExtraTransportFields
+    /// @details The function exists only if @ref comms::option::def::ExtraTransportFields
     ///     option has been provided to @ref comms::Message class to specify them.
     /// @see @ref hasTransportFields()
     const TransportFields& transportFields() const;
 
     /// @brief Type used for version info
-    /// @details The type exists only if @ref comms::option::VersionInExtraTransportFields
+    /// @details The type exists only if @ref comms::option::def::VersionInExtraTransportFields
     ///     option has been provided.
     using VersionType = typename BaseImpl::VersionType;
 
     /// @brief Access to version information
-    /// @details The function exists only if @ref comms::option::VersionInExtraTransportFields
+    /// @details The function exists only if @ref comms::option::def::VersionInExtraTransportFields
     ///     option has been provided.
     VersionType& version();
 
     /// @brief Const access to version information
-    /// @details The function exists only if @ref comms::option::VersionInExtraTransportFields
+    /// @details The function exists only if @ref comms::option::def::VersionInExtraTransportFields
     ///     option has been provided.
     const VersionType& version() const;
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
@@ -362,15 +363,15 @@ protected:
     /// @brief Pure virtual function used to retrieve ID of the message.
     /// @details Called by getId(), must be implemented in the derived class.
     ///     This function exists
-    ///     only if comms::option::MsgIdType option was used to specify type
-    ///     of the ID value as well as comms::option::IdInfoInterface.
+    ///     only if @ref comms::option::def::MsgIdType option was used to specify type
+    ///     of the ID value as well as @ref comms::option::app::IdInfoInterface.
     /// @return ID of the message.
     /// @see @ref hasGetId();
     virtual MsgIdParamType getIdImpl() const = 0;
 
     /// @brief Virtual function used to implement read operation.
     /// @details Called by read(), expected be implemented in the derived class.
-    ///     The function exists only if comms::option::ReadIterator option
+    ///     The function exists only if @ref comms::option::app::ReadIterator option
     ///     was provided to comms::Message to specify type of the @ref ReadIterator.
     /// @param[in, out] iter Iterator used for reading the data.
     /// @param[in] size Maximum number of bytes that can be read.
@@ -381,7 +382,7 @@ protected:
 
     /// @brief Virtual function used to implement write operation.
     /// @details Called by write(), expected be implemented in the derived class.
-    ///     The function exists only if comms::option::WriteIterator option
+    ///     The function exists only if @ref comms::option::app::WriteIterator option
     ///     was provided to comms::Message to specify type of the @ref WriteIterator.
     /// @param[in, out] iter Iterator used for writing the data.
     /// @param[in] size Maximum number of bytes that can be written.
@@ -392,7 +393,7 @@ protected:
 
     /// @brief Pure virtual function used to implement contents validity check.
     /// @details Called by valid(), must be implemented in the derived class.
-    ///     The function exists only if comms::option::ValidCheckInterface option
+    ///     The function exists only if @ref comms::option::app::ValidCheckInterface option
     ///     was provided to comms::Message.
     /// @return true for valid contents, false otherwise.
     /// @see @ref hasValid()
@@ -401,7 +402,7 @@ protected:
     /// @brief Pure virtual function used to retrieve number of bytes required
     ///     to serialise this message.
     /// @details Called by length(), must be implemented in the derived class.
-    ///     The function exists only if comms::option::LengthInfoInterface option
+    ///     The function exists only if @ref comms::option::app::LengthInfoInterface option
     ///     was provided to comms::Message.
     /// @return Number of bytes required to serialise this message.
     /// @see @ref hasLength()
@@ -412,7 +413,7 @@ protected:
     /// @details Called by refresh(), can be overridden in the derived class.
     ///     If not overridden, does nothing and returns false indicating that
     ///     contents of the message haven't been changed.
-    ///     The function exists only if comms::option::RefreshInterface option
+    ///     The function exists only if @ref comms::option::app::RefreshInterface option
     ///     was provided to comms::Message.
     /// @return true in case the contents of the message were modified, false if
     ///     all the fields of the message remained unchanged.
@@ -421,14 +422,14 @@ protected:
     /// @brief Pure virtual function used to dispatch message to the handler
     ///     object for processing.
     /// @details Called by dispatch(), must be implemented in the derived class.
-    ///     The function exists only if comms::option::Handler option was
+    ///     The function exists only if @ref comms::option::app::Handler option was
     ///     provided to comms::Message to specify type of the handler.
     /// @param handler Handler object to dispatch message to.
     virtual DispatchRetType dispatchImpl(Handler& handler) = 0;
 
     /// @brief Pure virtual function used to retrieve actual message name.
     /// @details Called by @ref name(), must be implemented in the derived class.
-    ///     The function exists only if comms::option::NameInterface option was
+    ///     The function exists only if @ref comms::option::app::NameInterface option was
     ///     provided to @ref comms::Message.
     virtual const char* nameImpl() const = 0;
 
@@ -436,7 +437,7 @@ protected:
     /// @details Use this function to write data to the output area using
     ///     provided iterator. This function requires knowledge about serialisation
     ///     endian. It exists only if endian type was
-    ///     specified using comms::option::BigEndian or comms::option::LittleEndian
+    ///     specified using @ref comms::option::def::BigEndian or @ref comms::option::def::LittleEndian
     ///     options to the class.
     /// @tparam T Type of the value to write. Must be integral.
     /// @tparam Type of output iterator
@@ -453,7 +454,7 @@ protected:
     /// @details Use this function to write partial data to the output area using
     ///     provided iterator. This function requires knowledge about serialisation
     ///     endian. It exists only if endian type was
-    ///     specified using comms::option::BigEndian or comms::option::LittleEndian
+    ///     specified using @ref comms::option::def::BigEndian or @ref comms::option::def::LittleEndian
     ///     options to the class.
     /// @tparam TSize Length of the value in bytes known in compile time.
     /// @tparam T Type of the value to write. Must be integral.
@@ -472,7 +473,7 @@ protected:
     /// @details Use this function to read data from the input area using
     ///     provided iterator. This function requires knowledge about serialisation
     ///     endian. It exists only if endian type was
-    ///     specified using comms::option::BigEndian or comms::option::LittleEndian
+    ///     specified using @ref comms::option::def::BigEndian or @ref comms::option::def::LittleEndian
     ///     options to the class.
     /// @tparam T Return type
     /// @tparam TIter Type of input iterator
@@ -490,7 +491,7 @@ protected:
     /// @details Use this function to read partial data from the input area using
     ///     provided iterator. This function requires knowledge about serialisation
     ///     endian. It exists only if endian type was
-    ///     specified using comms::option::BigEndian or comms::option::LittleEndian
+    ///     specified using @ref comms::option::def::BigEndian or @ref comms::option::def::LittleEndian
     ///     options to the class.
     /// @tparam T Return type
     /// @tparam TSize number of bytes to read
@@ -526,28 +527,6 @@ const Message<TOptions...>& toMessage(const Message<TOptions...>& msg)
     return msg;
 }
 
-/// @brief Create and initialise iterator for polymorphic read
-/// @tparam TMessage Type of message interface class.
-/// @param[in] val Value to initialise the iterator with.
-/// @return Initialised iterator for polymorphic read.
-template <typename TMessage, typename TVal>
-typename TMessage::ReadIterator readIteratorFor(
-    const TVal& val)
-{
-    return typename TMessage::ReadIterator(val);
-}
-
-/// @brief Create and initialise iterator for polymorphic write
-/// @tparam TMessage Type of message interface class.
-/// @param[in] val Value to initialise the iterator with.
-/// @return Initialised iterator for polymorphic write.
-template <typename TMessage, typename TVal>
-typename TMessage::WriteIterator writeIteratorFor(
-    const TVal& val)
-{
-    return typename TMessage::WriteIterator(val);
-}
-
 /// @brief Compile time check of of whether the type
 ///     is a message.
 /// @details Checks existence of @b InterfaceOptions inner
@@ -557,6 +536,19 @@ constexpr bool isMessage()
 {
     return details::hasInterfaceOptions<T>();
 }
+
+/// @brief Get type of message ID used by interface class
+/// @details In case common interface class defines its message
+///     ID type (using @ref comms::option::MsgIdType option) the
+///     latter is returned, otherwise the default type (@b TDefaultType)
+///     is reported.
+/// @tparam TMsg Message interface class (extended or typedef-ed @ref comms::Message)
+/// @tparam TDefaultType Default type to return in case message
+///     interface class doesn't define its ID type
+template <typename TMsg, typename TDefaultType = std::intmax_t>
+using MessageIdType =
+    typename details::MessageIdTypeRetriever<TMsg::hasMsgIdType()>::
+        template Type<typename TMsg::InterfaceOptions, TDefaultType>;
 
 }  // namespace comms
 
@@ -580,7 +572,7 @@ constexpr bool isMessage()
 ///     class MyInterface : public
 ///         comms::Message<
 ///             ...
-///             comms::option::ExtraTransportFields<MyExtraTransportFields> >
+///             comms::option::def::ExtraTransportFields<MyExtraTransportFields> >
 ///     {
 ///     public:
 ///         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(name1, name2, name3);

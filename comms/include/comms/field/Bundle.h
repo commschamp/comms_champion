@@ -44,35 +44,35 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field.@n
 ///     Supported options are:
-///     @li @ref comms::option::DefaultValueInitialiser - All wrapped fields may
+///     @li @ref comms::option::def::DefaultValueInitialiser - All wrapped fields may
 ///         specify their independent default value initialisers. It is
 ///         also possible to provide initialiser for the Bundle field which
 ///         will set appropriate values to the fields based on some
 ///         internal logic.
-///     @li @ref comms::option::ContentsValidator - All wrapped fields may specify
+///     @li @ref comms::option::def::ContentsValidator - All wrapped fields may specify
 ///         their independent validators. The bundle field considered to
 ///         be valid if all the wrapped fields are valid. This option though,
 ///         provides an ability to add extra validation logic that can
 ///         observe value of more than one wrapped fields. For example,
 ///         protocol specifies that if one specific field has value X, than
 ///         other field is NOT allowed to have value Y.
-///     @li @ref comms::option::ContentsRefresher - The default refreshing
+///     @li @ref comms::option::def::ContentsRefresher - The default refreshing
 ///         behaviour is to call the @b refresh() member function of every
 ///         member field. This option provides an ability to set a custom
 ///         "refreshing" logic.
-///     @li @ref comms::option::CustomValueReader - It may be required to implement
+///     @li @ref comms::option::def::CustomValueReader - It may be required to implement
 ///         custom reading functionality instead of default behaviour of
 ///         invoking read() member function of every member field. It is possible
-///         to provide cusom reader functionality using comms::option::CustomValueReader
+///         to provide cusom reader functionality using @ref comms::option::def::CustomValueReader
 ///         option.
-///     @li @ref comms::option::RemLengthMemberField - Specify index of member field 
+///     @li @ref comms::option::def::RemLengthMemberField - Specify index of member field
 ///         that contains remaining length information for all the subsequent fields.
-///     @li @ref comms::option::HasCustomRead - Mark field to have custom read
+///     @li @ref comms::option::def::HasCustomRead - Mark field to have custom read
 ///         functionality
-///     @li @ref comms::option::HasCustomRefresh - Mark field to have custom
+///     @li @ref comms::option::def::HasCustomRefresh - Mark field to have custom
 ///         refresh functionality.
-///     @li @ref comms::option::EmptySerialization - Force empty serialization.
-///     @li @ref comms::option::VersionStorage - Add version storage.
+///     @li @ref comms::option::def::EmptySerialization - Force empty serialization.
+///     @li @ref comms::option::def::VersionStorage - Add version storage.
 /// @extends comms::Field
 /// @headerfile comms/field/Bundle.h
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
@@ -583,7 +583,7 @@ public:
     }
 
     /// @brief Get version of the field.
-    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    /// @details Exists only if @ref comms::option::def::VersionStorage option has been provided.
     VersionType getVersion() const
     {
         return BaseImpl::getVersion();
@@ -602,51 +602,51 @@ protected:
 
 private:
     static_assert(!ParsedOptions::HasSerOffset,
-            "comms::option::NumValueSerOffset option is not applicable to Bundle field");
+        "comms::option::def::NumValueSerOffset option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasFixedLengthLimit,
-            "comms::option::FixedLength option is not applicable to Bundle field");
+        "comms::option::def::FixedLength option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasFixedBitLengthLimit,
-            "comms::option::FixedBitLength option is not applicable to Bundle field");
+        "comms::option::def::FixedBitLength option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasVarLengthLimits,
-            "comms::option::VarLength option is not applicable to Bundle field");
+        "comms::option::def::VarLength option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceElemLengthForcing,
-            "comms::option::SequenceElemLengthForcingEnabled option is not applicable to Bundle field");
+        "comms::option::def::SequenceElemLengthForcingEnabled option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceSizeForcing,
-            "comms::option::SequenceSizeForcingEnabled option is not applicable to Bundle field");
+        "comms::option::def::SequenceSizeForcingEnabled option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceLengthForcing,
-            "comms::option::SequenceLengthForcingEnabled option is not applicable to Bundle field");
+        "comms::option::def::SequenceLengthForcingEnabled option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceFixedSize,
-            "comms::option::SequenceFixedSize option is not applicable to Bundle field");
+        "comms::option::def::SequenceFixedSize option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,
-            "comms::option::SequenceFixedSizeUseFixedSizeStorage option is not applicable to Bundle field");
+        "comms::option::app::SequenceFixedSizeUseFixedSizeStorage option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceSizeFieldPrefix,
-            "comms::option::SequenceSizeFieldPrefix option is not applicable to Bundle field");
+        "comms::option::def::SequenceSizeFieldPrefix option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceSerLengthFieldPrefix,
-            "comms::option::SequenceSerLengthFieldPrefix option is not applicable to Bundle field");
+        "comms::option::def::SequenceSerLengthFieldPrefix option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to Bundle field");
+        "comms::option::def::SequenceElemSerLengthFieldPrefix option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to Bundle field");
+        "comms::option::def::SequenceElemSerLengthFixedFieldPrefix option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
-            "comms::option::SequenceTrailingFieldSuffix option is not applicable to Bundle field");
+        "comms::option::def::SequenceTrailingFieldSuffix option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,
-            "comms::option::SequenceTerminationFieldSuffix option is not applicable to Bundle field");
+        "comms::option::def::SequenceTerminationFieldSuffix option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasFixedSizeStorage,
-            "comms::option::FixedSizeStorage option is not applicable to Bundle field");
+        "comms::option::app::FixedSizeStorage option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasCustomStorageType,
-            "comms::option::CustomStorageType option is not applicable to Bundle field");
+        "comms::option::app::CustomStorageType option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasScalingRatio,
-            "comms::option::ScalingRatio option is not applicable to Bundle field");
+        "comms::option::def::ScalingRatio option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasUnits,
-            "comms::option::Units option is not applicable to Bundle field");
+        "comms::option::def::Units option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasOrigDataView,
-            "comms::option::OrigDataView option is not applicable to Bundle field");
+        "comms::option::app::OrigDataView option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasMultiRangeValidation,
-            "comms::option::ValidNumValueRange (or similar) option is not applicable to Bundle field");
+        "comms::option::def::ValidNumValueRange (or similar) option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasVersionsRange,
-            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to Bundle field");
+        "comms::option::def::ExistsBetweenVersions (or similar) option is not applicable to Bundle field");
     static_assert(!ParsedOptions::HasInvalidByDefault,
-            "comms::option::InvalidByDefault option is not applicable to Bundle field");
+        "comms::option::def::InvalidByDefault option is not applicable to Bundle field");
 };
 
 /// @brief Equality comparison operator.

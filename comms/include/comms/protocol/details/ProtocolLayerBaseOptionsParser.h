@@ -42,7 +42,7 @@ public:
 
 template <typename... TOptions>
 class ProtocolLayerBaseOptionsParser<
-    comms::option::ProtocolLayerForceReadUntilDataSplit, TOptions...> :
+    comms::option::def::ProtocolLayerForceReadUntilDataSplit, TOptions...> :
         public ProtocolLayerBaseOptionsParser<TOptions...>
 {
 public:
@@ -51,7 +51,7 @@ public:
 
 template <typename... TOptions>
 class ProtocolLayerBaseOptionsParser<
-    comms::option::ProtocolLayerDisallowReadUntilDataSplit, TOptions...> :
+    comms::option::def::ProtocolLayerDisallowReadUntilDataSplit, TOptions...> :
         public ProtocolLayerBaseOptionsParser<TOptions...>
 {
 public:
@@ -60,7 +60,7 @@ public:
 
 template <typename... TOptions>
 class ProtocolLayerBaseOptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public ProtocolLayerBaseOptionsParser<TOptions...>
 {
 };

@@ -98,7 +98,7 @@ public:
         using IterType = typename std::decay<decltype(iter)>::type;
         using IterTag = typename std::iterator_traits<IterType>::iterator_category;
         static_assert(std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
-            "Only random access iterator for reading is supported with comms::option::SequenceElemLengthForcingEnabled option");
+            "Only random access iterator for reading is supported with comms::option::def::SequenceElemLengthForcingEnabled option");
 
         if (forced_ == Cleared) {
             return BaseImpl::readElement(elem, iter, len);
@@ -121,7 +121,7 @@ public:
         using IterType = typename std::decay<decltype(iter)>::type;
         using IterTag = typename std::iterator_traits<IterType>::iterator_category;
         static_assert(std::is_base_of<std::random_access_iterator_tag, IterTag>::value,
-            "Only random access iterator for reading is supported with comms::option::SequenceElemLengthForcingEnabled option");
+            "Only random access iterator for reading is supported with comms::option::def::SequenceElemLengthForcingEnabled option");
 
         if (forced_ == Cleared) {
             return BaseImpl::readElementNoStatus(elem, iter);

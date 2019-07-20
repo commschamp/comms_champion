@@ -35,14 +35,14 @@ namespace basic
 template <typename TField>
 class Optional : public
         comms::Field<
-            comms::option::Endian<typename TField::Endian>,
-            comms::option::VersionType<typename TField::VersionType>
+            comms::option::def::Endian<typename TField::Endian>,
+            comms::option::def::VersionType<typename TField::VersionType>
         >
 {
     using BaseImpl =
         comms::Field<
-            comms::option::Endian<typename TField::Endian>,
-            comms::option::VersionType<typename TField::VersionType>
+            comms::option::def::Endian<typename TField::Endian>,
+            comms::option::def::VersionType<typename TField::VersionType>
         >;
 
 public:

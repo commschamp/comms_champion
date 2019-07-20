@@ -40,28 +40,28 @@ namespace field
 /// @tparam TOptions Zero or more options that modify/refine default behaviour
 ///     of the field. If no option is provided The field's value is serialised as is.
 ///     @code
-///         using MyFieldBase = comms::Field<comms::option::BigEndian>;
+///         using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
 ///         using MyField =comms::field::FloatValue<MyFieldBase, float>;
 ///     @endcode
 ///     In the example above it will
 ///     consume 4 bytes (because sizeof(float) == 4) and will
 ///     be serialised using big endian notation.@n
 ///     Supported options are:
-///     @li @ref comms::option::DefaultValueInitialiser or @ref comms::option::DefaultNumValue.
-///     @li @ref comms::option::ContentsValidator
-///     @li @ref comms::option::ValidNumValueRange, @ref comms::option::ValidNumValue,
-///         @ref comms::option::ValidBigUnsignedNumValueRange, @ref comms::option::ValidBigUnsignedNumValue
-///     @li @ref comms::option::ValidRangesClear
-///     @li @ref comms::option::ContentsRefresher
-///     @li @ref comms::option::HasCustomRead
-///     @li @ref comms::option::HasCustomRefresh
-///     @li @ref comms::option::FailOnInvalid
-///     @li @ref comms::option::IgnoreInvalid
-///     @li @b comms::option::Units* - all variants of value units, see
+///     @li @ref comms::option::def::DefaultValueInitialiser or @ref comms::option::def::DefaultNumValue.
+///     @li @ref comms::option::def::ContentsValidator
+///     @li @ref comms::option::def::ValidNumValueRange, @ref comms::option::def::ValidNumValue,
+///         @ref comms::option::def::ValidBigUnsignedNumValueRange, @ref comms::option::def::ValidBigUnsignedNumValue
+///     @li @ref comms::option::def::ValidRangesClear
+///     @li @ref comms::option::def::ContentsRefresher
+///     @li @ref comms::option::def::HasCustomRead
+///     @li @ref comms::option::def::HasCustomRefresh
+///     @li @ref comms::option::def::FailOnInvalid
+///     @li @ref comms::option::def::IgnoreInvalid
+///     @li @b comms::option::def::Units* - all variants of value units, see
 ///         @ref sec_field_tutorial_int_value_units for details.
-///     @li @ref comms::option::EmptySerialization
-///     @li @ref comms::option::InvalidByDefault
-///     @li @ref comms::option::VersionStorage
+///     @li @ref comms::option::def::EmptySerialization
+///     @li @ref comms::option::def::InvalidByDefault
+///     @li @ref comms::option::def::VersionStorage
 /// @extends comms::Field
 /// @headerfile comms/field/FloatValue.h
 template <typename TFieldBase, typename T, typename... TOptions>
@@ -199,7 +199,7 @@ public:
     }
 
     /// @brief Get version of the field.
-    /// @details Exists only if @ref comms::option::VersionStorage option has been provided.
+    /// @details Exists only if @ref comms::option::def::VersionStorage option has been provided.
     VersionType getVersion() const
     {
         return BaseImpl::getVersion();
@@ -218,37 +218,37 @@ protected:
 
 private:
     static_assert(!ParsedOptions::HasVarLengthLimits,
-            "comms::option::VarLength option is not applicable to FloatValue field");
+        "comms::option::def::VarLength option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceElemLengthForcing,
-            "comms::option::SequenceElemLengthForcingEnabled option is not applicable to FloatValue field");
+        "comms::option::def::SequenceElemLengthForcingEnabled option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceSizeForcing,
-            "comms::option::SequenceSizeForcingEnabled option is not applicable to FloatValue field");
+        "comms::option::def::SequenceSizeForcingEnabled option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceLengthForcing,
-            "comms::option::SequenceLengthForcingEnabled option is not applicable to FloatValue field");
+        "comms::option::def::SequenceLengthForcingEnabled option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceFixedSize,
-            "comms::option::SequenceFixedSize option is not applicable to FloatValue field");
+        "comms::option::def::SequenceFixedSize option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceFixedSizeUseFixedSizeStorage,
-            "comms::option::SequenceFixedSizeUseFixedSizeStorage option is not applicable to FloatValue field");
+        "comms::option::app::SequenceFixedSizeUseFixedSizeStorage option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceSizeFieldPrefix,
-            "comms::option::SequenceSizeFieldPrefix option is not applicable to FloatValue field");
+        "comms::option::def::SequenceSizeFieldPrefix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceSerLengthFieldPrefix,
-            "comms::option::SequenceSerLengthFieldPrefix option is not applicable to FloatValue field");
+        "comms::option::def::SequenceSerLengthFieldPrefix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceElemSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFieldPrefix option is not applicable to FloatValue field");
+        "comms::option::def::SequenceElemSerLengthFieldPrefix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix,
-            "comms::option::SequenceElemSerLengthFixedFieldPrefix option is not applicable to FloatValue field");
+        "comms::option::def::SequenceElemSerLengthFixedFieldPrefix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceTrailingFieldSuffix,
-            "comms::option::SequenceTrailingFieldSuffix option is not applicable to FloatValue field");
+        "comms::option::def::SequenceTrailingFieldSuffix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasSequenceTerminationFieldSuffix,
-            "comms::option::SequenceTerminationFieldSuffix option is not applicable to FloatValue field");
+        "comms::option::def::SequenceTerminationFieldSuffix option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasFixedSizeStorage,
-            "comms::option::FixedSizeStorage option is not applicable to FloatValue field");
+        "comms::option::app::FixedSizeStorage option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasCustomStorageType,
-            "comms::option::CustomStorageType option is not applicable to FloatValue field");
+        "comms::option::app::CustomStorageType option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasOrigDataView,
-            "comms::option::OrigDataView option is not applicable to FloatValue field");
+        "comms::option::app::OrigDataView option is not applicable to FloatValue field");
     static_assert(!ParsedOptions::HasVersionsRange,
-            "comms::option::ExistsBetweenVersions (or similar) option is not applicable to FloatValue field");
+        "comms::option::def::ExistsBetweenVersions (or similar) option is not applicable to FloatValue field");
 };
 
 /// @brief Equality comparison operator.

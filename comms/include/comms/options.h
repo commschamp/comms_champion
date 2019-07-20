@@ -58,9 +58,115 @@ constexpr bool isRatio()
     return IsRatio<T>::Value;
 }
 
-} // namespace details
+template<typename T, T TVal>
+struct DefaultNumValueInitialiser
+{
+    template <typename TField>
+    void operator()(TField&& field)
+    {
+        using FieldType = typename std::decay<TField>::type;
+        using ValueType = typename FieldType::ValueType;
+        field.value() = static_cast<ValueType>(TVal);
+    }
+};
 
-// Message/Field common options
+template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
+struct NumValueRangeValidator
+{
+    static_assert(
+        TMinValue <= TMaxValue,
+        "Min value must be not greater than Max value");
+
+    template <typename TField>
+    constexpr bool operator()(const TField& field) const
+    {
+        using MinTag = typename std::conditional<
+            (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
+            CompareTag,
+            ReturnTrueTag
+        >::type;
+
+        using MaxTag = typename std::conditional<
+            (MaxValue < std::numeric_limits<decltype(MaxValue)>::max()),
+            CompareTag,
+            ReturnTrueTag
+        >::type;
+
+        return aboveMin(field.value(), MinTag()) && belowMax(field.value(), MaxTag());
+    }
+
+private:
+    struct ReturnTrueTag {};
+    struct CompareTag {};
+
+    template <typename TValue>
+    static constexpr bool aboveMin(const TValue& value, CompareTag)
+    {
+        using ValueType = typename std::decay<decltype(value)>::type;
+        return (static_cast<ValueType>(MinValue) <= static_cast<ValueType>(value));
+    }
+
+    template <typename TValue>
+    static constexpr bool aboveMin(const TValue&, ReturnTrueTag)
+    {
+        return true;
+    }
+
+    template <typename TValue>
+    static constexpr bool belowMax(const TValue& value, CompareTag)
+    {
+        using ValueType = typename std::decay<decltype(value)>::type;
+        return (value <= static_cast<ValueType>(MaxValue));
+    }
+
+    template <typename TValue>
+    static constexpr bool belowMax(const TValue&, ReturnTrueTag)
+    {
+        return true;
+    }
+
+
+    static const auto MinValue = TMinValue;
+    static const auto MaxValue = TMaxValue;
+};
+
+template<std::uintmax_t TMask, std::uintmax_t TValue>
+struct BitmaskReservedBitsValidator
+{
+    template <typename TField>
+    constexpr bool operator()(TField&& field) const
+    {
+        using FieldType = typename std::decay<TField>::type;
+        using ValueType = typename FieldType::ValueType;
+
+        return (field.value() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
+    }
+};
+
+template <comms::field::OptionalMode TVal>
+struct DefaultOptModeInitialiser
+{
+    template <typename TField>
+    void operator()(TField& field) const
+    {
+        field.setMode(TVal);
+    }
+};
+
+template<std::size_t TIdx>
+struct DefaultVariantIndexInitialiser
+{
+    template <typename TField>
+    void operator()(TField& field)
+    {
+        field.template initField<TIdx>();
+    }
+};
+
+}  // namespace details
+
+
+namespace def {
 
 /// @brief Options to specify endian.
 /// @tparam TEndian Endian type. Must be either comms::traits::endian::Big or
@@ -79,53 +185,11 @@ using BigEndian = Endian<comms::traits::endian::Big>;
 /// @headerfile comms/options.h
 using LittleEndian = Endian<comms::traits::endian::Little>;
 
-/// @brief No-op option, doesn't have any effect.
-/// @headerfile comms/options.h
-struct EmptyOption {};
-
 /// @brief Option used to specify type of the ID.
 /// @tparam T Type of the message ID.
 /// @headerfile comms/options.h
 template <typename T>
 struct MsgIdType {};
-
-/// @brief Option used to specify type of iterator used for reading.
-/// @tparam TIter Type of the iterator.
-/// @headerfile comms/options.h
-template <typename TIter>
-struct ReadIterator {};
-
-/// @brief Option used to specify type of iterator used for writing.
-/// @tparam TIter Type of the iterator.
-/// @headerfile comms/options.h
-template <typename TIter>
-struct WriteIterator {};
-
-/// @brief Option used to add @b getId() function into Message interface.
-/// @headerfile comms/options.h
-struct IdInfoInterface {};
-
-/// @brief Option used to add @b valid() function into Message interface.
-/// @headerfile comms/options.h
-struct ValidCheckInterface {};
-
-/// @brief Option used to add @b length() function into Message interface.
-/// @headerfile comms/options.h
-struct LengthInfoInterface {};
-
-/// @brief Option used to add @b refresh() function into Message interface.
-/// @headerfile comms/options.h
-struct RefreshInterface {};
-
-/// @brief Option used to add @b name() function into Message interface.
-/// @headerfile comms/options.h
-struct NameInterface {};
-
-/// @brief Option used to specify type of the message handler.
-/// @tparam T Type of the handler.
-/// @headerfile comms/options.h
-template <typename T>
-struct Handler {};
 
 /// @brief Option used to specify numeric ID of the message.
 /// @tparam TId Numeric ID value.
@@ -141,11 +205,6 @@ struct NoIdImpl {};
 /// @headerfile comms/options.h
 template <typename TMsg>
 struct MsgType {};
-
-/// @brief Option used to inhibit default implementation of @b dispatchImpl()
-///     in comms::MessageBase.
-/// @headerfile comms/options.h
-struct NoDispatchImpl {};
 
 /// @brief Option used to specify some extra fields from transport framing.
 /// @details Some fields from transport framing may influence the way on how
@@ -185,32 +244,7 @@ struct FieldsImpl<std::tuple<TFields...> >
 /// @headerfile comms/options.h
 using ZeroFieldsImpl = FieldsImpl<std::tuple<> >;
 
-/// @brief Option that inhibits implementation of comms::MessageBase::readImpl()
-///     regardless of other availability conditions.
-/// @headerfile comms/options.h
-struct NoReadImpl {};
-
-/// @brief Option that inhibits implementation of comms::MessageBase::writeImpl()
-///     regardless of other availability conditions.
-/// @headerfile comms/options.h
-struct NoWriteImpl {};
-
-/// @brief Option that inhibits implementation of comms::MessageBase::validImpl()
-///     regardless of other availability conditions.
-/// @headerfile comms/options.h
-struct NoValidImpl {};
-
-/// @brief Option that inhibits implementation of comms::MessageBase::lengthImpl()
-///     regardless of other availability conditions.
-/// @headerfile comms/options.h
-struct NoLengthImpl {};
-
-/// @brief Option that inhibits implementation of comms::MessageBase::refreshImpl()
-///     regardless of other availability conditions.
-/// @headerfile comms/options.h
-struct NoRefreshImpl {};
-
-/// @brief Option that notifies comms::MessageBase about existence of
+/// @brief Option that notifies @ref comms::MessageBase about existence of
 ///     @b doGetId() member function in derived class.
 /// @headerfile comms/options.h
 struct HasDoGetId {};
@@ -221,18 +255,6 @@ struct HasDoGetId {};
 ///     comms::MessageBase.
 /// @headerfile comms/options.h
 struct AssumeFieldsExistence {};
-
-/// @brief Option that forces "in place" allocation with placement "new" for
-///     initialisation, instead of usage of dynamic memory allocation.
-/// @headerfile comms/options.h
-struct InPlaceAllocation {};
-
-/// @brief Option used to allow @ref comms::GenericMessage generation inside
-///  @ref comms::MsgFactory and/or @ref comms::protocol::MsgIdLayer classes.
-/// @tparam TGenericMessage Type of message, expected to be a variant of
-///     @ref comms::GenericMessage.
-template <typename TGenericMessage>
-struct SupportGenericMessage {};
 
 /// @brief Option used to specify number of bytes that is used for field serialisation.
 /// @details Applicable only to numeric fields, such as comms::field::IntValue or
@@ -344,39 +366,6 @@ struct VarLength
 /// @headerfile comms/options.h
 template<std::intmax_t TOffset>
 struct NumValueSerOffset {};
-
-/// @brief Option that forces usage of embedded uninitialised data area instead
-///     of dynamic memory allocation.
-/// @details Applicable to fields that represent collection of raw data or other
-///     fields, such as comms::field::ArrayList or comms::field::String. By
-///     default, these fields will use
-///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> or
-///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
-///     for their internal data storage. If this option is used, it will force
-///     such fields to use @ref comms::util::StaticVector or @ref comms::util::StaticString
-///     with the capacity provided by this option.
-/// @tparam TSize Size of the storage area in number of elements, for strings it does @b NOT include
-///     the '\0' terminating character.
-/// @headerfile comms/options.h
-template <std::size_t TSize>
-struct FixedSizeStorage {};
-
-/// @brief Set custom storage type for fields like comms::field::String or
-///     comms::field::ArrayList.
-/// @details By default comms::field::String uses
-///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
-///     and comms::field::ArrayList uses
-///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> as
-///     their internal storage types. The @ref FixedSizeStorage option forces
-///     them to use comms::util::StaticString and comms::util::StaticVector
-///     instead. This option can be used to provide any other third party type.
-///     Such type must define the same public interface as @b std::string (when used
-///     with comms::field::String) or @b std::vector (when used with
-///     comms::field::ArrayList).
-/// @tparam TType Custom storage type
-/// @headerfile comms/options.h
-template <typename TType>
-struct CustomStorageType {};
 
 /// @brief Option to specify scaling ratio.
 /// @details Applicable only to comms::field::IntValue.
@@ -579,15 +568,6 @@ struct SequenceElemLengthForcingEnabled {};
 template <std::size_t TSize>
 struct SequenceFixedSize {};
 
-/// @brief Option that forces usage of fixed size storage for sequences with fixed
-///     size.
-/// @details Equivalent to @ref FixedSizeStorage option, but applicable only
-///     to sequence types @ref comms::field::ArrayList or @ref comms::field::String, that
-///     alrady use @ref SequenceFixedSize option. Usage of this option do not
-///     require knowledge of the storage area size.
-/// @headerfile comms/options.h
-struct SequenceFixedSizeUseFixedSizeStorage {};
-
 /// @brief Option that specifies default initialisation class.
 /// @details Use this option when default constructor of the field must assign
 ///     some special value. The initialiser class provided as template argument
@@ -782,11 +762,6 @@ struct FailOnInvalid {};
 ///     remains unchanged, although no error is reported.
 /// @headerfile comms/options.h
 struct IgnoreInvalid {};
-
-/// @brief Force the destructor of comms::Message class to be @b non-virtual,
-///     even if there are other virtual functions defined.
-/// @headerfile comms/options.h
-struct NoVirtualDestructor {};
 
 /// @brief Options to specify units of the field.
 /// @tparam TType Type of the unints, can be any type from comms::traits::units
@@ -989,116 +964,6 @@ using UnitsVolts =
 using UnitsKilovolts =
     Units<comms::traits::units::Voltage, comms::traits::units::KilovoltsRatio>;
 
-namespace details
-{
-
-template<typename T, T TVal>
-struct DefaultNumValueInitialiser
-{
-    template <typename TField>
-    void operator()(TField&& field)
-    {
-        using FieldType = typename std::decay<TField>::type;
-        using ValueType = typename FieldType::ValueType;
-        field.value() = static_cast<ValueType>(TVal);
-    }
-};
-
-template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
-struct NumValueRangeValidator
-{
-    static_assert(
-        TMinValue <= TMaxValue,
-        "Min value must be not greater than Max value");
-
-    template <typename TField>
-    constexpr bool operator()(const TField& field) const
-    {
-        using MinTag = typename std::conditional<
-            (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
-            CompareTag,
-            ReturnTrueTag
-        >::type;
-
-        using MaxTag = typename std::conditional<
-            (MaxValue < std::numeric_limits<decltype(MaxValue)>::max()),
-            CompareTag,
-            ReturnTrueTag
-        >::type;
-
-        return aboveMin(field.value(), MinTag()) && belowMax(field.value(), MaxTag());
-    }
-
-private:
-    struct ReturnTrueTag {};
-    struct CompareTag {};
-
-    template <typename TValue>
-    static constexpr bool aboveMin(const TValue& value, CompareTag)
-    {
-        using ValueType = typename std::decay<decltype(value)>::type;
-        return (static_cast<ValueType>(MinValue) <= static_cast<ValueType>(value));
-    }
-
-    template <typename TValue>
-    static constexpr bool aboveMin(const TValue&, ReturnTrueTag)
-    {
-        return true;
-    }
-
-    template <typename TValue>
-    static constexpr bool belowMax(const TValue& value, CompareTag)
-    {
-        using ValueType = typename std::decay<decltype(value)>::type;
-        return (value <= static_cast<ValueType>(MaxValue));
-    }
-
-    template <typename TValue>
-    static constexpr bool belowMax(const TValue&, ReturnTrueTag)
-    {
-        return true;
-    }
-
-
-    static const auto MinValue = TMinValue;
-    static const auto MaxValue = TMaxValue;
-};
-
-template<std::uintmax_t TMask, std::uintmax_t TValue>
-struct BitmaskReservedBitsValidator
-{
-    template <typename TField>
-    constexpr bool operator()(TField&& field) const
-    {
-        using FieldType = typename std::decay<TField>::type;
-        using ValueType = typename FieldType::ValueType;
-
-        return (field.value() & static_cast<ValueType>(TMask)) == static_cast<ValueType>(TValue);
-    }
-};
-
-template <comms::field::OptionalMode TVal>
-struct DefaultOptModeInitialiser
-{
-    template <typename TField>
-    void operator()(TField& field) const
-    {
-        field.setMode(TVal);
-    }
-};
-
-template<std::size_t TIdx>
-struct DefaultVariantIndexInitialiser
-{
-    template <typename TField>
-    void operator()(TField& field)
-    {
-        field.template initField<TIdx>();
-    }
-};
-
-}  // namespace details
-
 /// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
 ///     assigns numeric value provided as the template argument to this option.
 /// @details If the required numeric value is too big (doesn't fit into @b
@@ -1126,7 +991,6 @@ using DefaultBigUnsignedNumValue =
     DefaultValueInitialiser<
         details::DefaultNumValueInitialiser<std::uintmax_t, TVal>
     >;
-
 
 /// @brief Provide range of valid numeric values.
 /// @details Quite often numeric fields such as comms::field::IntValue or
@@ -1273,17 +1137,6 @@ using DefaultVariantIndex = DefaultValueInitialiser<details::DefaultVariantIndex
 /// @headerfile comms/options.h
 struct ChecksumLayerVerifyBeforeRead {};
 
-/// @brief Use "view" on original raw data instead of copying it.
-/// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList,
-///     will force usage of @ref comms::util::StringView and comms::util::ArrayView
-///     respectively as data storage type.
-/// @note The original data must be preserved until destruction of the field
-///     that uses the "view".
-/// @note Incompatible with other options that contol data storage type,
-///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
-/// @headerfile comms/options.h
-struct OrigDataView {};
-
 /// @brief Force field not to be serialized during read/write operations
 /// @details Some protocols may define some constant values that are predefined
 ///     and are not present on I/O link when serialized. Sometimes it is convenient
@@ -1316,17 +1169,17 @@ struct ProtocolLayerForceReadUntilDataSplit {};
 /// @headerfile comms/options.h
 struct ProtocolLayerDisallowReadUntilDataSplit {};
 
-/// @brief Mark this class to have custom
+/// @brief Mark field class to have custom
 ///     implementation of @b read functionality.
 /// @headerfile comms/options.h
 struct HasCustomRead {};
 
-/// @brief Mark this class to have custom
+/// @brief Mark message / field class to have custom
 ///     implementation of @b refresh functionality.
 /// @headerfile comms/options.h
 struct HasCustomRefresh {};
 
-/// @brief Mark this class as providing its name information
+/// @brief Mark message class as providing its name information
 /// @headerfile comms/options.h
 struct HasName {};
 
@@ -1350,7 +1203,7 @@ struct VersionType
     static_assert(std::is_unsigned<T>::value, "Only unsigned integral types are supported for versions");
 };
 
-/// @brief Mark this class to have custom
+/// @brief Mark message / field class to have custom
 ///     implementation of version update functionality.
 /// @headerfile comms/options.h
 struct HasCustomVersionUpdate {};
@@ -1387,6 +1240,163 @@ struct InvalidByDefault {};
 /// @details The version information can be accessed using @b getVersion() member function.
 struct VersionStorage {};
 
+/// @brief Option to specify real extending class.
+/// @details Used for some layer classes in @ref comms::protocol namespace.
+template <typename T>
+struct ExtendingClass {};
+
+/// @brief Option to specify index of member field containing remaining length in bytes
+/// @details Applicable only to @ref comms::field::Bundle fields.
+template <std::size_t TIdx>
+struct RemLengthMemberField {};
+
+} // namespace def
+
+namespace app
+{
+
+/// @brief No-op option, doesn't have any effect.
+/// @headerfile comms/options.h
+struct EmptyOption {};
+
+/// @brief Option used to specify type of iterator used for reading.
+/// @tparam TIter Type of the iterator.
+/// @headerfile comms/options.h
+template <typename TIter>
+struct ReadIterator {};
+
+/// @brief Option used to specify type of iterator used for writing.
+/// @tparam TIter Type of the iterator.
+/// @headerfile comms/options.h
+template <typename TIter>
+struct WriteIterator {};
+
+/// @brief Option used to add @b getId() function into Message interface.
+/// @headerfile comms/options.h
+struct IdInfoInterface {};
+
+/// @brief Option used to add @b valid() function into Message interface.
+/// @headerfile comms/options.h
+struct ValidCheckInterface {};
+
+/// @brief Option used to add @b length() function into Message interface.
+/// @headerfile comms/options.h
+struct LengthInfoInterface {};
+
+/// @brief Option used to add @b refresh() function into Message interface.
+/// @headerfile comms/options.h
+struct RefreshInterface {};
+
+/// @brief Option used to add @b name() function into Message interface.
+/// @headerfile comms/options.h
+struct NameInterface {};
+
+/// @brief Option used to specify type of the message handler.
+/// @tparam T Type of the handler.
+/// @headerfile comms/options.h
+template <typename T>
+struct Handler {};
+
+/// @brief Option used to inhibit default implementation of @b dispatchImpl()
+///     in comms::MessageBase.
+/// @headerfile comms/options.h
+struct NoDispatchImpl {};
+
+/// @brief Option that inhibits implementation of comms::MessageBase::readImpl()
+///     regardless of other availability conditions.
+/// @headerfile comms/options.h
+struct NoReadImpl {};
+
+/// @brief Option that inhibits implementation of comms::MessageBase::writeImpl()
+///     regardless of other availability conditions.
+/// @headerfile comms/options.h
+struct NoWriteImpl {};
+
+/// @brief Option that inhibits implementation of comms::MessageBase::validImpl()
+///     regardless of other availability conditions.
+/// @headerfile comms/options.h
+struct NoValidImpl {};
+
+/// @brief Option that inhibits implementation of comms::MessageBase::lengthImpl()
+///     regardless of other availability conditions.
+/// @headerfile comms/options.h
+struct NoLengthImpl {};
+
+/// @brief Option that inhibits implementation of comms::MessageBase::refreshImpl()
+///     regardless of other availability conditions.
+/// @headerfile comms/options.h
+struct NoRefreshImpl {};
+
+/// @brief Option that forces "in place" allocation with placement "new" for
+///     initialisation, instead of usage of dynamic memory allocation.
+/// @headerfile comms/options.h
+struct InPlaceAllocation {};
+
+/// @brief Option used to allow @ref comms::GenericMessage generation inside
+///  @ref comms::MsgFactory and/or @ref comms::protocol::MsgIdLayer classes.
+/// @tparam TGenericMessage Type of message, expected to be a variant of
+///     @ref comms::GenericMessage.
+template <typename TGenericMessage>
+struct SupportGenericMessage {};
+
+/// @brief Option that forces usage of embedded uninitialised data area instead
+///     of dynamic memory allocation.
+/// @details Applicable to fields that represent collection of raw data or other
+///     fields, such as comms::field::ArrayList or comms::field::String. By
+///     default, these fields will use
+///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> or
+///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
+///     for their internal data storage. If this option is used, it will force
+///     such fields to use @ref comms::util::StaticVector or @ref comms::util::StaticString
+///     with the capacity provided by this option.
+/// @tparam TSize Size of the storage area in number of elements, for strings it does @b NOT include
+///     the '\0' terminating character.
+/// @headerfile comms/options.h
+template <std::size_t TSize>
+struct FixedSizeStorage {};
+
+/// @brief Set custom storage type for fields like comms::field::String or
+///     comms::field::ArrayList.
+/// @details By default comms::field::String uses
+///     <a href="http://en.cppreference.com/w/cpp/string/basic_string">std::string</a>
+///     and comms::field::ArrayList uses
+///     <a href="http://en.cppreference.com/w/cpp/container/vector">std::vector</a> as
+///     their internal storage types. The @ref FixedSizeStorage option forces
+///     them to use comms::util::StaticString and comms::util::StaticVector
+///     instead. This option can be used to provide any other third party type.
+///     Such type must define the same public interface as @b std::string (when used
+///     with comms::field::String) or @b std::vector (when used with
+///     comms::field::ArrayList).
+/// @tparam TType Custom storage type
+/// @headerfile comms/options.h
+template <typename TType>
+struct CustomStorageType {};
+
+/// @brief Option that forces usage of fixed size storage for sequences with fixed
+///     size.
+/// @details Equivalent to @ref FixedSizeStorage option, but applicable only
+///     to sequence types @ref comms::field::ArrayList or @ref comms::field::String, that
+///     alrady use @ref SequenceFixedSize option. Usage of this option do not
+///     require knowledge of the storage area size.
+/// @headerfile comms/options.h
+struct SequenceFixedSizeUseFixedSizeStorage {};
+
+/// @brief Force the destructor of comms::Message class to be @b non-virtual,
+///     even if there are other virtual functions defined.
+/// @headerfile comms/options.h
+struct NoVirtualDestructor {};
+
+/// @brief Use "view" on original raw data instead of copying it.
+/// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList,
+///     will force usage of @ref comms::util::StringView and comms::util::ArrayView
+///     respectively as data storage type.
+/// @note The original data must be preserved until destruction of the field
+///     that uses the "view".
+/// @note Incompatible with other options that contol data storage type,
+///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
+/// @headerfile comms/options.h
+struct OrigDataView {};
+
 /// @brief Force a particular way to dispatch message object and/or type.
 /// @tparam T Expected to be one of the tags from @ref comms::traits::dispatch namespace.
 template <typename T>
@@ -1402,17 +1412,483 @@ using ForceDispatchStaticBinSearch = ForceDispatch<comms::traits::dispatch::Stat
 
 /// @brief Force generation of linear switch statmenets for dispatch logic of
 ///     message object and/or message object type
-using ForceDispatchLinearSwitch = ForceDispatch<comms::traits::dispatch::LinearSwitch>;;
+using ForceDispatchLinearSwitch = ForceDispatch<comms::traits::dispatch::LinearSwitch>;
 
-/// @brief Option to specify real extending class.
-/// @details Used for some layer classes in @ref comms::protocol namespace.
+} // namespace app
+
+// Definition options
+
+/// @brief Same as @ref comms::option::def::Endian.
+template <typename TEndian>
+using Endian = comms::option::def::Endian<TEndian>;
+
+/// @brief Same as @ref comms::option::def::BigEndian
+using BigEndian = comms::option::def::BigEndian;
+
+/// @brief Same as @ref comms::option::def::LittleEndian
+using LittleEndian = comms::option::def::LittleEndian;
+
+/// @brief Same as @ref comms::option::def::MsgIdType
 template <typename T>
-struct ExtendingClass {};
+using MsgIdType = comms::option::def::MsgIdType<T>;
 
-/// @brief Option to specify index of member field containing remaining length in bytes
-/// @details Applicable only to @ref comms::field::Bundle fields.
+/// @brief Same as @ref comms::option::def::StaticNumIdImpl
+template <std::intmax_t TId>
+using StaticNumIdImpl = comms::option::def::StaticNumIdImpl<TId>;
+
+/// @brief Same as @ref comms::option::def::NoIdImpl
+using NoIdImpl = comms::option::def::NoIdImpl;
+
+/// @brief Same as @ref comms::option::def::MsgType
+template <typename TMsg>
+using MsgType = comms::option::def::MsgType<TMsg>;
+
+/// @brief Same as @ref comms::option::def::ExtraTransportFields
+template <typename TFields>
+using ExtraTransportFields = comms::option::def::ExtraTransportFields<TFields>;
+
+/// @brief Same as @ref comms::option::def::VersionInExtraTransportFields
 template <std::size_t TIdx>
-struct RemLengthMemberField {};
+using VersionInExtraTransportFields = comms::option::def::VersionInExtraTransportFields<TIdx>;
+
+/// @brief Same as @ref comms::option::def::FieldsImpl
+template <typename TFields>
+using FieldsImpl = comms::option::def::FieldsImpl<TFields>;
+
+/// @brief Same as @ref comms::option::def::ZeroFieldsImpl
+using ZeroFieldsImpl = comms::option::def::ZeroFieldsImpl;
+
+/// @brief Same as @ref comms::option::def::HasDoGetId
+using HasDoGetId = comms::option::def::HasDoGetId;
+
+/// @brief Same as @ref comms::option::def::AssumeFieldsExistence
+using AssumeFieldsExistence = comms::option::def::AssumeFieldsExistence;
+
+/// @brief Same as @ref comms::option::def::FixedLength
+template<std::size_t TLen, bool TSignExtend = true>
+using FixedLength = comms::option::def::FixedLength<TLen, TSignExtend>;
+
+/// @brief Same as @ref comms::option::def::FixedBitLength
+template<std::size_t TLen>
+using FixedBitLength = comms::option::def::FixedBitLength<TLen>;
+
+/// @brief Same as @ref comms::option::def::VarLength
+template<std::size_t TMin, std::size_t TMax>
+using VarLength = comms::option::def::VarLength<TMin, TMax>;
+
+/// @brief Same as @ref comms::option::def::NumValueSerOffset
+template<std::intmax_t TOffset>
+using NumValueSerOffset = comms::option::def::NumValueSerOffset<TOffset>;
+
+/// @brief Same as @ref comms::option::def::ScalingRatio
+template <std::intmax_t TNum, std::intmax_t TDenom>
+using ScalingRatio = comms::option::def::ScalingRatio<TNum, TDenom>;
+
+/// @brief Same as @ref comms::option::def::SequenceSizeFieldPrefix
+template <typename TField>
+using SequenceSizeFieldPrefix = comms::option::def::SequenceSizeFieldPrefix<TField>;
+
+/// @brief Same as @ref comms::option::def::SequenceSerLengthFieldPrefix
+template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
+using SequenceSerLengthFieldPrefix =
+    comms::option::def::SequenceSerLengthFieldPrefix<TField, TReadErrorStatus>;
+
+/// @brief Same as @ref comms::option::def::SequenceElemSerLengthFieldPrefix
+template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
+using SequenceElemSerLengthFieldPrefix =
+    comms::option::def::SequenceElemSerLengthFieldPrefix<TField, TReadErrorStatus>;
+
+/// @brief Same as @ref comms::option::def::SequenceElemFixedSerLengthFieldPrefix
+template <typename TField, comms::ErrorStatus TReadErrorStatus = comms::ErrorStatus::InvalidMsgData>
+using SequenceElemFixedSerLengthFieldPrefix =
+    comms::option::def::SequenceElemFixedSerLengthFieldPrefix<TField, TReadErrorStatus>;
+
+/// @brief Same as @ref comms::option::def::SequenceTerminationFieldSuffix
+template <typename TField>
+using SequenceTerminationFieldSuffix = comms::option::def::SequenceTerminationFieldSuffix<TField>;
+
+/// @brief Same as @ref comms::option::def::SequenceTrailingFieldSuffix
+template <typename TField>
+using SequenceTrailingFieldSuffix = comms::option::def::SequenceTrailingFieldSuffix<TField>;
+
+/// @brief Same as @ref comms::option::def::SequenceSizeForcingEnabled
+using SequenceSizeForcingEnabled = comms::option::def::SequenceSizeForcingEnabled;
+
+/// @brief Same as @ref comms::option::def::SequenceLengthForcingEnabled
+using SequenceLengthForcingEnabled = comms::option::def::SequenceLengthForcingEnabled;
+
+/// @brief Same as @ref comms::option::def::SequenceElemLengthForcingEnabled
+using SequenceElemLengthForcingEnabled = comms::option::def::SequenceElemLengthForcingEnabled;
+
+/// @brief Same as @ref comms::option::def::SequenceFixedSize
+template <std::size_t TSize>
+using SequenceFixedSize = comms::option::def::SequenceFixedSize<TSize>;
+
+/// @brief Same as @ref comms::option::def::DefaultValueInitialiser
+template <typename T>
+using DefaultValueInitialiser = comms::option::def::DefaultValueInitialiser<T>;
+
+/// @brief Same as @ref comms::option::def::ContentsValidator
+template <typename T>
+using ContentsValidator = comms::option::def::ContentsValidator<T>;
+
+/// @brief Same as @ref comms::option::def::ContentsRefresher
+template <typename T>
+using ContentsRefresher = comms::option::def::ContentsRefresher<T>;
+
+/// @brief Same as @ref comms::option::def::CustomValueReader
+template <typename T>
+using CustomValueReader = comms::option::def::CustomValueReader<T>;
+
+/// @brief Same as @ref comms::option::def::FailOnInvalid
+template <comms::ErrorStatus TStatus = comms::ErrorStatus::InvalidMsgData>
+using FailOnInvalid = comms::option::def::FailOnInvalid<TStatus>;
+
+/// @brief Same as @ref comms::option::def::IgnoreInvalid
+using IgnoreInvalid = comms::option::def::IgnoreInvalid;
+
+/// @brief Same as @ref comms::option::def::Units
+template <typename TType, typename TRatio>
+using Units = comms::option::def::Units<TType, TRatio>;
+
+/// @brief Same as @ref comms::option::def::UnitsNanoseconds
+using UnitsNanoseconds = comms::option::def::UnitsNanoseconds;
+
+/// @brief Same as @ref comms::option::def::UnitsMicroseconds
+using UnitsMicroseconds = comms::option::def::UnitsMicroseconds;
+
+/// @brief Same as @ref comms::option::def::UnitsMilliseconds
+using UnitsMilliseconds = comms::option::def::UnitsMilliseconds;
+
+/// @brief Same as @ref comms::option::def::UnitsSeconds
+using UnitsSeconds = comms::option::def::UnitsSeconds;
+
+/// @brief Same as @ref comms::option::def::UnitsMinutes
+using UnitsMinutes = comms::option::def::UnitsMinutes;
+
+/// @brief Same as @ref comms::option::def::UnitsHours
+using UnitsHours = comms::option::def::UnitsHours;
+
+/// @brief Same as @ref comms::option::def::UnitsDays
+using UnitsDays = comms::option::def::UnitsDays;
+
+/// @brief Same as @ref comms::option::def::UnitsWeeks
+using UnitsWeeks = comms::option::def::UnitsWeeks;
+
+/// @brief Same as @ref comms::option::def::UnitsNanometers
+using UnitsNanometers = comms::option::def::UnitsNanometers;
+
+/// @brief Same as @ref comms::option::def::UnitsMicrometers
+using UnitsMicrometers = comms::option::def::UnitsMicrometers;
+
+/// @brief Same as @ref comms::option::def::UnitsMillimeters
+using UnitsMillimeters = comms::option::def::UnitsMillimeters;
+
+/// @brief Same as @ref comms::option::def::UnitsCentimeters
+using UnitsCentimeters = comms::option::def::UnitsCentimeters;
+
+/// @brief Same as @ref comms::option::def::UnitsMeters
+using UnitsMeters = comms::option::def::UnitsMeters;
+
+/// @brief Same as @ref comms::option::def::UnitsKilometers
+using UnitsKilometers = comms::option::def::UnitsKilometers;
+
+/// @brief Same as @ref comms::option::def::UnitsNanometersPerSecond
+using UnitsNanometersPerSecond = comms::option::def::UnitsNanometersPerSecond;
+
+/// @brief Same as @ref comms::option::def::UnitsMicrometersPerSecond
+using UnitsMicrometersPerSecond = comms::option::def::UnitsMicrometersPerSecond;
+
+/// @brief Same as @ref comms::option::def::UnitsMillimetersPerSecond
+using UnitsMillimetersPerSecond = comms::option::def::UnitsMillimetersPerSecond;
+
+/// @brief Same as @ref comms::option::def::UnitsCentimetersPerSecond
+using UnitsCentimetersPerSecond = comms::option::def::UnitsCentimetersPerSecond;
+
+/// @brief Same as @ref comms::option::def::UnitsMetersPerSecond
+using UnitsMetersPerSecond = comms::option::def::UnitsMetersPerSecond;
+
+/// @brief Same as @ref comms::option::def::UnitsKilometersPerSecond
+using UnitsKilometersPerSecond = comms::option::def::UnitsKilometersPerSecond;
+
+/// @brief Same as @ref comms::option::def::UnitsKilometersPerHour
+using UnitsKilometersPerHour = comms::option::def::UnitsKilometersPerHour;
+
+/// @brief Same as @ref comms::option::def::UnitsHertz
+using UnitsHertz = comms::option::def::UnitsHertz;
+
+/// @brief Same as @ref comms::option::def::UnitsKilohertz
+using UnitsKilohertz = comms::option::def::UnitsKilohertz;
+
+/// @brief Same as @ref comms::option::def::UnitsMegahertz
+using UnitsMegahertz = comms::option::def::UnitsMegahertz;
+
+/// @brief Same as @ref comms::option::def::UnitsGigahertz
+using UnitsGigahertz = comms::option::def::UnitsGigahertz;
+
+/// @brief Same as @ref comms::option::def::UnitsDegrees
+using UnitsDegrees = comms::option::def::UnitsDegrees;
+
+/// @brief Same as @ref comms::option::def::UnitsRadians
+using UnitsRadians = comms::option::def::UnitsRadians;
+
+/// @brief Same as @ref comms::option::def::UnitsNanoamps
+using UnitsNanoamps = comms::option::def::UnitsNanoamps;
+
+/// @brief Same as @ref comms::option::def::UnitsMicroamps
+using UnitsMicroamps = comms::option::def::UnitsMicroamps;
+
+/// @brief Same as @ref comms::option::def::UnitsMilliamps
+using UnitsMilliamps = comms::option::def::UnitsMilliamps;
+
+/// @brief Same as @ref comms::option::def::UnitsAmps
+using UnitsAmps = comms::option::def::UnitsAmps;
+
+/// @brief Same as @ref comms::option::def::UnitsKiloamps
+using UnitsKiloamps = comms::option::def::UnitsKiloamps;
+
+/// @brief Same as @ref comms::option::def::UnitsNanovolts
+using UnitsNanovolts = comms::option::def::UnitsNanovolts;
+
+/// @brief Same as @ref comms::option::def::UnitsMicrovolts
+using UnitsMicrovolts = comms::option::def::UnitsMicrovolts;
+
+/// @brief Same as @ref comms::option::def::UnitsMillivolts
+using UnitsMillivolts = comms::option::def::UnitsMillivolts;
+
+/// @brief Same as @ref comms::option::def::UnitsVolts
+using UnitsVolts = comms::option::def::UnitsVolts;
+
+/// @brief Same as @ref comms::option::def::UnitsKilovolts
+using UnitsKilovolts = comms::option::def::UnitsKilovolts;
+
+/// @brief Same as @ref comms::option::def::DefaultNumValue
+template<std::intmax_t TVal>
+using DefaultNumValue = comms::option::def::DefaultNumValue<TVal>;
+
+/// @brief Same as @ref comms::option::def::DefaultBigUnsignedNumValue
+template<std::uintmax_t TVal>
+using DefaultBigUnsignedNumValue = comms::option::def::DefaultBigUnsignedNumValue<TVal>;
+
+/// @brief Same as @ref comms::option::def::ValidNumValueRange
+template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
+using ValidNumValueRange = comms::option::def::ValidNumValueRange<TMinValue, TMaxValue>;
+
+/// @brief Same as @ref comms::option::def::ValidRangesClear
+using ValidRangesClear = comms::option::def::ValidRangesClear;
+
+/// @brief Same as @ref comms::option::def::ValidNumValueRangeOverride
+/// @deprecated Use @ref ValidRangesClear instead.
+template<std::intmax_t TMinValue, std::intmax_t TMaxValue>
+using ValidNumValueRangeOverride = comms::option::def::ValidNumValueRangeOverride<TMinValue, TMaxValue>;
+
+/// @brief Same as @ref comms::option::def::ValidNumValue
+template<std::intmax_t TValue>
+using ValidNumValue = comms::option::def::ValidNumValue<TValue>;
+
+/// @brief Same as @ref comms::option::def::ValidNumValueOverride
+/// @deprecated Use @ref ValidRangesClear instead.
+template<std::intmax_t TValue>
+using ValidNumValueOverride = comms::option::def::ValidNumValueOverride<TValue>;
+
+/// @brief Same as @ref comms::option::def::ValidBigUnsignedNumValueRange
+template<std::uintmax_t TMinValue, std::uintmax_t TMaxValue>
+using ValidBigUnsignedNumValueRange =
+    comms::option::def::ValidBigUnsignedNumValueRange<TMinValue, TMaxValue>;
+
+/// @brief Same as @ref comms::option::def::ValidBigUnsignedNumValueRangeOverride
+/// @deprecated Use @ref ValidRangesClear instead.
+template<std::uintmax_t TMinValue, std::uintmax_t TMaxValue>
+using ValidBigUnsignedNumValueRangeOverride =
+    comms::option::def::ValidBigUnsignedNumValueRangeOverride<TMinValue, TMaxValue>;
+
+/// @brief Same as @ref comms::option::def::ValidBigUnsignedNumValue
+template<std::uintmax_t TValue>
+using ValidBigUnsignedNumValue =
+    comms::option::def::ValidBigUnsignedNumValue<TValue>;
+
+/// @brief Same as @ref comms::option::def::ValidBigUnsignedNumValueOverride
+/// @deprecated Use @ref ValidRangesClear instead.
+template<std::uintmax_t TValue>
+using ValidBigUnsignedNumValueOverride =
+    comms::option::def::ValidBigUnsignedNumValueOverride<TValue>;
+
+/// @brief Same as @ref comms::option::def::BitmaskReservedBits
+template<std::uintmax_t TMask, std::uintmax_t TValue = 0U>
+using BitmaskReservedBits = comms::option::def::BitmaskReservedBits<TMask, TValue>;
+
+/// @brief Same as @ref comms::option::def::DefaultOptionalMode
+template<comms::field::OptionalMode TVal>
+using DefaultOptionalMode = comms::option::def::DefaultOptionalMode<TVal>;
+
+/// @brief Same as @ref comms::option::def::MissingByDefault
+using MissingByDefault = comms::option::def::MissingByDefault;
+
+/// @brief Same as @ref comms::option::def::ExistsByDefault
+using ExistsByDefault = comms::option::def::ExistsByDefault;
+
+/// @brief Same as @ref comms::option::def::OptionalMissingByDefault
+using OptionalMissingByDefault = comms::option::def::OptionalMissingByDefault;
+
+/// @brief Same as @ref comms::option::def::OptionalMissingByDefault
+using OptionalExistsByDefault = comms::option::def::OptionalMissingByDefault;
+
+/// @brief Same as @ref comms::option::def::DefaultVariantIndex
+template <std::size_t TIdx>
+using DefaultVariantIndex = comms::option::def::DefaultVariantIndex<TIdx>;
+
+/// @brief Same as @ref comms::option::def::ChecksumLayerVerifyBeforeRead
+using ChecksumLayerVerifyBeforeRead = comms::option::def::ChecksumLayerVerifyBeforeRead;
+
+/// @brief Same as @ref comms::option::def::EmptySerialization
+using EmptySerialization = comms::option::def::EmptySerialization;
+
+/// @brief Same as @ref comms::option::def::EmptySerialisation
+using EmptySerialisation = comms::option::def::EmptySerialisation;
+
+/// @brief Same as @ref comms::option::def::ProtocolLayerForceReadUntilDataSplit
+using ProtocolLayerForceReadUntilDataSplit =
+    comms::option::def::ProtocolLayerForceReadUntilDataSplit;
+
+/// @brief Same as @ref comms::option::def::ProtocolLayerDisallowReadUntilDataSplit
+using ProtocolLayerDisallowReadUntilDataSplit =
+    comms::option::def::ProtocolLayerDisallowReadUntilDataSplit;
+
+/// @brief Same as @ref comms::option::def::HasCustomRead
+using HasCustomRead = comms::option::def::HasCustomRead;
+
+/// @brief Same as @ref comms::option::def::HasCustomRefresh
+using HasCustomRefresh = comms::option::def::HasCustomRefresh;
+
+/// @brief Same as @ref comms::option::def::HasName
+using HasName = comms::option::def::HasName;
+
+/// @brief Same as @ref comms::option::def::HasDoRefresh
+/// @deprecated Use @ref HasCustomRefresh instead.
+using HasDoRefresh = comms::option::def::HasDoRefresh;
+
+/// @brief Same as @ref comms::option::def::PseudoValue
+using PseudoValue = comms::option::def::PseudoValue;
+
+/// @brief Same as @ref comms::option::def::VersionType
+template <typename T>
+using VersionType = comms::option::def::VersionType<T>;
+
+/// @brief Same as @ref comms::option::def::HasCustomVersionUpdate
+using HasCustomVersionUpdate = comms::option::def::HasCustomVersionUpdate;
+
+/// @brief Same as @ref comms::option::def::ExistsBetweenVersions
+template <std::uintmax_t TFrom, std::uintmax_t TUntil>
+using ExistsBetweenVersions = comms::option::def::ExistsBetweenVersions<TFrom, TUntil>;
+
+/// @brief Same as @ref comms::option::def::ExistsSinceVersion
+template <std::uintmax_t TVer>
+using ExistsSinceVersion = comms::option::def::ExistsSinceVersion<TVer>;
+
+/// @brief Same as @ref comms::option::def::ExistsUntilVersion
+template <std::uintmax_t TVer>
+using ExistsUntilVersion = comms::option::def::ExistsUntilVersion<TVer>;
+
+/// @brief Same as @ref comms::option::def::InvalidByDefault
+using InvalidByDefault = comms::option::def::InvalidByDefault;
+
+/// @brief Same as @ref comms::option::def::VersionStorage
+using VersionStorage = comms::option::def::VersionStorage;
+
+/// @brief Same as @ref comms::option::def::ExtendingClass
+template <typename T>
+using ExtendingClass = comms::option::def::ExtendingClass<T>;
+
+/// @brief Same as @ref comms::option::def::RemLengthMemberField
+template <std::size_t TIdx>
+using RemLengthMemberField = comms::option::def::RemLengthMemberField<TIdx>;
+
+// Application customization options
+
+/// @brief Same as @ref comms::option::app::EmptyOption
+using EmptyOption = comms::option::app::EmptyOption;
+
+/// @brief Same as @ref comms::option::app::ReadIterator
+template <typename TIter>
+using ReadIterator = comms::option::app::ReadIterator<TIter>;
+
+/// @brief Same as @ref comms::option::app::WriteIterator
+template <typename TIter>
+using WriteIterator = comms::option::app::WriteIterator<TIter>;
+
+/// @brief Same as @ref comms::option::app::IdInfoInterface
+using IdInfoInterface = comms::option::app::IdInfoInterface;
+
+/// @brief Same as @ref comms::option::app::ValidCheckInterface
+using ValidCheckInterface = comms::option::app::ValidCheckInterface;
+
+/// @brief Same as @ref comms::option::app::LengthInfoInterface
+using LengthInfoInterface = comms::option::app::LengthInfoInterface;
+
+/// @brief Same as @ref comms::option::app::RefreshInterface
+using RefreshInterface = comms::option::app::RefreshInterface;
+
+/// @brief Same as @ref comms::option::app::NameInterface
+using NameInterface = comms::option::app::NameInterface;
+
+/// @brief Same as @ref comms::option::app::Handler
+template <typename T>
+using Handler = comms::option::app::Handler<T>;
+
+/// @brief Same as @ref comms::option::app::NoDispatchImpl
+using NoDispatchImpl = comms::option::app::NoDispatchImpl;
+
+/// @brief Same as @ref comms::option::app::NoReadImpl
+using NoReadImpl = comms::option::app::NoReadImpl;
+
+/// @brief Same as @ref comms::option::app::NoWriteImpl
+using NoWriteImpl = comms::option::app::NoWriteImpl;
+
+/// @brief Same as @ref comms::option::app::NoValidImpl
+using NoValidImpl = comms::option::app::NoValidImpl;
+
+/// @brief Same as @ref comms::option::app::NoLengthImpl
+using NoLengthImpl = comms::option::app::NoLengthImpl;
+
+/// @brief Same as @ref comms::option::app::NoRefreshImpl
+using NoRefreshImpl = comms::option::app::NoRefreshImpl;
+
+/// @brief Same as @ref comms::option::app::InPlaceAllocation
+using InPlaceAllocation = comms::option::app::InPlaceAllocation;
+
+/// @brief Same as @ref comms::option::app::SupportGenericMessage
+template <typename TGenericMessage>
+using SupportGenericMessage = comms::option::app::SupportGenericMessage<TGenericMessage>;
+
+/// @brief Same as @ref comms::option::app::FixedSizeStorage
+template <std::size_t TSize>
+using FixedSizeStorage = comms::option::app::FixedSizeStorage<TSize>;
+
+/// @brief Same as @ref comms::option::app::CustomStorageType
+template <typename TType>
+using CustomStorageType = comms::option::app::CustomStorageType<TType>;
+
+/// @brief Same as @ref comms::option::app::SequenceFixedSizeUseFixedSizeStorage
+using SequenceFixedSizeUseFixedSizeStorage = comms::option::app::SequenceFixedSizeUseFixedSizeStorage;
+
+/// @brief Same as @ref comms::option::app::NoVirtualDestructor
+using NoVirtualDestructor = comms::option::app::NoVirtualDestructor;
+
+/// @brief Same as @ref comms::option::app::OrigDataView
+using OrigDataView = comms::option::app::OrigDataView;
+
+/// @brief Same as @ref comms::option::app::ForceDispatch
+template <typename T>
+using ForceDispatch = comms::option::app::ForceDispatch<T>;
+
+/// @brief Same as @ref comms::option::app::ForceDispatchPolymorphic
+using ForceDispatchPolymorphic = comms::option::app::ForceDispatchPolymorphic;
+
+/// @brief Same as @ref comms::option::app::ForceDispatchStaticBinSearch
+using ForceDispatchStaticBinSearch = comms::option::app::ForceDispatchStaticBinSearch;
+
+/// @brief Same as @ref comms::option::app::ForceDispatchLinearSwitch
+using ForceDispatchLinearSwitch = comms::option::app::ForceDispatchLinearSwitch;
 
 }  // namespace option
 

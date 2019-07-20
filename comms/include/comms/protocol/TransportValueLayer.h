@@ -37,7 +37,7 @@ namespace protocol
 ///     the field's value and will re-assign it to specified message object's
 ///     "extra transport" data member field. This layer requires extra support
 ///     from the defined message interface object - there is a need to pass
-///     @ref comms::option::ExtraTransportFields option to the interface definition
+///     @ref comms::option::def::ExtraTransportFields option to the interface definition
 ///     @ref comms::Message class.
 ///     This layer is a mid level layer, expects other mid level layer or
 ///     MsgDataLayer to be its next one.
@@ -46,7 +46,7 @@ namespace protocol
 ///     (accessed via @ref comms::Message::transportFields()).
 /// @tparam TNextLayer Next transport layer in protocol stack.
 /// @tparam TOptions Extending functionality options. Supported options are:
-///     @li @ref comms::option::PseudoValue - Mark the handled value to be "pseudo"
+///     @li @ref comms::option::def::PseudoValue - Mark the handled value to be "pseudo"
 ///         one, i.e. the field is not getting serialised.
 /// @headerfile comms/protocol/TransportValueLayer.h
 /// @extends ProtocolLayerBase
@@ -57,7 +57,7 @@ class TransportValueLayer : public
                 TField,
                 TNextLayer,
                 TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
-                comms::option::ProtocolLayerForceReadUntilDataSplit
+                comms::option::def::ProtocolLayerForceReadUntilDataSplit
             >,
             TOptions...
         >
@@ -68,7 +68,7 @@ class TransportValueLayer : public
                 TField,
                 TNextLayer,
                 TransportValueLayer<TField, TIdx, TNextLayer, TOptions...>,
-                comms::option::ProtocolLayerForceReadUntilDataSplit
+                comms::option::def::ProtocolLayerForceReadUntilDataSplit
             >,
             TOptions...
         >;
@@ -112,34 +112,34 @@ public:
     ///     object (which extends @ref comms::MessageBase).
     /// @param[in, out] iter Input iterator used for reading.
     /// @param[in] size Size of the data in the sequence
-    /// @param[out] missingSize If not nullptr and return value is
-    ///     comms::ErrorStatus::NotEnoughData it will contain
-    ///     minimal missing data length required for the successful
-    ///     read attempt.
-    /// @param[in] nextLayerReader Next layer reader object.
+    /// @param[in] nextLayerReader Reader object, needs to be invoked to
+    ///     forward read operation to the next layer.
+    /// @param[out] extraValues Variadic extra output parameters passed to the
+    ///     "read" operatation of the protocol stack (see
+    ///     @ref comms::protocol::ProtocolLayerBase::read() "read()" and
+    ///     @ref comms::protocol::ProtocolLayerBase::readFieldsCached() "readFieldsCached()").
+    ///     Need to passed on as variadic arguments to the @b nextLayerReader.
     /// @return Status of the read operation.
     /// @pre Iterator must be valid and can be dereferenced and incremented at
     ///      least "size" times;
     /// @post The iterator will be advanced by the number of bytes was actually
     ///       read. In case of an error, distance between original position and
     ///       advanced will pinpoint the location of the error.
-    /// @post missingSize output value is updated if and only if function
-    ///       returns comms::ErrorStatus::NotEnoughData.
-    template <typename TMsg, typename TIter, typename TNextLayerReader>
+    template <typename TMsg, typename TIter, typename TNextLayerReader, typename... TExtraValues>
     comms::ErrorStatus doRead(
         Field& field,
         TMsg& msg,
         TIter& iter,
         std::size_t size,
-        std::size_t* missingSize,
-        TNextLayerReader&& nextLayerReader)
+        TNextLayerReader&& nextLayerReader,
+        TExtraValues... extraValues)
     {
-        auto es = readFieldInternal(field, iter, size, missingSize, ValueTag());
+        auto es = readFieldInternal(field, iter, size, ValueTag(), extraValues...);
         if (es != comms::ErrorStatus::Success) {
             return es;
         }
 
-        es = nextLayerReader.read(msg, iter, size, missingSize);
+        es = nextLayerReader.read(msg, iter, size, extraValues...);
 
         using Tag =
             typename std::conditional<
@@ -188,7 +188,7 @@ public:
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "
-            "use comms::option::ExtraTransportFields option.");
+            "use comms::option::def::ExtraTransportFields option.");
         static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
             "TIdx is too big, exceeds the amount of transport fields defined in interface class");
 
@@ -206,7 +206,7 @@ public:
     }
 
     /// @brief Customising field length calculation
-    /// @details If the layer is marked as "pseudo" (using @ref comms::option::PseudoValue)
+    /// @details If the layer is marked as "pseudo" (using @ref comms::option::def::PseudoValue)
     ///     option, then the report length is 0.
     static constexpr std::size_t doFieldLength()
     {
@@ -214,7 +214,7 @@ public:
     }
 
     /// @brief Customising field length calculation
-    /// @details If the layer is marked as "pseudo" (using @ref comms::option::PseudoValue)
+    /// @details If the layer is marked as "pseudo" (using @ref comms::option::def::PseudoValue)
     ///     option, then the report length is 0.
     template <typename TMsg>
     static std::size_t doFieldLength(const TMsg&)
@@ -224,12 +224,12 @@ public:
 
 #ifdef FOR_DOXYGEN_DOC_ONLY
     /// @brief Access to pseudo field stored internally.
-    /// @details The function exists only if @ref comms::option::PseudoValue
+    /// @details The function exists only if @ref comms::option::def::PseudoValue
     ///     option has been used.
     Field& pseudoField();
 
     /// @brief Const access to pseudo field stored internally.
-    /// @details The function exists only if @ref comms::option::PseudoValue
+    /// @details The function exists only if @ref comms::option::def::PseudoValue
     ///     option has been used.
     const Field& pseudoField() const;
 #endif
@@ -254,7 +254,7 @@ private:
         using MessageInterfaceType = typename MsgPtrType::element_type;
         static_assert(MessageInterfaceType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "
-            "use comms::option::ExtraTransportFields option.");
+            "use comms::option::def::ExtraTransportFields option.");
         static_assert(TIdx < std::tuple_size<typename MessageInterfaceType::TransportFields>::value,
             "TIdx is too big, exceeds the amount of transport fields defined in interface class");
 
@@ -267,7 +267,7 @@ private:
         using MsgType = typename std::decay<decltype(msg)>::type;
         static_assert(MsgType::hasTransportFields(),
             "Message interface class hasn't defined transport fields, "
-            "use comms::option::ExtraTransportFields option.");
+            "use comms::option::def::ExtraTransportFields option.");
         static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
             "TIdx is too big, exceeds the amount of transport fields defined in interface class");
 
@@ -296,33 +296,32 @@ private:
         return BaseImpl::doFieldLength();
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldInternal(
         Field& field,
         TIter& iter,
         std::size_t& len,
-        std::size_t* missingSize,
-        PseudoValueTag)
+        PseudoValueTag,
+        TExtraValues...)
     {
         static_cast<void>(iter);
         static_cast<void>(len);
-        static_cast<void>(missingSize);
         field = BaseImpl::pseudoField();
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TExtraValues>
     comms::ErrorStatus readFieldInternal(
         Field& field,
         TIter& iter,
         std::size_t& len,
-        std::size_t* missingSize,
-        NormalValueTag)
+        NormalValueTag,
+        TExtraValues... extraValues)
     {
         auto beforeReadIter = iter;
         auto es = field.read(iter, len);
         if (es == comms::ErrorStatus::NotEnoughData) {
-            BaseImpl::updateMissingSize(field, len, missingSize);
+            BaseImpl::updateMissingSize(field, len, extraValues...);
         }
         else {
             auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));

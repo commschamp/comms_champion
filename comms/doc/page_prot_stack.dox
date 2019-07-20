@@ -73,7 +73,7 @@
 /// a way to supply extra options to choose storage type for this field,
 /// when defining protocol stack. As the result the definition becomes:
 /// @code
-/// template <typename TPayloadOptions = comms::option::EmptyOption>
+/// template <typename TPayloadOptions = comms::option::app::EmptyOption>
 /// using MyMsgData = comms::protocol::MsgDataLayer<TPayloadOptions>;
 /// @endcode
 ///
@@ -92,7 +92,7 @@
 ///
 /// enum MsgId : std::uint8_t {...} // enum described earlier
 ///
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>; // Use big endian for all fields serialisation
+/// using MyFieldBase = comms::Field<comms::option::def::BigEndian>; // Use big endian for all fields serialisation
 ///
 /// using MsgIdField = 
 ///     comms::field::EnumValue<
@@ -132,7 +132,7 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyMsgId = 
 ///     comms::protocol::MsgIdLayer<
@@ -162,7 +162,7 @@
 ///
 /// The comms::protocol::MsgIdLayer can also be used in <b>bare metal</b> systems,
 /// that do NOT use dynamic memory allocation. In order to prevent this layer 
-/// from using dynamic memory allocation, the comms::option::InPlaceAllocation
+/// from using dynamic memory allocation, the @ref comms::option::app::InPlaceAllocation
 /// option needs to be passed as fifth template parameter to the
 /// comms::protocol::MsgIdLayer class. However, an ability to use this option
 /// needs to be provided to the application itself only if needed. In order to
@@ -171,8 +171,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyMsgId = 
 ///     comms::protocol::MsgIdLayer<
@@ -206,15 +206,15 @@
 /// cannot be used. The @b COMMS library provides @ref comms::GenericMessage 
 /// message definition which has a single variable length data field 
 /// (defined using @ref comms::field::ArrayList class). The @ref
-/// comms::protocol::MsgIdLayer may also receive @ref comms::option::SupportGenericMessage
+/// comms::protocol::MsgIdLayer may also receive @ref comms::option::app::SupportGenericMessage
 /// option specifying type of the GenericMessage. 
 /// In this case, if the appropriate message type hasn't been found in 
 /// @b AllMessages bundle, the appropriate @ref comms::GenericMessage object
 /// will be created instead. However, just like with
-/// @ref comms::option::InPlaceAllocation, this option should be used by the application
+/// @ref comms::option::app::InPlaceAllocation, this option should be used by the application
 /// if needed.
 ///
-/// Note, that comms::option::SupportGenericMessage and comms::option::InPlaceAllocation
+/// Note, that @ref comms::option::app::SupportGenericMessage and @ref comms::option::app::InPlaceAllocation
 /// options can be used together. In this case the @ref comms::GenericMessage
 /// message object will be allocated in the same allocation area. The client
 /// application will be able to combine these option together in single tuple
@@ -222,8 +222,8 @@
 /// @code
 /// using MyAllocOptions = 
 ///     std::tuple<
-///         comms::option::SupportGenericMessage<comms::GenericMessage<MyInterfaceMessage> >,
-///         comms::option::InPlaceAllocation
+///         comms::option::app::SupportGenericMessage<comms::GenericMessage<MyInterfaceMessage> >,
+///         comms::option::app::InPlaceAllocation
 ///     >;
 /// @endcode
 /// When constructed, the comms::protocol::MsgIdLayer creates an array of
@@ -266,14 +266,14 @@
 ///     comms::field::IntValue<
 ///         MyFieldBase, 
 ///         std::uint16_t, 
-///         comms::option::NumValueSerOffset<sizeof(std::uint16_t)> 
+///         comms::option::def::NumValueSerOffset<sizeof(std::uint16_t)> 
 ///     >;
 ///
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyMsgSize = 
 ///     comms::protocol::MsgSizeLayer<
@@ -288,11 +288,11 @@
 /// that is responsible to read/write the remaining length information. The
 /// second template parameter is an upper layer that is being wrapped. The third
 /// template parameter is optional default behaviour modification options.@n
-/// Please note the usage of @b comms::option::NumValueSerOffset option when
+/// Please note the usage of @ref comms::option::def::NumValueSerOffset option when
 /// defining the @b field type. If it is NOT used, the serialised length value
 /// will cover only @b ID and @b PAYLOAD (layers it wraps). However, according to the protocol
 /// specification, the @b SIZE value must also include @b CHECKSUM. Usage of
-/// comms::option::NumValueSerOffset <sizeof(std::uint16_t)> will add 2
+/// @ref comms::option::def::NumValueSerOffset <sizeof(std::uint16_t)> will add 2
 /// (@b sizeof(std::uint16_t)) when serialising the length of wrapped fields.
 /// See also @ref sec_field_tutorial_int_value_ser_offset for more details.
 ///
@@ -312,8 +312,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyChecksum =
 ///     comms::protocol::ChecksumLayer<
@@ -343,7 +343,7 @@
 /// complete their read operation before calculating and verifying checksum on
 /// read data. However, there may be protocols that may allow checksum verification
 /// before attempting to read message contents. In this case 
-/// @ref comms::option::ChecksumLayerVerifyBeforeRead option may be used as
+/// @ref comms::option::def::ChecksumLayerVerifyBeforeRead option may be used as
 /// fourth template parameter.
 /// @code
 /// namespace my_protocol
@@ -351,15 +351,15 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyChecksum =
 ///     comms::protocol::ChecksumLayer<
 ///         ChecksumField,
 ///         comms::protocol::checksum::Crc_CCITT
 ///         MyMsgSize<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions>,
-///         comms::option::ChecksumLayerVerifyBeforeRead
+///         comms::option::def::ChecksumLayerVerifyBeforeRead
 ///     >;
 /// 
 /// @endcode
@@ -377,16 +377,16 @@
 ///     comms::field::IntValue<
 ///         MyFieldBase, 
 ///         std::uint16_t, 
-///         comms::option::DefaultNumValue<0xabcd>,
-///         comms::option::ValidNumValue<0xabcd>,
-///         comms::option::FailOnInvalid // fail read operation if read value is invalid 
+///         comms::option::def::DefaultNumValue<0xabcd>,
+///         comms::option::def::ValidNumValue<0xabcd>,
+///         comms::option::def::FailOnInvalid // fail read operation if read value is invalid 
 ///     >;
 ///
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MySyncPrefix = 
 ///     comms::protocol::SyncPrefixLayer<
@@ -398,7 +398,7 @@
 /// @endcode
 /// The comms::protocol::SyncPrefixLayer class receives two template parameters.
 /// The first one is the type of the @b field, that is responsible to read/write
-/// the synchronisation byte(s). Please note the usage of comms::option::DefaultNumValue
+/// the synchronisation byte(s). Please note the usage of @ref comms::option::def::DefaultNumValue
 /// option when defining the @b field type. It insures that the default constructed
 /// field will have the required value. @n
 /// The second template parameter is the upper layer being wrapped.
@@ -417,7 +417,7 @@
 ///
 /// The COMMS library provides @ref comms::protocol::TransportValueLayer to handle
 /// such fields. @b HOWEVER it requires extra support from common message interface class.
-/// The latter must use @ref comms::option::ExtraTransportFields option in order
+/// The latter must use @ref comms::option::def::ExtraTransportFields option in order
 /// to define expected interface (please refer to @ref page_define_prot_interface_extra_transport
 /// for details).
 ///
@@ -430,21 +430,21 @@
 /// The whole protocol stack definition may look like this:
 /// @code
 /// // Base class of all the fields
-/// using MyFieldBase = comms::Field<comms::option::BigEndian>;
+/// using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
 ///
 /// // Field describing protocol version.
 /// using MyVersionField = comms::field::IntValue<MyFieldBase, std::uint16_t>;
 ///
 /// // Payload control layer
 /// template <
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyMsgData = comms::protocol::MsgDataLayer<TPayloadOptions>;
 ///
 /// // Version control layer
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyVersion = 
 ///     comms::protocol::TransportValueLayer<
@@ -457,8 +457,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyMsgId = 
 ///     comms::protocol::MsgIdLayer<
@@ -473,8 +473,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyMsgSize = 
 ///     comms::protocol::MsgSizeLayer<
@@ -507,7 +507,7 @@
 /// one of the messages used to establish connection. After that, the reported
 /// value may have influence on how other message contents are being read. Handling
 /// such case is very similar to @ref page_prot_stack_tutorial_transport_value.
-/// The only difference is passing @ref comms::option::PseudoValue option to
+/// The only difference is passing @ref comms::option::def::PseudoValue option to
 /// @ref comms::protocol::TransportValueLayer layer class. It will cause the 
 /// transport value not actually being (de)serialised during @b read / @b write
 /// operations. The pseudo field value is going to be stored as private member
@@ -519,14 +519,14 @@
 /// // Version control layer
 /// template <
 ///     typename TMessage, // common interface class defined by the application
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using MyVersion = 
 ///     comms::protocol::TransportValueLayer<
 ///         MyVersionField, 
 ///         TMessage::TransportFieldIdx_version, 
 ///         MyMsgData<TPayloadOptions>,
-///         comms::option::PseudoValue
+///         comms::option::def::PseudoValue
 ///     >;
 /// @endcode
 /// 
@@ -541,8 +541,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// using ProtocolStack = MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> ;
 /// @endcode
@@ -554,8 +554,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// struct ProtocolStack : public 
 ///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
@@ -568,8 +568,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// struct ProtocolStack : public 
 ///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
@@ -622,8 +622,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// class ProtocolStack : public 
 ///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 
@@ -642,8 +642,8 @@
 /// template <
 ///     typename TMessage, // common interface class defined by the application
 ///     typename TInputMessages = AllMessages<TMessage>, // Input messages that need to be recognised
-///     typename TAllocationOptions = comms::option::EmptyOption, // Extra options for MsgIdLayer
-///     typename TPayloadOptions = comms::option::EmptyOption // Extra options for payload storage
+///     typename TAllocationOptions = comms::option::app::EmptyOption, // Extra options for MsgIdLayer
+///     typename TPayloadOptions = comms::option::app::EmptyOption // Extra options for payload storage
 /// >
 /// class ProtocolStack : public 
 ///     MySyncPrefix<TMessage, TInputMessages, TAllocationOptions, TPayloadOptions> 

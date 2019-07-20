@@ -63,7 +63,7 @@ class MessageInterfaceEndianBase
 public:
     using Endian = TEndian;
 
-    using Field = comms::Field<comms::option::Endian<Endian> >;
+    using Field = comms::Field<comms::option::def::Endian<Endian> >;
 
 protected:
     ~MessageInterfaceEndianBase() noexcept = default;
@@ -216,7 +216,7 @@ public:
                   "TransportFields is expected to be tuple");
 
     static_assert(TIdx < std::tuple_size<TransportFields>::value,
-                  "Index provided to comms::option::VersionInExtraTransportFields exceeds size of the tuple");
+                  "Index provided to comms::option::def::VersionInExtraTransportFields exceeds size of the tuple");
 
     using VersionType = typename std::tuple_element<TIdx, TransportFields>::type::ValueType;
 
@@ -679,8 +679,8 @@ class MessageInterfaceBuilder
     using ParsedOptions = MessageInterfaceOptionsParser<TOptions...>;
 
     static_assert((!ParsedOptions::HasVersionInExtraTransportFields) || ParsedOptions::HasExtraTransportFields,
-        "comms::option::VersionInExtraTransportFields option should not be used "
-        "without comms::option::ExtraTransportFields.");
+        "comms::option::def::VersionInExtraTransportFields option should not be used "
+        "without comms::option::def::ExtraTransportFields.");
 
     using EndianBase = MessageInterfaceEndianBaseT<ParsedOptions>;
     using IdTypeBase = MessageInterfaceIdTypeBaseT<EndianBase, ParsedOptions>;

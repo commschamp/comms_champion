@@ -68,6 +68,7 @@ public:
     void test36();
     void test37();
     void test38();
+    void test39();
 
 private:
 
@@ -402,45 +403,6 @@ private:
     static_assert(ExtraTransportMessageBase::hasDispatch(), "Wrong interface");
     static_assert(ExtraTransportMessageBase::hasTransportFields(), "Wrong interface");
     static_assert(ExtraTransportMessageBase::hasVersionInTransportFields(), "Wrong interface");
-
-    template <typename TMsgBase>
-    class CountHandler
-    {
-    public:
-
-        template <typename TMsg>
-        void handle(TMsg&)
-        {
-            //std::cout << "Dispatching actual type!!!" << std::endl;
-            ++m_custom;
-        }
-
-        void handle(TMsgBase&)
-        {
-            //std::cout << "Dispatching base!!!" << std::endl;
-            ++m_base;
-        }
-
-        void clear()
-        {
-            m_custom = 0U;
-            m_base = 0U;
-        }
-
-        unsigned getCustomCount() const
-        {
-            return m_custom;
-        }
-
-        unsigned getBaseCount() const
-        {
-            return m_base;
-        }
-
-    private:
-        unsigned m_custom = 0U;
-        unsigned m_base = 0U;        
-    };
 
     template <typename TMsgPtr>
     class MsgCreationHandler
@@ -824,7 +786,7 @@ void MessageTestSuite::test12()
     static const std::size_t BufSize =
         std::extent<decltype(Buf)>::value;
 
-    auto readIter = comms::readIteratorFor<BeMessageBase>(Buf);
+    auto readIter = comms::readIteratorFor(interface, Buf);
     auto es = interface.read(readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(interface.length(), BufSize);
@@ -926,7 +888,7 @@ void MessageTestSuite::test16()
     TS_ASSERT_EQUALS(msg.field_value2().field().value(), 0x5678);
 
     msg.version() = 4U;
-    auto readIter = comms::readIteratorFor<Msg7>(&Buf[0]);
+    auto readIter = comms::readIteratorFor(msg, &Buf[0]);
     auto es = msg.read(readIter, BufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(msg.length(), 2U);
@@ -1922,6 +1884,49 @@ void MessageTestSuite::test38()
     TS_ASSERT(std::equal(outData.begin(), outData.end(), std::begin(ExpBuf)));
 }
 
+void MessageTestSuite::test39()
+{
+    BeBasicMsg1 msg1;
+    BeBasicMsg2 msg2;
+    BeBasicMsg3 msg3;
+    BeBasicMsg90_1 msg90;
+
+    using AllMessages =
+        std::tuple<
+            BeBasicMsg1,
+            BeBasicMsg2,
+            BeBasicMsg3
+        >;
+
+    CountHandler<BeBasicMessageBase> handler;
+    using Dispatcher1 = comms::MsgDispatcher<>;
+    static_assert(Dispatcher1::isDispatchPolymorphic<AllMessages>(), "Invalid dispatch");
+    auto* interface = static_cast<BeBasicMessageBase*>(&msg1);
+    Dispatcher1::dispatch<AllMessages>(msg1.doGetId(), *interface, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher2 = comms::MsgDispatcher<comms::option::ForceDispatchPolymorphic>;
+    static_assert(Dispatcher2::isDispatchPolymorphic<AllMessages>(), "Invalid dispatch");
+    interface = static_cast<BeBasicMessageBase*>(&msg2);
+    Dispatcher2::dispatch<AllMessages>(msg2.doGetId(), *interface, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher3 = comms::MsgDispatcher<comms::option::ForceDispatchStaticBinSearch>;
+    static_assert(Dispatcher3::isDispatchStaticBinSearch<AllMessages>(), "Invalid dispatch");
+    interface = static_cast<BeBasicMessageBase*>(&msg3);
+    Dispatcher3::dispatch<AllMessages>(msg3.doGetId(), *interface, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 3U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
+
+    using Dispatcher4 = comms::MsgDispatcher<comms::option::ForceDispatchLinearSwitch>;
+    static_assert(Dispatcher4::isDispatchLinearSwitch<AllMessages>(), "Invalid dispatch");
+    interface = static_cast<BeBasicMessageBase*>(&msg90);
+    Dispatcher4::dispatch<AllMessages>(msg90.doGetId(), *interface, handler);
+    TS_ASSERT_EQUALS(handler.getCustomCount(), 3U);
+    TS_ASSERT_EQUALS(handler.getBaseCount(), 1U);
+}
 
 template <typename TMessage>
 TMessage MessageTestSuite::internalReadWriteTest(

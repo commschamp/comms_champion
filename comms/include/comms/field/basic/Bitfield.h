@@ -143,7 +143,7 @@ class Bitfield : public TFieldBase
         comms::field::IntValue<
             TFieldBase,
             SerialisedType,
-            comms::option::FixedLength<Length>
+            comms::option::def::FixedLength<Length>
         >;
 
 

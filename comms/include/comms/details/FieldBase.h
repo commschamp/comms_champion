@@ -42,21 +42,21 @@ protected:
 };
 
 template <typename TEndian, typename... TOptions>
-class FieldBase<comms::option::Endian<TEndian>, TOptions...> : public FieldBase<TOptions...>
+class FieldBase<comms::option::def::Endian<TEndian>, TOptions...> : public FieldBase<TOptions...>
 {
 protected:
     using Endian = TEndian;
 };
 
 template <typename T, typename... TOptions>
-class FieldBase<comms::option::VersionType<T>, TOptions...> : public FieldBase<TOptions...>
+class FieldBase<comms::option::def::VersionType<T>, TOptions...> : public FieldBase<TOptions...>
 {
 protected:
     using VersionType = T;
 };
 
 template <typename... TOptions>
-class FieldBase<comms::option::EmptyOption, TOptions...> : public FieldBase<TOptions...>
+class FieldBase<comms::option::app::EmptyOption, TOptions...> : public FieldBase<TOptions...>
 {
 };
 

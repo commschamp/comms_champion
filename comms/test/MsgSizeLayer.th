@@ -47,6 +47,7 @@ public:
     void test15();
     void test16();
     void test17();
+    void test18();
 
 private:
 
@@ -671,3 +672,20 @@ void MsgSizeLayerTestSuite::test17()
     TS_ASSERT_EQUALS(frame.length(*msg), BufSize - 1);
 }
 
+void MsgSizeLayerTestSuite::test18()
+{
+    static const char Buf[] = {
+        0x0, 0x5, MessageType1, 0x01, 0x02,
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+
+    using ProtStack = ProtocolStack<BeSizeField20, BeIdField1, BeNonPolymorphicMessageBase>;
+    ProtStack stack;
+    NonPolymorphicBeMsg1 msg;
+    auto readIter = &Buf[0];
+    std::size_t missingSize = 0U;
+    auto es = stack.read(msg, readIter, BufSize, comms::protocol::missingSize(missingSize));
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
+    TS_ASSERT_EQUALS(missingSize, 2U);
+}

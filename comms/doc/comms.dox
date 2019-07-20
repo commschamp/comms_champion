@@ -5,8 +5,16 @@
 /// @brief Namespace for various utility classes and/or functions used by COMMS library.
 
 /// @namespace comms::option
-/// @brief Namespace that contains all the options used to define message
-///     as well as message fields.
+/// @brief Namespace that contains all the options used to define protocol as well
+/// as customize application specific configuration.
+/// @details Contains all the definitions from @ref comms::option::def and
+///     @ref comms::option::app namespaces
+
+/// @namespace comms::option::def
+/// @brief Namespace that contains all the options used to @b define protocol.
+
+/// @namespace comms::option::app
+/// @brief Namespace that contains all the options used for @b application specific customization.
 
 /// @namespace comms::protocol
 /// @brief Namespace that contains definition of layers that can be used to

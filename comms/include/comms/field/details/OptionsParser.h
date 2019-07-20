@@ -78,7 +78,7 @@ public:
 
 template <typename T, typename... TOptions>
 class OptionsParser<
-    comms::option::CustomValueReader<T>,
+    comms::option::def::CustomValueReader<T>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -88,7 +88,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::HasCustomRead,
+    comms::option::def::HasCustomRead,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -97,7 +97,7 @@ public:
 
 template <std::intmax_t TOffset, typename... TOptions>
 class OptionsParser<
-    comms::option::NumValueSerOffset<TOffset>,
+    comms::option::def::NumValueSerOffset<TOffset>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -107,7 +107,7 @@ public:
 
 template <std::size_t TLen, bool TSignExtend, typename... TOptions>
 class OptionsParser<
-    comms::option::FixedLength<TLen, TSignExtend>,
+    comms::option::def::FixedLength<TLen, TSignExtend>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -118,7 +118,7 @@ public:
 
 template <std::size_t TLen, typename... TOptions>
 class OptionsParser<
-    comms::option::FixedBitLength<TLen>,
+    comms::option::def::FixedBitLength<TLen>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -128,7 +128,7 @@ public:
 
 template <std::size_t TMinLen, std::size_t TMaxLen, typename... TOptions>
 class OptionsParser<
-    comms::option::VarLength<TMinLen, TMaxLen>,
+    comms::option::def::VarLength<TMinLen, TMaxLen>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -139,7 +139,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceSizeForcingEnabled,
+    comms::option::def::SequenceSizeForcingEnabled,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -148,7 +148,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceLengthForcingEnabled,
+    comms::option::def::SequenceLengthForcingEnabled,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -157,7 +157,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceElemLengthForcingEnabled,
+    comms::option::def::SequenceElemLengthForcingEnabled,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -166,7 +166,7 @@ public:
 
 template <std::size_t TSize, typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceFixedSize<TSize>,
+    comms::option::def::SequenceFixedSize<TSize>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -176,7 +176,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceFixedSizeUseFixedSizeStorage,
+    comms::option::app::SequenceFixedSizeUseFixedSizeStorage,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -185,7 +185,7 @@ public:
 
 template <typename TSizeField, typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceSizeFieldPrefix<TSizeField>,
+    comms::option::def::SequenceSizeFieldPrefix<TSizeField>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -195,7 +195,7 @@ public:
 
 template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceSerLengthFieldPrefix<TField, TReadErrorStatus>,
+    comms::option::def::SequenceSerLengthFieldPrefix<TField, TReadErrorStatus>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -206,7 +206,7 @@ public:
 
 template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceElemSerLengthFieldPrefix<TField, TReadErrorStatus>,
+    comms::option::def::SequenceElemSerLengthFieldPrefix<TField, TReadErrorStatus>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -217,7 +217,7 @@ public:
 
 template <typename TField, comms::ErrorStatus TReadErrorStatus, typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceElemFixedSerLengthFieldPrefix<TField, TReadErrorStatus>,
+    comms::option::def::SequenceElemFixedSerLengthFieldPrefix<TField, TReadErrorStatus>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -228,7 +228,7 @@ public:
 
 template <typename TTrailField, typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceTrailingFieldSuffix<TTrailField>,
+    comms::option::def::SequenceTrailingFieldSuffix<TTrailField>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -238,7 +238,7 @@ public:
 
 template <typename TTermField, typename... TOptions>
 class OptionsParser<
-    comms::option::SequenceTerminationFieldSuffix<TTermField>,
+    comms::option::def::SequenceTerminationFieldSuffix<TTermField>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -248,7 +248,7 @@ public:
 
 template <typename TInitialiser, typename... TOptions>
 class OptionsParser<
-    comms::option::DefaultValueInitialiser<TInitialiser>,
+    comms::option::def::DefaultValueInitialiser<TInitialiser>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -258,7 +258,7 @@ public:
 
 template <typename TValidator, typename... TOptions>
 class OptionsParser<
-    comms::option::ContentsValidator<TValidator>,
+    comms::option::def::ContentsValidator<TValidator>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -268,7 +268,7 @@ public:
 
 template <typename TRefresher, typename... TOptions>
 class OptionsParser<
-    comms::option::ContentsRefresher<TRefresher>,
+    comms::option::def::ContentsRefresher<TRefresher>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -278,7 +278,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::HasCustomRefresh,
+    comms::option::def::HasCustomRefresh,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -287,7 +287,7 @@ public:
 
 template <comms::ErrorStatus TStatus, typename... TOptions>
 class OptionsParser<
-    comms::option::FailOnInvalid<TStatus>,
+    comms::option::def::FailOnInvalid<TStatus>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -297,7 +297,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::IgnoreInvalid,
+    comms::option::def::IgnoreInvalid,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -306,7 +306,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::InvalidByDefault,
+    comms::option::def::InvalidByDefault,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -315,7 +315,7 @@ public:
 
 template <std::size_t TSize, typename... TOptions>
 class OptionsParser<
-    comms::option::FixedSizeStorage<TSize>,
+    comms::option::app::FixedSizeStorage<TSize>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -325,7 +325,7 @@ public:
 
 template <typename TType, typename... TOptions>
 class OptionsParser<
-    comms::option::CustomStorageType<TType>,
+    comms::option::app::CustomStorageType<TType>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -335,7 +335,7 @@ public:
 
 template <std::intmax_t TNum, std::intmax_t TDenom, typename... TOptions>
 class OptionsParser<
-    comms::option::ScalingRatio<TNum, TDenom>,
+    comms::option::def::ScalingRatio<TNum, TDenom>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -345,7 +345,7 @@ public:
 
 template <typename TType, typename TRatio, typename... TOptions>
 class OptionsParser<
-    comms::option::Units<TType, TRatio>,
+    comms::option::def::Units<TType, TRatio>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -356,7 +356,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::OrigDataView,
+    comms::option::app::OrigDataView,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -365,7 +365,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::EmptySerialization,
+    comms::option::def::EmptySerialization,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -412,7 +412,7 @@ using MultiRangeAssemblerT =
 
 template <std::intmax_t TMinValue, std::intmax_t TMaxValue, typename... TOptions>
 class OptionsParser<
-    comms::option::ValidNumValueRange<TMinValue, TMaxValue>,
+    comms::option::def::ValidNumValueRange<TMinValue, TMaxValue>,
     TOptions...> : public OptionsParser<TOptions...>
 {
     using BaseImpl = OptionsParser<TOptions...>;
@@ -420,7 +420,7 @@ public:
 #ifdef CC_COMPILER_GCC47
     static_assert(!BaseImpl::HasMultiRangeValidation,
         "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
-        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "of comms::option::def::ValidNumValueRange options. Either use it only once or"
         "upgrade your compiler.");
 #endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::intmax_t, TMinValue, TMaxValue>;
@@ -429,7 +429,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::ValidRangesClear,
+    comms::option::def::ValidRangesClear,
     TOptions...> : public OptionsParser<TOptions...>
 {
     using BaseImpl = OptionsParser<TOptions...>;
@@ -441,7 +441,7 @@ public:
 
 template <std::uintmax_t TMinValue, std::uintmax_t TMaxValue, typename... TOptions>
 class OptionsParser<
-    comms::option::ValidBigUnsignedNumValueRange<TMinValue, TMaxValue>,
+    comms::option::def::ValidBigUnsignedNumValueRange<TMinValue, TMaxValue>,
     TOptions...> : public OptionsParser<TOptions...>
 {
     using BaseImpl = OptionsParser<TOptions...>;
@@ -449,7 +449,7 @@ public:
 #ifdef CC_COMPILER_GCC47
     static_assert(!BaseImpl::HasMultiRangeValidation,
         "Sorry gcc-4.7 fails to compile valid C++11 code that allows multiple usage"
-        "of comms::option::ValidNumValueRange options. Either use it only once or"
+        "of comms::option::def::ValidNumValueRange options. Either use it only once or"
         "upgrade your compiler.");
 #endif
     using MultiRangeValidationRanges = MultiRangeAssemblerT<BaseImpl, std::uintmax_t, TMinValue, TMaxValue>;
@@ -458,7 +458,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::HasCustomVersionUpdate,
+    comms::option::def::HasCustomVersionUpdate,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -467,7 +467,7 @@ public:
 
 template <std::uintmax_t TFrom, std::uintmax_t TUntil, typename... TOptions>
 class OptionsParser<
-    comms::option::ExistsBetweenVersions<TFrom, TUntil>,
+    comms::option::def::ExistsBetweenVersions<TFrom, TUntil>,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -478,7 +478,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::VersionStorage,
+    comms::option::def::VersionStorage,
     TOptions...> : public OptionsParser<TOptions...>
 {
 public:
@@ -487,12 +487,12 @@ public:
 
 template <std::size_t TIdx, typename... TOptions>
 class OptionsParser<
-    comms::option::RemLengthMemberField<TIdx>,
+    comms::option::def::RemLengthMemberField<TIdx>,
     TOptions...> : public OptionsParser<TOptions...>
 {
     using BaseImpl = OptionsParser<TOptions...>;
     static_assert(!BaseImpl::HasRemLengthMemberField, 
-        "Option comms::option::RemLengthMemberField used multiple times");
+        "Option comms::def::option::RemLengthMemberField used multiple times");
 public:
     static const bool HasRemLengthMemberField = true;
     static const std::size_t RemLengthMemberFieldIdx = TIdx;
@@ -500,7 +500,7 @@ public:
 
 template <typename... TOptions>
 class OptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public OptionsParser<TOptions...>
 {
 };

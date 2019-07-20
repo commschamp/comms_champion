@@ -35,13 +35,13 @@
 /// };
 ///
 /// // Base class for all the fields defining serialization endian
-/// using FieldBase = comms::field::Field<comms::option::BigEndian>;
+/// using FieldBase = comms::field::Field<comms::option::def::BigEndian>;
 ///
 /// // Definition of the message flags
 /// class MessageFlags : public
 ///     comms::field::BitmaskValue<
 ///         FieldBase,
-///         comms::option::BitmaskReservedBits<0xf0>
+///         comms::option::def::BitmaskReservedBits<0xf0>
 ///     >
 /// {
 /// public:
@@ -54,9 +54,9 @@
 /// class Message : public
 ///     comms::Message<
 ///         TOptions...,
-///         comms::option::BigEndian,
-///         comms::option::MsgIdType<MsgId>,
-///         comms::option::ExtraTransportFields<std::tuple<MessageFlags> >
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<std::tuple<MessageFlags> >
 ///     >
 /// {
 /// public:
@@ -84,8 +84,8 @@
 ///     comms::field::Bitfield<
 ///         FieldBase,
 ///         std::tuple<
-///             comms::field::IntValue<FieldBase, std::uint16_t, comms::option::FixedBitLength<12> >,
-///             comms::field::IntValue<FieldBase, std::uint8_t, comms::option::FixedBitLength<4> >
+///             comms::field::IntValue<FieldBase, std::uint16_t, comms::option::def::FixedBitLength<12> >,
+///             comms::field::IntValue<FieldBase, std::uint8_t, comms::option::def::FixedBitLength<4> >
 ///         >
 ///     >
 /// {
@@ -112,7 +112,7 @@
 ///     comms::protocol::MsgSizeLayer<
 ///         SizeAndFlagsField,   // Used field that contains remaining length
 ///         TNextLayer,          // Next layer in the protocol stack
-///         comms::option::ExtendingClass<MsgSizeAndFlagsLayer<TNextLayer> >
+///         comms::option::def::ExtendingClass<MsgSizeAndFlagsLayer<TNextLayer> >
 ///                              // Make the comms::protocol::MsgSizeLayer aware of it being extended
 ///     >
 /// {
@@ -159,7 +159,7 @@
 /// as the result not able to provide any polymorphic behavior. In order to be
 /// able to extend its default functionality there is a need to use 
 /// <a href="https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern">Curiously Recurring Template Pattern</a>.
-/// It is done by passing @ref comms::option::ExtendingClass extension option with
+/// It is done by passing @ref comms::option::def::ExtendingClass extension option with
 /// the type of the layer class being defined to the @ref comms::protocol::MsgSizeLayer.
 ///
 /// The extending class is expected to define the listed below functions. They do not
@@ -242,7 +242,7 @@
 ///     comms::protocol::MsgSizeLayer<
 ///         SizeAndFlagsField,   // Used field that contains remaining length
 ///         TNextLayer,          // Next layer in the protocol stack
-///         comms::option::ExtendingClass<MsgSizeAndFlagsLayer<TNextLayer> >
+///         comms::option::def::ExtendingClass<MsgSizeAndFlagsLayer<TNextLayer> >
 ///                              // Make the comms::protocol::MsgSizeLayer aware of it being extended
 ///     >
 /// {
@@ -292,7 +292,7 @@
 /// 
 /// template <typename TMessage, typename TAllMessages>
 /// struct Frame2 : public 
-///     MsgSizeAndFlagsLayer<                                          // SIZE + FLAGS 
+///     MsgSizeAndFlagsLayer<                                        // SIZE + FLAGS 
 ///         comms::protocol::MsgIdLayer<                             // ID
 ///             comms::feild::EnumValue<FieldBase, MsgId>
 ///             TMessage,
@@ -301,7 +301,7 @@
 ///                 comms::field::IntValue<FieldBase, std::uint8_t>, 
 ///                 0U,                                              
 ///                 comms::protocol::MsgDataLayer<>,                 // PAYLOAD      
-///                 comms::option::PseudoValue                       // Make flags "pseudo" 
+///                 comms::option::def::PseudoValue                  // Make flags "pseudo" 
 ///             >
 ///         >
 ///     >

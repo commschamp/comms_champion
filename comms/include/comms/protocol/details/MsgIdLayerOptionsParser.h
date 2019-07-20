@@ -42,7 +42,7 @@ public:
 };
 
 template <typename T, typename... TOptions>
-class MsgIdLayerOptionsParser<comms::option::ExtendingClass<T>, TOptions...> :
+class MsgIdLayerOptionsParser<comms::option::def::ExtendingClass<T>, TOptions...> :
         public MsgIdLayerOptionsParser<TOptions...>
 {
 public:
@@ -52,7 +52,7 @@ public:
 
 template <typename... TOptions>
 class MsgIdLayerOptionsParser<
-    comms::option::EmptyOption,
+    comms::option::app::EmptyOption,
     TOptions...> : public MsgIdLayerOptionsParser<TOptions...>
 {
 };

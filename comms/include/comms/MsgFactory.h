@@ -48,7 +48,7 @@ namespace comms
 ///     same ID, but implemented as different classes) are also supported. However
 ///     they must follow one another in this std::tuple, i.e. be sorted.
 /// @tparam TOptions Zero or more options. The supported options are:
-///     @li comms::option::InPlaceAllocation - Option to specify that custom
+///     @li @ref comms::option::app::InPlaceAllocation - Option to specify that custom
 ///         message objects are @b NOT allocated using dynamic memory, instead
 ///         an uninitialised area of memory in private members is used to contain
 ///         any type of custom message (provided with TAllMessages template parameter) and
@@ -56,24 +56,24 @@ namespace comms
 ///         this area.
 ///         The allocated message objects are returned from createMsg() function
 ///         wrapped in the smart pointer (variant of std::unique_ptr). If
-///         comms::option::InPlaceAllocation option is used, then the smart pointer
+///         @ref comms::option::app::InPlaceAllocation option is used, then the smart pointer
 ///         definition contains custom deleter, which will explicitly invoke
 ///         destructor of the message when the smart pointer is out of scope. It
 ///         means that it is @b NOT possible to create new message with this factory
 ///         if previously allocated one wasn't destructed yet.
-///         If comms::option::InPlaceAllocation option is NOT used, than the
+///         If @ref comms::option::app::InPlaceAllocation option is NOT used, than the
 ///         requested message objects are allocated using dynamic memory and
 ///         returned wrapped in std::unique_ptr without custom deleter.
-///     @li comms::option::SupportGenericMessage - Option used to allow
+///     @li @ref comms::option::app::SupportGenericMessage - Option used to allow
 ///         allocation of @ref comms::GenericMessage. If such option is
 ///         provided, the createGenericMsg() member function will be able
 ///         to allocate @ref comms::GenericMessage object. @b NOTE, that
 ///         the base class of @ref comms::GenericMessage type (first template
 ///         parameter) must be equal to @b TMsgBase (first template parameter)
 ///         of @b this class.
-///     @li @ref comms::option::ForceDispatchPolymorphic, 
-///         @ref comms::option::ForceDispatchStaticBinSearch, or
-///         @ref comms::option::ForceDispatchLinearSwitch - Force a particular
+///     @li @ref comms::option::app::ForceDispatchPolymorphic,
+///         @ref comms::option::app::ForceDispatchStaticBinSearch, or
+///         @ref comms::option::app::ForceDispatchLinearSwitch - Force a particular
 ///         dispatch way when creating message object given the numeric ID
 ///         (see @ref comms::MsgFactory::createMsg()). The dispatch methods
 ///         are properly described in @ref page_dispatch tutorial page.
@@ -87,7 +87,7 @@ namespace comms
 ///         @ref comms::MsgFactory::isDispatchLinearSwitch()
 /// @pre TMsgBase is a base class for all the messages in TAllMessages.
 /// @pre Message type is TAllMessages must be sorted based on their IDs.
-/// @pre If comms::option::InPlaceAllocation option is provided, only one custom
+/// @pre If @ref comms::option::app::InPlaceAllocation option is provided, only one custom
 ///     message can be allocated. The next one can be allocated only after previous
 ///     message has been destructed.
 /// @headerfile comms/MsgFactory.h
@@ -97,7 +97,7 @@ class MsgFactory : private details::MsgFactoryBase<TMsgBase, TAllMessages, TOpti
     using Base = details::MsgFactoryBase<TMsgBase, TAllMessages, TOptions...>;
     static_assert(TMsgBase::InterfaceOptions::HasMsgIdType,
         "Usage of MsgFactory requires Message interface to provide ID type. "
-        "Use comms::option::MsgIdType option in message interface type definition.");
+        "Use comms::option::def::MsgIdType option in message interface type definition.");
 
 public:
     /// @brief Parsed options
@@ -114,7 +114,7 @@ public:
 
     /// @brief Smart pointer to @ref Message which holds allocated message object.
     /// @details It is a variant of std::unique_ptr, based on whether
-    ///     comms::option::InPlaceAllocation option was used.
+    ///     @ref comms::option::app::InPlaceAllocation option was used.
     using MsgPtr = typename Base::MsgPtr;
 
     /// @brief All messages provided as template parameter to this class.
@@ -147,23 +147,29 @@ public:
     /// @param[out] reason Failure reason in case creation has failed. May be nullptr.
     /// @return Smart pointer (variant of std::unique_ptr) to @ref Message type,
     ///     which is a common base class of all the messages (provided as
-    ///     first template parameter to this class). If comms::option::InPlaceAllocation
+    ///     first template parameter to this class). If @ref comms::option::app::InPlaceAllocation
     ///     option was used and previously allocated message wasn't de-allocated
     ///     yet, the empty (null) pointer will be returned.
-    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0, CreateFailureReason* reason = nullptr) const
+    MsgPtr createMsg(MsgIdParamType id, unsigned idx = 0U, CreateFailureReason* reason = nullptr) const
     {
         return Base::createMsg(id, idx, reason);
     }
 
     /// @brief Allocate and initialise @ref comms::GenericMessage object.
-    /// @details If comms::option::SupportGenericMessage option hasn't been
+    /// @details If @ref comms::option::app::SupportGenericMessage option hasn't been
     ///     provided, this function will return empty @b MsgPtr pointer. Otherwise
     ///     the relevant allocator will be used to allocate @ref comms::GenericMessage.
     /// @param[in] id ID of the message, will be passed as a parameter to the
     ///     constructor of the @ref comms::GenericMessage class
-    MsgPtr createGenericMsg(MsgIdParamType id) const
+    /// @param idx Relative index (or offset) of the message with the same ID. In case
+    ///     protocol implementation contains multiple distinct message types
+    ///     that report same ID value, it must be possible to choose the
+    ///     relative index of such message from the first message type reporting
+    ///     the same ID. This parameter provides such an ability. However,
+    ///     most protocols will implement single message class for single ID.
+    MsgPtr createGenericMsg(MsgIdParamType id, unsigned idx = 0U) const
     {
-        return Base::createGenericMsg(id);
+        return Base::createGenericMsg(id, idx);
     }
 
     /// @brief Inquiry whether allocation is possible

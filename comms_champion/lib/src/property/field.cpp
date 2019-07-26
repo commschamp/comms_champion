@@ -129,26 +129,6 @@ const QString& Common::name() const
     return m_name;
 }
 
-bool Common::isHidden() const
-{
-    return m_hidden;
-}
-
-bool Common::isSerialisedHidden() const
-{
-    return m_serialisedHidden;
-}
-
-bool Common::isReadOnly() const
-{
-    return m_readOnly;
-}
-
-bool Common::isHiddenWhenReadOnly() const
-{
-    return m_hiddenWhenReadOnly;
-}
-
 void Common::setName(const QString& value)
 {
     m_name = value;
@@ -159,24 +139,48 @@ void Common::setName(const char* value)
     m_name = value;
 }
 
-void Common::hidden(bool value)
+bool Common::isHidden() const
+{
+    return m_hidden;
+}
+
+Common& Common::hidden(bool value)
 {
     m_hidden = value;
+    return *this;
 }
 
-void Common::serialisedHidden(bool value)
+bool Common::isSerialisedHidden() const
+{
+    return m_serialisedHidden;
+}
+
+Common& Common::serialisedHidden(bool value)
 {
     m_serialisedHidden = value;
+    return *this;
 }
 
-void Common::readOnly(bool value)
+bool Common::isReadOnly() const
+{
+    return m_readOnly;
+}
+
+Common& Common::readOnly(bool value)
 {
     m_readOnly = value;
+    return *this;
 }
 
-void Common::hiddenWhenReadOnly(bool value)
+bool Common::isHiddenWhenReadOnly() const
+{
+    return m_hiddenWhenReadOnly;
+}
+
+Common& Common::hiddenWhenReadOnly(bool value)
 {
     m_hiddenWhenReadOnly = value;
+    return *this;
 }
 
 void Common::setTo(QVariantMap& props) const

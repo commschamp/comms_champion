@@ -73,43 +73,43 @@ public:
     /// @brief Get name of the field
     const QString& name() const;
 
-    /// @brief Check the field is hidden
-    bool isHidden() const;
-
-    /// @brief Check the serialisation part is hidden
-    bool isSerialisedHidden() const;
-
-    /// @brief Check whether the field cannot be modified.
-    bool isReadOnly() const;
-
-    /// @brief Check the field is hidden when readOnly
-    bool isHiddenWhenReadOnly() const;
-
-protected:
-
     /// @brief Update the name value
     void setName(const QString& value);
 
     /// @brief Update the name value
     void setName(const char* value);
 
+    /// @brief Check the field is hidden
+    bool isHidden() const;
+
     /// @brief Set whether the field is hidden
-    void hidden(bool value = true);
+    Common& hidden(bool value = true);
+
+    /// @brief Check the serialisation part is hidden
+    bool isSerialisedHidden() const;
 
     /// @brief Set whether the serialised part is hidden
-    void serialisedHidden(bool value = true);
+    Common& serialisedHidden(bool value = true);
+
+    /// @brief Check whether the field cannot be modified.
+    bool isReadOnly() const;
 
     /// @brief Set whether the field cannot be modified
-    void readOnly(bool value = true);
+    Common& readOnly(bool value = true);
+
+    /// @brief Check the field is hidden when readOnly
+    bool isHiddenWhenReadOnly() const;
 
     /// @brief Set whether the field must be hidden when cannot be modified
-    void hiddenWhenReadOnly(bool value = true);
+    Common& hiddenWhenReadOnly(bool value = true);
 
     /// @brief Copy all the properties value into provided properties map
     void setTo(QVariantMap& props) const;
 
     /// @brief Read the properties values from the provided map
     void getFrom(const QVariantMap& props);
+
+protected:
 
     /// @brief set element value to the map
     /// @param[in] val Value to set
@@ -183,7 +183,7 @@ public:
     using Base::name;
 
     /// @brief Set name value
-    /// @return `*this`
+    /// @return reference to derived class
     TDerived& name(const QString& value)
     {
         Base::setName(value);
@@ -191,7 +191,7 @@ public:
     }
 
     /// @brief Set name value
-    /// @return `*this`
+    /// @return reference to derived class
     TDerived& name(const char* value)
     {
         Base::setName(value);
@@ -199,35 +199,31 @@ public:
     }
 
     /// @brief Set whether the field is hidden
-    /// @return `*this`
+    /// @return reference to derived class
     TDerived& hidden(bool value = true)
     {
-        Base::hidden(value);
-        return static_cast<TDerived&>(*this);
+        return static_cast<TDerived&>(Base::hidden(value));
     }
 
     /// @brief Set whether the serialised part is hidden
-    /// @return `*this`
+    /// @return reference to derived class
     TDerived& serialisedHidden(bool value = true)
     {
-        Base::serialisedHidden(value);
-        return static_cast<TDerived&>(*this);
+        return static_cast<TDerived&>(Base::serialisedHidden(value));
     }
 
     /// @brief Set whether the field cannot be modified
-    /// @return `*this`
+    /// @return reference to derived class
     TDerived& readOnly(bool value = true)
     {
-        Base::readOnly(value);
-        return static_cast<TDerived&>(*this);
+        return static_cast<TDerived&>(Base::readOnly(value));
     }
 
     /// @brief Set whether the field must be hidden when cannot be modified
-    /// @return `*this`
+    /// @return reference to derived class
     TDerived& hiddenWhenReadOnly(bool value = true)
     {
-        Base::hiddenWhenReadOnly(value);
-        return static_cast<TDerived&>(*this);
+        return static_cast<TDerived&>(Base::hiddenWhenReadOnly(value));
     }
 };
 

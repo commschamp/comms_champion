@@ -23,6 +23,12 @@ if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)
     include (${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)
 endif ()
 
+# Load information for each installed configuration.
+file(GLOB config_files "${CMAKE_CURRENT_LIST_DIR}/CommsChampionConfig-*.cmake")
+foreach(f ${config_files})
+    include(${f})
+endforeach()
+
 get_filename_component (CC_INSTALL_LIB_PROJ_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 get_filename_component (CC_INSTALL_LIB_DIR ${CC_INSTALL_LIB_PROJ_DIR} DIRECTORY)
 get_filename_component (CC_ROOT_DIR ${CC_INSTALL_LIB_DIR} DIRECTORY)

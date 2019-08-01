@@ -83,12 +83,12 @@ function (lib_comms_champion)
     
     include(CMakePackageConfigHelpers)
     write_basic_package_version_file(
-        ${CMAKE_BINARY_DIR}/${COMMS_CHAMPION_LIB_NAME}Export-Version.cmake
+        ${CMAKE_BINARY_DIR}/${COMMS_CHAMPION_LIB_NAME}ExportVersion.cmake
         VERSION ${COMMS_VERSION}
         COMPATIBILITY AnyNewerVersion)
         
     install (
-        FILES ${CMAKE_BINARY_DIR}/${COMMS_CHAMPION_LIB_NAME}Export-Version.cmake
+        FILES ${CMAKE_BINARY_DIR}/${COMMS_CHAMPION_LIB_NAME}ExportVersion.cmake
         DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake/
     )
     

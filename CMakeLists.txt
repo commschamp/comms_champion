@@ -161,8 +161,6 @@ set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
 set (CONFIG_INSTALL_REL_DIR ${CMAKE_INSTALL_DATADIR}/${INSTALL_NAME})
 set (CONFIG_INSTALL_DIR ${CONFIG_INSTALL_REL_DIR})
 
-install (DIRECTORY cmake DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME})
-
 file (READ "${CMAKE_SOURCE_DIR}/comms/include/comms/version.h" version_file)
 string (REGEX MATCH "COMMS_MAJOR_VERSION ([0-9]*)U*" _ ${version_file})
 set (major_ver ${CMAKE_MATCH_1})
@@ -171,6 +169,19 @@ set (minor_ver ${CMAKE_MATCH_1})
 string (REGEX MATCH "COMMS_PATCH_VERSION ([0-9]*)U*" _ ${version_file})
 set (patch_ver ${CMAKE_MATCH_1})
 set (COMMS_VERSION "${major_ver}.${minor_ver}.${patch_ver}")
+
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
+    VERSION ${COMMS_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+install (DIRECTORY cmake DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME})    
+install (
+    FILES ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake/
+)
 
 add_subdirectory (comms)
 

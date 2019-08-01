@@ -21,6 +21,7 @@ if (NOT CMAKE_CXX_STANDARD)
     set (CMAKE_CXX_STANDARD 11)
 endif()
 
+set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/externals")
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
         message (STATUS "Unittests are disabled")
@@ -39,20 +40,24 @@ while (TRUE)
     endif ()
     
     set (cxx_tag "4.4")
-    set (cxxtest_stamp "${CMAKE_BINARY_DIR}/cxxtest.stamp")
-    if ((EXISTS ${cxxtest_stamp}) AND (EXISTS "${CMAKE_BINARY_DIR}/cxxtest"))
+    set (cxxtest_stamp "${EXTERNALS_DIR}/cxxtest/cxxtest.stamp")
+    if (EXISTS ${cxxtest_stamp})
         execute_process (
             COMMAND ${GIT_EXECUTABLE} checkout ${cxx_tag}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest
         )
     else ()
         execute_process (
-            COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/cxxtest"
+            COMMAND ${CMAKE_COMMAND} -E remove_directory "${EXTERNALS_DIR}/cxxtest"
+        )
+        
+        execute_process (
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${EXTERNALS_DIR}"
         )
         
         execute_process (
             COMMAND ${GIT_EXECUTABLE} clone -b ${cxx_tag} --depth 1 https://github.com/CxxTest/cxxtest.git
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            WORKING_DIRECTORY ${EXTERNALS_DIR}
             RESULT_VARIABLE git_result
         )
     
@@ -66,7 +71,7 @@ while (TRUE)
         )
     endif ()
     
-    set (CXXTEST_INCLUDE_DIR "${CMAKE_BINARY_DIR}/cxxtest")
+    set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
     set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
     
     find_package (CxxTest)

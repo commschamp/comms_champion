@@ -163,6 +163,15 @@ set (CONFIG_INSTALL_DIR ${CONFIG_INSTALL_REL_DIR})
 
 install (DIRECTORY cmake DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME})
 
+file (READ "${CMAKE_SOURCE_DIR}/comms/include/comms/version.h" version_file)
+string (REGEX MATCH "COMMS_MAJOR_VERSION ([0-9]*)U*" _ ${version_file})
+set (major_ver ${CMAKE_MATCH_1})
+string (REGEX MATCH "COMMS_MINOR_VERSION ([0-9]*)U*" _ ${version_file})
+set (minor_ver ${CMAKE_MATCH_1})
+string (REGEX MATCH "COMMS_PATCH_VERSION ([0-9]*)U*" _ ${version_file})
+set (patch_ver ${CMAKE_MATCH_1})
+set (COMMS_VERSION "${major_ver}.${minor_ver}.${patch_ver}")
+
 add_subdirectory (comms)
 
 if (CC_COMMS_LIB_ONLY)

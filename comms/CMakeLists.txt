@@ -36,6 +36,17 @@ install(EXPORT commsExport NAMESPACE cc::
   DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake
 )
 
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/commsExport-Version.cmake
+    VERSION ${COMMS_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+    
+install (
+    FILES ${CMAKE_BINARY_DIR}/commsExport-Version.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake/
+)
+    
 install (
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/comms
     DESTINATION ${INC_INSTALL_DIR}

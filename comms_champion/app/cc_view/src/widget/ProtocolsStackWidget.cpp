@@ -176,7 +176,7 @@ void ProtocolsStackWidget::newItemSelected()
         assert(item != nullptr);
         msgPtrVar = item->data(0, Qt::UserRole);
         m_ui.m_protocolsTreeWidget->setCurrentItem(item);
-        assert(m_ui.m_protocolsTreeWidget->isItemSelected(item));
+        assert(item->isSelected());
     }
 
     assert(msgPtrVar.isValid());

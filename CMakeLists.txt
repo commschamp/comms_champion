@@ -188,6 +188,16 @@ install (
     DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake/
 )
 
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+    VERSION ${COMMS_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+    
+install (
+    FILES ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake/
+)
+
 add_subdirectory (comms)
 
 if (CC_COMMS_LIB_ONLY)

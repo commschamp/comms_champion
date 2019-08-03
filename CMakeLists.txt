@@ -178,24 +178,26 @@ set (COMMS_VERSION "${major_ver}.${minor_ver}.${patch_ver}")
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+    VERSION ${COMMS_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+write_basic_package_version_file(
     ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
     VERSION ${COMMS_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
-install (DIRECTORY cmake DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME})    
-install (
-    FILES ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake/
-)
+install (DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/LibComms DESTINATION ${LIB_INSTALL_DIR}/)    
+install (DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/CommsChampion DESTINATION ${LIB_INSTALL_DIR}/)
 
-write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
-    VERSION ${COMMS_VERSION}
-    COMPATIBILITY AnyNewerVersion)
-    
 install (
     FILES ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
-    DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake/
+    DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
+)
+
+install (
+    FILES ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
+    DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
 )
 
 add_subdirectory (comms)

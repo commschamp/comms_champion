@@ -15,8 +15,12 @@
 # cc::comms - Link target for COMMS library
 # cc::comms_champion - Link target for "comms_champion" libarary. Use it in plugin development.
 
-if ((NOT TARGET cc::comms) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/LibCommsConfig.cmake))
-    include (${CMAKE_CURRENT_LIST_DIR}/LibCommsConfig.cmake)
+get_filename_component(_ONE_UP_DIR "${CMAKE_CURRENT_LIST_DIR}" PATH)
+get_filename_component(_TWO_UP_DIR "${_ONE_UP_DIR}" PATH)
+set (LIBCOMMS_CMAKE_DIR "${_TWO_UP_DIR}/LibComms/cmake")
+
+if ((NOT TARGET cc::comms) AND (EXISTS ${LIBCOMMS_CMAKE_DIR}/LibCommsConfig.cmake))
+    include (${LIBCOMMS_CMAKE_DIR}/LibCommsConfig.cmake)
 endif ()
 
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)

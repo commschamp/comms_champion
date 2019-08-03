@@ -186,19 +186,33 @@ write_basic_package_version_file(
     ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
     VERSION ${COMMS_VERSION}
     COMPATIBILITY AnyNewerVersion)
+    
+set (LIB_COMMS_CMAKE_FILES
+    ${CMAKE_SOURCE_DIR}/cmake/LibCommsConfig.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/DocCleanupScript.cmake    
+    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+) 
 
-install (DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/LibComms DESTINATION ${LIB_INSTALL_DIR}/)    
-install (DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/CommsChampion DESTINATION ${LIB_INSTALL_DIR}/)
-
+set (COMMS_CHAMPION_CMAKE_FILES
+    ${CMAKE_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/DeployQt5.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/DocCleanupScript.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/GenWinAppStartBat.cmake                    
+    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+)    
+   
 install (
-    FILES ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+    FILES ${LIB_COMMS_CMAKE_FILES}
     DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
 )
 
 install (
-    FILES ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
+    FILES ${COMMS_CHAMPION_CMAKE_FILES}
     DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
 )
+
 
 add_subdirectory (comms)
 

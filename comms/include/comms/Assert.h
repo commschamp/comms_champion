@@ -148,6 +148,7 @@ private:
 };
 
 
+#ifndef COMMS_ASSERT
 #ifndef NDEBUG
 
 /// @cond DOCUCMENT_AM_ASSERT_FUNCTION
@@ -184,9 +185,12 @@ private:
 #define COMMS_ASSERT(expr) static_cast<void>(0)
 
 #endif // #ifndef NDEBUG
+#endif // #ifndef COMMS_ASSERT
 
+#ifndef GASSERT
 /// @brief Same as @ref COMMS_ASSERT
 /// @details Kept for backward compatibility of already written protocols.
 #define GASSERT(expr) COMMS_ASSERT(expr)
+#endif // #ifndef GASSERT
 
 }  // namespace comms

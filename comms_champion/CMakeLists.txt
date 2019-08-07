@@ -1,8 +1,6 @@
 find_package (Doxygen)
 if (DOXYGEN_FOUND)
-    set (doc_output_dir "${DOC_INSTALL_DIR}/comms_champion")
-    make_directory (${doc_output_dir})
-    
+    set (doc_output_dir "${CMAKE_INSTALL_PREFIX}/${DOC_INSTALL_DIR}/comms_champion")
     set (match_str "OUTPUT_DIRECTORY[^\n]*")
     set (replacement_str "OUTPUT_DIRECTORY = ${doc_output_dir}")
     set (output_file "${CMAKE_CURRENT_BINARY_DIR}/doxygen.conf")
@@ -13,6 +11,7 @@ if (DOXYGEN_FOUND)
     file (WRITE "${output_file}" "${modified_config_text}")
 
     add_custom_target ("doc_commschampion"
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${doc_output_dir}
             COMMAND ${DOXYGEN_EXECUTABLE} ${output_file}
             COMMAND ${CMAKE_COMMAND} -DDOC_OUTPUT_DIR="${doc_output_dir}" -P 
                             ${CMAKE_SOURCE_DIR}/cmake/DocCleanupScript.cmake

@@ -15,19 +15,33 @@
 # cc::comms - Link target for COMMS library
 # cc::comms_champion - Link target for "comms_champion" libarary. Use it in plugin development.
 
-if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/commsExport.cmake)
-    include (${CMAKE_CURRENT_LIST_DIR}/commsExport.cmake)
+get_filename_component(_ONE_UP_DIR "${CMAKE_CURRENT_LIST_DIR}" PATH)
+get_filename_component(_TWO_UP_DIR "${_ONE_UP_DIR}" PATH)
+set (LIBCOMMS_CMAKE_DIR "${_TWO_UP_DIR}/LibComms/cmake")
+
+if ((NOT TARGET cc::comms) AND (EXISTS ${LIBCOMMS_CMAKE_DIR}/LibCommsConfig.cmake))
+    include (${LIBCOMMS_CMAKE_DIR}/LibCommsConfig.cmake)
 endif ()
 
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)
     include (${CMAKE_CURRENT_LIST_DIR}/comms_championExport.cmake)
 endif ()
 
+if (NOT TARGET cc::comms_champion)
+    return ()
+endif ()
+
+# Load information for each installed configuration.
+file(GLOB config_files "${CMAKE_CURRENT_LIST_DIR}/CommsChampionConfig-*.cmake")
+foreach(f ${config_files})
+    include(${f})
+endforeach()
+
 get_filename_component (CC_INSTALL_LIB_PROJ_DIR ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 get_filename_component (CC_INSTALL_LIB_DIR ${CC_INSTALL_LIB_PROJ_DIR} DIRECTORY)
 get_filename_component (CC_ROOT_DIR ${CC_INSTALL_LIB_DIR} DIRECTORY)
 
-find_path(CC_INCLUDE_DIR NAMES comms/comms.h PATHS "${CC_ROOT_DIR}" PATH_SUFFIXES include)
+find_path(CC_INCLUDE_DIR NAMES comms_champion/Message.h PATHS "${CC_ROOT_DIR}" PATH_SUFFIXES include)
 find_library(CC_PLUGIN_LIBRARY  NAMES "comms_champion" PATHS "${CC_ROOT_DIR}" PATH_SUFFIXES lib)
 
 if (MSVC)
@@ -47,15 +61,11 @@ endif ()
 set (CC_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 find_package(PackageHandleStandardArgs REQUIRED)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(CC_COMMS REQUIRED_VARS CC_INCLUDE_DIR)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(CC_COMMS_CHAMPION REQUIRED_VARS 
     CC_ROOT_DIR CC_INCLUDE_DIR CC_PLUGIN_LIBRARY_DIR CC_PLUGIN_LIBRARY CC_CMAKE_DIR)
     
-if (CC_COMMS_FOUND)
-    set (CC_INCLUDE_DIRS ${CC_INCLUDE_DIR})
-endif ()
-
 if (CC_COMMS_CHAMPION_FOUND)
+    set (CC_INCLUDE_DIRS ${CC_INCLUDE_DIR})
     set (CC_PLUGIN_LIBRARIES ${CC_PLUGIN_LIBRARY})
     set (CC_PLUGIN_LIBRARY_DIRS ${CC_PLUGIN_LIBRARY_DIR})
 endif ()    

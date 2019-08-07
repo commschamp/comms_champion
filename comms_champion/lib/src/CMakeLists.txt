@@ -68,6 +68,8 @@ function (lib_comms_champion)
 
     target_compile_definitions(${name} PRIVATE -DCC_LIB_EXPORT)    
     
+    set_target_properties(${name} PROPERTIES VERSION ${COMMS_VERSION})
+    
     install (
         TARGETS ${name} EXPORT ${COMMS_CHAMPION_LIB_NAME}Export
         LIBRARY DESTINATION ${LIB_INSTALL_DIR}
@@ -78,7 +80,7 @@ function (lib_comms_champion)
     install(EXPORT ${COMMS_CHAMPION_LIB_NAME}Export NAMESPACE cc::
         DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME}/cmake
     )
-
+    
 endfunction ()
 
 ###########################################################

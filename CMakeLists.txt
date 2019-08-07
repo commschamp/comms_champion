@@ -21,6 +21,7 @@ if (NOT CMAKE_CXX_STANDARD)
     set (CMAKE_CXX_STANDARD 11)
 endif()
 
+set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/externals")
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
         message (STATUS "Unittests are disabled")
@@ -39,20 +40,24 @@ while (TRUE)
     endif ()
     
     set (cxx_tag "4.4")
-    set (cxxtest_stamp "${CMAKE_BINARY_DIR}/cxxtest.stamp")
-    if ((EXISTS ${cxxtest_stamp}) AND (EXISTS "${CMAKE_BINARY_DIR}/cxxtest"))
+    set (cxxtest_stamp "${EXTERNALS_DIR}/cxxtest/cxxtest.stamp")
+    if (EXISTS ${cxxtest_stamp})
         execute_process (
             COMMAND ${GIT_EXECUTABLE} checkout ${cxx_tag}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest
         )
     else ()
         execute_process (
-            COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/cxxtest"
+            COMMAND ${CMAKE_COMMAND} -E remove_directory "${EXTERNALS_DIR}/cxxtest"
+        )
+        
+        execute_process (
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${EXTERNALS_DIR}"
         )
         
         execute_process (
             COMMAND ${GIT_EXECUTABLE} clone -b ${cxx_tag} --depth 1 https://github.com/CxxTest/cxxtest.git
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            WORKING_DIRECTORY ${EXTERNALS_DIR}
             RESULT_VARIABLE git_result
         )
     
@@ -66,7 +71,7 @@ while (TRUE)
         )
     endif ()
     
-    set (CXXTEST_INCLUDE_DIR "${CMAKE_BINARY_DIR}/cxxtest")
+    set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
     set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
     
     find_package (CxxTest)
@@ -147,23 +152,67 @@ if (NOT "${CC_QT_DIR}" STREQUAL "")
     link_directories ("${CC_QT_DIR}/plugins/platforms")
 endif ()
 
-set (INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
-
 include(GNUInstallDirs)
 set (INSTALL_NAME "CommsChampion")
-set (LIB_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR})
-set (BIN_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_BINDIR})
-set (INC_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_INCLUDEDIR})
+set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
+set (INC_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
 set (PLUGIN_INSTALL_REL_DIR ${CMAKE_INSTALL_LIBDIR}/${INSTALL_NAME}/plugin)
-set (PLUGIN_INSTALL_DIR ${INSTALL_DIR}/${PLUGIN_INSTALL_REL_DIR})
+set (PLUGIN_INSTALL_DIR ${PLUGIN_INSTALL_REL_DIR})
 set (DATA_INSTALL_REL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/${INSTALL_NAME})
-set (DATA_INSTALL_DIR ${INSTALL_DIR}/${DATA_INSTALL_REL_DIR})
-set (DOC_INSTALL_DIR ${INSTALL_DIR}/${CMAKE_INSTALL_DATAROOTDIR}/doc)
+set (DATA_INSTALL_DIR ${DATA_INSTALL_REL_DIR})
+set (DOC_INSTALL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/doc)
 set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
 set (CONFIG_INSTALL_REL_DIR ${CMAKE_INSTALL_DATADIR}/${INSTALL_NAME})
-set (CONFIG_INSTALL_DIR ${INSTALL_DIR}/${CONFIG_INSTALL_REL_DIR})
+set (CONFIG_INSTALL_DIR ${CONFIG_INSTALL_REL_DIR})
 
-install (DIRECTORY cmake DESTINATION ${LIB_INSTALL_DIR}/${INSTALL_NAME})
+file (READ "${CMAKE_SOURCE_DIR}/comms/include/comms/version.h" version_file)
+string (REGEX MATCH "COMMS_MAJOR_VERSION ([0-9]*)U*" _ ${version_file})
+set (major_ver ${CMAKE_MATCH_1})
+string (REGEX MATCH "COMMS_MINOR_VERSION ([0-9]*)U*" _ ${version_file})
+set (minor_ver ${CMAKE_MATCH_1})
+string (REGEX MATCH "COMMS_PATCH_VERSION ([0-9]*)U*" _ ${version_file})
+set (patch_ver ${CMAKE_MATCH_1})
+set (COMMS_VERSION "${major_ver}.${minor_ver}.${patch_ver}")
+
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+    VERSION ${COMMS_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/CommsChampionConfigVersion.cmake
+    VERSION ${COMMS_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+    
+set (LIB_COMMS_CMAKE_FILES
+    ${CMAKE_SOURCE_DIR}/cmake/LibCommsConfig.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/DocCleanupScript.cmake    
+    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+) 
+
+set (COMMS_CHAMPION_CMAKE_FILES
+    ${CMAKE_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/DeployQt5.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/DocCleanupScript.cmake
+    ${CMAKE_SOURCE_DIR}/cmake/GenWinAppStartBat.cmake                    
+    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
+)    
+   
+install (
+    FILES ${LIB_COMMS_CMAKE_FILES}
+    DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
+)
+
+install (
+    FILES ${COMMS_CHAMPION_CMAKE_FILES}
+    DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
+)
+
 
 add_subdirectory (comms)
 

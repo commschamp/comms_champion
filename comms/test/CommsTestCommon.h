@@ -30,8 +30,8 @@ static_assert(0U < COMMS_MAKE_VERSION(0, 29, 0), "Invalid version definition");
 
 enum MessageType {
     MessageType1,
-    UnusedValue1,
     MessageType2,
+    UnusedValue1,
     UnusedValue2,
     UnusedValue3,
     MessageType3,

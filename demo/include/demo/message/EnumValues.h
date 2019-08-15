@@ -149,9 +149,9 @@ struct EnumValuesFields
             FieldBase,
             ValuesField4,
             typename TOpt::message::EnumValuesFields::field4,
-            comms::option::ValidBigUnsignedNumValue<(std::intmax_t)ValuesField4::Value1>,
-            comms::option::ValidBigUnsignedNumValue<(std::intmax_t)ValuesField4::Value2>,
-            comms::option::ValidBigUnsignedNumValue<(std::intmax_t)ValuesField4::Value3>
+            comms::option::ValidBigUnsignedNumValue<(std::uintmax_t)ValuesField4::Value1>,
+            comms::option::ValidBigUnsignedNumValue<(std::uintmax_t)ValuesField4::Value2>,
+            comms::option::ValidBigUnsignedNumValue<(std::uintmax_t)ValuesField4::Value3>
     >;
 
 

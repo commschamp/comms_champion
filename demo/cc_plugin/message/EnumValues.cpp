@@ -57,6 +57,7 @@ QVariantList createFieldsProperties()
             .add("Value3", (int)EnumValuesFields::ValuesField2::Value3)
             .add("Value4", (int)EnumValuesFields::ValuesField2::Value4)
             .asMap());
+
     props.append(
         cc::property::field::ForField<EnumValuesFields::field3>()
             .name("field3")
@@ -65,6 +66,14 @@ QVariantList createFieldsProperties()
             .add("Value3", (int)EnumValuesFields::ValuesField3::Value3)
             .add("Value4", (int)EnumValuesFields::ValuesField3::Value4)
             .add("Value5", (int)EnumValuesFields::ValuesField3::Value5)
+            .asMap());
+
+    props.append(
+        cc::property::field::ForField<EnumValuesFields::field4>()
+            .name("field3")
+            .add("Value1", (long long)EnumValuesFields::ValuesField4::Value1)
+            .add("Value2", (long long)EnumValuesFields::ValuesField4::Value2)
+            .add("Value3", (long long)EnumValuesFields::ValuesField4::Value3)
             .asMap());
 
     assert(props.size() == EnumValues::FieldIdx_numOfValues);

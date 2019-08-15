@@ -476,6 +476,29 @@ static constexpr bool dispatchMsgPolymorphicIsDirectSuitable()
         DispatchMsgPolymorphicIsDirectSuitable<TAllMessages, std::tuple_size<TAllMessages>::value>::Value;
 }
 
+template <typename TMsg, typename THandler, bool THasDispatch>
+struct DispatchMsgPolymorphicCompatibleHandlerDetector;
+
+template <typename TMsg, typename THandler>
+struct DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, false>
+{
+    static const bool Value = false;
+};
+
+template <typename TMsg, typename THandler>
+struct DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, true>
+{
+    static const bool Value = std::is_base_of<typename TMsg::Handler, THandler>::value;
+};
+
+template <typename TMsg, typename THandler>
+constexpr bool dispatchMsgPolymorphicIsCompatibleHandler()
+{
+    return
+        DispatchMsgPolymorphicCompatibleHandlerDetector<TMsg, THandler, TMsg::hasDispatch()>::Value;
+}
+
+
 template <typename TAllMessages, typename TMsgBase, typename THandler>
 class DispatchMsgPolymorphicHelper
 {
@@ -502,7 +525,7 @@ class DispatchMsgPolymorphicHelper
 
     using Tag = 
         typename std::conditional<
-            TMsgBase::hasDispatch(),
+            dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>(),
             DispatchInterfaceTag,
             typename std::conditional<
                 allMessagesAreStrongSorted<TAllMessages>(),
@@ -534,7 +557,7 @@ public:
                 comms::isMessageBase<MsgType>(),
                 EmptyTag,
                 typename std::conditional<
-                    TMsgBase::hasDispatch(),
+                    dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>(),
                     NoIdInterfaceTag,
                     typename std::conditional<
                         TMsgBase::hasGetId(),

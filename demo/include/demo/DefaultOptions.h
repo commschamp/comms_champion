@@ -68,6 +68,9 @@ struct DefaultOptions
 
             /// @brief Extra options for @ref demo::message::EnumValuesFields::field3
             using field3 = comms::option::EmptyOption;
+
+            /// @brief Extra options for @ref demo::message::EnumValuesFields::field4
+            using field4 = comms::option::EmptyOption;
         };
 
         /// @brief Extra options for fields in @ref demo::message::FloatValuesFields struct

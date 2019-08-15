@@ -134,11 +134,33 @@ struct EnumValuesFields
             comms::option::DefaultNumValue<(int)ValuesField3::Value1>
     >;
 
+    /// @brief Enumeration type for the @ref field4
+    /// @details The values are sequential and serialised as single byte
+    enum class ValuesField4 : std::uint64_t
+    {
+        Value1 = 0U, ///< Value1
+        Value2 = 0x7fffffffffffffff, ///< Value2
+        Value3 = 0xffffffffffffffff, ///< Value3
+    };
+
+    /// @brief 8 byte enumeration value.
+    using field4 =
+        comms::field::EnumValue<
+            FieldBase,
+            ValuesField4,
+            typename TOpt::message::EnumValuesFields::field4,
+            comms::option::ValidBigUnsignedNumValue<(std::intmax_t)ValuesField4::Value1>,
+            comms::option::ValidBigUnsignedNumValue<(std::intmax_t)ValuesField4::Value2>,
+            comms::option::ValidBigUnsignedNumValue<(std::intmax_t)ValuesField4::Value3>
+    >;
+
+
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
         field1,
         field2,
-        field3
+        field3,
+        field4
     >;
 };
 
@@ -182,15 +204,15 @@ public:
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
+    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when calls to doMinLength() and
     // doMaxLength() are performed inside static_assert.
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
-    static_assert(MsgMinLen == 4, "Unexpected min serialisation length");
-    static_assert(MsgMaxLen == 5, "Unexpected max serialisation length");
+    static_assert(MsgMinLen == 12, "Unexpected min serialisation length");
+    static_assert(MsgMaxLen == 13, "Unexpected max serialisation length");
 
     /// @brief Default constructor
     EnumValues() = default;

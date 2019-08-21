@@ -95,9 +95,9 @@ template <
     typename... TRest,
     typename TRetType>
 class GenericHandler<TDefault, std::tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TRest...>, TRetType>
-                    : public GenericHandler<TDefault, std::tuple<TRest...> >
+                    : public GenericHandler<TDefault, std::tuple<TRest...>, TRetType>
 {
-    using BaseImpl = GenericHandler<TDefault, std::tuple<TRest...> >;
+    using BaseImpl = GenericHandler<TDefault, std::tuple<TRest...>, TRetType>;
 public:
 
     using BaseImpl::handle;

@@ -109,6 +109,18 @@ endfunction ()
 
 #################################################################
 
+function (test_dispatch)
+    test_func ("Dispatch")
+endfunction ()
+
+#################################################################
+
+function (test_msg_factory)
+    test_func ("MsgFactory")
+endfunction ()
+
+#################################################################
+
 include_directories ("${CXXTEST_INCLUDE_DIR}")
 
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -138,3 +150,6 @@ test_transport_value_layer()
 test_util()
 test_custom_msg_id_layer()
 test_custom_msg_size_layer()
+test_dispatch()
+test_msg_factory ()
+

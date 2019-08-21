@@ -59,8 +59,8 @@ class EnumValueWrapperT : public NumericValueWrapperT<EnumValueWrapper, TField>
     using ValueType = typename Field::ValueType;
     using UnderlyingType = typename Base::UnderlyingType;
     static_assert(sizeof(ValueType) <= sizeof(UnderlyingType), "This wrapper cannot handle provided field.");
-    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
-        "This wrapper cannot handle provided field.");
+//    static_assert(std::is_signed<ValueType>::value || (sizeof(ValueType) < sizeof(UnderlyingType)),
+//        "This wrapper cannot handle provided field.");
 
 public:
     typedef typename Base::Ptr Ptr;

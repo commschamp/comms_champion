@@ -432,7 +432,34 @@ public:
 
 protected:
     ~MessageInterfaceHandlerBase() noexcept = default;
-    virtual DispatchRetType dispatchImpl(Handler& handler) = 0;
+    virtual DispatchRetType dispatchImpl(Handler& handler)
+    {
+        static_cast<void>(handler);
+        COMMS_ASSERT(!"Mustn't be called");
+        using Tag =
+            typename std::conditional<
+                std::is_void<DispatchRetType>::value,
+                VoidHandleRetTypeTag,
+                NonVoidHandleRetTypeTag
+            >::type;
+        return dispatchInternal(Tag());
+    }
+
+private:
+    struct VoidHandleRetTypeTag {};
+    struct NonVoidHandleRetTypeTag {};
+
+    static DispatchRetType dispatchInternal(VoidHandleRetTypeTag)
+    {
+        return;
+    }
+
+    static DispatchRetType dispatchInternal(NonVoidHandleRetTypeTag)
+    {
+        using RetTypeInternal = typename std::decay<DispatchRetType>::type;
+        static const RetTypeInternal Ret = RetTypeInternal();
+        return Ret;
+    }
 };
 
 template <bool THasHandler>

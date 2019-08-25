@@ -115,7 +115,7 @@ template <typename TFieldTo, typename TFieldFrom>
 TFieldTo field_cast(const TFieldFrom& field)
 {
     static const bool SameValues =
-        std::is_same<typename TFieldTo::ValueType, typename TFieldFrom::ValueType>::value;
+        std::is_convertible<typename TFieldFrom::ValueType, typename TFieldTo::ValueType>::value;
     return details::FieldCastHelper<TFieldTo, TFieldFrom, SameValues>::cast(field);
 }
 

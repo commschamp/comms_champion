@@ -20,7 +20,7 @@
 
 #include "ProtocolLayerBase.h"
 #include "details/TransportValueLayerAdapter.h"
-
+#include "comms/field_cast.h"
 
 namespace comms
 {
@@ -153,9 +153,7 @@ public:
             auto& transportField = std::get<TIdx>(allTransportFields);
 
             using FieldType = typename std::decay<decltype(transportField)>::type;
-            using ValueType = typename FieldType::ValueType;
-
-            transportField.value() = static_cast<ValueType>(field.value());
+            transportField = comms::field_cast<FieldType>(field);
         }
         return es;
     }
@@ -192,10 +190,8 @@ public:
         static_assert(TIdx < std::tuple_size<typename MsgType::TransportFields>::value,
             "TIdx is too big, exceeds the amount of transport fields defined in interface class");
 
-        using ValueType = typename Field::ValueType;
-
         auto& transportField = std::get<TIdx>(msg.transportFields());
-        field.value() = static_cast<ValueType>(transportField.value());
+        field = comms::field_cast<Field>(transportField);
 
         auto es = writeFieldInternal(field, iter, size, ValueTag());
         if (es != ErrorStatus::Success) {

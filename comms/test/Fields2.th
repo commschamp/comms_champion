@@ -38,6 +38,7 @@ public:
     void test1();
     void test2();
     void test3();
+    void test4();
 
 private:
 
@@ -353,6 +354,32 @@ void FieldsTestSuite2::test3()
         TS_ASSERT(field.refresh());
         TS_ASSERT_EQUALS(field.length(), 130U);
     } while (false);
+}
+
+void FieldsTestSuite2::test4()
+{
+    enum class Field2Val : std::uint16_t
+    {
+        V0 = 0,
+        V1 = 0xff
+    };
+
+    using FieldBase = comms::Field<BigEndianOpt>;
+    using Field1 = comms::field::IntValue<FieldBase, uint8_t>;
+    using Field2 = comms::field::EnumValue<FieldBase, Field2Val>;
+
+
+    Field1 field1;
+    Field2 field2;
+
+    TS_ASSERT_EQUALS(field1.length(), 1U);
+    TS_ASSERT_EQUALS(field2.length(), 2U);
+
+    Field1 field1Tmp;
+    field2.value() = Field2Val::V1;
+    field1Tmp = comms::assignToField(field1) = field2.value();
+    TS_ASSERT_EQUALS(field1.value(), 0xff);
+    TS_ASSERT_EQUALS(field1, field1Tmp);
 }
 
 template <typename TField>

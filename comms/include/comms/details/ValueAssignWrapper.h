@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2019 (C). Alex Robenko. All rights reserved.
+// Copyright 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -15,11 +15,46 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file
-/// Contained definition of field_cast() function. Now deprecated, use "comms/cast.h" instead.
-
 #pragma once
 
-#include "comms/cast.h"
+#include <type_traits>
 
+namespace comms
+{
 
+namespace details
+{
+
+template <typename T>
+class ValueAssignWrapper
+{
+    using ValueType = typename std::decay<T>::type;
+
+public:
+    explicit ValueAssignWrapper(T& value) : m_value(value) {}
+
+    template <typename U>
+    ValueAssignWrapper& operator=(U&& val)
+    {
+        m_value = static_cast<ValueType>(val);
+        return *this;
+    }
+
+    operator ValueType&()
+    {
+        return m_value;
+    }
+
+    operator const ValueType&() const
+    {
+        return m_value;
+    }
+
+private:
+
+    T& m_value;
+};
+
+} // namespace details
+
+} // namespace comms

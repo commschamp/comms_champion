@@ -24,7 +24,6 @@
 
 #include "comms/util/access.h"
 #include "comms/details/FieldBase.h"
-#include "comms/details/field_assign.h"
 #include "comms/details/macro_common.h"
 #include "comms/details/fields_access.h"
 
@@ -174,12 +173,6 @@ protected:
     }
 
 };
-
-template <typename TField>
-details::FieldAssignWrapper<TField> assignToField(TField& field)
-{
-    return details::FieldAssignWrapper<TField>(field);
-}
 
 /// @brief Add convenience access enum and functions to the members of
 ///     bundle fields, such as comms::field::Bundle or comms::field::Bitfield.

@@ -377,7 +377,7 @@ void FieldsTestSuite2::test4()
 
     Field1 field1Tmp;
     field2.value() = Field2Val::V1;
-    field1Tmp = comms::assignToField(field1) = field2.value();
+    field1Tmp.value() = comms::cast_assign(field1.value()) = field2.value();
     TS_ASSERT_EQUALS(field1.value(), 0xff);
     TS_ASSERT_EQUALS(field1, field1Tmp);
 }

@@ -20,7 +20,7 @@
 
 #include "ProtocolLayerBase.h"
 #include "details/TransportValueLayerAdapter.h"
-#include "comms/field_cast.h"
+#include "comms/cast.h"
 
 namespace comms
 {

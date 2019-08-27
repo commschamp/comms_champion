@@ -2121,6 +2121,55 @@
 /// please open reference page of a required @b field class for the list of
 /// supported options and read their documentation for more details.
 ///
+/// @subsection page_use_prot_fields_value_assign Field Value Assignment
+/// As was mentioned earlier, every field class has @b value() member function,
+/// which provides an access to internal value storage. Quite often there
+/// may be case when explicit cast is required.
+/// @code
+/// using MyField = comms::field::IntValue<FieldBase, std::uint8_t>; // One byte int
+/// int someValue = ...;
+/// MyField field;
+/// field.value() = static_cast<std::uint8_t>(someValue);
+/// @endcode
+/// The code above is boilerplate one, which in general should be avoided, because in
+/// case of the field definition being changed, the cast below must also be changed.
+/// Such boilerplate code can be avoided by using extra compile time type manipulations:
+/// @code
+/// field.value() = static_cast<typename std::decay<decltype(field.value())>::type>(someValue);
+/// @endcode
+/// However, it's too much typing to do and quite inconvenient for the developer.
+/// The @b COMMS library provides @ref comms::cast_assign() stand alone 
+/// function which can be used for easy assignments with implicit @b static_cast to
+/// appropriate type. It should be used for any arithmetic and/or enum storage
+/// values.
+/// @code
+/// comms::cast_assign(field.value()) = someValue; // static_cast is automatic
+/// @endcode
+///
+/// @subsection page_use_prot_fields_cast Cast Between Fields
+/// There may also be cases when value of one field needs to be assigned to
+/// value of another type. If @b static_cast between the values works, then
+/// it is possible to use @ref comms::cast_assign() function described in 
+/// @ref page_use_prot_fields_value_assign section above.
+/// @code
+/// comms::assign(field1.value()) = field2.value();
+/// @endcode
+/// However, there may be cases when such cast is not possible. For example
+/// value of 1 byte @ref comms::field::IntValue needs to be assigned to 
+/// a @ref comms::field::Bitfield length of which is also 1 byte, but it
+/// splits the value into a couple of inner members. In this case 
+/// the @ref comms::field_cast() function should be used.
+/// @code
+/// using MyInt = comms::field::IntValue<FieldBase, std::uint8_t>;
+/// using MyBitfield = comms::field::Bitfield<...>;
+/// MyInt field1;
+/// MyBitfield field2;
+/// ... // Set values of field1 and field2
+/// field2 = comms::field_cast<MyBitfield>(field1);
+/// @endcode
+/// @b NOTE, that casting and assignment is performed on the field objects
+/// themselves, not their stored values.
+///
 /// @section page_use_prot_transport Transport Framing
 /// In addition to definition of the messages and their contents, every 
 /// communication protocol must ensure that the message is successfully delivered 

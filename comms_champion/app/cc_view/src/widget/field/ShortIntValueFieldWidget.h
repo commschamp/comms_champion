@@ -49,7 +49,6 @@ protected:
 private slots:
     void serialisedValueUpdated(const QString& value);
     void valueUpdated(int value);
-    void refreshInternal();
     void specialSelected(long long value);
 
 private:

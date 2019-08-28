@@ -50,6 +50,8 @@ QVariantList createFieldsProperties()
         cc::property::field::ForField<FloatValuesFields::field3>()
             .name("field3")
             .scaledDecimals(2)
+            .addSpecial("S1", 123)
+            .addSpecial("S2", 22)
             .asMap());
 
     assert(props.size() == FloatValues::FieldIdx_numOfValues);

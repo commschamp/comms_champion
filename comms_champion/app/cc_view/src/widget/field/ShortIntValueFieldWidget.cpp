@@ -122,11 +122,6 @@ void ShortIntValueFieldWidget::valueUpdated(int value)
     emitFieldUpdated();
 }
 
-void ShortIntValueFieldWidget::refreshInternal()
-{
-    refresh();
-}
-
 void ShortIntValueFieldWidget::specialSelected(long long value)
 {
     if (!isEditEnabled()) {
@@ -161,7 +156,7 @@ bool ShortIntValueFieldWidget::createSpecialsWidget(const SpecialsList& specials
 
     connect(
         m_specialsWidget, SIGNAL(sigRefreshReq()),
-        this, SLOT(refreshInternal()));
+        this, SLOT(refresh()));
 
     m_ui.m_valueWidgetLayout->insertWidget(m_ui.m_valueWidgetLayout->count() - 1, m_specialsWidget);
 

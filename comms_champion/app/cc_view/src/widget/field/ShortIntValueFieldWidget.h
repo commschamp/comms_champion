@@ -23,9 +23,11 @@
 
 #include "ui_ShortIntValueFieldWidget.h"
 
+
 namespace comms_champion
 {
 
+class SpecialValueWidget;
 class ShortIntValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
@@ -47,16 +49,23 @@ protected:
 private slots:
     void serialisedValueUpdated(const QString& value);
     void valueUpdated(int value);
+    void refreshInternal();
+    void specialSelected(long long value);
 
 private:
+    using SpecialInfo = QPair<QString, long long>;
+    using SpecialsList = QList<SpecialInfo>;
+
     using WrapperType = WrapperPtr::element_type;
     using UnderlyingType = WrapperType::UnderlyingType;
     int adjustDisplayedToReal(int val);
     int adjustRealToDisplayed(int val);
+    bool createSpecialsWidget(const SpecialsList& specials);
 
     Ui::ShortIntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
     int m_offset = 0;
+    SpecialValueWidget* m_specialsWidget = nullptr;
 };
 
 

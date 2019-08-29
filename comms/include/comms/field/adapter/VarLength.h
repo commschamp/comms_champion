@@ -179,7 +179,6 @@ private:
             ++len;
         }
 
-        COMMS_ASSERT(len <= maxLength());
         return std::max(std::size_t(minLength()), std::min(len, maxLength()));
     }
 

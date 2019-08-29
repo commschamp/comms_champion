@@ -41,10 +41,18 @@ QVariantList createFieldsProperties()
     props.append(
         cc::property::field::ForField<FloatValuesFields::field1>()
             .name("field1")
+            .addSpecial("S1", 0.1f)
+            .addSpecial("S2", std::numeric_limits<float>::quiet_NaN())
+            .addSpecial("S3", std::numeric_limits<float>::infinity())
+            .addSpecial("S4", -std::numeric_limits<float>::infinity())
             .asMap());
     props.append(
         cc::property::field::ForField<FloatValuesFields::field2>()
             .name("field2")
+            .addSpecial("S1", 0.5)
+            .addSpecial("S2", std::numeric_limits<double>::quiet_NaN())
+            .addSpecial("S3", std::numeric_limits<double>::infinity())
+            .addSpecial("S4", -std::numeric_limits<double>::infinity())
             .asMap());
     props.append(
         cc::property::field::ForField<FloatValuesFields::field3>()

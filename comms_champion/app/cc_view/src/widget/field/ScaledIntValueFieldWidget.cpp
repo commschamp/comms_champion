@@ -157,6 +157,7 @@ bool ScaledIntValueFieldWidget::createSpecialsWidget(const SpecialsList& special
 {
     delete m_specialsWidget;
     if (specials.empty()) {
+        m_specialsWidget = nullptr;
         return false;
     }
 

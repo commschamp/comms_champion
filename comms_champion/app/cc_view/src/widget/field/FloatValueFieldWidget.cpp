@@ -24,6 +24,7 @@
 #include <QtCore/QTimer>
 
 #include "comms_champion/property/field.h"
+#include "SpecialValueWidget.h"
 
 namespace comms_champion
 {
@@ -98,6 +99,11 @@ void FloatValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+
+    if (m_specialsWidget != nullptr) {
+        m_specialsWidget->setFpValue(m_wrapper->getValue());
+    }
+
 }
 
 void FloatValueFieldWidget::editEnabledUpdatedImpl()
@@ -109,11 +115,19 @@ void FloatValueFieldWidget::editEnabledUpdatedImpl()
 
 void FloatValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto decimals = property::field::FloatValue(props).decimals();
+    property::field::FloatValue actProps(props);
+    auto decimals = actProps.decimals();
     if (decimals == 0) {
         decimals = DefaultDecimals;
     }
     m_ui.m_valueSpinBox->setDecimals(decimals);
+
+    auto& specials = actProps.specials();
+    bool needRefresh = createSpecialsWidget(specials);
+
+    if (needRefresh) {
+        refresh();
+    }
 }
 
 void FloatValueFieldWidget::serialisedValueUpdated(const QString& value)
@@ -173,6 +187,16 @@ void FloatValueFieldWidget::typeUpdated(int value)
     }
 }
 
+void FloatValueFieldWidget::specialSelected(double value)
+{
+    if (!isEditEnabled()) {
+        refresh();
+        return;
+    }
+
+    valueUpdated(value);
+}
+
 void FloatValueFieldWidget::updateSpinBoxValueRange()
 {
     auto value = m_wrapper->getValue();
@@ -223,6 +247,28 @@ int FloatValueFieldWidget::getTypeIndex()
     }
 
     return ValueType_val;
+}
+
+bool FloatValueFieldWidget::createSpecialsWidget(const SpecialsList& specials)
+{
+    delete m_specialsWidget;
+    if (specials.empty()) {
+        m_specialsWidget = nullptr;
+        return false;
+    }
+
+    m_specialsWidget = new SpecialValueWidget(specials);
+    connect(
+        m_specialsWidget, SIGNAL(sigFpValueChanged(double)),
+        this, SLOT(specialSelected(double)));
+
+    connect(
+        m_specialsWidget, SIGNAL(sigRefreshReq()),
+        this, SLOT(refresh()));
+
+    m_ui.m_valueWidgetLayout->insertWidget(m_ui.m_valueWidgetLayout->count() - 1, m_specialsWidget);
+
+    return true;
 }
 
 }  // namespace comms_champion

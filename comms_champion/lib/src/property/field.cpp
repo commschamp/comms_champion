@@ -690,17 +690,30 @@ FloatValue& FloatValue::decimals(int value)
     return *this;
 }
 
+const FloatValue::SpecialsList& FloatValue::specials() const
+{
+    return m_specials;
+}
+
+FloatValue& FloatValue::addSpecial(const QString& elemName, double value)
+{
+    m_specials.append(SpecialType(elemName, value));
+    return *this;
+}
+
 QVariantMap FloatValue::asMap() const
 {
     QVariantMap props;
     Base::setTo(props);
     Base::setElemTo(m_decimals, floatDecimalsKey(), props);
+    Base::setElemTo(m_specials, specialsKey(), props);
     return props;
 }
 
 void FloatValue::getFrom(const QVariantMap& props)
 {
     m_decimals = getElemFrom<decltype(m_decimals)>(props, floatDecimalsKey());
+    m_specials = getElemFrom<decltype(m_specials)>(props, specialsKey());
 }
 
 Variant::Variant() = default;

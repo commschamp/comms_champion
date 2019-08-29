@@ -693,6 +693,13 @@ class CC_API FloatValue : public CommonBase<FloatValue>
 {
     typedef CommonBase<FloatValue> Base;
 public:
+    /// @brief The special value is described as string containing name and
+    ///     the actual numeric value.
+    using SpecialType = QPair<QString, double>;
+
+    /// @brief List of special values
+    using SpecialsList = QList<SpecialType>;
+
     /// @brief Default constructor
     FloatValue();
 
@@ -723,6 +730,15 @@ public:
     /// @brief Set number of decimal digits to display
     FloatValue& decimals(int value);
 
+    /// @brief Get access to all the special values information
+    const SpecialsList& specials() const;
+
+    /// @brief Add speical value
+    /// @param[in] specialName Name of the special value.
+    /// @param[in] value Numeric value
+    FloatValue& addSpecial(const QString& specialName, double value);
+
+
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
@@ -730,6 +746,7 @@ private:
     void getFrom(const QVariantMap& props);
 
     int m_decimals = 0;
+    SpecialsList m_specials;
 };
 
 /// @brief Class to contain all the properties relevant to

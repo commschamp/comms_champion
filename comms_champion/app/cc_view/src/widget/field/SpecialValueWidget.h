@@ -33,31 +33,40 @@ class SpecialValueWidget : public QWidget
     typedef QWidget Base;
 public:
 
-    /// @brief The special value is described as string containing name and
-    ///     the actual numeric value.
     using IntValueInfo = QPair<QString, long long>;
-
-    /// @brief List of special values
     using IntValueInfosList = QList<IntValueInfo>;
 
+    using FpValueInfo = QPair<QString, double>;
+    using FpValueInfosList = QList<FpValueInfo>;
 
     explicit SpecialValueWidget(
         const IntValueInfosList& infos,
         QWidget* parentObj = nullptr);
 
+    explicit SpecialValueWidget(
+        const FpValueInfosList& infos,
+        QWidget* parentObj = nullptr);
+
+
     ~SpecialValueWidget() noexcept;
 
     void setIntValue(long long value);
+    void setFpValue(double value);
 
 signals:
     void sigIntValueChanged(long long value);
+    void sigFpValueChanged(double value);
     void sigRefreshReq();
 
 private slots:
     void itemSelected(int idx);
 
 private:
+    template <typename T>
+    void commonSetup(const T& infos);
+
     Ui::SpecialValueWidget m_ui;
+    bool m_fpSpecials = false;
 };
 
 

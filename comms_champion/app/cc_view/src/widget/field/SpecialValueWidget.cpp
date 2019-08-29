@@ -18,14 +18,13 @@
 #include "SpecialValueWidget.h"
 
 #include <cassert>
+#include <cmath>
 
 namespace comms_champion
 {
 
-SpecialValueWidget::SpecialValueWidget(
-    const IntValueInfosList& infos,
-    QWidget* parentObj)
-  : Base(parentObj)
+template <typename T>
+void SpecialValueWidget::commonSetup(const T& infos)
 {
     m_ui.setupUi(this);
     for (auto& i : infos) {
@@ -37,10 +36,28 @@ SpecialValueWidget::SpecialValueWidget(
         this, SLOT(itemSelected(int)));
 }
 
+SpecialValueWidget::SpecialValueWidget(
+    const IntValueInfosList& infos,
+    QWidget* parentObj)
+  : Base(parentObj)
+{
+    commonSetup(infos);
+}
+
+SpecialValueWidget::SpecialValueWidget(
+    const FpValueInfosList& infos,
+    QWidget* parentObj)
+  : Base(parentObj),
+    m_fpSpecials(true)
+{
+    commonSetup(infos);
+}
+
 SpecialValueWidget::~SpecialValueWidget() noexcept = default;
 
 void SpecialValueWidget::setIntValue(long long value)
 {
+    assert(!m_fpSpecials);
     m_ui.m_specialComboBox->blockSignals(true);
     bool foundValue = false;
     for (auto idx = 0; idx < m_ui.m_specialComboBox->count(); ++idx) {
@@ -68,12 +85,76 @@ void SpecialValueWidget::setIntValue(long long value)
     m_ui.m_specialComboBox->blockSignals(false);
 }
 
+void SpecialValueWidget::setFpValue(double value)
+{
+    assert(m_fpSpecials);
+    m_ui.m_specialComboBox->blockSignals(true);
+    bool foundValue = false;
+    for (auto idx = 0; idx < m_ui.m_specialComboBox->count(); ++idx) {
+        auto valueVar = m_ui.m_specialComboBox->itemData(idx);
+        if (!valueVar.isValid()) {
+            continue;
+        }
+
+
+        assert(valueVar.canConvert<double>());
+        auto storedValue = valueVar.value<double>();
+
+        if (std::isnan(value) && std::isnan(storedValue)) {
+            m_ui.m_specialComboBox->setCurrentIndex(idx);
+            foundValue = true;
+            break;
+        }
+
+        bool valueIsInf = std::isinf(value);
+        bool storedValueIsInf = std::isinf(storedValue);
+        if (valueIsInf != storedValueIsInf) {
+            continue;
+        }
+
+        if (valueIsInf) {
+            bool valueIsPositive = (value > 0.0);
+            bool storedValueIsPositive = (storedValue > 0.0);
+            if (valueIsPositive != storedValueIsPositive) {
+                continue;
+            }
+
+            m_ui.m_specialComboBox->setCurrentIndex(idx);
+            foundValue = true;
+            break;
+        }
+
+        if (storedValue != value) {
+            continue;
+        }
+
+
+        m_ui.m_specialComboBox->setCurrentIndex(idx);
+        foundValue = true;
+        break;
+    }
+
+    if (!foundValue) {
+        m_ui.m_specialComboBox->setCurrentIndex(0);
+    }
+
+    m_ui.m_specialComboBox->blockSignals(false);
+}
+
+
 void SpecialValueWidget::itemSelected(int idx)
 {
     static_cast<void>(idx);
     auto valueVar = m_ui.m_specialComboBox->currentData();
     if (!valueVar.isValid()) {
         emit sigRefreshReq();
+        return;
+    }
+
+    if (m_fpSpecials) {
+        assert(valueVar.canConvert<double>());
+        auto value = valueVar.value<double>();
+        emit sigFpValueChanged(value);
         return;
     }
 

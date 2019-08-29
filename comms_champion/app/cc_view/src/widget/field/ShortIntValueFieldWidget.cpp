@@ -146,6 +146,7 @@ bool ShortIntValueFieldWidget::createSpecialsWidget(const SpecialsList& specials
 {
     delete m_specialsWidget;
     if (specials.empty()) {
+        m_specialsWidget = nullptr;
         return false;
     }
 

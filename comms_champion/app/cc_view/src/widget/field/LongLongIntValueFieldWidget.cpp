@@ -174,6 +174,7 @@ bool LongLongIntValueFieldWidget::createSpecialsWidget(const SpecialsList& speci
 {
     delete m_specialsWidget;
     if (specials.empty()) {
+        m_specialsWidget = nullptr;
         return false;
     }
 

@@ -616,6 +616,12 @@ public:
     /// @brief Set name of the size/length prefix displayed separately.
     ArrayList& prefixName(const QString& nameParam);
 
+    /// @brief Check whether index info needs to be appended to element name.
+    bool isIndexAppendedToElementName() const;
+
+    /// @brief Set whether index infor needs to be appended to element name.
+    ArrayList& appendIndexToElementName(bool value = true);
+
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
@@ -623,8 +629,9 @@ private:
     void getFrom(const QVariantMap& props);
 
     ElemsList m_elems;
-    bool m_showPrefix = false;
     QString m_prefixName;
+    bool m_showPrefix = false;
+    bool m_appendIndexToElementName = false;
 };
 
 /// @brief Class to contain all the properties relevant to

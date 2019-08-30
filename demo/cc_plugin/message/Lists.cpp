@@ -59,6 +59,7 @@ QVariantMap createField4Properties()
     return
         cc::property::field::ForField<ListsFields::field4>()
             .name("field4")
+            .appendIndexToElementName()
             .add(cc::property::field::IntValue().name("element").serialisedHidden().asMap())
             .asMap();
 }
@@ -68,11 +69,12 @@ QVariantMap createField5Properties()
     return
         cc::property::field::ForField<ListsFields::field5>()
             .name("field5")
+            .appendIndexToElementName()
             .add(
                 cc::property::field::ForField<ListsFields::field5::ValueType::value_type>()
                     .name("element")
-                    .add(cc::property::field::IntValue().name("memeber1").serialisedHidden().asMap())
-                    .add(cc::property::field::IntValue().name("memeber2").serialisedHidden().asMap())
+                    .add(cc::property::field::IntValue().name("member1").serialisedHidden().asMap())
+                    .add(cc::property::field::IntValue().name("member2").serialisedHidden().asMap())
                     .add(cc::property::field::String().name("memeber3").serialisedHidden().asMap())
                     .serialisedHidden()
                     .asMap())

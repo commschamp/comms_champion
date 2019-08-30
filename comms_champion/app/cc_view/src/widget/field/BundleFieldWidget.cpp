@@ -41,6 +41,7 @@ BundleFieldWidget::BundleFieldWidget(QWidget* parentObj)
     m_label->hide();
     m_membersLayout->addWidget(m_label);
     setLayout(m_membersLayout);
+    setNameLabelWidget(m_label);
 }
 
 BundleFieldWidget::~BundleFieldWidget() noexcept = default;
@@ -90,16 +91,6 @@ void BundleFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         assert(memberFieldWidget != nullptr);
         memberFieldWidget->updateProperties(membersProps[idx]);
     }
-
-    assert(m_label != nullptr);
-    auto name = bundleProps.name();
-    if (name.isEmpty()) {
-        m_label->hide();
-        return;
-    }
-
-    m_label->setText(name + ':');
-    m_label->show();
 }
 
 void BundleFieldWidget::memberFieldUpdated()

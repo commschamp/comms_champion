@@ -135,6 +135,7 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     property::field::ArrayList arrayListProps(props);
     m_ui.m_prefixNameLabel->setText(arrayListProps.prefixName());
     m_prefixVisible = arrayListProps.isPrefixVisible();
+    m_appendIndexToElementName = arrayListProps.isIndexAppendedToElementName();
     updatePrefixField();
     auto& elementsProps = arrayListProps.elements();
 
@@ -191,6 +192,10 @@ void ArrayListFieldWidget::removeField()
 
 void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
 {
+    if (m_appendIndexToElementName) {
+        dataFieldWidget->setNameSuffix(QString(" %1").arg(m_elements.size()));
+    }
+
     auto* wrapperWidget = new ArrayListElementWidget(dataFieldWidget);
     wrapperWidget->setEditEnabled(isEditEnabled());
     wrapperWidget->setDeletable(!m_wrapper->hasFixedSize());

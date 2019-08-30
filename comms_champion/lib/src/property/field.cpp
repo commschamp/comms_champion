@@ -107,6 +107,12 @@ const QString& specialsKey()
     return Str;
 }
 
+const QString& appendIdxKey()
+{
+    static const QString Str("cc.append_idx");
+    return Str;
+}
+
 
 }  // namespace
 
@@ -578,21 +584,34 @@ ArrayList& ArrayList::prefixName(const QString& nameParam)
     return *this;
 }
 
+bool ArrayList::isIndexAppendedToElementName() const
+{
+    return m_appendIndexToElementName;
+}
+
+ArrayList& ArrayList::appendIndexToElementName(bool value)
+{
+    m_appendIndexToElementName = value;
+    return *this;
+}
+
 QVariantMap ArrayList::asMap() const
 {
     QVariantMap props;
     Base::setTo(props);
     Base::setElemTo(m_elems, dataKey(), props);
-    Base::setElemTo(m_showPrefix, showPrefixKey(), props);
     Base::setElemTo(m_prefixName, prefixNameKey(), props);
+    Base::setElemTo(m_showPrefix, showPrefixKey(), props);
+    Base::setElemTo(m_appendIndexToElementName, appendIdxKey(), props);
     return props;
 }
 
 void ArrayList::getFrom(const QVariantMap& props)
 {
     m_elems = getElemFrom<ElemsList>(props, dataKey());
-    m_showPrefix = getElemFrom<bool>(props, showPrefixKey());
     m_prefixName = getElemFrom<QString>(props, prefixNameKey());
+    m_showPrefix = getElemFrom<bool>(props, showPrefixKey());
+    m_appendIndexToElementName = getElemFrom<bool>(props, appendIdxKey());
 }
 
 Optional::Optional() = default;

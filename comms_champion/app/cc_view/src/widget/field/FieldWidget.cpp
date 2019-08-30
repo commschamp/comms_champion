@@ -220,6 +220,10 @@ void FieldWidget::performNameLabelUpdate(const property::field::Common& props)
         return;
     }
 
+    if (!m_nameSuffix.isEmpty()) {
+        str.append(m_nameSuffix);
+    }
+
     str.append(':');
     m_nameLabel->setText(str);
     m_nameLabel->show();

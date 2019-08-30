@@ -111,6 +111,7 @@ private:
     CreateMissingDataFieldsFunc m_createMissingDataFieldsCallback;
     std::vector<QVariantMap> m_elemProperties;
     bool m_prefixVisible = false;
+    bool m_appendIndexToElementName = false;
 };
 
 }  // namespace comms_champion

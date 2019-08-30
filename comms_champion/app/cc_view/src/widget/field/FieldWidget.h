@@ -48,6 +48,16 @@ public:
     FieldWidget(QWidget* parentObj = nullptr);
     ~FieldWidget() noexcept = default;
 
+    void setNameSuffix(const QString& value)
+    {
+        m_nameSuffix = value;
+    }
+
+    const QString& getNameSuffix() const
+    {
+        return m_nameSuffix;
+    }
+
 public slots:
     void refresh();
     void setEditEnabled(bool enabled);
@@ -129,6 +139,7 @@ private:
     QWidget* m_valueWidget = nullptr;
     QWidget* m_sepWidget = nullptr;
     QWidget* m_serValueWidget = nullptr;
+    QString m_nameSuffix;
 };
 
 typedef std::unique_ptr<FieldWidget> FieldWidgetPtr;

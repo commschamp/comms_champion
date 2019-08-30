@@ -94,6 +94,7 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         return;
     } while (false);
 
+    m_childWidget->setNameSuffix(getNameSuffix());
     assert(m_childWidget);
     auto* childLayout = new QVBoxLayout();
     childLayout->addWidget(m_childWidget.get());

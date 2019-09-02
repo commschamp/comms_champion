@@ -63,6 +63,15 @@ QAction* createSaveButton(QToolBar& bar)
     return action;
 }
 
+QAction* createCommentButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(icon::comment(), "Add/Edit Message Comment");
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(recvCommentClicked()));
+    return action;
+}
+
 QAction* createDeleteButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::remove(), "Delete Selected Message");
@@ -125,6 +134,7 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parentObj)
     m_startStopButton(createStartButton(*this)),
     m_loadButton(createLoadButton(*this)),
     m_saveButton(createSaveButton(*this)),
+    m_commentButton(createCommentButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
     m_showGarbageButton(createShowGarbage(*this)),
@@ -230,6 +240,7 @@ void RecvAreaToolBar::refresh()
     refreshStartStopButton();
     refreshLoadButton();
     refreshSaveButton();
+    refreshCommentButton();
     refreshDeleteButton();
     refreshClearButton();
 }
@@ -290,6 +301,16 @@ void RecvAreaToolBar::refreshSaveButton()
 
         enabled = true;
     } while (false);
+    button->setEnabled(enabled);
+}
+
+void RecvAreaToolBar::refreshCommentButton()
+{
+    auto* button = m_commentButton;
+    assert(button);
+    bool enabled =
+        (m_activeState == ActivityState::Active) &&
+        msgSelected();
     button->setEnabled(enabled);
 }
 

@@ -40,6 +40,7 @@ CC_ENABLE_WARNINGS()
 #include "MsgFileMgrG.h"
 #include "icon.h"
 #include "MainToolbar.h"
+#include "MsgCommentDialog.h"
 
 namespace comms_champion
 {
@@ -101,6 +102,9 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
     connect(
         guiAppMgr, SIGNAL(sigSaveSendMsgsDialog()),
         this, SLOT(saveSendMsgsDialog()));
+    connect(
+        guiAppMgr, SIGNAL(sigMsgCommentDialog(MessagePtr)),
+        this, SLOT(msgCommentDialog(MessagePtr)));
     connect(
         m_ui.m_actionQuit, SIGNAL(triggered()),
         this, SLOT(close()));
@@ -250,6 +254,17 @@ void MainWindowWidget::saveSendMsgsDialog()
     GuiAppMgr::instance()->sendSaveMsgsToFile(filename);
 }
 
+void MainWindowWidget::msgCommentDialog(MessagePtr msg)
+{
+    assert(msg);
+    MsgCommentDialog dialog(msg, this);
+    dialog.resize(width() / 2, dialog.height());
+    int result = dialog.exec();
+    if (result != 0) {
+        GuiAppMgr::instance()->msgCommentUpdated(std::move(msg));
+    }
+}
+
 void MainWindowWidget::aboutInfo()
 {
     static const QString AboutTxt(
@@ -320,6 +335,5 @@ QString MainWindowWidget::saveMsgsDialog()
             msgsFileMgr.getFilesFilter());
 
 }
-
 
 }  // namespace comms_champion

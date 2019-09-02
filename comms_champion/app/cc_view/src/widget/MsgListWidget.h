@@ -89,6 +89,7 @@ private slots:
     void itemClicked(QListWidgetItem* item);
     void currentItemChanged(QListWidgetItem* current, QListWidgetItem* prev);
     void itemDoubleClicked(QListWidgetItem* item);
+    void msgCommentUpdated(MessagePtr msg);
 
 private:
     MessagePtr getMsgFromItem(QListWidgetItem* item) const;

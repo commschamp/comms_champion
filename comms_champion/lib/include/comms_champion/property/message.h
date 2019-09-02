@@ -105,7 +105,7 @@ class CC_API Type : public PropBase<unsigned>
 public:
     typedef Message::Type ValueType;
 
-    Type() : Base(Name, PropName) {};
+    Type() : Base(Name, PropName) {}
 
     template <typename TTo>
     void setTo(ValueType val, TTo&& to)
@@ -128,7 +128,7 @@ class CC_API Timestamp : public PropBase<unsigned long long>
 {
     typedef PropBase<unsigned long long> Base;
 public:
-    Timestamp() : Base(Name, PropName) {};
+    Timestamp() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -139,7 +139,7 @@ class CC_API ProtocolName : public PropBase<QString>
 {
     typedef PropBase<QString> Base;
 public:
-    ProtocolName() : Base(Name, PropName) {};
+    ProtocolName() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -150,7 +150,7 @@ class CC_API TransportMsg : public PropBase<MessagePtr>
 {
     typedef PropBase<MessagePtr> Base;
 public:
-    TransportMsg() : Base(Name, PropName) {};
+    TransportMsg() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -161,7 +161,7 @@ class CC_API RawDataMsg : public PropBase<MessagePtr>
 {
     typedef PropBase<MessagePtr> Base;
 public:
-    RawDataMsg() : Base(Name, PropName) {};
+    RawDataMsg() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -172,7 +172,7 @@ class CC_API ExtraInfoMsg : public PropBase<MessagePtr>
 {
     typedef PropBase<MessagePtr> Base;
 public:
-    ExtraInfoMsg() : Base(Name, PropName) {};
+    ExtraInfoMsg() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -183,7 +183,7 @@ class CC_API ExtraInfo : public PropBase<QVariantMap>
 {
     typedef PropBase<QVariantMap> Base;
 public:
-    ExtraInfo() : Base(Name, PropName) {};
+    ExtraInfo() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -194,7 +194,7 @@ class CC_API ForceExtraInfoExistence : public PropBase<bool>
 {
     typedef PropBase<bool> Base;
 public:
-    ForceExtraInfoExistence() : Base(Name, PropName) {};
+    ForceExtraInfoExistence() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -206,7 +206,7 @@ class CC_API Delay : public PropBase<unsigned long long>
 {
     typedef PropBase<unsigned long long> Base;
 public:
-    Delay() : Base(Name, PropName) {};
+    Delay() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -217,7 +217,7 @@ class CC_API DelayUnits : public PropBase<QString>
 {
     typedef PropBase<QString> Base;
 public:
-    DelayUnits() : Base(Name, PropName) {};
+    DelayUnits() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -229,7 +229,7 @@ class CC_API RepeatDuration : public PropBase<unsigned long long>
 {
     typedef PropBase<unsigned long long> Base;
 public:
-    RepeatDuration() : Base(Name, PropName) {};
+    RepeatDuration() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -240,7 +240,7 @@ class CC_API RepeatDurationUnits : public PropBase<QString>
 {
     typedef PropBase<QString> Base;
 public:
-    RepeatDurationUnits() : Base(Name, PropName) {};
+    RepeatDurationUnits() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -251,7 +251,7 @@ class CC_API RepeatCount : public PropBase<unsigned>
 {
     typedef PropBase<unsigned> Base;
 public:
-    RepeatCount() : Base(Name, PropName) {};
+    RepeatCount() : Base(Name, PropName) {}
 
 private:
     static const QString Name;
@@ -262,7 +262,19 @@ class CC_API ScrollPos : public PropBase<int>
 {
     typedef PropBase<int> Base;
 public:
-    ScrollPos() : Base(Name, PropName) {};
+    ScrollPos() : Base(Name, PropName) {}
+
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+
+};
+
+class CC_API Comment : public PropBase<QString>
+{
+    typedef PropBase<QString> Base;
+public:
+    Comment() : Base(Name, PropName) {}
 
 private:
     static const QString Name;

@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2019 (C). Alex Robenko. All rights reserved.
+// Copyright 2014 - 2019 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -21,44 +21,32 @@
 #include "comms/CompileControl.h"
 
 CC_DISABLE_WARNINGS()
-#include <QtGui/QIcon>
+#include <QtWidgets/QDialog>
+
+#include "ui_MsgCommentDialog.h"
 CC_ENABLE_WARNINGS()
+
+#include "comms_champion/Message.h"
 
 namespace comms_champion
 {
 
-namespace icon
+class MsgCommentDialog : public QDialog
 {
+    Q_OBJECT
+    using Base = QDialog;
+public:
+    MsgCommentDialog(
+        MessagePtr msg,
+        QWidget* parentObj = nullptr);
 
-const QIcon& appIcon();
-const QIcon& add();
-const QIcon& addRaw();
-const QIcon& remove();
-const QIcon& clear();
-const QIcon& editClear();
-const QIcon& top();
-const QIcon& up();
-const QIcon& down();
-const QIcon& bottom();
-const QIcon& upload();
-const QIcon& save();
-const QIcon& saveAs();
-const QIcon& start();
-const QIcon& startAll();
-const QIcon& stop();
-const QIcon& edit();
-const QIcon& showRecv();
-const QIcon& showSent();
-const QIcon& pluginEdit();
-const QIcon& errorLog();
-const QIcon& connect();
-const QIcon& disconnect();
-const QIcon& comment();
+private slots:
+    void accept();
 
-}  // namespace icon
+private:
+    Ui::MsgCommentDialog m_ui;
+    MessagePtr m_msg;
+};
 
 }  // namespace comms_champion
-
-
-
 

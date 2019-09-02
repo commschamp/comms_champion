@@ -38,6 +38,7 @@ function (bin_cc_view)
         widget/MessageUpdateDialog.cpp
         widget/PluginsListWidget.cpp
         widget/PluginConfigDialog.cpp
+        widget/MsgCommentDialog.cpp
         widget/field/FieldWidget.cpp
         widget/field/ShortIntValueFieldWidget.cpp
         widget/field/LongIntValueFieldWidget.cpp
@@ -77,6 +78,7 @@ function (bin_cc_view)
         widget/MainWindowWidget.h
         widget/MainToolbar.h
         widget/DefaultMessageDisplayWidget.h
+        widget/MsgCommentDialog.h
         widget/field/FieldWidget.h 
         widget/field/ShortIntValueFieldWidget.h
         widget/field/LongIntValueFieldWidget.h
@@ -123,6 +125,7 @@ function (bin_cc_view)
         ui/VariantFieldWidget.ui
         ui/UnknownValueFieldWidget.ui
         ui/SpecialValueWidget.ui
+        ui/MsgCommentDialog.ui
     )
     
     qt5_add_resources(resources ${CMAKE_CURRENT_SOURCE_DIR}/ui.qrc)

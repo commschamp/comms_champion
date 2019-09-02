@@ -45,6 +45,7 @@ void MsgSendMgrImpl::start(ProtocolPtr protocol, const MessagesList& msgs)
         property::message::RepeatDuration().copyFromTo(*m, *clonedMsg);
         property::message::RepeatDurationUnits().copyFromTo(*m, *clonedMsg);
         property::message::RepeatCount().copyFromTo(*m, *clonedMsg);
+        property::message::Comment().copyFromTo(*m, *clonedMsg);
         auto extraProps = property::message::ExtraInfo().getFrom(*m);
         if (!extraProps.isEmpty()) {
             property::message::ExtraInfo().setTo(std::move(extraProps), *clonedMsg);

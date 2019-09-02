@@ -68,6 +68,9 @@ const QByteArray RepeatCount::PropName = RepeatCount::Name.toUtf8();
 const QString ScrollPos::Name("cc.msg_scroll_pos");
 const QByteArray ScrollPos::PropName = ScrollPos::Name.toUtf8();
 
+const QString Comment::Name("cc.msg_comment");
+const QByteArray Comment::PropName = Comment::Name.toUtf8();
+
 }  // namespace message
 
 }  // namespace property

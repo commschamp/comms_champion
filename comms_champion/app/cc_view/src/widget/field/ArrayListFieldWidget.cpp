@@ -69,6 +69,12 @@ void ArrayListElementWidget::updateProperties(const QVariantMap& props)
     m_fieldWidget->updateProperties(props);
 }
 
+void ArrayListElementWidget::setNameSuffix(const QString& value)
+{
+    assert(m_fieldWidget != nullptr);
+    m_fieldWidget->setNameSuffix(value);
+}
+
 void ArrayListElementWidget::updateUi()
 {
     bool deleteButtonVisible = m_editEnabled && m_deletable;
@@ -148,7 +154,12 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     }
 
     unsigned idx = 0;
-    for (auto* elem : m_elements) {
+    for (auto elemIdx = 0U; elemIdx < m_elements.size(); ++elemIdx) {
+        auto* elem = m_elements[elemIdx];
+        if (m_appendIndexToElementName) {
+            elem->setNameSuffix(QString(" %1").arg(elemIdx));
+        }
+
         elem->updateProperties(m_elemProperties[idx]);
         idx = ((idx + 1) % m_elemProperties.size());
     }

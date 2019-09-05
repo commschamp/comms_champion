@@ -218,6 +218,19 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
+    /// @brief Check of whether the field has a consistent value for writing.
+    bool canWrite() const
+    {
+        if (!currentFieldValid()) {
+            return true;
+        }
+
+        bool val = false;
+        comms::util::tupleForSelectedType<Members>(memIdx_, CanWriteHelper(val, &storage_));
+        return val;
+
+    }
+
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
@@ -713,6 +726,25 @@ private:
         void* storage_ = nullptr;
     };
 
+    class CanWriteHelper
+    {
+    public:
+        CanWriteHelper(bool& result, const void* storage)
+          : result_(result),
+            storage_(storage)
+        {
+        }
+
+        template <std::size_t TIdx, typename TField>
+        void operator()()
+        {
+            result_ = reinterpret_cast<const TField*>(storage_)->canWrite();
+        }
+
+    private:
+        bool& result_;
+        const void* storage_;
+    };
 
     void checkDestruct()
     {

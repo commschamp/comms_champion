@@ -193,6 +193,12 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
+    /// @brief Check of whether the field has a consistent value for writing.
+    bool canWrite() const
+    {
+        return BaseImpl::canWrite();
+    }
+
     /// @brief Write current field value to output data sequence
     /// @details Invokes write() member function of the contained field if such
     ///     exists. If the Variant field doesn't contain any valid field, the

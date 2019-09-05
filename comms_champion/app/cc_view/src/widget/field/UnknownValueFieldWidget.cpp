@@ -42,6 +42,7 @@ UnknownValueFieldWidget::~UnknownValueFieldWidget() noexcept = default;
 
 void UnknownValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     auto curText = m_ui.m_serValueLineEdit->text();
     auto serString = m_wrapper->getSerialisedString();
     if (curText != serString) {

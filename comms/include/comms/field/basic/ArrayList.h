@@ -354,6 +354,11 @@ public:
         return readNoStatusInternalN(count, iter, Tag());
     }
 
+    static bool canWriteElement(const ElementType& elem)
+    {
+        return canWriteElementInternal(elem, ElemTag());
+    }
+
     template <typename TIter>
     static ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len)
     {
@@ -364,6 +369,11 @@ public:
     static void writeElementNoStatus(const ElementType& elem, TIter& iter)
     {
         return writeElementNoStatusInternal(elem, iter, ElemTag());
+    }
+
+    bool canWrite() const
+    {
+        return CommonFuncs::canWriteSequence(*this);
     }
 
     template <typename TIter>
@@ -765,6 +775,17 @@ private:
     static constexpr bool setVersionInternal(VersionType, NoVersionDependencyTag)
     {
         return false;
+    }
+
+    static bool canWriteElementInternal(const ElementType& elem, FieldElemTag)
+    {
+        return elem.canWrite();
+    }
+
+    static bool canWriteElementInternal(const ElementType& elem, IntegralElemTag)
+    {
+        static_cast<void>(elem);
+        return true;
     }
 
     ValueType value_;

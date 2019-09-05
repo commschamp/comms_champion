@@ -252,6 +252,11 @@ public:
         comms::util::template tupleForEachFromUntil<TFromIdx, TUntilIdx>(value(), makeReadNoStatusHelper(iter));
     }
 
+    bool canWrite() const
+    {
+        return comms::util::tupleAccumulate(value(), true, CanWriteHelper());
+    }
+
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
@@ -394,10 +399,20 @@ private:
             }
         }
 
+
     private:
         ErrorStatus& es_;
         TIter& iter_;
         std::size_t& len_;
+    };
+
+    struct CanWriteHelper
+    {
+        template <typename TField>
+        constexpr bool operator()(bool soFar, const TField& field) const
+        {
+            return soFar && field.canWrite();
+        }
     };
 
     template <typename TIter>

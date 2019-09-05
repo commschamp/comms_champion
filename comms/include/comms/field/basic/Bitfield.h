@@ -220,6 +220,11 @@ public:
         comms::util::tupleForEachWithTemplateParamIdx(members_, ReadNoStatusHelper(serValue));
     }
 
+    bool canWrite() const
+    {
+        return comms::util::tupleAccumulate(members_, true, CanWriteHelper());
+    }
+
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
@@ -468,6 +473,14 @@ private:
         }
     };
 
+    struct CanWriteHelper
+    {
+        template <typename TFieldParam>
+        bool operator()(bool soFar, const TFieldParam& field)
+        {
+            return soFar && field.canWrite();
+        }
+    };
 
     ValueType members_;
 };

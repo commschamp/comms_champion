@@ -110,6 +110,7 @@ ArrayListFieldWidget::~ArrayListFieldWidget() noexcept = default;
 
 void ArrayListFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     while (!m_elements.empty()) {
         assert(m_elements.back() != nullptr);
         delete m_elements.back();
@@ -232,6 +233,7 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
 
 void ArrayListFieldWidget::refreshInternal()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValuePlainTextEdit != nullptr);
     updateSerValue(*m_ui.m_serValuePlainTextEdit, *m_wrapper);
 

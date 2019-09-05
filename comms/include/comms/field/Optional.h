@@ -268,6 +268,12 @@ public:
         BaseImpl::readNoStatus(iter);
     }
 
+    /// @brief Check of whether the field has a consistent value for writing.
+    bool canWrite() const
+    {
+        return BaseImpl::canWrite();
+    }
+
     /// @brief Write current field value to output data sequence
     /// @details If field is marked as missing (mode is OptionalMode::Missing),
     ///     function returns comms::ErrorStatus::Success without advancing iterator.@n

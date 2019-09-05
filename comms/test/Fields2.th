@@ -39,6 +39,7 @@ public:
     void test2();
     void test3();
     void test4();
+    void test5();
 
 private:
 
@@ -380,6 +381,50 @@ void FieldsTestSuite2::test4()
     field1Tmp.value() = comms::cast_assign(field1.value()) = field2.value();
     TS_ASSERT_EQUALS(field1.value(), 0xff);
     TS_ASSERT_EQUALS(field1, field1Tmp);
+}
+
+void FieldsTestSuite2::test5()
+{
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        comms::field::String<
+            comms::Field<BigEndianOpt>,
+            comms::option::SequenceSizeFieldPrefix<
+                comms::field::IntValue<
+                    comms::Field<BigEndianOpt>,
+                    std::uint16_t
+                >
+            >
+        >,
+        comms::option::SequenceSizeFieldPrefix<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >
+        >,
+        comms::option::SequenceElemSerLengthFieldPrefix<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >
+        >
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    field.value().resize(1);
+    TS_ASSERT(field.valid());
+    TS_ASSERT(field.canWrite());
+    field.value()[0].value().assign(260, 'a');
+    TS_ASSERT(!field.valid());
+    TS_ASSERT(!field.canWrite());
+    TS_ASSERT_EQUALS(field.length(), 257);
+    std::vector<std::uint8_t> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    auto es = field.write(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::InvalidMsgData);
+    field.value()[0].value().assign(5, 'b');
+    TS_ASSERT(field.valid());
 }
 
 template <typename TField>

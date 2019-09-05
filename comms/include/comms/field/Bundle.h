@@ -435,6 +435,12 @@ public:
         BaseImpl::template readFromUntilNoStatus<TFromIdx, TUntilIdx>(iter);
     }
 
+    /// @brief Check of whether the field has a consistent value for writing.
+    bool canWrite() const
+    {
+        return BaseImpl::canWrite();
+    }
+
     /// @brief Write current field value to output data sequence
     /// @details Invokes write() member function over every bundled field.
     /// @param[in, out] iter Iterator to write the data.

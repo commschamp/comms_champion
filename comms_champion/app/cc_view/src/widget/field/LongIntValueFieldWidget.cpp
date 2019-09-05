@@ -61,6 +61,7 @@ LongIntValueFieldWidget::~LongIntValueFieldWidget() noexcept = default;
 
 void LongIntValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 

@@ -292,6 +292,12 @@ public:
         BaseImpl::readNoStatus(iter);
     }
 
+    /// @brief Check of whether the field has a consistent value for writing.
+    bool canWrite() const
+    {
+        return BaseImpl::canWrite();
+    }
+
     /// @brief Write current field value to output data sequence
     /// @details By default, the write operation will write all the
     ///     elements the field contains. If @ref comms::option::def::SequenceFixedSize option

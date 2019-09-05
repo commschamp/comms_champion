@@ -123,6 +123,7 @@ void OptionalFieldWidget::availabilityChanged(int state)
 
 void OptionalFieldWidget::refreshInternal()
 {
+    assert(m_wrapper->canWrite());
     assert(m_field);
     auto mode = m_wrapper->getMode();
     if (mode == Mode::Exists) {

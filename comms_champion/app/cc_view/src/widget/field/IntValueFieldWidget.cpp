@@ -49,6 +49,7 @@ IntValueFieldWidget::~IntValueFieldWidget() noexcept
 
 void IntValueFieldWidget::refreshImpl()
 {
+    assert((!m_wrapper) || (m_wrapper->canWrite()));
     if (m_childWidget) {
         m_childWidget->refresh();
     }

@@ -19,6 +19,8 @@
 #pragma once
 
 #include <iterator>
+#include <limits>
+#include <algorithm>
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
@@ -38,6 +40,9 @@ class SequenceElemSerLengthFieldPrefix : public TBase
 {
     using BaseImpl = TBase;
     using LenField = TLenField;
+    static const std::size_t MaxAllowedElemLength =
+            static_cast<std::size_t>(
+                std::numeric_limits<typename LenField::ValueType>::max());
 
     static_assert(!LenField::isVersionDependent(),
             "Prefix fields must not be version dependent");
@@ -148,18 +153,38 @@ public:
     template <typename TIter>
     void readNoStatusN(std::size_t count, TIter& iter) = delete;
 
+    bool canWriteElement(const ElementType& elem) const
+    {
+        if (!BaseImpl::canWriteElement(elem)) {
+            return false;
+        }
+
+        auto elemLen = elementLength(elem);
+        if (MaxAllowedElemLength < elemLen) {
+            return false;
+        }
+
+        LenField lenField;
+        lenField.value() = static_cast<typename LenField::ValueType>(elemLen);
+        return lenField.canWrite();
+    }
+
     template <typename TIter>
     ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len) const
     {
         auto elemLength = BaseImpl::elementLength(elem);
         LenField lenField;
-        lenField.value() = elemLength;
+        lenField.value() = static_cast<typename LenField::ValueType>(elemLength);
         auto es = lenField.write(iter, len);
         if (es != ErrorStatus::Success) {
             return es;
         }
 
         len -= lenField.length();
+        if (MaxAllowedElemLength < len) {
+            return ErrorStatus::InvalidMsgData;
+        }
+
         return BaseImpl::writeElement(elem, iter, len);
     }
 
@@ -168,9 +193,14 @@ public:
     {
         auto elemLength = BaseImpl::elementLength(elem);
         LenField lenField;
-        lenField.value() = elemLength;
+        lenField.value() = static_cast<typename LenField::ValueType>(elemLength);
         lenField.writeNoStatus(iter);
         BaseImpl::writeElementNoStatus(elem, iter);
+    }
+
+    bool canWrite() const
+    {
+        return basic::CommonFuncs::canWriteSequence(*this);
     }
 
     template <typename TIter>
@@ -197,6 +227,22 @@ public:
         basic::CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
     }
 
+    bool valid() const
+    {
+        if (!BaseImpl::valid()) {
+            return false;
+        }
+
+        auto& vec = BaseImpl::value();
+        for (auto& elem : vec) {
+            auto elemLen = BaseImpl::elementLength(elem);
+            if (MaxAllowedElemLength < elemLen) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 private:
 
     struct FixedLengthLenFieldTag {};
@@ -220,46 +266,46 @@ private:
 
     std::size_t lengthInternal(FixedLengthLenFieldTag, FixedLengthElemTag) const
     {
-        return (LenField::minLength() + BaseImpl::minElementLength()) * BaseImpl::value().size();
+        auto elemLen = std::min(BaseImpl::minElementLength(), std::size_t(MaxAllowedElemLength));
+        return (LenField::minLength() + elemLen) * BaseImpl::value().size();
     }
 
     std::size_t lengthInternal(FixedLengthLenFieldTag, VarLengthElemTag) const
     {
-        std::size_t result = 0U;
-        for (auto& elem : BaseImpl::value()) {
-            result += (LenField::minLength() + BaseImpl::elementLength(elem));
-        }
-        return result;
+        return lengthInternalIterative();
     }
 
     std::size_t lengthInternal(VarLengthLenFieldTag, FixedLengthElemTag) const
     {
+        auto elemLen = std::min(BaseImpl::minElementLength(), std::size_t(MaxAllowedElemLength));
         LenField lenField;
-        lenField.value() = BaseImpl::minElementLength();
-        return (lenField.length() + BaseImpl::minElementLength()) * BaseImpl::value().size();
+        lenField.value() = static_cast<typename LenField::ValueType>(elemLen);
+        return (lenField.length() + elemLen) * BaseImpl::value().size();
     }
 
     std::size_t lengthInternal(VarLengthLenFieldTag, VarLengthElemTag) const
     {
+        return lengthInternalIterative();
+    }
+
+    std::size_t lengthInternalIterative() const
+    {
         std::size_t result = 0U;
         for (auto& elem : BaseImpl::value()) {
-            LenField lenField;
-            auto elemLength = BaseImpl::elementLength(elem);
-            lenField.value() = elemLength;
-            result += (lenField.length() + elemLength);
+            result += elementLength(elem);
         }
         return result;
     }
 
     std::size_t elementLengthInternal(const ElementType& elem, FixedLengthLenFieldTag) const
     {
-        return LenField::minLength() + BaseImpl::elementLength(elem);
+        return LenField::minLength() + std::min(BaseImpl::elementLength(elem), std::size_t(MaxAllowedElemLength));
     }
 
-    std::size_t elementLengthInternal(const VarLengthLenFieldTag& elem, FixedLengthLenFieldTag) const
+    std::size_t elementLengthInternal(const ElementType& elem, VarLengthLenFieldTag) const
     {
         LenField lenField;
-        auto elemLength = BaseImpl::elementLength(elem);
+        auto elemLength = std::min(BaseImpl::elementLength(elem), std::size_t(MaxAllowedElemLength));
         lenField.value() = elemLength;
         return lenField.length() + elemLength;
     }

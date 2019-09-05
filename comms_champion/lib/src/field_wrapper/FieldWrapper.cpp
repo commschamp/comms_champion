@@ -98,6 +98,11 @@ FieldWrapper::BasePtr FieldWrapper::upClone()
     return upCloneImpl();
 }
 
+bool FieldWrapper::canWrite() const
+{
+    return canWriteImpl();
+}
+
 }  // namespace field_wrapper
 
 }  // namespace comms_champion

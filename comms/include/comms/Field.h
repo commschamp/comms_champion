@@ -81,6 +81,14 @@ public:
         return false;
     }
 
+    /// @brief Default check of whether the field has a consistent value
+    ///     for writing.
+    /// @return Always @b true.
+    static constexpr bool canWrite()
+    {
+        return true;
+    }
+
     /// @brief Default version update functionality
     /// @details Does nothing and returns false, can be overriden by the
     ///     derived class

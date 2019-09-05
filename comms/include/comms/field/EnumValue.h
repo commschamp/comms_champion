@@ -176,6 +176,12 @@ public:
         BaseImpl::readNoStatus(iter);
     }
 
+    /// @brief Check of whether the field has a consistent value for writing.
+    bool canWrite() const
+    {
+        return BaseImpl::canWrite();
+    }
+
     /// @brief Write current field value to output data sequence
     /// @param[in, out] iter Iterator to write the data.
     /// @param[in] size Maximal number of bytes that can be written.

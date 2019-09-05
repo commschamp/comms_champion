@@ -173,6 +173,15 @@ public:
         field_.readNoStatus(iter);
     }
 
+    bool canWrite() const
+    {
+        if (mode_ == Mode::Missing) {
+            return true;
+        }
+
+        return field_.canWrite();
+    }
+
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {

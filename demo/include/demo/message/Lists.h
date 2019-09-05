@@ -182,8 +182,7 @@ struct ListsFields
             comms::option::SequenceElemSerLengthFieldPrefix<
                 comms::field::IntValue<
                     FieldBase,
-                    std::uint32_t,
-                    comms::option::VarLength<1, 4>
+                    std::uint8_t
                 >
             >
         >;

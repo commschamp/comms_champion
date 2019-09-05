@@ -35,8 +35,7 @@ enum class ErrorStatus {
     BufferOverflow, ///< Used to indicate that stream buffer was overflowed
                     /// when attempting to write data.
     InvalidMsgId, ///< Used to indicate that received message has unknown id
-    InvalidMsgData, ///<Used to indicate that received message has invalid
-                    /// data.
+    InvalidMsgData, ///<Used to indicate that a message has invalid data.
     MsgAllocFailure, ///<Used to indicate that message allocation has failed.
     NotSupported, ///< The operation is not supported.
     NumOfErrorStatuses ///< Number of supported error statuses, must be last.

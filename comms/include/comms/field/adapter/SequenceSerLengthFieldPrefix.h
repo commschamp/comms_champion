@@ -70,7 +70,7 @@ public:
         using LenValueType = typename LenField::ValueType;
         auto valLength = BaseImpl::length();
         LenField lenField;
-        lenField.value() = static_cast<LenValueType>(valLength);
+        lenField.value() = static_cast<LenValueType>(std::min(valLength, std::size_t(MaxAllowedLength)));
         return lenField.length() + valLength;
     }
 
@@ -86,9 +86,14 @@ public:
 
     bool valid() const
     {
+        if ((!BaseImpl::valid()) || (!canWrite())) {
+            return false;
+        }
+
         LenField lenField;
-        lenField.value() = static_cast<typename LenField::ValueType>(BaseImpl::length());
-        return lenField.valid() && BaseImpl::valid();
+        auto lenValue = std::min(BaseImpl::length(), std::size_t(MaxAllowedLength));
+        lenField.value() = static_cast<typename LenField::ValueType>(lenValue);
+        return lenField.valid();
     }
 
     template <typename TIter>

@@ -183,6 +183,38 @@ public:
         return refreshLengthInternal() || updated;
     }
 
+    bool canWrite() const
+    {
+        if (!BaseImpl::canWrite()) {
+            return false;
+        }
+
+        std::size_t expLen = BaseImpl::template lengthFrom<TLenFieldIdx + 1>();
+        using LenValueType = typename LengthFieldType::ValueType;
+        if (static_cast<std::size_t>(std::numeric_limits<LenValueType>::max()) < expLen) {
+            return false;
+        }
+
+        LengthFieldType lenField;
+        lenField.value() = static_cast<LenValueType>(expLen);
+        return lenField.canWrite();
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus write(TIter& iter, std::size_t len) const
+    {
+        if (!canWrite()) {
+            return comms::ErrorStatus::InvalidMsgData;
+        }
+
+        return BaseImpl::write(iter, len);
+    }
+
+    bool valid() const
+    {
+        return BaseImpl::valid() && canWrite();
+    }
+
 private:
     struct BaseRedirectTag {};
     struct LocalTag {};

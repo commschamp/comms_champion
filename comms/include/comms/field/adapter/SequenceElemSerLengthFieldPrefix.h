@@ -266,8 +266,7 @@ private:
 
     std::size_t lengthInternal(FixedLengthLenFieldTag, FixedLengthElemTag) const
     {
-        auto elemLen = std::min(BaseImpl::minElementLength(), std::size_t(MaxAllowedElemLength));
-        return (LenField::minLength() + elemLen) * BaseImpl::value().size();
+        return (LenField::minLength() + BaseImpl::minElementLength()) * BaseImpl::value().size();
     }
 
     std::size_t lengthInternal(FixedLengthLenFieldTag, VarLengthElemTag) const
@@ -277,10 +276,11 @@ private:
 
     std::size_t lengthInternal(VarLengthLenFieldTag, FixedLengthElemTag) const
     {
-        auto elemLen = std::min(BaseImpl::minElementLength(), std::size_t(MaxAllowedElemLength));
+        auto origElemLen = BaseImpl::minElementLength();
+        auto elemLen = std::min(origElemLen, std::size_t(MaxAllowedElemLength));
         LenField lenField;
         lenField.value() = static_cast<typename LenField::ValueType>(elemLen);
-        return (lenField.length() + elemLen) * BaseImpl::value().size();
+        return (lenField.length() + origElemLen) * BaseImpl::value().size();
     }
 
     std::size_t lengthInternal(VarLengthLenFieldTag, VarLengthElemTag) const
@@ -299,15 +299,16 @@ private:
 
     std::size_t elementLengthInternal(const ElementType& elem, FixedLengthLenFieldTag) const
     {
-        return LenField::minLength() + std::min(BaseImpl::elementLength(elem), std::size_t(MaxAllowedElemLength));
+        return LenField::minLength() + BaseImpl::elementLength(elem);
     }
 
     std::size_t elementLengthInternal(const ElementType& elem, VarLengthLenFieldTag) const
     {
         LenField lenField;
-        auto elemLength = std::min(BaseImpl::elementLength(elem), std::size_t(MaxAllowedElemLength));
+        auto origElemLength = BaseImpl::elementLength(elem);
+        auto elemLength = std::min(origElemLength, std::size_t(MaxAllowedElemLength));
         lenField.value() = elemLength;
-        return lenField.length() + elemLength;
+        return lenField.length() + origElemLength;
     }
 
     template <typename TIter>

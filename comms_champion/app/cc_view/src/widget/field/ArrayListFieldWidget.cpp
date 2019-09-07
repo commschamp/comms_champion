@@ -96,6 +96,7 @@ ArrayListFieldWidget::ArrayListFieldWidget(
     setSeparatorWidget(m_ui.m_sepLine);
     setSerialisedValueWidget(m_ui.m_serValueWidget);
 
+    assert(m_wrapper->canWrite());
     refreshInternal();
     addMissingFields();
 
@@ -110,7 +111,6 @@ ArrayListFieldWidget::~ArrayListFieldWidget() noexcept = default;
 
 void ArrayListFieldWidget::refreshImpl()
 {
-    assert(m_wrapper->canWrite());
     while (!m_elements.empty()) {
         assert(m_elements.back() != nullptr);
         delete m_elements.back();
@@ -168,6 +168,26 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void ArrayListFieldWidget::dataFieldUpdated()
 {
+    if (!m_wrapper->canWrite()) {
+        auto senderIter = std::find(m_elements.begin(), m_elements.end(), qobject_cast<ArrayListElementWidget*>(sender()));
+        assert(senderIter != m_elements.end());
+        auto idx = static_cast<unsigned>(std::distance(m_elements.begin(), senderIter));
+        auto& memWrappers = m_wrapper->getMembers();
+        assert(idx < memWrappers.size());
+        auto& memWrapPtr = memWrappers[idx];
+        if (!memWrapPtr->canWrite()) {
+            memWrapPtr->reset();
+            assert(memWrapPtr->canWrite());
+            (*senderIter)->refresh();
+        }
+
+        if (!m_wrapper->canWrite()) {
+            memWrapPtr->reset();
+            assert(memWrapPtr->canWrite());
+            (*senderIter)->refresh();
+        }
+    }
+
     refreshInternal();
     updatePrefixField();
     emitFieldUpdated();

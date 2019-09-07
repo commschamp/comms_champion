@@ -221,6 +221,10 @@ protected:
         mems.reserve(storage.size());
         for (auto& f : storage) {
             mems.push_back(m_wrapFieldFunc(f));
+            if (!mems.back()->canWrite()) {
+                mems.back()->reset();
+                assert(mems.back()->canWrite());
+            }
         }
     }
 

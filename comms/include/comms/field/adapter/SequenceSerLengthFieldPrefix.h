@@ -36,6 +36,11 @@ class SequenceSerLengthFieldPrefix : public TBase
     using BaseImpl = TBase;
     using LenField = TLenField;
 
+    static const std::size_t MaxAllowedLength =
+            static_cast<std::size_t>(
+                std::numeric_limits<typename LenField::ValueType>::max());
+
+
     static_assert(!LenField::isVersionDependent(),
             "Prefix fields must not be version dependent");
 
@@ -115,9 +120,29 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
+    bool canWrite() const
+    {
+        if (!BaseImpl::canWrite()) {
+            return false;
+        }
+
+        auto len = BaseImpl::length();
+        if (MaxAllowedLength < len) {
+            return false;
+        }
+
+        LenField lenField;
+        lenField.value() = static_cast<typename LenField::ValueType>(len);
+        return lenField.canWrite();
+    }
+
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
+        if (!canWrite()) {
+            return comms::ErrorStatus::InvalidMsgData;
+        }
+
         using LenValueType = typename LenField::ValueType;
         auto lenVal = BaseImpl::length();
         LenField lenField;

@@ -96,6 +96,11 @@ struct CommonFuncs
         auto es = ErrorStatus::Success;
         auto remainingLen = len;
         for (auto& elem : field.value()) {
+            if (!field.canWriteElement(elem)) {
+                es = ErrorStatus::InvalidMsgData;
+                break;
+            }
+
             es = field.writeElement(elem, iter, remainingLen);
             if (es != comms::ErrorStatus::Success) {
                 break;

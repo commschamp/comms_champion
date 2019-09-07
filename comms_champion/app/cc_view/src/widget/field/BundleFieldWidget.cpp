@@ -33,8 +33,11 @@ CC_ENABLE_WARNINGS()
 namespace comms_champion
 {
 
-BundleFieldWidget::BundleFieldWidget(QWidget* parentObj)
+BundleFieldWidget::BundleFieldWidget(
+    WrapperPtr wrapper,
+    QWidget* parentObj)
   : Base(parentObj),
+    m_wrapper(std::move(wrapper)),
     m_membersLayout(new QVBoxLayout),
     m_label(new QLabel)
 {
@@ -95,6 +98,18 @@ void BundleFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void BundleFieldWidget::memberFieldUpdated()
 {
+    auto senderIter = std::find(m_members.begin(), m_members.end(), qobject_cast<FieldWidget*>(sender()));
+    assert(senderIter != m_members.end());
+    auto idx = static_cast<unsigned>(std::distance(m_members.begin(), senderIter));
+    auto& memWrappers = m_wrapper->getMembers();
+    assert(idx < memWrappers.size());
+    auto& memWrapPtr = memWrappers[idx];
+    if (!memWrapPtr->canWrite()) {
+        memWrapPtr->reset();
+        assert(memWrapPtr->canWrite());
+        (*senderIter)->refresh();
+    }
+
     emitFieldUpdated();
 }
 

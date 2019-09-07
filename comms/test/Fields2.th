@@ -40,6 +40,7 @@ public:
     void test3();
     void test4();
     void test5();
+    void test6();
 
 private:
 
@@ -418,13 +419,50 @@ void FieldsTestSuite2::test5()
     field.value()[0].value().assign(260, 'a');
     TS_ASSERT(!field.valid());
     TS_ASSERT(!field.canWrite());
-    TS_ASSERT_EQUALS(field.length(), 257);
     std::vector<std::uint8_t> outBuf;
     auto writeIter = std::back_inserter(outBuf);
     auto es = field.write(writeIter, outBuf.max_size());
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::InvalidMsgData);
     field.value()[0].value().assign(5, 'b');
     TS_ASSERT(field.valid());
+}
+
+void FieldsTestSuite2::test6()
+{
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >,
+            comms::field::String<comms::Field<BigEndianOpt> >
+        >,
+        comms::option::RemLengthMemberField<0>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 1U, "Invalid minLength");
+
+    do {
+        Field field;
+        TS_ASSERT_EQUALS(field.length(), 1U);
+        TS_ASSERT_EQUALS(std::get<0>(field.value()).value(), 0U);
+
+        auto& strMem = std::get<1>(field.value());
+        strMem.value().assign(260, 'a');
+        TS_ASSERT(!field.valid());
+        TS_ASSERT(!field.canWrite());
+
+        std::vector<std::uint8_t> outBuf;
+        auto writeIter = std::back_inserter(outBuf);
+        auto es = field.write(writeIter, outBuf.max_size());
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::InvalidMsgData);
+    } while (false);
+
 }
 
 template <typename TField>

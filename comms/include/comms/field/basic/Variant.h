@@ -218,7 +218,6 @@ public:
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
-    /// @brief Check of whether the field has a consistent value for writing.
     bool canWrite() const
     {
         if (!currentFieldValid()) {

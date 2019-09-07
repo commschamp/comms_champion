@@ -81,6 +81,11 @@ public:
     {
     }
 
+    static constexpr bool canWrite()
+    {
+        return true;
+    }
+
     template <typename TIter>
     static comms::ErrorStatus write(TIter&, std::size_t)
     {

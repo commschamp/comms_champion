@@ -145,6 +145,11 @@ public:
         return basic::CommonFuncs::readSequence(*this, iter, len);
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -155,10 +160,10 @@ public:
     }
 
     template <typename TIter>
-    void readNoStatusN(std::size_t count, TIter& iter)
-    {
-        basic::CommonFuncs::readSequenceNoStatusN(*this, count, iter);
-    }
+    void readNoStatusN(std::size_t count, TIter& iter) = delete;
+//    {
+//        basic::CommonFuncs::readSequenceNoStatusN(*this, count, iter);
+//    }
 
 private:
 

@@ -141,6 +141,11 @@ public:
         return basic::CommonFuncs::readSequence(*this, iter, len);
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -189,14 +194,7 @@ public:
     }
 
     template <typename TIter>
-    static void writeElementNoStatus(const ElementType& elem, TIter& iter)
-    {
-        auto elemLength = BaseImpl::elementLength(elem);
-        LenField lenField;
-        lenField.value() = static_cast<typename LenField::ValueType>(elemLength);
-        lenField.writeNoStatus(iter);
-        BaseImpl::writeElementNoStatus(elem, iter);
-    }
+    static void writeElementNoStatus(const ElementType& elem, TIter& iter) = delete;
 
     bool canWrite() const
     {
@@ -209,11 +207,13 @@ public:
         return basic::CommonFuncs::writeSequence(*this, iter, len);
     }
 
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const
+    static constexpr bool hasWriteNoStatus()
     {
-        basic::CommonFuncs::writeSequenceNoStatus(*this, iter);
+        return false;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
@@ -222,10 +222,7 @@ public:
     }
 
     template <typename TIter>
-    void writeNoStatusN(std::size_t count, TIter& iter) const
-    {
-        basic::CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
-    }
+    void writeNoStatusN(std::size_t count, TIter& iter) const = delete;
 
     bool valid() const
     {

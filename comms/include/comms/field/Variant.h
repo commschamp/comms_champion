@@ -189,6 +189,13 @@ public:
         return BaseImpl::read(iter, size);
     }
 
+    /// @brief Compile time check of whether the field has @b proper
+    ///     @ref readNoStatus() member function.
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     /// @brief Read operation without error check and status report is not supported.
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
@@ -211,6 +218,13 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return BaseImpl::write(iter, size);
+    }
+
+    /// @brief Compile time check of whether the field has @b proper
+    ///     @ref writeNoStatus() member function.
+    static constexpr bool hasWriteNoStatus()
+    {
+        return BaseImpl::hasWriteNoStatus();
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.

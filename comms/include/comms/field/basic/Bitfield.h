@@ -213,6 +213,11 @@ public:
         return es;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return comms::util::tupleTypeAccumulate<TMembers>(true, ReadNoStatusDetector());
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
@@ -241,6 +246,11 @@ public:
         return es;
     }
 
+    static constexpr bool hasWriteNoStatus()
+    {
+        return comms::util::tupleTypeAccumulate<TMembers>(true, WriteNoStatusDetector());
+    }
+
     template <typename TIter>
     void writeNoStatus(TIter& iter) const
     {
@@ -248,7 +258,6 @@ public:
         comms::util::tupleForEachWithTemplateParamIdx(members_, WriteNoStatusHelper(serValue));
         comms::util::writeData<Length>(serValue, iter, Endian());
     }
-
 
     constexpr bool valid() const
     {
@@ -479,6 +488,28 @@ private:
         bool operator()(bool soFar, const TFieldParam& field)
         {
             return soFar && field.canWrite();
+        }
+    };
+
+    struct ReadNoStatusDetector
+    {
+        constexpr ReadNoStatusDetector() = default;
+
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::hasReadNoStatus() && soFar;
+        }
+    };
+
+    struct WriteNoStatusDetector
+    {
+        constexpr WriteNoStatusDetector() = default;
+
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::hasWriteNoStatus() && soFar;
         }
     };
 

@@ -215,6 +215,11 @@ public:
         return es;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -240,6 +245,11 @@ public:
         auto es = ErrorStatus::NumOfErrorStatuses;
         comms::util::tupleForSelectedType<Members>(memIdx_, makeWriteHelper(es, iter, len, &storage_));
         return es;
+    }
+
+    static constexpr bool hasWriteNoStatus()
+    {
+        return comms::util::tupleTypeAccumulate<TMembers>(true, WriteNoStatusDetector());
     }
 
     template <typename TIter>
@@ -743,6 +753,17 @@ private:
     private:
         bool& result_;
         const void* storage_;
+    };
+
+    struct WriteNoStatusDetector
+    {
+        constexpr WriteNoStatusDetector() = default;
+
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::hasWriteNoStatus() && soFar;
+        }
     };
 
     void checkDestruct()

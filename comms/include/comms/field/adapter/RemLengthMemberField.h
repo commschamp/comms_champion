@@ -210,6 +210,14 @@ public:
         return BaseImpl::write(iter, len);
     }
 
+    static constexpr bool hasWriteNoStatus()
+    {
+        return false;
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus writeNoStatus(TIter& iter, std::size_t len) const = delete;
+
     bool valid() const
     {
         return BaseImpl::valid() && canWrite();

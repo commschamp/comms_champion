@@ -122,6 +122,11 @@ public:
         return basic::CommonFuncs::readSequence(*this, iter, len);
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -185,19 +190,23 @@ public:
         return basic::CommonFuncs::writeSequence(*this, iter, len);
     }
 
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const
+    static constexpr bool hasWriteNoStatus()
     {
-        if (!BaseImpl::value().empty()) {
-            writeLenNoStatus(iter);
-        }
-        basic::CommonFuncs::writeSequenceNoStatus(*this, iter);
+        return false;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
     {
         if (0U < count) {
+            COMMS_ASSERT(!BaseImpl::value().empty());
+            if (!canWriteElement(BaseImpl::value().front())) {
+                return ErrorStatus::InvalidMsgData;
+            }
+
             auto es = writeLen(iter, len); // len is updated
             if (es != comms::ErrorStatus::Success) {
                 return es;
@@ -208,13 +217,7 @@ public:
     }
 
     template <typename TIter>
-    void writeNoStatusN(std::size_t count, TIter& iter) const
-    {
-        if (0U < count) {
-            writeLenNoStatus(iter);
-        }
-        basic::CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
-    }
+    void writeNoStatusN(std::size_t count, TIter& iter) const = delete;
 
     bool valid() const
     {

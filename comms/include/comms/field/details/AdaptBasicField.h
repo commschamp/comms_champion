@@ -90,6 +90,27 @@ template <typename TField, typename TOpts>
 using AdaptFieldInvalidByDefaultT =
     typename AdaptFieldInvalidByDefault<TOpts::HasInvalidByDefault>::template Type<TField>;
 
+template <bool THasCustomRead>
+struct AdaptFieldCustomReadWrap;
+
+template <>
+struct AdaptFieldCustomReadWrap<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::CustomReadWrap<TField>;
+};
+
+template <>
+struct AdaptFieldCustomReadWrap<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldCustomReadWrapT =
+    typename AdaptFieldCustomReadWrap<TOpts::HasCustomRead>::template Type<TField>;
+
 
 template <bool THasCustomValueReader>
 struct AdaptFieldCustomValueReader;
@@ -746,8 +767,10 @@ class AdaptBasicField
         TBasic, ParsedOptions>;
     using VersionStorageAdapted = AdaptFieldVersionStorageT<
         InvalidByDefaultAdapted, ParsedOptions>;
-    using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
+    using CustomReadWrapAdapted = AdaptFieldCustomReadWrapT<
         VersionStorageAdapted, ParsedOptions>;
+    using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
+        CustomReadWrapAdapted, ParsedOptions>;
     using SerOffsetAdapted = AdaptFieldSerOffsetT<
         CustomReaderAdapted, ParsedOptions>;
     using VersionsRangeAdapted = AdaptFieldVersionsRangeT<

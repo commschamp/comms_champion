@@ -91,6 +91,11 @@ public:
         return trailField_.read(iter, len - BaseImpl::length());
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 

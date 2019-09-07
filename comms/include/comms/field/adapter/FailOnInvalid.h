@@ -72,6 +72,11 @@ public:
         return comms::ErrorStatus::Success;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 };

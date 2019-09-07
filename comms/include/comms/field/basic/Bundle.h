@@ -228,6 +228,11 @@ public:
         return es;
     }    
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return comms::util::tupleTypeAccumulate<TMembers>(true, ReadNoStatusDetector());
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
@@ -287,6 +292,11 @@ public:
         auto es = ErrorStatus::Success;
         comms::util::template tupleForEachFromUntil<TFromIdx, TUntilIdx>(value(), makeWriteHelper(es, iter, len));
         return es;
+    }
+
+    static constexpr bool hasWriteNoStatus()
+    {
+        return comms::util::tupleTypeAccumulate<TMembers>(true, WriteNoStatusDetector());
     }
 
     template <typename TIter>
@@ -506,6 +516,28 @@ private:
     {
         return WriteNoStatusHelper<TIter>(iter);
     }
+
+    struct ReadNoStatusDetector
+    {
+        constexpr ReadNoStatusDetector() = default;
+
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::hasReadNoStatus() && soFar;
+        }
+    };
+
+    struct WriteNoStatusDetector
+    {
+        constexpr WriteNoStatusDetector() = default;
+
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::hasWriteNoStatus() && soFar;
+        }
+    };
 
     static_assert(comms::util::IsTuple<ValueType>::Value, "ValueType must be tuple");
     ValueType members_;

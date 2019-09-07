@@ -309,6 +309,11 @@ public:
         return readInternal(iter, len, Tag());
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -380,6 +385,11 @@ public:
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         return CommonFuncs::writeSequence(*this, iter, len);
+    }
+
+    static constexpr bool hasWriteNoStatus()
+    {
+        return hasWriteNoStatusInternal(ElemTag());
     }
 
     template <typename TIter>
@@ -785,6 +795,16 @@ private:
     static bool canWriteElementInternal(const ElementType& elem, IntegralElemTag)
     {
         static_cast<void>(elem);
+        return true;
+    }
+
+    static constexpr bool hasWriteNoStatusInternal(FieldElemTag)
+    {
+        return ElementType::hasWriteNoStatus();
+    }
+
+    static constexpr bool hasWriteNoStatusInternal(IntegralElemTag)
+    {
         return true;
     }
 

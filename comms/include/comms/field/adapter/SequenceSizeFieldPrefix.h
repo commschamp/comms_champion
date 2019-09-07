@@ -36,6 +36,10 @@ class SequenceSizeFieldPrefix : public TBase
     using BaseImpl = TBase;
     using SizeField = TSizeField;
 
+    static const std::size_t MaxAllowedSize =
+            static_cast<std::size_t>(
+                std::numeric_limits<typename SizeField::ValueType>::max());
+
     static_assert(!SizeField::isVersionDependent(),
             "Prefix fields must not be version dependent");
 
@@ -80,6 +84,9 @@ public:
 
     bool valid() const
     {
+        if ((!BaseImpl::valid()) || (!canWrite())) {
+            return false;
+        }
         using SizeValueType = typename SizeField::ValueType;
         SizeField sizeField;
         sizeField.value() = static_cast<SizeValueType>(BaseImpl::value().size());
@@ -113,9 +120,28 @@ public:
         BaseImpl::readNoStatusN(count, iter);
     }
 
+    bool canWrite() const
+    {
+        if (!BaseImpl::canWrite()) {
+            return false;
+        }
+
+        if (MaxAllowedSize < BaseImpl::value().size()) {
+            return false;
+        }
+
+        SizeField sizeField;
+        sizeField.value() = static_cast<typename SizeField::ValueType>(BaseImpl::value().size());
+        return sizeField.canWrite();
+    }
+
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
+        if (!canWrite()) {
+            return comms::ErrorStatus::InvalidMsgData;
+        }
+
         using SizeValueType = typename SizeField::ValueType;
         SizeField sizeField;
         sizeField.value() = static_cast<SizeValueType>(BaseImpl::value().size());
@@ -128,15 +154,13 @@ public:
         return BaseImpl::write(iter, len - sizeField.length());
     }
 
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const
+    static constexpr bool hasWriteNoStatus()
     {
-        using SizeValueType = typename SizeField::ValueType;
-        SizeField sizeField;
-        sizeField.value() = static_cast<SizeValueType>(BaseImpl::value().size());
-        sizeField.writeNoStatus(iter);
-        BaseImpl::writeNoStatus(iter);
+        return false;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 };
 
 }  // namespace adapter

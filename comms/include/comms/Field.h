@@ -81,6 +81,20 @@ public:
         return false;
     }
 
+    /// @brief Default check of whether the field has @b readNoStatus() member function
+    /// @return Always @b true.
+    static constexpr bool hasReadNoStatus()
+    {
+        return true;
+    }
+
+    /// @brief Default check of whether the field has @b writeNoStatus() member function
+    /// @return Always @b true.
+    static constexpr bool hasWriteNoStatus()
+    {
+        return true;
+    }
+
     /// @brief Default check of whether the field has a consistent value
     ///     for writing.
     /// @return Always @b true.

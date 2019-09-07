@@ -205,6 +205,13 @@ public:
         return intValue_.read(iter, size);
     }
 
+    /// @brief Compile time check of whether the field has @b proper
+    ///     @ref readNoStatus() member function.
+    static constexpr bool hasReadNoStatus()
+    {
+        return BaseImpl::hasReadNoStatus();
+    }
+
     /// @brief Read field value from input data sequence without error check and status report.
     /// @details Similar to @ref read(), but doesn't perform any correctness
     ///     checks and doesn't report any failures.
@@ -231,6 +238,13 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return intValue_.write(iter, size);
+    }
+
+    /// @brief Compile time check of whether the field has @b proper
+    ///     @ref writeNoStatus() member function.
+    static constexpr bool hasWriteNoStatus()
+    {
+        return BaseImpl::hasWriteNoStatus();
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.

@@ -45,3 +45,4 @@
 #include "comms/field/adapter/InvalidByDefault.h"
 #include "comms/field/adapter/VersionStorage.h"
 #include "comms/field/adapter/RemLengthMemberField.h"
+#include "comms/field/adapter/CustomReadWrap.h"

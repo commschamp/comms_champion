@@ -122,6 +122,11 @@ public:
         return es;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -161,16 +166,13 @@ public:
         return BaseImpl::write(iter, lenVal);
     }
 
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const
+    static constexpr bool hasWriteNoStatus()
     {
-        using LenValueType = typename LenField::ValueType;
-        auto lenVal = BaseImpl::length();
-        LenField lenField;
-        lenField.value() = static_cast<LenValueType>(lenVal);
-        lenField.writeNoStatus(iter);
-        BaseImpl::writeNoStatus(iter);
+        return false;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 };
 
 }  // namespace adapter

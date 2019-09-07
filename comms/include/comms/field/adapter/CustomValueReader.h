@@ -70,6 +70,11 @@ public:
     template <std::size_t TFromIdx, std::size_t TUntilIdx, typename TIter>
     comms::ErrorStatus readFromUntil(TIter& iter, std::size_t size) = delete;
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 

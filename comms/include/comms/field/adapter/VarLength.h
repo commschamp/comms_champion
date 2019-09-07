@@ -136,6 +136,11 @@ public:
         return comms::ErrorStatus::Success;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -159,15 +164,17 @@ public:
             return ErrorStatus::BufferOverflow;
         }
 
-        writeNoStatus(iter);
+        writeNoStatusInternal(toSerialised(BaseImpl::value()), iter, HasSignTag(), Endian());
         return ErrorStatus::Success;
     }
 
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const
+    static constexpr bool hasWriteNoStatus()
     {
-        return writeNoStatusInternal(toSerialised(BaseImpl::value()), iter, HasSignTag(), Endian());
+        return false;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
     bool valid() const
     {

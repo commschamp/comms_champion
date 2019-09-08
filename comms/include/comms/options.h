@@ -1179,6 +1179,11 @@ struct HasCustomRead {};
 /// @headerfile comms/options.h
 struct HasCustomRefresh {};
 
+/// @brief Mark field class to have custom
+///     implementation of @b read functionality.
+/// @headerfile comms/options.h
+struct HasCustomWrite {};
+
 /// @brief Mark message class as providing its name information
 /// @headerfile comms/options.h
 struct HasName {};

@@ -121,6 +121,10 @@ void LongLongIntValueFieldWidget::valueUpdated(const QString& value)
     assert(isEditEnabled());
     m_wrapper->setValue(adjustedValue);
     assert(m_wrapper->getValue() == adjustedValue);
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
     refresh();
     emitFieldUpdated();
 }

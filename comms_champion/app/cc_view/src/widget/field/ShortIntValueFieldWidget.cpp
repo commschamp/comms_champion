@@ -119,6 +119,10 @@ void ShortIntValueFieldWidget::valueUpdated(int value)
 
     assert(isEditEnabled());
     m_wrapper->setValue(adjustDisplayedToReal(value));
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
     refresh();
     emitFieldUpdated();
 }

@@ -46,3 +46,4 @@
 #include "comms/field/adapter/VersionStorage.h"
 #include "comms/field/adapter/RemLengthMemberField.h"
 #include "comms/field/adapter/CustomReadWrap.h"
+#include "comms/field/adapter/CustomWriteWrap.h"

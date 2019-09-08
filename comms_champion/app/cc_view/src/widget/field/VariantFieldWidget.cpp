@@ -95,6 +95,11 @@ void VariantFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void VariantFieldWidget::memberFieldUpdated()
 {
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
+
     refreshInternal();
     emitFieldUpdated();
 }

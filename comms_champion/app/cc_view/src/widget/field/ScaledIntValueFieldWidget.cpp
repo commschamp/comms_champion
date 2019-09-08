@@ -138,6 +138,10 @@ void ScaledIntValueFieldWidget::valueUpdated(double value)
 
     assert(isEditEnabled());
     m_wrapper->setScaled(value);
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
 
     refresh();
     emitFieldUpdated();

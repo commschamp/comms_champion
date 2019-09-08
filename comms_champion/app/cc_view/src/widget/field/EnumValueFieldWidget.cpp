@@ -210,6 +210,10 @@ void EnumValueFieldWidget::valueUpdated(int idx)
 
         assert(isEditEnabled());
         m_wrapper->setValue(value);
+        if (!m_wrapper->canWrite()) {
+            m_wrapper->reset();
+            assert(m_wrapper->canWrite());
+        }
         emitFieldUpdated();
     }
     refresh();

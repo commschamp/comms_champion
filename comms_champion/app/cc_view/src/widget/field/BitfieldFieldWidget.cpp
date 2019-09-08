@@ -111,6 +111,23 @@ void BitfieldFieldWidget::serialisedValueUpdated(const QString& value)
 
 void BitfieldFieldWidget::memberFieldUpdated()
 {
+    auto senderIter = std::find(m_members.begin(), m_members.end(), qobject_cast<FieldWidget*>(sender()));
+    assert(senderIter != m_members.end());
+    auto idx = static_cast<unsigned>(std::distance(m_members.begin(), senderIter));
+    auto& memWrappers = m_wrapper->getMembers();
+    assert(idx < memWrappers.size());
+    auto& memWrapPtr = memWrappers[idx];
+    if (!memWrapPtr->canWrite()) {
+        memWrapPtr->reset();
+        assert(memWrapPtr->canWrite());
+        (*senderIter)->refresh();
+    }
+
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
+
     refreshInternal();
     emitFieldUpdated();
 }

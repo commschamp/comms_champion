@@ -71,6 +71,7 @@ void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
     }
 
     if (m_wrapper->setSerialisedString(valueCopy)) {
+        assert(m_wrapper->canWrite());
         refresh();
         emitFieldUpdated();
     }

@@ -93,6 +93,11 @@ void OptionalFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void OptionalFieldWidget::fieldUpdated()
 {
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+        refreshField();
+    }
     refreshInternal();
     emitFieldUpdated();
 }

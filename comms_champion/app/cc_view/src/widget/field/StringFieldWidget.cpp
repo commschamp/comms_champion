@@ -81,7 +81,12 @@ void StringFieldWidget::stringChanged()
         str.resize(m_wrapper->maxSize());
     }
 
+    auto oldValue = m_wrapper->getValue();
     m_wrapper->setValue(str);
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->setValue(oldValue);
+        assert(m_wrapper->canWrite());
+    }
     refresh();
     emitFieldUpdated();
 }

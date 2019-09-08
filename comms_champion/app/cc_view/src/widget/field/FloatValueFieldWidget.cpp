@@ -145,6 +145,9 @@ void FloatValueFieldWidget::valueUpdated(double value)
 
     assert(isEditEnabled());
     m_wrapper->setValue(value);
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+    }
     refresh();
     emitFieldUpdated();
 }

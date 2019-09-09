@@ -177,6 +177,10 @@ public:
     template <typename TIter>
     ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len) const
     {
+        if (!canWriteElement(elem)) {
+            return ErrorStatus::InvalidMsgData;
+        }
+
         auto elemLength = BaseImpl::elementLength(elem);
         LenField lenField;
         lenField.value() = static_cast<typename LenField::ValueType>(elemLength);
@@ -186,10 +190,6 @@ public:
         }
 
         len -= lenField.length();
-        if (MaxAllowedElemLength < len) {
-            return ErrorStatus::InvalidMsgData;
-        }
-
         return BaseImpl::writeElement(elem, iter, len);
     }
 
@@ -326,6 +326,7 @@ private:
 }  // namespace field
 
 }  // namespace comms
+
 
 
 

@@ -102,7 +102,7 @@ void FloatValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
 
     if (m_specialsWidget != nullptr) {
-        m_specialsWidget->setFpValue(m_wrapper->getValue());
+        m_specialsWidget->setFpValue(m_wrapper->getValue(), m_wrapper->getEpsilon());
     }
 
 }

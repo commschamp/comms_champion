@@ -51,7 +51,7 @@ public:
     ~SpecialValueWidget() noexcept;
 
     void setIntValue(long long value);
-    void setFpValue(double value);
+    void setFpValue(double value, double cmpEpsilon);
 
 signals:
     void sigIntValueChanged(long long value);

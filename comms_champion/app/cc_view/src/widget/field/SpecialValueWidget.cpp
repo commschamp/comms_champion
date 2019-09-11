@@ -85,7 +85,7 @@ void SpecialValueWidget::setIntValue(long long value)
     m_ui.m_specialComboBox->blockSignals(false);
 }
 
-void SpecialValueWidget::setFpValue(double value)
+void SpecialValueWidget::setFpValue(double value, double cmpEpsilon)
 {
     assert(m_fpSpecials);
     m_ui.m_specialComboBox->blockSignals(true);
@@ -100,10 +100,17 @@ void SpecialValueWidget::setFpValue(double value)
         assert(valueVar.canConvert<double>());
         auto storedValue = valueVar.value<double>();
 
-        if (std::isnan(value) && std::isnan(storedValue)) {
+        bool valueIsNan = std::isnan(value);
+        bool storedValueIsNan = std::isnan(storedValue);
+
+        if (valueIsNan && storedValueIsNan) {
             m_ui.m_specialComboBox->setCurrentIndex(idx);
             foundValue = true;
             break;
+        }
+
+        if (valueIsNan != storedValueIsNan) {
+            continue;
         }
 
         bool valueIsInf = std::isinf(value);
@@ -124,7 +131,7 @@ void SpecialValueWidget::setFpValue(double value)
             break;
         }
 
-        if (storedValue != value) {
+        if (cmpEpsilon < std::abs(storedValue - value)) {
             continue;
         }
 

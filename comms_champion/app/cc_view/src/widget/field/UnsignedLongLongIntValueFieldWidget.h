@@ -26,6 +26,7 @@
 namespace comms_champion
 {
 
+class SpecialValueWidget;
 class UnsignedLongLongIntValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
@@ -47,19 +48,24 @@ protected:
 private slots:
     void serialisedValueUpdated(const QString& value);
     void valueUpdated(const QString& value);
+    void specialSelected(long long value);
 
 private:
+    using SpecialInfo = QPair<QString, long long>;
+    using SpecialsList = QList<SpecialInfo>;
     using WrapperType = WrapperPtr::element_type;
     using UnderlyingType = WrapperType::UnderlyingType;
     typedef double DisplayedType;
     UnderlyingType adjustDisplayedToReal(DisplayedType val);
     DisplayedType adjustRealToDisplayed(UnderlyingType val);
     static DisplayedType getDisplayedValue(const QString& value);
+    bool createSpecialsWidget(const SpecialsList& specials);
 
     Ui::UnsignedLongLongIntValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
     long long m_offset = 0;
     int m_decimals = 0;
+    SpecialValueWidget* m_specialsWidget = nullptr;
 };
 
 

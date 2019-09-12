@@ -23,6 +23,7 @@
 #include <cmath>
 
 #include "comms_champion/property/field.h"
+#include "SpecialValueWidget.h"
 
 namespace comms_champion
 {
@@ -72,6 +73,10 @@ void UnsignedLongLongIntValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+
+    if (m_specialsWidget != nullptr) {
+        m_specialsWidget->setIntValue(static_cast<long long>(m_wrapper->getValue()));
+    }
 }
 
 void UnsignedLongLongIntValueFieldWidget::editEnabledUpdatedImpl()
@@ -86,6 +91,8 @@ void UnsignedLongLongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap
     property::field::IntValue parsedProps(props);
     m_offset = parsedProps.displayOffset();
     m_decimals = parsedProps.scaledDecimals();
+    auto& specials = parsedProps.specials();
+    createSpecialsWidget(specials);
     refresh();
 }
 
@@ -112,10 +119,21 @@ void UnsignedLongLongIntValueFieldWidget::valueUpdated(const QString& value)
     emitFieldUpdated();
 }
 
+void UnsignedLongLongIntValueFieldWidget::specialSelected(long long value)
+{
+    if (!isEditEnabled()) {
+        refresh();
+        return;
+    }
+
+    m_wrapper->setValue(static_cast<unsigned long long>(value));
+    refresh();
+}
+
 UnsignedLongLongIntValueFieldWidget::UnderlyingType
 UnsignedLongLongIntValueFieldWidget::adjustDisplayedToReal(DisplayedType val)
 {
-    auto uVal = static_cast<unsigned long long>(val);
+    auto uVal = static_cast<unsigned long long>(std::llround(val));
     if (0 < m_decimals) {
         uVal = static_cast<decltype(uVal)>(val * std::pow(10, m_decimals));
     }
@@ -138,6 +156,28 @@ UnsignedLongLongIntValueFieldWidget::getDisplayedValue(const QString& value)
     bool ok = false;
     auto val = value.toDouble(&ok);
     return val;
+}
+
+bool UnsignedLongLongIntValueFieldWidget::createSpecialsWidget(const SpecialsList& specials)
+{
+    delete m_specialsWidget;
+    if (specials.empty()) {
+        m_specialsWidget = nullptr;
+        return false;
+    }
+
+    m_specialsWidget = new SpecialValueWidget(specials);
+    connect(
+        m_specialsWidget, SIGNAL(sigIntValueChanged(long long)),
+        this, SLOT(specialSelected(long long)));
+
+    connect(
+        m_specialsWidget, SIGNAL(sigRefreshReq()),
+        this, SLOT(refresh()));
+
+    m_ui.m_valueWidgetLayout->insertWidget(m_ui.m_valueWidgetLayout->count(), m_specialsWidget);
+
+    return true;
 }
 
 }  // namespace comms_champion

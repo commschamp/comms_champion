@@ -63,8 +63,8 @@ TFieldTo field_cast(const TFieldFrom& field)
         std::is_enum<typename TFieldFrom::ValueType>::value ||
         std::is_integral<typename TFieldFrom::ValueType>::value;
     static const bool ToIntegral =
-        std::is_enum<typename TFieldFrom::ValueType>::value ||
-        std::is_integral<typename TFieldFrom::ValueType>::value;
+        std::is_enum<typename TFieldTo::ValueType>::value ||
+        std::is_integral<typename TFieldTo::ValueType>::value;
 
     static const bool UseStaticCast =
         Convertible || (FromIntegral && ToIntegral);

@@ -42,6 +42,7 @@ UnknownValueFieldWidget::~UnknownValueFieldWidget() noexcept = default;
 
 void UnknownValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     auto curText = m_ui.m_serValueLineEdit->text();
     auto serString = m_wrapper->getSerialisedString();
     if (curText != serString) {
@@ -70,6 +71,7 @@ void UnknownValueFieldWidget::serialisedValueUpdated(const QString& value)
     }
 
     if (m_wrapper->setSerialisedString(valueCopy)) {
+        assert(m_wrapper->canWrite());
         refresh();
         emitFieldUpdated();
     }

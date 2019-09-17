@@ -69,6 +69,11 @@ void FloatValueWrapper::dispatchImpl(FieldWrapperHandler& handler)
     handler.handle(*this);
 }
 
+double FloatValueWrapper::getEpsilon() const
+{
+    return getEpsilonImpl();
+}
+
 }  // namespace field_wrapper
 
 }  // namespace comms_champion

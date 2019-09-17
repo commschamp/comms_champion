@@ -50,6 +50,7 @@ public:
     void setEditEnabled(bool enabled);
     void setDeletable(bool deletable);
     void updateProperties(const QVariantMap& props);
+    void setNameSuffix(const QString& value);
 
 signals:
     void sigFieldUpdated();
@@ -111,6 +112,7 @@ private:
     CreateMissingDataFieldsFunc m_createMissingDataFieldsCallback;
     std::vector<QVariantMap> m_elemProperties;
     bool m_prefixVisible = false;
+    bool m_appendIndexToElementName = false;
 };
 
 }  // namespace comms_champion

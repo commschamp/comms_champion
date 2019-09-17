@@ -22,8 +22,8 @@
 
 #include <type_traits>
 
-#include "util/access.h"
-#include "details/FieldBase.h"
+#include "comms/util/access.h"
+#include "comms/details/FieldBase.h"
 #include "comms/details/macro_common.h"
 #include "comms/details/fields_access.h"
 
@@ -79,6 +79,28 @@ public:
     static constexpr bool hasNonDefaultRefresh()
     {
         return false;
+    }
+
+    /// @brief Default check of whether the field has @b readNoStatus() member function
+    /// @return Always @b true.
+    static constexpr bool hasReadNoStatus()
+    {
+        return true;
+    }
+
+    /// @brief Default check of whether the field has @b writeNoStatus() member function
+    /// @return Always @b true.
+    static constexpr bool hasWriteNoStatus()
+    {
+        return true;
+    }
+
+    /// @brief Default check of whether the field has a consistent value
+    ///     for writing.
+    /// @return Always @b true.
+    static constexpr bool canWrite()
+    {
+        return true;
     }
 
     /// @brief Default version update functionality

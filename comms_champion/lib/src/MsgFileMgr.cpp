@@ -130,6 +130,20 @@ private:
 const QString RepeatCountProp::Name("repeat_count");
 const QByteArray RepeatCountProp::PropName = RepeatCountProp::Name.toUtf8();
 
+class CommentProp : public property::message::PropBase<QString>
+{
+    typedef property::message::PropBase<QString> Base;
+public:
+    CommentProp() : Base(Name, PropName) {}
+private:
+    static const QString Name;
+    static const QByteArray PropName;
+};
+
+const QString CommentProp::Name("comment");
+const QByteArray CommentProp::PropName = CommentProp::Name.toUtf8();
+
+
 class TimestampProp : public property::message::PropBase<unsigned long long>
 {
     typedef property::message::PropBase<unsigned long long> Base;
@@ -308,6 +322,11 @@ QVariantMap convertRecvMsg(const Message& msg)
     TimestampProp().setTo(property::message::Timestamp().getFrom(msg), msgInfoMap);
     TypeProp().setTo(static_cast<unsigned>(property::message::Type().getFrom(msg)), msgInfoMap);
 
+    auto comment = property::message::Comment().getFrom(msg);
+    if (!comment.isEmpty()) {
+        CommentProp().setTo(comment, msgInfoMap);
+    }
+
     auto extraInfo = property::message::ExtraInfo().getFrom(msg);
     if (!extraInfo.isEmpty()) {
         ExtraPropsProp().setTo(std::move(extraInfo), msgInfoMap);
@@ -358,9 +377,11 @@ MsgFileMgr::MessagesList convertRecvMsgList(
         }
 
         auto type = static_cast<Message::Type>(TypeProp().getFrom(msgMap));
+        auto comment = CommentProp().getFrom(msgMap);
 
         property::message::Timestamp().setTo(timestamp, *msg);
         property::message::Type().setTo(type, *msg);
+        property::message::Comment().setTo(comment, *msg);
 
         convertedList.push_back(std::move(msg));
     }
@@ -385,6 +406,12 @@ QVariantList convertSendMsgList(
         RepeatProp().setTo(property::message::RepeatDuration().getFrom(*msg), msgInfoMap);
         RepeatUnitsProp().setTo(property::message::RepeatDurationUnits().getFrom(*msg), msgInfoMap);
         RepeatCountProp().setTo(property::message::RepeatCount().getFrom(*msg), msgInfoMap);
+
+        auto comment = property::message::Comment().getFrom(*msg);
+        if (!comment.isEmpty()) {
+            CommentProp().setTo(comment, msgInfoMap);
+        }
+
 
         auto extraInfo = property::message::ExtraInfo().getFrom(*msg);
         if (!extraInfo.isEmpty()) {
@@ -417,6 +444,7 @@ MsgFileMgr::MessagesList convertSendMsgList(
         auto repeatDuration = RepeatProp().getFrom(msgMap);
         auto repeatDurationUnits = RepeatUnitsProp().getFrom(msgMap);
         auto repeatCount = RepeatCountProp().getFrom(msgMap);
+        auto comment = CommentProp().getFrom(msgMap);
 
         if ((repeatDuration == 0) && (repeatCount == 0)) {
             repeatCount = 1;
@@ -451,6 +479,7 @@ MsgFileMgr::MessagesList convertSendMsgList(
         property::message::RepeatDuration().setTo(repeatDuration, *msg);
         property::message::RepeatDurationUnits().setTo(std::move(repeatDurationUnits), *msg);
         property::message::RepeatCount().setTo(repeatCount, *msg);
+        property::message::Comment().setTo(comment, *msg);
 
         convertedList.push_back(std::move(msg));
     }

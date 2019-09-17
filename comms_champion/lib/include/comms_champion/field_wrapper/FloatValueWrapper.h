@@ -51,6 +51,7 @@ public:
     void setInf();
     bool isMinusInf() const;
     void setMinusInf();
+    double getEpsilon() const;
 
 protected:
     virtual Ptr cloneImpl() = 0;
@@ -60,6 +61,7 @@ protected:
     virtual void setInfImpl() = 0;
     virtual bool isMinusInfImpl() const = 0;
     virtual void setMinusInfImpl() = 0;
+    virtual double getEpsilonImpl() const = 0;
 
     virtual void dispatchImpl(FieldWrapperHandler& handler) override;
 };
@@ -121,6 +123,11 @@ protected:
     virtual void setMinusInfImpl() override
     {
         Base::field().value() = -std::numeric_limits<typename TField::ValueType>::infinity();
+    }
+
+    virtual double getEpsilonImpl() const override
+    {
+        return static_cast<double>(std::numeric_limits<typename TField::ValueType>::epsilon());
     }
 };
 

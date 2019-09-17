@@ -28,6 +28,7 @@ CC_ENABLE_WARNINGS()
 
 #include "comms_champion/Message.h"
 #include "comms_champion/property/message.h"
+#include "GuiAppMgr.h"
 
 namespace comms_champion
 {
@@ -60,6 +61,12 @@ MsgListWidget::MsgListWidget(
     connect(
         m_ui.m_listWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
         this, SLOT(itemDoubleClicked(QListWidgetItem*)));
+
+    auto* guiMgr = GuiAppMgr::instance();
+    assert(guiMgr != nullptr);
+    connect(
+        guiMgr, SIGNAL(sigMsgCommentUpdated(MessagePtr)),
+        this, SLOT(msgCommentUpdated(MessagePtr)));
 }
 
 void MsgListWidget::addMessage(MessagePtr msg)
@@ -381,6 +388,19 @@ void MsgListWidget::itemDoubleClicked(QListWidgetItem* item)
         m_ui.m_listWidget->row(item));
 }
 
+void MsgListWidget::msgCommentUpdated(MessagePtr msg)
+{
+    assert(msg);
+    auto item = m_ui.m_listWidget->currentItem();
+    if (item == nullptr) {
+        return;
+    }
+
+    if (msg == getMsgFromItem(item)) {
+        item->setText(getMsgNameText(msg));
+    }
+}
+
 MessagePtr MsgListWidget::getMsgFromItem(QListWidgetItem* item) const
 {
     auto var = item->data(Qt::UserRole);
@@ -396,6 +416,11 @@ QString MsgListWidget::getMsgNameText(MessagePtr msg)
         itemStr.append(": ");
     }
     itemStr.append(msg->name());
+
+    auto comment = property::message::Comment().getFrom(*msg);
+    if (!comment.isEmpty()) {
+        itemStr.append(" (" + comment + ")");
+    }
     return itemStr;
 }
 

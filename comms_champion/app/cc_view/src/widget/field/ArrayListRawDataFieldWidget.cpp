@@ -48,6 +48,7 @@ ArrayListRawDataFieldWidget::~ArrayListRawDataFieldWidget() noexcept = default;
 
 void ArrayListRawDataFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValuePlainTextEdit != nullptr);
     updateSerValue(*m_ui.m_serValuePlainTextEdit, *m_wrapper);
 
@@ -113,7 +114,11 @@ void ArrayListRawDataFieldWidget::valueChanged()
         str.append('0');
     }
 
+    auto oldValue = m_wrapper->getValue();
     m_wrapper->setValue(str);
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->setValue(oldValue);
+    }
     refresh();
     emitFieldUpdated();
 }

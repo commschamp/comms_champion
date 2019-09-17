@@ -395,18 +395,21 @@ protected:
     /// @details Called by valid(), must be implemented in the derived class.
     ///     The function exists only if @ref comms::option::app::ValidCheckInterface option
     ///     was provided to comms::Message.
-    /// @return true for valid contents, false otherwise.
+    /// @return true for valid contents, false otherwise. If not overridden
+    ///     always returns @b true.
     /// @see @ref hasValid()
-    virtual bool validImpl() const = 0;
+    virtual bool validImpl() const;
 
-    /// @brief Pure virtual function used to retrieve number of bytes required
+    /// @brief Virtual function used to retrieve number of bytes required
     ///     to serialise this message.
     /// @details Called by length(), must be implemented in the derived class.
     ///     The function exists only if @ref comms::option::app::LengthInfoInterface option
     ///     was provided to comms::Message.
-    /// @return Number of bytes required to serialise this message.
+    /// @return Number of bytes required to serialise this message. If
+    ///     not overriden unconditionally fails on assert in DEBUG build
+    ///     and returns @b 0 in RELEASE.
     /// @see @ref hasLength()
-    virtual std::size_t lengthImpl() const = 0;
+    virtual std::size_t lengthImpl() const;
 
     /// @brief Virtual function used to bring contents of the message
     ///     into a consistent state.
@@ -419,13 +422,15 @@ protected:
     ///     all the fields of the message remained unchanged.
     virtual bool refreshImpl();
 
-    /// @brief Pure virtual function used to dispatch message to the handler
+    /// @brief Virtual function used to dispatch message to the handler
     ///     object for processing.
     /// @details Called by dispatch(), must be implemented in the derived class.
     ///     The function exists only if @ref comms::option::app::Handler option was
-    ///     provided to comms::Message to specify type of the handler.
+    ///     provided to comms::Message to specify type of the handler. If not
+    ///     overridden unconditionally fails on assert in DEBUG build and
+    ///     does nothing in RELEASE.
     /// @param handler Handler object to dispatch message to.
-    virtual DispatchRetType dispatchImpl(Handler& handler) = 0;
+    virtual DispatchRetType dispatchImpl(Handler& handler);
 
     /// @brief Pure virtual function used to retrieve actual message name.
     /// @details Called by @ref name(), must be implemented in the derived class.

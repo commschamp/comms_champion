@@ -107,6 +107,7 @@ public:
 
     static ActivityState getActivityState();
     bool applyNewPlugins(const ListOfPluginInfos& plugins);
+    void msgCommentUpdated(MessagePtr msg);
 
 public slots:
     void pluginsEditClicked();
@@ -115,6 +116,7 @@ public slots:
     void recvStopClicked();
     void recvLoadClicked();
     void recvSaveClicked();
+    void recvCommentClicked();
     void recvDeleteClicked();
     void recvClearClicked();
     void recvShowRecvToggled(bool checked);
@@ -129,6 +131,7 @@ public slots:
     void sendAddClicked();
     void sendAddRawClicked();
     void sendEditClicked();
+    void sendCommentClicked();
     void sendDeleteClicked();
     void sendClearClicked();
     void sendTopClicked();
@@ -189,6 +192,8 @@ signals:
     void sigSendSaveMsgs(const QString& filename);
     void sigSocketConnected(bool connected);
     void sigSocketConnectEnabled(bool enabled);
+    void sigMsgCommentDialog(MessagePtr msg);
+    void sigMsgCommentUpdated(MessagePtr msg);
 
 private:
     enum class SelectionType

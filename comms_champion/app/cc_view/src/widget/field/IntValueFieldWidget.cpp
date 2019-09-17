@@ -49,6 +49,7 @@ IntValueFieldWidget::~IntValueFieldWidget() noexcept
 
 void IntValueFieldWidget::refreshImpl()
 {
+    assert((!m_wrapper) || (m_wrapper->canWrite()));
     if (m_childWidget) {
         m_childWidget->refresh();
     }
@@ -94,6 +95,7 @@ void IntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
         return;
     } while (false);
 
+    m_childWidget->setNameSuffix(getNameSuffix());
     assert(m_childWidget);
     auto* childLayout = new QVBoxLayout();
     childLayout->addWidget(m_childWidget.get());

@@ -22,6 +22,7 @@
 #include <limits>
 
 #include "comms_champion/property/field.h"
+#include "SpecialValueWidget.h"
 
 namespace comms_champion
 {
@@ -56,6 +57,7 @@ ShortIntValueFieldWidget::~ShortIntValueFieldWidget() noexcept = default;
 
 void ShortIntValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
@@ -70,6 +72,10 @@ void ShortIntValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+
+    if (m_specialsWidget != nullptr) {
+        m_specialsWidget->setIntValue(m_wrapper->getValue());
+    }
 }
 
 void ShortIntValueFieldWidget::editEnabledUpdatedImpl()
@@ -81,11 +87,21 @@ void ShortIntValueFieldWidget::editEnabledUpdatedImpl()
 
 void ShortIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
+    property::field::IntValue actProps(props);
+
     auto offset =
-        static_cast<decltype(m_offset)>(
-            property::field::IntValue(props).displayOffset());
+        static_cast<decltype(m_offset)>(actProps.displayOffset());
+
+    bool needRefresh = false;
     if (m_offset != offset) {
         m_offset = offset;
+        needRefresh = true;
+    }
+
+    auto& specials = actProps.specials();
+    needRefresh = createSpecialsWidget(specials) || needRefresh;
+
+    if (needRefresh) {
         refresh();
     }
 }
@@ -103,8 +119,22 @@ void ShortIntValueFieldWidget::valueUpdated(int value)
 
     assert(isEditEnabled());
     m_wrapper->setValue(adjustDisplayedToReal(value));
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
     refresh();
     emitFieldUpdated();
+}
+
+void ShortIntValueFieldWidget::specialSelected(long long value)
+{
+    if (!isEditEnabled()) {
+        refresh();
+        return;
+    }
+
+    valueUpdated(adjustRealToDisplayed(static_cast<int>(value)));
 }
 
 int ShortIntValueFieldWidget::adjustDisplayedToReal(int val)
@@ -117,6 +147,27 @@ int ShortIntValueFieldWidget::adjustRealToDisplayed(int val)
     return val + m_offset;
 }
 
+bool ShortIntValueFieldWidget::createSpecialsWidget(const SpecialsList& specials)
+{
+    delete m_specialsWidget;
+    if (specials.empty()) {
+        m_specialsWidget = nullptr;
+        return false;
+    }
+
+    m_specialsWidget = new SpecialValueWidget(specials);
+    connect(
+        m_specialsWidget, SIGNAL(sigIntValueChanged(long long)),
+        this, SLOT(specialSelected(long long)));
+
+    connect(
+        m_specialsWidget, SIGNAL(sigRefreshReq()),
+        this, SLOT(refresh()));
+
+    m_ui.m_valueWidgetLayout->insertWidget(m_ui.m_valueWidgetLayout->count() - 1, m_specialsWidget);
+
+    return true;
+}
 
 }  // namespace comms_champion
 

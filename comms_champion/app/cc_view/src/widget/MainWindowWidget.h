@@ -61,6 +61,7 @@ private slots:
     void saveRecvMsgsDialog();
     void loadSendMsgsDialog(bool askForClear);
     void saveSendMsgsDialog();
+    void msgCommentDialog(MessagePtr msg);
     void aboutInfo();
 
 private:

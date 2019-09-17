@@ -53,6 +53,7 @@ const QIcon& pluginEdit();
 const QIcon& errorLog();
 const QIcon& connect();
 const QIcon& disconnect();
+const QIcon& comment();
 
 }  // namespace icon
 

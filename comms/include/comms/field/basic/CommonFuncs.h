@@ -78,12 +78,29 @@ struct CommonFuncs
         }
     }
 
+    template <typename TField>
+    static bool canWriteSequence(const TField& field)
+    {
+        for (auto& elem : field.value()) {
+            if (!field.canWriteElement(elem)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     template <typename TField, typename TIter>
     static comms::ErrorStatus writeSequence(const TField& field, TIter& iter, std::size_t len)
     {
         auto es = ErrorStatus::Success;
         auto remainingLen = len;
         for (auto& elem : field.value()) {
+            if (!field.canWriteElement(elem)) {
+                es = ErrorStatus::InvalidMsgData;
+                break;
+            }
+
             es = field.writeElement(elem, iter, remainingLen);
             if (es != comms::ErrorStatus::Success) {
                 break;

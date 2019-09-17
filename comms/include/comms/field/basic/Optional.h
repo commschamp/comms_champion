@@ -161,6 +161,11 @@ public:
         return es;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return Field::hasReadNoStatus();
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter)
     {
@@ -171,6 +176,15 @@ public:
 
         mode_ = Mode::Exists;
         field_.readNoStatus(iter);
+    }
+
+    bool canWrite() const
+    {
+        if (mode_ == Mode::Missing) {
+            return true;
+        }
+
+        return field_.canWrite();
     }
 
     template <typename TIter>
@@ -185,6 +199,11 @@ public:
         }
 
         return field_.write(iter, len);
+    }
+
+    static constexpr bool hasWriteNoStatus()
+    {
+        return Field::hasWriteNoStatus();
     }
 
     template <typename TIter>

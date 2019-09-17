@@ -4,7 +4,7 @@ endif ()
 
 find_package (Doxygen)
 if (DOXYGEN_FOUND)
-    set (doc_output_dir "${DOC_INSTALL_DIR}/demo")
+    set (doc_output_dir "${CMAKE_INSTALL_PREFIX}/${DOC_INSTALL_DIR}/comms")
     make_directory (${doc_output_dir})
     
     set (match_str "OUTPUT_DIRECTORY[^\n]*")

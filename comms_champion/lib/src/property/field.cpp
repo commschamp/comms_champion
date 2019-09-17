@@ -101,6 +101,19 @@ const QString& prefixNameKey()
     return Str;
 }
 
+const QString& specialsKey()
+{
+    static const QString Str("cc.specials");
+    return Str;
+}
+
+const QString& appendIdxKey()
+{
+    static const QString Str("cc.append_idx");
+    return Str;
+}
+
+
 }  // namespace
 
 Common::Common() = default;
@@ -247,12 +260,25 @@ IntValue& IntValue::scaledDecimals(int value)
     return *this;
 }
 
+const IntValue::SpecialsList& IntValue::specials() const
+{
+    return m_specials;
+}
+
+IntValue& IntValue::addSpecial(const QString& elemName, long long value)
+{
+    m_specials.append(SpecialType(elemName, value));
+    return *this;
+}
+
+
 QVariantMap IntValue::asMap() const
 {
     QVariantMap props;
     Base::setTo(props);
     Base::setElemTo(m_displayOffset, numValueDisplayOffsetKey(), props);
     Base::setElemTo(m_scaledDecimals, floatDecimalsKey(), props);
+    Base::setElemTo(m_specials, specialsKey(), props);
     return props;
 }
 
@@ -263,6 +289,9 @@ void IntValue::getFrom(const QVariantMap& props)
 
     m_scaledDecimals =
         getElemFrom<decltype(m_scaledDecimals)>(props, floatDecimalsKey());
+
+    m_specials =
+        getElemFrom<decltype(m_specials)>(props, specialsKey());
 }
 
 EnumValue::EnumValue() = default;
@@ -555,21 +584,34 @@ ArrayList& ArrayList::prefixName(const QString& nameParam)
     return *this;
 }
 
+bool ArrayList::isIndexAppendedToElementName() const
+{
+    return m_appendIndexToElementName;
+}
+
+ArrayList& ArrayList::appendIndexToElementName(bool value)
+{
+    m_appendIndexToElementName = value;
+    return *this;
+}
+
 QVariantMap ArrayList::asMap() const
 {
     QVariantMap props;
     Base::setTo(props);
     Base::setElemTo(m_elems, dataKey(), props);
-    Base::setElemTo(m_showPrefix, showPrefixKey(), props);
     Base::setElemTo(m_prefixName, prefixNameKey(), props);
+    Base::setElemTo(m_showPrefix, showPrefixKey(), props);
+    Base::setElemTo(m_appendIndexToElementName, appendIdxKey(), props);
     return props;
 }
 
 void ArrayList::getFrom(const QVariantMap& props)
 {
     m_elems = getElemFrom<ElemsList>(props, dataKey());
-    m_showPrefix = getElemFrom<bool>(props, showPrefixKey());
     m_prefixName = getElemFrom<QString>(props, prefixNameKey());
+    m_showPrefix = getElemFrom<bool>(props, showPrefixKey());
+    m_appendIndexToElementName = getElemFrom<bool>(props, appendIdxKey());
 }
 
 Optional::Optional() = default;
@@ -667,17 +709,30 @@ FloatValue& FloatValue::decimals(int value)
     return *this;
 }
 
+const FloatValue::SpecialsList& FloatValue::specials() const
+{
+    return m_specials;
+}
+
+FloatValue& FloatValue::addSpecial(const QString& elemName, double value)
+{
+    m_specials.append(SpecialType(elemName, value));
+    return *this;
+}
+
 QVariantMap FloatValue::asMap() const
 {
     QVariantMap props;
     Base::setTo(props);
     Base::setElemTo(m_decimals, floatDecimalsKey(), props);
+    Base::setElemTo(m_specials, specialsKey(), props);
     return props;
 }
 
 void FloatValue::getFrom(const QVariantMap& props)
 {
     m_decimals = getElemFrom<decltype(m_decimals)>(props, floatDecimalsKey());
+    m_specials = getElemFrom<decltype(m_specials)>(props, specialsKey());
 }
 
 Variant::Variant() = default;

@@ -27,6 +27,7 @@ CC_DISABLE_WARNINGS()
 #include <QtWidgets/QLabel>
 CC_ENABLE_WARNINGS()
 
+#include "comms_champion/field_wrapper/BundleWrapper.h"
 #include "FieldWidget.h"
 
 namespace comms_champion
@@ -38,7 +39,11 @@ class BundleFieldWidget : public FieldWidget
     typedef FieldWidget Base;
 public:
 
+    using Wrapper = field_wrapper::BundleWrapper;
+    using WrapperPtr = Wrapper::Ptr;
+
     explicit BundleFieldWidget(
+        WrapperPtr wrapper,
         QWidget* parentObj = nullptr);
 
     ~BundleFieldWidget() noexcept;
@@ -55,6 +60,7 @@ private slots:
 
 private:
 
+    WrapperPtr m_wrapper;
     QVBoxLayout* m_membersLayout = nullptr;
     QLabel* m_label = nullptr;
     std::vector<FieldWidget*> m_members;

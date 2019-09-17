@@ -113,6 +113,12 @@ bool GuiAppMgr::startFromFile(const QString& filename)
     return applyNewPlugins(plugins);
 }
 
+void GuiAppMgr::msgCommentUpdated(MessagePtr msg)
+{
+    assert(msg == m_clickedMsg);
+    emit sigMsgCommentUpdated(std::move(msg));
+}
+
 void GuiAppMgr::pluginsEditClicked()
 {
     emit sigPluginsEditDialog();
@@ -140,6 +146,13 @@ void GuiAppMgr::recvLoadClicked()
 void GuiAppMgr::recvSaveClicked()
 {
     emit sigSaveRecvMsgsDialog();
+}
+
+void GuiAppMgr::recvCommentClicked()
+{
+    assert(m_selType == SelectionType::Recv);
+    assert(m_clickedMsg);
+    emit sigMsgCommentDialog(m_clickedMsg);
 }
 
 void GuiAppMgr::recvDeleteClicked()
@@ -219,6 +232,13 @@ void GuiAppMgr::sendEditClicked()
 {
     assert(m_clickedMsg);
     emit sigUpdateSendMsgDialog(m_clickedMsg, MsgMgrG::instanceRef().getProtocol());
+}
+
+void GuiAppMgr::sendCommentClicked()
+{
+    assert(m_selType == SelectionType::Send);
+    assert(m_clickedMsg);
+    emit sigMsgCommentDialog(m_clickedMsg);
 }
 
 void GuiAppMgr::sendDeleteClicked()

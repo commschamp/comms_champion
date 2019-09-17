@@ -215,8 +215,25 @@ public:
         return es;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
+
+    bool canWrite() const
+    {
+        if (!currentFieldValid()) {
+            return true;
+        }
+
+        bool val = false;
+        comms::util::tupleForSelectedType<Members>(memIdx_, CanWriteHelper(val, &storage_));
+        return val;
+
+    }
 
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
@@ -228,6 +245,11 @@ public:
         auto es = ErrorStatus::NumOfErrorStatuses;
         comms::util::tupleForSelectedType<Members>(memIdx_, makeWriteHelper(es, iter, len, &storage_));
         return es;
+    }
+
+    static constexpr bool hasWriteNoStatus()
+    {
+        return comms::util::tupleTypeAccumulate<TMembers>(true, WriteNoStatusDetector());
     }
 
     template <typename TIter>
@@ -713,6 +735,36 @@ private:
         void* storage_ = nullptr;
     };
 
+    class CanWriteHelper
+    {
+    public:
+        CanWriteHelper(bool& result, const void* storage)
+          : result_(result),
+            storage_(storage)
+        {
+        }
+
+        template <std::size_t TIdx, typename TField>
+        void operator()()
+        {
+            result_ = reinterpret_cast<const TField*>(storage_)->canWrite();
+        }
+
+    private:
+        bool& result_;
+        const void* storage_;
+    };
+
+    struct WriteNoStatusDetector
+    {
+        constexpr WriteNoStatusDetector() = default;
+
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::hasWriteNoStatus() && soFar;
+        }
+    };
 
     void checkDestruct()
     {

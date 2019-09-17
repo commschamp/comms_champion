@@ -234,6 +234,13 @@ class CC_API IntValue : public CommonBase<IntValue>
 {
     using Base = CommonBase<IntValue>;
 public:
+    /// @brief The special value is described as string containing name and
+    ///     the actual numeric value.
+    using SpecialType = QPair<QString, long long>;
+
+    /// @brief List of special values
+    using SpecialsList = QList<SpecialType>;
+
     /// @brief Default constructor
     IntValue();
 
@@ -275,6 +282,14 @@ public:
     ///     value.
     IntValue& scaledDecimals(int value);
 
+    /// @brief Get access to all the special values information
+    const SpecialsList& specials() const;
+
+    /// @brief Add speical value
+    /// @param[in] specialName Name of the special value.
+    /// @param[in] value Numeric value
+    IntValue& addSpecial(const QString& specialName, long long value);
+
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
@@ -283,6 +298,7 @@ private:
 
     long long m_displayOffset = 0;
     int m_scaledDecimals = 0;
+    SpecialsList m_specials;
 };
 
 /// @brief Class to contain all the properties relevant to
@@ -600,6 +616,12 @@ public:
     /// @brief Set name of the size/length prefix displayed separately.
     ArrayList& prefixName(const QString& nameParam);
 
+    /// @brief Check whether index info needs to be appended to element name.
+    bool isIndexAppendedToElementName() const;
+
+    /// @brief Set whether index infor needs to be appended to element name.
+    ArrayList& appendIndexToElementName(bool value = true);
+
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
@@ -607,8 +629,9 @@ private:
     void getFrom(const QVariantMap& props);
 
     ElemsList m_elems;
-    bool m_showPrefix = false;
     QString m_prefixName;
+    bool m_showPrefix = false;
+    bool m_appendIndexToElementName = false;
 };
 
 /// @brief Class to contain all the properties relevant to
@@ -677,6 +700,13 @@ class CC_API FloatValue : public CommonBase<FloatValue>
 {
     typedef CommonBase<FloatValue> Base;
 public:
+    /// @brief The special value is described as string containing name and
+    ///     the actual numeric value.
+    using SpecialType = QPair<QString, double>;
+
+    /// @brief List of special values
+    using SpecialsList = QList<SpecialType>;
+
     /// @brief Default constructor
     FloatValue();
 
@@ -707,6 +737,15 @@ public:
     /// @brief Set number of decimal digits to display
     FloatValue& decimals(int value);
 
+    /// @brief Get access to all the special values information
+    const SpecialsList& specials() const;
+
+    /// @brief Add speical value
+    /// @param[in] specialName Name of the special value.
+    /// @param[in] value Numeric value
+    FloatValue& addSpecial(const QString& specialName, double value);
+
+
     /// @brief Retrieve all properties as map.
     QVariantMap asMap() const;
 
@@ -714,6 +753,7 @@ private:
     void getFrom(const QVariantMap& props);
 
     int m_decimals = 0;
+    SpecialsList m_specials;
 };
 
 /// @brief Class to contain all the properties relevant to

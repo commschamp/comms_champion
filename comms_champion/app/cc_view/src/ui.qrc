@@ -24,5 +24,6 @@
         <file>image/error_log.png</file>
         <file>image/connect.png</file>
         <file>image/disconnect.png</file>
+        <file>image/user_comment.png</file>        
     </qresource>
 </RCC>

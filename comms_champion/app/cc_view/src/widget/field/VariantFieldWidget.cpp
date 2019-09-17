@@ -95,6 +95,11 @@ void VariantFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void VariantFieldWidget::memberFieldUpdated()
 {
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
+
     refreshInternal();
     emitFieldUpdated();
 }
@@ -131,6 +136,7 @@ void VariantFieldWidget::indexUpdated(int value)
 
 void VariantFieldWidget::refreshInternal()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValuePlainTextEdit != nullptr);
     updateSerValue(*m_ui.m_serValuePlainTextEdit, *m_wrapper);
 

@@ -309,6 +309,11 @@ public:
         return readInternal(iter, len, Tag());
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -354,6 +359,11 @@ public:
         return readNoStatusInternalN(count, iter, Tag());
     }
 
+    static bool canWriteElement(const ElementType& elem)
+    {
+        return canWriteElementInternal(elem, ElemTag());
+    }
+
     template <typename TIter>
     static ErrorStatus writeElement(const ElementType& elem, TIter& iter, std::size_t& len)
     {
@@ -366,10 +376,20 @@ public:
         return writeElementNoStatusInternal(elem, iter, ElemTag());
     }
 
+    bool canWrite() const
+    {
+        return CommonFuncs::canWriteSequence(*this);
+    }
+
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         return CommonFuncs::writeSequence(*this, iter, len);
+    }
+
+    static constexpr bool hasWriteNoStatus()
+    {
+        return hasWriteNoStatusInternal(ElemTag());
     }
 
     template <typename TIter>
@@ -765,6 +785,27 @@ private:
     static constexpr bool setVersionInternal(VersionType, NoVersionDependencyTag)
     {
         return false;
+    }
+
+    static bool canWriteElementInternal(const ElementType& elem, FieldElemTag)
+    {
+        return elem.canWrite();
+    }
+
+    static bool canWriteElementInternal(const ElementType& elem, IntegralElemTag)
+    {
+        static_cast<void>(elem);
+        return true;
+    }
+
+    static constexpr bool hasWriteNoStatusInternal(FieldElemTag)
+    {
+        return ElementType::hasWriteNoStatus();
+    }
+
+    static constexpr bool hasWriteNoStatusInternal(IntegralElemTag)
+    {
+        return true;
     }
 
     ValueType value_;

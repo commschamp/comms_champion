@@ -68,6 +68,10 @@ public:
 
     BasePtr upClone();
 
+    bool canWrite() const;
+
+    void reset();
+
 protected:
     virtual std::size_t lengthImpl() const = 0;
     virtual bool validImpl() const = 0;
@@ -75,6 +79,8 @@ protected:
     virtual bool setSerialisedValueImpl(const SerialisedSeq& value) = 0;
     virtual void dispatchImpl(FieldWrapperHandler& handler) = 0;
     virtual BasePtr upCloneImpl() = 0;
+    virtual bool canWriteImpl() const = 0;
+    virtual void resetImpl() = 0;
 };
 
 template <typename TBase, typename TField>
@@ -175,6 +181,16 @@ protected:
     virtual BasePtr upCloneImpl() override
     {
         return static_cast<Base*>(this)->clone();
+    }
+
+    virtual bool canWriteImpl() const override
+    {
+        return m_field.canWrite();
+    }
+
+    virtual void resetImpl() override
+    {
+        m_field = Field();
     }
 
 private:

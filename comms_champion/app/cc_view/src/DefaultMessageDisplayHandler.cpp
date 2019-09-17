@@ -118,7 +118,7 @@ public:
             membersWidgets.push_back(getWidget());
         }
 
-        std::unique_ptr<BundleFieldWidget> widget(new BundleFieldWidget(m_parent));
+        std::unique_ptr<BundleFieldWidget> widget(new BundleFieldWidget(wrapper.clone(), m_parent));
         for (auto& memWidget : membersWidgets) {
             widget->addMemberField(memWidget.release());
         }

@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// @brief Contains definition of @ref comms::field::Variant
 
 #pragma once
 
@@ -189,9 +191,22 @@ public:
         return BaseImpl::read(iter, size);
     }
 
+    /// @brief Compile time check of whether the field has @b proper
+    ///     @ref readNoStatus() member function.
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     /// @brief Read operation without error check and status report is not supported.
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
+
+    /// @brief Check of whether the field has a consistent value for writing.
+    bool canWrite() const
+    {
+        return BaseImpl::canWrite();
+    }
 
     /// @brief Write current field value to output data sequence
     /// @details Invokes write() member function of the contained field if such
@@ -205,6 +220,13 @@ public:
     ErrorStatus write(TIter& iter, std::size_t size) const
     {
         return BaseImpl::write(iter, size);
+    }
+
+    /// @brief Compile time check of whether the field has @b proper
+    ///     @ref writeNoStatus() member function.
+    static constexpr bool hasWriteNoStatus()
+    {
+        return BaseImpl::hasWriteNoStatus();
     }
 
     /// @brief Write current field value to output data sequence  without error check and status report.

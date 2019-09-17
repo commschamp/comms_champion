@@ -56,6 +56,7 @@ BitmaskValueFieldWidget::~BitmaskValueFieldWidget() noexcept = default;
 
 void BitmaskValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
@@ -140,6 +141,10 @@ void BitmaskValueFieldWidget::checkBoxUpdated(int value)
         auto idx = static_cast<unsigned>(std::distance(m_checkboxes.begin(), iter));
         m_wrapper->setBitValue(idx, value != 0);
         updated = true;
+        if (!m_wrapper->canWrite()) {
+            m_wrapper->reset();
+            assert(m_wrapper->canWrite());
+        }
     }
 
     refresh();

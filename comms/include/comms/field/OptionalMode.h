@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file comms/field/OptionalMode.h
-/// Contains definition of the mode used for comms::field::Optional fields.
+/// @file
+/// @brief Contains definition of the mode used for comms::field::Optional fields.
 
 #pragma once
 

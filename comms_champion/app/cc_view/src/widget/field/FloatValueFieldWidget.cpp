@@ -24,6 +24,7 @@
 #include <QtCore/QTimer>
 
 #include "comms_champion/property/field.h"
+#include "SpecialValueWidget.h"
 
 namespace comms_champion
 {
@@ -77,6 +78,7 @@ FloatValueFieldWidget::~FloatValueFieldWidget() noexcept = default;
 
 void FloatValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
@@ -98,6 +100,11 @@ void FloatValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+
+    if (m_specialsWidget != nullptr) {
+        m_specialsWidget->setFpValue(m_wrapper->getValue(), m_wrapper->getEpsilon());
+    }
+
 }
 
 void FloatValueFieldWidget::editEnabledUpdatedImpl()
@@ -109,11 +116,19 @@ void FloatValueFieldWidget::editEnabledUpdatedImpl()
 
 void FloatValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    auto decimals = property::field::FloatValue(props).decimals();
+    property::field::FloatValue actProps(props);
+    auto decimals = actProps.decimals();
     if (decimals == 0) {
         decimals = DefaultDecimals;
     }
     m_ui.m_valueSpinBox->setDecimals(decimals);
+
+    auto& specials = actProps.specials();
+    bool needRefresh = createSpecialsWidget(specials);
+
+    if (needRefresh) {
+        refresh();
+    }
 }
 
 void FloatValueFieldWidget::serialisedValueUpdated(const QString& value)
@@ -130,6 +145,9 @@ void FloatValueFieldWidget::valueUpdated(double value)
 
     assert(isEditEnabled());
     m_wrapper->setValue(value);
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+    }
     refresh();
     emitFieldUpdated();
 }
@@ -171,6 +189,16 @@ void FloatValueFieldWidget::typeUpdated(int value)
     if (updated) {
         emitFieldUpdated();
     }
+}
+
+void FloatValueFieldWidget::specialSelected(double value)
+{
+    if (!isEditEnabled()) {
+        refresh();
+        return;
+    }
+
+    valueUpdated(value);
 }
 
 void FloatValueFieldWidget::updateSpinBoxValueRange()
@@ -223,6 +251,28 @@ int FloatValueFieldWidget::getTypeIndex()
     }
 
     return ValueType_val;
+}
+
+bool FloatValueFieldWidget::createSpecialsWidget(const SpecialsList& specials)
+{
+    delete m_specialsWidget;
+    if (specials.empty()) {
+        m_specialsWidget = nullptr;
+        return false;
+    }
+
+    m_specialsWidget = new SpecialValueWidget(specials);
+    connect(
+        m_specialsWidget, SIGNAL(sigFpValueChanged(double)),
+        this, SLOT(specialSelected(double)));
+
+    connect(
+        m_specialsWidget, SIGNAL(sigRefreshReq()),
+        this, SLOT(refresh()));
+
+    m_ui.m_valueWidgetLayout->insertWidget(m_ui.m_valueWidgetLayout->count() - 1, m_specialsWidget);
+
+    return true;
 }
 
 }  // namespace comms_champion

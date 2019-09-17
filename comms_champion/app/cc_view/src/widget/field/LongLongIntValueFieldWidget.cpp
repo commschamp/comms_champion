@@ -23,6 +23,7 @@
 #include <cmath>
 
 #include "comms_champion/property/field.h"
+#include "SpecialValueWidget.h"
 
 namespace comms_champion
 {
@@ -56,6 +57,7 @@ LongLongIntValueFieldWidget::~LongLongIntValueFieldWidget() noexcept = default;
 
 void LongLongIntValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
@@ -70,6 +72,10 @@ void LongLongIntValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+
+    if (m_specialsWidget != nullptr) {
+        m_specialsWidget->setIntValue(m_wrapper->getValue());
+    }
 }
 
 void LongLongIntValueFieldWidget::editEnabledUpdatedImpl()
@@ -81,8 +87,23 @@ void LongLongIntValueFieldWidget::editEnabledUpdatedImpl()
 
 void LongLongIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
-    m_offset = property::field::IntValue(props).displayOffset();
-    refresh();
+    property::field::IntValue actProps(props);
+
+    auto offset =
+        static_cast<decltype(m_offset)>(actProps.displayOffset());
+
+    bool needRefresh = false;
+    if (std::numeric_limits<double>::epsilon() < std::abs(m_offset - offset)) {
+        m_offset = offset;
+        needRefresh = true;
+    }
+
+    auto& specials = actProps.specials();
+    needRefresh = createSpecialsWidget(specials) || needRefresh;
+
+    if (needRefresh) {
+        refresh();
+    }
 }
 
 void LongLongIntValueFieldWidget::serialisedValueUpdated(const QString& value)
@@ -100,8 +121,22 @@ void LongLongIntValueFieldWidget::valueUpdated(const QString& value)
     assert(isEditEnabled());
     m_wrapper->setValue(adjustedValue);
     assert(m_wrapper->getValue() == adjustedValue);
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
     refresh();
     emitFieldUpdated();
+}
+
+void LongLongIntValueFieldWidget::specialSelected(long long value)
+{
+    if (!isEditEnabled()) {
+        refresh();
+        return;
+    }
+
+    valueUpdated(QString("%1").arg(adjustRealToDisplayed(static_cast<UnderlyingType>(value))));
 }
 
 LongLongIntValueFieldWidget::UnderlyingType
@@ -138,6 +173,28 @@ LongLongIntValueFieldWidget::getDisplayedValue(const QString& value)
     }
 
     return val;
+}
+
+bool LongLongIntValueFieldWidget::createSpecialsWidget(const SpecialsList& specials)
+{
+    delete m_specialsWidget;
+    if (specials.empty()) {
+        m_specialsWidget = nullptr;
+        return false;
+    }
+
+    m_specialsWidget = new SpecialValueWidget(specials);
+    connect(
+        m_specialsWidget, SIGNAL(sigIntValueChanged(long long)),
+        this, SLOT(specialSelected(long long)));
+
+    connect(
+        m_specialsWidget, SIGNAL(sigRefreshReq()),
+        this, SLOT(refresh()));
+
+    m_ui.m_valueWidgetLayout->insertWidget(m_ui.m_valueWidgetLayout->count(), m_specialsWidget);
+
+    return true;
 }
 
 }  // namespace comms_champion

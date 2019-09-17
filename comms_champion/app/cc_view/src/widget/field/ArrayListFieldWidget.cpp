@@ -69,6 +69,12 @@ void ArrayListElementWidget::updateProperties(const QVariantMap& props)
     m_fieldWidget->updateProperties(props);
 }
 
+void ArrayListElementWidget::setNameSuffix(const QString& value)
+{
+    assert(m_fieldWidget != nullptr);
+    m_fieldWidget->setNameSuffix(value);
+}
+
 void ArrayListElementWidget::updateUi()
 {
     bool deleteButtonVisible = m_editEnabled && m_deletable;
@@ -90,6 +96,7 @@ ArrayListFieldWidget::ArrayListFieldWidget(
     setSeparatorWidget(m_ui.m_sepLine);
     setSerialisedValueWidget(m_ui.m_serValueWidget);
 
+    assert(m_wrapper->canWrite());
     refreshInternal();
     addMissingFields();
 
@@ -135,6 +142,7 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     property::field::ArrayList arrayListProps(props);
     m_ui.m_prefixNameLabel->setText(arrayListProps.prefixName());
     m_prefixVisible = arrayListProps.isPrefixVisible();
+    m_appendIndexToElementName = arrayListProps.isIndexAppendedToElementName();
     updatePrefixField();
     auto& elementsProps = arrayListProps.elements();
 
@@ -147,7 +155,12 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     }
 
     unsigned idx = 0;
-    for (auto* elem : m_elements) {
+    for (auto elemIdx = 0U; elemIdx < m_elements.size(); ++elemIdx) {
+        auto* elem = m_elements[elemIdx];
+        if (m_appendIndexToElementName) {
+            elem->setNameSuffix(QString(" %1").arg(elemIdx));
+        }
+
         elem->updateProperties(m_elemProperties[idx]);
         idx = ((idx + 1) % m_elemProperties.size());
     }
@@ -155,6 +168,26 @@ void ArrayListFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 
 void ArrayListFieldWidget::dataFieldUpdated()
 {
+    if (!m_wrapper->canWrite()) {
+        auto senderIter = std::find(m_elements.begin(), m_elements.end(), qobject_cast<ArrayListElementWidget*>(sender()));
+        assert(senderIter != m_elements.end());
+        auto idx = static_cast<unsigned>(std::distance(m_elements.begin(), senderIter));
+        auto& memWrappers = m_wrapper->getMembers();
+        assert(idx < memWrappers.size());
+        auto& memWrapPtr = memWrappers[idx];
+        if (!memWrapPtr->canWrite()) {
+            memWrapPtr->reset();
+            assert(memWrapPtr->canWrite());
+            (*senderIter)->refresh();
+        }
+
+        if (!m_wrapper->canWrite()) {
+            memWrapPtr->reset();
+            assert(memWrapPtr->canWrite());
+            (*senderIter)->refresh();
+        }
+    }
+
     refreshInternal();
     updatePrefixField();
     emitFieldUpdated();
@@ -191,6 +224,10 @@ void ArrayListFieldWidget::removeField()
 
 void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
 {
+    if (m_appendIndexToElementName) {
+        dataFieldWidget->setNameSuffix(QString(" %1").arg(m_elements.size()));
+    }
+
     auto* wrapperWidget = new ArrayListElementWidget(dataFieldWidget);
     wrapperWidget->setEditEnabled(isEditEnabled());
     wrapperWidget->setDeletable(!m_wrapper->hasFixedSize());
@@ -216,6 +253,7 @@ void ArrayListFieldWidget::addDataField(FieldWidget* dataFieldWidget)
 
 void ArrayListFieldWidget::refreshInternal()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValuePlainTextEdit != nullptr);
     updateSerValue(*m_ui.m_serValuePlainTextEdit, *m_wrapper);
 

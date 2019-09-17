@@ -28,7 +28,7 @@
    </property>
    <item>
     <widget class="QWidget" name="m_valueWidget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="m_valueWidgetLayout">
       <property name="leftMargin">
        <number>0</number>
       </property>

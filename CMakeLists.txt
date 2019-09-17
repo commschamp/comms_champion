@@ -21,7 +21,7 @@ if (NOT CMAKE_CXX_STANDARD)
     set (CMAKE_CXX_STANDARD 11)
 endif()
 
-set (EXTERNALS_DIR "${CMAKE_SOURCE_DIR}/externals")
+set (EXTERNALS_DIR "${PROJECT_SOURCE_DIR}/externals")
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
         message (STATUS "Unittests are disabled")
@@ -166,7 +166,7 @@ set (ICON_INSTALL_DIR ${DATA_INSTALL_DIR}/icon)
 set (CONFIG_INSTALL_REL_DIR ${CMAKE_INSTALL_DATADIR}/${INSTALL_NAME})
 set (CONFIG_INSTALL_DIR ${CONFIG_INSTALL_REL_DIR})
 
-file (READ "${CMAKE_SOURCE_DIR}/comms/include/comms/version.h" version_file)
+file (READ "${PROJECT_SOURCE_DIR}/comms/include/comms/version.h" version_file)
 string (REGEX MATCH "COMMS_MAJOR_VERSION ([0-9]*)U*" _ ${version_file})
 set (major_ver ${CMAKE_MATCH_1})
 string (REGEX MATCH "COMMS_MINOR_VERSION ([0-9]*)U*" _ ${version_file})
@@ -188,18 +188,18 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion)
     
 set (LIB_COMMS_CMAKE_FILES
-    ${CMAKE_SOURCE_DIR}/cmake/LibCommsConfig.cmake
-    ${CMAKE_SOURCE_DIR}/cmake/DocCleanupScript.cmake    
+    ${PROJECT_SOURCE_DIR}/cmake/LibCommsConfig.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/DocCleanupScript.cmake
     ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
 ) 
 
 set (COMMS_CHAMPION_CMAKE_FILES
-    ${CMAKE_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
-    ${CMAKE_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
-    ${CMAKE_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
-    ${CMAKE_SOURCE_DIR}/cmake/DeployQt5.cmake
-    ${CMAKE_SOURCE_DIR}/cmake/DocCleanupScript.cmake
-    ${CMAKE_SOURCE_DIR}/cmake/GenWinAppStartBat.cmake                    
+    ${PROJECT_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/DeployQt5.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/DocCleanupScript.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/GenWinAppStartBat.cmake
     ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
 )    
    
@@ -232,6 +232,6 @@ if (WIN32 AND CC_QT_DIR)
     add_custom_target ("deploy_qt"
         COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${CC_QT_DIR}
             -DCC_BIN_DIR=${BIN_INSTALL_DIR} -DCC_PLUGIN_DIR=${PLUGIN_INSTALL_DIR}
-            -P ${CMAKE_SOURCE_DIR}/cmake/DeployQt5.cmake
+            -P ${PROJECT_SOURCE_DIR}/cmake/DeployQt5.cmake
     )
 endif ()

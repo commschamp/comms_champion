@@ -19,6 +19,8 @@
 #pragma once
 
 #include <iterator>
+#include <limits>
+#include <algorithm>
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
@@ -38,6 +40,9 @@ class SequenceElemFixedSerLengthFieldPrefix : public TBase
 {
     using BaseImpl = TBase;
     using LenField = TLenField;
+    static const std::size_t MaxAllowedElemLength =
+            static_cast<std::size_t>(
+                std::numeric_limits<typename LenField::ValueType>::max());
 
     static_assert(!LenField::isVersionDependent(),
             "Prefix fields must not be version dependent");
@@ -117,6 +122,11 @@ public:
         return basic::CommonFuncs::readSequence(*this, iter, len);
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 
@@ -138,11 +148,39 @@ public:
     template <typename TIter>
     void readNoStatusN(std::size_t count, TIter& iter) = delete;
 
+    bool canWriteElement(const ElementType& elem) const
+    {
+        if (!BaseImpl::canWriteElement(elem)) {
+            return false;
+        }
+
+        auto elemLen = elem.length();
+        if (MaxAllowedElemLength < elemLen) {
+            return false;
+        }
+
+        LenField lenField;
+        lenField.value() = static_cast<typename LenField::ValueType>(elemLen);
+        return lenField.canWrite();
+    }
+
+    bool canWrite() const
+    {
+        if (BaseImpl::value().empty()) {
+            return BaseImpl::canWrite();
+        }
+
+        return BaseImpl::canWrite() && canWriteElement(BaseImpl::value().front());
+    }
 
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
         if (!BaseImpl::value().empty()) {
+            if (!canWriteElement(BaseImpl::value().front())) {
+                return ErrorStatus::InvalidMsgData;
+            }
+
             auto es = writeLen(iter, len); // len is updated
             if (es != comms::ErrorStatus::Success) {
                 return es;
@@ -152,19 +190,23 @@ public:
         return basic::CommonFuncs::writeSequence(*this, iter, len);
     }
 
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const
+    static constexpr bool hasWriteNoStatus()
     {
-        if (!BaseImpl::value().empty()) {
-            writeLenNoStatus(iter);
-        }
-        basic::CommonFuncs::writeSequenceNoStatus(*this, iter);
+        return false;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 
     template <typename TIter>
     ErrorStatus writeN(std::size_t count, TIter& iter, std::size_t& len) const
     {
         if (0U < count) {
+            COMMS_ASSERT(!BaseImpl::value().empty());
+            if (!canWriteElement(BaseImpl::value().front())) {
+                return ErrorStatus::InvalidMsgData;
+            }
+
             auto es = writeLen(iter, len); // len is updated
             if (es != comms::ErrorStatus::Success) {
                 return es;
@@ -175,12 +217,11 @@ public:
     }
 
     template <typename TIter>
-    void writeNoStatusN(std::size_t count, TIter& iter) const
+    void writeNoStatusN(std::size_t count, TIter& iter) const = delete;
+
+    bool valid() const
     {
-        if (0U < count) {
-            writeLenNoStatus(iter);
-        }
-        basic::CommonFuncs::writeSequenceNoStatusN(*this, count, iter);
+        return BaseImpl::valid() && canWrite();
     }
 
 private:
@@ -209,7 +250,7 @@ private:
         std::size_t prefixLen = 0U;
         if (!BaseImpl::value().empty()) {
             LenField lenField;
-            lenField.value() = BaseImpl::minElementLength();
+            lenField.value() = std::min(BaseImpl::minElementLength(), std::size_t(MaxAllowedElemLength));
             prefixLen = lenField.length();
         }
 

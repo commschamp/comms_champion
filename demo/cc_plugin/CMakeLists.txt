@@ -53,7 +53,7 @@ find_package(Qt5Core REQUIRED)
 
 include_directories(
     ${Qt5Core_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/comms_champion/lib/include)
+    ${PROJECT_SOURCE_DIR}/comms_champion/lib/include)
 
 cc_plugin_demo ()
 

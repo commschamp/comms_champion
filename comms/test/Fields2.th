@@ -38,6 +38,9 @@ public:
     void test1();
     void test2();
     void test3();
+    void test4();
+    void test5();
+    void test6();
 
 private:
 
@@ -353,6 +356,113 @@ void FieldsTestSuite2::test3()
         TS_ASSERT(field.refresh());
         TS_ASSERT_EQUALS(field.length(), 130U);
     } while (false);
+}
+
+void FieldsTestSuite2::test4()
+{
+    enum class Field2Val : std::uint16_t
+    {
+        V0 = 0,
+        V1 = 0xff
+    };
+
+    using FieldBase = comms::Field<BigEndianOpt>;
+    using Field1 = comms::field::IntValue<FieldBase, uint8_t>;
+    using Field2 = comms::field::EnumValue<FieldBase, Field2Val>;
+
+
+    Field1 field1;
+    Field2 field2;
+
+    TS_ASSERT_EQUALS(field1.length(), 1U);
+    TS_ASSERT_EQUALS(field2.length(), 2U);
+
+    Field1 field1Tmp;
+    field2.value() = Field2Val::V1;
+    field1Tmp.value() = comms::cast_assign(field1.value()) = field2.value();
+    TS_ASSERT_EQUALS(field1.value(), 0xff);
+    TS_ASSERT_EQUALS(field1, field1Tmp);
+}
+
+void FieldsTestSuite2::test5()
+{
+    typedef comms::field::ArrayList<
+        comms::Field<BigEndianOpt>,
+        comms::field::String<
+            comms::Field<BigEndianOpt>,
+            comms::option::SequenceSizeFieldPrefix<
+                comms::field::IntValue<
+                    comms::Field<BigEndianOpt>,
+                    std::uint16_t
+                >
+            >
+        >,
+        comms::option::SequenceSizeFieldPrefix<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >
+        >,
+        comms::option::SequenceElemSerLengthFieldPrefix<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >
+        >
+    > Field;
+
+    Field field;
+    TS_ASSERT(field.valid());
+    field.value().resize(1);
+    TS_ASSERT(field.valid());
+    TS_ASSERT(field.canWrite());
+    field.value()[0].value().assign(260, 'a');
+    TS_ASSERT(!field.valid());
+    TS_ASSERT(!field.canWrite());
+    std::vector<std::uint8_t> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    auto es = field.write(writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::InvalidMsgData);
+    field.value()[0].value().assign(5, 'b');
+    TS_ASSERT(field.valid());
+}
+
+void FieldsTestSuite2::test6()
+{
+
+    typedef comms::field::Bundle<
+        comms::Field<BigEndianOpt>,
+        std::tuple<
+            comms::field::IntValue<
+                comms::Field<BigEndianOpt>,
+                std::uint8_t
+            >,
+            comms::field::String<comms::Field<BigEndianOpt> >
+        >,
+        comms::option::RemLengthMemberField<0>
+    > Field;
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 1U, "Invalid minLength");
+
+    do {
+        Field field;
+        TS_ASSERT_EQUALS(field.length(), 1U);
+        TS_ASSERT_EQUALS(std::get<0>(field.value()).value(), 0U);
+
+        auto& strMem = std::get<1>(field.value());
+        strMem.value().assign(260, 'a');
+        TS_ASSERT(!field.valid());
+        TS_ASSERT(!field.canWrite());
+
+        std::vector<std::uint8_t> outBuf;
+        auto writeIter = std::back_inserter(outBuf);
+        auto es = field.write(writeIter, outBuf.max_size());
+        TS_ASSERT_EQUALS(es, comms::ErrorStatus::InvalidMsgData);
+    } while (false);
+
 }
 
 template <typename TField>

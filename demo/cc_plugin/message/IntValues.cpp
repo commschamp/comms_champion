@@ -38,11 +38,26 @@ using IntValuesFields = demo::message::IntValuesFields<>;
 QVariantList createFieldsProperties()
 {
     QVariantList props;
-    props.append(cc::property::field::ForField<IntValuesFields::field1>().name("field1").asMap());
+    props.append(
+        cc::property::field::ForField<IntValuesFields::field1>()
+            .name("field1")
+            .addSpecial("S1", 1)
+            .addSpecial("S2", 5)
+            .asMap());
     props.append(cc::property::field::ForField<IntValuesFields::field2>().name("field2").asMap());
-    props.append(cc::property::field::ForField<IntValuesFields::field3>().name("field3").asMap());
+    props.append(
+        cc::property::field::ForField<IntValuesFields::field3>()
+            .name("field3")
+            .addSpecial("S1", 100)
+            .addSpecial("S2", 500)
+            .asMap());
     props.append(cc::property::field::ForField<IntValuesFields::field4>().name("field4").asMap());
-    props.append(cc::property::field::ForField<IntValuesFields::field5>().name("field5").asMap());
+    props.append(
+        cc::property::field::ForField<IntValuesFields::field5>()
+            .name("field5")
+            .addSpecial("S1", 0xffffff)
+            .addSpecial("S2", (long long)0xffffffffffff)
+            .asMap());
     props.append(cc::property::field::ForField<IntValuesFields::field6>().name("field6").asMap());
 
     assert(props.size() == IntValues::FieldIdx_numOfValues);

@@ -136,24 +136,49 @@ public:
         return comms::ErrorStatus::Success;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
+
+    bool canWrite() const
+    {
+        if (!BaseImpl::canWrite()) {
+            return false;
+        }
+
+        return length() <= TMaxLen;
+    }
 
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t size) const
     {
+        if (!canWrite()) {
+            return ErrorStatus::InvalidMsgData;
+        }
+
         if (size < length()) {
             return ErrorStatus::BufferOverflow;
         }
 
-        writeNoStatus(iter);
+        writeNoStatusInternal(toSerialised(BaseImpl::value()), iter, HasSignTag(), Endian());
         return ErrorStatus::Success;
     }
 
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const
+    static constexpr bool hasWriteNoStatus()
     {
-        return writeNoStatusInternal(toSerialised(BaseImpl::value()), iter, HasSignTag(), Endian());
+        return false;
+    }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
+
+    bool valid() const
+    {
+        return BaseImpl::valid() && canWrite();
     }
 
 private:
@@ -179,8 +204,9 @@ private:
             ++len;
         }
 
-        COMMS_ASSERT(len <= maxLength());
-        return std::max(std::size_t(minLength()), std::min(len, maxLength()));
+        //COMMS_ASSERT(len <= maxLength());
+        //return std::max(std::size_t(minLength()), std::min(len, maxLength()));
+        return std::max(std::size_t(minLength()), len);
     }
 
     std::size_t lengthInternal(SignedTag) const
@@ -214,8 +240,9 @@ private:
             ++len;
         }
 
-        COMMS_ASSERT(len <= maxLength());
-        return std::max(std::size_t(minLength()), std::min(len, maxLength()));
+        //COMMS_ASSERT(len <= maxLength());
+        //return std::max(std::size_t(minLength()), std::min(len, maxLength()));
+        return std::max(std::size_t(minLength()), len);
     }
 
     std::size_t lengthSignedPositiveInternal() const
@@ -237,8 +264,9 @@ private:
             ++len;
         }
 
-        COMMS_ASSERT(len <= maxLength());
-        return std::max(std::size_t(minLength()), std::min(len, maxLength()));
+        //COMMS_ASSERT(len <= maxLength());
+        //return std::max(std::size_t(minLength()), std::min(len, maxLength()));
+        return std::max(std::size_t(minLength()), len);
     }
 
 

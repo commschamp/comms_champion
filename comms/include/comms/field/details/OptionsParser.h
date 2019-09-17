@@ -74,6 +74,7 @@ public:
     static const bool HasVersionsRange = false;
     static const bool HasVersionStorage = false;
     static const bool HasRemLengthMemberField = false;
+    static const bool HasCustomWrite = false;
 };
 
 template <typename T, typename... TOptions>
@@ -496,6 +497,15 @@ class OptionsParser<
 public:
     static const bool HasRemLengthMemberField = true;
     static const std::size_t RemLengthMemberFieldIdx = TIdx;
+};
+
+template <typename... TOptions>
+class OptionsParser<
+    comms::option::def::HasCustomWrite,
+    TOptions...> : public OptionsParser<TOptions...>
+{
+public:
+    static const bool HasCustomWrite = true;
 };
 
 template <typename... TOptions>

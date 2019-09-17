@@ -26,6 +26,7 @@
 namespace comms_champion
 {
 
+class SpecialValueWidget;
 class FloatValueFieldWidget : public FieldWidget
 {
     Q_OBJECT
@@ -48,18 +49,23 @@ private slots:
     void serialisedValueUpdated(const QString& value);
     void valueUpdated(double value);
     void typeUpdated(int index);
+    void specialSelected(double value);
 
 private:
+    using SpecialInfo = QPair<QString, double>;
+    using SpecialsList = QList<SpecialInfo>;
     using WrapperType = WrapperPtr::element_type;
     using UnderlyingType = WrapperType::UnderlyingType;
 
     void updateSpinBoxValueRange();
     void updateType();
     int getTypeIndex();
+    bool createSpecialsWidget(const SpecialsList& specials);
 
     Ui::FloatValueFieldWidget m_ui;
     WrapperPtr m_wrapper;
     double m_oldValue = 0.0;
+    SpecialValueWidget* m_specialsWidget = nullptr;
 };
 
 

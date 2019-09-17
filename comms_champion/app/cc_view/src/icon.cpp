@@ -162,6 +162,11 @@ const QIcon& disconnect()
     return iconObj;
 }
 
+const QIcon& comment()
+{
+    static const QIcon iconObj(":/image/user_comment.png");
+    return iconObj;
+}
 
 }  // namespace icon
 

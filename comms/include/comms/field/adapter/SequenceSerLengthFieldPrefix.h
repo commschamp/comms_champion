@@ -36,6 +36,11 @@ class SequenceSerLengthFieldPrefix : public TBase
     using BaseImpl = TBase;
     using LenField = TLenField;
 
+    static const std::size_t MaxAllowedLength =
+            static_cast<std::size_t>(
+                std::numeric_limits<typename LenField::ValueType>::max());
+
+
     static_assert(!LenField::isVersionDependent(),
             "Prefix fields must not be version dependent");
 
@@ -65,7 +70,7 @@ public:
         using LenValueType = typename LenField::ValueType;
         auto valLength = BaseImpl::length();
         LenField lenField;
-        lenField.value() = static_cast<LenValueType>(valLength);
+        lenField.value() = static_cast<LenValueType>(std::min(valLength, std::size_t(MaxAllowedLength)));
         return lenField.length() + valLength;
     }
 
@@ -81,9 +86,14 @@ public:
 
     bool valid() const
     {
+        if ((!BaseImpl::valid()) || (!canWrite())) {
+            return false;
+        }
+
         LenField lenField;
-        lenField.value() = static_cast<typename LenField::ValueType>(BaseImpl::length());
-        return lenField.valid() && BaseImpl::valid();
+        auto lenValue = std::min(BaseImpl::length(), std::size_t(MaxAllowedLength));
+        lenField.value() = static_cast<typename LenField::ValueType>(lenValue);
+        return lenField.valid();
     }
 
     template <typename TIter>
@@ -112,12 +122,37 @@ public:
         return es;
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
+
+    bool canWrite() const
+    {
+        if (!BaseImpl::canWrite()) {
+            return false;
+        }
+
+        auto len = BaseImpl::length();
+        if (MaxAllowedLength < len) {
+            return false;
+        }
+
+        LenField lenField;
+        lenField.value() = static_cast<typename LenField::ValueType>(len);
+        return lenField.canWrite();
+    }
 
     template <typename TIter>
     comms::ErrorStatus write(TIter& iter, std::size_t len) const
     {
+        if (!canWrite()) {
+            return comms::ErrorStatus::InvalidMsgData;
+        }
+
         using LenValueType = typename LenField::ValueType;
         auto lenVal = BaseImpl::length();
         LenField lenField;
@@ -131,16 +166,13 @@ public:
         return BaseImpl::write(iter, lenVal);
     }
 
-    template <typename TIter>
-    void writeNoStatus(TIter& iter) const
+    static constexpr bool hasWriteNoStatus()
     {
-        using LenValueType = typename LenField::ValueType;
-        auto lenVal = BaseImpl::length();
-        LenField lenField;
-        lenField.value() = static_cast<LenValueType>(lenVal);
-        lenField.writeNoStatus(iter);
-        BaseImpl::writeNoStatus(iter);
+        return false;
     }
+
+    template <typename TIter>
+    void writeNoStatus(TIter& iter) const = delete;
 };
 
 }  // namespace adapter

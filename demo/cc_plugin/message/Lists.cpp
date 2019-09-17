@@ -38,19 +38,13 @@ using ListsFields = demo::message::ListsFields<>;
 QVariantMap createField3Properties()
 {
     using Field3 = ListsFields::field3;
-    static const auto ElemCount =
-        Field3::ParsedOptions::SequenceFixedSize;
-
     cc::property::field::ForField<Field3> props;
-    props.name("field3");
-
-    for (auto idx = 0U; idx < ElemCount; ++idx) {
-        props.add(
-            cc::property::field::IntValue()
-                .name(QString("element %1").arg(idx))
-                .serialisedHidden()
-                .asMap());
-    }
+    props.name("field3").appendIndexToElementName();
+    props.add(
+        cc::property::field::IntValue()
+            .name("element")
+            .serialisedHidden()
+            .asMap());
     return props.asMap();
 }
 
@@ -59,6 +53,7 @@ QVariantMap createField4Properties()
     return
         cc::property::field::ForField<ListsFields::field4>()
             .name("field4")
+            .appendIndexToElementName()
             .add(cc::property::field::IntValue().name("element").serialisedHidden().asMap())
             .asMap();
 }
@@ -68,11 +63,12 @@ QVariantMap createField5Properties()
     return
         cc::property::field::ForField<ListsFields::field5>()
             .name("field5")
+            .appendIndexToElementName()
             .add(
                 cc::property::field::ForField<ListsFields::field5::ValueType::value_type>()
                     .name("element")
-                    .add(cc::property::field::IntValue().name("memeber1").serialisedHidden().asMap())
-                    .add(cc::property::field::IntValue().name("memeber2").serialisedHidden().asMap())
+                    .add(cc::property::field::IntValue().name("member1").serialisedHidden().asMap())
+                    .add(cc::property::field::IntValue().name("member2").serialisedHidden().asMap())
                     .add(cc::property::field::String().name("memeber3").serialisedHidden().asMap())
                     .serialisedHidden()
                     .asMap())

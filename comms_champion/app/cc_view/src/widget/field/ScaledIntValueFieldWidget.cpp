@@ -23,6 +23,7 @@
 #include <cmath>
 
 #include "comms_champion/property/field.h"
+#include "SpecialValueWidget.h"
 
 namespace comms_champion
 {
@@ -67,6 +68,7 @@ ScaledIntValueFieldWidget::~ScaledIntValueFieldWidget() noexcept = default;
 
 void ScaledIntValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
@@ -81,6 +83,10 @@ void ScaledIntValueFieldWidget::refreshImpl()
     setValidityStyleSheet(*m_ui.m_serFrontLabel, valid);
     setValidityStyleSheet(*m_ui.m_serValueLineEdit, valid);
     setValidityStyleSheet(*m_ui.m_serBackLabel, valid);
+
+    if (m_specialsWidget != nullptr) {
+        m_specialsWidget->setIntValue(m_wrapper->getValue());
+    }
 }
 
 void ScaledIntValueFieldWidget::editEnabledUpdatedImpl()
@@ -92,14 +98,24 @@ void ScaledIntValueFieldWidget::editEnabledUpdatedImpl()
 
 void ScaledIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
 {
+    property::field::IntValue actProps(props);
+
     auto decimals = property::field::IntValue(props).scaledDecimals();
-    if (decimals <= 0) {
+
+    if (0 < decimals) {
+        m_ui.m_valueSpinBox->setDecimals(decimals);
+    }
+    else {
         assert(!"Should not happen");
         m_ui.m_valueSpinBox->setDecimals(0);
-        return;
     }
 
-    m_ui.m_valueSpinBox->setDecimals(decimals);
+    auto& specials = actProps.specials();
+    bool needRefresh = createSpecialsWidget(specials);
+
+    if (needRefresh) {
+        refresh();
+    }
 }
 
 void ScaledIntValueFieldWidget::serialisedValueUpdated(const QString& value)
@@ -122,9 +138,46 @@ void ScaledIntValueFieldWidget::valueUpdated(double value)
 
     assert(isEditEnabled());
     m_wrapper->setScaled(value);
+    if (!m_wrapper->canWrite()) {
+        m_wrapper->reset();
+        assert(m_wrapper->canWrite());
+    }
 
     refresh();
     emitFieldUpdated();
+}
+
+void ScaledIntValueFieldWidget::specialSelected(long long value)
+{
+    if (!isEditEnabled()) {
+        refresh();
+        return;
+    }
+
+    m_wrapper->setValue(static_cast<UnderlyingType>(value));
+    refresh();
+}
+
+bool ScaledIntValueFieldWidget::createSpecialsWidget(const SpecialsList& specials)
+{
+    delete m_specialsWidget;
+    if (specials.empty()) {
+        m_specialsWidget = nullptr;
+        return false;
+    }
+
+    m_specialsWidget = new SpecialValueWidget(specials);
+    connect(
+        m_specialsWidget, SIGNAL(sigIntValueChanged(long long)),
+        this, SLOT(specialSelected(long long)));
+
+    connect(
+        m_specialsWidget, SIGNAL(sigRefreshReq()),
+        this, SLOT(refresh()));
+
+    m_ui.m_valueWidgetLayout->insertWidget(m_ui.m_valueWidgetLayout->count() - 1, m_specialsWidget);
+
+    return true;
 }
 
 }  // namespace comms_champion

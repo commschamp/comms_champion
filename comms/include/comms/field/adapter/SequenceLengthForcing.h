@@ -97,6 +97,11 @@ public:
         return BaseImpl::readN(count, iter, forced_);
     }
 
+    static constexpr bool hasReadNoStatus()
+    {
+        return false;
+    }
+
     template <typename TIter>
     void readNoStatus(TIter& iter) = delete;
 

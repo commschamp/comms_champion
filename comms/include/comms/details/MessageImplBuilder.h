@@ -218,12 +218,25 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-        if (size < doLength()) {
-            return comms::ErrorStatus::BufferOverflow;
-        }
+#ifdef _MSC_VER
+// For some reason VS2015 32 bit compiler may generate "integral constant overflow"
+// warning on the code below
+#pragma warning( push )
+#pragma warning( disable : 4307)
+#endif
 
-        doWriteNoStatusFrom<0>(iter);
-        return comms::ErrorStatus::Success;
+        using Tag =
+            typename std::conditional<
+                comms::util::tupleTypeAccumulate<AllFields>(true, WriteNoStatusDetector()),
+                NoStatusTag,
+                UseStatusTag
+            >::type;
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
+
+        return doWriteInternal(iter, size, Tag());
     }
 
     bool doValid() const
@@ -468,6 +481,31 @@ private:
     struct NoStatusTag {};
     struct UseStatusTag {};
 
+//    struct ReadNoStatusDetector
+//    {
+//        constexpr ReadNoStatusDetector() = default;
+
+//        template <typename TField>
+//        constexpr bool operator()(bool soFar) const
+//        {
+//            return
+//                (TField::minLength() == TField::maxLength()) &&
+//                (!TField::ParsedOptions::HasCustomValueReader) &&
+//                (!TField::ParsedOptions::HasCustomRead) &&
+//                (!TField::ParsedOptions::HasFailOnInvalid) &&
+//                (!TField::ParsedOptions::HasSequenceElemLengthForcing)  &&
+//                (!TField::ParsedOptions::HasSequenceSizeForcing)  &&
+//                (!TField::ParsedOptions::HasSequenceSizeFieldPrefix)  &&
+//                (!TField::ParsedOptions::HasSequenceSerLengthFieldPrefix) &&
+//                (!TField::ParsedOptions::HasSequenceElemSerLengthFieldPrefix) &&
+//                (!TField::ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix) &&
+//                (!TField::ParsedOptions::HasSequenceTrailingFieldSuffix) &&
+//                (!TField::ParsedOptions::HasSequenceTerminationFieldSuffix) &&
+//                soFar;
+//            ;
+//        }
+//    };
+
     struct ReadNoStatusDetector
     {
         constexpr ReadNoStatusDetector() = default;
@@ -475,21 +513,18 @@ private:
         template <typename TField>
         constexpr bool operator()(bool soFar) const
         {
-            return
-                (TField::minLength() == TField::maxLength()) &&
-                (!TField::ParsedOptions::HasCustomValueReader) &&
-                (!TField::ParsedOptions::HasCustomRead) &&
-                (!TField::ParsedOptions::HasFailOnInvalid) &&
-                (!TField::ParsedOptions::HasSequenceElemLengthForcing)  &&
-                (!TField::ParsedOptions::HasSequenceSizeForcing)  &&
-                (!TField::ParsedOptions::HasSequenceSizeFieldPrefix)  &&
-                (!TField::ParsedOptions::HasSequenceSerLengthFieldPrefix) &&
-                (!TField::ParsedOptions::HasSequenceElemSerLengthFieldPrefix) &&
-                (!TField::ParsedOptions::HasSequenceElemFixedSerLengthFieldPrefix) &&
-                (!TField::ParsedOptions::HasSequenceTrailingFieldSuffix) &&
-                (!TField::ParsedOptions::HasSequenceTerminationFieldSuffix) &&
-                soFar;
-            ;
+            return TField::hasReadNoStatus() && soFar;
+        }
+    };
+
+    struct WriteNoStatusDetector
+    {
+        constexpr WriteNoStatusDetector() = default;
+
+        template <typename TField>
+        constexpr bool operator()(bool soFar) const
+        {
+            return TField::hasWriteNoStatus() && soFar;
         }
     };
 
@@ -513,6 +548,29 @@ private:
         }
 
         doReadNoStatusFrom<0>(iter);
+        return comms::ErrorStatus::Success;
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus doWriteInternal(
+        TIter& iter,
+        std::size_t size,
+        UseStatusTag) const
+    {
+        return doWriteFromAndUpdateLen<0>(iter, size);
+    }
+
+    template <typename TIter>
+    comms::ErrorStatus doWriteInternal(
+        TIter& iter,
+        std::size_t size,
+        NoStatusTag) const
+    {
+        if (size < doLength()) {
+            return comms::ErrorStatus::BufferOverflow;
+        }
+
+        doWriteNoStatusFrom<0>(iter);
         return comms::ErrorStatus::Success;
     }
 

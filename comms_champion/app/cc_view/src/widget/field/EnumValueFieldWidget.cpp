@@ -54,6 +54,7 @@ EnumValueFieldWidget::~EnumValueFieldWidget() noexcept = default;
 
 void EnumValueFieldWidget::refreshImpl()
 {
+    assert(m_wrapper->canWrite());
     assert(m_ui.m_serValueLineEdit != nullptr);
     updateValue(*m_ui.m_serValueLineEdit, m_wrapper->getSerialisedString());
 
@@ -209,6 +210,10 @@ void EnumValueFieldWidget::valueUpdated(int idx)
 
         assert(isEditEnabled());
         m_wrapper->setValue(value);
+        if (!m_wrapper->canWrite()) {
+            m_wrapper->reset();
+            assert(m_wrapper->canWrite());
+        }
         emitFieldUpdated();
     }
     refresh();

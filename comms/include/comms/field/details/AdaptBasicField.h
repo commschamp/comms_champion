@@ -90,6 +90,27 @@ template <typename TField, typename TOpts>
 using AdaptFieldInvalidByDefaultT =
     typename AdaptFieldInvalidByDefault<TOpts::HasInvalidByDefault>::template Type<TField>;
 
+template <bool THasCustomRead>
+struct AdaptFieldCustomReadWrap;
+
+template <>
+struct AdaptFieldCustomReadWrap<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::CustomReadWrap<TField>;
+};
+
+template <>
+struct AdaptFieldCustomReadWrap<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldCustomReadWrapT =
+    typename AdaptFieldCustomReadWrap<TOpts::HasCustomRead>::template Type<TField>;
+
 
 template <bool THasCustomValueReader>
 struct AdaptFieldCustomValueReader;
@@ -649,6 +670,27 @@ template <typename TField, typename TOpts>
 using AdaptFieldEmptySerializationT =
     typename AdaptFieldEmptySerialization<TOpts::HasEmptySerialization>::template Type<TField>;
 
+template <bool THasCustomWrite>
+struct AdaptFieldCustomWriteWrap;
+
+template <>
+struct AdaptFieldCustomWriteWrap<true>
+{
+    template <typename TField>
+    using Type = comms::field::adapter::CustomWriteWrap<TField>;
+};
+
+template <>
+struct AdaptFieldCustomWriteWrap<false>
+{
+    template <typename TField>
+    using Type = TField;
+};
+
+template <typename TField, typename TOpts>
+using AdaptFieldCustomWriteWrapT =
+    typename AdaptFieldCustomWriteWrap<TOpts::HasCustomWrite>::template Type<TField>;
+
 template <typename TBasic, typename... TOptions>
 class AdaptBasicField
 {
@@ -786,19 +828,23 @@ class AdaptBasicField
         DefaultValueInitialiserAdapted, ParsedOptions>;
     using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
         NumValueMultiRangeValidatorAdapted, ParsedOptions>;
-    using CustomRefreshWrapAdapted = AdaptFieldCustomRefreshWrapT<
-        CustomValidatorAdapted, ParsedOptions>;
     using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
-        CustomRefreshWrapAdapted, ParsedOptions>;
+        CustomValidatorAdapted, ParsedOptions>;
     using FailOnInvalidAdapted = AdaptFieldFailOnInvalidT<
         CustomRefresherAdapted, ParsedOptions>;
     using IgnoreInvalidAdapted = AdaptFieldIgnoreInvalidT<
         FailOnInvalidAdapted, ParsedOptions>;
     using EmptySerializationAdapted = AdaptFieldEmptySerializationT<
         IgnoreInvalidAdapted, ParsedOptions>;
+    using CustomReadWrapAdapted = AdaptFieldCustomReadWrapT<
+        EmptySerializationAdapted, ParsedOptions>;
+    using CustomRefreshWrapAdapted = AdaptFieldCustomRefreshWrapT<
+        CustomReadWrapAdapted, ParsedOptions>;
+    using CustomWriteWrapAdapted = AdaptFieldCustomWriteWrapT<
+        CustomRefreshWrapAdapted, ParsedOptions>;
 
 public:
-    using Type = EmptySerializationAdapted;
+    using Type = CustomWriteWrapAdapted;
 };
 
 template <typename TBasic, typename... TOptions>

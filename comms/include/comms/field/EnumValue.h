@@ -16,7 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /// @file
-/// Contains definition of comms::field::EnumValue
+/// @brief Contains definition of comms::field::EnumValue
 
 #pragma once
 

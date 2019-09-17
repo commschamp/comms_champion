@@ -1190,6 +1190,7 @@
 /// @li @ref comms::option::app::NoWriteImpl
 /// @li @ref comms::option::app::NoValidImpl
 /// @li @ref comms::option::app::NoLengthImpl
+/// @li @ref comms::option::app::NoDispatchImpl
 ///
 /// These options should not be used in the definition of protocol messages, but
 /// it would be wise to allow the client application use them when necessary. It

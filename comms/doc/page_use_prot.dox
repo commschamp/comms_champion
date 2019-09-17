@@ -25,7 +25,7 @@
 /// @li @b "comms/" - replace with "comms2/"
 ///
 /// @section page_use_prot_error_handling Error Handling
-/// The COMMS library is intended to be used in embedded systems (including 
+/// The @b COMMS library is intended to be used in embedded systems (including 
 /// bare metal), which means the library does not use exceptions to report errors.
 /// The runtime errors are reported via @ref comms::ErrorStatus return values. All
 /// pre- and post-conditions are checked using COMMS_ASSERT() macro.
@@ -220,7 +220,7 @@
 /// std::size_t readMessage(MyMessage& msg, const std::uint8_t* buf, std::size_t len)
 /// {
 ///     MyMessage::ReadIterator readIter = buf;
-///     auto es = msg->read(readIter, len); // readIter is advanced in the read operation
+///     auto es = msg.read(readIter, len); // readIter is advanced in the read operation
 ///     if (es != comms::ErrorStatus::Success) {
 ///         ... // Report and handle error
 ///         return 0U; 
@@ -279,9 +279,13 @@
 /// iterator for write operation. In the example above the output buffer
 /// is chosen to be @b std::vector<std::uint8_t> and the write operation will
 /// be performed using @b push_back() calls on this vector (due to @b std::back_insert_iterator
-/// being chosen as @b WriteIterator). @n
+/// being chosen as @b WriteIterator).
+///
 /// Also @b note, that iterator is passed by reference, which allows advancing 
-/// operator when write operation is performed. 
+/// operator when write operation is performed. In case the iterator is
+/// random-access one, the difference between the initial and its value
+/// after the write has been performed can be used to determine amount of 
+/// bytes that have been written to the buffer.
 ///
 /// The @ref comms::Message interface class defines @ref comms::Message::hasWrite()
 /// static constexpr member function, which may be used at compile time to 
@@ -292,7 +296,7 @@
 /// @subsection page_use_prot_interface_length Polymorphic Serialisation Length Retrieval
 /// Sometimes it may be needed to polymorphically retrieve the serialisation length of the message
 /// in order to be able to reserve or allocate enough space for output buffer.
-/// The COMMS library provides @ref comms::option::app::LengthInfoInterface option that
+/// The @b COMMS library provides @ref comms::option::app::LengthInfoInterface option that
 /// adds @b length() member function to the interface.
 /// @code
 /// using MyMessage = 
@@ -314,7 +318,7 @@
 ///     }
 ///
 /// protected:
-///     virtual std::size_t lengthImpl() const = 0; // Implemented in the derived class
+///     virtual std::size_t lengthImpl() const {...}; // Must be overridden in the derived class
 /// };
 /// @endcode
 /// The @ref comms::Message interface class defines @ref comms::Message::hasLength()
@@ -325,7 +329,7 @@
 ///
 /// @subsection page_use_prot_interface_valid Polymorphic Validity Check
 /// Sometimes it may be needed to be able to check whether the message contents
-/// (fields) have valid values. The COMMS library provides comms::option::app::ValidCheckInterface
+/// (fields) have valid values. The @b COMMS library provides comms::option::app::ValidCheckInterface
 /// option that adds @b valid() member function to the interface:
 /// @code
 /// using MyMessage =
@@ -405,7 +409,7 @@
 ///     }
 ///
 /// protected:
-///     virtual DispatchRetType dispatchImpl(Handler& handler) = 0; // Must be implemented in the derived class
+///     virtual DispatchRetType dispatchImpl(Handler& handler) {...} // Must be overridden in the derived class
 /// };
 /// @endcode
 /// More details about polymorphic dispatching and handling will be provided 
@@ -425,7 +429,7 @@
 /// After updating such fields directly, using the interface of the message object,
 /// the message contents may end up being in an inconsistent (or invalid) state.
 /// There may be a need to polymorphically normalise the state of the message object. The
-/// COMMS library provides @ref comms::option::app::RefreshInterface option, that adds
+/// @b COMMS library provides @ref comms::option::app::RefreshInterface option, that adds
 /// @b refresh() member function to the message interface.
 /// @code
 /// using MyMessage = 
@@ -453,7 +457,7 @@
 ///     }
 /// };
 /// @endcode
-/// Note, that the @b refresh() member function returns boolean value, which
+/// Note, that the @ref comms::Message::refresh() "refresh()" member function returns boolean value, which
 /// is expected to be @b true in case at least one of the internal fields has
 /// been updated, and @b false if message state remains unchanged. @n
 /// Also note, that interface provide default implementation of @b refreshImpl()
@@ -491,7 +495,7 @@
 ///     }
 ///
 /// protected:
-///     virtual const char* nameImpl() const = 0;
+///     virtual const char* nameImpl() const = 0; // Must be overridden in the derived class
 /// };
 /// @endcode
 /// The @ref comms::Message interface class defines @ref comms::Message::hasName()
@@ -562,6 +566,11 @@
 ///     comms::option::app::NameInterface // Add an ability to retrieve message name
 /// >;
 /// @endcode
+/// In case no polymorphic interface extension option has been chosen, every
+/// message object becomes a simple "data structure" without any v-table "penalty".
+/// @code
+/// using MyInterface = my_protocol::Message<>;
+/// @endcode
 ///
 /// @section page_use_prot_messages Protocol Messages
 /// The protocol messages are expected to be defined as template classes, receiving
@@ -591,7 +600,7 @@
 /// The interface class that was defined for the application (@b MyMessage) needs
 /// to be passed as @b TBase template parameter. The defined message class 
 /// extends @ref comms::MessageBase, which in turn extends provided interface
-/// class @b TBase, which in turn extends @ref comms::Message. The inheritence
+/// class @b TBase, which in turn extends (or typedef-s) @ref comms::Message. The inheritance
 /// hierarchy may look like this:
 /// @diafile message_class_hierarchy.dia
 ///
@@ -1233,7 +1242,7 @@
 /// calculating length, checking field's contents validity, and bringing field's
 /// value into a consistent state. It may be required
 /// when a message contains sequence (see @ref page_use_prot_fields_array_list) 
-/// of such bundles/structs. The COMMS library provides @ref comms::field::Bundle
+/// of such bundles/structs. The @b COMMS library provides @ref comms::field::Bundle
 /// field for this purpose. It is quite similar to @ref comms::field::Bitfield described
 /// earlier. The difference is that every member field
 /// doesn't specify any length in bits, just bytes. For example:
@@ -1307,7 +1316,7 @@
 /// @subsection page_use_prot_fields_array_list Array List Fields
 /// Some communication protocols may define messages that transmit sequence
 /// of similar fields and/or raw data buffers. To make it easier to handle, the
-/// COMMS library provides comms::field::ArrayList field which provide a required
+/// @b COMMS library provides comms::field::ArrayList field which provide a required
 /// interface to properly handle such sequences of data. It supports a
 /// sequence of raw bytes
 /// @code
@@ -1356,7 +1365,7 @@
 ///     >;
 /// @endcode
 /// Usage of this option just ensures right amount of elements "on the wire" after
-/// the field is serialised, but it doesn't automatically resize inner 
+/// the field is serialised, but it does @b NOT automatically resize inner 
 /// storage vector.
 /// @code
 /// MyList field;
@@ -1384,7 +1393,7 @@
 ///
 /// Also similar to @ref page_use_prot_fields_array_list, fixed length strings
 /// are defined using @ref comms::option::def::SequenceFixedSize option, and just
-/// like with lists it doesn't automatically resize inner string, just ensures
+/// like with lists it does @b NOT automatically resize inner string, just ensures
 /// right amount of characters "on the wire" when field is serialised.
 /// @code
 /// using MyFixedString = 
@@ -1411,7 +1420,7 @@
 /// based on information recorded in other fields. For example there is a
 /// "flags" bitmask field which specifies whether the following field exists or
 /// missing. The optional field may also be tentative, i.e. if there is enough
-/// data in the input buffer it exists, and missing otherwise. The COMMS
+/// data in the input buffer it exists, and missing otherwise. The @b COMMS
 /// library provides @ref comms::field::Optional which is a mere wrapper around
 /// other fields and provides an ability to set the optional state of the field.
 /// @code
@@ -1420,7 +1429,9 @@
 ///         comms::field::IntValue<MyFieldBase, std::int32_t>
 ///     >;
 /// @endcode
-/// The default mode of such field is "tentative".
+/// The default mode of such field is "tentative", which means read if there
+/// is data available in the input buffer, and write if there is enough space
+/// in the output buffer.
 /// @code
 /// OptField field;
 /// assert(field.isTentative());
@@ -2757,7 +2768,7 @@
 /// @endcode
 ///
 /// @subsection page_use_prot_handling_generic Generic Handler
-/// The COMMS library provides some help in defining custom message handlers.
+/// The @b COMMS library provides some help in defining custom message handlers.
 /// There is @ref comms::GenericHandler class that receives at least two template
 /// parameters. The first one is a common interface class for all the handled messages
 /// (@b MyMessage). The second template parameter is
@@ -3021,8 +3032,8 @@
 ///     using VersionType = ...; // Equals to ValueType of the relevant field.
 ///
 ///     // Accessors for the version info
-///     VersionType version();
-///     const VersionType& version();
+///     VersionType& version();
+///     const VersionType& version() const;
 /// };
 ///
 /// } // namespace my_protocol
@@ -3145,6 +3156,7 @@
 /// @li @ref comms::option::app::NoWriteImpl
 /// @li @ref comms::option::app::NoValidImpl
 /// @li @ref comms::option::app::NoLengthImpl
+/// @li @ref comms::option::app::NoDispatchImpl
 ///
 /// In order to be able to pass these extra options to message definition classes,
 /// the support from the latter is required. If the protocol definition

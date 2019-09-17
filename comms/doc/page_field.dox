@@ -2387,6 +2387,30 @@
 /// defined field's base classes, which is implementation dependent. Just use
 /// the provided @b value() member function to access the value.
 ///
+/// @subsection sec_field_tutorial_common_options_write Custom Write Functionality
+/// On some very rare occasions there may be a need to write custom @b write
+/// functionality. It can be achieved by writing custom @b write() member function
+/// @code
+/// using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
+/// struct MyBundle : public 
+///     comms::field::Bundle<
+///         MyFieldBase,
+///         std::tuple<...>,
+///         comms::option::def::HasCustomWrite
+///     >
+/// {
+///     template <typename TIter>
+///     comms::ErrorStatus write(TIter& iter, std::size_t len) const
+///     {
+///         ...
+///     }
+/// };
+/// @endcode
+/// @b NOTE usage of @ref comms::option::def::HasCustomWrite option. It is 
+/// required to let prevent field holding @ref comms::MessageBase
+/// class from attempting to optimize write operation due to possible incorrect
+/// behavior.
+///
 /// @subsection sec_field_tutorial_common_options_version Custom Version Update Functionality
 /// Some protocols may include version information either in the transport framing
 /// of every message or in one of the messages used to establish connection. Such

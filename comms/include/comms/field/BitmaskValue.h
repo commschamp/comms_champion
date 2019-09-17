@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file
+/// @brief Contains definition of @ref comms::field::BitmaskValue
+
 #pragma once
 
 #include <limits>
@@ -522,6 +525,7 @@ toFieldBase(const BitmaskValue<TFieldBase, TOptions...>& field)
 ///     }
 ///     @endcode
 /// @related comms::field::BitmaskValue
+/// @note Defined in "comms/field/BitmaskValue.h"
 #define COMMS_BITMASK_BITS(...) COMMS_DEFINE_ENUM(BitIdx, __VA_ARGS__)
 
 /// @brief Generate access functions for bits in comms::field::BitmaskValue field.
@@ -615,6 +619,7 @@ toFieldBase(const BitmaskValue<TFieldBase, TOptions...>& field)
 ///         COMMS_BITMASK_BITS_ACCESS(first, third, fourth);
 ///     }
 ///     @endcode
+/// @note Defined in "comms/field/BitmaskValue.h"
 #define COMMS_BITMASK_BITS_ACCESS(...) \
     COMMS_AS_BITMASK_FUNC { \
         return comms::field::toFieldBase(*this); \
@@ -706,6 +711,7 @@ toFieldBase(const BitmaskValue<TFieldBase, TOptions...>& field)
 ///         COMMS_BITMASK_BITS_SEQ(first, second, third, fourth);
 ///     }
 ///     @endcode
+/// @note Defined in "comms/field/BitmaskValue.h"
 #define COMMS_BITMASK_BITS_SEQ(...) \
     COMMS_BITMASK_BITS(__VA_ARGS__) \
     COMMS_BITMASK_BITS_ACCESS(__VA_ARGS__)
@@ -720,6 +726,7 @@ toFieldBase(const BitmaskValue<TFieldBase, TOptions...>& field)
 ///     template one, please use @ref COMMS_BITMASK_BITS_SEQ_NOTEMPLATE()
 ///     instead.
 /// @related comms::field::BitmaskValue
+/// @note Defined in "comms/field/BitmaskValue.h"
 #define COMMS_BITMASK_BITS_SEQ_NOTEMPLATE(...) \
     COMMS_BITMASK_BITS(__VA_ARGS__) \
     COMMS_BITMASK_BITS_ACCESS_NOTEMPLATE(__VA_ARGS__)

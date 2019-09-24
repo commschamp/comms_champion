@@ -37,12 +37,39 @@
     COMMS_EXPAND(COMMS_ALIAS_ALL_MEM_ACC(COMMS_NUM_ARGS(__VA_ARGS__), __VA_ARGS__))
 
 
+#if __cplusplus < 201402L
+
+#ifndef COMMS_DO_ALIAS_RET_TYPE_PREFIX
+#define COMMS_DO_ALIAS_RET_TYPE_PREFIX
+#endif // #ifndef COMMS_DO_ALIAS_RET_TYPE_PREFIX
+
+#if defined(__GNUC__) && !defined(__clang__)
+#if __GNUC__ < 5
+#undef COMMS_DO_ALIAS_RET_TYPE_PREFIX
+#define COMMS_DO_ALIAS_RET_TYPE_PREFIX this->
+#endif // #if __GNUC__ < 5
+#endif // #if defined(__GNUC__) && !defined(__clang__)
+
 #define COMMS_DO_ALIAS(f1_, ...) \
-    auto COMMS_CONCATENATE(field_, f1_) () -> decltype(COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__)) \
+    auto COMMS_CONCATENATE(field_, f1_) () -> decltype(COMMS_DO_ALIAS_RET_TYPE_PREFIX COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__)) \
     { \
         return COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__); \
     }\
-    auto COMMS_CONCATENATE(field_, f1_) () const -> decltype(COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__)) \
+    auto COMMS_CONCATENATE(field_, f1_) () const -> decltype(COMMS_DO_ALIAS_RET_TYPE_PREFIX COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__)) \
     { \
         return COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__); \
     }
+
+#else // #if __cplusplus < 201402L
+
+#define COMMS_DO_ALIAS(f1_, ...) \
+    decltype(auto) COMMS_CONCATENATE(field_, f1_) () \
+    { \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__); \
+    }\
+    decltype(auto) COMMS_CONCATENATE(field_, f1_) () const \
+    { \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__); \
+    }
+
+#endif

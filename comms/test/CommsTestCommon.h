@@ -103,6 +103,8 @@ public:
         m_destructorCounter = &val;
     }
 
+    COMMS_MSG_FIELD_ALIAS(f1, value1);
+
 private:
     unsigned* m_destructorCounter = nullptr;
 };
@@ -466,6 +468,9 @@ public:
     {
         return "Message6";
     }
+
+    COMMS_MSG_FIELD_ALIAS(mask, value1, mask);
+    COMMS_DO_ALIAS(val, value1, val);
 };
 
 template <typename TField>

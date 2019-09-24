@@ -105,6 +105,7 @@ namespace field
 /// @headerfile comms/field/Bitfield.h
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS()
 /// @see @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE()
+/// @see @ref COMMS_FIELD_ALIAS()
 template <typename TFieldBase, typename TMembers, typename... TOptions>
 class Bitfield : private
         details::AdaptBasicFieldT<basic::Bitfield<TFieldBase, TMembers>, TOptions...>

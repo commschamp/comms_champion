@@ -26,6 +26,7 @@
 #include "comms/details/FieldBase.h"
 #include "comms/details/macro_common.h"
 #include "comms/details/fields_access.h"
+#include "comms/details/field_alias.h"
 
 namespace comms
 {
@@ -500,6 +501,14 @@ protected:
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC_NOTEMPLATE(__VA_ARGS__))
 #endif // #ifdef FOR_DOXYGEN_DOC_ONLY
+
+/// @brief Generate convinience alias access member functions for other
+///     member fields.
+/// @details Same as @ref COMMS_MSG_FIELDS_ACCESS() but applicable to
+///     @ref comms::field::Bundle and @ref comms::field::Bitfield
+/// @pre The macro @ref COMMS_FIELD_MEMBERS_ACCESS() needs to be used before
+///     @ref COMMS_FIELD_ALIAS() to define convenience access functions.
+#define COMMS_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(f_, __VA_ARGS__)
 
 }  // namespace comms
 

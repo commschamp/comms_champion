@@ -1025,4 +1025,4 @@ constexpr bool isMessageBase()
 /// @pre The macro @ref COMMS_MSG_FIELDS_ACCESS() needs to be used before
 ///     @ref COMMS_MSG_FIELD_ALIAS() to define convenience access functions.
 /// @related comms::MessageBase
-#define COMMS_MSG_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(f_, __VA_ARGS__)
+#define COMMS_MSG_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(field_, f_, __VA_ARGS__)

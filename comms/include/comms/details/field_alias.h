@@ -20,21 +20,28 @@
 
 #include "macro_common.h"
 
-#define COMMS_ALIAS_MEM_ACC(m_) COMMS_CONCATENATE(field_, m_)()
+#define COMMS_ALIAS_MEM_ACC(prefix_, m_) COMMS_CONCATENATE(prefix_, m_)()
 
-#define COMMS_ALIAS_MEM_ACC_1(m_) COMMS_EXPAND(COMMS_ALIAS_MEM_ACC(m_))
-#define COMMS_ALIAS_MEM_ACC_2(m_, ...) COMMS_ALIAS_MEM_ACC(m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_1(__VA_ARGS__))
-#define COMMS_ALIAS_MEM_ACC_3(m_, ...) COMMS_ALIAS_MEM_ACC(m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_2(__VA_ARGS__))
-#define COMMS_ALIAS_MEM_ACC_4(m_, ...) COMMS_ALIAS_MEM_ACC(m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_3(__VA_ARGS__))
-#define COMMS_ALIAS_MEM_ACC_5(m_, ...) COMMS_ALIAS_MEM_ACC(m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_4(__VA_ARGS__))
-#define COMMS_ALIAS_MEM_ACC_6(m_, ...) COMMS_ALIAS_MEM_ACC(m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_5(__VA_ARGS__))
-#define COMMS_ALIAS_MEM_ACC_7(m_, ...) COMMS_ALIAS_MEM_ACC(m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_6(__VA_ARGS__))
-#define COMMS_ALIAS_MEM_ACC_8(m_, ...) COMMS_ALIAS_MEM_ACC(m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_7(__VA_ARGS__))
+#define COMMS_ALIAS_MEM_ACC_1(prefix_, m_) COMMS_EXPAND(COMMS_ALIAS_MEM_ACC(prefix_, m_))
+#define COMMS_ALIAS_MEM_ACC_2(prefix_, m_, ...) \
+    COMMS_ALIAS_MEM_ACC(prefix_, m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_1(field_, __VA_ARGS__)) // using field_ as next prefix on purpose
+#define COMMS_ALIAS_MEM_ACC_3(prefix_, m_, ...) \
+    COMMS_ALIAS_MEM_ACC(prefix_, m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_2(field_, __VA_ARGS__)) // using field_ as next prefix on purpose
+#define COMMS_ALIAS_MEM_ACC_4(prefix_, m_, ...) \
+    COMMS_ALIAS_MEM_ACC(prefix_, m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_3(field_, __VA_ARGS__)) // using field_ as next prefix on purpose
+#define COMMS_ALIAS_MEM_ACC_5(prefix_, m_, ...) \
+    COMMS_ALIAS_MEM_ACC(prefix_, m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_4(field_, __VA_ARGS__)) // using field_ as next prefix on purpose
+#define COMMS_ALIAS_MEM_ACC_6(prefix_, m_, ...) \
+    COMMS_ALIAS_MEM_ACC(prefix_, m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_5(field_, __VA_ARGS__)) // using field_ as next prefix on purpose
+#define COMMS_ALIAS_MEM_ACC_7(prefix_, m_, ...) \
+    COMMS_ALIAS_MEM_ACC(prefix_, m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_6(field_, __VA_ARGS__)) // using field_ as next prefix on purpose
+#define COMMS_ALIAS_MEM_ACC_8(prefix_, m_, ...) \
+    COMMS_ALIAS_MEM_ACC(prefix_, m_) . COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_7(field_, __VA_ARGS__)) // using field_ as next prefix on purpose
 
-#define COMMS_ALIAS_ALL_MEM_ACC_(N, ...) COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_ ## N(__VA_ARGS__))
-#define COMMS_ALIAS_ALL_MEM_ACC(N, ...) COMMS_EXPAND(COMMS_ALIAS_ALL_MEM_ACC_(N, __VA_ARGS__))
-#define COMMS_DO_ALIAS_ALL_MEM_ACC(...) \
-    COMMS_EXPAND(COMMS_ALIAS_ALL_MEM_ACC(COMMS_NUM_ARGS(__VA_ARGS__), __VA_ARGS__))
+#define COMMS_ALIAS_ALL_MEM_ACC_(N, prefix_, ...) COMMS_EXPAND(COMMS_ALIAS_MEM_ACC_ ## N(prefix_, __VA_ARGS__))
+#define COMMS_ALIAS_ALL_MEM_ACC(N, prefix_, ...) COMMS_EXPAND(COMMS_ALIAS_ALL_MEM_ACC_(N, prefix_, __VA_ARGS__))
+#define COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, ...) \
+    COMMS_EXPAND(COMMS_ALIAS_ALL_MEM_ACC(COMMS_NUM_ARGS(__VA_ARGS__), prefix_, __VA_ARGS__))
 
 
 #if __cplusplus < 201402L
@@ -50,26 +57,26 @@
 #endif // #if __GNUC__ < 5
 #endif // #if defined(__GNUC__) && !defined(__clang__)
 
-#define COMMS_DO_ALIAS(f1_, ...) \
-    auto COMMS_CONCATENATE(field_, f1_) () -> decltype(COMMS_DO_ALIAS_RET_TYPE_PREFIX COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__)) \
+#define COMMS_DO_ALIAS(prefix_, f1_, ...) \
+    auto COMMS_CONCATENATE(prefix_, f1_) () -> decltype(COMMS_DO_ALIAS_RET_TYPE_PREFIX COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__)) \
     { \
-        return COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__); \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
     }\
-    auto COMMS_CONCATENATE(field_, f1_) () const -> decltype(COMMS_DO_ALIAS_RET_TYPE_PREFIX COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__)) \
+    auto COMMS_CONCATENATE(prefix_, f1_) () const -> decltype(COMMS_DO_ALIAS_RET_TYPE_PREFIX COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__)) \
     { \
-        return COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__); \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
     }
 
 #else // #if __cplusplus < 201402L
 
-#define COMMS_DO_ALIAS(f1_, ...) \
-    decltype(auto) COMMS_CONCATENATE(field_, f1_) () \
+#define COMMS_DO_ALIAS(prefix_, f1_, ...) \
+    decltype(auto) COMMS_CONCATENATE(prefix_, f1_) () \
     { \
-        return COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__); \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
     }\
-    decltype(auto) COMMS_CONCATENATE(field_, f1_) () const \
+    decltype(auto) COMMS_CONCATENATE(prefix_, f1_) () const \
     { \
-        return COMMS_DO_ALIAS_ALL_MEM_ACC(__VA_ARGS__); \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
     }
 
 #endif

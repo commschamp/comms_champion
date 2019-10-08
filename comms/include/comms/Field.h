@@ -505,10 +505,10 @@ protected:
 /// @brief Generate convinience alias access member functions for other
 ///     member fields.
 /// @details Same as @ref COMMS_MSG_FIELDS_ACCESS() but applicable to
-///     @ref comms::field::Bundle and @ref comms::field::Bitfield
+///     @ref comms::field::Bundle field.
 /// @pre The macro @ref COMMS_FIELD_MEMBERS_ACCESS() needs to be used before
 ///     @ref COMMS_FIELD_ALIAS() to define convenience access functions.
-#define COMMS_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(f_, __VA_ARGS__)
+#define COMMS_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(field_, f_, __VA_ARGS__)
 
 }  // namespace comms
 

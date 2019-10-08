@@ -648,89 +648,6 @@
 /// };
 /// @endcode
 ///
-/// @subsection page_define_prot_message_base_field_aliases Aliases to Field Names
-/// When the communication protocol evolves and new versions of it are being released,
-/// it may happen that some fields get renamed to give them a different or refined
-/// meaning. Simple change of the name may result in old client code not being
-/// able to compile with new versions of the protocol definition library. To
-/// help with such case the @b COMMS library introduced @ref COMMS_MSG_FIELD_ALIAS()
-/// macro, which is expected to be used after @ref COMMS_MSG_FIELDS_ACCESS() one.
-/// As an example let's change the @b value3 from the example above to be @b newValue3.
-/// @code
-/// template <typename TMessage>
-/// class Message1 : public comms::MessageBase<...>
-/// {
-/// public:
-///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
-///     COMMS_MSG_FIELD_ALIAS(value3, newValue3);
-/// };
-/// @endcode
-/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following convenience access functions:
-/// @code
-/// template <typename TMessage>
-/// class Message1 : public comms::MessageBase<...>
-/// {
-/// public:
-///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
-///     
-///     // Access to "newValue3" via "value3" name
-///     auto field_value3() -> decltype(field_newValue3())
-///     {
-///         return field_newValue3();
-///     }
-///
-///     // Const access to "newValue3" via "value3" name
-///     auto field_value3() const -> decltype(field_newValue3())
-///     {
-///         return field_newValue3();
-///     }
-/// };
-/// @endcode
-/// In this case the old client code that tries to access appropriate field
-/// using @b field_value3() access function will still work after renaming
-/// takes place.
-///
-/// Another common case is when some field (usually @ref comms::field::IntValue 
-/// or @ref comms::field::EnumValue) has a limited range of possible values
-/// and in order to save on some I/O traffic, the developer decides to split
-/// the value storage into multiple small parts and make it a 
-/// @ref comms::field::Bitfield instead. In order to keep old client code compiling
-/// and working the @ref COMMS_MSG_FIELD_ALIAS() may be used:
-/// @code
-/// template <typename TMessage>
-/// class Message1 : public comms::MessageBase<...>
-/// {
-/// public:
-///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
-///     COMMS_MSG_FIELD_ALIAS(value3, newValue3, member1);
-/// };
-/// @endcode
-/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following convenience access functions:
-/// @code
-/// template <typename TMessage>
-/// class Message1 : public comms::MessageBase<...>
-/// {
-/// public:
-///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
-///     
-///     // Access to "newValue3.member1" via "value3" name
-///     auto field_value3() -> decltype(field_newValue3().field_member1())
-///     {
-///         return field_newValue3().field_member1();
-///     }
-///
-///     // Const access to "newValue3.member1" via "value3" name
-///     auto field_value3() const -> decltype(field_newValue3().field_member1())
-///     {
-///         return field_newValue3().field_member1();
-///     }
-/// };
-/// @endcode
-///
 /// @subsection page_define_prot_message_base_custom_read Custom Read Functionality
 /// The default read functionality implemented by @ref comms::MessageBase::doRead()
 /// is to invoke @b read() member function of every field and return @b success
@@ -1105,6 +1022,130 @@
 ///
 ///         return updated;
 ///     }
+/// };
+/// @endcode
+///
+/// @section page_define_prot_field_aliases Aliases to Field Names
+/// When the communication protocol evolves and new versions of it are being released,
+/// it may happen that some fields get renamed to give them a different or refined
+/// meaning. Simple change of the name may result in old client code not being
+/// able to compile with new versions of the protocol definition library. To
+/// help with such case the @b COMMS library provides several macros that can generate
+/// alias names for renamed fields.
+///
+/// @subsection page_define_prot_field_aliases_messages Aliases to Field Names Inside Message Definition
+/// The @b COMMS library provides @ref COMMS_MSG_FIELD_ALIAS()
+/// macro, which is expected to be used after @ref COMMS_MSG_FIELDS_ACCESS() one when new
+/// message class is being defined.
+/// As an example let's change the @b value3 from the example in the 
+/// @ref page_define_prot_message_base_field_names section to be @b newValue3.
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public comms::MessageBase<...>
+/// {
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
+///     COMMS_MSG_FIELD_ALIAS(value3, newValue3);
+/// };
+/// @endcode
+/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following convenience access functions:
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public comms::MessageBase<...>
+/// {
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
+///     
+///     // Access to "newValue3" via "value3" name
+///     auto field_value3() -> decltype(field_newValue3())
+///     {
+///         return field_newValue3();
+///     }
+///
+///     // Const access to "newValue3" via "value3" name
+///     auto field_value3() const -> decltype(field_newValue3())
+///     {
+///         return field_newValue3();
+///     }
+/// };
+/// @endcode
+/// In this case the old client code that tries to access appropriate field
+/// using @b field_value3() access function will still work after renaming
+/// takes place.
+///
+/// Another common case is when some field (usually @ref comms::field::IntValue 
+/// or @ref comms::field::EnumValue) has a limited range of possible values
+/// and in order to save on some I/O traffic, the developer decides to split
+/// the value storage into multiple small parts and make it a 
+/// @ref comms::field::Bitfield instead. In order to keep old client code compiling
+/// and working the @ref COMMS_MSG_FIELD_ALIAS() may be used:
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public comms::MessageBase<...>
+/// {
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
+///     COMMS_MSG_FIELD_ALIAS(value3, newValue3, member1);
+/// };
+/// @endcode
+/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following convenience access functions:
+/// @code
+/// template <typename TMessage>
+/// class Message1 : public comms::MessageBase<...>
+/// {
+/// public:
+///     // Provide names for the fields
+///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
+///     
+///     // Access to "newValue3.member1" via "value3" name
+///     auto field_value3() -> decltype(field_newValue3().field_member1())
+///     {
+///         return field_newValue3().field_member1();
+///     }
+///
+///     // Const access to "newValue3.member1" via "value3" name
+///     auto field_value3() const -> decltype(field_newValue3().field_member1())
+///     {
+///         return field_newValue3().field_member1();
+///     }
+/// };
+/// @endcode
+///
+/// @subsection page_define_prot_field_aliases_bundles Aliases to Field Names Inside Bundle Fields
+/// Similar to defining aliases to message fields, @b COMMS library provides an ability to define
+/// aliases within @ref comms::field::Bundle "bundle" field definition using
+/// @ref COMMS_FIELD_ALIAS() macro.
+/// @code
+/// class MyBundle : public comms::field::Bundle<...>
+/// {
+/// public:
+///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+///     COMMS_FIELD_ALIAS(otherMem1Name, member1);
+///     COMMS_FIELD_ALIAS(otherMem2Name, member2);
+/// };
+/// @endcode
+///
+/// @subsection page_define_prot_field_aliases_interfaces Aliases to Extra Transport Field Names Inside Interface
+/// The @ref page_define_prot_interface class definition may have
+/// @ref page_define_prot_interface_extra_transport. Aliasing between the 
+/// extra transport fields can be defined using @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS()
+/// macro.
+/// @code
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<MyExtraTransportFields>,
+///         TOptions...
+///     >
+/// {
+/// public:
+///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, flags);
+///     COMMS_MSG_TRANSPORT_FIELD_ALIAS(otherFlagsName, flags);    
 /// };
 /// @endcode
 ///

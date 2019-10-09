@@ -782,5 +782,5 @@ using MessageIdType =
 ///     member transport fields in non template interface classes.
 /// @details Similar to @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS, but
 ///     needs to be used in @b non-template interface class to
-///     allow compilation with gcc-4.8 and/or gcc-4.9
+///     allow compilation with gcc-4.8
 #define COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS_NOTEMPLATE(transportField_, f_, __VA_ARGS__))

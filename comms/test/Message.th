@@ -363,7 +363,6 @@ private:
     static_assert(!BoolHandlerMsgBase::hasTransportFields(), "Wrong interface");
     static_assert(!BoolHandlerMsgBase::hasVersionInTransportFields(), "Wrong interface");
 
-    // TODO
     class SomeDummyBitfield : public
         comms::field::Bitfield<
             comms::Field<comms::option::BigEndian>,
@@ -415,9 +414,9 @@ private:
             >;
     public:
         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, dummy);
-        COMMS_MSG_TRANSPORT_FIELD_ALIAS(v, version);
-        COMMS_MSG_TRANSPORT_FIELD_ALIAS(mem1, dummy, mem1);
-        COMMS_MSG_TRANSPORT_FIELD_ALIAS(mem2, dummy, mem2);
+        COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(v, version);
+        COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(mem1, dummy, mem1);
+        COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(mem2, dummy, mem2);
     };
 
     static_assert(ExtraTransportMessageBase::hasMsgIdType(), "Wrong interface");

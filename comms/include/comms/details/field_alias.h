@@ -67,6 +67,16 @@
         return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
     }
 
+#define COMMS_DO_ALIAS_NOTEMPLATE(prefix_, f1_, ...) \
+    auto COMMS_CONCATENATE(prefix_, f1_) () -> decltype(COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__)) \
+    { \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
+    }\
+    auto COMMS_CONCATENATE(prefix_, f1_) () const -> decltype(COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__)) \
+    { \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
+    }
+
 #else // #if __cplusplus < 201402L
 
 #define COMMS_DO_ALIAS(prefix_, f1_, ...) \
@@ -78,6 +88,8 @@
     { \
         return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
     }
+
+#define COMMS_DO_ALIAS_NOTEMPLATE(prefix_, f1_, ...) COMMS_EXPAND(COMMS_DO_ALIAS(prefix_, f1_, __VA_ARGS__))
 
 #endif
 

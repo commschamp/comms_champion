@@ -33,6 +33,7 @@
 #include "comms/details/transport_fields_access.h"
 #include "comms/details/detect.h"
 #include "comms/details/MessageIdTypeRetriever.h"
+#include "comms/details/field_alias.h"
 
 namespace comms
 {
@@ -774,4 +775,12 @@ using MessageIdType =
 /// @pre The macro @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() needs to be used before
 ///     @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() to define convenience access functions.
 /// @related comms::Message
-#define COMMS_MSG_TRANSPORT_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(transportField_, f_, __VA_ARGS__)
+/// @see @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE()
+#define COMMS_MSG_TRANSPORT_FIELD_ALIAS(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS(transportField_, f_, __VA_ARGS__))
+
+/// @brief Generate convinience alias access member functions for extra
+///     member transport fields in non template interface classes.
+/// @details Similar to @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS, but
+///     needs to be used in @b non-template interface class to
+///     allow compilation with gcc-4.8 and/or gcc-4.9
+#define COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS_NOTEMPLATE(transportField_, f_, __VA_ARGS__))

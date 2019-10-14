@@ -54,6 +54,7 @@ const QIcon& errorLog();
 const QIcon& connect();
 const QIcon& disconnect();
 const QIcon& comment();
+const QIcon& dup();
 
 }  // namespace icon
 

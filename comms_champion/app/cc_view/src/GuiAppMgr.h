@@ -117,6 +117,7 @@ public slots:
     void recvLoadClicked();
     void recvSaveClicked();
     void recvCommentClicked();
+    void recvDupClicked();
     void recvDeleteClicked();
     void recvClearClicked();
     void recvShowRecvToggled(bool checked);
@@ -132,6 +133,7 @@ public slots:
     void sendAddRawClicked();
     void sendEditClicked();
     void sendCommentClicked();
+    void sendDupClicked();
     void sendDeleteClicked();
     void sendClearClicked();
     void sendTopClicked();

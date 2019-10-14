@@ -106,6 +106,15 @@ QAction* createCommentButton(QToolBar& bar)
     return action;
 }
 
+QAction* createDupButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(icon::dup(), "Duplicate Message");
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(sendDupClicked()));
+    return action;
+}
+
 QAction* createDeleteButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::remove(), "Delete Selected Message");
@@ -172,6 +181,7 @@ SendAreaToolBar::SendAreaToolBar(QWidget* parentObj)
     m_addRawButton(createAddRawButton(*this)),
     m_editButton(createEditButton(*this)),
     m_commentButton(createCommentButton(*this)),
+    m_dupButton(createDupButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
     m_topButton(createTopButton(*this)),
@@ -275,6 +285,7 @@ void SendAreaToolBar::refresh()
     refreshAddButtons();
     refreshEditButton();
     refreshCommentButton();
+    refreshDupButton();
     refreshDeleteButton();
     refreshClearButton();
     refreshUpButton(m_topButton);
@@ -378,6 +389,17 @@ void SendAreaToolBar::refreshEditButton()
 void SendAreaToolBar::refreshCommentButton()
 {
     auto* button = m_commentButton;
+    assert(button);
+    bool enabled =
+        (m_activeState == ActivityState::Active) &&
+        (m_state == State::Idle) &&
+        (msgSelected());
+    button->setEnabled(enabled);
+}
+
+void SendAreaToolBar::refreshDupButton()
+{
+    auto* button = m_dupButton;
     assert(button);
     bool enabled =
         (m_activeState == ActivityState::Active) &&

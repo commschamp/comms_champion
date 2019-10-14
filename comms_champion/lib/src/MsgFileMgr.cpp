@@ -405,7 +405,7 @@ QVariantList convertSendMsgList(
         DelayUnitsProp().setTo(property::message::DelayUnits().getFrom(*msg), msgInfoMap);
         RepeatProp().setTo(property::message::RepeatDuration().getFrom(*msg), msgInfoMap);
         RepeatUnitsProp().setTo(property::message::RepeatDurationUnits().getFrom(*msg), msgInfoMap);
-        RepeatCountProp().setTo(property::message::RepeatCount().getFrom(*msg), msgInfoMap);
+        RepeatCountProp().setTo(property::message::RepeatCount().getFrom(*msg, 1U), msgInfoMap);
 
         auto comment = property::message::Comment().getFrom(*msg);
         if (!comment.isEmpty()) {

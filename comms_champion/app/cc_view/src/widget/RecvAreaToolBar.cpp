@@ -72,6 +72,15 @@ QAction* createCommentButton(QToolBar& bar)
     return action;
 }
 
+QAction* createDupButton(QToolBar& bar)
+{
+    auto* action = bar.addAction(icon::dup(), "Duplicate Message to Send Area");
+    QObject::connect(
+        action, SIGNAL(triggered()),
+        GuiAppMgr::instance(), SLOT(recvDupClicked()));
+    return action;
+}
+
 QAction* createDeleteButton(QToolBar& bar)
 {
     auto* action = bar.addAction(icon::remove(), "Delete Selected Message");
@@ -135,6 +144,7 @@ RecvAreaToolBar::RecvAreaToolBar(QWidget* parentObj)
     m_loadButton(createLoadButton(*this)),
     m_saveButton(createSaveButton(*this)),
     m_commentButton(createCommentButton(*this)),
+    m_dupButton(createDupButton(*this)),
     m_deleteButton(createDeleteButton(*this)),
     m_clearButton(createClearButton(*this)),
     m_showGarbageButton(createShowGarbage(*this)),
@@ -241,6 +251,7 @@ void RecvAreaToolBar::refresh()
     refreshLoadButton();
     refreshSaveButton();
     refreshCommentButton();
+    refreshDupButton();
     refreshDeleteButton();
     refreshClearButton();
 }
@@ -311,6 +322,16 @@ void RecvAreaToolBar::refreshCommentButton()
     bool enabled =
         (m_activeState == ActivityState::Active) &&
         msgSelected();
+    button->setEnabled(enabled);
+}
+
+void RecvAreaToolBar::refreshDupButton()
+{
+    auto* button = m_dupButton;
+    assert(button);
+    bool enabled =
+        (m_activeState == ActivityState::Active) &&
+        (msgSelected());
     button->setEnabled(enabled);
 }
 

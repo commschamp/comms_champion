@@ -246,7 +246,7 @@ MessageUpdateDialog::MessageUpdateDialog(
         }
 
         auto repeatCount = static_cast<int>(
-            property::message::RepeatCount().getFrom(*m_msg));
+            property::message::RepeatCount().getFrom(*m_msg), 1U);
         if (repeatCount != 0) {
             m_prevRepeatCount = repeatCount;
         }

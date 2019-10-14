@@ -155,6 +155,15 @@ void GuiAppMgr::recvCommentClicked()
     emit sigMsgCommentDialog(m_clickedMsg);
 }
 
+void GuiAppMgr::recvDupClicked()
+{
+    assert(m_selType == SelectionType::Recv);
+    assert(m_clickedMsg);
+    auto prot = MsgMgrG::instanceRef().getProtocol();
+    auto newMsg = prot->cloneMessage(*m_clickedMsg);
+    sendAddNewMessage(std::move(newMsg));
+}
+
 void GuiAppMgr::recvDeleteClicked()
 {
     assert(!recvListEmpty());
@@ -239,6 +248,15 @@ void GuiAppMgr::sendCommentClicked()
     assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg);
     emit sigMsgCommentDialog(m_clickedMsg);
+}
+
+void GuiAppMgr::sendDupClicked()
+{
+    assert(m_selType == SelectionType::Send);
+    assert(m_clickedMsg);
+    auto prot = MsgMgrG::instanceRef().getProtocol();
+    auto newMsg = prot->cloneMessage(*m_clickedMsg);
+    sendAddNewMessage(std::move(newMsg));
 }
 
 void GuiAppMgr::sendDeleteClicked()

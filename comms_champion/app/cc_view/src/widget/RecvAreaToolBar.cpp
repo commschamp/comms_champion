@@ -28,6 +28,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "icon.h"
+#include "ShortcutMgr.h"
 
 namespace comms_champion
 {
@@ -49,7 +50,7 @@ QAction* createLoadButton(QToolBar& bar)
     auto* action = bar.addAction(icon::upload(), "Load Messages");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvLoadClicked()));
-
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_LoadRecv);
     return action;
 }
 
@@ -59,7 +60,7 @@ QAction* createSaveButton(QToolBar& bar)
     auto* action = bar.addAction(icon::save(), "Save Messages");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvSaveClicked()));
-
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_SaveRecv);
     return action;
 }
 
@@ -69,6 +70,7 @@ QAction* createCommentButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(recvCommentClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_Comment);
     return action;
 }
 
@@ -78,6 +80,7 @@ QAction* createDupButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(recvDupClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_DupMessage);
     return action;
 }
 
@@ -86,6 +89,7 @@ QAction* createDeleteButton(QToolBar& bar)
     auto* action = bar.addAction(icon::remove(), "Delete Selected Message");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvDeleteClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_Delete);
     return action;
 }
 
@@ -94,6 +98,7 @@ QAction* createClearButton(QToolBar& bar)
     auto* action = bar.addAction(icon::editClear(), "Delete All Displayed Messages");
     QObject::connect(action, SIGNAL(triggered()),
                      GuiAppMgr::instance(), SLOT(recvClearClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_ClearRecv);
     return action;
 }
 
@@ -270,6 +275,7 @@ void RecvAreaToolBar::refreshStartStopButton()
         button->setText(StartTooltip);
     }
     button->setEnabled(enabled);
+    ShortcutMgr::instanceRef().updateShortcut(*button, ShortcutMgr::Key_Receive);
 }
 
 void RecvAreaToolBar::refreshLoadButton()

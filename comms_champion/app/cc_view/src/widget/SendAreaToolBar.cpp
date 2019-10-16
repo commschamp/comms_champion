@@ -27,6 +27,7 @@ CC_DISABLE_WARNINGS()
 CC_ENABLE_WARNINGS()
 
 #include "icon.h"
+#include "ShortcutMgr.h"
 
 namespace comms_champion
 {
@@ -56,7 +57,7 @@ QAction* createLoadButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendLoadClicked()));
-
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_LoadSend);
     return action;
 }
 
@@ -66,7 +67,7 @@ QAction* createSaveButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendSaveClicked()));
-
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_SaveSend);
     return action;
 }
 
@@ -76,6 +77,7 @@ QAction* createAddButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendAddClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_AddMessage);
     return action;
 }
 
@@ -85,6 +87,7 @@ QAction* createAddRawButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendAddRawClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_AddRaw);
     return action;
 }
 
@@ -94,6 +97,7 @@ QAction* createEditButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendEditClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_EditMessage);
     return action;
 }
 
@@ -103,6 +107,7 @@ QAction* createCommentButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendCommentClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_Comment);
     return action;
 }
 
@@ -112,6 +117,7 @@ QAction* createDupButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendDupClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_DupMessage);
     return action;
 }
 
@@ -121,6 +127,7 @@ QAction* createDeleteButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendDeleteClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_Delete);
     return action;
 }
 
@@ -130,6 +137,7 @@ QAction* createClearButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendClearClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_ClearSend);
     return action;
 }
 
@@ -139,6 +147,7 @@ QAction* createTopButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendTopClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_Top);
     return action;
 }
 
@@ -148,6 +157,7 @@ QAction* createUpButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendUpClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_Up);
     return action;
 }
 
@@ -157,6 +167,7 @@ QAction* createDownButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendDownClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_Down);
     return action;
 }
 
@@ -166,6 +177,7 @@ QAction* createBottomButton(QToolBar& bar)
     QObject::connect(
         action, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(sendBottomClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*action, ShortcutMgr::Key_Bottom);
     return action;
 }
 
@@ -313,6 +325,7 @@ void SendAreaToolBar::refreshStartStopButton()
             (m_state == State::Idle);
         button->setEnabled(enabled);
     }
+    ShortcutMgr::instanceRef().updateShortcut(*button, ShortcutMgr::Key_Send);
 }
 
 void SendAreaToolBar::refreshStartStopAllButton()
@@ -335,6 +348,7 @@ void SendAreaToolBar::refreshStartStopAllButton()
         button->setEnabled(enabled);
 
     }
+    ShortcutMgr::instanceRef().updateShortcut(*button, ShortcutMgr::Key_SendAll);
 }
 
 void SendAreaToolBar::refreshLoadButton()

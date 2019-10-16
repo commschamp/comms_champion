@@ -19,6 +19,7 @@
 
 #include "GuiAppMgr.h"
 #include "icon.h"
+#include "ShortcutMgr.h"
 
 namespace comms_champion
 {
@@ -29,17 +30,20 @@ MainToolbar::MainToolbar()
     QObject::connect(
         config, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(pluginsEditClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*config, ShortcutMgr::Key_Plugins);
 
     m_socketConnect = addAction(icon::connect(), "Connect socket");
     QObject::connect(
         m_socketConnect, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(connectSocketClicked()));
     m_socketConnect->setEnabled(false);
+    ShortcutMgr::instanceRef().updateShortcut(*m_socketConnect, ShortcutMgr::Key_Connect);
 
     m_socketDisconnect = addAction(icon::disconnect(), "Disconnect socket");
     QObject::connect(
         m_socketDisconnect, SIGNAL(triggered()),
         GuiAppMgr::instance(), SLOT(disconnectSocketClicked()));
+    ShortcutMgr::instanceRef().updateShortcut(*m_socketDisconnect, ShortcutMgr::Key_Disconnect);
 
     m_socketDisconnect->setVisible(false);
     m_socketConnect->setEnabled(false);

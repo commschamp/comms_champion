@@ -363,12 +363,36 @@ private:
     static_assert(!BoolHandlerMsgBase::hasTransportFields(), "Wrong interface");
     static_assert(!BoolHandlerMsgBase::hasVersionInTransportFields(), "Wrong interface");
 
+    class SomeDummyBitfield : public
+        comms::field::Bitfield<
+            comms::Field<comms::option::BigEndian>,
+            std::tuple<
+                comms::field::IntValue<comms::Field<comms::option::BigEndian>, uint8_t, comms::option::FixedBitLength<4> >,
+                comms::field::IntValue<comms::Field<comms::option::BigEndian>, uint8_t, comms::option::FixedBitLength<4> >
+            >
+        >
+    {
+        using Base =
+            comms::field::Bitfield<
+                comms::Field<comms::option::BigEndian>,
+                std::tuple<
+                    comms::field::IntValue<comms::Field<comms::option::BigEndian>, uint8_t, comms::option::FixedBitLength<4> >,
+                    comms::field::IntValue<comms::Field<comms::option::BigEndian>, uint8_t, comms::option::FixedBitLength<4> >
+                >
+            >;
+
+    public:
+        COMMS_FIELD_MEMBERS_ACCESS(mem1, mem2);
+    };
+
+
     typedef std::tuple<
         comms::field::IntValue<
             comms::Field<comms::option::BigEndian>,
             std::uint16_t,
             comms::option::DefaultNumValue<5>
-        >
+        >,
+        SomeDummyBitfield
     > ExtraVersionTransport;
 
     struct ExtraTransportMessageBase : public
@@ -389,7 +413,10 @@ private:
                 comms::option::RefreshInterface
             >;
     public:
-        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version);
+        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, dummy);
+        COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(v, version);
+        COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(mem1, dummy, mem1);
+        COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(mem2, dummy, mem2);
     };
 
     static_assert(ExtraTransportMessageBase::hasMsgIdType(), "Wrong interface");
@@ -423,6 +450,8 @@ private:
     private:
         TMsgPtr m_ptr;        
     };    
+
+
 };
 
 void MessageTestSuite::test1()
@@ -436,6 +465,8 @@ void MessageTestSuite::test1()
     auto beMsg = internalReadWriteTest<BeMsg1>(&Buf[0], BufSize);
     auto value = std::get<0>(beMsg.fields()).value();
     TS_ASSERT_EQUALS(value, 0x0102);
+    TS_ASSERT_EQUALS(&beMsg.field_value1(), &beMsg.field_f1()); // check alias works
+
     TS_ASSERT(beMsg.valid());
     TS_ASSERT_EQUALS(beMsg.name(), "Message1");
 
@@ -840,6 +871,9 @@ void MessageTestSuite::test14()
     TS_ASSERT_EQUALS(value1, 0x1234);
     TS_ASSERT_EQUALS(value2, -1);
     TS_ASSERT_EQUALS(msg.transportField_version().value(), 5U);
+    TS_ASSERT_EQUALS(&msg.transportField_version(), &msg.transportField_v());
+    TS_ASSERT_EQUALS(&msg.transportField_mem1(), &msg.transportField_dummy().field_mem1());
+    TS_ASSERT_EQUALS(&msg.transportField_mem2(), &msg.transportField_dummy().field_mem2());
 }
 
 void MessageTestSuite::test15()
@@ -856,6 +890,8 @@ void MessageTestSuite::test15()
     TS_ASSERT_EQUALS(msg.doLength(), 3U);
     TS_ASSERT_EQUALS(msg.field_value1().field_mask().value(), 1U);
     TS_ASSERT_EQUALS(msg.field_value1().field_val().field().value(), 0x0203);
+    TS_ASSERT_EQUALS(&msg.field_value1().field_mask(), &msg.field_mask()); // check alias works
+    TS_ASSERT_EQUALS(&msg.field_value1().field_val(), &msg.field_val()); // check alias works
 
     msg.field_value1().field_mask().value() = 0U;
 

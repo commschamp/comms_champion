@@ -117,6 +117,7 @@ public slots:
     void recvLoadClicked();
     void recvSaveClicked();
     void recvCommentClicked();
+    void recvDupClicked();
     void recvDeleteClicked();
     void recvClearClicked();
     void recvShowRecvToggled(bool checked);
@@ -132,6 +133,7 @@ public slots:
     void sendAddRawClicked();
     void sendEditClicked();
     void sendCommentClicked();
+    void sendDupClicked();
     void sendDeleteClicked();
     void sendClearClicked();
     void sendTopClicked();
@@ -227,8 +229,9 @@ private /*data*/:
     void emitRecvNotSelected();
     void emitSendNotSelected();
     void updateRecvListMode(RecvListMode mode, bool checked);
+    void refreshRecvState();
 
-    RecvState m_recvState;
+    RecvState m_recvState = RecvState::Running;
     bool m_recvListSelectOnAdd = true;
     unsigned m_recvListCount = 0;
     unsigned m_recvListMode =
@@ -236,7 +239,7 @@ private /*data*/:
         RecvListMode_ShowSent |
         RecvListMode_ShowGarbage;
 
-    SendState m_sendState;
+    SendState m_sendState = SendState::Idle;
     unsigned m_sendListCount = 0;
 
     SelectionType m_selType = SelectionType::None;

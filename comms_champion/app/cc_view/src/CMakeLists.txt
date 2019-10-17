@@ -19,6 +19,7 @@ function (bin_cc_view)
         MsgFileMgrG.cpp
         PluginMgrG.cpp
         MsgMgrG.cpp
+        ShortcutMgr.cpp
         icon.cpp
         widget/MainWindowWidget.cpp
         widget/MainToolbar.cpp
@@ -63,6 +64,7 @@ function (bin_cc_view)
     qt5_wrap_cpp(
         moc
         GuiAppMgr.h
+        ShortcutMgr.h
         widget/MessageDisplayWidget.h
         widget/MessageWidget.h
         widget/DefaultMessageWidget.h

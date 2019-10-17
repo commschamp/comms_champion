@@ -20,10 +20,11 @@
 
 #pragma once
 
-#include "details/MessageImplBuilder.h"
-#include "details/macro_common.h"
-#include "details/fields_access.h"
-#include "details/detect.h"
+#include "comms/details/MessageImplBuilder.h"
+#include "comms/details/macro_common.h"
+#include "comms/details/fields_access.h"
+#include "comms/details/detect.h"
+#include "comms/details/field_alias.h"
 
 namespace comms
 {
@@ -934,3 +935,94 @@ constexpr bool isMessageBase()
         return val; \
     } \
     COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(AllFields, fields(), __VA_ARGS__))
+
+/// @brief Generate convinience alias access member functions for other
+///     member fields.
+/// @details The @ref COMMS_MSG_FIELDS_ACCESS() macro generates convenience
+///     access member functions for member fields. Sometimes the fields
+///     may get renamed or moved to be a member of other fields, like
+///     @ref comms::field::Bundle or @ref comms::field::Bitfield. In such
+///     case the compilation of the existing client code (that already
+///     uses published protocol definition) may fail. To avoid such scenarios
+///     and make the transition to newer versions of the protocol easier,
+///     the @ref COMMS_MSG_FIELD_ALIAS() macro can be used to create alias
+///     to other fields. For example, let's assume that some message class was defined:
+///     like this.
+///     @code
+///     class Message1 : public comms::MessageBase<...>
+///     {
+///     public:
+///         COMMS_MSG_FIELDS_ACCESS(name1, name2, name3);
+///     };
+///     @endcode
+///     In the future versions of the protocol "name3" was renamed to
+///     "newName3". To keep the existing code (that uses "name3" name)
+///     compiling it is possible to create an alias access function(s)
+///     with:
+///     @code
+///     class Message1 : public comms::MessageBase<...>
+///     {
+///     public:
+///         COMMS_MSG_FIELDS_ACCESS(name1, name2, newName3);
+///         COMMS_MSG_FIELD_ALIAS(name3, newName3);
+///     };
+///     @endcode
+///     The usage of @ref COMMS_MSG_FIELD_ALIAS() in the code above is
+///     equivalent to having the following functions defined:
+///     @code
+///     class Message1 : public comms::MessageBase<...>
+///     {
+///     public:
+///         ...
+///         auto field_name3() -> decltype(field_newName3())
+///         {
+///             return field_newName3();
+///         }
+///
+///         auto field_name3() const -> decltype(field_newName3())
+///         {
+///             return field_newName3();
+///         }
+///     };
+///     @endcode
+///     Another example would be a replacing a @ref comms::field::IntValue
+///     with @ref comms::field::Bitfield in the future version of the
+///     protocol. It can happen when the developer decides to split
+///     the used storage into multiple values (because the range
+///     of the used/valid values allows so). In order to keep the old client
+///     code compiling, the access to the replaced field needs to be
+///     an alias to the first member of the @ref comms::field::Bitfield.
+///     In this case the usage of @ref COMMS_MSG_FIELD_ALIAS() will
+///     look like this:
+///     @code
+///     class Message1 : public comms::MessageBase<...>
+///     {
+///     public:
+///         COMMS_MSG_FIELDS_ACCESS(name1, name2, newName3);
+///         COMMS_MSG_FIELD_ALIAS(name3, newName3, member1);
+///     };
+///     @endcode
+///     The usage of @ref COMMS_MSG_FIELD_ALIAS() in the code above is
+///     equivalent to having the following functions defined:
+///     @code
+///     class Message1 : public comms::MessageBase<...>
+///     {
+///     public:
+///         ...
+///         auto field_name3() -> decltype(field_newName3().field_member1())
+///         {
+///             return field_newName3().field_member1();
+///         }
+///
+///         auto field_name3() const -> decltype(field_newName3().field_member1())
+///         {
+///             return field_newName3().field_member1();
+///         }
+///     };
+///     @endcode
+/// @param[in] f_ Alias field name.
+/// @param[in] ... List of fields' names.
+/// @pre The macro @ref COMMS_MSG_FIELDS_ACCESS() needs to be used before
+///     @ref COMMS_MSG_FIELD_ALIAS() to define convenience access functions.
+/// @related comms::MessageBase
+#define COMMS_MSG_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(field_, f_, __VA_ARGS__)

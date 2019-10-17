@@ -78,6 +78,7 @@ public:
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1);
+    COMMS_MSG_FIELD_ALIAS(f1, value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -452,6 +453,8 @@ public:
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_ACCESS(value1);
+    COMMS_MSG_FIELD_ALIAS(mask, value1, mask);
+    COMMS_MSG_FIELD_ALIAS(val, value1, val);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -466,6 +469,7 @@ public:
     {
         return "Message6";
     }
+
 };
 
 template <typename TField>

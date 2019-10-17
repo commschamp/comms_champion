@@ -57,6 +57,7 @@ private:
     void refreshAddButtons();
     void refreshEditButton();
     void refreshCommentButton();
+    void refreshDupButton();
     void refreshDeleteButton();
     void refreshClearButton();
     void refreshUpButton(QAction* button);
@@ -73,6 +74,7 @@ private:
     QAction* m_addRawButton = nullptr;
     QAction* m_editButton = nullptr;
     QAction* m_commentButton = nullptr;
+    QAction* m_dupButton = nullptr;
     QAction* m_deleteButton = nullptr;
     QAction* m_clearButton = nullptr;
     QAction* m_topButton = nullptr;

@@ -155,6 +155,15 @@ void GuiAppMgr::recvCommentClicked()
     emit sigMsgCommentDialog(m_clickedMsg);
 }
 
+void GuiAppMgr::recvDupClicked()
+{
+    assert(m_selType == SelectionType::Recv);
+    assert(m_clickedMsg);
+    auto prot = MsgMgrG::instanceRef().getProtocol();
+    auto newMsg = prot->cloneMessage(*m_clickedMsg);
+    sendAddNewMessage(std::move(newMsg));
+}
+
 void GuiAppMgr::recvDeleteClicked()
 {
     assert(!recvListEmpty());
@@ -239,6 +248,15 @@ void GuiAppMgr::sendCommentClicked()
     assert(m_selType == SelectionType::Send);
     assert(m_clickedMsg);
     emit sigMsgCommentDialog(m_clickedMsg);
+}
+
+void GuiAppMgr::sendDupClicked()
+{
+    assert(m_selType == SelectionType::Send);
+    assert(m_clickedMsg);
+    auto prot = MsgMgrG::instanceRef().getProtocol();
+    auto newMsg = prot->cloneMessage(*m_clickedMsg);
+    sendAddNewMessage(std::move(newMsg));
 }
 
 void GuiAppMgr::sendDeleteClicked()
@@ -637,9 +655,7 @@ bool GuiAppMgr::applyNewPlugins(const ListOfPluginInfos& plugins)
 }
 
 GuiAppMgr::GuiAppMgr(QObject* parentObj)
-  : Base(parentObj),
-    m_recvState(RecvState::Idle),
-    m_sendState(SendState::Idle)
+  : Base(parentObj)
 {
     m_pendingDisplayTimer.setSingleShot(true);
 
@@ -677,6 +693,8 @@ GuiAppMgr::GuiAppMgr(QObject* parentObj)
         {
             socketDisconnected();
         });
+
+    refreshRecvState();
 }
 
 void GuiAppMgr::emitRecvStateUpdate()
@@ -901,6 +919,17 @@ void GuiAppMgr::updateRecvListMode(RecvListMode mode, bool checked)
         emit sigRecvListTitleNeedsUpdate();
     }
     refreshRecvList();
+}
+
+void GuiAppMgr::refreshRecvState()
+{
+    if (m_recvState == RecvState::Running) {
+        recvStartClicked();
+        return;
+    }
+
+    assert(m_recvState == RecvState::Idle);
+    recvStopClicked();
 }
 
 }  // namespace comms_champion

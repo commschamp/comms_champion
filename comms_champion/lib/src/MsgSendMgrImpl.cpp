@@ -84,7 +84,7 @@ void MsgSendMgrImpl::sendPendingAndWait()
 
     for (auto& msgToSend : nextMsgsToSend) {
         auto repeatMs = property::message::RepeatDuration().getFrom(*msgToSend);
-        auto repeatCount = property::message::RepeatCount().getFrom(*msgToSend);
+        auto repeatCount = property::message::RepeatCount().getFrom(*msgToSend, 1U);
 
         bool reinsert =
             (0U < repeatMs) &&

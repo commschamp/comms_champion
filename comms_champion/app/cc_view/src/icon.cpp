@@ -168,6 +168,12 @@ const QIcon& comment()
     return iconObj;
 }
 
+const QIcon& dup()
+{
+    static const QIcon iconObj(":/image/msg_copy.png");
+    return iconObj;
+}
+
 }  // namespace icon
 
 }  // namespace comms_champion

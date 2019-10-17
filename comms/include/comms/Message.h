@@ -33,6 +33,7 @@
 #include "comms/details/transport_fields_access.h"
 #include "comms/details/detect.h"
 #include "comms/details/MessageIdTypeRetriever.h"
+#include "comms/details/field_alias.h"
 
 namespace comms
 {
@@ -685,3 +686,101 @@ using MessageIdType =
     } \
     COMMS_EXPAND(COMMS_DO_TRANSPORT_FIELD_ACC_FUNC(TransportFields, transportFields(), __VA_ARGS__))
 
+/// @brief Generate convinience alias access member functions for extra
+///     member transport fields.
+/// @details The @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() macro generates convenience
+///     access member functions for extra transport fields. Sometimes the fields
+///     may get renamed or moved to be a member of other fields, like
+///     @ref comms::field::Bundle or @ref comms::field::Bitfield. In such
+///     case the compilation of the existing client code (that already
+///     uses published protocol definition) may fail. To avoid such scenarios
+///     and make the transition to newer versions of the protocol easier,
+///     the @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() macro can be used to create alias
+///     to other fields. For example, let's assume that some common interface class was defined:
+///     like this.
+///     @code
+///     class MyInterface : public public comms::Message<...>
+///     {
+///     public:
+///         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(name1, name2, name3);
+///     };
+///     @endcode
+///     In the future versions of the protocol "name3" was renamed to
+///     "newName3". To keep the existing code (that uses "name3" name)
+///     compiling it is possible to create an alias access function(s)
+///     with:
+///     @code
+///     class MyInterface : public public comms::Message<...>
+///     {
+///     public:
+///         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(name1, name2, newName3);
+///         COMMS_MSG_TRANSPORT_FIELD_ALIAS(name3, newName3);
+///     };
+///     @endcode
+///     The usage of @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() in the code above is
+///     equivalent to having the following functions defined:
+///     @code
+///     class MyInterface : public public comms::Message<...>
+///     {
+///     public:
+///         ...
+///         auto transportField_name3() -> decltype(transportField_newName3())
+///         {
+///             return transportField_newName3();
+///         }
+///
+///         auto transportField_name3() const -> decltype(transportField_newName3())
+///         {
+///             return transportField_newName3();
+///         }
+///     };
+///     @endcode
+///     Another example would be a replacing a @ref comms::field::IntValue
+///     with @ref comms::field::Bitfield in the future version of the
+///     protocol. It can happen when the developer decides to split
+///     the used storage into multiple values (because the range
+///     of the used/valid values allows so). In order to keep the old client
+///     code compiling, the access to the replaced field needs to be
+///     an alias to the first member of the @ref comms::field::Bitfield.
+///     In this case the usage of @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() will
+///     look like this:
+///     @code
+///     class MyInterface : public public comms::Message<...>
+///     {
+///     public:
+///         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(name1, name2, newName3);
+///         COMMS_MSG_TRANSPORT_FIELD_ALIAS(name3, newName3, member1);
+///     };
+///     @endcode
+///     The usage of @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() in the code above is
+///     equivalent to having the following functions defined:
+///     @code
+///     class MyInterface : public public comms::Message<...>
+///     {
+///     public:
+///         ...
+///         auto transportField_name3() -> decltype(transportField_newName3().field_member1())
+///         {
+///             return field_newName3().field_member1();
+///         }
+///
+///         auto transportField_name3() const -> decltype(transportField_newName3().field_member1())
+///         {
+///             return transportField_newName3().field_member1();
+///         }
+///     };
+///     @endcode
+/// @param[in] f_ Alias field name.
+/// @param[in] ... List of fields' names.
+/// @pre The macro @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() needs to be used before
+///     @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() to define convenience access functions.
+/// @related comms::Message
+/// @see @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE()
+#define COMMS_MSG_TRANSPORT_FIELD_ALIAS(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS(transportField_, f_, __VA_ARGS__))
+
+/// @brief Generate convinience alias access member functions for extra
+///     member transport fields in non template interface classes.
+/// @details Similar to @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS, but
+///     needs to be used in @b non-template interface class to
+///     allow compilation with gcc-4.8
+#define COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS_NOTEMPLATE(transportField_, f_, __VA_ARGS__))

@@ -154,7 +154,7 @@ Optional 2 byte integer, default constructed as "missing".:
 using MyOptInt = 
     comms::field::Optional<
         comms::field::IntValue<MyFieldBase, std::uint16_t>,
-        comms::option::DefaultOptionalMode<comms::field::OptionalMode::Missing>        
+        comms::option::MissingByDefault        
     >
 ```
 
@@ -224,9 +224,9 @@ using App2Interface =
         comms::option::MsgType<MsgId>, // Provide type used for message ID
         comms::option::IdInfoInterface, // Support polymorphic retreival of message ID
         comms::option::ReadIterator<const std::uint8_t*>, // Support polymorphic read using "const std::uint8_t*" as iterator
-        comms::option::WriteIterator<std::back_insert_itetrator<std::vector<std::uint8_t> > >, 
+        comms::option::WriteIterator<std::back_insert_iterator<std::vector<std::uint8_t> > >, 
                                                           // Support polymorphic write using
-                                                          // "std::back_insert_itetrator<std::vector<std::uint8_t> > >" as iterator
+                                                          // "std::back_insert_iterator<std::vector<std::uint8_t> > >" as iterator
         comms::option::Handler<MyOtherHandler> // Support dispatch to handling object of "MyOtherHandler" type
     >;
 ```

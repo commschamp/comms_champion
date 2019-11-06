@@ -46,6 +46,7 @@ However, at this stage the library internals are much more advanced and sophisti
 examples in the e-book, please don't treat the latter as a guide to library's internals.
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
+read [online](https://arobenko.github.io/comms_doc/) and/or
 downloaded as **doc_comms_vX.zip** archive from 
 [release artefacts](https://github.com/arobenko/comms_champion/releases).
 

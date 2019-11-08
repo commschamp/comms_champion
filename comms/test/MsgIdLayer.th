@@ -1183,14 +1183,14 @@ void MsgIdLayerTestSuite::test30()
     auto readIter = &Buf[0];
     auto es = comms::processSingleWithDispatch(readIter, BufSize, stack, msg1, handler);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS((std::size_t)std::distance(&Buf[0], readIter), BufSize);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
     using Dispatcher = comms::MsgDispatcher<comms::option::ForceDispatchLinearSwitch>;
     readIter = &Buf[0];
     comms::processSingleWithDispatchViaDispatcher<Dispatcher>(readIter, BufSize, stack, msg1, handler);
-    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS((std::size_t)std::distance(&Buf[0], readIter), BufSize);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 }
@@ -1212,14 +1212,14 @@ void MsgIdLayerTestSuite::test31()
     auto readIter = &Buf[0];
     auto es = comms::processSingleWithDispatch(readIter, BufSize, stack, msg1, handler);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
-    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS((std::size_t)std::distance(&Buf[0], readIter), BufSize);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 1U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 
     using Dispatcher = comms::MsgDispatcher<comms::option::ForceDispatchLinearSwitch>;
     readIter = &Buf[0];
     comms::processSingleWithDispatchViaDispatcher<Dispatcher>(readIter, BufSize, stack, msg1, handler);
-    TS_ASSERT_EQUALS(readIter, &Buf[0] + BufSize);
+    TS_ASSERT_EQUALS((std::size_t)std::distance(&Buf[0], readIter), BufSize);
     TS_ASSERT_EQUALS(handler.getCustomCount(), 2U);
     TS_ASSERT_EQUALS(handler.getBaseCount(), 0U);
 }

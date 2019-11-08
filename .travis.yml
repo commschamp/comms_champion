@@ -68,7 +68,7 @@ matrix:
     - os: linux
       env: _CC=gcc-9 _CXX=g++-9
     - os: linux
-      env: _CC=gcc-9 _CXX=g++-9 _BUILD="-DCMAKE_CXX_STANDARD=14"          
+      env: _CC=gcc-9 _CXX=g++-9 _USE_GCC9=1 _BUILD="-DCMAKE_CXX_STANDARD=14"          
     - os: linux
       addons:
         apt:
@@ -168,9 +168,7 @@ matrix:
       env: _CC=clang-8 _CXX=clang++-8 _BUILD="-DCMAKE_CXX_STANDARD=14"                     
       
 before_install:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update
-  - sudo apt-get install g++-9
+  - if [ -n _USE_GCC9 ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; sudo apt-get update; sudo apt-get install g++-9; fi
   - sudo apt-get install libqt5serialport5-dev  -y      
 
 script:

@@ -206,7 +206,7 @@ protected:
     {
         std::unique_ptr<ArrayListWrapperT<TField> > ptr(new ArrayListWrapperT(Base::field()));
         ptr->m_wrapFieldFunc = m_wrapFieldFunc;
-        return std::move(ptr);
+        return ptr;
     }
 
     virtual void refreshMembersImpl() override

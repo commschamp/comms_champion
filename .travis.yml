@@ -1,4 +1,4 @@
-dist: trusty
+dist: bionic
 language: cpp
 sudo: true
 notifications:
@@ -112,7 +112,7 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
+            - llvm-toolchain-bionic-3.8
           packages:
             - clang-3.8  
             - g++-5
@@ -122,7 +122,7 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
+            - llvm-toolchain-bionic-3.8
           packages:
             - clang-3.8  
             - g++-5
@@ -131,7 +131,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-3.9
+            - llvm-toolchain-bionic-3.9
             - ubuntu-toolchain-r-test
           packages:
             - clang-3.9    
@@ -141,7 +141,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-3.9
+            - llvm-toolchain-bionic-3.9
             - ubuntu-toolchain-r-test
           packages:
             - clang-3.9    
@@ -151,7 +151,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-4.0
+            - llvm-toolchain-bionic-4.0
             - ubuntu-toolchain-r-test
           packages:
             - clang-4.0    
@@ -161,7 +161,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-4.0
+            - llvm-toolchain-bionic-4.0
             - ubuntu-toolchain-r-test
           packages:
             - clang-4.0    
@@ -171,7 +171,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-5.0
+            - llvm-toolchain-bionic-5.0
             - ubuntu-toolchain-r-test
           packages:
             - clang-5.0    
@@ -181,7 +181,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-5.0
+            - llvm-toolchain-bionic-5.0
             - ubuntu-toolchain-r-test
           packages:
             - clang-5.0    
@@ -191,7 +191,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-6.0
+            - llvm-toolchain-bionic-6.0
             - ubuntu-toolchain-r-test
           packages:
             - clang-6.0    
@@ -201,7 +201,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-6.0
+            - llvm-toolchain-bionic-6.0
             - ubuntu-toolchain-r-test
           packages:
             - clang-6.0    
@@ -211,7 +211,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-7
+            - llvm-toolchain-bionic-7
             - ubuntu-toolchain-r-test
           packages:
             - clang-7    
@@ -221,7 +221,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-7
+            - llvm-toolchain-bionic-7
             - ubuntu-toolchain-r-test
           packages:
             - clang-7    
@@ -231,7 +231,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-8
+            - llvm-toolchain-bionic-8
             - ubuntu-toolchain-r-test
           packages:
             - clang-8    
@@ -241,7 +241,7 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-8
+            - llvm-toolchain-bionic-8
             - ubuntu-toolchain-r-test
           packages:
             - clang-8    
@@ -249,14 +249,8 @@ matrix:
       env: _CC=clang-8 _CXX=clang++-8 _BUILD="-DCMAKE_CXX_STANDARD=14"                     
       
 before_install:
-  - sudo add-apt-repository ppa:beineri/opt-qt562-trusty -y
-  - sudo add-apt-repository ppa:george-edison55/cmake-3.x -y
-  - sudo apt-get update -q
-  - sudo apt-get install libc++-dev cmake cmake-data qt56base qt56serialport -y      
+  - sudo apt-get install libqt5serialport5-dev  -y      
   - if [[ ${_CC} == clang* ]]; then sudo apt-get remove gcc-4.8 g++-4.8 -y; fi
-
-before_script:
-  - source /opt/qt56/bin/qt56-env.sh
 
 script:
   - echo "------------------ Debug build ------------------"

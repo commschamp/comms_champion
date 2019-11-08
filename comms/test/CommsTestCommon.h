@@ -918,7 +918,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     auto es = stack.read(msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedEs);
     if (es != comms::ErrorStatus::Success) {
-        return std::move(msg);
+        return msg;
     }
 
     TS_ASSERT(msg);
@@ -930,7 +930,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     es = stack.write(*msg, writeIter, actualBufSize);
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
-    return std::move(msg);
+    return msg;
 }
 
 template <typename TProtStack>
@@ -948,7 +948,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     auto es = stack.readFieldsCached(fields, msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedEs);
     if (es != comms::ErrorStatus::Success) {
-        return std::move(msg);
+        return msg;
     }
 
     TS_ASSERT(msg);
@@ -962,7 +962,7 @@ typename TProtStack::MsgPtr commonReadWriteMsgTest(
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT(std::equal(buf, buf + actualBufSize, static_cast<const char*>(&outCheckBuf[0])));
     TS_ASSERT_EQUALS(fields, writtenFields);
-    return std::move(msg);
+    return msg;
 }
 
 template <typename TProtStack>
@@ -979,7 +979,7 @@ typename TProtStack::MsgPtr vectorBackInsertReadWriteMsgTest(
     auto es = stack.read(msg, readIter, bufSize);
     TS_ASSERT_EQUALS(es, expectedEs);
     if (es != comms::ErrorStatus::Success) {
-        return std::move(msg);
+        return msg;
     }
 
     TS_ASSERT(msg);
@@ -1006,7 +1006,7 @@ typename TProtStack::MsgPtr vectorBackInsertReadWriteMsgTest(
         std::cout << std::dec << std::endl;
     }
     TS_ASSERT(resultAsExpected);
-    return std::move(msg);
+    return msg;
 }
 
 

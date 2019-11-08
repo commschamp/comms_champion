@@ -96,6 +96,22 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
+          packages:
+            - g++-9    
+      env: _CC=gcc-9 _CXX=g++-9
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9    
+      env: _CC=gcc-9 _CXX=g++-9 _BUILD="-DCMAKE_CXX_STANDARD=14"          
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
           packages:
             - clang-3.8  

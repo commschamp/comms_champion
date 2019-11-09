@@ -363,6 +363,16 @@
 ///     >;
 /// comms::dispatchMsg<AllMessages2>(1, msg, handler); // Equivalent to using comms::dispatchMsgStaticBinSearch()
 /// @endcode
+/// To verify what dispatch policy is being used the @b COMMS library provides
+/// <b>compile time</b> inquiry functions @ref comms::dispatchMsgTypeIsPolymorphic() and 
+/// @ref comms::dispatchMsgTypeIsStaticBinSearch() for that purpose
+/// @code
+/// static_assert(comms::dispatchMsgTypeIsPolymorphic<AllMessages1>(), "Unexpected dispatch type");
+/// static_assert(!comms::dispatchMsgTypeIsStaticBinSearch<AllMessages1>(), "Unexpected dispatch type");
+///
+/// static_assert(!comms::dispatchMsgTypeIsPolymorphic<AllMessages2>(), "Unexpected dispatch type");
+/// static_assert(comms::dispatchMsgTypeIsStaticBinSearch<AllMessages2>(), "Unexpected dispatch type");
+/// @endcode
 ///
 /// @section page_dispatch_message_type Dispatch of the Message Type
 /// In some occasions there is a need to know the exact message type given the
@@ -581,9 +591,10 @@
 /// comms::dispatchMsgType<AllMessages2>(1, msg, handler); // Equivalent to using comms::dispatchMsgTypeStaticBinSearch()
 /// @endcode
 /// 
-/// There are also <b>compile time</b> inquiry functions to check what type
-/// of dispatch is going to be used for provided tuple of message types.
-/// See @ref comms::dispatchMsgTypeIsPolymorphic() and @ref comms::dispatchMsgTypeIsStaticBinSearch()
+/// Just like with message object dispatching the same 
+/// <b>compile time</b> @ref comms::dispatchMsgTypeIsPolymorphic() and 
+/// @ref comms::dispatchMsgTypeIsStaticBinSearch() inquiry functions can be used
+/// to verify the dispatch policy for types being used.
 /// @code
 /// static_assert(comms::dispatchMsgTypeIsPolymorphic<AllMessages1>(), "Unexpected dispatch type");
 /// static_assert(!comms::dispatchMsgTypeIsStaticBinSearch<AllMessages1>(), "Unexpected dispatch type");

@@ -458,7 +458,7 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchMsgInternal(msg, handler, Tag());
+        return dispatchMsgInternal(msg, handler, HandlerAdjustedTag<TMsg, THandler>());
     }
 
     template <typename TId, typename TMsg, typename THandler>
@@ -466,7 +466,7 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchMsgInternal(std::forward<TId>(id), msg, handler, Tag());
+        return dispatchMsgInternal(std::forward<TId>(id), msg, handler, HandlerAdjustedTag<TMsg, THandler>());
     }
 
     template <typename TId, typename TMsg, typename THandler>
@@ -474,7 +474,7 @@ public:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
-        return dispatchMsgInternal(std::forward<TId>(id), index, msg, handler, Tag());
+        return dispatchMsgInternal(std::forward<TId>(id), index, msg, handler, HandlerAdjustedTag<TMsg, THandler>());
     }
 
     template <typename TId, typename THandler>
@@ -508,6 +508,14 @@ private:
             dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
             PolymorphicTag,
             StaticBinSearchTag
+        >::type;
+
+    template <typename TMsgBase, typename THandler>
+    using HandlerAdjustedTag =
+        typename std::conditional<
+            dispatchMsgPolymorphicIsCompatibleHandler<typename std::decay<TMsgBase>::type, typename std::decay<THandler>::type>(),
+            PolymorphicTag,
+            Tag
         >::type;
 
     template <typename TMsg, typename THandler>

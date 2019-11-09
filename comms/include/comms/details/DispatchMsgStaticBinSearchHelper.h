@@ -718,6 +718,8 @@ private:
         MessageInterfaceDispatchRetType<
             typename std::decay<decltype(handler)>::type>
     {
+        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+                "The message types in the provided tuple must be sorted by their IDs");
         return 
             DispatchMsgWeakStaticBinSearchHelper<TAllMessages, 0, std::tuple_size<TAllMessages>::value>::
                 dispatch(id, offset, msg, handler);
@@ -771,6 +773,9 @@ private:
     template <typename TId, typename THandler>
     static bool dispatchTypeInternal(TId&& id, std::size_t offset, THandler& handler, WeakTag) 
     {
+        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+                "The message types in the provided tuple must be sorted by their IDs");
+
         using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
         static_assert(comms::isMessageBase<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");
@@ -805,6 +810,9 @@ private:
     template <typename TId>
     static std::size_t dispatchTypeCountInternal(TId&& id, WeakTag) 
     {
+        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+                "The message types in the provided tuple must be sorted by their IDs");
+
         using FirstMsgType = typename std::tuple_element<0, TAllMessages>::type;
         static_assert(comms::isMessageBase<FirstMsgType>(), 
             "The type in the tuple are expected to be proper messages");

@@ -661,6 +661,9 @@ private:
         static_assert(std::is_base_of<typename TMsgBase::Handler, THandler>::value,
             "Incompatible handlers");
 
+        static_assert(allMessagesAreWeakSorted<TAllMessages>(),
+                "The message types in the provided tuple must be sorted by their IDs");
+
         using RetType = MessageInterfaceDispatchRetType<THandler>;
         if (offset != 0U) {
             return static_cast<RetType>(handler.handle(msg));

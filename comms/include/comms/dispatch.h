@@ -447,6 +447,30 @@ bool dispatchMsgTypeLinearSwitch(TId&& id, std::size_t index, THandler& handler)
             dispatchType(std::forward<TId>(id), index, handler);
 }
 
+/// @brief Compile time check whether the message object can use its own
+///     polymorphic @b dispatch() (see @ref page_use_prot_interface_handle)
+///     when @ref dispatchMsg() is invoked.
+/// @tparam TMsg Type of the message interface.
+/// @tparam THandler Type of the message handler.
+template <typename TMsg, typename THandler>
+constexpr bool dispatchMsgIsDirect()
+{
+    return details::dispatchMsgPolymorphicIsCompatibleHandler<typename std::decay<TMsg>::type, typename std::decay<THandler>::type>();
+}
+
+/// @brief Similar to other @ref dispatchMsgIsDirect(), but
+///     can help in deducing template arguments.
+/// @param msg Reference to the message object via its interface class.
+/// @param handler Reference to the handler object.
+/// @note The result can be evaluated at compile time, but compilers
+///     don't support usage of this form in static_assert.
+template <typename TMsg, typename THandler>
+constexpr bool dispatchMsgIsDirect(TMsg&& msg, THandler&& handler)
+{
+    return dispatchMsgIsDirect<typename std::decay<decltype(msg)>::type, typename std::decay<decltype(handler)>::type>();
+}
+
+
 namespace details
 {
 template <typename TAllMessages>
@@ -499,6 +523,18 @@ public:
         return std::is_same<Tag, StaticBinSearchTag>::value;
     }
 
+    template <typename TMsg, typename THandler>
+    static constexpr bool isDirect()
+    {
+        return dispatchMsgIsDirect<TMsg, THandler>();
+    }
+
+    template <typename TMsg, typename THandler>
+    static constexpr bool isDirect(TMsg&& msg, THandler&& handler)
+    {
+        return isDirect<typename std::decay<decltype(msg)>::type, typename std::decay<decltype(handler)>::type>();
+    }
+
 private:
     struct PolymorphicTag {};
     struct StaticBinSearchTag {};
@@ -513,7 +549,7 @@ private:
     template <typename TMsgBase, typename THandler>
     using HandlerAdjustedTag =
         typename std::conditional<
-            dispatchMsgPolymorphicIsCompatibleHandler<typename std::decay<TMsgBase>::type, typename std::decay<THandler>::type>(),
+            dispatchMsgIsDirect<TMsgBase, THandler>(),
             PolymorphicTag,
             Tag
         >::type;
@@ -706,8 +742,8 @@ bool dispatchMsgType(TId&& id, std::size_t index, THandler& handler)
     return details::DispatchMsgHelper<TAllMessages>::dispatchMsgType(std::forward<TId>(id), index, handler);
 }
 
-/// @brief Compile time check whether the @ref dispatchMsgType() or 
-///     @ref dispatchMsgType() will use "polymorphic" dispatch for provided
+/// @brief Compile time check whether the @ref dispatchMsgType()
+///     will use "polymorphic" dispatch for provided
 ///     tuple of messages.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
@@ -717,7 +753,33 @@ constexpr bool dispatchMsgTypeIsPolymorphic()
     return details::DispatchMsgHelper<TAllMessages>::isPolymorphic(); 
 }
 
-/// @brief Compile time check whether the @ref dispatchMsgType() or 
+/// @brief Compile time check whether the @ref dispatchMsg()
+///     will use "polymorphic" (including "direct") dispatch for provided
+///     tuple of messages and handler.
+/// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
+///     ascending order by their numeric IDs.
+/// @tparam TMsg Type of the common message interface.
+/// @tparam THandler Type of the handler being used for dispatch.
+/// @note Will return @b true in case @ref dispatchMsgIsDirect() returns true;
+template <typename TAllMessages, typename TMsg, typename THandler>
+constexpr bool dispatchMsgIsPolymorphic()
+{
+    return dispatchMsgIsDirect<TMsg, THandler>() || dispatchMsgTypeIsPolymorphic<TAllMessages>();
+}
+
+/// @brief Similar to other @ref dispatchMsgIsPolymorphic(), but
+///     can help in deducing template arguments.
+/// @param msg Reference to the message object via its interface class.
+/// @param handler Reference to the handler object.
+/// @note The result can be evaluated at compile time, but compilers
+///     don't support usage of this form in static_assert.
+template <typename TAllMessages, typename TMsg, typename THandler>
+constexpr bool dispatchMsgIsPolymorphic(TMsg&& msg, THandler&& handler)
+{
+    return dispatchMsgIsPolymorphic<TAllMessages, typename std::decay<decltype(msg)>::type, typename std::decay<decltype(handler)>::type>();
+}
+
+/// @brief Compile time check whether the @ref dispatchMsgType() or
 ///     @ref dispatchMsgType() will use "static binary search" dispatch for provided
 ///     tuple of messages.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
@@ -726,6 +788,33 @@ template <typename TAllMessages>
 constexpr bool dispatchMsgTypeIsStaticBinSearch()
 {
     return details::DispatchMsgHelper<TAllMessages>::isStaticBinSearch(); 
+}
+
+/// @brief Compile time check whether the @ref dispatchMsg()
+///     will use "static binary search" dispatch for provided
+///     tuple of messages and handler.
+/// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
+///     ascending order by their numeric IDs.
+/// @tparam TMsg Type of the common message interface.
+/// @tparam THandler Type of the handler being used for dispatch.
+/// @note Will return @b false in case @ref dispatchMsgIsDirect() returns true;
+template <typename TAllMessages, typename TMsg, typename THandler>
+constexpr bool dispatchMsgIsStaticBinSearch()
+{
+    return (!dispatchMsgIsDirect<TMsg, THandler>()) &&
+            dispatchMsgTypeIsStaticBinSearch<TAllMessages>();
+}
+
+/// @brief Similar to other @ref dispatchMsgIsStaticBinSearch(), but
+///     can help in deducing template arguments.
+/// @param msg Reference to the message object via its interface class.
+/// @param handler Reference to the handler object.
+/// @note The result can be evaluated at compile time, but compilers
+///     don't support usage of this form in static_assert.
+template <typename TAllMessages, typename TMsg, typename THandler>
+constexpr bool dispatchMsgIsStaticBinSearch(TMsg&& msg, THandler&& handler)
+{
+    return dispatchMsgIsStaticBinSearch<TAllMessages, typename std::decay<decltype(msg)>::type, typename std::decay<decltype(handler)>::type>();
 }
 
 } // namespace comms

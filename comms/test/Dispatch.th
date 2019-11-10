@@ -33,6 +33,9 @@ class DispatchTestSuite : public CxxTest::TestSuite
 public:
 
     void test1();
+    void test2();
+    void test3();
+    void test4();
 
     class TypeHandler
     {
@@ -67,10 +70,52 @@ public:
         MessageType m_lastId = InvalidMessageId;
     };
 
+    class MsgHandler
+    {
+    public:
+        template <typename TMsg>
+        void handle(TMsg& msg)
+        {
+            static_cast<void>(msg);
+            static_assert(comms::isMessageBase<TMsg>(), "Wrong dispatch");
+            ++m_detectedCnt;
+            m_lastId = static_cast<decltype(m_lastId)>(TMsg::ImplOptions::MsgId);
+        }
+
+        unsigned detectedCnt() const
+        {
+            return m_detectedCnt;
+        }
+
+        MessageType lastId() const
+        {
+            return m_lastId;
+        }
+
+        void reset()
+        {
+            m_detectedCnt = 0U;
+            m_lastId = InvalidMessageId;
+        }
+
+    private:
+        static const MessageType InvalidMessageId = static_cast<MessageType>(99);
+        unsigned m_detectedCnt = 0U;
+        MessageType m_lastId = InvalidMessageId;
+    };
+
     using Interface1 =
         comms::Message<
             comms::option::def::MsgIdType<MessageType>,
             comms::option::def::BigEndian
+        >;
+
+
+    using Interface2 =
+        comms::Message<
+            comms::option::def::MsgIdType<MessageType>,
+            comms::option::def::BigEndian,
+            comms::option::Handler<MsgHandler>
         >;
 
 private:
@@ -85,6 +130,12 @@ void DispatchTestSuite::test1()
         TS_ASSERT(!comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType1, handler));
         TS_ASSERT(!comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType1, handler));
         TS_ASSERT_EQUALS(handler.detectedCnt(), 0U);
+        static_assert(!comms::dispatchMsgIsDirect<Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(comms::dispatchMsgIsDirect<Interface2, MsgHandler>(), "Invalid assumption");
+        static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface2, MsgHandler>(), "Invalid assumption");
+        static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface2, MsgHandler>(), "Invalid assumption");
     } while (false);
 
     do {
@@ -106,6 +157,14 @@ void DispatchTestSuite::test1()
         TS_ASSERT(!comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType2, handler));
         TS_ASSERT(!comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType2, handler));
         TS_ASSERT_EQUALS(handler.detectedCnt(), 3U);
+
+        static_assert(!comms::dispatchMsgIsDirect<Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(comms::dispatchMsgIsDirect<Interface2, MsgHandler>(), "Invalid assumption");
+        static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface2, MsgHandler>(), "Invalid assumption");
+        static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface2, MsgHandler>(), "Invalid assumption");
+
     } while (false);
 
     do {
@@ -136,6 +195,12 @@ void DispatchTestSuite::test1()
         TS_ASSERT(!comms::dispatchMsgTypeStaticBinSearch<AllMessages>(MessageType3, handler));
         TS_ASSERT(!comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType3, handler));
         TS_ASSERT_EQUALS(handler.detectedCnt(), 6U);
+
+        static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface2, MsgHandler>(), "Invalid assumption");
+        static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface2, MsgHandler>(), "Invalid assumption");
+
     } while (false);
 
     do {
@@ -176,7 +241,89 @@ void DispatchTestSuite::test1()
         TS_ASSERT(!comms::dispatchMsgTypeLinearSwitch<AllMessages>(MessageType4, handler));
         TS_ASSERT_EQUALS(handler.detectedCnt(), 9U);
 
+        static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface2, MsgHandler>(), "Invalid assumption");
+        static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface1, MsgHandler>(), "Invalid assumption");
+        static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface2, MsgHandler>(), "Invalid assumption");
+
     } while (false);
 
 }
 
+void DispatchTestSuite::test2()
+{
+    using Msg1 = Message1<Interface2>;
+    using Msg2 = Message2<Interface2>;
+    using Msg3 = Message3<Interface2>;
+
+    using AllMessages =
+        std::tuple<
+            Msg1,
+            Msg2,
+            Msg3
+        >;
+
+    static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface2, MsgHandler>(), "Invalid dispatch");
+    static_assert(comms::dispatchMsgIsDirect<Interface2, MsgHandler>(), "Invalid dispatch");
+    static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface2, MsgHandler>(), "Invalid dispatch");
+
+    Msg1 msg1;
+    auto& msg = static_cast<Interface2&>(msg1);
+    MsgHandler handler;
+    TS_ASSERT(comms::dispatchMsgIsPolymorphic<AllMessages>(msg, handler));
+    TS_ASSERT(comms::dispatchMsgIsDirect(msg, handler));
+    TS_ASSERT(!comms::dispatchMsgIsStaticBinSearch<AllMessages>(msg, handler));
+
+}
+
+void DispatchTestSuite::test3()
+{
+    using Msg1 = Message1<Interface2>;
+    using Msg2 = Message2<Interface2>;
+    using Msg90_1 = Message90_1<Interface2>;
+
+    using AllMessages =
+        std::tuple<
+            Msg1,
+            Msg2,
+            Msg90_1
+        >;
+
+    static_assert(comms::dispatchMsgIsPolymorphic<AllMessages, Interface2, MsgHandler>(), "Invalid dispatch");
+    static_assert(comms::dispatchMsgIsDirect<Interface2, MsgHandler>(), "Invalid dispatch");
+    static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface2, MsgHandler>(), "Invalid dispatch");
+
+    Msg1 msg1;
+    auto& msg = static_cast<Interface2&>(msg1);
+    MsgHandler handler;
+    TS_ASSERT(comms::dispatchMsgIsPolymorphic<AllMessages>(msg, handler));
+    TS_ASSERT(comms::dispatchMsgIsDirect(msg, handler));
+    TS_ASSERT(!comms::dispatchMsgIsStaticBinSearch<AllMessages>(msg, handler));
+
+}
+
+void DispatchTestSuite::test4()
+{
+    using Msg1 = Message1<Interface1>;
+    using Msg2 = Message2<Interface1>;
+    using Msg90_1 = Message90_1<Interface1>;
+
+    using AllMessages =
+        std::tuple<
+            Msg1,
+            Msg2,
+            Msg90_1
+        >;
+
+    static_assert(!comms::dispatchMsgIsPolymorphic<AllMessages, Interface1, MsgHandler>(), "Invalid dispatch");
+    static_assert(!comms::dispatchMsgIsDirect<Interface1, MsgHandler>(), "Invalid dispatch");
+    static_assert(comms::dispatchMsgIsStaticBinSearch<AllMessages, Interface1, MsgHandler>(), "Invalid dispatch");
+
+    Msg1 msg1;
+    auto& msg = static_cast<Interface1&>(msg1);
+    MsgHandler handler;
+    TS_ASSERT(!comms::dispatchMsgIsPolymorphic<AllMessages>(msg, handler));
+    TS_ASSERT(!comms::dispatchMsgIsDirect(msg, handler));
+    TS_ASSERT(comms::dispatchMsgIsStaticBinSearch<AllMessages>(msg, handler));
+
+}

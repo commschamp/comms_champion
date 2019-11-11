@@ -38,6 +38,7 @@ namespace comms
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -66,6 +67,7 @@ auto dispatchMsgPolymorphic(TId&& id, TMsg& msg, THandler& handler) ->
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -92,6 +94,7 @@ auto dispatchMsgPolymorphic(TId&& id, std::size_t index, TMsg& msg, THandler& ha
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TMsg,
@@ -118,6 +121,7 @@ auto dispatchMsgPolymorphic(TMsg& msg, THandler& handler) ->
 ///     @ref page_dispatch tutorial page.
 /// @return @b true in case the appropriate @b handle() member function of the
 ///     handler object has been called, @b false otherwise.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -141,6 +145,7 @@ bool dispatchMsgTypePolymorphic(TId&& id, THandler& handler)
 ///     @ref page_dispatch tutorial page.
 /// @return @b true in case the appropriate @b handle() member function of the
 ///     handler object has been called, @b false otherwise.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -164,6 +169,7 @@ bool dispatchMsgTypePolymorphic(TId&& id, std::size_t index, THandler& handler)
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -195,6 +201,7 @@ auto dispatchMsgStaticBinSearch(TId&& id, std::size_t index, TMsg& msg, THandler
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -223,6 +230,7 @@ auto dispatchMsgStaticBinSearch(TId&& id, TMsg& msg, THandler& handler) ->
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TMsg,
@@ -253,6 +261,7 @@ auto dispatchMsgStaticBinSearch(TMsg& msg, THandler& handler) ->
 ///     @ref page_dispatch tutorial page.
 /// @return @b true in case the appropriate @b handle() member function of the
 ///     handler object has been called, @b false otherwise.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -278,6 +287,7 @@ bool dispatchMsgTypeStaticBinSearch(TId&& id, THandler& handler)
 ///     @ref page_dispatch tutorial page.
 /// @return @b true in case the appropriate @b handle() member function of the
 ///     handler object has been called, @b false otherwise.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -297,6 +307,7 @@ bool dispatchMsgTypeStaticBinSearch(TId&& id, std::size_t index, THandler& handl
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
 /// @param[in] id ID of the message known at runtime.
+/// @note Defined in comms/dispatch.h
 template <typename TAllMessages, typename TId>
 std::size_t dispatchMsgTypeCountStaticBinSearch(TId&& id) 
 {
@@ -318,6 +329,7 @@ std::size_t dispatchMsgTypeCountStaticBinSearch(TId&& id)
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -348,6 +360,7 @@ auto dispatchMsgLinearSwitch(TId&& id, TMsg& msg, THandler& handler) ->
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -378,6 +391,7 @@ auto dispatchMsgLinearSwitch(TId&& id, std::size_t index, TMsg& msg, THandler& h
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TMsg,
@@ -408,6 +422,7 @@ auto dispatchMsgLinearSwitch(TMsg& msg, THandler& handler) ->
 ///     @ref page_dispatch tutorial page.
 /// @return @b true in case the appropriate @b handle() member function of the
 ///     handler object has been called, @b false otherwise.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -433,6 +448,7 @@ bool dispatchMsgTypeLinearSwitch(TId&& id, THandler& handler)
 ///     @ref page_dispatch tutorial page.
 /// @return @b true in case the appropriate @b handle() member function of the
 ///     handler object has been called, @b false otherwise.
+/// @note Defined in comms/dispatch.h
 template <
     typename TAllMessages,
     typename TId,
@@ -452,6 +468,7 @@ bool dispatchMsgTypeLinearSwitch(TId&& id, std::size_t index, THandler& handler)
 ///     when @ref dispatchMsg() is invoked.
 /// @tparam TMsg Type of the message interface.
 /// @tparam THandler Type of the message handler.
+/// @note Defined in comms/dispatch.h
 template <typename TMsg, typename THandler>
 constexpr bool dispatchMsgIsDirect()
 {
@@ -464,6 +481,7 @@ constexpr bool dispatchMsgIsDirect()
 /// @param handler Reference to the handler object.
 /// @note The result can be evaluated at compile time, but compilers
 ///     don't support usage of this form in static_assert.
+/// @note Defined in comms/dispatch.h
 template <typename TMsg, typename THandler>
 constexpr bool dispatchMsgIsDirect(TMsg&& msg, THandler&& handler)
 {
@@ -642,6 +660,10 @@ private:
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
+/// @see @ref dispatchMsgIsPolymorphic()
+/// @see @ref dispatchMsgIsStaticBinSearch()
+/// @see @ref dispatchMsgIsDirect();
 template <
     typename TAllMessages,
     typename TId,
@@ -668,6 +690,10 @@ auto dispatchMsg(TId&& id, TMsg& msg, THandler& handler) ->
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
+/// @see @ref dispatchMsgIsPolymorphic()
+/// @see @ref dispatchMsgIsStaticBinSearch()
+/// @see @ref dispatchMsgIsDirect();
 template <
     typename TAllMessages,
     typename TId,
@@ -692,6 +718,10 @@ auto dispatchMsg(TId&& id, std::size_t index, TMsg& msg, THandler& handler) ->
 ///     is explained in @ref page_dispatch_message_object section of the 
 ///     @ref page_dispatch tutorial page.
 /// @return What the called @b handle() member function of handler object returns.
+/// @note Defined in comms/dispatch.h
+/// @see @ref dispatchMsgIsPolymorphic()
+/// @see @ref dispatchMsgIsStaticBinSearch()
+/// @see @ref dispatchMsgIsDirect();
 template <
     typename TAllMessages,
     typename TMsg,
@@ -716,6 +746,9 @@ auto dispatchMsg(TMsg& msg, THandler& handler) ->
 ///     @ref page_dispatch tutorial page.
 /// @return @b true in case the appropriate @b handle() member function of the
 ///     handler object has been called, @b false otherwise.
+/// @note Defined in comms/dispatch.h
+/// @see @ref dispatchMsgTypeIsPolymorphic()
+/// @see @ref dispatchMsgTypeIsStaticBinSearch()
 template <typename TAllMessages, typename TId, typename THandler>
 bool dispatchMsgType(TId&& id, THandler& handler)
 {
@@ -736,6 +769,9 @@ bool dispatchMsgType(TId&& id, THandler& handler)
 ///     @ref page_dispatch tutorial page
 /// @return @b true in case the appropriate @b handle() member function of the
 ///     handler object has been called, @b false otherwise.
+/// @note Defined in comms/dispatch.h
+/// @see @ref dispatchMsgTypeIsPolymorphic()
+/// @see @ref dispatchMsgTypeIsStaticBinSearch()
 template <typename TAllMessages, typename TId, typename THandler>
 bool dispatchMsgType(TId&& id, std::size_t index, THandler& handler)
 {
@@ -747,6 +783,7 @@ bool dispatchMsgType(TId&& id, std::size_t index, THandler& handler)
 ///     tuple of messages.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
+/// @note Defined in comms/dispatch.h
 template <typename TAllMessages>
 constexpr bool dispatchMsgTypeIsPolymorphic()
 {
@@ -761,6 +798,7 @@ constexpr bool dispatchMsgTypeIsPolymorphic()
 /// @tparam TMsg Type of the common message interface.
 /// @tparam THandler Type of the handler being used for dispatch.
 /// @note Will return @b true in case @ref dispatchMsgIsDirect() returns true;
+/// @note Defined in comms/dispatch.h
 template <typename TAllMessages, typename TMsg, typename THandler>
 constexpr bool dispatchMsgIsPolymorphic()
 {
@@ -773,6 +811,7 @@ constexpr bool dispatchMsgIsPolymorphic()
 /// @param handler Reference to the handler object.
 /// @note The result can be evaluated at compile time, but compilers
 ///     don't support usage of this form in static_assert.
+/// @note Defined in comms/dispatch.h
 template <typename TAllMessages, typename TMsg, typename THandler>
 constexpr bool dispatchMsgIsPolymorphic(TMsg&& msg, THandler&& handler)
 {
@@ -784,6 +823,7 @@ constexpr bool dispatchMsgIsPolymorphic(TMsg&& msg, THandler&& handler)
 ///     tuple of messages.
 /// @tparam TAllMessages @b std::tuple of supported message classes, sorted in
 ///     ascending order by their numeric IDs.
+/// @note Defined in comms/dispatch.h
 template <typename TAllMessages>
 constexpr bool dispatchMsgTypeIsStaticBinSearch()
 {
@@ -798,6 +838,7 @@ constexpr bool dispatchMsgTypeIsStaticBinSearch()
 /// @tparam TMsg Type of the common message interface.
 /// @tparam THandler Type of the handler being used for dispatch.
 /// @note Will return @b false in case @ref dispatchMsgIsDirect() returns true;
+/// @note Defined in comms/dispatch.h
 template <typename TAllMessages, typename TMsg, typename THandler>
 constexpr bool dispatchMsgIsStaticBinSearch()
 {
@@ -811,6 +852,7 @@ constexpr bool dispatchMsgIsStaticBinSearch()
 /// @param handler Reference to the handler object.
 /// @note The result can be evaluated at compile time, but compilers
 ///     don't support usage of this form in static_assert.
+/// @note Defined in comms/dispatch.h
 template <typename TAllMessages, typename TMsg, typename THandler>
 constexpr bool dispatchMsgIsStaticBinSearch(TMsg&& msg, THandler&& handler)
 {

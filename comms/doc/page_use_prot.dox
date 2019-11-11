@@ -2283,6 +2283,8 @@
 /// process provided data in input buffer, detect and allocate message objects,
 /// and dispatch them to provided handler. For example:
 /// @code
+/// #include "comms/process.h" // Contains processing function(s)
+///
 /// // Alias to my_protocol::ProtocolStack
 /// using ProtStack = my_protocol::ProtocolStack<MyMessage>
 ///

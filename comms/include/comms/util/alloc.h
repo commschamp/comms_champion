@@ -431,7 +431,7 @@ public:
             reinterpret_cast<TInterface*>(&place_),
             details::InPlaceDeleter<TInterface>(&allocated_));
         allocated_ = true;
-        return std::move(obj);
+        return obj;
     }
 
     /// @brief Inquire whether the object is already allocated.
@@ -546,7 +546,7 @@ public:
             reinterpret_cast<TInterface*>(&place_),
             Deleter(id, idx, allocated_));
         allocated_ = true;
-        return std::move(obj);
+        return obj;
     }
 
     /// @brief Inquire whether the object is already allocated.

@@ -81,7 +81,16 @@
 ///
 /// comms::dispatchMsgPolymorphic<AllMessages>(id, *msg, handler);
 /// @endcode
-/// The @ref comms::dispatchMsgPolymorphic() function will analyze the
+/// At first, the @ref comms::dispatchMsgPolymorphic() function will check (at <b>compile time</b>)
+/// whether the message object can be dispatched to the handler @b directly, i.e.
+/// the @ref page_use_prot_interface_handle is supported in the interface and the used
+/// _handler_ is of a suitable type. If this is the case, the dispatch will
+/// be performed using the following call
+/// @code
+/// return msg.dispath(handler);
+/// @endcode
+/// In case the direct dispatch is not possible, 
+/// the @ref comms::dispatchMsgPolymorphic() function will analyze the
 /// provided tuple of message types (@b AllMessages) at <b>compile time</b>
 /// and generate appropriate global static dispatch tables (initialized before
 /// call to @b main()).
@@ -338,7 +347,9 @@
 ///
 /// comms::dispatchMsg<AllMessages>(id, *msg, handler);
 /// @endcode
-/// In such case the @b COMMS library will check whether the condition of 
+/// In such case the @b COMMS library will check whether the direct invocation
+/// over @b dispatch() member function exposed by the message interface class is 
+/// possible (see @ref page_use_prot_interface_handle) or the condition of 
 /// O(1) @b polymorphic dispatch tables holds true (no more than 10% holes in
 /// the used IDs) and use @b polymorphic dispatch in this case. Otherwise
 /// <b>static binary search</b> one will be used.
@@ -362,6 +373,26 @@
 ///         Message90_1<MyMessage>
 ///     >;
 /// comms::dispatchMsg<AllMessages2>(1, msg, handler); // Equivalent to using comms::dispatchMsgStaticBinSearch()
+/// @endcode
+/// To verify what dispatch policy is being used the @b COMMS library provides
+/// <b>compile time</b> inquiry functions @ref comms::dispatchMsgIsPolymorphic() and 
+/// @ref comms::dispatchMsgIsStaticBinSearch() for that purpose.
+/// @code
+/// static_assert(comms::dispatchMsgIsPolymorphic<AllMessages1, MyMessage, MyHandler>(), "Unexpected dispatch type");
+/// static_assert(!comms::dispatchMsgIsStaticBinSearch<AllMessages1, MyMessage, MyHandler>(), "Unexpected dispatch type");
+///
+/// static_assert(!comms::dispatchMsgIsPolymorphic<AllMessages2, MyMessage, MyHandler>(), "Unexpected dispatch type");
+/// static_assert(comms::dispatchMsgIsStaticBinSearch<AllMessages2, MyMessage, MyHandler>(), "Unexpected dispatch type");
+/// @endcode
+/// In case @b MyMessage interface class defines @ref page_use_prot_interface_handle 
+/// functionality, the "polymorphic" dispatch method will always be chosen.
+/// @code
+/// static_assert(comms::dispatchMsgIsPolymorphic<AllMessages1, MyMessage, MyHandler>(), "Unexpected dispatch type");
+/// @endcode
+/// There is a @ref dispatchMsgIsDirect() compile time check that can be used
+/// to verify that the direct dispatch actually being used:
+/// @code
+/// static_assert(comms::dispatchMsgIsDirect<MyMessage, MyHandler>(), "Unexpected dispatch type");
 /// @endcode
 ///
 /// @section page_dispatch_message_type Dispatch of the Message Type
@@ -581,9 +612,10 @@
 /// comms::dispatchMsgType<AllMessages2>(1, msg, handler); // Equivalent to using comms::dispatchMsgTypeStaticBinSearch()
 /// @endcode
 /// 
-/// There are also <b>compile time</b> inquiry functions to check what type
-/// of dispatch is going to be used for provided tuple of message types.
-/// See @ref comms::dispatchMsgTypeIsPolymorphic() and @ref comms::dispatchMsgTypeIsStaticBinSearch()
+/// Just like with message object dispatching the same 
+/// <b>compile time</b> @ref comms::dispatchMsgTypeIsPolymorphic() and 
+/// @ref comms::dispatchMsgTypeIsStaticBinSearch() inquiry functions can be used
+/// to verify the dispatch policy for types being used.
 /// @code
 /// static_assert(comms::dispatchMsgTypeIsPolymorphic<AllMessages1>(), "Unexpected dispatch type");
 /// static_assert(!comms::dispatchMsgTypeIsStaticBinSearch<AllMessages1>(), "Unexpected dispatch type");

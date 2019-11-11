@@ -204,9 +204,9 @@ protected:
 
     virtual Ptr cloneImpl() override
     {
-        std::unique_ptr<ArrayListWrapperT<TField> > ptr(new ArrayListWrapperT(Base::field()));
-        ptr->m_wrapFieldFunc = m_wrapFieldFunc;
-        return std::move(ptr);
+        Ptr ptr(new ArrayListWrapperT(Base::field()));
+        static_cast<ArrayListWrapperT<TField>*>(ptr.get())->m_wrapFieldFunc = m_wrapFieldFunc;
+        return ptr;
     }
 
     virtual void refreshMembersImpl() override

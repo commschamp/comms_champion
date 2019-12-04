@@ -89,14 +89,16 @@
 ///         >
 ///     >
 /// {
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::field::Bitfield<...>;
 /// public:
 ///     // Allow access to internal member fields.
-///     COMMS_FIELD_MEMBERS_ACCESS(size, flags);
+///     COMMS_FIELD_MEMBERS_NAMES(size, flags);
 /// };
 /// 
 /// } // my_prot
 /// @endcode
-/// Again, just to refresh the reader's memory: the usage of @ref COMMS_FIELD_MEMBERS_ACCESS()
+/// Again, just to refresh the reader's memory: the usage of @ref COMMS_FIELD_MEMBERS_NAMES()
 /// macro for the bitfield definition will generate @b field_X() 
 /// convenience access member functions for the listed names.
 ///

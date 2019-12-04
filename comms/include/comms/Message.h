@@ -686,6 +686,10 @@ using MessageIdType =
     } \
     COMMS_EXPAND(COMMS_DO_TRANSPORT_FIELD_ACC_FUNC(TransportFields, transportFields(), __VA_ARGS__))
 
+#define COMMS_MSG_TRANSPORT_FIELDS_NAMES(...) \
+    COMMS_EXPAND(COMMS_MSG_TRANSPORT_FIELDS_ACCESS(__VA_ARGS__)) \
+    COMMS_EXPAND(COMMS_DO_FIELD_TYPEDEF(typename Base::TransportFields, TransportFieldIdx_, __VA_ARGS__))
+
 /// @brief Generate convinience alias access member functions for extra
 ///     member transport fields.
 /// @details The @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() macro generates convenience

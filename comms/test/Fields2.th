@@ -198,7 +198,6 @@ class Test2_PropField : public
         comms::option::RemLengthMemberField<1>
     >
 {
-#ifdef COMMS_MUST_DEFINE_BASE
     using Base =
         comms::field::Bundle<
             Test2_FieldBase,
@@ -209,9 +208,8 @@ class Test2_PropField : public
             >,
             comms::option::RemLengthMemberField<1>
         >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
 public:
-    COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+    COMMS_FIELD_MEMBERS_NAMES(key, length, value);
 };
 
 void FieldsTestSuite2::test2()

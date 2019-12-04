@@ -84,6 +84,7 @@ namespace comms
 /// @extends Message
 /// @headerfile comms/MessageBase.h
 /// @see @ref toMessageBase()
+/// @see @ref COMMS_MSG_FIELDS_NAMES()
 template <typename TMessage, typename... TOptions>
 class MessageBase : public details::MessageImplBuilderT<TMessage, TOptions...>
 {
@@ -811,35 +812,77 @@ constexpr bool isMessageBase()
 }  // namespace comms
 
 /// @brief Add convenience access enum and functions to message fields.
+/// @details Very similar to @ref COMMS_MSG_FIELDS_NAMES(), but does @b NOT
+///     require definition of @b Base inner member type (for some compilers) and does @b NOT
+///     define inner @b Field_* types for used fields.
+/// @param[in] ... List of fields' names.
+/// @related comms::MessageBase
+/// @see @ref COMMS_MSG_FIELDS_NAMES()
+/// @note Defined in "comms/MessageBase.h"
+#define COMMS_MSG_FIELDS_ACCESS(...) \
+    COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
+    COMMS_MSG_FIELDS_ACCESS_FUNC { \
+        auto& val = comms::toMessageBase(*this).fields(); \
+        using AllFieldsTuple = typename std::decay<decltype(val)>::type; \
+        static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
+            "Invalid number of names for fields tuple"); \
+        return val; \
+    } \
+    COMMS_MSG_FIELDS_ACCESS_CONST_FUNC { \
+        auto& val = comms::toMessageBase(*this).fields(); \
+        using AllFieldsTuple =  typename std::decay<decltype(val)>::type; \
+        static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
+            "Invalid number of names for fields tuple"); \
+        return val; \
+    } \
+    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(AllFields, fields(), __VA_ARGS__))
+
+/// @brief Provide names for message fields.
 /// @details The @ref comms::MessageBase class provides access to its fields via
 ///     @ref comms::MessageBase::fields() member function(s). The fields are bundled
 ///     into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
 ///     and can be accessed using indices with
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
-///     For convenience, the fields should be named. The COMMS_MSG_FIELDS_ACCESS()
+///     For convenience, the fields should be named. The COMMS_MSG_FIELDS_NAMES()
 ///     macro does exactly that. @n
 ///     As an example, let's assume that custom message uses 3 fields of any
 ///     types:
 ///     @code
-///     typedef ... Field1;
-///     typedef ... Field2;
-///     typedef ... Field3;
+///     using Field1 = ... /* some field definition */;
+///     using Field2 = ... /* some field definition */;
+///     using Field3 = ... /* some field definition */;
 ///
-///     typedef std::tuple<Field1, Field2, Field3> MyMessageFields
+///     using Message1Fields = std::tuple<Field1, Field2, Field3>;
 ///
-///     class Message1 : public comms::MessageBase<MyInterface, comms::option::def::FieldsImpl<MyMessageFields> >
+///     class Message1 : public
+///         comms::MessageBase<
+///             MyInterface,
+///             comms::option::def::FieldsImpl<Message1Fields>,
+///             ... /* some other options */>
 ///     {
+///         // Base class (re) definition required by COMMS_MSG_FIELDS_NAMES()
+///         using Base =
+///             comms::MessageBase<
+///                 MyInterface,
+///                 comms::option::def::FieldsImpl<Message1Fields>,
+///                 ... /* some other options */>
 ///     public:
-///         COMMS_MSG_FIELDS_ACCESS(name1, name2, name3);
+///         // Provide names for message fields
+///         COMMS_MSG_FIELDS_NAMES(name1, name2, name3);
 ///     };
 ///     @endcode
-///     The usage of the COMMS_MSG_FIELDS_ACCESS() macro with the list of the field's names
+///     @b NOTE that there is a required to have @b Base member type that
+///     specifies base class used. It is needed to be able to
+///     access @ref comms::MessageBase::AllFields type definition.
+///
+///     The usage of the COMMS_MSG_FIELDS_NAMES() macro with the list of the field's names
 ///     is equivalent to having the following definitions inside the message class
 ///     @code
 ///     class Message1 : public comms::MessageBase<...>
 ///     {
 ///         using Base = comms::MessageBase<...>;
 ///     public:
+///         // Indices of the fields
 ///         enum FieldIdx {
 ///             FieldIdx_name1,
 ///             FieldIdx_name2,
@@ -885,13 +928,19 @@ constexpr bool isMessageBase()
 ///         {
 ///             return std::get<FieldIdx_name3>(Base::fields());
 ///         }
+///
+///         // Redefinition of the field types:
+///         using Field_name1 = Field1;
+///         using Field_name2 = Field2;
+///         using Field_name3 = Field3;
 ///     };
 ///     @endcode
 ///     @b NOTE, that provided names @b name1, @b name2, and @b name3 have
 ///     found their way to the following definitions:
 ///     @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
 ///         @b FieldIdx_nameOfValues value is automatically added at the end.
-///     @li Accessor functions prefixed with @b field_
+///     @li Accessor functions prefixed with @b field_*
+///     @li Types of fields prefixed with @b Field_*
 ///
 ///     As the result, the fields can be accessed using @b FieldIdx enum
 ///     @code
@@ -918,23 +967,13 @@ constexpr bool isMessageBase()
 ///     @endcode
 /// @param[in] ... List of fields' names.
 /// @related comms::MessageBase
-#define COMMS_MSG_FIELDS_ACCESS(...) \
-    COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
-    COMMS_MSG_FIELDS_ACCESS_FUNC { \
-        auto& val = comms::toMessageBase(*this).fields(); \
-        using AllFieldsTuple = typename std::decay<decltype(val)>::type; \
-        static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
-            "Invalid number of names for fields tuple"); \
-        return val; \
-    } \
-    COMMS_MSG_FIELDS_ACCESS_CONST_FUNC { \
-        auto& val = comms::toMessageBase(*this).fields(); \
-        using AllFieldsTuple =  typename std::decay<decltype(val)>::type; \
-        static_assert(std::tuple_size<AllFieldsTuple>::value == FieldIdx_numOfValues, \
-            "Invalid number of names for fields tuple"); \
-        return val; \
-    } \
-    COMMS_EXPAND(COMMS_DO_FIELD_ACC_FUNC(AllFields, fields(), __VA_ARGS__))
+/// @pre Requires (re)definition of the message base class as
+///     inner @b Base member type.
+/// @see COMMS_MSG_FIELDS_ACCESS()
+/// @note Defined in "comms/MessageBase.h"
+#define COMMS_MSG_FIELDS_NAMES(...) \
+    COMMS_EXPAND(COMMS_MSG_FIELDS_ACCESS(__VA_ARGS__)) \
+    COMMS_EXPAND(COMMS_DO_FIELD_TYPEDEF(typename Base::AllFields, FieldIdx_, __VA_ARGS__))
 
 /// @brief Generate convinience alias access member functions for other
 ///     member fields.
@@ -1026,3 +1065,7 @@ constexpr bool isMessageBase()
 ///     @ref COMMS_MSG_FIELD_ALIAS() to define convenience access functions.
 /// @related comms::MessageBase
 #define COMMS_MSG_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(field_, f_, __VA_ARGS__)
+
+#define COMMS_MSG_FIELD_ALIAS_FULL(f_, ...) \
+    COMMS_EXPAND(COMMS_MSG_FIELD_ALIAS(f_, __VA_ARGS__)) \
+    COMMS_EXPAND(COMMS_DO_ALIAS_TYPEDEF(Field_, f_, __VA_ARGS__))

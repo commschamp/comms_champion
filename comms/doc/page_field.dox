@@ -745,12 +745,15 @@
 /// It would be convenient to access the member fields by name, rather than
 /// by index with <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
 /// It can be achieved by using
-/// COMMS_FIELD_MEMBERS_ACCESS() macro inside field definition class.
+/// COMMS_FIELD_MEMBERS_NAMES() macro inside field definition class.
 /// @code
 /// class SerialConfigField : public comms::field::Bitfield<...>
 /// {
+///     // (Re)definition of the base class as inner Base type is
+///     // the requirement of @ref COMMS_FIELD_MEMBERS_NAMES() macro
+///     using Base = comms::field::Bitfield<...>
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(baud, parity, flags);
+///     COMMS_FIELD_MEMBERS_NAMES(baud, parity, flags);
 /// }
 /// @endcode
 /// It is equivalent to having the following enum, types and functions defined:
@@ -801,6 +804,11 @@
 ///     {
 ///         return std::get<FieldIdx_flags>(value());
 ///     }
+///
+///         // Redefinition of the members fields types:
+///         using Field_baud = ...;
+///         using Field_parity = ...;
+///         using Field_flags = ...;
 /// };
 /// @endcode
 /// @b NOTE, that provided names @b baud, @b parity, and @b flags, have
@@ -808,6 +816,7 @@
 /// @li @b FieldIdx enum. The names are prefixed with @b FieldIdx_. The
 ///     @b FieldIdx_nameOfValues value is automatically added at the end.
 /// @li Accessor functions prefixed with @b field_
+/// @li Types of member fields prefixed with @b Field_*
 ///
 /// As the result, the fields can be accessed using multiple ways:
 /// For example using @b FieldIdx enum
@@ -829,59 +838,19 @@
 /// auto parity = field.field_parity().value();
 /// auto flags = field.flags.value();
 /// @endcode
-/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
-/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
-/// @ref COMMS_FIELD_MEMBERS_ACCESS() macro
-/// even though it contains valid C++11 code. If the compilation failure 
-/// happens and the bitfield definition class is @b NOT a template one (like
-/// in the example above), then try to substitute the used macro with
-/// @ref COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(). For example:
-/// @code
+/// <b>SIDE NOTE:</b> In addition to @ref COMMS_FIELD_MEMBERS_NAMES() macro
+/// there is @ref COMMS_FIELD_MEMBERS_ACCESS() one. It is very similar to
+/// @ref COMMS_FIELD_MEMBERS_NAMES() but does @b NOT (re)define the inner @b Field_*
+/// types. It also does not require (except for @b clang) having base class to
+/// be (re)defined as inner @b Base type.
 /// class SerialConfigField : public comms::field::Bitfield<...>
 /// {
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE(baud, parity, flags);
+///     COMMS_FIELD_MEMBERS_ACCESS(baud, parity, flags);
 /// }
 /// @endcode
-/// However, when the defined bitfield class is a template, then the inner
-/// definition of @b Base type, which specifies the exact type of the base
-/// class, is required. For example:
-/// @code
-/// template <typename... TExtraOptions>
-/// class MyBitfieldField : public 
-///     comms::field::Bitfield<
-///         MyFieldBase, 
-///         std::tuple<SomeField1, SomeField2, SomeField3>,
-///         TExtraOptions...
-///     >
-/// {
-///     // Duplicate the base class type
-///     using Base = 
-///         comms::field::Bitfield<
-///             MyFieldBase, 
-///             std::tuple<SomeField1, SomeField2, SomeField3>,
-///             TExtraOptions...
-///         >;
-/// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
-/// }
-/// @endcode
-/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
-/// case the base class definition is needed (going to be used). If the developed
-/// application is going to be multi-platform and compiled with various compilers
-/// (some of which may warn about unused private type) it is possible to use 
-/// the defined symbol to add / remove the definition of the @b Base member type.
-/// @code
-/// template <typename... TExtraOptions>
-/// class MyBitfieldField : public comms::field::Bitfield<...>
-/// {
-/// #ifdef COMMS_MUST_DEFINE_BASE
-///     using Base = ...;
-/// #endif
-/// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
-/// }
-/// @endcode
+/// In fact @ref COMMS_FIELD_MEMBERS_NAMES() is implemented as the wrapper 
+/// around @ref COMMS_FIELD_MEMBERS_ACCESS().
 ///     
 /// @section sec_field_tutorial_bundle Bundle Fields
 /// There are cases when multiple independent fields need to be bundled into
@@ -935,60 +904,21 @@
 /// Please refer to the class documentation for the list of supported options.
 ///
 /// Just like with the @ref sec_field_tutorial_bitfield, the names to the
-/// member fields can be provided by using COMMS_FIELD_MEMBERS_ACCESS() macro.
+/// member fields can be provided by using @ref COMMS_FIELD_MEMBERS_NAMES() or
+/// @ref COMMS_FIELD_MEMBERS_ACCESS() macro.
 /// @code
 /// class MyBundle : public comms::field::Bundle<...>
 /// {
+///     // (Re)definition of the base class as inner Base type is
+///     // required by COMMS_FIELD_MEMBERS_NAMES() macro. 
+///     using Base = comms::field::Bundle<...>;
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+///     COMMS_FIELD_MEMBERS_NAMES(member1, member2, member3);
 /// };
 /// @endcode
 /// It will create similar enum and convenience access functions, just
 /// like described in previous @ref sec_field_tutorial_bitfield section.
 ///
-/// <b style="color:red">WARNING:</b> Due to the fact that the same
-/// @ref COMMS_FIELD_MEMBERS_ACCESS() macro is used as with 
-/// the @ref sec_field_tutorial_bitfield, the same warning applies.
-/// If compilation fails on the attempt to compile COMMS_FIELD_MEMBERS_ACCESS(),
-/// use either COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE() alternative or define
-/// inner @b Base type to specify actual type of @ref comms::field::Bundle 
-/// type. For example:
-/// @code
-/// template <typename... TExtraOptions>
-/// class MyBundle : public
-///     comms::field::Bundle<
-///         MyFieldBase,
-///         std::tuple<SomeField1, SomeField2, SomeField3>,
-///         TExtraOptions...
-///     >
-/// {
-///     // Duplicate base type definition
-///     using Base =
-///         comms::field::Bundle<
-///             MyFieldBase,
-///             std::tuple<SomeField1, SomeField2, SomeField3>,
-///             TExtraOptions...
-///         >;
-/// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
-/// };
-/// @endcode
-/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
-/// case the base class definition is needed (going to be used). If the developed
-/// application is going to be multi-platform and compiled with various compilers
-/// (some of which may warn about unused private type) it is possible to use 
-/// the defined symbol to add / remove the definition of the @b Base member type.
-/// @code
-/// template <typename... TExtraOptions>
-/// class MyBundle : public comms::field::Bundle<...>
-/// {
-/// #ifdef COMMS_MUST_DEFINE_BASE
-///     using Base = ...;
-/// #endif
-/// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
-/// };
-/// @endcode
 /// Some @b bundle fields in some protocols may contain a field, which 
 /// holds a <b>remaining serialization length</b> of the following member fields
 /// in the bundle. The @b COMMS library has a built-in support for such cases,
@@ -1011,7 +941,7 @@
 /// {
 ///     using Base = ...;
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(length, f1, f2, f3);
+///     COMMS_FIELD_MEMBERS_NAMES(length, f1, f2, f3);
 /// };
 /// @endcode
 ///
@@ -1731,7 +1661,7 @@
 /// {
 ///     using Base = ...; // repeat base definition if needed
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(key, value);
+///     COMMS_FIELD_MEMBERS_NAMES(key, value);
 /// };
 ///
 /// using Property1 = Property<Key1, Value1>;
@@ -1751,7 +1681,7 @@
 ///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
 /// };
 /// @endcode 
-/// Similar to @ref COMMS_FIELD_MEMBERS_ACCESS() macro for 
+/// Similar to @ref COMMS_FIELD_MEMBERS_NAMES() macro for 
 /// @ref sec_field_tutorial_bundle, the @ref COMMS_VARIANT_MEMBERS_ACCESS()
 /// macro generates the following convenience member enum and functions
 /// @code
@@ -1915,9 +1845,9 @@
 ///         comms::option::def::RemLengthMemberField<1> // Index of remaining length field is 1
 ///     >
 /// {
-///     using Base = ...; // repeat base definition if needed
+///     using Base = ...; // repeat base definition
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+///     COMMS_FIELD_MEMBERS_NAMES(key, length, value);
 /// };
 /// @endcode
 /// @b NOTE usage of @ref comms::option::def::RemLengthMemberField option described
@@ -1952,9 +1882,9 @@
 ///         comms::option::def::RemLengthMemberField<1> // Index of remaining length field is 1
 ///     >
 /// {
-///     using Base = ...; // repeat base definition if needed
+///     using Base = ...; // repeat base definition
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+///     COMMS_FIELD_MEMBERS_NAMES(key, length, value);
 /// };
 /// @endcode
 ///
@@ -1973,9 +1903,9 @@
 ///         comms::option::def::RemLengthMemberField<1> // Index of remaining length field is 1
 ///     >
 /// {
-///     using Base = ...; // repeat base definition if needed
+///     using Base = ...; // repeat base definition
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(key, length, value);
+///     COMMS_FIELD_MEMBERS_NAMES(key, length, value);
 /// };
 /// @endcode
 /// And put such property at the end of the supported types tuple for the variant field definition.
@@ -2110,7 +2040,7 @@
 /// definition and override the @b read() member function:
 /// @code
 /// using MyFieldBase = comms::Field<comms::option::def::BigEndian>;
-/// struct MyBundle : public 
+/// class MyBundle : public 
 ///     comms::field::Bundle<
 ///         MyFieldBase,
 ///         std::tuple<
@@ -2120,8 +2050,10 @@
 ///         comms::option::def::HasCustomRead
 ///     >
 /// {
+///     using Base = comms::field::Bundle<...>;
+/// public:
 ///     // Provide convenience access functions    
-///     COMMS_FIELD_MEMBERS_ACCESS(mask, value);
+///     COMMS_FIELD_MEMBERS_NAMES(mask, value);
 ///    
 ///     template <typename TIter>
 ///     comms::ErrorStatus read(TIter& iter, std::size_t len)

@@ -59,7 +59,7 @@ private:
                 >        
             >;   
     public:
-        COMMS_FIELD_MEMBERS_ACCESS(flags, id);
+        COMMS_FIELD_MEMBERS_NAMES(flags, id);
     };
 
     using ExtraTransportFields =
@@ -85,7 +85,7 @@ private:
         using Base = comms::Message<IfOptions>;
 #endif
     public:
-        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(flags);
     };
 
     using BasicInterfaceOptions = 
@@ -102,7 +102,7 @@ private:
         using Base = comms::Message<BasicInterfaceOptions>;
 #endif
     public:
-        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(flags);
 
         virtual ~NonPolymorphicInterface() = default;
     };

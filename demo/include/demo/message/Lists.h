@@ -234,11 +234,11 @@ class Lists : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4, field5);
+    COMMS_MSG_FIELDS_NAMES(field1, field2, field3, field4, field5);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when call to doMinLength() and

@@ -98,7 +98,7 @@ struct VariantsFields
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for 1 byte unsigned integer field.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_NAMES(id, value);
     };
 
     /// @brief Second type that can be stored in @ref field1 variant field.
@@ -141,7 +141,7 @@ struct VariantsFields
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for 4 bytes unsigned integer field.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_NAMES(id, value);
     };
 
     /// @brief Third type that can be stored in @ref field1 variant field.
@@ -194,7 +194,7 @@ struct VariantsFields
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for string field prefixed with its size.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_NAMES(id, value);
     };
 
     /// @brief Variant field.
@@ -282,10 +282,10 @@ class Variants : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
-    COMMS_MSG_FIELDS_ACCESS(field1);
+    COMMS_MSG_FIELDS_NAMES(field1);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when call to doMinLength()

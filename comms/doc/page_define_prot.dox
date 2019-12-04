@@ -231,7 +231,7 @@
 ///
 /// @b NOTE, that example above accesses the index of the field within the holding
 /// tuple. For convenience, the COMMS library defines 
-/// @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() macro which allows providing meaningful
+/// @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro which allows providing meaningful
 /// names to the extra transport fields:
 /// @code
 /// template <typename... TOptions>
@@ -243,10 +243,17 @@
 ///         TOptions...
 ///     >
 /// {
+///     // (Re)definition of the base class as inner Base type is
+///     // required by COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro
+///     using Base = comms::Message<...>;
 /// public:
-///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, flags)
+///     COMMS_MSG_TRANSPORT_FIELDS_NAMES(version, flags)
 /// };
 /// @endcode
+/// @b NOTE requirement to (re)define base class as inner @b Base type. It is
+/// needed to be able to access @ref comms::Message::TransportFields "TransportFields"
+/// type defined by the @ref comms::Message.
+///
 /// Using such macro is equivalent to manually defining the following public
 /// interface:
 /// @code
@@ -286,12 +293,38 @@
 ///     {
 ///         return std::get<TransportFieldIdx_flags>(transportFields());
 ///     }
+///
+///     // Definition of the transport field's types
+///     using TransportField_version = ...;
+///     using TransportField_flags = ...;
 /// };
 /// @endcode
 /// @b NOTE, that the defined "extra transport fields" are there to attach 
 /// some extra information, delivered as part of transport framing, to message 
 /// object itself. These fields are @b NOT getting serialised / deserialised when message
 /// object being read / written.
+///
+/// <b>SIDE NOTE:</b> In addition to @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro
+/// there is @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() one. It is very similar to
+/// @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() but does @b NOT (re)define the inner @b TransportField_*
+/// types. It also does not require (except for @b clang) having base class to
+/// be (re)defined as inner @b Base type.
+/// @code
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<MyExtraTransportFields>,
+///         TOptions...
+///     >
+/// {
+/// public:
+///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, flags)
+/// };
+/// @endcode
+/// In fact @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() is implemented as the wrapper 
+/// around @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS().
 ///
 /// @subsection page_define_prot_interface_version Version in Extra Transport Values
 /// As was described in previous section, the extra transport values may contain
@@ -1153,8 +1186,10 @@
 ///         TOptions...
 ///     >
 /// {
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::Message<...>;
 /// public:
-///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, flags);
+///     COMMS_MSG_TRANSPORT_FIELDS_NAMES(version, flags);
 ///     COMMS_MSG_TRANSPORT_FIELD_ALIAS(otherFlagsName, flags);    
 /// };
 /// @endcode

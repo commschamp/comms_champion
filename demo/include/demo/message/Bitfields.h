@@ -133,7 +133,7 @@ struct BitfieldsFields
         ///     @b member3 for @ref field1_int1
         ///     @b member4 for @ref field1_int2
         ///
-        COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3, member4);
+        COMMS_FIELD_MEMBERS_NAMES(member1, member2, member3, member4);
     };
 
     /// @brief All the fields bundled in std::tuple.
@@ -178,11 +178,11 @@ class Bitfields : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1);
+    COMMS_MSG_FIELDS_NAMES(field1);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when calls to doMinLength() and

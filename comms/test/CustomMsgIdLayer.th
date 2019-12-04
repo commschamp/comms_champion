@@ -81,9 +81,7 @@ private:
     struct Interface : public 
         comms::Message<IfOptions>
     {
-#ifdef COMMS_MUST_DEFINE_BASE        
         using Base = comms::Message<IfOptions>;
-#endif
     public:
         COMMS_MSG_TRANSPORT_FIELDS_NAMES(flags);
     };
@@ -98,11 +96,11 @@ private:
     struct NonPolymorphicInterface : public 
         comms::Message<BasicInterfaceOptions>
     {
-#ifdef COMMS_MUST_DEFINE_BASE        
         using Base = comms::Message<BasicInterfaceOptions>;
-#endif
     public:
         COMMS_MSG_TRANSPORT_FIELDS_NAMES(flags);
+
+        static_assert(std::is_same<TransportField_flags, comms::field::IntValue<BigEndianField, std::uint8_t> >::value, "Invalid assumption");
 
         virtual ~NonPolymorphicInterface() = default;
     };

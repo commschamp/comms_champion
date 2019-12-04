@@ -973,7 +973,7 @@ constexpr bool isMessageBase()
 /// @note Defined in "comms/MessageBase.h"
 #define COMMS_MSG_FIELDS_NAMES(...) \
     COMMS_EXPAND(COMMS_MSG_FIELDS_ACCESS(__VA_ARGS__)) \
-    COMMS_EXPAND(COMMS_DO_FIELD_TYPEDEF(typename Base::AllFields, FieldIdx_, __VA_ARGS__))
+    COMMS_EXPAND(COMMS_DO_FIELD_TYPEDEF(typename Base::AllFields, Field_, FieldIdx_, __VA_ARGS__))
 
 /// @brief Generate convinience alias access member functions for other
 ///     member fields.

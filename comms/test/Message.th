@@ -415,7 +415,7 @@ private:
                 comms::option::RefreshInterface
             >;
     public:
-        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, dummy);
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(version, dummy);
         COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(v, version);
         COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(mem1, dummy, mem1);
         COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(mem2, dummy, mem2);

@@ -843,6 +843,7 @@
 /// @ref COMMS_FIELD_MEMBERS_NAMES() but does @b NOT (re)define the inner @b Field_*
 /// types. It also does not require (except for @b clang) having base class to
 /// be (re)defined as inner @b Base type.
+/// @code
 /// class SerialConfigField : public comms::field::Bitfield<...>
 /// {
 /// public:

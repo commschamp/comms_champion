@@ -81,7 +81,9 @@ namespace comms
 ///         dispatch() documentation for details.
 ///     @li @ref comms::option::app::NoVirtualDestructor - Force the destructor to be
 ///         non-virtual, even if there are virtual functions in use.
-///     @headerfile comms/Message.h
+/// @headerfile comms/Message.h
+/// @see COMMS_MSG_TRANSPORT_FIELDS_NAMES()
+/// @see COMMS_MSG_TRANSPORT_FIELDS_ACCESS()
 template <typename... TOptions>
 class Message : public details::MessageInterfaceBuilderT<TOptions...>
 {
@@ -559,19 +561,44 @@ using MessageIdType =
 }  // namespace comms
 
 /// @brief Add convenience access enum and functions to extra transport fields.
+/// @details Very similar to @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES(), but does @b NOT
+///     require definition of @b Base inner member type (for some compilers) and does @b NOT
+///     define inner @b TransportField_* types for used fields.
+/// @param[in] ... List of fields' names.
+/// @related comms::Message
+/// @see COMMS_MSG_TRANSPORT_FIELDS_NAMES()
+/// @note Defined in "comms/Message.h"
+#define COMMS_MSG_TRANSPORT_FIELDS_ACCESS(...) \
+    COMMS_EXPAND(COMMS_DEFINE_TRANSPORT_FIELD_ENUM(__VA_ARGS__)) \
+    COMMS_MSG_TRANSPORT_FIELDS_ACCESS_FUNC { \
+        auto& msgBase = comms::toMessage(*this); \
+        using MsgBase = typename std::decay<decltype(msgBase)>::type; \
+        static_assert(MsgBase::hasTransportFields(), \
+            "Message interface class doesn't define extra transport fields."); \
+        using TransportFieldsTuple = typename MsgBase::TransportFields; \
+        static_assert(std::tuple_size<TransportFieldsTuple>::value == TransportFieldIdx_numOfValues, \
+            "Invalid number of names for transport fields tuple"); \
+        return msgBase.transportFields(); \
+    } \
+    COMMS_MSG_TRANSPORT_FIELDS_ACCESS_CONST_FUNC { \
+        return comms::toMessage(*this).transportFields(); \
+    } \
+    COMMS_EXPAND(COMMS_DO_TRANSPORT_FIELD_ACC_FUNC(TransportFields, transportFields(), __VA_ARGS__))
+
+/// @brief Provide names for extra transport fields.
 /// @details The comms::Message class provides access to its extra transport fields via
 ///     comms::MessageBase::transportFields() member function(s). The fields are bundled
 ///     into <a href="http://en.cppreference.com/w/cpp/utility/tuple">std::tuple</a>
 ///     and can be accessed using indices with
 ///     <a href="http://en.cppreference.com/w/cpp/utility/tuple/get">std::get</a>.
-///     For convenience, the fields should be named. The COMMS_MSG_TRANSPORT_FIELDS_ACCESS()
+///     For convenience, the fields should be named. The COMMS_MSG_TRANSPORT_FIELDS_NAMES()
 ///     macro does exactly that. @n
 ///     As an example, let's assume that custom message uses 3 fields of any
 ///     types:
 ///     @code
-///     typedef ... TransportField1;
-///     typedef ... TransportField2;
-///     typedef ... TransportField3;
+///     using TransportField1 = ...;
+///     using TransportField2 = ...;
+///     using TransportField3 = ...;
 ///
 ///     typedef std::tuple<TransportField1, TransportField2, TransportField3> MyExtraTransportFields
 ///
@@ -580,11 +607,14 @@ using MessageIdType =
 ///             ...
 ///             comms::option::def::ExtraTransportFields<MyExtraTransportFields> >
 ///     {
+///         // (Re)definition of the base class as inner Base type is
+///         // required by the COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro.
+///         using Base = comms::Message<...>;
 ///     public:
-///         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(name1, name2, name3);
+///         COMMS_MSG_TRANSPORT_FIELDS_NAMES(name1, name2, name3);
 ///     };
 ///     @endcode
-///     The usage of the COMMS_MSG_TRANSPORT_FIELDS_ACCESS() macro with the list of the extra transport field's names
+///     The usage of the COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro with the list of the extra transport field's names
 ///     is equivalent to having the following definitions inside the message class
 ///     @code
 ///     class MyInterface : public comms::Message<...>
@@ -636,13 +666,19 @@ using MessageIdType =
 ///         {
 ///             return std::get<FieldIdx_name3>(Base::transportFields());
 ///         }
+///
+///         // Redefinition of the transport field types:
+///         using TransportField_name1 = TransportField1;
+///         using TransportField_name2 = TransportField2;
+///         using TransportField_name3 = TransportField3;
 ///     };
 ///     @endcode
 ///     @b NOTE, that provided names @b name1, @b name2, and @b name3 have
 ///     found their way to the following definitions:
 ///     @li @b TransportFieldIdx enum. The names are prefixed with @b TransportFieldIdx_. The
 ///         @b TransportFieldIdx_nameOfValues value is automatically added at the end.
-///     @li Accessor functions prefixed with @b transportField_
+///     @li Accessor functions prefixed with @b transportField_*
+///     @li Types of fields prefixed with @b TransportField_*
 ///
 ///     As the result, the fields can be accessed using @b TransportFieldIdx enum
 ///     @code
@@ -669,26 +705,13 @@ using MessageIdType =
 ///     @endcode
 /// @param[in] ... List of fields' names.
 /// @related comms::Message
-#define COMMS_MSG_TRANSPORT_FIELDS_ACCESS(...) \
-    COMMS_EXPAND(COMMS_DEFINE_TRANSPORT_FIELD_ENUM(__VA_ARGS__)) \
-    COMMS_MSG_TRANSPORT_FIELDS_ACCESS_FUNC { \
-        auto& msgBase = comms::toMessage(*this); \
-        using MsgBase = typename std::decay<decltype(msgBase)>::type; \
-        static_assert(MsgBase::hasTransportFields(), \
-            "Message interface class doesn't define extra transport fields."); \
-        using TransportFieldsTuple = typename MsgBase::TransportFields; \
-        static_assert(std::tuple_size<TransportFieldsTuple>::value == TransportFieldIdx_numOfValues, \
-            "Invalid number of names for transport fields tuple"); \
-        return msgBase.transportFields(); \
-    } \
-    COMMS_MSG_TRANSPORT_FIELDS_ACCESS_CONST_FUNC { \
-        return comms::toMessage(*this).transportFields(); \
-    } \
-    COMMS_EXPAND(COMMS_DO_TRANSPORT_FIELD_ACC_FUNC(TransportFields, transportFields(), __VA_ARGS__))
-
+/// @pre Requires (re)definition of the message base class as
+///     inner @b Base member type.
+/// @see COMMS_MSG_TRANSPORT_FIELDS_ACCESS()
+/// @note Defined in "comms/Message.h"
 #define COMMS_MSG_TRANSPORT_FIELDS_NAMES(...) \
     COMMS_EXPAND(COMMS_MSG_TRANSPORT_FIELDS_ACCESS(__VA_ARGS__)) \
-    COMMS_EXPAND(COMMS_DO_FIELD_TYPEDEF(typename Base::TransportFields, TransportFieldIdx_, __VA_ARGS__))
+    COMMS_EXPAND(COMMS_DO_FIELD_TYPEDEF(typename Base::TransportFields, TransportField_, TransportFieldIdx_, __VA_ARGS__))
 
 /// @brief Generate convinience alias access member functions for extra
 ///     member transport fields.

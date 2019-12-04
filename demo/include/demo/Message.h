@@ -80,11 +80,11 @@ struct Message : public
 public:
 
     /// @brief Allow access to extra transport fields.
-    /// @details See definition of @b COMMS_MSG_TRANSPORT_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_TRANSPORT_FIELDS_NAMES macro
     ///     related to @b comms::Message class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version);
+    COMMS_MSG_TRANSPORT_FIELDS_NAMES(version);
 };
 
 }  // namespace demo

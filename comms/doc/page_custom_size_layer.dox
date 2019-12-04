@@ -59,14 +59,16 @@
 ///         comms::option::def::ExtraTransportFields<std::tuple<MessageFlags> >
 ///     >
 /// {
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::Message<...>;
 /// public:
 ///     //  Allow access to extra transport fields.
-///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+///     COMMS_MSG_TRANSPORT_FIELDS_NAMES(flags);
 /// };
 ///
 /// } // namespace my_prot
 /// @endcode
-/// Just to refresh the reader's memory: the usage of @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS()
+/// Just to refresh the reader's memory: the usage of @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES()
 /// macro for the interface definition will generate @b transportField_flags() 
 /// convenience member function to access the stored @b flags field, while 
 /// usage of @ref COMMS_BITMASK_BITS_SEQ() in the flags field definition will

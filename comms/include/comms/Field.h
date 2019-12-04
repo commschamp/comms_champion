@@ -203,7 +203,6 @@ protected:
 ///     require definition of @b Base inner member type (for some compilers) and does @b NOT
 ///     define inner @b Field_* types for used member fields.
 /// @param[in] ... List of fields' names.
-/// @related comms::MessageBase
 /// @see @ref COMMS_FIELD_MEMBERS_NAMES()
 /// @note Relevant to @ref comms::field::Bundle and @ref comms::field::Bitfield
 /// @note Defined in "comms/Field.h"
@@ -236,7 +235,6 @@ protected:
 ///         COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
 ///     };
 ///     @endcode
-/// @note Defined in "comms/Field.h"
 #define COMMS_FIELD_MEMBERS_ACCESS(...) \
     COMMS_EXPAND(COMMS_DEFINE_FIELD_ENUM(__VA_ARGS__)) \
     COMMS_FIELD_VALUE_ACCESS_FUNC { \
@@ -383,7 +381,7 @@ protected:
 /// @note Defined in "comms/Field.h"
 #define COMMS_FIELD_MEMBERS_NAMES(...) \
     COMMS_EXPAND(COMMS_FIELD_MEMBERS_ACCESS(__VA_ARGS__)) \
-    COMMS_EXPAND(COMMS_DO_FIELD_TYPEDEF(typename Base::ValueType, FieldIdx_, __VA_ARGS__))
+    COMMS_EXPAND(COMMS_DO_FIELD_TYPEDEF(typename Base::ValueType, Field_, FieldIdx_, __VA_ARGS__))
 
 /// @brief Generate convinience alias access member functions for other
 ///     member fields.

@@ -2920,14 +2920,16 @@
 ///         TOptions...
 ///     >
 /// {
+///     // (Re)definition of the base class as inner Base type
+///     using Base = comms::Message<...>;
 /// public:
-///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version)
+///     COMMS_MSG_TRANSPORT_FIELDS_NAMES(version)
 /// };
 ///
 /// } // namespace my_protocol
 /// @endcode
 /// Usage of @ref comms::option::def::ExtraTransportFields option as well as
-/// @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() macro in the message class definition
+/// @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro in the message class definition
 /// is equivalent to having the following types and member functions defined
 /// @code
 /// namespace my_protocol
@@ -2967,6 +2969,10 @@
 ///     {
 ///         return std::get<TransportFieldIdx_version>(transportFields());
 ///     }
+///
+///     // Definition of the transport field's types
+///     using TransportField_version = MyVersionField;
+///
 /// private:
 ///     TransportFields m_transportFields;
 /// };

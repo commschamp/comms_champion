@@ -805,10 +805,10 @@
 ///         return std::get<FieldIdx_flags>(value());
 ///     }
 ///
-///         // Redefinition of the members fields types:
-///         using Field_baud = ...;
-///         using Field_parity = ...;
-///         using Field_flags = ...;
+///     // Redefinition of the members fields types:
+///     using Field_baud = ...;
+///     using Field_parity = ...;
+///     using Field_flags = ...;
 /// };
 /// @endcode
 /// @b NOTE, that provided names @b baud, @b parity, and @b flags, have
@@ -1673,17 +1673,20 @@
 /// above forms. The comms::field::Variant field class provides such an ability.
 /// As its second parameter it receives a tuple of supported types.
 /// @code
-/// struct MyVariant : public 
+/// class MyVariant : public 
 ///     comms::field::Variant<
 ///         MyFieldBase,
 ///         std::tuple<Property1, Property2, Property3>
 ///     >
 /// {
-///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::field::Variant<...>;
+/// public:
+///     COMMS_VARIANT_MEMBERS_NAMES(prop1, prop2, prop3);
 /// };
 /// @endcode 
 /// Similar to @ref COMMS_FIELD_MEMBERS_NAMES() macro for 
-/// @ref sec_field_tutorial_bundle, the @ref COMMS_VARIANT_MEMBERS_ACCESS()
+/// @ref sec_field_tutorial_bundle, the @ref COMMS_VARIANT_MEMBERS_NAMES()
 /// macro generates the following convenience member enum and functions
 /// @code
 /// struct MyVariant : public comms::field::Variant<...>
@@ -1752,10 +1755,16 @@
 ///     {
 ///         return accessField<FieldIdx_prop3>();
 ///     }
+///
+///     // Redefinition of the members fields types:
+///     using Field_prop1 = ...;
+///     using Field_prop2 = ...;
+///     using Field_prop3 = ...;
 /// };
 /// @endcode
 /// @b NOTE, that the provided names have propagated into definition of @b FieldIdx
-/// enum as well as all @b initField_* and @b accessField_* functions.
+/// enum, all @b initField_* and @b accessField_* functions, as well as
+/// inner @b Field_* types definitions.
 ///
 /// Now it is easy to put such @b Variant field type into the list:
 /// @code
@@ -1769,64 +1778,6 @@
 /// of the contained types reports comms::ErrorStatus::Success as its status.
 /// That's why every @b key field needs to fail its @b read operation on
 /// invalid value.
-///
-/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
-/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
-/// @ref COMMS_VARIANT_MEMBERS_ACCESS() macro
-/// even though it contains valid C++11 code. If the compilation failure 
-/// happens and the variant definition class is @b NOT a template one (like
-/// in the example above), then try to substitute the used macro with
-/// @ref COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(). For example:
-/// @code
-/// struct MyVariant : public 
-///     comms::field::Variant<
-///         MyFieldBase,
-///         std::tuple<Property1, Property2, Property3>,
-///         comms::option::def::DefaultVariantIndex<0> // Initialise as Prop1
-///     >
-/// {
-///     COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE(prop1, prop2, prop3);
-/// };
-/// @endcode 
-/// However, when the defined variant class is a template, then the inner
-/// definition of @b Base type, which specifies the exact type of the base
-/// class, is required. For example:
-/// @code
-/// template <typename... TExtraOptions>
-/// class MyVariant : public 
-///     comms::field::Variant<
-///         MyFieldBase,
-///         std::tuple<Property1, Property2, Property3>,
-///         TExtraOptions...
-///     >
-/// {
-///     // Duplicate base class definition
-///     using Base =
-///         comms::field::Variant<
-///             MyFieldBase,
-///             std::tuple<Property1, Property2, Property3>,
-///             TExtraOptions...
-///         >;
-/// public:
-///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
-/// };
-/// @endcode
-/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
-/// case the base class definition is needed (going to be used). If the developed
-/// application is going to be multi-platform and compiled with various compilers
-/// (some of which may warn about unused private type) it is possible to use 
-/// the defined symbol to add / remove the definition of the @b Base member type.
-/// @code
-/// template <typename... TExtraOptions>
-/// class MyVariant : public comms::field::Variant<...>
-/// {
-/// #ifdef COMMS_MUST_DEFINE_BASE
-///     using Base = ...;
-/// #endif
-/// public:
-///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
-/// };
-/// @endcode
 ///
 /// The extension of the key/value pairs example above to 
 /// TLV triplets is quite easy.
@@ -1932,7 +1883,7 @@
 ///         comms::option::def::DefaultVariantIndex<0> // Initialise as Prop1
 ///     >
 /// {
-///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
+///     COMMS_VARIANT_MEMBERS_NAMES(prop1, prop2, prop3);
 /// };
 /// @endcode 
 /// When instantiating such @b MyVariant object, there is no need to perform
@@ -1944,6 +1895,20 @@
 /// auto& prop1 = var.accessField_prop1(); // Get access to Property1 interface
 /// ...
 /// @endcode
+/// <b>SIDE NOTE:</b> In addition to @ref COMMS_VARIANT_MEMBERS_NAMES() macro
+/// there is @ref COMMS_VARIANT_MEMBERS_ACCESS() one. It is very similar to
+/// @ref COMMS_VARIANT_MEMBERS_NAMES() but does @b NOT (re)define the inner @b Field_*
+/// types. It also does not require (except for @b clang) having base class to
+/// be (re)defined as inner @b Base type.
+/// @code
+/// class MyVariant : public comms::field::Variant<...>
+/// {
+/// public:
+///     COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
+/// }
+/// @endcode
+/// In fact @ref COMMS_VARIANT_MEMBERS_NAMES() is implemented as the wrapper 
+/// around @ref COMMS_VARIANT_MEMBERS_ACCESS().
 /// 
 /// @section sec_field_tutorial_common_options Common Options or Modifications for the Fields
 /// There are options that suitable only to numeric fields, such as 

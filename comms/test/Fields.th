@@ -3382,23 +3382,48 @@ using Test70_IntKeyField =
         comms::option::FailOnInvalid<>
 >;
 
-using Test70_Mem1 =
+class Test70_Mem1 : public
     comms::field::Bundle<
         Test70_FieldBase,
         std::tuple<
             Test70_IntKeyField<1>,
             comms::field::IntValue<Test70_FieldBase, std::uint16_t>
         >
-    >;
+    >
+{
+    using Base =
+        comms::field::Bundle<
+            Test70_FieldBase,
+            std::tuple<
+                Test70_IntKeyField<1>,
+                comms::field::IntValue<Test70_FieldBase, std::uint16_t>
+            >
+        >;
+public:
+    COMMS_FIELD_MEMBERS_NAMES(key, value);
+};
 
-using Test70_Mem2 =
+class Test70_Mem2 : public
     comms::field::Bundle<
         Test70_FieldBase,
         std::tuple<
             Test70_IntKeyField<2>,
             comms::field::IntValue<Test70_FieldBase, std::uint32_t>
         >
-    >;
+    >
+{
+    using Base =
+        comms::field::Bundle<
+            Test70_FieldBase,
+            std::tuple<
+                Test70_IntKeyField<2>,
+                comms::field::IntValue<Test70_FieldBase, std::uint32_t>
+            >
+        >;
+
+public:
+    COMMS_FIELD_MEMBERS_NAMES(key, value);
+};
 
 template <typename... TExtra>
 class Test70_Field : public
@@ -3421,7 +3446,11 @@ class Test70_Field : public
             TExtra...
         >;
 public:
-    COMMS_VARIANT_MEMBERS_ACCESS(mem1, mem2);
+    COMMS_VARIANT_MEMBERS_NAMES(mem1, mem2);
+
+    static_assert(std::is_same<typename Field_mem1::Field_key::ValueType, std::uint8_t>::value, "Invalid type");
+    static_assert(std::is_same<typename Field_mem1::Field_value::ValueType, std::uint16_t>::value, "Invalid type");
+    static_assert(std::is_same<typename Field_mem2::Field_value::ValueType, std::uint32_t>::value, "Invalid type");
 };
 
 class Test70_LengthRetriever

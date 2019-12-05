@@ -773,9 +773,9 @@
 ///     }
 ///
 ///     // Types of used fields
-///     using Field1_value1 = ... /* implementation dependent field type */
-///     using Field1_value2 = ... /* implementation dependent field type */
-///     using Field1_value3 = ... /* implementation dependent field type */
+///     using Field_value1 = ... /* implementation dependent field type */
+///     using Field_value2 = ... /* implementation dependent field type */
+///     using Field_value3 = ... /* implementation dependent field type */
 /// };
 ///
 /// } // namespace message
@@ -1552,13 +1552,17 @@
 /// using Property3 = Property<Key3, Value3>;
 /// 
 /// // Definition of the variant field
-/// struct MyVariant : public 
+/// class MyVariant : public 
 ///     comms::field::Variant<
 ///         MyFieldBase,
 ///         std::tuple<Property1, Property2, Property3>
 ///     >
 /// {
-///      COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::field::Variant<...>;
+///
+/// public:
+///     COMMS_VARIANT_MEMBERS_NAMES(prop1, prop2, prop3);
 /// };
 /// 
 ///
@@ -1573,11 +1577,11 @@
 /// @ref comms::field::Variant::value() "value()" member function which returns reference
 /// to the used storage area. These type and function should @b NOT
 /// be used directly. Instead, the  protocol definition is expected to 
-/// use @ref COMMS_VARIANT_MEMBERS_ACCESS() macro, which generates
+/// use @ref COMMS_VARIANT_MEMBERS_NAMES() macro, which generates
 /// appropriate access and conversion wrapper functions around
 /// @ref comms::field::Variant::initField() and @ref comms::field::Variant::accessField().
 ///
-/// The usage of @ref COMMS_VARIANT_MEMBERS_ACCESS() in the above is
+/// The usage of @ref COMMS_VARIANT_MEMBERS_NAMES() in the above is
 /// equivalent to having the following member types and functions defined
 /// @code
 /// struct MyVariant : public comms::field::Variant<...>
@@ -1646,10 +1650,16 @@
 ///     {
 ///         return accessField<FieldIdx_prop3>();
 ///     }
+///
+///     // Types of used fields
+///     using Field_prop1 = ... /* implementation dependent field type */
+///     using Field_prop2 = ... /* implementation dependent field type */
+///     using Field_prop3 = ... /* implementation dependent field type */
 /// };
 /// @endcode
 /// @b NOTE, that the provided names have propagated into definition of @b FieldIdx
-/// enum as well as all @b initField_* and @b accessField_* functions.
+/// enum, all @b initField_* and @b accessField_* functions, as well as
+/// inner @b Field_* types.
 ///
 /// When variant field object is instantiated, 
 /// accessing the currently held field can be tricky though. There is a need

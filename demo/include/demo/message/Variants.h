@@ -213,9 +213,6 @@ struct VariantsFields
             typename TOpt::message::VariantsFields::field1
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // Required for compilation with gcc earlier than v5.0,
-        // later versions don't require this type definition.
         using Base =
             comms::field::Variant<
                 FieldBase,
@@ -226,18 +223,16 @@ struct VariantsFields
                 >,
                 typename TOpt::message::VariantsFields::field1
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
-
     public:
         /// @brief Allow access to internal fields.
-        /// @details See definition of @b COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE macro
+        /// @details See definition of @b COMMS_VARIANT_MEMBERS_NAMES macro
         ///     related to @b comms::field::Variant class from COMMS library
         ///     for details. @n
         ///     The names are:
         ///     @b val1 for @ref field1_var1
         ///     @b val2 for @ref field1_var2
         ///     @b val3 for @ref field1_var3
-        COMMS_VARIANT_MEMBERS_ACCESS(val1, val2, val3);
+        COMMS_VARIANT_MEMBERS_NAMES(val1, val2, val3);
     };
 
     /// @brief All the fields bundled in std::tuple.

@@ -74,9 +74,6 @@ struct VariantsFields
             >
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // Required for compilation with gcc earlier than v5.0,
-        // later versions don't require this type definition.
         using Base =
             comms::field::Bundle<
                 FieldBase,
@@ -89,7 +86,6 @@ struct VariantsFields
                     >
                 >
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -117,9 +113,6 @@ struct VariantsFields
             >
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // Required for compilation with gcc earlier than v5.0,
-        // later versions don't require this type definition.
         using Base =
             comms::field::Bundle<
                 FieldBase,
@@ -132,7 +125,6 @@ struct VariantsFields
                     >
                 >
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -165,9 +157,6 @@ struct VariantsFields
             >
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // Required for compilation with gcc earlier than v5.0,
-        // later versions don't require this type definition.
         using Base =
             comms::field::Bundle<
                 FieldBase,
@@ -185,7 +174,6 @@ struct VariantsFields
                     >
                 >
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro

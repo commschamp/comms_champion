@@ -977,8 +977,22 @@ constexpr bool isMessageBase()
 
 /// @brief Generate convinience alias access member functions for other
 ///     member fields.
-/// @details The @ref COMMS_MSG_FIELDS_ACCESS() macro generates convenience
-///     access member functions for member fields. Sometimes the fields
+/// @details Similar to @ref COMMS_MSG_FIELD_ALIAS() but requires usage
+///     of @ref COMMS_MSG_FIELDS_ACCESS() instead of @ref COMMS_MSG_FIELDS_NAMES()
+///     and does NOT create alias to the field type, only access functions.
+/// @param[in] f_ Alias field name.
+/// @param[in] ... List of fields' names.
+/// @pre The macro @ref COMMS_MSG_FIELDS_ACCESS() needs to be used before
+///     @ref COMMS_MSG_FIELD_ALIAS_ACCESS() to define convenience access functions.
+/// @related comms::MessageBase
+/// @note Defined in "comms/MessageBase.h"
+/// @see @ref COMMS_MSG_FIELD_ALIAS()
+#define COMMS_MSG_FIELD_ALIAS_ACCESS(f_, ...) COMMS_DO_ALIAS(field_, f_, __VA_ARGS__)
+
+/// @brief Generate convinience alias types and access member functions for other
+///     member fields.
+/// @details The @ref COMMS_MSG_FIELDS_NAMES() macro generates inner types
+///     and convenience access member functions for member fields. Sometimes the fields
 ///     may get renamed or moved to be a member of other fields, like
 ///     @ref comms::field::Bundle or @ref comms::field::Bitfield. In such
 ///     case the compilation of the existing client code (that already
@@ -990,8 +1004,9 @@ constexpr bool isMessageBase()
 ///     @code
 ///     class Message1 : public comms::MessageBase<...>
 ///     {
+///         using Base = comms::MessageBase<...>;
 ///     public:
-///         COMMS_MSG_FIELDS_ACCESS(name1, name2, name3);
+///         COMMS_MSG_FIELDS_NAMES(name1, name2, name3);
 ///     };
 ///     @endcode
 ///     In the future versions of the protocol "name3" was renamed to
@@ -1001,18 +1016,22 @@ constexpr bool isMessageBase()
 ///     @code
 ///     class Message1 : public comms::MessageBase<...>
 ///     {
+///         using Base = comms::MessageBase<...>;
 ///     public:
-///         COMMS_MSG_FIELDS_ACCESS(name1, name2, newName3);
+///         COMMS_MSG_FIELDS_NAMES(name1, name2, newName3);
 ///         COMMS_MSG_FIELD_ALIAS(name3, newName3);
 ///     };
 ///     @endcode
 ///     The usage of @ref COMMS_MSG_FIELD_ALIAS() in the code above is
-///     equivalent to having the following functions defined:
+///     equivalent to having the following functions as well as type defined:
 ///     @code
 ///     class Message1 : public comms::MessageBase<...>
 ///     {
 ///     public:
 ///         ...
+///
+///         using Field_name3 = Field_newName3;
+///
 ///         auto field_name3() -> decltype(field_newName3())
 ///         {
 ///             return field_newName3();
@@ -1036,8 +1055,9 @@ constexpr bool isMessageBase()
 ///     @code
 ///     class Message1 : public comms::MessageBase<...>
 ///     {
+///         using Base = comms::MessageBase<...>;
 ///     public:
-///         COMMS_MSG_FIELDS_ACCESS(name1, name2, newName3);
+///         COMMS_MSG_FIELDS_NAMES(name1, name2, newName3);
 ///         COMMS_MSG_FIELD_ALIAS(name3, newName3, member1);
 ///     };
 ///     @endcode
@@ -1048,6 +1068,9 @@ constexpr bool isMessageBase()
 ///     {
 ///     public:
 ///         ...
+///
+///         using Field_name3 = typename Field_newName3::Field_member1;
+///
 ///         auto field_name3() -> decltype(field_newName3().field_member1())
 ///         {
 ///             return field_newName3().field_member1();
@@ -1061,11 +1084,11 @@ constexpr bool isMessageBase()
 ///     @endcode
 /// @param[in] f_ Alias field name.
 /// @param[in] ... List of fields' names.
-/// @pre The macro @ref COMMS_MSG_FIELDS_ACCESS() needs to be used before
+/// @pre The macro @ref COMMS_MSG_FIELDS_NAMES() needs to be used before
 ///     @ref COMMS_MSG_FIELD_ALIAS() to define convenience access functions.
 /// @related comms::MessageBase
-#define COMMS_MSG_FIELD_ALIAS(f_, ...) COMMS_DO_ALIAS(field_, f_, __VA_ARGS__)
-
-#define COMMS_MSG_FIELD_ALIAS_FULL(f_, ...) \
-    COMMS_EXPAND(COMMS_MSG_FIELD_ALIAS(f_, __VA_ARGS__)) \
+/// @see COMMS_MSG_FIELD_ALIAS_ACCESS()
+/// @note Defined in "comms/MessageBase.h"
+#define COMMS_MSG_FIELD_ALIAS(f_, ...) \
+    COMMS_EXPAND(COMMS_MSG_FIELD_ALIAS_ACCESS(f_, __VA_ARGS__)) \
     COMMS_EXPAND(COMMS_DO_ALIAS_TYPEDEF(Field_, f_, __VA_ARGS__))

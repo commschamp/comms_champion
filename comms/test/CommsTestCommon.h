@@ -78,7 +78,7 @@ public:
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_NAMES(value1);
-    COMMS_MSG_FIELD_ALIAS_FULL(f1, value1);
+    COMMS_MSG_FIELD_ALIAS(f1, value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -453,8 +453,8 @@ public:
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
     COMMS_MSG_FIELDS_NAMES(value1);
-    COMMS_MSG_FIELD_ALIAS_FULL(mask, value1, mask);
-    COMMS_MSG_FIELD_ALIAS_FULL(val, value1, val);
+    COMMS_MSG_FIELD_ALIAS(mask, value1, mask);
+    COMMS_MSG_FIELD_ALIAS(val, value1, val);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();

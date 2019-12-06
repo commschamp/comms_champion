@@ -715,7 +715,32 @@ using MessageIdType =
 
 /// @brief Generate convinience alias access member functions for extra
 ///     member transport fields.
-/// @details The @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() macro generates convenience
+/// @details Similar to @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() but requires usage
+///     of @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() instead of @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES()
+///     and does NOT create alias to the field type, only access functions.
+/// @param[in] f_ Alias field name.
+/// @param[in] ... List of fields' names.
+/// @pre The macro @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() needs to be used before
+///     @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS_ACCESS() to define convenience access functions.
+/// @related comms::Message
+/// @see @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS_ACCESS_NOTEMPLATE()
+/// @see @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS()
+/// @note Defined in "comms/Message.h"
+#define COMMS_MSG_TRANSPORT_FIELD_ALIAS_ACCESS(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS(transportField_, f_, __VA_ARGS__))
+
+/// @brief Generate convinience alias access member functions for extra
+///     member transport fields in non template interface classes.
+/// @details Similar to @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS, but
+///     needs to be used in @b non-template interface class to
+///     allow compilation with gcc-4.8
+/// @see @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS_ACCESS()
+/// @note Defined in "comms/Message.h"
+#define COMMS_MSG_TRANSPORT_FIELD_ALIAS_ACCESS_NOTEMPLATE(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS_NOTEMPLATE(transportField_, f_, __VA_ARGS__))
+
+/// @brief Generate convinience alias access member functions for extra
+///     member transport fields.
+/// @details The @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro generates
+///     alias type as well as convenience
 ///     access member functions for extra transport fields. Sometimes the fields
 ///     may get renamed or moved to be a member of other fields, like
 ///     @ref comms::field::Bundle or @ref comms::field::Bitfield. In such
@@ -726,10 +751,12 @@ using MessageIdType =
 ///     to other fields. For example, let's assume that some common interface class was defined:
 ///     like this.
 ///     @code
-///     class MyInterface : public public comms::Message<...>
+///     class MyInterface : public comms::Message<...>
 ///     {
+///         // (Re)definition of the base class as inner Base type.
+///         using Base = comms::Message<...>;
 ///     public:
-///         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(name1, name2, name3);
+///         COMMS_MSG_TRANSPORT_FIELDS_NAMES(name1, name2, name3);
 ///     };
 ///     @endcode
 ///     In the future versions of the protocol "name3" was renamed to
@@ -739,18 +766,21 @@ using MessageIdType =
 ///     @code
 ///     class MyInterface : public public comms::Message<...>
 ///     {
+///         using Base = comms::Message<...>;
 ///     public:
-///         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(name1, name2, newName3);
+///         COMMS_MSG_TRANSPORT_FIELDS_NAMES(name1, name2, newName3);
 ///         COMMS_MSG_TRANSPORT_FIELD_ALIAS(name3, newName3);
 ///     };
 ///     @endcode
 ///     The usage of @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() in the code above is
-///     equivalent to having the following functions defined:
+///     equivalent to having the following type and functions defined:
 ///     @code
 ///     class MyInterface : public public comms::Message<...>
 ///     {
 ///     public:
 ///         ...
+///         using TransportField_name3 = TransportField_newName3;
+///
 ///         auto transportField_name3() -> decltype(transportField_newName3())
 ///         {
 ///             return transportField_newName3();
@@ -774,8 +804,9 @@ using MessageIdType =
 ///     @code
 ///     class MyInterface : public public comms::Message<...>
 ///     {
+///         using Base = comms::Message<...>;
 ///     public:
-///         COMMS_MSG_TRANSPORT_FIELDS_ACCESS(name1, name2, newName3);
+///         COMMS_MSG_TRANSPORT_FIELDS_NAMES(name1, name2, newName3);
 ///         COMMS_MSG_TRANSPORT_FIELD_ALIAS(name3, newName3, member1);
 ///     };
 ///     @endcode
@@ -786,6 +817,8 @@ using MessageIdType =
 ///     {
 ///     public:
 ///         ...
+///         using TransportField_name3 = TransportField_newName3::Field_Member1;
+///
 ///         auto transportField_name3() -> decltype(transportField_newName3().field_member1())
 ///         {
 ///             return field_newName3().field_member1();
@@ -799,15 +832,23 @@ using MessageIdType =
 ///     @endcode
 /// @param[in] f_ Alias field name.
 /// @param[in] ... List of fields' names.
-/// @pre The macro @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() needs to be used before
+/// @pre The macro @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() needs to be used before
 ///     @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS() to define convenience access functions.
 /// @related comms::Message
+/// @see @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS_ACCESS_NOTEMPLATE()
 /// @see @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE()
-#define COMMS_MSG_TRANSPORT_FIELD_ALIAS(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS(transportField_, f_, __VA_ARGS__))
+/// @note Defined in "comms/Message.h"
+#define COMMS_MSG_TRANSPORT_FIELD_ALIAS(f_, ...) \
+    COMMS_EXPAND(COMMS_MSG_TRANSPORT_FIELD_ALIAS_ACCESS(f_, __VA_ARGS__)) \
+    COMMS_EXPAND(COMMS_DO_ALIAS_TYPEDEF(TransportField_, f_, __VA_ARGS__))
 
-/// @brief Generate convinience alias access member functions for extra
+/// @brief Generate convinience alias access member functions and type for extra
 ///     member transport fields in non template interface classes.
-/// @details Similar to @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS, but
+/// @details Similar to @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS(), but
 ///     needs to be used in @b non-template interface class to
 ///     allow compilation with gcc-4.8
-#define COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(f_, ...) COMMS_EXPAND(COMMS_DO_ALIAS_NOTEMPLATE(transportField_, f_, __VA_ARGS__))
+/// @see @ref COMMS_MSG_TRANSPORT_FIELD_ALIAS()
+/// @note Defined in "comms/Message.h"
+#define COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(f_, ...) \
+    COMMS_EXPAND(COMMS_MSG_TRANSPORT_FIELD_ALIAS_ACCESS_NOTEMPLATE(f_, __VA_ARGS__)) \
+    COMMS_EXPAND(COMMS_DO_ALIAS_TYPEDEF(TransportField_, f_, __VA_ARGS__))

@@ -1087,15 +1087,20 @@
 ///     COMMS_MSG_FIELD_ALIAS(value3, newValue3);
 /// };
 /// @endcode
-/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following convenience access functions:
+/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following alias type
+/// as well as convenience access functions:
 /// @code
 /// template <typename TMessage>
 /// class Message1 : public comms::MessageBase<...>
 /// {
 ///     using Base = comms::MessageBase<...>;
+///
 /// public:
 ///     // Provide names for the fields
 ///     COMMS_MSG_FIELDS_NAMES(value1, value2, newValue3);
+///
+///     // Alias to the new type
+///     using Field_value3 = Field_newValue3;
 ///     
 ///     // Access to "newValue3" via "value3" name
 ///     auto field_value3() -> decltype(field_newValue3())
@@ -1131,7 +1136,8 @@
 ///     COMMS_MSG_FIELD_ALIAS(value3, newValue3, member1);
 /// };
 /// @endcode
-/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following convenience access functions:
+/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following type and
+/// convenience access functions:
 /// @code
 /// template <typename TMessage>
 /// class Message1 : public comms::MessageBase<...>
@@ -1140,6 +1146,9 @@
 /// public:
 ///     // Provide names for the fields
 ///     COMMS_MSG_FIELDS_NAMES(value1, value2, newValue3);
+///
+///     // Alias to the member field
+///     using Field_value3 = typename Field_newValue3::Field_member1;
 ///     
 ///     // Access to "newValue3.member1" via "value3" name
 ///     auto field_value3() -> decltype(field_newValue3().field_member1())

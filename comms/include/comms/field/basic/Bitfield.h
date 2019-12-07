@@ -295,8 +295,11 @@ public:
         return CommonFuncs::setVersionForMembers(value(), version);
     }
 
-private:
+protected:
+    using BaseImpl::readData;
+    using BaseImpl::writeData;
 
+private:
     class ReadHelper
     {
     public:

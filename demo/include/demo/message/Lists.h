@@ -43,12 +43,12 @@ struct ListsFields
     /// @brief Raw data list that uses 2 bytes size prefix
     using field1 =
         comms::field::ArrayList<
-            FieldBase,
+            demo::FieldBase,
             std::uint8_t,
             typename TOpt::message::ListsFields::field1,
             comms::option::SequenceSizeFieldPrefix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint16_t
                 >
             >
@@ -57,12 +57,12 @@ struct ListsFields
     /// @brief Raw data list that uses 1 bytes serialisation length prefix
     using field2 =
         comms::field::ArrayList<
-            FieldBase,
+            demo::FieldBase,
             std::uint8_t,
             typename TOpt::message::ListsFields::field2,
             comms::option::SequenceSerLengthFieldPrefix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint8_t
                 >
             >
@@ -71,7 +71,7 @@ struct ListsFields
     /// @brief Element of @ref field3 list
     using field3Element =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::int16_t,
             typename TOpt::message::ListsFields::field3Element
         >;
@@ -79,7 +79,7 @@ struct ListsFields
     /// @brief List of 2 bytes integer value fields, with fixed size of 3 elements
     using field3 =
         comms::field::ArrayList<
-            FieldBase,
+            demo::FieldBase,
             field3Element,
             typename TOpt::message::ListsFields::field3,
             comms::option::SequenceFixedSize<3>
@@ -88,7 +88,7 @@ struct ListsFields
     /// @brief Element of @ref field4 list
     using field4Element =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::uint16_t,
             typename TOpt::message::ListsFields::field4Element
         >;
@@ -97,12 +97,12 @@ struct ListsFields
     ///     2 bytes serialisation length
     using field4 =
         comms::field::ArrayList<
-            FieldBase,
+            demo::FieldBase,
             field4Element,
             typename TOpt::message::ListsFields::field4,
             comms::option::SequenceSerLengthFieldPrefix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint16_t
                 >
             >
@@ -114,7 +114,7 @@ struct ListsFields
         /// @brief 2 byte unsigned integer field
         using mem1 =
             comms::field::IntValue<
-                FieldBase,
+                demo::FieldBase,
                 std::uint16_t,
                 typename TOpt::message::ListsFields::field5Members::mem1
             >;
@@ -122,7 +122,7 @@ struct ListsFields
         /// @brief 1 byte unsigned integer field
         using mem2 =
             comms::field::IntValue<
-                FieldBase,
+                demo::FieldBase,
                 std::int8_t,
                 typename TOpt::message::ListsFields::field5Members::mem2
             >;
@@ -131,11 +131,11 @@ struct ListsFields
         ///         length, i.e. uses base-128 encoding.
         using mem3 =
             comms::field::String<
-                FieldBase,
+                demo::FieldBase,
                 typename TOpt::message::ListsFields::field5Members::mem3,
                 comms::option::SequenceSizeFieldPrefix<
                     comms::field::IntValue<
-                        FieldBase,
+                        demo::FieldBase,
                         std::uint32_t,
                         comms::option::VarLength<1, 4>
                     >
@@ -146,7 +146,7 @@ struct ListsFields
     /// @brief Element of @ref field5 list
     using field5Element =
         comms::field::Bundle<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 typename field5Members::mem1,
                 typename field5Members::mem2,
@@ -169,19 +169,19 @@ struct ListsFields
     ///     info is written using base-128 encoding.
     using field5 =
         comms::field::ArrayList<
-            FieldBase,
+            demo::FieldBase,
             field5Element,
             typename TOpt::message::ListsFields::field5,
             comms::option::SequenceSerLengthFieldPrefix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint32_t,
                     comms::option::VarLength<1, 4>
                 >
             >,
             comms::option::SequenceElemSerLengthFieldPrefix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint8_t,
                     comms::option::VarLength<1, 4>
                 >

@@ -41,7 +41,7 @@ struct FloatValuesFields
     /// @brief Simple 4 byte IEEE 754 floating point value.
     using field1 =
         comms::field::FloatValue<
-            FieldBase,
+            demo::FieldBase,
             float,
             typename TOpt::message::FloatValuesFields::field1
     >;
@@ -49,7 +49,7 @@ struct FloatValuesFields
     /// @brief Simple 8 byte IEEE 754 floating point value.
     using field2 =
         comms::field::FloatValue<
-            FieldBase,
+            demo::FieldBase,
             double,
             typename TOpt::message::FloatValuesFields::field2
     >;
@@ -57,7 +57,7 @@ struct FloatValuesFields
     /// @brief Floating point value serialised as integer with (1e-2) scaling ratio.
     using field3 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::uint8_t,
             typename TOpt::message::FloatValuesFields::field3,
             comms::option::ScalingRatio<1, 100>

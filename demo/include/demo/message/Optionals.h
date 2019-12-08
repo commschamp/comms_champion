@@ -41,7 +41,7 @@ struct OptionalsFields
     /// @brief Bitmask that is used to enable/disable other fields
     struct field1 : public
         comms::field::BitmaskValue<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::OptionalsFields::field1,
             comms::option::FixedLength<1>,
             comms::option::BitmaskReservedBits<0xfc, 0>
@@ -59,7 +59,7 @@ struct OptionalsFields
     using field2 =
         comms::field::Optional<
             comms::field::IntValue<
-                FieldBase,
+                demo::FieldBase,
                 std::uint16_t,
                 typename TOpt::message::OptionalsFields::field2
             >,
@@ -71,11 +71,11 @@ struct OptionalsFields
     using field3 =
         comms::field::Optional<
             comms::field::String<
-                FieldBase,
+                demo::FieldBase,
                 typename TOpt::message::OptionalsFields::field3,
                 comms::option::SequenceSizeFieldPrefix<
                     comms::field::IntValue<
-                        FieldBase,
+                        demo::FieldBase,
                         std::uint8_t
                     >
                 >
@@ -91,7 +91,7 @@ struct OptionalsFields
     using field4 =
         comms::field::Optional<
             comms::field::IntValue<
-                FieldBase,
+                demo::FieldBase,
                 std::int16_t
             >,
             comms::option::ExistsByDefault,

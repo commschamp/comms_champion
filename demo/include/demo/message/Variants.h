@@ -51,7 +51,7 @@ struct VariantsFields
     template <VarId TId>
     using varIdField =
         comms::field::EnumValue<
-            FieldBase,
+            demo::FieldBase,
             VarId,
             comms::option::DefaultNumValue<(int)TId>,
             comms::option::ValidNumValueRange<(int)TId, (int)TId>,
@@ -63,11 +63,11 @@ struct VariantsFields
     ///     the 1 byte unsigned integer.
     class field1_var1 : public
         comms::field::Bundle<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 varIdField<VarId::Elem1>,
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint8_t,
                     typename TOpt::message::VariantsFields::field1_var1
                 >
@@ -76,11 +76,11 @@ struct VariantsFields
     {
         using Base =
             comms::field::Bundle<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     varIdField<VarId::Elem1>,
                     comms::field::IntValue<
-                        FieldBase,
+                        demo::FieldBase,
                         std::uint8_t,
                         typename TOpt::message::VariantsFields::field1_var1
                     >
@@ -102,11 +102,11 @@ struct VariantsFields
     ///     the 4 bytes unsigned integer.
     class field1_var2 : public
         comms::field::Bundle<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 varIdField<VarId::Elem2>,
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint32_t,
                     typename TOpt::message::VariantsFields::field1_var2
                 >
@@ -115,11 +115,11 @@ struct VariantsFields
     {
         using Base =
             comms::field::Bundle<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     varIdField<VarId::Elem2>,
                     comms::field::IntValue<
-                        FieldBase,
+                        demo::FieldBase,
                         std::uint32_t,
                         typename TOpt::message::VariantsFields::field1_var2
                     >
@@ -141,14 +141,14 @@ struct VariantsFields
     ///     the string prefixed with its lengths (1 byte).
     class field1_var3 : public
         comms::field::Bundle<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 varIdField<VarId::Elem3>,
                 comms::field::String<
-                    FieldBase,
+                    demo::FieldBase,
                     comms::option::SequenceSizeFieldPrefix<
                         comms::field::IntValue<
-                            FieldBase,
+                            demo::FieldBase,
                             std::uint8_t,
                             typename TOpt::message::VariantsFields::field1_var3
                         >
@@ -159,14 +159,14 @@ struct VariantsFields
     {
         using Base =
             comms::field::Bundle<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     varIdField<VarId::Elem3>,
                     comms::field::String<
-                        FieldBase,
+                        demo::FieldBase,
                         comms::option::SequenceSizeFieldPrefix<
                             comms::field::IntValue<
-                                FieldBase,
+                                demo::FieldBase,
                                 std::uint8_t,
                                 typename TOpt::message::VariantsFields::field1_var3
                             >
@@ -192,7 +192,7 @@ struct VariantsFields
     ///     @li @ref field1_var3
     class field1 : public
         comms::field::Variant<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 field1_var1,
                 field1_var2,
@@ -203,7 +203,7 @@ struct VariantsFields
     {
         using Base =
             comms::field::Variant<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     field1_var1,
                     field1_var2,

@@ -42,11 +42,11 @@ struct StringsFields
     /// @brief String that uses 1 byte size prefix
     using field1 =
         comms::field::String<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::StringsFields::field1,
             comms::option::SequenceSizeFieldPrefix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint8_t
                 >
             >
@@ -55,11 +55,11 @@ struct StringsFields
     /// @brief String that is zero terminated
     using field2 =
         comms::field::String<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::StringsFields::field2,
             comms::option::SequenceTerminationFieldSuffix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint8_t
                 >
             >
@@ -68,7 +68,7 @@ struct StringsFields
     /// @brief Fixed size of 6 characters string
     using field3 =
         comms::field::String<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::StringsFields::field3,
             comms::option::SequenceFixedSize<6>
     >;

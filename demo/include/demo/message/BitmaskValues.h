@@ -43,7 +43,7 @@ struct BitmaskValuesFields
     ///     be 0.
     struct field1 : public
         comms::field::BitmaskValue<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::BitmaskValuesFields::field1,
             comms::option::FixedLength<1>,
             comms::option::BitmaskReservedBits<0xe0, 0>
@@ -61,7 +61,7 @@ struct BitmaskValuesFields
     ///     in the middle. The value of the reserved bit must be 0
     struct field2 : public
         comms::field::BitmaskValue<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::BitmaskValuesFields::field2,
             comms::option::FixedLength<2>,
             comms::option::BitmaskReservedBits<0xfcf6, 0>

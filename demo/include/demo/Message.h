@@ -32,7 +32,7 @@ namespace demo
 {
 
 /// @brief Endian option for the protocol
-using ProtocolEndian = comms::option::BigEndian;
+using ProtocolEndian = comms::option::def::BigEndian;
 
 /// @brief Field containing version information
 using VersionField =

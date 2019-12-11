@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <tuple>
 
+#include "comms/CompileControl.h"
 #include "comms/Assert.h"
 #include "comms/util/access.h"
 #include "comms/util/Tuple.h"
@@ -193,7 +194,7 @@ public:
     template <typename TIter>
     comms::ErrorStatus doRead(TIter& iter, std::size_t size)
     {
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
 // For some reason VS2015 32 bit compiler may generate "integral constant overflow"
 // warning on the code below
 #pragma warning( push )
@@ -207,7 +208,7 @@ public:
                 UseStatusTag
             >::type;
 
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
 #pragma warning( pop )
 #endif
         return doReadInternal(iter, size, Tag());
@@ -218,7 +219,7 @@ public:
         TIter& iter,
         std::size_t size) const
     {
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
 // For some reason VS2015 32 bit compiler may generate "integral constant overflow"
 // warning on the code below
 #pragma warning( push )
@@ -232,7 +233,7 @@ public:
                 UseStatusTag
             >::type;
 
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
 #pragma warning( pop )
 #endif
 

@@ -20,6 +20,7 @@
 #include <type_traits>
 #include <algorithm>
 
+#include "comms/CompileControl.h"
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
@@ -518,12 +519,12 @@ private:
         template <std::size_t TIdx, typename TField>
         void operator()()
         {
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
             // VS compiler
             func_.operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
-#else // #ifdef _MSC_VER
+#else // #if COMMS_IS_MSVC
             func_.template operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
-#endif // #ifdef _MSC_VER
+#endif // #if COMMS_IS_MSVC
         }
     private:
         void* storage_ = nullptr;
@@ -549,12 +550,12 @@ private:
         template <std::size_t TIdx, typename TField>
         void operator()()
         {
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
             // VS compiler
             func_.operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
-#else // #ifdef _MSC_VER
+#else // #if COMMS_IS_MSVC
             func_.template operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
-#endif // #ifdef _MSC_VER
+#endif // #if COMMS_IS_MSVC
         }
     private:
         const void* storage_ = nullptr;

@@ -21,6 +21,7 @@
 #include <utility>
 #include <type_traits>
 
+#include "comms/CompileControl.h"
 #include "comms/Assert.h"
 #include "AlignedUnion.h"
 
@@ -311,12 +312,12 @@ public:
 
         static const std::size_t Idx = TupleSize - TRem;
         using ElemType = typename std::tuple_element<Idx, Tuple>::type;
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
         // VS compiler
         func.operator()<ElemType>();
-#else // #ifdef _MSC_VER
+#else // #if COMMS_IS_MSVC
         func.template operator()<ElemType>();
-#endif // #ifdef _MSC_VER
+#endif // #if COMMS_IS_MSVC
         TupleForEachTypeHelper<TRem - 1>::template exec<TTuple>(
             std::forward<TFunc>(func));
     }
@@ -439,12 +440,12 @@ public:
         static_assert(TRem <= TupleSize, "Incorrect TRem");
 
         static const std::size_t Idx = TupleSize - TRem;
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
         // VS compiler
         func.operator()<Idx>(std::get<Idx>(std::forward<TTuple>(tuple)));
-#else // #ifdef _MSC_VER
+#else // #if COMMS_IS_MSVC
         func.template operator()<Idx>(std::get<Idx>(std::forward<TTuple>(tuple)));
-#endif // #ifdef _MSC_VER
+#endif // #if COMMS_IS_MSVC
         TupleForEachWithTemplateParamIdxHelper<TRem - 1>::exec(
             std::forward<TTuple>(tuple),
             std::forward<TFunc>(func));
@@ -609,11 +610,11 @@ public:
         static_assert((TOff + TRem) <= std::tuple_size<Tuple>::value, "Incorrect TRem");
 
         return TupleTypeAccumulateHelper<TOff + 1, TRem - 1>::template exec<Tuple>(
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
             func.operator()
-#else
+#else // #if COMMS_IS_MSVC
             func.template operator()
-#endif
+#endif // #if COMMS_IS_MSVC
             <typename std::tuple_element<TOff, Tuple>::type>(value),
             std::forward<TFunc>(func));
 
@@ -761,12 +762,12 @@ public:
         static_cast<void>(idx);
         COMMS_ASSERT(idx == TFromIdx);
         using ElemType = typename std::tuple_element<TFromIdx, TTuple>::type;
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
         // VS compiler
         func.operator()<TFromIdx, ElemType>();
-#else // #ifdef _MSC_VER
+#else // #if COMMS_IS_MSVC
         func.template operator()<TFromIdx, ElemType>();
-#endif // #ifdef _MSC_VER
+#endif // #if COMMS_IS_MSVC
     }
 };
 
@@ -863,12 +864,12 @@ public:
         static_assert(TRem <= std::tuple_size<Tuple>::value, "Incorrect TRem");
         using ElemType = typename std::tuple_element<std::tuple_size<Tuple>::value - TRem, Tuple>::type;
         return
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
             // VS compiler
             func.operator()<ElemType>() ||
-#else // #ifdef _MSC_VER
+#else // #if COMMS_IS_MSVC
             func.template operator()<ElemType>() ||
-#endif // #ifdef _MSC_VER
+#endif // #if COMMS_IS_MSVC
         TupleTypeIsAnyOfHelper<TRem - 1>::template check<TTuple>(
             std::forward<TFunc>(func));
     }

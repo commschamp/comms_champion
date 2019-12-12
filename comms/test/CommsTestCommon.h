@@ -77,7 +77,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1);
+    COMMS_MSG_FIELDS_NAMES(value1);
     COMMS_MSG_FIELD_ALIAS(f1, value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
@@ -177,7 +177,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1, value2, value3, value4);
+    COMMS_MSG_FIELDS_NAMES(value1, value2, value3, value4);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -250,7 +250,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1, value2);
+    COMMS_MSG_FIELDS_NAMES(value1, value2);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -340,7 +340,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1, value2);
+    COMMS_MSG_FIELDS_NAMES(value1, value2);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -389,7 +389,7 @@ struct Message6Fields
             >;
 
     public:
-        COMMS_FIELD_MEMBERS_ACCESS(mask, val);
+        COMMS_FIELD_MEMBERS_NAMES(mask, val);
 
         template <typename TIter>
         comms::ErrorStatus read(TIter& iter, std::size_t len)
@@ -452,7 +452,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields mustn't be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1);
+    COMMS_MSG_FIELDS_NAMES(value1);
     COMMS_MSG_FIELD_ALIAS(mask, value1, mask);
     COMMS_MSG_FIELD_ALIAS(val, value1, val);
 
@@ -517,7 +517,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(AreFieldsVersionDependent, "Fields must be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1, value2);
+    COMMS_MSG_FIELDS_NAMES(value1, value2);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -579,7 +579,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(value1);
+    COMMS_MSG_FIELDS_NAMES(value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -609,7 +609,6 @@ struct Message9Fields
             comms::option::RemLengthMemberField<0>
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
         using Base =
             comms::field::Bundle<
                 TField,
@@ -619,9 +618,8 @@ struct Message9Fields
                 >,
                 comms::option::RemLengthMemberField<0>
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
-        COMMS_FIELD_MEMBERS_ACCESS(len, str);
+        COMMS_FIELD_MEMBERS_NAMES(len, str);
     };
 
     using All = std::tuple<
@@ -653,7 +651,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(f1);
+    COMMS_MSG_FIELDS_NAMES(f1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static_assert(MsgMinLen == 1U, "Wrong serialisation length");
@@ -713,7 +711,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(type, value1);
+    COMMS_MSG_FIELDS_NAMES(type, value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
@@ -773,7 +771,7 @@ public:
     static const bool AreFieldsVersionDependent = Base::areFieldsVersionDependent();
     static_assert(!AreFieldsVersionDependent, "Fields not must be version dependent");
 
-    COMMS_MSG_FIELDS_ACCESS(type, value1);
+    COMMS_MSG_FIELDS_NAMES(type, value1);
 
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();

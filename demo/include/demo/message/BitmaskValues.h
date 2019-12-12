@@ -43,7 +43,7 @@ struct BitmaskValuesFields
     ///     be 0.
     struct field1 : public
         comms::field::BitmaskValue<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::BitmaskValuesFields::field1,
             comms::option::FixedLength<1>,
             comms::option::BitmaskReservedBits<0xe0, 0>
@@ -61,7 +61,7 @@ struct BitmaskValuesFields
     ///     in the middle. The value of the reserved bit must be 0
     struct field2 : public
         comms::field::BitmaskValue<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::BitmaskValuesFields::field2,
             comms::option::FixedLength<2>,
             comms::option::BitmaskReservedBits<0xfcf6, 0>
@@ -123,11 +123,11 @@ class BitmaskValues : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2);
+    COMMS_MSG_FIELDS_NAMES(field1, field2);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when calls to doMinLength() and

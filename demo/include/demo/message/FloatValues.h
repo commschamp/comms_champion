@@ -41,7 +41,7 @@ struct FloatValuesFields
     /// @brief Simple 4 byte IEEE 754 floating point value.
     using field1 =
         comms::field::FloatValue<
-            FieldBase,
+            demo::FieldBase,
             float,
             typename TOpt::message::FloatValuesFields::field1
     >;
@@ -49,7 +49,7 @@ struct FloatValuesFields
     /// @brief Simple 8 byte IEEE 754 floating point value.
     using field2 =
         comms::field::FloatValue<
-            FieldBase,
+            demo::FieldBase,
             double,
             typename TOpt::message::FloatValuesFields::field2
     >;
@@ -57,7 +57,7 @@ struct FloatValuesFields
     /// @brief Floating point value serialised as integer with (1e-2) scaling ratio.
     using field3 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::uint8_t,
             typename TOpt::message::FloatValuesFields::field3,
             comms::option::ScalingRatio<1, 100>
@@ -107,11 +107,11 @@ class FloatValues : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
+    COMMS_MSG_FIELDS_NAMES(field1, field2, field3);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when calls to doMinLength() and

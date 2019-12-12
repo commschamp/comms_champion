@@ -223,6 +223,8 @@ private:
     typedef Message1<BeMessageBase> BeMsg1;
     typedef Message1<LeMessageBase> LeMsg1;
 
+    static_assert(std::is_same<BeMsg1::Field_value1::ValueType, std::uint16_t>::value, "Check failed");
+
     typedef Message2<BeMessageBase> BeMsg2;
 
     typedef Message1<BeBasicMessageBase> BeBasicMsg1;
@@ -382,7 +384,7 @@ private:
             >;
 
     public:
-        COMMS_FIELD_MEMBERS_ACCESS(mem1, mem2);
+        COMMS_FIELD_MEMBERS_NAMES(mem1, mem2);
     };
 
 
@@ -413,7 +415,7 @@ private:
                 comms::option::RefreshInterface
             >;
     public:
-        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, dummy);
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(version, dummy);
         COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(v, version);
         COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(mem1, dummy, mem1);
         COMMS_MSG_TRANSPORT_FIELD_ALIAS_NOTEMPLATE(mem2, dummy, mem2);

@@ -231,7 +231,7 @@
 ///
 /// @b NOTE, that example above accesses the index of the field within the holding
 /// tuple. For convenience, the COMMS library defines 
-/// @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() macro which allows providing meaningful
+/// @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro which allows providing meaningful
 /// names to the extra transport fields:
 /// @code
 /// template <typename... TOptions>
@@ -243,10 +243,17 @@
 ///         TOptions...
 ///     >
 /// {
+///     // (Re)definition of the base class as inner Base type is
+///     // required by COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro
+///     using Base = comms::Message<...>;
 /// public:
-///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, flags)
+///     COMMS_MSG_TRANSPORT_FIELDS_NAMES(version, flags)
 /// };
 /// @endcode
+/// @b NOTE requirement to (re)define base class as inner @b Base type. It is
+/// needed to be able to access @ref comms::Message::TransportFields "TransportFields"
+/// type defined by the @ref comms::Message.
+///
 /// Using such macro is equivalent to manually defining the following public
 /// interface:
 /// @code
@@ -286,12 +293,38 @@
 ///     {
 ///         return std::get<TransportFieldIdx_flags>(transportFields());
 ///     }
+///
+///     // Definition of the transport field's types
+///     using TransportField_version = ...;
+///     using TransportField_flags = ...;
 /// };
 /// @endcode
 /// @b NOTE, that the defined "extra transport fields" are there to attach 
 /// some extra information, delivered as part of transport framing, to message 
 /// object itself. These fields are @b NOT getting serialised / deserialised when message
 /// object being read / written.
+///
+/// <b>SIDE NOTE:</b> In addition to @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro
+/// there is @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() one. It is very similar to
+/// @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() but does @b NOT (re)define the inner @b TransportField_*
+/// types. It also does not require (except for @b clang) having base class to
+/// be (re)defined as inner @b Base type.
+/// @code
+/// template <typename... TOptions>
+/// class Message : public
+///     comms::Message<
+///         comms::option::def::BigEndian,
+///         comms::option::def::MsgIdType<MsgId>,
+///         comms::option::def::ExtraTransportFields<MyExtraTransportFields>,
+///         TOptions...
+///     >
+/// {
+/// public:
+///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, flags)
+/// };
+/// @endcode
+/// In fact @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() is implemented as the wrapper 
+/// around @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS().
 ///
 /// @subsection page_define_prot_interface_version Version in Extra Transport Values
 /// As was described in previous section, the extra transport values may contain
@@ -441,7 +474,7 @@
 /// {
 /// public:
 ///     // Redefining the provided std::tuple of fields as internal type
-///     typedef ... AllFields;
+///     using AllFields = ... /* std::tuple of fields */;
 ///     
 ///     // Access the stored std::tuple of fields
 ///     AllFields& fields()
@@ -539,24 +572,30 @@
 /// sendMessage(msg);
 /// @endcode
 /// Although it works, it is not very convenient way to access and operate the fields.
-/// There is COMMS_MSG_FIELDS_ACCESS() macro that allows to provide meaningful names
+/// There is @ref COMMS_MSG_FIELDS_NAMES() macro that allows to provide meaningful names
 /// for the fields:
 /// @code
 /// template <typename TMessage>
 /// class Message1 : public
-///     comms::MessageBase<...>
+///     comms::MessageBase<... /* options here */>
 /// {
+///     // Definition of the Base class is a requirement
+///     using Base = comms::MessageBase<... /* options here */>;
 /// public:
 ///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
+///     COMMS_MSG_FIELDS_NAMES(value1, value2, value3);
 /// };
 /// @endcode
+/// @b NOTE requirement to (re)define base class as inner @b Base type. It is
+/// needed to be able to access @ref comms::MessageBase::AllFields "AllFields"
+/// type defined by the @ref comms::MessageBase.
+///
 /// The said macro creates the following definitions of inner enum @b FieldIdx
-/// type as well as @b field_* accessor functions.
+/// type, @b field_* accessor functions as well as @b Field_* type definitions.
 /// @code
 /// template <typename TMessage>
 /// class Message1 : public
-///     comms::MessageBase<...>
+///     comms::MessageBase<... /* options here */>
 /// {
 /// public:
 ///     enum FieldIdx
@@ -602,6 +641,11 @@
 ///     {
 ///         return std::get<FieldIdx_value3>(fields());
 ///     }
+///
+///     // Definition of the field's types
+///     using Field_value1 = Field1;
+///     using Field_value2 = Field2;
+///     using Field_value3 = Field3;
 /// };
 /// @endcode
 /// As the result, accessing to the fields becomes much easier and clearer:
@@ -611,42 +655,23 @@
 /// msg.field_value2().value() = 32;
 /// sendMessage(msg);
 /// @endcode
-/// <b style="color:red">WARNING:</b> Some compilers, such as @b clang or earlier
-/// versions of @b gcc (v4.9 and earlier) may have problems compiling the 
-/// @ref COMMS_MSG_FIELDS_ACCESS() macro
-/// even though it contains valid C++11 code to help in identification the 
-/// actual base class type. If the compilation failure 
-/// happens try to specify the exact base class type using inner @b Base
-/// type definition. For example:
+/// <b>SIDE NOTE:</b> In addition to @ref COMMS_MSG_FIELDS_NAMES() macro
+/// there is @ref COMMS_MSG_FIELDS_ACCESS() one. It is very similar to
+/// @ref COMMS_MSG_FIELDS_NAMES() but does @b NOT (re)define the inner @b Field_*
+/// types. It also does not require (except for @b clang) having base class to
+/// be (re)defined as inner @b Base type.
 /// @code
 /// template <typename TMessage>
 /// class Message1 : public
-///     comms::MessageBase<...>
+///     comms::MessageBase<... /* options here */>
 /// {
-///     // Duplicate the base class definition
-///     using Base = comms::MessageBase<...>;
 /// public:
 ///     // Provide names for the fields
 ///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
 /// };
 /// @endcode
-/// @b NOTE, that @b COMMS library also defines @b COMMS_MUST_DEFINE_BASE in
-/// case the base class definition is needed (going to be used). If the developed
-/// application is going to be multi-platform and compiled with various compilers
-/// (some of which may warn about unused private type) it is possible to use 
-/// the defined symbol to add / remove the definition of the @b Base member type.
-/// @code
-/// template <typename TMessage>
-/// class Message1 : public comms::MessageBase<...>
-/// {
-/// #ifdef COMMS_MUST_DEFINE_BASE
-///     using Base = comms::MessageBase<...>;
-/// #endif
-/// public:
-///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
-/// };
-/// @endcode
+/// In fact @ref COMMS_MSG_FIELDS_NAMES() is implemented as the wrapper 
+/// around @ref COMMS_MSG_FIELDS_ACCESS().
 ///
 /// @subsection page_define_prot_message_base_custom_read Custom Read Functionality
 /// The default read functionality implemented by @ref comms::MessageBase::doRead()
@@ -705,8 +730,17 @@
 ///         comms::option::def::MsgType<Message2<TBase> >
 ///     >
 /// {
+///     // Redefinition of the base class as inner Base type, required
+///     // by COMMS_MSG_FIELDS_NAMES() macro.
+///     using Base = 
+///         comms::MessageBase<
+///             TBase, 
+///             comms::option::def::StaticNumIdImpl<MsgId_Message2>, 
+///             comms::option::def::FieldsImpl<Message2Fields::All>,
+///             comms::option::def::MsgType<Message2<TBase> >
+///         >;
 /// public:
-///     COMMS_MSG_FIELDS_ACCESS(flags, data);
+///     COMMS_MSG_FIELDS_NAMES(flags, data);
 ///     
 ///     template <typename TIter>
 ///     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
@@ -776,10 +810,11 @@
 /// intact.
 /// @code
 /// template <typename TBase>
-/// class Message2 : public comms::MessageBase<...>
+/// class Message2 : public comms::MessageBase<... /* options here */>
 /// {
+///     using Base = comms::MessageBase<... /* options here */>;
 /// public:
-///     COMMS_MSG_FIELDS_ACCESS(flags, data);
+///     COMMS_MSG_FIELDS_NAMES(flags, data);
 ///     
 ///     bool doRefresh()
 ///     {
@@ -826,8 +861,9 @@
 ///         comms::option::def::HasCustomRefresh // Support polymorphic refresh when needed
 ///     >
 /// {
+///     using Base = comms::MessageBase<... /* options here */>;
 /// public:
-///     COMMS_MSG_FIELDS_ACCESS(flags, data);
+///     COMMS_MSG_FIELDS_NAMES(flags, data);
 ///     
 ///     template <typename TIter>
 ///     comms::ErrorStatus doRead(TIter& iter, std::size_t len)
@@ -853,8 +889,9 @@
 /// template <typename TBase>
 /// class SomeMessage : public comms::MessageBase<...>
 /// {
+///     using Base = comms::MessageBase<...>;
 /// public:
-///     COMMS_MSG_FIELDS_ACCESS(...);
+///     COMMS_MSG_FIELDS_NAMES(...);
 ///     
 ///     template <typename TIter>
 ///     comms::ErrorStatus doWrite(TIter& iter, std::size_t len) const
@@ -1035,7 +1072,7 @@
 ///
 /// @subsection page_define_prot_field_aliases_messages Aliases to Field Names Inside Message Definition
 /// The @b COMMS library provides @ref COMMS_MSG_FIELD_ALIAS()
-/// macro, which is expected to be used after @ref COMMS_MSG_FIELDS_ACCESS() one when new
+/// macro, which is expected to be used after @ref COMMS_MSG_FIELDS_NAMES() one when new
 /// message class is being defined.
 /// As an example let's change the @b value3 from the example in the 
 /// @ref page_define_prot_message_base_field_names section to be @b newValue3.
@@ -1043,20 +1080,27 @@
 /// template <typename TMessage>
 /// class Message1 : public comms::MessageBase<...>
 /// {
+///     using Base = comms::MessageBase<...>;
 /// public:
 ///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
+///     COMMS_MSG_FIELDS_NAMES(value1, value2, newValue3);
 ///     COMMS_MSG_FIELD_ALIAS(value3, newValue3);
 /// };
 /// @endcode
-/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following convenience access functions:
+/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following alias type
+/// as well as convenience access functions:
 /// @code
 /// template <typename TMessage>
 /// class Message1 : public comms::MessageBase<...>
 /// {
+///     using Base = comms::MessageBase<...>;
+///
 /// public:
 ///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
+///     COMMS_MSG_FIELDS_NAMES(value1, value2, newValue3);
+///
+///     // Alias to the new type
+///     using Field_value3 = Field_newValue3;
 ///     
 ///     // Access to "newValue3" via "value3" name
 ///     auto field_value3() -> decltype(field_newValue3())
@@ -1085,20 +1129,26 @@
 /// template <typename TMessage>
 /// class Message1 : public comms::MessageBase<...>
 /// {
+///     using Base = comms::MessageBase<...>;
 /// public:
 ///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
+///     COMMS_MSG_FIELDS_NAMES(value1, value2, newValue3);
 ///     COMMS_MSG_FIELD_ALIAS(value3, newValue3, member1);
 /// };
 /// @endcode
-/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following convenience access functions:
+/// The usage of @ref COMMS_MSG_FIELD_ALIAS() above generates the following type and
+/// convenience access functions:
 /// @code
 /// template <typename TMessage>
 /// class Message1 : public comms::MessageBase<...>
 /// {
+///     using Base = comms::MessageBases<...>;
 /// public:
 ///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, newValue3);
+///     COMMS_MSG_FIELDS_NAMES(value1, value2, newValue3);
+///
+///     // Alias to the member field
+///     using Field_value3 = typename Field_newValue3::Field_member1;
 ///     
 ///     // Access to "newValue3.member1" via "value3" name
 ///     auto field_value3() -> decltype(field_newValue3().field_member1())
@@ -1121,8 +1171,10 @@
 /// @code
 /// class MyBundle : public comms::field::Bundle<...>
 /// {
+///     // (Re)definition of the base class as inner Base type
+///     using Base = comms::field::Bundle<...>;
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+///     COMMS_FIELD_MEMBERS_NAMES(member1, member2, member3);
 ///     COMMS_FIELD_ALIAS(otherMem1Name, member1);
 ///     COMMS_FIELD_ALIAS(otherMem2Name, member2);
 /// };
@@ -1143,8 +1195,10 @@
 ///         TOptions...
 ///     >
 /// {
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::Message<...>;
 /// public:
-///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version, flags);
+///     COMMS_MSG_TRANSPORT_FIELDS_NAMES(version, flags);
 ///     COMMS_MSG_TRANSPORT_FIELD_ALIAS(otherFlagsName, flags);    
 /// };
 /// @endcode

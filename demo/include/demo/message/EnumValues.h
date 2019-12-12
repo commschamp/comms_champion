@@ -51,7 +51,7 @@ struct EnumValuesFields
     /// @brief Simple 1 byte enumeration value.
     using field1 =
         comms::field::EnumValue<
-            FieldBase,
+            demo::FieldBase,
             ValuesField1,
             typename TOpt::message::EnumValuesFields::field1,
             comms::option::ValidNumValueRange<(int)0, (int)ValuesField1::NumOfValues - 1>
@@ -87,7 +87,7 @@ struct EnumValuesFields
     ///     serialised using 2 bytes.
     using field2 =
         comms::field::EnumValue<
-            FieldBase,
+            demo::FieldBase,
             ValuesField2,
             typename TOpt::message::EnumValuesFields::field2,
             comms::option::ContentsValidator<ValuesField2Validator>,
@@ -126,7 +126,7 @@ struct EnumValuesFields
     ///     serialised using base-128 encoding.
     using field3 =
         comms::field::EnumValue<
-            FieldBase,
+            demo::FieldBase,
             ValuesField3,
             typename TOpt::message::EnumValuesFields::field3,
             comms::option::ContentsValidator<ValuesField3Validator>,
@@ -146,7 +146,7 @@ struct EnumValuesFields
     /// @brief 8 byte enumeration value.
     using field4 =
         comms::field::EnumValue<
-            FieldBase,
+            demo::FieldBase,
             ValuesField4,
             typename TOpt::message::EnumValuesFields::field4,
             comms::option::ValidBigUnsignedNumValue<(std::uintmax_t)ValuesField4::Value1>,
@@ -200,11 +200,11 @@ class EnumValues : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4);
+    COMMS_MSG_FIELDS_NAMES(field1, field2, field3, field4);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when calls to doMinLength() and

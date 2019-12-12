@@ -42,7 +42,7 @@ struct IntValuesFields
     /// @details The valid values are in range [0, 10]
     using field1 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::uint16_t,
             typename TOpt::message::IntValuesFields::field1,
             comms::option::ValidNumValueRange<0, 10>
@@ -51,7 +51,7 @@ struct IntValuesFields
     /// @brief Signed integer serialised using only 3 bytes
     using field2 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::int32_t,
             typename TOpt::message::IntValuesFields::field2,
             comms::option::FixedLength<3>
@@ -60,7 +60,7 @@ struct IntValuesFields
     /// @brief Variable length (base-128) encoded unsigned integer value
     using field3 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::uint32_t,
             typename TOpt::message::IntValuesFields::field3,
             comms::option::VarLength<1, 4>
@@ -71,7 +71,7 @@ struct IntValuesFields
     ///     Default constructed value is 2016
     using field4 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::int16_t,
             typename TOpt::message::IntValuesFields::field4,
             comms::option::FixedLength<1>,
@@ -83,7 +83,7 @@ struct IntValuesFields
     /// @brief Signed integer serialised using 6 bytes
     using field5 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::int64_t,
             typename TOpt::message::IntValuesFields::field5,
             comms::option::FixedLength<6>,
@@ -93,7 +93,7 @@ struct IntValuesFields
     /// @brief Unsigned integer serialised using 8 bytes
     using field6 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::uint64_t,
             typename TOpt::message::IntValuesFields::field6
         >;
@@ -146,11 +146,11 @@ class IntValues : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3, field4, field5, field6);
+    COMMS_MSG_FIELDS_NAMES(field1, field2, field3, field4, field5, field6);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when calls to doMinLength() and

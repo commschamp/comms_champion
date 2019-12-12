@@ -87,7 +87,7 @@ private:
                 comms::option::ExtraTransportFields<ExtraVersionTransport>
             >;
     public:
-        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version);
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(version);
     };
 
     typedef ExtraTransportMessageBase<NonPolymorphicBigEndianTraits> BeNonPolymorphicMessageBase;

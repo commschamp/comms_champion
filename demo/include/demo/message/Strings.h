@@ -42,11 +42,11 @@ struct StringsFields
     /// @brief String that uses 1 byte size prefix
     using field1 =
         comms::field::String<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::StringsFields::field1,
             comms::option::SequenceSizeFieldPrefix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint8_t
                 >
             >
@@ -55,11 +55,11 @@ struct StringsFields
     /// @brief String that is zero terminated
     using field2 =
         comms::field::String<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::StringsFields::field2,
             comms::option::SequenceTerminationFieldSuffix<
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint8_t
                 >
             >
@@ -68,7 +68,7 @@ struct StringsFields
     /// @brief Fixed size of 6 characters string
     using field3 =
         comms::field::String<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::StringsFields::field3,
             comms::option::SequenceFixedSize<6>
     >;
@@ -117,11 +117,11 @@ class Strings : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1, field2, field3);
+    COMMS_MSG_FIELDS_NAMES(field1, field2, field3);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when call to doMinLength()

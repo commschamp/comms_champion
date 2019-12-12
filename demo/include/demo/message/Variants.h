@@ -51,7 +51,7 @@ struct VariantsFields
     template <VarId TId>
     using varIdField =
         comms::field::EnumValue<
-            FieldBase,
+            demo::FieldBase,
             VarId,
             comms::option::DefaultNumValue<(int)TId>,
             comms::option::ValidNumValueRange<(int)TId, (int)TId>,
@@ -63,33 +63,29 @@ struct VariantsFields
     ///     the 1 byte unsigned integer.
     class field1_var1 : public
         comms::field::Bundle<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 varIdField<VarId::Elem1>,
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint8_t,
                     typename TOpt::message::VariantsFields::field1_var1
                 >
             >
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // Required for compilation with gcc earlier than v5.0,
-        // later versions don't require this type definition.
         using Base =
             comms::field::Bundle<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     varIdField<VarId::Elem1>,
                     comms::field::IntValue<
-                        FieldBase,
+                        demo::FieldBase,
                         std::uint8_t,
                         typename TOpt::message::VariantsFields::field1_var1
                     >
                 >
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -98,7 +94,7 @@ struct VariantsFields
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for 1 byte unsigned integer field.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_NAMES(id, value);
     };
 
     /// @brief Second type that can be stored in @ref field1 variant field.
@@ -106,33 +102,29 @@ struct VariantsFields
     ///     the 4 bytes unsigned integer.
     class field1_var2 : public
         comms::field::Bundle<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 varIdField<VarId::Elem2>,
                 comms::field::IntValue<
-                    FieldBase,
+                    demo::FieldBase,
                     std::uint32_t,
                     typename TOpt::message::VariantsFields::field1_var2
                 >
             >
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // Required for compilation with gcc earlier than v5.0,
-        // later versions don't require this type definition.
         using Base =
             comms::field::Bundle<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     varIdField<VarId::Elem2>,
                     comms::field::IntValue<
-                        FieldBase,
+                        demo::FieldBase,
                         std::uint32_t,
                         typename TOpt::message::VariantsFields::field1_var2
                     >
                 >
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -141,7 +133,7 @@ struct VariantsFields
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for 4 bytes unsigned integer field.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_NAMES(id, value);
     };
 
     /// @brief Third type that can be stored in @ref field1 variant field.
@@ -149,14 +141,14 @@ struct VariantsFields
     ///     the string prefixed with its lengths (1 byte).
     class field1_var3 : public
         comms::field::Bundle<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 varIdField<VarId::Elem3>,
                 comms::field::String<
-                    FieldBase,
+                    demo::FieldBase,
                     comms::option::SequenceSizeFieldPrefix<
                         comms::field::IntValue<
-                            FieldBase,
+                            demo::FieldBase,
                             std::uint8_t,
                             typename TOpt::message::VariantsFields::field1_var3
                         >
@@ -165,19 +157,16 @@ struct VariantsFields
             >
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // Required for compilation with gcc earlier than v5.0,
-        // later versions don't require this type definition.
         using Base =
             comms::field::Bundle<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     varIdField<VarId::Elem3>,
                     comms::field::String<
-                        FieldBase,
+                        demo::FieldBase,
                         comms::option::SequenceSizeFieldPrefix<
                             comms::field::IntValue<
-                                FieldBase,
+                                demo::FieldBase,
                                 std::uint8_t,
                                 typename TOpt::message::VariantsFields::field1_var3
                             >
@@ -185,7 +174,6 @@ struct VariantsFields
                     >
                 >
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -194,7 +182,7 @@ struct VariantsFields
         ///     The names are:
         ///     @b id for @ref varIdField<VarId::Elem1>
         ///     @b value for string field prefixed with its size.
-        COMMS_FIELD_MEMBERS_ACCESS(id, value);
+        COMMS_FIELD_MEMBERS_NAMES(id, value);
     };
 
     /// @brief Variant field.
@@ -204,7 +192,7 @@ struct VariantsFields
     ///     @li @ref field1_var3
     class field1 : public
         comms::field::Variant<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 field1_var1,
                 field1_var2,
@@ -213,12 +201,9 @@ struct VariantsFields
             typename TOpt::message::VariantsFields::field1
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // Required for compilation with gcc earlier than v5.0,
-        // later versions don't require this type definition.
         using Base =
             comms::field::Variant<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     field1_var1,
                     field1_var2,
@@ -226,18 +211,16 @@ struct VariantsFields
                 >,
                 typename TOpt::message::VariantsFields::field1
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
-
     public:
         /// @brief Allow access to internal fields.
-        /// @details See definition of @b COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE macro
+        /// @details See definition of @b COMMS_VARIANT_MEMBERS_NAMES macro
         ///     related to @b comms::field::Variant class from COMMS library
         ///     for details. @n
         ///     The names are:
         ///     @b val1 for @ref field1_var1
         ///     @b val2 for @ref field1_var2
         ///     @b val3 for @ref field1_var3
-        COMMS_VARIANT_MEMBERS_ACCESS(val1, val2, val3);
+        COMMS_VARIANT_MEMBERS_NAMES(val1, val2, val3);
     };
 
     /// @brief All the fields bundled in std::tuple.
@@ -282,10 +265,10 @@ class Variants : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
-    COMMS_MSG_FIELDS_ACCESS(field1);
+    COMMS_MSG_FIELDS_NAMES(field1);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when call to doMinLength()

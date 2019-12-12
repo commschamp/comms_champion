@@ -134,9 +134,7 @@ template <
     typename TDataFieldStorageOptions = comms::option::EmptyOption >
 class Stack : public StackBase<TMsgBase, TMessages, TMsgAllocOptions, TDataFieldStorageOptions>
 {
-#ifdef COMMS_MUST_DEFINE_BASE
     using Base = StackBase<TMsgBase, TMessages, TMsgAllocOptions, TDataFieldStorageOptions>;
-#endif
 public:
     COMMS_PROTOCOL_LAYERS_ACCESS(payload, version, id, size, checksum, sync);
 };

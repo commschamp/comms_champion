@@ -75,7 +75,7 @@ void ShortcutMgr::createInitialMap()
         /* Key_AddMessage */ "Ctrl+N",
         /* Key_EditMessage */ "Ctrl+E",
         /* Key_Delete */ "Delete",
-        /* Key_DupMessage */ "Ctrl+C",
+        /* Key_DupMessage */ "Ctrl+D",
         /* Key_Up */ "Ctrl+Up",
         /* Key_Down */ "Ctrl+Down",
         /* Key_Top */ "Ctrl+Shift+Up",

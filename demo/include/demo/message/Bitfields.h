@@ -43,7 +43,7 @@ struct BitfieldsFields
     ///     defined to be reserved and must be 0.
     struct field1_bitmask : public
         comms::field::BitmaskValue<
-            FieldBase,
+            demo::FieldBase,
             typename TOpt::message::BitfieldsFields::field1_bitmask,
             comms::option::FixedLength<1>,
             comms::option::FixedBitLength<4>,
@@ -69,7 +69,7 @@ struct BitfieldsFields
     /// @brief Enumeration field, that consumes 2 bits in @ref field1 bitfield.
     using field1_enum =
         comms::field::EnumValue<
-            FieldBase,
+            demo::FieldBase,
             Field1Enum,
             typename TOpt::message::BitfieldsFields::field1_enum,
             comms::option::ValidNumValueRange<(int)0, (int)Field1Enum::NumOfValues - 1>,
@@ -79,7 +79,7 @@ struct BitfieldsFields
     /// @brief Integer field, that consumes 6 bits in @ref field1 bitfield.
     using field1_int1 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::uint8_t,
             typename TOpt::message::BitfieldsFields::field1_int1,
             comms::option::FixedBitLength<6>,
@@ -89,7 +89,7 @@ struct BitfieldsFields
     /// @brief Integer field, that consumes 4 bits in @ref field1 bitfield.
     using field1_int2 =
         comms::field::IntValue<
-            FieldBase,
+            demo::FieldBase,
             std::uint8_t,
             typename TOpt::message::BitfieldsFields::field1_int2,
             comms::option::FixedBitLength<4>,
@@ -100,7 +100,7 @@ struct BitfieldsFields
     ///     @ref field1_int1, and @ref field1_int2 as its internal members
     class field1 : public
         comms::field::Bitfield<
-            FieldBase,
+            demo::FieldBase,
             std::tuple<
                 field1_bitmask,
                 field1_enum,
@@ -109,11 +109,9 @@ struct BitfieldsFields
             >
         >
     {
-#ifdef COMMS_MUST_DEFINE_BASE
-        // For some reason VS2015 compiler doesn't like having this definition
         using Base =
             comms::field::Bitfield<
-                FieldBase,
+                demo::FieldBase,
                 std::tuple<
                     field1_bitmask,
                     field1_enum,
@@ -121,7 +119,6 @@ struct BitfieldsFields
                     field1_int2
                 >
             >;
-#endif // #ifdef COMMS_MUST_DEFINE_BASE
     public:
         /// @brief Allow access to internal fields.
         /// @details See definition of @b COMMS_FIELD_MEMBERS_ACCESS_NOTEMPLATE macro
@@ -133,7 +130,7 @@ struct BitfieldsFields
         ///     @b member3 for @ref field1_int1
         ///     @b member4 for @ref field1_int2
         ///
-        COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3, member4);
+        COMMS_FIELD_MEMBERS_NAMES(member1, member2, member3, member4);
     };
 
     /// @brief All the fields bundled in std::tuple.
@@ -178,11 +175,11 @@ class Bitfields : public
 public:
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @b COMMS_MSG_FIELDS_ACCESS macro
+    /// @details See definition of @b COMMS_MSG_FIELDS_NAMES macro
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(field1);
+    COMMS_MSG_FIELDS_NAMES(field1);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when calls to doMinLength() and

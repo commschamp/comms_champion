@@ -24,6 +24,7 @@
 #include <limits>
 #include <type_traits>
 
+#include "comms/CompileControl.h"
 #include "comms/ErrorStatus.h"
 #include "comms/Assert.h"
 #include "basic/NoValue.h"
@@ -212,7 +213,7 @@ protected:
     using BaseImpl::writeData;
 
 private:
-#ifdef _MSC_VER
+#if COMMS_IS_MSVC
     // VS compiler has problems having 0 size objects in tuple.
     int dummy_ = 0;
 #endif

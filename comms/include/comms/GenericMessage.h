@@ -125,10 +125,10 @@ public:
     GenericMessage& operator=(GenericMessage&&) = default;
 
     /// @brief Allow access to internal fields.
-    /// @details See definition of @ref COMMS_MSG_FIELDS_ACCESS() macro
+    /// @details See definition of @ref COMMS_MSG_FIELDS_NAMES() macro
     ///     related to @b comms::MessageBase class for details.
     ///
-    COMMS_MSG_FIELDS_ACCESS(data);
+    COMMS_MSG_FIELDS_NAMES(data);
 
     /// @brief Get message ID information
     /// @details The comms::MessageBase::getIdImpl() will invoke this

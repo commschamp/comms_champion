@@ -20,11 +20,13 @@
 
 #pragma once
 
+#include "comms/Field.h"
+
 #include "Message.h"
 
 namespace demo
 {
 
-using FieldBase = demo::Message<>::Field;
+using FieldBase = comms::Field<ProtocolEndian>;
 
 } // namespace demo

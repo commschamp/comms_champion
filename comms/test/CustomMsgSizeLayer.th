@@ -64,7 +64,7 @@ private:
                 >        
             >;   
     public:
-        COMMS_FIELD_MEMBERS_ACCESS(size, flags);
+        COMMS_FIELD_MEMBERS_NAMES(size, flags);
     };
 
     using ExtraTransportFields =
@@ -86,11 +86,9 @@ private:
     struct Interface : public 
         comms::Message<IfOptions>
     {
-#ifdef COMMS_MUST_DEFINE_BASE        
         using Base = comms::Message<IfOptions>;
-#endif
     public:
-        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(flags);
     };
 
     using IfOptions2 = 
@@ -106,11 +104,9 @@ private:
     struct Interface2 : public 
         comms::Message<IfOptions2>
     {
-#ifdef COMMS_MUST_DEFINE_BASE        
         using Base = comms::Message<IfOptions2>;
-#endif
     public:
-        COMMS_MSG_TRANSPORT_FIELDS_ACCESS(flags);
+        COMMS_MSG_TRANSPORT_FIELDS_NAMES(flags);
     };
 
 

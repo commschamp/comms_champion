@@ -40,3 +40,9 @@
 #if !defined(CC_COMPILER_GCC47) && !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ < 8)
 #define CC_COMPILER_GCC47
 #endif
+
+#if defined(_MSC_VER) && !defined(__clang__)
+#define COMMS_IS_MSVC true
+#else
+#define COMMS_IS_MSVC false
+#endif

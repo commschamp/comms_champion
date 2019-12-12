@@ -685,7 +685,8 @@
 /// can be obtained using @b fields() member function (see @ref comms::MessageBase::fields()).
 ///
 /// However, every message that has at least one field is expected to use
-/// @ref COMMS_MSG_FIELDS_ACCESS() macro to provide names to inner fields.
+/// @ref COMMS_MSG_FIELDS_NAMES() (or @ref COMMS_MSG_FIELDS_ACCESS() in
+/// older versions) macro to provide names to inner fields.
 /// @code
 /// namespace my_protocol
 /// {
@@ -700,8 +701,10 @@
 ///         ...
 ///     >
 /// {
+///     using Base = comms::MessageBase<...>;
+///
 /// public:
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
+///     COMMS_MSG_FIELDS_NAMES(value1, value2, value3);
 ///     ...
 /// };
 ///
@@ -768,6 +771,11 @@
 ///     {
 ///         return std::get<FieldIdx_value3>(fields());
 ///     }
+///
+///     // Types of used fields
+///     using Field_value1 = ... /* implementation dependent field type */
+///     using Field_value2 = ... /* implementation dependent field type */
+///     using Field_value3 = ... /* implementation dependent field type */
 /// };
 ///
 /// } // namespace message
@@ -1156,7 +1164,7 @@
 /// enum class StopBits {...}
 /// enum class FlowControl {...}
 ///
-/// struct SerialConfigField : public 
+/// class SerialConfigField : public 
 ///     comms::field::Bitfield<
 ///         MyFieldBase, 
 ///         std::tuple<
@@ -1168,7 +1176,10 @@
 ///         >
 ///     >
 /// {
-///     COMMS_FIELD_MEMBERS_ACCESS(baud, parity, stopBits, flowControl, reserved);
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::field::Bitfield<...>;
+/// public:
+///     COMMS_FIELD_MEMBERS_NAMES(baud, parity, stopBits, flowControl, reserved);
 /// }
 /// @endcode
 /// All the member fields of the @ref comms::field::Bitfield are stored internally 
@@ -1176,7 +1187,7 @@
 /// @b std::tuple of all member fields and call to @ref comms::field::Bitfield::value()
 /// member function will give an access to it. 
 ///
-/// The field definition is expected to use @ref COMMS_FIELD_MEMBERS_ACCESS() macro,
+/// The field definition is expected to use @ref COMMS_FIELD_MEMBERS_NAMES() macro,
 /// which will generate @b FieldIdx enum as well as convenience access member 
 /// functions. The code becomes equivalent to:
 /// @code
@@ -1255,7 +1266,7 @@
 ///     ...
 /// }
 ///
-/// struct MyBundle : public
+/// class MyBundle : public
 ///     comms::field::Bundle<
 ///         MyFieldBase,
 ///         std::tuple<
@@ -1265,12 +1276,15 @@
 ///         >
 ///     >
 /// {
-///     COMMS_FIELD_MEMBERS_ACCESS(member1, member2, member3);
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::field::Bundle<...>;
+/// public:
+///     COMMS_FIELD_MEMBERS_NAMES(member1, member2, member3);
 /// };
 /// @endcode
 /// Just like with @ref page_use_prot_fields_bitfield, the inner @b ValueType type
 /// of such field is a @b std::tuple of member fields, and usage of 
-/// @ref COMMS_FIELD_MEMBERS_ACCESS() has exactly the same effect, i.e. generates
+/// @ref COMMS_FIELD_MEMBERS_NAMES() has exactly the same effect, i.e. generates
 /// inner @b FieldIdx enum and convenience access member functions:
 /// @code
 /// struct MyBundle : public
@@ -1528,9 +1542,9 @@
 ///         >
 ///     >
 /// {
-///     using Base = ...; // repeat base definition if needed
+///     using Base = ...; // repeat base definition
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(key, val);
+///     COMMS_FIELD_MEMBERS_NAMES(key, val);
 /// };
 ///
 /// using Property1 = Property<Key1, Value1>;
@@ -1538,13 +1552,17 @@
 /// using Property3 = Property<Key3, Value3>;
 /// 
 /// // Definition of the variant field
-/// struct MyVariant : public 
+/// class MyVariant : public 
 ///     comms::field::Variant<
 ///         MyFieldBase,
 ///         std::tuple<Property1, Property2, Property3>
 ///     >
 /// {
-///      COMMS_VARIANT_MEMBERS_ACCESS(prop1, prop2, prop3);
+///     // (Re)definition of the base class as inner Base type.
+///     using Base = comms::field::Variant<...>;
+///
+/// public:
+///     COMMS_VARIANT_MEMBERS_NAMES(prop1, prop2, prop3);
 /// };
 /// 
 ///
@@ -1559,11 +1577,11 @@
 /// @ref comms::field::Variant::value() "value()" member function which returns reference
 /// to the used storage area. These type and function should @b NOT
 /// be used directly. Instead, the  protocol definition is expected to 
-/// use @ref COMMS_VARIANT_MEMBERS_ACCESS() macro, which generates
+/// use @ref COMMS_VARIANT_MEMBERS_NAMES() macro, which generates
 /// appropriate access and conversion wrapper functions around
 /// @ref comms::field::Variant::initField() and @ref comms::field::Variant::accessField().
 ///
-/// The usage of @ref COMMS_VARIANT_MEMBERS_ACCESS() in the above is
+/// The usage of @ref COMMS_VARIANT_MEMBERS_NAMES() in the above is
 /// equivalent to having the following member types and functions defined
 /// @code
 /// struct MyVariant : public comms::field::Variant<...>
@@ -1632,10 +1650,16 @@
 ///     {
 ///         return accessField<FieldIdx_prop3>();
 ///     }
+///
+///     // Types of used fields
+///     using Field_prop1 = ... /* implementation dependent field type */
+///     using Field_prop2 = ... /* implementation dependent field type */
+///     using Field_prop3 = ... /* implementation dependent field type */
 /// };
 /// @endcode
 /// @b NOTE, that the provided names have propagated into definition of @b FieldIdx
-/// enum as well as all @b initField_* and @b accessField_* functions.
+/// enum, all @b initField_* and @b accessField_* functions, as well as
+/// inner @b Field_* types.
 ///
 /// When variant field object is instantiated, 
 /// accessing the currently held field can be tricky though. There is a need
@@ -1768,9 +1792,9 @@
 ///         comms::option::def::RemLengthMemberField<1> // Index of remaining length field is 1
 ///     >
 /// {
-///     using Base = ...; // repeat base definition if needed
+///     using Base = ...; // repeat base definition
 /// public:
-///     COMMS_FIELD_MEMBERS_ACCESS(key, length, val);
+///     COMMS_FIELD_MEMBERS_NAMES(key, length, val);
 /// };
 /// ...
 /// @endcode
@@ -1867,8 +1891,11 @@
 ///         comms::option::def::MsgType<Message1<TBase, TOpt> > 
 ///     >
 /// {
+///     // (Re)definition of the base class
+///     using Base = comms::MessageBase<...>; 
+/// public:
 ///     // Provide names for the fields
-///     COMMS_MSG_FIELDS_ACCESS(value1, value2, value3);
+///     COMMS_MSG_FIELDS_NAMES(value1, value2, value3);
 /// };
 ///
 /// } // namespace message
@@ -2903,14 +2930,16 @@
 ///         TOptions...
 ///     >
 /// {
+///     // (Re)definition of the base class as inner Base type
+///     using Base = comms::Message<...>;
 /// public:
-///     COMMS_MSG_TRANSPORT_FIELDS_ACCESS(version)
+///     COMMS_MSG_TRANSPORT_FIELDS_NAMES(version)
 /// };
 ///
 /// } // namespace my_protocol
 /// @endcode
 /// Usage of @ref comms::option::def::ExtraTransportFields option as well as
-/// @ref COMMS_MSG_TRANSPORT_FIELDS_ACCESS() macro in the message class definition
+/// @ref COMMS_MSG_TRANSPORT_FIELDS_NAMES() macro in the message class definition
 /// is equivalent to having the following types and member functions defined
 /// @code
 /// namespace my_protocol
@@ -2950,6 +2979,10 @@
 ///     {
 ///         return std::get<TransportFieldIdx_version>(transportFields());
 ///     }
+///
+///     // Definition of the transport field's types
+///     using TransportField_version = MyVersionField;
+///
 /// private:
 ///     TransportFields m_transportFields;
 /// };

@@ -93,3 +93,43 @@
 
 #endif
 
+// ----------------------------------------------
+
+#define COMMS_FIELD_ALIAS_TYPE(P_, m_) COMMS_CONCATENATE(P_, m_)
+
+#define COMMS_FIELD_ALIAS_TYPE_1(P_, m_) COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE(P_, m_))
+#define COMMS_FIELD_ALIAS_TYPE_2(P_, m_, ...) \
+    COMMS_FIELD_ALIAS_TYPE(P_, m_) :: COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_1(Field_, __VA_ARGS__)) // using Field_ as next prefix on purpose
+#define COMMS_FIELD_ALIAS_TYPE_3(P_, m_, ...) \
+    COMMS_FIELD_ALIAS_TYPE(P_, m_) :: COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_2(Field_, __VA_ARGS__)) // using Field_ as next prefix on purpose
+#define COMMS_FIELD_ALIAS_TYPE_4(P_, m_, ...) \
+    COMMS_FIELD_ALIAS_TYPE(P_, m_) :: COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_3(Field_, __VA_ARGS__)) // using Field_ as next prefix on purpose
+#define COMMS_FIELD_ALIAS_TYPE_5(P_, m_, ...) \
+    COMMS_FIELD_ALIAS_TYPE(P_, m_) :: COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_4(Field_, __VA_ARGS__)) // using Field_ as next prefix on purpose
+#define COMMS_FIELD_ALIAS_TYPE_6(P_, m_, ...) \
+    COMMS_FIELD_ALIAS_TYPE(P_, m_) :: COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_5(Field_, __VA_ARGS__)) // using Field_ as next prefix on purpose
+#define COMMS_FIELD_ALIAS_TYPE_7(P_, m_, ...) \
+    COMMS_FIELD_ALIAS_TYPE(P_, m_) :: COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_6(Field_, __VA_ARGS__)) // using Field_ as next prefix on purpose
+#define COMMS_FIELD_ALIAS_TYPE_8(P_, m_, ...) \
+    COMMS_FIELD_ALIAS_TYPE(P_, m_) :: COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_7(Field_, __VA_ARGS__)) // using Field_ as next prefix on purpose
+
+#define COMMS_ALIAS_ALL_TYPES_(N, P_, ...) COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_ ## N(P_, __VA_ARGS__))
+#define COMMS_ALIAS_ALL_TYPES(N, P_, ...) COMMS_EXPAND(COMMS_ALIAS_ALL_TYPES_(N, P_, __VA_ARGS__))
+#define COMMS_DO_ALIAS_ALL_TYPES(P_, ...) \
+    COMMS_EXPAND(COMMS_ALIAS_ALL_TYPES(COMMS_NUM_ARGS(__VA_ARGS__), P_, __VA_ARGS__))
+
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_1
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_2 typename
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_3 typename
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_4 typename
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_5 typename
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_6 typename
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_7 typename
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_8 typename
+
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX_(N) COMMS_FIELD_ALIAS_TYPE_PREFIX_ ## N
+#define COMMS_FIELD_ALIAS_TYPE_PREFIX(N) COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_PREFIX_(N))
+
+#define COMMS_DO_ALIAS_TYPEDEF(P_, n_, ...) \
+    using COMMS_CONCATENATE(P_, n_) = \
+        COMMS_EXPAND(COMMS_FIELD_ALIAS_TYPE_PREFIX(COMMS_NUM_ARGS(__VA_ARGS__))) COMMS_EXPAND(COMMS_DO_ALIAS_ALL_TYPES(P_, __VA_ARGS__));

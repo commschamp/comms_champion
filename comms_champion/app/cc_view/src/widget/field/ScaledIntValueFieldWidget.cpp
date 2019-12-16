@@ -111,11 +111,8 @@ void ScaledIntValueFieldWidget::updatePropertiesImpl(const QVariantMap& props)
     }
 
     auto& specials = actProps.specials();
-    bool needRefresh = createSpecialsWidget(specials);
-
-    if (needRefresh) {
-        refresh();
-    }
+    createSpecialsWidget(specials);
+    refresh();
 }
 
 void ScaledIntValueFieldWidget::serialisedValueUpdated(const QString& value)

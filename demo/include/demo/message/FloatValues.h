@@ -63,12 +63,24 @@ struct FloatValuesFields
             comms::option::ScalingRatio<1, 100>
         >;
 
+    /// @brief Floating point value serialised as 5 byte integer with (1e-11) scaling ratio.
+    using field4 =
+        comms::field::IntValue<
+            demo::FieldBase,
+            std::int64_t,
+            typename TOpt::message::FloatValuesFields::field4,
+            comms::option::ScalingRatio<1, 100000000000>,
+            comms::option::FixedLength<5>
+        >;
+
     /// @brief All the fields bundled in std::tuple.
     using All = std::tuple<
         field1,
         field2,
-        field3
+        field3,
+        field4
     >;
+
 };
 
 /// @brief Accumulates various floating point values.
@@ -111,15 +123,15 @@ public:
     ///     related to @b comms::MessageBase class from COMMS library
     ///     for details.
     ///
-    COMMS_MSG_FIELDS_NAMES(field1, field2, field3);
+    COMMS_MSG_FIELDS_NAMES(field1, field2, field3, field4);
 
     // Check serialisation lengths
     // For some reason VS2015 compiler fails when calls to doMinLength() and
     // doMaxLength() are performed inside static_assert.
     static const std::size_t MsgMinLen = Base::doMinLength();
     static const std::size_t MsgMaxLen = Base::doMaxLength();
-    static_assert(MsgMinLen == 13, "Unexpected min serialisation length");
-    static_assert(MsgMaxLen == 13, "Unexpected max serialisation length");
+    static_assert(MsgMinLen == 18, "Unexpected min serialisation length");
+    static_assert(MsgMaxLen == 18, "Unexpected max serialisation length");
 
     /// @brief Default constructor
     FloatValues() = default;

@@ -61,6 +61,11 @@ QVariantList createFieldsProperties()
             .addSpecial("S1", 123)
             .addSpecial("S2", 22)
             .asMap());
+    props.append(
+        cc::property::field::ForField<FloatValuesFields::field4>()
+            .name("field4")
+            .scaledDecimals(11)
+            .asMap());
 
     assert(props.size() == FloatValues::FieldIdx_numOfValues);
     return props;

@@ -284,15 +284,11 @@ public:
     }
 
     /// @brief Write current field value to output data sequence
-    /// @details If field is marked as missing (mode is OptionalMode::Missing),
+    /// @details If field is marked as missing (mode is OptionalMode::Missing) or
+    ///     tentative (mode is OptionalMode::Tentative) the
     ///     function returns comms::ErrorStatus::Success without advancing iterator.@n
     ///     If field is marked as existing (mode is OptionalMode::Exists) the
-    ///     write() member function of the wrapped field object is invoked.@n
-    ///     If field is marked to be tentative (mode is OptionalMode::Tentative),
-    ///     the call redirected to wrapped field's write() member function if
-    ///     value of the "len" parameter is greater than 0, i.e. there is
-    ///     space available for writing.@n Otherwise, comms::ErrorStatus::Success
-    ///     is returned.
+    ///     write() member function of the wrapped field object is invoked.
     /// @param[in, out] iter Iterator to write the data.
     /// @param[in] len Maximal number of bytes that can be written.
     /// @return Status of write operation.

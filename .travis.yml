@@ -3,8 +3,6 @@ language: cpp
 sudo: true
 notifications:
   email:
-    recipients:
-      - arobenko@gmail.com  
     on_success: change
     on_failure: always
     

@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2019 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2020 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -163,24 +163,12 @@ public:
 
     static constexpr bool hasReadNoStatus()
     {
-        return Field::hasReadNoStatus();
-    }
-
-    template <typename TIter>
-    void readNoStatus(TIter& iter)
-    {
-        if (mode_ != Mode::Exists) {
-            mode_ = Mode::Missing;
-            return;
-        }
-
-        mode_ = Mode::Exists;
-        field_.readNoStatus(iter);
+        return false;
     }
 
     bool canWrite() const
     {
-        if (mode_ == Mode::Missing) {
+        if (mode_ != Mode::Exists) {
             return true;
         }
 
@@ -190,11 +178,7 @@ public:
     template <typename TIter>
     ErrorStatus write(TIter& iter, std::size_t len) const
     {
-        if (mode_ == Mode::Missing) {
-            return comms::ErrorStatus::Success;
-        }
-
-        if ((mode_ == Mode::Tentative) && (0U == len)) {
+        if (mode_ != Mode::Exists) {
             return comms::ErrorStatus::Success;
         }
 

@@ -187,7 +187,6 @@ public:
 
     ~NoVirtualDestructorInPlaceDeleter()
     {
-        COMMS_ASSERT(allocated_ == nullptr);
     }
 
     NoVirtualDestructorInPlaceDeleter& operator=(const NoVirtualDestructorInPlaceDeleter&) = delete;
@@ -245,7 +244,6 @@ public:
 
     ~InPlaceDeleter() noexcept
     {
-        COMMS_ASSERT(allocated_ == nullptr);
     }
 
     InPlaceDeleter& operator=(const InPlaceDeleter& other) = delete;
@@ -279,7 +277,7 @@ public:
     }
 
 private:
-    bool* allocated_;
+    bool* allocated_ = nullptr;
 };
 
 
@@ -397,6 +395,13 @@ public:
     /// @details The custom deleter makes sure the destructor of the
     ///     allocated object is called.
     using Ptr = std::unique_ptr<TInterface, details::InPlaceDeleter<TInterface> >;
+
+    /// @brief Destructor
+    ~InPlaceSingle()
+    {
+        // Not supposed to be destructed while elemenent is still allocated
+        COMMS_ASSERT(!allocated_);
+    }
 
     /// @brief Allocation function
     /// @tparam TObj Type of the object being allocated, expected to be the

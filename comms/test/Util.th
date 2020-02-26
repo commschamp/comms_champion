@@ -1,5 +1,5 @@
 //
-// Copyright 2015 - 2017 (C). Alex Robenko. All rights reserved.
+// Copyright 2015 - 2020 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -50,6 +50,7 @@ public:
     void test23();
     void test24();
     void test25();
+    void test26();
 };
 
 void UtilTestSuite::test1()
@@ -994,4 +995,19 @@ void UtilTestSuite::test25()
     TS_ASSERT_EQUALS(str.size(), 2U);
     TS_ASSERT_EQUALS(str, "el");
     TS_ASSERT_EQUALS(beg + 1, str.data());
+}
+
+void UtilTestSuite::test26()
+{
+    typedef comms::util::StaticString<64> Str;
+
+    Str str(5U, 'a');
+    TS_ASSERT_EQUALS(str.size(), 5U);
+    TS_ASSERT_DIFFERS(str, "aaaaaa"); // One extra character
+    TS_ASSERT_LESS_THAN(str, "aaaaaa"); // One extra character
+    TS_ASSERT(str <= "aaaaaa");
+    TS_ASSERT(str <= "aaaaa");
+    TS_ASSERT(str > "aaaa");
+    TS_ASSERT(str >= "aaaa");
+    TS_ASSERT(str >= "aaaaa");
 }

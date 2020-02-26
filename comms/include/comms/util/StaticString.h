@@ -698,7 +698,8 @@ protected:
 
             ++str;
         }
-        return false;
+
+        return *str > Ends;
     }
 
     bool operator>(const TChar* str) const
@@ -737,7 +738,7 @@ protected:
             ++str;
         }
 
-        return true;
+        return (*str == Ends);
     }
 
 private:
@@ -1887,6 +1888,15 @@ template <std::size_t TSize1, typename TChar>
 bool operator<=(const TChar* str1, const StaticString<TSize1, TChar>& str2)
 {
     return !(str2 < str1);
+}
+
+/// @brief Lexicographical compare between the strings.
+/// @see <a href="http://en.cppreference.com/w/cpp/string/basic_string/operator_cmp">Reference</a>
+/// @related StaticString
+template <std::size_t TSize1, typename TChar>
+bool operator<=(const StaticString<TSize1, TChar>& str1, const TChar* str2)
+{
+    return !(str1 > str2);
 }
 
 /// @brief Lexicographical compare between the strings.

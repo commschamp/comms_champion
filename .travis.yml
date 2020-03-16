@@ -81,14 +81,14 @@ matrix:
             - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-9
-      env: _CC=gcc-9 _CXX=g++-9 _USE_GCC9=1
+      env: _CC=gcc-9 _CXX=g++-9 
     - os: linux
       apt:
           sources:
             - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-9
-      env: _CC=gcc-9 _CXX=g++-9 _USE_GCC9=1 _BUILD="-DCMAKE_CXX_STANDARD=14"          
+      env: _CC=gcc-9 _CXX=g++-9 _BUILD="-DCMAKE_CXX_STANDARD=14"          
     - os: linux
       apt:
           sources:

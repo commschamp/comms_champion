@@ -76,25 +76,22 @@ matrix:
             - g++-8    
       env: _CC=gcc-8 _CXX=g++-8 _BUILD="-DCMAKE_CXX_STANDARD=14"      
     - os: linux
-      apt:
+      addons:
+        apt:
           sources:
             - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
-            - g++-9
+            - g++-9    
       env: _CC=gcc-9 _CXX=g++-9 
     - os: linux
-      apt:
+      addons:
+        apt:
           sources:
             - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-9
       env: _CC=gcc-9 _CXX=g++-9 _BUILD="-DCMAKE_CXX_STANDARD=14"          
     - os: linux
-      apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
-          packages:
-            - g++-9
       addons:
         apt:
           sources:

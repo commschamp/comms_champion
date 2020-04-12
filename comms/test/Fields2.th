@@ -24,6 +24,7 @@
 #include <type_traits>
 
 #include "comms/comms.h"
+#include "comms/options.h"
 
 CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
@@ -41,6 +42,8 @@ public:
     void test4();
     void test5();
     void test6();
+    void test7();
+    void test8();
 
 private:
 
@@ -461,6 +464,289 @@ void FieldsTestSuite2::test6()
         TS_ASSERT_EQUALS(es, comms::ErrorStatus::InvalidMsgData);
     } while (false);
 
+}
+
+void FieldsTestSuite2::test7()
+{
+    static const double Epsilon = std::numeric_limits<double>::epsilon();
+    do {
+        typedef comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint64_t,
+            comms::option::UnitsBytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isBytes(field), "Invalid units");
+
+        const unsigned Num = 7;
+
+        comms::units::setBytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<unsigned>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getKilobytes<double>(field) - (double(Num) / 1024)) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getMegabytes<double>(field) - (double(Num) / 1024 / 1024)) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - (double(Num) / 1024 / 1024 / 1024)) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024 / 1024 / 1024 / 1024)) < Epsilon);
+
+        comms::units::setKilobytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<unsigned>(field), Num * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<unsigned>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getMegabytes<double>(field) - (double(Num) / 1024 )) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - (double(Num) / 1024 / 1024)) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024 / 1024 / 1024)) < Epsilon);
+
+        comms::units::setMegabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<unsigned long>(field), Num * 1024UL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<unsigned>(field), Num * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<unsigned>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - (double(Num) / 1024)) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024 / 1024)) < Epsilon);
+
+        comms::units::setGigabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024)) < Epsilon);
+
+        comms::units::setTerabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getTerabytes<std::uintmax_t>(field), Num);
+    } while (false);
+
+    do {
+        typedef comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint64_t,
+            comms::option::UnitsKilobytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isKilobytes(field), "Invalid units");
+
+        const unsigned Num = 7;
+
+        comms::units::setKilobytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<unsigned>(field), Num * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<unsigned>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getMegabytes<double>(field) - (double(Num) / 1024 )) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - (double(Num) / 1024 / 1024)) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024 / 1024 / 1024)) < Epsilon);
+
+        comms::units::setMegabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<unsigned long>(field), Num * 1024UL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<unsigned>(field), Num * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<unsigned>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - (double(Num) / 1024)) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024 / 1024)) < Epsilon);
+
+        comms::units::setGigabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024)) < Epsilon);
+
+        comms::units::setTerabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getTerabytes<std::uintmax_t>(field), Num);
+    } while (false);    
+
+    do {
+        typedef comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint64_t,
+            comms::option::UnitsMegabytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isMegabytes(field), "Invalid units");
+
+        const unsigned Num = 7;
+
+        comms::units::setMegabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<unsigned long>(field), Num * 1024UL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<unsigned>(field), Num * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<unsigned>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - (double(Num) / 1024)) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024 / 1024)) < Epsilon);
+
+        comms::units::setGigabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024)) < Epsilon);
+
+        comms::units::setTerabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getTerabytes<std::uintmax_t>(field), Num);
+    } while (false);  
+
+    do {
+        typedef comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint64_t,
+            comms::option::UnitsGigabytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isGigabytes(field), "Invalid units");
+
+        const unsigned Num = 7;
+
+        comms::units::setGigabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - (double(Num) / 1024)) < Epsilon);
+
+        comms::units::setTerabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getTerabytes<std::uintmax_t>(field), Num);
+    } while (false);        
+
+    do {
+        typedef comms::field::IntValue<
+            comms::Field<BigEndianOpt>,
+            std::uint64_t,
+            comms::option::UnitsTerabytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isTerabytes(field), "Invalid units");
+
+        const unsigned Num = 7;
+
+        comms::units::setTerabytes(field, Num);
+        TS_ASSERT_EQUALS(comms::units::getBytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getKilobytes<std::uintmax_t>(field), Num * 1024ULL * 1024 * 1024);
+        TS_ASSERT_EQUALS(comms::units::getMegabytes<std::uintmax_t>(field), Num * 1024ULL * 1024);
+        TS_ASSERT_EQUALS(comms::units::getGigabytes<std::uintmax_t>(field), Num * 1024ULL);
+        TS_ASSERT_EQUALS(comms::units::getTerabytes<std::uintmax_t>(field), Num);
+    } while (false);                    
+
+}
+
+struct Test8_Helper
+{
+    template <typename TField>
+    static void test(TField& field)
+    {
+        static const double Epsilon = std::numeric_limits<double>::epsilon();
+        static const double Num = 7;
+
+        comms::units::setBytes(field, Num);
+        TS_ASSERT(std::abs(comms::units::getBytes<double>(field) - Num) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getKilobytes<double>(field) - Num / 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getMegabytes<double>(field) - Num / 1024 / 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - Num / 1024 / 1024 / 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - Num / 1024 / 1024 / 1024 / 1024) < Epsilon);
+
+        comms::units::setKilobytes(field, Num);
+        TS_ASSERT(std::abs(comms::units::getBytes<double>(field) - Num * 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getKilobytes<double>(field) - Num) < Epsilon);        
+        TS_ASSERT(std::abs(comms::units::getMegabytes<double>(field) - Num / 1024 ) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - Num / 1024 / 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - Num / 1024 / 1024 / 1024) < Epsilon);
+
+        comms::units::setMegabytes(field, Num);
+        TS_ASSERT(std::abs(comms::units::getBytes<double>(field) - Num * 1024 * 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getKilobytes<double>(field) - Num * 1024) < Epsilon);        
+        TS_ASSERT(std::abs(comms::units::getMegabytes<double>(field) - Num) < Epsilon);        
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - Num / 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - Num / 1024 / 1024) < Epsilon);
+
+        comms::units::setGigabytes(field, Num);
+        TS_ASSERT(std::abs(comms::units::getBytes<double>(field) - Num * 1024 * 1024 * 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getKilobytes<double>(field) - Num * 1024 * 1024) < Epsilon);        
+        TS_ASSERT(std::abs(comms::units::getMegabytes<double>(field) - Num * 1024) < Epsilon);        
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - Num) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - Num / 1024) < Epsilon);
+
+        comms::units::setTerabytes(field, Num);
+        TS_ASSERT(std::abs(comms::units::getBytes<double>(field) - Num * 1024 * 1024 * 1024 * 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getKilobytes<double>(field) - Num * 1024 * 1024 * 1024) < Epsilon);        
+        TS_ASSERT(std::abs(comms::units::getMegabytes<double>(field) - Num * 1024 * 1024) < Epsilon);        
+        TS_ASSERT(std::abs(comms::units::getGigabytes<double>(field) - Num * 1024) < Epsilon);
+        TS_ASSERT(std::abs(comms::units::getTerabytes<double>(field) - Num) < Epsilon);        
+    }
+};
+
+void FieldsTestSuite2::test8()
+{
+    do {
+        typedef comms::field::FloatValue<
+            comms::Field<BigEndianOpt>,
+            double,
+            comms::option::UnitsBytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isBytes(field), "Invalid units");
+        Test8_Helper::test(field);
+    } while (false);
+
+    do {
+        typedef comms::field::FloatValue<
+            comms::Field<BigEndianOpt>,
+            double,
+            comms::option::UnitsKilobytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isKilobytes(field), "Invalid units");
+        Test8_Helper::test(field);
+    } while (false);    
+
+    do {
+        typedef comms::field::FloatValue<
+            comms::Field<BigEndianOpt>,
+            double,
+            comms::option::UnitsMegabytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isMegabytes(field), "Invalid units");
+        Test8_Helper::test(field);
+    } while (false);        
+
+    do {
+        typedef comms::field::FloatValue<
+            comms::Field<BigEndianOpt>,
+            double,
+            comms::option::UnitsGigabytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isGigabytes(field), "Invalid units");
+        Test8_Helper::test(field);
+    } while (false);     
+
+    do {
+        typedef comms::field::FloatValue<
+            comms::Field<BigEndianOpt>,
+            double,
+            comms::option::UnitsTerabytes
+        > Field;
+
+        Field field;
+        static_assert(comms::units::isTerabytes(field), "Invalid units");
+        Test8_Helper::test(field);
+    } while (false);           
 }
 
 template <typename TField>

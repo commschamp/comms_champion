@@ -964,6 +964,31 @@ using UnitsVolts =
 using UnitsKilovolts =
     Units<comms::traits::units::Voltage, comms::traits::units::KilovoltsRatio>;
 
+/// @brief Alias option, specifying field value units are "bytes".
+/// @headerfile comms/options.h
+using UnitsBytes =
+    Units<comms::traits::units::Memory, comms::traits::units::BytesRatio>;    
+
+/// @brief Alias option, specifying field value units are "kilobytes".
+/// @headerfile comms/options.h
+using UnitsKilobytes =
+    Units<comms::traits::units::Memory, comms::traits::units::KilobytesRatio>;        
+
+/// @brief Alias option, specifying field value units are "megabytes".
+/// @headerfile comms/options.h
+using UnitsMegabytes =
+    Units<comms::traits::units::Memory, comms::traits::units::MegabytesRatio>;     
+
+/// @brief Alias option, specifying field value units are "gigabytes".
+/// @headerfile comms/options.h
+using UnitsGigabytes =
+    Units<comms::traits::units::Memory, comms::traits::units::GigabytesRatio>;         
+
+/// @brief Alias option, specifying field value units are "terabytes".
+/// @headerfile comms/options.h
+using UnitsTerabytes =
+    Units<comms::traits::units::Memory, comms::traits::units::TerabytesRatio>;         
+
 /// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
 ///     assigns numeric value provided as the template argument to this option.
 /// @details If the required numeric value is too big (doesn't fit into @b
@@ -1666,6 +1691,21 @@ using UnitsVolts = comms::option::def::UnitsVolts;
 
 /// @brief Same as @ref comms::option::def::UnitsKilovolts
 using UnitsKilovolts = comms::option::def::UnitsKilovolts;
+
+/// @brief Same as @ref comms::option::def::UnitsBytes
+using UnitsBytes = comms::option::def::UnitsBytes;
+
+/// @brief Same as @ref comms::option::def::UnitsKilobytes
+using UnitsKilobytes = comms::option::def::UnitsKilobytes;
+
+/// @brief Same as @ref comms::option::def::UnitsMegabytes
+using UnitsMegabytes = comms::option::def::UnitsMegabytes;
+
+/// @brief Same as @ref comms::option::def::UnitsGigabytes
+using UnitsGigabytes = comms::option::def::UnitsGigabytes;
+
+/// @brief Same as @ref comms::option::def::UnitsTerabytes
+using UnitsTerabytes = comms::option::def::UnitsTerabytes;
 
 /// @brief Same as @ref comms::option::def::DefaultNumValue
 template<std::intmax_t TVal>

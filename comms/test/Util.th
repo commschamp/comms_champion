@@ -928,32 +928,45 @@ void UtilTestSuite::test24()
     static_assert(!comms::field::basic::details::vectorHasAssign<comms::util::ArrayView<std::uint8_t> >(),
             "ArrayView has assign");
 
-    static_assert(comms::details::hasReserveFunc<std::string>(),
+    static_assert(comms::util::detect::hasReserveFunc<std::string>(),
             "std::string must have reserve");
 
-    static_assert(comms::details::hasReserveFunc<StaticStr>(),
+    static_assert(comms::util::detect::hasReserveFunc<StaticStr>(),
             "StaticString must have reserve");
 
-    static_assert(comms::details::hasReserveFunc<StaticVec>(),
+    static_assert(comms::util::detect::hasReserveFunc<StaticVec>(),
             "StaticVector must have reserve");
 
-    static_assert(!comms::details::hasReserveFunc<comms::util::StringView>(),
+    static_assert(!comms::util::detect::hasReserveFunc<comms::util::StringView>(),
             "StringView mustn't have reserve");
 
-    static_assert(comms::details::hasClearFunc<std::string>(),
+    static_assert(comms::util::detect::hasClearFunc<std::string>(),
             "std::string must have clear");
 
-    static_assert(comms::details::hasClearFunc<StaticStr>(),
+    static_assert(comms::util::detect::hasClearFunc<StaticStr>(),
             "StaticString must have clear");
 
-    static_assert(comms::details::hasClearFunc<StaticVec>(),
+    static_assert(comms::util::detect::hasClearFunc<StaticVec>(),
             "StaticVector must have clear");
 
-    static_assert(!comms::details::hasClearFunc<comms::util::StringView>(),
+    static_assert(!comms::util::detect::hasClearFunc<comms::util::StringView>(),
             "StringView mustn't have clear");
 
-    static_assert(comms::details::hasRemoveSuffixFunc<comms::util::StringView>(),
+    static_assert(comms::util::detect::hasRemoveSuffixFunc<comms::util::StringView>(),
             "StringView must have remove_suffix");
+
+    static_assert(!comms::util::detect::hasRemoveSuffixFunc<std::string>(),
+            "std::string mustn't have remove_suffix");      
+
+    static_assert(comms::util::detect::hasAssignFunc<std::string>(), 
+        "std::string must have assign()");
+
+    static_assert(comms::util::detect::hasAssignFunc<std::vector<std::uint8_t> >(), 
+        "std::vector must have assign()");        
+
+    static_assert(
+        !comms::util::detect::hasAssignFunc<comms::util::StringView>(), 
+            "comms::util::StringView mustn't have assign()");
 
     static_assert(std::is_base_of<comms::util::details::StaticVectorCasted<char, unsigned char, 20>, StaticVecChar>::value,
             "Wrong base class");

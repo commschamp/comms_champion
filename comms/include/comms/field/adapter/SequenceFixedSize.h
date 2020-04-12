@@ -21,7 +21,7 @@
 #include <cstddef>
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
-#include "comms/details/detect.h"
+#include "comms/util/detect.h"
 #include "comms/field/basic/CommonFuncs.h"
 
 namespace comms
@@ -157,7 +157,7 @@ public:
 
         using Tag =
             typename std::conditional<
-                comms::details::hasResizeFunc<ElementType>(),
+                comms::util::detect::hasResizeFunc<ElementType>(),
                 HasResizeTag,
                 NoResizeTag
             >::type;

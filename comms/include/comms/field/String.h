@@ -26,9 +26,10 @@
 #include "comms/options.h"
 #include "comms/util/StaticString.h"
 #include "comms/util/StringView.h"
-#include "basic/String.h"
-#include "details/AdaptBasicField.h"
-#include "details/OptionsParser.h"
+#include "comms/util/detect.h"
+#include "comms/field/basic/String.h"
+#include "comms/field/details/AdaptBasicField.h"
+#include "comms/field/details/OptionsParser.h"
 #include "tag.h"
 
 namespace comms
@@ -442,10 +443,10 @@ private:
     {
         using TagTmp =
             typename std::conditional<
-                comms::details::hasResizeFunc<ValueType>(),
+                comms::util::detect::hasResizeFunc<ValueType>(),
                 HasResizeTag,
                 typename std::conditional<
-                    comms::details::hasRemoveSuffixFunc<ValueType>(),
+                    comms::util::detect::hasRemoveSuffixFunc<ValueType>(),
                     HasRemoveSuffixTag,
                     void
                 >::type

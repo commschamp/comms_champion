@@ -29,26 +29,26 @@ CC_DISABLE_WARNINGS()
 #include "cxxtest/TestSuite.h"
 CC_ENABLE_WARNINGS()
 
-static_assert(comms::details::hasClearFunc<std::string>(), "Invalid function presence detection");
-static_assert(comms::details::hasClearFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
-static_assert(comms::details::hasClearFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
-static_assert(comms::details::hasClearFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
-static_assert(!comms::details::hasClearFunc<comms::util::StringView>(), "Invalid function presence detection");
-static_assert(!comms::details::hasClearFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasClearFunc<std::string>(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasClearFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasClearFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasClearFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
+static_assert(!comms::util::detect::hasClearFunc<comms::util::StringView>(), "Invalid function presence detection");
+static_assert(!comms::util::detect::hasClearFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
 
-static_assert(comms::details::hasResizeFunc<std::string>(), "Invalid function presence detection");
-static_assert(comms::details::hasResizeFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
-static_assert(comms::details::hasResizeFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
-static_assert(comms::details::hasResizeFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
-static_assert(!comms::details::hasResizeFunc<comms::util::StringView>(), "Invalid function presence detection");
-static_assert(!comms::details::hasResizeFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasResizeFunc<std::string>(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasResizeFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasResizeFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasResizeFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
+static_assert(!comms::util::detect::hasResizeFunc<comms::util::StringView>(), "Invalid function presence detection");
+static_assert(!comms::util::detect::hasResizeFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
 
-static_assert(comms::details::hasReserveFunc<std::string>(), "Invalid function presence detection");
-static_assert(comms::details::hasReserveFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
-static_assert(comms::details::hasReserveFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
-static_assert(comms::details::hasReserveFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
-static_assert(!comms::details::hasReserveFunc<comms::util::StringView>(), "Invalid function presence detection");
-static_assert(!comms::details::hasReserveFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasReserveFunc<std::string>(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasReserveFunc<std::vector<std::uint8_t> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasReserveFunc<comms::util::StaticString<5> >(), "Invalid function presence detection");
+static_assert(comms::util::detect::hasReserveFunc<comms::util::StaticVector<std::uint8_t, 5> >(), "Invalid function presence detection");
+static_assert(!comms::util::detect::hasReserveFunc<comms::util::StringView>(), "Invalid function presence detection");
+static_assert(!comms::util::detect::hasReserveFunc<comms::util::ArrayView<std::uint8_t> >(), "Invalid function presence detection");
 
 class FieldsTestSuite : public CxxTest::TestSuite
 {

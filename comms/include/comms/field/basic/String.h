@@ -28,7 +28,7 @@
 #include "comms/util/access.h"
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
-#include "comms/details/detect.h"
+#include "comms/util/detect.h"
 #include "CommonFuncs.h"
 
 namespace comms
@@ -169,7 +169,7 @@ public:
 
     void clear()
     {
-        static_assert(comms::details::hasClearFunc<ValueType>(),
+        static_assert(comms::util::detect::hasClearFunc<ValueType>(),
                 "The string type must have clear() member function");
         value_.clear();
     }
@@ -384,7 +384,7 @@ private:
     {
         using Tag =
             typename std::conditional<
-                comms::details::hasReserveFunc<ValueType>(),
+                comms::util::detect::hasReserveFunc<ValueType>(),
                 ReserveExistsTag,
                 ReserveMissingTag
             >::type;

@@ -28,6 +28,7 @@
 #include "comms/util/access.h"
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
+#include "comms/util/detect.h"
 #include "comms/details/detect.h"
 #include "comms/field/details/VersionStorage.h"
 #include "CommonFuncs.h"
@@ -228,7 +229,7 @@ public:
 
     void clear()
     {
-        static_assert(comms::details::hasClearFunc<ValueType>(),
+        static_assert(comms::util::detect::hasClearFunc<ValueType>(),
             "The used storage type for ArrayList must have clear() member function");
 
         value_.clear();
@@ -674,7 +675,7 @@ private:
     template <typename TIter>
     ErrorStatus readInternal(TIter& iter, std::size_t len, FieldElemTag)
     {
-        static_assert(comms::details::hasClearFunc<ValueType>(),
+        static_assert(comms::util::detect::hasClearFunc<ValueType>(),
             "The used storage type for ArrayList must have clear() member function");
         value_.clear();
         auto remLen = len;

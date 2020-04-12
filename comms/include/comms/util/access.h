@@ -508,7 +508,7 @@ struct Writer
         using ValueType = typename std::decay<T>::type;
         using OptimisedValueType = details::OptimisedValueType<ValueType>;
 
-        //GASSERT(size <= sizeof(ValueType));
+        //COMMS_ASSERT(size <= sizeof(ValueType));
         static const bool IsRandomAccess =
             std::is_same<
                 typename std::iterator_traits<TIter>::iterator_category,

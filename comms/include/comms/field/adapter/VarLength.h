@@ -108,7 +108,7 @@ public:
                 return comms::ErrorStatus::NotEnoughData;
             }
 
-            GASSERT(bytesCount < MaxLength);
+            COMMS_ASSERT(bytesCount < MaxLength);
             auto byte = comms::util::readData<std::uint8_t>(iter, Endian());
             auto byteValue = byte & VarLengthValueBitsMask;
             addByteToSerialisedValue(

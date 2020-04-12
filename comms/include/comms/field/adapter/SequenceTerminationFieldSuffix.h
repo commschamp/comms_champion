@@ -180,7 +180,7 @@ private:
         }
 
         auto fullConsumeLen = consumed + termFieldLen;
-        GASSERT(fullConsumeLen <= len);
+        COMMS_ASSERT(fullConsumeLen <= len);
         std::advance(iter, fullConsumeLen);
         return comms::ErrorStatus::Success;
     }

@@ -104,7 +104,7 @@
 #if COMMS_IS_CLANG
 
 // The defines below are seperate because VS2015 doesn't 
-// behave well whith angle brackets inside macro arguments.
+// behave well with angle brackets inside macro arguments.
 
 #undef COMMS_CLANG_HAS_STRING_VIEW
 #define COMMS_CLANG_HAS_STRING_VIEW (__has_include(<string_view>))

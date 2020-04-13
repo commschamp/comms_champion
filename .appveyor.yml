@@ -9,9 +9,6 @@ init:
 clone_folder: c:\projects\comms_champion
 shallow_clone: true             
 
-matrix:
-    fast_finish: false
-
 platform:
     - x64
     - x86
@@ -20,11 +17,14 @@ configuration:
     - Debug
     - Release
 
-matrix:
-    environment:
+environment:
+    matrix:
         - CPP_STD: 11
         - CPP_STD: 14
         - CPP_STD: 17
+
+matrix:
+    fast_finish: false
     exclude:
         - image: Visual Studio 2015
           CPP_STD: 17        

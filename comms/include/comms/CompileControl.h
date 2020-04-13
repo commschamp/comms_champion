@@ -110,7 +110,7 @@
     COMMS_IS_CPP20 && \
     (\
         (COMMS_IS_USING_GNUC && (__GNUC__ >= 10)) || \
-        (COMMS_IS_CLANG && __has_include(<span>)) || \
+        /*(COMMS_IS_CLANG && __has_include(<span>)) ||*/ \
         (COMMS_IS_MSVC && (_MSC_VER >= 1926)) \
     )
 

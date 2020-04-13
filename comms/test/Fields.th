@@ -3781,6 +3781,14 @@ void FieldsTestSuite::test74()
         comms::option::OrigDataView
     > Field;
 
+#if COMMS_IS_CPP17
+    static_assert(std::is_same<Field::ValueType, std::string_view>::value, 
+        "std::string_view is expected to be used for this field");    
+#else
+    static_assert(std::is_same<Field::ValueType, comms::util::StringView>::value, 
+        "comms::util::StringView is expected to be used for this field");          
+#endif        
+
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
@@ -3806,7 +3814,7 @@ void FieldsTestSuite::test74()
     field.value() = "foo";
     TS_ASSERT_EQUALS(field.value().size(), 3U);
     TS_ASSERT_EQUALS(std::string(field.value().data()), "foo");
-    TS_ASSERT_EQUALS(field.value(), comms::util::StringView("foo"));
+    TS_ASSERT_EQUALS(field.value(), Field::ValueType("foo"));
     TS_ASSERT_EQUALS(field.length(), 6U);
 
     static const char ExpectedBuf2[] = {
@@ -3831,8 +3839,13 @@ void FieldsTestSuite::test75()
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");
 
+#if COMMS_HAS_CPP20_SPAN
+    static_assert(std::is_same<Field::ValueType, std::span<std::uint8_t> >::value,
+        "Expected to be std::span");    
+#else
     static_assert(std::is_same<Field::ValueType, comms::util::ArrayView<std::uint8_t> >::value,
-        "Expected to be array view");
+        "Expected to be comms::util::ArrayView");
+#endif        
 
 
     Field field;

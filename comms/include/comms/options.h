@@ -1417,13 +1417,23 @@ struct SequenceFixedSizeUseFixedSizeStorage {};
 struct NoVirtualDestructor {};
 
 /// @brief Use "view" on original raw data instead of copying it.
-/// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList,
-///     will force usage of @ref comms::util::StringView and comms::util::ArrayView
-///     respectively as data storage type.
+/// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList.@n
+///     For @ref comms::field::String it will force usage of @ref comms::util::StringView as 
+///     inner storage type (instead of @b std::string). However when C++17 is supported by the compiler
+///     the storage type is forced to be
+///     <a href="https://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a>.@n
+///     For raw data @ref comms::field::ArrayList it will force usage of @ref comms::util::ArrayView<std::uint8_t> as 
+///     inner storage type (instead of @b std::vector<std::uint8_t>). However when C++20 is supported by the compiler
+///     the storage type is forced to be
+///     <a href="https://en.cppreference.com/w/cpp/container/span">std::span&lt;std::uint8_t&gt;</a> (only when it's supported
+///     by the compiler). 
 /// @note The original data must be preserved until destruction of the field
 ///     that uses the "view".
 /// @note Incompatible with other options that contol data storage type,
 ///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
+/// @note To force usage of provided @ref comms::util::StringView or @ref comms::util::ArrayView
+///     instead of standard @b std::string_view or @b std::span, use @ref comms::option::CustomStorageType
+///     option.
 /// @headerfile comms/options.h
 struct OrigDataView {};
 

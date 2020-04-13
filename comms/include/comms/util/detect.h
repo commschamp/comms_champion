@@ -68,7 +68,9 @@ constexpr bool hasResizeFunc()
 /// @details
 ///     @code
 ///         static_assert(comms::util::detect::hasRemoveSuffixFunc<comms::util::StringView>, 
-///             "comms::util::StringView is expected to have resize() member function.");
+///             "comms::util::StringView is expected to have remove_suffix() member function.");
+///         static_assert(comms::util::detect::hasRemoveSuffixFunc<std::string_view>, 
+///             "std::string_view is expected to have remove_suffix() member function.");
 ///     @endcode
 template <typename T>
 constexpr bool hasRemoveSuffixFunc()

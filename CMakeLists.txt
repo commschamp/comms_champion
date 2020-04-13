@@ -8,6 +8,7 @@ option (CC_STATIC_RUNTIME "Enable/Disable static runtime" OFF)
 option (CC_NO_UNIT_TESTS "Disable unittests." OFF)
 option (CC_NO_WARN_AS_ERR "Do NOT treat warning as error" OFF)
 option (CC_ENABLE_DEMO_PROTOCOL "Enable demo protocol" OFF)
+option (CC_NO_CXX_STANDARD_FORCING "Disable forcing C++ standard to C++11 when no CMAKE_CXX_STANDARD is defined" OFF)
 
 # Extra variables
 # CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
@@ -17,7 +18,7 @@ if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
 endif()
 
-if (NOT CMAKE_CXX_STANDARD)
+if ((NOT CMAKE_CXX_STANDARD) AND (NOT CC_NO_CXX_STANDARD_FORCING))
     set (CMAKE_CXX_STANDARD 11)
 endif()
 

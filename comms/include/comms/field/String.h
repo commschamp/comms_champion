@@ -22,6 +22,12 @@
 
 #include <vector>
 
+#include "comms/CompileControl.h"
+
+#if COMMS_IS_CPP17
+#include <string_view>
+#endif // #if COMMS_IS_CPP17
+
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
 #include "comms/util/StaticString.h"
@@ -47,7 +53,11 @@ struct StringOrigDataViewStorageType;
 template <>
 struct StringOrigDataViewStorageType<true>
 {
+#if COMMS_IS_CPP17
+    using Type = std::string_view;
+#else
     using Type = comms::util::StringView;
+#endif // #if COMMS_IS_CPP17
 };
 
 template <>

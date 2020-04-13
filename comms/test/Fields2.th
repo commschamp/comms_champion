@@ -44,6 +44,7 @@ public:
     void test6();
     void test7();
     void test8();
+    void test9();
 
 private:
 
@@ -747,6 +748,65 @@ void FieldsTestSuite2::test8()
         static_assert(comms::units::isTerabytes(field), "Invalid units");
         Test8_Helper::test(field);
     } while (false);           
+}
+
+void FieldsTestSuite2::test9()
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::uint8_t,
+        comms::option::ValidNumValueRange<0, 0>
+    > TrailField;
+
+    static_assert(!TrailField::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    typedef comms::field::String<
+        comms::Field<BigEndianOpt>,
+        comms::option::SequenceFixedSize<5>,
+        comms::option::SequenceTrailingFieldSuffix<TrailField>,
+        comms::option::CustomStorageType<comms::util::StringView>
+    > Field;
+
+    static_assert(std::is_same<Field::ValueType, comms::util::StringView>::value, 
+        "comms::util::StringView is expected to be used for this field");     
+
+    static_assert(!Field::isVersionDependent(),
+        "Invalid version dependency assumption");
+
+    static_assert(Field::minLength() == 6U, "Invalid min length");
+    static_assert(Field::maxLength() == 6U, "Invalid max length");
+
+    Field field;
+    TS_ASSERT(field.valid());
+    TS_ASSERT_EQUALS(field.length(), 6U);
+
+    static const char* HelloStr = "hello";
+    field.value() = HelloStr;
+    TS_ASSERT(field.value().size() == 5U);
+    TS_ASSERT_EQUALS(field.length(), 6U);
+    TS_ASSERT_EQUALS(&(*field.value().begin()), HelloStr);
+
+    static const char ExpectedBuf[] = {
+        'h', 'e', 'l', 'l', 'o', 0x0
+    };
+    static const std::size_t ExpectedBufSize = std::extent<decltype(ExpectedBuf)>::value;
+    writeReadField(field, ExpectedBuf, ExpectedBufSize);
+
+    field.value() = "foo";
+    TS_ASSERT_EQUALS(field.value().size(), 3U);
+    TS_ASSERT_EQUALS(std::string(field.value().data()), "foo");
+    TS_ASSERT_EQUALS(field.value(), comms::util::StringView("foo"));
+    TS_ASSERT_EQUALS(field.length(), 6U);
+
+    static const char ExpectedBuf2[] = {
+        'f', 'o', 'o', 0x0, 0x0, 0x0
+    };
+    static const std::size_t ExpectedBufSize2 = std::extent<decltype(ExpectedBuf2)>::value;
+    writeReadField(field, ExpectedBuf2, ExpectedBufSize2);
+
+    field = readWriteField<Field>(&ExpectedBuf2[0], ExpectedBufSize2);
+    TS_ASSERT_EQUALS(field.value(), "foo");
 }
 
 template <typename TField>

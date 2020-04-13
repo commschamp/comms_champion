@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
 #define COMMS_EXPAND(x_) x_
 #define COMMS_CONCATENATE_(x_, y_) x_##y_
 #define COMMS_CONCATENATE(x_, y_) COMMS_CONCATENATE_(x_, y_)
@@ -39,14 +41,17 @@
     19,18,17,16,15,14,13,12,11,10,\
     9,8,7,6,5,4,3,2,1,0))
 
-#if __cplusplus < 201402L
-#define FUNC_AUTO_REF_RETURN(name_, ret_) auto name_ () -> ret_
-#define FUNC_AUTO_REF_RETURN_CONST(name_, ret_) auto name_ () const -> ret_
-#define FUNC_ARGS_AUTO_REF_RETURN(name_, args_, ret_) auto name_(args_) -> ret_
-#define FUNC_ARGS_AUTO_REF_RETURN_CONST(name_, args_, ret_) auto name_(args_) const -> ret_
-#else // #if __cplusplus < 201402L
+#if COMMS_IS_CPP14
+
 #define FUNC_AUTO_REF_RETURN(name_, ret_) decltype(auto) name_ ()
 #define FUNC_AUTO_REF_RETURN_CONST(name_, ret_) decltype(auto) name_ () const
 #define FUNC_ARGS_AUTO_REF_RETURN(name_, args_, ret_) decltype(auto) name_(args_)
 #define FUNC_ARGS_AUTO_REF_RETURN_CONST(name_, args_, ret_) decltype(auto) name_(args_) const
-#endif // #if __cplusplus < 201402L
+
+#else // #if COMMS_IS_CPP14
+#define FUNC_AUTO_REF_RETURN(name_, ret_) auto name_ () -> ret_
+#define FUNC_AUTO_REF_RETURN_CONST(name_, ret_) auto name_ () const -> ret_
+#define FUNC_ARGS_AUTO_REF_RETURN(name_, args_, ret_) auto name_(args_) -> ret_
+#define FUNC_ARGS_AUTO_REF_RETURN_CONST(name_, args_, ret_) auto name_(args_) const -> ret_
+
+#endif // #if COMMS_IS_CPP14

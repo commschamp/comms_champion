@@ -20,16 +20,14 @@ configuration:
     - Debug
     - Release
 
-environment:
-    matrix:
+matrix:
+    environment:
         - CPP_STD: 11
         - CPP_STD: 14
         - CPP_STD: 17
-
-matrix:
-  exclude:
-    - image: Visual Studio 2015
-      CPP_STD: 17        
+    exclude:
+        - image: Visual Studio 2015
+          CPP_STD: 17        
         
 install:
     - call script\appveyor_install.bat

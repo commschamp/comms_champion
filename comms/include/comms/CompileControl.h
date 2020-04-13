@@ -98,11 +98,28 @@
 #define COMMS_IS_CPP20 (__cplusplus >= 201707L)
 #endif
 
+#define COMMS_CLANG_HAS_STRING_VIEW false
+#define COMMS_CLANG_HAS_SPAN false
+
+#if COMMS_IS_CLANG
+
+// The defines below are seperate because VS2015 doesn't 
+// behave well whith angle brackets inside macro arguments.
+
+#undef COMMS_CLANG_HAS_STRING_VIEW
+#define COMMS_CLANG_HAS_STRING_VIEW (__has_include(<string_view>))
+
+#undef COMMS_CLANG_HAS_SPAN
+#define COMMS_CLANG_HAS_SPAN (__has_include(<span>))
+
+#endif // #if COMMS_IS_CLANG
+
+
 #define COMMS_HAS_CPP17_STRING_VIEW \
     COMMS_IS_CPP17 && \
     (\
         (COMMS_IS_USING_GNUC && (__GNUC__ >= 7)) || \
-        (COMMS_IS_CLANG && __has_include(<string_view>)) || \
+        (COMMS_IS_CLANG && COMMS_CLANG_HAS_STRING_VIEW) || \
         (COMMS_IS_MSVC && (_MSC_VER >= 1910)) \
     )
 
@@ -110,7 +127,7 @@
     COMMS_IS_CPP20 && \
     (\
         (COMMS_IS_USING_GNUC && (__GNUC__ >= 10)) || \
-        /*(COMMS_IS_CLANG && __has_include(<span>)) ||*/ \
+        (COMMS_IS_CLANG && COMMS_CLANG_HAS_SPAN) || \
         (COMMS_IS_MSVC && (_MSC_VER >= 1926)) \
     )
 

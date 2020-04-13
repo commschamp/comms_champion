@@ -1,5 +1,5 @@
 //
-// Copyright 2014 - 2020 (C). Alex Robenko. All rights reserved.
+// Copyright 2020 (C). Alex Robenko. All rights reserved.
 //
 
 // This file is free software: you can redistribute it and/or modify
@@ -16,27 +16,25 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /// @file
-/// Aggregates all the includes of the @b COMMS library interface
+/// @brief Provides helper assign() function to allow easy assignment of values to collections or views.
 
 #pragma once
 
-#include "comms/CompileControl.h"
-#include "comms/fields.h"
-#include "comms/protocols.h"
-#include "comms/units.h"
-#include "comms/version.h"
-#include "comms/dispatch.h"
-#include "comms/field_cast.h"
-#include "comms/iterator.h"
-#include "process.h"
+#include "details/AssignHelper.h"
 
-#include "comms/Message.h"
-#include "comms/EmptyHandler.h"
-#include "comms/GenericHandler.h"
-#include "comms/MessageBase.h"
-#include "comms/MsgFactory.h"
-#include "comms/MsgDispatcher.h"
-#include "comms/GenericMessage.h"
+namespace comms
+{
 
-#include "comms/util/detect.h"
-#include "comms/util/assign.h"
+namespace util
+{
+
+template <typename T, typename TIter>
+void assign(T& obj, TIter from, TIter to)
+{
+    details::AssignHelper::assign(obj, from, to);
+}
+
+} // namespace util
+
+} // namespace comms
+

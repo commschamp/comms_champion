@@ -90,6 +90,18 @@ constexpr bool hasAssignFunc()
     return details::HasAssignFunc<T>::Value;
 }
 
+/// @brief Detect whether provided type has a constructor that receives a pointer + size parameters.
+/// @details
+///     @code
+///         static_assert(comms::util::detect::hasPtrSizeConstructor<std::string_view>(), 
+///             "std::string_view is expected to have ptr + size constructor.");
+///     @endcode
+template <typename T>
+constexpr bool hasPtrSizeConstructor()
+{
+    return details::HasPtrSizeConstructor<T>::Value;
+}
+
 } // namespace detect
 
 } // namespace util

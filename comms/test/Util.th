@@ -51,6 +51,7 @@ public:
     void test24();
     void test25();
     void test26();
+    void test27();
 };
 
 void UtilTestSuite::test1()
@@ -968,11 +969,47 @@ void UtilTestSuite::test24()
         !comms::util::detect::hasAssignFunc<comms::util::StringView>(), 
             "comms::util::StringView mustn't have assign()");
 
+    static_assert(
+        comms::util::detect::hasPtrSizeConstructor<comms::util::StringView>(), 
+            "comms::util::StringView must have ptr + size constructor");            
+
     static_assert(std::is_base_of<comms::util::details::StaticVectorCasted<char, unsigned char, 20>, StaticVecChar>::value,
             "Wrong base class");
 
     static_assert(std::is_base_of<comms::util::details::StaticVectorGeneric<unsigned char, 20>, StaticVecChar>::value,
             "Wrong base class");
+
+#if COMMS_HAS_CPP17_STRING_VIEW
+    static_assert(comms::util::detect::hasRemoveSuffixFunc<std::string_view>(),
+            "std::string_view must have remove_suffix");
+
+    static_assert(
+        !comms::util::detect::hasAssignFunc<std::string_view>(), 
+            "std::string_view mustn't have assign()");
+
+    static_assert(
+        comms::util::detect::hasPtrSizeConstructor<std::string_view>(), 
+            "std::string_view must have ptr + size constructor");     
+
+    static_assert(!comms::util::detect::hasClearFunc<std::string_view>(),
+            "std::string_view mustn't have clear");            
+#endif
+
+#if COMMS_HAS_CPP20_SPAN
+    using SpanType = std::span<std::uint8_t>;
+
+    static_assert(
+        !comms::util::detect::hasAssignFunc<SpanType>(), 
+            "std::span mustn't have assign()");
+
+    static_assert(
+        comms::util::detect::hasPtrSizeConstructor<SpanType>(), 
+            "std::span must have ptr + size constructor");     
+
+    static_assert(!comms::util::detect::hasClearFunc<SpanType>(),
+            "std::span mustn't have clear");            
+#endif
+
 }
 
 void UtilTestSuite::test25()
@@ -1023,4 +1060,23 @@ void UtilTestSuite::test26()
     TS_ASSERT(str > "aaaa");
     TS_ASSERT(str >= "aaaa");
     TS_ASSERT(str >= "aaaaa");
+}
+
+void UtilTestSuite::test27()
+{
+    static const std::string Str("hello");
+
+    std::string s1;
+    comms::util::assign(s1, Str.begin(), Str.end());
+    TS_ASSERT_EQUALS(Str, s1);
+
+    comms::util::StringView s2;
+    comms::util::assign(s2, Str.begin(), Str.end());
+    TS_ASSERT_EQUALS(Str, s2);
+
+#if COMMS_HAS_CPP17_STRING_VIEW
+    std::string_view s3;
+    comms::util::assign(s3, Str.begin(), Str.end());
+    TS_ASSERT_EQUALS(Str, s3);    
+#endif    
 }

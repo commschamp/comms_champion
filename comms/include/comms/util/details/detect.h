@@ -112,6 +112,22 @@ public:
     static const bool Value = !std::is_same<No, decltype(test<T>(nullptr))>::value;
 };
 
+template <typename T>
+class HasPtrSizeConstructor
+{
+    struct No {};
+
+protected:
+    template <typename C>
+    static auto test(std::nullptr_t) -> decltype(C(static_cast<typename C::const_pointer>(nullptr), static_cast<typename C::size_type>(0U)));
+
+    template <typename>
+    static No test(...);
+
+public:
+    static const bool Value = !std::is_same<No, decltype(test<T>(nullptr))>::value;
+};
+
 } // namespace details
 
 } // namespace detect

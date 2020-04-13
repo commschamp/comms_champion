@@ -24,9 +24,9 @@
 
 #include "comms/CompileControl.h"
 
-#if COMMS_IS_CPP17
+#if COMMS_HAS_CPP17_STRING_VIEW
 #include <string_view>
-#endif // #if COMMS_IS_CPP17
+#endif // #if COMMS_HAS_CPP17_STRING_VIEW
 
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
@@ -53,11 +53,11 @@ struct StringOrigDataViewStorageType;
 template <>
 struct StringOrigDataViewStorageType<true>
 {
-#if COMMS_IS_CPP17
+#if COMMS_HAS_CPP17_STRING_VIEW
     using Type = std::string_view;
-#else
+#else // #if COMMS_HAS_CPP17_STRING_VIEW
     using Type = comms::util::StringView;
-#endif // #if COMMS_IS_CPP17
+#endif // #if COMMS_HAS_CPP17_STRING_VIEW
 };
 
 template <>

@@ -40,6 +40,12 @@
 #define COMMS_IS_MSVC false
 #define COMMS_IS_GCC  false
 #define COMMS_IS_CLANG false
+#define COMMS_IS_USING_GNUC false
+
+#if defined(__GNUC__)
+#undef COMMS_IS_USING_GNUC
+#define COMMS_IS_USING_GNUC true
+#endif // #if defined(__GNUC__) && !defined(__clang__)
 
 #if defined(_MSC_VER) && !defined(__clang__)
 #undef COMMS_IS_MSVC
@@ -61,8 +67,10 @@
 #define COMMS_IS_GCC_9 (COMMS_IS_GCC && (__GNUC__ == 9))
 #define COMMS_IS_GCC_9_OR_BELOW (COMMS_IS_GCC_9 && (__GNUC__ <= 9))
 #define COMMS_IS_GCC_10_OR_ABOVE (COMMS_IS_GCC && (__GNUC__ >= 10))
+#define COMMS_IS_CLANG_7_OR_ABOVE (COMMS_IS_CLANG && (__clang_major__ >= 7))
 #define COMMS_IS_CLANG_8 (COMMS_IS_CLANG && (__clang_major__ == 8))
 #define COMMS_IS_CLANG_8_OR_BELOW (COMMS_IS_CLANG && (__clang_major__ <= 8))
+#define COMMS_IS_CLANG_9_OR_BELOW (COMMS_IS_CLANG && (__clang_major__ <= 9))
 #define COMMS_IS_CLANG_9_OR_ABOVE (COMMS_IS_CLANG && (__clang_major__ >= 9))
 #define COMMS_IS_MSVC_2019 (COMMS_IS_MSVC && (_MSC_VER >= 1920) && (_MSC_VER < 1930))
 #define COMMS_IS_MSVC_2019_OR_BELOW (COMMS_IS_MSVC && (_MSC_VER < 1930))
@@ -75,25 +83,36 @@
 #define COMMS_IS_CPP17 (__cplusplus >= 201703L)
 #define COMMS_IS_CPP20 (__cplusplus >= 202002L)
 
-#if COMMS_IS_MSVC_2019 // Visual Studio 2019
+#if COMMS_IS_MSVC_2019_OR_BELOW // Visual Studio 2019
 #undef COMMS_IS_CPP20
 #define COMMS_IS_CPP20 (__cplusplus >= 201704L)
 #endif
 
-#if COMMS_IS_GCC_9
+#if COMMS_IS_CLANG_9_OR_BELOW
 #undef COMMS_IS_CPP20
 #define COMMS_IS_CPP20 (__cplusplus >= 201709L)
 #endif
 
-#if COMMS_IS_CLANG_8
+#if COMMS_IS_CLANG_8_OR_BELOW
 #undef COMMS_IS_CPP20
 #define COMMS_IS_CPP20 (__cplusplus >= 201707L)
 #endif
 
-#define COMMS_HAS_CPP20_SPAN COMMS_IS_CPP20
+#define COMMS_HAS_CPP17_STRING_VIEW \
+    COMMS_IS_CPP17 && \
+    (\
+        (COMMS_IS_USING_GNUC && (__GNUC__ >= 7)) || \
+        (COMMS_IS_CLANG && __has_include(<string_view>)) || \
+        (COMMS_IS_MSVC && (_MSC_VER >= 1910)) \
+    )
 
-#if COMMS_HAS_CPP20_SPAN
-#undef COMMS_HAS_CPP20_SPAN 
-#define COMMS_HAS_CPP20_SPAN ((COMMS_IS_GCC_10_OR_ABOVE || COMMS_IS_CLANG_9_OR_ABOVE) && (!COMMS_IS_MSVC_2019_OR_BELOW))
-#endif //#if COMMS_HAS_CPP20_SPAN
+#define COMMS_HAS_CPP20_SPAN \
+    COMMS_IS_CPP20 && \
+    (\
+        (COMMS_IS_USING_GNUC && (__GNUC__ >= 10)) || \
+        (COMMS_IS_CLANG && __has_include(<span>)) || \
+        (COMMS_IS_MSVC && (_MSC_VER >= 1926)) \
+    )
+
+
 

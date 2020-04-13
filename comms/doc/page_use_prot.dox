@@ -2001,7 +2001,13 @@
 /// greater than pointer to the first one (not some kind of circular buffer), then
 /// copying of the data may be avoided by using @ref comms::option::app::OrigDataView
 /// option. The option will change the default storage types to be 
-/// @ref comms::util::ArrayView or @ref comms::util::StringView. @b NOTE, that
+/// <a href="https://en.cppreference.com/w/cpp/container/span">std::span&lt;std::uint8_t&gt;</a> or
+/// <a href="https://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a> respectively.
+/// In case standard variants are unavalable due to used C++ standard or insufficient standard
+/// library version then 
+/// @ref comms::util::ArrayView and/or @ref comms::util::StringView will be used instead. 
+///
+/// @b NOTE, that
 /// passing @ref comms::option::app::OrigDataView option to @ref comms::field::ArrayList
 /// is possible only if it is list of raw data (@b std::uint8_t is used as element type).
 /// @code

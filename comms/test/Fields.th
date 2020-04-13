@@ -3781,13 +3781,13 @@ void FieldsTestSuite::test74()
         comms::option::OrigDataView
     > Field;
 
-#if COMMS_IS_CPP17
+#if COMMS_HAS_CPP17_STRING_VIEW
     static_assert(std::is_same<Field::ValueType, std::string_view>::value, 
         "std::string_view is expected to be used for this field");    
-#else
+#else // #if COMMS_HAS_CPP17_STRING_VIEW
     static_assert(std::is_same<Field::ValueType, comms::util::StringView>::value, 
         "comms::util::StringView is expected to be used for this field");          
-#endif        
+#endif // #if COMMS_HAS_CPP17_STRING_VIEW
 
     static_assert(!Field::isVersionDependent(),
         "Invalid version dependency assumption");

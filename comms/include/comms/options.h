@@ -1418,15 +1418,16 @@ struct NoVirtualDestructor {};
 
 /// @brief Use "view" on original raw data instead of copying it.
 /// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList.@n
-///     For @ref comms::field::String it will force usage of @ref comms::util::StringView as 
-///     inner storage type (instead of @b std::string). However when C++17 is supported by the compiler
-///     the storage type is forced to be
-///     <a href="https://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a>.@n
-///     For raw data @ref comms::field::ArrayList it will force usage of @ref comms::util::ArrayView<std::uint8_t> as 
-///     inner storage type (instead of @b std::vector<std::uint8_t>). However when C++20 is supported by the compiler
-///     the storage type is forced to be
-///     <a href="https://en.cppreference.com/w/cpp/container/span">std::span&lt;std::uint8_t&gt;</a> (only when it's supported
-///     by the compiler). 
+///     For @ref comms::field::String it will force usage of 
+///     <a href="https://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a> (if available) as 
+///     inner storage type (instead of @b std::string). In case @b std::string_view is unavalable 
+///     (C++17 support is disabled or standard library of insufficient version) @ref comms::util::StringView
+///     will be used instead.@n
+///     For raw data @ref comms::field::ArrayList it will force usage of 
+///     <a href="https://en.cppreference.com/w/cpp/container/span">std::span&lt;std::uint8_t&gt;</a>(if available) as 
+///     inner storage type (instead of @b std::vector<std::uint8_t>). In case @b std::span is unavalable 
+///     (C++20 support is disabled or standard library of insufficient version) @ref comms::util::ArrayView
+///     will be used instead.@n
 /// @note The original data must be preserved until destruction of the field
 ///     that uses the "view".
 /// @note Incompatible with other options that contol data storage type,

@@ -22,12 +22,17 @@ environment:
         - CPP_STD: 11
         - CPP_STD: 14
         - CPP_STD: 17
+        - CPP_STD: 20
 
 matrix:
     fast_finish: false
     exclude:
         - image: Visual Studio 2015
-          CPP_STD: 17        
+          CPP_STD: 17 
+        - image: Visual Studio 2015
+          CPP_STD: 20    
+        - image: Visual Studio 2017
+          CPP_STD: 20         
         
 install:
     - call script\appveyor_install.bat

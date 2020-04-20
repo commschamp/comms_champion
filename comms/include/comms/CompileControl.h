@@ -36,7 +36,8 @@
 
 #define CC_DISABLE_WARNINGS() \
     __pragma(warning(push)) \
-    __pragma(warning(disable:5055))
+    __pragma(warning(disable:5055)) \
+    __pragma(warning(disable:4251))
 
 #define CC_ENABLE_WARNINGS() __pragma (warning(pop))
 

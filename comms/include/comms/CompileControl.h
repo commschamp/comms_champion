@@ -35,9 +35,7 @@
 #elif defined(_MSC_VER)
 
 #define CC_DISABLE_WARNINGS() \
-    __pragma(warning(push)) \
-    __pragma(warning(disable:5055)) \
-    __pragma(warning(disable:4251))
+    __pragma(warning(push, 0))
 
 #define CC_ENABLE_WARNINGS() __pragma (warning(pop))
 

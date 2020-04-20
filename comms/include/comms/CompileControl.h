@@ -19,6 +19,7 @@
 #pragma once
 
 #ifdef __GNUC__
+
 #define GCC_DIAG_STR(s) #s
 #define GCC_DIAG_JOINSTR(x,y) GCC_DIAG_STR(x ## y)
 #define GCC_DIAG_DO_PRAGMA(x) _Pragma (#x)
@@ -30,6 +31,14 @@
     GCC_DIAG_PRAGMA(ignored "-Wold-style-cast")
 
 #define CC_ENABLE_WARNINGS() GCC_DIAG_PRAGMA(pop)
+
+#elif defined(_MSC_VER)
+
+#define CC_DISABLE_WARNINGS() \
+    __pragma(warning(push)) \
+    __pragma(warning(disable:5055))
+
+#define CC_ENABLE_WARNINGS() __pragma (warning(pop))
 
 #else
 

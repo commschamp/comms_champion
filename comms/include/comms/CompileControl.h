@@ -32,14 +32,6 @@
 
 #define CC_ENABLE_WARNINGS() GCC_DIAG_PRAGMA(pop)
 
-#elif defined(_MSC_VER)
-
-#define CC_DISABLE_WARNINGS() \
-    __pragma(warning(push)) \
-    __pragma(warning(disable: 4251))
-
-#define CC_ENABLE_WARNINGS() __pragma (warning(pop))
-
 #else
 
 #define CC_DISABLE_WARNINGS()

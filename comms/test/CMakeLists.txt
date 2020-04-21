@@ -17,7 +17,7 @@ function (test_func test_suite_name)
     set (runner "${test_suite_name}TestRunner.cpp")
     
     CXXTEST_ADD_TEST (${name} ${runner} ${tests} ${extra_sources})
-    target_link_libraries((${ cc::comms)
+    target_link_libraries(${name} cc::comms)
 
     target_compile_options(${name} PRIVATE
       $<$<CXX_COMPILER_ID:MSVC>:/wd5055>

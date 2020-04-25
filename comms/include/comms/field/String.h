@@ -22,13 +22,20 @@
 
 #include <vector>
 
+#include "comms/CompileControl.h"
+
+#if COMMS_HAS_CPP17_STRING_VIEW
+#include <string_view>
+#endif // #if COMMS_HAS_CPP17_STRING_VIEW
+
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
 #include "comms/util/StaticString.h"
 #include "comms/util/StringView.h"
-#include "basic/String.h"
-#include "details/AdaptBasicField.h"
-#include "details/OptionsParser.h"
+#include "comms/util/detect.h"
+#include "comms/field/basic/String.h"
+#include "comms/field/details/AdaptBasicField.h"
+#include "comms/field/details/OptionsParser.h"
 #include "tag.h"
 
 namespace comms
@@ -46,7 +53,11 @@ struct StringOrigDataViewStorageType;
 template <>
 struct StringOrigDataViewStorageType<true>
 {
+#if COMMS_HAS_CPP17_STRING_VIEW
+    using Type = std::string_view;
+#else // #if COMMS_HAS_CPP17_STRING_VIEW
     using Type = comms::util::StringView;
+#endif // #if COMMS_HAS_CPP17_STRING_VIEW
 };
 
 template <>
@@ -442,10 +453,10 @@ private:
     {
         using TagTmp =
             typename std::conditional<
-                comms::details::hasResizeFunc<ValueType>(),
+                comms::util::detect::hasResizeFunc<ValueType>(),
                 HasResizeTag,
                 typename std::conditional<
-                    comms::details::hasRemoveSuffixFunc<ValueType>(),
+                    comms::util::detect::hasRemoveSuffixFunc<ValueType>(),
                     HasRemoveSuffixTag,
                     void
                 >::type

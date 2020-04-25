@@ -487,6 +487,22 @@ void setVoltage(TField& field, TVal&& val)
     UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
 }
 
+template <typename TRet, typename TConvRatio, typename TField>
+TRet getMemory(const TField& field)
+{
+    static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Memory>(),
+         "The field is expected to contain \"memory\" units.");
+    return UnitsValueConverter::getValue<TRet, TConvRatio>(field);
+}
+
+template <typename TConvRatio, typename TField, typename TVal>
+void setMemory(TField& field, TVal&& val)
+{
+    static_assert(details::hasExpectedUnits<typename std::decay<decltype(field)>::type, comms::traits::units::Memory>(),
+         "The field is expected to contain \"memory\" units.");
+    UnitsValueConverter::setValue<TConvRatio>(field, std::forward<TVal>(val));
+}
+
 } // namespace details
 
 /// @brief Retrieve field's value as nanoseconds.
@@ -495,7 +511,7 @@ void setVoltage(TField& field, TVal&& val)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
 ///     @ref comms::option::def::UnitsSeconds, etc...
@@ -510,7 +526,7 @@ TRet getNanoseconds(const TField& field)
 ///     provided nanoseconds into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
@@ -548,7 +564,7 @@ constexpr bool isNanoseconds(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
 ///     @ref comms::option::def::UnitsSeconds, etc...
@@ -563,7 +579,7 @@ TRet getMicroseconds(const TField& field)
 ///     provided microseconds into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
@@ -601,7 +617,7 @@ constexpr bool isMicroseconds(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
 ///     @ref comms::option::def::UnitsSeconds, etc...
@@ -616,7 +632,7 @@ TRet getMilliseconds(const TField& field)
 ///     provided milliseconds into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
@@ -654,7 +670,7 @@ constexpr bool isMilliseconds(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
 ///     @ref comms::option::def::UnitsSeconds, etc...
@@ -669,7 +685,7 @@ TRet getSeconds(const TField& field)
 ///     provided seconds into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
@@ -707,7 +723,7 @@ constexpr bool isSeconds(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
 ///     @ref comms::option::def::UnitsSeconds, etc...
@@ -722,7 +738,7 @@ TRet getMinutes(const TField& field)
 ///     provided minutes into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
@@ -760,7 +776,7 @@ constexpr bool isMinutes(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
 ///     @ref comms::option::def::UnitsSeconds, etc...
@@ -775,7 +791,7 @@ TRet getHours(const TField& field)
 ///     provided hours into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
@@ -813,7 +829,7 @@ constexpr bool isHours(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
 ///     @ref comms::option::def::UnitsSeconds, etc...
@@ -828,7 +844,7 @@ TRet getDays(const TField& field)
 ///     provided days into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
@@ -866,7 +882,7 @@ constexpr bool isDays(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
 ///     @ref comms::option::def::UnitsSeconds, etc...
@@ -881,7 +897,7 @@ TRet getWeeks(const TField& field)
 ///     provided weeks into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any time value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliseconds,
@@ -919,7 +935,7 @@ constexpr bool isWeeks(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
 ///     @ref comms::option::def::UnitsMeters, etc...
@@ -934,7 +950,7 @@ TRet getNanometers(const TField& field)
 ///     provided nanometers into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
@@ -972,7 +988,7 @@ constexpr bool isNanometers(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
 ///     @ref comms::option::def::UnitsMeters, etc...
@@ -987,7 +1003,7 @@ TRet getMicrometers(const TField& field)
 ///     provided micrometers into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
@@ -1025,7 +1041,7 @@ constexpr bool isMicrometers(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
 ///     @ref comms::option::def::UnitsMeters, etc...
@@ -1040,7 +1056,7 @@ TRet getMillimeters(const TField& field)
 ///     provided millimeters into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
@@ -1078,7 +1094,7 @@ constexpr bool isMillimeters(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
 ///     @ref comms::option::def::UnitsMeters, etc...
@@ -1093,7 +1109,7 @@ TRet getCentimeters(const TField& field)
 ///     provided centimeters into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
@@ -1131,7 +1147,7 @@ constexpr bool isCentimeters(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
 ///     @ref comms::option::def::UnitsMeters, etc...
@@ -1146,7 +1162,7 @@ TRet getMeters(const TField& field)
 ///     provided meters into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
@@ -1184,7 +1200,7 @@ constexpr bool isMeters(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
 ///     @ref comms::option::def::UnitsMeters, etc...
@@ -1199,7 +1215,7 @@ TRet getKilometers(const TField& field)
 ///     provided kilometers into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any distance value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimeters,
@@ -1237,7 +1253,7 @@ constexpr bool isKilometers(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
 ///     @ref comms::option::def::UnitsMetersPerSecond, etc...
@@ -1252,7 +1268,7 @@ TRet getNanometersPerSecond(const TField& field)
 ///     provided nm/s into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
@@ -1290,7 +1306,7 @@ constexpr bool isNanometersPerSecond(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
 ///     @ref comms::option::def::UnitsMetersPerSecond, etc...
@@ -1305,7 +1321,7 @@ TRet getMicrometersPerSecond(const TField& field)
 ///     provided um/s into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
@@ -1343,7 +1359,7 @@ constexpr bool isMicrometersPerSecond(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
 ///     @ref comms::option::def::UnitsMetersPerSecond, etc...
@@ -1358,7 +1374,7 @@ TRet getMillimetersPerSecond(const TField& field)
 ///     provided mm/s into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
@@ -1396,7 +1412,7 @@ constexpr bool isMillimetersPerSecond(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
 ///     @ref comms::option::def::UnitsMetersPerSecond, etc...
@@ -1411,7 +1427,7 @@ TRet getCentimetersPerSecond(const TField& field)
 ///     provided cm/s into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
@@ -1449,7 +1465,7 @@ constexpr bool isCentimetersPerSecond(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
 ///     @ref comms::option::def::UnitsMetersPerSecond, etc...
@@ -1464,7 +1480,7 @@ TRet getMetersPerSecond(const TField& field)
 ///     provided m/s into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
@@ -1502,7 +1518,7 @@ constexpr bool isMetersPerSecond(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
 ///     @ref comms::option::def::UnitsMetersPerSecond, etc...
@@ -1517,7 +1533,7 @@ TRet getKilometersPerSecond(const TField& field)
 ///     provided km/s into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
@@ -1555,7 +1571,7 @@ constexpr bool isKilometersPerSecond(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
 ///     @ref comms::option::def::UnitsMetersPerSecond, etc...
@@ -1570,7 +1586,7 @@ TRet getKilometersPerHour(const TField& field)
 ///     provided km/h into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any speed value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillimetersPerSecond,
@@ -1608,7 +1624,7 @@ constexpr bool isKilometersPerHour(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any frequency value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsHertz,
 ///     @ref comms::option::def::UnitsKilohertz, etc...
@@ -1623,7 +1639,7 @@ TRet getHertz(const TField& field)
 ///     provided hertz into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any frequency value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsHertz,
@@ -1661,7 +1677,7 @@ constexpr bool isHertz(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any frequency value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsHertz,
 ///     @ref comms::option::def::UnitsKilohertz, etc...
@@ -1676,7 +1692,7 @@ TRet getKilohertz(const TField& field)
 ///     provided kilohertz into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any frequency value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsHertz,
@@ -1714,7 +1730,7 @@ constexpr bool isKilohertz(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any frequency value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsHertz,
 ///     @ref comms::option::def::UnitsKilohertz, etc...
@@ -1729,7 +1745,7 @@ TRet getMegahertz(const TField& field)
 ///     provided megahertz into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any frequency value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsHertz,
@@ -1767,7 +1783,7 @@ constexpr bool isMegahertz(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any frequency value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsHertz,
 ///     @ref comms::option::def::UnitsKilohertz, etc...
@@ -1782,7 +1798,7 @@ TRet getGigahertz(const TField& field)
 ///     provided gigahertz into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any frequency value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsHertz,
@@ -1820,7 +1836,7 @@ constexpr bool isGigahertz(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any angle measurement value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsDegrees or
 ///     @ref comms::option::def::UnitsRadians
@@ -1835,7 +1851,7 @@ TRet getDegrees(const TField& field)
 ///     provided degrees into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any angle measurement value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsDegrees or
@@ -1873,7 +1889,7 @@ constexpr bool isDegrees(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any angle measurement value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsDegrees or
 ///     @ref comms::option::def::UnitsRadians
@@ -1888,7 +1904,7 @@ TRet getRadians(const TField& field)
 ///     provided radians into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any angle measurement value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsDegrees or
@@ -1926,7 +1942,7 @@ constexpr bool isRadians(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
 ///     @ref comms::option::def::UnitsAmps, etc...
@@ -1941,7 +1957,7 @@ TRet getNanoamps(const TField& field)
 ///     provided nanoamps into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
@@ -1979,7 +1995,7 @@ constexpr bool isNanoamps(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
 ///     @ref comms::option::def::UnitsAmps, etc...
@@ -1994,7 +2010,7 @@ TRet getMicroamps(const TField& field)
 ///     provided microamps into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
@@ -2033,7 +2049,7 @@ constexpr bool isMicroamps(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
 ///     @ref comms::option::def::UnitsAmps, etc...
@@ -2048,7 +2064,7 @@ TRet getMilliamps(const TField& field)
 ///     provided milliamps into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
@@ -2086,7 +2102,7 @@ constexpr bool isMilliamps(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
 ///     @ref comms::option::def::UnitsAmps, etc...
@@ -2101,7 +2117,7 @@ TRet getAmps(const TField& field)
 ///     provided amps into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
@@ -2139,7 +2155,7 @@ constexpr bool isAmps(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
 ///     @ref comms::option::def::UnitsAmps, etc...
@@ -2154,7 +2170,7 @@ TRet getKiloamps(const TField& field)
 ///     provided kiloamps into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMilliamps,
@@ -2192,7 +2208,7 @@ constexpr bool isKiloamps(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical current value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
 ///     @ref comms::option::def::UnitsVolts, etc...
@@ -2207,7 +2223,7 @@ TRet getNanovolts(const TField& field)
 ///     provided nanovolts into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
@@ -2245,7 +2261,7 @@ constexpr bool isNanovolts(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
 ///     @ref comms::option::def::UnitsVolts, etc...
@@ -2260,7 +2276,7 @@ TRet getMicrovolts(const TField& field)
 ///     provided microvolts into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
@@ -2298,7 +2314,7 @@ constexpr bool isMicrovolts(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
 ///     @ref comms::option::def::UnitsVolts, etc...
@@ -2313,7 +2329,7 @@ TRet getMillivolts(const TField& field)
 ///     provided millivolts into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
@@ -2351,7 +2367,7 @@ constexpr bool isMillivolts(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
 ///     @ref comms::option::def::UnitsVolts, etc...
@@ -2366,7 +2382,7 @@ TRet getVolts(const TField& field)
 ///     provided volts into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
@@ -2404,7 +2420,7 @@ constexpr bool isVolts(const TField& field)
 ///     type.
 /// @tparam TRet Return type
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
 ///     @ref comms::option::def::UnitsVolts, etc...
@@ -2419,7 +2435,7 @@ TRet getKilovolts(const TField& field)
 ///     provided kilovolts into the units stored by the field and update the
 ///     internal value of the latter accordingly.
 /// @tparam TField Type of the field, expected to be a field with integral
-///     internal value, such as a variant of comms::field::IntValue.
+///     internal value, such as a variant of @ref comms::field::IntValue.
 /// @tparam TVal Type of value to assign.
 /// @pre The @b TField type must be defined containing any electrical voltage value, using
 ///     any of the relevant options: @ref comms::option::def::UnitsMillivolts,
@@ -2449,6 +2465,272 @@ template <typename TField>
 constexpr bool isKilovolts(const TField& field)
 {
     return isKilovolts<typename std::decay<decltype(field)>::type>();
+}
+
+/// @brief Retrieve field's value as bytes.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to volts and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TRet, typename TField>
+TRet getBytes(const TField& field)
+{
+    return details::getMemory<TRet, comms::traits::units::BytesRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing bytes value.
+/// @details The function will do all the necessary math operations to convert
+///     provided volts into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TField, typename TVal>
+void setBytes(TField& field, TVal&& val)
+{
+    details::setMemory<comms::traits::units::BytesRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds bytes.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isBytes()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Memory>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::BytesRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds bytes.
+/// @details Similar to other @ref isBytes(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isBytes(const TField& field)
+{
+    return isBytes<typename std::decay<decltype(field)>::type>();
+}
+
+/// @brief Retrieve field's value as kilobytes.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to volts and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TRet, typename TField>
+TRet getKilobytes(const TField& field)
+{
+    return details::getMemory<TRet, comms::traits::units::KilobytesRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing kilobytes value.
+/// @details The function will do all the necessary math operations to convert
+///     provided volts into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TField, typename TVal>
+void setKilobytes(TField& field, TVal&& val)
+{
+    details::setMemory<comms::traits::units::KilobytesRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds kilobytes.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isKilobytes()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Memory>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::KilobytesRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds kilobytes.
+/// @details Similar to other @ref isKilobytes(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isKilobytes(const TField& field)
+{
+    return isKilobytes<typename std::decay<decltype(field)>::type>();
+}
+
+/// @brief Retrieve field's value as megabytes.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to volts and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TRet, typename TField>
+TRet getMegabytes(const TField& field)
+{
+    return details::getMemory<TRet, comms::traits::units::MegabytesRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing megabytes value.
+/// @details The function will do all the necessary math operations to convert
+///     provided volts into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TField, typename TVal>
+void setMegabytes(TField& field, TVal&& val)
+{
+    details::setMemory<comms::traits::units::MegabytesRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds megabytes.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isMegabytes()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Memory>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::MegabytesRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds megabytes.
+/// @details Similar to other @ref isMegabytes(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isMegabytes(const TField& field)
+{
+    return isMegabytes<typename std::decay<decltype(field)>::type>();
+}
+
+
+/// @brief Retrieve field's value as gigabytes.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to volts and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TRet, typename TField>
+TRet getGigabytes(const TField& field)
+{
+    return details::getMemory<TRet, comms::traits::units::GigabytesRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing gigabytes value.
+/// @details The function will do all the necessary math operations to convert
+///     provided volts into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TField, typename TVal>
+void setGigabytes(TField& field, TVal&& val)
+{
+    details::setMemory<comms::traits::units::GigabytesRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds gigabytes.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isGigabytes()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Memory>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::GigabytesRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds gigabytes.
+/// @details Similar to other @ref isGigabytes(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isGigabytes(const TField& field)
+{
+    return isGigabytes<typename std::decay<decltype(field)>::type>();
+}
+
+/// @brief Retrieve field's value as terabytes.
+/// @details The function will do all the necessary math operations to convert
+///     stored value to volts and return the result in specified return
+///     type.
+/// @tparam TRet Return type
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TRet, typename TField>
+TRet getTerabytes(const TField& field)
+{
+    return details::getMemory<TRet, comms::traits::units::TerabytesRatio>(field);
+}
+
+/// @brief Update field's value accordingly, while providing terabytes value.
+/// @details The function will do all the necessary math operations to convert
+///     provided volts into the units stored by the field and update the
+///     internal value of the latter accordingly.
+/// @tparam TField Type of the field, expected to be a field with integral
+///     internal value, such as a variant of @ref comms::field::IntValue.
+/// @tparam TVal Type of value to assign.
+/// @pre The @b TField type must be defined containing any electrical voltage value, using
+///     any of the relevant options: @ref comms::option::def::UnitsBytes,
+///     @ref comms::option::def::UnitsKilobytes, etc...
+template <typename TField, typename TVal>
+void setTerabytes(TField& field, TVal&& val)
+{
+    details::setMemory<comms::traits::units::TerabytesRatio>(field, std::forward<TVal>(val));
+}
+
+/// @brief Compile time check whether the field type holds terabytes.
+/// @tparam TField Type of field.
+template <typename TField>
+constexpr bool isTerabytes()
+{
+    return
+        TField::ParsedOptions::HasUnits &&
+        std::is_same<typename TField::ParsedOptions::UnitsType, comms::traits::units::Memory>::value &&
+        std::is_same<typename TField::ParsedOptions::UnitsRatio, comms::traits::units::TerabytesRatio>::value;
+}
+
+/// @brief Compile time check whether the field type holds terabytes.
+/// @details Similar to other @ref isTerabytes(), but allows automatic
+///     deduction of the field type.
+/// @param[in] field Reference to field object, units of which need to be checked.
+template <typename TField>
+constexpr bool isTerabytes(const TField& field)
+{
+    return isTerabytes<typename std::decay<decltype(field)>::type>();
 }
 
 } // namespace units

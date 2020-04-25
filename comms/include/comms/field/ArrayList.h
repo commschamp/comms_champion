@@ -20,7 +20,13 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
+
 #include <vector>
+
+#if COMMS_HAS_CPP20_SPAN
+#include <span>
+#endif // #if COMMS_HAS_CPP20_SPAN
 
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
@@ -46,8 +52,13 @@ struct ArrayListOrigDataViewStorageType;
 template <>
 struct ArrayListOrigDataViewStorageType<true>
 {
+#if COMMS_HAS_CPP20_SPAN
+    template <typename TElement>
+    using Type = std::span<TElement>;
+#else // #if COMMS_HAS_CPP20_SPAN    
     template <typename TElement>
     using Type = comms::util::ArrayView<TElement>;
+#endif // #if COMMS_HAS_CPP20_SPAN        
 };
 
 template <>

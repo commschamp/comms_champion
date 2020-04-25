@@ -1,15 +1,13 @@
 image:
     - Visual Studio 2015
     - Visual Studio 2017
+    - Visual Studio 2019    
 
 init:
     - git config --global core.autocrlf input
 
 clone_folder: c:\projects\comms_champion
 shallow_clone: true             
-
-matrix:
-    fast_finish: false
 
 platform:
     - x64
@@ -22,13 +20,20 @@ configuration:
 environment:
     matrix:
         - CPP_STD: 11
-          QT_VER: 5.6
-        - CPP_STD: 11
-          QT_VER: 5.11
         - CPP_STD: 14
-          QT_VER: 5.6
-        
+        - CPP_STD: 17
+        - CPP_STD: 20
 
+matrix:
+    fast_finish: false
+    exclude:
+        - image: Visual Studio 2015
+          CPP_STD: 17 
+        - image: Visual Studio 2015
+          CPP_STD: 20    
+        - image: Visual Studio 2017
+          CPP_STD: 20         
+        
 install:
     - call script\appveyor_install.bat
     - set PATH=%PATH%;%QTDIR%\bin

@@ -66,6 +66,9 @@ struct Current {};
 /// @brief Tag class used to indicate electrical voltage value
 struct Voltage {};
 
+/// @brief Tag class used to indicate memory size value
+struct Memory {};
+
 /// @brief Ratio for nanoseconds
 using NanosecondsRatio = std::nano;
 
@@ -183,6 +186,21 @@ using VoltsRatio = std::ratio<1, 1>;
 
 /// @brief Ratio for kilovolts
 using KilovoltsRatio = std::kilo;
+
+/// @brief Ratio for bytes
+using BytesRatio = std::ratio<1, 1>;
+
+/// @brief Ratio for kilobytes
+using KilobytesRatio = std::ratio<1024, 1>;
+
+/// @brief Ratio for megabytes
+using MegabytesRatio = std::ratio<1024UL * 1024, 1>;
+
+/// @brief Ratio for gigabytes
+using GigabytesRatio = std::ratio<1024ULL * 1024 * 1024, 1>;
+
+/// @brief Ratio for terabytes
+using TerabytesRatio = std::ratio<1024ULL * 1024 * 1024 * 1024, 1>;
 
 } // namespace units
 

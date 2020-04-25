@@ -964,6 +964,31 @@ using UnitsVolts =
 using UnitsKilovolts =
     Units<comms::traits::units::Voltage, comms::traits::units::KilovoltsRatio>;
 
+/// @brief Alias option, specifying field value units are "bytes".
+/// @headerfile comms/options.h
+using UnitsBytes =
+    Units<comms::traits::units::Memory, comms::traits::units::BytesRatio>;    
+
+/// @brief Alias option, specifying field value units are "kilobytes".
+/// @headerfile comms/options.h
+using UnitsKilobytes =
+    Units<comms::traits::units::Memory, comms::traits::units::KilobytesRatio>;        
+
+/// @brief Alias option, specifying field value units are "megabytes".
+/// @headerfile comms/options.h
+using UnitsMegabytes =
+    Units<comms::traits::units::Memory, comms::traits::units::MegabytesRatio>;     
+
+/// @brief Alias option, specifying field value units are "gigabytes".
+/// @headerfile comms/options.h
+using UnitsGigabytes =
+    Units<comms::traits::units::Memory, comms::traits::units::GigabytesRatio>;         
+
+/// @brief Alias option, specifying field value units are "terabytes".
+/// @headerfile comms/options.h
+using UnitsTerabytes =
+    Units<comms::traits::units::Memory, comms::traits::units::TerabytesRatio>;         
+
 /// @brief Alias to DefaultValueInitialiser, it defines initialiser class that
 ///     assigns numeric value provided as the template argument to this option.
 /// @details If the required numeric value is too big (doesn't fit into @b
@@ -1392,13 +1417,24 @@ struct SequenceFixedSizeUseFixedSizeStorage {};
 struct NoVirtualDestructor {};
 
 /// @brief Use "view" on original raw data instead of copying it.
-/// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList,
-///     will force usage of @ref comms::util::StringView and comms::util::ArrayView
-///     respectively as data storage type.
+/// @details Can be used with @ref comms::field::String and raw data @ref comms::field::ArrayList.@n
+///     For @ref comms::field::String it will force usage of 
+///     <a href="https://en.cppreference.com/w/cpp/string/basic_string_view">std::string_view</a> (if available) as 
+///     inner storage type (instead of @b std::string). In case @b std::string_view is unavalable 
+///     (C++17 support is disabled or standard library of insufficient version) @ref comms::util::StringView
+///     will be used instead.@n
+///     For raw data @ref comms::field::ArrayList it will force usage of 
+///     <a href="https://en.cppreference.com/w/cpp/container/span">std::span&lt;std::uint8_t&gt;</a>(if available) as 
+///     inner storage type (instead of @b std::vector<std::uint8_t>). In case @b std::span is unavalable 
+///     (C++20 support is disabled or standard library of insufficient version) @ref comms::util::ArrayView
+///     will be used instead.@n
 /// @note The original data must be preserved until destruction of the field
 ///     that uses the "view".
 /// @note Incompatible with other options that contol data storage type,
 ///     such as @ref comms::option::CustomStorageType or @ref comms::option::FixedSizeStorage
+/// @note To force usage of provided @ref comms::util::StringView or @ref comms::util::ArrayView
+///     instead of standard @b std::string_view or @b std::span, use @ref comms::option::CustomStorageType
+///     option.
 /// @headerfile comms/options.h
 struct OrigDataView {};
 
@@ -1666,6 +1702,21 @@ using UnitsVolts = comms::option::def::UnitsVolts;
 
 /// @brief Same as @ref comms::option::def::UnitsKilovolts
 using UnitsKilovolts = comms::option::def::UnitsKilovolts;
+
+/// @brief Same as @ref comms::option::def::UnitsBytes
+using UnitsBytes = comms::option::def::UnitsBytes;
+
+/// @brief Same as @ref comms::option::def::UnitsKilobytes
+using UnitsKilobytes = comms::option::def::UnitsKilobytes;
+
+/// @brief Same as @ref comms::option::def::UnitsMegabytes
+using UnitsMegabytes = comms::option::def::UnitsMegabytes;
+
+/// @brief Same as @ref comms::option::def::UnitsGigabytes
+using UnitsGigabytes = comms::option::def::UnitsGigabytes;
+
+/// @brief Same as @ref comms::option::def::UnitsTerabytes
+using UnitsTerabytes = comms::option::def::UnitsTerabytes;
 
 /// @brief Same as @ref comms::option::def::DefaultNumValue
 template<std::intmax_t TVal>

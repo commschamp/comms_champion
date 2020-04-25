@@ -18,17 +18,19 @@
 
 #pragma once
 
-#if __cplusplus < 201402L
+#include "comms/CompileControl.h"
 
-#ifdef __clang__
+#if (!COMMS_IS_CPP14)
+
+#if COMMS_IS_CLANG
 #define COMMS_MUST_DEFINE_BASE
 #endif
 
-#if !defined(COMMS_MUST_DEFINE_BASE) && defined(__GNUC__) && !defined(__clang__)
+#if !defined(COMMS_MUST_DEFINE_BASE) && COMMS_IS_GCC
 #if __GNUC__ < 5
 #define COMMS_MUST_DEFINE_BASE
 #endif // #if __GNUC__ < 5
 #endif // #if !defined(COMMS_MUST_DEFINE_BASE) && defined(__GNUC__)
 
-#endif // #if __cplusplus < 201402L
+#endif // #if (!COMMS_IS_CPP14)
 

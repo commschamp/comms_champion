@@ -18,6 +18,10 @@ function (test_func test_suite_name)
     
     CXXTEST_ADD_TEST (${name} ${runner} ${tests} ${extra_sources})
     target_link_libraries(${name} cc::comms)
+
+    target_compile_options(${name} PRIVATE
+      $<$<CXX_COMPILER_ID:MSVC>:/wd5055>
+    )    
     
     if (VALGRIND_EXECUTABLE)
         add_test(NAME "${name}_valgrind"

@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include "macro_common.h"
+#include "comms/CompileControl.h"
+#include "comms/details/macro_common.h"
 
 #define COMMS_ALIAS_MEM_ACC(prefix_, m_) COMMS_CONCATENATE(prefix_, m_)()
 
@@ -44,7 +45,21 @@
     COMMS_EXPAND(COMMS_ALIAS_ALL_MEM_ACC(COMMS_NUM_ARGS(__VA_ARGS__), prefix_, __VA_ARGS__))
 
 
-#if __cplusplus < 201402L
+#if COMMS_IS_CPP14
+
+#define COMMS_DO_ALIAS(prefix_, f1_, ...) \
+    decltype(auto) COMMS_CONCATENATE(prefix_, f1_) () \
+    { \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
+    }\
+    decltype(auto) COMMS_CONCATENATE(prefix_, f1_) () const \
+    { \
+        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
+    }
+
+#define COMMS_DO_ALIAS_NOTEMPLATE(prefix_, f1_, ...) COMMS_EXPAND(COMMS_DO_ALIAS(prefix_, f1_, __VA_ARGS__))
+
+#else // #if COMMS_IS_CPP14
 
 #ifndef COMMS_DO_ALIAS_RET_TYPE_PREFIX
 #define COMMS_DO_ALIAS_RET_TYPE_PREFIX
@@ -77,21 +92,7 @@
         return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
     }
 
-#else // #if __cplusplus < 201402L
-
-#define COMMS_DO_ALIAS(prefix_, f1_, ...) \
-    decltype(auto) COMMS_CONCATENATE(prefix_, f1_) () \
-    { \
-        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
-    }\
-    decltype(auto) COMMS_CONCATENATE(prefix_, f1_) () const \
-    { \
-        return COMMS_DO_ALIAS_ALL_MEM_ACC(prefix_, __VA_ARGS__); \
-    }
-
-#define COMMS_DO_ALIAS_NOTEMPLATE(prefix_, f1_, ...) COMMS_EXPAND(COMMS_DO_ALIAS(prefix_, f1_, __VA_ARGS__))
-
-#endif
+#endif // #if COMMS_IS_CPP14
 
 // ----------------------------------------------
 

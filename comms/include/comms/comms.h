@@ -37,3 +37,6 @@
 #include "comms/MsgFactory.h"
 #include "comms/MsgDispatcher.h"
 #include "comms/GenericMessage.h"
+
+#include "comms/util/detect.h"
+#include "comms/util/assign.h"

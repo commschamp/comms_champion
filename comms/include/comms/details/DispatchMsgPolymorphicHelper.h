@@ -658,6 +658,7 @@ private:
             typename std::decay<decltype(handler)>::type>
     {
         static_cast<void>(id);
+        static_cast<void>(offset);
         static_assert(std::is_base_of<typename TMsgBase::Handler, THandler>::value,
             "Incompatible handlers");
 
@@ -665,10 +666,6 @@ private:
                 "The message types in the provided tuple must be sorted by their IDs");
 
         using RetType = MessageInterfaceDispatchRetType<THandler>;
-        if (offset != 0U) {
-            return static_cast<RetType>(handler.handle(msg));
-        }
-
         return static_cast<RetType>(msg.dispatch(handler));
     }
 

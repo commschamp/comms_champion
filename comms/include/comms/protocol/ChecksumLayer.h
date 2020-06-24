@@ -15,14 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file 
+/// Contains definition of @ref comms::protocol::ChecksumLayer
 
 #pragma once
 
 #include <iterator>
 #include <type_traits>
 #include "comms/field/IntValue.h"
-#include "ProtocolLayerBase.h"
-#include "details/ChecksumLayerOptionsParser.h"
+#include "comms/protocol/details/ProtocolLayerBase.h"
+#include "comms/protocol/details/ChecksumLayerOptionsParser.h"
 
 namespace comms
 {
@@ -55,7 +57,7 @@ namespace protocol
 /// @headerfile comms/protocol/ChecksumLayer.h
 template <typename TField, typename TCalc, typename TNextLayer, typename... TOptions>
 class ChecksumLayer : public
-        ProtocolLayerBase<
+        details::ProtocolLayerBase<
             TField,
             TNextLayer,
             ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>,
@@ -63,7 +65,7 @@ class ChecksumLayer : public
         >
 {
     using BaseImpl =
-        ProtocolLayerBase<
+        details::ProtocolLayerBase<
             TField,
             TNextLayer,
             ChecksumLayer<TField, TCalc, TNextLayer, TOptions...>,

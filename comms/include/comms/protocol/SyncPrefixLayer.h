@@ -15,10 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file 
+/// Contains definition of @ref comms::protocol::SyncPrefixLayer
 
 #pragma once
 
-#include "ProtocolLayerBase.h"
+#include "comms/protocol/details/ProtocolLayerBase.h"
 
 namespace comms
 {
@@ -39,14 +41,14 @@ namespace protocol
 /// @headerfile comms/protocol/SyncPrefixLayer.h
 template <typename TField, typename TNextLayer>
 class SyncPrefixLayer : public
-        ProtocolLayerBase<
+        details::ProtocolLayerBase<
             TField,
             TNextLayer,
             SyncPrefixLayer<TField, TNextLayer>
         >
 {
     using BaseImpl =
-        ProtocolLayerBase<
+        details::ProtocolLayerBase<
             TField,
             TNextLayer,
             SyncPrefixLayer<TField, TNextLayer>

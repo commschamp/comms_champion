@@ -8,6 +8,15 @@
 /// @brief Namespace for various @b compile-time detection operations of whether a type
 ///     has certain member types and/or member functions.
 
+/// @namespace comms::util::alloc
+/// @brief Namespace for various allocation classes.
+
+/// @namespace comms::util::traits
+/// @brief Namespace for various utilities related trait classes.
+
+/// @namespace comms::util::traits::endian
+/// @brief Namespace for utilities related endian definition trait classes.
+
 /// @namespace comms::option
 /// @brief Namespace that contains all the options used to define protocol as well
 /// as customize application specific configuration.

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/// @file comms/protocol/MsgIdLayer.h
+/// @file 
 /// This file contains "Message ID" protocol layer of the "comms" module.
 
 #pragma once
@@ -29,10 +29,10 @@
 
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
-#include "ProtocolLayerBase.h"
 #include "comms/fields.h"
 #include "comms/MsgFactory.h"
 #include "comms/dispatch.h"
+#include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/MsgIdLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 
@@ -66,7 +66,7 @@ template <typename TField,
           typename TNextLayer,
           typename... TOptions>
 class MsgIdLayer : public
-        ProtocolLayerBase<
+        details::ProtocolLayerBase<
             TField,
             TNextLayer,
             details::ProtocolLayerExtendingClassT<
@@ -85,7 +85,7 @@ class MsgIdLayer : public
             >;
 
     using BaseImpl =
-        ProtocolLayerBase<
+        details::ProtocolLayerBase<
             TField,
             TNextLayer,
             ExtendingClass

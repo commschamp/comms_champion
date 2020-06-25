@@ -258,8 +258,71 @@ matrix:
             - llvm-toolchain-xenial-8
           packages:
             - clang-8    
-      env: _CC=clang-8 _CXX=clang++-8 _BUILD="-DCMAKE_CXX_STANDARD=20"                             
-      
+      env: _CC=clang-8 _CXX=clang++-8 _BUILD="-DCMAKE_CXX_STANDARD=20"  
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-9
+          packages:
+            - clang-9    
+      env: _CC=clang-9 _CXX=clang++-9
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-9
+          packages:
+            - clang-9    
+      env: _CC=clang-9 _CXX=clang++-9 _BUILD="-DCMAKE_CXX_STANDARD=14"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-9
+          packages:
+            - clang-9    
+      env: _CC=clang-9 _CXX=clang++-9 _BUILD="-DCMAKE_CXX_STANDARD=17"    
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-9
+          packages:
+            - clang-9    
+      env: _CC=clang-9 _CXX=clang++-9 _BUILD="-DCMAKE_CXX_STANDARD=20"                                   
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-10
+          packages:
+            - clang-10    
+      env: _CC=clang-10 _CXX=clang++-10
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-10
+          packages:
+            - clang-10    
+      env: _CC=clang-10 _CXX=clang++-10 _BUILD="-DCMAKE_CXX_STANDARD=14"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-10
+          packages:
+            - clang-10    
+      env: _CC=clang-10 _CXX=clang++-10 _BUILD="-DCMAKE_CXX_STANDARD=17"    
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-10
+          packages:
+            - clang-10    
+      env: _CC=clang-10 _CXX=clang++-10 _BUILD="-DCMAKE_CXX_STANDARD=20" 
 before_install:
   - sudo apt-get install libqt5serialport5-dev  -y      
 

@@ -86,6 +86,7 @@ namespace field
 ///     @li @ref comms::option::def::VersionStorage - Add version storage.
 /// @extends comms::Field
 /// @headerfile comms/field/Variant.h
+/// @see COMMS_VARIANT_MEMBERS_NAMES()
 /// @see COMMS_VARIANT_MEMBERS_ACCESS()
 /// @see COMMS_VARIANT_MEMBERS_ACCESS_NOTEMPLATE()
 template <typename TFieldBase, typename TMembers, typename... TOptions>

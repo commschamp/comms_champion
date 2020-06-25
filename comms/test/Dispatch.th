@@ -22,6 +22,7 @@
 
 #include "comms/comms.h"
 #include "comms/dispatch.h"
+#include "comms/process.h"
 #include "CommsTestCommon.h"
 
 CC_DISABLE_WARNINGS()
@@ -36,6 +37,7 @@ public:
     void test2();
     void test3();
     void test4();
+    void test5();
 
     class TypeHandler
     {
@@ -104,6 +106,52 @@ public:
         MessageType m_lastId = InvalidMessageId;
     };
 
+    template <typename TInterface>
+    class MsgHandlerT
+    {
+    public:
+        template <typename TMsg>
+        void handle(TMsg& msg)
+        {
+            static_cast<void>(msg);
+            static_assert(comms::isMessageBase<TMsg>(), "Wrong dispatch");
+            ++m_detectedCnt;
+            m_lastId = static_cast<decltype(m_lastId)>(TMsg::ImplOptions::MsgId);
+        }
+
+        void handle(TInterface&)
+        {
+            ++m_interfaceCnt;
+        }
+
+        unsigned detectedCnt() const
+        {
+            return m_detectedCnt;
+        }
+
+        unsigned interfaceCnt() const
+        {
+            return m_interfaceCnt;
+        }        
+
+        MessageType lastId() const
+        {
+            return m_lastId;
+        }
+
+        void reset()
+        {
+            m_detectedCnt = 0U;
+            m_lastId = InvalidMessageId;
+        }
+
+    private:
+        static const MessageType InvalidMessageId = static_cast<MessageType>(99);
+        unsigned m_detectedCnt = 0U;
+        unsigned m_interfaceCnt = 0U;
+        MessageType m_lastId = InvalidMessageId;
+    };    
+
     using Interface1 =
         comms::Message<
             comms::option::def::MsgIdType<MessageType>,
@@ -117,7 +165,6 @@ public:
             comms::option::def::BigEndian,
             comms::option::Handler<MsgHandler>
         >;
-
 private:
 };
 
@@ -326,4 +373,63 @@ void DispatchTestSuite::test4()
     TS_ASSERT(!comms::dispatchMsgIsDirect(msg, handler));
     TS_ASSERT(comms::dispatchMsgIsStaticBinSearch<AllMessages>(msg, handler));
 
+}
+
+void DispatchTestSuite::test5()
+{
+    class TestHandler;
+    using TestInterface =
+        comms::Message<
+            comms::option::def::MsgIdType<MessageType>,
+            comms::option::def::BigEndian,
+            comms::option::app::Handler<TestHandler>,
+            comms::option::app::ReadIterator<const std::uint8_t*>,
+            comms::option::app::WriteIterator<std::uint8_t*>
+        >;    
+
+    using Msg1 = Message1<TestInterface>;
+    using Msg2 = Message2<TestInterface>;
+    using Msg90_1 = Message90_1<TestInterface>;
+    using Msg90_2 = Message90_2<TestInterface>;
+
+    using AllMessages =
+        std::tuple<
+            Msg1,
+            Msg2,
+            Msg90_1,
+            Msg90_2
+        >;
+
+    class TestHandler : public MsgHandlerT<TestInterface> {};
+
+    using FieldBase = comms::Field<comms::option::def::BigEndian>;
+    using SizeField = comms::field::IntValue<FieldBase, std::uint16_t>;
+    using Idfield = comms::field::EnumValue<FieldBase, MessageType>;
+
+    using Frame = 
+        comms::protocol::MsgSizeLayer<
+            SizeField,
+            comms::protocol::MsgIdLayer<
+                Idfield,
+                TestInterface,
+                AllMessages,
+                comms::protocol::MsgDataLayer<>
+            >
+        >;
+
+    std::vector<std::uint8_t> outBuf;
+    
+    Msg90_2 outMsg;
+    TestHandler handler;
+    Frame frame;
+
+    outBuf.resize(frame.length(outMsg));
+    auto writeIter = &outBuf[0];
+    
+    auto es = frame.write(outMsg, writeIter, outBuf.size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+
+    comms::processAllWithDispatch(&outBuf[0], outBuf.size(), frame, handler);
+    TS_ASSERT_EQUALS(handler.detectedCnt(), 1U);
+    TS_ASSERT_EQUALS(handler.interfaceCnt(), 0U);
 }

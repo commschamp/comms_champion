@@ -33,3 +33,6 @@
 /// for custom binary protocol, which can be used in any application in the future,
 /// including bare-metal one with constrained environment.
 ///
+/// Refer to <a href="version_8h.html">comms/version.h</a> file for the version 
+/// information of the @b COMMS library and this documentation.
+///

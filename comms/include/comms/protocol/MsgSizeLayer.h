@@ -15,12 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/// @file 
+/// Contains definition of @ref comms::protocol::MsgSizeLayer
+
 #pragma once
 
 #include <iterator>
 #include <type_traits>
 #include "comms/field/IntValue.h"
-#include "comms/protocol/ProtocolLayerBase.h"
+#include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/MsgSizeLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
 
@@ -65,7 +68,7 @@ struct MsgSizeLayerConstNullPtrCastHelper<false>
 /// @headerfile comms/protocol/MsgSizeLayer.h
 template <typename TField, typename TNextLayer, typename... TOptions>
 class MsgSizeLayer : public
-        ProtocolLayerBase<
+        details::ProtocolLayerBase<
             TField,
             TNextLayer,
             details::ProtocolLayerExtendingClassT<
@@ -82,7 +85,7 @@ class MsgSizeLayer : public
             >;
 
     using BaseImpl =
-        ProtocolLayerBase<
+        details::ProtocolLayerBase<
             TField,
             TNextLayer,
             ExtendingClass,

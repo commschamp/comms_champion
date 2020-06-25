@@ -280,13 +280,13 @@ before_install:
   - sudo apt-get install libqt5serialport5-dev  -y  
   - >
     if [ "${_CC}" = "clang-9" ]; then 
-        sudo add-apt-repository -y ppa:llvm-toolchain-xenial-9
+        sudo add-apt-repository -y "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main"
         sudo apt-get -q update  
         sudo apt-get -y install clang-9
     fi  
   - >
     if [ "${_CC}" = "clang-10" ]; then 
-        sudo add-apt-repository -y ppa:llvm-toolchain-xenial-10
+        sudo add-apt-repository -y "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-10 main"
         sudo apt-get -q update  
         sudo apt-get -y install clang-10
     fi    

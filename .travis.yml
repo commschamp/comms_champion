@@ -259,37 +259,9 @@ matrix:
           packages:
             - clang-8    
       env: _CC=clang-8 _CXX=clang++-8 _BUILD="-DCMAKE_CXX_STANDARD=20"  
-    - os: linux
-      env: _CC=clang-9 _CXX=clang++-9
-    - os: linux
-      env: _CC=clang-9 _CXX=clang++-9 _BUILD="-DCMAKE_CXX_STANDARD=14"
-    - os: linux
-      env: _CC=clang-9 _CXX=clang++-9 _BUILD="-DCMAKE_CXX_STANDARD=17"    
-    - os: linux
-      env: _CC=clang-9 _CXX=clang++-9 _BUILD="-DCMAKE_CXX_STANDARD=20"                                   
-    - os: linux
-      env: _CC=clang-10 _CXX=clang++-10
-    - os: linux
-      env: _CC=clang-10 _CXX=clang++-10 _BUILD="-DCMAKE_CXX_STANDARD=14"
-    - os: linux
-      env: _CC=clang-10 _CXX=clang++-10 _BUILD="-DCMAKE_CXX_STANDARD=17"    
-    - os: linux
-      env: _CC=clang-10 _CXX=clang++-10 _BUILD="-DCMAKE_CXX_STANDARD=20" 
 
 before_install:
   - sudo apt-get install libqt5serialport5-dev  -y  
-  - >
-    if [ "${_CC}" = "clang-9" ]; then 
-        sudo add-apt-repository -y --allow-unauthenticated "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" &&
-        sudo apt-get -q update &&
-        sudo apt-get -y install clang-9
-    fi  
-  - >
-    if [ "${_CC}" = "clang-10" ]; then 
-        sudo add-apt-repository -y --allow-unauthenticated "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-10 main" &&
-        sudo apt-get -q update  &&
-        sudo apt-get -y install clang-10
-    fi    
 
 script:
   - echo "------------------ Debug build ------------------"

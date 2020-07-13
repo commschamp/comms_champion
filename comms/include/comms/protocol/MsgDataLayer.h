@@ -407,12 +407,23 @@ public:
         return comms::ErrorStatus::Success;
     }
 
+    /// @brief Update recently written (using write()) message contents data.
+    /// @details Same as other @ref update(), but with extra message parameter/
+    /// @param[in] msg Reference to recently writtem message object.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using write().
+    /// @return Status of the update operation.
+    template <typename TMsg, typename TIter>
+    static comms::ErrorStatus update(const TMsg& msg, TIter& iter, std::size_t size)
+    {
+        static_cast<void>(msg);
+        return update(iter, size);
+    }
+
     /// @brief Update recently written (using writeFieldsCached()) message data as
     ///     well as cached transport information fields.
     /// @details Very similar to update() member function, but adds "allFields"
     ///     parameter to store raw data of the message.
-    /// @tparam TIdx Index of the data field in TAllFields, expected to be last
-    ///     element in the tuple.
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
@@ -422,19 +433,41 @@ public:
     /// @param[in, out] iter Random access iterator to the written data.
     /// @param[in] size Number of bytes that have been written using writeFieldsCached().
     /// @return Status of the update operation.
-    template <std::size_t TIdx, typename TAllFields, typename TIter>
+    template <typename TAllFields, typename TIter>
     static ErrorStatus updateFieldsCached(
         TAllFields& allFields,
         TIter& iter,
         std::size_t size)
     {
-        static_assert(comms::util::IsTuple<TAllFields>::Value,
-                                        "Expected TAllFields to be tuple.");
-
-        static_assert((TIdx + 1) == std::tuple_size<TAllFields>::value,
-                    "All fields must be written when MsgDataLayer is reached");
-
         static_cast<void>(allFields);
+        std::advance(iter, size);
+        return comms::ErrorStatus::Success;
+    }
+
+    /// @brief Update recently written (using writeFieldsCached()) message data as
+    ///     well as cached transport information fields.
+    /// @details Very similar to other @ref updateFieldsCached() member function, 
+    ///     but adds "msg" parameter to reference message object if needed.
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @tparam TMsg Type of @b msg parameter.
+    /// @tparam TIter Type of the random access iterator.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msg Reference to recently written message object.
+    /// @param[in, out] iter Random access iterator to the written data.
+    /// @param[in] size Number of bytes that have been written using writeFieldsCached().
+    /// @return Status of the update operation.
+    template <typename TAllFields, typename TMsg, typename TIter>
+    static ErrorStatus updateFieldsCached(
+        TAllFields& allFields,
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size)
+    {
+        static_cast<void>(allFields);
+        static_cast<void>(msg);
         std::advance(iter, size);
         return comms::ErrorStatus::Success;
     }

@@ -215,14 +215,35 @@ public:
             return es;
         }
 
-        COMMS_ASSERT(fromIter <= iter);
-        auto len = static_cast<std::size_t>(std::distance(fromIter, iter));
-        COMMS_ASSERT(len == (size - Field::maxLength()));
-        auto remSize = size - len;
-        using FieldValueType = typename Field::ValueType;
-        field.value() = static_cast<FieldValueType>(TCalc()(fromIter, len));
-        es = field.write(iter, remSize);
-        return es;
+        return fieldUpdateInternal(fromIter, iter, size, field);
+    }
+
+    /// @brief Customized update functionality, invoked by @ref update().
+    /// @details Should be called when @ref doWrite() returns comms::ErrorStatus::UpdateRequired.
+    /// @tparam TMsg Type of recently written message.
+    /// @tparam TIter Type of iterator used for updating.
+    /// @tparam TNextLayerWriter next layer updater object type.
+    /// @param[in] msg Reference to recently written message object.
+    /// @param[out] field Field object to update.
+    /// @param[in, out] iter Any random access iterator.
+    /// @param[in] size Number of bytes that have been written using write().
+    /// @param[in] nextLayerUpdater Next layer updater object.
+    /// @return Status of the update operation.
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdate(
+        const TMsg& msg,
+        Field& field,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater) const
+    {
+        auto fromIter = iter;
+        auto es = nextLayerUpdater.update(msg, iter, size - Field::maxLength());
+        if (es != comms::ErrorStatus::Success) {
+            return es;
+        }
+
+        return fieldUpdateInternal(fromIter, iter, size, field);
     }
 
 private:
@@ -437,6 +458,18 @@ private:
         std::output_iterator_tag) const
     {
         return writeInternalOutput(field, msg, iter, size, std::forward<TWriter>(nextLayerWriter));
+    }
+
+    template <typename TIter>
+    static ErrorStatus fieldUpdateInternal(TIter from, TIter to, std::size_t size, Field& field)
+    {
+        COMMS_ASSERT(from <= to);
+        auto len = static_cast<std::size_t>(std::distance(from, to));
+        COMMS_ASSERT(len == (size - Field::maxLength()));
+        auto remSize = size - len;
+        using FieldValueType = typename Field::ValueType;
+        field.value() = static_cast<FieldValueType>(TCalc()(from, len));
+        return field.write(to, remSize);
     }
 };
 

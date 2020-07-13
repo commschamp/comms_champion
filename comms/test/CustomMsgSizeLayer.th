@@ -34,6 +34,7 @@ public:
     void test2();
     void test3();
     void test4();
+    void test5();
 
 private:
 
@@ -108,7 +109,6 @@ private:
     public:
         COMMS_MSG_TRANSPORT_FIELDS_NAMES(flags);
     };
-
 
     template <
           typename TNextLayer,
@@ -326,3 +326,36 @@ void CustomPostIdMsgSizeLayerTestSuite::test4()
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::NotEnoughData);
     TS_ASSERT_EQUALS(missingSize, 2U);
 }
+
+void CustomPostIdMsgSizeLayerTestSuite::test5()
+{
+    using Msg1 = Message1<Interface2>;
+    Msg1 msg1;
+    msg1.transportField_flags().value() = 0xfU;
+    msg1.field_value1().value() = 0x0102;
+
+    using Stack = Frame1<Interface2>;
+    Stack stack;
+    std::vector<char> outBuf;
+    auto writeIter = std::back_inserter(outBuf);
+    auto es = stack.write(static_cast<const Interface2&>(msg1), writeIter, outBuf.max_size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::UpdateRequired);
+    auto updateIter = &outBuf[0];
+    es = stack.update(msg1, updateIter, outBuf.size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+
+    // Repeate update with fields cached
+    Stack::AllFields allFields;
+    updateIter = &outBuf[0];
+    es = stack.updateFieldsCached(allFields, msg1, updateIter, outBuf.size());
+    TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
+
+    static const char Buf[] = {
+        MessageType1, (char)0xf0, 0x02, 0x01, 0x02
+    };
+
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    TS_ASSERT_EQUALS(BufSize, outBuf.size());
+    TS_ASSERT(std::equal(outBuf.begin(), outBuf.end(), &Buf[0]));
+}
+

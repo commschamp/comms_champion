@@ -990,7 +990,7 @@ typename TProtStack::MsgPtr vectorBackInsertReadWriteMsgTest(
     if (es == comms::ErrorStatus::UpdateRequired) {
         assert(!outCheckBuf.empty());
         auto updateIter = &outCheckBuf[0];
-        es = stack.update(updateIter, actualBufSize);
+        es = stack.update(*msg, updateIter, actualBufSize);
     }
     TS_ASSERT_EQUALS(es, comms::ErrorStatus::Success);
     TS_ASSERT_EQUALS(outCheckBuf.size(), actualBufSize);

@@ -151,6 +151,11 @@ private:
 #ifndef COMMS_ASSERT
 #ifndef NDEBUG
 
+// NOSTDLIB definition is treated as COMMS_NOSTDLIB for backward compatiblity
+#if defined(NOSTDLIB) && !defined(COMMS_NOSTDLIB)
+#define COMMS_NOSTDLIB
+#endif 
+
 /// @cond DOCUCMENT_AM_ASSERT_FUNCTION
 #ifndef __ASSERT_FUNCTION
 #define COMMS_ASSERT_FUNCTION_STR __FUNCTION__
@@ -158,18 +163,18 @@ private:
 #define COMMS_ASSERT_FUNCTION_STR __ASSERT_FUNCTION
 #endif // #ifndef __ASSERT_FUNCTION
 
-#ifndef NOSTDLIB
+#ifndef COMMS_NOSTDLIB
 #define COMMS_ASSERT_FAIL_FUNC(expr) assert(expr)
-#else // #ifndef NOSTDLIB
+#else // #ifndef COMMS_NOSTDLIB
 #define COMMS_ASSERT_FAIL_FUNC(expr) comms::AssertManager::instance().infiniteLoop()
-#endif // #ifndef NOSTDLIB
+#endif // #ifndef COMMS_NOSTDLIB
 
 /// @endcond
 
 /// @brief Generic assert macro
 /// @details Will use custom assertion failure behaviour if such is defined,
 ///          otherwise it will use standard "assert()" macro.
-///          In case NOSTDLIB is defined and no custom assertion failure was
+///          In case COMMS_NOSTDLIB is defined and no custom assertion failure was
 ///          enabled, infinite loop will be executed.
 /// @param expr Boolean expression
 #define COMMS_ASSERT(expr) \

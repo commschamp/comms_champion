@@ -462,6 +462,7 @@ private:
     template <typename TIter>
     static ErrorStatus fieldUpdateInternal(TIter checksumIter, TIter from, TIter to, std::size_t size, Field& field)
     {
+        static_cast<void>(size);
         COMMS_ASSERT(from <= to);
         auto len = static_cast<std::size_t>(std::distance(from, to));
         COMMS_ASSERT(len == (size - Field::maxLength()));

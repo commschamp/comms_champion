@@ -141,7 +141,7 @@ public:
     /// @brief Get message name information.
     /// @details The comms::MessageBase::nameImpl() will invoke this
     ///     function.
-    const char* doName() const
+    static const char* doName()
     {
         return "Generic Message";
     }

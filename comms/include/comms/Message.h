@@ -632,33 +632,33 @@ using MessageIdType =
 ///             "Number of expected transport fields is incorrect");
 ///
 ///         // Accessor to "name1" transport field.
-///         auto transportField_name1() -> decltype(std::get<FieldIdx_name1>(Base::transportFields()))
+///         auto transportField_name1() -> decltype(std::get<TransportFieldIdx_name1>(Base::transportFields()))
 ///         {
-///             return std::get<FieldIdx_name1>(Base::transportFields());
+///             return std::get<TransportFieldIdx_name1>(Base::transportFields());
 ///         }
 ///
 ///         // Accessor to "name1" field.
-///         auto transportField_name1() const -> decltype(std::get<FieldIdx_name1>(Base::transportFields()))
+///         auto transportField_name1() const -> decltype(std::get<TransportFieldIdx_name1>(Base::transportFields()))
 ///         {
-///             return std::get<FieldIdx_name1>(Base::transportFields());
+///             return std::get<TransportFieldIdx_name1>(Base::transportFields());
 ///         }
 ///
 ///         // Accessor to "name2" field.
-///         auto transportField_name2() -> decltype(std::get<FieldIdx_name2>(Base::transportFields()))
+///         auto transportField_name2() -> decltype(std::get<TransportFieldIdx_name2>(Base::transportFields()))
 ///         {
-///             return std::get<FieldIdx_name2>(Base::transportFields());
+///             return std::get<TransportFieldIdx_name2>(Base::transportFields());
 ///         }
 ///
 ///         // Accessor to "name2" field.
-///         auto transportField_name2() const -> decltype(std::get<FieldIdx_name2>(Base::transportFields()))
+///         auto transportField_name2() const -> decltype(std::get<TransportFieldIdx_name2>(Base::transportFields()))
 ///         {
-///             return std::get<FieldIdx_name2>(Base::transportFields());
+///             return std::get<TransportFieldIdx_name2>(Base::transportFields());
 ///         }
 ///
 ///         // Accessor to "name3" field.
-///         auto transportField_name3() -> decltype(std::get<FieldIdx_name3>(Base::transportFields()))
+///         auto transportField_name3() -> decltype(std::get<TransportFieldIdx_name3>(Base::transportFields()))
 ///         {
-///             return std::get<FieldIdx_name3>(Base::transportFields());
+///             return std::get<TransportFieldIdx_name3>(Base::transportFields());
 ///         }
 ///
 ///         // Accessor to "name3" field.

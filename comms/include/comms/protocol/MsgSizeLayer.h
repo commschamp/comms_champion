@@ -553,7 +553,11 @@ private:
             return es;
         }
 
-        return nextLayerUpdater.update(iter, size - field.length());
+        if (msg == nullptr) {
+            return nextLayerUpdater.update(iter, size - field.length());
+        }
+        
+        return nextLayerUpdater.update(*msg, iter, size - field.length());
     }
 };
 

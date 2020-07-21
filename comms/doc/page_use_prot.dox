@@ -35,7 +35,7 @@
 /// the registered custom assertion failure report is invoked, otherwise the
 /// standard failure report used by standard @b assert() macro is used. If COMMS
 /// library is used in bare metal environment without standard library, the
-/// @b NOSTDLIB symbol should be defined. In this case infinite loop is a default
+/// @b COMMS_NOSTDLIB symbol should be defined. In this case infinite loop is a default
 /// assertion failure report behaviour.
 ///
 /// See @ref page_assert for details on how to define custom assertion failure

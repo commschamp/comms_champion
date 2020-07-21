@@ -611,14 +611,12 @@ public:
         return derivedObj.doUpdate(msg, field, iter, size, createNextLayerUpdater());
     }
 
-
     /// @brief Update recently written (using writeFieldsCached()) message data as
     ///     well as cached transport information fields.
     /// @details Very similar to @ref update() member function, but adds "allFields"
     ///     parameter to store raw data of the message.@n
     ///     The function will also invoke the same @b doUpdate() member function
     ///     provided by the derived class, as described with @ref write().
-    /// @tparam TIdx Index of the data field in TAllFields.
     /// @tparam TAllFields std::tuple of all the transport fields, must be
     ///     @ref AllFields type defined in the last layer class that defines
     ///     protocol stack.
@@ -643,6 +641,41 @@ public:
         auto& field = getField<Idx>(allFields);
         auto& derivedObj = static_cast<const TDerived&>(*this);
         return derivedObj.doUpdate(field, iter, size, createNextLayerCachedFieldsUpdater(allFields));
+    }
+
+    /// @brief Update recently written (using writeFieldsCached()) message data as
+    ///     well as cached transport information fields.
+    /// @details Very similar to other @ref updateFieldsCached() member function, 
+    ///     but adds "msg" parameter to access message object if needed.@n
+    ///     The function will also invoke the same @b doUpdate() member function
+    ///     provided by the derived class, as described with @ref write().
+    /// @tparam TAllFields std::tuple of all the transport fields, must be
+    ///     @ref AllFields type defined in the last layer class that defines
+    ///     protocol stack.
+    /// @tparam TMsg Type of @b msg parameter.
+    /// @tparam TIter Type of the random access iterator.
+    /// @param[out] allFields Reference to the std::tuple object that wraps all
+    ///     transport fields (@ref AllFields type of the last protocol layer class).
+    /// @param[in] msg Reference to recently written message object.
+    /// @param[in, out] iter Random access iterator to the written data.
+    /// @param[in] size Number of bytes that have been written using writeFieldsCached().
+    /// @return Status of the update operation.
+    template <typename TAllFields, typename TMsg, typename TIter>
+    ErrorStatus updateFieldsCached(
+        TAllFields& allFields,
+        const TMsg& msg,
+        TIter& iter,
+        std::size_t size) const
+    {
+        using AllFieldsDecayed = typename std::decay<TAllFields>::type;
+        static_assert(util::tupleIsTailOf<AllFields, AllFieldsDecayed>(), "Passed tuple is wrong.");
+        static const std::size_t Idx =
+            std::tuple_size<AllFieldsDecayed>::value -
+                                std::tuple_size<AllFields>::value;
+
+        auto& field = getField<Idx>(allFields);
+        auto& derivedObj = static_cast<const TDerived&>(*this);
+        return derivedObj.doUpdate(msg, field, iter, size, createNextLayerCachedFieldsUpdater(allFields));
     }
 
     /// @brief Default implementation of the "update" functaionality.
@@ -680,17 +713,14 @@ public:
     /// @param[in] nextLayerUpdater Next layer updater object.
     template <typename TMsg, typename TIter, typename TNextLayerUpdater>
     comms::ErrorStatus doUpdate(
-        TMsg& msg,
+        const TMsg& msg,
         Field& field,
         TIter& iter,
         std::size_t size,
         TNextLayerUpdater&& nextLayerUpdater) const
     {
-        static_cast<void>(msg);
-        auto& derivedObj = static_cast<const TDerived&>(*this);
-        return derivedObj.doUpdate(field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater));
+        return updateInternal(msg, field, iter, size, std::forward<TNextLayerUpdater>(nextLayerUpdater), LengthTag());
     }
-
 
     /// @brief Default implementation of field length retrieval.
     static constexpr std::size_t doFieldLength()
@@ -1024,6 +1054,12 @@ protected:
             return nextLayer_.update(iter, size);
         }
 
+        template <typename TMsg, typename TIter>
+        ErrorStatus update(const TMsg& msg, TIter& iter, std::size_t size) const
+        {
+            return nextLayer_.update(msg, iter, size);
+        }
+
     private:
         const NextLayer& nextLayer_;
     };
@@ -1044,6 +1080,12 @@ protected:
         ErrorStatus update(TIter& iter, std::size_t size) const
         {
             return nextLayer_.updateFieldsCached(allFields_, iter, size);
+        }
+
+        template <typename TMsg, typename TIter>
+        ErrorStatus update(const TMsg& msg, TIter& iter, std::size_t size) const
+        {
+            return nextLayer_.updateFieldsCached(allFields_, msg, iter, size);
         }
 
     private:
@@ -1168,6 +1210,37 @@ private:
         return es;
     }
 
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus updateInternal(
+        const TMsg& msg,
+        Field& field,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater,
+        FixedLengthTag) const
+    {
+        auto len = field.length();
+        COMMS_ASSERT(len <= size);
+        std::advance(iter, len);
+        return nextLayerUpdater.update(msg, iter, size - len);
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus updateInternal(
+        const TMsg& msg,
+        Field& field,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater,
+        VarLengthTag) const
+    {
+        auto es = field.read(iter, size);
+        if (es == comms::ErrorStatus::Success) {
+            es = nextLayerUpdater.update(msg, iter, size - field.length());
+        }
+        return es;
+    }
+
     template <typename TMsg>
     static void resetMsgInternal(TMsg&, MessageObjTag)
     {
@@ -1243,7 +1316,6 @@ private:
             "Mustn't be missing size retriever");
         updateMissingSizeInternal(field, size, extraValues...);
     }
-
 
     static void setMissingSizeInternal(std::size_t val)
     {

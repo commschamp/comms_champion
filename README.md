@@ -133,8 +133,12 @@ as reference.
 
 # Licence
 The [COMMS Library](#comms-library) is licensed under
-the classic **GPLv3 / Commercial** dual licensing scheme. Please refer to 
-[LICENSES](https://arobenko.github.io/cc/licenses) page for details.
+the [MPL-2.0](http://mozilla.org/MPL/2.0/) license.
+
+The [CommsChampion Tools](#commschampion-tools) use open-source 
+[Qt5](http://www.qt.io/) libraries, hence licenced under the 
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html).
+
 
 # Supported Compilers
 The [COMMS Library](#comms-library) requires proper C++11 support which

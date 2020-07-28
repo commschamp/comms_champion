@@ -36,10 +36,81 @@ while (TRUE)
     
     find_package (Git)
     if (NOT GIT_FOUND)
-        message (WARNING "Git is required to check out cxxtest")
+        message (WARNING "Git is required to check out third party testing libraries")
         break()
     endif ()
+
+    set (catch2_tag "v2.13.0")
+    set (catch2_dir "${EXTERNALS_DIR}/Catch2")
+    set (catch2_stamp "${catch2_dir}/catch2.stamp")
+    if (EXISTS ${catch2_stamp})
+        execute_process (
+            COMMAND ${GIT_EXECUTABLE} checkout ${catch2_tag}
+            WORKING_DIRECTORY ${catch2_dir}
+        )
+    else ()
+        execute_process (
+            COMMAND ${CMAKE_COMMAND} -E remove_directory "${catch2_dir}"
+        )
+        
+        execute_process (
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${EXTERNALS_DIR}"
+        )
+        
+        execute_process (
+            COMMAND ${GIT_EXECUTABLE} clone -b ${catch2_tag} --depth 1 https://github.com/catchorg/Catch2.git
+            WORKING_DIRECTORY ${EXTERNALS_DIR}
+            RESULT_VARIABLE git_result
+        )
     
+        if (NOT "${git_result}" STREQUAL "0")
+            message (WARNING "git clone/checkout failed")
+            break()
+        endif ()
+        
+        execute_process (
+            COMMAND ${CMAKE_COMMAND} -E touch "${catch2_stamp}"
+        )
+    endif ()
+
+    set (catch2_build_dir "${catch2_dir}/build")
+    set (catch2_install_dir "${catch2_build_dir}/install")
+    execute_process (
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${catch2_build_dir}"
+    )
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} ${catch2_dir}
+            -DCMAKE_INSTALL_PREFIX=${catch2_install_dir}
+            -DCATCH_USE_VALGRIND=OFF 
+            -DCATCH_BUILD_TESTING=OFF
+            -DCATCH_BUILD_EXAMPLES=OFF
+            -DCATCH_BUILD_EXTRA_TESTS=OFF
+            -DCATCH_ENABLE_COVERAGE=OFF
+            -DCATCH_INSTALL_DOCS=OFF
+        WORKING_DIRECTORY ${catch2_build_dir}
+        RESULT_VARIABLE catch2_cmake_result
+    )
+
+    if (NOT ${catch2_cmake_result} EQUAL 0)
+        message (FATAL_ERROR "CMake has failed in ${catch2_build_dir}")
+        break()
+    endif ()
+
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} --build ${catch2_build_dir} --target install
+        WORKING_DIRECTORY ${catch2_build_dir}
+        RESULT_VARIABLE catch2_cmake_result
+    )
+
+    if (NOT ${catch2_cmake_result} EQUAL 0)
+        message (FATAL_ERROR "Build of catch2 has failed")
+        break ()
+    endif ()
+
+    list (APPEND CMAKE_PREFIX_PATH "${catch2_install_dir}")
+    find_package(Catch2 REQUIRED)
+    
+    # TODO: remove    
     set (cxx_tag "4.4")
     set (cxxtest_stamp "${EXTERNALS_DIR}/cxxtest/cxxtest.stamp")
     if (EXISTS ${cxxtest_stamp})

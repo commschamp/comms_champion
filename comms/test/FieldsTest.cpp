@@ -21,6 +21,7 @@ namespace
 {
 
 typedef comms::option::BigEndian BigEndianOpt;
+typedef comms::option::LittleEndian LittleEndianOpt;
 
 template <typename TField>
 TField readWriteField(
@@ -124,5 +125,76 @@ TEST_CASE("Test2", "test2")
     auto field = readWriteField<Field>(Buf, BufSize);
     REQUIRE(field.length() == 3);
     REQUIRE(field.value() == 0x010203);
+    REQUIRE(field.valid());
+}
+
+TEST_CASE("Test3", "test3") 
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::int16_t
+    > Field;
+
+    static_assert(!Field::isVersionDependent(), "Invalid version dependency assumption");
+
+    static const char Buf[] = {
+        0x01, 0x02
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize);
+    REQUIRE(field.length() == sizeof(std::int16_t));
+    REQUIRE(field.value() == static_cast<std::int16_t>(0x0102));
+    REQUIRE(field.valid());
+}
+
+TEST_CASE("Test4", "test4") 
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::int16_t
+    > Field;
+
+    static const char Buf[] = {
+        (char)0xff, (char)0xff
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize);
+    REQUIRE(field.length() == sizeof(std::int16_t));
+    REQUIRE(field.value() == -1);
+    REQUIRE(field.valid());
+}
+
+TEST_CASE("Test5", "test5") 
+{
+    typedef comms::field::IntValue<
+        comms::Field<LittleEndianOpt>,
+        std::int16_t
+    > Field;
+
+    static const char Buf[] = {
+        0x0, (char)0x80
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize);
+    REQUIRE(field.length() == sizeof(std::int16_t));
+    REQUIRE(field.value() == std::numeric_limits<std::int16_t>::min());
+    REQUIRE(field.valid());
+}
+
+TEST_CASE("Test6", "test6") 
+{
+    typedef comms::field::IntValue<
+        comms::Field<BigEndianOpt>,
+        std::int16_t,
+        comms::option::FixedLength<1>
+    > Field;
+
+    static const char Buf[] = {
+        (char)0xff, 0x00
+    };
+    static const std::size_t BufSize = std::extent<decltype(Buf)>::value;
+    auto field = readWriteField<Field>(Buf, BufSize);
+    REQUIRE(field.length() == 1);
+    REQUIRE(field.value() == -1);
     REQUIRE(field.valid());
 }

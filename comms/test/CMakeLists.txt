@@ -43,11 +43,21 @@ function (test_func_catch2 test_suite_name)
     add_executable(${name} ${src})
     target_link_libraries(${name} cc::comms Catch2::Catch2)
 
-    target_compile_options(${name} PRIVATE
-      $<$<CXX_COMPILER_ID:MSVC>:/wd5055>
-    )    
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        # Clang builds in travis-ci dislike usage of std::byte 
+        # in catch2 when compiling with C++17/20
+        target_compile_definitions(${name} PRIVATE "-DCATCH_CONFIG_NO_CPP17_BYTE=1")
+    endif ()
 
-    
+    add_test(NAME ${name} COMMAND $<TARGET_FILE:${name}>)        
+
+    if (VALGRIND_EXECUTABLE)
+        add_test(NAME "${name}_valgrind"
+             COMMAND ${CMAKE_COMMAND} 
+                -DTEST_EXECUTABLE=$<TARGET_FILE:${name}>
+                -DVALGRIND_EXECUTABLE=${VALGRIND_EXECUTABLE}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/ScriptRunUnitTestWithValgrind.cmake) 
+    endif ()
 endfunction ()
 
 #################################################################

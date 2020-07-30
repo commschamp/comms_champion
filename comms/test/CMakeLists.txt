@@ -62,12 +62,6 @@ endfunction ()
 
 #################################################################
 
-function (test_fields2)
-    test_func ("Fields2")
-endfunction ()
-
-#################################################################
-
 function (test_message)
     test_func ("Message")
 endfunction ()
@@ -162,7 +156,6 @@ if (NOT CC_NO_VALGRIND)
     find_program(VALGRIND_EXECUTABLE NAMES "${CC_VALGRAND_EXE_NAME}")
 endif ()
 
-test_fields2(s)
 test_message()
 test_msg_data_layer()
 test_msg_id_layer()
@@ -178,3 +171,4 @@ test_dispatch()
 test_msg_factory ()
 
 test_func_catch2("FieldsTest")
+test_func_catch2("FieldsTest2")

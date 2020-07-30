@@ -43,11 +43,10 @@ function (test_func_catch2 test_suite_name)
     add_executable(${name} ${src})
     target_link_libraries(${name} cc::comms Catch2::Catch2)
 
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        # Clang builds in travis-ci dislike usage of std::byte 
-        # in catch2 when compiling with C++17/20
-        target_compile_definitions(${name} PRIVATE "-DCATCH_CONFIG_NO_CPP17_BYTE=1")
-    endif ()
+    target_compile_options(${name} PRIVATE
+      $<$<CXX_COMPILER_ID:MSVC>:/bigobj>
+      $<$<CXX_COMPILER_ID:Clang>:-DCATCH_CONFIG_NO_CPP17_BYTE=1>
+    )    
 
     add_test(NAME ${name} COMMAND $<TARGET_FILE:${name}>)        
 

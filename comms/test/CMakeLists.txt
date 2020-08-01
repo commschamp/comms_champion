@@ -1,7 +1,7 @@
 # In order to run the unittests the following conditions must be true:
 #   - find_package (CxxTest) was exectued, CXXTEST_FOUND is defined and has true value.
 
-if (NOT CXXTEST_FOUND)
+if (NOT BUILD_TESTING)
     return ()
 endif ()    
 
@@ -14,139 +14,15 @@ function (test_func test_suite_name)
 
     set (name "${COMPONENT_NAME}.${test_suite_name}Test")
 
-    set (runner "${test_suite_name}TestRunner.cpp")
-    
-    CXXTEST_ADD_TEST (${name} ${runner} ${tests} ${extra_sources})
-    target_link_libraries(${name} cc::comms)
-
-    target_compile_options(${name} PRIVATE
-      $<$<CXX_COMPILER_ID:MSVC>:/wd5055>
-    )    
-    
+    set (valgrand_args)
     if (VALGRIND_EXECUTABLE)
-        add_test(NAME "${name}_valgrind"
-             COMMAND ${CMAKE_COMMAND} 
-                -DTEST_EXECUTABLE=$<TARGET_FILE:${name}>
-                -DVALGRIND_EXECUTABLE=${VALGRIND_EXECUTABLE}
-                -P ${CMAKE_CURRENT_SOURCE_DIR}/ScriptRunUnitTestWithValgrind.cmake) 
-    endif ()
-    
-endfunction ()
-
-#################################################################
-
-function (test_func_catch2 test_suite_name)
-    set (src "${CMAKE_CURRENT_SOURCE_DIR}/${test_suite_name}.cpp")
-
-    set (name "${COMPONENT_NAME}.${test_suite_name}Catch2")
-
-    add_executable(${name} ${src})
-    target_link_libraries(${name} cc::comms Catch2::Catch2)
-
-    target_compile_options(${name} PRIVATE
-      $<$<CXX_COMPILER_ID:MSVC>:/bigobj>
-      $<$<CXX_COMPILER_ID:Clang>:-DCATCH_CONFIG_NO_CPP17_BYTE=1>
-    )    
-
-    add_test(NAME ${name} COMMAND $<TARGET_FILE:${name}>)        
-
-    if (VALGRIND_EXECUTABLE)
-        add_test(NAME "${name}_valgrind"
-             COMMAND ${CMAKE_COMMAND} 
-                -DTEST_EXECUTABLE=$<TARGET_FILE:${name}>
-                -DVALGRIND_EXECUTABLE=${VALGRIND_EXECUTABLE}
-                -P ${CMAKE_CURRENT_SOURCE_DIR}/ScriptRunUnitTestWithValgrind.cmake) 
-    endif ()
-endfunction ()
-
-#################################################################
-
-function (test_message)
-    test_func ("Message")
-endfunction ()
-
-#################################################################
-
-function (test_msg_data_layer)
-    test_func ("MsgDataLayer")
-endfunction ()
-
-#################################################################
-
-function (test_msg_id_layer)
-    test_func ("MsgIdLayer")
-endfunction ()
-
-#################################################################
-
-function (test_msg_size_layer)
-    test_func ("MsgSizeLayer")
-endfunction ()
-
-#################################################################
-
-function (test_sync_prefix_layer)
-    test_func ("SyncPrefixLayer")
-endfunction ()
-
-#################################################################
-
-function (test_checksum_layer)
-    test_func ("ChecksumLayer")
-endfunction ()
-
-#################################################################
-
-function (test_checksum_prefix_layer)
-    test_func ("ChecksumPrefixLayer")
-endfunction ()
-
-#################################################################
-
-function (test_transport_value_layer)
-    test_func ("TransportValueLayer")
-endfunction ()
-
-#################################################################
-
-function (test_util)
-    test_func ("Util")
-endfunction ()
-
-#################################################################
-
-function (test_custom_msg_id_layer)
-    test_func ("CustomMsgIdLayer")
-endfunction ()
-
-#################################################################
-
-function (test_custom_msg_size_layer)
-    test_func ("CustomMsgSizeLayer")
-endfunction ()
-
-#################################################################
-
-function (test_dispatch)
-    test_func ("Dispatch")
-endfunction ()
-
-#################################################################
-
-function (test_msg_factory)
-    test_func ("MsgFactory")
-endfunction ()
-
-#################################################################
-
-include_directories ("${CXXTEST_INCLUDE_DIR}")
-
-if (CMAKE_COMPILER_IS_GNUCC)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-old-style-cast -Wno-shadow")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "7.9")
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-qualifiers")
+        set (valgrand_args VALGRIND_EXECUTABLE ${VALGRIND_EXECUTABLE})
     endif ()    
-endif ()
+
+    cc_cxxtest_add_test (NAME ${name} SRC ${tests} ${valgrand_args})
+endfunction ()
+
+#################################################################
 
 if (NOT CC_NO_VALGRIND)
     if ("${CC_VALGRAND_EXE_NAME}" STREQUAL "")
@@ -155,19 +31,22 @@ if (NOT CC_NO_VALGRIND)
     find_program(VALGRIND_EXECUTABLE NAMES "${CC_VALGRAND_EXE_NAME}")
 endif ()
 
-test_message()
-test_msg_data_layer()
-test_msg_id_layer()
-test_msg_size_layer()
-test_sync_prefix_layer()
-test_checksum_layer()
-test_checksum_prefix_layer()
-test_transport_value_layer()
-test_util()
-test_custom_msg_id_layer()
-test_custom_msg_size_layer()
-test_dispatch()
-test_msg_factory ()
-
-test_func_catch2("FieldsTest")
-test_func_catch2("FieldsTest2")
+if (TARGET cxxtest::cxxtest)
+    test_func ("Fields")
+    test_func ("Fields2")
+    test_func ("Message")
+    test_func ("MsgDataLayer")
+    test_func ("MsgIdLayer")
+    test_func ("MsgSizeLayer")
+    test_func ("SyncPrefixLayer")
+    test_func ("ChecksumLayer")
+    test_func ("ChecksumPrefixLayer")
+    test_func ("TransportValueLayer")
+    test_func ("Util")
+    test_func ("CustomMsgIdLayer")
+    test_func ("CustomMsgSizeLayer")
+    test_func ("Dispatch")
+    test_func ("MsgFactory")
+else ()
+    message (Warning "Testing is enabled, but cxxtest hasn't been found!")
+endif ()

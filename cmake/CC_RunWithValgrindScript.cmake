@@ -1,3 +1,6 @@
+# This script allows running of prevously compiled binary (unit test) with 
+# valgrind.
+# 
 # Expected variables:
 #     VALGRIND_EXECUTABLE - path the the valgrind.
 #     TEST_EXECUTABLE - path to the test binary.

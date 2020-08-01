@@ -11,7 +11,7 @@ if (WIN32 AND (NOT "${CC_QT_DIR}" STREQUAL ""))
     execute_process(
         COMMAND ${CMAKE_COMMAND} -DAPP_NAME=cc_dump -DEXTRA_PATH=${CC_QT_DIR}\\bin
             -DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}
-            -P ${PROJECT_SOURCE_DIR}/cmake/GenWinAppStartBat.cmake
+            -P ${PROJECT_SOURCE_DIR}/cmake/CC_GenWinAppStartBat.cmake
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     

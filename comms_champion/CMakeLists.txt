@@ -14,7 +14,7 @@ if (DOXYGEN_FOUND)
             COMMAND ${CMAKE_COMMAND} -E make_directory ${doc_output_dir}
             COMMAND ${DOXYGEN_EXECUTABLE} ${output_file}
             COMMAND ${CMAKE_COMMAND} -DDOC_OUTPUT_DIR="${doc_output_dir}" -P 
-                            ${PROJECT_SOURCE_DIR}/cmake/DocCleanupScript.cmake
+                            ${PROJECT_SOURCE_DIR}/cmake/CC_DocCleanupScript.cmake
             COMMAND ${CMAKE_COMMAND} -E copy_directory 
                     ${CMAKE_CURRENT_SOURCE_DIR}/doc/image ${doc_output_dir}/html/image
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

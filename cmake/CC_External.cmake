@@ -300,7 +300,7 @@ function (cc_build_as_external_project)
     ExternalProject_Add(
         "${CC_EXTERNAL_PROJ_TGT}"
         PREFIX "${CC_EXTERNAL_PROJ_SRC_DIR}"
-        STAMP_DIR "${CC_EXTERNAL_PROJ_SRC_DIR}"
+        STAMP_DIR "${CC_EXTERNAL_PROJ_BUILD_DIR}"
         GIT_REPOSITORY "${CC_EXTERNAL_PROJ_REPO}"
         GIT_TAG "${CC_EXTERNAL_PROJ_TAG}"
         SOURCE_DIR "${CC_EXTERNAL_PROJ_SRC_DIR}"
@@ -309,6 +309,7 @@ function (cc_build_as_external_project)
         CMAKE_ARGS 
             ${exteral_proj_qt_dir_param} ${comms_lib_only_param}
             ${CC_EXTERNAL_PROJ_CMAKE_ARGS}
+            -DCMAKE_INSTALL_PREFIX=${CC_EXTERNAL_PROJ_INSTALL_DIR}
     )    
 
     set (define_targets_qt_dir_param)

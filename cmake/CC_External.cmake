@@ -328,10 +328,10 @@ function (cc_build_as_external_project)
     )
 
     if (TARGET cc::comms)
-        add_dependencies(cc::comms ${CC_EXTERNAL_PROJ_TGT})
+        add_dependencies(comms ${CC_EXTERNAL_PROJ_TGT})
     endif ()
 
     if (TARGET cc::comms_champion)
-        add_dependencies(cc::comms_champion ${CC_EXTERNAL_PROJ_TGT})
+        add_dependencies(comms_champion ${CC_EXTERNAL_PROJ_TGT})
     endif ()
 endfunction ()

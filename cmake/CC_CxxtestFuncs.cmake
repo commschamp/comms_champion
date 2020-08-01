@@ -28,6 +28,7 @@
 #         [COMMS_TARGET <comms_lib_target>]
 #         [CXXTEST_TARGET <cxxtest_target]
 #         [VALGRIND_EXECUTABLE <path_to_valgrind>]
+#         [NO_COMMS_LIB_DEP]
 #     )
 # - NAME - A must have argument to provide name for the test.
 # - SRC - A list of test sources.
@@ -36,6 +37,7 @@
 # - CXXTEST_TARGET - Override the default cmake target for the cxxtest, default to
 #   cxxtest::cxxtest
 # - VALGRIND_EXECUTABLE - Path to "valgrind" executable if valgrind tests to be added.
+# - NO_COMMS_LIB_DEP - Exlcude depenedency on comms library
 
 set (CC_CXXTEST_DEFAULT_TAG "4.4")
 set (CC_CXXTEST_DEFAULT_REPO "https://github.com/CxxTest/cxxtest.git")
@@ -141,14 +143,14 @@ endmacro ()
 
 function (cc_cxxtest_add_test)
     set (_prefix CC_CXXTEST_TEST)
-    set (_options ADD_VALGRIND_TEST)
+    set (_options ADD_VALGRIND_TEST NO_COMMS_LIB_DEP)
     set (_oneValueArgs NAME COMMS_TARGET CXXTEST_TARGET VALGRIND_EXECUTABLE)
     set (_mutiValueArgs SRC)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
 
     set (runner "${CC_CXXTEST_TEST_NAME}_CxxtestRunner.cpp")
 
-    if (NOT CC_CXXTEST_TEST_COMMS_TARGET)
+    if ((NOT CC_CXXTEST_TEST_COMMS_TARGET) AND (NOT CC_CXXTEST_TEST_NO_COMMS_LIB_DEP))
         set (CC_CXXTEST_TEST_COMMS_TARGET ${CC_CXXTEST_DEFAULT_COMMS_LIB_TARGET})
     endif ()     
 

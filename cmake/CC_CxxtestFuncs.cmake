@@ -3,12 +3,13 @@
 # unittesting with cxxtest.
 # 
 # Available functions / macros are:
+#
 # ******************************************************
 # - Get "cxxtest" repository, executed in the configuration (cmake) stage.
 #     cc_get_cxxtest(
 #         INSTALL_PREFIX <externals_directory>
 #         [TAG <cxxtest_tag>]
-#         [REPO <cxxtest_repo]
+#         [REPO <cxxtest_repo>]
 #         [TARGET <cxxtest_target>]
 #         [NO_CTEST_INCLUDE]
 #     )
@@ -18,6 +19,7 @@
 # - REPO - Override the default repository of the cxxtest.
 # - TARGET - Override the default (cxxtest::cxxtest) target name for the cxxtest.
 # - NO_CTEST_INCLUDE - Dont include "CTest" at the end
+#
 # ******************************************************
 # - Add cxxtest based unittest
 #     cc_cxxtest_add_test(
@@ -66,7 +68,7 @@ macro (cc_get_cxxtest)
         endif ()    
 
         if (TARGET ${CC_CXXTEST_TGT_TARGET})
-            message (Warning "Target ${CC_CXXTEST_TGT_TARGET} is already defined")
+            message (WARNING "Target ${CC_CXXTEST_TGT_TARGET} is already defined")
             break ()
         endif ()    
 

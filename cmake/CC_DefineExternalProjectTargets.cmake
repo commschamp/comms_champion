@@ -27,7 +27,7 @@
 
 macro (cc_define_external_project_targets inst_dir)
     set (_prefix CC_EXT_TGT)
-    set (_options NO_COMMS_CHAMPION)
+    set (_options NO_COMMS_CHAMPION NO_TOOLS)
     set (_oneValueArgs QT_DIR)
     set (_mutiValueArgs)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -45,7 +45,7 @@ macro (cc_define_external_project_targets inst_dir)
     )
     
     while (TRUE)
-        if (CC_EXT_TGT_NO_COMMS_CHAMPION)
+        if (CC_EXT_TGT_NO_COMMS_CHAMPION OR CC_EXT_TGT_NO_TOOLS)
             break ()
         endif ()
 

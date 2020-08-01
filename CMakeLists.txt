@@ -13,6 +13,8 @@ option (CC_NO_CXX_STANDARD_FORCING "Disable forcing C++ standard to C++11 when n
 # Extra variables
 # CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
 #   differs from system default installation path.
+# CC_EXTERNALS_DIR - Directory where pull externals, defaults to 
+#   ${PROJECT_SOURCE_DIR}/externals
 
 if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
@@ -22,7 +24,10 @@ if ((NOT CMAKE_CXX_STANDARD) AND (NOT CC_NO_CXX_STANDARD_FORCING))
     set (CMAKE_CXX_STANDARD 11)
 endif()
 
-set (EXTERNALS_DIR "${PROJECT_SOURCE_DIR}/externals")
+if (NOT CC_EXTERNALS_DIR)
+    set (CC_EXTERNALS_DIR "${PROJECT_SOURCE_DIR}/externals")
+endif ()
+
 set (CMAKE_SCRIPTS_DIR "${PROJECT_SOURCE_DIR}/cmake")
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
@@ -36,7 +41,7 @@ while (TRUE)
     endif ()
 
     include (${CMAKE_SCRIPTS_DIR}/CC_CxxtestFuncs.cmake)
-    cc_get_cxxtest(INSTALL_PREFIX ${EXTERNALS_DIR})
+    cc_get_cxxtest(INSTALL_PREFIX ${CC_EXTERNALS_DIR})
     break()
 endwhile ()
 
@@ -155,7 +160,7 @@ set (LIB_COMMS_CMAKE_FILES
 
 set (COMMS_CHAMPION_CMAKE_FILES
     ${LIB_COMMS_CMAKE_FILES}
-    ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CC_GenWinAppStartBat.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
 )    
@@ -189,6 +194,6 @@ if (WIN32 AND CC_QT_DIR)
     add_custom_target ("deploy_qt"
         COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${CC_QT_DIR}
             -DCC_BIN_DIR=${BIN_INSTALL_DIR} -DCC_PLUGIN_DIR=${PLUGIN_INSTALL_DIR}
-            -P ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5.cmake
+            -P ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
     )
 endif ()

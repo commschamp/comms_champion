@@ -225,7 +225,7 @@ function (cc_build_as_external_project)
             ${CC_EXTERNAL_PROJ_CMAKE_ARGS}
     )    
 
-    include (${CMAKE_CURRENT_LIST_DIR}/CC_DefineExternalProjectTargets.cmake)
+    include (CC_DefineExternalProjectTargets.cmake)
 
     set (define_targets_qt_dir_param)
     if (CC_EXTERNAL_PROJ_QT_DIR)

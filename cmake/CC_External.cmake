@@ -169,6 +169,92 @@ function (cc_build_during_config)
     endif ()    
 endfunction ()
 
+macro (cc_define_external_project_targets inst_dir)
+    set (_prefix CC_EXT_TGT)
+    set (_options NO_COMMS_CHAMPION NO_TOOLS)
+    set (_oneValueArgs QT_DIR)
+    set (_mutiValueArgs)
+    cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
+
+    set (CC_ROOT_DIR ${inst_dir})
+    set (CC_COMMS_FOUND TRUE)
+    set (CC_INCLUDE_DIRS "${inst_dir}/include")
+
+    add_library(comms INTERFACE)
+    add_library(cc::comms ALIAS comms)
+    target_include_directories(comms INTERFACE ${CC_INCLUDE_DIRS})
+
+    target_compile_options(comms INTERFACE
+      $<$<CXX_COMPILER_ID:MSVC>:/wd4503 /wd4309 /wd4267 -D_SCL_SECURE_NO_WARNINGS>
+    )
+    
+    while (TRUE)
+        if (CC_EXT_TGT_NO_COMMS_CHAMPION OR CC_EXT_TGT_NO_TOOLS)
+            break ()
+        endif ()
+
+        set (cc_platform_specific)
+        if (NOT "${CC_EXT_TGT_QT_DIR}" STREQUAL "")
+            list (APPEND CMAKE_PREFIX_PATH ${CC_EXT_TGT_QT_DIR})
+            
+            if (WIN32)
+                find_library(qt5platformsupport_rel qt5platformsupport HINTS "${EXT_QT_DIR}/lib")
+                find_library(qt5platformsupport_deb qt5platformsupportd HINTS "${EXT_QT_DIR}/lib")
+
+                if (qt5platformsupport_rel AND qt5platformsupport_deb)
+                    add_library(qt5platformsupport_lib UNKNOWN IMPORTED)
+                    set_target_properties(qt5platformsupport_lib PROPERTIES 
+                        IMPORTED_LOCATION_DEBUG ${qt5platformsupport_rel})
+                    set_target_properties(qt5platformsupport_lib PROPERTIES 
+                        IMPORTED_LOCATION_RELEASE ${qt5platformsupport_deb})
+                    list (APPEND cc_platform_specific qt5platformsupport_lib)
+                else ()
+                    message(WARNING "Platform support is missing!")
+                endif ()
+            endif ()   
+        endif ()
+        
+        set (CC_COMMS_CHAMPION_FOUND TRUE)
+        set (CC_PLUGIN_LIBRARIES "comms_champion")
+        set (CC_PLUGIN_LIBRARY_DIRS ${inst_dir}/lib)
+        set (CC_PLUGIN_DIR ${inst_dir}/lib/CommsChampion/plugin)
+
+        if (WIN32)
+            set (cc_lib_name ${CC_PLUGIN_LIBRARIES}.lib)
+            list (APPEND cc_platform_specific Setupapi.lib Ws2_32.lib opengl32.lib imm32.lib winmm.lib)
+        else ()
+            set (cc_lib_name lib${CC_PLUGIN_LIBRARIES}.so)
+        endif ()
+
+        add_library(cc::comms_champion UNKNOWN IMPORTED)
+        file (MAKE_DIRECTORY ${CC_INCLUDE_DIRS})
+        set (interface_link_libs cc::comms)        
+
+        find_package(Qt5Core)
+        find_package(Qt5Widgets)
+
+        if (Qt5Widgets_FOUND)
+            list (APPEND interface_link_libs Qt5::Widgets)
+        endif ()
+
+        if (Qt5Core_FOUND)
+            list (APPEND interface_link_libs Qt5::Core)
+        endif ()
+
+        if (cc_platform_specific)
+            list (APPEND interface_link_libs ${cc_platform_specific})
+        endif ()
+        
+        set_target_properties(cc::comms_champion PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES ${CC_INCLUDE_DIRS}
+            IMPORTED_LOCATION ${CC_PLUGIN_LIBRARY_DIRS}/${cc_lib_name}
+            INTERFACE_LINK_LIBRARIES "${interface_link_libs}"
+        )
+        
+        break()
+    endwhile ()
+endmacro ()
+
 function (cc_build_as_external_project)
     set (_prefix CC_EXTERNAL_PROJ)
     set (_options NO_TOOLS)
@@ -224,8 +310,6 @@ function (cc_build_as_external_project)
             ${exteral_proj_qt_dir_param} ${comms_lib_only_param}
             ${CC_EXTERNAL_PROJ_CMAKE_ARGS}
     )    
-
-    include (CC_DefineExternalProjectTargets.cmake)
 
     set (define_targets_qt_dir_param)
     if (CC_EXTERNAL_PROJ_QT_DIR)

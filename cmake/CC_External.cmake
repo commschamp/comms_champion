@@ -299,8 +299,7 @@ function (cc_build_as_external_project)
     include(ExternalProject)
     ExternalProject_Add(
         "${CC_EXTERNAL_PROJ_TGT}"
-        PREFIX "${CC_EXTERNAL_PROJ_SRC_DIR}"
-        STAMP_DIR "${CC_EXTERNAL_PROJ_BUILD_DIR}"
+        PREFIX "${CC_EXTERNAL_PROJ_BUILD_DIR}"
         GIT_REPOSITORY "${CC_EXTERNAL_PROJ_REPO}"
         GIT_TAG "${CC_EXTERNAL_PROJ_TAG}"
         SOURCE_DIR "${CC_EXTERNAL_PROJ_SRC_DIR}"

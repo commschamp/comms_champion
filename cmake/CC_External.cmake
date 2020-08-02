@@ -267,7 +267,7 @@ function (cc_build_as_external_project)
     endif () 
 
     if (NOT CC_EXTERNAL_PROJ_BUILD_DIR)
-        set (CC_EXTERNAL_PROJ_BUILD_DIR ${CC_EXTERNAL_PROJ_SRC_DIR}/build)
+        set (CC_EXTERNAL_PROJ_BUILD_DIR ${CMAKE_BINARY_DIR}/comms_champion)
     endif ()   
 
     if (NOT CC_EXTERNAL_PROJ_INSTALL_DIR)

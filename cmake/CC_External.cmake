@@ -40,6 +40,7 @@
 #         [CMAKE_ARGS <arg1> <arg2> ...]
 #         [QT_DIR <path_to_qt>]
 #         [NO_TOOLS]
+#         [UPDATE_DISCONNECTED]
 #     )
 # - SRC_DIR - A directory where comms_champion sources will end up.
 # - BUILD_DIR - A directory where comms_champion will be build.
@@ -52,7 +53,7 @@
 # - NO_TOOLS - Will disable build of the CommsChampion Tools, will result in 
 #   having CC_COMMS_LIB_ONLY=ON option being passed to the build process.
 # - NO_DEPLOY_QT - Don't generate "deploy_qt" build target when applicable.
-#
+# - UPDATE_DISCONNECTED - Pass "UPDATE_DISCONNECTED 1" to ExternalProject_Add()
 # ******************************************************
 
 set (CC_EXTERNAL_DEFAULT_REPO "https://github.com/arobenko/comms_champion.git")
@@ -258,7 +259,7 @@ endmacro ()
 
 function (cc_build_as_external_project)
     set (_prefix CC_EXTERNAL_PROJ)
-    set (_options NO_TOOLS NO_DEPLOY_QT)
+    set (_options NO_TOOLS NO_DEPLOY_QT UPDATE_DISCONNECTED)
     set (_oneValueArgs SRC_DIR BUILD_DIR INSTALL_DIR REPO TAG QT_DIR TGT)
     set (_mutiValueArgs CMAKE_ARGS)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -297,6 +298,11 @@ function (cc_build_as_external_project)
         set (CC_EXTERNAL_PROJ_TGT "cc_external_proj_tgt")
     endif ()
 
+    set (cc_update_disconnected_opt)
+    if (CC_EXTERNAL_PROJ_UPDATE_DISCONNECTED)
+        set (cc_update_disconnected_opt "UPDATE_DISCONNECTED 1")
+    endif ()    
+
     include(ExternalProject)
     ExternalProject_Add(
         "${CC_EXTERNAL_PROJ_TGT}"
@@ -306,10 +312,11 @@ function (cc_build_as_external_project)
         SOURCE_DIR "${CC_EXTERNAL_PROJ_SRC_DIR}"
         BINARY_DIR "${CC_EXTERNAL_PROJ_BUILD_DIR}"
         INSTALL_DIR "${CC_EXTERNAL_PROJ_INSTALL_DIR}"
+        ${cc_update_disconnected_opt}
         CMAKE_ARGS 
             ${exteral_proj_qt_dir_param} ${comms_lib_only_param}
-            ${CC_EXTERNAL_PROJ_CMAKE_ARGS}
             -DCMAKE_INSTALL_PREFIX=${CC_EXTERNAL_PROJ_INSTALL_DIR}
+            ${CC_EXTERNAL_PROJ_CMAKE_ARGS}
     )    
 
     set (define_targets_qt_dir_param)

@@ -51,6 +51,7 @@
 #   build process using CC_QT_DIR variable.
 # - NO_TOOLS - Will disable build of the CommsChampion Tools, will result in 
 #   having CC_COMMS_LIB_ONLY=ON option being passed to the build process.
+# - NO_DEPLOY_QT - Don't generate "deploy_qt" build target when applicable.
 #
 # ******************************************************
 
@@ -257,7 +258,7 @@ endmacro ()
 
 function (cc_build_as_external_project)
     set (_prefix CC_EXTERNAL_PROJ)
-    set (_options NO_TOOLS)
+    set (_options NO_TOOLS NO_DEPLOY_QT)
     set (_oneValueArgs SRC_DIR BUILD_DIR INSTALL_DIR REPO TAG QT_DIR TGT)
     set (_mutiValueArgs CMAKE_ARGS)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -267,7 +268,7 @@ function (cc_build_as_external_project)
     endif () 
 
     if (NOT CC_EXTERNAL_PROJ_BUILD_DIR)
-        set (CC_EXTERNAL_PROJ_BUILD_DIR ${CMAKE_BINARY_DIR}/comms_champion)
+        set (CC_EXTERNAL_PROJ_BUILD_DIR ${PROJECT_BINARY_DIR}/comms_champion)
     endif ()   
 
     if (NOT CC_EXTERNAL_PROJ_INSTALL_DIR)
@@ -334,4 +335,15 @@ function (cc_build_as_external_project)
     if (TARGET comms_champion)
         add_dependencies(comms_champion ${CC_EXTERNAL_PROJ_TGT})
     endif ()
+
+    if ((NOT CC_EXTERNAL_PROJ_NO_DEPLOY_QT) AND WIN32 AND (NOT "${CC_EXTERNAL_PROJ_QT_DIR}" STREQUAL ""))
+        message (STATUS "Qt5 deployment is available by building \"deploy_qt\" target")
+        add_custom_target ("deploy_qt"
+            COMMAND ${CMAKE_COMMAND} --build ${CC_EXTERNAL_PROJ_BUILD_DIR} --target deploy_qt
+            WORKING_DIRECTORY ${CC_EXTERNAL_PROJ_BUILD_DIR}
+        )
+
+        add_dependencies("deploy_qt" ${CC_EXTERNAL_TGT})
+    endif ()
+
 endfunction ()

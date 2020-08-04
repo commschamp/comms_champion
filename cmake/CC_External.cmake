@@ -350,7 +350,7 @@ function (cc_build_as_external_project)
             WORKING_DIRECTORY ${CC_EXTERNAL_PROJ_BUILD_DIR}
         )
 
-        add_dependencies("deploy_qt" ${CC_EXTERNAL_TGT})
+        add_dependencies("deploy_qt" ${CC_EXTERNAL_PROJ_TGT})
     endif ()
 
 endfunction ()

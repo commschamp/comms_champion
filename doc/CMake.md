@@ -24,27 +24,30 @@ include paths.
 
 ## When external COMMS Library is not available
 In case the comms_champion project is not available, the 
-[cmake/External.cmake](../cmake/External.cmake) script provides
+[cmake/CC_External.cmake](../cmake/CC_External.cmake) script provides
 multiple macros / functions which could be used for easy 
-integration. Please open [it](../cmake/External.cmake) for 
+integration. Please open [it](../cmake/CC_External.cmake) for 
 the documentation on available macros / functions.
 
-If the [comms_champion](..) sources are not attached to the 
+If the [comms_champion](https://github.com/arobenko/comms_champion) 
+sources are not attached to the 
 project being developed as a submodule, it is recommended to 
 prefetch the sources to get an access to the 
-[cmake/External.cmake](../cmake/External.cmake) script during
+[cmake/CC_External.cmake](../cmake/CC_External.cmake) script during
 the cmake execution.
 
 Please copy the [cmake/CC_Prefetch.cmake](../cmake/CC_Prefetch.cmake)
 file to your project (or use it as an example) and then 
-prefetch the [comms_champion](..) sources using following (or similar) 
+prefetch the 
+[comms_champion](https://github.com/arobenko/comms_champion) 
+sources using following (or similar) 
 cmake code.
 ```
 include (${PROJECT_SOURCE_DIR}/cmake/CC_Prefetch.cmake)
 cc_prefetch(SRC_DIR /path/to/place/for/comms_champion)
 ```
 After the prefetching, the provided 
-[cmake/External.cmake](../cmake/External.cmake) becomes available.
+[cmake/CC_External.cmake](../cmake/CC_External.cmake) becomes available.
 
 ### Build and install COMMS library during CMake configuration
 When only COMMS library is required (no CommsChampion Tools are used), the 
@@ -75,7 +78,7 @@ target_link_libraries(my_binary PRIVATE cc::comms)
 The CMake provides 
 [ExternalProject_Add()](https://cmake.org/cmake/help/v3.0/module/ExternalProject.html)
 function which can be used to build and install the comms_champion contents during the 
-build process. The same [cmake/External.cmake](../cmake/External.cmake)
+build process. The same [cmake/CC_External.cmake](../cmake/CC_External.cmake)
 script provides different `cc_build_as_external_project()` function,
 which provides a convenient interface to build the comms_champion is such way.
 It is recommended to be used when the build process of the comms_champion is 

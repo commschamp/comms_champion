@@ -29,7 +29,7 @@
 # - TAG - Override the default tag to checkout.
 # - REPO - Override the default repository of the comms_champion.
 # - CMAKE_ARGS - Extra cmake arguments to be passed to the comms_champion project.
-#   Use CMAKE_INSTALL_PREFIX to specify where the output needs to be installed.
+#       Use CMAKE_INSTALL_PREFIX to specify where the output needs to be installed.
 #
 # ******************************************************
 # - Build comms_champion as external project during normal build process.

@@ -149,22 +149,19 @@ is provided by the following compilers:
 
 # How to Build
 Detailed instructions on how to build and install all the components can be
-found in [BUILD.md](BUILD.md) file.
+found in [doc/BUILD.md](doc/BUILD.md) file.
 
 # How to Use COMMS Library
-As was mentioned earlier, the **COMMS** library is a headers only one, just
-have /path/to/comms_champion/install/dir/**include** directory among your
-include paths and use the following statement in your sources:
+The COMMS library [doxygen documentation](https://arobenko.github.io/comms_doc/) 
+contains detailed tutorial and examples how to use the provided 
+classes and functions.
 
-```
-#include "comms/comms.h"
-```
-Nothing else is required.
+The [cc_tutorial](https://github.com/arobenko/cc_tutorial/) repository 
+contains a full tutorial how to use the library in conjunction with 
+[commsdsl2comms](https://github.com/arobenko/commsdsl) code generator.
 
-Instructions on how to include the **COMMS** library in other CMake projects 
-can be found in 
-[How to Use CommsChampion in CMake Projects](https://github.com/arobenko/comms_champion/wiki/How-to-Use-CommsChampion-in-CMake-Projects)
-wiki page.
+# Other documentation
+Please check the [doc](doc) folder for the available additional documentation.
 
 # How to Run CommsChampion Tools applications
 On Windows platforms try to run the *.exe binary (**cc_view.exe**

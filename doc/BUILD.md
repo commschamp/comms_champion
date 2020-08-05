@@ -4,24 +4,8 @@ This project uses [CMake](https://cmake.org) cross-platform build system to
 generate required build files native to the platform.
 
 ## Available CMake Options
-
-In addition to built-in options/variables of CMake, such as **CMAKE_BUILD_TYPE**, **CMAKE_INSTALL_PREFIX**, or **CMAKE_TOOLCHAIN_FILE**, the following ones can be used:
-
-- **CC_COMMS_LIB_ONLY**=ON/OFF - Exclude compilation of all the tools, install only
-**COMMS** Library. Default value is **OFF**, i.e. other tools get built.
-
-- **CC_NO_UNIT_TESTS**=ON/OFF - Exclude build of unit tests. Default value is 
-**OFF**, i.e. the unit tests get built.
-
-- **CC_NO_WARN_AS_ERR**=ON/OFF - By default, all warnings are treated as
-errors. Enable this option in case the compiler generates warning and fails the
-compilation. Please open the issue when such scenario occurs. Default value is 
-**OFF**.
-
-- **CC_STATIC_RUNTIME**=ON/OFF - Enable/Disable static link to C++ runtime. Default value is **OFF**
-
-- **CC_QT_DIR**=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
-differs from system default installation path.
+Please open major [CMakeLists.txt](../CMakeLists.txt) for the complete list
+of available options and other input parameters.
 
 ## Choosing C++ Standard
 
@@ -30,9 +14,8 @@ Since CMake v3.1 it became possible to set version of C++ standard by setting
 line arguments, default value **11** will be assigned to it. In order to use
 c++14 standard in compilation, set the variable value to **14**. 
 
-Please **NOTE**, that _clang_ compiler has problems compiling valid c++11 constructs
-used in this project. Hence, the compilation will fail unless the compilation is
-configured to use c++14 standard.
+Please **NOTE**, that _clang_ compiler may have problems compiling valid c++11 
+constructs used in this project. Usage of C++14 may fix the problem.
 
 ## Build and Install Examples
 
@@ -49,8 +32,15 @@ Please review the examples below and use appropriate option that suites your
 needs. Remember to add **-DCMAKE_BUILD_TYPE=Release** option for release
 builds.
 
+### Complete Build Linux Example
+```
+$> cd /path/to/comms_champion
+$> mkdir build && cd build
+$> cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/some/install/dir 
+$> make install 
+```
 
-### Install Only **COMMS** Library Example
+### Install Only Headers-only **COMMS** Library Linux Example
 This example will skip build of any tool available, it will just install 
 the **COMMS** library headers in **install/include** subdirectory.
 

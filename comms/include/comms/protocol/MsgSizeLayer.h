@@ -545,7 +545,7 @@ private:
             return es;
         }
 
-        using MsgTypeTag = 
+        using Tag = 
             typename 
                 std::conditional<
                     std::is_void<typename std::decay<TMsg>::type>::value,
@@ -553,7 +553,7 @@ private:
                     ValidMsgTypeTag
                 >::type;
 
-        return doUpdateForward(msg, iter, size - field.length(), std::forward<TNextLayerUpdater>(nextLayerUpdater), MsgTypeTag());
+        return doUpdateForward(msg, iter, size - field.length(), std::forward<TNextLayerUpdater>(nextLayerUpdater), Tag());
     }
 
     template <typename TMsg, typename TIter, typename TNextLayerUpdater>

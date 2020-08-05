@@ -170,10 +170,12 @@ install (
     DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
 )
 
-install (
-    FILES ${COMMS_CHAMPION_CMAKE_FILES}
-    DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
-)
+if (NOT CC_COMMS_LIB_ONLY)
+    install (
+        FILES ${COMMS_CHAMPION_CMAKE_FILES}
+        DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
+    )
+endif ()
 
 
 add_subdirectory (comms)

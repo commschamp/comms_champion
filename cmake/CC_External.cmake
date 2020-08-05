@@ -19,11 +19,13 @@
 #   when the compilation process is light, i.e. only comms library is installed.
 #     cc_build_during_config(
 #         SRC_DIR <src_dir>
+#         [BUILD_dir <build_dir>]
 #         [TAG <tag>]
 #         [REPO <repo>]
 #         [CMAKE_ARGS <arg1> <arg2> ...]
 #     )
 # - SRC_DIR - A directory where comms_champion sources will end up.
+# - BUILD_DIR - A build directory, defaults to ${PROJECT_BINARY_DIR}/comms_champion
 # - TAG - Override the default tag to checkout.
 # - REPO - Override the default repository of the comms_champion.
 # - CMAKE_ARGS - Extra cmake arguments to be passed to the comms_champion project.
@@ -132,7 +134,7 @@ function (cc_build_during_config)
     endif () 
 
     if (NOT CC_BUILD_BUILD_DIR)
-        set (CC_BUILD_BUILD_DIR ${CC_BUILD_SRC_DIR}/build)
+        set (CC_BUILD_BUILD_DIR ${PROJECT_BINARY_DIR}/comms_champion)
     endif ()      
 
     if (NOT CC_BUILD_REPO)

@@ -85,6 +85,7 @@ function (cc_pull_sources)
     endif ()
 
     if (EXISTS "${CC_PULL_SRC_DIR}/.git")
+        message (STATUS "Updating existing comms_champion repository")
         execute_process (
             COMMAND ${GIT_EXECUTABLE} pull 
             WORKING_DIRECTORY ${CC_PULL_SRC_DIR}
@@ -102,6 +103,8 @@ function (cc_pull_sources)
 
         return()
     endif()
+
+    message (STATUS "Cloning comms_champion repository from scratch")
 
     execute_process (
         COMMAND ${CMAKE_COMMAND} -E remove_directory "${CC_PULL_SRC_DIR}"

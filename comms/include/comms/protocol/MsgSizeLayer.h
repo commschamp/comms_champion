@@ -337,6 +337,8 @@ private:
     using LengthTag = typename BaseImpl::LengthTag;
     struct MsgHasLengthTag {};
     struct MsgNoLengthTag {};
+    struct ValidMsgTypeTag {};
+    struct NoMsgTypeTag {};
 
     template<typename TMsg>
     using MsgLengthTag =
@@ -543,12 +545,43 @@ private:
             return es;
         }
 
+        using MsgTypeTag = 
+            typename 
+                std::conditional<
+                    std::is_void<typename std::decay<decltype(msg)>::type>::value,
+                    NoMsgTypeTag,
+                    ValidMsgTypeTag
+                >::type;
+
+        return doUpdateForward(msg, iter, size - field.length(), std::forward<TNextLayerUpdater>(nextLayerUpdater), MsgTypeTag());
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdateForward(
+        const TMsg* msg,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater,
+        NoMsgTypeTag) const
+    {
+        static_cast<void>(msg);
+        return nextLayerUpdater.update(iter, size);
+    } 
+
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdateForward(
+        const TMsg* msg,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater,
+        ValidMsgTypeTag) const
+    {
         if (msg == nullptr) {
-            return nextLayerUpdater.update(iter, size - field.length());
+            return nextLayerUpdater.update(iter, size);
         }
         
-        return nextLayerUpdater.update(*msg, iter, size - field.length());
-    }
+        return nextLayerUpdater.update(*msg, iter, size);
+    }        
 };
 
 namespace details

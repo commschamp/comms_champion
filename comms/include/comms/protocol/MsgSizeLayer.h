@@ -548,7 +548,7 @@ private:
         using MsgTypeTag = 
             typename 
                 std::conditional<
-                    std::is_void<typename std::decay<decltype(msg)>::type>::value,
+                    std::is_void<typename std::decay<TMsg>::type>::value,
                     NoMsgTypeTag,
                     ValidMsgTypeTag
                 >::type;

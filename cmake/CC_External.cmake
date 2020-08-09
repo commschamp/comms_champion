@@ -179,7 +179,7 @@ function (cc_build_during_config)
 
     set (extra_cmake_args)
     if (NOT CC_BUILD_NO_DEFAULT_CMAKE_ARGS)
-        set (extra_cmake_args)
+        set (extra_cmake_args
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} 
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}

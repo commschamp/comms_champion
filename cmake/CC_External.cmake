@@ -23,6 +23,7 @@
 #         [TAG <tag>]
 #         [REPO <repo>]
 #         [CMAKE_ARGS <arg1> <arg2> ...]
+#         [NO_DEFAULT_CMAKE_ARGS]
 #     )
 # - SRC_DIR - A directory where comms_champion sources will end up.
 # - BUILD_DIR - A build directory, defaults to ${PROJECT_BINARY_DIR}/comms_champion
@@ -30,6 +31,16 @@
 # - REPO - Override the default repository of the comms_champion.
 # - CMAKE_ARGS - Extra cmake arguments to be passed to the comms_champion project.
 #       Use CMAKE_INSTALL_PREFIX to specify where the output needs to be installed.
+# - NO_DEFAULT_CMAKE_ARGS - Exclude passing the extra cmake arguments that copy the 
+#       following values from the invoking project:
+#         * CMAKE_C_COMPILER
+#         * CMAKE_CXX_COMPILER
+#         * CMAKE_TOOLCHAIN_FILE
+#         * CMAKE_GENERATOR
+#         * CMAKE_BUILD_TYPE
+#         * CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+#       The default values are passed before ones specified in CMAKE_ARGS, which can overwrite 
+#       some of the default values.
 #
 # ******************************************************
 # - Build comms_champion as external project during normal build process.
@@ -43,6 +54,7 @@
 #         [QT_DIR <path_to_qt>]
 #         [NO_TOOLS]
 #         [UPDATE_DISCONNECTED]
+#         [NO_DEFAULT_CMAKE_ARGS]
 #     )
 # - SRC_DIR - A directory where comms_champion sources will end up.
 # - BUILD_DIR - A directory where comms_champion will be build.
@@ -56,6 +68,17 @@
 #   having CC_COMMS_LIB_ONLY=ON option being passed to the build process.
 # - NO_DEPLOY_QT - Don't generate "deploy_qt" build target when applicable.
 # - UPDATE_DISCONNECTED - Pass "UPDATE_DISCONNECTED 1" to ExternalProject_Add()
+# - NO_DEFAULT_CMAKE_ARGS - Exclude passing the extra cmake arguments that copy the 
+#       following values from the invoking project:
+#         * CMAKE_C_COMPILER
+#         * CMAKE_CXX_COMPILER
+#         * CMAKE_TOOLCHAIN_FILE
+#         * CMAKE_GENERATOR
+#         * CMAKE_BUILD_TYPE
+#         * CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+#       The default values are passed before ones specified in CMAKE_ARGS, which can overwrite 
+#       some of the default values.
+#
 # ******************************************************
 
 set (CC_EXTERNAL_DEFAULT_REPO "https://github.com/arobenko/comms_champion.git")
@@ -127,7 +150,7 @@ endfunction ()
 
 function (cc_build_during_config)
     set (_prefix CC_BUILD)
-    set (_options)
+    set (_options NO_DEFAULT_CMAKE_ARGS)
     set (_oneValueArgs SRC_DIR BUILD_DIR REPO TAG)
     set (_mutiValueArgs CMAKE_ARGS)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -154,9 +177,21 @@ function (cc_build_during_config)
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CC_BUILD_BUILD_DIR}"
     )
 
+    set (extra_cmake_args)
+    if (NOT CC_BUILD_NO_DEFAULT_CMAKE_ARGS)
+        set (extra_cmake_args)
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} 
+            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+            -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+            -DCMAKE_GENERATOR=${CMAKE_GENERATOR}
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+        )
+    endif ()
+
     execute_process(
         COMMAND ${CMAKE_COMMAND} ${CC_BUILD_SRC_DIR}
-            ${CC_BUILD_CMAKE_ARGS}
+            ${extra_cmake_args} ${CC_BUILD_CMAKE_ARGS}
         WORKING_DIRECTORY ${CC_BUILD_BUILD_DIR}
         RESULT_VARIABLE cc_cmake_result
     )
@@ -264,7 +299,7 @@ endmacro ()
 
 function (cc_build_as_external_project)
     set (_prefix CC_EXTERNAL_PROJ)
-    set (_options NO_TOOLS NO_DEPLOY_QT UPDATE_DISCONNECTED)
+    set (_options NO_TOOLS NO_DEPLOY_QT UPDATE_DISCONNECTED NO_DEFAULT_CMAKE_ARGS)
     set (_oneValueArgs SRC_DIR BUILD_DIR INSTALL_DIR REPO TAG QT_DIR TGT)
     set (_mutiValueArgs CMAKE_ARGS)
     cmake_parse_arguments(${_prefix} "${_options}" "${_oneValueArgs}" "${_mutiValueArgs}" ${ARGN})
@@ -308,6 +343,18 @@ function (cc_build_as_external_project)
         set (cc_update_disconnected_opt "UPDATE_DISCONNECTED 1")
     endif ()    
 
+    set (extra_cmake_args)
+    if (NOT CC_EXTERNAL_PROJ_NO_DEFAULT_CMAKE_ARGS)
+        set (extra_cmake_args)
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} 
+            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+            -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+            -DCMAKE_GENERATOR=${CMAKE_GENERATOR}
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+        )
+    endif ()
+
     include(ExternalProject)
     ExternalProject_Add(
         "${CC_EXTERNAL_PROJ_TGT}"
@@ -319,6 +366,7 @@ function (cc_build_as_external_project)
         INSTALL_DIR "${CC_EXTERNAL_PROJ_INSTALL_DIR}"
         ${cc_update_disconnected_opt}
         CMAKE_ARGS 
+            ${extra_cmake_args}
             ${exteral_proj_qt_dir_param} ${comms_lib_only_param}
             -DCMAKE_INSTALL_PREFIX=${CC_EXTERNAL_PROJ_INSTALL_DIR}
             ${CC_EXTERNAL_PROJ_CMAKE_ARGS}

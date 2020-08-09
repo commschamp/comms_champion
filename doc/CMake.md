@@ -50,9 +50,9 @@ After the prefetching, the provided
 [cmake/CC_External.cmake](../cmake/CC_External.cmake) becomes available.
 
 ### Build and install COMMS library during CMake configuration
-When only COMMS library is required (no CommsChampion Tools are used), the 
-build / install process is very light, it is possible to perform it 
-during CMake execution using `cc_build_during_config()` function.
+When only COMMS library is required (neither unittests nor CommsChampion Tools are built), the 
+build / install process is very light (just copying headers and cmake files to the destination directory), 
+it is possible to perform it during CMake execution using `cc_build_during_config()` function.
 ```
 include(/path/to/comms_champion/cmake/CC_External.cmake)
 
@@ -65,7 +65,8 @@ cc_build_during_config(
 )
 ```
 The code above will install the COMMS library and all the relevant cmake 
-scripts to the directory specified in `cc_install_dir` variable.
+scripts to the directory specified in `cc_install_dir` variable. Please 
+remember to use default `CMAKE_INSTALL_PREFIX` variable to specify the destination.
 
 After that it is possible to treat the COMMS library as being externally 
 available and use `find_package()` described above.

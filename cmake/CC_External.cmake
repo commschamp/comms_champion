@@ -58,7 +58,8 @@
 #     )
 # - SRC_DIR - A directory where comms_champion sources will end up.
 # - BUILD_DIR - A directory where comms_champion will be build.
-# - INSTALL_DIR - A directory where comms_champion will be installed.
+# - INSTALL_DIR - A directory where comms_champion will be installed, also passed as 
+#       CMAKE_INSTALL_PREFIX in addition to provided CMAKE_ARGS.
 # - TAG - Override the default tag to checkout.
 # - REPO - Override the default repository of the comms_champion.
 # - CMAKE_ARGS - Extra cmake arguments to be passed to the comms_champion project.
@@ -77,7 +78,7 @@
 #         * CMAKE_BUILD_TYPE
 #         * CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
 #       The default values are passed before ones specified in CMAKE_ARGS, which can overwrite 
-#       some of the default values.
+#       some of the copied values.
 #
 # ******************************************************
 

@@ -1,19 +1,9 @@
 //
 // Copyright 2014 - 2020 (C). Alex Robenko. All rights reserved.
 //
-
-// This library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /// @file 
 /// Contains definition of @ref comms::protocol::MsgSizeLayer
@@ -347,6 +337,8 @@ private:
     using LengthTag = typename BaseImpl::LengthTag;
     struct MsgHasLengthTag {};
     struct MsgNoLengthTag {};
+    struct ValidMsgTypeTag {};
+    struct NoMsgTypeTag {};
 
     template<typename TMsg>
     using MsgLengthTag =
@@ -553,12 +545,43 @@ private:
             return es;
         }
 
+        using Tag = 
+            typename 
+                std::conditional<
+                    std::is_void<typename std::decay<TMsg>::type>::value,
+                    NoMsgTypeTag,
+                    ValidMsgTypeTag
+                >::type;
+
+        return doUpdateForward(msg, iter, size - field.length(), std::forward<TNextLayerUpdater>(nextLayerUpdater), Tag());
+    }
+
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdateForward(
+        const TMsg* msg,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater,
+        NoMsgTypeTag) const
+    {
+        static_cast<void>(msg);
+        return nextLayerUpdater.update(iter, size);
+    } 
+
+    template <typename TMsg, typename TIter, typename TNextLayerUpdater>
+    comms::ErrorStatus doUpdateForward(
+        const TMsg* msg,
+        TIter& iter,
+        std::size_t size,
+        TNextLayerUpdater&& nextLayerUpdater,
+        ValidMsgTypeTag) const
+    {
         if (msg == nullptr) {
-            return nextLayerUpdater.update(iter, size - field.length());
+            return nextLayerUpdater.update(iter, size);
         }
         
-        return nextLayerUpdater.update(*msg, iter, size - field.length());
-    }
+        return nextLayerUpdater.update(*msg, iter, size);
+    }        
 };
 
 namespace details

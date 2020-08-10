@@ -13,6 +13,8 @@ option (CC_NO_CXX_STANDARD_FORCING "Disable forcing C++ standard to C++11 when n
 # Extra variables
 # CC_QT_DIR=dir - Directory of QT5 installation. Can be used to provide path to QT5 if
 #   differs from system default installation path.
+# CC_EXTERNALS_DIR - Directory where pull externals, defaults to 
+#   ${PROJECT_SOURCE_DIR}/externals
 
 if (CMAKE_TOOLCHAIN_FILE AND EXISTS ${CMAKE_TOOLCHAIN_FILE})
     message(STATUS "Loading toolchain from ${CMAKE_TOOLCHAIN_FILE}")
@@ -22,7 +24,11 @@ if ((NOT CMAKE_CXX_STANDARD) AND (NOT CC_NO_CXX_STANDARD_FORCING))
     set (CMAKE_CXX_STANDARD 11)
 endif()
 
-set (EXTERNALS_DIR "${PROJECT_SOURCE_DIR}/externals")
+if (NOT CC_EXTERNALS_DIR)
+    set (CC_EXTERNALS_DIR "${PROJECT_SOURCE_DIR}/externals")
+endif ()
+
+set (CMAKE_SCRIPTS_DIR "${PROJECT_SOURCE_DIR}/cmake")
 while (TRUE)
     if (CC_NO_UNIT_TESTS)
         message (STATUS "Unittests are disabled")
@@ -33,55 +39,9 @@ while (TRUE)
         message (STATUS "Not building unittests when cross-compiling")
         break()
     endif ()
-    
-    find_package (Git)
-    if (NOT GIT_FOUND)
-        message (WARNING "Git is required to check out cxxtest")
-        break()
-    endif ()
-    
-    set (cxx_tag "4.4")
-    set (cxxtest_stamp "${EXTERNALS_DIR}/cxxtest/cxxtest.stamp")
-    if (EXISTS ${cxxtest_stamp})
-        execute_process (
-            COMMAND ${GIT_EXECUTABLE} checkout ${cxx_tag}
-            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest
-        )
-    else ()
-        execute_process (
-            COMMAND ${CMAKE_COMMAND} -E remove_directory "${EXTERNALS_DIR}/cxxtest"
-        )
-        
-        execute_process (
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${EXTERNALS_DIR}"
-        )
-        
-        execute_process (
-            COMMAND ${GIT_EXECUTABLE} clone -b ${cxx_tag} --depth 1 https://github.com/CxxTest/cxxtest.git
-            WORKING_DIRECTORY ${EXTERNALS_DIR}
-            RESULT_VARIABLE git_result
-        )
-    
-        if (NOT "${git_result}" STREQUAL "0")
-            message (WARNING "git clone/checkout failed")
-            break()
-        endif ()
-        
-        execute_process (
-            COMMAND ${CMAKE_COMMAND} -E touch "${cxxtest_stamp}"
-        )
-    endif ()
-    
-    set (CXXTEST_INCLUDE_DIR "${EXTERNALS_DIR}/cxxtest")
-    set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE "${CXXTEST_INCLUDE_DIR}/bin/cxxtestgen")
-    
-    find_package (CxxTest)
-    if (NOT CXXTEST_FOUND)
-        message (WARNING "Wrong cxxtest paths, must be fixed")
-        break()
-    endif ()
-    
-    enable_testing ()
+
+    include (${CMAKE_SCRIPTS_DIR}/CC_CxxtestFuncs.cmake)
+    cc_get_cxxtest(INSTALL_PREFIX ${CC_EXTERNALS_DIR})
     break()
 endwhile ()
 
@@ -189,19 +149,20 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion)
     
 set (LIB_COMMS_CMAKE_FILES
+    ${PROJECT_SOURCE_DIR}/cmake/CC_CxxtestFuncs.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CC_DocCleanupScript.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CC_RunWithValgrindScript.cmake
     ${PROJECT_SOURCE_DIR}/cmake/LibCommsConfig.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/DocCleanupScript.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
     ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
 ) 
 
 set (COMMS_CHAMPION_CMAKE_FILES
-    ${PROJECT_SOURCE_DIR}/cmake/CC_DefineExternalProjectTargets.cmake
+    ${LIB_COMMS_CMAKE_FILES}
+    ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/CC_GenWinAppStartBat.cmake
     ${PROJECT_SOURCE_DIR}/cmake/CommsChampionConfig.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/DefineExternalProjectTargets.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/DeployQt5.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/DocCleanupScript.cmake
-    ${PROJECT_SOURCE_DIR}/cmake/GenWinAppStartBat.cmake
-    ${CMAKE_BINARY_DIR}/LibCommsConfigVersion.cmake
 )    
    
 install (
@@ -209,10 +170,12 @@ install (
     DESTINATION ${LIB_INSTALL_DIR}/LibComms/cmake/
 )
 
-install (
-    FILES ${COMMS_CHAMPION_CMAKE_FILES}
-    DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
-)
+if (NOT CC_COMMS_LIB_ONLY)
+    install (
+        FILES ${COMMS_CHAMPION_CMAKE_FILES}
+        DESTINATION ${LIB_INSTALL_DIR}/CommsChampion/cmake/
+    )
+endif ()
 
 
 add_subdirectory (comms)
@@ -233,6 +196,6 @@ if (WIN32 AND CC_QT_DIR)
     add_custom_target ("deploy_qt"
         COMMAND ${CMAKE_COMMAND} -DCC_QT_DIR=${CC_QT_DIR}
             -DCC_BIN_DIR=${BIN_INSTALL_DIR} -DCC_PLUGIN_DIR=${PLUGIN_INSTALL_DIR}
-            -P ${PROJECT_SOURCE_DIR}/cmake/DeployQt5.cmake
+            -P ${PROJECT_SOURCE_DIR}/cmake/CC_DeployQt5Script.cmake
     )
 endif ()

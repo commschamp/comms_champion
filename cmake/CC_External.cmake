@@ -82,7 +82,7 @@
 #
 # ******************************************************
 
-set (CC_EXTERNAL_DEFAULT_REPO "https://github.com/arobenko/comms_champion.git")
+set (CC_EXTERNAL_DEFAULT_REPO "https://github.com/commschamp/comms_champion.git")
 set (CC_EXTERNAL_DEFAULT_TAG "master")
 
 function (cc_pull_sources)

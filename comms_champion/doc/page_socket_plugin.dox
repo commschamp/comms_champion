@@ -2,12 +2,12 @@
 /// @tableofcontents
 /// The @b socket plugin is responsible to send the data over I/O link when
 /// requested as well as report any incoming data via callback. The 
-/// <a href="https://github.com/arobenko/comms_champion">CommsChampion Project</a>
+/// <a href="https://github.com/commschamp/comms_champion">CommsChampion Project</a>
 /// contains implementation of multiple available 
-/// <a href="https://github.com/arobenko/comms_champion/tree/master/comms_champion/plugin">plugins</a>
+/// <a href="https://github.com/commschamp/comms_champion/tree/master/comms_champion/plugin">plugins</a>
 /// It is recommended to follow this tutorial while looking at available examples. The
-/// easy ones are <a href="https://github.com/arobenko/comms_champion/tree/master/comms_champion/plugin/null_socket">null_socket</a>
-/// and <a href="https://github.com/arobenko/comms_champion/tree/master/comms_champion/plugin/echo_socket">echo_socket</a>
+/// easy ones are <a href="https://github.com/commschamp/comms_champion/tree/master/comms_champion/plugin/null_socket">null_socket</a>
+/// and <a href="https://github.com/commschamp/comms_champion/tree/master/comms_champion/plugin/echo_socket">echo_socket</a>
 /// 
 /// @section page_socket_plugin_socket_class Socket Class
 /// To implement the required functionality the plugin's code must define its
@@ -51,7 +51,7 @@
 /// @endcode
 /// The @b connection request is used to open the device file or low level I/O socket,
 /// as well as to connect to remote host in case of network socket, such as
-/// <a href="https://github.com/arobenko/comms_champion/tree/master/comms_champion/plugin/tcp_socket/client">TCP/IP Client</a>.
+/// <a href="https://github.com/commschamp/comms_champion/tree/master/comms_champion/plugin/tcp_socket/client">TCP/IP Client</a>.
 ///
 /// When @b disconnection request comes in, the socket object is expected to
 /// disconnect from remote host (if applicable), and close the low level I/O socket.
@@ -107,7 +107,7 @@
 /// the data has arrived from in case of network socket. Such extra information 
 /// can be reported by the driving application when reporting received message details.
 /// For example, take a look at 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/comms_champion/plugin/tcp_socket/server/Socket.cpp">TCP/IP Server Socket</a> implementation.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/comms_champion/plugin/tcp_socket/server/Socket.cpp">TCP/IP Server Socket</a> implementation.
 /// 
 /// @subsection page_socket_plugin_data_send Sending Data
 /// The socket object receives requests to send outgoing data using call to
@@ -127,7 +127,7 @@
 /// extra properties. Depending on the socket, these properties can be used by the
 /// other plugins (@b filters and/or @b protocol) to provide extra information on
 /// how the data needs to be sent. For example, it can specify whether 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/comms_champion/plugin/udp_socket/Socket.cpp">UDP/IP Socket</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/comms_champion/plugin/udp_socket/Socket.cpp">UDP/IP Socket</a>
 /// needs to broadcast the provided data or send it directly to currently connected
 /// remote endpoint.
 ///

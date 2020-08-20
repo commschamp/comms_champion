@@ -4,9 +4,9 @@
 /// @b DEMO is a binary protocol that is provided as part of
 /// "CommsChampion" package. Its main purpose is to demonstrate 
 /// and test abilities of 
-/// <a href="https://github.com/arobenko/comms_champion#comms-library">COMMS Library</a>  
+/// <a href="https://github.com/commschamp/comms_champion#comms-library">COMMS Library</a>  
 /// as well as 
-/// <a href="https://github.com/arobenko/comms_champion#commschampion-tool">CommsChampion tool</a>.
+/// <a href="https://github.com/commschamp/comms_champion#commschampion-tool">CommsChampion tool</a>.
 ///
 /// @section demo_proto_def Protocol Definition
 /// All the data in @b DEMO protocol is serialised using BIG endian. The

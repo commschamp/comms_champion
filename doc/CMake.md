@@ -29,7 +29,7 @@ multiple macros / functions which could be used for easy
 integration. Please open [it](../cmake/CC_External.cmake) for 
 the documentation on available macros / functions.
 
-If the [comms_champion](https://github.com/arobenko/comms_champion) 
+If the [comms_champion](https://github.com/commschamp/comms_champion) 
 sources are not attached to the 
 project being developed as a submodule, it is recommended to 
 prefetch the sources to get an access to the 
@@ -39,7 +39,7 @@ the cmake execution.
 Please copy the [cmake/CC_Prefetch.cmake](../cmake/CC_Prefetch.cmake)
 file to your project (or use it as an example) and then 
 prefetch the 
-[comms_champion](https://github.com/arobenko/comms_champion) 
+[comms_champion](https://github.com/commschamp/comms_champion) 
 sources using following (or similar) 
 cmake code.
 ```

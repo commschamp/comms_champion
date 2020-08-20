@@ -1,7 +1,7 @@
 ![Image: CommsChampion Icon](comms_champion/app/cc_view/src/image/app_icon.png)
 
 This project is a core (and a member) of 
-[CommsChampion Ecosystem](https://arobenko.github.io/cc),
+[CommsChampion Ecosystem](https://commschamp.github.io),
 which comes to help in 
 developing binary communication protocols, with main focus on
 **embedded systems** with limited resources (including 
@@ -46,9 +46,9 @@ However, at this stage the library internals are much more advanced and sophisti
 examples in the e-book, please don't treat the latter as a guide to library's internals.
 
 Full [doxygen](www.doxygen.org) generated documentation with the full tutorial inside can be
-read [online](https://arobenko.github.io/comms_doc/) and/or
+read [online](https://commschamp.github.io/comms_doc/) and/or
 downloaded as **doc_comms_vX.zip** archive from 
-[release artefacts](https://github.com/arobenko/comms_champion/releases).
+[release artefacts](https://github.com/commschamp/comms_champion/releases).
 
 For quick usage examples please refer to [EXAMPLES.md](EXAMPLES.md).
 
@@ -63,7 +63,7 @@ use [Qt5](http://www.qt.io/) framework for GUI interfaces as well as loading
 and managing plug-ins.
 
 The current list of available applications is below. Please refer to the
-[wiki page](https://github.com/arobenko/comms_champion/wiki/How-to-Use-CommsChampion-Tools)
+[wiki page](https://github.com/commschamp/comms_champion/wiki/How-to-Use-CommsChampion-Tools)
 for tutorial on how to use them.
 
 - **cc_view** is the main generic GUI application for visualisation and analysis of the
@@ -101,17 +101,17 @@ raw data being received from I/O socket.
 ### Developing Custom Socket/Filter/Protocol Plugin
 The full tutorial as well as API documentation can be downloaded as
 **doc_commschampion_vX.zip** archive from
-from [release artefacts](https://github.com/arobenko/comms_champion/releases).
+from [release artefacts](https://github.com/commschamp/comms_champion/releases).
 
 # Demos and Examples
 Over the years the 
 [COMMS Library](#comms-library) grew with features and accumulated
 multiple nuances to be remembered when defining a new protocol. In order to
 simplify protocol definition work, a separate toolset, called 
-[commsdsl](https://github.com/arobenko/commsdsl) (hosted as separate repository), 
+[commsdsl](https://github.com/commschamp/commsdsl) (hosted as separate repository), 
 has been developed. It allows much easier and simpler definition of the protocol, 
 using schema files written in XML based domain specific language, called 
-[CommsDSL](https://github.com/arobenko/CommsDSL-Specification). The toolset
+[CommsDSL](https://github.com/commschamp/CommsDSL-Specification). The toolset
 will generate a C++11 code that defines the protocol using appropriate
 [COMMS Library](#comms-library) classes and functions, as well as generate extra code
 required to implement a protocol definition plugin for 
@@ -127,7 +127,7 @@ As the result, manual implementation of binary communication protocols **from
 scratch** using 
 [COMMS Library](#comms-library) is not recommended and should be avoided. Please use
 **commsdsl2comms** code generator from 
-[commsdsl](https://github.com/arobenko/commsdsl) project, which also
+[commsdsl](https://github.com/commschamp/commsdsl) project, which also
 lists multiple available protocols (with usage examples) that can be used
 as reference.
 
@@ -152,13 +152,13 @@ Detailed instructions on how to build and install all the components can be
 found in [doc/BUILD.md](doc/BUILD.md) file.
 
 # How to Use COMMS Library
-The COMMS library [doxygen documentation](https://arobenko.github.io/comms_doc/) 
+The COMMS library [doxygen documentation](https://commschamp.github.io/comms_doc/) 
 contains detailed tutorial and examples how to use the provided 
 classes and functions.
 
-The [cc_tutorial](https://github.com/arobenko/cc_tutorial/) repository 
+The [cc_tutorial](https://github.com/commschamp/cc_tutorial/) repository 
 contains a full tutorial how to use the library in conjunction with 
-[commsdsl2comms](https://github.com/arobenko/commsdsl) code generator.
+[commsdsl2comms](https://github.com/commschamp/commsdsl) code generator.
 
 # Other documentation
 Please check the [doc](doc) folder for the available additional documentation.

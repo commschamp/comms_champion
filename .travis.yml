@@ -30,64 +30,48 @@ matrix:
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-6    
       env: _CC=gcc-6 _CXX=g++-6
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-6    
       env: _CC=gcc-6 _CXX=g++-6 _BUILD="-DCMAKE_CXX_STANDARD=14"
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-7    
       env: _CC=gcc-7 _CXX=g++-7
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-7    
       env: _CC=gcc-7 _CXX=g++-7 _BUILD="-DCMAKE_CXX_STANDARD=14"
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-7    
       env: _CC=gcc-7 _CXX=g++-7 _BUILD="-DCMAKE_CXX_STANDARD=17"
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-8    
       env: _CC=gcc-8 _CXX=g++-8
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-8    
       env: _CC=gcc-8 _CXX=g++-8 _BUILD="-DCMAKE_CXX_STANDARD=14"      
     - os: linux
       addons:
         apt:
-          sources:
-            - sourceline: "ppa:ubuntu-toolchain-r/test"
           packages:
             - g++-8    
       env: _CC=gcc-8 _CXX=g++-8 _BUILD="-DCMAKE_CXX_STANDARD=17"        
@@ -259,6 +243,33 @@ matrix:
           packages:
             - clang-8    
       env: _CC=clang-8 _CXX=clang++-8 _BUILD="-DCMAKE_CXX_STANDARD=20"  
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-9
+          packages:
+            - clang-9    
+      env: _CC=clang-9 _CXX=clang++-9
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-10
+          packages:
+            - clang-10    
+      env: _CC=clang-10 _CXX=clang++-10
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-11
+          packages:
+            - clang-11    
+      env: _CC=clang-11 _CXX=clang++-11
 
 before_install:
   - sudo apt-get install libqt5serialport5-dev  -y  

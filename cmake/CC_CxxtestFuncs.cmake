@@ -122,7 +122,7 @@ macro (cc_get_cxxtest)
         target_compile_options(${local_cxxtest_name} INTERFACE
             $<$<CXX_COMPILER_ID:MSVC>:/wd5055>
             $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast -Wno-shadow>
-            $<$<CXX_COMPILER_ID:Clang>:-Wno-deprecated-enum-float-conversion>
+            $<$<CXX_COMPILER_ID:Clang>:-Wno-unknown-warning-option -Wno-deprecated-enum-float-conversion>
         ) 
 
         if ((CMAKE_COMPILER_IS_GNUCC) AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "7.9"))

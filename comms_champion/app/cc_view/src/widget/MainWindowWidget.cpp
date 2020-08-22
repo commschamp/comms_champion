@@ -63,7 +63,7 @@ MainWindowWidget::MainWindowWidget(QWidget* parentObj)
     splitter->setStretchFactor(1, 1);
     setCentralWidget(splitter);
 
-    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q), this, SLOT(close()));
+    new QShortcut(QKeySequence(tr("Ctrl+q")), this, SLOT(close()));
 
     auto* guiAppMgr = GuiAppMgr::instance();
     connect(

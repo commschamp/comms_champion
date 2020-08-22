@@ -6,7 +6,7 @@
 /// to contain its own @b Plugin class that inherits from comms_champion::Plugin and
 /// uses various QT5 macros to describe itself. As an example please take
 /// a look at
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/comms_champion/plugin/echo_socket/EchoSocketPlugin.h">EchoSocketPlugin.h</a> 
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/comms_champion/plugin/echo_socket/EchoSocketPlugin.h">EchoSocketPlugin.h</a> 
 /// from this project.
 /// @code
 /// class EchoSocketPlugin : public comms_champion::Plugin
@@ -32,7 +32,7 @@
 ///     @b filter, or @b protocol.
 ///
 /// Please take a look at 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/comms_champion/plugin/echo_socket/echo_socket.json">echo_socket.json</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/comms_champion/plugin/echo_socket/echo_socket.json">echo_socket.json</a>
 /// as an example.
 /// @code
 /// {
@@ -58,7 +58,7 @@
 /// Some plugins may require an ability to be configured. For example, remote address
 /// and/or port for TCP/IP client socket.
 ///
-/// The <a href="https://github.com/arobenko/comms_champion#commschampion-tools">CommsChampion Tools</a> 
+/// The <a href="https://github.com/commschamp/comms_champion#commschampion-tools">CommsChampion Tools</a> 
 /// implement an ability to save and load the list of plugins with their
 /// respective configurations. Such list as well as plugins' configurations are
 /// stored in single file as human readable 
@@ -99,7 +99,7 @@
 /// single @b QVariantMap object, which will be inserted as one value into
 /// the provided @b QVariantMap full configuration object. For example,
 /// let's take a look at 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/comms_champion/plugin/tcp_socket/client/SocketPlugin.cpp">TCP/IP Client Socket</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/comms_champion/plugin/tcp_socket/client/SocketPlugin.cpp">TCP/IP Client Socket</a>
 /// plugin configuration:
 /// @code
 /// const QString MainConfigKey("cc_tcp_client_socket");
@@ -273,7 +273,7 @@
 /// way to allow user to perform such configuration. 
 ///
 /// The developed plugins are expected to be used "as-is" with any of the 
-/// <a href="https://github.com/arobenko/comms_champion#commschampion-tools">CommsChampion Tools</a>
+/// <a href="https://github.com/commschamp/comms_champion#commschampion-tools">CommsChampion Tools</a>
 /// applications, both GUI and command-line ones. As the result, the developed
 /// plugin is expected to be able to create and return a widget object, which will be
 /// displayed by the GUI application at some stage. If plugin requires configuration

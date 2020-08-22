@@ -1,6 +1,6 @@
 /// @mainpage CommsChampion Library
 /// @tableofcontents
-/// The <a href="https://github.com/arobenko/comms_champion#commschampion-tools">CommsChampion Tools</a> 
+/// The <a href="https://github.com/commschamp/comms_champion#commschampion-tools">CommsChampion Tools</a> 
 /// are there to provide consistent and generic environment for binary protocols 
 /// visualisation, traffic monitor and analysis. They are all plugin based. 
 /// Plugins are used to select I/O socket, protocol definition itself as well as 

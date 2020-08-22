@@ -2271,7 +2271,7 @@
 /// are defined inside the recommended @b DefaultOptions structure and be
 /// passed to the layers definitions themselves. Such approach is undertaken by
 /// the **commsdsl2comms** code generator application from the 
-/// <a href="https://github.com/arobenko/commsdsl">commsdsl</a> project.
+/// <a href="https://github.com/commschamp/commsdsl">commsdsl</a> project.
 /// @code
 /// namespace my_protocol
 /// {

@@ -3,7 +3,7 @@
 /// The comms_champion::property::field namespace contains definition of
 /// multiple classes that are expected to be used to define fields properties.
 /// For example, let's take a look at definition of @b field1 of 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
 /// message of the @b demo protocol. The properties for such field can be
 /// defined as:
 /// @code
@@ -36,10 +36,10 @@
 /// (@ref comms_champion::property::field::ForField) which can be used
 /// to retrieve the right properties definition type, based on the type of the
 /// field. For example, the
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
 /// file contains the following code that defines properties for earlier mentioned 
 /// @b field1 field of the 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
 /// message of the @b demo protocol.
 /// @code
 /// namespace cc = comms_champion;
@@ -95,7 +95,7 @@
 /// "serialisedHidden" property can be used to hide the right (serialised) part
 /// of the widget. It can be useful when displaying complex fields. For example,
 /// @b field2 of the 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
 /// message. It is defined to be a fixed size list (3 elements) of 
 /// @b int16_t values (@b comms::field::IntValue<...> fields). If the 
 /// "serialisedHidden" property is NOT set neither on the list, nor on
@@ -125,7 +125,7 @@
 /// size of the @b CHECKSUM. However, the protocol stack is defined to have
 /// @b CHECKSUM layer wrapping the @b LENGTH one. As the result the real value of 
 /// the "length" field doesn't include length of the @b CHECKSUM value (see
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/Stack.h">Stack.h</a>).
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/Stack.h">Stack.h</a>).
 /// @code
 /// using LengthField =
 ///     comms::field::IntValue<
@@ -137,7 +137,7 @@
 ///
 /// When displaying such field, the latter should also add "2" to its displayed
 /// value (see 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>).
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>).
 /// @code
 /// QVariantList createFieldsProperties()
 /// {
@@ -159,7 +159,7 @@
 /// operations to convert such floating point values to integral one prior to
 /// serialisation. Such fields may be defined using @b comms::field::IntValue
 /// classes (see @b field3 in 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/FloatValues.h">FloatValues</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/FloatValues.h">FloatValues</a>
 /// message definition).
 /// @code
 ///     // Floating point value serialised as integer with (1e-2) scaling ratio.
@@ -173,7 +173,7 @@
 /// However, sometimes it is desired to present it as floating point field
 /// to the user. In this case there is a need to provide information about
 /// how many digits need to be displayed after the decimal point (see
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/FloatValues.cpp">cc_plugin/message/FloatValues.cpp</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/FloatValues.cpp">cc_plugin/message/FloatValues.cpp</a>
 /// ).
 /// @code
 /// QVariantList createFieldsProperties()
@@ -197,7 +197,7 @@
 /// To add such information
 /// comms_champion::property::field::EnumValue::add() functions may be used.
 /// As an example let's take a look at @b field1 of the
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
 /// message. Its enum type is defined to be
 /// @code
 /// enum class ValuesField1 : std::uint8_t
@@ -211,7 +211,7 @@
 /// The first value starts at 0 and every next value is greater by 1 than
 /// the previous one. The properties of such field are defined in the following
 /// way (see
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
 /// ).
 /// @code
 /// QVariantList createFieldsProperties()
@@ -229,7 +229,7 @@
 /// @endcode
 ///
 /// As a second example let's take a look at @b field2 of the
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/EnumValues.h">EnumValues</a>
 /// message. Its enum type is defined to be
 /// @code
 /// enum class ValuesField2 : std::int16_t
@@ -241,7 +241,7 @@
 /// };
 /// @endcode
 /// The properties of such enum field are defined in the following way (see
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/EnumValues.cpp">cc_plugin/message/EnumValues.cpp</a>
 /// ).
 /// @code
 /// QVariantList createFieldsProperties()
@@ -271,9 +271,9 @@
 /// comms_champion::property::field::BitmaskValue::add() functions may be used.
 /// The usage is very similar to @ref page_fields_properties_enum_value. For
 /// examples please take a look at the 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/BitmaskValues.h">BitmaskValues</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/BitmaskValues.h">BitmaskValues</a>
 /// message fields definition and definition of the properties inside
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/BitmaskValues.cpp">cc_plugin/message/BitmaskValues.cpp</a>.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/BitmaskValues.cpp">cc_plugin/message/BitmaskValues.cpp</a>.
 ///
 /// @section page_fields_properties_bitfield Properties for comms::field::Bitfield
 /// In addition to @ref page_fields_properties_common, the 
@@ -282,9 +282,9 @@
 /// using comms_champion::property::field::Bitfield::add() member function. Note,
 /// that created properties are passed already converted to @b QVariantMap. 
 /// For example, take a look at fields definitions of the 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Bitfields.h">Bitfields</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Bitfields.h">Bitfields</a>
 /// message and their properties assignment inside the
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Bitfields.cpp">cc_plugin/message/Bitfields.cpp</a>.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/Bitfields.cpp">cc_plugin/message/Bitfields.cpp</a>.
 ///
 /// @section page_fields_properties_bundle Properties for comms::field::Bundle
 /// Setting properties for @b comms::field::Bundle field is very similar to
@@ -292,10 +292,10 @@
 /// The properties of the member fields are assigned using
 /// comms_champion::property::field::Bundle::add() member function.
 /// For example take a look at definition of @b field4 of the 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
 /// message. The properties for the bundle field are assigned using
 /// the following code (see
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>).
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>).
 /// @code
 /// QVariantMap createField4Properties()
 /// {
@@ -315,9 +315,9 @@
 /// doesn't have any extra properties in addition to @ref page_fields_properties_common
 /// . For usage example, please take a look at
 /// For example, take a look at fields definitions of the 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Strings.h">Strings</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Strings.h">Strings</a>
 /// message definition and defining properties to its field inside 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Strings.cpp">cc_plugin/message/Strings.cpp</a>.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/Strings.cpp">cc_plugin/message/Strings.cpp</a>.
 ///
 /// @section page_fields_properties_array_list Properties for comms::field::ArrayList
 /// The @b comms::field::ArrayList is a variable length field. It may
@@ -327,7 +327,7 @@
 /// storing raw bytes, there is no need for any extra properties except
 /// ones listed in @ref page_fields_properties_common. Let's take a 
 /// look at definition of @b field1 of 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
 /// message.
 /// @code
 /// // Raw data list that uses 2 bytes size prefix
@@ -344,7 +344,7 @@
 ///     >;
 /// @endcode
 /// The properties for it are defined in 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
 /// @code
 /// QVariantList createFieldsProperties()
 /// {
@@ -357,7 +357,7 @@
 /// a need to provide properties for the latter as well. The properties
 /// for contained fields are added using comms_champion::property::field::ArrayList::add()
 /// member function. Let's take a look at definition of @b field2 of the same
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
 /// message.
 /// @code
 /// // List of 2 bytes integer value fields, with fixed size of 3 elements
@@ -374,7 +374,7 @@
 /// The maximum number of the elements the list is going to store is known. It is 3.
 /// Then, it is possible to assign different properties for each and every one
 /// of them. The same
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
 /// file contains the following code:
 /// @code
 /// QVariantMap createField2Properties()
@@ -405,7 +405,7 @@
 /// should be added to comms_champion::property::field::ArrayList object, which
 /// is going to be used for every displayed field that the list contains. As an
 /// example, let's take a look at @b field3 of the same 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
 /// message.
 /// @code
 /// // List of 2 bytes integer value fields, prefixed with 2 bytes serialisation length
@@ -425,7 +425,7 @@
 ///     >;
 /// @endcode
 /// The same
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/Lists.cpp">cc_plugin/message/Lists.cpp</a>.
 /// file contains the following properties setting code:
 /// @code
 /// QVariantMap createField3Properties()
@@ -441,7 +441,7 @@
 /// Quite often the @b comms::field::ArrayList fields are prefixed with
 /// number of elements to follow or serialisation length, just like @b field3
 /// of the  
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Lists.h">Lists</a>
 /// message mentioned earlier. Sometimes it would be convenient to hide 
 /// the "serialised" information of the list itself (
 /// on the right-hand side of the generated widget), but show one of the 
@@ -469,11 +469,11 @@
 /// checkbox. Adding the "uncheckable" property will hide it.
 ///
 /// As an example, let's take a look at 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Optionals.h">Optionals</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Optionals.h">Optionals</a>
 /// message. The existance of its @b field2 and @b field3 fields is determined
 /// by the value of the @b field1. The properties of the mentioned field are
 /// set in 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Optionals.cpp">cc_plugin/message/Optionals.cpp</a>.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/Optionals.cpp">cc_plugin/message/Optionals.cpp</a>.
 /// file.
 /// @code
 /// QVariantMap createField2Properties()
@@ -508,9 +508,9 @@
 /// need to know how many digits to display after the decimal point. The information
 /// is provided using comms_champion::property::field::FloatValue::decimals()
 /// member function. The
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/FloatValues.cpp">cc_plugin/message/FloatValues.cpp</a> 
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/FloatValues.cpp">cc_plugin/message/FloatValues.cpp</a> 
 /// file contains code setting properties for such fields used by
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/FloatValues.h">FloatValues</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/FloatValues.h">FloatValues</a>
 /// message.
 ///
 /// @section page_fields_properties_variant Properties for comms::field::Variant
@@ -528,7 +528,7 @@
 /// "read only" mode such index may be hidden using described property. Use
 /// comms_champion::property::field::Variant::indexHidden() member function to
 /// set it. For example please take a look at definition of the 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/Variants.h">Variants</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/Variants.h">Variants</a>
 /// message and the properties setting code inside
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/Variants.cpp">cc_plugin/message/Variants.cpp</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/Variants.cpp">cc_plugin/message/Variants.cpp</a>
 /// file.

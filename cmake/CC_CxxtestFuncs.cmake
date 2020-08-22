@@ -121,14 +121,9 @@ macro (cc_get_cxxtest)
         add_library(${CC_CXXTEST_TGT_TARGET} ALIAS ${local_cxxtest_name})
         target_compile_options(${local_cxxtest_name} INTERFACE
             $<$<CXX_COMPILER_ID:MSVC>:/wd5055>
-            $<$<CXX_COMPILER_ID:GNU>:-Wno-old-style-cast -Wno-shadow>
+            $<$<CXX_COMPILER_ID:GNU>:-Wno-unknown-warning -Wno-old-style-cast -Wno-shadow -Wno-ignored-qualifiers>
+            $<$<CXX_COMPILER_ID:Clang>:-Wno-unknown-warning-option -Wno-deprecated-enum-float-conversion>
         ) 
-
-        if ((CMAKE_COMPILER_IS_GNUCC) AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "7.9"))
-            target_compile_options(${local_cxxtest_name} INTERFACE
-                $<$<CXX_COMPILER_ID:GNU>:-Wno-ignored-qualifiers>
-            ) 
-        endif ()    
 
         target_include_directories(${local_cxxtest_name} INTERFACE ${CXXTEST_INCLUDE_DIR})
 

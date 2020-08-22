@@ -3,20 +3,20 @@
 /// Developing the @b protocol plugins is significantly more complex than
 /// developing the @b socket or @b filter ones. Please follow this tutorial, 
 /// while observing the implementation of the 
-/// <a href="https://github.com/arobenko/comms_champion#demo-protocol">Demo Protocol</a>
+/// <a href="https://github.com/commschamp/comms_champion#demo-protocol">Demo Protocol</a>
 /// (the sources are 
-/// <a href="https://github.com/arobenko/comms_champion/tree/master/demo">here</a>) 
+/// <a href="https://github.com/commschamp/comms_champion/tree/master/demo">here</a>) 
 /// provided as part of the
-/// <a href="https://github.com/arobenko/comms_champion">CommsChampion Project</a>.
+/// <a href="https://github.com/commschamp/comms_champion">CommsChampion Project</a>.
 ///
 /// @section page_protocol_plugin_protocol_def Protocol Definition
 /// The protocol messages as well as wrapping transport information need to be
 /// implemented using 
-/// <a href="https://github.com/arobenko/comms_champion#comms-library">COMMS Library</a>
+/// <a href="https://github.com/commschamp/comms_champion#comms-library">COMMS Library</a>
 /// in a certain generic way, which will allow it to be compiled and used
 /// in any application, whether it is bare-metal platform with limited resouces or
 /// @b protocol plugin for
-/// <a href="https://github.com/arobenko/comms_champion#commschampion-tools">CommsChampion Tools</a>.
+/// <a href="https://github.com/commschamp/comms_champion#commschampion-tools">CommsChampion Tools</a>.
 ///
 /// First of all, the common message interface class needs to inherit from or
 /// be alias to @b comms::Message class, while providing only endian and type
@@ -66,7 +66,7 @@
 ///
 /// When defining transport layers, allow selection of the common interface
 /// class as well as input messages as template parameters (see
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/Stack.h">Stack.h</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/Stack.h">Stack.h</a>
 /// as an example).
 /// @code
 /// namespace demo
@@ -83,7 +83,7 @@
 /// to define separate message interface class, which inherits from
 /// comms_champion::MessageBase and provides the defined earlier interface
 /// class as its template parameter. See 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Message.h">cc_plugin/Message.h</a> as an example.
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/Message.h">cc_plugin/Message.h</a> as an example.
 /// @code
 /// namespace demo
 /// {
@@ -171,8 +171,8 @@
 /// needs to be implemented. In order to do this, there is a need to extend
 /// the existing implementation of the defined protocol message and implement
 /// missing function. Let's take
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/include/demo/message/IntValues.h">IntValues.h</a> and
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/message/IntValues.h">cc_plugin/message/IntValues.h</a> 
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/include/demo/message/IntValues.h">IntValues.h</a> and
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/message/IntValues.h">cc_plugin/message/IntValues.h</a> 
 /// as an example. The latter is implemented in the following way:
 /// @code
 /// namespace demo
@@ -299,7 +299,7 @@
 /// @section page_protocol_plugin_all_messages All Messages
 /// Afther all the message classes for the protocol plagin were defined, they
 /// need to be bundled into @b std::tuple (see
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/AllMessages.h">cc_plugin/AllMessages.h</a>).
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/AllMessages.h">cc_plugin/AllMessages.h</a>).
 /// @code
 /// namespace demo
 /// {
@@ -332,7 +332,7 @@
 /// protocol stack should be defined when implementing common protocol definition.
 /// Usage of the template parameters leaves us space to redefine it for 
 /// <b>CommsChampion Tools</b> plugin environment (see
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Stack.h">cc_plugin/Stack.h</a>).
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/Stack.h">cc_plugin/Stack.h</a>).
 /// @code
 /// namespace demo
 /// {
@@ -368,9 +368,9 @@
 /// In order to support displaying of the transport information for the newly 
 /// developed protocol plugin, there is a need to create a dummy message, 
 /// which will contain all the fields defined by the protocol stack. Please see the
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.h">cc_plugin/TransportMessage.h</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/TransportMessage.h">cc_plugin/TransportMessage.h</a>
 /// and
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>
 /// as an example.
 /// @code
 /// namespace demo
@@ -449,7 +449,7 @@
 /// 
 /// }  // namespace demo
 /// @endcode
-/// The <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>
+/// The <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/TransportMessage.cpp">cc_plugin/TransportMessage.cpp</a>
 /// file contains code of this function. Please refer to @ref page_fields_properties
 /// tutorial page to learn how to set field's properties.
 ///
@@ -462,7 +462,7 @@
 /// the @b PAYLOAD field doesn't have any length limitation and will consume
 /// all input without leaving anything to the @b CHECKSUM value. In order to 
 /// fix it the implementation of 
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/TransportMessage.h">demo::cc_plugin::TransportMessage</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/TransportMessage.h">demo::cc_plugin::TransportMessage</a>
 /// needs to override it and provide correct implementation.
 /// @code
 /// namespace demo
@@ -523,8 +523,8 @@
 /// info.
 /// 
 /// The @b demo protocol defines its @b Protocol class in
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Protocol.h">cc_plugin/Protocol.h</a> and
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Protocol.cpp">cc_plugin/Protocol.cpp</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/Protocol.h">cc_plugin/Protocol.h</a> and
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/Protocol.cpp">cc_plugin/Protocol.cpp</a>
 /// files.
 /// @code
 /// namespace demo
@@ -573,8 +573,8 @@
 /// plugins are defined.
 ///
 /// The @b demo protocol defines its @b Plugin class in
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Protocol.h">cc_plugin/Plugin.h</a> and
-/// <a href="https://github.com/arobenko/comms_champion/blob/master/demo/cc_plugin/Protocol.cpp">cc_plugin/Plugin.cpp</a>
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/Protocol.h">cc_plugin/Plugin.h</a> and
+/// <a href="https://github.com/commschamp/comms_champion/blob/master/demo/cc_plugin/Protocol.cpp">cc_plugin/Plugin.cpp</a>
 /// files.
 /// @code
 /// namespace demo

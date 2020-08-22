@@ -1,9 +1,9 @@
 # COMMS Library Quick Examples
 Below are quick examples on how to define fields as well as messages using
-[COMMS Library](https://github.com/arobenko/comms_champion#comms-library). 
+[COMMS Library](https://github.com/commschamp/comms_champion#comms-library). 
 For proper and full tutorial please refer to proper documentation
 (Download **doc_comms.zip** archive from 
-[release artefacts](https://github.com/arobenko/comms_champion/releases)).
+[release artefacts](https://github.com/commschamp/comms_champion/releases)).
 
 ## Defining Fields
 Almost every field definition class receives its base class as a template

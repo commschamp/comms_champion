@@ -12,6 +12,7 @@
 
 #include "comms/Assert.h"
 #include "comms/util/SizeToType.h"
+#include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
 
 namespace comms
@@ -35,11 +36,12 @@ public:
     static_assert(TLen <= sizeof(BaseSerialisedType),
         "The provided length limit is too big");
 
-    using SerialisedType = typename std::conditional<
-        (TLen < sizeof(BaseSerialisedType)),
-        typename comms::util::SizeToType<TLen, std::is_signed<BaseSerialisedType>::value>::Type,
-        BaseSerialisedType
-    >::type;
+    using SerialisedType = 
+        comms::util::ConditionalT<
+            (TLen < sizeof(BaseSerialisedType)),
+            typename comms::util::SizeToType<TLen, std::is_signed<BaseSerialisedType>::value>::Type,
+            BaseSerialisedType
+        >;
 
     using Endian = typename BaseImpl::Endian;
 
@@ -123,18 +125,19 @@ private:
     struct UnsignedTag {};
     struct SignedTag {};
 
-    using ConversionTag = typename std::conditional<
-        (TLen < sizeof(SerialisedType)),
-        SignExtendTag,
-        JustCastTag
-    >::type;
+    using ConversionTag = 
+        comms::util::ConditionalT<
+            (TLen < sizeof(SerialisedType)),
+            SignExtendTag,
+            JustCastTag
+        >;
 
-
-    using HasSignTag = typename std::conditional<
-        std::is_signed<SerialisedType>::value && TSignExtend,
-        SignedTag,
-        UnsignedTag
-    >::type;
+    using HasSignTag = 
+        comms::util::ConditionalT<
+            std::is_signed<SerialisedType>::value && TSignExtend,
+            SignedTag,
+            UnsignedTag
+        >;
 
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 

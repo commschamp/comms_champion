@@ -14,6 +14,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/field/tag.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -49,11 +50,11 @@ public:
     static constexpr std::size_t maxLengthFrom()
     {
         using Tag = 
-            typename std::conditional<
+            comms::util::ConditionalT<
                 TLenFieldIdx < TFromIdx,
                 BaseRedirectTag,
                 LocalTag
-            >::type;
+            >;
         return maxLengthFromInternal<TFromIdx>(Tag());
     }
 
@@ -61,11 +62,11 @@ public:
     static constexpr std::size_t maxLengthUntil()
     {
         using Tag = 
-            typename std::conditional<
+            comms::util::ConditionalT<
                 TUntilIdx <= TLenFieldIdx,
                 BaseRedirectTag,
                 LocalTag
-            >::type;
+            >;
 
         return maxLengthUntilInternal<TUntilIdx>(Tag());
     }
@@ -74,11 +75,11 @@ public:
     static constexpr std::size_t maxLengthFromUntil()
     {
         using Tag = 
-            typename std::conditional<
+            comms::util::ConditionalT<
                 (TUntilIdx <= TLenFieldIdx) || (TLenFieldIdx < TFromIdx),
                 BaseRedirectTag,
                 LocalTag
-            >::type;
+            >;
 
         return maxLengthFromUntilInternal<TFromIdx, TUntilIdx>(Tag());
     }
@@ -105,11 +106,11 @@ public:
     ErrorStatus readFromAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            typename std::conditional<
+            comms::util::ConditionalT<
                 TLenFieldIdx < TFromIdx,
                 BaseRedirectTag,
                 LocalTag
-            >::type;
+            >;
         return readFromUntilInternal<TFromIdx, std::tuple_size<ValueType>::value>(iter, len, Tag());
     }       
 
@@ -123,11 +124,11 @@ public:
     ErrorStatus readUntilAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            typename std::conditional<
+            comms::util::ConditionalT<
                 TUntilIdx <= TLenFieldIdx,
                 BaseRedirectTag,
                 LocalTag
-            >::type;      
+            >;      
         return readFromUntilInternal<0, TUntilIdx>(iter, len, Tag());
     }   
 
@@ -141,11 +142,11 @@ public:
     ErrorStatus readFromUntilAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            typename std::conditional<
+            comms::util::ConditionalT<
                 (TLenFieldIdx < TFromIdx) || (TUntilIdx <= TLenFieldIdx),
                 BaseRedirectTag,
                 LocalTag
-            >::type;      
+            >;      
         return readFromUntilInternal<TFromIdx, TUntilIdx>(iter, len, Tag());
     }      
 

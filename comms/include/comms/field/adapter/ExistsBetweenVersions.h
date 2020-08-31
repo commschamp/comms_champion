@@ -13,6 +13,7 @@
 #include <algorithm>
 #include "comms/Assert.h"
 #include "comms/field/OptionalMode.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -78,11 +79,11 @@ private:
     static bool aboveFrom(VersionType version)
     {
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 TFrom == 0,
                 AlwaysTrueTag,
                 CompareTag
-            >::type;
+            >;
         return aboveFrom(version, Tag());
     }
 
@@ -105,11 +106,11 @@ private:
     static bool belowUntil(VersionType version)
     {
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 static_cast<decltype(TUntil)>(std::numeric_limits<VersionType>::max()) <= TUntil,
                 AlwaysTrueTag,
                 CompareTag
-            >::type;
+            >;
         return belowUntil(version, Tag());
     }
 

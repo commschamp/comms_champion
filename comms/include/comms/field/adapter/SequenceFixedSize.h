@@ -12,6 +12,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/util/detect.h"
 #include "comms/field/basic/CommonFuncs.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -67,11 +68,11 @@ public:
         }
 
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t)),
                 HasRawDataTag,
                 HasFieldsTag
-            >::type;
+            >;
 
         return recalcLen(Tag());
     }
@@ -145,12 +146,11 @@ public:
         }
 
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 comms::util::detect::hasResizeFunc<ElementType>(),
                 HasResizeTag,
                 NoResizeTag
-            >::type;
-
+            >;
 
         return doRefresh(Tag());
     }
@@ -166,11 +166,11 @@ private:
     std::size_t recalcLen(HasFieldsTag) const
     {
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 ElementType::minLength() == ElementType::maxLength(),
                 HasFixedLengthElemsTag,
                 HasVarLengthElemsTag
-            >::type;
+            >;
         return recalcLen(Tag());
     }
 

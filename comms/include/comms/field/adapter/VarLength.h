@@ -14,6 +14,7 @@
 #include "comms/Assert.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/access.h"
+#include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
 
 namespace comms
@@ -175,11 +176,12 @@ private:
     struct UnsignedTag {};
     struct SignedTag {};
 
-    using HasSignTag = typename std::conditional<
-        std::is_signed<SerialisedType>::value,
-        SignedTag,
-        UnsignedTag
-    >::type;
+    using HasSignTag = 
+        comms::util::ConditionalT<
+            std::is_signed<SerialisedType>::value,
+            SignedTag,
+            UnsignedTag
+        >;
 
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 

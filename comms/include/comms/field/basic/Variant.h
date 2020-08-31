@@ -360,12 +360,11 @@ private:
     struct NoVersionDependencyTag {};
 
     using VersionTag =
-        typename std::conditional<
+        comms::util::ConditionalT<
             details::variantIsAnyMemberVersionDependent<Members>(),
             VersionDependentTag,
             NoVersionDependencyTag
-        >::type;
-
+        >;
 
     class ConstructHelper
     {

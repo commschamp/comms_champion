@@ -9,6 +9,7 @@
 
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -73,11 +74,11 @@ public:
             "Only random access iterator for reading is supported with comms::option::def::SequenceTerminationFieldSuffix option");
 
         using ElemTag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t)),
                 RawDataTag,
                 FieldTag
-            >::type;
+            >;
 
         return readInternal(iter, len, ElemTag());
     }

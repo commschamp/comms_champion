@@ -13,6 +13,7 @@
 #include "comms/util/Tuple.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/access.h"
+#include "comms/util/type_traits.h"
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 
@@ -142,11 +143,12 @@ class Bitfield : public TFieldBase
             SerialisedType
         >;
 
-    using IntValueField = typename std::conditional<
-        ((Length & (Length - 1)) == 0),
-        SimpleIntValueField,
-        FixedIntValueField
-    >::type;
+    using IntValueField = 
+        comms::util::ConditionalT<
+            ((Length & (Length - 1)) == 0),
+            SimpleIntValueField,
+            FixedIntValueField
+        >;
 
 public:
     using Endian = typename BaseImpl::Endian;

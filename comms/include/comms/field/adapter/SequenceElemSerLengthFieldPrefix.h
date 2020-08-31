@@ -14,6 +14,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/field/basic/CommonFuncs.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -237,18 +238,18 @@ private:
     struct VarLengthElemTag {};
 
     using LenFieldLengthTag =
-        typename std::conditional<
+        comms::util::ConditionalT<
             LenField::minLength() == LenField::maxLength(),
             FixedLengthLenFieldTag,
             VarLengthLenFieldTag
-        >::type;
+        >;
 
     using ElemLengthTag =
-        typename std::conditional<
+        comms::util::ConditionalT<
             BaseImpl::minElementLength() == BaseImpl::maxElementLength(),
             FixedLengthElemTag,
             VarLengthElemTag
-        >::type;
+        >;
 
     std::size_t lengthInternal(FixedLengthLenFieldTag, FixedLengthElemTag) const
     {

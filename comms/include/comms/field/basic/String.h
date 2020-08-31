@@ -18,6 +18,7 @@
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/util/detect.h"
+#include "comms/util/type_traits.h"
 #include "CommonFuncs.h"
 
 namespace comms
@@ -233,20 +234,20 @@ public:
         auto* endStr = reinterpret_cast<ConstPointer>(&(*iter));
         if (static_cast<std::size_t>(std::distance(str, endStr)) == len) {
             using Tag =
-                typename std::conditional<
+                comms::util::ConditionalT<
                     details::stringHasAssign<ValueType>(),
                     AssignExistsTag,
                     AssignMissingTag
-                >::type;
+                >;
             doAssign(str, len, Tag());
         }
         else {
             using Tag =
-                typename std::conditional<
+                comms::util::ConditionalT<
                     details::stringHasPushBack<ValueType>(),
                     PushBackExistsTag,
                     PushBackMissingTag
-                >::type;
+                >;
 
             doPushBack(str, len, Tag());
         }
@@ -372,11 +373,11 @@ private:
     void doReserve(std::size_t len)
     {
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 comms::util::detect::hasReserveFunc<ValueType>(),
                 ReserveExistsTag,
                 ReserveMissingTag
-            >::type;
+            >;
         doReserve(len, Tag());
     }
 
@@ -397,11 +398,11 @@ private:
         static const bool InputIter =
                 std::is_base_of<std::input_iterator_tag, IterCategory>::value;
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 InputIter,
                 AdvancableTag,
                 NotAdvancableTag
-            >::type;
+            >;
         doAdvance(iter, len, Tag());
     }
 

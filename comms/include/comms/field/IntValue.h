@@ -16,6 +16,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/options.h"
+#include "comms/util/type_traits.h"
 #include "basic/IntValue.h"
 #include "details/AdaptBasicField.h"
 #include "tag.h"
@@ -113,11 +114,12 @@ public:
     template <typename TRet>
     constexpr TRet getScaled() const
     {
-        using TagTmp = typename std::conditional<
-            ParsedOptions::HasScalingRatio,
-            HasScalingRatioTag,
-            NoScalingRatioTag
-        >::type;
+        using TagTmp = 
+            comms::util::ConditionalT<
+                ParsedOptions::HasScalingRatio,
+                HasScalingRatioTag,
+                NoScalingRatioTag
+            >;
 
         return scaleAsInternal<TRet>(TagTmp());
     }
@@ -136,11 +138,12 @@ public:
     template <typename TScaled>
     void setScaled(TScaled val)
     {
-        using TagTmp = typename std::conditional<
-            ParsedOptions::HasScalingRatio,
-            HasScalingRatioTag,
-            NoScalingRatioTag
-        >::type;
+        using TagTmp = 
+            comms::util::ConditionalT<
+                ParsedOptions::HasScalingRatio,
+                HasScalingRatioTag,
+                NoScalingRatioTag
+            >;
 
         return setScaledInternal(val, TagTmp());
     }
@@ -294,11 +297,12 @@ private:
     template <typename TRet>
     TRet scaleAsInternal(HasScalingRatioTag) const
     {
-        using TagTmp = typename std::conditional<
-            std::is_floating_point<TRet>::value,
-            ScaleAsFpTag,
-            ScaleAsIntTag
-        >::type;
+        using TagTmp = 
+            comms::util::ConditionalT<
+                std::is_floating_point<TRet>::value,
+                ScaleAsFpTag,
+                ScaleAsIntTag
+            >;
 
         return scaleAsInternal<TRet>(TagTmp());
     }
@@ -317,11 +321,12 @@ private:
         static_assert(std::is_integral<TRet>::value,
             "TRet is expected to be integral type");
 
-        using CastType = typename std::conditional<
-            std::is_signed<TRet>::value,
-            std::intmax_t,
-            std::uintmax_t
-        >::type;
+        using CastType = 
+            comms::util::ConditionalT<
+                std::is_signed<TRet>::value,
+                std::intmax_t,
+                std::uintmax_t
+            >;
 
         return
             static_cast<TRet>(
@@ -337,11 +342,12 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, HasScalingRatioTag)
     {
-        using TagTmp = typename std::conditional<
-            std::is_floating_point<typename std::decay<decltype(val)>::type>::value,
-            ScaleAsFpTag,
-            ScaleAsIntTag
-        >::type;
+        using TagTmp = 
+            comms::util::ConditionalT<
+                std::is_floating_point<typename std::decay<decltype(val)>::type>::value,
+                ScaleAsFpTag,
+                ScaleAsIntTag
+            >;
 
         setScaledInternal(val, TagTmp());
     }
@@ -371,11 +377,12 @@ private:
     template <typename TScaled>
     void setScaledInternal(TScaled val, ScaleAsIntTag)
     {
-        using CastType = typename std::conditional<
-            std::is_signed<typename std::decay<decltype(val)>::type>::value,
-            std::intmax_t,
-            std::uintmax_t
-        >::type;
+        using CastType = 
+            comms::util::ConditionalT<
+                std::is_signed<typename std::decay<decltype(val)>::type>::value,
+                std::intmax_t,
+                std::uintmax_t
+            >;
 
         BaseImpl::value() =
             static_cast<ValueType>(

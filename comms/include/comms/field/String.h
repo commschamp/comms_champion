@@ -23,6 +23,7 @@
 #include "comms/util/StaticString.h"
 #include "comms/util/StringView.h"
 #include "comms/util/detect.h"
+#include "comms/util/type_traits.h"
 #include "comms/field/basic/String.h"
 #include "comms/field/details/AdaptBasicField.h"
 #include "comms/field/details/OptionsParser.h"
@@ -229,11 +230,12 @@ public:
     ErrorStatus read(TIter& iter, std::size_t len)
     {
         auto es = BaseImpl::read(iter, len);
-        using TagTmp = typename std::conditional<
-            ParsedOptions::HasSequenceFixedSize,
-            AdjustmentNeededTag,
-            NoAdjustmentTag
-        >::type;
+        using TagTmp = 
+            comms::util::ConditionalT<
+                ParsedOptions::HasSequenceFixedSize,
+                AdjustmentNeededTag,
+                NoAdjustmentTag
+            >;
 
         adjustValue(TagTmp());
         return es;
@@ -255,11 +257,12 @@ public:
     void readNoStatus(TIter& iter)
     {
         BaseImpl::readNoStatus(iter);
-        using TagTmp = typename std::conditional<
-            ParsedOptions::HasSequenceFixedSize,
-            AdjustmentNeededTag,
-            NoAdjustmentTag
-        >::type;
+        using TagTmp = 
+            comms::util::ConditionalT<
+                ParsedOptions::HasSequenceFixedSize,
+                AdjustmentNeededTag,
+                NoAdjustmentTag
+            >;
 
         adjustValue(TagTmp());
     }
@@ -442,15 +445,15 @@ private:
     void doResize(std::size_t count)
     {
         using TagTmp =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 comms::util::detect::hasResizeFunc<ValueType>(),
                 HasResizeTag,
-                typename std::conditional<
+                comms::util::ConditionalT<
                     comms::util::detect::hasRemoveSuffixFunc<ValueType>(),
                     HasRemoveSuffixTag,
                     void
-                >::type
-            >::type;
+                >
+            >;
 
         static_assert(!std::is_void<Tag>::value,
             "The string storage value type must have either resize() or remove_suffix() "

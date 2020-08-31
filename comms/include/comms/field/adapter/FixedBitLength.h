@@ -13,6 +13,7 @@
 #include "comms/Assert.h"
 #include "comms/util/SizeToType.h"
 #include "comms/util/BitSizeToByteSize.h"
+#include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
 
 namespace comms
@@ -42,11 +43,12 @@ public:
 
     using ValueType = typename BaseImpl::ValueType;
 
-    using SerialisedType = typename std::conditional<
-        (Length < sizeof(BaseSerialisedType)),
-        typename comms::util::SizeToType<Length, std::is_signed<BaseSerialisedType>::value>::Type,
-        BaseSerialisedType
-    >::type;
+    using SerialisedType = 
+        comms::util::ConditionalT<
+            (Length < sizeof(BaseSerialisedType)),
+            typename comms::util::SizeToType<Length, std::is_signed<BaseSerialisedType>::value>::Type,
+            BaseSerialisedType
+        >;
 
     using Endian = typename BaseImpl::Endian;
 
@@ -130,21 +132,21 @@ private:
     struct NoSignExtTag {};
     struct MustSignExtTag {};
 
-
-    using HasSignTag = typename std::conditional<
-        std::is_signed<SerialisedType>::value,
-        SignedTag,
-        UnsignedTag
-    >::type;
+    using HasSignTag = 
+        comms::util::ConditionalT<
+            std::is_signed<SerialisedType>::value,
+            SignedTag,
+            UnsignedTag
+        >;
 
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
-    using SignExtTag = typename std::conditional<
-        BitLength < static_cast<std::size_t>(std::numeric_limits<UnsignedSerialisedType>::digits),
-        MustSignExtTag,
-        NoSignExtTag
-    >::type;
-
+    using SignExtTag = 
+        comms::util::ConditionalT<
+            BitLength < static_cast<std::size_t>(std::numeric_limits<UnsignedSerialisedType>::digits),
+            MustSignExtTag,
+            NoSignExtTag
+        >;
 
     static SerialisedType adjustToSerialised(BaseSerialisedType val, UnsignedTag)
     {

@@ -18,6 +18,7 @@
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/util/detect.h"
+#include "comms/util/type_traits.h"
 #include "comms/details/detect.h"
 #include "comms/field/details/VersionStorage.h"
 #include "CommonFuncs.h"
@@ -290,12 +291,11 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 IsRandomAccessIter && IsRawData,
                 RawDataTag,
                 FieldElemTag
-            >::type;
-
+            >;
         return readInternal(iter, len, Tag());
     }
 
@@ -319,11 +319,11 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 IsRandomAccessIter && IsRawData,
                 RawDataTag,
                 FieldElemTag
-            >::type;
+            >;
 
         return readInternalN(count, iter, len, Tag());
     }
@@ -340,11 +340,11 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 IsRandomAccessIter && IsRawData,
                 RawDataTag,
                 FieldElemTag
-            >::type;
+            >;
 
         return readNoStatusInternalN(count, iter, Tag());
     }
@@ -427,24 +427,26 @@ private:
     struct VersionDependentTag {};
     struct NoVersionDependencyTag {};
 
-    using ElemTag = typename std::conditional<
-        std::is_integral<ElementType>::value,
-        IntegralElemTag,
-        FieldElemTag
-    >::type;
+    using ElemTag = 
+        comms::util::ConditionalT<
+            std::is_integral<ElementType>::value,
+            IntegralElemTag,
+            FieldElemTag
+        >;
 
-    using FieldLengthTag = typename std::conditional<
-        details::ArrayListFieldHasVarLength<ElementType>::Value,
-        VarLengthTag,
-        FixedLengthTag
-    >::type;
+    using FieldLengthTag = 
+        comms::util::ConditionalT<
+            details::ArrayListFieldHasVarLength<ElementType>::Value,
+            VarLengthTag,
+            FixedLengthTag
+        >;
 
     using VersionTag =
-        typename std::conditional<
+        comms::util::ConditionalT<
             details::arrayListElementIsVersionDependent<ElementType>(),
             VersionDependentTag,
             NoVersionDependencyTag
-        >::type;
+        >;
 
     constexpr std::size_t lengthInternal(FieldElemTag) const
     {
@@ -684,11 +686,11 @@ private:
     ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag)
     {
         using Tag =
-            typename std::conditional<
+            comms::util::ConditionalT<
                 details::vectorHasAssign<ValueType>(),
                 AssignExistsTag,
                 AssignMissingTag
-            >::type;
+            >;
         doAssign(iter, len, Tag());
         std::advance(iter, len);
         return ErrorStatus::Success;

@@ -22,6 +22,7 @@
 #include "comms/options.h"
 #include "comms/util/StaticVector.h"
 #include "comms/util/ArrayView.h"
+#include "comms/util/type_traits.h"
 #include "basic/ArrayList.h"
 #include "details/AdaptBasicField.h"
 #include "details/OptionsParser.h"
@@ -204,11 +205,12 @@ public:
     using ParsedOptions = details::OptionsParser<TOptions...>;
 
     /// @brief Tag indicating type of the field
-    using Tag = typename std::conditional<
-        std::is_integral<TElement>::value,
-        tag::RawArrayList,
-        tag::ArrayList
-    >::type;
+    using Tag = 
+        comms::util::ConditionalT<
+            std::is_integral<TElement>::value,
+            tag::RawArrayList,
+            tag::ArrayList
+        >;
 
     /// @brief Type of underlying value.
     /// @details If @ref comms::option::app::FixedSizeStorage option is NOT used, the

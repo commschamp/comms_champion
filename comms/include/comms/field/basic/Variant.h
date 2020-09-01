@@ -14,6 +14,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/field/details/VersionStorage.h"
 #include "CommonFuncs.h"
 
@@ -360,8 +361,9 @@ private:
     struct NoVersionDependencyTag {};
 
     using VersionTag =
-        comms::util::ConditionalT<
-            details::variantIsAnyMemberVersionDependent<Members>(),
+        typename comms::util::Conditional<
+            details::variantIsAnyMemberVersionDependent<Members>()
+        >::template Type<
             VersionDependentTag,
             NoVersionDependencyTag
         >;

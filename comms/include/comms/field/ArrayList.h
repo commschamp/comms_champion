@@ -206,8 +206,9 @@ public:
 
     /// @brief Tag indicating type of the field
     using Tag = 
-        comms::util::ConditionalT<
-            std::is_integral<TElement>::value,
+        typename comms::util::Conditional<
+            std::is_integral<TElement>::value
+        >::template Type<
             tag::RawArrayList,
             tag::ArrayList
         >;

@@ -220,8 +220,9 @@ private:
     struct VarLengthLenFieldTag {};
 
     using LenFieldLengthTag =
-        comms::util::ConditionalT<
-            LenField::minLength() == LenField::maxLength(),
+        typename comms::util::Conditional<
+            LenField::minLength() == LenField::maxLength()
+        >::template Type<
             FixedLengthLenFieldTag,
             VarLengthLenFieldTag
         >;

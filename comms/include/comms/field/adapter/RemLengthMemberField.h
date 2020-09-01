@@ -50,8 +50,9 @@ public:
     static constexpr std::size_t maxLengthFrom()
     {
         using Tag = 
-            comms::util::ConditionalT<
-                TLenFieldIdx < TFromIdx,
+            typename comms::util::Conditional<
+                TLenFieldIdx < TFromIdx
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
             >;
@@ -62,8 +63,9 @@ public:
     static constexpr std::size_t maxLengthUntil()
     {
         using Tag = 
-            comms::util::ConditionalT<
-                TUntilIdx <= TLenFieldIdx,
+            typename comms::util::Conditional<
+                TUntilIdx <= TLenFieldIdx
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
             >;
@@ -75,8 +77,9 @@ public:
     static constexpr std::size_t maxLengthFromUntil()
     {
         using Tag = 
-            comms::util::ConditionalT<
-                (TUntilIdx <= TLenFieldIdx) || (TLenFieldIdx < TFromIdx),
+            typename comms::util::Conditional<
+                (TUntilIdx <= TLenFieldIdx) || (TLenFieldIdx < TFromIdx)
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
             >;
@@ -106,8 +109,9 @@ public:
     ErrorStatus readFromAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            comms::util::ConditionalT<
-                TLenFieldIdx < TFromIdx,
+            typename comms::util::Conditional<
+                TLenFieldIdx < TFromIdx
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
             >;
@@ -124,8 +128,9 @@ public:
     ErrorStatus readUntilAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            comms::util::ConditionalT<
-                TUntilIdx <= TLenFieldIdx,
+            typename comms::util::Conditional<
+                TUntilIdx <= TLenFieldIdx
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
             >;      
@@ -142,8 +147,9 @@ public:
     ErrorStatus readFromUntilAndUpdateLen(TIter& iter, std::size_t& len)
     {
         using Tag = 
-            comms::util::ConditionalT<
-                (TLenFieldIdx < TFromIdx) || (TUntilIdx <= TLenFieldIdx),
+            typename comms::util::Conditional<
+                (TLenFieldIdx < TFromIdx) || (TUntilIdx <= TLenFieldIdx)
+            >::template Type<
                 BaseRedirectTag,
                 LocalTag
             >;      

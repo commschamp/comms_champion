@@ -115,8 +115,9 @@ public:
     constexpr TRet getScaled() const
     {
         using TagTmp = 
-            comms::util::ConditionalT<
-                ParsedOptions::HasScalingRatio,
+            typename comms::util::Conditional<
+                ParsedOptions::HasScalingRatio
+            >::template Type<
                 HasScalingRatioTag,
                 NoScalingRatioTag
             >;
@@ -139,8 +140,9 @@ public:
     void setScaled(TScaled val)
     {
         using TagTmp = 
-            comms::util::ConditionalT<
-                ParsedOptions::HasScalingRatio,
+            typename comms::util::Conditional<
+                ParsedOptions::HasScalingRatio
+            >::template Type<
                 HasScalingRatioTag,
                 NoScalingRatioTag
             >;
@@ -298,8 +300,9 @@ private:
     TRet scaleAsInternal(HasScalingRatioTag) const
     {
         using TagTmp = 
-            comms::util::ConditionalT<
-                std::is_floating_point<TRet>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<TRet>::value
+            >::template Type<
                 ScaleAsFpTag,
                 ScaleAsIntTag
             >;
@@ -322,8 +325,9 @@ private:
             "TRet is expected to be integral type");
 
         using CastType = 
-            comms::util::ConditionalT<
-                std::is_signed<TRet>::value,
+            typename comms::util::Conditional<
+                std::is_signed<TRet>::value
+            >::template Type<
                 std::intmax_t,
                 std::uintmax_t
             >;
@@ -343,8 +347,9 @@ private:
     void setScaledInternal(TScaled val, HasScalingRatioTag)
     {
         using TagTmp = 
-            comms::util::ConditionalT<
-                std::is_floating_point<typename std::decay<decltype(val)>::type>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<typename std::decay<decltype(val)>::type>::value
+            >::template Type<
                 ScaleAsFpTag,
                 ScaleAsIntTag
             >;
@@ -378,8 +383,9 @@ private:
     void setScaledInternal(TScaled val, ScaleAsIntTag)
     {
         using CastType = 
-            comms::util::ConditionalT<
-                std::is_signed<typename std::decay<decltype(val)>::type>::value,
+            typename comms::util::Conditional<
+                std::is_signed<typename std::decay<decltype(val)>::type>::value
+            >::template Type<
                 std::intmax_t,
                 std::uintmax_t
             >;

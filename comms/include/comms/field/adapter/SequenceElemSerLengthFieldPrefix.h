@@ -238,15 +238,17 @@ private:
     struct VarLengthElemTag {};
 
     using LenFieldLengthTag =
-        comms::util::ConditionalT<
-            LenField::minLength() == LenField::maxLength(),
+        typename comms::util::Conditional<
+            LenField::minLength() == LenField::maxLength()
+        >::template Type<
             FixedLengthLenFieldTag,
             VarLengthLenFieldTag
         >;
 
     using ElemLengthTag =
-        comms::util::ConditionalT<
-            BaseImpl::minElementLength() == BaseImpl::maxElementLength(),
+        typename comms::util::Conditional<
+            BaseImpl::minElementLength() == BaseImpl::maxElementLength()
+        >::template Type<
             FixedLengthElemTag,
             VarLengthElemTag
         >;

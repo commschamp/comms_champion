@@ -68,8 +68,9 @@ public:
         }
 
         using Tag =
-            comms::util::ConditionalT<
-                std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t)),
+            typename comms::util::Conditional<
+                std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t))
+            >::template Type<
                 HasRawDataTag,
                 HasFieldsTag
             >;
@@ -146,8 +147,9 @@ public:
         }
 
         using Tag =
-            comms::util::ConditionalT<
-                comms::util::detect::hasResizeFunc<ElementType>(),
+            typename comms::util::Conditional<
+                comms::util::detect::hasResizeFunc<ElementType>()
+            >::template Type<
                 HasResizeTag,
                 NoResizeTag
             >;
@@ -166,8 +168,9 @@ private:
     std::size_t recalcLen(HasFieldsTag) const
     {
         using Tag =
-            comms::util::ConditionalT<
-                ElementType::minLength() == ElementType::maxLength(),
+            typename comms::util::Conditional<
+                ElementType::minLength() == ElementType::maxLength()
+            >::template Type<
                 HasFixedLengthElemsTag,
                 HasVarLengthElemsTag
             >;

@@ -144,8 +144,9 @@ class Bitfield : public TFieldBase
         >;
 
     using IntValueField = 
-        comms::util::ConditionalT<
-            ((Length & (Length - 1)) == 0),
+        typename comms::util::Conditional<
+            ((Length & (Length - 1)) == 0)
+        >::template Type<
             SimpleIntValueField,
             FixedIntValueField
         >;

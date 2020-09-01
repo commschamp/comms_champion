@@ -291,8 +291,9 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            comms::util::ConditionalT<
-                IsRandomAccessIter && IsRawData,
+            typename comms::util::Conditional<
+                IsRandomAccessIter && IsRawData
+            >::template Type<
                 RawDataTag,
                 FieldElemTag
             >;
@@ -319,8 +320,9 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            comms::util::ConditionalT<
-                IsRandomAccessIter && IsRawData,
+            typename comms::util::Conditional<
+                IsRandomAccessIter && IsRawData
+            >::template Type<
                 RawDataTag,
                 FieldElemTag
             >;
@@ -340,8 +342,9 @@ public:
             std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t));
 
         using Tag =
-            comms::util::ConditionalT<
-                IsRandomAccessIter && IsRawData,
+            typename comms::util::Conditional<
+                IsRandomAccessIter && IsRawData
+            >::template Type<
                 RawDataTag,
                 FieldElemTag
             >;
@@ -428,22 +431,25 @@ private:
     struct NoVersionDependencyTag {};
 
     using ElemTag = 
-        comms::util::ConditionalT<
-            std::is_integral<ElementType>::value,
+        typename comms::util::Conditional<
+            std::is_integral<ElementType>::value
+        >::template Type<
             IntegralElemTag,
             FieldElemTag
         >;
 
     using FieldLengthTag = 
-        comms::util::ConditionalT<
-            details::ArrayListFieldHasVarLength<ElementType>::Value,
+        typename comms::util::Conditional<
+            details::ArrayListFieldHasVarLength<ElementType>::Value
+        >::template Type<
             VarLengthTag,
             FixedLengthTag
         >;
 
     using VersionTag =
-        comms::util::ConditionalT<
-            details::arrayListElementIsVersionDependent<ElementType>(),
+        typename comms::util::Conditional<
+            details::arrayListElementIsVersionDependent<ElementType>()
+        >::template Type<
             VersionDependentTag,
             NoVersionDependencyTag
         >;
@@ -686,8 +692,9 @@ private:
     ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag)
     {
         using Tag =
-            comms::util::ConditionalT<
-                details::vectorHasAssign<ValueType>(),
+            typename comms::util::Conditional<
+                details::vectorHasAssign<ValueType>()
+            >::template Type<
                 AssignExistsTag,
                 AssignMissingTag
             >;

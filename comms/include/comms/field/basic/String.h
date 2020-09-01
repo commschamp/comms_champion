@@ -234,8 +234,9 @@ public:
         auto* endStr = reinterpret_cast<ConstPointer>(&(*iter));
         if (static_cast<std::size_t>(std::distance(str, endStr)) == len) {
             using Tag =
-                comms::util::ConditionalT<
-                    details::stringHasAssign<ValueType>(),
+                typename comms::util::Conditional<
+                    details::stringHasAssign<ValueType>()
+                >::template Type<
                     AssignExistsTag,
                     AssignMissingTag
                 >;
@@ -243,8 +244,9 @@ public:
         }
         else {
             using Tag =
-                comms::util::ConditionalT<
-                    details::stringHasPushBack<ValueType>(),
+                typename comms::util::Conditional<
+                    details::stringHasPushBack<ValueType>()
+                >::template Type<
                     PushBackExistsTag,
                     PushBackMissingTag
                 >;
@@ -373,8 +375,9 @@ private:
     void doReserve(std::size_t len)
     {
         using Tag =
-            comms::util::ConditionalT<
-                comms::util::detect::hasReserveFunc<ValueType>(),
+            typename comms::util::Conditional<
+                comms::util::detect::hasReserveFunc<ValueType>()
+            >::template Type<
                 ReserveExistsTag,
                 ReserveMissingTag
             >;
@@ -398,8 +401,9 @@ private:
         static const bool InputIter =
                 std::is_base_of<std::input_iterator_tag, IterCategory>::value;
         using Tag =
-            comms::util::ConditionalT<
-                InputIter,
+            typename comms::util::Conditional<
+                InputIter
+            >::template Type<
                 AdvancableTag,
                 NotAdvancableTag
             >;

@@ -10,17 +10,30 @@
 
 #pragma once
 
-#include "details/type_traits.h"
-
 namespace comms
 {
 
 namespace util
 {
 
-/// @brief Replacement to std::conditional_t
+/// @brief Replacement to std::conditional
+template <bool TCond>
+struct Conditional
+{
+    template <typename TTrue, typename TFalse>
+    using Type = TTrue;
+};
+
+template <>
+struct Conditional<false>
+{
+    template <typename TTrue, typename TFalse>
+    using Type = TFalse;
+};
+
+/// @brief Replacement to std::conditional
 template <bool TCond, typename TTrue, typename TFalse>
-using ConditionalT = typename details::Conditional<TCond>::template Type<TTrue, TFalse>;
+using ConditionalT = typename Conditional<TCond>::template Type<TTrue, TFalse>;
 
 } // namespace util
 

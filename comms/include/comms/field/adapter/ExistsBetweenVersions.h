@@ -79,8 +79,9 @@ private:
     static bool aboveFrom(VersionType version)
     {
         using Tag =
-            comms::util::ConditionalT<
-                TFrom == 0,
+            typename comms::util::Conditional<
+                TFrom == 0
+            >::template Type<
                 AlwaysTrueTag,
                 CompareTag
             >;
@@ -106,8 +107,9 @@ private:
     static bool belowUntil(VersionType version)
     {
         using Tag =
-            comms::util::ConditionalT<
-                static_cast<decltype(TUntil)>(std::numeric_limits<VersionType>::max()) <= TUntil,
+            typename comms::util::Conditional<
+                static_cast<decltype(TUntil)>(std::numeric_limits<VersionType>::max()) <= TUntil
+            >::template Type<
                 AlwaysTrueTag,
                 CompareTag
             >;

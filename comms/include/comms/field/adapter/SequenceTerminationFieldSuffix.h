@@ -74,8 +74,9 @@ public:
             "Only random access iterator for reading is supported with comms::option::def::SequenceTerminationFieldSuffix option");
 
         using ElemTag =
-            comms::util::ConditionalT<
-                std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t)),
+            typename comms::util::Conditional<
+                std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t))
+            >::template Type<
                 RawDataTag,
                 FieldTag
             >;

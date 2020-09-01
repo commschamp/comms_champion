@@ -44,8 +44,9 @@ public:
     using ValueType = typename BaseImpl::ValueType;
 
     using SerialisedType = 
-        comms::util::ConditionalT<
-            (Length < sizeof(BaseSerialisedType)),
+        typename comms::util::Conditional<
+            (Length < sizeof(BaseSerialisedType))
+        >::template Type<
             typename comms::util::SizeToType<Length, std::is_signed<BaseSerialisedType>::value>::Type,
             BaseSerialisedType
         >;
@@ -133,8 +134,9 @@ private:
     struct MustSignExtTag {};
 
     using HasSignTag = 
-        comms::util::ConditionalT<
-            std::is_signed<SerialisedType>::value,
+        typename comms::util::Conditional<
+            std::is_signed<SerialisedType>::value
+        >::template Type<
             SignedTag,
             UnsignedTag
         >;
@@ -142,8 +144,9 @@ private:
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
     using SignExtTag = 
-        comms::util::ConditionalT<
-            BitLength < static_cast<std::size_t>(std::numeric_limits<UnsignedSerialisedType>::digits),
+        typename comms::util::Conditional<
+            BitLength < static_cast<std::size_t>(std::numeric_limits<UnsignedSerialisedType>::digits)
+        >::template Type<
             MustSignExtTag,
             NoSignExtTag
         >;

@@ -37,8 +37,9 @@ public:
         "The provided length limit is too big");
 
     using SerialisedType = 
-        comms::util::ConditionalT<
-            (TLen < sizeof(BaseSerialisedType)),
+        typename comms::util::Conditional<
+            (TLen < sizeof(BaseSerialisedType))
+        >::template Type<
             typename comms::util::SizeToType<TLen, std::is_signed<BaseSerialisedType>::value>::Type,
             BaseSerialisedType
         >;
@@ -126,15 +127,17 @@ private:
     struct SignedTag {};
 
     using ConversionTag = 
-        comms::util::ConditionalT<
-            (TLen < sizeof(SerialisedType)),
+        typename comms::util::Conditional<
+            (TLen < sizeof(SerialisedType))
+        >::template Type<
             SignExtendTag,
             JustCastTag
         >;
 
     using HasSignTag = 
-        comms::util::ConditionalT<
-            std::is_signed<SerialisedType>::value && TSignExtend,
+        typename comms::util::Conditional<
+            std::is_signed<SerialisedType>::value && TSignExtend
+        >::template Type<
             SignedTag,
             UnsignedTag
         >;

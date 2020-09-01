@@ -177,8 +177,9 @@ private:
     struct SignedTag {};
 
     using HasSignTag = 
-        comms::util::ConditionalT<
-            std::is_signed<SerialisedType>::value,
+        typename comms::util::Conditional<
+            std::is_signed<SerialisedType>::value
+        >::template Type<
             SignedTag,
             UnsignedTag
         >;

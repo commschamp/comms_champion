@@ -231,8 +231,9 @@ public:
     {
         auto es = BaseImpl::read(iter, len);
         using TagTmp = 
-            comms::util::ConditionalT<
-                ParsedOptions::HasSequenceFixedSize,
+            typename comms::util::Conditional<
+                ParsedOptions::HasSequenceFixedSize
+            >::template Type<
                 AdjustmentNeededTag,
                 NoAdjustmentTag
             >;
@@ -258,8 +259,9 @@ public:
     {
         BaseImpl::readNoStatus(iter);
         using TagTmp = 
-            comms::util::ConditionalT<
-                ParsedOptions::HasSequenceFixedSize,
+            typename comms::util::Conditional<
+                ParsedOptions::HasSequenceFixedSize
+            >::template Type<
                 AdjustmentNeededTag,
                 NoAdjustmentTag
             >;
@@ -445,11 +447,13 @@ private:
     void doResize(std::size_t count)
     {
         using TagTmp =
-            comms::util::ConditionalT<
-                comms::util::detect::hasResizeFunc<ValueType>(),
+            typename comms::util::Conditional<
+                comms::util::detect::hasResizeFunc<ValueType>()
+            >::template Type<
                 HasResizeTag,
-                comms::util::ConditionalT<
-                    comms::util::detect::hasRemoveSuffixFunc<ValueType>(),
+                typename comms::util::Conditional<
+                    comms::util::detect::hasRemoveSuffixFunc<ValueType>()
+                >::template Type<
                     HasRemoveSuffixTag,
                     void
                 >

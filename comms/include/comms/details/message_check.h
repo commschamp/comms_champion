@@ -14,6 +14,7 @@
 
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -86,11 +87,12 @@ private:
     struct StrongTag {};
     struct WeakTag {};
     using Tag =
-        typename std::conditional<
-            TStrong,
+        typename comms::util::Conditional<
+            TStrong
+        >::template Type<
             StrongTag,
             WeakTag
-        >::type;
+        >;
 
     template <typename T1, typename T2>
     static constexpr bool isLess(StrongTag)

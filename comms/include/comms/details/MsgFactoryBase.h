@@ -13,6 +13,7 @@
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
 #include "comms/util/alloc.h"
+#include "comms/util/type_traits.h"
 #include "comms/MessageBase.h"
 #include "comms/details/message_check.h"
 #include "comms/traits.h"
@@ -103,10 +104,12 @@ class MsgFactoryBase
     using GenericMessageInternal = MsgFactoryGenericMsgType<ParsedOptionsInternal>;
 
     using Alloc =
-        typename std::conditional<
-            ParsedOptionsInternal::HasInPlaceAllocation,
-            typename std::conditional<
-                InterfaceHasVirtualDestructor,
+        typename comms::util::Conditional<
+            ParsedOptionsInternal::HasInPlaceAllocation
+        >::template Type<
+            typename comms::util::Conditional<
+                InterfaceHasVirtualDestructor
+            >::template Type<
                 util::alloc::InPlaceSingle<TMsgBase, AllMessagesInternal>,
                 util::alloc::InPlaceSingleNoVirtualDestructor<
                     TMsgBase,
@@ -116,9 +119,10 @@ class MsgFactoryBase
                     TMsgBase::MsgIdType,
                     GenericMessageInternal
                 >
-            >::type,
-            typename std::conditional<
-                InterfaceHasVirtualDestructor,
+            >,
+            typename comms::util::Conditional<
+                InterfaceHasVirtualDestructor
+            >::template Type<
                 util::alloc::DynMemory<TMsgBase>,
                 util::alloc::DynMemoryNoVirtualDestructor<
                     TMsgBase,
@@ -126,8 +130,8 @@ class MsgFactoryBase
                     typename TMsgBase::MsgIdType,
                     GenericMessageInternal
                 >
-            >::type
-        >::type;
+            >
+        >;
 public:
     using ParsedOptions = ParsedOptionsInternal;
     using Message = TMsgBase;
@@ -174,11 +178,12 @@ public:
     {
         static_cast<void>(this);
         using Tag =
-            typename std::conditional<
-                ParsedOptions::HasSupportGenericMessage,
+            typename comms::util::Conditional<
+                ParsedOptions::HasSupportGenericMessage
+            >::template Type<
                 AllocGenericTag,
                 NoAllocTag
-            >::type;
+            >;
 
         return createGenericMsgInternal(id, idx, Tag(), DestructorTag());
     }
@@ -264,18 +269,20 @@ private:
     struct NonVirtualDestructorTag {};
 
     using DispatchTag = 
-        typename std::conditional<
-            ParsedOptions::HasForcedDispatch,
+        typename comms::util::Conditional<
+            ParsedOptions::HasForcedDispatch
+        >::template Type<
             ForcedTag,
             StandardTag
-        >::type;
+        >;
 
     using DestructorTag =
-        typename std::conditional<
-            InterfaceHasVirtualDestructor,
+        typename comms::util::Conditional<
+            InterfaceHasVirtualDestructor
+        >::template Type<
             VirtualDestructorTag,
             NonVirtualDestructorTag
-        >::type;
+        >;
 
     class CreateHandler
     {

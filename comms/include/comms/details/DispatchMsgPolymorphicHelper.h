@@ -16,6 +16,7 @@
 #include "comms/Message.h"
 #include "comms/MessageBase.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/details/message_check.h"
 #include "comms/CompileControl.h"
 #include "comms/details/DispatchMsgIdRetrieveHelper.h"
@@ -514,27 +515,31 @@ class DispatchMsgPolymorphicHelper
     using MsgIdParamType = typename TMsgBase::MsgIdParamType;
 
     using Tag = 
-        typename std::conditional<
-            dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>(),
+        typename comms::util::Conditional<
+            dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>()
+        >::template Type<
             DispatchInterfaceTag,
-            typename std::conditional<
-                allMessagesAreStrongSorted<TAllMessages>(),
-                typename std::conditional<
-                    dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>(),
+            typename comms::util::Conditional<
+                allMessagesAreStrongSorted<TAllMessages>()
+            >::template Type<
+                typename comms::util::Conditional<
+                    dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>()
+                >::template Type<
                     DirectTag,
                     StrongBinSearchTag
-                >::type,
+                >,
                 WeakBinSearchTag
-            >::type
-        >::type;
+            >
+        >;
 
     template <typename TMsg>
     using AdjustedTag =
-        typename std::conditional<
-            comms::isMessageBase<TMsg>(),
+        typename comms::util::Conditional<
+            comms::isMessageBase<TMsg>()
+        >::template Type<
             EmptyTag,
             Tag
-        >::type;
+        >;
 
 public:
     static auto dispatch(TMsgBase& msg, THandler& handler) ->
@@ -543,19 +548,22 @@ public:
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         using IdRetrieveTag = 
-            typename std::conditional<
-                comms::isMessageBase<MsgType>(),
+            typename comms::util::Conditional<
+                comms::isMessageBase<MsgType>()
+            >::template Type<
                 EmptyTag,
-                typename std::conditional<
-                    dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>(),
+                typename comms::util::Conditional<
+                    dispatchMsgPolymorphicIsCompatibleHandler<TMsgBase, THandler>()
+                >::template Type<
                     NoIdInterfaceTag,
-                    typename std::conditional<
-                        TMsgBase::hasGetId(),
+                    typename comms::util::Conditional<
+                        TMsgBase::hasGetId()
+                    >::template Type<
                         IdInterfaceTag,
                         NoIdInterfaceTag
-                    >::type
-                >::type
-            >::type;
+                    >
+                >
+            >;
 
         return dispatchInternal(msg, handler, IdRetrieveTag());
     }
@@ -1056,19 +1064,22 @@ class DispatchMsgTypePolymorphicHelper
         "Message types must be sorted by their ID");
 
     using Tag = 
-        typename std::conditional<
-            NumOfMessages == 0U,
+        typename comms::util::Conditional<
+            NumOfMessages == 0U
+        >::template Type<
             EmptyTag,
-            typename std::conditional<
-                allMessagesAreStrongSorted<TAllMessages>(),
-                typename std::conditional<
-                    dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>(),
+            typename comms::util::Conditional<
+                allMessagesAreStrongSorted<TAllMessages>()
+            >::template Type<
+                typename comms::util::Conditional<
+                    dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>()
+                >::template Type<
                     DirectTag,
                     StrongBinSearchTag
-                >::type,
+                >,
                 WeakBinSearchTag
-            >::type
-        >::type;
+            >
+        >;
 
 public:
     template <typename TId>

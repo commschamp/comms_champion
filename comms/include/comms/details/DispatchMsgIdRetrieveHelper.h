@@ -13,6 +13,7 @@
 #include "comms/Message.h"
 #include "comms/MessageBase.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/details/message_check.h"
 #include "comms/CompileControl.h"
 
@@ -33,15 +34,17 @@ public:
     static MsgIdParamType doGetId()
     {
         using Tag = 
-            typename std::conditional<
-                messageHasStaticNumId<TMessage>(),
+            typename comms::util::Conditional<
+                messageHasStaticNumId<TMessage>()
+            >::template Type<
                 HasStaticIdTag,
-                typename std::conditional<
-                    comms::isMessage<TMessage>() && TMessage::hasGetId(),
+                typename comms::util::Conditional<
+                    comms::isMessage<TMessage>() && TMessage::hasGetId()
+                >::template Type<
                     HasDynamicIdTag,
                     NoIdTag
-                >::type
-            >::type;
+                >
+            >;
 
         static_assert(!std::is_same<Tag, NoIdTag>::value, "Must be able to retrieve ID");
         return doGetIdInternal(Tag());

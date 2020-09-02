@@ -19,6 +19,7 @@
 
 #include "comms/Assert.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/fields.h"
 #include "comms/MsgFactory.h"
 #include "comms/dispatch.h"
@@ -199,11 +200,12 @@ public:
         auto fieldLen = static_cast<std::size_t>(std::distance(beforeReadIter, iter));
 
         using Tag =
-            typename std::conditional<
-                comms::isMessageBase<typename std::decay<decltype(msg)>::type>(),
+            typename comms::util::Conditional<
+                comms::isMessageBase<typename std::decay<decltype(msg)>::type>()
+            >::template Type<
                 DirectOpTag,
                 PointerOpTag
-            >::type;
+            >;
 
         return
             doReadInternal(
@@ -264,11 +266,12 @@ public:
         COMMS_ASSERT(field.length() <= size);
 
         using Tag =
-            typename std::conditional<
-                comms::isMessageBase<MsgType>() || MsgType::hasWrite(),
+            typename comms::util::Conditional<
+                comms::isMessageBase<MsgType>() || MsgType::hasWrite()
+            >::template Type<
                 DirectOpTag,
                 StaticBinSearchOpTag
-            >::type;
+            >;
 
         return writeInternal(field, msg, iter, size - field.length(), std::forward<TNextLayerWriter>(nextLayerWriter), Tag());
     }
@@ -365,22 +368,24 @@ private:
 
     template <typename TMsg>
     using IdRetrieveTag =
-        typename std::conditional<
-            details::protocolLayerHasDoGetId<TMsg>(),
+        typename comms::util::Conditional<
+            details::protocolLayerHasDoGetId<TMsg>()
+        >::template Type<
             DirectOpTag,
             PolymorphicOpTag
-        >::type;
+        >;
 
     struct IdParamAsIsTag {};
     struct IdParamCastTag {};
 
     template <typename TId>
     using IdParamTag =
-        typename std::conditional<
-            std::is_base_of<MsgIdType, TId>::value,
+        typename comms::util::Conditional<
+            std::is_base_of<MsgIdType, TId>::value
+        >::template Type<
             IdParamAsIsTag,
             IdParamCastTag
-        >::type;
+        >;
 
     struct HasGenericMsgTag {};
     struct NoGenericMsgTag {};
@@ -655,11 +660,12 @@ private:
 //            "However, there is no virtual desctructor to perform proper destruction.");
 
         using Tag = 
-            typename std::conditional<
-                MsgElementType::hasRead(),
+            typename comms::util::Conditional<
+                MsgElementType::hasRead()
+            >::template Type<
                 PolymorphicOpTag,
                 StaticBinSearchOpTag
-            >::type;
+            >;
 
         const auto id = static_cast<ExtendingClass*>(this)->getMsgIdFromField(field);
         BaseImpl::setMsgId(id, extraValues...);
@@ -699,11 +705,12 @@ private:
         
         COMMS_ASSERT(failureReason == CreateFailureReason::InvalidId);
         using GenericMsgTag = 
-            typename std::conditional<
-                Factory::ParsedOptions::HasSupportGenericMessage,
+            typename comms::util::Conditional<
+                Factory::ParsedOptions::HasSupportGenericMessage
+            >::template Type<
                 HasGenericMsgTag,
                 NoGenericMsgTag
-            >::type;
+            >;
 
         return createAndReadGenericMsgInternal(
             field, 
@@ -819,11 +826,12 @@ private:
         static_cast<ExtendingClass*>(this)->beforeRead(field, *msg);
 
         using Tag = 
-            typename std::conditional<
-                GenericMsgType::hasRead(),
+            typename comms::util::Conditional<
+                GenericMsgType::hasRead()
+            >::template Type<
                 PolymorphicOpTag,
                 DirectOpTag
-            >::type;
+            >;
 
         return
             readGenericMsg(

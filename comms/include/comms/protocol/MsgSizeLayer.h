@@ -16,6 +16,7 @@
 #include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/MsgSizeLayerOptionsParser.h"
 #include "comms/protocol/details/ProtocolLayerExtendingClassHelper.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -342,22 +343,24 @@ private:
 
     template<typename TMsg>
     using MsgLengthTag =
-        typename std::conditional<
-            details::ProtocolLayerHasFieldsImpl<TMsg>::Value || TMsg::InterfaceOptions::HasLength,
+        typename comms::util::Conditional<
+            details::ProtocolLayerHasFieldsImpl<TMsg>::Value || TMsg::InterfaceOptions::HasLength
+        >::template Type<
             MsgHasLengthTag,
             MsgNoLengthTag
-        >::type;
+        >;
 
     struct PtrToMsgTag {};
     struct DirectMsgTag {};
 
     template <typename TMsg>
     using MsgTypeTag =
-        typename std::conditional<
-            comms::isMessage<TMsg>(),
+        typename comms::util::Conditional<
+            comms::isMessage<TMsg>()
+        >::template Type<
             DirectMsgTag,
             PtrToMsgTag
-        >::type;
+        >;
 
     template <typename TMsg, typename TIter, typename TWriter>
     ErrorStatus writeInternalHasLength(
@@ -546,12 +549,12 @@ private:
         }
 
         using Tag = 
-            typename 
-                std::conditional<
-                    std::is_void<typename std::decay<TMsg>::type>::value,
-                    NoMsgTypeTag,
-                    ValidMsgTypeTag
-                >::type;
+            typename comms::util::Conditional<
+                std::is_void<typename std::decay<TMsg>::type>::value
+            >::template Type<
+                NoMsgTypeTag,
+                ValidMsgTypeTag
+            >;
 
         return doUpdateForward(msg, iter, size - field.length(), std::forward<TNextLayerUpdater>(nextLayerUpdater), Tag());
     }

@@ -14,6 +14,7 @@
 #include <array>
 #include <limits>
 #include <type_traits>
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -299,17 +300,21 @@ private:
     struct NoReflectTag {};
     struct DoReflectTag {};
 
-    using ReflectTag = typename std::conditional<
-        TReflect,
-        DoReflectTag,
-        NoReflectTag
-    >::type;
+    using ReflectTag = 
+        typename comms::util::Conditional<
+            TReflect
+        >::template Type<
+            DoReflectTag,
+            NoReflectTag
+        >;
 
-    using ReflectRemTag = typename std::conditional<
-        TRefrectRem,
-        DoReflectTag,
-        NoReflectTag
-    >::type;
+    using ReflectRemTag = 
+        typename comms::util::Conditional<
+            TRefrectRem
+        >::template Type<
+            DoReflectTag,
+            NoReflectTag
+        >;
 
     static std::uint8_t reflect(std::uint8_t byte)
     {

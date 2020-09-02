@@ -30,3 +30,4 @@
 
 #include "comms/util/detect.h"
 #include "comms/util/assign.h"
+#include "comms/util/type_traits.h"

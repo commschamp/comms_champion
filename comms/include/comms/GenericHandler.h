@@ -13,7 +13,8 @@
 #include <tuple>
 #include <type_traits>
 
-#include "util/Tuple.h"
+#include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -189,15 +190,17 @@ public:
         // Nothing to do
         static_cast<void>(msg);
         using Tag =
-            typename std::conditional<
-                std::is_void<TRetType>::value,
+            typename comms::util::Conditional<
+                std::is_void<TRetType>::value
+            >::template Type<
                 VoidReturnTag,
-                typename std::conditional<
-                    std::is_lvalue_reference<TRetType>::value,
+                typename comms::util::Conditional<
+                    std::is_lvalue_reference<TRetType>::value
+                >::template Type<
                     ReferenceReturnTag,
                     ValueReturnTag
-                >::type
-            >::type;
+                >
+            >;
         return defaultHandle(Tag());
     }
 

@@ -20,6 +20,7 @@
 #include "comms/traits.h"
 #include "comms/ErrorStatus.h"
 #include "comms/field/OptionalMode.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -70,17 +71,21 @@ struct NumValueRangeValidator
     template <typename TField>
     constexpr bool operator()(const TField& field) const
     {
-        using MinTag = typename std::conditional<
-            (std::numeric_limits<decltype(MinValue)>::min() < MinValue),
-            CompareTag,
-            ReturnTrueTag
-        >::type;
+        using MinTag = 
+            typename comms::util::Conditional<
+                (std::numeric_limits<decltype(MinValue)>::min() < MinValue)
+            >::template Type<
+                CompareTag,
+                ReturnTrueTag
+            >;
 
-        using MaxTag = typename std::conditional<
-            (MaxValue < std::numeric_limits<decltype(MaxValue)>::max()),
-            CompareTag,
-            ReturnTrueTag
-        >::type;
+        using MaxTag = 
+            typename comms::util::Conditional<
+                (MaxValue < std::numeric_limits<decltype(MaxValue)>::max())
+            >::template Type<
+                CompareTag,
+                ReturnTrueTag
+            >::type;
 
         return aboveMin(field.value(), MinTag()) && belowMax(field.value(), MaxTag());
     }

@@ -14,6 +14,7 @@
 #include <type_traits>
 
 #include "comms/traits.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -56,11 +57,13 @@ struct UnitsValueConverter
     static TRet getValue(const TField& field)
     {
         using Ratio = FullUnitsRatioOf<TField, TConvRatio>;
-        using Tag = typename std::conditional<
-            std::is_same<Ratio, std::ratio<1, 1> >::value,
-            NoConversionTag,
-            HasConversionTag
-        >::type;
+        using Tag = 
+            typename comms::util::Conditional<
+                std::is_same<Ratio, std::ratio<1, 1> >::value
+            >::template Type<
+                NoConversionTag,
+                HasConversionTag
+            >;
 
         return getValueInternal<TRet, Ratio>(field, Tag());
     }
@@ -69,11 +72,13 @@ struct UnitsValueConverter
     static void setValue(TField& field, TVal&& value)
     {
         using Ratio = FullUnitsRatioOf<TField, TConvRatio>;
-        using Tag = typename std::conditional<
-            std::is_same<Ratio, std::ratio<1, 1> >::value,
-            NoConversionTag,
-            HasConversionTag
-        >::type;
+        using Tag = 
+            typename comms::util::Conditional<
+                std::is_same<Ratio, std::ratio<1, 1> >::value
+            >::template Type<
+                NoConversionTag,
+                HasConversionTag
+            >;
 
         return setValueInternal<Ratio>(field, std::forward<TVal>(value), Tag());
     }
@@ -94,11 +99,13 @@ private:
     template <typename TRet, typename TRatio, typename TField>
     static TRet getValueInternal(const TField& field, HasConversionTag)
     {
-        using Tag = typename std::conditional<
-            std::is_floating_point<TRet>::value,
-            ConvertToFpTag,
-            ConvertToIntTag
-        >::type;
+        using Tag = 
+            typename comms::util::Conditional<
+                std::is_floating_point<TRet>::value
+            >::template Type<
+                ConvertToFpTag,
+                ConvertToIntTag
+            >;
 
         return getValueInternal<TRet, TRatio>(field, Tag());
     }
@@ -127,19 +134,22 @@ private:
             "Unexpected field in units conversion");
 
         using CastType =
-            typename std::conditional<
-                std::is_floating_point<ValueType>::value,
-                typename std::conditional<
-                    std::is_same<ValueType, float>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<ValueType>::value
+            >::template Type<
+                typename comms::util::Conditional<
+                    std::is_same<ValueType, float>::value
+                >::template Type<
                     double,
                     ValueType
-                >::type,
-                typename std::conditional<
-                    std::is_signed<TRet>::value,
+                >,
+                typename comms::util::Conditional<
+                    std::is_signed<TRet>::value
+                >::template Type<
                     std::intmax_t,
                     std::uintmax_t
-                >::type
-        >::type;
+                >
+            >;
 
         return
             static_cast<TRet>(
@@ -157,11 +167,13 @@ private:
     template <typename TRatio, typename TField, typename TVal>
     static void setValueInternal(TField& field, TVal&& value, HasConversionTag)
     {
-        using Tag = typename std::conditional<
-            std::is_floating_point<typename std::decay<decltype(value)>::type>::value,
-            ConvertToFpTag,
-            ConvertToIntTag
-        >::type;
+        using Tag = 
+            typename comms::util::Conditional<
+                std::is_floating_point<typename std::decay<decltype(value)>::type>::value
+            >::template Type<
+                ConvertToFpTag,
+                ConvertToIntTag
+            >;
 
         setValueInternal<TRatio>(field, std::forward<TVal>(value), Tag());
     }
@@ -179,19 +191,22 @@ private:
             "Unexpected field in units conversion");
 
         using CastType =
-            typename std::conditional<
-                std::is_floating_point<ValueType>::value,
-                typename std::conditional<
-                    std::is_same<ValueType, float>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<ValueType>::value
+            >::template Type<
+                typename comms::util::Conditional<
+                    std::is_same<ValueType, float>::value
+                >::template Type<
                     double,
                     ValueType
-                >::type,
-                typename std::conditional<
-                    std::is_signed<typename std::decay<decltype(value)>::type>::value,
+                >,
+                typename comms::util::Conditional<
+                    std::is_signed<typename std::decay<decltype(value)>::type>::value
+                >::template Type<
                     std::intmax_t,
                     std::uintmax_t
-                >::type
-        >::type;
+                >
+            >;
 
         field.value() =
             static_cast<ValueType>(
@@ -325,15 +340,17 @@ struct AngleValueConverter
              "The field is expected to contain \"angle\" units.");
 
         using Tag =
-            typename std::conditional<
-                std::is_same<TConvRatio, typename FieldType::ParsedOptions::UnitsRatio>::value,
+            typename comms::util::Conditional<
+                std::is_same<TConvRatio, typename FieldType::ParsedOptions::UnitsRatio>::value
+            >::template Type<
                 SameUnitsTag,
-                typename::std::conditional<
-                    std::is_same<TConvRatio, comms::traits::units::RadiansRatio>::value,
+                typename comms::util::Conditional<
+                    std::is_same<TConvRatio, comms::traits::units::RadiansRatio>::value
+                >::template Type<
                     DegreesToRadiansTag,
                     RadiansToDegreesTag
-                >::type
-            >::type;
+                >
+            >;
 
         return getValueInternal<TRet, TConvRatio>(field, Tag());
     }
@@ -346,15 +363,17 @@ struct AngleValueConverter
              "The field is expected to contain \"angle\" units.");
 
         using Tag =
-            typename std::conditional<
-                std::is_same<TConvRatio, typename FieldType::ParsedOptions::UnitsRatio>::value,
+            typename comms::util::Conditional<
+                std::is_same<TConvRatio, typename FieldType::ParsedOptions::UnitsRatio>::value
+            >::template Type<
                 SameUnitsTag,
-                typename::std::conditional<
-                    std::is_same<TConvRatio, typename comms::traits::units::RadiansRatio>::value,
+                typename comms::util::Conditional<
+                    std::is_same<TConvRatio, typename comms::traits::units::RadiansRatio>::value
+                >::template Type<
                     RadiansToDegreesTag,
                     DegreesToRadiansTag
-                >::type
-            >::type;
+                >
+            >;
 
         setValueInternal<TConvRatio>(field, std::forward<TVal>(val), Tag());
     }
@@ -405,11 +424,12 @@ private:
 
         using ValueType = typename std::decay<decltype(val)>::type;
         using PiType =
-            typename std::conditional<
-                std::is_floating_point<ValueType>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<ValueType>::value
+            >::template Type<
                 ValueType,
                 double
-            >::type;
+            >;
 
         UnitsValueConverter::setValue<TConvRatio>(field, val * PI<PiType>::Value);
     }
@@ -423,11 +443,12 @@ private:
 
         using ValueType = typename std::decay<decltype(val)>::type;
         using PiType =
-            typename std::conditional<
-                std::is_floating_point<ValueType>::value,
+            typename comms::util::Conditional<
+                std::is_floating_point<ValueType>::value
+            >::template Type<
                 ValueType,
                 double
-            >::type;
+            >;
 
         UnitsValueConverter::setValue<TConvRatio>(field, static_cast<PiType>(val) / PI<PiType>::Value);
     }

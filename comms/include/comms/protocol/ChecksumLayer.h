@@ -15,6 +15,7 @@
 #include "comms/field/IntValue.h"
 #include "comms/protocol/details/ProtocolLayerBase.h"
 #include "comms/protocol/details/ChecksumLayerOptionsParser.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -246,13 +247,13 @@ private:
     struct VerifyBeforeReadTag {};
     struct VerifyAfterReadTag {};
 
-    using VerifyTag = typename
-        std::conditional<
-            ParsedOptions::HasVerifyBeforeRead,
+    using VerifyTag = 
+        typename comms::util::Conditional<
+            ParsedOptions::HasVerifyBeforeRead
+        >::template Type<
             VerifyBeforeReadTag,
             VerifyAfterReadTag
-        >::type;
-
+        >;
 
     template <typename TMsg, typename TIter, typename TReader, typename... TExtraValues>
     ErrorStatus verifyRead(

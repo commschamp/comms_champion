@@ -881,12 +881,12 @@ void verifyFrameLengthIfPossible(TFrame& frame, const TMsg& msg, std::size_t exp
 {
     using MsgType = typename std::decay<decltype(msg)>::type;
     using Tag = 
-        typename std::conditional<
-            MsgType::hasLength(),
+        typename comms::util::Conditional<
+            MsgType::hasLength()
+        >::template Type<
             details::HasLengthTag,
             details::NoLengthTag
-        >::type;
-
+        >;
 
     return details::verifyFrameLengthIfPossible(frame, msg, expLength, Tag());
 }

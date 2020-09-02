@@ -20,7 +20,8 @@
 
 #include "comms/Assert.h"
 #include "comms/dispatch.h"
-#include "Tuple.h"
+#include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -49,11 +50,12 @@ private:
     struct ForcedDefaultCastTag {};
 
     using HandleTag =
-        typename std::conditional<
-            std::is_void<TDefaultType>::value,
+        typename comms::util::Conditional<
+            std::is_void<TDefaultType>::value
+        >::template Type<
             NoDefaultCastTag,
             DefaultCastCheckTag
-        >::type;
+        >;
 
     template <typename TObj>
     void handleInternal(TObj& obj, NoDefaultCastTag) const
@@ -72,11 +74,12 @@ private:
     {
         using ObjType = typename std::decay<decltype(obj)>::type;
         using Tag =
-            typename std::conditional<
-                std::is_same<ObjType, TInterfaceType>::value,
+            typename comms::util::Conditional<
+                std::is_same<ObjType, TInterfaceType>::value
+            >::template Type<
                 ForcedDefaultCastTag,
                 NoDefaultCastTag
-            >::type;
+            >;
         handleInternal(obj, Tag());
     }
 
@@ -97,11 +100,12 @@ private:
     struct ForcedDefaultCastTag {};
 
     using HandleTag =
-        typename std::conditional<
-            std::is_void<TDefaultType>::value,
+        typename comms::util::Conditional<
+            std::is_void<TDefaultType>::value
+        >::template Type<
             NoDefaultCastTag,
             DefaultCastCheckTag
-        >::type;
+        >;
 
     template <typename TObj>
     void handleInternal(TObj& obj, NoDefaultCastTag) const
@@ -120,11 +124,12 @@ private:
     {
         using ObjType = typename std::decay<decltype(obj)>::type;
         using Tag =
-            typename std::conditional<
-                std::is_same<ObjType, TInterfaceType>::value,
+            typename comms::util::Conditional<
+                std::is_same<ObjType, TInterfaceType>::value
+            >::template Type<
                 ForcedDefaultCastTag,
                 NoDefaultCastTag
-            >::type;
+            >;
         handleInternal(obj, Tag());
     }
 };

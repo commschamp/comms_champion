@@ -14,6 +14,7 @@
 #include <iterator>
 
 #include "comms/util/detect.h"
+#include "comms/util/type_traits.h"
 #include "comms/Assert.h"
 
 namespace comms
@@ -34,15 +35,17 @@ public:
         using ObjType = typename std::decay<decltype(obj)>::type;
 
         using Tag = 
-            typename std::conditional<
-                comms::util::detect::hasAssignFunc<ObjType>(),
+            typename comms::util::Conditional<
+                comms::util::detect::hasAssignFunc<ObjType>()
+            >::template Type<
                 UseAssignTag,
-                typename std::conditional<
-                    comms::util::detect::hasPtrSizeConstructor<ObjType>(),
+                typename comms::util::Conditional<
+                    comms::util::detect::hasPtrSizeConstructor<ObjType>()
+                >::template Type<
                     UsePtrSizeConstructorTag,
                     UnknownTag
-                >::type
-            >::type;
+                >
+            >;
 
         static_assert(!std::is_same<Tag, UnknownTag>::value, "Assignment to provided type is not supported");
 

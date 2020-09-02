@@ -16,6 +16,7 @@
 #include "comms/Assert.h"
 #include "comms/Field.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/field/ArrayList.h"
 #include "comms/field/IntValue.h"
 #include "comms/Message.h"
@@ -126,19 +127,22 @@ public:
     {
         using MsgType = typename std::decay<decltype(msg)>::type;
         using Tag =
-            typename std::conditional<
-                comms::isMessageBase<MsgType>(),
+            typename comms::util::Conditional<
+                comms::isMessageBase<MsgType>()
+            >::template Type<
                 DirectOpTag,
-                typename std::conditional<
-                    comms::isMessage<MsgType>(),
+                typename comms::util::Conditional<
+                    comms::isMessage<MsgType>()
+                >::template Type<
                     InterfaceOpTag,
-                    typename std::conditional<
-                        std::is_pointer<MsgType>::value,
+                    typename comms::util::Conditional<
+                        std::is_pointer<MsgType>::value
+                    >::template Type<
                         PointerOpTag,
                         OtherOpTag
-                    >::type
-                >::type
-            >::type;
+                    >
+                >
+            >;
 
         if (setPayloadRequiredInternal(extraValues...)) {
             auto fromIter = iter;
@@ -315,19 +319,22 @@ public:
             "The provided message object must inherit from comms::Message");
 
         using Tag =
-            typename std::conditional<
-                comms::isMessageBase<MsgType>(),
+            typename comms::util::Conditional<
+                comms::isMessageBase<MsgType>()
+            >::template Type<
                 DirectOpTag,
-                typename std::conditional<
-                    comms::isMessage<MsgType>(),
+                typename comms::util::Conditional<
+                    comms::isMessage<MsgType>()
+                >::template Type<
                     InterfaceOpTag,
-                    typename std::conditional<
-                        std::is_pointer<MsgType>::value,
+                    typename comms::util::Conditional<
+                        std::is_pointer<MsgType>::value
+                    >::template Type<
                         PointerOpTag,
                         OtherOpTag
-                    >::type
-                >::type
-            >::type;
+                    >
+                >
+            >;
 
         return writeInternal(msg, iter, size, Tag());
     }
@@ -489,12 +496,13 @@ public:
             comms::isMessage<MsgType>(),
             "The provided message object must inherit from comms::Message");
 
-        using Tag = typename
-            std::conditional<
-                details::ProtocolLayerHasFieldsImpl<MsgType>::Value,
+        using Tag = 
+            typename comms::util::Conditional<
+                details::ProtocolLayerHasFieldsImpl<MsgType>::Value
+            >::template Type<
                 MsgDirectLengthTag,
                 MsgHasLengthTag
-            >::type;
+            >;
         return getMsgLength(msg, Tag());
     }
 
@@ -643,10 +651,13 @@ private:
         auto result = msg.read(static_cast<ReadIter>(iter), size);
         if ((result == ErrorStatus::NotEnoughData) &&
             missingSizeRequiredInternal(extraValues...)) {
-            using Tag = typename std::conditional<
-                MsgType::InterfaceOptions::HasLength,
-                MsgHasLengthTag,
-                MsgNoLengthTag>::type;
+            using Tag = 
+                typename comms::util::Conditional<
+                    MsgType::InterfaceOptions::HasLength
+                >::template Type<
+                    MsgHasLengthTag,
+                    MsgNoLengthTag
+                >;
 
             std::size_t missingSize = 1U;
             auto msgLen = getMsgLength(msg, Tag());

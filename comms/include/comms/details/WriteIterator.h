@@ -7,6 +7,7 @@
 
 #include "comms/Message.h"
 #include "comms/details/detect.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -30,11 +31,12 @@ class WriteIteratorMsgObjHelper
     struct NoWriteIterTag {};
 
     using Tag =
-        typename std::conditional<
-            TMsg::hasWrite(),
+        typename comms::util::Conditional<
+            TMsg::hasWrite()
+        >::template Type<
             HasWriteIterTag,
             NoWriteIterTag
-        >::type;
+        >;
 
 #ifdef CC_COMPILER_GCC47
     // g++-4.7 complains about accessing private getInternal
@@ -77,15 +79,17 @@ template <typename TMsg>
 class WriteIterator
 {
     using Helper =
-        typename std::conditional<
-            comms::isMessage<TMsg>(),
+        typename comms::util::Conditional<
+            comms::isMessage<TMsg>()
+        >::template Type<
             WriteIteratorMsgObjHelper<TMsg>,
-            typename std::conditional<
-                hasElementType<TMsg>(),
+            typename comms::util::Conditional<
+                hasElementType<TMsg>()
+            >::template Type<
                 WriteIteratorSmartPtrHelper<TMsg>,
                 WriteIteratorCastHelper
-            >::type
-        >::type;
+            >
+        >;
 public:
     template <typename TIter>
     static auto get(TIter&& iter) -> decltype(Helper::get(std::forward<TIter>(iter)))

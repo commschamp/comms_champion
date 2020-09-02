@@ -15,6 +15,7 @@
 #include "comms/Assert.h"
 #include "comms/util/access.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
 #include "MessageImplOptionsParser.h"
 
@@ -70,11 +71,12 @@ protected:
     virtual typename TBase::MsgIdParamType getIdImpl() const override
     {
         using Tag =
-            typename std::conditional<
-                TOpt::HasMsgType,
+            typename comms::util::Conditional<
+                TOpt::HasMsgType
+            >::template Type<
                 DowncastTag,
                 NoDowncastTag
-            >::type;
+            >;
         return getIdInternal(Tag());
     }
 
@@ -191,11 +193,12 @@ public:
 #endif
 
         using Tag =
-            typename std::conditional<
-                comms::util::tupleTypeAccumulate<AllFields>(true, ReadNoStatusDetector()),
+            typename comms::util::Conditional<
+                comms::util::tupleTypeAccumulate<AllFields>(true, ReadNoStatusDetector())
+            >::template Type<
                 NoStatusTag,
                 UseStatusTag
-            >::type;
+            >;
 
 #if COMMS_IS_MSVC
 #pragma warning( pop )
@@ -216,11 +219,12 @@ public:
 #endif
 
         using Tag =
-            typename std::conditional<
-                comms::util::tupleTypeAccumulate<AllFields>(true, WriteNoStatusDetector()),
+            typename comms::util::Conditional<
+                comms::util::tupleTypeAccumulate<AllFields>(true, WriteNoStatusDetector())
+            >::template Type<
                 NoStatusTag,
                 UseStatusTag
-            >::type;
+            >;
 
 #if COMMS_IS_MSVC
 #pragma warning( pop )
@@ -965,11 +969,13 @@ protected:
         typename BaseImpl::ReadIterator& iter,
         std::size_t size) override
     {
-        using Tag = typename std::conditional<
-            std::is_same<TActual, void>::value,
-            NoActual,
-            HasActual
-        >::type;        
+        using Tag = 
+            typename comms::util::Conditional<
+                std::is_same<TActual, void>::value
+            >::template Type<
+                NoActual,
+                HasActual
+            >;        
         return readImplInternal(iter, size, Tag());
     }
 
@@ -1038,11 +1044,13 @@ protected:
         typename BaseImpl::WriteIterator& iter,
         std::size_t size) const override
     {
-        using Tag = typename std::conditional<
-            std::is_same<TActual, void>::value,
-            NoActual,
-            HasActual
-        >::type;        
+        using Tag = 
+            typename comms::util::Conditional<
+                std::is_same<TActual, void>::value
+            >::template Type<
+                NoActual,
+                HasActual
+            >;        
         return writeImplInternal(iter, size, Tag());
     }
 
@@ -1109,11 +1117,13 @@ protected:
     ~MessageImplFieldsValidBase() noexcept = default;
     virtual bool validImpl() const override
     {
-        using Tag = typename std::conditional<
-            std::is_same<TActual, void>::value,
-            NoActual,
-            HasActual
-        >::type;
+        using Tag = 
+            typename comms::util::Conditional<
+                std::is_same<TActual, void>::value
+            >::template Type<
+                NoActual,
+                HasActual
+            >;
         return validImplInternal(Tag());
     }
 
@@ -1174,11 +1184,13 @@ protected:
     ~MessageImplFieldsLengthBase() noexcept = default;
     virtual std::size_t lengthImpl() const override
     {
-        using Tag = typename std::conditional<
-            std::is_same<TActual, void>::value,
-            NoActual,
-            HasActual
-        >::type;        
+        using Tag = 
+            typename comms::util::Conditional<
+                std::is_same<TActual, void>::value
+            >::template Type<
+                NoActual,
+                HasActual
+            >;        
         return lengthImplInternal(Tag());
     }
 
@@ -1238,11 +1250,12 @@ protected:
     virtual bool refreshImpl() override
     {
         using Tag =
-            typename std::conditional<
-                TOpt::HasMsgType,
+            typename comms::util::Conditional<
+                TOpt::HasMsgType
+            >::template Type<
                 Downcast,
                 NoDowncast
-            >::type;
+            >;
         return refreshInternal(Tag());
     }
 

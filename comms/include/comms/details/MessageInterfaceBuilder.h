@@ -14,6 +14,7 @@
 #include "comms/Assert.h"
 #include "comms/util/access.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
 #include "comms/details/MessageInterfaceOptionsParser.h"
 
@@ -114,11 +115,13 @@ class MessageInterfaceIdTypeBase : public TBase
 {
 public:
     using MsgIdType = TId;
-    using MsgIdParamType = typename std::conditional<
-            std::is_integral<MsgIdType>::value || std::is_enum<MsgIdType>::value,
+    using MsgIdParamType = 
+        typename comms::util::Conditional<
+            std::is_integral<MsgIdType>::value || std::is_enum<MsgIdType>::value
+        >::template Type<
             MsgIdType,
             const MsgIdType&
-        >::type;
+        >;
 
 protected:
     ~MessageInterfaceIdTypeBase() noexcept = default;
@@ -426,11 +429,12 @@ protected:
         static_cast<void>(handler);
         COMMS_ASSERT(!"Mustn't be called");
         using Tag =
-            typename std::conditional<
-                std::is_void<DispatchRetType>::value,
+            typename comms::util::Conditional<
+                std::is_void<DispatchRetType>::value
+            >::template Type<
                 VoidHandleRetTypeTag,
                 NonVoidHandleRetTypeTag
-            >::type;
+            >;
         return dispatchInternal(Tag());
     }
 

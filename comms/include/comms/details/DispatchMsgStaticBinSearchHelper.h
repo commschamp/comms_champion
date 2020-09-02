@@ -11,6 +11,7 @@
 
 #include "comms/Message.h"
 #include "comms/details/message_check.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -549,23 +550,26 @@ class DispatchMsgStaticBinSearchHelper
     struct WeakTag {};
 
     using BinSearchTag = 
-        typename std::conditional<
-            std::tuple_size<TAllMessages>::value == 0U,
+        typename comms::util::Conditional<
+            std::tuple_size<TAllMessages>::value == 0U
+        >::template Type<
             EmptyTag,
-            typename std::conditional<
-                allMessagesAreStrongSorted<TAllMessages>(),
+            typename comms::util::Conditional<
+                allMessagesAreStrongSorted<TAllMessages>()
+            >::template Type<
                 StrongTag,
                 WeakTag
-            >::type
-        >::type;
+            >
+        >;
 
     template <typename TMsg>
     using AdjustedTag =
-        typename std::conditional<
-            comms::isMessageBase<TMsg>(),
+        typename comms::util::Conditional<
+            comms::isMessageBase<TMsg>()
+        >::template Type<
             EmptyTag,
             BinSearchTag
-        >::type;
+        >;
 
 public:
     template <

@@ -16,6 +16,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "comms/util/type_traits.h"
 #include "comms/Assert.h"
 #include "comms/options.h"
 
@@ -204,11 +205,12 @@ public:
         TExtraValues... extraValues)
     {
         using Tag =
-            typename std::conditional<
-                ParsedOptions::HasForceReadUntilDataSplit,
+            typename comms::util::Conditional<
+                ParsedOptions::HasForceReadUntilDataSplit
+            >::template Type<
                 SplitReadTag,
                 NormalReadTag
-            >::type;
+            >;
 
         static_assert(std::is_same<Tag, NormalReadTag>::value || canSplitRead(),
             "Read split is disallowed by at least one of the inner layers");
@@ -776,11 +778,12 @@ protected:
     static void resetMsg(TMsg& msg)
     {
         using Tag =
-            typename std::conditional<
-                isMessageObjRef<typename std::decay<decltype(msg)>::type>(),
+            typename comms::util::Conditional<
+                isMessageObjRef<typename std::decay<decltype(msg)>::type>()
+            >::template Type<
                 MessageObjTag,
                 SmartPtrTag
-            >::type;
+            >;
         resetMsgInternal(msg, Tag());
     }
 
@@ -885,11 +888,13 @@ protected:
     /// @cond SKIP_DOC
     struct FixedLengthTag {};
     struct VarLengthTag {};
-    using LengthTag = typename std::conditional<
-        (Field::minLength() == Field::maxLength()),
-        FixedLengthTag,
-        VarLengthTag
-    >::type;
+    using LengthTag = 
+        typename comms::util::Conditional<
+            (Field::minLength() == Field::maxLength())
+        >::template Type<
+            FixedLengthTag,
+            VarLengthTag
+        >;
 
     class NextLayerReader
     {

@@ -13,6 +13,7 @@
 #include "ProtocolLayerBase.h"
 #include "details/TransportValueLayerAdapter.h"
 #include "comms/cast.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -134,11 +135,12 @@ public:
         es = nextLayerReader.read(msg, iter, size, extraValues...);
 
         using Tag =
-            typename std::conditional<
-                BaseImpl::template isMessageObjRef<typename std::decay<decltype(msg)>::type>(),
+            typename comms::util::Conditional<
+                BaseImpl::template isMessageObjRef<typename std::decay<decltype(msg)>::type>()
+            >::template Type<
                 MsgObjTag,
                 SmartPtrTag
-            >::type;
+            >;
 
         if (validMsg(msg, Tag())) {
             auto& allTransportFields = transportFields(msg, Tag());
@@ -229,11 +231,12 @@ private:
     struct NormalValueTag {};
 
     using ValueTag =
-        typename std::conditional<
-            TransportParsedOptions::HasPseudoValue,
+        typename comms::util::Conditional<
+            TransportParsedOptions::HasPseudoValue
+        >::template Type<
             PseudoValueTag,
             NormalValueTag
-        >::type;
+        >;
 
     template <typename TMsg>
     static bool validMsg(TMsg& msgPtr, SmartPtrTag)

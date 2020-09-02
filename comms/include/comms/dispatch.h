@@ -11,6 +11,7 @@
 
 #include "comms/Message.h"
 #include "comms/details/dispatch_impl.h"
+#include "comms/util/type_traits.h"
 
 namespace comms
 {
@@ -545,19 +546,21 @@ private:
     struct StaticBinSearchTag {};
 
     using Tag = 
-        typename std::conditional<
-            dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>()),
+        typename comms::util::Conditional<
+            dispatchMsgPolymorphicIsDirectSuitable<TAllMessages>() || (!allMessagesHaveStaticNumId<TAllMessages>())
+        >::template Type<
             PolymorphicTag,
             StaticBinSearchTag
-        >::type;
+        >;
 
     template <typename TMsgBase, typename THandler>
     using HandlerAdjustedTag =
-        typename std::conditional<
-            dispatchMsgIsDirect<TMsgBase, THandler>(),
+        typename comms::util::Conditional<
+            dispatchMsgIsDirect<TMsgBase, THandler>()
+        >::template Type<
             PolymorphicTag,
             Tag
-        >::type;
+        >;
 
     template <typename TMsg, typename THandler>
     static auto dispatchMsgInternal(TMsg& msg, THandler& handler, PolymorphicTag) ->

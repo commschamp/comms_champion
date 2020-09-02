@@ -13,6 +13,8 @@
 #include <limits>
 #include <iterator>
 
+#include "comms/util/type_traits.h"
+
 namespace comms
 {
 
@@ -50,7 +52,10 @@ struct TypeOptimiser<T, false>
 template <typename T>
 struct TypeOptimiser<T, true>
 {
-    using Type = typename std::conditional<std::is_signed<T>::value, int, unsigned>::type;
+    using Type = 
+        typename comms::util::Conditional<
+            std::is_signed<T>::value
+        >::template Type<int, unsigned>;
 };
 
 template <typename T>
@@ -86,11 +91,13 @@ public:
 
     static ValueType value(T val)
     {
-        using Tag = typename std::conditional<
-            sizeof(ValueType) == TSize,
-            FullSize,
-            PartialSize
-        >::type;
+        using Tag = 
+            typename comms::util::Conditional<
+                sizeof(ValueType) == TSize
+            >::template Type<
+                FullSize,
+                PartialSize
+            >;
 
         return valueInternal(val, Tag());
     }

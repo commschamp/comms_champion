@@ -37,648 +37,7 @@ struct FieldsOptionsCompatibilityCalc
         static_cast<std::size_t>(T6);
 };
 
-template <bool THasVersionStorage>
-struct AdaptFieldVersionStorage;
-
-template <>
-struct AdaptFieldVersionStorage<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::VersionStorage<TField>;
-};
-
-template <>
-struct AdaptFieldVersionStorage<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldVersionStorageT =
-    typename AdaptFieldVersionStorage<TOpts::HasVersionStorage>::template Type<TField>;
-
-template <bool THasInvalidByDefault>
-struct AdaptFieldInvalidByDefault;
-
-template <>
-struct AdaptFieldInvalidByDefault<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::InvalidByDefault<TField>;
-};
-
-template <>
-struct AdaptFieldInvalidByDefault<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldInvalidByDefaultT =
-    typename AdaptFieldInvalidByDefault<TOpts::HasInvalidByDefault>::template Type<TField>;
-
-template <bool THasCustomRead>
-struct AdaptFieldCustomReadWrap;
-
-template <>
-struct AdaptFieldCustomReadWrap<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::CustomReadWrap<TField>;
-};
-
-template <>
-struct AdaptFieldCustomReadWrap<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldCustomReadWrapT =
-    typename AdaptFieldCustomReadWrap<TOpts::HasCustomRead>::template Type<TField>;
-
-
-template <bool THasCustomValueReader>
-struct AdaptFieldCustomValueReader;
-
-template <>
-struct AdaptFieldCustomValueReader<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::CustomValueReader<typename TOpts::CustomValueReader, TField>;
-};
-
-template <>
-struct AdaptFieldCustomValueReader<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldCustomValueReaderT =
-    typename AdaptFieldCustomValueReader<TOpts::HasCustomValueReader>::template Type<TField, TOpts>;
-
-template <bool THasSerOffset>
-struct AdaptFieldSerOffset;
-
-template <>
-struct AdaptFieldSerOffset<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::SerOffset<TOpts::SerOffset, TField>;
-};
-
-template <>
-struct AdaptFieldSerOffset<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSerOffsetT =
-    typename AdaptFieldSerOffset<TOpts::HasSerOffset>::template Type<TField, TOpts>;
-
-template <bool THasVersionsRange>
-struct AdaptFieldVersionsRange;
-
-template <>
-struct AdaptFieldVersionsRange<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::ExistsBetweenVersions<TOpts::ExistsFromVersion, TOpts::ExistsUntilVersion, TField>;
-};
-
-template <>
-struct AdaptFieldVersionsRange<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldVersionsRangeT =
-    typename AdaptFieldVersionsRange<TOpts::HasVersionsRange>::template Type<TField, TOpts>;
-
-
-template <bool THasFixedLength>
-struct AdaptFieldFixedLength;
-
-template <>
-struct AdaptFieldFixedLength<true>
-{
-    template <typename TField, typename TOpts>
-    using Type =
-        comms::field::adapter::FixedLength<
-            TOpts::FixedLength,
-            TOpts::FixedLengthSignExtend,
-            TField
-        >;
-};
-
-template <>
-struct AdaptFieldFixedLength<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldFixedLengthT =
-    typename AdaptFieldFixedLength<TOpts::HasFixedLengthLimit>::template Type<TField, TOpts>;
-
-template <bool THasFixedBitLength>
-struct AdaptFieldFixedBitLength;
-
-template <>
-struct AdaptFieldFixedBitLength<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::FixedBitLength<TOpts::FixedBitLength, TField>;
-};
-
-template <>
-struct AdaptFieldFixedBitLength<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldFixedBitLengthT =
-    typename AdaptFieldFixedBitLength<TOpts::HasFixedBitLengthLimit>::template Type<TField, TOpts>;
-
-template <bool THasVarLengths>
-struct AdaptFieldVarLength;
-
-template <>
-struct AdaptFieldVarLength<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::VarLength<TOpts::MinVarLength, TOpts::MaxVarLength, TField>;
-};
-
-template <>
-struct AdaptFieldVarLength<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldVarLengthT =
-    typename AdaptFieldVarLength<TOpts::HasVarLengthLimits>::template Type<TField, TOpts>;
-
-template <bool THasSequenceElemLengthForcing>
-struct AdaptFieldSequenceElemLengthForcing;
-
-template <>
-struct AdaptFieldSequenceElemLengthForcing<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::SequenceElemLengthForcing<TField>;
-};
-
-template <>
-struct AdaptFieldSequenceElemLengthForcing<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceElemLengthForcingT =
-    typename AdaptFieldSequenceElemLengthForcing<TOpts::HasSequenceElemLengthForcing>::template Type<TField>;
-
-
-template <bool THasSequenceSizeForcing>
-struct AdaptFieldSequenceSizeForcing;
-
-template <>
-struct AdaptFieldSequenceSizeForcing<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::SequenceSizeForcing<TField>;
-};
-
-template <>
-struct AdaptFieldSequenceSizeForcing<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceSizeForcingT =
-    typename AdaptFieldSequenceSizeForcing<TOpts::HasSequenceSizeForcing>::template Type<TField>;
-
-template <bool THasSequenceLengthForcing>
-struct AdaptFieldSequenceLengthForcing;
-
-template <>
-struct AdaptFieldSequenceLengthForcing<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::SequenceLengthForcing<TField>;
-};
-
-template <>
-struct AdaptFieldSequenceLengthForcing<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceLengthForcingT =
-    typename AdaptFieldSequenceLengthForcing<TOpts::HasSequenceLengthForcing>::template Type<TField>;
-
-
-template <bool THasSequenceFixedSize>
-struct AdaptFieldSequenceFixedSize;
-
-template <>
-struct AdaptFieldSequenceFixedSize<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::SequenceFixedSize<TOpts::SequenceFixedSize, TField>;
-};
-
-template <>
-struct AdaptFieldSequenceFixedSize<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceFixedSizeT =
-    typename AdaptFieldSequenceFixedSize<TOpts::HasSequenceFixedSize>::template Type<TField, TOpts>;
-
-template <bool THasSequenceSizeFieldPrefix>
-struct AdaptFieldSequenceSizeFieldPrefix;
-
-template <>
-struct AdaptFieldSequenceSizeFieldPrefix<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::SequenceSizeFieldPrefix<typename TOpts::SequenceSizeFieldPrefix, TField>;
-};
-
-template <>
-struct AdaptFieldSequenceSizeFieldPrefix<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceSizeFieldPrefixT =
-    typename AdaptFieldSequenceSizeFieldPrefix<TOpts::HasSequenceSizeFieldPrefix>::template Type<TField, TOpts>;
-
 //--
-template <bool THasSequenceSerLengthFieldPrefix>
-struct AdaptFieldSequenceSerLengthFieldPrefix;
-
-template <>
-struct AdaptFieldSequenceSerLengthFieldPrefix<true>
-{
-    template <typename TField, typename TOpts>
-    using Type =
-        comms::field::adapter::SequenceSerLengthFieldPrefix<
-            typename TOpts::SequenceSerLengthFieldPrefix,
-            TOpts::SequenceSerLengthFieldReadErrorStatus,
-            TField
-        >;
-};
-
-template <>
-struct AdaptFieldSequenceSerLengthFieldPrefix<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceSerLengthFieldPrefixT =
-    typename AdaptFieldSequenceSerLengthFieldPrefix<TOpts::HasSequenceSerLengthFieldPrefix>::template Type<TField, TOpts>;
-
-//--
-
-template <bool THasSequenceElemSerLengthFieldPrefix>
-struct AdaptFieldSequenceElemSerLengthFieldPrefix;
-
-template <>
-struct AdaptFieldSequenceElemSerLengthFieldPrefix<true>
-{
-    template <typename TField, typename TOpts>
-    using Type =
-        comms::field::adapter::SequenceElemSerLengthFieldPrefix<
-            typename TOpts::SequenceElemSerLengthFieldPrefix,
-            TOpts::SequenceElemSerLengthFieldReadErrorStatus,
-            TField
-        >;
-};
-
-template <>
-struct AdaptFieldSequenceElemSerLengthFieldPrefix<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceElemSerLengthFieldPrefixT =
-    typename AdaptFieldSequenceElemSerLengthFieldPrefix<TOpts::HasSequenceElemSerLengthFieldPrefix>::template Type<TField, TOpts>;
-
-//--
-
-template <bool THasSequenceElemFixedSerLengthFieldPrefix>
-struct AdaptFieldSequenceElemFixedSerLengthFieldPrefix;
-
-template <>
-struct AdaptFieldSequenceElemFixedSerLengthFieldPrefix<true>
-{
-    template <typename TField, typename TOpts>
-    using Type =
-        comms::field::adapter::SequenceElemFixedSerLengthFieldPrefix<
-            typename TOpts::SequenceElemFixedSerLengthFieldPrefix,
-            TOpts::SequenceElemFixedSerLengthFieldReadErrorStatus,
-            TField
-        >;
-};
-
-template <>
-struct AdaptFieldSequenceElemFixedSerLengthFieldPrefix<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceElemFixedSerLengthFieldPrefixT =
-    typename AdaptFieldSequenceElemFixedSerLengthFieldPrefix<TOpts::HasSequenceElemFixedSerLengthFieldPrefix>::template Type<TField, TOpts>;
-
-//--
-
-template <bool THasSequenceTrailingFieldSuffix>
-struct AdaptFieldSequenceTrailingFieldSuffix;
-
-template <>
-struct AdaptFieldSequenceTrailingFieldSuffix<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::SequenceTrailingFieldSuffix<typename TOpts::SequenceTrailingFieldSuffix, TField>;
-};
-
-template <>
-struct AdaptFieldSequenceTrailingFieldSuffix<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceTrailingFieldSuffixT =
-    typename AdaptFieldSequenceTrailingFieldSuffix<TOpts::HasSequenceTrailingFieldSuffix>::template Type<TField, TOpts>;
-
-template <bool THasSequenceTerminationFieldSuffix>
-struct AdaptFieldSequenceTerminationFieldSuffix;
-
-template <>
-struct AdaptFieldSequenceTerminationFieldSuffix<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::SequenceTerminationFieldSuffix<typename TOpts::SequenceTerminationFieldSuffix, TField>;
-};
-
-template <>
-struct AdaptFieldSequenceTerminationFieldSuffix<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldSequenceTerminationFieldSuffixT =
-    typename AdaptFieldSequenceTerminationFieldSuffix<TOpts::HasSequenceTerminationFieldSuffix>::
-        template Type<TField, TOpts>;
-
-template <bool THasRemLengthMemberField>
-struct AdaptFieldRemLengthMemberField;
-
-template <>
-struct AdaptFieldRemLengthMemberField<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::RemLengthMemberField<TOpts::RemLengthMemberFieldIdx, TField>;
-};
-
-template <>
-struct AdaptFieldRemLengthMemberField<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};        
-
-template <typename TField, typename TOpts>
-using AdaptFieldRemLengthMemberFieldT = 
-    typename AdaptFieldRemLengthMemberField<TOpts::HasRemLengthMemberField>::
-        template Type<TField, TOpts>;
-
-template <bool THasDefaultValueInitialiser>
-struct AdaptFieldDefaultValueInitialiser;
-
-template <>
-struct AdaptFieldDefaultValueInitialiser<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::DefaultValueInitialiser<typename TOpts::DefaultValueInitialiser, TField>;
-};
-
-template <>
-struct AdaptFieldDefaultValueInitialiser<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldDefaultValueInitialiserT =
-    typename AdaptFieldDefaultValueInitialiser<TOpts::HasDefaultValueInitialiser>::template Type<TField, TOpts>;
-
-template <bool THasMultiRangeValidation>
-struct AdaptFieldNumValueMultiRangeValidator;
-
-template <>
-struct AdaptFieldNumValueMultiRangeValidator<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::NumValueMultiRangeValidator<typename TOpts::MultiRangeValidationRanges, TField>;
-};
-
-template <>
-struct AdaptFieldNumValueMultiRangeValidator<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldNumValueMultiRangeValidatorT =
-    typename AdaptFieldNumValueMultiRangeValidator<TOpts::HasMultiRangeValidation>::template Type<TField, TOpts>;
-
-
-template <bool THasCustomValidator>
-struct AdaptFieldCustomValidator;
-
-template <>
-struct AdaptFieldCustomValidator<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::CustomValidator<typename TOpts::CustomValidator, TField>;
-};
-
-template <>
-struct AdaptFieldCustomValidator<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldCustomValidatorT =
-    typename AdaptFieldCustomValidator<TOpts::HasCustomValidator>::template Type<TField, TOpts>;
-
-template <bool THasCustomRefresh>
-struct AdaptFieldCustomRefreshWrap;
-
-template <>
-struct AdaptFieldCustomRefreshWrap<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::CustomRefreshWrap<TField>;
-};
-
-template <>
-struct AdaptFieldCustomRefreshWrap<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldCustomRefreshWrapT =
-    typename AdaptFieldCustomRefreshWrap<TOpts::HasCustomRefresh>::template Type<TField>;
-
-template <bool THasContentsRefresher>
-struct AdaptFieldCustomRefresher;
-
-template <>
-struct AdaptFieldCustomRefresher<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::CustomRefresher<typename TOpts::CustomRefresher, TField>;
-};
-
-template <>
-struct AdaptFieldCustomRefresher<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldCustomRefresherT =
-    typename AdaptFieldCustomRefresher<TOpts::HasContentsRefresher>::template Type<TField, TOpts>;
-
-template <bool THasFailOnInvalid>
-struct AdaptFieldFailOnInvalid;
-
-template <>
-struct AdaptFieldFailOnInvalid<true>
-{
-    template <typename TField, typename TOpts>
-    using Type = comms::field::adapter::FailOnInvalid<TOpts::FailOnInvalidStatus, TField>;
-};
-
-template <>
-struct AdaptFieldFailOnInvalid<false>
-{
-    template <typename TField, typename TOpts>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldFailOnInvalidT =
-    typename AdaptFieldFailOnInvalid<TOpts::HasFailOnInvalid>::template Type<TField, TOpts>;
-
-template <bool THasIgnoreInvalid>
-struct AdaptFieldIgnoreInvalid;
-
-template <>
-struct AdaptFieldIgnoreInvalid<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::IgnoreInvalid<TField>;
-};
-
-template <>
-struct AdaptFieldIgnoreInvalid<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldIgnoreInvalidT =
-    typename AdaptFieldIgnoreInvalid<TOpts::HasIgnoreInvalid>::template Type<TField>;
-
-template <bool THasEmptySerialization>
-struct AdaptFieldEmptySerialization;
-
-template <>
-struct AdaptFieldEmptySerialization<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::EmptySerialization<TField>;
-};
-
-template <>
-struct AdaptFieldEmptySerialization<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldEmptySerializationT =
-    typename AdaptFieldEmptySerialization<TOpts::HasEmptySerialization>::template Type<TField>;
-
-template <bool THasCustomWrite>
-struct AdaptFieldCustomWriteWrap;
-
-template <>
-struct AdaptFieldCustomWriteWrap<true>
-{
-    template <typename TField>
-    using Type = comms::field::adapter::CustomWriteWrap<TField>;
-};
-
-template <>
-struct AdaptFieldCustomWriteWrap<false>
-{
-    template <typename TField>
-    using Type = TField;
-};
-
-template <typename TField, typename TOpts>
-using AdaptFieldCustomWriteWrapT =
-    typename AdaptFieldCustomWriteWrap<TOpts::HasCustomWrite>::template Type<TField>;
 
 template <typename TBasic, typename... TOptions>
 class AdaptBasicField
@@ -773,64 +132,92 @@ class AdaptBasicField
             "The following options are incompatible, cannot be used together: "
             "SequenceFixedSizeUseFixedSizeStorage, FixedSizeStorage");
 
-    using InvalidByDefaultAdapted = AdaptFieldInvalidByDefaultT<
-        TBasic, ParsedOptions>;
-    using VersionStorageAdapted = AdaptFieldVersionStorageT<
-        InvalidByDefaultAdapted, ParsedOptions>;
-    using CustomReaderAdapted = AdaptFieldCustomValueReaderT<
-        VersionStorageAdapted, ParsedOptions>;
-    using SerOffsetAdapted = AdaptFieldSerOffsetT<
-        CustomReaderAdapted, ParsedOptions>;
-    using VersionsRangeAdapted = AdaptFieldVersionsRangeT<
-        SerOffsetAdapted, ParsedOptions>;
-    using FixedLengthAdapted = AdaptFieldFixedLengthT<
-        VersionsRangeAdapted, ParsedOptions>;
-    using FixedBitLengthAdapted = AdaptFieldFixedBitLengthT<
-        FixedLengthAdapted, ParsedOptions>;
-    using VarLengthAdapted = AdaptFieldVarLengthT<
-        FixedBitLengthAdapted, ParsedOptions>;
-    using SequenceElemLengthForcingAdapted = AdaptFieldSequenceElemLengthForcingT<
-        VarLengthAdapted, ParsedOptions>;
-    using SequenceElemSerLengthFieldPrefixAdapted = AdaptFieldSequenceElemSerLengthFieldPrefixT<
-        SequenceElemLengthForcingAdapted, ParsedOptions>;
-    using SequenceElemFixedSerLengthFieldPrefixAdapted = AdaptFieldSequenceElemFixedSerLengthFieldPrefixT<
-        SequenceElemSerLengthFieldPrefixAdapted, ParsedOptions>;
-    using SequenceSizeForcingAdapted = AdaptFieldSequenceSizeForcingT<
-        SequenceElemFixedSerLengthFieldPrefixAdapted, ParsedOptions>;
-    using SequenceLengthForcingAdapted = AdaptFieldSequenceLengthForcingT<
-        SequenceSizeForcingAdapted, ParsedOptions>;
-    using SequenceFixedSizeAdapted = AdaptFieldSequenceFixedSizeT<
-        SequenceLengthForcingAdapted, ParsedOptions>;
-    using SequenceSizeFieldPrefixAdapted = AdaptFieldSequenceSizeFieldPrefixT<
-        SequenceFixedSizeAdapted, ParsedOptions>;
-    using SequenceSerLengthFieldPrefixAdapted = AdaptFieldSequenceSerLengthFieldPrefixT<
-        SequenceSizeFieldPrefixAdapted, ParsedOptions>;
-    using SequenceTrailingFieldSuffixAdapted = AdaptFieldSequenceTrailingFieldSuffixT<
-        SequenceSerLengthFieldPrefixAdapted, ParsedOptions>;
-    using SequenceTerminationFieldSuffixAdapted = AdaptFieldSequenceTerminationFieldSuffixT<
-        SequenceTrailingFieldSuffixAdapted, ParsedOptions>;
-     using RemLengthMemberFieldAdapted = AdaptFieldRemLengthMemberFieldT<
-        SequenceTerminationFieldSuffixAdapted, ParsedOptions>;
-    using DefaultValueInitialiserAdapted = AdaptFieldDefaultValueInitialiserT<
-        RemLengthMemberFieldAdapted, ParsedOptions>;
-    using NumValueMultiRangeValidatorAdapted = AdaptFieldNumValueMultiRangeValidatorT<
-        DefaultValueInitialiserAdapted, ParsedOptions>;
-    using CustomValidatorAdapted = AdaptFieldCustomValidatorT<
-        NumValueMultiRangeValidatorAdapted, ParsedOptions>;
-    using CustomRefresherAdapted = AdaptFieldCustomRefresherT<
-        CustomValidatorAdapted, ParsedOptions>;
-    using FailOnInvalidAdapted = AdaptFieldFailOnInvalidT<
-        CustomRefresherAdapted, ParsedOptions>;
-    using IgnoreInvalidAdapted = AdaptFieldIgnoreInvalidT<
-        FailOnInvalidAdapted, ParsedOptions>;
-    using EmptySerializationAdapted = AdaptFieldEmptySerializationT<
-        IgnoreInvalidAdapted, ParsedOptions>;
-    using CustomReadWrapAdapted = AdaptFieldCustomReadWrapT<
-        EmptySerializationAdapted, ParsedOptions>;
-    using CustomRefreshWrapAdapted = AdaptFieldCustomRefreshWrapT<
-        CustomReadWrapAdapted, ParsedOptions>;
-    using CustomWriteWrapAdapted = AdaptFieldCustomWriteWrapT<
-        CustomRefreshWrapAdapted, ParsedOptions>;
+    using InvalidByDefaultAdapted = 
+        typename ParsedOptions::template AdaptInvalidByDefault<TBasic>;
+        
+    using VersionStorageAdapted = 
+        typename ParsedOptions::template AdaptVersionStorage<InvalidByDefaultAdapted>;
+    
+    using CustomReaderAdapted = 
+        typename ParsedOptions::template AdaptCustomValueReader<VersionStorageAdapted>;
+
+    using SerOffsetAdapted = 
+        typename ParsedOptions::template AdaptSerOffset<CustomReaderAdapted>;
+
+    using VersionsRangeAdapted = 
+        typename ParsedOptions::template AdaptVersionsRange<SerOffsetAdapted>;
+
+    using FixedLengthLimitAdapted = 
+        typename ParsedOptions::template AdaptFixedLengthLimit<VersionsRangeAdapted>;
+
+    using FixedBitLengthLimitAdapted = 
+        typename ParsedOptions::template AdaptFixedBitLengthLimit<FixedLengthLimitAdapted>;
+
+    using VarLengthLimitsAdapted = 
+        typename ParsedOptions::template AdaptVarLengthLimits<FixedBitLengthLimitAdapted>;
+
+    using SequenceElemLengthForcingAdapted = 
+        typename ParsedOptions::template AdaptSequenceElemLengthForcing<VarLengthLimitsAdapted>;
+    
+    using SequenceElemSerLengthFieldPrefixAdapted = 
+        typename ParsedOptions::template AdaptSequenceElemSerLengthFieldPrefix<SequenceElemLengthForcingAdapted>;
+
+    using SequenceElemFixedSerLengthFieldPrefixAdapted = 
+        typename ParsedOptions::template AdaptSequenceElemFixedSerLengthFieldPrefix<SequenceElemSerLengthFieldPrefixAdapted>;
+
+    using SequenceSizeForcingAdapted = 
+        typename ParsedOptions::template AdaptSequenceSizeForcing<SequenceElemFixedSerLengthFieldPrefixAdapted>;
+
+    using SequenceLengthForcingAdapted = 
+        typename ParsedOptions::template AdaptSequenceLengthForcing<SequenceSizeForcingAdapted>;
+        
+    using SequenceFixedSizeAdapted = 
+        typename ParsedOptions::template AdaptSequenceFixedSize<SequenceLengthForcingAdapted>;
+
+    using SequenceSizeFieldPrefixAdapted = 
+        typename ParsedOptions::template AdaptSequenceSizeFieldPrefix<SequenceFixedSizeAdapted>;
+
+    using SequenceSerLengthFieldPrefixAdapted = 
+        typename ParsedOptions::template AdaptSequenceSerLengthFieldPrefix<SequenceSizeFieldPrefixAdapted>;
+    
+    using SequenceTrailingFieldSuffixAdapted = 
+        typename ParsedOptions::template AdaptSequenceTrailingFieldSuffix<SequenceSerLengthFieldPrefixAdapted>;
+    
+    using SequenceTerminationFieldSuffixAdapted = 
+        typename ParsedOptions::template AdaptSequenceTerminationFieldSuffix<SequenceTrailingFieldSuffixAdapted>;
+    
+     using RemLengthMemberFieldAdapted = 
+        typename ParsedOptions::template AdaptRemLengthMemberField<SequenceTerminationFieldSuffixAdapted>;
+
+    using DefaultValueInitialiserAdapted = 
+        typename ParsedOptions::template AdaptDefaultValueInitialiser<RemLengthMemberFieldAdapted>;
+
+    using MultiRangeValidationAdapted = 
+        typename ParsedOptions::template AdaptMultiRangeValidation<DefaultValueInitialiserAdapted>;
+    
+    using CustomValidatorAdapted = 
+        typename ParsedOptions::template AdaptCustomValidator<MultiRangeValidationAdapted>;
+
+    using CustomRefresherAdapted = 
+        typename ParsedOptions::template AdaptContentsRefresher<CustomValidatorAdapted>;
+
+    using FailOnInvalidAdapted = 
+        typename ParsedOptions::template AdaptFailOnInvalid<CustomRefresherAdapted>;
+
+    using IgnoreInvalidAdapted = 
+        typename ParsedOptions::template AdaptIgnoreInvalid<FailOnInvalidAdapted>;
+
+    using EmptySerializationAdapted = 
+        typename ParsedOptions::template AdaptEmptySerialization<IgnoreInvalidAdapted>;
+
+    using CustomReadWrapAdapted = 
+        typename ParsedOptions::template AdaptCustomRead<EmptySerializationAdapted>;
+
+    using CustomRefreshWrapAdapted = 
+        typename ParsedOptions::template AdaptCustomRefresh<CustomReadWrapAdapted>;
+
+    using CustomWriteWrapAdapted = 
+            typename ParsedOptions::template AdaptCustomWrite<CustomRefreshWrapAdapted>;
 
 public:
     using Type = CustomWriteWrapAdapted;

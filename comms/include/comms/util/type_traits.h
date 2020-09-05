@@ -35,6 +35,44 @@ struct Conditional<false>
 template <bool TCond, typename TTrue, typename TFalse>
 using ConditionalT = typename Conditional<TCond>::template Type<TTrue, TFalse>;
 
+template <bool TCond>
+struct LazyShallowConditional
+{
+    template <template<typename> class TTrue, template<typename> class TFalse, typename TParam=void>
+    using Type = TTrue<TParam>;
+};
+
+template <>
+struct LazyShallowConditional<false>
+{
+    template <template<typename> class TTrue, template<typename> class TFalse, typename TParam=void>
+    using Type = TFalse<TParam>;
+};
+
+template <bool TCond>
+struct LazyDeepConditional
+{
+    template <template<typename> class TTrue, template<typename> class TFalse, typename TParam=void>
+    using Type = typename TTrue<TParam>::Type;
+};
+
+template <>
+struct LazyDeepConditional<false>
+{
+    template <template<typename> class TTrue, template<typename> class TFalse, typename TParam=void>
+    using Type = typename TFalse<TParam>::Type;
+};
+
+template <typename T>
+using TypeAliasShallow = T;
+
+template <typename T>
+class TypeAliasDeep
+{
+public:
+    using Type = T;
+};
+
 } // namespace util
 
 } // namespace comms

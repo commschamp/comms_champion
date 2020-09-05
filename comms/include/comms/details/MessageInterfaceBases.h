@@ -353,6 +353,13 @@ protected:
     virtual ~MessageInterfaceVirtDestructorBase() noexcept = default;
 };
 
+template <typename TBase>
+class MessageInterfaceVirtDestructorBaseWrapper
+{
+public:
+    using Type = MessageInterfaceVirtDestructorBase<TBase>;
+};
+
 } // namespace details
 
 } // namespace comms

@@ -23,47 +23,6 @@ namespace comms
 namespace details
 {
 
-//----------------------------------------------------
-
-template <typename TOpts>
-constexpr bool messageInterfaceHasVirtualFunctions()
-{
-    return
-        TOpts::HasReadIterator ||
-        TOpts::HasWriteIterator ||
-        TOpts::HasMsgIdInfo ||
-        TOpts::HasHandler ||
-        TOpts::HasValid ||
-        TOpts::HasLength ||
-        TOpts::HasRefresh ||
-        TOpts::HasName;
-}
-
-template <bool THasVirtDestructor>
-struct MessageInterfaceProcessVirtDestructorBase;
-
-template <>
-struct MessageInterfaceProcessVirtDestructorBase<true>
-{
-    template <typename TBase>
-    using Type = MessageInterfaceVirtDestructorBase<TBase>;
-};
-
-template <>
-struct MessageInterfaceProcessVirtDestructorBase<false>
-{
-    template <typename TBase>
-    using Type = TBase;
-};
-
-template <typename TBase, typename TOpts>
-using MessageInterfaceVirtDestructorBaseT =
-    typename MessageInterfaceProcessVirtDestructorBase<
-        (!TOpts::HasNoVirtualDestructor) && messageInterfaceHasVirtualFunctions<TOpts>()
-    >::template Type<TBase>;
-
-//----------------------------------------------------
-
 template <typename... TOptions>
 class MessageInterfaceBuilder
 {
@@ -121,8 +80,14 @@ class MessageInterfaceBuilder
     using NameBase = 
         typename ParsedOptions::template BuildName<RefreshBase>;     
 
-    using VirtDestructorBase = MessageInterfaceVirtDestructorBaseT<NameBase, ParsedOptions>;
-
+    using VirtDestructorBase = 
+        typename comms::util::LazyDeepConditional<
+            MustHaveVirtualDestructor
+        >::template Type<
+            MessageInterfaceVirtDestructorBaseWrapper,
+            comms::util::TypeAliasDeep,
+            NameBase
+        >;
 public:
     using Options = ParsedOptions;
     using Type = VirtDestructorBase;

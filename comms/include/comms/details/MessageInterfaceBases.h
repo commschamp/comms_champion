@@ -8,6 +8,7 @@
 #pragma once
 
 #include <tuple>
+#include <cstddef>
 
 #include "comms/Field.h"
 #include "comms/util/access.h"
@@ -15,6 +16,7 @@
 #include "comms/options.h"
 #include "comms/Assert.h"
 #include "comms/details/tag.h"
+#include "comms/ErrorStatus.h"
 
 namespace comms
 {
@@ -293,8 +295,8 @@ protected:
     }
 
 private:
-    using VoidHandleRetTypeTag = comms::details::tag::Tag1;
-    using NonVoidHandleRetTypeTag = comms::details::tag::Tag2;
+    using VoidHandleRetTypeTag = comms::details::tag::Tag1<>;
+    using NonVoidHandleRetTypeTag = comms::details::tag::Tag2<>;
 
     static DispatchRetType dispatchInternal(VoidHandleRetTypeTag)
     {

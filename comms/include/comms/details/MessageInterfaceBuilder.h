@@ -81,13 +81,13 @@ class MessageInterfaceBuilder
         typename ParsedOptions::template BuildName<RefreshBase>;     
 
     using VirtDestructorBase = 
-        typename comms::util::LazyDeepConditional<
+        typename comms::util::LazyShallowDeepConditional<
             MustHaveVirtualDestructor
         >::template Type<
-            MessageInterfaceVirtDestructorBaseWrapper,
-            comms::util::TypeAliasDeep,
+            MessageInterfaceVirtDestructorBase,
+            comms::util::TypeDeepWrap,
             NameBase
-        >;
+        >;    
 public:
     using Options = ParsedOptions;
     using Type = VirtDestructorBase;

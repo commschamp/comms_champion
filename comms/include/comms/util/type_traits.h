@@ -38,38 +38,50 @@ using ConditionalT = typename Conditional<TCond>::template Type<TTrue, TFalse>;
 template <bool TCond>
 struct LazyShallowConditional
 {
-    template <template<typename> class TTrue, template<typename> class TFalse, typename TParam=void>
-    using Type = TTrue<TParam>;
+    template <template<typename...> class TTrue, template<typename...> class TFalse, typename... TParams>
+    using Type = TTrue<TParams...>;
 };
 
 template <>
 struct LazyShallowConditional<false>
 {
-    template <template<typename> class TTrue, template<typename> class TFalse, typename TParam=void>
-    using Type = TFalse<TParam>;
+    template <template<typename...> class TTrue, template<typename...> class TFalse, typename... TParams>
+    using Type = TFalse<TParams...>;
 };
 
 template <bool TCond>
 struct LazyDeepConditional
 {
-    template <template<typename> class TTrue, template<typename> class TFalse, typename TParam=void>
-    using Type = typename TTrue<TParam>::Type;
+    template <template<typename...> class TTrue, template<typename...> class TFalse, typename... TParams>
+    using Type = typename TTrue<>::template Type<TParams...>;
 };
 
 template <>
 struct LazyDeepConditional<false>
 {
-    template <template<typename> class TTrue, template<typename> class TFalse, typename TParam=void>
-    using Type = typename TFalse<TParam>::Type;
+    template <template<typename...> class TTrue, template<typename...> class TFalse, typename... TParams>
+    using Type = typename TFalse<>::template Type<TParams...>;
 };
 
-template <typename T>
-using TypeAliasShallow = T;
+template <bool TCond>
+struct LazyShallowDeepConditional
+{
+    template <template<typename...> class TTrue, template<typename...> class TFalse, typename... TParams>
+    using Type = TTrue<TParams...>;
+};
 
-template <typename T>
-class TypeAliasDeep
+template <>
+struct LazyShallowDeepConditional<false>
+{
+    template <template<typename...> class TTrue, template<typename...> class TFalse, typename... TParams>
+    using Type = typename TFalse<>::template Type<TParams...>;
+};
+
+template <typename...>
+class TypeDeepWrap
 {
 public:
+    template <typename T, typename...>
     using Type = T;
 };
 

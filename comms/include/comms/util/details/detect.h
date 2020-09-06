@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "comms/CompileControl.h"
 #include "comms/util/type_traits.h"
 
 namespace comms
@@ -24,8 +25,17 @@ namespace detect
 namespace details
 {
 
+#if COMMS_IS_MSVC_2015_OR_BELOW
+
 template <typename... TArgs>
-using VoidT = typename TypeDeepWrap<>::template Type<void>;
+using VoidT = typename comms::util::TypeDeepWrap<TArgs...>::template Type<void>;
+
+#else
+
+template <typename... TArgs>
+using VoidT = void;
+
+#endif
 
 template <typename TVoid, template <class...> class TOp, typename... TArgs>
 struct PresenceDetector

@@ -25,47 +25,35 @@ namespace detect
 namespace details
 {
 
-#if COMMS_IS_MSVC_2015_OR_BELOW
+// MSVC2015 Is not working correctly with VoidT or any other workaround 
+// suggested at https://en.cppreference.com/w/cpp/types/void_t
 
-template<typename... Ts> 
-struct MakeVoidT 
-{ 
-    typedef void type;
-};
+// template <typename... TArgs>
+// using VoidT = void;
 
-template <typename... TArgs>
-using VoidT = typename MakeVoidT<TArgs...>::Type;
+// template <typename TVoid, template <class...> class TOp, typename... TArgs>
+// struct PresenceDetector
+// {
+//    static const bool Value = false;
+// };
 
-#else
+// template <template <class...> class TOp, typename... TArgs>
+// struct PresenceDetector<VoidT<TOp<TArgs...> >, TOp, TArgs...>
+// {
+//    static const bool Value = true;
+// };
 
-template <typename... TArgs>
-using VoidT = void;
+// template <template <class...> class TOp, typename... TArgs>
+// constexpr bool isDetected()
+// {
+//    return PresenceDetector<void, TOp, TArgs...>::Value;
+// }
 
-#endif
+// template <typename T>
+// using HasClearOp = decltype(std::declval<T&>().clear());
 
-template <typename TVoid, template <class...> class TOp, typename... TArgs>
-struct PresenceDetector
-{
-   static const bool Value = false;
-};
-
-template <template <class...> class TOp, typename... TArgs>
-struct PresenceDetector<VoidT<TOp<TArgs...> >, TOp, TArgs...>
-{
-   static const bool Value = true;
-};
-
-template <template <class...> class TOp, typename... TArgs>
-constexpr bool isDetected()
-{
-   return PresenceDetector<void, TOp, TArgs...>::Value;
-}
-
-template <typename T>
-using HasClearOp = decltype(std::declval<T&>().clear());
-
-template <typename T>
-using HasReserveOp = decltype(std::declval<T&>().reserve(std::declval<typename T::size_type>()));
+// template <typename T>
+// using HasReserveOp = decltype(std::declval<T&>().reserve(std::declval<typename T::size_type>()));
 
 
 template <typename T>

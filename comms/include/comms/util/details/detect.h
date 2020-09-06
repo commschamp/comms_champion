@@ -27,8 +27,14 @@ namespace details
 
 #if COMMS_IS_MSVC_2015_OR_BELOW
 
+template<typename... Ts> 
+struct MakeVoidT 
+{ 
+    typedef void type;
+};
+
 template <typename... TArgs>
-using VoidT = typename comms::util::TypeDeepWrap<TArgs...>::template Type<void>;
+using VoidT = typename MakeVoidT<TArgs...>::Type;
 
 #else
 

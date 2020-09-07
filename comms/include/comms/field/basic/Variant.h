@@ -30,9 +30,33 @@ namespace basic
 namespace details
 {
 
+#if COMMS_IS_MSVC_2017_OR_BELOW
+struct VariantElemVersionDependHelper
+{
+    template <typename TElem>
+    constexpr bool operator()() const
+    {
+        return TElem::isVersionDependent();
+    }
+};
+
 template <typename... TMembers>
 using AreVariantMembersVersionDependentBoolType = 
+    typename comms::util::Conditional<
+        comms::util::tupleTypeIsAnyOf<std::tuple<TMembers...> >(VariantElemVersionDependHelper())
+    >::template Type<
+        std::true_type,
+        std::false_type
+    >;
+
+#else // #if COMMS_IS_MSVC_2017_OR_BELOW
+
+template <typename... TMembers>
+
+using AreVariantMembersVersionDependentBoolType = 
     typename comms::util::IsAnyOf<>::template Type<comms::util::FieldCheckVersionDependent, TMembers...>;
+
+#endif // #else // #if COMMS_IS_MSVC_2017_OR_BELOW
 
 template <typename TFieldBase, typename... TMembers>
 using VariantVersionStorageBase = 

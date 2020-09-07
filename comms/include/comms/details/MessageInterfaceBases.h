@@ -24,7 +24,7 @@ namespace comms
 namespace details
 {
 
-class MessageInterfaceEmptyBase {};
+using MessageInterfaceEmptyBase = comms::util::EmptyStruct<>;
 
 // ------------------------------------------------------
 

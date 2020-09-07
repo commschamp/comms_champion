@@ -21,7 +21,31 @@ struct Tag1 {};
 
 template<typename...>
 struct Tag2 {};
-    
+
+template<typename...>
+struct Tag3 {};
+
+template<typename...>
+struct Tag4 {};
+
+template<typename...>
+struct Tag5 {};
+
+template<typename...>
+struct Tag6 {};
+
+template<typename...>
+struct Tag7 {};
+
+template<typename...>
+struct Tag8 {};
+
+template<typename...>
+struct Tag9 {};
+
+template<typename...>
+struct Tag10 {};
+
 } // namespace tag
     
 } // namespace details

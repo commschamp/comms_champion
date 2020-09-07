@@ -104,6 +104,14 @@ public:
     {
     }
 
+    /// @brief Constructor
+    template <typename TIter>
+    ArrayView(TIter iter, size_type len) noexcept
+      : data_(reinterpret_cast<const_pointer>(&(*iter))),
+        len_(len)
+    {
+    }
+
     /// @brief Construct out of array of elements with known size
     template <std::size_t TN>
     ArrayView(const T (&data)[TN]) noexcept

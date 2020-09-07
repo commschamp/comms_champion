@@ -10,11 +10,17 @@
 
 #pragma once
 
+#include <type_traits>
+#include "comms/util/details/type_traits.h"
+
 namespace comms
 {
 
 namespace util
 {
+
+template <typename...>
+struct EmptyStruct {};
 
 /// @brief Replacement to std::conditional
 template <bool TCond>
@@ -83,6 +89,75 @@ class TypeDeepWrap
 public:
     template <typename T, typename...>
     using Type = T;
+};
+
+template <typename...>
+class FieldCheckVersionDependent
+{
+public:
+    template <typename T>
+    using Type = 
+        typename 
+        Conditional<
+            T::isVersionDependent()
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+};
+
+template <typename...>
+class FieldCheckNonDefaultRefresh
+{
+public:
+    template <typename T>
+    using Type = 
+        typename 
+        Conditional<
+            T::hasNonDefaultRefresh()
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+};
+
+template <typename...>
+class FieldCheckVarLength
+{
+public:
+    template <typename T>
+    using Type = 
+        typename 
+        Conditional<
+            T::minLength() != T::maxLength()
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+};
+
+template <typename...>
+class TrueType
+{
+public:
+    template <typename...>
+    using Type = std::true_type;    
+};
+
+
+template <typename...>
+class FalseType
+{
+public:
+    template <typename...>
+    using Type = std::false_type;    
+};
+
+template <typename...>
+struct IsAnyOf
+{
+    template <template<typename...> class TPred, typename... TRest>
+    using Type = typename details::IsAnyOfImpl<0 == sizeof...(TRest)>::template Type<TPred, TRest...>;
 };
 
 } // namespace util

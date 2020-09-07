@@ -30,39 +30,35 @@ namespace basic
 namespace details
 {
 
-struct VariantElemVersionDependHelper
-{
-    template <typename TElem>
-    constexpr bool operator()() const
-    {
-        return TElem::isVersionDependent();
-    }
-};
+template <typename... TMembers>
+using AreVariantMembersVersionDependentBoolType = 
+    typename comms::util::IsAnyOf<>::template Type<comms::util::FieldCheckVersionDependent, TMembers...>;
 
-template <typename TMembers>
-constexpr bool variantIsAnyMemberVersionDependent()
-{
-    return comms::util::tupleTypeIsAnyOf<TMembers>(VariantElemVersionDependHelper());
-}
+template <typename TFieldBase, typename... TMembers>
+using VariantVersionStorageBase = 
+    typename comms::util::LazyShallowConditional<
+        AreVariantMembersVersionDependentBoolType<TMembers...>::value
+    >::template Type<
+        comms::field::details::VersionStorage,
+        comms::util::EmptyStruct,
+        typename TFieldBase::VersionType
+    >;
 
 } // namespace details
 
 template <typename TFieldBase, typename TMembers>
-class Variant :
+class Variant;
+
+template <typename TFieldBase, typename... TMembers>
+class Variant<TFieldBase, std::tuple<TMembers...> > :
         public TFieldBase,
-        public comms::field::details::VersionStorage<
-            typename TFieldBase::VersionType,
-            details::variantIsAnyMemberVersionDependent<TMembers>()
-        >
+        public details::VariantVersionStorageBase<TFieldBase, TMembers...>
 {
     using BaseImpl = TFieldBase;
-    using VersionBaseImpl =
-        comms::field::details::VersionStorage<
-            typename TFieldBase::VersionType,
-            details::variantIsAnyMemberVersionDependent<TMembers>()
-        >;
+    using VersionBaseImpl = details::VariantVersionStorageBase<TFieldBase, TMembers...>;
+
 public:
-    using Members = TMembers;
+    using Members = std::tuple<TMembers...>;
     using ValueType = comms::util::TupleAsAlignedUnionT<Members>;
     using VersionType = typename BaseImpl::VersionType;
 
@@ -241,7 +237,7 @@ public:
 
     static constexpr bool hasWriteNoStatus()
     {
-        return comms::util::tupleTypeAccumulate<TMembers>(true, WriteNoStatusDetector());
+        return comms::util::tupleTypeAccumulate<Members>(true, WriteNoStatusDetector());
     }
 
     template <typename TIter>
@@ -343,7 +339,7 @@ public:
 
     static constexpr bool isVersionDependent()
     {
-        return details::variantIsAnyMemberVersionDependent<Members>();
+        return details::AreVariantMembersVersionDependentBoolType<TMembers...>::value;
     }
 
     bool setVersion(VersionType version)
@@ -362,7 +358,7 @@ private:
 
     using VersionTag =
         typename comms::util::Conditional<
-            details::variantIsAnyMemberVersionDependent<Members>()
+            isVersionDependent()
         >::template Type<
             VersionDependentTag,
             NoVersionDependencyTag

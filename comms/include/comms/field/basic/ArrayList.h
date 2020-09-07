@@ -397,7 +397,7 @@ private:
     template <typename... TParams>
     using VersionTag =
         typename comms::util::Conditional<
-            isVersionDependent()
+            details::IsArrayListElemVersionDependentBoolType<ElementType>::value
         >::template Type<
             VersionDependentTag<TParams...>,
             NoVersionDependencyTag<TParams...>

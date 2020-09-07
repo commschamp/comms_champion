@@ -358,7 +358,7 @@ private:
 
     using VersionTag =
         typename comms::util::Conditional<
-            isVersionDependent()
+            details::AreVariantMembersVersionDependentBoolType<TMembers...>::value
         >::template Type<
             VersionDependentTag,
             NoVersionDependencyTag

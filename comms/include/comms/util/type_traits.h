@@ -106,6 +106,29 @@ public:
         >;
 };
 
+template <bool TIsField>
+class EagerFieldCheckVersionDependent
+{
+public:
+    template <typename T>
+    using Type = 
+        typename 
+        Conditional<
+            T::isVersionDependent()
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+};
+
+template <>
+class EagerFieldCheckVersionDependent<false>
+{
+public:
+    template <typename T>
+    using Type = std::false_type;
+};
+
 template <typename...>
 class FieldCheckNonDefaultRefresh
 {
@@ -121,6 +144,30 @@ public:
         >;
 };
 
+template <bool TIsField>
+class EagerFieldCheckNonDefaultRefresh
+{
+public:
+    template <typename T>
+    using Type = 
+        typename 
+        Conditional<
+            T::hasNonDefaultRefresh()
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+};
+
+template <>
+class EagerFieldCheckNonDefaultRefresh<false>
+{
+public:
+    template <typename T>
+    using Type = std::false_type;
+};
+
+
 template <typename...>
 class FieldCheckVarLength
 {
@@ -135,6 +182,30 @@ public:
             std::false_type
         >;
 };
+
+template <bool TIsField>
+class EagerFieldCheckVarLength
+{
+public:
+    template <typename T>
+    using Type = 
+        typename 
+        Conditional<
+            T::minLength() != T::maxLength()
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+};
+
+template <>
+class EagerFieldCheckVarLength<false>
+{
+public:
+    template <typename T>
+    using Type = std::false_type;
+};
+
 
 template <typename...>
 class TrueType

@@ -56,37 +56,6 @@ struct ArrayListMaxLengthRetrieveHelper<comms::util::StaticString<TSize> >
     static const std::size_t Value = TSize - 1;
 };
 
-#if COMMS_IS_MSVC_2017_OR_BELOW
-
-template <typename TElem>
-using ArrayListFieldHasVarLengthBoolType = 
-    typename comms::util::EagerFieldCheckVarLength<
-        !std::is_integral<TElem>::value
-    >::template Type<TElem>;
-
-template <typename TElem>
-using HasArrayListElemNonDefaultRefreshBoolType = 
-    typename comms::util::EagerFieldCheckNonDefaultRefresh<
-        !std::is_integral<TElem>::value
-    >::template Type<TElem>;
-
-template <typename TElem>
-using IsArrayListElemVersionDependentBoolType = 
-    typename comms::util::EagerFieldCheckVersionDependent<
-        !std::is_integral<TElem>::value
-    >::template Type<TElem>;
-
-template <typename TFieldBase, typename TStorage>
-using ArrayListVersionStorageBase = 
-    typename comms::util::Conditional<
-        IsArrayListElemVersionDependentBoolType<typename TStorage::value_type>::value
-    >::template Type<
-        comms::field::details::VersionStorage<typename TFieldBase::VersionType>,
-        comms::util::EmptyStruct<>
-    >;    
-
-#else // #if COMMS_IS_MSVC_2017_OR_BELOW
-
 template <typename TElem>
 using ArrayListFieldHasVarLengthBoolType = 
     typename comms::util::LazyDeepConditional<
@@ -126,8 +95,6 @@ using ArrayListVersionStorageBase =
         comms::util::EmptyStruct,
         typename TFieldBase::VersionType
     >;
-
-#endif // #if COMMS_IS_MSVC_2017_OR_BELOW    
 
 }  // namespace details
 
@@ -413,15 +380,6 @@ private:
         >;
 
     template <typename... TParams>
-    using FieldLengthTag = 
-        typename comms::util::Conditional<
-            details::ArrayListFieldHasVarLengthBoolType<ElementType>::value
-        >::template Type<
-            VarLengthTag<TParams...>,
-            FixedLengthTag<TParams...>
-        >;
-
-    template <typename... TParams>
     using VersionTag =
         typename comms::util::Conditional<
             details::IsArrayListElemVersionDependentBoolType<ElementType>::value
@@ -432,6 +390,14 @@ private:
 
     constexpr std::size_t lengthInternal(FieldElemTag<>) const
     {
+        using Tag = 
+            typename comms::util::LazyShallowConditional<
+                details::ArrayListFieldHasVarLengthBoolType<ElementType>::value
+            >::template Type<
+                VarLengthTag,
+                FixedLengthTag
+            >;
+
         return fieldLength(FieldLengthTag<>());
     }
 

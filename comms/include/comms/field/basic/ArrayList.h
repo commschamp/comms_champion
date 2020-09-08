@@ -398,7 +398,7 @@ private:
                 FixedLengthTag
             >;
 
-        return fieldLength(FieldLengthTag<>());
+        return fieldLength(Tag());
     }
 
     constexpr std::size_t lengthInternal(IntegralElemTag<>) const

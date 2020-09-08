@@ -15,10 +15,12 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/access.h"
+#include "comms/util/assign.h"
 #include "comms/util/StaticVector.h"
 #include "comms/util/StaticString.h"
 #include "comms/util/detect.h"
 #include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 #include "CommonFuncs.h"
 
 namespace comms
@@ -44,61 +46,6 @@ struct StringMaxLengthRetrieveHelper<comms::util::StaticString<TSize> >
 {
     static const std::size_t Value = TSize - 1;
 };
-
-template <typename T>
-class StringHasAssign
-{
-protected:
-  typedef char Yes;
-  typedef unsigned No;
-
-  template <typename U, U>
-  struct ReallyHas;
-
-  template <typename C>
-  static Yes test(ReallyHas<C& (C::*)(typename C::const_pointer, typename C::size_type), &C::assign>*);
-
-  template <typename C>
-  static Yes test(ReallyHas<void (C::*)(typename C::const_pointer, typename C::size_type), &C::assign>*);
-
-  template <typename>
-  static No test(...);
-
-public:
-    static const bool Value = (sizeof(test<T>(0)) == sizeof(Yes));
-};
-
-
-template <typename T>
-constexpr bool stringHasAssign()
-{
-    return StringHasAssign<T>::Value;
-}
-
-template <typename T>
-class StringHasPushBack
-{
-protected:
-  typedef char Yes;
-  typedef unsigned No;
-
-  template <typename U, U>
-  struct ReallyHas;
-
-  template <typename C>
-  static Yes test(ReallyHas<void (C::*)(char), &C::push_back>*);
-  template <typename>
-  static No test(...);
-
-public:
-    static const bool Value = (sizeof(test<T>(0)) == sizeof(Yes));
-};
-
-template <typename T>
-constexpr bool stringHasPushBack()
-{
-    return StringHasPushBack<T>::Value;
-}
 
 }  // namespace details
 
@@ -141,14 +88,6 @@ public:
     ValueType& value()
     {
         return value_;
-    }
-
-    template <typename U>
-    void pushBack(U&& val)
-    {
-        static_assert(details::stringHasPushBack<ValueType>(),
-                "The string type must have push_back() member function");
-        value_.push_back(static_cast<typename ValueType::value_type>(val));
     }
 
     ValueType& createBack()
@@ -230,30 +169,9 @@ public:
 
         using ConstPointer = typename ValueType::const_pointer;
         auto* str = reinterpret_cast<ConstPointer>(&(*iter));
-        doAdvance(iter, len);
+        std::advance(iter, len);
         auto* endStr = reinterpret_cast<ConstPointer>(&(*iter));
-        if (static_cast<std::size_t>(std::distance(str, endStr)) == len) {
-            using Tag =
-                typename comms::util::Conditional<
-                    details::stringHasAssign<ValueType>()
-                >::template Type<
-                    AssignExistsTag,
-                    AssignMissingTag
-                >;
-            doAssign(str, len, Tag());
-        }
-        else {
-            using Tag =
-                typename comms::util::Conditional<
-                    details::stringHasPushBack<ValueType>()
-                >::template Type<
-                    PushBackExistsTag,
-                    PushBackMissingTag
-                >;
-
-            doPushBack(str, len, Tag());
-        }
-
+        comms::util::assign(value_, str, endStr);
         return ErrorStatus::Success;
     }
 
@@ -339,59 +257,11 @@ public:
     }
 
 private:
-    struct AssignExistsTag {};
-    struct AssignMissingTag {};
-    struct PushBackExistsTag {};
-    struct PushBackMissingTag {};
-    struct ReserveExistsTag {};
-    struct ReserveMissingTag {};
-    struct AdvancableTag {};
-    struct NotAdvancableTag {};
+    template<typename... TParams>
+    using AdvancableTag = comms::details::tag::Tag1<TParams...>;
 
-    void doAssign(typename ValueType::const_pointer str, std::size_t len, AssignExistsTag)
-    {
-        value_.assign(str, len);
-    }
-
-    void doAssign(typename ValueType::const_pointer str, std::size_t len, AssignMissingTag)
-    {
-        value_ = ValueType(str, len);
-    }
-
-    void doPushBack(typename ValueType::const_pointer str, std::size_t len, PushBackExistsTag)
-    {
-        clear();
-        doReserve(len);
-        for (std::size_t idx = 0; idx < len; ++idx) {
-            value_.push_back(str[idx]);
-        }
-    }
-
-    void doPushBack(typename ValueType::const_pointer str, std::size_t len, PushBackMissingTag)
-    {
-        value_ = ValueType(str, len);
-    }
-
-    void doReserve(std::size_t len)
-    {
-        using Tag =
-            typename comms::util::Conditional<
-                comms::util::detect::hasReserveFunc<ValueType>()
-            >::template Type<
-                ReserveExistsTag,
-                ReserveMissingTag
-            >;
-        doReserve(len, Tag());
-    }
-
-    void doReserve(std::size_t len, ReserveExistsTag)
-    {
-        value_.reserve(len);
-    }
-
-    static void doReserve(std::size_t, ReserveMissingTag)
-    {
-    }
+    template<typename... TParams>
+    using NotAdvancableTag = comms::details::tag::Tag2<TParams...>;
 
     template <typename TIter>
     static void doAdvance(TIter& iter, std::size_t len)
@@ -401,7 +271,7 @@ private:
         static const bool InputIter =
                 std::is_base_of<std::input_iterator_tag, IterCategory>::value;
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 InputIter
             >::template Type<
                 AdvancableTag,
@@ -411,13 +281,13 @@ private:
     }
 
     template <typename TIter>
-    static void doAdvance(TIter& iter, std::size_t len, AdvancableTag)
+    static void doAdvance(TIter& iter, std::size_t len, AdvancableTag<>)
     {
         std::advance(iter, len);
     }
 
     template <typename TIter>
-    static void doAdvance(TIter&, std::size_t, NotAdvancableTag)
+    static void doAdvance(TIter&, std::size_t, NotAdvancableTag<>)
     {
     }
 

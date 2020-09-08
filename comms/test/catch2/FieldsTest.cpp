@@ -3592,9 +3592,6 @@ TEST_CASE("Test71", "test71")
 
 TEST_CASE("Test72", "test72") 
 {
-    static_assert(!comms::field::basic::details::stringHasPushBack<comms::util::StringView>(),
-            "StringView doesn't have push_back");
-
     typedef comms::field::IntValue<
         comms::Field<BigEndianOpt>,
         std::uint8_t

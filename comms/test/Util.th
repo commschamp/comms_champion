@@ -891,22 +891,13 @@ void UtilTestSuite::test24()
     typedef comms::util::StaticVector<std::uint8_t, 20> StaticVec;
     typedef comms::util::StaticVector<char, 20> StaticVecChar;
 
-    static_assert(comms::field::basic::details::stringHasPushBack<std::string>(),
-            "std::string must have push_back");
-
-    static_assert(comms::field::basic::details::stringHasPushBack<StaticStr>(),
-            "StaticString must have push_back");
-
-    static_assert(!comms::field::basic::details::stringHasPushBack<comms::util::StringView>(),
-            "StringView doesn't have push_back");
-
-    static_assert(comms::field::basic::details::stringHasAssign<std::string>(),
+    static_assert(comms::util::detect::hasAssignFunc<std::string>(),
             "std::string must have assign");
 
-    static_assert(comms::field::basic::details::stringHasAssign<StaticStr>(),
+    static_assert(comms::util::detect::hasAssignFunc<StaticStr>(),
             "StaticString must have assign");
 
-    static_assert(!comms::field::basic::details::stringHasAssign<comms::util::StringView>(),
+    static_assert(!comms::util::detect::hasAssignFunc<comms::util::StringView>(),
             "StringView doesn't have assign");
 
     static_assert(comms::util::detect::hasAssignFunc<std::vector<std::uint8_t> >(),

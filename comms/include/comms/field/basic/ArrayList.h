@@ -173,12 +173,6 @@ public:
         return value_;
     }
 
-    template <typename U>
-    void pushBack(U&& val)
-    {
-        value_.push_back(std::forward<U>(val));
-    }
-
     ElementType& createBack()
     {
         value_.emplace_back();

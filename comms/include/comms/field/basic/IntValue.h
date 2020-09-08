@@ -29,7 +29,6 @@ class IntValue : public TFieldBase
 public:
 
     using ValueType = T;
-
     using SerialisedType = ValueType;
     using ScalingRatio = std::ratio<1, 1>;
 

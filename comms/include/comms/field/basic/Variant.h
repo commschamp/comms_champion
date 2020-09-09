@@ -518,8 +518,7 @@ public:
 
     static constexpr std::size_t maxLength()
     {
-        return comms::util::tupleTypeAccumulate<Members>(std::size_t(0), 
-            comms::field::details::FieldMaxLengthCalcHelper<>());
+        return CommonFuncs::FieldSelectMaxLengthIntType<TMembers...>::value;
     }
 
     bool valid() const
@@ -536,7 +535,7 @@ public:
 
     static constexpr bool hasNonDefaultRefresh()
     {
-        return CommonFuncs::doMembersMembersHaveNonDefaultRefresh<Members>();
+        return CommonFuncs::HasAnyFieldNonDefaultRefreshBoolType<TMembers...>::value;
     }
 
     bool refresh()

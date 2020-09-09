@@ -32,9 +32,9 @@ struct AccumulateLoop
         template<typename...> class TTransformOp, 
         template<typename...> class TBinaryOp, 
         typename TStart, 
-        typename...
+        typename... TRest
     > 
-    using Type = TStart;
+    using Type = typename TAlg<>::template Type<TTransformOp, TBinaryOp, TStart, TRest...>;
 };
 
 template<>
@@ -47,7 +47,7 @@ struct AccumulateLoop<true>
         typename TStart, 
         typename... TRest
     > 
-    using Type = std::false_type;
+    using Type = TStart;
 };
 
 template <bool TEmpty>

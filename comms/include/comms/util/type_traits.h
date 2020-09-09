@@ -239,6 +239,28 @@ struct LogicalOrBinaryOp
 };
 
 template <typename...>
+struct IntMaxBinaryOp
+{
+    // TFirst and TSecond are either std::true_type || std::false_type
+    template <typename TFirst, typename TSecond>
+    using Type = 
+        typename Conditional<
+            (TFirst::value >= TSecond::value)
+        >::template Type<
+            TFirst,
+            TSecond
+        >;
+};
+
+template <typename...>
+class FieldMaxLengthIntType
+{
+public:
+    template <typename T>
+    using Type = std::integral_constant<std::size_t, T::maxLength()>;
+};
+
+template <typename...>
 struct Accumulate
 {
     template <

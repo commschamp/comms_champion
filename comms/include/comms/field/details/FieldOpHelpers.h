@@ -53,6 +53,22 @@ struct FieldHasWriteNoStatusHelper
         return TField::hasWriteNoStatus() && soFar;
     }
 };
+
+template<typename...>
+struct FieldNonDefaultRefreshCheckHelper
+{
+    template <typename TField>
+    constexpr bool operator()() const
+    {
+        return TField::hasNonDefaultRefresh();
+    }
+
+    template <typename TField>
+    constexpr bool operator()(bool soFar) const
+    {
+        return TField::hasNonDefaultRefresh() || soFar;
+    }
+};
     
 } // namespace details
 

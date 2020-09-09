@@ -169,7 +169,8 @@ struct CommonFuncs
     template <typename TFields>
     static constexpr bool doMembersMembersHaveNonDefaultRefresh()
     {
-        return comms::util::tupleTypeAccumulate<TFields>(false, NonDefaultRefreshChecker());
+        return comms::util::tupleTypeAccumulate<TFields>(
+            false, comms::field::details::FieldNonDefaultRefreshCheckHelper<>());
     }
 
     template <typename TFields, typename TVersionType>
@@ -179,16 +180,34 @@ struct CommonFuncs
     }
 
 #if COMMS_IS_MSVC_2017_OR_BELOW    
-
-    template <typename... TMembers>
+// #if 1
+    template <typename... TFields>
     using IsAnyFieldVersionDependentBoolType = 
         typename comms::util::Conditional<
-            comms::util::tupleTypeIsAnyOf<std::tuple<TMembers...> >(
+            comms::util::tupleTypeIsAnyOf<std::tuple<TFields...> >(
                 comms::field::details::FieldVersionDependentCheckHelper<>())
         >::template Type<
             std::true_type,
             std::false_type
         >;
+
+    template <typename... TFields>
+    using FieldSelectMaxLengthIntType = 
+            std::integral_constant<
+                std::size_t, 
+                comms::util::tupleTypeAccumulate<std::tuple<TFields...> >(
+                    std::size_t(0), comms::field::details::FieldMaxLengthCalcHelper<>())
+            >;
+
+    template <typename... TFields>
+    using HasAnyFieldNonDefaultRefreshBoolType = 
+        typename comms::util::Conditional<
+            comms::util::tupleTypeIsAnyOf<std::tuple<TFields...> >(
+                comms::field::details::FieldNonDefaultRefreshCheckHelper<>())
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;    
 
 #else // #if COMMS_IS_MSVC_2017_OR_BELOW
     template <typename... TFields>
@@ -198,19 +217,28 @@ struct CommonFuncs
             comms::util::LogicalOrBinaryOp,
             std::false_type,
             TFields...
+        >; 
+
+    template <typename... TFields>
+    using FieldSelectMaxLengthIntType = 
+        typename comms::util::Accumulate<>::template Type<
+            comms::util::FieldMaxLengthIntType,
+            comms::util::IntMaxBinaryOp,
+            std::integral_constant<std::size_t, 0U>,
+            TFields...
         >;    
+
+    template <typename... TFields>
+    using HasAnyFieldNonDefaultRefreshBoolType = 
+        typename comms::util::Accumulate<>::template Type<
+            comms::util::FieldCheckNonDefaultRefresh,
+            comms::util::LogicalOrBinaryOp,
+            std::false_type,
+            TFields...
+        >; 
 #endif // #if COMMS_IS_MSVC_2017_OR_BELOW
 
 private:
-
-    struct NonDefaultRefreshChecker
-    {
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::hasNonDefaultRefresh() || soFar;
-        }
-    };
 
     template <typename TVerType>
     class VersionUpdater

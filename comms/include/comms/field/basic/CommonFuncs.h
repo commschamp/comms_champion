@@ -12,6 +12,7 @@
 
 #include "comms/ErrorStatus.h"
 #include "comms/util/Tuple.h"
+#include "comms/field/details/FieldOpHelpers.h"
 
 namespace comms
 {
@@ -161,7 +162,8 @@ struct CommonFuncs
     template <typename TFields>
     static constexpr bool areMembersVersionDependent()
     {
-        return comms::util::tupleTypeAccumulate<TFields>(false, VersionDependencyChecker());
+        return comms::util::tupleTypeAccumulate<TFields>(
+            false, comms::field::details::FieldVersionDependentCheckHelper<>());
     }
 
     template <typename TFields>
@@ -176,15 +178,30 @@ struct CommonFuncs
         return comms::util::tupleAccumulate(fields, false, makeVersionUpdater(version));
     }
 
+#if COMMS_IS_MSVC_2017_OR_BELOW    
+
+    template <typename... TMembers>
+    using IsAnyFieldVersionDependentBoolType = 
+        typename comms::util::Conditional<
+            comms::util::tupleTypeIsAnyOf<std::tuple<TMembers...> >(
+                comms::field::details::FieldVersionDependentCheckHelper<>())
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+
+#else // #if COMMS_IS_MSVC_2017_OR_BELOW
+    template <typename... TFields>
+    using IsAnyFieldVersionDependentBoolType = 
+        typename comms::util::Accumulate<>::template Type<
+            comms::util::FieldCheckVersionDependent,
+            comms::util::LogicalOrBinaryOp,
+            std::false_type,
+            TFields...
+        >;    
+#endif // #if COMMS_IS_MSVC_2017_OR_BELOW
+
 private:
-    struct VersionDependencyChecker
-    {
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::isVersionDependent() || soFar;
-        }
-    };
 
     struct NonDefaultRefreshChecker
     {

@@ -19,11 +19,17 @@ namespace details
 template <typename...>
 struct FieldVersionDependentCheckHelper
 {
-    template <typename TElem>
+    template <typename TField>
     constexpr bool operator()() const
     {
-        return TElem::isVersionDependent();
+        return TField::isVersionDependent();
     }
+
+    template <typename TField>
+    constexpr bool operator()(bool soFar) const
+    {
+        return TField::isVersionDependent() || soFar;
+    }    
 };
 
 template <typename...>

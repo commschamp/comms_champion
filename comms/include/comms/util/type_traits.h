@@ -225,10 +225,33 @@ public:
 };
 
 template <typename...>
-struct IsAnyOf
+struct LogicalOrBinaryOp
 {
-    template <template<typename...> class TPred, typename... TRest>
-    using Type = typename details::IsAnyOfImpl<0 == sizeof...(TRest)>::template Type<TPred, TRest...>;
+    // TFirst and TSecond are either std::true_type || std::false_type
+    template <typename TFirst, typename TSecond>
+    using Type = 
+        typename Conditional<
+            (TFirst::value || TSecond::value)
+        >::template Type<
+            std::true_type,
+            std::false_type
+        >;
+};
+
+template <typename...>
+struct Accumulate
+{
+    template <
+        template<typename...> class TTransformOp,
+        template<typename...> class TBinaryOp, 
+        typename TStart,
+        typename... TRest>
+    using Type = 
+        typename details::AccumulateImpl<0 == sizeof...(TRest)>::template Type<
+            TTransformOp,
+            TBinaryOp,
+            TStart,
+            TRest...>;
 };
 
 } // namespace util

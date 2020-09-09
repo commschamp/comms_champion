@@ -18,56 +18,68 @@ namespace comms
 namespace util
 {
 
-// Forward declarations
 template <typename...>
-struct IsAnyOf;
-
-template <bool TCond>
-struct Conditional;
+struct Accumulate;
 
 namespace details
 {
-    
+
 template<bool TEmpty>
-struct PredicateLoop
+struct AccumulateLoop
 {
     template <
         template<typename...> class TAlg, 
-        template<typename...> class TPred, 
-        typename... TRest
+        template<typename...> class TTransformOp, 
+        template<typename...> class TBinaryOp, 
+        typename TStart, 
+        typename...
     > 
-    using Type = typename TAlg<>::template Type<TPred, TRest...>;
+    using Type = TStart;
 };
 
 template<>
-struct PredicateLoop<true>
+struct AccumulateLoop<true>
 {
     template <
         template<typename...> class TAlg, 
-        template<typename...> class TPred,
-        typename...
+        template<typename...> class TTransformOp, 
+        template<typename...> class TBinaryOp, 
+        typename TStart, 
+        typename... TRest
     > 
     using Type = std::false_type;
 };
 
 template <bool TEmpty>
-struct IsAnyOfImpl
+struct AccumulateImpl
 {
-    template <template<typename...> class TPred, typename T, typename... TRest>
+    template <
+        template<typename...> class TTransformOp,
+        template<typename...> class TBinaryOp, 
+        typename TStart,
+        typename T, 
+        typename... TRest>
     using Type = 
-        typename Conditional<
-            TPred<>::template Type<T>::value
-        >::template Type<
-            std::true_type,
-            typename PredicateLoop<0U == sizeof...(TRest)>::template Type<comms::util::IsAnyOf, TPred, TRest...>
-        >;
+        typename AccumulateLoop<0U == sizeof...(TRest)>::template Type<
+            comms::util::Accumulate, 
+            TTransformOp, 
+            TBinaryOp, 
+            typename TBinaryOp<>::template Type<
+                TStart, 
+                typename TTransformOp<>::template Type<T>
+            >,
+            TRest...>;
 };
 
 template <>
-struct IsAnyOfImpl<true>
+struct AccumulateImpl<true>
 {
-    template <template<typename...> class TPred, typename... TRest>
-    using Type = std::false_type;
+    template <
+        template<typename...> class TTransformOp,
+        template<typename...> class TBinaryOp, 
+        typename TStart,
+        typename...>
+    using Type = TStart;
 };
 
 } // namespace details

@@ -389,32 +389,10 @@ private:
     const void* storage_;
 };
 
-
-#if COMMS_IS_MSVC_2017_OR_BELOW
-
-template <typename... TMembers>
-using AreVariantMembersVersionDependentBoolType = 
-    typename comms::util::Conditional<
-        comms::util::tupleTypeIsAnyOf<std::tuple<TMembers...> >(
-            comms::field::details::FieldVersionDependentCheckHelper<>())
-    >::template Type<
-        std::true_type,
-        std::false_type
-    >;
-
-#else // #if COMMS_IS_MSVC_2017_OR_BELOW
-
-template <typename... TMembers>
-
-using AreVariantMembersVersionDependentBoolType = 
-    typename comms::util::IsAnyOf<>::template Type<comms::util::FieldCheckVersionDependent, TMembers...>;
-
-#endif // #else // #if COMMS_IS_MSVC_2017_OR_BELOW
-
 template <typename TFieldBase, typename... TMembers>
 using VariantVersionStorageBase = 
     typename comms::util::LazyShallowConditional<
-        AreVariantMembersVersionDependentBoolType<TMembers...>::value
+        CommonFuncs::IsAnyFieldVersionDependentBoolType<TMembers...>::value
     >::template Type<
         comms::field::details::VersionStorage,
         comms::util::EmptyStruct,
@@ -723,7 +701,7 @@ public:
 
     static constexpr bool isVersionDependent()
     {
-        return details::AreVariantMembersVersionDependentBoolType<TMembers...>::value;
+        return CommonFuncs::IsAnyFieldVersionDependentBoolType<TMembers...>::value;
     }
 
     bool setVersion(VersionType version)
@@ -746,7 +724,7 @@ private:
     template <typename... TParams>
     using VersionTag =
         typename comms::util::LazyShallowConditional<
-            details::AreVariantMembersVersionDependentBoolType<TMembers...>::value
+            CommonFuncs::IsAnyFieldVersionDependentBoolType<TMembers...>::value
         >::template Type<
             VersionDependentTag,
             NoVersionDependencyTag
@@ -768,7 +746,7 @@ private:
     }
 
     template <typename TIter, typename TVerBase>
-    details::VariantReadHelper<TIter, TVerBase, details::AreVariantMembersVersionDependentBoolType<TMembers...>::value> 
+    details::VariantReadHelper<TIter, TVerBase, CommonFuncs::IsAnyFieldVersionDependentBoolType<TMembers...>::value> 
     makeReadHelper(
         comms::ErrorStatus& es,
         TIter& iter,

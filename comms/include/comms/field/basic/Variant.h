@@ -16,6 +16,8 @@
 #include "comms/util/Tuple.h"
 #include "comms/util/type_traits.h"
 #include "comms/field/details/VersionStorage.h"
+#include "comms/field/details/FieldOpHelpers.h"
+#include "comms/details/tag.h"
 #include "CommonFuncs.h"
 
 namespace comms
@@ -30,20 +32,371 @@ namespace basic
 namespace details
 {
 
-#if COMMS_IS_MSVC_2017_OR_BELOW
-struct VariantElemVersionDependHelper
+template<typename...>
+class VariantFieldConstructHelper
 {
-    template <typename TElem>
-    constexpr bool operator()() const
+public:
+    VariantFieldConstructHelper(void* storage) : storage_(storage) {}
+
+    template <std::size_t TIdx, typename TField>
+    void operator()() const
     {
-        return TElem::isVersionDependent();
+        new (storage_) TField;
     }
+private:
+    void* storage_ = nullptr;
 };
+
+template<typename...>
+class VariantLengthCalcHelper
+{
+public:
+    VariantLengthCalcHelper(std::size_t& len, const void* storage)
+        : len_(len),
+        storage_(storage)
+    {
+    }
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+        len_ = reinterpret_cast<const TField*>(storage_)->length();
+    }
+
+private:
+    std::size_t& len_;
+    const void* storage_;
+};
+
+template<typename...>
+class VariantFieldCopyConstructHelper
+{
+public:
+    VariantFieldCopyConstructHelper(void* storage, const void* other) : storage_(storage), other_(other) {}
+
+    template <std::size_t TIdx, typename TField>
+    void operator()() const
+    {
+        new (storage_) TField(*(reinterpret_cast<const TField*>(other_)));
+    }
+
+private:
+    void* storage_ = nullptr;
+    const void* other_ = nullptr;
+};
+
+template<typename...>
+class VariantFieldMoveConstructHelper
+{
+public:
+    VariantFieldMoveConstructHelper(void* storage, void* other) : storage_(storage), other_(other) {}
+
+    template <std::size_t TIdx, typename TField>
+    void operator()() const
+    {
+        new (storage_) TField(std::move(*(reinterpret_cast<const TField*>(other_))));
+    }
+
+private:
+    void* storage_ = nullptr;
+    void* other_ = nullptr;
+};
+
+template<typename...>
+class VariantFieldDestructHelper
+{
+public:
+    VariantFieldDestructHelper(void* storage) : storage_(storage) {}
+
+    template <std::size_t TIdx, typename TField>
+    void operator()() const
+    {
+        reinterpret_cast<TField*>(storage_)->~TField();
+    }
+private:
+    void* storage_ = nullptr;
+};
+
+template <typename...>
+class VariantFieldValidCheckHelper
+{
+public:
+    VariantFieldValidCheckHelper(bool& result, const void* storage)
+        : result_(result),
+        storage_(storage)
+    {
+    }
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+        result_ = reinterpret_cast<const TField*>(storage_)->valid();
+    }
+
+private:
+    bool& result_;
+    const void* storage_;
+};
+
+template <typename...>
+class VariantFieldRefreshHelper
+{
+public:
+    VariantFieldRefreshHelper(bool& result, void* storage)
+        : result_(result),
+        storage_(storage)
+    {
+    }
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+        result_ = reinterpret_cast<TField*>(storage_)->refresh();
+    }
+
+private:
+    bool& result_;
+    void* storage_ = nullptr;
+};
+
+template <typename TFunc>
+class VariantExecHelper
+{
+    static_assert(std::is_lvalue_reference<TFunc>::value || std::is_rvalue_reference<TFunc>::value,
+        "Wrong type of template parameter");
+public:
+    template <typename U>
+    VariantExecHelper(void* storage, U&& func) : storage_(storage), func_(std::forward<U>(func)) {}
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+#if COMMS_IS_MSVC
+        // VS compiler
+        func_.operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
+#else // #if COMMS_IS_MSVC
+        func_.template operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
+#endif // #if COMMS_IS_MSVC
+    }
+private:
+    void* storage_ = nullptr;
+    TFunc func_;
+};
+
+template <typename TFunc>
+class VariantConstExecHelper
+{
+    static_assert(std::is_lvalue_reference<TFunc>::value || std::is_rvalue_reference<TFunc>::value,
+        "Wrong type of template parameter");
+public:
+    template <typename U>
+    VariantConstExecHelper(const void* storage, U&& func) : storage_(storage), func_(std::forward<U>(func)) {}
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+#if COMMS_IS_MSVC
+        // VS compiler
+        func_.operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
+#else // #if COMMS_IS_MSVC
+        func_.template operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
+#endif // #if COMMS_IS_MSVC
+    }
+private:
+    const void* storage_ = nullptr;
+    TFunc func_;
+};
+
+
+template <typename TIter, typename TVerBase, bool TVerDependent>
+class VariantReadHelper
+{
+    template <typename... TParams>
+    using VersionDependentTag = comms::details::tag::Tag1<TParams...>;
+
+    template <typename... TParams>
+    using NoVersionDependencyTag = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
+    using VersionTag =
+        typename comms::util::LazyShallowConditional<
+            TVerDependent
+        >::template Type<
+            VersionDependentTag,
+            NoVersionDependencyTag
+        >;    
+public:
+    VariantReadHelper(
+        std::size_t& idx,
+        comms::ErrorStatus& es,
+        TIter& iter,
+        std::size_t len,
+        void* storage,
+        TVerBase& verBase)
+        : idx_(idx),
+          es_(es),
+          iter_(iter),
+          len_(len),
+          storage_(storage),
+          verBase_(verBase)
+    {
+        using IterType = typename std::decay<decltype(iter)>::type;
+        using IterCategory = typename std::iterator_traits<IterType>::iterator_category;
+        static_assert(std::is_base_of<std::random_access_iterator_tag, IterCategory>::value,
+            "Variant field only supports read with random access iterators");
+
+        es_ = comms::ErrorStatus::NumOfErrorStatuses;
+    }
+
+    template <typename TField>
+    void operator()()
+    {
+        if (readComplete_) {
+            return;
+        }
+
+        auto* field = new (storage_) TField;
+        updateVersion(*field, VersionTag<>());
+
+        auto iterTmp = iter_;
+        auto es = field->read(iterTmp, len_);
+        if (es == comms::ErrorStatus::Success) {
+            iter_ = iterTmp;
+            es_ = es;
+            readComplete_ = true;
+            return;
+        }
+
+        field->~TField();
+
+        if ((es_ == comms::ErrorStatus::NumOfErrorStatuses) ||
+            (es == comms::ErrorStatus::NotEnoughData)) {
+            es_ = es;
+        }
+
+        ++idx_;
+    }
+
+private:
+    template <typename TField>
+    void updateVersion(TField& field, NoVersionDependencyTag<>)
+    {
+        static_cast<void>(field);
+    }
+
+    template <typename TField>
+    void updateVersion(TField& field, VersionDependentTag<>)
+    {
+        field.setVersion(verBase_.getVersion());
+    }
+
+    std::size_t& idx_;
+    comms::ErrorStatus& es_;
+    TIter& iter_;
+    std::size_t len_ = 0;
+    void* storage_ = nullptr;
+    TVerBase& verBase_;
+    bool readComplete_ = false;
+};
+
+template <typename TIter>
+class VariantFieldWriteHelper
+{
+public:
+    VariantFieldWriteHelper(ErrorStatus& es, TIter& iter, std::size_t len, const void* storage)
+      : es_(es),
+        iter_(iter),
+        len_(len),
+        storage_(storage)
+    {
+    }
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+        es_ = reinterpret_cast<const TField*>(storage_)->write(iter_, len_);
+    }
+
+private:
+    ErrorStatus& es_;
+    TIter& iter_;
+    std::size_t len_ = 0U;
+    const void* storage_ = nullptr;
+};
+
+template <typename TIter>
+class VariantWriteNoStatusHelper
+{
+public:
+    VariantWriteNoStatusHelper(TIter& iter, const void* storage)
+      : iter_(iter),
+        storage_(storage)
+    {
+    }
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+        reinterpret_cast<const TField*>(storage_)->writeNoStatus(iter_);
+    }
+
+private:
+    TIter& iter_;
+    const void* storage_ = nullptr;
+};
+
+template <typename TVersionType>
+class VariantSetVersionHelper
+{
+public:
+    VariantSetVersionHelper(TVersionType version, bool& updated, void* storage)
+      : version_(version), 
+        updated_(updated), 
+        storage_(storage)
+    {
+    }
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+        updated_ = reinterpret_cast<TField*>(storage_)->setVersion(version_) || updated_;
+    }
+
+private:
+    TVersionType version_ = TVersionType();
+    bool& updated_;
+    void* storage_ = nullptr;
+};
+
+template<typename...>
+class VariantCanWriteHelper
+{
+public:
+    VariantCanWriteHelper(bool& result, const void* storage)
+        : result_(result),
+        storage_(storage)
+    {
+    }
+
+    template <std::size_t TIdx, typename TField>
+    void operator()()
+    {
+        result_ = reinterpret_cast<const TField*>(storage_)->canWrite();
+    }
+
+private:
+    bool& result_;
+    const void* storage_;
+};
+
+
+#if COMMS_IS_MSVC_2017_OR_BELOW
 
 template <typename... TMembers>
 using AreVariantMembersVersionDependentBoolType = 
     typename comms::util::Conditional<
-        comms::util::tupleTypeIsAnyOf<std::tuple<TMembers...> >(VariantElemVersionDependHelper())
+        comms::util::tupleTypeIsAnyOf<std::tuple<TMembers...> >(
+            comms::field::details::FieldVersionDependentCheckHelper<>())
     >::template Type<
         std::true_type,
         std::false_type
@@ -86,10 +439,12 @@ public:
     using ValueType = comms::util::TupleAsAlignedUnionT<Members>;
     using VersionType = typename BaseImpl::VersionType;
 
+    static const std::size_t MembersCount = std::tuple_size<Members>::value;
+    static_assert(0U < MembersCount, "ValueType must be non-empty tuple");
+
     Variant() = default;
     Variant(const ValueType& val)  : storage_(val) {}
     Variant(ValueType&& val)  : storage_(std::move(val)) {}
-
 
     Variant(const Variant& other)
     {
@@ -98,7 +453,7 @@ public:
         }
 
         comms::util::tupleForSelectedType<Members>(
-            other.memIdx_, CopyConstructHelper(&storage_, &other.storage_));
+            other.memIdx_, details::VariantFieldCopyConstructHelper<>(&storage_, &other.storage_));
 
         memIdx_ = other.memIdx_;
     }
@@ -110,7 +465,7 @@ public:
         }
 
         comms::util::tupleForSelectedType<Members>(
-            other.memIdx_, MoveConstructHelper(&storage_, &other.storage_));
+            other.memIdx_, details::VariantFieldMoveConstructHelper<>(&storage_, &other.storage_));
 
         memIdx_ = other.memIdx_;
     }
@@ -132,7 +487,7 @@ public:
         }
 
         comms::util::tupleForSelectedType<Members>(
-            other.memIdx_, CopyConstructHelper(&storage_, &other.storage_));
+            other.memIdx_, details::VariantFieldCopyConstructHelper<>(&storage_, &other.storage_));
 
         memIdx_ = other.memIdx_;
         return *this;
@@ -151,7 +506,7 @@ public:
         }
 
         comms::util::tupleForSelectedType<Members>(
-            other.memIdx_, MoveConstructHelper(&storage_, &other.storage_));
+            other.memIdx_, details::VariantFieldMoveConstructHelper<>(&storage_, &other.storage_));
 
         memIdx_ = other.memIdx_;
         return *this;
@@ -174,7 +529,7 @@ public:
         }
 
         std::size_t len = std::numeric_limits<std::size_t>::max();
-        comms::util::tupleForSelectedType<Members>(memIdx_, LengthCalcHelper(len, &storage_));
+        comms::util::tupleForSelectedType<Members>(memIdx_, details::VariantLengthCalcHelper<>(len, &storage_));
         return len;
     }
 
@@ -185,7 +540,8 @@ public:
 
     static constexpr std::size_t maxLength()
     {
-        return comms::util::tupleTypeAccumulate<Members>(std::size_t(0), MaxLengthCalcHelper());
+        return comms::util::tupleTypeAccumulate<Members>(std::size_t(0), 
+            comms::field::details::FieldMaxLengthCalcHelper<>());
     }
 
     bool valid() const
@@ -195,7 +551,8 @@ public:
         }
 
         bool val = false;
-        comms::util::tupleForSelectedType<Members>(memIdx_, ValidCheckHelper(val, &storage_));
+        comms::util::tupleForSelectedType<Members>(
+            memIdx_, details::VariantFieldValidCheckHelper<>(val, &storage_));
         return val;
     }
 
@@ -211,7 +568,8 @@ public:
         }
 
         bool val = false;
-        comms::util::tupleForSelectedType<Members>(memIdx_, RefreshHelper(val, &storage_));
+        comms::util::tupleForSelectedType<Members>(
+            memIdx_, details::VariantFieldRefreshHelper<>(val, &storage_));
         return val;
     }
 
@@ -242,9 +600,9 @@ public:
         }
 
         bool val = false;
-        comms::util::tupleForSelectedType<Members>(memIdx_, CanWriteHelper(val, &storage_));
+        comms::util::tupleForSelectedType<Members>(
+            memIdx_, details::VariantCanWriteHelper<>(val, &storage_));
         return val;
-
     }
 
     template <typename TIter>
@@ -261,7 +619,8 @@ public:
 
     static constexpr bool hasWriteNoStatus()
     {
-        return comms::util::tupleTypeAccumulate<Members>(true, WriteNoStatusDetector());
+        return comms::util::tupleTypeAccumulate<Members>(
+            true, comms::field::details::FieldHasWriteNoStatusHelper<>());
     }
 
     template <typename TIter>
@@ -291,7 +650,8 @@ public:
             return;
         }
 
-        comms::util::tupleForSelectedType<Members>(idx, ConstructHelper(&storage_));
+        comms::util::tupleForSelectedType<Members>(
+            idx, details::VariantFieldConstructHelper<>(&storage_));
         memIdx_ = idx;
     }
 
@@ -326,7 +686,7 @@ public:
         using FieldType = typename std::tuple_element<TIdx, Members>::type;
         new (&storage_) FieldType(std::forward<TArgs>(args)...);
         memIdx_ = TIdx;
-        updateVersionInternal(VersionTag());
+        updateVersionInternal(VersionTag<>());
         return reinterpret_cast<FieldType&>(storage_);
     }
 
@@ -368,297 +728,48 @@ public:
 
     bool setVersion(VersionType version)
     {
-        return setVersionInternal(version, VersionTag());
+        return setVersionInternal(version, VersionTag<>());
     }
 
     VersionType getVersion() const
     {
-        return getVersionInternal(VersionTag());
+        return getVersionInternal(VersionTag<>());
     }
 
 private:
-    struct VersionDependentTag {};
-    struct NoVersionDependencyTag {};
+    template <typename... TParams>
+    using VersionDependentTag = comms::details::tag::Tag1<TParams...>;
 
+    template <typename... TParams>
+    using NoVersionDependencyTag = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
     using VersionTag =
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             details::AreVariantMembersVersionDependentBoolType<TMembers...>::value
         >::template Type<
             VersionDependentTag,
             NoVersionDependencyTag
         >;
 
-    class ConstructHelper
-    {
-    public:
-        ConstructHelper(void* storage) : storage_(storage) {}
-
-        template <std::size_t TIdx, typename TField>
-        void operator()() const
-        {
-            new (storage_) TField;
-        }
-    private:
-        void* storage_ = nullptr;
-    };
-
-    class CopyConstructHelper
-    {
-    public:
-        CopyConstructHelper(void* storage, const void* other) : storage_(storage), other_(other) {}
-
-        template <std::size_t TIdx, typename TField>
-        void operator()() const
-        {
-            new (storage_) TField(*(reinterpret_cast<const TField*>(other_)));
-        }
-
-    private:
-        void* storage_ = nullptr;
-        const void* other_ = nullptr;
-    };
-
-    class MoveConstructHelper
-    {
-    public:
-        MoveConstructHelper(void* storage, void* other) : storage_(storage), other_(other) {}
-
-        template <std::size_t TIdx, typename TField>
-        void operator()() const
-        {
-            new (storage_) TField(std::move(*(reinterpret_cast<const TField*>(other_))));
-        }
-
-    private:
-        void* storage_ = nullptr;
-        void* other_ = nullptr;
-    };
-
-    class DestructHelper
-    {
-    public:
-        DestructHelper(void* storage) : storage_(storage) {}
-
-        template <std::size_t TIdx, typename TField>
-        void operator()() const
-        {
-            reinterpret_cast<TField*>(storage_)->~TField();
-        }
-    private:
-        void* storage_ = nullptr;
-    };
-
-    class LengthCalcHelper
-    {
-    public:
-        LengthCalcHelper(std::size_t& len, const void* storage)
-          : len_(len),
-            storage_(storage)
-        {
-        }
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-            len_ = reinterpret_cast<const TField*>(storage_)->length();
-        }
-
-    private:
-        std::size_t& len_;
-        const void* storage_;
-    };
-
-    struct MaxLengthCalcHelper
-    {
-        template <typename TField>
-        constexpr std::size_t operator()(std::size_t val) const
-        {
-            return val >= TField::maxLength() ? val : TField::maxLength();
-        }
-    };
-
-    class ValidCheckHelper
-    {
-    public:
-        ValidCheckHelper(bool& result, const void* storage)
-          : result_(result),
-            storage_(storage)
-        {
-        }
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-            result_ = reinterpret_cast<const TField*>(storage_)->valid();
-        }
-
-    private:
-        bool& result_;
-        const void* storage_;
-    };
-
-    class RefreshHelper
-    {
-    public:
-        RefreshHelper(bool& result, void* storage)
-          : result_(result),
-            storage_(storage)
-        {
-        }
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-            result_ = reinterpret_cast<TField*>(storage_)->refresh();
-        }
-
-    private:
-        bool& result_;
-        void* storage_ = nullptr;
-    };
-
 
     template <typename TFunc>
-    class ExecHelper
-    {
-        static_assert(std::is_lvalue_reference<TFunc>::value || std::is_rvalue_reference<TFunc>::value,
-            "Wrong type of template parameter");
-    public:
-        template <typename U>
-        ExecHelper(void* storage, U&& func) : storage_(storage), func_(std::forward<U>(func)) {}
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-#if COMMS_IS_MSVC
-            // VS compiler
-            func_.operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
-#else // #if COMMS_IS_MSVC
-            func_.template operator()<TIdx>(*(reinterpret_cast<TField*>(storage_)));
-#endif // #if COMMS_IS_MSVC
-        }
-    private:
-        void* storage_ = nullptr;
-        TFunc func_;
-    };
-
-    template <typename TFunc>
-    auto makeExecHelper(TFunc&& func) -> ExecHelper<decltype(std::forward<TFunc>(func))>
+    auto makeExecHelper(TFunc&& func) -> details::VariantExecHelper<decltype(std::forward<TFunc>(func))>
     {
         using FuncType = decltype(std::forward<TFunc>(func));
-        return ExecHelper<FuncType>(&storage_, std::forward<TFunc>(func));
+        return details::VariantExecHelper<FuncType>(&storage_, std::forward<TFunc>(func));
     }
 
     template <typename TFunc>
-    class ConstExecHelper
-    {
-        static_assert(std::is_lvalue_reference<TFunc>::value || std::is_rvalue_reference<TFunc>::value,
-            "Wrong type of template parameter");
-    public:
-        template <typename U>
-        ConstExecHelper(const void* storage, U&& func) : storage_(storage), func_(std::forward<U>(func)) {}
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-#if COMMS_IS_MSVC
-            // VS compiler
-            func_.operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
-#else // #if COMMS_IS_MSVC
-            func_.template operator()<TIdx>(*(reinterpret_cast<const TField*>(storage_)));
-#endif // #if COMMS_IS_MSVC
-        }
-    private:
-        const void* storage_ = nullptr;
-        TFunc func_;
-    };
-
-    template <typename TFunc>
-    auto makeConstExecHelper(TFunc&& func) const -> ConstExecHelper<decltype(std::forward<TFunc>(func))>
+    auto makeConstExecHelper(TFunc&& func) const -> details::VariantConstExecHelper<decltype(std::forward<TFunc>(func))>
     {
         using FuncType = decltype(std::forward<TFunc>(func));
-        return ConstExecHelper<FuncType>(&storage_, std::forward<TFunc>(func));
+        return details::VariantConstExecHelper<FuncType>(&storage_, std::forward<TFunc>(func));
     }
 
     template <typename TIter, typename TVerBase>
-    class ReadHelper
-    {
-    public:
-        ReadHelper(
-            std::size_t& idx,
-            comms::ErrorStatus& es,
-            TIter& iter,
-            std::size_t len,
-            void* storage,
-            TVerBase& verBase)
-          : idx_(idx),
-            es_(es),
-            iter_(iter),
-            len_(len),
-            storage_(storage),
-            verBase_(verBase)
-        {
-            using IterType = typename std::decay<decltype(iter)>::type;
-            using IterCategory = typename std::iterator_traits<IterType>::iterator_category;
-            static_assert(std::is_base_of<std::random_access_iterator_tag, IterCategory>::value,
-                "Variant field only supports read with random access iterators");
-
-            es_ = comms::ErrorStatus::NumOfErrorStatuses;
-        }
-
-        template <typename TField>
-        void operator()()
-        {
-            if (readComplete_) {
-                return;
-            }
-
-            auto* field = new (storage_) TField;
-            updateVersion(*field, VersionTag());
-
-            auto iterTmp = iter_;
-            auto es = field->read(iterTmp, len_);
-            if (es == comms::ErrorStatus::Success) {
-                iter_ = iterTmp;
-                es_ = es;
-                readComplete_ = true;
-                return;
-            }
-
-            field->~TField();
-
-            if ((es_ == comms::ErrorStatus::NumOfErrorStatuses) ||
-                (es == comms::ErrorStatus::NotEnoughData)) {
-                es_ = es;
-            }
-
-            ++idx_;
-        }
-
-    private:
-        template <typename TField>
-        void updateVersion(TField& field, NoVersionDependencyTag)
-        {
-            static_cast<void>(field);
-        }
-
-        template <typename TField>
-        void updateVersion(TField& field, VersionDependentTag)
-        {
-            field.setVersion(verBase_.getVersion());
-        }
-
-        std::size_t& idx_;
-        comms::ErrorStatus& es_;
-        TIter& iter_;
-        std::size_t len_ = 0;
-        void* storage_ = nullptr;
-        TVerBase& verBase_;
-        bool readComplete_ = false;
-    };
-
-    template <typename TIter, typename TVerBase>
-    ReadHelper<TIter, TVerBase> makeReadHelper(
+    details::VariantReadHelper<TIter, TVerBase, details::AreVariantMembersVersionDependentBoolType<TMembers...>::value> 
+    makeReadHelper(
         comms::ErrorStatus& es,
         TIter& iter,
         std::size_t len,
@@ -666,122 +777,29 @@ private:
         TVerBase& verBase)
     {
         memIdx_ = 0;
-        return ReadHelper<TIter, TVerBase>(memIdx_, es, iter, len, storage, verBase);
+        static constexpr bool VerDependent = isVersionDependent();
+        return 
+            details::VariantReadHelper<TIter, TVerBase, VerDependent>(
+                memIdx_, es, iter, len, storage, verBase);
     }
 
     template <typename TIter>
-    class WriteHelper
+    static details::VariantFieldWriteHelper<TIter> makeWriteHelper(comms::ErrorStatus& es, TIter& iter, std::size_t len, const void* storage)
     {
-    public:
-        WriteHelper(ErrorStatus& es, TIter& iter, std::size_t len, const void* storage)
-          : es_(es),
-            iter_(iter),
-            len_(len),
-            storage_(storage)
-        {
-        }
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-            es_ = reinterpret_cast<const TField*>(storage_)->write(iter_, len_);
-        }
-
-    private:
-        ErrorStatus& es_;
-        TIter& iter_;
-        std::size_t len_ = 0U;
-        const void* storage_ = nullptr;
-    };
-
-    template <typename TIter>
-    static WriteHelper<TIter> makeWriteHelper(comms::ErrorStatus& es, TIter& iter, std::size_t len, const void* storage)
-    {
-        return WriteHelper<TIter>(es, iter, len, storage);
+        return details::VariantFieldWriteHelper<TIter>(es, iter, len, storage);
     }
 
     template <typename TIter>
-    class WriteNoStatusHelper
+    static details::VariantWriteNoStatusHelper<TIter> makeWriteNoStatusHelper(TIter& iter, const void* storage)
     {
-    public:
-        WriteNoStatusHelper(TIter& iter, const void* storage)
-          : iter_(iter),
-            storage_(storage)
-        {
-        }
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-            reinterpret_cast<const TField*>(storage_)->writeNoStatus(iter_);
-        }
-
-    private:
-        TIter& iter_;
-        const void* storage_ = nullptr;
-    };
-
-    template <typename TIter>
-    static WriteNoStatusHelper<TIter> makeWriteNoStatusHelper(TIter& iter, const void* storage)
-    {
-        return WriteNoStatusHelper<TIter>(iter, storage);
+        return details::VariantWriteNoStatusHelper<TIter>(iter, storage);
     }
-
-    class SetVersionHelper
-    {
-    public:
-        SetVersionHelper(VersionType version, bool& updated, void* storage)
-          :version_(version), updated_(updated), storage_(storage)
-        {
-        }
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-            updated_ = reinterpret_cast<TField*>(storage_)->setVersion(version_) || updated_;
-        }
-
-    private:
-        VersionType version_ = VersionType();
-        bool& updated_;
-        void* storage_ = nullptr;
-    };
-
-    class CanWriteHelper
-    {
-    public:
-        CanWriteHelper(bool& result, const void* storage)
-          : result_(result),
-            storage_(storage)
-        {
-        }
-
-        template <std::size_t TIdx, typename TField>
-        void operator()()
-        {
-            result_ = reinterpret_cast<const TField*>(storage_)->canWrite();
-        }
-
-    private:
-        bool& result_;
-        const void* storage_;
-    };
-
-    struct WriteNoStatusDetector
-    {
-        constexpr WriteNoStatusDetector() = default;
-
-        template <typename TField>
-        constexpr bool operator()(bool soFar) const
-        {
-            return TField::hasWriteNoStatus() && soFar;
-        }
-    };
 
     void checkDestruct()
     {
         if (currentFieldValid()) {
-            comms::util::tupleForSelectedType<Members>(memIdx_, DestructHelper(&storage_));
+            comms::util::tupleForSelectedType<Members>(
+                memIdx_, details::VariantFieldDestructHelper<>(&storage_));
             memIdx_ = MembersCount;
         }
     }
@@ -791,42 +809,39 @@ private:
         return idx < MembersCount;
     }
 
-    bool setVersionInternal(VersionType version, NoVersionDependencyTag)
+    bool setVersionInternal(VersionType version, NoVersionDependencyTag<>)
     {
         static_cast<void>(version);
         return false;
     }
 
-    bool setVersionInternal(VersionType version, VersionDependentTag)
+    bool setVersionInternal(VersionType version, VersionDependentTag<>)
     {
         VersionBaseImpl::version_ = version;
         bool updated = false;
         if (currentFieldValid()) {
-            comms::util::tupleForSelectedType<Members>(memIdx_, SetVersionHelper(version, updated, &storage_));
+            comms::util::tupleForSelectedType<Members>(
+                memIdx_, details::VariantSetVersionHelper<VersionType>(version, updated, &storage_));
         }
         return updated;
     }
 
-    VersionType getVersionInternal(VersionDependentTag) const
+    VersionType getVersionInternal(VersionDependentTag<>) const
     {
         return VersionBaseImpl::version_;;
     }
 
-    void updateVersionInternal(NoVersionDependencyTag)
+    void updateVersionInternal(NoVersionDependencyTag<>)
     {
     }
 
-    void updateVersionInternal(VersionDependentTag)
+    void updateVersionInternal(VersionDependentTag<>)
     {
         setVersion(VersionBaseImpl::version_);
     }
 
     ValueType storage_;
     std::size_t memIdx_ = MembersCount;
-
-    static const std::size_t MembersCount = std::tuple_size<Members>::value;
-    static_assert(comms::util::IsTuple<Members>::Value, "ValueType must be tuple");
-    static_assert(0U < MembersCount, "ValueType must be non-empty tuple");
 };
 
 }  // namespace basic

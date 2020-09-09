@@ -96,37 +96,7 @@ class FieldCheckVersionDependent
 {
 public:
     template <typename T>
-    using Type = 
-        typename 
-        Conditional<
-            T::isVersionDependent()
-        >::template Type<
-            std::true_type,
-            std::false_type
-        >;
-};
-
-template <bool TIsField>
-class EagerFieldCheckVersionDependent
-{
-public:
-    template <typename T>
-    using Type = 
-        typename 
-        Conditional<
-            T::isVersionDependent()
-        >::template Type<
-            std::true_type,
-            std::false_type
-        >;
-};
-
-template <>
-class EagerFieldCheckVersionDependent<false>
-{
-public:
-    template <typename T>
-    using Type = std::false_type;
+    using Type = std::integral_constant<bool, T::isVersionDependent()>;
 };
 
 template <typename...>
@@ -134,78 +104,32 @@ class FieldCheckNonDefaultRefresh
 {
 public:
     template <typename T>
-    using Type = 
-        typename 
-        Conditional<
-            T::hasNonDefaultRefresh()
-        >::template Type<
-            std::true_type,
-            std::false_type
-        >;
+    using Type = std::integral_constant<bool, T::hasNonDefaultRefresh()>;
 };
-
-template <bool TIsField>
-class EagerFieldCheckNonDefaultRefresh
-{
-public:
-    template <typename T>
-    using Type = 
-        typename 
-        Conditional<
-            T::hasNonDefaultRefresh()
-        >::template Type<
-            std::true_type,
-            std::false_type
-        >;
-};
-
-template <>
-class EagerFieldCheckNonDefaultRefresh<false>
-{
-public:
-    template <typename T>
-    using Type = std::false_type;
-};
-
 
 template <typename...>
 class FieldCheckVarLength
 {
 public:
     template <typename T>
-    using Type = 
-        typename 
-        Conditional<
-            T::minLength() != T::maxLength()
-        >::template Type<
-            std::true_type,
-            std::false_type
-        >;
+    using Type = std::integral_constant<bool, T::minLength() != T::maxLength()>;
 };
 
-template <bool TIsField>
-class EagerFieldCheckVarLength
+template <typename...>
+class FieldCheckReadNoStatus
 {
 public:
     template <typename T>
-    using Type = 
-        typename 
-        Conditional<
-            T::minLength() != T::maxLength()
-        >::template Type<
-            std::true_type,
-            std::false_type
-        >;
+    using Type = std::integral_constant<bool, T::hasReadNoStatus()>;
 };
 
-template <>
-class EagerFieldCheckVarLength<false>
+template <typename...>
+class FieldCheckWriteNoStatus
 {
 public:
     template <typename T>
-    using Type = std::false_type;
+    using Type = std::integral_constant<bool, T::hasWriteNoStatus()>;
 };
-
 
 template <typename...>
 class TrueType
@@ -229,19 +153,20 @@ struct LogicalOrBinaryOp
 {
     // TFirst and TSecond are either std::true_type || std::false_type
     template <typename TFirst, typename TSecond>
-    using Type = 
-        typename Conditional<
-            (TFirst::value || TSecond::value)
-        >::template Type<
-            std::true_type,
-            std::false_type
-        >;
+    using Type = std::integral_constant<bool, (TFirst::value || TSecond::value)>;
+};
+
+template <typename...>
+struct LogicalAndBinaryOp
+{
+    // TFirst and TSecond are either std::true_type || std::false_type
+    template <typename TFirst, typename TSecond>
+    using Type = std::integral_constant<bool, (TFirst::value && TSecond::value)>;
 };
 
 template <typename...>
 struct IntMaxBinaryOp
 {
-    // TFirst and TSecond are either std::true_type || std::false_type
     template <typename TFirst, typename TSecond>
     using Type = 
         typename Conditional<
@@ -253,11 +178,49 @@ struct IntMaxBinaryOp
 };
 
 template <typename...>
+struct IntSumBinaryOp
+{
+    template <typename TFirst, typename TSecond>
+    using Type = 
+        std::integral_constant<typename TFirst::value_type, TFirst::value + TSecond::value>;
+};
+
+template <typename...>
+class FieldMinLengthIntType
+{
+public:
+    template <typename T>
+    using Type = std::integral_constant<std::size_t, T::minLength()>;
+};
+
+template <typename...>
 class FieldMaxLengthIntType
 {
 public:
     template <typename T>
     using Type = std::integral_constant<std::size_t, T::maxLength()>;
+};
+
+template <typename...>
+struct AccumulateFromUntil
+{
+    template <
+        std::size_t TFrom,
+        std::size_t TUntil,
+        template<typename...> class TTransformOp,
+        template<typename...> class TBinaryOp, 
+        typename TStart,
+        typename... TRest>
+    using Type = 
+        typename details::AccumulateFromUntilImpl<
+            (0 == sizeof...(TRest)) || (TUntil == 0U)
+        >::template Type<
+            TFrom,
+            TUntil,
+            TTransformOp,
+            TBinaryOp,
+            TStart,
+            TRest...>;
 };
 
 template <typename...>
@@ -269,11 +232,14 @@ struct Accumulate
         typename TStart,
         typename... TRest>
     using Type = 
-        typename details::AccumulateImpl<0 == sizeof...(TRest)>::template Type<
+        typename AccumulateFromUntil<>::template Type<
+            0,
+            sizeof...(TRest),
             TTransformOp,
             TBinaryOp,
             TStart,
-            TRest...>;
+            TRest...
+        >;
 };
 
 } // namespace util

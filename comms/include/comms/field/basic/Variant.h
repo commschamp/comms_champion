@@ -535,7 +535,7 @@ public:
 
     static constexpr bool hasNonDefaultRefresh()
     {
-        return CommonFuncs::HasAnyFieldNonDefaultRefreshBoolType<TMembers...>::value;
+        return CommonFuncs::AnyFieldHasNonDefaultRefreshBoolType<TMembers...>::value;
     }
 
     bool refresh()

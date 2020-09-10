@@ -46,6 +46,12 @@ struct Tag9 {};
 template<typename...>
 struct Tag10 {};
 
+template<typename...>
+struct Tag11 {};
+
+template<typename...>
+struct Tag12 {};
+
 } // namespace tag
     
 } // namespace details

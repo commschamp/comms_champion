@@ -8,6 +8,7 @@
 #pragma once
 
 #include "comms/options.h"
+#include "TransportValueLayerBases.h"
 
 namespace comms
 {
@@ -27,6 +28,9 @@ class TransportValueLayerOptionsParser<>
 {
 public:
     static const bool HasPseudoValue = false;
+
+    template <typename TBase>
+    using BuildPseudoBase = TBase;
 };
 
 template <typename... TOptions>
@@ -35,6 +39,9 @@ class TransportValueLayerOptionsParser<comms::option::def::PseudoValue, TOptions
 {
 public:
     static const bool HasPseudoValue = true;
+
+    template <typename TBase>
+    using BuildPseudoBase = TransportValueLayerPseudoBase<TBase>;    
 };
 
 template <typename... TOptions>

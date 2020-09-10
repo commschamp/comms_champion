@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include "TransportValueLayerOptionsParser.h"
-
 namespace comms
 {
 
@@ -18,13 +16,25 @@ namespace protocol
 namespace details
 {
 
-template <typename TBase, typename... TOptions>
-using TransportValueLayerAdapterT =
-    typename TransportValueLayerOptionsParser<
-        TOptions...
-    >::template BuildPseudoBase<
-        TBase
-    >;
+template <typename TBase>
+class TransportValueLayerPseudoBase : public TBase
+{
+    using BaseImpl = TBase;
+    using FieldImpl = typename BaseImpl::Field;
+public:
+    FieldImpl& pseudoField()
+    {
+        return pseudoField_;
+    }
+
+    const FieldImpl& pseudoField() const
+    {
+        return pseudoField_;
+    }
+
+private:
+    FieldImpl pseudoField_;
+};
 
 } // namespace details
 

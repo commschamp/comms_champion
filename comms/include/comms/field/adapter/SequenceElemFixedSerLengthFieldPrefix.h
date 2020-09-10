@@ -15,6 +15,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/field/basic/CommonFuncs.h"
 #include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -60,6 +61,15 @@ public:
 
     std::size_t length() const
     {
+
+        using LenFieldLengthTag =
+            typename comms::util::LazyShallowConditional<
+                LenField::minLength() == LenField::maxLength()
+            >::template Type<
+                FixedLengthLenFieldTag,
+                VarLengthLenFieldTag
+            >;
+                    
         return lengthInternal(LenFieldLengthTag());
     }
 
@@ -216,18 +226,14 @@ public:
 
 private:
 
-    struct FixedLengthLenFieldTag {};
-    struct VarLengthLenFieldTag {};
+    template <typename... TParams>
+    using FixedLengthLenFieldTag = comms::details::tag::Tag1<TParams...>;
 
-    using LenFieldLengthTag =
-        typename comms::util::Conditional<
-            LenField::minLength() == LenField::maxLength()
-        >::template Type<
-            FixedLengthLenFieldTag,
-            VarLengthLenFieldTag
-        >;
+    template <typename... TParams>
+    using VarLengthLenFieldTag = comms::details::tag::Tag2<TParams...>;
 
-    std::size_t lengthInternal(FixedLengthLenFieldTag) const
+    template <typename... TParams>
+    std::size_t lengthInternal(FixedLengthLenFieldTag<TParams...>) const
     {
         std::size_t prefixLen = 0U;
         if (!BaseImpl::value().empty()) {
@@ -236,7 +242,8 @@ private:
         return (prefixLen + BaseImpl::length());
     }
 
-    std::size_t lengthInternal(VarLengthLenFieldTag) const
+    template <typename... TParams>
+    std::size_t lengthInternal(VarLengthLenFieldTag<TParams...>) const
     {
         std::size_t prefixLen = 0U;
         if (!BaseImpl::value().empty()) {

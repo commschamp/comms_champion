@@ -15,6 +15,7 @@
 #include "comms/ErrorStatus.h"
 #include "comms/field/basic/CommonFuncs.h"
 #include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -60,12 +61,19 @@ public:
 
     std::size_t length() const
     {
-        return lengthInternal(LenFieldLengthTag(), ElemLengthTag());
+        using ElemLengthTag =
+            typename comms::util::LazyShallowConditional<
+                BaseImpl::minElementLength() == BaseImpl::maxElementLength()
+            >::template Type<
+                FixedLengthElemTag,
+                VarLengthElemTag
+            >;
+        return lengthInternal(LenFieldLengthTag<>(), ElemLengthTag());
     }
 
     std::size_t elementLength(const ElementType& elem) const
     {
-        return elementLengthInternal(elem, LenFieldLengthTag());
+        return elementLengthInternal(elem, LenFieldLengthTag<>());
     }
 
     static constexpr std::size_t minLength()
@@ -232,38 +240,41 @@ public:
 
 private:
 
-    struct FixedLengthLenFieldTag {};
-    struct VarLengthLenFieldTag {};
-    struct FixedLengthElemTag {};
-    struct VarLengthElemTag {};
+    template <typename... TParams>
+    using FixedLengthLenFieldTag = comms::details::tag::Tag1<TParams...>;
 
+    template <typename... TParams>
+    using VarLengthLenFieldTag = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
+    using FixedLengthElemTag = comms::details::tag::Tag3<TParams...>;
+
+    template <typename... TParams>
+    using VarLengthElemTag = comms::details::tag::Tag4<TParams...>;    
+
+    template <typename...>
     using LenFieldLengthTag =
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             LenField::minLength() == LenField::maxLength()
         >::template Type<
             FixedLengthLenFieldTag,
             VarLengthLenFieldTag
         >;
 
-    using ElemLengthTag =
-        typename comms::util::Conditional<
-            BaseImpl::minElementLength() == BaseImpl::maxElementLength()
-        >::template Type<
-            FixedLengthElemTag,
-            VarLengthElemTag
-        >;
-
-    std::size_t lengthInternal(FixedLengthLenFieldTag, FixedLengthElemTag) const
+    template<typename... TParams>
+    std::size_t lengthInternal(FixedLengthLenFieldTag<TParams...>, FixedLengthElemTag<TParams...>) const
     {
         return (LenField::minLength() + BaseImpl::minElementLength()) * BaseImpl::value().size();
     }
 
-    std::size_t lengthInternal(FixedLengthLenFieldTag, VarLengthElemTag) const
+    template<typename... TParams>
+    std::size_t lengthInternal(FixedLengthLenFieldTag<TParams...>, VarLengthElemTag<TParams...>) const
     {
         return lengthInternalIterative();
     }
 
-    std::size_t lengthInternal(VarLengthLenFieldTag, FixedLengthElemTag) const
+    template <typename... TParams>
+    std::size_t lengthInternal(VarLengthLenFieldTag<TParams...>, FixedLengthElemTag<TParams...>) const
     {
         auto origElemLen = BaseImpl::minElementLength();
         auto elemLen = std::min(origElemLen, std::size_t(MaxAllowedElemLength));
@@ -272,7 +283,8 @@ private:
         return (lenField.length() + origElemLen) * BaseImpl::value().size();
     }
 
-    std::size_t lengthInternal(VarLengthLenFieldTag, VarLengthElemTag) const
+    template <typename... TParams>
+    std::size_t lengthInternal(VarLengthLenFieldTag<TParams...>, VarLengthElemTag<TParams...>) const
     {
         return lengthInternalIterative();
     }
@@ -286,12 +298,14 @@ private:
         return result;
     }
 
-    std::size_t elementLengthInternal(const ElementType& elem, FixedLengthLenFieldTag) const
+    template<typename... TParams>
+    std::size_t elementLengthInternal(const ElementType& elem, FixedLengthLenFieldTag<TParams...>) const
     {
         return LenField::minLength() + BaseImpl::elementLength(elem);
     }
 
-    std::size_t elementLengthInternal(const ElementType& elem, VarLengthLenFieldTag) const
+    template <typename... TParams>
+    std::size_t elementLengthInternal(const ElementType& elem, VarLengthLenFieldTag<TParams...>) const
     {
         LenField lenField;
         auto origElemLength = BaseImpl::elementLength(elem);

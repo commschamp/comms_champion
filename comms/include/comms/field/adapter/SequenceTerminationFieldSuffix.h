@@ -10,6 +10,7 @@
 #include "comms/Assert.h"
 #include "comms/ErrorStatus.h"
 #include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -74,7 +75,7 @@ public:
             "Only random access iterator for reading is supported with comms::option::def::SequenceTerminationFieldSuffix option");
 
         using ElemTag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t))
             >::template Type<
                 RawDataTag,
@@ -114,11 +115,14 @@ public:
     }
 
 private:
-    struct RawDataTag {};
-    struct FieldTag {};
+    template <typename... TParams>
+    using RawDataTag = comms::details::tag::Tag1<TParams...>;
 
-    template <typename TIter>
-    comms::ErrorStatus readInternal(TIter& iter, std::size_t len, FieldTag)
+    template <typename... TParams>
+    using FieldTag = comms::details::tag::Tag2<TParams...>;
+
+    template <typename TIter, typename... TParams>
+    comms::ErrorStatus readInternal(TIter& iter, std::size_t len, FieldTag<TParams...>)
     {
         BaseImpl::clear();
         TermField termField;
@@ -142,8 +146,8 @@ private:
         return comms::ErrorStatus::Success;
     }
 
-    template <typename TIter>
-    comms::ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag)
+    template <typename TIter, typename... TParams>
+    comms::ErrorStatus readInternal(TIter& iter, std::size_t len, RawDataTag<TParams...>)
     {
         TermField termField;
         std::size_t consumed = 0U;

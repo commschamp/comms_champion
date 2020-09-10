@@ -15,6 +15,7 @@
 #include "comms/util/BitSizeToByteSize.h"
 #include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -82,12 +83,12 @@ public:
 
     static constexpr SerialisedType toSerialised(ValueType val)
     {
-        return adjustToSerialised(BaseImpl::toSerialised(val), HasSignTag());
+        return adjustToSerialised(BaseImpl::toSerialised(val), HasSignTag<>());
     }
 
     static constexpr ValueType fromSerialised(SerialisedType val)
     {
-        return BaseImpl::fromSerialised(adjustFromSerialised(val, HasSignTag()));
+        return BaseImpl::fromSerialised(adjustFromSerialised(val, HasSignTag<>()));
     }
 
     template <typename TIter>
@@ -127,14 +128,21 @@ public:
     }
 
 private:
+    template <typename... TParams>
+    using UnsignedTag = comms::details::tag::Tag1<TParams...>;
 
-    struct UnsignedTag {};
-    struct SignedTag {};
-    struct NoSignExtTag {};
-    struct MustSignExtTag {};
+    template <typename... TParams>
+    using SignedTag = comms::details::tag::Tag2<TParams...>;    
 
+    template <typename... TParams>
+    using NoSignExtTag = comms::details::tag::Tag3<TParams...>;      
+
+    template <typename... TParams>
+    using MustSignExtTag = comms::details::tag::Tag4<TParams...>;         
+
+    template <typename...>
     using HasSignTag = 
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             std::is_signed<SerialisedType>::value
         >::template Type<
             SignedTag,
@@ -143,20 +151,14 @@ private:
 
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
-    using SignExtTag = 
-        typename comms::util::Conditional<
-            BitLength < static_cast<std::size_t>(std::numeric_limits<UnsignedSerialisedType>::digits)
-        >::template Type<
-            MustSignExtTag,
-            NoSignExtTag
-        >;
-
-    static SerialisedType adjustToSerialised(BaseSerialisedType val, UnsignedTag)
+    template <typename... TParams>
+    static SerialisedType adjustToSerialised(BaseSerialisedType val, UnsignedTag<TParams...>)
     {
         return static_cast<SerialisedType>(val & UnsignedValueMask);
     }
 
-    static SerialisedType adjustToSerialised(BaseSerialisedType val, SignedTag)
+    template <typename... TParams>
+    static SerialisedType adjustToSerialised(BaseSerialisedType val, SignedTag<TParams...>)
     {
         auto valueTmp =
             static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
@@ -164,12 +166,14 @@ private:
         return signExtUnsignedSerialised(valueTmp);
     }
 
-    static BaseSerialisedType adjustFromSerialised(SerialisedType val, UnsignedTag)
+    template <typename... TParams>
+    static BaseSerialisedType adjustFromSerialised(SerialisedType val, UnsignedTag<TParams...>)
     {
         return static_cast<BaseSerialisedType>(val & UnsignedValueMask);
     }
 
-    static BaseSerialisedType adjustFromSerialised(SerialisedType val, SignedTag)
+    template <typename... TParams>
+    static BaseSerialisedType adjustFromSerialised(SerialisedType val, SignedTag<TParams...>)
     {
         auto valueTmp = static_cast<UnsignedSerialisedType>(val) & UnsignedValueMask;
         return
@@ -179,10 +183,18 @@ private:
 
     static SerialisedType signExtUnsignedSerialised(UnsignedSerialisedType val)
     {
+        using SignExtTag = 
+            typename comms::util::LazyShallowConditional<
+                BitLength < static_cast<std::size_t>(std::numeric_limits<UnsignedSerialisedType>::digits)
+            >::template Type<
+                MustSignExtTag,
+                NoSignExtTag
+            >;
         return signExtUnsignedSerialisedInternal(val, SignExtTag());
     }
 
-    static SerialisedType signExtUnsignedSerialisedInternal(UnsignedSerialisedType val, MustSignExtTag)
+    template <typename... TParams>
+    static SerialisedType signExtUnsignedSerialisedInternal(UnsignedSerialisedType val, MustSignExtTag<TParams...>)
     {
         static_assert(
             BitLength < std::numeric_limits<UnsignedSerialisedType>::digits,
@@ -199,12 +211,11 @@ private:
         return static_cast<SerialisedType>(val);
     }
 
-    static SerialisedType signExtUnsignedSerialisedInternal(UnsignedSerialisedType val, NoSignExtTag)
+    template <typename... TParams>
+    static SerialisedType signExtUnsignedSerialisedInternal(UnsignedSerialisedType val, NoSignExtTag<TParams...>)
     {
         return static_cast<SerialisedType>(val);
     }
-
-
 
 private:
     static const UnsignedSerialisedType UnsignedValueMask =

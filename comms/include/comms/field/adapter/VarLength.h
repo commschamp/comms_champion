@@ -16,6 +16,7 @@
 #include "comms/util/access.h"
 #include "comms/util/type_traits.h"
 #include "comms/ErrorStatus.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -172,12 +173,14 @@ public:
     }
 
 private:
+    template <typename... TParams>
+    using UnsignedTag = comms::details::tag::Tag1<TParams...>;
 
-    struct UnsignedTag {};
-    struct SignedTag {};
+    template <typename... TParams>
+    using SignedTag = comms::details::tag::Tag2<TParams...>;
 
     using HasSignTag = 
-        typename comms::util::Conditional<
+        typename comms::util::LazyShallowConditional<
             std::is_signed<SerialisedType>::value
         >::template Type<
             SignedTag,
@@ -186,7 +189,8 @@ private:
 
     using UnsignedSerialisedType = typename std::make_unsigned<SerialisedType>::type;
 
-    std::size_t lengthInternal(UnsignedTag) const
+    template <typename... TParams>
+    std::size_t lengthInternal(UnsignedTag<TParams...>) const
     {
         auto serValue = 
             static_cast<UnsignedSerialisedType>(toSerialised(BaseImpl::value()));
@@ -201,7 +205,8 @@ private:
         return std::max(std::size_t(minLength()), len);
     }
 
-    std::size_t lengthInternal(SignedTag) const
+    template <typename... TParams>
+    std::size_t lengthInternal(SignedTag<TParams...>) const
     {
         auto serValue = toSerialised(BaseImpl::value());
         if (0 <= serValue) {
@@ -262,11 +267,11 @@ private:
     }
 
 
-    template <typename TIter>
+    template <typename TIter, typename... TParams>
     static void writeNoStatusInternal(
         SerialisedType val, 
         TIter& iter, 
-        UnsignedTag, 
+        UnsignedTag<TParams...>, 
         traits::endian::Little) 
     {
         auto unsignedVal = 
@@ -299,11 +304,11 @@ private:
         comms::util::writeData(unsignedValToWrite, len, iter, Endian());
     }
 
-    template <typename TIter>
+    template <typename TIter, typename... TParams>
     static void writeNoStatusInternal(
         SerialisedType val, 
         TIter& iter, 
-        UnsignedTag, 
+        UnsignedTag<TParams...>, 
         traits::endian::Big) 
     {
         auto unsignedVal = 
@@ -337,11 +342,11 @@ private:
         comms::util::writeData(unsignedValToWrite, len, iter, Endian());
     }    
 
-    template <typename TIter, typename TEndian>
+    template <typename TIter, typename TEndian, typename... TParams>
     static void writeNoStatusInternal(
         SerialisedType val, 
         TIter& iter, 
-        SignedTag, 
+        SignedTag<TParams...>, 
         TEndian endian) 
     {
         if (static_cast<SerialisedType>(0) <= val) {
@@ -533,19 +538,20 @@ private:
         comms::util::writeData(unsignedValToWrite, len, iter, Endian());
     }    
 
-
+    template <typename... TParams>
     static constexpr SerialisedType signExtUnsignedSerialised(
         UnsignedSerialisedType val,
         std::size_t,
-        UnsignedTag)
+        UnsignedTag<TParams...>)
     {
         return static_cast<SerialisedType>(val);
     }
 
+    template <typename... TParams>
     static SerialisedType signExtUnsignedSerialised(
         UnsignedSerialisedType val,
         std::size_t bytesCount,
-        SignedTag)
+        SignedTag<TParams...>)
     {
         UnsignedSerialisedType signBitMask = 
             static_cast<UnsignedSerialisedType>(1U) << ((bytesCount * BitsInByte) - (bytesCount + 1));

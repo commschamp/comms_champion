@@ -13,6 +13,7 @@
 #include "comms/util/detect.h"
 #include "comms/field/basic/CommonFuncs.h"
 #include "comms/util/type_traits.h"
+#include "comms/details/tag.h"
 
 namespace comms
 {
@@ -68,7 +69,7 @@ public:
         }
 
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 std::is_integral<ElementType>::value && (sizeof(ElementType) == sizeof(std::uint8_t))
             >::template Type<
                 HasRawDataTag,
@@ -147,7 +148,7 @@ public:
         }
 
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 comms::util::detect::hasResizeFunc<ElementType>()
             >::template Type<
                 HasResizeTag,
@@ -158,17 +159,29 @@ public:
     }
 
 private:
-    struct HasRawDataTag {};
-    struct HasFieldsTag {};
-    struct HasFixedLengthElemsTag {};
-    struct HasVarLengthElemsTag {};
-    struct HasResizeTag {};
-    struct NoResizeTag {};
+    template <typename... TParams>
+    using HasRawDataTag = comms::details::tag::Tag1<TParams...>;
 
-    std::size_t recalcLen(HasFieldsTag) const
+    template <typename... TParams>
+    using HasFieldsTag = comms::details::tag::Tag2<TParams...>;
+
+    template <typename... TParams>
+    using HasFixedLengthElemsTag = comms::details::tag::Tag3<TParams...>;
+
+    template <typename... TParams>
+    using HasVarLengthElemsTag = comms::details::tag::Tag4<TParams...>;    
+
+    template <typename... TParams>
+    using HasResizeTag = comms::details::tag::Tag5<TParams...>;
+
+    template <typename... TParams>
+    using NoResizeTag = comms::details::tag::Tag6<TParams...>;     
+
+    template <typename... TParams>
+    std::size_t recalcLen(HasFieldsTag<TParams...>) const
     {
         using Tag =
-            typename comms::util::Conditional<
+            typename comms::util::LazyShallowConditional<
                 ElementType::minLength() == ElementType::maxLength()
             >::template Type<
                 HasFixedLengthElemsTag,
@@ -177,17 +190,20 @@ private:
         return recalcLen(Tag());
     }
 
-    std::size_t recalcLen(HasRawDataTag) const
+    template <typename... TParams>
+    std::size_t recalcLen(HasRawDataTag<TParams...>) const
     {
         return fixedSize_;
     }
 
-    std::size_t recalcLen(HasFixedLengthElemsTag) const
+    template <typename... TParams>
+    std::size_t recalcLen(HasFixedLengthElemsTag<TParams...>) const
     {
         return fixedSize_ * ElementType::minLength();
     }
 
-    std::size_t recalcLen(HasVarLengthElemsTag) const
+    template <typename... TParams>
+    std::size_t recalcLen(HasVarLengthElemsTag<TParams...>) const
     {
         std::size_t result = 0U;
         auto count = fixedSize_;
@@ -202,7 +218,8 @@ private:
         return result;
     }
 
-    bool doRefresh(HasResizeTag)
+    template <typename... TParams>
+    bool doRefresh(HasResizeTag<TParams...>)
     {
         if (BaseImpl::value() == fixedSize_) {
             return false;
@@ -212,7 +229,8 @@ private:
         return true;
     }
 
-    static constexpr bool doRefresh(NoResizeTag)
+    template <typename... TParams>
+    static constexpr bool doRefresh(NoResizeTag<TParams...>)
     {
         return false;
     }

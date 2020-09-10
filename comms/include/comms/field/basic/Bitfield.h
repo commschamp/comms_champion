@@ -115,7 +115,7 @@ public:
 
 private:
     TSerializedType value_ = TSerializedType();
-    std::size_t pos_;
+    std::size_t pos_ = 0U;
 };
 
 template <typename TSerializedType>
